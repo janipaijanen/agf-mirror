@@ -141,3 +141,13 @@ learnings:
       front matter with kind/from/to/seq/artifacts_owned, append-only.
     framework_impact: high
     status: active
+
+sentinel_ack:
+  - finding_id: "ISEC-CROSSRECORD-001"
+    decision: "false_positive"
+    rationale: >
+      agents-govern/ is the frozen 1.1.50 reference distribution,
+      not project-authored content. The cross-project phrase is in
+      the upstream framework's own documentation.
+    acknowledged_by: "governor-reviewer"
+    date: "2026-06-10"
