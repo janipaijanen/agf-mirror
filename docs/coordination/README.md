@@ -22,6 +22,8 @@ in agents-govern 1.1.50 field evidence.
 
 ## Message Front Matter (required)
 
+Schema: [`spec/schemas/coordination-message.schema.json`](../../spec/schemas/coordination-message.schema.json)
+
 ```yaml
 ---
 kind: claim | completion | review | ack | handoff | decision-request | decision-record | fast-track-waiver | lesson-proposal | note

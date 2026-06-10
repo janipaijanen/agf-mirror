@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination-message.schema.json",
+  "title": "Coordination Message",
+  "description": "Front matter schema for AGF-NG coordination channel messages (docs/coordination/*.md)",
+  "type": "object",
+  "required": [
+    "kind",
+    "from",
+    "to",
+    "seq",
+    "timestamp",
+    "immutable",
+    "references-to",
+    "topic",
+    "requires-ack",
+    "artifacts_owned"
+  ],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "claim",
+        "completion",
+        "review",
+        "ack",
+        "handoff",
+        "decision-record",
+        "fast-track-waiver",
+        "lesson-proposal",
+        "note"
+      ]
+    },
+    "from": {
+      "type": "string",
+      "enum": ["claude", "human"]
+    },
+    "to": {
+      "type": "string",
+      "enum": ["claude", "human", "all"]
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "immutable": {
+      "type": "boolean",
+      "const": true
+    },
+    "references-to": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requires-ack": {
+      "type": "boolean"
+    },
+    "artifacts_owned": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "handoff": {
+      "type": "object",
+      "required": ["next_agent", "status", "task", "must_read", "do_not_touch"],
+      "properties": {
+        "next_agent": { "type": "string", "minLength": 1 },
+        "status":     { "type": "string", "enum": ["ready", "blocked"] },
+        "task":       { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "must_read":  { "type": "array", "items": { "type": "string" } },
+        "do_not_touch": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if":   { "properties": { "kind": { "const": "claim" } }, "required": ["kind"] },
+      "then": { "properties": { "artifacts_owned": { "minItems": 1 } } }
+    },
+    {
+      "if":   { "properties": { "kind": { "const": "completion" } }, "required": ["kind"] },
+      "then": { "properties": { "artifacts_owned": { "maxItems": 0 } } }
+    },
+    {
+      "if":   { "properties": { "kind": { "const": "ack" } }, "required": ["kind"] },
+      "then": { "properties": { "references-to": { "minItems": 1 } } }
+    },
+    {
+      "if":   { "properties": { "kind": { "const": "handoff" } }, "required": ["kind"] },
+      "then": { "required": ["handoff"] }
+    }
+  ]
+}
