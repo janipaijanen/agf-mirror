@@ -33,11 +33,13 @@
     },
     "from": {
       "type": "string",
-      "enum": ["claude", "human"]
+      "minLength": 1,
+      "description": "Role identifier from MANIFEST.yaml (e.g. planner-architect, human). Not a model name."
     },
     "to": {
       "type": "string",
-      "enum": ["claude", "human", "all"]
+      "minLength": 1,
+      "description": "Role identifier from MANIFEST.yaml, or 'all'. Not a model name."
     },
     "seq": {
       "type": "integer",
