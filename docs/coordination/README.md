@@ -24,19 +24,25 @@ in agents-govern 1.1.50 field evidence.
 
 Schema: [`spec/schemas/coordination-message.schema.json`](../../spec/schemas/coordination-message.schema.json)
 
+**`from` and `to` MUST be role identifiers from `agents-govern/agents/MANIFEST.yaml`**
+(e.g. `planner-architect`, `coder-tester`, `governor-reviewer`, `human`).
+Never a model name (not `claude`, not `gpt-4`).
+
 ```yaml
 ---
 kind: claim | completion | review | ack | handoff | decision-request | decision-record | fast-track-waiver | lesson-proposal | note
-from: claude | human
-to: claude | human | all
+from: <role-identifier>              # role from MANIFEST — stable, required, used for routing
+to: <role-identifier> | all
 seq: N
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
-references-to: []          # list of prior message filenames
+references-to: []                    # list of prior message filenames
 topic: short-topic-slug
 requires-ack: false
-artifacts_owned:           # files/artifacts claimed by this message
-  - path/to/file           # ownership lapses on completion with empty list
+artifacts_owned:                     # files/artifacts claimed by this message
+  - path/to/file                     # ownership lapses on completion with empty list
+model: <llm-identifier>              # optional — LLM instance (e.g. claude-sonnet-4-6); provenance only
+session: <uuidv7>                    # optional — session identifier; one per agent invocation; audit only
 ---
 ```
 

@@ -68,6 +68,16 @@
       "type": "array",
       "items": { "type": "string" }
     },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "LLM instance that produced this message (e.g. claude-sonnet-4-6). Optional. Provenance only — never used for routing."
+    },
+    "session": {
+      "type": "string",
+      "minLength": 1,
+      "description": "UUIDv7 session identifier. A new session begins when an agent invocation starts writing to the channel. Optional. Audit only."
+    },
     "handoff": {
       "type": "object",
       "required": ["next_agent", "status", "task", "must_read", "do_not_touch"],
