@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "rule.schema.json",
+  "title": "Rule",
+  "description": "Front matter schema for AGF-NG rules-template rule files",
+  "type": "object",
+  "required": ["id", "scope", "applies_to", "evidence"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Kebab-case rule identifier. Unique within the rules-template."
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["always", "workflow", "docs", "ui"],
+      "description": "Directory scope — matches rules-template subdirectory."
+    },
+    "applies_to": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["llm-agent", "human-agent", "ci", "all"]
+      },
+      "minItems": 1,
+      "description": "Which actor types this rule constrains."
+    },
+    "evidence": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Learning ID, codename, or citation that justifies this rule."
+    },
+    "upstream_candidate": {
+      "type": "boolean",
+      "description": "True if this rule is ready to propose back to the upstream framework."
+    },
+    "strength": {
+      "type": "string",
+      "enum": ["MUST", "SHOULD", "MAY"],
+      "description": "Obligation strength. Defaults to MUST if omitted."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "provisional", "deprecated"],
+      "description": "Lifecycle status. Defaults to active if omitted."
+    },
+    "see_also": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Related rule IDs."
+    }
+  },
+  "additionalProperties": false
+}
