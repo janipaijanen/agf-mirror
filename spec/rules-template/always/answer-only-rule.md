@@ -1,11 +1,15 @@
+---
+id: answer-only-rule
+scope: always
+applies_to: [llm-agent, human-agent]
+evidence: foundry-2026-06-10
+upstream_candidate: true
+strength: MUST
+status: active
+see_also: []
+---
+
 # Answer Questions; Do Not Also Implement
-#
-# Framework principle: Boundary enforcement — interaction clarity
-# Evidence: foundry (2026-06-10, Governor-Reviewer directive)
-
-**Scope:** Every interaction where a human or agent asks a question.
-
-## Rule
 
 When a question is asked, answer it. Stop.
 
@@ -30,13 +34,13 @@ implementation is review burden, potential revert, and loss of trust.
 
 - Every question in every context: design questions, clarification
   questions, "what do you think?" questions, architecture questions
-- Applies regardless of how obvious the fix seems while answering
-- Applies regardless of how small the implementation would be
+- Regardless of how obvious the fix seems while answering
+- Regardless of how small the implementation would be
 
 ## Does not apply to
 
 - Explicit implementation requests ("fix this", "proceed", "implement")
-- Tasks that are requests, not questions, even if phrased as questions
-  ("can you add X?" where intent is clearly a request)
+- Tasks phrased as questions where intent is clearly a request
+  ("can you add X?" where the ask is unambiguous)
 
 When in doubt: answer, then ask "should I also implement this?"
