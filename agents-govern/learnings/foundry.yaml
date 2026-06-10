@@ -1,0 +1,143 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+# =============================================================================
+# Project Learning Record: foundry
+# =============================================================================
+# Codename: foundry
+# Note: This project IS the framework upstream. Learnings here directly shape
+# the next framework release; they are not submitted to an external repo but
+# fed back into this project's own evolution. The anonymization policy is
+# relaxed in the private working copy; public submissions use the codename.
+# =============================================================================
+
+project:
+  codename: "foundry"
+  description: >
+    Next-generation governance framework for multi-agent software development.
+    Builds on field evidence from two independent adopter projects to address
+    known gaps: operational substrate (ownership queries, handoff state,
+    coordination schemas), governance tightening (advisory consultation
+    enforcement, digest tooling), and adoption experience improvements.
+  started_adopting: "2026-06-11"
+
+adoption:
+  framework_id: "agents-govern"
+  framework_version: "1.1.50"
+  framework_commit: ""          # fill in after git init
+  agent_definitions:
+    - id: "agents-govern:planner-architect:0.4.0"
+      local_path: "agents-govern/agents/planner-architect.yaml"
+      customized: true
+      customization_notes: "Purpose and design_principles updated for framework development context"
+    - id: "agents-govern:coder-tester:0.3.2"
+      local_path: "agents-govern/agents/coder-tester.yaml"
+      customized: true
+      customization_notes: "Jurisdiction updated for framework artifacts (framework.md, agents/*.yaml, rules-template, skills)"
+    - id: "agents-govern:governor-reviewer:0.4.0"
+      local_path: "agents-govern/agents/governor-reviewer.yaml"
+      customized: true
+      customization_notes: "Design principles extended with evidence-first and self-governing principles"
+    - id: "agents-govern:contribution-auditor:0.3.0"
+      local_path: "agents-govern/agents/contribution-auditor.yaml"
+      customized: false
+    - id: "agents-govern:infosec-sentinel:0.3.0"
+      local_path: "agents-govern/agents/infosec-sentinel.yaml"
+      customized: false
+  upgrade_history: []
+
+business_domain:
+  primary: "developer-tools"
+  secondary: ["framework", "ai-governance", "multi-agent-systems"]
+
+regulatory_context:
+  frameworks: ["CC-BY-SA-4.0"]
+  data_residency: "no constraints"
+  notes: "Open-source framework; no personal data processed"
+
+team:
+  size: 1
+  roles: ["framework-author", "governor-reviewer"]
+  ai_agents_used: ["claude-sonnet-4-6"]
+
+lifecycle_state:
+  current: "greenfield"
+  target: "framework release — next major version of agents-govern"
+
+customer_state:
+  paying_customers: false
+  notes: "Open-source; adopters are the users"
+
+revenue_context:
+  model: "open-source"
+
+codebase:
+  primary_language: ""
+  secondary_languages: ["python", "yaml", "markdown"]
+  test_coverage_estimate: "n/a — framework is documentation + tooling"
+  ci_cd: false
+  notes: >
+    Framework artifacts: framework.md, agents/*.yaml, rules-template/**,
+    skills/**, schemas/**, learnings/**, pyproject.toml, CHANGELOG.md.
+    Python tooling (agov-* validators) lives in src/ and is tested via pytest.
+
+environments:
+  - name: "development"
+    has_pii: false
+    policy_level: "relaxed"
+  - name: "release"
+    has_pii: false
+    policy_level: "strict"
+
+# ---- Learning Records ----
+# Format:
+#   id: L001, L002, ...
+#   date: YYYY-MM-DD
+#   category: gap | overkill | validation | adaptation | tension
+#   agents_involved: [agent-names]
+#   summary: one sentence
+#   detail: multi-line description
+#   framework_impact: low | medium | high
+#   status: proposed | active | resolved
+
+learnings:
+
+  - id: L001
+    date: "2026-06-11"
+    category: adaptation
+    agents_involved: [planner-architect, coder-tester, governor-reviewer]
+    summary: >
+      Framework adopted to govern its own next-version development — a
+      self-referential bootstrap that is both a proof-of-concept and a
+      stress test.
+    detail: >
+      AGF-NG adopts agents-govern 1.1.50 (Layout B) to govern the development
+      of the next version of agents-govern. This creates useful tension:
+      every governance friction experienced during development is direct
+      evidence for a proposal to fix. The project codename is "foundry".
+
+      Initial assessment from five AI models (Lumo, Claude, Grok, ChatGPT,
+      CoPilot, Claude Code, Codex) identified two independent adopter
+      field adopter projects as the evidence base. All
+      models converged on operational substrate gaps as the highest-priority
+      improvement area.
+    framework_impact: high
+    status: active
+
+  - id: L002
+    date: "2026-06-11"
+    category: adaptation
+    agents_involved: [governor-reviewer]
+    summary: >
+      Coordination channel adopted as first-class protocol from day one,
+      not discovered organically as in prior adopter projects.
+    detail: >
+      Prior adopter projects grew the coordination channel organically
+      from need. AGF-NG adopts it explicitly from the start, encoding
+      the pattern as a first-class governance artifact. This tests
+      whether the channel is teachable without field discovery.
+
+      The channel follows the field-validated convention: immutable
+      Markdown files at docs/coordination/<seq>-<sender>.md, YAML
+      front matter with kind/from/to/seq/artifacts_owned, append-only.
+    framework_impact: high
+    status: active

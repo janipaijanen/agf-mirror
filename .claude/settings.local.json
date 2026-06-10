@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /home/devi/src/AGF-NG/.claude/rules)",
+      "Bash(cp -r /home/devi/src/AGF-NG/agents-govern/rules-template/* /home/devi/src/AGF-NG/.claude/rules/)",
+      "Bash(git add *)"
+    ]
+  }
+}

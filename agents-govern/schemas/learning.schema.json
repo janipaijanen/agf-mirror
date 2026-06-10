@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gitlab.com/janipaijanen/agent-governance/-/raw/main/schemas/learning.schema.json",
+  "title": "Project Learning Record",
+  "description": "Schema for learnings/<codename>.yaml files. Generated artefact; the Python validator at src/agents_govern/validate_learnings.py is the contract of record (see docs/integration-contract.md#schema-of-record-hierarchy). Cross-artefact invariants (append-only supersession, confidence corroboration thresholds) live in schemas/invariants.yaml.",
+  "type": "object",
+  "required": ["project"],
+  "properties": {
+    "project": {
+      "type": "object",
+      "required": ["codename"],
+      "properties": {
+        "codename": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Mandatory pseudonym, never the real project name. Anonymisation policy enforced separately by validate-infosec."
+        },
+        "description": {"type": "string"},
+        "started_adopting": {"type": "string"}
+      }
+    },
+    "adoption": {
+      "type": "object",
+      "properties": {
+        "framework_id": {"type": "string"},
+        "framework_version": {"type": "string"},
+        "framework_commit": {"type": "string"},
+        "agent_definitions": {"type": "array"},
+        "upgrade_history": {"type": "array"}
+      }
+    },
+    "learnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {"type": "string"},
+          "category": {
+            "type": "string",
+            "description": "Conventional values per learnings/_template.yaml: gap | overkill | validation | adaptation | tension. The Python validator does not currently enforce the enum; this schema follows the validator (per source-of-truth hierarchy)."
+          },
+          "scope": {
+            "type": "string",
+            "description": "Conventional values: framework | project. Validator does not currently enforce."
+          },
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "agents_involved": {"type": "array"},
+          "framework_section": {"type": "string"},
+          "business_impact": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Conventional values across the corpus: prevented_loss | enabled_revenue | cost_overhead | neutral | positive. Validator does not enforce the enum."
+              },
+              "description": {"type": "string"}
+            }
+          },
+          "recommendation": {"type": "string"},
+          "severity": {
+            "type": "string",
+            "description": "Conventional values: critical | significant | minor | informational. Validator does not enforce the enum."
+          },
+          "superseded_by": {
+            "type": "string",
+            "description": "Optional forward-pointer to a later entry's title in this same file. Validated structurally by validate_learnings (must point forward)."
+          },
+          "confidence": {
+            "type": "object",
+            "required": ["level"],
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": [
+                  "single-adopter",
+                  "multi-adopter",
+                  "longitudinal",
+                  "industry-corroborated"
+                ]
+              },
+              "evidence_count": {"type": "integer", "minimum": 0},
+              "evidence_refs": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "sentinel_ack": {
+      "type": "array",
+      "description": "Acknowledgements for findings the infosec-sentinel validator flagged. Per-finding shape enforced by validate-infosec, not this schema."
+    }
+  },
+  "additionalProperties": true
+}

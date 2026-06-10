@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+# =============================================================================
+# Agent Manifest — AGF-NG project (foundry)
+# =============================================================================
+# Framework version: 1.1.50  |  Layout: B
+# Governor-Reviewer approval required for all status changes.
+# Run: cd agents-govern && uv run agov-validate-agents
+# =============================================================================
+
+agents:
+  planner-architect:
+    status: active
+    played_by: "claude (AI, claude-sonnet-4-6)"
+
+  coder-tester:
+    status: active
+    played_by: "claude (AI, claude-sonnet-4-6)"
+
+  governor-reviewer:
+    status: active
+    played_by: "human (Jani)"
+
+  contribution-auditor:
+    status: active
+    played_by: "human (Jani) + claude (AI, at plan review)"
+    notes: >
+      Audits incoming proposals from AI assessment synthesis and future
+      contributors. Also audits any upstream framework upgrade diffs.
+
+  infosec-sentinel:
+    status: active
+    played_by: "ci (agov-validate-infosec, on commit)"
+
+  build-engineer:
+    status: suspended
+    reason: "no CI pipeline yet; agov validators run manually"
+    resume_when: "CI pipeline established for automated validation"
+
+  fact-checker:
+    status: suspended
+    reason: "no automated README stats to validate yet"
+    resume_when: "framework metrics published in docs"
+
+  capability-developer:
+    status: suspended
+    reason: "fewer than 10 learnings; activate when patterns emerge"
+    resume_when: "10+ learnings with recurring themes in foundry.yaml"
+
+  documentation-writer:
+    status: skipped
+    reason: "coder-tester owns framework docs in Phase 1"
+
+  deployment-engineer:
+    status: skipped
+    reason: "release process: manual version bump + changelog + git tag"
+
+  academic-peer-reviewer:
+    status: skipped
+    reason: "no academic publications in this project"
+
+  academic-visual-reviewer:
+    status: skipped
+    reason: "no academic publications in this project"
