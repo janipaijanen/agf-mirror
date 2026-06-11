@@ -6,3 +6,12 @@ __pycache__/
 dist/
 build/
 .DS_Store
+
+# Secrets
+.env
+.env.*
+*.env
+
+# Elixir
+tooling/elixir/_build/
+tooling/elixir/deps/

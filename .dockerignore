@@ -1,0 +1,23 @@
+tmp/
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+.DS_Store
+
+# Secrets
+.env
+.env.*
+*.env
+
+# Elixir
+tooling/elixir/_build/
+tooling/elixir/deps/
+
+# Development / governance artifacts
+.git/
+.claude/
+docs/coordination/
+agents-govern/
