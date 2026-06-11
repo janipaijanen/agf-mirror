@@ -9,20 +9,25 @@ defmodule Agov.ChannelReader do
         {:error, :dir_not_found}
 
       {:ok, files} ->
-        messages =
+        {messages, invalid_files} =
           files
           |> Enum.filter(&String.ends_with?(&1, ".md"))
           |> Enum.sort()
-          |> Enum.flat_map(fn filename ->
+          |> Enum.reduce({[], []}, fn filename, {valid, invalid} ->
             path = Path.join(coord_dir, filename)
 
             case CoordValidator.validate_file(path) do
-              {:ok, data} -> [{filename, data}]
-              {:error, _} -> []
+              {:ok, data} -> {[{filename, data} | valid], invalid}
+              {:error, _} -> {valid, [filename | invalid]}
             end
           end)
+
+        messages =
+          messages
+          |> Enum.reverse()
           |> Enum.sort_by(fn {_file, data} -> data["seq"] end)
 
+        invalid_files = Enum.reverse(invalid_files)
         total = length(messages)
 
         seq_range =
@@ -35,7 +40,7 @@ defmodule Agov.ChannelReader do
               {Enum.min(seqs), Enum.max(seqs)}
           end
 
-        {:ok, %{messages: messages, total: total, seq_range: seq_range}}
+        {:ok, %{messages: messages, total: total, seq_range: seq_range, invalid_files: invalid_files}}
     end
   end
 end
