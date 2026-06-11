@@ -1,6 +1,8 @@
 ---
 id: T1-5-handoff-release-tracking
-status: pending-gate1
+status: approved
+gate1_approved_by: "governor-reviewer"
+gate1_approved_at: "2026-06-11T09:17:00Z"
 topic: handoff-release-tracking
 advisory_consultation:
   - role: infosec-sentinel
