@@ -2,9 +2,10 @@ defmodule Agov.ClaimTracker do
   @moduledoc false
 
   def scan(messages, opts \\ []) do
-    now = Keyword.get(opts, :now, DateTime.utc_now())
+    now     = Keyword.get(opts, :now, DateTime.utc_now())
+    aliases = Keyword.get(opts, :from_aliases, %{})
 
-    case process_messages(messages) do
+    case process_messages(messages, aliases) do
       {:error, error} ->
         {:error, [error]}
 
@@ -14,16 +15,16 @@ defmodule Agov.ClaimTracker do
     end
   end
 
-  defp process_messages(messages) do
+  defp process_messages(messages, aliases) do
     Enum.reduce_while(messages, {:ok, %{}, []}, fn msg, {:ok, active, released} ->
-      case process_message(msg, active, released) do
+      case process_message(msg, active, released, aliases) do
         {:error, _} = err -> {:halt, err}
         {:ok, new_active, new_released} -> {:cont, {:ok, new_active, new_released}}
       end
     end)
   end
 
-  defp process_message(%{"kind" => "claim"} = msg, active, released) do
+  defp process_message(%{"kind" => "claim"} = msg, active, released, _aliases) do
     seq = msg["seq"]
     from = msg["from"]
     claimed_at = msg["timestamp"]
@@ -48,17 +49,42 @@ defmodule Agov.ClaimTracker do
     end
   end
 
-  defp process_message(%{"kind" => "completion", "artifacts_owned" => []} = msg, active, released) do
-    from = msg["from"]
+  defp process_message(
+         %{"kind" => "completion", "artifacts_owned" => paths} = msg,
+         active,
+         released,
+         aliases
+       )
+       when is_list(paths) and paths != [] do
+    from = resolve_from(msg["from"], aliases)
 
     {releasing, remaining} =
-      Enum.split_with(active, fn {_path, entry} -> entry.from == from end)
+      Enum.split_with(active, fn {path, entry} ->
+        path in paths and resolve_from(entry.from, aliases) == from
+      end)
 
     newly_released = Enum.map(releasing, fn {path, entry} -> Map.put(entry, :path, path) end)
     {:ok, Map.new(remaining), released ++ newly_released}
   end
 
-  defp process_message(_msg, active, released) do
+  defp process_message(
+         %{"kind" => "completion", "artifacts_owned" => []} = msg,
+         active,
+         released,
+         aliases
+       ) do
+    from = resolve_from(msg["from"], aliases)
+
+    {releasing, remaining} =
+      Enum.split_with(active, fn {_path, entry} ->
+        resolve_from(entry.from, aliases) == from
+      end)
+
+    newly_released = Enum.map(releasing, fn {path, entry} -> Map.put(entry, :path, path) end)
+    {:ok, Map.new(remaining), released ++ newly_released}
+  end
+
+  defp process_message(_msg, active, released, _aliases) do
     {:ok, active, released}
   end
 
@@ -79,6 +105,8 @@ defmodule Agov.ClaimTracker do
       end
     end)
   end
+
+  defp resolve_from(from, aliases), do: Map.get(aliases, from, from)
 
   defp parse_expires_on(nil, _seq), do: {:ok, nil}
 

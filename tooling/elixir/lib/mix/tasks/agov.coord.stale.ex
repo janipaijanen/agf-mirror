@@ -6,6 +6,7 @@ defmodule Mix.Tasks.Agov.Coord.Stale do
   def run(args) do
     {opts, _, _} = OptionParser.parse(args, strict: [dir: :string])
     coord_dir = Keyword.get(opts, :dir, "../../docs/coordination")
+    config = Agov.CoordConfig.load(coord_dir)
 
     case File.ls(coord_dir) do
       {:error, :enoent} ->
@@ -17,7 +18,7 @@ defmodule Mix.Tasks.Agov.Coord.Stale do
         |> Enum.filter(&String.ends_with?(&1, ".md"))
         |> Enum.sort()
         |> load_messages(coord_dir)
-        |> run_tracker()
+        |> run_tracker(config.from_aliases)
     end
   end
 
@@ -32,11 +33,11 @@ defmodule Mix.Tasks.Agov.Coord.Stale do
     end)
   end
 
-  defp run_tracker(file_messages) do
+  defp run_tracker(file_messages, aliases) do
     seq_to_file = Map.new(file_messages, fn {filename, data} -> {data["seq"], filename} end)
     messages = Enum.map(file_messages, &elem(&1, 1))
 
-    case Agov.ClaimTracker.scan(messages, now: DateTime.utc_now()) do
+    case Agov.ClaimTracker.scan(messages, now: DateTime.utc_now(), from_aliases: aliases) do
       {:error, errors} ->
         Enum.each(errors, fn {:invalid_expires_on, seq, value} ->
           filename = Map.get(seq_to_file, seq, "seq=#{seq}")

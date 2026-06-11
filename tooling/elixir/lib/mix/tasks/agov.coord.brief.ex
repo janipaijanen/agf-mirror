@@ -15,6 +15,8 @@ defmodule Mix.Tasks.Agov.Coord.Brief do
     to = Keyword.get(opts, :to)
     topic = Keyword.get(opts, :topic)
 
+    config = Agov.CoordConfig.load(coord_dir)
+
     channel_info =
       case Agov.ChannelReader.scan(coord_dir) do
         {:error, :dir_not_found} ->
@@ -28,7 +30,7 @@ defmodule Mix.Tasks.Agov.Coord.Brief do
           parsed = Enum.map(messages, &elem(&1, 1))
 
           active_claims =
-            case Agov.ClaimTracker.scan(parsed) do
+            case Agov.ClaimTracker.scan(parsed, from_aliases: config.from_aliases) do
               {:ok, %{active: active}} -> length(active)
               _ -> 0
             end
