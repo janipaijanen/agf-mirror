@@ -184,6 +184,68 @@ learnings:
       agent is coder-tester. The enforcement boundary is protocol-level, not
       schema-level.
 
+  - id: L004
+    date: "2026-06-11"
+    category: gap
+    agents_involved: [planner-architect, governor-reviewer]
+    summary: >
+      Coordination channel ownership claims from the pre-role-identifier era
+      are permanently orphaned — no completion can ever release them.
+    detail: >
+      seq 3 (from: claude, 2026-06-11) posted a claim message asserting
+      ownership over three artifacts:
+        - spec/schemas/coordination-message.schema.json
+        - docs/plans/T1-1-coordination-kind-schema.md
+        - docs/coordination/README.md
+
+      At the time, the project used model names (claude, human) as agent
+      identifiers, before the role-identifier convention (planner-architect,
+      coder-tester, governor-reviewer) was established. The role-identifier
+      convention was adopted mid-project with no migration mechanism.
+
+      ClaimTracker's release algorithm requires a completion message whose
+      from field matches the claiming agent's from value. Because no agent
+      will ever again send coordination messages as from: claude, no
+      completion can match the seq 3 claim. The three artifacts will appear
+      as permanently active (unreleased) ownership entries in
+      mix agov.coord.status forever, even though all the work was completed
+      and merged.
+
+      The work itself is not impaired — all three artifacts are correct in
+      master. The issue is cosmetic noise in the channel overview plus a
+      gap in the ownership protocol: there is no administrative release
+      mechanism for naming-convention migrations or agent-identifier renames.
+
+      Root cause: ClaimTracker uses strict from-field matching for release.
+      No override, alias, or administrative release kind exists in the protocol.
+
+      Discovery: mix agov.coord.status (T1-2) showed three active ownership
+      entries with from: claude that will never clear.
+
+      Relationship to T2-6 follow-on: the deferred releases_artifacts feature
+      (partial release) would not solve this case — it still requires the
+      releasing message to have the same from value as the claiming message.
+      A separate administrative-release mechanism or from-alias support
+      would be required.
+    framework_impact: low
+    status: proposed
+    recommendation: >
+      Option A: Add an administrative-release message kind (e.g. admin-release)
+      that may specify a target seq to release, bypassing from-field matching.
+      Requires governor-reviewer authority to prevent misuse.
+
+      Option B: Support a from-aliases field in a project configuration file,
+      mapping retired identifiers (claude) to their successor role (planner-architect).
+      ClaimTracker treats an alias match as equivalent to a direct match for
+      release purposes.
+
+      Option C: Accept the orphaned claims as permanent cosmetic noise and add a
+      --ignore-seq N flag to mix agov.coord.status to suppress known orphans.
+      Lowest implementation cost; does not close the protocol gap.
+
+      Preferred: Option B (alias mapping), deferred to T2-6 follow-on scope.
+      Option C acceptable as an immediate cosmetic fix if needed.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
