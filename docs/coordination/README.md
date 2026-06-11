@@ -10,7 +10,7 @@ in agents-govern 1.1.50 field evidence.
 - **Immutable files.** A message file is never edited after creation.
   Corrections are new messages that reference the original.
 - **File naming:** `<zero-padded-seq>-<sender>.md`
-  e.g. `00001-claude.md`, `00002-human.md`
+  e.g. `00001-planner-architect.md`, `00002-governor-reviewer.md`
 - **Sequence collisions** are valid. When two agents write at the same
   sequence, both files are authoritative. Read ALL files at a sequence
   before advancing.
@@ -24,14 +24,18 @@ in agents-govern 1.1.50 field evidence.
 
 Schema: [`spec/schemas/coordination-message.schema.json`](../../spec/schemas/coordination-message.schema.json)
 
-**`from` and `to` MUST be role identifiers from `agents-govern/agents/MANIFEST.yaml`**
-(e.g. `planner-architect`, `coder-tester`, `governor-reviewer`, `human`).
+**`from` and `to` MUST be role identifiers** (e.g. `planner-architect`,
+`coder-tester`, `governor-reviewer`, `contribution-auditor`, `all`).
 Never a model name (not `claude`, not `gpt-4`).
+
+The current role registry is `agents-govern/agents/MANIFEST.yaml` — this is
+the bootstrap authority for the current development phase. Where AGF-NG will
+define its own role authority is an open question (see seq 13 note).
 
 ```yaml
 ---
-kind: claim | completion | review | ack | handoff | decision-request | decision-record | fast-track-waiver | lesson-proposal | note
-from: <role-identifier>              # role from MANIFEST — stable, required, used for routing
+kind: claim | completion | review | ack | handoff | decision-record | fast-track-waiver | lesson-proposal | note
+from: <role-identifier>
 to: <role-identifier> | all
 seq: N
 timestamp: YYYY-MM-DDTHH:MM:SSZ
@@ -39,25 +43,31 @@ immutable: true
 references-to: []                    # list of prior message filenames
 topic: short-topic-slug
 requires-ack: false
-artifacts_owned:                     # files/artifacts claimed by this message
-  - path/to/file                     # ownership lapses on completion with empty list
-model: <llm-identifier>              # optional — LLM instance (e.g. claude-sonnet-4-6); provenance only
-session: <uuidv7>                    # optional — session identifier; one per agent invocation; audit only
+artifacts_owned: []                  # files/artifacts claimed; empty on completion
+model: <llm-identifier>              # optional — provenance only (e.g. claude-sonnet-4-6)
+session: <uuidv7>                    # optional — session identifier; audit only
 ---
 ```
 
+`model` and `session` are optional provenance fields. Templates below show
+required fields only; include `model` and `session` when useful for audit.
+
 ### `kind` semantics
 
-| Kind | Required fields beyond front matter |
-|------|-------------------------------------|
-| `claim` | Non-empty `artifacts_owned` or explanation why not |
-| `completion` | `verification:` section; releases claimed artifacts (empty `artifacts_owned`) |
-| `review` | `findings:` section (or explicit "no findings") |
-| `ack` | Must reference the message being acknowledged |
-| `handoff` | `next_agent:`, `task:`, `must_read:`, `do_not_touch:` |
-| `decision-record` | Chosen option and rationale |
-| `fast-track-waiver` | Task, why low-risk, who waived |
-| `lesson-proposal` | `observed_pattern:`, `proposed_lesson:`, `where_it_lives:` |
+Body expectations marked **(prose)** are conventions for the message body —
+they are not validated by the schema. Fields marked **(schema)** are enforced
+by `mix agov.coord.validate`.
+
+| Kind | Body expectations |
+|------|-------------------|
+| `claim` | **(schema)** Non-empty `artifacts_owned` — schema rejects empty |
+| `completion` | `verification:` section **(prose)**; releases claimed artifacts (empty `artifacts_owned`) |
+| `review` | `findings:` section or explicit "no findings" **(prose)** |
+| `ack` | **(schema)** Must reference the message being acknowledged via `references-to` |
+| `handoff` | **(schema)** `handoff` object with `next_agent`, `status` (`ready`\|`blocked`), `task` (non-empty array), `must_read`, `do_not_touch` |
+| `decision-record` | Chosen option and rationale **(prose)** |
+| `fast-track-waiver` | Task, why low-risk, who waived **(prose)** |
+| `lesson-proposal` | `observed_pattern:`, `proposed_lesson:`, `where_it_lives:` **(prose)** |
 | `note` | No additional required fields |
 
 ---
@@ -76,11 +86,14 @@ released.
 
 ## Templates
 
+Templates show required front matter only. Add `model:` and `session:`
+when useful for audit or provenance.
+
 ### Claim
 ```markdown
 ---
 kind: claim
-from: claude
+from: planner-architect
 to: all
 seq: N
 timestamp: YYYY-MM-DDTHH:MM:SSZ
@@ -109,13 +122,13 @@ Planned verification:
 ```markdown
 ---
 kind: completion
-from: claude
+from: coder-tester
 to: all
 seq: N
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to:
-  - 000NN-claude.md
+  - 000NN-coder-tester.md
 topic: completion-topic
 requires-ack: false
 artifacts_owned: []
@@ -137,23 +150,23 @@ Remaining risk or next handoff:
 ```markdown
 ---
 kind: handoff
-from: claude
-to: human
+from: planner-architect
+to: governor-reviewer
 seq: N
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to:
-  - 000NN-claude.md
+  - 000NN-planner-architect.md
 topic: handoff-topic
 requires-ack: false
 artifacts_owned: []
 handoff:
-  next_agent: human
+  next_agent: governor-reviewer
   status: ready
   task:
     - specific action item
   must_read:
-    - docs/coordination/000NN-claude.md
+    - docs/coordination/000NN-planner-architect.md
   do_not_touch: []
 ---
 ```
@@ -162,8 +175,8 @@ handoff:
 ```markdown
 ---
 kind: fast-track-waiver
-from: human
-to: claude
+from: governor-reviewer
+to: planner-architect
 seq: N
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
