@@ -9,13 +9,14 @@ advisory_consultation:
     status: not-applicable
     reason: schema extension only — no security boundary, auth, or secrets changes
   - role: contribution-auditor
-    status: not-applicable
-    reason: incremental and well-scoped extension to an existing schema field; governor-reviewer Gate 1 and Gate 2 review is sufficient oversight
+    status: consulted
+    reason: reviewed as seq 17 (contribution-auditor, codex-gpt-5)
 ---
 
 # Plan: T2-6 — artifacts_owned Lapse Semantics
 
 **Date:** 2026-06-11T05:05:55Z
+**Revised:** 2026-06-11 — addresses contribution-auditor review (seq 17)
 **Status:** PENDING GATE 1 APPROVAL
 **Depends on:** T1-1 Phase A (coordination-message.schema.json, merged ✓), T1-1 Phase B (CoordValidator, merged ✓)
 
@@ -63,13 +64,14 @@ follow-on task.
 | File | Action |
 |---|---|
 | `spec/schemas/coordination-message.schema.json` | Update — add `expires_on` optional field |
-| `tooling/elixir/lib/agov/claim_tracker.ex` | Create — ownership state machine (scan messages, track claim/release lifecycle) |
-| `tooling/elixir/lib/mix/tasks/agov.coord.stale.ex` | Create — Mix task |
+| `tooling/elixir/lib/agov/claim_tracker.ex` | Create — pure ordered-log state machine |
+| `tooling/elixir/lib/mix/tasks/agov.coord.stale.ex` | Create — Mix task (owns I/O, validation, exit behavior) |
 | `tooling/elixir/test/agov/claim_tracker_test.exs` | Create — unit tests |
-| `tooling/elixir/test/fixtures/stale_claim.md` | Create — expired claim fixture |
-| `tooling/elixir/test/fixtures/released_claim.md` | Create — claim released by completion |
+| `tooling/elixir/test/fixtures/stale_claim.md` | Create — expired claim, no release |
 | `tooling/elixir/test/fixtures/active_claim.md` | Create — claim within expiry window |
-| `tooling/elixir/test/fixtures/claim_completion_pair.md` | Create — completion that releases the claim |
+| `tooling/elixir/test/fixtures/released_claim.md` | Create — claim followed by matching completion |
+| `tooling/elixir/test/fixtures/claim_no_expiry.md` | Create — claim without `expires_on` |
+| `tooling/elixir/test/fixtures/invalid_expires_on.md` | Create — malformed `expires_on` value |
 
 ---
 
@@ -78,39 +80,65 @@ follow-on task.
 ```json
 "expires_on": {
   "type": "string",
-  "format": "date-time",
-  "description": "Optional ISO 8601 timestamp. If set on a claim, ownership is considered stale after this time if no release has been posted."
+  "description": "Optional ISO 8601 timestamp. If set on a claim, ownership is considered stale after this time if no release has been posted. Ignored on non-claim messages."
 }
 ```
 
-Added as a top-level optional property alongside `model` and `session`.
-Meaningful only on `claim` kind; present on other kinds is ignored by the
-validator (no `if/then` constraint — schema owns shape, Elixir owns semantics).
-
-No `required` change — `expires_on` is always optional.
+Added as a top-level optional property alongside `model` and `session`. No
+`format: date-time` constraint — draft-07 format validation is advisory and
+inconsistently enforced by validators. Elixir owns all date parsing via
+`DateTime.from_iso8601/1`.
 
 ---
 
-## Ownership model
+## Ownership state machine
 
-The stale-claim validator implements this state machine per artifact path:
+`ClaimTracker` is a **pure ordered-log state machine**. It takes a list of
+already-parsed, already-validated message maps sorted by `seq` ascending, and
+a `now` datetime. It has no filesystem access and no knowledge of
+`CoordValidator`. The Mix task owns reading, sorting, validating, and calling
+the tracker.
 
-```
-UNCLAIMED
-  → on claim message with path in artifacts_owned: CLAIMED (with optional expires_on)
-  → on completion message with empty artifacts_owned (same agent): RELEASED
-CLAIMED
-  → if expires_on is set and now > expires_on and no release: STALE
-  → on completion with empty artifacts_owned (same agent): RELEASED
-STALE
-  → reported by validator; remains stale until explicitly released
-RELEASED
-  → terminal; path is free to be claimed again
-```
+### Release algorithm (first-slice rules, applied in seq order)
 
-**Agent identity** for release matching: the `from` field of the completion
-message must match the `from` field of the most recent claim for that path.
-A completion from a different agent does not release another agent's claim.
+1. **Claim** — for each path in `artifacts_owned`: record it as owned by
+   `from`, with optional `expires_on`. If the path is already owned (by any
+   agent), the later `seq` wins — the new claim **supersedes** the previous one.
+   No conflict is recorded; supersession is the expected pattern for handoffs.
+2. **Completion with `artifacts_owned: []`** — release all paths currently
+   owned by this message's `from`. Paths owned by other agents are unaffected.
+3. **Any other message** — no ownership change.
+
+### Stale classification (applied after all messages are processed)
+
+A path is **stale** if:
+- It is currently owned (not released), AND
+- Its active claim has `expires_on` set, AND
+- `expires_on < now`
+
+A path without `expires_on` is **never stale** — expiry is opt-in.
+
+### Invalid `expires_on`
+
+If a claim message has an `expires_on` that cannot be parsed by
+`DateTime.from_iso8601/1`, the stale scanner treats it as an **error**: the
+Mix task exits with code 2 and reports the offending file. A malformed
+`expires_on` on a non-claim message is **silently ignored** — non-claim
+`expires_on` has no semantic meaning.
+
+### Test cases
+
+| Scenario | Expected |
+|---|---|
+| Stale claim (expired, no release) | In stale list |
+| Active claim (not yet expired) | In active list |
+| Claim without `expires_on` | In active list; never stale |
+| Released claim (completion, same agent) | In released list |
+| Completion from different agent | Does not release the claim |
+| Same path claimed twice by same agent | Second claim supersedes; only one active entry |
+| Same path claimed by different agents | Later seq wins; earlier claim superseded |
+| Invalid `expires_on` on a claim | Exit code 2, error reported |
+| Invalid `expires_on` on non-claim | Silently ignored |
 
 ---
 
@@ -119,55 +147,59 @@ A completion from a different agent does not release another agent's claim.
 ### Step 1 — Update schema
 
 Add `expires_on` optional string property to `coordination-message.schema.json`.
-No other schema changes.
 
 ### Step 2 — Write tests FIRST (TDD RED)
 
-Fixtures:
-- `stale_claim.md` — `claim` with `expires_on` in the past, no completion
-- `active_claim.md` — `claim` with `expires_on` in the future
-- `released_claim.md` — `claim` followed by matching `completion`
-- `claim_completion_pair.md` — completion that releases `stale_claim.md`'s artifacts
+Fixtures (one message each; tests compose them into sequences):
+- `stale_claim.md` — `claim`, `expires_on` a fixed past datetime, path `docs/foo.md`
+- `active_claim.md` — `claim`, `expires_on` a fixed far-future datetime, path `docs/bar.md`
+- `released_claim.md` — `claim` (no `expires_on`), path `docs/baz.md`
+- `claim_no_expiry.md` — `claim`, no `expires_on`, path `docs/qux.md`
+- `invalid_expires_on.md` — `claim`, `expires_on: "not-a-date"`, path `docs/bad.md`
 
-Tests for `ClaimTracker`:
-- Stale claim (expired, no release) → reported in stale list
-- Active claim (not expired) → not reported
-- Released claim (completion from same agent) → not reported
-- Claim with no `expires_on` → never reported as stale (expiry is opt-in)
-- Completion from different agent → does not release claim
-- Multiple claims for same path → most recent claim is active
+A matching completion fixture releasing `released_claim.md`'s path is
+constructed inline in tests (not a separate file — keeps fixture set minimal).
+
+Tests inject a fixed `now` into `ClaimTracker.scan/2` to avoid time-dependent
+flakiness. The fixed `now` is chosen to make `stale_claim.md` stale and
+`active_claim.md` active.
 
 ### Step 3 — Implement ClaimTracker (GREEN)
 
 `lib/agov/claim_tracker.ex`:
 
-1. `scan(messages)` — takes a list of parsed message maps (already validated),
-   returns `%{stale: [...], active: [...], released: [...]}`
-2. `scan_dir(coord_dir)` — reads and validates all `.md` files from the
-   coordination directory, calls `scan/1`
-3. Stale = `expires_on` present, parsed as DateTime, before `DateTime.utc_now()`,
-   and no matching release found
+```elixir
+defmodule Agov.ClaimTracker do
+  def scan(messages, opts \\ [])
+  # returns {:ok, %{stale: [...], active: [...], released: [...]}}
+  # or {:error, [{:invalid_expires_on, path, value} | ...]}
+  # opts: now: %DateTime{} (default: DateTime.utc_now())
+end
+```
 
-ClaimTracker does **not** call `CoordValidator` directly — it receives already-
-parsed maps. The Mix task handles file reading and validation before passing
-to ClaimTracker.
+No `scan_dir/1`. No filesystem access. No `CoordValidator` dependency.
 
 ### Step 4 — Implement Mix task
 
 `mix agov.coord.stale [--dir <coord-dir>]`
 
-Default coord dir: `../../docs/coordination` (same as `agov.handoff.next`).
-Run from `tooling/elixir/`.
+The task owns:
+1. List `*.md` files in coord dir, sort by filename (seq order)
+2. Call `CoordValidator.validate_file/1` on each; skip non-message files (README, etc.)
+3. Collect parsed maps; pass to `ClaimTracker.scan/2` with `now: DateTime.utc_now()`
+4. Print results and exit
 
-Output format:
+Output format (one line per stale path):
 ```
-STALE  path/to/file  claimed-by  claimed-at  expired-at
+STALE  <path>  claimed-by: <from>  seq: <N>  claimed-at: <timestamp>  expired-at: <expires_on>
 ```
 
 Exit codes:
 - `0` — no stale claims
 - `1` — one or more stale claims found
-- `2` — error (directory not found, parse failure)
+- `2` — error (dir not found, parse failure, invalid `expires_on` on a claim)
+
+Default coord dir: `../../docs/coordination`. Run from `tooling/elixir/`.
 
 ---
 
@@ -175,10 +207,10 @@ Exit codes:
 
 | Tier | What | Where |
 |---|---|---|
-| Unit | `ClaimTracker.scan/1` — stale, active, released, no-expiry, wrong-agent, multi-claim | `test/agov/claim_tracker_test.exs` |
-| Manual | `mix agov.coord.stale` against `docs/coordination/` | Run from `tooling/elixir/`; expect no stale claims on current channel |
+| Unit | `ClaimTracker.scan/2` — all scenarios in the test-cases table, fixed `now` | `test/agov/claim_tracker_test.exs` |
+| Manual | `mix agov.coord.stale` against `docs/coordination/` | Expect exit 0 (no `expires_on` in current channel) |
 
-TDD order: schema update → fixtures → tests → RED → ClaimTracker → GREEN → task.
+TDD order: schema update → fixtures → tests → RED → ClaimTracker → GREEN → Mix task.
 
 ---
 
@@ -186,7 +218,7 @@ TDD order: schema update → fixtures → tests → RED → ClaimTracker → GRE
 
 | Risk | Mitigation |
 |---|---|
-| `expires_on` format validation in ex_json_schema | `format: date-time` is advisory in draft-07; parse validation done in Elixir with `DateTime.from_iso8601/1` |
-| Clock skew between agents | `expires_on` is advisory — stale means "worth reviewing", not "automatically invalid" |
-| Real coordination channel has no `expires_on` claims yet | Validator exits 0 cleanly (no stale claims); feature is opt-in |
+| `DateTime.from_iso8601/1` rejects valid but unusual formats | Use strict format in documentation; invalid = exit 2 not silent skip |
+| Stale claims in current channel (none have `expires_on`) | Validator exits 0 cleanly; feature is opt-in |
 | Partial-release pressure | Explicitly deferred — note in this plan prevents scope creep |
+| Fixture `expires_on` dates become "past" relative to test `now` | Tests inject fixed `now`; fixture dates are irrelevant except relative to that fixed `now` |
