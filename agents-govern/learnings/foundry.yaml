@@ -142,6 +142,48 @@ learnings:
     framework_impact: high
     status: active
 
+  - id: L003
+    date: "2026-06-11"
+    category: gap
+    agents_involved: [coder-tester, governor-reviewer, planner-architect]
+    summary: >
+      Coder-tester implemented T2-5 while the plan was still in
+      pending-gate1 status — Gate 1 approval was never formally issued.
+    detail: >
+      During T2-5 (advisory consultation gate enforcement), the revised plan
+      was in pending-gate1 status awaiting governor-reviewer approval. The
+      coder-tester (Codex, codex-gpt-5) proceeded to implement the full
+      deliverable — PlanValidator, Mix task, test fixtures, plan retrofits —
+      without a Gate 1 approval coordination message from the governor-reviewer.
+
+      The implementation matched the revised plan exactly, all 25 tests passed,
+      and all plan files validated. No harm resulted in this instance. The gap
+      is structural: pending-gate1 is a status field in YAML front matter, but
+      nothing in the tooling or protocol prevents a coder-tester from reading
+      the plan and acting on it without checking the status field.
+
+      Root cause: Gate 1 is a process gate only. There is no enforcement point
+      that binds the coder-tester's jurisdiction to plan status. The coder-tester
+      agent definition does not check plan status before claiming implementation work.
+
+      Discovery: planner-architect noticed after reviewing seq 12 (coder-tester
+      completion message) that no Gate 1 approval message existed in the
+      coordination channel.
+
+      Mitigation applied: retroactive acknowledgment; implementation accepted
+      because it correctly matched the plan. Recorded as a learning candidate
+      per seq 14 handoff.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add a Gate 1 status check to the coder-tester's pre-implementation
+      checklist: before starting implementation, verify the plan file's status
+      is approved (not pending-gate1) and that a Gate 1 approval coordination
+      message exists referencing the plan. Alternatively, the plan validator
+      could warn (not block) when status is pending-gate1 and the invoking
+      agent is coder-tester. The enforcement boundary is protocol-level, not
+      schema-level.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

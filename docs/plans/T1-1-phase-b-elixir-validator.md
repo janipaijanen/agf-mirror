@@ -1,3 +1,18 @@
+---
+id: T1-1-phase-b-elixir-validator
+status: complete
+topic: elixir-coordination-validator
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-10"
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: local validation tooling only; no secrets, auth, or isolation changes
+  - role: contribution-auditor
+    status: not-applicable
+    reason: internal foundry tooling; not an upstream submission
+---
+
 # Plan: T1-1 Phase B — Elixir Validator for Coordination Messages
 
 **Date:** 2026-06-10T23:56:56Z
