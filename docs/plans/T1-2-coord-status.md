@@ -1,9 +1,9 @@
 ---
 id: T1-2-coord-status
-status: pending-gate1
+status: approved
 topic: coord-status-command
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer"
+gate1_approved_at: "2026-06-11T07:01:58Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
