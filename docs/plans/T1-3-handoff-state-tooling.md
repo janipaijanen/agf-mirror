@@ -1,3 +1,18 @@
+---
+id: T1-3-handoff-state-tooling
+status: complete
+topic: handoff-state-tooling
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-11"
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: read-only coordination tooling; no security boundary changes
+  - role: contribution-auditor
+    status: not-applicable
+    reason: internal foundry tooling; not an upstream submission
+---
+
 # Plan: T1-3 — Async Handoff State Tooling (`agov handoff next`)
 
 **Date:** 2026-06-11T00:12:56Z

@@ -1,3 +1,18 @@
+---
+id: T1-1-coordination-kind-schema
+status: complete
+topic: coordination-kind-schema
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-10"
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: schema-only coordination metadata change; no security boundary changes
+  - role: contribution-auditor
+    status: not-applicable
+    reason: internal foundry schema work; not an upstream submission
+---
+
 # Plan: T1-1 — Coordination message kind schema + validation
 
 **Date:** 2026-06-10
