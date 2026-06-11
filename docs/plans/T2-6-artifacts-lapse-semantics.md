@@ -1,9 +1,9 @@
 ---
 id: T2-6-artifacts-lapse
-status: pending-gate1
+status: complete
 topic: artifacts-owned-lapse-semantics
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-11T11:32:00Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -17,7 +17,7 @@ advisory_consultation:
 
 **Date:** 2026-06-11T05:05:55Z
 **Revised:** 2026-06-11 — addresses contribution-auditor review (seq 17)
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** COMPLETE — Gate 1 approved seq 33; implementation merged 8f7605c
 **Depends on:** T1-1 Phase A (coordination-message.schema.json, merged ✓), T1-1 Phase B (CoordValidator, merged ✓)
 
 ---
