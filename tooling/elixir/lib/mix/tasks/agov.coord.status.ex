@@ -7,6 +7,7 @@ defmodule Mix.Tasks.Agov.Coord.Status do
     {opts, _, _} = OptionParser.parse(args, strict: [dir: :string, recent: :integer])
     coord_dir = Keyword.get(opts, :dir, "../../docs/coordination")
     recent_n = Keyword.get(opts, :recent, 5)
+    config = Agov.CoordConfig.load(coord_dir)
 
     case Agov.ChannelReader.scan(coord_dir) do
       {:error, :dir_not_found} ->
@@ -19,17 +20,17 @@ defmodule Mix.Tasks.Agov.Coord.Status do
       {:ok, %{messages: messages, total: total, seq_range: {min_seq, max_seq}}} ->
         Mix.shell().info("Channel: #{coord_dir}  (#{total} messages, seq #{min_seq}–#{max_seq})")
         Mix.shell().info("")
-        print_ownership(messages)
-        print_stale(messages)
+        print_ownership(messages, config.from_aliases)
+        print_stale(messages, config.from_aliases)
         print_handoffs(messages)
         if recent_n > 0, do: print_recent(messages, recent_n)
     end
   end
 
-  defp print_ownership(messages) do
+  defp print_ownership(messages, aliases) do
     parsed = Enum.map(messages, &elem(&1, 1))
 
-    case Agov.ClaimTracker.scan(parsed) do
+    case Agov.ClaimTracker.scan(parsed, from_aliases: aliases) do
       {:error, _} ->
         Mix.shell().info("Ownership:    (error reading claims)")
 
@@ -49,10 +50,10 @@ defmodule Mix.Tasks.Agov.Coord.Status do
     Mix.shell().info("")
   end
 
-  defp print_stale(messages) do
+  defp print_stale(messages, aliases) do
     parsed = Enum.map(messages, &elem(&1, 1))
 
-    case Agov.ClaimTracker.scan(parsed) do
+    case Agov.ClaimTracker.scan(parsed, from_aliases: aliases) do
       {:error, _} ->
         Mix.shell().info("Stale claims: (error)")
 

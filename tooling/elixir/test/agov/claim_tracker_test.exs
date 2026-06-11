@@ -103,6 +103,123 @@ defmodule Agov.ClaimTrackerTest do
     end
   end
 
+  describe "scan/2 — partial release (non-empty artifacts_owned on completion)" do
+    defp claim(from, path, seq \\ 50) do
+      %{
+        "kind" => "claim",
+        "from" => from,
+        "seq" => seq,
+        "timestamp" => "2026-01-01T00:00:00Z",
+        "artifacts_owned" => [path]
+      }
+    end
+
+    defp partial_completion(from, paths) do
+      %{"kind" => "completion", "from" => from, "artifacts_owned" => paths}
+    end
+
+    test "partial completion releases only the listed paths" do
+      messages = [
+        claim("coder-tester", "docs/a.md", 10),
+        claim("coder-tester", "docs/b.md", 11),
+        partial_completion("coder-tester", ["docs/a.md"])
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now)
+      assert length(result.released) == 1
+      assert hd(result.released).path == "docs/a.md"
+      assert length(result.active) == 1
+      assert hd(result.active).path == "docs/b.md"
+    end
+
+    test "partial completion with unlisted path leaves it active" do
+      messages = [
+        claim("coder-tester", "docs/c.md", 20),
+        partial_completion("coder-tester", ["docs/other.md"])
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now)
+      assert [entry] = result.active
+      assert entry.path == "docs/c.md"
+      assert result.released == []
+    end
+
+    test "partial completion from different agent does nothing" do
+      messages = [
+        claim("coder-tester", "docs/d.md", 30),
+        partial_completion("planner-architect", ["docs/d.md"])
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now)
+      assert [_] = result.active
+      assert result.released == []
+    end
+  end
+
+  describe "scan/2 — from_aliases option" do
+    defp aliased_claim(from, path) do
+      %{
+        "kind" => "claim",
+        "from" => from,
+        "seq" => 60,
+        "timestamp" => "2026-01-01T00:00:00Z",
+        "artifacts_owned" => [path]
+      }
+    end
+
+    @aliases %{"claude" => "planner-architect"}
+
+    test "completion from canonical releases claim from alias" do
+      messages = [
+        aliased_claim("claude", "docs/old.md"),
+        %{"kind" => "completion", "from" => "planner-architect", "artifacts_owned" => []}
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now, from_aliases: @aliases)
+      assert [entry] = result.released
+      assert entry.path == "docs/old.md"
+      assert result.active == []
+    end
+
+    test "completion from alias releases claim from canonical" do
+      messages = [
+        aliased_claim("planner-architect", "docs/new.md"),
+        %{"kind" => "completion", "from" => "claude", "artifacts_owned" => []}
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now, from_aliases: @aliases)
+      assert [entry] = result.released
+      assert entry.path == "docs/new.md"
+      assert result.active == []
+    end
+
+    test "partial completion from canonical releases alias claim for listed paths" do
+      messages = [
+        aliased_claim("claude", "docs/x.md"),
+        aliased_claim("claude", "docs/y.md"),
+        %{"kind" => "completion", "from" => "planner-architect",
+          "artifacts_owned" => ["docs/x.md"]}
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now, from_aliases: @aliases)
+      assert length(result.released) == 1
+      assert hd(result.released).path == "docs/x.md"
+      assert length(result.active) == 1
+      assert hd(result.active).path == "docs/y.md"
+    end
+
+    test "without aliases, strict from matching unchanged" do
+      messages = [
+        aliased_claim("claude", "docs/old.md"),
+        %{"kind" => "completion", "from" => "planner-architect", "artifacts_owned" => []}
+      ]
+
+      {:ok, result} = ClaimTracker.scan(messages, now: @fixed_now)
+      assert [_] = result.active
+      assert result.released == []
+    end
+  end
+
   describe "scan/2 — invalid expires_on" do
     test "invalid expires_on on a claim returns error with seq" do
       assert {:error, [{:invalid_expires_on, 103, "not-a-date"}]} =

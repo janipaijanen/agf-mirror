@@ -1,0 +1,12 @@
+# Coordination channel configuration for ClaimTracker.
+#
+# from_aliases: maps retired from-identifiers to their canonical successors.
+# A completion from the canonical name releases claims made under the alias,
+# and vice versa.
+#
+# Context: the project used model names (claude, human) as from-identifiers
+# before the role-identifier convention (planner-architect, coder-tester,
+# governor-reviewer) was adopted. Claims made under the old names are mapped
+# here so they can be released. See agents-govern/learnings/foundry.yaml L004.
+from_aliases:
+  claude: planner-architect
