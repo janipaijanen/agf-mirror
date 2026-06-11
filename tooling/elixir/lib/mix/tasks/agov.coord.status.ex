@@ -75,25 +75,16 @@ defmodule Mix.Tasks.Agov.Coord.Status do
   end
 
   defp print_handoffs(messages) do
-    handoffs =
-      messages
-      |> Enum.filter(fn {_file, data} -> data["kind"] == "handoff" end)
-      |> Enum.map(fn {_file, data} -> data end)
-      |> Enum.sort_by(& &1["seq"], :desc)
+    case Agov.HandoffTracker.scan(messages) do
+      {:ok, %{pending: []}} ->
+        Mix.shell().info("Pending handoffs: none")
 
-    case handoffs do
-      [] ->
+      {:ok, %{pending: pending}} ->
         Mix.shell().info("Pending handoffs:")
-        Mix.shell().info("  (none)")
 
-      _ ->
-        Mix.shell().info("Pending handoffs (recent):")
-
-        Enum.each(handoffs, fn data ->
-          h = data["handoff"]
-          status = h["status"]
+        Enum.each(pending, fn entry ->
           Mix.shell().info(
-            "  → #{h["next_agent"]}  seq: #{data["seq"]}  #{data["topic"]}  [#{status}]"
+            "  → #{entry.to}  seq: #{entry.seq}  #{entry.topic}  [#{entry.status}]"
           )
         end)
     end
