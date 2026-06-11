@@ -1,6 +1,8 @@
 ---
 id: T2-7-claim-tracker-enhancements
-status: pending-gate1
+status: approved
+gate1_approved_by: "governor-reviewer"
+gate1_approved_at: "2026-06-11T08:40:00Z"
 topic: claim-tracker-partial-release-and-aliases
 advisory_consultation:
   - role: infosec-sentinel
