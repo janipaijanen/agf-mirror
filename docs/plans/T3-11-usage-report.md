@@ -9,13 +9,14 @@ advisory_consultation:
     status: not-applicable
     reason: read-only channel analysis — no security boundary, auth, or secrets changes
   - role: contribution-auditor
-    status: not-applicable
-    reason: internal tooling only; no upstream contribution or governance schema change
+    status: consulted
+    reason: reviewed at seq 36 (contribution-auditor, codex-gpt-5); all findings incorporated
 ---
 
 # Plan: T3-11 — `mix agov.usage.report`
 
 **Date:** 2026-06-11T11:35:00Z
+**Revised:** 2026-06-11 — addresses contribution-auditor review (seq 36)
 **Status:** PENDING GATE 1 APPROVAL
 **Priority:** Low (Tier 3 — Framework Maintainability)
 
@@ -31,9 +32,11 @@ have been active recently?" currently requires manual channel inspection.
 `mix agov.usage.report` answers it in one command. It parses the
 coordination channel and cross-references the MANIFEST to produce:
 
-- Message counts by agent (sender activity)
-- Agents in MANIFEST who have never posted (candidates for review/suspension)
+- Message counts by agent (sender activity, aliases resolved)
+- Agents in MANIFEST with `status: active` who have never posted
+  (candidates for suspension review)
 - Kind distribution (how the channel is being used)
+- Warning for invalid/skipped coordination files
 - Optional: last N messages as the analysis window
 
 This is a **read-only reporting tool** — it never modifies the channel,
@@ -46,12 +49,13 @@ MANIFEST, or plan files.
 Two deliverables:
 
 1. **`Agov.UsageReporter` module** — pure analysis. Takes a list of parsed
-   coordination messages and a MANIFEST agent map. Returns a structured report.
-   No filesystem access.
+   coordination messages, a MANIFEST agent map, and a from-aliases map.
+   Returns a structured report. No filesystem access.
 
 2. **`mix agov.usage.report [--dir <coord-dir>] [--manifest <path>] [--last N]`**
    Mix task that owns I/O: reads channel via `ChannelReader`, reads MANIFEST
-   via a new thin reader, calls `UsageReporter`, prints result.
+   via a new thin reader, loads aliases via `CoordConfig`, calls `UsageReporter`,
+   prints result.
 
 **Out of scope for this task:**
 - Plan-file advisory consultation scanning (requires YAML parsing of plan
@@ -91,35 +95,63 @@ Reads only the `agents:` section. Ignores all other top-level keys.
 Returns `{:error, :enoent}` if the file doesn't exist. Does not validate
 agent schema — callers use what they get.
 
+**Default path:** `../../agents-govern/agents/MANIFEST.yaml` (relative to
+`tooling/elixir/`). This is the **bootstrap default** for the foundry project.
+It is not intended as the permanent role-authority source. Once a
+project-local role-authority mechanism lands (deferred — see seq 13 note
+below), this default should be revisited.
+
+> **Deferred dependency:** seq 13 raised the role-authority question: which
+> source is authoritative for agent role definitions once `agents-govern/` is
+> no longer the bootstrap reference? T3-11 intentionally reports against the
+> bootstrap MANIFEST until that decision lands. `--manifest <path>` allows
+> callers to override the default if a project-local authority exists sooner.
+
 ### `Agov.UsageReporter`
 
-Pure module. Input: `messages` (list of parsed message maps) and
-`agents` (map from `ManifestReader`). Optional `opts: [last: N]`.
+Pure module. Input: `messages` (list of parsed message maps), `agents`
+(map from `ManifestReader`), `aliases` (from-alias map from `CoordConfig`).
+Optional `opts: [last: N]`.
 
 ```elixir
 defmodule Agov.UsageReporter do
-  def report(messages, agents, opts \\ [])
+  def report(messages, agents, aliases \\ %{}, opts \\ [])
   # returns %{
   #   total: integer,
   #   window: :all | {:last, N},
   #   kind_counts: %{String.t() => integer},
-  #   sender_counts: %{String.t() => integer},
-  #   inactive_agents: [String.t()],    # in MANIFEST as active/suspended but never sent
-  #   unknown_senders: [String.t()]     # appear in channel but not in MANIFEST
+  #   sender_counts: %{String.t() => integer},  # canonical (aliases applied)
+  #   inactive_agents: [String.t()],            # status: active, never sent in window
+  #   unknown_senders: [String.t()],            # in channel but not in MANIFEST after alias resolution
+  #   invalid_files: [String.t()]               # filenames skipped by ChannelReader
   # }
 end
 ```
 
-`inactive_agents` — MANIFEST agents with `status: active` whose name does
-not appear as `from:` in any message in the window. These are candidates
-for suspension review.
+**Alias resolution:** before computing `sender_counts` and `inactive_agents`,
+apply `aliases` (from `CoordConfig.from_aliases`) to each message's `from:`
+field. A `from: claude` with alias `claude => planner-architect` counts as
+`planner-architect` in `sender_counts`. `unknown_senders` lists names that
+remain unresolved after alias application — these are genuinely unknown.
 
-`unknown_senders` — agent names appearing as `from:` in the channel but
-not present in the MANIFEST. Expected to be empty in a well-maintained
-project; useful to detect stale agent names or unrenamed senders.
+**`inactive_agents`** — MANIFEST agents with `status: active` whose
+canonical name does not appear as `from:` in any message in the analysis
+window. `status: suspended` and `status: skipped` agents are excluded from
+this list. Only active-status agents are flagged as candidates for review.
 
-When `last: N` is given, only the last N messages (by seq, descending)
-are analysed. Total message count and window are reported separately.
+**`unknown_senders`** — canonical agent names (after alias resolution)
+appearing as `from:` in the channel but absent from the MANIFEST. Expected
+to be empty in a well-maintained project. Presence signals a stale sender
+name or a missing MANIFEST entry.
+
+**`--last N` ordering:** sort all messages by `seq` ascending, then by
+filename ascending (deterministic tiebreak for seq collisions). Take the
+last N messages in that ordering. The window boundary never falls inside a
+collision group because filename ordering is stable.
+
+**`invalid_files`** — filenames that `ChannelReader` skipped due to
+validation failure. These are passed through from the ChannelReader result
+and included in the report. The Mix task prints a warning line for each.
 
 ### `mix agov.usage.report`
 
@@ -138,28 +170,34 @@ Kind distribution:
   note              2
   fast-track-waiver 1
 
-Sender activity:
-  governor-reviewer   14  (active)
-  planner-architect   12  (active)
-  coder-tester         5  (active)
-  contribution-auditor 2  (active)
-  infosec-sentinel     1  (active)
+Sender activity (aliases applied):
+  governor-reviewer    14  (active)
+  planner-architect    12  (active)
+  coder-tester          5  (active)
+  contribution-auditor  2  (active)
+  infosec-sentinel      1  (active)
 
 Inactive active-status agents (no messages sent):
   (none)
 
-Unknown senders (in channel, not in MANIFEST):
-  claude  (appears in seq 1–4; pre-alias era)
+Unknown senders (after alias resolution):
+  (none)
+
+Invalid coordination files: none
 ```
 
 Default `--dir` is `../../docs/coordination`. Default `--manifest` is
-`../../agents-govern/agents/MANIFEST.yaml`. Both resolve relative to
-`tooling/elixir/` (consistent with other commands).
+`../../agents-govern/agents/MANIFEST.yaml`. Default `--config` resolves
+via `CoordConfig` (reads `agov-config.yaml` in the coord dir). All paths
+resolve relative to `tooling/elixir/` (consistent with other commands).
 
-`--last N` narrows the analysis window to the last N messages by seq.
+`--last N` narrows the analysis window to the last N messages by the
+ordering defined above.
 
-Exit codes: 0 always (reporting tool; no error states beyond dir/manifest
-not found, which exits 1).
+Exit codes:
+- `0` — report generated successfully
+- `1` — input/read/parse error (coord dir not found, manifest not found,
+  unreadable files)
 
 ---
 
@@ -168,7 +206,7 @@ not found, which exits 1).
 | Tier | What | Where |
 |---|---|---|
 | Unit | `ManifestReader.load/1` — valid file, missing file, agents section | `test/agov/manifest_reader_test.exs` |
-| Unit | `UsageReporter.report/3` — counts, inactive detection, unknown senders, windowing | `test/agov/usage_reporter_test.exs` |
+| Unit | `UsageReporter.report/4` — counts, alias resolution, inactive detection, unknown senders, windowing, invalid_files passthrough | `test/agov/usage_reporter_test.exs` |
 | Manual | `mix agov.usage.report` against live channel + MANIFEST | Verify counts match expected |
 
 TDD order: `ManifestReader` tests → implementation → `UsageReporter` tests
@@ -182,11 +220,15 @@ TDD order: `ManifestReader` tests → implementation → `UsageReporter` tests
 |---|---|
 | Agent in MANIFEST (active) with messages | Appears in sender_counts, not in inactive_agents |
 | Agent in MANIFEST (active) with no messages | Appears in inactive_agents |
-| Agent in MANIFEST (suspended/skipped) with no messages | NOT in inactive_agents — only active-status agents flagged |
-| Sender in channel not in MANIFEST | Appears in unknown_senders |
-| `last: N` narrows to N most recent messages | window = {:last, N}; counts reflect only those messages |
+| Agent in MANIFEST (suspended) with no messages | NOT in inactive_agents — only active-status agents flagged |
+| Agent in MANIFEST (skipped) with no messages | NOT in inactive_agents |
+| Sender in channel resolves via alias to known agent | Counted under canonical name; not in unknown_senders |
+| Sender in channel with no alias, not in MANIFEST | Appears in unknown_senders |
+| `last: N` narrows to last N by seq+filename order | window = {:last, N}; counts reflect only those messages |
+| Seq collision at window boundary | All messages with that seq included (filename ordering is stable) |
 | Empty message list | All counts zero; all active MANIFEST agents in inactive_agents |
-| Empty MANIFEST agents map | No inactive_agents; all senders in unknown_senders |
+| Empty MANIFEST agents map | No inactive_agents; all senders (after alias) in unknown_senders |
+| Non-empty `invalid_files` passed in | Forwarded to report struct; Mix task prints warning |
 
 ---
 
@@ -194,9 +236,12 @@ TDD order: `ManifestReader` tests → implementation → `UsageReporter` tests
 
 | Risk | Mitigation |
 |---|---|
-| MANIFEST path varies between projects | `--manifest` flag; sensible default relative to `tooling/elixir/` |
-| `from:` in channel uses pre-alias names | Shown as `unknown_senders` — informational, not an error |
+| MANIFEST path varies between projects | `--manifest` flag; default documented as bootstrap default, not permanent authority |
+| Role-authority decision (seq 13) changes the right default | Deferred note in design; `--manifest` flag provides override path |
+| `from:` in channel uses pre-alias names | Resolved via `CoordConfig.from_aliases`; unresolved names surface in `unknown_senders` |
 | MANIFEST grows new status values | `inactive_agents` only flags `status: active`; new statuses are transparent |
+| `ChannelReader` skips invalid files silently | `invalid_files` field surfaces skips; Mix task warns |
+| Seq collisions at `--last N` boundary | Ordering is seq+filename; window boundary is deterministic |
 
 ---
 
@@ -210,9 +255,9 @@ Handle missing file gracefully.
 ### Step 2 — UsageReporter tests + implementation
 
 Pure function. All scenarios from test-cases table. Fixed message lists
-in tests — no filesystem access.
+in tests — no filesystem access. Alias map injected as parameter.
 
 ### Step 3 — Mix task
 
-Wire ManifestReader + ChannelReader + UsageReporter. Format and print.
-Verify manually against live channel.
+Wire ManifestReader + ChannelReader + CoordConfig + UsageReporter.
+Format and print. Verify manually against live channel.
