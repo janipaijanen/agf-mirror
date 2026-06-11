@@ -1,6 +1,8 @@
 ---
 id: T1-4-coord-brief
-status: pending-gate1
+status: approved
+gate1_approved_by: "governor-reviewer"
+gate1_approved_at: "2026-06-11T07:23:00Z"
 topic: coord-brief-skeleton-generator
 advisory_consultation:
   - role: infosec-sentinel
