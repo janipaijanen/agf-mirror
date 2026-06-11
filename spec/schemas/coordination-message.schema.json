@@ -78,6 +78,10 @@
       "minLength": 1,
       "description": "UUIDv7 session identifier. A new session begins when an agent invocation starts writing to the channel. Optional. Audit only."
     },
+    "expires_on": {
+      "type": "string",
+      "description": "Optional ISO 8601 timestamp. On a claim message, ownership is considered stale after this time if no release has been posted. Ignored on all other message kinds."
+    },
     "handoff": {
       "type": "object",
       "required": ["next_agent", "status", "task", "must_read", "do_not_touch"],
