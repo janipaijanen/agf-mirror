@@ -70,6 +70,10 @@ by `mix agov.coord.validate`.
 | `lesson-proposal` | `observed_pattern:`, `proposed_lesson:`, `where_it_lives:` **(prose)** |
 | `note` | No additional required fields |
 
+For guidance on choosing the right kind, citing evidence, and preserving the
+audit trail leading to a decision request, see
+[feedback-coordination-messages.md](feedback-coordination-messages.md).
+
 ---
 
 ## Ownership Semantics
