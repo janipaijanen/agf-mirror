@@ -1,0 +1,269 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+# =============================================================================
+# Project Learning Record
+# =============================================================================
+# Copy this file to learnings/<codename>.yaml when a project adopts
+# the framework. Fill in the context section once, update agent configuration
+# and learnings as the project evolves.
+#
+# See docs/governance/learning-system.md for how this feeds back into framework revisions.
+# =============================================================================
+#
+# *** ANONYMIZATION POLICY (MANDATORY) ***
+#
+# Do NOT use real project, product, or organisation names anywhere in this
+# file. Choose a codename (e.g., "blue-heron", "project-aurora") and use it
+# consistently. This protects adopters' commercial interests and keeps the
+# public learning corpus free of identifying information.
+#
+# What to mask:
+#   - Project / product names
+#   - Organisation / company names
+#   - Internal tool or service names that reveal the adopter
+#   - Customer or partner names
+#   - URLs, hostnames, or infrastructure identifiers
+#
+# What to keep as-is (these are useful for cross-project analysis):
+#   - Business domain (fintech, healthcare, etc.)
+#   - Technology stack (Python, React, etc.)
+#   - Regulatory frameworks (GDPR, SOC2, etc.)
+#   - Team size ranges
+#   - Generic architecture descriptions
+#
+# Keep a private mapping between the codename and the real project name
+# in your own records. See learnings/.adopter-mapping.example for the format.
+# =============================================================================
+
+# ---- Project Context (set once, update if fundamentals change) ----
+
+project:
+  codename: ""                # MANDATORY: a pseudonym, NOT the real name (e.g., "blue-heron")
+  description: ""             # one sentence: what the software does — no real names
+  started_adopting: ""        # date the framework was adopted (YYYY-MM-DD)
+
+# ---- Framework & Agent Identifiers (set at adoption, update on upgrades) ----
+
+adoption:
+  framework_id: "agents-govern"
+  framework_version: ""       # version of framework.md adopted (e.g., "0.4.0")
+  framework_commit: ""        # git commit hash of the framework repo at adoption
+  agent_definitions:          # which agent definitions were copied, with versions
+    - id: ""                  # e.g., "agents-govern:planner-architect:0.2.0"
+      local_path: ""          # relative path only — do not reveal org-specific directory structures
+      customized: false       # true if the project modified the definition
+      customization_notes: "" # what was changed and why
+  upgrade_history:            # record each time the project upgrades to a newer framework version
+    - date: ""                # YYYY-MM-DD
+      from_version: ""       # previous framework version
+      to_version: ""          # new framework version
+      agent_changes: []       # which agent definitions were updated
+      notes: ""               # what changed, any migration steps taken
+
+business_domain:
+  primary: ""                 # e.g., fintech, healthcare, e-commerce, developer-tools, education
+  secondary: []               # additional domains if applicable
+
+regulatory_context:
+  frameworks: []              # e.g., [GDPR, SOC2, HIPAA, PCI-DSS, none]
+  data_residency: ""          # e.g., "EU-only", "multi-region", "no constraints"
+  notes: ""                   # any relevant compliance context
+
+team:
+  size: 0                     # number of people involved
+  roles: []                   # e.g., [developer, designer, ops, product-owner]
+  ai_agents_used: []          # e.g., [Claude, GPT, custom-orchestrator]
+
+lifecycle_state:
+  current: ""                 # greenfield | early-development | scaling | legacy-migration | maintenance
+  target: ""                  # where the project is heading (e.g., "SaaS launch", "enterprise rollout")
+
+customer_state:
+  current: ""                 # pre-customer | internal-only | beta | paying | enterprise
+  user_count_range: ""        # e.g., "0", "1-100", "100-10k", "10k+"
+
+revenue_context:
+  stage: ""                   # pre-revenue | early-revenue | profitable | scaling
+  model: ""                   # e.g., SaaS-subscription, usage-based, licence, open-core
+
+codebase:
+  languages: []               # e.g., [Python, TypeScript, Go]
+  test_coverage_percent: 0    # rough estimate at time of adoption
+  ci_cd: ""                   # e.g., "GitHub Actions", "GitLab CI", "none"
+  documentation_state: ""     # minimal | adequate | comprehensive — see docs/concept/documentation-maturity.md for criteria
+  pii_present: false          # does the codebase handle PII today?
+
+# ---- Step 0 Assessments (optional — record inline for traceability) ----
+# Many projects record their ADOPTING.md Step 0 checklists here rather than
+# in a separate document. This keeps assessments co-located with learnings
+# and agent configuration. All sections below are optional.
+
+# assessment:
+#   date: ""                       # YYYY-MM-DD
+#
+#   # Step 0.2: PII Assessment
+#   pii_checklist:
+#     user_accounts: false
+#     billing_data: false
+#     contact_information: false
+#     government_identifiers: false
+#     health_biometric_data: false
+#     location_data: false
+#     behavioural_data: false
+#     user_generated_content: false
+#     third_party_data: false
+#     logs_with_pii: false
+#     backups_with_pii: false
+#     credentials_to_pii_stores: false
+#     conclusion: ""               # e.g., "No PII present. Privacy Guardian not urgent."
+#
+#   # Step 0.3: Security Posture
+#   security_checklist:
+#     lock_file_exists: false
+#     lock_file_last_audited: ""
+#     secrets_in_env_or_manager: false
+#     production_access_documented: false
+#     build_artifacts_signed: false
+#     auth_uses_established_libs: false
+#     tls_enforced: false
+#     access_logs_exist: false
+#     gaps: []                     # list of identified security gaps
+#
+#   # Step 0.4: Codebase Maturity
+#   codebase_maturity:
+#     test_coverage_estimate: ""
+#     ci_cd_exists: false
+#     ci_runs_tests: false
+#     readme_exists: false
+#     code_review_process: false
+#     protected_branches: false
+#     gaps: []
+#
+#   # Step 0.5: Environment Map
+#   environment_map:
+#     - name: ""                   # e.g., "development"
+#       exists: false
+#       has_real_pii: false
+#       policy_level: ""           # relaxed | moderate | strict | maximum
+
+# ---- Agent Configuration (update as it evolves) ----
+
+agent_configuration:
+  # Record each configuration change as a dated entry
+  history:
+    - date: ""                # YYYY-MM-DD
+      phase: 1                # which growth phase (1-5)
+      active_agents:
+        - name: ""            # e.g., "planner-architect"
+          played_by: ""       # who or what plays this role
+      combined_agents:
+        - names: []           # e.g., ["planner", "architect"]
+          reason: ""          # why still combined
+      cross_cutting_active:
+        - name: ""            # e.g., "data-guardian"
+          activated_as: ""    # Activation modes (from least to most automated):
+          #                   #   "manual-review"        — human applies ad-hoc (no trigger)
+          #                   #   "checklist-in-governor" — governor applies at Gate 2 (relies on governor discipline)
+          #                   #   "gate-triggered-review" — automated trigger at defined gate (MR creation, pre-merge hook)
+          #                   #   "standalone-agent"      — dedicated agent with own jurisdiction (Phase 2+)
+          #                   #
+          #                   # Migration from prior values:
+          #                   #   "per-change" (iron-gate) → use "checklist-in-governor" or "gate-triggered-review"
+          #                   #   "standalone" → use "standalone-agent"
+      skipped_agents:
+        - name: ""            # e.g., "localizer"
+          reason: ""          # why skipped (e.g., "single-locale product")
+
+# ---- Environment Configuration ----
+
+environments:
+  - name: ""                  # e.g., "development", "staging", "production"
+    exists: false             # does this environment exist?
+    policy_level: ""          # relaxed | moderate | strict | maximum
+    pii_allowed: false        # is real PII present in this environment?
+    notes: ""
+
+# ---- Learnings (accumulated over time) ----
+# Each learning is a dated entry. Add new entries; do not modify old ones.
+# Tag each with a category: gap | overkill | validation | adaptation | tension
+#
+# Categories at a glance:
+#   gap          — the framework didn't catch a real failure mode
+#   overkill     — the framework's discipline cost more than the value it delivered
+#   validation   — empirical confirmation a framework rule worked
+#   adaptation   — a project-specific tweak adopters apply locally
+#   tension      — a resolved cross-layer conflict (rule vs agent, agent vs
+#                  agent, learning vs rule)
+#
+# *** MANDATORY: cross-layer conflict resolutions are recorded with
+# `category: tension` (action-plan item P2 / issue #70, shipped v1.1.47).
+# When a rule and an agent definition conflict, when two agents claim
+# overlapping jurisdiction, or when a learning's recommendation collides
+# with a shipped rule, the resolution lands as a `tension` entry that
+# names the layers involved and the precedence applied. See
+# docs/concept/principles.md#tension-recording for the canonical home.
+#
+# Two optional fields are validated when present (issues L1, L2):
+#   - superseded_by: forward-pointer to a later entry's title in this same
+#     file. The superseding entry must appear AFTER this one in file order
+#     (append-only invariant). Use when a later entry corrects, refines, or
+#     supersedes this one without modifying its text.
+#   - confidence: ordinal level + optional quantitative companions. See
+#     the schema example after the entry block below.
+
+learnings:
+  - date: ""                  # YYYY-MM-DD
+    category: ""              # gap | overkill | validation | adaptation | tension
+    scope: "framework"        # framework = may inform framework changes; project = project-specific only
+    title: ""                 # short summary (one line) — also serves as supersession key
+    description: ""           # what happened, in enough detail to be useful
+    agents_involved: []       # which agents were relevant
+    framework_section: ""     # which framework.md section is relevant
+    business_impact:
+      type: ""                # prevented_loss | enabled_revenue | cost_overhead | neutral
+      description: ""         # what the impact was, qualitatively
+    recommendation: ""        # what should change in the framework, if anything
+    severity: ""              # critical | significant | minor | informational
+
+    # Optional: forward-pointer to a later entry's title that supersedes this
+    # one. The target entry must appear AFTER this one in file order. The
+    # text of THIS entry is never modified — only this metadata pointer.
+    # superseded_by: "title of the later entry that corrects/refines this one"
+
+    # Optional: confidence ordinal + quantitative companion. Operational
+    # confidence ("in projects matching this learning's scope, how likely
+    # is this guidance to apply correctly?") — distinct from severity
+    # (impact) and from framework-level maturity (corpus-level evidence).
+    # confidence:
+    #   level: ""               # single-adopter | multi-adopter | longitudinal | industry-corroborated
+    #   evidence_count: 0       # optional integer; required for multi-adopter / longitudinal
+    #   evidence_refs:          # optional list of learning record IDs
+    #     - "codename:YYYY-MM-DD"
+    #
+    # Consistency rule: levels multi-adopter and longitudinal require
+    # either evidence_count >= 2 or evidence_refs of length >= 2.
+
+# ---- InfoSec Sentinel Acknowledgments (add when required by CI) ----
+# When the infosec-sentinel flags a potential information leak, the CI
+# pipeline blocks until each finding has a corresponding entry here.
+# Run: uv run agov-validate-infosec learnings/<codename>.yaml
+#
+# Finding IDs are per-file: ISEC-*-001 resets to 001 for each file.
+# Adding or removing other files will NOT renumber your existing acks.
+#
+# sentinel_ack:
+#   - finding_id: ""          # from CI output, e.g., "ISEC-CROSSFIELD-001"
+#     acknowledged_by: ""     # name of the human who reviewed
+#     date: ""                # YYYY-MM-DD
+#     decision: ""            # accept_risk | apply_redaction | will_redact | false_positive
+#     rationale: ""           # why this is acceptable / what was changed
+#
+# Decisions:
+#   accept_risk      — human reviewed, safe to publish as-is
+#   apply_redaction  — human approves sentinel's suggested redaction;
+#                      artifact owner (submitter/documentation-writer/coder-tester) applies it
+#   will_redact      — human will manually redact differently from the suggestion
+#   false_positive   — the detection was wrong
+#
+# For credential findings (ISEC-CRED-*), accept_risk is NOT allowed.
+# Credentials must be removed.

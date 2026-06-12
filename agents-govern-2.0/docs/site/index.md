@@ -1,0 +1,60 @@
+# agents-govern
+
+**Governance for AI-assisted software development.**
+
+agents-govern is an open framework for running AI coding agents under
+explicit, auditable governance: defined roles with bounded authority,
+review gates before implementation and before merge, an append-only
+coordination channel, and a learning system that turns operational
+incidents into framework evidence.
+
+> **Status:** agents-govern **v1.x is canonical**. This site documents
+> **v2.0, which is Provisional** — its structure and documentation are
+> under evaluation and may change. Adopters who need stability today
+> should adopt v1.x.
+
+## Why this exists
+
+AI coding assistants optimise for task completion. Without structural
+gates they will push to main, skip review, and accumulate ungoverned
+changes — not from malice, but because nothing stops them. agents-govern
+adds the stopping structure: the same quality gates, audit trails, and
+escalation paths that disciplined human teams use, expressed so that both
+humans and AI agents follow them.
+
+## What you get
+
+- **Defined roles** — twelve agent definitions (planner, implementer,
+  reviewer, auditor, security sentinel, and more) with explicit
+  jurisdiction and authority boundaries.
+- **Two gates** — plan approval before implementation (Gate 1) and review
+  before merge (Gate 2), with a formal fast-track for small tasks.
+- **A coordination channel** — append-only, schema-shaped messages that
+  make every handoff, decision, and completion reconstructible.
+- **A rule library** — thirty-plus governance rules (TDD, immutable tags,
+  merge-request workflow, security hardening, …) ready to copy into your
+  AI assistant's configuration.
+- **Evidence discipline** — learning records with anonymization built in,
+  so what you learn can flow upstream without leaking what you build.
+
+## Where to go next
+
+| You are… | Start here |
+|---|---|
+| Evaluating whether this is for you | [Value proposition](value.md) → [Use cases](use-cases.md) → [Should you adopt?](docs/start/should-you-adopt.md) |
+| Ready to try it | [Install and layouts](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
+| Worried about cost and lock-in | [Downstream impact](docs/adopt/downstream-impact.md) → [Exit and decommission](docs/adopt/exit-and-decommission.md) |
+| Already operating a governed project | [Day-to-day operation](docs/operate/day-to-day.md) |
+| Looking for the full documentation path | [Documentation index](docs/index.md) |
+
+## Evidence, honestly stated
+
+The framework's evidence base is its [learning records](docs/concepts/evidence-and-learnings.md):
+operational incidents and validated patterns from the framework's own
+development and from early adopters, recorded under codenames. Rules
+shipped on single-adopter evidence are explicitly marked **Provisional**
+in the rule text itself. We state maturity levels rather than claiming
+capabilities — see the [evolution page](future/evolution.md) for what is
+shipped versus hypothesised.
+
+agents-govern is licensed CC BY-SA 4.0.

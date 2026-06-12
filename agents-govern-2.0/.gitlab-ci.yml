@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# agents-govern v2.0 — documentation and validation pipeline
+#
+# Scope (structural phase, coordination seq 107):
+#   - governance validators (agents, learnings)
+#   - HTML site build (MkDocs, strict) + GitLab Pages publish
+# Deferred to their own gated slices: figures-build (Graphviz),
+# paper-pdf-build (Pandoc -> TeX -> latexmk).
+#
+# Execution model: GitLab jobs run from the repository root
+# (CI_PROJECT_DIR). All paths below are therefore prefixed with
+# agents-govern-2.0/; scripts cd where a tool expects a project root.
+#
+# While v1.x is canonical, this file is NOT the repository root pipeline.
+# It is promoted (or included from the root) only when v2.0 is promoted;
+# until then it changes no v1.x release behaviour.
+
+stages:
+  - validate
+  - build
+  - deploy
+
+# Pinned image per security-hardening rule (no floating tags).
+default:
+  image: python:3.14-slim
+
+validate-governance:
+  stage: validate
+  script:
+    - cd agents-govern-2.0
+    - pip install --no-cache-dir .
+    - agov-validate-agents
+    - agov-validate-learnings
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "agents-govern-2.0/agents/**/*"
+        - "agents-govern-2.0/learnings/**/*"
+        - "agents-govern-2.0/schemas/**/*"
+        - "agents-govern-2.0/src/**/*"
+        - "agents-govern-2.0/pyproject.toml"
+        - "agents-govern-2.0/.gitlab-ci.yml"
+    - if: $CI_COMMIT_TAG
+
+site-html-build:
+  stage: build
+  script:
+    - pip install --no-cache-dir mkdocs==1.6.1
+    # --site-dir is resolved relative to the config file's directory
+    # (agents-govern-2.0/docs/build/), so ../../../public lands at the
+    # repository root, where the pages job expects it.
+    - mkdocs build -f agents-govern-2.0/docs/build/mkdocs.yml --strict --site-dir ../../../public
+  artifacts:
+    paths:
+      - public/
+    expire_in: 2 weeks
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "agents-govern-2.0/docs/site/**/*"
+        - "agents-govern-2.0/docs/build/**/*"
+        - "agents-govern-2.0/.gitlab-ci.yml"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+pages:
+  stage: deploy
+  script:
+    - test -d public
+  artifacts:
+    paths:
+      - public/
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs:
+    - site-html-build

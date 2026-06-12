@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+# =============================================================================
+# Adopter Codename Mapping (EXAMPLE)
+# =============================================================================
+# This file shows the format for mapping codenames to real project names.
+#
+# IMPORTANT:
+#   - Copy this file to .adopter-mapping.yaml (or keep it wherever you manage
+#     private records — it must NEVER be committed to the framework repository).
+#   - The real .adopter-mapping.yaml is listed in .gitignore.
+#   - Only the framework Sentinel needs access to the mapping, for
+#     deduplication and private correspondence with adopters.
+# =============================================================================
+
+# Each entry maps a codename (used in learnings/*.yaml) to the real identity.
+# Add entries as projects adopt the framework.
+
+mappings:
+  - codename: "blue-heron"           # matches learnings/blue-heron.yaml
+    real_name: "Acme Billing v3"     # the actual project name
+    organisation: "Acme Corp"        # the adopting organisation
+    contact: "jane@example.com"      # point of contact for migration notices
+    adopted: "2026-01-15"            # when they adopted the framework
+    notes: ""                        # any context the Sentinel needs
+
+  - codename: "project-aurora"
+    real_name: "HealthTrack Platform"
+    organisation: "HealthTech Inc"
+    contact: "dev-lead@example.com"
+    adopted: "2026-02-20"
+    notes: "HIPAA-regulated; extra care with learning descriptions"

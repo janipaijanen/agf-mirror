@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# agents-govern v2.0 documentation site — MkDocs configuration
+#
+# Build from the repository's v2.0 directory:
+#   mkdocs build -f docs/build/mkdocs.yml --strict
+#
+# Strict mode is deliberate: broken internal links fail the build,
+# which is the docs pipeline's quality gate (gate-self-test: the
+# negative case is a link to a missing page — see docs/build/README.md).
+
+site_name: agents-govern
+site_description: >-
+  Governance for AI-assisted software development: defined roles,
+  review gates, an append-only coordination channel, and an
+  evidence-driven learning system.
+site_author: Jani Päijänen
+copyright: CC BY-SA 4.0
+
+docs_dir: ../site
+site_dir: ../../site-html
+
+theme:
+  name: mkdocs
+
+strict: true
+
+# content-plan.md is a planning control artifact, not a site page.
+exclude_docs: |
+  content-plan.md
+
+nav:
+  - Home: index.md
+  - Value proposition: value.md
+  - Use cases: use-cases.md
+  - Documentation:
+      - Overview: docs/index.md
+      - 'Start':
+          - Should you adopt?: docs/start/should-you-adopt.md
+          - Your first governed change: docs/start/first-governed-change.md
+      - 'Adopt':
+          - Install and layouts: docs/adopt/install-and-layouts.md
+          - Downstream impact: docs/adopt/downstream-impact.md
+          - Exit and decommission: docs/adopt/exit-and-decommission.md
+      - 'Concepts':
+          - Roles and gates: docs/concepts/roles-and-gates.md
+          - Evidence and learnings: docs/concepts/evidence-and-learnings.md
+      - 'Operate':
+          - Day-to-day operation: docs/operate/day-to-day.md
+          - Review and release: docs/operate/review-and-release.md
+      - 'Advanced':
+          - Contracts and validators: docs/advanced/contracts-and-validators.md
+          - Customizing the framework: docs/advanced/customizing-the-framework.md
+  - Evolution: future/evolution.md

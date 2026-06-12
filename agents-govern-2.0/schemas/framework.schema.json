@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gitlab.com/janipaijanen/agent-governance/-/raw/main/schemas/framework.schema.json",
+  "title": "Framework Configuration",
+  "description": "Schema for framework.yaml — the machine-readable companion to framework.md. The file itself ships with action-plan item P1 (issue #63); this schema is forward-looking so editor plugins and adopters can prepare. Per round-5 §7 of the engagement, additionalProperties is false at the top level: the validator rejects unknown sections deterministically.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+([-+][A-Za-z0-9._-]+)?$",
+      "description": "Per A5: equals the framework version. Single version number; no dual-version drift."
+    },
+    "compliance_target": {
+      "type": "string",
+      "enum": ["artefact-only", "process-aware", "full"],
+      "description": "The compliance tier this adopter targets, per docs/adopt/compliance-profile.md. agov --capabilities reads this to compute missing_for_declared_target."
+    },
+    "precedence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Ordered conflict-resolution layers. Conventional ordering: rules > agents > learnings (top-most wins)."
+    },
+    "conflict_policy": {
+      "type": "object",
+      "properties": {
+        "learnings_cannot_override": {"type": "boolean"},
+        "agent_must_comply_with_rules": {"type": "boolean"},
+        "conflict_resolution_artifact": {
+          "type": "string",
+          "description": "Conventional pointer: learnings/<codename>.yaml#category:tension (per item P2)."
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "description": "Layer 3 binding-contract configuration consumed by agov-validate-binding. See docs/binding-contract.md.",
+      "properties": {
+        "agent_active_branches": {
+          "type": "object",
+          "properties": {
+            "patterns": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Branch glob patterns where Agent-ID: trailers are required. Default fallback: agent/*."
+            },
+            "protected_branches": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "human_only_branches": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "validators": {
+      "type": "object",
+      "description": "Per-validator overrides (e.g. opting out of advisory checks). Free-form pending P1 design."
+    }
+  }
+}
