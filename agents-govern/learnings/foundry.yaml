@@ -246,6 +246,47 @@ learnings:
       Preferred: Option B (alias mapping), deferred to T2-6 follow-on scope.
       Option C acceptable as an immediate cosmetic fix if needed.
 
+  - id: L005
+    date: "2026-06-12"
+    category: gap
+    agents_involved: [planner-architect, governor-reviewer]
+    summary: >
+      Validated coordination and plan amendments were left uncommitted, making
+      the handoff visible only in the working tree until another agent committed
+      them.
+    detail: >
+      During the agents-govern-2.0 Gate 1 amendment sequence, Codex acting as
+      planner-architect wrote and validated the amended plan and coordination
+      messages (seq 90-100), then reported completion without ensuring the
+      changed files were committed or otherwise made durable in git history.
+
+      Claude later committed the files to master. No information was lost, but
+      the gap is real: validation success and handoff visibility in the local
+      working tree were treated as equivalent to durable project state. They
+      are not equivalent in an asynchronous multi-agent workflow. A paused or
+      resumed agent reads git history and coordination files on disk; if the
+      work is uncommitted, it can be missed, overwritten, or misattributed.
+
+      Root cause: the completion habit stopped at "file written and validator
+      OK" rather than checking "is this intended to be committed now, and if
+      not, has that been explicitly handed off?" The repo's branch discipline
+      also makes this non-trivial: agents should not commit directly to master,
+      but they must still surface uncommitted governance artifacts clearly.
+
+      Discovery: governor-reviewer noticed after Claude committed the files
+      that Codex had failed to commit or explicitly hand off the uncommitted
+      state.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add a handoff durability check to agents that create coordination
+      messages, plans, or learning records: before declaring the task complete,
+      run git status for touched artifacts and state whether the artifacts are
+      committed, intentionally uncommitted for another agent, or blocked by
+      branch discipline. For governance artifacts that must be consumed
+      asynchronously, either commit on an appropriate branch or write an
+      explicit handoff naming the uncommitted files and required next action.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
