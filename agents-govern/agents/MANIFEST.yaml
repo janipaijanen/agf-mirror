@@ -38,9 +38,12 @@ agents:
     resume_when: "CI pipeline established for automated validation"
 
   fact-checker:
-    status: suspended
-    reason: "no automated README stats to validate yet"
-    resume_when: "framework metrics published in docs"
+    status: active
+    played_by: "human (Jani) + AI advisory, for factual/docs claim review"
+    notes: >
+      Activated by governor-reviewer for v2.0 documentation lanes: marketing
+      and evaluation copy, end-user docs, and paper/manual claims require
+      explicit factual review before Gate 2.
 
   capability-developer:
     status: suspended
@@ -56,8 +59,11 @@ agents:
     reason: "release process: manual version bump + changelog + git tag"
 
   academic-peer-reviewer:
-    status: skipped
-    reason: "no academic publications in this project"
+    status: active
+    played_by: "human (Jani) + AI advisory, for academic/manual review"
+    notes: >
+      Activated by governor-reviewer for the v2.0 paper/PDF lane and any
+      academic-style claims, references, definitions, and survivability review.
 
   academic-visual-reviewer:
     status: skipped
