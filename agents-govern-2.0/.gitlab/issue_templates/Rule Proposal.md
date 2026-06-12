@@ -3,7 +3,7 @@
 
 **Proposed rule name:** <!-- e.g., my-new-rule.md -->
 **Target directory:** <!-- rules-template/always/ | rules-template/workflow/ | rules-template/docs/ | rules-template/ui/ | project-specific-examples/<stack>/ -->
-**Framework version:** <!-- Which version are you using? Check VERSION file or MANIFEST.md -->
+**Framework version:** <!-- Which version are you using? Check VERSION file or docs/governance/manifest.md -->
 
 ### What the rule does
 

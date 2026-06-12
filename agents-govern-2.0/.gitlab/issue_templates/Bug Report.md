@@ -19,4 +19,4 @@
 
 ### Framework version
 
-<!-- Which version are you using? Check VERSION file or MANIFEST.md -->
+<!-- Which version are you using? Check VERSION file or docs/governance/manifest.md -->

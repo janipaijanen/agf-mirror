@@ -4,7 +4,7 @@
 # Compliance profile
 
 Which verifiability layers an adopter enforces. The framework
-defines [five layers of verifiability](../integration-contract.md#five-layer-verifiability-model);
+defines [five layers of verifiability](../contracts/integration-contract.md#five-layer-verifiability-model);
 not every adopter needs all of them. A *compliance profile* names
 the subset an adopter has chosen to enforce, so reviewers,
 auditors, and downstream consumers can read the conformance
@@ -39,7 +39,7 @@ each decision explicit.
 ## The three tiers
 
 The compliance vocabulary used on this page (and in the planned
-[`framework.yaml`](../integration-contract.md#capability-reporting)
+[`framework.yaml`](../contracts/integration-contract.md#capability-reporting)
 target-tier declaration). Defined here before any later table
 references them:
 
@@ -87,7 +87,7 @@ tier as of v1.1.45 (issues
 [B2](https://gitlab.com/janipaijanen/agent-governance/-/issues/57),
 [B3](https://gitlab.com/janipaijanen/agent-governance/-/issues/58)
 all closed). The
-[Binding contract page](../binding-contract.md) carries the per-leg
+[Binding contract page](../contracts/binding-contract.md) carries the per-leg
 specification.
 
 ## Degraded modes — what each tier gives up
@@ -127,7 +127,7 @@ The reasoning:
   binding-contract work ([B1]–[B3]) shipped across v1.1.44 and
   v1.1.45. Adopters declaring the Full target use
   `agov-validate-binding` plus sidecar metadata on non-commit
-  artefacts; see [Binding contract](../binding-contract.md) for
+  artefacts; see [Binding contract](../contracts/binding-contract.md) for
   the per-leg specification.
 - **Process-aware is the cheaper baseline.** All the layers it
   enforces are mechanically achievable today using the shipped
@@ -164,7 +164,7 @@ compliance_target: process-aware  # one of: artefact-only | process-aware | full
 the declaration to compute the actionable list.
 
 `agov --capabilities` schema and live output:
-[Capability reporting](../integration-contract.md#capability-reporting).
+[Capability reporting](../contracts/integration-contract.md#capability-reporting).
 With v1.1.47 closing the action plan, every shipped capability flips
 to `true` and `missing_for_full_compliance` is empty — adopters
 targeting any tier can compare against a complete capability map.
@@ -188,7 +188,7 @@ the same machine-readable surface adopters consume.
 
 ## See also
 
-- [Integration contract](../integration-contract.md) — canonical
+- [Integration contract](../contracts/integration-contract.md) — canonical
   home for the five-layer verifiability model and the validator
   command surface.
 - [Adoption intensity guide](intensity-guide.md) — orthogonal

@@ -502,7 +502,7 @@ tension — watching for corroboration, but the signal is strong.
 
 ## What Comes Next
 
-*See GOVERNANCE.md Sentinel Review Log for authoritative decisions.*
+*See governance.md Sentinel Review Log for authoritative decisions.*
 
 **Shipped since last update (v0.6.0):**
 - Fast-track pipeline (Pattern 6): Governor-Reviewer can waive Gate 1 for small, low-risk tasks. Gate 2 still applies. >30% fast-track rate is a governance decay signal.

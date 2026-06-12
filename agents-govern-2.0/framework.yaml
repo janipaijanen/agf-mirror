@@ -60,7 +60,7 @@ conflict_policy:
 binding:
   # Branch classification consumed by `agov-validate-binding`. The
   # validator stays in *schema-only* mode in this repo (see the
-  # schema-only-mode section in docs/binding-contract.md) until
+  # schema-only-mode section in docs/contracts/binding-contract.md) until
   # adopters explicitly opt into enforce mode by declaring
   # `compliance_target: full` and starting to attach `Agent-ID:`
   # trailers on their own agent-active branches.

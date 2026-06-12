@@ -38,7 +38,7 @@ the project.
 ## Enforcement
 
 Instances of unacceptable behaviour may be reported to the project
-maintainer (see LEARNINGS.md for contact). All reports will be reviewed
+maintainer (see docs/governance/learning-system.md for contact). All reports will be reviewed
 and responded to appropriately. The maintainer is obligated to maintain
 confidentiality with regard to the reporter.
 

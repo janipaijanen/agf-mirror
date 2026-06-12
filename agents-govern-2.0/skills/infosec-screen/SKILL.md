@@ -22,7 +22,7 @@ uv run agov-validate-infosec
 ```
 
 If the `--include-md` flag is relevant (project has narrative docs
-like `LESSONS-LEARNED.md` or `reviews/*.md`), use:
+like `docs/governance/retrospective.md` or `reviews/*.md`), use:
 
 ```bash
 uv run agov-validate-infosec --include-md

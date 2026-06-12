@@ -30,15 +30,15 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 | `framework.yaml` | Machine-readable framework declaration | Copy and tune for adopter compliance profile |
 | `framework.md` | Framework theory & reference | Read-only reference |
 | `ADOPTING.md` | Adoption guide | Follow step by step |
-| `GOVERNANCE.md` | Governance template | Basis for project-specific governance |
-| `LEARNINGS.md` | Learnings guide & privacy policy | Read-only reference |
-| `LESSONS-LEARNED.md` | Narrative lessons from adopters | Read-only reference |
+| `docs/governance/governance.md` | Governance template | Basis for project-specific governance |
+| `docs/governance/learning-system.md` | Learnings guide & privacy policy | Read-only reference |
+| `docs/governance/retrospective.md` | Narrative lessons from adopters | Read-only reference |
 | `README.md` | Overview and quick start | Read-only reference |
-| `docs/binding-contract.md` | Agent-output binding contract | Read before enabling full compliance |
-| `docs/integration-contract.md` | Validator and integration contract | Read before integrating tooling |
-| `docs/contract-stability.md` | Contract versioning and stability promise | Read before upgrading |
+| `docs/contracts/binding-contract.md` | Agent-output binding contract | Read before enabling full compliance |
+| `docs/contracts/integration-contract.md` | Validator and integration contract | Read before integrating tooling |
+| `docs/contracts/contract-stability.md` | Contract versioning and stability promise | Read before upgrading |
 | `docs/adopt/compliance-profile.md` | Compliance target definitions | Use to choose adoption depth |
-| `docs/ANONYMIZATION-NOTICE.md` | Anonymization policy details | Read before submitting learnings |
+| `docs/governance/anonymization-notice.md` | Anonymization policy details | Read before submitting learnings |
 | `docs/adr/` | Architecture decision records | Informational |
 | `pyproject.toml` + `src/agents_govern/` | CLI tools (`uv run agov-*`) | Validation, bumping, health check |
 | `.pre-commit-config.yaml` | Pre-commit hook config | Optional: `pre-commit install` |
@@ -74,8 +74,8 @@ cp LICENSE .
 #    - .claude/rules/ — search for <!-- CUSTOMIZE --> comments
 #    - learnings/<codename>.yaml — fill in project context and assessments
 
-# 6. Write your GOVERNANCE.md (use the included one as a starting point)
-cp GOVERNANCE.md .
+# 6. Write your GOVERNANCE.md (use the included template as a starting point)
+cp docs/governance/governance.md ./GOVERNANCE.md
 #    Edit to match your project's roles, pipeline, and gate rules.
 
 # 7. (Optional) Copy stack-specific examples if applicable

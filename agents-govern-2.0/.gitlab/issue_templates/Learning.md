@@ -5,7 +5,7 @@
 **Date:** <!-- YYYY-MM-DD -->
 **Category:** <!-- gap | overkill | validation | adaptation | tension -->
 **Severity:** <!-- critical | significant | minor | informational -->
-**Framework version:** <!-- Which version are you using? Check VERSION file or MANIFEST.md -->
+**Framework version:** <!-- Which version are you using? Check VERSION file or docs/governance/manifest.md -->
 
 ### What happened
 

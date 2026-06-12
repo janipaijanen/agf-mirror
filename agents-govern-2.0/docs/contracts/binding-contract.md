@@ -25,7 +25,7 @@ The
 [capability report](integration-contract.md#capability-reporting)
 flips `binding: true` at v1.1.45 — the umbrella capability is
 now claimable by any adopter targeting the Full
-[compliance tier](adopt/compliance-profile.md).
+[compliance tier](../adopt/compliance-profile.md).
 
 ## Correlation identifier (B1)
 
@@ -92,7 +92,7 @@ through the existing escalation channel.
 
 Every artefact in **binding scope** must carry the identifier.
 *Binding scope* is defined per compliance tier in
-[Compliance profile](adopt/compliance-profile.md):
+[Compliance profile](../adopt/compliance-profile.md):
 
 - **Artefact-only tier:** binding not required; `agov-validate-binding`
   passes regardless.
@@ -364,7 +364,7 @@ unrelated work.
 - [Integration contract](integration-contract.md) — canonical home
   for the strict-contract surface; the binding section there
   cross-references this page.
-- [Compliance profile](adopt/compliance-profile.md) — three-tier
+- [Compliance profile](../adopt/compliance-profile.md) — three-tier
   vocabulary (Artefact-only / Process-aware / Full); binding scope
   per tier.
 - [Position overview's boundary refinement](position/overview.md#boundary-refinement-2026-05-04)

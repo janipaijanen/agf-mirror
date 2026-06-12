@@ -5,7 +5,7 @@ Closes # <!-- Replace with the issue number, or delete this line -->
 
 **Type:** <!-- rule-template | project-specific-example | agent-definition -->
 **Target path:** <!-- e.g., rules-template/workflow/my-rule.md -->
-**Framework version:** <!-- Which version are you targeting? Check VERSION file or MANIFEST.md -->
+**Framework version:** <!-- Which version are you targeting? Check VERSION file or docs/governance/manifest.md -->
 
 ## What it does
 

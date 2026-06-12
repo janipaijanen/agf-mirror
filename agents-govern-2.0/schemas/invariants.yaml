@@ -9,7 +9,7 @@
 # specific linters) consumes this manifest without re-implementing
 # validator logic.
 #
-# Per docs/integration-contract.md#schema-of-record-hierarchy: the
+# Per docs/contracts/integration-contract.md#schema-of-record-hierarchy: the
 # Python validators are the contract of record. This file is the
 # consumer-facing summary. tests/test_schemas.py::TestInvariantsParity
 # enforces that the parameter values here match the validators'

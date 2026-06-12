@@ -342,11 +342,11 @@ order. Adopters targeting Full read this list and know what to wait
 for. Once `framework.yaml` ships ([P1]) the report will compare
 against an adopter-declared target tier (Artefact-only /
 Process-aware / Full per
-[Compliance profile](adopt/compliance-profile.md)); today the report
+[Compliance profile](../adopt/compliance-profile.md)); today the report
 is unconditional.
 
 Three compliance tiers (canonical home:
-[Compliance profile](adopt/compliance-profile.md), shipped
+[Compliance profile](../adopt/compliance-profile.md), shipped
 v1.1.38 closing [D5]):
 
 - **Artefact-only:** layer 1 (validation) enforced.
@@ -354,7 +354,7 @@ v1.1.38 closing [D5]):
 - **Full:** layers 1 + 2 + 3 enforced (binding via correlation IDs,
   attribution via trailers, sidecars for non-commit artefacts).
 
-The [Compliance profile](adopt/compliance-profile.md) page carries
+The [Compliance profile](../adopt/compliance-profile.md) page carries
 the tier-to-layer mapping, the degraded-modes table (what each
 lower tier gives up), the *how to choose your tier* decision
 shortcut, and the framework's own tier — declared in
@@ -410,7 +410,7 @@ for the framing.
 | JSON aggregate output | **Shipped** (v1.1.37 `--json`); SARIF still planned | [A3] |
 | Contract versioning + stability promise | **Shipped** (v1.1.41 docs at [`contract-stability.md`](contract-stability.md); v1.1.43 CLI flags `agov --version` / `--contract-version` / `--contract-changelog`) | [A5] |
 | `agov --capabilities` report | **Shipped** (v1.1.43; JSON shape under *Capability reporting* above) | [A6] |
-| Compliance profile (3 tiers) | **Shipped** (v1.1.38; canonical home at [`adopt/compliance-profile.md`](adopt/compliance-profile.md)) | [D5] |
+| Compliance profile (3 tiers) | **Shipped** (v1.1.38; canonical home at [`adopt/compliance-profile.md`](../adopt/compliance-profile.md)) | [D5] |
 | Binding contract — correlation identifier + trailer | **Shipped v1.1.44** ([Binding contract](binding-contract.md); validator `agov-validate-binding`) | [B1], [B2] |
 | Binding contract — sidecar metadata + filename fallback | **Shipped v1.1.45** (`Sidecar`, `verify_sidecar`, `parse_filename_fallback`) | [B3] |
 | Per-artefact JSON Schema | **Shipped v1.1.46** ([`schemas/`](https://gitlab.com/janipaijanen/agent-governance/-/tree/main/schemas)) | [C1] |

@@ -50,7 +50,7 @@ identity:
       - "src/**"                  # must not modify application code
       - "tests/**"                # must not modify tests
       - "agents/*.yaml"           # must not modify agent definitions
-      - "GOVERNANCE.md"           # owned by Governor-Reviewer
+      - "docs/governance/governance.md"           # owned by Governor-Reviewer
       - "CI/build pipeline configuration (owned by Build Engineer — .gitlab-ci.yml, Makefile, Dockerfile, compose files)"
 
 boundaries:

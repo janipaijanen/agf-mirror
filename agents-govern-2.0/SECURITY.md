@@ -41,7 +41,7 @@ information disclosure in a learning record:
 ## Information disclosure
 
 The anonymization policy (see `learnings/_template.yaml` and
-`docs/ANONYMIZATION-NOTICE.md`) exists specifically to prevent
+`docs/governance/anonymization-notice.md`) exists specifically to prevent
 information disclosure. If you find a real project, product, or
 organisation name anywhere in the repository -- including in git
 history -- that is a security issue and should be reported.
@@ -78,7 +78,7 @@ security-relevant change means one of:
 | **Minor** | Cosmetic or low-impact gap with no realistic exploit path | Upgrade at your convenience. No urgency. |
 
 These are expectations, not mandates. The framework is advisory (see
-DISCLAIMER.md). Adopters are responsible for evaluating whether a
+docs/governance/disclaimer.md). Adopters are responsible for evaluating whether a
 security-relevant change affects their project.
 
 ### Incident log

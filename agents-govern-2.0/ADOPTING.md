@@ -13,7 +13,7 @@ For the theory behind each step, see framework.md. This document is the practice
 > rewriting) may damage your codebase if applied without proper
 > pre-flight checks and backups. You are responsible for evaluating
 > whether each step is appropriate for your project. See
-> [DISCLAIMER.md](DISCLAIMER.md) for the full terms.
+> [disclaimer](docs/governance/disclaimer.md) for the full terms.
 
 ---
 
@@ -954,7 +954,7 @@ Put it on a calendar. It will not happen if it is not scheduled.
 If you adopted the framework from the agents-govern repository:
 - Submit significant learnings (gaps, tensions, adaptations) as issues or PRs
   to the framework repo
-- This helps the framework evolve based on real evidence (see LEARNINGS.md)
+- This helps the framework evolve based on real evidence (see docs/governance/learning-system.md)
 
 ### 6.3 Learning record sync policy
 
@@ -1209,7 +1209,7 @@ You do not need all agent definitions. Start with a few:
 5. Submit a merge request. The framework maintainer will review.
 
 Your project's real name is never used — only the codename. See
-[ANONYMIZATION-NOTICE.md](docs/ANONYMIZATION-NOTICE.md) for the
+[anonymization-notice](docs/governance/anonymization-notice.md) for the
 privacy policy.
 
 ### What "independent" means

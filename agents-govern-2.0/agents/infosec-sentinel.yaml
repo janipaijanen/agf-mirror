@@ -53,7 +53,7 @@ identity:
       - "Suggested redactions (proposed, never applied by this agent)"
     reads:
       - "learnings/*.yaml"
-      - "LESSONS-LEARNED.md"
+      - "docs/governance/retrospective.md"
       - "reviews/**/*.md"
       - "docs/**/*.md"
     cannot_touch:

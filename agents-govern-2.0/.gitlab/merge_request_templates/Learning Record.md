@@ -5,7 +5,7 @@ Closes # <!-- Replace with the issue number, or delete this line -->
 
 **Project codename:** <!-- e.g., blue-heron -->
 **Number of learnings:** <!-- How many new entries in this file? -->
-**Framework version:** <!-- Which version were the learnings observed against? Check VERSION file or MANIFEST.md -->
+**Framework version:** <!-- Which version were the learnings observed against? Check VERSION file or docs/governance/manifest.md -->
 
 ## Anonymization checklist
 

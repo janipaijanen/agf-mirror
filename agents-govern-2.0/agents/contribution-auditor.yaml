@@ -116,7 +116,7 @@ identity:
       - "learnings/*.yaml"
       - "rules-template/**/*.md"
       - "agents/*.yaml"
-      - "LESSONS-LEARNED.md"
+      - "docs/governance/retrospective.md"
       - "framework.md"
       - "ADOPTING.md"
       - "Merge request descriptions and issue proposals"

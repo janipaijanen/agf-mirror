@@ -1689,7 +1689,7 @@ A distinct concern from AI-Assisted Development: AI agents reading framework art
 An AI consumer can rely on the following surfaces remaining stable across releases:
 
 - **Agent definitions**: `agents/*.yaml`. Stable schema; each agent has `agent.id` of the form `agents-govern:<agent-name>:<agent-version>` and a `framework_version` field. The `identity`, `boundaries`, `capabilities`, `communication`, and `accountability` keys are top-level and predictable.
-- **Learning records**: `learnings/<codename>.yaml`. Codename mandatory per LEARNINGS.md anonymization policy. Append-only `learnings:` array with stable per-entry fields (`date`, `category`, `scope`, `title`, `description`, `agents_involved`, `framework_section`, `business_impact`, `recommendation`, `severity`).
+- **Learning records**: `learnings/<codename>.yaml`. Codename mandatory per docs/governance/learning-system.md anonymization policy. Append-only `learnings:` array with stable per-entry fields (`date`, `category`, `scope`, `title`, `description`, `agents_involved`, `framework_section`, `business_impact`, `recommendation`, `severity`).
 - **Manifest**: `agents/MANIFEST.yaml`. Active/suspended/skipped agent declarations.
 - **Architecture Decision Records (ADRs)**: `docs/adr/*.md`. Status, decision, rationale, consequences. Accepted ADRs are never modified; superseding ADRs link forward.
 - **Version**: the `VERSION` file is canonical for the framework content version.
@@ -1789,7 +1789,7 @@ Framework content falls into three categories:
 2. **Empirically informed** — derived from one project's experience or from related domains. Plausible but not yet corroborated.
 3. **Theoretical** — derived from principles without direct evidence. May be correct, but carries the risk of theoretical accretion.
 
-As projects adopt the framework and record learnings (see LEARNINGS.md), content moves between categories. Content that remains theoretical after 5+ project records should be reviewed for removal.
+As projects adopt the framework and record learnings (see docs/governance/learning-system.md), content moves between categories. Content that remains theoretical after 5+ project records should be reviewed for removal.
 
 **Domain maturity levels for adopting projects:** The three categories above classify *framework content*. When adopting projects describe the maturity of their own domains, features, or capabilities, a finer-grained five-level model applies: (5) Deployable, (4) Validated, (3) Instantiated, (2) Schema-defined, (1) Planned. Binary yes/no capability claims are insufficient — they conflate "types exist" with "fully operational." See `rules-template/docs/implementation-honesty-rule.md` for the full model, rules, and adaptation guidance. *Corroborated by: frost-quill (2026-04-06, critical), iron-gate (schema breadth vs deployment depth tension) — both single-developer.*
 
@@ -1797,10 +1797,10 @@ As projects adopt the framework and record learnings (see LEARNINGS.md), content
 
 The framework applies its own principles to itself:
 
-- **Artifact ownership:** framework.md is owned by the Planner-Architect, governed by the Governor-Reviewer (see GOVERNANCE.md).
+- **Artifact ownership:** framework.md is owned by the Planner-Architect, governed by the Governor-Reviewer (see docs/governance/governance.md).
 - **Pipeline flow:** changes follow plan → approve → implement → verify → commit.
 - **Accountability:** git history serves as the audit trail; commit messages cite the evidence.
-- **Feedback loops:** learnings from adopting projects feed back into revisions (see LEARNINGS.md).
+- **Feedback loops:** learnings from adopting projects feed back into revisions (see docs/governance/learning-system.md).
 - **Meta-observation:** the Human periodically acts as Sentinel, asking whether the framework is improving or just growing.
 
 The framework that cannot govern itself has no business governing anything else.

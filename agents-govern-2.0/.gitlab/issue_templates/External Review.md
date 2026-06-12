@@ -10,7 +10,7 @@ If the reviewer is an AI assistant, the [Reviewer Brief](https://gitlab.com/jani
 **Reviewer type:** <!-- human | external AI (name the model) | mixed -->
 **Reviewer name / handle:** <!-- optional -->
 **Date:** <!-- YYYY-MM-DD -->
-**Framework version:** <!-- See VERSION file or MANIFEST.md -->
+**Framework version:** <!-- See VERSION file or docs/governance/manifest.md -->
 **Output label:** <!-- critique | improvement-backlog | fit-assessment | self-application | adoption-mapping | other (state) -->
 
 ### Scope reviewed

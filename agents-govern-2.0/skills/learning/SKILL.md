@@ -74,4 +74,4 @@ Tell the user:
 - Category and severity
 - Whether validation passed
 - If `scope: framework`: remind them to submit upstream via GitLab issue
-  or MR (see LEARNINGS.md)
+  or MR (see docs/governance/learning-system.md)

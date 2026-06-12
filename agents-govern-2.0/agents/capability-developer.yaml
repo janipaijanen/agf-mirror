@@ -85,8 +85,8 @@ identity:
       - "reviews/*.md (sentinel reviews)"
       - "agents/*.yaml (all agent definitions)"
       - "framework.md (phase definitions, boundary principles, verb table)"
-      - "LEARNINGS.md (decision criteria, sentinel review process)"
-      - "LESSONS-LEARNED.md (narrative accounts from adopters)"
+      - "docs/governance/learning-system.md (decision criteria, sentinel review process)"
+      - "docs/governance/retrospective.md (narrative accounts from adopters)"
       - "rules-template/**/*.md (existing rule templates)"
       - "Escalation logs from Governor-Reviewer"
       - "Coherence reports from Sentinel"
@@ -273,7 +273,7 @@ accountability:
 # The Capability Developer formalizes and systematizes what is currently
 # done ad-hoc by the human maintainer and sentinel reviews:
 #
-# - Sentinel reviews (LEARNINGS.md): Currently triggered "after every 3rd
+# - Sentinel reviews (docs/governance/learning-system.md): Currently triggered "after every 3rd
 #   learning or monthly." The Capability Developer consumes sentinel review
 #   output as input, but operates at a higher level — not "is this learning
 #   valid?" but "what do accumulated learnings tell us about agent design?"

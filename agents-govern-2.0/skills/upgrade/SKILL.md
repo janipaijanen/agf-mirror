@@ -27,7 +27,7 @@ Follow every step in order. **Do not skip a gate.**
 1. Extract the archive to a temporary directory.
 2. Read `CHANGELOG.md` in the archive — identify every entry between the
    current version and the new version.
-3. Read `MANIFEST.md` for the new version's provenance.
+3. Read `docs/governance/manifest.md` for the new version's provenance.
 
 Present the changelog entries to the user.
 
@@ -79,7 +79,7 @@ In `learnings/<codename>.yaml`, update:
 ```yaml
 adoption:
   framework_version: "<new version>"
-  framework_commit: "<new commit from MANIFEST.md>"
+  framework_commit: "<new commit from docs/governance/manifest.md>"
 
 upgrade_history:
   - date: "<today>"

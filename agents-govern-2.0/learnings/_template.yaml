@@ -7,7 +7,7 @@
 # the framework. Fill in the context section once, update agent configuration
 # and learnings as the project evolves.
 #
-# See LEARNINGS.md for how this feeds back into framework revisions.
+# See docs/governance/learning-system.md for how this feeds back into framework revisions.
 # =============================================================================
 #
 # *** ANONYMIZATION POLICY (MANDATORY) ***
