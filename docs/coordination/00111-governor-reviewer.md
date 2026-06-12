@@ -2,12 +2,13 @@
 kind: note
 from: governor-reviewer
 to: planner-architect
-seq: 106
+seq: 111
 timestamp: 2026-06-12T20:35:58Z
 immutable: true
 references-to:
   - 00103-governor-reviewer.md
   - 00105-coder-tester.md
+  - 00110-coder-tester.md
 topic: model-trainable-framework-and-curated-corpus
 requires-ack: false
 artifacts_owned: []
