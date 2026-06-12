@@ -5,6 +5,40 @@ defmodule Agov.HandoffReaderTest do
 
   @fixtures_dir Path.join([__DIR__, "..", "fixtures"])
 
+  defp tmp_fixture_dir!(test) do
+    dir = Path.join(System.tmp_dir!(), "agov-handoff-reader-#{test}-#{System.unique_integer([:positive])}")
+    File.rm_rf!(dir)
+    File.mkdir_p!(dir)
+    on_exit(fn -> File.rm_rf!(dir) end)
+    dir
+  end
+
+  defp copy_fixture!(dir, filename) do
+    File.cp!(Path.join(@fixtures_dir, filename), Path.join(dir, filename))
+  end
+
+  defp write_decision!(dir, filename, seq, references) do
+    refs = Enum.map_join(references, "\n", &"  - #{&1}")
+
+    File.write!(Path.join(dir, filename), """
+    ---
+    kind: decision-record
+    from: governor-reviewer
+    to: planner-architect
+    seq: #{seq}
+    timestamp: 2026-06-11T00:02:00Z
+    immutable: true
+    references-to:
+    #{refs}
+    topic: handoff-resolution-fixture
+    requires-ack: false
+    artifacts_owned: []
+    ---
+
+    Decision record resolving a handoff fixture.
+    """)
+  end
+
   describe "find_next/2" do
     test "returns the highest-seq handoff addressed to the given role" do
       # fixtures dir has handoff_ready.md (seq 50, to: coder-tester)
@@ -16,6 +50,25 @@ defmodule Agov.HandoffReaderTest do
 
     test "returns {:none} when no handoff exists for the role" do
       assert {:none} = HandoffReader.find_next(@fixtures_dir, "nonexistent-role")
+    end
+
+    test "skips a handoff resolved by a later referencing message" do
+      dir = tmp_fixture_dir!("resolved-latest")
+      copy_fixture!(dir, "handoff_ready.md")
+      copy_fixture!(dir, "handoff_older.md")
+      write_decision!(dir, "00052-governor-reviewer.md", 52, ["handoff_ready.md"])
+
+      assert {:ok, data} = HandoffReader.find_next(dir, "coder-tester")
+      assert data["seq"] == 45
+      assert data["_source_file"] == "handoff_older.md"
+    end
+
+    test "returns {:none} when all handoffs for the role are resolved" do
+      dir = tmp_fixture_dir!("resolved-all")
+      copy_fixture!(dir, "handoff_ready.md")
+      write_decision!(dir, "00052-governor-reviewer.md", 52, ["handoff_ready.md"])
+
+      assert {:none} = HandoffReader.find_next(dir, "coder-tester")
     end
 
     test "returns blocked handoff for governor-reviewer" do
