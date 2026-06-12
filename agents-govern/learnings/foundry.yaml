@@ -287,6 +287,40 @@ learnings:
       asynchronously, either commit on an appropriate branch or write an
       explicit handoff naming the uncommitted files and required next action.
 
+  - id: L006
+    date: "2026-06-12"
+    category: gap
+    agents_involved: [planner-architect, governor-reviewer, coder-tester]
+    summary: >
+      Handoff queue tools disagree after a decision-record resolves a handoff.
+    detail: >
+      After governor-reviewer approved the consolidated agents-govern-2.0
+      Gate 1 plan in seq 103, `mix agov.coord.status` correctly treated the
+      seq 98-100 handoffs as resolved because later messages referenced them.
+      However, `mix agov.handoff.next governor-reviewer` still returned seq
+      100 as the next handoff.
+
+      The discrepancy is structural: `Agov.HandoffTracker` is resolution-aware
+      and classifies handoffs as resolved when a later coordination message
+      references the handoff file. `Agov.HandoffReader`, which backs
+      `mix agov.handoff.next`, scans for the highest-seq handoff addressed to
+      the role and does not consult the resolution model. The result is two
+      official tools presenting different queue states.
+
+      No governance decision was invalidated: seq 103 remains the durable Gate
+      1 approval. The risk is operational confusion. A governor-reviewer or
+      resumed agent may think already-approved work still awaits review if
+      they use `handoff.next` rather than `coord.status`.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Make `mix agov.handoff.next` resolution-aware by using the same pending
+      handoff model as `Agov.HandoffTracker`. Later decision-record, ack,
+      completion, review, or note messages that reference a handoff should
+      remove that handoff from the "next" queue. Until fixed, use
+      `mix agov.coord.status` as the source of truth for whether a handoff is
+      still pending.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
