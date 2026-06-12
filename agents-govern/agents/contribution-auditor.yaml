@@ -175,12 +175,14 @@ capabilities:
 communication:
   receives_from:
     - agent: "governor-reviewer"
-      message_types: ["audit_request", "red_flag_tuning"]
+      message_types:
+        - handoff  # logical: audit_request, red_flag_tuning
     - agent: "human"
       message_types: ["false_positive_report", "audit_override"]
   sends_to:
     - agent: "governor-reviewer"
-      message_types: ["audit_report", "governance_relaxation_alert", "scope_integrity_alert", "block_recommendation"]
+      message_types:
+        - review  # logical: audit_report, governance_relaxation_alert, scope_integrity_alert, block_recommendation
     - agent: "human"
       message_types: ["confirmation_required", "adversarial_pattern_alert", "self_referential_change_alert"]
 

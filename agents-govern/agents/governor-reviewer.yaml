@@ -160,68 +160,51 @@ communication:
   receives_from:
     - agent: "planner-architect"
       message_types:
-        - "plan_submission"        # plan ready for review
-        - "design_submission"      # ADR/spec ready for review
-        - "escalation"            # out-of-scope situation
-        - "scope_change_proposal"  # recommending scope adjustment
+        - handoff  # logical: plan_submission, design_submission, escalation, scope_change_proposal
 
     - agent: "coder-tester"
       message_types:
-        - "review_request"         # code + tests ready for review
-        - "escalation"            # out-of-scope situation
-        - "boundary_question"     # unsure if action is within scope
-        - "bug_report"            # unrelated bugs found during work
+        - handoff  # logical: review_request, escalation, boundary_question
+        - note     # logical: bug_report
 
     - agent: "build-engineer"
       message_types:
-        - "review_request"         # CI/build changes ready for review
-        - "escalation"            # out-of-scope situation
-        - "boundary_question"     # unsure if action is within scope
-        - "pipeline_efficiency_report" # findings about unnecessary CI execution
+        - handoff  # logical: review_request, escalation, boundary_question
+        - review   # logical: pipeline_efficiency_report
 
     - agent: "infosec-sentinel"
       message_types:
-        - "screening_report"       # screening results for learning records
-        - "block_recommendation"   # recommendation to block a submission
+        - review  # logical: screening_report, block_recommendation
 
     - agent: "fact-checker"
       message_types:
-        - "drift_report"           # documentation drift findings
-        - "blocking_findings"      # findings that should block a release
+        - review  # logical: drift_report, blocking_findings
 
     - agent: "contribution-auditor"
       message_types:
-        - "audit_report"           # contribution audit results
-        - "governance_relaxation_alert" # flagged governance weakening
-        - "block_recommendation"   # recommendation to block a contribution
+        - review  # logical: audit_report, governance_relaxation_alert, scope_integrity_alert, block_recommendation
 
     - agent: "deployment-engineer"
       message_types:
-        - "review_request"         # deployment changes ready for review
-        - "release_request"        # release ready for approval
-        - "escalation"             # out-of-scope situation
+        - handoff  # logical: review_request, release_request, escalation
 
     - agent: "documentation-writer"
       message_types:
-        - "review_request"         # documentation ready for review
-        - "escalation"             # out-of-scope situation
+        - handoff  # logical: review_request, escalation
 
     - agent: "capability-developer"
       message_types:
-        - "evolution_proposal"     # proposed change to agent definition(s)
-        - "phase_transition_assessment" # readiness for a phase split
-        - "capability_gap_report"  # analysis of corroborated gap
-        - "rule_template_proposal" # proposed new rule template
+        - review  # logical: evolution_proposal, phase_transition_assessment, capability_gap_report, rule_template_proposal
 
     - agent: "academic-peer-reviewer"
       message_types:
-        - "review_report"          # peer review results
-        - "escalation"             # research integrity concern
+        - review   # logical: review_report
+        - handoff  # logical: escalation
 
     - agent: "academic-visual-reviewer"
       message_types:
-        - "visual_review_report"   # visual review results
-        - "escalation"             # page limit or resolution concern
+        - review   # logical: visual_review_report
+        - handoff  # logical: escalation
 
     - agent: "human"
       message_types:
@@ -233,73 +216,56 @@ communication:
   sends_to:
     - agent: "planner-architect"
       message_types:
-        - "plan_approval"          # plan approved, proceed to design/impl
-        - "plan_rejection"         # plan needs revision, with feedback
-        - "design_rejection"       # architecture needs revision
-        - "scope_change_request"   # directing a re-plan
-        - "escalation_resolution"  # answer to their escalation
-        - "incident_report"        # production issue for next planning cycle
+        - decision-record  # logical: plan_approval, plan_rejection, design_rejection, scope_change_request, escalation_resolution
+        - note             # logical: incident_report
 
     - agent: "coder-tester"
       message_types:
-        - "task_assignment"        # approved plan + spec, ready to implement
-        - "revision_request"       # code or tests need changes
-        - "approval"              # code approved
-        - "boundary_ruling"       # response to boundary question
-        - "escalation_resolution" # answer to their escalation
+        - decision-record  # logical: task_assignment, revision_request, boundary_ruling, escalation_resolution
+        - completion       # logical: approval
 
     - agent: "build-engineer"
       message_types:
-        - "task_assignment"        # approved plan for build/CI changes
-        - "revision_request"       # CI config needs changes
-        - "approval"              # build changes approved
-        - "boundary_ruling"       # response to boundary question
-        - "escalation_resolution" # answer to their escalation
+        - decision-record  # logical: task_assignment, revision_request, boundary_ruling, escalation_resolution
+        - completion       # logical: approval
 
     - agent: "deployment-engineer"
       message_types:
-        - "task_assignment"        # approved plan for deployment changes
-        - "release_approval"       # release approved at Gate 2
-        - "revision_request"       # deployment config needs changes
-        - "escalation_resolution"  # answer to their escalation
+        - decision-record  # logical: task_assignment, revision_request, escalation_resolution
+        - completion       # logical: release_approval
 
     - agent: "infosec-sentinel"
       message_types:
-        - "screening_request"      # trigger a screening run
-        - "heuristic_tuning"       # adjust screening sensitivity
+        - handoff  # logical: screening_request, heuristic_tuning
 
     - agent: "fact-checker"
       message_types:
-        - "verification_request"   # trigger a fact-check run
-        - "pre_release_check"      # verify claims before release
+        - handoff  # logical: verification_request, pre_release_check
 
     - agent: "contribution-auditor"
       message_types:
-        - "audit_request"          # trigger a contribution audit
-        - "red_flag_tuning"        # adjust audit sensitivity
+        - handoff  # logical: audit_request, red_flag_tuning
 
     - agent: "documentation-writer"
       message_types:
-        - "task_assignment"        # approved plan for documentation changes
-        - "revision_request"       # docs need changes
-        - "approval"               # docs approved
-        - "escalation_resolution"  # answer to their escalation
+        - decision-record  # logical: task_assignment, revision_request, escalation_resolution
+        - completion       # logical: approval
 
     - agent: "capability-developer"
       message_types:
-        - "evolution_analysis_request" # triggered by escalation pattern or learning threshold
-        - "proposal_feedback"      # response to a submitted proposal
-        - "escalation_log_summary" # periodic summary of escalation patterns
+        - handoff          # logical: evolution_analysis_request
+        - decision-record  # logical: proposal_feedback
+        - note             # logical: escalation_log_summary
 
     - agent: "academic-peer-reviewer"
       message_types:
-        - "review_request"         # manuscript ready for peer review
-        - "escalation_resolution"  # answer to their escalation
+        - handoff          # logical: review_request
+        - decision-record  # logical: escalation_resolution
 
     - agent: "academic-visual-reviewer"
       message_types:
-        - "review_request"         # manuscript ready for visual review
-        - "escalation_resolution"  # answer to their escalation
+        - handoff          # logical: review_request
+        - decision-record  # logical: escalation_resolution
 
     - agent: "human"
       message_types:

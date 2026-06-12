@@ -262,13 +262,18 @@ boundaries:
 communication:
   receives_from:
     - agent: "governor-reviewer"
-      message_types: ["review_request"]
+      message_types:
+        - handoff          # logical: review_request
+        - decision-record  # logical: escalation_resolution
     - agent: "human"
       message_types: ["manuscript_submission", "revision_submission"]
   sends_to:
     - agent: "governor-reviewer"
-      message_types: ["review_report", "escalation"]
+      message_types:
+        - review   # logical: review_report
+        - handoff  # logical: escalation
     - agent: "academic-visual-reviewer"
-      message_types: ["content_context"]
+      message_types:
+        - note  # logical: content_context
     - agent: "human"
       message_types: ["review_report", "recommendation"]
