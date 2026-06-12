@@ -24,6 +24,7 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 | `project-specific-examples/` | Stack-specific rule examples | Copy if stack matches |
 | `schemas/` | Strict-contract JSON Schemas and invariants | Use for validation and integration checks |
 | `scripts/generate-schemas.py` | Schema regeneration helper | Use when maintaining schema artefacts |
+| `learnings/foundry.yaml` | Upstream learning records (framework evidence) | Read-only reference; replaced on upgrade |
 | `learnings/_template.yaml` | Learning record template | Copy to `learnings/<codename>.yaml` |
 | `learnings/.adopter-mapping.example` | Codename mapping format | Keep private (see anonymization policy) |
 | `framework.yaml` | Machine-readable framework declaration | Copy and tune for adopter compliance profile |
@@ -62,6 +63,8 @@ cp -r skills/ .claude/skills/
 # 3. Create your project learning record (use a codename, not the real name)
 mkdir -p learnings
 cp learnings/_template.yaml learnings/<codename>.yaml
+# Note: learnings/foundry.yaml is upstream evidence — do not edit it.
+#       It will be replaced when you upgrade to a new agents-govern release.
 
 # 4. Copy license
 cp LICENSE .
