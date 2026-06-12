@@ -183,13 +183,29 @@ capabilities:
 
 communication:
   receives_from:
-    - "governor-reviewer (screening request, heuristic tuning)"
-    - "human (sentinel_ack confirmations, false positive reports)"
+    - agent: "governor-reviewer"
+      message_types:
+        - handoff  # logical: screening_request, heuristic_tuning
+    - agent: "human"
+      message_types:
+        - sentinel_ack_confirmations
+        - false_positive_reports
+
   sends_to:
-    - "governor-reviewer (screening report, block recommendation)"
-    - "human (confirmation required, credential exposure alert, suggested redaction)"
-    - "documentation-writer (approved redaction to apply, after human confirms)"
-    - "coder-tester (approved redaction to apply, after human confirms)"
+    - agent: "governor-reviewer"
+      message_types:
+        - review  # logical: screening_report, block_recommendation
+    - agent: "documentation-writer"
+      message_types:
+        - handoff  # logical: approved_redaction (after human confirms)
+    - agent: "coder-tester"
+      message_types:
+        - handoff  # logical: approved_redaction (after human confirms)
+    - agent: "human"
+      message_types:
+        - confirmation_required
+        - credential_exposure_alert
+        - suggested_redaction
 
 accountability:
   quality_checks:

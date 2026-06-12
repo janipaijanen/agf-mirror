@@ -130,54 +130,46 @@ communication:
   receives_from:
     - agent: "governor-reviewer"
       message_types:
-        - "plan_approval"         # approved plan ready for implementation
-        - "plan_rejection"        # plan needs revision, with feedback
-        - "design_rejection"      # architecture needs revision
-        - "scope_change_request"  # external trigger to re-plan
-        - "escalation_resolution" # answer to a prior escalation
-        - "incident_report"       # production issue feeding into next cycle
+        - decision-record  # logical: plan_approval, plan_rejection, design_rejection, scope_change_request, escalation_resolution
+        - note             # logical: incident_report
 
     - agent: "coder-tester"
       message_types:
-        - "clarification_request" # needs more detail on plan or design
+        - note  # logical: clarification_request
 
     - agent: "build-engineer"
       message_types:
-        - "clarification_request"  # needs detail on plan or infrastructure
-        - "infrastructure_need"    # build requires new service or runner
+        - note  # logical: clarification_request, infrastructure_need
 
     - agent: "deployment-engineer"
       message_types:
-        - "deployment_architecture" # deployment target or platform decisions (Phase 3)
+        - note  # logical: infrastructure_feedback (Phase 3; asymmetry fix: DE sends infrastructure_feedback, not deployment_architecture)
 
     - agent: "documentation-writer"
       message_types:
-        - "structure_plan"         # documentation structure and gap analysis (Phase 3)
+        - note  # logical: structure_feedback (Phase 3; asymmetry fix: DW sends structure_feedback, not structure_plan)
 
   sends_to:
     - agent: "governor-reviewer"
       message_types:
-        - "plan_submission"       # new or revised plan for review
-        - "design_submission"     # new or revised ADR/spec for review
-        - "escalation"           # out-of-scope situation
-        - "scope_change_proposal" # recommending scope adjustment
+        - handoff  # logical: plan_submission, design_submission, escalation, scope_change_proposal
 
     - agent: "coder-tester"
       message_types:
-        - "clarification_response" # answering a clarification request
+        - note  # logical: clarification_response
 
     - agent: "build-engineer"
       message_types:
-        - "clarification_response"  # answering a clarification request
-        - "infrastructure_decision" # new service or runner requirements approved
+        - note          # logical: clarification_response
+        - decision-record  # logical: infrastructure_decision
 
     - agent: "deployment-engineer"
       message_types:
-        - "deployment_architecture" # deployment target or platform decisions (Phase 3)
+        - handoff  # logical: deployment_architecture (Phase 3)
 
     - agent: "documentation-writer"
       message_types:
-        - "structure_plan"         # documentation structure and gap analysis (Phase 3)
+        - handoff  # logical: structure_plan (Phase 3)
 
   cannot_contact:
     # In Phase 1 there are only 3 agents, so this is about direct

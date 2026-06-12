@@ -150,49 +150,42 @@ communication:
   receives_from:
     - agent: "governor-reviewer"
       message_types:
-        - "task_assignment"        # approved plan + spec ready to implement
-        - "revision_request"       # code or tests need changes
-        - "approval"              # code approved, ready for next stage
-        - "boundary_ruling"       # response to boundary question
-        - "escalation_resolution" # answer to a prior escalation
+        - decision-record  # logical: task_assignment, revision_request, boundary_ruling, escalation_resolution
+        - completion       # logical: approval
 
     - agent: "planner-architect"
       message_types:
-        - "clarification_response" # answer to a clarification request
+        - note  # logical: clarification_response
 
     - agent: "build-engineer"
       message_types:
-        - "build_artifact_change"  # artifact format or location changed
-        - "pipeline_constraint"    # build constraint affecting test structure
+        - note  # logical: build_artifact_change, pipeline_constraint
 
     - agent: "infosec-sentinel"
       message_types:
-        - "approved_redaction"     # redaction to apply in code, after human confirms
+        - handoff  # logical: approved_redaction
 
   sends_to:
     - agent: "governor-reviewer"
       message_types:
-        - "review_request"        # code + tests ready for review
-        - "escalation"           # out-of-scope situation
-        - "boundary_question"    # unsure if action is within scope
-        - "bug_report"           # unrelated bugs found during work
+        - handoff  # logical: review_request, escalation, boundary_question
+        - note     # logical: bug_report
 
     - agent: "planner-architect"
       message_types:
-        - "clarification_request" # needs more detail on plan or design
+        - note  # logical: clarification_request
 
     - agent: "build-engineer"
       message_types:
-        - "test_structure_change"  # new test suite or tier added
-        - "dependency_change"      # dependencies changed, may affect build
+        - note  # logical: test_structure_change, dependency_change
 
     - agent: "deployment-engineer"
       message_types:
-        - "test_results"           # test results for release verification (Phase 3)
+        - note  # logical: test_results (Phase 3)
 
     - agent: "documentation-writer"
       message_types:
-        - "implementation_changes" # code changes that may affect documentation (Phase 3)
+        - note  # logical: implementation_changes (Phase 3)
 
   cannot_contact:
     # In Phase 1, all task flow goes through Governor-Reviewer.

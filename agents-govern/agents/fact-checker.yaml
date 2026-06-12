@@ -129,14 +129,17 @@ capabilities:
 communication:
   receives_from:
     - agent: "governor-reviewer"
-      message_types: ["verification_request", "pre_release_check"]
+      message_types:
+        - handoff  # logical: verification_request, pre_release_check
     - agent: "human"
       message_types: ["verification_request"]
   sends_to:
     - agent: "governor-reviewer"
-      message_types: ["drift_report", "blocking_findings"]
+      message_types:
+        - review  # logical: drift_report, blocking_findings
     - agent: "documentation-writer"
-      message_types: ["stale_claims"]
+      message_types:
+        - note  # logical: drift_finding, broken_reference (asymmetry fix: was stale_claims)
     - agent: "human"
       message_types: ["verification_summary"]
 

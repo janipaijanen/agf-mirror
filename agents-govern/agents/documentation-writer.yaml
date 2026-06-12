@@ -76,37 +76,33 @@ communication:
   receives_from:
     - agent: "governor-reviewer"
       message_types:
-        - "task_assignment"        # approved plan for documentation changes
-        - "revision_request"       # docs need changes
-        - "approval"               # docs approved
-        - "escalation_resolution"  # answer to a prior escalation
+        - decision-record  # logical: task_assignment, revision_request, escalation_resolution
+        - completion       # logical: approval
 
     - agent: "planner-architect"
       message_types:
-        - "structure_plan"         # documentation structure and gap analysis
+        - handoff  # logical: structure_plan
 
     - agent: "coder-tester"
       message_types:
-        - "implementation_changes" # code changes that may affect documentation
+        - note  # logical: implementation_changes
 
     - agent: "fact-checker"
       message_types:
-        - "drift_finding"          # stale claims that need updating
-        - "broken_reference"       # cross-references that need fixing
+        - note  # logical: drift_finding, broken_reference
 
     - agent: "infosec-sentinel"
       message_types:
-        - "approved_redaction"     # redaction to apply, after human confirms
+        - handoff  # logical: approved_redaction (after human confirms)
 
   sends_to:
     - agent: "governor-reviewer"
       message_types:
-        - "review_request"         # documentation ready for review
-        - "escalation"             # out-of-scope situation
+        - handoff  # logical: review_request, escalation
 
     - agent: "planner-architect"
       message_types:
-        - "structure_feedback"     # documentation gaps or structure issues found during writing
+        - note  # logical: structure_feedback
 
     - agent: "human"
       message_types:

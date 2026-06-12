@@ -131,49 +131,40 @@ communication:
   receives_from:
     - agent: "governor-reviewer"
       message_types:
-        - "task_assignment"        # approved plan for build/CI changes
-        - "revision_request"       # CI config needs changes
-        - "approval"               # build changes approved
-        - "boundary_ruling"        # response to boundary question
-        - "escalation_resolution"  # answer to a prior escalation
+        - decision-record  # logical: task_assignment, revision_request, boundary_ruling, escalation_resolution
+        - completion       # logical: approval
 
     - agent: "coder-tester"
       message_types:
-        - "test_structure_change"  # new test suite or test tier added
-        - "dependency_change"      # dependencies changed, may affect build
+        - note  # logical: test_structure_change, dependency_change
 
     - agent: "planner-architect"
       message_types:
-        - "clarification_response" # answer to a clarification request
-        - "infrastructure_decision" # new service or runner requirements approved
+        - note          # logical: clarification_response
+        - decision-record  # logical: infrastructure_decision
 
     - agent: "deployment-engineer"
       message_types:
-        - "artifact_requirement"   # deployment needs specific artifact format (Phase 3)
+        - handoff  # logical: artifact_requirement (Phase 3)
 
   sends_to:
     - agent: "governor-reviewer"
       message_types:
-        - "review_request"         # CI/build changes ready for review
-        - "escalation"             # out-of-scope situation
-        - "boundary_question"      # unsure if action is within scope
-        - "pipeline_efficiency_report" # findings about unnecessary CI execution
+        - handoff  # logical: review_request, escalation, boundary_question
+        - review   # logical: pipeline_efficiency_report
 
     - agent: "coder-tester"
       message_types:
-        - "build_artifact_change"  # artifact format or location changed
-        - "pipeline_constraint"    # build constraint affecting how tests should be structured
+        - note  # logical: build_artifact_change, pipeline_constraint
 
     - agent: "planner-architect"
       message_types:
-        - "clarification_request"  # needs more detail on infrastructure or architecture
-        - "infrastructure_need"    # build requires new service or runner
+        - note  # logical: clarification_request, infrastructure_need
 
     - agent: "deployment-engineer"
       message_types:
-        - "build_artifact_ready"   # build artifacts ready for deployment (Phase 3)
-        - "artifact_format_change" # artifact structure has changed (Phase 3)
-        - "artifact_requirement"   # deployment needs specific artifact format (Phase 3)
+        - note    # logical: build_artifact_ready, artifact_format_change (Phase 3)
+        - handoff  # logical: artifact_requirement (Phase 3; pre-existing entry)
 
   cannot_contact:
     []  # Build Engineer may need to coordinate with all agents on CI matters

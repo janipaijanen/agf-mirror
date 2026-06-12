@@ -202,9 +202,9 @@ communication:
   receives_from:
     - agent: "governor-reviewer"
       message_types:
-        - "evolution_analysis_request"    # triggered by escalation pattern or learning threshold
-        - "proposal_feedback"             # governor's response to a submitted proposal
-        - "escalation_log_summary"        # periodic summary of escalation patterns
+        - handoff          # logical: evolution_analysis_request
+        - decision-record  # logical: proposal_feedback
+        - note             # logical: escalation_log_summary
 
     # NOTE: when a Sentinel (meta-tier) agent is introduced in Phase 4+,
     # add receives_from: sentinel with message_types: systemic_finding, drift_warning
@@ -219,10 +219,7 @@ communication:
   sends_to:
     - agent: "governor-reviewer"
       message_types:
-        - "evolution_proposal"            # proposed change to agent definition(s)
-        - "phase_transition_assessment"   # readiness assessment for a phase split
-        - "capability_gap_report"         # analysis of corroborated gap
-        - "rule_template_proposal"        # proposed new rule template
+        - review  # logical: evolution_proposal, phase_transition_assessment, capability_gap_report, rule_template_proposal
 
     - agent: "human"
       message_types:
