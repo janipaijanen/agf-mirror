@@ -1,6 +1,8 @@
 defmodule Agov.PlanValidator do
   @moduledoc false
 
+  alias Agov.ManifestReader
+
   @required_roles ~w(infosec-sentinel contribution-auditor)
 
   def validate_file(path) do
@@ -18,11 +20,12 @@ defmodule Agov.PlanValidator do
   def validate_semantics(data) do
     entries = Map.get(data, "advisory_consultation", [])
     roles = Enum.map(entries, &Map.get(&1, "role"))
+    allowed_roles = allowed_roles()
 
     errors =
       []
       |> add_missing_role_errors(roles)
-      |> add_unknown_role_errors(roles)
+      |> add_unknown_role_errors(roles, allowed_roles)
       |> add_duplicate_role_errors(roles)
 
     case errors do
@@ -39,13 +42,29 @@ defmodule Agov.PlanValidator do
     end)
   end
 
-  defp add_unknown_role_errors(errors, roles) do
+  defp add_unknown_role_errors(errors, roles, allowed_roles) do
     roles
-    |> Enum.reject(&(&1 in @required_roles))
+    |> Enum.reject(&(&1 in allowed_roles))
     |> Enum.uniq()
     |> Enum.reduce(errors, fn role, acc ->
       [{"unknown advisory role: #{role}", "#/advisory_consultation"} | acc]
     end)
+  end
+
+  defp allowed_roles do
+    manifest_path()
+    |> ManifestReader.load()
+    |> case do
+      {:ok, agents} ->
+        agents
+        |> Enum.filter(fn {_role, attrs} -> attrs.status == "active" end)
+        |> Enum.map(fn {role, _attrs} -> role end)
+        |> Kernel.++(@required_roles)
+        |> Enum.uniq()
+
+      {:error, _reason} ->
+        @required_roles
+    end
   end
 
   defp add_duplicate_role_errors(errors, roles) do
@@ -84,6 +103,10 @@ defmodule Agov.PlanValidator do
   defp schema_path do
     dir = System.get_env("AGOV_SCHEMA_DIR", "../../spec/schemas")
     Path.join(dir, "gate1-plan.schema.json")
+  end
+
+  defp manifest_path do
+    System.get_env("AGOV_MANIFEST_PATH", "../../agents-govern/agents/MANIFEST.yaml")
   end
 
   defp load_schema do
