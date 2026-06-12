@@ -321,6 +321,46 @@ learnings:
       `mix agov.coord.status` as the source of truth for whether a handoff is
       still pending.
 
+  - id: L007
+    date: "2026-06-12"
+    category: gap
+    agents_involved: [planner-architect, governor-reviewer, coder-tester]
+    summary: >
+      Agents repeatedly committed durable governance artifacts on the wrong
+      branch because branch identity was assumed to remain stable across turns
+      and concurrent sessions.
+    detail: >
+      Multiple incidents during the agents-govern-2.0 work showed that "I am on
+      the intended branch" is not a durable fact in a shared multi-agent
+      checkout. Codex committed the seq 105 tooling fix and completion on
+      `feat/agents-govern-2.0-structure`, a feature branch claimed for the
+      v2.0 structural work. Later, Codex wrote a curated-corpus coordination
+      note as seq 106 from a stale branch view while master already contained
+      Claude's seq 106, forcing a renumbering correction to seq 111.
+
+      The existing branch-and-worktree rule already says to check the branch
+      immediately before committing, but the failures show that a workflow rule
+      is too easy to remember only at task start. Branch identity must be
+      treated as volatile state and verified immediately before every durable
+      write: commit, push, branch rewrite, merge, tag, or coordination entry
+      intended for asynchronous consumption.
+
+      Root cause: agents treated branch selection as session context rather
+      than a precondition that must be re-read at the moment of action. In a
+      shared checkout, another agent, an IDE, or a resume from stale context can
+      invalidate that assumption.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Promote branch/worktree preflight from workflow guidance to an always-on
+      rule for LLM agents: immediately before every commit, push, merge, tag,
+      branch rewrite, or coordination/learning/plan write, run
+      `git branch --show-current` and `git status --short --branch`; compare
+      the result to the intended branch and task scope; stop and ask for
+      disposition if the branch differs, is shared/claimed by another agent, or
+      would mix unrelated artifacts. Do not rely on earlier branch checks or
+      remembered session state.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
