@@ -1,21 +1,33 @@
 defmodule Agov.HandoffReader do
   @moduledoc false
 
-  alias Agov.CoordValidator
+  alias Agov.{ChannelReader, HandoffTracker}
 
   def find_next(coord_dir, agent_role) do
-    case File.ls(coord_dir) do
-      {:error, :enoent} ->
+    case ChannelReader.scan(coord_dir) do
+      {:error, :dir_not_found} ->
         {:error, :dir_not_found}
 
-      {:ok, files} ->
-        files
-        |> Enum.filter(&String.ends_with?(&1, ".md"))
-        |> Enum.flat_map(&parse_handoff(coord_dir, &1, agent_role))
-        |> Enum.max_by(& &1["seq"], fn -> nil end)
-        |> case do
-          nil -> {:none}
-          data -> {:ok, data}
+      {:ok, %{messages: messages}} ->
+        with {:ok, %{pending: pending}} <- HandoffTracker.scan(messages) do
+          pending_seqs =
+            pending
+            |> Enum.filter(&(&1.to == agent_role))
+            |> MapSet.new(& &1.seq)
+
+          messages
+          |> Enum.flat_map(fn {filename, data} ->
+            if MapSet.member?(pending_seqs, data["seq"]) do
+              [Map.put(data, "_source_file", filename)]
+            else
+              []
+            end
+          end)
+          |> Enum.max_by(& &1["seq"], fn -> nil end)
+          |> case do
+            nil -> {:none}
+            data -> {:ok, data}
+          end
         end
     end
   end
@@ -49,19 +61,4 @@ defmodule Agov.HandoffReader do
     |> Enum.join("\n")
   end
 
-  defp parse_handoff(dir, filename, agent_role) do
-    path = Path.join(dir, filename)
-
-    case CoordValidator.validate_file(path) do
-      {:ok, data} ->
-        if data["kind"] == "handoff" and data["to"] == agent_role do
-          [data |> Map.put("_source_file", filename)]
-        else
-          []
-        end
-
-      _ ->
-        []
-    end
-  end
 end
