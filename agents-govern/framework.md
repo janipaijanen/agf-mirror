@@ -945,17 +945,35 @@ Fast track:        Requirement →        (waived)  Implement → Verify → Gat
 - Gate 2 still applies in full — cross-cutting checklists, tests passing, approval. Only Gate 1 (plan review) is waived.
 - If a fast-tracked task turns out to be larger or riskier than expected, the Coder-Tester must escalate — not continue without a plan.
 
-**When to use fast track:**
-- The change is small (touches 1-3 files)
-- The intent is obvious (no design ambiguity)
-- The risk is low (no PII, no security boundary, no architectural change)
-- The Governor-Reviewer can evaluate the result at Gate 2 without needing a plan to review against
+**Allowability criteria (ALL must hold):**
 
-**When NOT to use fast track:**
-- The task involves PII or security boundaries
-- The task changes architecture or data models
-- The task scope is uncertain
-- The task affects multiple agents' jurisdictions
+| Criterion | Threshold |
+|---|---|
+| Files touched | ≤ 3 files |
+| Shared interface change | No |
+| Data model or schema change | No |
+| Security / privacy / auth boundary | No |
+| Active claim conflict | No — no other agent has a live claim on any file |
+| Scope uncertainty | No — intent is fully stated; no design ambiguity |
+
+**Automatic disqualifiers (ANY triggers return to full pipeline):**
+
+- Task touches PII, session tokens, credentials, or permissions logic
+- Task modifies architecture (new service, new external dependency, new data model)
+- Task affects more than one agent's declared jurisdiction
+- Coder-Tester is uncertain whether the task qualifies
+
+**Required actions when fast-track is granted:**
+
+1. Governor-Reviewer files `kind: fast-track-waiver` naming: task identifier,
+   which criteria were checked, who granted the waiver.
+2. Coder-Tester checks ownership before editing (no silent claim conflicts).
+3. Gate 2 still applies in full — only Gate 1 is waived (per existing Pattern 6).
+   After Gate 2 approval and merge, Coder-Tester files a `kind: completion`
+   to close the audit trail.
+4. If the task grows beyond the criteria during implementation, Coder-Tester
+   stops, files a `kind: note` to governor-reviewer, and waits for a new
+   Gate 1 plan before continuing.
 
 **Anti-pattern:** If most tasks use the fast track, the pipeline is not being used — it's being bypassed. The fast track is for exceptions, not the default. If the team reaches for fast track on more than ~30% of tasks, either the tasks are genuinely small (which is fine) or the plan step is being avoided (which is a governance decay signal the Sentinel should flag).
 
