@@ -33,7 +33,10 @@ nonexistent page must fail the build).
 
 ## CI wiring
 
-`.gitlab-ci.yml` at the v2.0 directory root defines the jobs:
+`.gitlab-ci.yml` at the v2.0 directory root defines the jobs. GitLab
+executes jobs from the **repository root**, so every path in that file is
+prefixed with `agents-govern-2.0/` (the local commands above instead run
+from the v2.0 directory). The jobs:
 
 - `validate-governance` — schema validators on agents and learnings.
 - `site-html-build` — `mkdocs build --strict`; artifact is the rendered

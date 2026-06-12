@@ -193,8 +193,7 @@ artifacts (rules, agents, templates, CI configuration).
 
 You also grant the project maintainer the right to distribute your
 contribution under additional licenses, including a commercial license
-offered as an alternative to CC BY-SA 4.0 (see [LICENSING.md](LICENSING.md)
-and [LICENSE-COMMERCIAL.md](LICENSE-COMMERCIAL.md)). This grant is
+offered as an alternative to CC BY-SA 4.0. This grant is
 necessary to keep the dual-license offer coherent: every contribution
 must be available under both license tracks, otherwise the project
 cannot offer a uniform commercial alternative.
