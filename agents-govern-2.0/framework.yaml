@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+#
+# Machine-readable companion to framework.md.
+# Action-plan item P1 (issue #63), shipped v1.1.47.
+#
+# Validated by `agov-validate-framework-config` against
+# `schemas/framework.schema.json` — the schema declares
+# `additionalProperties: false` at the top level (round-5 §7 of the
+# 2026-05-04 ChatGPT engagement), so unknown keys here are rejected
+# deterministically.
+#
+# Single source of contract-version truth: the value below MUST equal
+# the repo's `VERSION` file (per A5). `agov-bump` keeps the file
+# version in sync; this file is updated separately when contract-
+# affecting work ships.
+#
+# This is the framework's *own* declaration. Adopters copy this file
+# into their own repository roots and tune `compliance_target`,
+# `binding.agent_active_branches`, and any per-validator overrides
+# under `validators:`.
+
+contract_version: "2.0.0"
+
+# Three-tier compliance vocabulary per
+# docs/adopt/compliance-profile.md:
+#
+#   artefact-only — Layer 1 only.
+#   process-aware — Layers 1 + 2a + 2b.
+#   full          — Layers 1 + 2 + 3 (binding contract enforced).
+#
+# The framework itself currently sits at process-aware. Layer 3
+# (binding) is mechanically supported as of v1.1.45 but the
+# framework's own commits are not yet retroactively trailer-tagged.
+# Promotion to `full` lands when the framework starts emitting
+# `Agent-ID:` trailers on its own agent-active branches.
+compliance_target: process-aware
+
+# Conflict-resolution precedence: top-most layer wins. When a rule
+# and a learning conflict, the rule prevails; the learning records
+# the tension for future framework evolution per `category: tension`
+# (item P2 — see learnings/_template.yaml header comment).
+precedence:
+  - rules
+  - agents
+  - learnings
+
+conflict_policy:
+  # Learning records observe and inform; they cannot override rules
+  # or agent definitions in the same release.
+  learnings_cannot_override: true
+  # Agent definitions must comply with rules in their `framework_version`.
+  agent_must_comply_with_rules: true
+  # When a cross-layer conflict is resolved, the resolution is
+  # recorded as a learning entry with `category: tension` (item P2).
+  # The format below is the conventional pointer; the validator does
+  # not parse it (free-form string).
+  conflict_resolution_artifact: "learnings/<codename>.yaml#category:tension"
+
+binding:
+  # Branch classification consumed by `agov-validate-binding`. The
+  # validator stays in *schema-only* mode in this repo (see the
+  # schema-only-mode section in docs/binding-contract.md) until
+  # adopters explicitly opt into enforce mode by declaring
+  # `compliance_target: full` and starting to attach `Agent-ID:`
+  # trailers on their own agent-active branches.
+  agent_active_branches:
+    patterns:
+      # The framework's contributor convention is `agent/*` for
+      # branches where AI agents do production work. Adopters with
+      # a different naming convention (e.g. `bot/*`, `ai/*`) override
+      # this pattern in their own framework.yaml.
+      - "agent/*"
+    protected_branches:
+      - "main"
+    human_only_branches:
+      # Hot-fix branches are reserved for direct human work in
+      # urgent situations and exempt from trailer enforcement.
+      - "hotfix/*"
+
+# Per-validator overrides — currently empty. Validators are
+# registered via `pyproject.toml [project.scripts]`; this section is
+# reserved for adopter-side per-validator tuning when concrete needs
+# emerge.
+validators: {}

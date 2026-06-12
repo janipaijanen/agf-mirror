@@ -1,0 +1,192 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+#
+# Cross-artefact invariant manifest (action-plan item C2, issue #60).
+#
+# Declarative summary of structural rules the Python validators in
+# src/agents_govern/validate_*.py enforce across multiple artefacts.
+# External tooling (Open Policy Agent (OPA), conftest, ecosystem-
+# specific linters) consumes this manifest without re-implementing
+# validator logic.
+#
+# Per docs/integration-contract.md#schema-of-record-hierarchy: the
+# Python validators are the contract of record. This file is the
+# consumer-facing summary. tests/test_schemas.py::TestInvariantsParity
+# enforces that the parameter values here match the validators'
+# actual behaviour; if a validator's threshold changes, the parity
+# test fails until this file is updated.
+#
+# Field shape per round-4 §1 of the 2026-05-04 ChatGPT engagement:
+#   id              dotted identifier; namespaced by scope (agents.*, learnings.*)
+#   scope           file-glob expression of artefacts the rule applies to
+#   type            class of constraint (closure | threshold | symmetry | append-only)
+#   parameters      mapping of constraint-specific values
+#   severity        error | warning
+#   enforced_by     name of the agents_govern.* module that implements the check
+#   introduced_in   semantic version that first shipped the invariant
+
+contract_version: "1.1.46"
+
+invariants:
+
+  # --- Agent invariants ---------------------------------------------------
+
+  - id: agents.manifest_references_all
+    scope: "agents/MANIFEST.yaml"
+    type: closure
+    parameters: {}
+    severity: error
+    enforced_by: validate_agents
+    introduced_in: "1.0.0"
+    rationale: >
+      Every YAML file under agents/ (excluding the MANIFEST itself)
+      must be referenced from agents/MANIFEST.yaml. Catches dropped
+      or renamed agent definitions before they reach release.
+
+  - id: agents.owns_overlap_threshold
+    scope: "agents/*.yaml"
+    type: threshold
+    parameters:
+      max_shared_keywords: 3
+    severity: warning
+    enforced_by: validate_agents
+    introduced_in: "0.40.0"
+    rationale: >
+      _check_ownership_overlaps in validate_agents flags any pair of
+      agents whose 'identity.jurisdiction.owns' descriptions share
+      three or more meaningful keywords. The threshold (3) is a
+      false-positive trade-off captured in the validator. Parity
+      enforced by tests/test_schemas.py::TestInvariantsParity.
+
+  - id: agents.communication_symmetry
+    scope: "agents/*.yaml"
+    type: symmetry
+    parameters: {}
+    severity: warning
+    enforced_by: validate_agents
+    introduced_in: "0.30.0"
+    rationale: >
+      Every receives_from edge on agent A from agent B must have a
+      corresponding sends_to edge on agent B to agent A. Asymmetry
+      flags as warning (often legitimate during phase transitions)
+      but is surfaced for review at every MR.
+
+  - id: agents.tier_enum
+    scope: "agents/*.yaml"
+    type: enum
+    parameters:
+      allowed_values:
+        - production
+        - governance
+        - cross-cutting
+        - publication-support
+        - meta
+    severity: error
+    enforced_by: validate_agents
+    introduced_in: "1.0.0"
+    rationale: >
+      agent.tier must be one of the five recognised tiers. Unknown
+      tiers indicate either a typo or an undocumented role addition
+      that needs review.
+
+  # --- Learning invariants -----------------------------------------------
+
+  - id: learnings.append_only_supersession
+    scope: "learnings/*.yaml"
+    type: append-only
+    parameters: {}
+    severity: error
+    enforced_by: validate_learnings
+    introduced_in: "1.1.33"
+    rationale: >
+      A learnings entry's 'superseded_by' field must reference a
+      later entry's title within the same file. Forward-only pointer;
+      never modifies older entry text. Implements L1 (issue #61).
+
+  - id: learnings.confidence_corroboration
+    scope: "learnings/*.yaml"
+    type: threshold
+    parameters:
+      min_evidence_count: 2
+      requires_corroboration_levels:
+        - multi-adopter
+        - longitudinal
+    severity: error
+    enforced_by: validate_learnings
+    introduced_in: "1.1.33"
+    rationale: >
+      Confidence levels 'multi-adopter' and 'longitudinal' require
+      either evidence_count >= 2 or evidence_refs of length >= 2.
+      Implements L2 (issue #62). Threshold value (2) parity-checked
+      against validate_learnings by
+      tests/test_schemas.py::TestInvariantsParity.
+
+  - id: learnings.confidence_level_enum
+    scope: "learnings/*.yaml"
+    type: enum
+    parameters:
+      allowed_values:
+        - single-adopter
+        - multi-adopter
+        - longitudinal
+        - industry-corroborated
+    severity: error
+    enforced_by: validate_learnings
+    introduced_in: "1.1.33"
+    rationale: >
+      confidence.level must be one of the four ordinal values
+      defined by L2 (issue #62). The order encodes evidence
+      strength; consumers can compare ordinally.
+
+  # --- Anonymisation invariants ------------------------------------------
+
+  - id: learnings.anonymisation_heuristics
+    scope: "learnings/*.yaml"
+    type: heuristic
+    parameters:
+      patterns:
+        - urls
+        - emails
+        - company_suffixes
+        - hostnames
+    severity: warning
+    enforced_by: validate_infosec
+    introduced_in: "0.50.0"
+    rationale: >
+      validate_infosec scans learning records for Personally
+      Identifiable Information (PII) patterns. Findings are advisory
+      until acknowledged via sentinel_ack entries; credential
+      findings cannot be acknowledged with accept_risk per the
+      anonymisation policy.
+
+  # --- Binding-contract invariants ---------------------------------------
+
+  - id: binding.correlation_id_format
+    scope: "Agent-ID: trailers; sidecar correlation_id field; filename fallback"
+    type: format
+    parameters:
+      uuid_version: 7
+    severity: error
+    enforced_by: validate_binding
+    introduced_in: "1.1.44"
+    rationale: >
+      All correlation identifiers must be Universally Unique
+      Identifier (UUID) v7 in canonical lowercase string form per
+      Request For Comments (RFC) 9562. Implements B1 (issue #56).
+      v4 UUIDs are explicitly rejected in the filename-suffix
+      fallback parser (B3, issue #58, v1.1.45).
+
+  - id: binding.sidecar_sha256
+    scope: "<artefact>.agov.json"
+    type: format
+    parameters:
+      hash_algorithm: SHA-256
+      hex_length: 64
+      case: lowercase
+    severity: error
+    enforced_by: validate_binding
+    introduced_in: "1.1.45"
+    rationale: >
+      Sidecar artefact_sha256 field must be a 64-character lowercase
+      hex digest. The validator recomputes the artefact's SHA-256
+      and flags mismatches. Implements B3 (issue #58).

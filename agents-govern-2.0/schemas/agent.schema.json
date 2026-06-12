@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://gitlab.com/janipaijanen/agent-governance/-/raw/main/schemas/agent.schema.json",
+  "title": "Agent Definition",
+  "description": "Schema for agents/*.yaml files. Generated artefact; the Python validator at src/agents_govern/validate_agents.py is the contract of record (see docs/integration-contract.md#schema-of-record-hierarchy). Cross-artefact invariants (manifest closure, ownership-overlap detection, communication symmetry) live in schemas/invariants.yaml.",
+  "type": "object",
+  "required": ["agent"],
+  "properties": {
+    "agent": {
+      "type": "object",
+      "required": ["name", "id", "version", "framework_version", "tier"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Kebab-case agent name; matches the YAML filename without extension."
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*:[A-Za-z0-9._+-]+$",
+          "description": "Triple of <framework-name>:<agent-name>:<agent-version>."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+([-+][A-Za-z0-9._-]+)?$",
+          "description": "Semantic version of this agent definition."
+        },
+        "framework_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+([-+][A-Za-z0-9._-]+)?$",
+          "description": "Version of framework.md this definition conforms to. The pre-tag-check enforces equality with VERSION at release time."
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "production",
+            "governance",
+            "cross-cutting",
+            "publication-support",
+            "meta"
+          ]
+        },
+        "phase": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "combines": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "purpose": {"type": "string"},
+        "design_principles": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "role_mapping": {"type": "object"},
+        "jurisdiction": {
+          "type": "object",
+          "properties": {
+            "owns": {"type": "array", "items": {"type": "string"}},
+            "reads": {"type": "array", "items": {"type": "string"}},
+            "cannot_touch": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "properties": {
+        "forbidden_actions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "escalation_triggers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition": {"type": "string"},
+              "route_to": {"type": "string"},
+              "reason": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "allowed": {"type": "array", "items": {"type": "string"}},
+        "denied": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "communication": {
+      "type": "object",
+      "properties": {
+        "receives_from": {
+          "type": "array",
+          "description": "List of agents this agent receives messages from. Each entry may be a structured object with `agent` and `message_types` (preferred) or a plain string (legacy short form)."
+        },
+        "sends_to": {
+          "type": "array",
+          "description": "List of agents this agent sends messages to. Same shape as receives_from."
+        },
+        "cannot_contact": {
+          "type": "array",
+          "description": "List of agents this agent must not contact directly."
+        }
+      }
+    },
+    "accountability": {
+      "type": "object",
+      "properties": {
+        "logged_actions": {"type": "array", "items": {"type": "string"}},
+        "log_fields": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "review_checklists": {
+      "type": "object",
+      "description": "Domain-specific review checklists (per-change and per-milestone). Free-form by design — adopters extend with project-specific items."
+    },
+    "review_dimensions": {
+      "type": "object",
+      "description": "Optional dimensions some governance/review agents declare; free-form."
+    },
+    "report_structure": {
+      "type": "object",
+      "description": "Optional report-shape declaration some agents (e.g. fact-checker) carry."
+    }
+  }
+}
