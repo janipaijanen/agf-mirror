@@ -14,7 +14,7 @@ agent:
   name: "academic-peer-reviewer"
   id: "agents-govern:academic-peer-reviewer:0.2.0"
   version: "0.2.0"
-  framework_version: "1.1.50"
+  framework_version: "1.1.51"
   tier: "publication-support"
   phase: 1
 
