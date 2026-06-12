@@ -8,8 +8,56 @@ cites the evidence (learnings, sentinel reviews) that triggered the change.
 
 ---
 
+## v1.1.51 (2026-06-12)
 
+Coordination channel governance rules; Pattern 6 formal criteria;
+agent kind-value alignment; downstream impact rule template;
+foundry learning records.
 
+### Added
+
+- **`.claude/rules/always/coordination-sequence-guard-rule.md`** — new
+  rule: when a human instruction would skip a gate, break seq ordering,
+  bypass a pending validator, or merge with open blocking findings, the
+  agent must name the break explicitly and ask for confirmation before
+  acting. Evidence: AGF-NG operational gap (human shortcut bypassed
+  governance chain).
+
+- **`.claude/rules/always/coordination-message-rule.md`** — new rule:
+  when a coordination message requires action, the acting agent must
+  write a coordination entry referencing the triggering message before
+  or immediately after acting. Silent actions that leave gaps in the
+  audit trail are forbidden. Evidence: AGF-NG polling-loop discipline.
+
+- **`spec/rules-template/always/downstream-impact-rule.md`** — distributable
+  rule template requiring an explicit three-circle impact statement
+  (foundry / direct adopters / downstream) before any commit touching
+  framework artifacts. Four-type classification: BREAKING / ADDITIVE /
+  EDITORIAL / PREVENTIVE with IEEE 14764-2006 alignment. Evidence:
+  downstream-impact-rule (seq 56/75 gate record).
+
+- **`learnings/foundry.yaml`** — learning records from Phase 1 foundry
+  adoption: coordination-channel seq-collision recovery, handoff schema
+  validation discipline, cross-branch coordination visibility gap.
+
+### Changed
+
+- **`agents-govern/framework.md` Pattern 6** — replace "When to use /
+  When NOT to use fast track" prose bullets with a formal allowability
+  criteria table (6 rows, ALL must hold), automatic disqualifiers list
+  (ANY triggers return to full pipeline), and required-actions checklist
+  (4 items). No pipeline step removed; Gate 2 still applies in full.
+  Evidence: T2-8 (seq 80/83 gate record).
+
+- **Agent definitions (all 12)** — `message_types:` values aligned to
+  coordination-channel `kind:` enum (`handoff`, `decision-record`,
+  `completion`, `note`, `review`). Four asymmetry bugs fixed.
+  Evidence: T3b-route-restore (seq 54/66 gate record).
+
+- **Release metadata** — bump `framework.yaml` `contract_version`,
+  `VERSION`, and agent `framework_version` fields to `1.1.51`.
+
+---
 
 
 

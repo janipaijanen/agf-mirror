@@ -33,7 +33,7 @@ agent:
   name: "capability-developer"
   id: "agents-govern:capability-developer:0.1.0"
   version: "0.1.0"
-  framework_version: "1.1.50"
+  framework_version: "1.1.51"
   tier: "meta"
   phase: 4
 

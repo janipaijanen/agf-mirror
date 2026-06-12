@@ -12,7 +12,7 @@ agent:
   name: "governor-reviewer"
   id: "agents-govern:governor-reviewer:0.4.0"
   version: "0.4.0"
-  framework_version: "1.1.50"   # version of framework.md this definition conforms to
+  framework_version: "1.1.51"   # version of framework.md this definition conforms to
   tier: "governance"
   phase: 1
   combines:

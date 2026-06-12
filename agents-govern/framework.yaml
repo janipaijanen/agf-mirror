@@ -20,7 +20,7 @@
 # `binding.agent_active_branches`, and any per-validator overrides
 # under `validators:`.
 
-contract_version: "1.1.50"
+contract_version: "1.1.51"
 
 # Three-tier compliance vocabulary per
 # docs/adopt/compliance-profile.md:
