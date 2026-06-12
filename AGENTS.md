@@ -78,6 +78,21 @@ To find the current highest: `ls docs/coordination/*.md | sort | tail -1`.
 
 Schema: `spec/schemas/coordination-message.schema.json`
 
+**When to write a coordination entry:** Any action that creates a downstream
+obligation for another agent or human requires a coordination entry as part
+of completing that action — not as an afterthought. Write one when:
+
+- A plan or design is submitted for Gate 1 approval (kind: `handoff`, to: `governor-reviewer`)
+- An implementation is ready for Gate 2 review (kind: `handoff`, to: `governor-reviewer`)
+- A decision has been made that others need to know about (kind: `decision-record`)
+- A finding, alert, or escalation is routed to another agent (kind: `review`, `note`, or `handoff`)
+- A task is completed and the result needs to be recorded (kind: `completion`)
+
+The coordination channel is the audit trail for both decisions and the work
+that led to them. Other agents and the human read it asynchronously — write
+entries so that a cold-starting agent can reconstruct what happened and why,
+without relying on session memory.
+
 ---
 
 ## Gate discipline
