@@ -1,0 +1,73 @@
+# Day-to-day operation
+
+*Status: Provisional (v2.0 documentation). Audience: developers and
+governors running a governed project. After this page you know the
+rhythm: claims, fast track vs full gates, coordination hygiene, and the
+failure modes to watch for.*
+
+## The daily shape
+
+A governed working session, in order:
+
+1. **Read the channel.** New coordination entries since you last looked —
+   pending handoffs addressed to your role, decision records that
+   unblock work, acks owed.
+2. **Claim before working.** If the task is non-trivial or another agent
+   could plausibly pick it up, file a claim. Claims prevent two agents
+   solving the same problem — or worse, colliding on the same branch.
+3. **Size the task.** Fast track if it qualifies; plan + Gate 1 if not.
+   When in doubt, the simplicity rule says choose the lighter process and
+   upgrade if the task grows — stopping to write a plan mid-task is
+   normal, not failure.
+4. **Branch, implement, self-review, Gate 2, merge, completion.** The
+   cycle from [your first governed change](../start/first-governed-change.md),
+   now routine.
+
+## Coordination hygiene
+
+- **Acknowledge before acting.** A message that triggers action gets an
+  entry referencing it — before acting (claiming) or immediately after
+  (recording the outcome). Silent action breaks the causal chain.
+- **Never edit a filed entry.** Files are immutable; corrections are new
+  entries referencing the old.
+- **Sequence numbers are sacred.** Append-only, no gaps filled
+  retroactively. If a human instruction would break the chain, the
+  sequence-guard rule says: name the break, ask for explicit
+  confirmation, and only then proceed.
+
+## Multi-agent sessions
+
+When more than one assistant works the repository concurrently:
+
+- **Verify the branch before every commit** — `git branch --show-current`
+  immediately before commit or push. The documented failure mode is an
+  agent (or the human's IDE) switching branches under another agent's
+  feet; the framework's own history includes foreign commits landing on a
+  claimed feature branch.
+- **One role, one session.** Two models filing under the same role
+  concurrently need distinguishing claims, or their authority and their
+  artifacts blur.
+- **Force-push only with `--force-with-lease`**, and never on a shared
+  branch.
+
+## The governor's day
+
+The governor reads pending handoffs, decides gates, and audits at the
+agreed cadence. Two disciplines matter most: **answer gates promptly**
+(a stalled gate trains everyone to route around it) and **pull anything
+that smells wrong into full review without justification** — the right
+to pull is what makes lightweight delegation safe.
+
+## Failure modes to watch
+
+| Smell | What it usually means |
+|---|---|
+| Coordination entries getting longer and rarer | Work is happening off-channel; the trail is decaying |
+| Fast-track waivers on everything | Sizing discipline has slipped; audit the recent waivers |
+| Gates approved in seconds, always | The reviewer is rubber-stamping; evidence isn't being read |
+| Branches with mixed concerns | The sizing test is being skipped; reviews are getting harder |
+
+## Next
+
+- Gate 2 in depth, releases, and upgrades:
+  [review and release](review-and-release.md)
