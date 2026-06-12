@@ -15,3 +15,6 @@ build/
 # Elixir
 tooling/elixir/_build/
 tooling/elixir/deps/
+
+# v2.0 docs pipeline config is tracked (root build/ pattern must not swallow it)
+!agents-govern-2.0/docs/build/
