@@ -10,19 +10,23 @@ project.*
 The framework grows from evidence, not opinion:
 
 ```
-incident or validated pattern
-        │
-        ▼
-learning record  (structured YAML, validated by schema)
-        │
-        ▼
-rule proposal    (Provisional — single-adopter evidence, marked as such)
-        │
-        ▼
-corroboration    (2+ adopters report the same pattern)
-        │
-        ▼
-recommended rule (or retirement, if the pattern doesn't hold)
++-------------------------------------------------------------+
+| governed work creates incidents, friction, or validation    |
+|                         |                                   |
+|                         v                                   |
+| learning record  (structured YAML, validated by schema)     |
+|                         |                                   |
+|                         v                                   |
+| rule / docs / tool proposal                                 |
+| (Provisional when single-source)                            |
+|                         |                                   |
+|                         v                                   |
+| use in projects; adopters confirm, reject, or refine        |
+|                         |                                   |
+|                         v                                   |
+| recommended rule, revised rule, or retirement               |
+|                         |                                   |
++-------------------------+--------- feeds the next cycle -----+
 ```
 
 Rules shipped on single-adopter evidence carry a **Provisional** header
