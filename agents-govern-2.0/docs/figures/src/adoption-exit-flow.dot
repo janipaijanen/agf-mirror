@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// agents-govern: adoption impact and exit/decommission flow
+// Generate: dot -Tsvg adoption-exit-flow.dot -o ../adoption-exit-flow.svg
+digraph adoption_exit {
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.55,
+           fontname="Helvetica", fontsize=11]
+    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
+           fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
+    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+
+    assess   [label="Step 0: Assess\n(risk profile, team size)", shape=ellipse,
+              fillcolor=white, color="#888888"]
+    install  [label="Install\n(copy rules, configure CI)"]
+    first    [label="First governed\nchange"]
+    operate  [label="Operate\n(ongoing gate discipline)"]
+
+    subgraph cluster_exit {
+        label="Exit options"
+        style=filled
+        fillcolor="#99CCEE"
+        color="#888888"
+        fontname="Helvetica"
+        fontsize=10
+
+        freeze   [label="Freeze\n(stop new governed\nchanges)", fillcolor=white,
+                  color="#888888"]
+        replace  [label="Replace on update\n(migrate to new\ngovernance system)",
+                  fillcolor=white, color="#888888"]
+        decomm   [label="Decommission\n(remove tooling,\nretain records)",
+                  fillcolor="#888888", fontcolor=white]
+    }
+
+    assess   -> install  [label="risk accepted"]
+    install  -> first    [label="Gate 1 / Gate 2\nfor initial change"]
+    first    -> operate
+    operate  -> freeze   [label="project ends", style=dashed, color="#888888"]
+    operate  -> replace  [label="governance\nevolution", style=dashed,
+                          color="#888888"]
+    freeze   -> decomm   [style=dashed, color="#888888"]
+    replace  -> decomm   [style=dashed, color="#888888",
+                          label="after migration"]
+}

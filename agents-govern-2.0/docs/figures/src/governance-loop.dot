@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// agents-govern: self-applied governance loop
+// Generate: dot -Tsvg governance-loop.dot -o ../governance-loop.svg
+digraph governance_loop {
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.6,
+           fontname="Helvetica", fontsize=11]
+    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
+           fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
+    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+
+    plan     [label="Plan\n(Gate 1)", fillcolor="#99CCEE"]
+    implement [label="Implement\n(Coder-Tester)"]
+    review   [label="Review\n(Gate 2)", fillcolor="#99CCEE"]
+    merge    [label="Merge\n(to main)", fillcolor="#009944", fontcolor=white]
+    learn    [label="Learn\n(learning record)", fillcolor="#888888", fontcolor=white]
+    incident [label="Incident /\nObservation", shape=ellipse, fillcolor="#EE7700",
+              fontcolor=white, color="#EE7700"]
+
+    plan     -> implement [label="approved"]
+    implement -> review   [label="Gate 2\nhandoff"]
+    review   -> merge     [label="approved"]
+    review   -> implement [label="changes\nrequested", style=dashed]
+    merge    -> learn     [label="finding\nor incident"]
+    incident -> learn     [style=dashed]
+    learn    -> plan      [label="new rule /\ntool / doc", color="#888888",
+                           fontcolor="#888888"]
+}
