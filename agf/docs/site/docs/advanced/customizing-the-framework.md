@@ -5,10 +5,9 @@ governors adapting the framework to a project. After this page you know
 the three customization zones — free, marked, and contracted — and the
 costs of crossing them.*
 
-!!! warning "Inherited from agents-govern v1.x"
-    Not yet verified under the AGF v2 layout and tooling. Treat as
-    background context only until updated. Adopters may verify and
-    report evidence upstream.
+!!! note "AGF v2 layout"
+    Framework-owned files live under `agf/`; adopter-owned evidence lives in
+    root `docs/` by default. Keep that boundary visible when customizing.
 
 ## The three zones
 

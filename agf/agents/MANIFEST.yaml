@@ -3,6 +3,11 @@
 # =============================================================================
 # Agent Manifest — AGF-NG project (foundry)
 # =============================================================================
+# This manifest records the AGF-NG/foundry project's own active roles.
+# It is included as a live dogfooding example, not as a neutral adopter
+# template. Adopters should create their own local role-status record before
+# relying on manifest-driven tooling.
+#
 # Framework version: 2.0.0  |  Layout: B
 # Governor-Reviewer approval required for all status changes.
 # Run: cd agents-govern && uv run agov-validate-agents

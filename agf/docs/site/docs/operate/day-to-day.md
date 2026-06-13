@@ -5,10 +5,9 @@ governors running a governed project. After this page you know the
 rhythm: claims, fast track vs full gates, coordination hygiene, and the
 failure modes to watch for.*
 
-!!! warning "Inherited from agents-govern v1.x"
-    Not yet verified under the AGF v2 layout and tooling. Treat as
-    background context only until updated. Adopters may verify and
-    report evidence upstream.
+!!! note "AGF v2 layout"
+    The examples use the v2 default evidence paths: `docs/plans/` and
+    `docs/coordination/`. Keep one coordination channel per project.
 
 ## The daily shape
 

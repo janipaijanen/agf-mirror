@@ -5,10 +5,9 @@ governors. After this page you know how operational incidents become
 rules, who owns which records, and how anonymization protects your
 project.*
 
-!!! warning "Inherited from agents-govern v1.x"
-    Not yet verified under the AGF v2 layout and tooling. Treat as
-    background context only until updated. Adopters may verify and
-    report evidence upstream.
+!!! note "AGF v2 layout"
+    This page uses the v2 default layout: framework-owned learning records live
+    under `agf/learnings/`; project working evidence lives under root `docs/`.
 
 ## The learning loop
 
@@ -34,8 +33,8 @@ records and shows what happens to each during framework upgrades.
 
 | Record | Owner | On upgrade |
 |---|---|---|
-| `learnings/<framework-codenames>.yaml` | Upstream | Replaced |
-| `learnings/<your-codename>.yaml` | **You** | Never touched |
+| `agf/learnings/<framework-codenames>.yaml` | Upstream | Replaced |
+| `agf/learnings/<your-codename>.yaml` | **You** | Never touched |
 
 The replace-on-upgrade boundary is explicit so that your operational
 knowledge survives every framework release. Your file accumulates your

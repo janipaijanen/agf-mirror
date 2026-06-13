@@ -59,6 +59,11 @@ The plan contains real YAML front matter, including the required advisory
 consultation entries. The handoff contains the required handoff object. If
 validation fails, fix the file before continuing.
 
+Advisory consultation evidence is required for a valid non-trivial plan, but
+advisors do not approve or reject Gate 1. The validator can block a malformed
+or missing consultation record; the governor-reviewer records the binding gate
+decision.
+
 ## 4. Gate 1: decide before implementation
 
 The governor-reviewer reads:

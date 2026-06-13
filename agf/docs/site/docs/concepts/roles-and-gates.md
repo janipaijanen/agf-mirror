@@ -4,10 +4,10 @@
 governors building the mental model. After this page you can name the
 roles, say what each gate decides, and read a coordination chain.*
 
-!!! warning "Inherited from agents-govern v1.x"
-    Not yet verified under the AGF v2 layout and tooling. Treat as
-    background context only until updated. Adopters may verify and
-    report evidence upstream.
+!!! note "AGF v2 layout"
+    Role definitions ship under `agf/agents/`. Gate evidence is recorded in the
+    adopter-owned coordination and plan paths, `docs/coordination/` and
+    `docs/plans/` by default.
 
 ## The core idea: separated authority
 

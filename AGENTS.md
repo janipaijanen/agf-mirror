@@ -58,12 +58,16 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | coder-tester | claude (AI) | Implementation, tests, fixtures, validators |
 | governor-reviewer | Jani (human) | Gate 1 approval, Gate 2 merge, all binding decisions |
 | contribution-auditor | Jani + claude | Reviews plans and proposals; filed as coordination messages |
-| infosec-sentinel | CI (agov-validate-infosec) | Blocks on credential or cross-record leaks in learnings |
+| infosec-sentinel | CI (agov-validate-infosec) | Mechanically blocks configured checks on credential or cross-record leaks in learnings; governor-reviewer resolves the finding |
 
 Suspended: build-engineer (no CI yet), fact-checker, capability-developer.
 Skipped: documentation-writer, deployment-engineer, academic-peer-reviewer.
 
 Authoritative status: `agents-govern/agents/MANIFEST.yaml` (bootstrap, see note above).
+
+Tooling and CI may block progress mechanically when configured to do so, but
+they do not approve or reject governance gates. Binding Gate 1 and Gate 2
+decisions remain governor-reviewer decisions recorded in coordination.
 
 ---
 
