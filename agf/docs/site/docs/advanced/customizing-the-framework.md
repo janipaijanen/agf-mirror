@@ -5,6 +5,11 @@ governors adapting the framework to a project. After this page you know
 the three customization zones — free, marked, and contracted — and the
 costs of crossing them.*
 
+!!! warning "Inherited from agents-govern v1.x"
+    Not yet verified under the AGF v2 layout and tooling. Treat as
+    background context only until updated. Adopters may verify and
+    report evidence upstream.
+
 ## The three zones
 
 **Free to change.** Your codename's learning records, your project's

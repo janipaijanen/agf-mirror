@@ -34,6 +34,7 @@ agent:
   id: "agents-govern:capability-developer:0.1.0"
   version: "0.1.0"
   framework_version: "2.0.0"
+  provenance: adapted-from-v1x
   tier: "meta"
   phase: 4
 

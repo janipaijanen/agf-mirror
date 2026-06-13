@@ -7,6 +7,7 @@ upstream_candidate: true
 strength: MUST
 status: active
 see_also: [branch-and-worktree-rule]
+provenance: adapted-from-v1x
 ---
 
 # Verify Active Branch Before Durable Writes

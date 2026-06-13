@@ -1,3 +1,6 @@
+---
+provenance: inherited-v1x-unverified
+---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Supported Locales: Fixed Set -- No New Additions Without Approval

@@ -5,6 +5,11 @@ governors. After this page you know how operational incidents become
 rules, who owns which records, and how anonymization protects your
 project.*
 
+!!! warning "Inherited from agents-govern v1.x"
+    Not yet verified under the AGF v2 layout and tooling. Treat as
+    background context only until updated. Adopters may verify and
+    report evidence upstream.
+
 ## The learning loop
 
 The framework grows from evidence, not opinion. Figure 1 shows the
