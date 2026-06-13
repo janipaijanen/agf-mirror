@@ -2,112 +2,152 @@
 
 *Status: Provisional (v2.0 documentation). Audience: developers who have
 completed [install and layouts](../adopt/install-and-layouts.md). After
-this page you have taken one real change through both gates and seen every
-moving part once.*
+this page you have taken one real change through both gates and validated the
+files that make the audit trail.*
 
-!!! warning "Inherited from agents-govern v1.x"
-    Not yet verified under the AGF v2 layout and tooling. Treat as
-    background context only until updated. Adopters may verify and
-    report evidence upstream.
-
-Pick a small, real change — a genuine bug fix or a modest feature, not a
-toy. The walkthrough below is the full ceremony; at the end you will know
-which parts the fast track lets you skip for small work.
+Pick a small, real change: a modest bug fix or feature that is large enough to
+need review, but small enough that the mechanics stay visible. The example
+below uses a safer login error message. Replace the file names with your own
+project's files.
 
 Figure 1 shows the path you are about to walk: plan, Gate 1, implementation,
 Gate 2, merge, and completion.
 
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
-## 1. Check the fast track first
+## 1. Create the working directories
 
-Before any ceremony, ask: does this change qualify for fast track?
-(≤3 files, no shared interface / data model / security boundary change,
-no conflict with another agent's claim, no scope uncertainty.) If yes, the
-plan and Gate 1 are waived — note the waiver in the commit message and
-jump to step 4. For this first walkthrough, choose something *just* big
-enough not to qualify, so you see Gate 1 once.
+AGF itself lives in `agf/`. The POC default keeps project-owned gate evidence
+in root `docs/`:
 
-## 2. Write the plan
-
-Create a plan file: intent, affected files, migration needed (yes/no),
-test strategy, risks, rollback. Timestamp from the OS, never invented.
-Keep it short — a plan that takes longer to write than the change takes to
-implement is miscalibrated.
-
-For example, use a concrete file such as
-`docs/plans/fix-login-error-message.md`:
-
-```markdown
-# Plan: Fix login error message
-
-Intent: make the failed-login message actionable without exposing account
-existence.
-Affected files: `lib/auth/login.ex`, `test/auth/login_test.exs`
-Migration: no
-Tests: failing login-message test, then full auth test file
-Risks: wording may leak whether an account exists
-Rollback: revert the branch
+```bash
+mkdir -p docs/plans docs/coordination agf/learnings
 ```
 
-## 3. Gate 1 — plan approval
+If your project chooses another coordination path, configure it before agents
+start writing files. Do not let agents split records across two channels.
 
-File a coordination entry handing the plan to the reviewer role
-(`kind: handoff`, referencing the plan). The governor — or a reviewing
-agent the governor has authorized — approves, amends, or rejects with a
-`decision-record`. Nothing is implemented before this lands. The point is
-not bureaucracy; it is that redirection is cheap before code exists and
-expensive after.
+## 2. Copy the starter files
 
-The handoff is another concrete file, for example
-`docs/coordination/00012-coder-tester.md`, whose front matter says
-`kind: handoff`, `to: governor-reviewer`, and points to the plan in
-`references-to`.
-
-## 4. Branch, then implement test-first
-
-```
-git checkout -b fix/what-was-wrong
+```bash
+cp agf/templates/gate1-plan.md docs/plans/sample-login-error-message.md
+cp agf/templates/coord-handoff.md docs/coordination/00001-planner-architect.md
+cp agf/templates/coord-decision-record.md docs/coordination/00002-governor-reviewer.md
+cp agf/templates/coord-gate2-handoff.md docs/coordination/00003-coder-tester.md
+cp agf/templates/coord-completion.md docs/coordination/00004-coder-tester.md
+cp agf/templates/learning-record.yaml agf/learnings/sample-project.yaml
 ```
 
-Never on main. Write the failing test, make it pass, refactor — the TDD
-rule in your rules directory is binding on the assistant, which is the
-reason this step happens even when the human is in a hurry.
+The fixed sequence numbers are for a fresh trial. In an existing coordination
+channel, use the next global sequence numbers instead and update the references
+inside each copied file.
 
-## 5. Self-review
+## 3. Validate the plan and first handoff
 
-Run the systematic code-review checklist before proposing the commit:
-spec compliance, domain rules, security, tests, quality, i18n/a11y,
-documentation, commit hygiene. BLOCK items stop the commit; everything
-else is judgment.
+Current validators are Mix tasks in `tooling/elixir/`, so this step requires a
+full checkout or future packaged tooling distribution:
 
-## 6. Gate 2 — review before merge
+```bash
+cd tooling/elixir
+mix deps.get
+mix agov.plan.validate ../../docs/plans/sample-login-error-message.md
+mix agov.coord.validate ../../docs/coordination/00001-planner-architect.md
+cd ../..
+```
 
-Push the branch, open a merge request, and file a coordination handoff to
-the reviewer with the evidence: tests green, checklist run, diff scoped to
-the plan. The reviewer files findings (`kind: review`); blocking findings
-go back to step 4. Approval is a `decision-record` naming the branch and
-any conditions.
+The plan contains real YAML front matter, including the required advisory
+consultation entries. The handoff contains the required handoff object. If
+validation fails, fix the file before continuing.
+
+## 4. Gate 1: decide before implementation
+
+The governor-reviewer reads:
+
+- `docs/plans/sample-login-error-message.md`
+- `docs/coordination/00001-planner-architect.md`
+
+Then the governor files the decision. For this trial, the copied
+`docs/coordination/00002-governor-reviewer.md` is a valid approval example.
+In real work, the governor writes the actual decision and conditions.
+
+Validate it:
+
+```bash
+cd tooling/elixir
+mix agov.coord.validate ../../docs/coordination/00002-governor-reviewer.md
+cd ../..
+```
+
+Nothing is implemented before Gate 1 approval lands.
+
+## 5. Branch and implement test-first
+
+```bash
+git checkout -b fix/sample-login-error-message
+```
+
+Write or update the failing test, make it pass, then refactor. The TDD rule in
+your assistant rules is binding on the assistant even when the change feels
+small.
+
+## 6. Gate 2: review before merge
+
+After implementation, update the copied Gate 2 handoff with the real changed
+files and validation commands:
+
+```bash
+$EDITOR docs/coordination/00003-coder-tester.md
+cd tooling/elixir
+mix agov.coord.validate ../../docs/coordination/00003-coder-tester.md
+cd ../..
+```
+
+The governor-reviewer reviews the implementation diff, the tests, and the
+handoff evidence. Approval is a new `decision-record` naming the branch and any
+conditions. Do not merge without Gate 2 approval.
 
 ## 7. Merge and close the loop
 
-Merge via the MR (never a direct push to main), then file a
-`completion` entry referencing the approval. The chain —
-plan → approval → implementation → review → approval → merge → completion —
-is now reconstructible from files alone. That chain is the product.
+Merge through your normal reviewed merge path. Then update and file the
+completion entry:
 
-Name the completion file the same way as every other coordination entry, such
-as `docs/coordination/00015-coder-tester.md`, and reference the Gate 2
-approval so the chain closes visibly.
+```bash
+$EDITOR docs/coordination/00004-coder-tester.md
+cd tooling/elixir
+mix agov.coord.validate ../../docs/coordination/00004-coder-tester.md
+cd ../..
+```
 
-## What you just bought
+The chain is now reconstructible:
 
-Six months from now, "why was this merged?" is answered by reading five
-small files in `docs/coordination/`, not by archaeology. Multiply by every
-non-trivial change, and that is the audit trail the framework exists to
-produce.
+```text
+plan -> Gate 1 handoff -> Gate 1 decision -> implementation -> Gate 2 handoff -> Gate 2 decision -> completion
+```
+
+That chain is the product. Six months later, "why did this land?" is answered
+by files, not memory.
+
+## 8. Record what you learned
+
+If the first run exposed friction, record it in
+`agf/learnings/sample-project.yaml` under your codename. Do not include real
+project, company, customer, credential, or private URL data in externally shared
+learning records.
+
+## Fast track after the first run
+
+For the first walkthrough, use the full ceremony once. After that, check the
+fast-track criteria before writing a plan:
+
+- no more than three files;
+- no shared interface, data model, security boundary, or migration change;
+- no conflicting claim;
+- no scope uncertainty.
+
+If every criterion holds, Gate 1 may be waived, but Gate 2 still applies.
 
 ## Next
 
 - Mental model behind the ceremony: [roles and gates](../concepts/roles-and-gates.md)
 - Daily rhythm without the training wheels: [day-to-day operation](../operate/day-to-day.md)
+- Exit path if the trial does not pay off: [exit and decommission](../adopt/exit-and-decommission.md)

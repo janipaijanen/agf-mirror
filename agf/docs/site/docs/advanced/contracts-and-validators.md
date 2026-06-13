@@ -15,8 +15,8 @@ checks still treated as contract targets rather than finished tooling.
 
 | Artifact | Contract | Checked by |
 |---|---|---|
-| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `mix agov.coord.validate` |
-| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `mix agov.plan.validate` |
+| Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `mix agov.coord.validate` |
+| Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `mix agov.plan.validate` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `mix agov.coord.visibility` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
 | Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
@@ -40,12 +40,13 @@ unclassified breaking change is a defect you should report.
 
 ## Wiring CI
 
-Run shipped validators per merge request; they complete in seconds, so no path
-scoping is usually needed:
+Run shipped validators per merge request when your project includes the current
+`tooling/elixir/` directory or another packaged `agov` tooling distribution.
+They complete in seconds, so no path scoping is usually needed:
 
 ```yaml
 validate-governance:
-  image: hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250407-slim
+  image: <your-pinned-elixir-erlang-image>
   before_script:
     - cd tooling/elixir
     - mix deps.get
@@ -57,8 +58,9 @@ validate-governance:
 ```
 
 Adapt the runner image and invocation to your stack; the current reference
-tooling is Mix-based. Two disciplines from the rule library apply directly
-here:
+tooling is Mix-based and pinned in foundry's `mise.toml`. A release archive
+containing only `agf/` has schemas and templates, but not the current Mix task
+implementation. Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the

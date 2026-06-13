@@ -5,7 +5,7 @@ reference most. For detail, follow the links.
 
 ## Agent roles
 
-**Core (Phase 1)** — the minimum governed pipeline:
+**Core (Phase 1)** — the governed pipeline:
 
 | Role | One-line responsibility |
 |---|---|
@@ -30,6 +30,17 @@ reference most. For detail, follow the links.
 See [agents/MANIFEST.yaml](../../agents/MANIFEST.yaml) for the active/skipped
 status of each role in this distribution.
 
+## Minimum commissioning
+
+| Trial shape | Active roles | Use when |
+|---|---|---|
+| Solo trial | coder-tester, governor-reviewer | One human wants to test whether gates help |
+| Standard governed project | planner-architect, coder-tester, governor-reviewer | A team wants plans before non-trivial implementation |
+| CI/security-conscious project | Standard roles plus contribution-auditor, infosec-sentinel, fact-checker as needed | Security, compliance, or external evidence matters |
+
+External gateways and agent runtimes are execution surfaces. They do not become
+AGF approval authorities unless the governor records that role decision.
+
 ## Pipeline
 
 ```
@@ -48,7 +59,7 @@ proposal → Gate 1 (plan approval) → implement + test → Gate 2 (review) →
 
 ## Coordination channel kinds
 
-Append-only messages in `docs/coordination/NNNNN-sender.md`:
+Append-only messages in `docs/coordination/NNNNN-sender.md` by default:
 
 | Kind | Meaning |
 |---|---|
@@ -81,4 +92,5 @@ The full rule set lives in [rules/](../../rules/).
 
 - [framework.md](../../framework.md) — principles and patterns (the theory)
 - [ADOPTING.md](../../ADOPTING.md) — step-by-step adoption
+- [templates](../../templates/) — copyable first-run files
 - [docs/governance/manifest.md](../governance/manifest.md) — what ships in the distribution
