@@ -1,6 +1,6 @@
 ---
 id: release-pages-artifacts-policy
-status: pending-gate1
+status: gate1-approved
 topic: release-pages-artifacts
 advisory_consultation:
   - role: infosec-sentinel
