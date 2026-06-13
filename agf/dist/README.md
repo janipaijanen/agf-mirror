@@ -1,0 +1,15 @@
+# AGF release manifest
+
+`release-manifest.yaml` is the source of truth for AGF source release archive
+contents. Release jobs should call the AGF tooling against this manifest instead
+of maintaining separate GitLab CI include/exclude globs.
+
+From `tooling/elixir/`:
+
+```bash
+mix agov.dist.validate
+mix agov.dist.build
+```
+
+The manifest is allowlist-first. Excludes are only for generated or local files
+that could appear under otherwise intentional source directories.

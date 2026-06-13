@@ -22,6 +22,7 @@ rather than finished tooling.
 | Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
 | Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agf plan validate` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `agf coord visibility` |
+| Release artifact contents | Manifest-driven source archive allowlist and forbidden-path policy | `mix agov.dist.validate` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
 | Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
 | InfoSec-relevant artifacts | Anonymization and disclosure checks | Contract target; validator task not yet shipped |
