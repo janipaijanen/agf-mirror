@@ -7,6 +7,7 @@ upstream_candidate: true
 strength: MUST
 status: active
 see_also: []
+provenance: adapted-from-v1x
 ---
 
 # Answer Questions; Do Not Also Implement

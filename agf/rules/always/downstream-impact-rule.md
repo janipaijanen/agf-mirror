@@ -1,3 +1,6 @@
+---
+provenance: inherited-v1x-unverified
+---
 # Downstream Impact: Assess Before Committing to Framework Artifacts
 #
 # Framework principle: Propagation-aware governance

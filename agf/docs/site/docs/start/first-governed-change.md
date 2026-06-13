@@ -5,6 +5,11 @@ completed [install and layouts](../adopt/install-and-layouts.md). After
 this page you have taken one real change through both gates and seen every
 moving part once.*
 
+!!! warning "Inherited from agents-govern v1.x"
+    Not yet verified under the AGF v2 layout and tooling. Treat as
+    background context only until updated. Adopters may verify and
+    report evidence upstream.
+
 Pick a small, real change — a genuine bug fix or a modest feature, not a
 toy. The walkthrough below is the full ceremony; at the end you will know
 which parts the fast track lets you skip for small work.
