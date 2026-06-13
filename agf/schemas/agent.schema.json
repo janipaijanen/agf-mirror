@@ -47,6 +47,16 @@
         "combines": {
           "type": "array",
           "items": {"type": "string"}
+        },
+        "provenance": {
+          "type": "string",
+          "enum": [
+            "inherited-v1x-unverified",
+            "adapted-from-v1x",
+            "verified-agf-v2",
+            "foundry-native"
+          ],
+          "description": "Origin and verification status of this agent definition relative to AGF v2. inherited-v1x-unverified: carried from v1.x with no v2 review; adapted-from-v1x: touched during v2 development but not fully reviewed; verified-agf-v2: explicitly reviewed against AGF v2 operating model; foundry-native: created natively for AGF v2."
         }
       }
     },
