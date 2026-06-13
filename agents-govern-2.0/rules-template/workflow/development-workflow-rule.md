@@ -31,8 +31,15 @@ Do NOT proceed to Phase 2 until questions are answered or trivially obvious.
 
 ## Phase 2 -- Write a Plan File First
 
-<!-- CUSTOMIZE: adapt plan file path and timestamp command to your project -->
 For any change touching >1 module, write a plan file FIRST.
+
+**Location: `docs/plans/<project>-<short-description>.md`**
+<!-- CUSTOMIZE: adapt the path prefix to your project's plan directory -->
+- MUST be in a VCS-tracked directory so all agents, tools, and reviewers can read it.
+- MUST NOT be placed in `.claude/plans/`, `.cursor/`, `.copilot/`, or any
+  AI-tool config directory. Those paths are session-scoped and agent-specific;
+  plan files are shared governance artifacts.
+
 - Get timestamp from OS (never invent it)
 - Include: intent, affected files list, migration needed (yes/no), test strategy, risks, rollback
 
