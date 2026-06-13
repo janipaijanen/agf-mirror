@@ -138,6 +138,9 @@ mix agov.plan.validate ../../docs/plans/<file>.md
 # Find the next handoff for an agent role
 mix agov.handoff.next planner-architect
 
+# Scan local branches for coordination obligations hidden from master
+mix agov.coord.visibility --base-branch master
+
 # Run all tests
 mix test
 ```
@@ -160,6 +163,7 @@ ls docs/coordination/ | sort | tail -5
 mix agov.session.resume --base-branch master                         # cold start
 mix agov.session.resume --role planner-architect --base-branch master  # run from tooling/elixir/
 mix agov.handoff.next planner-architect   # run from tooling/elixir/
+mix agov.coord.visibility --base-branch master
 ```
 
 **Snapshot (2026-06-11):** Three tasks merged to master (T1-1 Phase A, T1-1 Phase B,
