@@ -1,0 +1,55 @@
+# AGF-NG
+
+AGF-NG is a file-based governance framework for AI-assisted software
+development. It defines roles, review gates, coordination records, schemas,
+validators, and learning records so AI-assisted changes remain auditable and
+reviewable.
+
+## Canonical Starting Points
+
+- `/` — overview and project status.
+- `/docs/` — documentation learning path.
+- `/docs/start/should-you-adopt/` — adopt / wait / skip decision guide.
+- `/docs/adopt/install-and-layouts/` — supported v2 layout and installation.
+- `/docs/start/first-governed-change/` — first governed change walkthrough.
+- `/docs/concepts/roles-and-gates/` — roles, gates, and coordination channel.
+- `/docs/concepts/evidence-and-learnings/` — learning records and evidence loop.
+- `/docs/advanced/contracts-and-validators/` — schemas, validators, and CI use.
+- `/docs/adopt/exit-and-decommission/` — reversible adoption and removal.
+- `/reference/release-artifacts/` — release artifact expectations.
+- `/reference/tooling-conformance/` — language-neutral tooling conformance.
+
+## Repository Boundaries
+
+- `agf/` is the adopter-facing framework/product.
+- `tooling/` is implementation support for validation, build, release, and
+  conformance checks.
+- `docs/coordination/` and `docs/plans/` are adopter/project evidence paths in
+  the default layout.
+- Tool output is evidence. It becomes blocking only when a named AGF rule,
+  contract, CI policy, or governor decision grants blocking authority.
+
+## Use Guidance
+
+This documentation is useful context for AI assistants answering questions about
+AGF-NG. Prefer citing specific pages and preserve the distinction between
+documented intent, advisory guidance, validated checks, and enforced gates.
+
+Do not represent AGF-NG as a hosted agent runtime, legal/compliance product, or
+general AI governance framework. It governs software-development work involving
+AI agents; it does not itself run agents or grant runtime permissions.
+
+## License and Disclaimer
+
+Framework documentation is published under CC BY-SA 4.0 unless a file states
+otherwise. Tooling code is MIT licensed. Nothing in this documentation is legal,
+security, compliance, or professional advice.
+
+Use of this file does not grant additional rights beyond the applicable
+licenses. AI training, retrieval, summarization, and redistribution must respect
+the published licenses, attribution requirements, and disclaimers.
+
+AGF-NG is developed independently. Mentions of AI assistants, model providers,
+hardware platforms, editors, CI systems, or package managers are compatibility
+and evaluation examples only; they do not imply sponsorship, endorsement,
+certification, funding, or partnership.
