@@ -30,6 +30,21 @@ cd tooling/elixir
 mix agov.session.resume --role coder-tester --base-branch master
 ```
 
+For a true cold start, when you do not yet know which role you are playing, run
+the command without `--role`:
+
+```bash
+mix agov.session.resume --base-branch master
+```
+
+That prints:
+
+- active roles from the manifest;
+- exact follow-up commands for each role;
+- pending handoffs grouped by role;
+- recent decisions;
+- branch and dirty-tree warnings.
+
 Options:
 
 | Option | Use |
@@ -37,9 +52,11 @@ Options:
 | `--role <agent-role>` | Role whose queue should be shown. Overrides `current_role` in `agov-config.yaml`. |
 | `--base-branch <branch>` | Branch used to detect coordination files present only on the current branch. Defaults to `master`. |
 | `--dir <path>` | Coordination directory. Defaults to `../../docs/coordination`. |
+| `--manifest <path>` | Agent manifest used for cold-start role discovery. Defaults to `../../agents-govern/agents/MANIFEST.yaml`. |
 
 If `--role` is omitted, the command uses `current_role` from
-`docs/coordination/agov-config.yaml` when present.
+`docs/coordination/agov-config.yaml` when present. If neither is available, it
+prints the cold-start bootstrap view instead of failing.
 
 Example config:
 
@@ -53,12 +70,14 @@ from_aliases:
 
 Treat the output as a pre-flight briefing, not as permission to proceed.
 
-1. Confirm the reported branch is the branch you intend to use.
-2. Read any pending handoff and `Must read` files before editing.
-3. Resolve dirty-tree warnings before writing durable governance records.
-4. Treat stale claims as a coordination risk. Do not take ownership silently.
-5. Check recent decisions for approvals, rejections, or changed constraints.
-6. If the command reports branch-local coordination files, make them visible on
+1. If the output says `Session bootstrap`, choose the role you are actually
+   playing and rerun the displayed role-specific command.
+2. Confirm the reported branch is the branch you intend to use.
+3. Read any pending handoff and `Must read` files before editing.
+4. Resolve dirty-tree warnings before writing durable governance records.
+5. Treat stale claims as a coordination risk. Do not take ownership silently.
+6. Check recent decisions for approvals, rejections, or changed constraints.
+7. If the command reports branch-local coordination files, make them visible on
    the branch where the receiving role will read them before relying on them.
 
 If the output conflicts with session memory, trust the files and git state over

@@ -164,15 +164,43 @@ defmodule Agov.SessionResumeTest do
     assert output =~ "branch-local coordination check skipped"
   end
 
-  test "returns an error when no role is configured or provided" do
-    coord_dir = new_coord_dir!(%{"agov-config.yaml" => "from_aliases: {}\n"})
+  test "without a role, prints a cold-start bootstrap view" do
+    coord_dir =
+      new_coord_dir!(%{
+        "agov-config.yaml" => "from_aliases: {}\n",
+        "00100-planner-architect.md" => handoff(100, "coder-tester", "coder task"),
+        "00101-coder-tester.md" => handoff(101, "governor-reviewer", "review task")
+      })
 
-    assert {:error, :role_required} =
+    manifest_path =
+      new_file!("""
+      agents:
+        coder-tester:
+          status: active
+        governor-reviewer:
+          status: active
+        build-engineer:
+          status: suspended
+      """)
+
+    assert {:ok, output} =
              SessionResume.run(coord_dir,
                git_status: CleanGit,
                now: ~U[2026-06-13 10:00:00Z],
-               base_branch: "master"
+               base_branch: "master",
+               manifest_path: manifest_path
              )
+
+    assert output =~ "Session bootstrap"
+    assert output =~ "Role: not selected"
+    assert output =~ "Active roles:"
+    assert output =~ "coder-tester  -> mix agov.session.resume --role coder-tester"
+    assert output =~ "governor-reviewer  -> mix agov.session.resume --role governor-reviewer"
+    refute output =~ "build-engineer  ->"
+    assert output =~ "Pending handoffs by role:"
+    assert output =~ "coder-tester:"
+    assert output =~ "governor-reviewer:"
+    assert output =~ "Next step: rerun with the role you are playing"
   end
 
   defp new_coord_dir!(files) do
@@ -186,6 +214,17 @@ defmodule Agov.SessionResumeTest do
     end)
 
     dir
+  end
+
+  defp new_file!(content) do
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "agov_session_resume_#{System.unique_integer([:positive])}.yaml"
+      )
+
+    File.write!(path, content)
+    path
   end
 
   defp handoff(seq, to, topic) do

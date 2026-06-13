@@ -119,6 +119,9 @@ merging — the repository may be local-only or the target branch name may diffe
 All Mix commands run from `tooling/elixir/`.
 
 ```bash
+# Cold start: discover active roles and pending queues
+mix agov.session.resume --base-branch master
+
 # Resume a session before acting or writing durable files
 mix agov.session.resume --role <agent-role> --base-branch master
 
@@ -150,6 +153,7 @@ For live state, use:
 ```bash
 git log --oneline --decorate -5
 ls docs/coordination/ | sort | tail -5
+mix agov.session.resume --base-branch master                         # cold start
 mix agov.session.resume --role planner-architect --base-branch master  # run from tooling/elixir/
 mix agov.handoff.next planner-architect   # run from tooling/elixir/
 ```

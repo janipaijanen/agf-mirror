@@ -1,7 +1,7 @@
 defmodule Agov.SessionResume do
   @moduledoc false
 
-  alias Agov.{ChannelReader, ClaimTracker, CoordConfig, HandoffTracker}
+  alias Agov.{ChannelReader, ClaimTracker, CoordConfig, HandoffTracker, ManifestReader}
 
   @coord_paths ["docs/coordination"]
 
@@ -10,9 +10,35 @@ defmodule Agov.SessionResume do
     role = Keyword.get(opts, :role) || config.role
 
     if missing_role?(role) do
-      {:error, :role_required}
+      bootstrap(coord_dir, opts)
     else
       build(coord_dir, role, config, opts)
+    end
+  end
+
+  defp bootstrap(coord_dir, opts) do
+    git_status = Keyword.get(opts, :git_status, Agov.GitStatus)
+    base_branch = Keyword.get(opts, :base_branch, "master")
+    manifest_path = Keyword.get(opts, :manifest_path)
+
+    case ChannelReader.scan(coord_dir) do
+      {:error, :dir_not_found} ->
+        {:error, :dir_not_found}
+
+      {:ok, scan} ->
+        messages = scan.messages
+
+        report = %{
+          branch: branch(git_status),
+          warnings: warnings(git_status, base_branch),
+          active_roles: active_roles(manifest_path),
+          pending_handoffs: pending_handoffs(messages),
+          recent_decisions: recent_decisions(messages),
+          invalid_files: scan.invalid_files,
+          base_branch: base_branch
+        }
+
+        {:ok, render_bootstrap(report)}
     end
   end
 
@@ -45,6 +71,21 @@ defmodule Agov.SessionResume do
     end
   end
 
+  defp active_roles(nil), do: :unavailable
+
+  defp active_roles(manifest_path) do
+    case ManifestReader.load(manifest_path) do
+      {:ok, agents} ->
+        agents
+        |> Enum.filter(fn {_role, data} -> data.status == "active" end)
+        |> Enum.map(&elem(&1, 0))
+        |> Enum.sort()
+
+      {:error, _} ->
+        :unavailable
+    end
+  end
+
   defp missing_role?(nil), do: true
   defp missing_role?(""), do: true
   defp missing_role?(_), do: false
@@ -68,6 +109,12 @@ defmodule Agov.SessionResume do
       pending
       |> Enum.filter(&(&1.to == role))
       |> Enum.sort_by(& &1.seq, :desc)
+    end
+  end
+
+  defp pending_handoffs(messages) do
+    with {:ok, %{pending: pending}} <- HandoffTracker.scan(messages) do
+      Enum.sort_by(pending, & &1.seq, :desc)
     end
   end
 
@@ -163,6 +210,25 @@ defmodule Agov.SessionResume do
     |> Enum.join("\n")
   end
 
+  defp render_bootstrap(report) do
+    [
+      "Session bootstrap",
+      "Role: not selected",
+      "Branch: #{report.branch}",
+      "",
+      render_warnings(report.warnings),
+      render_invalid_files(report.invalid_files),
+      render_active_roles(report.active_roles, report.base_branch),
+      render_pending_by_role(report.pending_handoffs),
+      render_decisions(report.recent_decisions),
+      "Next step: rerun with the role you are playing, for example:",
+      "  mix agov.session.resume --role coder-tester --base-branch #{report.base_branch}"
+    ]
+    |> List.flatten()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join("\n")
+  end
+
   defp render_warnings([]), do: ["Warnings: none", ""]
 
   defp render_warnings(warnings) do
@@ -179,6 +245,39 @@ defmodule Agov.SessionResume do
 
   defp render_handoffs(role, handoffs) do
     ["Pending handoffs for #{role}:" | Enum.map(handoffs, &format_handoff/1)] ++ [""]
+  end
+
+  defp render_active_roles(:unavailable, _base_branch) do
+    [
+      "Active roles: unavailable (manifest not found)",
+      "Choose a role from AGENTS.md or agents-govern/agents/MANIFEST.yaml.",
+      ""
+    ]
+  end
+
+  defp render_active_roles([], _base_branch), do: ["Active roles: none", ""]
+
+  defp render_active_roles(roles, base_branch) do
+    role_lines =
+      Enum.map(roles, fn role ->
+        "  - #{role}  -> mix agov.session.resume --role #{role} --base-branch #{base_branch}"
+      end)
+
+    ["Active roles:" | role_lines] ++ [""]
+  end
+
+  defp render_pending_by_role([]), do: ["Pending handoffs by role: none", ""]
+
+  defp render_pending_by_role(handoffs) do
+    lines =
+      handoffs
+      |> Enum.group_by(& &1.to)
+      |> Enum.sort_by(fn {role, _items} -> role end)
+      |> Enum.flat_map(fn {role, items} ->
+        ["  #{role}:" | Enum.map(items, &"    - seq #{&1.seq}  #{&1.topic}  [#{&1.status}]")]
+      end)
+
+    ["Pending handoffs by role:" | lines] ++ [""]
   end
 
   defp format_handoff(handoff) do
