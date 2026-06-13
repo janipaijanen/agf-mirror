@@ -49,10 +49,12 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
 ### 5. Advanced — integration and customization
 
 - [Contracts and validators](advanced/contracts-and-validators.md) —
-  JSON schemas, binding contracts, wiring `mix agov.*` checks into CI.
+  JSON schemas, binding contracts, wiring `agf` checks into CI.
 - [Customizing the framework](advanced/customizing-the-framework.md) —
   what you may tune freely, and where customization breaks contract
   semantics.
+- [Tooling conformance](../reference/tooling-conformance.md) — how the
+  `agf` command surface remains language-neutral as implementations evolve.
 
 ### 6. Evolution — explicitly non-binding
 

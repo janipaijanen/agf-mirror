@@ -59,5 +59,6 @@ nav:
   - Reference:
       - Visual palette: reference/palette.md
       - Figures: reference/figures.md
+      - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
   - Evolution: future/evolution.md

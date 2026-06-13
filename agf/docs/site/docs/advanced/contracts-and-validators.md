@@ -9,15 +9,19 @@ and how to wire validation into your pipeline.*
 
 The framework uses validator commands: command-line checks that read the
 governance files and fail when the files no longer match their contracts.
-Current tooling is implemented as Elixir Mix tasks under `tooling/elixir/`.
-Table 1 summarizes the main contracted artifacts, the shipped checks, and the
-checks still treated as contract targets rather than finished tooling.
+For adopters, the public command surface is `agf ...`; the current reference
+implementation delegates to Elixir Mix tasks under `tooling/elixir/`. The
+[tooling conformance](../../reference/tooling-conformance.md) reference
+defines how future Python, Rust, Ruby, C, C++, Julia, or other implementations
+can be considered AGF-compatible. Table 1 summarizes the main contracted
+artifacts, the shipped checks, and the checks still treated as contract targets
+rather than finished tooling.
 
 | Artifact | Contract | Checked by |
 |---|---|---|
-| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `mix agov.coord.validate` |
-| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `mix agov.plan.validate` |
-| Hidden coordination obligations | Branch visibility scan against a base branch | `mix agov.coord.visibility` |
+| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
+| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `agf plan validate` |
+| Hidden coordination obligations | Branch visibility scan against a base branch | `agf coord visibility` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
 | Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
 | InfoSec-relevant artifacts | Anonymization and disclosure checks | Contract target; validator task not yet shipped |
@@ -40,25 +44,29 @@ unclassified breaking change is a defect you should report.
 
 ## Wiring CI
 
-Run shipped validators per merge request; they complete in seconds, so no path
-scoping is usually needed:
+Run shipped validators per merge request; they complete in seconds. Fresh
+channels can validate every governed file; repositories with historical
+pre-contract records should validate the changed governed files in the merge
+request:
 
 ```yaml
 validate-governance:
-  image: hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250407-slim
+  image: hexpm/elixir:<tag-matching-your-pinned-elixir-and-erlang>
   before_script:
-    - cd tooling/elixir
-    - mix deps.get
+    - cd tooling/elixir && mix deps.get && mix compile --warnings-as-errors && cd ../..
   script:
-    - mix agov.coord.validate ../../docs/coordination/*.md
-    - mix agov.plan.validate ../../docs/plans/*.md
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/[0-9][0-9][0-9][0-9][0-9]-*.md' | xargs -0r ./bin/agf coord validate
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' | xargs -0r ./bin/agf plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Adapt the runner image and invocation to your stack; the current reference
-tooling is Mix-based. Two disciplines from the rule library apply directly
-here:
+Adapt the runner image and invocation to your stack. The `agf` wrapper is the
+downstream-facing command; Mix remains the reference implementation detail.
+When using Elixir 1.20 or newer, compile warnings include the compiler's
+built-in type inference and gradual type-checking findings, so
+`mix compile --warnings-as-errors` is part of the gate rather than a cosmetic
+lint step. Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the
