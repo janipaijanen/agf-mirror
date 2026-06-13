@@ -41,7 +41,7 @@ defmodule Agov.CoordValidator do
   end
 
   defp schema_path do
-    dir = System.get_env("AGOV_SCHEMA_DIR", "../../spec/schemas")
+    dir = System.get_env("AGOV_SCHEMA_DIR", "../../agf/schemas")
     Path.join(dir, "coordination-message.schema.json")
   end
 

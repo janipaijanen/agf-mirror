@@ -5,14 +5,14 @@ defmodule Mix.Tasks.Agov.Plan.Validate do
 
   @moduledoc """
   Validates one or more plan markdown files against
-  spec/schemas/gate1-plan.schema.json and project advisory-role semantics.
+  agf/schemas/gate1-plan.schema.json and project advisory-role semantics.
 
       mix agov.plan.validate <file> [<file>...]
 
   Exits 0 if all files are valid, 1 if any file is invalid.
 
   Set AGOV_SCHEMA_DIR to override the default schema directory
-  (default: ../../spec/schemas relative to cwd).
+  (default: ../../agf/schemas relative to cwd).
   """
 
   @impl Mix.Task

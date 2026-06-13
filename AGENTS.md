@@ -12,7 +12,9 @@ it will supersede.
 
 ```
 AGF-NG/
-├── spec/                     # Language-agnostic specifications (schemas, rules, skills)
+├── agf/                      # Canonical AGF v2.0+ adopter-facing framework
+│   ├── agents/               # Agent role definitions shipped to adopters
+│   ├── rules/                # Governance rule templates
 │   └── schemas/              # JSON Schema draft-07 definitions
 ├── tooling/
 │   └── elixir/               # Elixir Mix project: agov 0.1.0 (mix tasks + validators)
@@ -43,7 +45,8 @@ authority will live in AGF-NG itself (a local manifest, a spec file, or this
 README) is an open question tracked in `docs/coordination/00013-planner-architect.md`.
 Until that is resolved, MANIFEST.yaml is authoritative.
 
-The product being built is in `spec/` and `tooling/`.
+The adopter-facing product is in `agf/`. Foundry tooling sources are in
+`tooling/`.
 
 ---
 
@@ -76,7 +79,7 @@ To find the current highest: `ls docs/coordination/*.md | sort | tail -1`.
 **Nine message kinds:** `claim`, `completion`, `review`, `ack`, `handoff`,
 `decision-record`, `fast-track-waiver`, `lesson-proposal`, `note`.
 
-Schema: `spec/schemas/coordination-message.schema.json`
+Schema: `agf/schemas/coordination-message.schema.json`
 
 **When to write a coordination entry:** Any action that creates a downstream
 obligation for another agent or human requires a coordination entry as part
@@ -100,7 +103,7 @@ without relying on session memory.
 Every non-trivial task requires:
 
 - **Gate 1** (planner-architect → governor-reviewer): plan file in `docs/plans/`
-  with YAML front matter conforming to `spec/schemas/gate1-plan.schema.json`.
+  with YAML front matter conforming to `agf/schemas/gate1-plan.schema.json`.
   The `advisory_consultation` section must declare a status for both
   `infosec-sentinel` and `contribution-auditor`. Plan status must be `approved`
   before implementation begins — do not start coding on a `pending-gate1` plan.
@@ -145,7 +148,7 @@ mix agov.coord.visibility --base-branch master
 mix test
 ```
 
-Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../spec/schemas`
+Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../agf/schemas`
 relative to cwd — correct when run from `tooling/elixir/`).
 
 Session resume guidance for AI agents and human operators is in

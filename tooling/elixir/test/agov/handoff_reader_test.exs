@@ -89,7 +89,7 @@ defmodule Agov.HandoffReaderTest do
       assert String.contains?(output, "ready")
       assert String.contains?(output, "Implement HandoffReader module")
       assert String.contains?(output, "docs/plans/T1-3-handoff-state-tooling.md")
-      assert String.contains?(output, "spec/schemas/coordination-message.schema.json")
+      assert String.contains?(output, "agf/schemas/coordination-message.schema.json")
     end
 
     test "formats a blocked handoff with status prominently" do

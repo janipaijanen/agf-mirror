@@ -101,7 +101,7 @@ defmodule Agov.PlanValidator do
   end
 
   defp schema_path do
-    dir = System.get_env("AGOV_SCHEMA_DIR", "../../spec/schemas")
+    dir = System.get_env("AGOV_SCHEMA_DIR", "../../agf/schemas")
     Path.join(dir, "gate1-plan.schema.json")
   end
 
