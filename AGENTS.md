@@ -161,5 +161,10 @@ tracked in seq 13 as a separate follow-on.
 - All changes merged after governor-reviewer Gate 2 approval.
 - No version bumps or tags on feature branches.
 
+**Worktree boundary:** All linked worktrees must be created under
+`.worktrees/<purpose>` within the project root. Never create worktrees in
+sibling directories or `/tmp` unless the governor-reviewer explicitly approves
+an external path.
+
 See `agents-govern/` rules: `workflow/branch-and-worktree-rule.md`,
 `workflow/merge-request-workflow-rule.md`.
