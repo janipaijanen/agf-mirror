@@ -9,9 +9,10 @@ coordination channel (the decision log), and a learning system that turns
 operational incidents into framework evidence.
 
 > **Status:** agents-govern **v1.x is canonical**. This site documents
-> **v2.0, which is Provisional** — its structure and documentation are
-> under evaluation and may change. Adopters who need stability today
-> should adopt v1.x.
+> **v2.0.0, which is Provisional** — its structure and documentation are
+> under evaluation and may change. The exact source commit for this build
+> is recorded in [Release information](reference/release-info.md).
+> Adopters who need stability today should adopt v1.x.
 
 ## Why this exists
 
@@ -26,7 +27,9 @@ humans and AI agents follow them.
 
 - **Defined roles** — twelve agent definitions (planner, implementer,
   reviewer, auditor, security sentinel, and more) with explicit
-  jurisdiction and authority boundaries.
+  jurisdiction and authority boundaries. Role expansion is supported,
+  but evidence-led: add a role when repeated work, incidents, or
+  ownership conflicts show that an existing boundary is too broad.
 - **Two gates** — plan approval before implementation (Gate 1, the
   "should we build this?" checkpoint) and review before merge (Gate 2, the
   "is this ready to land?" checkpoint), with a formal fast-track for small
@@ -60,4 +63,6 @@ in the rule text itself. We state maturity levels rather than claiming
 capabilities — see the [evolution page](future/evolution.md) for what is
 shipped versus hypothesised.
 
-agents-govern is licensed CC BY-SA 4.0.
+Version, source commit, copyright, and license details are listed in
+[Release information](reference/release-info.md). agents-govern framework
+content is licensed CC BY-SA 4.0; software tooling code is licensed MIT.
