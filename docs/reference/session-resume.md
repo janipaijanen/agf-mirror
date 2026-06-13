@@ -64,6 +64,26 @@ Treat the output as a pre-flight briefing, not as permission to proceed.
 If the output conflicts with session memory, trust the files and git state over
 memory.
 
+### Coordination Visibility And L009
+
+L009 is the governing lesson for branch-local coordination warnings:
+coordination messages that create an obligation for another agent or human must
+be visible on the branch the recipient is expected to poll, or immediately
+paired with a bridge note on that branch.
+
+That means:
+
+- a Gate 2 handoff written only on a feature branch is not enough when the
+  governor-reviewer is polling `master`;
+- a cross-agent review request written only on a side branch is not enough when
+  the receiving agent is polling `master`;
+- branch-local coordination is acceptable only when its audience is limited to
+  reviewers of that branch and an already-visible message names where to look.
+
+When `session.resume` reports coordination files present only on the current
+branch, decide whether they create an obligation. If they do, file a visible
+bridge note before waiting for the recipient to act.
+
 ## How Humans Should Use The Output
 
 Use the command when reviewing an agent's claim about what is pending. It gives
