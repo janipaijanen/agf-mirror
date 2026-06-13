@@ -9,7 +9,8 @@ place and know which layout you chose and why.*
 - A git repository for the project you want to govern.
 - An AI coding assistant that loads natural-language instructions
   (the reference implementation targets Claude Code; the rule content is
-  tool-agnostic and works with Cursor, Codex CLI, Copilot, or Windsurf).
+  tool-agnostic and has been tested with Cursor, Codex CLI, Copilot, and
+  Windsurf).
 - Python 3.x available if you want to run the validators locally and in CI.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
