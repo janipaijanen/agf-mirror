@@ -4,6 +4,8 @@ defmodule Mix.Tasks.Agov.Coord.Brief do
   @shortdoc "Generate a coordination message skeleton for the next seq"
 
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, _, _} =
       OptionParser.parse(args,
         strict: [dir: :string, kind: :string, from: :string, to: :string, topic: :string]

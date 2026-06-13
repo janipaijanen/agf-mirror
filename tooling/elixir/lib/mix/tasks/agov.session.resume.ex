@@ -25,6 +25,8 @@ defmodule Mix.Tasks.Agov.Session.Resume do
 
   @impl Mix.Task
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, _positional, _} =
       OptionParser.parse(args,
         strict: [role: :string, dir: :string, base_branch: :string, manifest: :string],

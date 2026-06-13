@@ -17,11 +17,15 @@ defmodule Mix.Tasks.Agov.Plan.Validate do
 
   @impl Mix.Task
   def run([]) do
+    Agov.CliSafety.ensure_not_root!()
+
     Mix.shell().error("Usage: mix agov.plan.validate <file> [<file>...]")
     exit({:shutdown, 1})
   end
 
   def run(files) do
+    Agov.CliSafety.ensure_not_root!()
+
     results = Enum.map(files, &validate_and_report/1)
 
     if Enum.any?(results, &(&1 == :error)) do

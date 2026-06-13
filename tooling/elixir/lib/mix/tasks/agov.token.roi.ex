@@ -17,6 +17,8 @@ defmodule Mix.Tasks.Agov.Token.Roi do
 
   @impl Mix.Task
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {subcommand, rest} =
       case args do
         [] -> {"report", []}

@@ -17,11 +17,15 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
 
   @impl Mix.Task
   def run([]) do
+    Agov.CliSafety.ensure_not_root!()
+
     Mix.shell().error("Usage: mix agov.coord.validate <file> [<file>...]")
     exit({:shutdown, 1})
   end
 
   def run(files) do
+    Agov.CliSafety.ensure_not_root!()
+
     results = Enum.map(files, &validate_and_report/1)
 
     if Enum.any?(results, &(&1 == :error)) do
@@ -45,9 +49,11 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
 
       {:error, errors} when is_list(errors) ->
         Mix.shell().error("ERR #{path}:")
+
         Enum.each(errors, fn {msg, path_str} ->
           Mix.shell().error("    #{path_str}: #{msg}")
         end)
+
         :error
 
       {:error, reason} ->

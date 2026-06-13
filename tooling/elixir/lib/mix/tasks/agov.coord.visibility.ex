@@ -14,6 +14,8 @@ defmodule Mix.Tasks.Agov.Coord.Visibility do
 
   @impl Mix.Task
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, _positional, _invalid} =
       OptionParser.parse(args,
         strict: [base_branch: :string, branch: :keep, dir: :string, format: :string],

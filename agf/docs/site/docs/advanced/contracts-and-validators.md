@@ -46,6 +46,9 @@ scoping is usually needed:
 ```yaml
 validate-governance:
   image: hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250407-slim
+  variables:
+    # Set only if this disposable runner image executes jobs as UID 0.
+    AGOV_ALLOW_ROOT: "1"
   before_script:
     - cd tooling/elixir
     - mix deps.get
@@ -57,8 +60,10 @@ validate-governance:
 ```
 
 Adapt the runner image and invocation to your stack; the current reference
-tooling is Mix-based. Two disciplines from the rule library apply directly
-here:
+tooling is Mix-based. If your runner intentionally executes as UID 0, use the
+documented root override from the
+[environment variable reference](../../reference/environment-variables.md).
+Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the
