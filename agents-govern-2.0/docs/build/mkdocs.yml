@@ -36,11 +36,11 @@ nav:
       - Overview: docs/index.md
       - 'Start':
           - Should you adopt?: docs/start/should-you-adopt.md
-          - Your first governed change: docs/start/first-governed-change.md
       - 'Adopt':
           - Install and layouts: docs/adopt/install-and-layouts.md
           - Downstream impact: docs/adopt/downstream-impact.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
+          - Your first governed change: docs/start/first-governed-change.md
       - 'Concepts':
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md

@@ -9,6 +9,11 @@ Pick a small, real change — a genuine bug fix or a modest feature, not a
 toy. The walkthrough below is the full ceremony; at the end you will know
 which parts the fast track lets you skip for small work.
 
+Figure 1 shows the path you are about to walk: plan, Gate 1, implementation,
+Gate 2, merge, and completion.
+
+![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+
 ## 1. Check the fast track first
 
 Before any ceremony, ask: does this change qualify for fast track?
@@ -25,6 +30,21 @@ test strategy, risks, rollback. Timestamp from the OS, never invented.
 Keep it short — a plan that takes longer to write than the change takes to
 implement is miscalibrated.
 
+For example, use a concrete file such as
+`docs/plans/fix-login-error-message.md`:
+
+```markdown
+# Plan: Fix login error message
+
+Intent: make the failed-login message actionable without exposing account
+existence.
+Affected files: `lib/auth/login.ex`, `test/auth/login_test.exs`
+Migration: no
+Tests: failing login-message test, then full auth test file
+Risks: wording may leak whether an account exists
+Rollback: revert the branch
+```
+
 ## 3. Gate 1 — plan approval
 
 File a coordination entry handing the plan to the reviewer role
@@ -33,6 +53,11 @@ agent the governor has authorized — approves, amends, or rejects with a
 `decision-record`. Nothing is implemented before this lands. The point is
 not bureaucracy; it is that redirection is cheap before code exists and
 expensive after.
+
+The handoff is another concrete file, for example
+`docs/coordination/00012-coder-tester.md`, whose front matter says
+`kind: handoff`, `to: governor-reviewer`, and points to the plan in
+`references-to`.
 
 ## 4. Branch, then implement test-first
 
@@ -65,6 +90,10 @@ Merge via the MR (never a direct push to main), then file a
 `completion` entry referencing the approval. The chain —
 plan → approval → implementation → review → approval → merge → completion —
 is now reconstructible from files alone. That chain is the product.
+
+Name the completion file the same way as every other coordination entry, such
+as `docs/coordination/00015-coder-tester.md`, and reference the Gate 2
+approval so the chain closes visibly.
 
 ## What you just bought
 

@@ -10,7 +10,17 @@ holds hostage. This page summarises the three exit modes. The complete
 step-by-step procedure ships in the distribution as
 `docs/adopt/decommission.md` and is the canonical reference.
 
+Figure 1 shows the exit paths before the table defines them: pause, downgrade,
+or remove. The important point is that exit is a normal governed decision, not
+a failure mode.
+
+![Adoption and exit flow](../../reference/figures/adoption-exit-flow.svg)
+
 ## Three exit modes
+
+Table 1 compares the three exit modes. Pause is operationally cheap,
+downgrade keeps only selected rule guidance, and remove deletes the framework
+artifacts completely.
 
 | Mode | What it means | Effort |
 |---|---|---|

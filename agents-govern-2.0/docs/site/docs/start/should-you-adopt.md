@@ -3,6 +3,19 @@
 *Status: Provisional (v2.0 documentation). Audience: evaluators. After
 this page you can make an informed adopt / wait / skip decision.*
 
+## What you are deciding
+
+agents-govern is a file-based governance framework for AI-assisted software
+development. It gives AI coding agents explicit role definitions, Gate 1
+(plan approval before implementation), Gate 2 (review before merge), a
+coordination channel (the append-only decision log), and learning records
+(structured incident and pattern notes).
+
+The trade is deliberate: you accept a little ceremony so the human governor,
+the person who approves gates and owns project risk, can reconstruct what was
+decided and stop unsafe work before it lands. Adopt when that audit trail is
+worth more than the overhead.
+
 ## Adopt now if…
 
 - AI assistants write a significant share of your code, **and** you have
@@ -32,6 +45,8 @@ this page you can make an informed adopt / wait / skip decision.*
   rules, and conventions that your existing tools load and enforce.
 
 ## What adoption asks of you
+
+Table 1 summarizes the commitments you accept when you adopt the framework.
 
 | Commitment | Size |
 |---|---|

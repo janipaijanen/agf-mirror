@@ -7,6 +7,11 @@ and how to wire validation into your pipeline.*
 
 ## What is under contract
 
+The framework ships validator commands: command-line checks that read the
+governance files and fail when the files no longer match their contracts.
+Table 1 summarizes the main contracted artifacts and the validator command
+that checks each one.
+
 | Artifact | Contract | Checked by |
 |---|---|---|
 | Agent definitions (`agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov-validate-agents` |

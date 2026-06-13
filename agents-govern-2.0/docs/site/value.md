@@ -19,23 +19,26 @@ production-level write access and intern-level accountability.
 
 **Accountability structure for AI agents.** Each agent operates under a
 written definition: what it owns, what it may change, what it must escalate.
-An implementing agent cannot approve its own work; a reviewing agent cannot
-implement. The separation is structural, not aspirational.
+The governor, the human who approves gates and owns project risk, can delegate
+work without delegating final authority. An implementing agent cannot approve
+its own work; a reviewing agent cannot implement. The separation is structural,
+not aspirational.
 
 **Decisions you can reconstruct.** Every plan approval, review finding, and
-merge decision is a file in an append-only coordination channel. Six months
-later, you can answer "why was this merged?" by reading the chain, not by
-archaeology on commit messages.
+merge decision is a file in the coordination channel, the append-only decision
+log. Six months later, you can answer "why was this merged?" by reading the
+chain, not by archaeology on commit messages.
 
 **Quality gates that bind assistants too.** The rule library expresses your
 engineering discipline (test-first, migration hygiene, immutable tags,
 merge-request workflow) in a form AI assistants load as instructions and
-validators enforce in CI. The discipline survives the speed.
+validators enforce in CI. Gate 1 is plan approval before implementation; Gate
+2 is review before merge. The discipline survives the speed.
 
-**Learning that compounds.** Incidents become structured learning records;
-recurring patterns become rules; rules ship to every adopter. The framework
-grows from evidence, and the anonymization policy means your learnings can
-flow upstream without revealing your project.
+**Learning that compounds.** Incidents become learning records, structured
+incident and pattern notes; recurring patterns become rules; rules ship to
+every adopter. The framework grows from evidence, and the anonymization policy
+means your learnings can flow upstream without revealing your project.
 
 ## What it costs
 

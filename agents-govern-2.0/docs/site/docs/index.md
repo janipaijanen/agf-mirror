@@ -15,12 +15,10 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
             exit path)              release)
 ```
 
-### 1. Start — decide and try
+### 1. Start — decide
 
 - [Should you adopt?](start/should-you-adopt.md) — an honest decision page:
   who benefits now, who should wait, who should skip.
-- [Your first governed change](start/first-governed-change.md) — one small
-  change through plan approval, implementation, and review.
 
 ### 2. Adopt — install with eyes open
 
@@ -31,6 +29,8 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
   introduces.
 - [Exit and decommission](adopt/exit-and-decommission.md) — **read before
   adopting**: how to leave cleanly, so you know adoption is reversible.
+- [Your first governed change](start/first-governed-change.md) — one small
+  change through plan approval, implementation, and review.
 
 ### 3. Concepts — the mental model
 

@@ -15,6 +15,9 @@ audit trail shows it.
 
 ## The pipeline roles
 
+Table 1 introduces the three core pipeline roles before the gate figures:
+planning, implementation, and approval are deliberately separated.
+
 | Role | Owns | Typical artifact |
 |---|---|---|
 | **planner-architect** | Plans, decomposition, ADRs | Plan files, Gate 1 submissions |
@@ -32,6 +35,11 @@ destructive operations, and meta-governance are never delegable).
 
 ## The two gates
 
+Figure 1 shows the two review gates as a pipeline: planning is reviewed before
+implementation starts, and implementation is reviewed again before merge.
+
+![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+
 **Gate 1 — plan approval.** Before implementation. The reviewer reads the
 plan, not code. Redirection here costs minutes; the same redirection
 after implementation costs the implementation. Gate 1 is waived by the
@@ -46,6 +54,12 @@ Findings are filed as review entries; approval is a decision record that
 may carry conditions, and the merge must honour them.
 
 ## The coordination channel
+
+Figure 2 shows the coordination channel as an append-only chain of claims,
+handoffs, reviews, decisions, and completions. Each file points to earlier
+files so the decision remains reconstructible.
+
+![Coordination channel](../../reference/figures/coordination-channel.svg)
 
 Every handoff, decision, and completion is a file:
 `docs/coordination/NNNNN-sender.md`, YAML frontmatter plus a short body.

@@ -5,8 +5,8 @@
 agents-govern is an open framework for running AI coding agents under
 explicit, auditable governance: defined roles with bounded authority,
 review gates before implementation and before merge, an append-only
-coordination channel, and a learning system that turns operational
-incidents into framework evidence.
+coordination channel (the decision log), and a learning system that turns
+operational incidents into framework evidence.
 
 > **Status:** agents-govern **v1.x is canonical**. This site documents
 > **v2.0, which is Provisional** — its structure and documentation are
@@ -27,25 +27,28 @@ humans and AI agents follow them.
 - **Defined roles** — twelve agent definitions (planner, implementer,
   reviewer, auditor, security sentinel, and more) with explicit
   jurisdiction and authority boundaries.
-- **Two gates** — plan approval before implementation (Gate 1) and review
-  before merge (Gate 2), with a formal fast-track for small tasks.
-- **A coordination channel** — append-only, schema-shaped messages that
-  make every handoff, decision, and completion reconstructible.
+- **Two gates** — plan approval before implementation (Gate 1, the
+  "should we build this?" checkpoint) and review before merge (Gate 2, the
+  "is this ready to land?" checkpoint), with a formal fast-track for small
+  tasks.
+- **A coordination channel** — an append-only, schema-shaped decision log
+  that makes every handoff, decision, and completion reconstructible.
 - **A rule library** — thirty-plus governance rules (TDD, immutable tags,
   merge-request workflow, security hardening, …) ready to copy into your
   AI assistant's configuration.
-- **Evidence discipline** — learning records with anonymization built in,
-  so what you learn can flow upstream without leaking what you build.
+- **Evidence discipline** — learning records, the structured incident and
+  pattern notes, with anonymization built in, so what you learn can flow
+  upstream without leaking what you build.
 
 ## Where to go next
 
-| You are… | Start here |
+| Intent | Start here |
 |---|---|
-| Evaluating whether this is for you | [Value proposition](value.md) → [Use cases](use-cases.md) → [Should you adopt?](docs/start/should-you-adopt.md) |
-| Ready to try it | [Install and layouts](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
-| Worried about cost and lock-in | [Downstream impact](docs/adopt/downstream-impact.md) → [Exit and decommission](docs/adopt/exit-and-decommission.md) |
-| Already operating a governed project | [Day-to-day operation](docs/operate/day-to-day.md) |
-| Looking for the full documentation path | [Documentation index](docs/index.md) |
+| Decide whether to adopt | [Should you adopt?](docs/start/should-you-adopt.md) |
+| Understand cost and exit path | [Downstream impact](docs/adopt/downstream-impact.md) → [Exit and decommission](docs/adopt/exit-and-decommission.md) |
+| Install and run one governed change | [Install and layouts](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
+| Operate a project day to day | [Day-to-day operation](docs/operate/day-to-day.md) |
+| Follow the full learning path | [Documentation index](docs/index.md) |
 
 ## Evidence, honestly stated
 

@@ -15,6 +15,9 @@ risk, or decide exit.
 
 ![Day-to-day responsibility modes](../../reference/figures/operating-responsibility-map.svg)
 
+Table 1 separates the work by authority mode so teams can see what remains
+human-only, what an AI agent may execute, and what both sides handle together.
+
 | Mode | Applies to | Typical artifacts |
 |---|---|---|
 | Human-only authority | Gate approvals, merge decisions, risk acceptance, role activation/deactivation, adopting or exiting the framework | Decision records, merge approvals, explicit governor instructions |
@@ -22,6 +25,12 @@ risk, or decide exit.
 | Mixed human + AI work | Reading the coordination channel, sizing tasks, reviewing evidence, sharpening docs and rules, recording learnings | Claims, reviews, handoffs, learning records, rule or documentation changes |
 
 A governed working session, in order:
+
+Figure 2 shows the daily loop as a cycle: read the channel, claim or size the
+work, pass the appropriate gate, implement, review, and close the loop with a
+completion or learning.
+
+![Governance loop](../../reference/figures/governance-loop.svg)
 
 1. **Read the channel.** New coordination entries since you last looked —
    pending handoffs addressed to your role, decision records that
@@ -73,6 +82,9 @@ that smells wrong into full review without justification** — the right
 to pull is what makes lightweight delegation safe.
 
 ## Failure modes to watch
+
+Table 2 lists common operating smells and the usual governance weakness behind
+each one.
 
 | Smell | What it usually means |
 |---|---|

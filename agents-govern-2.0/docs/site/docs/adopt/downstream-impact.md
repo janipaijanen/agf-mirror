@@ -9,7 +9,16 @@ files in your repository, jobs in your CI, and discipline in your workflow.
 This page lists the full price. The way back out is documented on the
 [exit and decommission](exit-and-decommission.md) page.
 
+Figure 1 shows the adoption and exit flow at a high level: evaluate the cost,
+install deliberately, operate with gates, and leave by removing the framework
+artifacts and hooks if the trade no longer pays.
+
+![Adoption and exit flow](../../reference/figures/adoption-exit-flow.svg)
+
 ## Files added to your repository
+
+Table 1 lists the repository artifacts adoption adds or expects you to
+maintain.
 
 | Artifact | Location (Layout A) | Purpose |
 |---|---|---|
@@ -35,6 +44,10 @@ Long-running suites are *not* part of the framework; the CI-scoping rule in
 the rule library exists to keep governance jobs from inflating your pipeline.
 
 ## Workflow obligations per change
+
+Table 2 shows the workflow cost by change size. The boundary between small
+and non-trivial work is intentionally conservative: when risk or ownership is
+unclear, use the full gate path.
 
 | Change size | What the framework asks |
 |---|---|

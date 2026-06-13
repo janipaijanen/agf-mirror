@@ -27,6 +27,12 @@ Findings are filed as a review entry; blocking findings return the work;
 approval is a decision record, possibly with conditions the merge must
 honour, and the merge commit references it.
 
+Figure 1 places Gate 2 in the full governed pipeline. The reviewer is checking
+the implemented branch against the approved plan before the merge, not after
+the fact.
+
+![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+
 ## Releases: the immutability discipline
 
 Two rules interlock:
