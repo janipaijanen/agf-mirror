@@ -44,24 +44,29 @@ unclassified breaking change is a defect you should report.
 
 ## Wiring CI
 
-Run shipped validators per merge request; they complete in seconds, so no path
-scoping is usually needed:
+Run shipped validators per merge request; they complete in seconds. Fresh
+channels can validate every governed file; repositories with historical
+pre-contract records should validate the changed governed files in the merge
+request:
 
 ```yaml
 validate-governance:
-  image: hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250407-slim
+  image: hexpm/elixir:<tag-matching-your-pinned-elixir-and-erlang>
   before_script:
-    - cd tooling/elixir && mix deps.get && cd ../..
+    - cd tooling/elixir && mix deps.get && mix compile --warnings-as-errors && cd ../..
   script:
-    - ./bin/agf coord validate docs/coordination/*.md
-    - ./bin/agf plan validate docs/plans/*.md
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/[0-9][0-9][0-9][0-9][0-9]-*.md' | xargs -0r ./bin/agf coord validate
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' | xargs -0r ./bin/agf plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
 Adapt the runner image and invocation to your stack. The `agf` wrapper is the
-downstream-facing command; Mix remains the reference implementation detail. Two
-disciplines from the rule library apply directly here:
+downstream-facing command; Mix remains the reference implementation detail.
+When using Elixir 1.20 or newer, compile warnings include the compiler's
+built-in type inference and gradual type-checking findings, so
+`mix compile --warnings-as-errors` is part of the gate rather than a cosmetic
+lint step. Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the
