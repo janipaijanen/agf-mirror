@@ -9,6 +9,10 @@ dist/
 build/
 .DS_Store
 
+# AGF release manifest policy is tracked; generated root dist/ archives are not.
+!agf/dist/
+!agf/dist/**
+
 # Secrets
 .env
 .env.*

@@ -1,0 +1,52 @@
+schema_version: 1
+package:
+  name: agf
+  version_file: agf/VERSION
+  output_dir: dist
+  basename: agf-{{version}}
+  formats:
+    - tar.gz
+    - zip
+
+include:
+  - path: agf/VERSION
+  - path: agf/LICENSE
+  - path: agf/LICENSE-MIT
+  - path: agf/CHANGELOG.md
+  - path: agf/ADOPTING.md
+  - path: agf/framework.md
+  - glob: agf/agents/**
+  - glob: agf/dist/**
+  - glob: agf/docs/adopt/**
+  - glob: agf/docs/adr/**
+  - glob: agf/docs/build/**
+  - glob: agf/docs/contracts/**
+  - glob: agf/docs/figures/**
+  - glob: agf/docs/governance/**
+  - glob: agf/docs/reference/**
+  - glob: agf/docs/site/**
+  - glob: agf/docs/visual/**
+  - glob: agf/project-specific-examples/**
+  - glob: agf/rules/**
+  - glob: agf/schemas/**
+  - glob: agf/skills/**
+  - glob: agf/templates/**
+    optional: true
+
+exclude:
+  - agf/site-html/**
+  - agf/docs/site/reference/release-info.md
+
+forbidden:
+  - .git/**
+  - .worktrees/**
+  - tmp/**
+  - dist/**
+  - public/**
+  - agents-govern/**
+  - tooling/elixir/_build/**
+  - tooling/elixir/deps/**
+  - .env
+  - .env.*
+  - agf/site-html/**
+  - agf/docs/site/reference/release-info.md

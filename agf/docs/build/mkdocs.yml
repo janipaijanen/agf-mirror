@@ -57,6 +57,7 @@ nav:
           - Contracts and validators: docs/advanced/contracts-and-validators.md
           - Customizing the framework: docs/advanced/customizing-the-framework.md
   - Reference:
+      - Release artifacts: reference/release-artifacts.md
       - Visual palette: reference/palette.md
       - Figures: reference/figures.md
       - Release information: reference/release-info.md
