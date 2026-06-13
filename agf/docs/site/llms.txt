@@ -5,6 +5,17 @@ development. It defines roles, review gates, coordination records, schemas,
 validators, and learning records so AI-assisted changes remain auditable and
 reviewable.
 
+## What AGF Is / Is Not
+
+AGF is a repository-local governance framework for software-development work
+involving AI agents.
+
+AGF is not a hosted service, agent runtime, model-safety filter, legal or
+compliance product, security audit, general AI product-governance system, or
+replacement for human gate ownership. Existing assistants, CI systems, review
+tools, and release tools execute the work; AGF defines the governance artifacts
+and review discipline around that work.
+
 ## Canonical Starting Points
 
 - `/` — overview and project status.

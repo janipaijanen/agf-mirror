@@ -16,6 +16,18 @@ the person who approves gates and owns project risk, can reconstruct what was
 decided and stop unsafe work before it lands. Adopt when that audit trail is
 worth more than the overhead.
 
+## What AGF is / is not
+
+AGF is a repository-local governance framework for AI-assisted software
+development. It defines the files and decisions that make agentic work
+auditable: roles, gates, plans, coordination records, schemas, validators, and
+learning records.
+
+AGF is not an agent runner, hosted workflow service, model-safety filter,
+security scanner, legal/compliance system, or substitute for human gate
+ownership. It works beside your existing assistant, CI, review, and release
+tools; it does not replace them.
+
 ## Adopt now if…
 
 - AI assistants write a significant share of your code, **and** you have
