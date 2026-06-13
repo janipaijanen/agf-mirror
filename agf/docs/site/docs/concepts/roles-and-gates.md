@@ -4,6 +4,11 @@
 governors building the mental model. After this page you can name the
 roles, say what each gate decides, and read a coordination chain.*
 
+!!! warning "Inherited from agents-govern v1.x"
+    Not yet verified under the AGF v2 layout and tooling. Treat as
+    background context only until updated. Adopters may verify and
+    report evidence upstream.
+
 ## The core idea: separated authority
 
 No agent both implements and approves its own work. Authority is split

@@ -5,6 +5,11 @@ developers operating gates and releases. After this page you can run a
 Gate 2 review that earns its keep, and a release that cannot ship broken
 twice the same way.*
 
+!!! warning "Inherited from agents-govern v1.x"
+    Not yet verified under the AGF v2 layout and tooling. Treat as
+    background context only until updated. Adopters may verify and
+    report evidence upstream.
+
 ## Gate 2 in practice
 
 A Gate 2 review is evidence-based, not vibes-based. The submission

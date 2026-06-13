@@ -3,74 +3,95 @@ kind: handoff
 from: coder-tester
 to: governor-reviewer
 seq: 236
-timestamp: 2026-06-13T19:52:22Z
+timestamp: 2026-06-13T22:53:00Z
 immutable: true
 references-to:
   - 00235-planner-architect.md
-topic: tooling-conformance-cli-gate2
+topic: tier1-provenance-labels-gate2
 requires-ack: true
 artifacts_owned:
-  - .worktrees/tooling-conformance-cli
+  - agf/rules/**/*.md
+  - agf/agents/*.yaml
+  - agf/docs/site/docs/advanced/customizing-the-framework.md
+  - agf/docs/site/docs/concepts/evidence-and-learnings.md
+  - agf/docs/site/docs/concepts/roles-and-gates.md
+  - agf/docs/site/docs/operate/day-to-day.md
+  - agf/docs/site/docs/operate/review-and-release.md
+  - agf/docs/site/docs/start/first-governed-change.md
 handoff:
   next_agent: governor-reviewer
-  status: ready
+  branch: feat/tier1-provenance-labels
+  base_branch: master
+  status: ready-for-review
   task:
-    - Review branch feat/tooling-conformance-cli.
-    - Decide whether to merge the tooling conformance draft and initial bin/agf wrapper.
-    - Confirm whether this should remain separate from feat/tier1-provenance-labels.
+    - Review provenance labeling across agf/ artifacts.
+    - Verify the 3 provenance values used are correct.
+    - Approve or redirect the warning callout text for unverified docs pages.
+    - If approved, merge via --no-ff to master.
   must_read:
-    - agf/docs/contracts/tooling-conformance.md
-    - agf/docs/site/reference/tooling-conformance.md
-    - bin/agf
+    - docs/coordination/00233-planner-architect.md
+    - docs/coordination/00235-planner-architect.md
   do_not_touch:
     - agents-govern/
-    - .worktrees/tier1-provenance-labels
     - .claude/settings.local.json
+    - agents-govern/uv.lock
 ---
 
-Tooling conformance and initial downstream-facing `agf` executable are ready
-for review on branch `feat/tooling-conformance-cli`.
+Tier 1 provenance labels applied to all agf/ rules, agents, and the 6
+public docs pages that were not updated in docs-polish.
 
-## Branch commit
+## What was done
 
-- `5837363 feat: add AGF CLI conformance draft`
+### Rules (41 files, commit bbba1c2)
 
-## Scope
-
-- Adds `agf/docs/contracts/tooling-conformance.md` as the language-neutral AGF
-  tooling compatibility contract.
-- Adds public site reference page `agf/docs/site/reference/tooling-conformance.md`.
-- Adds `bin/agf`, an executable wrapper exposing the adopter-facing command
-  shape while delegating to the current Elixir Mix reference implementation.
-- Updates public docs to refer to `agf` as the downstream command surface and
-  Mix tasks as reference implementation details.
-
-## Verification
-
-From `.worktrees/tooling-conformance-cli`:
-
-```bash
-./bin/agf coord validate docs/coordination/00234-coder-tester.md
-./bin/agf plan validate tooling/elixir/test/fixtures/valid_plan.md
-./bin/agf handoff next governor-reviewer
-MISE_TRUSTED_CONFIG_PATHS=/home/devi/src/AGF-NG/.worktrees/tooling-conformance-cli/mise.toml \
-  mise exec -- uvx --from 'mkdocs>=1.6,<2' \
-  mkdocs build -f agf/docs/build/mkdocs.yml --strict
-cd tooling/elixir
-MISE_TRUSTED_CONFIG_PATHS=/home/devi/src/AGF-NG/.worktrees/tooling-conformance-cli/mise.toml \
-  mise exec -- mix test
+39 old-format rules (HTML comment SPDX + `# Title` format) received a
+prepended minimal YAML frontmatter block:
+```
+---
+provenance: inherited-v1x-unverified
+---
 ```
 
-Results:
+2 rules with existing YAML frontmatter received `provenance: adapted-from-v1x`:
+- `agf/rules/always/answer-only-rule.md` (evidence: foundry-2026-06-10)
+- `agf/rules/always/active-branch-preflight-rule.md` (evidence: L007)
 
-- `agf coord validate`: OK.
-- `agf plan validate`: OK against known valid fixture.
-- `agf handoff next governor-reviewer`: no handoff found, exit 2.
-- MkDocs strict build: pass.
-- Mix tests: 129 passed.
+### Agents (12 files)
 
-## Coordination note
+All 12 agent definition YAML files received:
+```yaml
+  provenance: adapted-from-v1x
+```
+Added after the existing `framework_version: "2.0.0"` field. All agents carry
+`framework_version: "2.0.0"` but content has not been fully verified against
+AGF v2 operating model.
 
-This work was isolated after detecting that the root checkout had moved to
-Claude's active `feat/tier1-provenance-labels` branch. No Tier 1 provenance
-agent/rule edits are included in `feat/tooling-conformance-cli`.
+### Public docs (6 pages)
+
+Pages not updated in docs-polish received a warning callout after the
+`*Status: ...*` paragraph:
+```
+!!! warning "Inherited from agents-govern v1.x"
+    Not yet verified under the AGF v2 layout and tooling. Treat as
+    background context only until updated. Adopters may verify and
+    report evidence upstream.
+```
+
+Pages updated in docs-polish (adopt/, advanced/contracts-and-validators,
+index.md, start/should-you-adopt) received no banner.
+
+## Provenance values used
+
+| Value | Count | Meaning |
+|---|---|---|
+| `inherited-v1x-unverified` | 39 rules + 6 docs pages | Carried from v1.x, not reviewed |
+| `adapted-from-v1x` | 2 rules + 12 agents | Touched during AGF v2 development |
+| `verified-agf-v2` | 0 | No artifact has had an explicit review pass yet |
+
+## Not yet done (follow-up slices)
+
+- `agf/framework.md` provenance pass
+- `agf/schemas/*.json` provenance pass
+- `mix agov.validate-provenance` CI check
+- Full `verified-agf-v2` review pass for Tier 1 rules/agents
+- Workitem manifests rule (Stage 2, Gate 1 plan)
