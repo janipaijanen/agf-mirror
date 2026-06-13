@@ -59,8 +59,8 @@ Copyright (c) 2026 Jani Päijänen.
 
 | Material | License |
 |---|---|
-| Documentation, governance rules, schemas, agent definitions, examples, and framework content | Creative Commons Attribution-ShareAlike 4.0 International (`CC-BY-SA-4.0`) |
-| Software tooling code | MIT License |
+| Framework content | Creative Commons Attribution-ShareAlike 4.0 International (`CC-BY-SA-4.0`), with separate commercial licensing available for alternative terms |
+| Tooling code | MIT License |
 
 The distribution includes the complete license texts as `LICENSE` and
 `LICENSE-MIT`.

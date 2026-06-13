@@ -64,5 +64,6 @@ capabilities — see the [evolution page](future/evolution.md) for what is
 shipped versus hypothesised.
 
 Version, source commit, copyright, and license details are listed in
-[Release information](reference/release-info.md). agents-govern framework
-content is licensed CC BY-SA 4.0; software tooling code is licensed MIT.
+[Release information](reference/release-info.md). Framework content:
+CC BY-SA 4.0, with separate commercial licensing available for alternative
+terms. Tooling code: MIT.

@@ -71,6 +71,7 @@ its machine-readable companion; `ADOPTING.md` is the adoption guide.
 
 ## License
 
-Framework content is CC BY-SA 4.0 ([LICENSE](LICENSE)); the Python
-tooling is MIT (see `pyproject.toml`). Security policy:
+Framework content: CC BY-SA 4.0 ([LICENSE](LICENSE)), with separate
+commercial licensing available for alternative terms. Tooling code: MIT
+([LICENSE-MIT](LICENSE-MIT), `pyproject.toml`). Security policy:
 [SECURITY.md](SECURITY.md). Contributions: [CONTRIBUTING.md](CONTRIBUTING.md).

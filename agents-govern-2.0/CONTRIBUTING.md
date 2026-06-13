@@ -187,6 +187,9 @@ All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md
 
 ## License
 
+Framework content: CC BY-SA 4.0, with separate commercial licensing
+available for alternative terms. Tooling code: MIT.
+
 By contributing, you agree that your contributions are licensed under
 [CC BY-SA 4.0](LICENSE), the same license as the framework's operational
 artifacts (rules, agents, templates, CI configuration).

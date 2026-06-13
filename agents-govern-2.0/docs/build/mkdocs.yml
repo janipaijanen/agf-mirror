@@ -16,8 +16,8 @@ site_description: >-
 site_author: Jani Päijänen
 copyright: >-
   Copyright (c) 2026 Jani Päijänen.
-  Documentation and framework content licensed CC BY-SA 4.0;
-  software tooling licensed MIT.
+  Framework content: CC BY-SA 4.0, with separate commercial licensing
+  available for alternative terms. Tooling code: MIT.
 
 docs_dir: ../site
 site_dir: ../../site-html
