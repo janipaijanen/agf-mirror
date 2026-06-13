@@ -118,7 +118,17 @@ merging — the repository may be local-only or the target branch name may diffe
 
 All Mix commands run from `tooling/elixir/`.
 
+Cold-start rule for humans and AI agents: use one command in two steps. First,
+run `mix agov.session.resume` without `--role` to get the project map. Then
+rerun the same command with the role you are actually playing.
+
 ```bash
+# Cold start: discover active roles and pending queues
+mix agov.session.resume --base-branch master
+
+# Resume a session before acting or writing durable files
+mix agov.session.resume --role <agent-role> --base-branch master
+
 # Validate coordination messages
 mix agov.coord.validate ../../docs/coordination/<file>.md
 
@@ -135,6 +145,9 @@ mix test
 Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../spec/schemas`
 relative to cwd — correct when run from `tooling/elixir/`).
 
+Session resume guidance for AI agents and human operators is in
+`docs/reference/session-resume.md`.
+
 ---
 
 ## Current state
@@ -144,6 +157,8 @@ For live state, use:
 ```bash
 git log --oneline --decorate -5
 ls docs/coordination/ | sort | tail -5
+mix agov.session.resume --base-branch master                         # cold start
+mix agov.session.resume --role planner-architect --base-branch master  # run from tooling/elixir/
 mix agov.handoff.next planner-architect   # run from tooling/elixir/
 ```
 

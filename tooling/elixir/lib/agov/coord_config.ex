@@ -8,16 +8,14 @@ defmodule Agov.CoordConfig do
 
     case File.read(path) do
       {:error, :enoent} ->
-        %{from_aliases: %{}}
+        %{from_aliases: %{}, role: nil}
 
       {:ok, content} ->
-        aliases =
-          content
-          |> YamlElixir.read_from_string!()
-          |> Map.get("from_aliases")
-          |> normalize_aliases()
+        data = YamlElixir.read_from_string!(content)
+        aliases = data |> Map.get("from_aliases") |> normalize_aliases()
+        role = data |> Map.get("current_role") |> normalize_role()
 
-        %{from_aliases: aliases}
+        %{from_aliases: aliases, role: role}
     end
   end
 
@@ -28,4 +26,7 @@ defmodule Agov.CoordConfig do
   end
 
   defp normalize_aliases(_), do: %{}
+
+  defp normalize_role(role) when is_binary(role) and role != "", do: role
+  defp normalize_role(_), do: nil
 end
