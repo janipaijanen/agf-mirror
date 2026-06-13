@@ -1,5 +1,6 @@
 tmp/
 .worktrees/
+docs/workitems/bundles/
 __pycache__/
 *.pyc
 .venv/
