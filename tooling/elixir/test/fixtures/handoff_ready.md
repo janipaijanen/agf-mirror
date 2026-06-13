@@ -19,9 +19,9 @@ handoff:
     - Write tests TDD RED then GREEN
   must_read:
     - docs/plans/T1-3-handoff-state-tooling.md
-    - spec/schemas/coordination-message.schema.json
+    - agf/schemas/coordination-message.schema.json
   do_not_touch:
-    - spec/schemas/coordination-message.schema.json
+    - agf/schemas/coordination-message.schema.json
 ---
 
 Gate 1 approved. Proceed with T1-3 implementation.

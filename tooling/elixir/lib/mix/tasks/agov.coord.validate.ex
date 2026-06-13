@@ -5,14 +5,14 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
 
   @moduledoc """
   Validates one or more coordination message markdown files against
-  spec/schemas/coordination-message.schema.json.
+  agf/schemas/coordination-message.schema.json.
 
       mix agov.coord.validate <file> [<file>...]
 
   Exits 0 if all files are valid, 1 if any file is invalid.
 
   Set AGOV_SCHEMA_DIR to override the default schema directory
-  (default: ../../spec/schemas relative to cwd).
+  (default: ../../agf/schemas relative to cwd).
   """
 
   @impl Mix.Task
