@@ -6,9 +6,8 @@ is part of deciding to come in.*
 
 Adoption is reversible by design. The framework is files, rules, and
 conventions; it has no runtime, no service registration, and no data it
-holds hostage. This page summarises the three exit modes. The complete
-step-by-step procedure ships in the distribution as
-`docs/adopt/decommission.md` and is the canonical reference.
+holds hostage. This page summarises the three exit modes and is the canonical
+public reference for leaving cleanly.
 
 Figure 1 shows the exit paths before the table defines them: pause, downgrade,
 or remove. The important point is that exit is a normal governed decision, not
@@ -33,21 +32,23 @@ artifacts completely.
 - **Your git history** — the coordination channel and plan files remain in
   history as a record of decisions made while governed. No history rewrite
   is part of any exit mode.
-- **Your own learning records** — `learnings/<your-codename>.yaml` is your
-  project's operational knowledge; the decommission guide explicitly says
-  keep it.
+- **Your own learning records** — `agf/learnings/<your-codename>.yaml` is
+  your project's operational knowledge; export it before deleting `agf/` if
+  you want to preserve a live copy outside git history.
 - **Your code and tests** — nothing the framework touched needs undoing;
   governance shaped *how* changes landed, not *what* they contain.
 
 ## What removal involves
 
-In outline (the distribution's decommission guide has the full tables):
+In outline:
 
-1. Delete framework-owned files and directories.
-2. Remove hooks (pre-commit entries, assistant settings, `core.hooksPath`).
-3. Revert CI jobs the framework added.
-4. Commit as a single atomic removal.
-5. Verify: grep the repo for `agov-` and framework references; an empty
+1. Delete the framework-owned `agf/` directory.
+2. Remove copied assistant rules from `.claude/rules/` or your tool's
+   equivalent install path.
+3. Remove hooks (pre-commit entries, assistant settings, `core.hooksPath`).
+4. Revert CI jobs the framework added.
+5. Commit as a single atomic removal.
+6. Verify: grep the repo for `agov-` and framework references; an empty
    result is the done-condition.
 
 ## Why this page exists

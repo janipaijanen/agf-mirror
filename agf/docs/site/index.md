@@ -49,7 +49,7 @@ humans and AI agents follow them.
 |---|---|
 | Decide whether to adopt | [Should you adopt?](docs/start/should-you-adopt.md) |
 | Understand cost and exit path | [Downstream impact](docs/adopt/downstream-impact.md) → [Exit and decommission](docs/adopt/exit-and-decommission.md) |
-| Install and run one governed change | [Install and layouts](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
+| Install and run one governed change | [Install the `agf/` directory](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
 | Operate a project day to day | [Day-to-day operation](docs/operate/day-to-day.md) |
 | Follow the full learning path | [Documentation index](docs/index.md) |
 

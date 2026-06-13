@@ -20,18 +20,19 @@ artifacts and hooks if the trade no longer pays.
 Table 1 lists the repository artifacts adoption adds or expects you to
 maintain.
 
-| Artifact | Location (Layout A) | Purpose |
+| Artifact | Location | Purpose |
 |---|---|---|
-| Agent definitions | `agents/*.yaml` | Role contracts: jurisdiction, authority, escalation |
+| Framework directory | `agf/` | Single upstream-owned boundary for AGF content |
+| Agent definitions | `agf/agents/*.yaml` | Role contracts: jurisdiction, authority, escalation |
 | Governance rules | `.claude/rules/**/*.md` (or your tool's equivalent) | Constraints your AI assistant loads every session |
-| Learning records | `learnings/<your-codename>.yaml` | Your project's incident and pattern evidence |
-| Coordination channel | `docs/coordination/` | Append-only message files, one per decision/handoff |
-| Governance docs | `GOVERNANCE.md`, ADRs | Who decides what; recorded decisions |
-| Validators | `scripts/`, `src/` (Python tooling) | Schema checks runnable locally and in CI |
+| Learning records | `agf/learnings/<your-codename>.yaml` | Your project's incident and pattern evidence |
+| Coordination channel | `agf/docs/coordination/` or configured project path | Append-only message files, one per decision/handoff |
+| Governance docs | `agf/docs/governance/`, ADRs | Who decides what; recorded decisions |
+| Schemas | `agf/schemas/` | Machine-checkable contracts for records and definitions |
 
-Layout B (subdirectory) confines everything except `.claude/rules/` to one
-governance directory. Both layouts are described in
-[install and layouts](install-and-layouts.md).
+AGF v2.0 confines framework-owned content to `agf/`. Assistant rule files are
+copied to `.claude/rules/` or your tool's equivalent because those tools read
+configuration from their own root-level locations.
 
 ## CI jobs added
 
@@ -77,7 +78,8 @@ per change.
 - Your data and code never leave your infrastructure; the anonymization
   rule governs the one outbound path (learnings shared upstream).
 - No runtime, no daemon, no service dependency. Removing the framework is
-  a file deletion plus a CI revert — see [exit](exit-and-decommission.md).
+  removal of `agf/`, copied assistant rules, and any CI hooks — see
+  [exit](exit-and-decommission.md).
 
 ## Honest summary
 
