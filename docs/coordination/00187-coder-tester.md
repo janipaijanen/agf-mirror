@@ -2,7 +2,7 @@
 kind: handoff
 from: coder-tester
 to: governor-reviewer
-seq: 185
+seq: 187
 timestamp: 2026-06-13T15:56:16Z
 immutable: true
 references-to:
@@ -27,6 +27,10 @@ handoff:
 ---
 
 Additive S1 update: `mix agov.session.resume` now supports a true cold start.
+
+This message was originally drafted as seq 185 on the feature branch, but
+master received `00185-planner-architect.md` concurrently. It has been
+renumbered to seq 187 before merge to preserve the global append-only sequence.
 
 Before this update, the command was useful after the caller knew which role to
 resume as. That still left a first-step gap for an AI or human who starts cold
