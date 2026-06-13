@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  agf coord validate <file>...
+  agf coord status [args...]
+  agf coord stale [args...]
+  agf coord visibility [args...]
+  agf coord brief [args...]
+  agf plan validate <file>...
+  agf handoff next <role> [args...]
+  agf session resume [args...]
+  agf usage report [args...]
+
+This wrapper is the AGF CLI surface for downstream-style use. The current
+reference implementation delegates to tooling/elixir Mix tasks.
+USAGE
+}
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+mix_dir="$repo_root/tooling/elixir"
+
+run_mix() {
+  local task="$1"
+  shift
+
+  if command -v mise >/dev/null 2>&1; then
+    (cd "$mix_dir" && MISE_TRUSTED_CONFIG_PATHS="$repo_root/mise.toml" mise exec -- mix "$task" "$@")
+  else
+    (cd "$mix_dir" && mix "$task" "$@")
+  fi
+}
+
+abs_path() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s\n' "$PWD/$1" ;;
+  esac
+}
+
+abs_path_args() {
+  local out=()
+  local arg
+
+  for arg in "$@"; do
+    case "$arg" in
+      -*) out+=("$arg") ;;
+      *) out+=("$(abs_path "$arg")") ;;
+    esac
+  done
+
+  printf '%s\0' "${out[@]}"
+}
+
+if [[ $# -lt 1 ]]; then
+  usage
+  exit 1
+fi
+
+group="$1"
+shift
+
+case "$group" in
+  coord)
+    sub="${1:-}"
+    [[ $# -gt 0 ]] && shift || true
+    case "$sub" in
+      validate)
+        if [[ $# -lt 1 ]]; then
+          echo "Usage: agf coord validate <file>..." >&2
+          exit 1
+        fi
+        mapfile -d '' args < <(abs_path_args "$@")
+        run_mix agov.coord.validate "${args[@]}"
+        ;;
+      status) run_mix agov.coord.status "$@" ;;
+      stale) run_mix agov.coord.stale "$@" ;;
+      visibility) run_mix agov.coord.visibility "$@" ;;
+      brief) run_mix agov.coord.brief "$@" ;;
+      *) usage; exit 1 ;;
+    esac
+    ;;
+  plan)
+    sub="${1:-}"
+    [[ $# -gt 0 ]] && shift || true
+    case "$sub" in
+      validate)
+        if [[ $# -lt 1 ]]; then
+          echo "Usage: agf plan validate <file>..." >&2
+          exit 1
+        fi
+        mapfile -d '' args < <(abs_path_args "$@")
+        run_mix agov.plan.validate "${args[@]}"
+        ;;
+      *) usage; exit 1 ;;
+    esac
+    ;;
+  handoff)
+    sub="${1:-}"
+    [[ $# -gt 0 ]] && shift || true
+    case "$sub" in
+      next) run_mix agov.handoff.next "$@" ;;
+      *) usage; exit 1 ;;
+    esac
+    ;;
+  session)
+    sub="${1:-}"
+    [[ $# -gt 0 ]] && shift || true
+    case "$sub" in
+      resume) run_mix agov.session.resume "$@" ;;
+      *) usage; exit 1 ;;
+    esac
+    ;;
+  usage)
+    sub="${1:-}"
+    [[ $# -gt 0 ]] && shift || true
+    case "$sub" in
+      report) run_mix agov.usage.report "$@" ;;
+      *) usage; exit 1 ;;
+    esac
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac

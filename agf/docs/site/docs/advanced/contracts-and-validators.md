@@ -9,15 +9,19 @@ and how to wire validation into your pipeline.*
 
 The framework uses validator commands: command-line checks that read the
 governance files and fail when the files no longer match their contracts.
-Current tooling is implemented as Elixir Mix tasks under `tooling/elixir/`.
-Table 1 summarizes the main contracted artifacts, the shipped checks, and the
-checks still treated as contract targets rather than finished tooling.
+For adopters, the public command surface is `agf ...`; the current reference
+implementation delegates to Elixir Mix tasks under `tooling/elixir/`. The
+[tooling conformance](../../reference/tooling-conformance.md) reference
+defines how future Python, Rust, Ruby, C, C++, Julia, or other implementations
+can be considered AGF-compatible. Table 1 summarizes the main contracted
+artifacts, the shipped checks, and the checks still treated as contract targets
+rather than finished tooling.
 
 | Artifact | Contract | Checked by |
 |---|---|---|
-| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `mix agov.coord.validate` |
-| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `mix agov.plan.validate` |
-| Hidden coordination obligations | Branch visibility scan against a base branch | `mix agov.coord.visibility` |
+| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
+| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `agf plan validate` |
+| Hidden coordination obligations | Branch visibility scan against a base branch | `agf coord visibility` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
 | Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
 | InfoSec-relevant artifacts | Anonymization and disclosure checks | Contract target; validator task not yet shipped |
@@ -47,18 +51,17 @@ scoping is usually needed:
 validate-governance:
   image: hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250407-slim
   before_script:
-    - cd tooling/elixir
-    - mix deps.get
+    - cd tooling/elixir && mix deps.get && cd ../..
   script:
-    - mix agov.coord.validate ../../docs/coordination/*.md
-    - mix agov.plan.validate ../../docs/plans/*.md
+    - ./bin/agf coord validate docs/coordination/*.md
+    - ./bin/agf plan validate docs/plans/*.md
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Adapt the runner image and invocation to your stack; the current reference
-tooling is Mix-based. Two disciplines from the rule library apply directly
-here:
+Adapt the runner image and invocation to your stack. The `agf` wrapper is the
+downstream-facing command; Mix remains the reference implementation detail. Two
+disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the
