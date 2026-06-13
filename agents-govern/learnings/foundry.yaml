@@ -404,6 +404,119 @@ learnings:
       `.claude/plans/` to `docs/plans/` and commit. Create `docs/plans/` if it
       does not exist.
 
+  - id: L010
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      Linked worktrees created outside the project root became hidden working
+      surfaces that were difficult for humans and agents to discover from the
+      AGF-NG checkout.
+    detail: >
+      During session-continuity and coordination-visibility work, linked git
+      worktrees were created as siblings of the project directory, such as
+      `/home/devi/src/AGF-NG-session-resume` and
+      `/home/devi/src/AGF-NG-coord-visibility`, rather than under the project
+      root `/home/devi/src/AGF-NG/`.
+
+      The same pattern already existed for several older AGF-NG worktrees under
+      `/home/devi/src/AGF-NG-*` and `/tmp/agf-ng-*`. Although these are valid
+      git worktrees, they violate the operator's mental model that AGF-NG work
+      should be discoverable from the AGF-NG project directory. They also make
+      cleanup, ownership checks, and cold-start orientation harder: a human or
+      AI agent inspecting `/home/devi/src/AGF-NG/` does not naturally see sibling
+      or `/tmp` worktrees.
+
+      This differs from L007, which is about committing durable artifacts on
+      the wrong branch, and from L009, which is about coordination messages
+      hidden on side branches. Here the branch may be correct and the
+      coordination may be visible, but the filesystem location itself becomes a
+      hidden working surface outside the agreed project boundary.
+
+      The immediate correction was to move the two newest Codex-created
+      worktrees into `/home/devi/src/AGF-NG/.worktrees/` and to add `.worktrees/`
+      to the local `.git/info/exclude`. Older sibling and `/tmp` worktrees were
+      not moved automatically because another active human, Claude, or Codex
+      session might have absolute paths pinned.
+    framework_impact: medium
+    status: accepted
+    recommendation: >
+      Add a worktree-boundary rule for AGF-NG and future adopter guidance: new
+      linked worktrees must be created under `.worktrees/<purpose>` inside the
+      project root unless the governor-reviewer explicitly approves an external
+      path for a temporary diagnostic task. Do not move or remove existing
+      external worktrees until ownership and active-session risk are confirmed.
+      Keep `.worktrees/` locally ignored so linked worktrees are discoverable
+      from the project root without becoming tracked project content.
+
+  - id: L011
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, planner-architect]
+    summary: >
+      A coordination polling timer that only reports changes after it is armed
+      can miss important recently-created messages that already existed at
+      startup.
+    detail: >
+      Codex armed a 180-second coordination polling timer after planner-architect
+      had already written recent coordination files, including seq 202-205. The
+      timer captured the existing files as its initial baseline and then reported
+      "no new messages", which made it look as if the trigger was broken. In
+      practice, the timer was technically watching for future file changes, but
+      it failed the operator need: a newly armed watcher must orient the agent
+      to recent coordination state, not only future deltas.
+
+      The immediate correction was to restart the timer so that arming prints
+      the current file count, maximum numeric sequence, and the last 20
+      coordination files before entering the 180-second polling loop. Subsequent
+      polls compare filename set, file size/mtime, and max sequence number.
+
+      This is related to L009 but distinct. L009 is about messages hidden on
+      branches. This issue is about messages that are visible in the watched
+      directory but were already present before the polling baseline was taken.
+      A cold-start or rearmed poller must show enough recent context to avoid a
+      false "nothing happened" interpretation.
+    framework_impact: medium
+    status: accepted
+    recommendation: >
+      Coordination polling tools and session timers should print a startup
+      baseline that includes at least the current max sequence and the last 20
+      coordination files. Polling should then report future changes by filename
+      set, file size/mtime, and max sequence number. A "no new messages" poll
+      should always include the current max sequence so humans and agents can
+      see which baseline is being held.
+
+  - id: L012
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, contribution-auditor, governor-reviewer]
+    summary: >
+      Informal approval language can blur advisory and binding governance
+      authority.
+    detail: >
+      During the AGF v2.0 Layout S1 flow, Codex summarized the next state as
+      "if contribution-auditor approves" even though contribution-auditor has
+      advisory review authority, not binding Gate 2 approval authority. The
+      underlying coordination records routed the work correctly, but the
+      summary used ordinary engineering shorthand where "audit approved it"
+      means "audit review passed." In AGF, that shorthand is unsafe: approval
+      is role-authority-specific.
+
+      The correction was recorded at seq 218: contribution-auditor reviews and
+      recommends; governor-reviewer makes the binding Gate 2 approval and
+      merge decision. This is a language precision failure, not a technical
+      validator failure, but repeated imprecision could confuse state,
+      authority, and accountability.
+    framework_impact: medium
+    status: accepted
+    recommendation: >
+      AGF coordination summaries and handoff prose should use authority verbs
+      precisely. Advisory roles "review", "find", "recommend", or "block with
+      findings" when their role definition allows it. Binding decision roles
+      "approve", "reject", "waive", "merge", or "reopen" according to their
+      authority. Documentation and tooling should prefer labels such as
+      "recommend-ready-for-gate2" over "approved" for advisory outcomes.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
