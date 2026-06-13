@@ -562,6 +562,41 @@ learnings:
       authority. Documentation and tooling should prefer labels such as
       "recommend-ready-for-gate2" over "approved" for advisory outcomes.
 
+  - id: L013
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [planner-architect, contribution-auditor, governor-reviewer, coder-tester]
+    summary: >
+      Supporting review records can be mistaken for authoritative gate
+      disposition when several roles discuss the same branch.
+    detail: >
+      During AGF v2 Layout S1, seq 223 was filed by planner-architect as a
+      Gate 2 review for `feat/agf-v2-layout`. Its technical assessment was
+      useful and substantially correct, including the WARN about stale
+      `.claude/rules/always/downstream-impact-rule.md` trigger paths. However,
+      because contribution-auditor advisory participation was required, seq 223
+      alone was not the required advisory review and was not the binding Gate 2
+      disposition.
+
+      The authoritative chain was seq 224 (contribution-auditor advisory
+      review), seq 225 (governor-reviewer Gate 2 approval), and seq 226
+      (merge/completion). Seq 234 later clarified this after the user asked how
+      to interpret seq 223.
+
+      This differs from L012. L012 is about imprecise authority verbs such as
+      "approve" versus "recommend." This learning is about review provenance:
+      even with mostly correct words, a coordination record can be misread if
+      the role that filed it is not the role required for the current gate.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Gate summaries and resumed-session answers should name the authoritative
+      disposition chain when multiple review records exist for the same branch:
+      supporting reviews, required advisory reviews, binding governor decisions,
+      and merge/completion records. Tooling could later expose this as a
+      "gate disposition" view that groups records by topic or branch and labels
+      each record by role authority rather than relying on newest-message order.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
