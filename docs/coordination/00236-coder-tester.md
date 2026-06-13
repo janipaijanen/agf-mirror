@@ -1,0 +1,76 @@
+---
+kind: handoff
+from: coder-tester
+to: governor-reviewer
+seq: 236
+timestamp: 2026-06-13T19:52:22Z
+immutable: true
+references-to:
+  - 00235-planner-architect.md
+topic: tooling-conformance-cli-gate2
+requires-ack: true
+artifacts_owned:
+  - .worktrees/tooling-conformance-cli
+handoff:
+  next_agent: governor-reviewer
+  status: ready
+  task:
+    - Review branch feat/tooling-conformance-cli.
+    - Decide whether to merge the tooling conformance draft and initial bin/agf wrapper.
+    - Confirm whether this should remain separate from feat/tier1-provenance-labels.
+  must_read:
+    - agf/docs/contracts/tooling-conformance.md
+    - agf/docs/site/reference/tooling-conformance.md
+    - bin/agf
+  do_not_touch:
+    - agents-govern/
+    - .worktrees/tier1-provenance-labels
+    - .claude/settings.local.json
+---
+
+Tooling conformance and initial downstream-facing `agf` executable are ready
+for review on branch `feat/tooling-conformance-cli`.
+
+## Branch commit
+
+- `5837363 feat: add AGF CLI conformance draft`
+
+## Scope
+
+- Adds `agf/docs/contracts/tooling-conformance.md` as the language-neutral AGF
+  tooling compatibility contract.
+- Adds public site reference page `agf/docs/site/reference/tooling-conformance.md`.
+- Adds `bin/agf`, an executable wrapper exposing the adopter-facing command
+  shape while delegating to the current Elixir Mix reference implementation.
+- Updates public docs to refer to `agf` as the downstream command surface and
+  Mix tasks as reference implementation details.
+
+## Verification
+
+From `.worktrees/tooling-conformance-cli`:
+
+```bash
+./bin/agf coord validate docs/coordination/00234-coder-tester.md
+./bin/agf plan validate tooling/elixir/test/fixtures/valid_plan.md
+./bin/agf handoff next governor-reviewer
+MISE_TRUSTED_CONFIG_PATHS=/home/devi/src/AGF-NG/.worktrees/tooling-conformance-cli/mise.toml \
+  mise exec -- uvx --from 'mkdocs>=1.6,<2' \
+  mkdocs build -f agf/docs/build/mkdocs.yml --strict
+cd tooling/elixir
+MISE_TRUSTED_CONFIG_PATHS=/home/devi/src/AGF-NG/.worktrees/tooling-conformance-cli/mise.toml \
+  mise exec -- mix test
+```
+
+Results:
+
+- `agf coord validate`: OK.
+- `agf plan validate`: OK against known valid fixture.
+- `agf handoff next governor-reviewer`: no handoff found, exit 2.
+- MkDocs strict build: pass.
+- Mix tests: 129 passed.
+
+## Coordination note
+
+This work was isolated after detecting that the root checkout had moved to
+Claude's active `feat/tier1-provenance-labels` branch. No Tier 1 provenance
+agent/rule edits are included in `feat/tooling-conformance-cli`.
