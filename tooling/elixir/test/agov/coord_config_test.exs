@@ -7,21 +7,28 @@ defmodule Agov.CoordConfigTest do
   describe "load/1" do
     test "missing config file returns empty aliases" do
       result = CoordConfig.load("/nonexistent/path/agov_test_xyz")
-      assert result == %{from_aliases: %{}}
+      assert result == %{from_aliases: %{}, role: nil}
     end
 
-    test "valid config returns alias map" do
+    test "valid config returns alias map and current role" do
       tmp = System.tmp_dir!() |> Path.join("agov_config_test_#{:rand.uniform(99999)}")
       File.mkdir_p!(tmp)
 
       File.write!(Path.join(tmp, "agov-config.yaml"), """
+      current_role: coder-tester
       from_aliases:
         claude: planner-architect
         old-bot: coder-tester
       """)
 
       result = CoordConfig.load(tmp)
-      assert result.from_aliases == %{"claude" => "planner-architect", "old-bot" => "coder-tester"}
+
+      assert result.from_aliases == %{
+               "claude" => "planner-architect",
+               "old-bot" => "coder-tester"
+             }
+
+      assert result.role == "coder-tester"
 
       File.rm_rf!(tmp)
     end
@@ -32,7 +39,7 @@ defmodule Agov.CoordConfigTest do
       File.write!(Path.join(tmp, "agov-config.yaml"), "other_key: value\n")
 
       result = CoordConfig.load(tmp)
-      assert result == %{from_aliases: %{}}
+      assert result == %{from_aliases: %{}, role: nil}
 
       File.rm_rf!(tmp)
     end
@@ -43,7 +50,7 @@ defmodule Agov.CoordConfigTest do
       File.write!(Path.join(tmp, "agov-config.yaml"), "from_aliases: not-a-map\n")
 
       result = CoordConfig.load(tmp)
-      assert result == %{from_aliases: %{}}
+      assert result == %{from_aliases: %{}, role: nil}
 
       File.rm_rf!(tmp)
     end
