@@ -55,6 +55,18 @@ notes carry advisory or status information.
 
 ---
 
+## Operating responsibility map
+
+![Day-to-day responsibility modes](figures/operating-responsibility-map.svg)
+
+The day-to-day split between human-only authority, AI-executed work, and
+mixed work in the audit trail. "AI-executed" means delegated execution,
+not autonomous approval authority.
+
+**Source:** `docs/figures/src/operating-responsibility-map.dot`
+
+---
+
 ## Evidence lifecycle
 
 ![Evidence lifecycle](figures/evidence-lifecycle.svg)

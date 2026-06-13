@@ -7,6 +7,20 @@ failure modes to watch for.*
 
 ## The daily shape
 
+The operating model is easiest to read as three responsibility modes:
+human-only authority, AI-executed work, and mixed work in the audit
+trail. **AI-executed** means an agent may do the task after delegation;
+it does not mean the agent can approve its own gate, accept project
+risk, or decide exit.
+
+![Day-to-day responsibility modes](../../reference/figures/operating-responsibility-map.svg)
+
+| Mode | Applies to | Typical artifacts |
+|---|---|---|
+| Human-only authority | Gate approvals, merge decisions, risk acceptance, role activation/deactivation, adopting or exiting the framework | Decision records, merge approvals, explicit governor instructions |
+| AI-executed work | Drafting plans or docs, implementing scoped changes, running tests and validators, generating candidate figures, preparing handoffs | Branch commits, validation logs, generated artifacts, Gate 2 handoffs |
+| Mixed human + AI work | Reading the coordination channel, sizing tasks, reviewing evidence, sharpening docs and rules, recording learnings | Claims, reviews, handoffs, learning records, rule or documentation changes |
+
 A governed working session, in order:
 
 1. **Read the channel.** New coordination entries since you last looked —

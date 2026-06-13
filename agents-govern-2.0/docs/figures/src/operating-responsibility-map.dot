@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// agents-govern: day-to-day responsibility modes
+// Generate: dot -Tsvg operating-responsibility-map.dot -o ../operating-responsibility-map.svg
+digraph operating_responsibility_map {
+    graph [rankdir=TB, splines=spline, pad=0.35, nodesep=0.45, ranksep=0.65,
+           fontname="Helvetica", fontsize=11, compound=true]
+    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
+           fillcolor=white, color="#0077BB", penwidth=1.2]
+    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+
+    mixed_items [label="Mixed: human + AI\n\nRead coordination and claims\nSize tasks and choose path\nReview evidence and trade-offs\nRecord learnings and doc/rule updates",
+                 fillcolor=white]
+    ai_items [label="AI-executed\n(delegated work, no final authority)\n\nDraft plans, proposals, and docs\nImplement scoped changes\nRun tests and validators\nGenerate candidate figures\nPrepare handoffs with evidence",
+              fillcolor="#99CCEE"]
+    human_items [label="Human-only authority\n\nApprove Gate 1 plans\nApprove Gate 2 merges\nAccept or reject risk\nActivate or suspend roles\nAdopt, freeze, or exit",
+                 fillcolor="#EE7700", fontcolor=white, color="#EE7700"]
+
+    { rank=same; mixed_items; ai_items; human_items }
+
+    read    [label="1. Read, claim,\nand size\n(Mixed)", fillcolor=white]
+    execute [label="2. Draft, implement,\ntest, validate\n(AI-executed)",
+             fillcolor="#99CCEE"]
+    decide  [label="3. Approve,\nreject, or accept risk\n(Human-only)",
+             shape=diamond, fillcolor="#EE7700", fontcolor=white,
+             color="#EE7700"]
+    record  [label="4. Record decision,\ncompletion, or learning\n(Mixed)",
+             fillcolor=white]
+
+    read -> execute [label="delegation"]
+    execute -> decide [label="handoff\nwith evidence"]
+    decide -> execute [label="changes\nrequested", style=dashed,
+                       color="#EE7700", fontcolor="#EE7700"]
+    decide -> record [label="decision", color="#009944",
+                      fontcolor="#009944"]
+    record -> read [label="next cycle", color="#888888",
+                    fontcolor="#888888"]
+}

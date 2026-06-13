@@ -14,6 +14,7 @@ docs/figures/
     governance-loop.dot
     gate-pipeline.dot
     coordination-channel.dot
+    operating-responsibility-map.dot
     evidence-lifecycle.dot
     adoption-exit-flow.dot
   *.svg                   Generated SVGs (committed as source-of-truth)
