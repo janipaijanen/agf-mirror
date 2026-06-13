@@ -119,6 +119,9 @@ merging — the repository may be local-only or the target branch name may diffe
 All Mix commands run from `tooling/elixir/`.
 
 ```bash
+# Resume a session before acting or writing durable files
+mix agov.session.resume --role <agent-role> --base-branch master
+
 # Validate coordination messages
 mix agov.coord.validate ../../docs/coordination/<file>.md
 
@@ -135,6 +138,9 @@ mix test
 Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../spec/schemas`
 relative to cwd — correct when run from `tooling/elixir/`).
 
+Session resume guidance for AI agents and human operators is in
+`docs/reference/session-resume.md`.
+
 ---
 
 ## Current state
@@ -144,6 +150,7 @@ For live state, use:
 ```bash
 git log --oneline --decorate -5
 ls docs/coordination/ | sort | tail -5
+mix agov.session.resume --role planner-architect --base-branch master  # run from tooling/elixir/
 mix agov.handoff.next planner-architect   # run from tooling/elixir/
 ```
 
