@@ -42,11 +42,25 @@ defmodule Mix.Tasks.Agov.Session.Resume do
 
     case Agov.SessionResume.run(coord_dir, resume_opts) do
       {:ok, output} ->
+        Agov.TokenRoi.record_tool_output(
+          "agov.session.resume",
+          args,
+          output,
+          workflow: workflow(opts)
+        )
+
         Mix.shell().info(output)
 
       {:error, :dir_not_found} ->
         Mix.shell().error("Coordination directory not found: #{coord_dir}")
         exit({:shutdown, 1})
+    end
+  end
+
+  defp workflow(opts) do
+    case Keyword.get(opts, :role) do
+      nil -> "cold-start"
+      role -> "session-resume:#{role}"
     end
   end
 end

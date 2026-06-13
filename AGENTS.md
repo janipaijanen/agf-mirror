@@ -144,6 +144,9 @@ mix agov.handoff.next planner-architect
 # Scan local branches for coordination obligations hidden from master
 mix agov.coord.visibility --base-branch master
 
+# Report local deterministic-tool token ROI telemetry
+mix agov.token.roi report
+
 # Run all tests
 mix test
 ```
@@ -152,7 +155,8 @@ Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../agf/schemas`
 relative to cwd — correct when run from `tooling/elixir/`).
 
 Session resume guidance for AI agents and human operators is in
-`docs/reference/session-resume.md`.
+`docs/reference/session-resume.md`. Local token ROI measurement guidance is in
+`docs/reference/tooling-token-roi.md`.
 
 ---
 
