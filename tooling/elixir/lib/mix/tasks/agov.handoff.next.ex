@@ -34,7 +34,16 @@ defmodule Mix.Tasks.Agov.Handoff.Next do
         case Agov.HandoffReader.find_next(coord_dir, agent_role) do
           {:ok, data} ->
             source = data["_source_file"] || "unknown"
-            Mix.shell().info(Agov.HandoffReader.format_summary(data, source))
+            output = Agov.HandoffReader.format_summary(data, source)
+
+            Agov.TokenRoi.record_tool_output(
+              "agov.handoff.next",
+              args,
+              output,
+              workflow: "next-handoff:#{agent_role}"
+            )
+
+            Mix.shell().info(output)
 
           {:none} ->
             Mix.shell().info("No handoff found for role: #{agent_role}")
