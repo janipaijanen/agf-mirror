@@ -75,8 +75,8 @@ Default log path:
 ```
 
 The path is local and ignored by git through the repository's existing `tmp/`
-ignore rule. Set `AGOV_TOKEN_ROI_LOG` to write somewhere else. Set
-`AGOV_TOKEN_ROI=0` to disable automatic writes.
+ignore rule. See the AGF environment variable reference for the canonical
+documentation of `AGOV_TOKEN_ROI_LOG` and `AGOV_TOKEN_ROI`.
 
 Automatic POC collection currently records successful output sizes and
 workflow-baseline savings estimates for:

@@ -52,6 +52,9 @@ request:
 ```yaml
 validate-governance:
   image: hexpm/elixir:<tag-matching-your-pinned-elixir-and-erlang>
+  variables:
+    # Set only if this disposable runner image executes jobs as UID 0.
+    AGOV_ALLOW_ROOT: "1"
   before_script:
     - cd tooling/elixir && mix deps.get && mix compile --warnings-as-errors && cd ../..
   script:
@@ -68,8 +71,10 @@ built-in type inference and gradual type-checking findings, so
 `mix compile --warnings-as-errors` is part of the gate rather than a cosmetic
 lint step. The current reference tooling is Mix-based and pinned in foundry's
 `mise.toml`; a release archive containing only `agf/` has schemas and templates,
-but not the current Mix task implementation. Two disciplines from the rule
-library apply directly here:
+but not the current Mix task implementation. If your runner intentionally
+executes as UID 0, use the documented root override from the
+[environment variable reference](../../reference/environment-variables.md).
+Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the

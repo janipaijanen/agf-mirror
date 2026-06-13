@@ -22,6 +22,8 @@ defmodule Mix.Tasks.Agov.Handoff.Next do
 
   @impl Mix.Task
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, positional, _} = OptionParser.parse(args, strict: [dir: :string])
     coord_dir = Keyword.get(opts, :dir, @default_coord_dir)
 

@@ -7,6 +7,8 @@ defmodule Mix.Tasks.Agov.Usage.Report do
   @default_manifest "../../agents-govern/agents/MANIFEST.yaml"
 
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, _, _} = OptionParser.parse(args,
       strict: [dir: :string, manifest: :string, last: :integer])
 

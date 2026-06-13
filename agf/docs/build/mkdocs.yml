@@ -57,6 +57,7 @@ nav:
           - Contracts and validators: docs/advanced/contracts-and-validators.md
           - Customizing the framework: docs/advanced/customizing-the-framework.md
   - Reference:
+      - Environment variables: reference/environment-variables.md
       - Visual palette: reference/palette.md
       - Figures: reference/figures.md
       - Tooling conformance: reference/tooling-conformance.md

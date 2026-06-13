@@ -4,6 +4,8 @@ defmodule Mix.Tasks.Agov.Coord.Stale do
   @shortdoc "Report stale artifact claims in the coordination channel"
 
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, _, _} = OptionParser.parse(args, strict: [dir: :string])
     coord_dir = Keyword.get(opts, :dir, "../../docs/coordination")
     config = Agov.CoordConfig.load(coord_dir)
@@ -52,6 +54,7 @@ defmodule Mix.Tasks.Agov.Coord.Stale do
       {:ok, %{stale: stale}} ->
         Enum.each(stale, fn entry ->
           expires_str = entry.expires_on |> DateTime.to_iso8601()
+
           Mix.shell().info(
             "STALE  #{entry.path}  claimed-by: #{entry.from}  seq: #{entry.seq}  " <>
               "claimed-at: #{entry.claimed_at}  expired-at: #{expires_str}"

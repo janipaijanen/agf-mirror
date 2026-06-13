@@ -152,7 +152,9 @@ mix test
 ```
 
 Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../agf/schemas`
-relative to cwd — correct when run from `tooling/elixir/`).
+relative to cwd — correct when run from `tooling/elixir/`). AGF-controlled
+environment variables are documented together in
+`agf/docs/site/reference/environment-variables.md`.
 
 Session resume guidance for AI agents and human operators is in
 `docs/reference/session-resume.md`. Local token ROI measurement guidance is in

@@ -4,6 +4,8 @@ defmodule Mix.Tasks.Agov.Coord.Status do
   @shortdoc "Print coordination channel overview"
 
   def run(args) do
+    Agov.CliSafety.ensure_not_root!()
+
     {opts, _, _} = OptionParser.parse(args, strict: [dir: :string, recent: :integer])
     coord_dir = Keyword.get(opts, :dir, "../../docs/coordination")
     recent_n = Keyword.get(opts, :recent, 5)
