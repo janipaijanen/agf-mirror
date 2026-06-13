@@ -7,27 +7,12 @@ project.*
 
 ## The learning loop
 
-The framework grows from evidence, not opinion:
+The framework grows from evidence, not opinion. Figure 1 shows the
+learning loop: governed work creates evidence, evidence becomes a
+learning record, learning records propose changes, and project use feeds
+the next cycle.
 
-```
-+-------------------------------------------------------------+
-| governed work creates incidents, friction, or validation    |
-|                         |                                   |
-|                         v                                   |
-| learning record  (structured YAML, validated by schema)     |
-|                         |                                   |
-|                         v                                   |
-| rule / docs / tool proposal                                 |
-| (Provisional when single-source)                            |
-|                         |                                   |
-|                         v                                   |
-| use in projects; adopters confirm, reject, or refine        |
-|                         |                                   |
-|                         v                                   |
-| recommended rule, revised rule, or retirement               |
-|                         |                                   |
-+-------------------------+--------- feeds the next cycle -----+
-```
+![Learning loop](../../reference/figures/learning-loop.svg)
 
 Rules shipped on single-adopter evidence carry a **Provisional** header
 naming the evidence and asking adopters who hit the rule to file a
@@ -38,6 +23,9 @@ leaks, moved git tags) may ship at full strength on single-source
 evidence, with the reasoning stated in the rule.
 
 ## Who owns which records
+
+Table 1 separates upstream learning records from adopter-owned learning
+records and shows what happens to each during framework upgrades.
 
 | Record | Owner | On upgrade |
 |---|---|---|

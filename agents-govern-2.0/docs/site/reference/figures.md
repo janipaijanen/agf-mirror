@@ -21,6 +21,8 @@ Requires Graphviz (`dot` version 2.x or later).
 
 ## Governance loop
 
+Figure 1 shows the framework's self-applied governance cycle.
+
 ![Governance loop](figures/governance-loop.svg)
 
 The self-applied cycle: plan → implement → review → merge → learn →
@@ -32,6 +34,8 @@ record feeds new rules, tools, and documentation updates.
 ---
 
 ## Gate 1 / Gate 2 pipeline
+
+Figure 2 shows the two-gate quality pipeline from request to merge.
 
 ![Gate pipeline](figures/gate-pipeline.svg)
 
@@ -45,6 +49,9 @@ Both gates can return for changes or reject outright.
 
 ## Coordination channel
 
+Figure 3 shows how append-only coordination entries route attention and
+record outcomes between agents.
+
 ![Coordination channel](figures/coordination-channel.svg)
 
 The append-only coordination channel. Handoffs direct attention to the
@@ -56,6 +63,9 @@ notes carry advisory or status information.
 ---
 
 ## Operating responsibility map
+
+Figure 4 separates human-only authority, AI-executed work, and mixed
+work in the day-to-day audit trail.
 
 ![Day-to-day responsibility modes](figures/operating-responsibility-map.svg)
 
@@ -69,6 +79,9 @@ not autonomous approval authority.
 
 ## Evidence lifecycle
 
+Figure 5 shows how incidents and observations become learning records,
+then rules, validators, or documentation updates.
+
 ![Evidence lifecycle](figures/evidence-lifecycle.svg)
 
 From incident to improvement. An observation becomes a learning record;
@@ -80,7 +93,24 @@ to Recommended.
 
 ---
 
+## Learning loop
+
+Figure 6 shows the evidence-driven feedback loop as a recurring cycle.
+
+![Learning loop](figures/learning-loop.svg)
+
+The evidence-driven feedback loop. Governed work produces incidents,
+friction, or validation results; learning records turn that evidence
+into rule, documentation, or tooling proposals; project use confirms,
+revises, or retires the change and feeds the next cycle.
+
+**Source:** `docs/figures/src/learning-loop.dot`
+
+---
+
 ## Adoption and exit flow
+
+Figure 7 shows the adoption path and the documented exit paths.
 
 ![Adoption and exit flow](figures/adoption-exit-flow.svg)
 
