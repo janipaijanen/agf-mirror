@@ -27,7 +27,7 @@ topic — so no reader commits without seeing the cost and the way out.
 | 3 | `use-cases.md` | Evaluator | — | Whether their project resembles a credible use case — or a non-use case | None | — | Use cases trace to learning records |
 | 4 | `docs/index.md` | All | — | Which reading path matches their situation | None | docs-learning-path | — |
 | 5 | `docs/start/should-you-adopt.md` | Evaluator | Beginner | Make an informed adopt / wait / skip decision | None | — | Maturity claims use 5-level model |
-| 6 | `docs/adopt/install-and-layouts.md` | New adopter | Beginner | Install the files; choose Layout A or B correctly | Decision made | — | File list matches MANIFEST |
+| 6 | `docs/adopt/install-and-layouts.md` | New adopter | Beginner | Install the files under the supported `agf/` directory | Decision made | — | File list matches MANIFEST |
 | 7 | `docs/start/first-governed-change.md` | New adopter | Beginner | Run one small change through Gate 1 → implement → Gate 2 | Install done | gate-pipeline | Command names exist in tooling |
 | 8 | `docs/adopt/downstream-impact.md` | New adopter | Beginner | Know every file, CI job, and obligation adoption introduces | 7 | adoption-impact-map | File/CI inventory matches ADOPTING.md |
 | 9 | `docs/adopt/exit-and-decommission.md` | New + exiting | Beginner | Remove or downgrade adoption cleanly and verify removal | 7 | exit-flow | Steps match docs/adopt/decommission.md |
@@ -55,7 +55,7 @@ Provisional.* Other pages link to that statement rather than restating it
 
 Terms that must be defined on first use and consistently afterwards:
 *gate, coordination channel, learning record, codename, jurisdiction,
-fast track, compliance profile, Layout A/B, Provisional.* The canonical
+fast track, compliance profile, `agf/` layout, Provisional.* The canonical
 definitions live in `docs/paper/agents-govern-framework.md` §Definitions;
 site pages link or quote verbatim.
 

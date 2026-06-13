@@ -35,10 +35,10 @@ there.
 
 > **Why this matters — silent failure mode.** AI agents and humans
 > following this guide literally will create files at the paths written
-> here. If you are on Layout B and the guide says `learnings/`, an
-> agent creates `learnings/` at the project root — polluting it with
-> governance artifacts that don't belong there, and breaking
-> `agov-validate-adoption`. The mistake is easy to miss for weeks.
+> here. If the guide says `learnings/`, an agent may create `learnings/`
+> at the project root — polluting it with governance artifacts that do not
+> belong there, and breaking adoption validation. AGF v2.0 avoids that by
+> making `agf/` the single framework-owned directory.
 
 ---
 
@@ -1214,4 +1214,4 @@ feedback valuable.
 | Post-launch SaaS | Start at Step 0, apply retroactively, prioritize gaps from assessment. |
 | Academic / documentation project | Pipeline maps naturally (plan→draft→review→verify→commit). Skip most cross-cutting agents. Verifiable-claims and implementation-honesty rules are high-value. See academic agents in `agents/`. |
 | Mixed artifact types (docs + code) | One set of agent definitions, one GOVERNANCE.md, but split pipelines and checklists per artifact type. |
-| Framework in a subdirectory | Layout B. See "Choose your layout" at the top of this guide. |
+| Framework files outside `agf/` | Move framework-owned files under `agf/`; v2.0 supports the single visible `agf/` directory. |

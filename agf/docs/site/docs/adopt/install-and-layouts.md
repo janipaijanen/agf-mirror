@@ -1,8 +1,8 @@
-# Install and layouts
+# Install the `agf/` directory
 
 *Status: Provisional (v2.0 documentation). Audience: administrators and
 developers installing the framework. After this page you have the files in
-place and know which layout you chose and why.*
+place and understand the single supported v2.0 layout.*
 
 ## Prerequisites
 
@@ -18,29 +18,40 @@ place and know which layout you chose and why.*
 ## Step 1: Get the distribution
 
 Download the release archive from the project repository, or copy the
-distribution directory from a checkout. Releases are tagged and immutable;
-pin the version you adopt. The distribution manifest (`docs/governance/manifest.md`
-in v2.0) lists every file with its purpose and its ownership —
+`agf/` directory from a checkout. Releases are tagged and immutable; pin the
+version you adopt. The distribution manifest (`agf/docs/governance/manifest.md`
+in v2.0) lists every file with its purpose and its ownership:
 **upstream-owned** files are replaced on upgrade; **adopter-owned** files
 (your codename's learnings, your customized rules) are never touched by an
 upgrade.
 
-## Step 2: Choose a layout
+## Step 2: Put AGF in one directory
 
-| | Layout A — root | Layout B — subdirectory |
-|---|---|---|
-| Governance files live | At the repository root (`agents/`, `learnings/`, `GOVERNANCE.md`) | Under one directory (e.g. `governance/`) |
-| Best for | Projects adopting governance as a first-class concern | Projects keeping governance visually separate from product code |
-| Constant | `.claude/rules/` (or your tool's equivalent) stays at the root in both layouts — it is tool configuration, not a governance artifact | same |
+AGF v2.0 supports one layout: copy the distribution into your repository as
+the visible `agf/` directory.
 
-Record the choice in your `GOVERNANCE.md`. Mixed layouts are the
-documented failure mode: agents following path instructions literally will
-re-create root directories in a Layout B project unless the layout is
-stated where they can read it.
+| Artifact | Location |
+|---|---|
+| Framework directory | `agf/` |
+| Agent definitions | `agf/agents/*.yaml` |
+| Framework rules | `agf/rules/**/*.md` |
+| Schemas | `agf/schemas/*` |
+| Learning records | `agf/learnings/<your-codename>.yaml` |
+| Coordination channel | `agf/docs/coordination/` or the project path you explicitly configure |
+| Assistant rule install target | `.claude/rules/` or your tool's equivalent |
+
+The assistant rule install target stays at the project root because tools read
+their own configuration there. It is the exception, not a second framework
+layout.
+
+Mixed layouts are the documented failure mode: agents following path
+instructions literally will create root-level `agents/`, `learnings/`, or
+`docs/coordination/` directories unless the single `agf/` boundary is stated
+where humans and agents can read it.
 
 ## Step 3: Copy and customize the rules
 
-1. Copy `rules/` into your assistant's rules directory
+1. Copy `agf/rules/` into your assistant's rules directory
    (Claude Code: `.claude/rules/`).
 2. Search the copied rules for `CUSTOMIZE` markers and adapt each one to
    your stack: locale set, migration commands, CI paths, audit functions,
@@ -51,12 +62,12 @@ stated where they can read it.
 
 ## Step 4: Adopt the agent definitions
 
-Copy `agents/*.yaml`. The twelve definitions ship with explicit
+Use `agf/agents/*.yaml`. The role definitions ship with explicit
 jurisdiction and authority boundaries; start with the core pipeline roles
 (planner-architect, coder-tester, governor-reviewer) and add the extended
 roles only when the work warrants them — the
 [quick reference](https://gitlab.com/janipaijanen/agent-governance)
-(shipped at `docs/reference/quick-reference.md`) lists which phase each
+(shipped at `agf/docs/reference/quick-reference.md`) lists which phase each
 role belongs to.
 
 ## Step 5: Wire the validators
@@ -68,11 +79,13 @@ introduces it.
 
 ## Step 6: Initialise your evidence
 
-- Create `learnings/<your-codename>.yaml` with your project codename.
+- Create `agf/learnings/<your-codename>.yaml` with your project codename.
   The codename is the only project handle that crosses the codebase
   boundary — see the anonymization rule before sharing anything upstream.
-- Create `docs/coordination/` and file your first entry: a note recording
-  the adoption decision, the layout chosen, and the governor.
+- Create the coordination channel path you will use and file your first entry:
+  a note recording the adoption decision and the governor. Keep it under the
+  `agf/` boundary unless you have an explicit project reason to configure a
+  different path.
 
 ## Verify
 

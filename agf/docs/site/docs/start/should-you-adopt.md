@@ -60,4 +60,4 @@ page. If you read only one more page before deciding, read that one.
 
 ## Next
 
-Decided to try it → [Install and layouts](../adopt/install-and-layouts.md).
+Decided to try it → [Install the `agf/` directory](../adopt/install-and-layouts.md).
