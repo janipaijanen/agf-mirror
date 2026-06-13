@@ -361,6 +361,49 @@ learnings:
       would mix unrelated artifacts. Do not rely on earlier branch checks or
       remembered session state.
 
+  - id: L008
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, planner-architect]
+    summary: >
+      Plan files were written to `.claude/plans/` (an AI tool-config directory)
+      rather than to `docs/plans/` (the VCS-tracked governance artifact location).
+      Plan files in tool-config directories are invisible to other AI agents,
+      external reviewers, CI, and any tool that is not the specific AI assistant
+      that wrote them.
+    detail: >
+      The development-workflow-rule Phase 2 said "write a plan file FIRST" without
+      specifying where. The documentation-audience-rule says `docs/plans/` is the
+      canonical location for design decisions. In practice, all plan files were
+      placed in `.claude/plans/` — Claude Code's own configuration directory.
+
+      This is a governance artifact placement failure. Plan files are the Gate 1
+      contract between the planner and the governor. They must be:
+      (a) committed to VCS so they survive session boundaries,
+      (b) accessible to all agents regardless of which AI tool created them,
+      (c) reviewable by humans via standard git tooling, and
+      (d) readable by CI or external validators.
+
+      A plan file in `.claude/plans/` fails all four criteria for any agent that
+      is not Claude Code. External AI agents (Codex, Gemini, Copilot), CI jobs,
+      and human reviewers using other editors cannot reliably find or read it.
+      The `.claude/` directory is a tool-config boundary — governance artifacts
+      must not cross into it.
+
+      Discovered when a plan file for the pedagogical docs restructure (seq 145)
+      was written to `.claude/plans/` and the human governor-reviewer noticed it
+      was invisible outside the Claude Code session.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Update development-workflow-rule Phase 2 to require `docs/plans/` as the
+      canonical location. Add an explicit MUST NOT for AI tool-config directories
+      (`.claude/plans/`, `.cursor/`, `.copilot/`, and equivalent). The reason:
+      plan files are VCS-shared governance artifacts; tool-config directories are
+      session-scoped and agent-specific. Move the existing 14 plan files from
+      `.claude/plans/` to `docs/plans/` and commit. Create `docs/plans/` if it
+      does not exist.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
