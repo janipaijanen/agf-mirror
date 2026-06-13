@@ -26,6 +26,20 @@ defmodule Agov.HandoffTrackerTest do
      }}
   end
 
+  defp handoff_mentioning(filename, seq, to, mentioned_filename) do
+    {filename,
+     %{
+       "kind" => "handoff",
+       "from" => "coder-tester",
+       "to" => to,
+       "seq" => seq,
+       "topic" => "bridge-topic",
+       "references-to" => [],
+       "handoff" => %{"status" => "ready"},
+       "_body" => "Bridge keeps #{mentioned_filename} visible."
+     }}
+  end
+
   describe "scan/1 — resolution by references-to" do
     test "handoff referenced by a later message is resolved" do
       messages = [
@@ -73,6 +87,54 @@ defmodule Agov.HandoffTrackerTest do
       {:ok, result} = HandoffTracker.scan(messages)
       assert [_] = result.pending
       assert result.resolved == []
+    end
+
+    test "full path references resolve by basename" do
+      messages = [
+        handoff("00010-planner-architect.md", 10, "governor-reviewer"),
+        msg_referencing(11, ["docs/coordination/00010-planner-architect.md"])
+      ]
+
+      {:ok, result} = HandoffTracker.scan(messages)
+      assert result.pending == []
+      assert [%{seq: 10}] = result.resolved
+    end
+
+    test "body mention alone does not resolve a handoff" do
+      messages = [
+        handoff("00010-coder-tester.md", 10, "governor-reviewer"),
+        handoff_mentioning("00011-coder-tester.md", 11, "governor-reviewer", "00010-coder-tester.md")
+      ]
+
+      {:ok, result} = HandoffTracker.scan(messages)
+      assert Enum.map(result.pending, & &1.seq) == [11, 10]
+      assert result.resolved == []
+    end
+
+    test "handoff resolves through body mention and later decision chain" do
+      messages = [
+        handoff("00189-coder-tester.md", 189, "governor-reviewer", "cold-start docs"),
+        handoff_mentioning(
+          "00190-coder-tester.md",
+          190,
+          "governor-reviewer",
+          "docs/coordination/00189-coder-tester.md"
+        ),
+        {"00192-planner-architect.md",
+         %{
+           "kind" => "review",
+           "from" => "planner-architect",
+           "to" => "governor-reviewer",
+           "seq" => 192,
+           "topic" => "gate2-review",
+           "references-to" => ["00190-coder-tester.md"]
+         }},
+        msg_referencing(210, ["00192-planner-architect.md"])
+      ]
+
+      {:ok, result} = HandoffTracker.scan(messages)
+      assert result.pending == []
+      assert Enum.map(result.resolved, & &1.seq) == [190, 189]
     end
 
     test "non-handoff messages are not classified" do

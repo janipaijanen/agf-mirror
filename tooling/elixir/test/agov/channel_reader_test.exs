@@ -28,6 +28,15 @@ defmodule Agov.ChannelReaderTest do
       assert Map.has_key?(data, "kind")
     end
 
+    test "attaches markdown body for lifecycle scanners" do
+      {:ok, result} = ChannelReader.scan(@fixtures_dir)
+
+      assert {_filename, data} =
+               Enum.find(result.messages, fn {_filename, data} -> data["seq"] == 50 end)
+
+      assert data["_body"] =~ "Gate 1 approved"
+    end
+
     test "skips non-message files (README, invalid front matter)" do
       # fixtures dir has no README but does have valid coordination messages
       # This test confirms invalid files are skipped rather than causing error

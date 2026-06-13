@@ -17,7 +17,7 @@ defmodule Agov.ChannelReader do
             path = Path.join(coord_dir, filename)
 
             case CoordValidator.validate_file(path) do
-              {:ok, data} -> {[{filename, data} | valid], invalid}
+              {:ok, data} -> {[{filename, Map.put(data, "_body", body(path))} | valid], invalid}
               {:error, _} -> {valid, [filename | invalid]}
             end
           end)
@@ -41,6 +41,15 @@ defmodule Agov.ChannelReader do
           end
 
         {:ok, %{messages: messages, total: total, seq_range: seq_range, invalid_files: invalid_files}}
+    end
+  end
+
+  defp body(path) do
+    with {:ok, content} <- File.read(path),
+         [_before, _yaml, rest] <- String.split(content, "---", parts: 3) do
+      rest
+    else
+      _ -> ""
     end
   end
 end
