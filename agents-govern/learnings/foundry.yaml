@@ -597,42 +597,48 @@ learnings:
       "gate disposition" view that groups records by topic or branch and labels
       each record by role authority rather than relying on newest-message order.
 
+
   - id: L014
-    date: "2026-06-13"
+    date: "2026-06-14"
     category: gap
-    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    agents_involved: [coder-tester, governor-reviewer]
     summary: >
-      Per-file coordination validation is insufficient when multiple worktrees
-      or agents can allocate the same global sequence number.
+      Test suite created durable /tmp/agov* artifacts without cleanup handlers,
+      leaving filesystem side-effects that outlive the test process and
+      contradict the framework's own auditability claims.
     detail: >
-      During the Tier 1 provenance-labels Gate 2 flow, `00241-coder-tester.md`
-      and `00241-planner-architect.md` were both created with `seq: 241` on the
-      same feature branch. Each file validated independently, but the channel
-      invariant is global append-only sequencing, not merely schema-valid
-      Markdown front matter.
+      Inspection of /tmp on 2026-06-14 revealed multiple leftover artifact
+      directories and files created by the pytest suite but never cleaned up:
+      /tmp/agov_session_resume_*, /tmp/agov_token_roi_*.jsonl,
+      /tmp/agov_config_test_*, /tmp/agov_dist_manifest_*, and
+      /tmp/agov_test_empty_*. These were created during test runs and left
+      on disk when the test process exited.
 
-      The same merge also exposed an older branch/worktree collision:
-      `master` already contained a tooling-conformance handoff at
-      `00236-coder-tester.md`, while `feat/tier1-provenance-labels` contained a
-      different provenance Gate 2 handoff at the same path. The merge could not
-      preserve both files at that filename. The repair preserved the tooling
-      handoff as `00248-coder-tester.md`, resolved the path collision in favor
-      of the provenance branch's `00236-coder-tester.md` so later references
-      remained coherent, and recorded governor risk acceptance at seq 247.
+      The governance contradiction is direct: the framework's audit-log and
+      data-trail rules require that every write leaves a traceable, scoped,
+      and intentional record. Tests that silently deposit /tmp artifacts and
+      do not remove them act outside their scope and produce durable side
+      effects with no owner. Any /tmp/agov* path is also namespace-polluting:
+      a later test run may read stale state or fail with a collision.
 
-      The incident shows that coordination safety requires channel-level and
-      branch-level checks before filing and before merge. A file can be valid
-      while the channel state is not.
-    framework_impact: high
+      Rule (user-stated): no AGF durable or audit-shaped artifacts may exist
+      in /tmp except through cleanup-registered private temp helpers. Any
+      /tmp/agov* leftover after a suite run is a test failure, not a warning.
+
+      Root cause: tests used tempfile.mkdtemp() or ad-hoc path joins without
+      registering atexit or pytest-fixture teardown handlers. pytest's
+      built-in tmp_path fixture, which auto-removes after each test, was not
+      used.
+    framework_impact: medium
     status: proposed
     recommendation: >
-      Before creating a coordination record, agents should check the current
-      highest sequence in the intended target branch/worktree and re-check
-      immediately before commit. Gate 2 review should include a channel-level
-      invariant check for duplicate sequence numbers, path collisions against
-      the base branch, and branch-local obligations. Tooling should distinguish
-      active collisions from explicitly superseded/documented incidents, but
-      should not silently ignore either class.
+      Enforce test hygiene: any test that creates a filesystem artifact must
+      use pytest's tmp_path fixture (or a registered cleanup helper calling
+      shutil.rmtree on teardown) rather than tempfile.mkdtemp(). Add a
+      pytest session-scoped autouse fixture in conftest.py that asserts no
+      /tmp/agov* paths exist at session end. A leftover path at session end
+      is a test failure. Until shipped, the CI post-test teardown must
+      include a /tmp/agov* cleanup step.
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
