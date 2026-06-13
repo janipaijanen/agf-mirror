@@ -3,9 +3,10 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 # Visual palette
 
-agents-govern v2.0 uses a small, explicit colour set. All colours are
-drawn from this palette — no hex values appear elsewhere in templates,
-figures, or diagrams.
+agents-govern v2.0 uses a small, explicit colour set. Hex values for
+palette tokens are defined in the table below and used in DOT source
+files. A future palette-substitution build step will allow figures to
+reference tokens by name rather than hex literal.
 
 ## Design constraints
 
@@ -22,17 +23,19 @@ figures, or diagrams.
 
 ## Palette
 
-| Token | Hex | Role | Usage |
-|---|---|---|---|
-| `blue-mid` | `#0077BB` | Primary structural | Boxes, arrows, role nodes |
-| `blue-light` | `#99CCEE` | Secondary / background fill | Gate shading, lane fills |
-| `green-mid` | `#009944` | Positive outcome / approval | Approved state, merge |
-| `amber` | `#EE7700` | Caution / pending | Pending gate, draft state |
-| `red-mid` | `#CC3311` | Block / rejection | Blocked finding, reject |
-| `grey-mid` | `#888888` | Neutral / deferred | Deferred scope, N/A |
+| Token | Hex | Contrast on white | Role | Usage |
+|---|---|---|---|---|
+| `blue-mid` | `#0077BB` | 4.82:1 ✓ AA text | Primary structural | Boxes, arrows, role nodes |
+| `blue-light` | `#99CCEE` | 1.72:1 — fill only | Secondary / background fill | Gate shading, lane fills |
+| `green-mid` | `#009944` | 3.72:1 — large text / fill | Positive outcome / approval | Approved state, merge |
+| `amber` | `#EE7700` | 2.89:1 — fill only | Caution / pending | Pending gate, draft state |
+| `red-mid` | `#CC3311` | 5.19:1 ✓ AA text | Block / rejection | Blocked finding, reject |
+| `grey-mid` | `#888888` | 3.54:1 — large text / fill | Neutral / deferred | Deferred scope, N/A |
 
-All colours pass WCAG AA contrast (4.5:1) against white when used as
-text or thin stroke. For large filled areas, pair with a dark label.
+`blue-mid` and `red-mid` meet the WCAG AA threshold (4.5:1) for normal
+text on white. `green-mid` and `grey-mid` meet the large-text threshold
+(3:1). `blue-light` and `amber` do not meet either threshold for text —
+use them for fills and strokes only, always paired with a dark label.
 
 ## Usage rules
 
