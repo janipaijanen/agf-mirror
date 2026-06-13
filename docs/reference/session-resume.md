@@ -7,6 +7,22 @@ It is read-only. It does not approve work, resolve handoffs, release claims,
 write coordination messages, or enforce a gate. It is a visibility tool for
 reducing false context at session boundaries.
 
+## One Command, Two Steps
+
+S1 intentionally keeps cold start and role-specific resume in the same command
+instead of adding another tool.
+
+For humans and AI agents, the startup path is:
+
+1. Run `mix agov.session.resume --base-branch master` without `--role` to get
+   the project map.
+2. Choose the role you are actually playing from that output.
+3. Rerun the same command with the selected role, for example
+   `mix agov.session.resume --role coder-tester --base-branch master`.
+
+The first run answers “where do I start?” The second run answers “what must I
+do for this role before acting?”
+
 ## When To Run It
 
 Run this at the start of a new or resumed working session, before making a

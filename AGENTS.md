@@ -118,6 +118,10 @@ merging — the repository may be local-only or the target branch name may diffe
 
 All Mix commands run from `tooling/elixir/`.
 
+Cold-start rule for humans and AI agents: use one command in two steps. First,
+run `mix agov.session.resume` without `--role` to get the project map. Then
+rerun the same command with the role you are actually playing.
+
 ```bash
 # Cold start: discover active roles and pending queues
 mix agov.session.resume --base-branch master
