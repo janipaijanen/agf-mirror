@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// agents-govern: evidence-driven learning loop
+// Generate: dot -Tsvg learning-loop.dot -o ../learning-loop.svg
+digraph learning_loop {
+    graph [rankdir=LR, splines=spline, pad=0.35, nodesep=0.45, ranksep=0.65,
+           fontname="Helvetica", fontsize=11]
+    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
+           fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
+    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+
+    work [label="Governed work\nincidents, friction,\nor validation results",
+          shape=ellipse, fillcolor=white, color="#888888",
+          fontcolor="#888888"]
+    record [label="Learning record\nstructured YAML,\nschema-validated"]
+    proposal [label="Rule, docs,\nor tool proposal\nProvisional when\nsingle-source"]
+    use [label="Use in projects\nadopters confirm,\nreject, or refine"]
+    disposition [label="Recommended rule,\nrevised rule,\nor retirement",
+                 fillcolor="#009944", fontcolor=white, color="#009944"]
+
+    work -> record [label="capture\nevidence"]
+    record -> proposal [label="extract\nchange"]
+    proposal -> use [label="try under\ngovernance"]
+    use -> disposition [label="review\noutcome"]
+    disposition -> work [label="feeds next\ncycle", color="#888888",
+                         fontcolor="#888888"]
+}

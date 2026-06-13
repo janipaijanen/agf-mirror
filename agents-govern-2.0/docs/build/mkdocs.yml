@@ -50,4 +50,7 @@ nav:
       - 'Advanced':
           - Contracts and validators: docs/advanced/contracts-and-validators.md
           - Customizing the framework: docs/advanced/customizing-the-framework.md
+  - Reference:
+      - Visual palette: reference/palette.md
+      - Figures: reference/figures.md
   - Evolution: future/evolution.md
