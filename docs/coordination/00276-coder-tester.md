@@ -12,6 +12,22 @@ requires-ack: false
 artifacts_owned:
   - agf/schemas/rule.schema.json
   - agf/schemas/agent.schema.json
+model: claude
+handoff:
+  next_agent: governor-reviewer
+  status: ready
+  task:
+    - Review commit `4415892` on branch `feat/tier1-provenance-labels`.
+    - Decide Gate 2 for provenance enum schema consolidation.
+    - Confirm whether the schema-only fast-track note is accepted.
+  must_read:
+    - docs/coordination/00276-coder-tester.md
+    - agf/schemas/rule.schema.json
+    - agf/schemas/agent.schema.json
+  do_not_touch:
+    - agents-govern/
+    - agents-govern/agents/MANIFEST.yaml
+    - agents-govern/learnings/foundry.yaml
 ---
 
 Gate 2 handoff: provenance enum consolidated into rule and agent schemas.
