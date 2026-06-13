@@ -1,0 +1,292 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+
+\pdfsuppresswarningpagegroup=1
+
+\title{Governing the Governors: Self-Application as Evidence for Multi-Agent AI Development Governance}
+\author{\IEEEauthorblockN{Project codename: foundry}
+\IEEEauthorblockA{\textit{Self-applied governance framework working paper}\\
+\textit{WIP internal draft; low-priority background artifact}\\
+2026-06-13}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Multi-agent AI development increasingly depends on roles, tools, and review processes that are themselves difficult to inspect. This paper presents \emph{foundry}, a self-applied governance framework for multi-agent software development. The project is both the object being built and the governance environment used to build it. We treat this recursive setup as a design-case self-study: governance rules, validators, and coordination protocols are exercised under the same operational pressure they are meant to regulate.
+
+The framework uses append-only records, machine-checkable schemas, deterministic validators, gate-based review, advisory roles, and structured learning records. We position this work against prior literature on software evolution, multi-agent communication, software quality gates, continuous improvement, health systems governance assessment, AI governance documentation, responsible AI governance tools, and maturity models for healthcare AI governance. The paper's central claim is intentionally narrow: governance tooling must itself be observable, enforceable, revisable, and governed by construction. Otherwise, the process intended to produce assurance can become an unvalidated source of drift.
+\end{abstract}
+
+\begin{IEEEkeywords}
+AI governance, multi-agent systems, software governance, coordination protocols, validators, learning records
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+AI development governance is often described at the level of principles, policies, or organizational responsibilities. Those descriptions matter, but they leave a practical question open: what governs the governance work itself? When a plan is approved, a role is activated, a validator is changed, or a coordination protocol evolves, the change affects the process that will later judge other changes. A governance framework that cannot inspect its own evolution risks becoming a source of hidden policy rather than a control surface.
+
+The \emph{foundry} project addresses this problem by using its current governance system to build its successor. The development process is mediated through structured coordination messages, Gate 1 planning review, Gate 2 implementation review, role manifests, advisory consultation, schema validation, and learning records. These artifacts are stored in version control and are intended to be readable by humans and machine-checkable by validators.
+
+This paper converts the project's development diary into an academic working paper. The diary form was useful for discovery; the paper form is useful for argument. We do not claim that foundry solves all AI governance problems, nor that self-application proves external effectiveness. The claim is more modest: self-application creates a high-friction environment in which governance mechanisms can be inspected while they encounter ordinary development work.
+
+One governed change illustrates the operational unit of analysis. A planner first writes a Gate 1 plan with structured front matter, scope, advisory consultations, and validation expectations. The governor-reviewer approves, rejects, or returns that plan in a coordination record. A coder-tester then implements on a scoped branch, runs validators and tests, and files a Gate 2 handoff. The governor-reviewer reviews the diff and records the merge decision. If the work exposes reusable process friction, a learning record or follow-on proposal is created. Thus a change is not only a commit; it is a chain of typed artifacts that exposes intent, authority, evidence, decision, and residual risk.
+
+\subsection{Research Questions}
+
+This working paper asks three design-case questions. RQ1: Which governance artifacts become observable when a multi-agent development framework governs its own evolution? RQ2: Which recurring failure modes can be detected or reduced by schemas, validators, and coordination records? RQ3: Which framework capabilities remain conventional, warning-only, validated, enforced, or merely proposed?
+
+\section{Contributions}
+
+This paper makes five contributions. The first three are demonstrated by the current repository artifacts; the final two are argument and agenda-setting contributions.
+
+\begin{enumerate}
+  \item It frames self-application as an evidence mechanism for governance frameworks rather than merely as ``dogfooding''.
+  \item It describes a coordination protocol in which agent communication is an append-only-by-rule, version-controlled, typed record.
+  \item It reports a self-study of governance validators, handoff resolution, advisory-role validation, and learning-disposition checks.
+  \item It argues that continuous improvement requires structured learning records and explicit promotion paths from incident to rule or validator.
+  \item It situates the framework within recent AI governance and broader governance assessment literature, including maturity models, documentation studies, actor/stage-specific governance tools, and health systems governance review.
+\end{enumerate}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/self-applied-governance-loop.pdf}
+  \caption{Foundry uses the governance framework under development to govern its own development, turning coordination records, validators, decisions, and learnings into evidence about the framework itself.}
+  \label{fig:self-applied-loop}
+\end{figure*}
+
+\section{Related Work}
+
+\subsection{Software Evolution and Maintenance}
+
+Lehman's laws of software evolution establish that useful software systems require continuing adaptation as their environments change \cite{lehman1980laws}. For governance software, the implication is sharper: governance mechanisms must themselves be governed, or they calcify while the work they regulate changes around them. Swanson's corrective, adaptive, and perfective maintenance categories also map onto governance work \cite{swanson1976maintenance}. A missing approval record is corrective maintenance at the governance layer. A role vocabulary updated to match the coordination schema is adaptive maintenance. A usage reporter that improves observability is perfective maintenance.
+
+\subsection{Multi-Agent Communication and Commitments}
+
+The coordination protocol draws from speech-act theory and multi-agent systems. \cite{austin1962words} and \cite{searle1969speech} established that utterances can perform institutional acts, not merely describe them. FIPA's agent communication language carried this insight into deployed agent systems through typed communicative acts \cite{fipa2002communicative}. Multi-agent systems research emphasizes that agent communication must make commitments visible enough to coordinate action \cite{wooldridge2009introduction,shoham2009multiagent}. The file-based coordination channel is also compatible with the Actor model's emphasis on independent actors and asynchronous message passing \cite{hewitt1973actor,agha1986actors}; the project's Elixir tooling is a pragmatic implementation substrate for this actor-oriented lineage \cite{armstrong2007programming}. Foundry applies this idea directly: a \texttt{handoff}, \texttt{decision-record}, \texttt{review}, \texttt{claim}, or \texttt{completion} is a typed action in a governance log.
+
+\subsection{Quality Gates and Machine-Checkable Governance}
+
+Software quality gate research frames gates as explicit checkpoints with criteria, metrics, and supporting tools \cite{uzunova2024quality}. Foundry treats schemas and validators as governance gate mechanisms in this narrower sense: they make selected process criteria executable. This also echoes test-driven development practice, where executable examples clarify the contract before or alongside implementation \cite{beck2002tdd}. Parnas's information-hiding criterion is relevant because validators should expose stable governance interfaces without requiring each reviewer to rediscover hidden implementation assumptions \cite{parnas1972criteria}. A malformed coordination message, missing advisory consultation, inactive role, or stale handoff should not rely only on human memory; it should be surfaced by deterministic tooling with clear failure messages.
+
+\subsection{Governance as Code, Provenance, and Documentation}
+
+Foundry is closest to operational governance traditions that turn policy, process, or artifact context into inspectable technical objects. Policy-as-code systems such as Open Policy Agent encode policy as versioned executable artifacts \cite{openpolicyagent2026}. Provenance standards such as W3C PROV model entities, activities, and agents so that generated artifacts can be assessed for quality and trustworthiness \cite{moreau2013provdm}. Process mining connects event logs to process discovery and conformance checking \cite{vanderAalst2012manifesto}. Software supply-chain systems such as in-toto and SLSA make build steps, actors, attestations, and integrity claims inspectable \cite{torresarias2019intoto,slsa2026}. AI documentation artifacts such as datasheets and model cards show how structured documentation can surface provenance, intended use, evaluation, and limitations \cite{gebru2021datasheets,mitchell2019modelcards}. Foundry differs by applying similar inspectability to the development governance process itself: plans, decisions, handoffs, role authority, validators, and learning records become the governed artifacts.
+
+\subsection{Governance Assessment, Maturity, and Resource Sensitivity}
+
+Governance assessment frameworks predate the current AI wave. \cite{pyone2017governance} provide an older grounding for the idea that governance can be evaluated through structured dimensions rather than treated as an informal property. \cite{biesenthal2014multilevel} similarly support the transition from single-project governance to portfolio, organizational, and enterprise settings. In the AI governance literature, \cite{batool2025governance} organize the field through who governs, what is governed, when governance occurs, and how it is implemented, while also distinguishing team, organizational, industry, national, and international governance levels.
+
+Recent AI governance work makes resource sensitivity especially visible. \cite{hussein2026haira} propose HAIRA, a five-level healthcare AI governance maturity model derived from a systematic review of 35 healthcare AI governance frameworks. \cite{kim2026ppto} similarly emphasize practical readiness through people, process, technology, and operations capabilities. The value of these healthcare-specific models for foundry is not their clinical specificity but their structure: governance maturity is staged, domain-specific, operational, and constrained by organizational resources. Foundry's adoption guidance should follow the same principle. A small downstream project should not need an enterprise compliance department to use a useful subset of the framework.
+
+\subsection{AI Governance Documentation, Actors, and Corpora}
+
+\cite{robles2023catching} argue that public AI governance remains fragmented and requires more cohesive frameworks. \cite{papagiannidis2025rai} identify the corresponding organizational problem: responsible AI literature has many principles, but limited cohesion on how those principles become practices for designing, executing, monitoring, and evaluating AI applications. Their structural, procedural, and relational framing maps directly onto foundry's role authority, validator and gate mechanics, and advisory coordination model.
+
+\cite{kuehnert2025who} provide a systematic review and meta-analysis of actor- and stage-specific responsible AI governance tools, which is directly relevant to foundry's division of labor across roles, gates, validators, and documentation surfaces. Other recent work frames related governance problems at different layers: decentralized responsible AI governance \cite{jafari2025adaptive}, agentic assurance frameworks \cite{khan2025agentsafe}, runtime policy-constrained execution \cite{qin2026runtime}, and alignment surveys that locate governance within the broader AI safety landscape \cite{ji2025alignment}. \cite{winecoff2025documentation} show that AI documentation is not peripheral polish but an intervention that can improve governance outcomes when it connects theory to practice. The AI Governance and Regulatory Archive is also important for foundry's future corpus strategy: \cite{arnold2024agora} describe a rigorously compiled and validated archive of AI laws, policies, and governance concepts. Foundry needs an analogous, smaller corpus for governed-agent behavior: canonical traces, adversarial examples, validator fixtures, decision records, and examples of good and failed governance conduct.
+
+\cite{marchiori2025social} argue that risk-based AI governance should be complemented by attention to social disruption that may not be fully captured by legal risk categories. \cite{moon2025relational} come from conservation rather than AI or software, but their relational commons framework is useful as a broader governance warning: governance is not only control over bounded artifacts. It is also stewardship of relationships, shared resources, and power. These perspectives matter when foundry documents downstream impact, exit paths, and decommissioning.
+
+\section{Method: Self-Application as Evidence}
+
+Foundry's method is self-application under version control. The framework is built using the governance system it is replacing. At the agent level, this treats the coordination log as part of the agent's perceptual substrate: agents can act more rationally only when they can observe the relevant governance state \cite{russell2021ai}. The analyzed snapshot for this revision is branch commit \texttt{bd512ed} on 2026-06-13. It contains 105 tracked coordination messages, 13 tracked plan files, three JSON Schemas, 18 Elixir library or Mix task files, and ten Elixir test files. These artifacts were not sampled as an independent empirical dataset. They were reviewed as a design-case self-study corpus.
+
+The self-study is informed by two kinds of antecedent public evidence from the earlier framework lineage. First, the v1.1.50 documentation site positions agents-govern as a governance layer rather than an agent runtime, and explicitly distinguishes it from orchestrators that execute agents \cite{agentsgovern2026position}. Second, the public \texttt{blue-marlin} pier-modelling study documents a downstream use of agents-govern v0.34.0, including generated agent maps, active role inventories, GitLab Pages outputs, and explicit disclaimers that the artifact is a theoretical study rather than a construction plan \cite{bluemarlin2026governance}. These materials are not the empirical corpus analyzed in this paper, but they constrain the design problem: the successor framework must preserve the governance/runtime boundary and support downstream documentation that is honest about authority, safety, and intended use.
+
+The analysis procedure was exploratory but explicit. First, coordination records, plan files, validators, tests, and learning records were grouped by governance mechanism: planning, handoff, role authority, validation, learning, documentation, and downstream adoption. Second, incidents were included when they had a durable artifact trail: a coordination record, learning record, validator change, test fixture, review artifact, or decision record. Third, each incident was classified by failure mode, governance response, enforcement status, and residual limitation. Historical v1.x learning records were treated as antecedent/bootstrap evidence unless an explicit later artifact promoted, migrated, or derived them under the successor contract. This is a single-project self-study rather than an inter-rater qualitative analysis; it is useful for surfacing candidate mechanisms and failure categories, not for estimating external effect sizes.
+
+Reproducibility is limited but concrete. The paper source and generated PDF are in \texttt{docs/academic/}; schemas are in \texttt{spec/schemas/}; validators and tests are under \texttt{tooling/elixir/}. The core checks used during drafting are \texttt{mise exec -- mix test}, \texttt{mise exec -- mix agov.coord.validate <file>}, \texttt{mise exec -- mix agov.plan.validate <file>}, and a Podman build using \texttt{docker.io/kjarosh/latex:2025.1-medium}. Some evidence remains branch-local until merge, and append-only behavior is enforced by rule and review rather than by cryptographic log design.
+
+Each non-trivial change is expected to pass through:
+
+\begin{enumerate}
+  \item a Gate 1 plan with structured front matter and advisory consultation;
+  \item review by the governor-reviewer, supported by advisory roles;
+  \item implementation on a scoped branch;
+  \item Gate 2 review before merge;
+  \item a coordination record that preserves the decision, completion, or handoff; and
+  \item learning records when operational friction reveals a reusable rule.
+\end{enumerate}
+
+This structure creates preliminary evidence in three forms. First, behavior traces: coordination messages and commits show what agents did, in what order, under what stated authority. Second, executable checks: validators encode schema and policy constraints that can be reproduced locally or in CI. Third, reflective records: learnings and decision records explain why rules changed, not only that they changed.
+
+The method has limits. Self-application is not independent adoption, and it can overfit the framework to its creators' work style. It is still useful because it forces governance mechanisms to encounter real failure modes before release: stale handoffs, wrong-branch work, missing advisory roles, role-status drift, sequence collisions, and unclear downstream obligations.
+
+\section{Observations}
+
+Table~\ref{tab:episodes} summarizes concrete self-application episodes. The table is not a controlled evaluation; it is an audit-oriented results view that ties claims to repository artifacts and observed governance responses.
+
+The evaluation criteria are intentionally modest. A governance mechanism is considered useful in this self-study when it makes the relevant obligation observable, gives reviewers a durable artifact to inspect, and can be checked by a deterministic tool or explicitly identified as convention-only. The paper does not yet claim reduced cycle time, lower defect rate, or external adoption success; those remain future measurement targets.
+
+\begin{table*}[t]
+\caption{Selected self-application episodes from the analyzed repository snapshot.}
+\label{tab:episodes}
+\centering
+\scriptsize
+\begin{tabular}{@{}p{0.17\textwidth}p{0.18\textwidth}p{0.21\textwidth}p{0.17\textwidth}p{0.13\textwidth}@{}}
+\hline
+Episode & Evidence artifact & Governance response & Enforcement status & Residual limitation \\
+\hline
+Required advisory roles were easy to omit from Gate 1 plans & Plan T2-5; fixtures \texttt{invalid\_plan\_*}; \texttt{PlanValidator} & Plan schema and validator require infosec and contribution-auditor entries; waiver reasons are checked & Blocking local validator; review-blocking rule & Required roles are still bootstrap-policy specific \\
+Active optional advisory roles were rejected by a hardcoded allow-list & Seq 117; optional-advisor plan fixtures; manifest-aware tests & Validator now allows additional advisory roles when active in the manifest & Blocking local validator with manifest lookup & Role authority location is still bootstrap-specific \\
+Resolved handoffs still appeared in \texttt{handoff.next} & Seq 100--105; handoff reader/tracker tests & Handoff reader became resolution-aware by consulting later referencing records & Blocking task behavior with tests & Resolution semantics are reference-based, not semantic approval analysis \\
+Reusable process lessons were easy to miss & Learning-disposition proposal; rule candidate; high-severity fixture & Coordination validator warns when high-signal messages lack a learning review section & Warning-only validator & Not yet blocking; structured front matter deferred \\
+Wrong-branch work recurred & Branch/worktree records; adjacent-learning preflight branch & Branch/worktree preflight became an explicit learning and rule candidate & Rule/proposal; partially procedural & Preflight is not yet a universal blocking check \\
+Downstream replace-on-upgrade ownership needed clarification & Upgrade coordination; downstream-impact discussion; adopter-owned learning examples & Upstream learning files and adopter-owned learning files are distinguished & Documented rule; implementation-dependent & Needs adopter-facing tests and installer behavior \\
+\hline
+\end{tabular}
+\end{table*}
+
+\subsection{Answers to Research Questions}
+
+RQ1 asks which artifacts become observable through self-application. The answer is that the project exposes at least five classes of governance artifact: typed coordination messages, Gate 1 plans, Gate 2 handoffs and reviews, validator/test fixtures, and learning or proposal records. These artifacts make authority, ownership, validation results, and residual limitations visible in the repository rather than leaving them in chat memory or informal convention.
+
+RQ2 asks which recurring failure modes can be detected or reduced by schemas, validators, and coordination records. The strongest evidence is for audit usefulness rather than outcome effectiveness. Missing advisory consultations, malformed coordination records, stale handoff queues, inactive or unknown roles, and missing learning-review sections can be surfaced by deterministic tools or durable review records. Wrong-branch work and downstream ownership ambiguity are visible but only partially enforced; they remain candidates for stronger preflight checks and adopter-facing tests.
+
+RQ3 asks which capabilities remain conventional, warning-only, validated, enforced, or proposed. Table~\ref{tab:maturity} gives the answer: coordination front matter, Gate 1 advisory consultation, optional active advisory roles, and handoff queue behavior are locally validated or tool-enforced; learning disposition is warning-only; branch/worktree preflight and downstream upgrade semantics remain partly conventional or documented; CI enforcement remains planned or partial. This distinction prevents the paper from treating documented intent as deployed enforcement.
+
+\section{Framework Artifacts}
+
+\subsection{Coordination Records}
+
+Coordination messages are Markdown files with YAML front matter. The required fields include kind, sender, recipient, sequence number, timestamp, immutability marker, references, topic, acknowledgement requirement, and owned artifacts. In the current implementation, records are append-only by project rule and version-controlled rather than cryptographically immutable. The message kind is a performative: it states what governance action is being performed. For example, a \texttt{decision-record} changes institutional state, while a \texttt{review} reports findings without itself approving a merge.
+
+\subsection{Roles, Actors, and Provenance}
+
+Foundry separates governance roles from the actors that perform them. A role names an authority or responsibility in the process, such as \texttt{planner-architect}, \texttt{coder-tester}, \texttt{governor-reviewer}, or \texttt{academic-peer-reviewer}. An actor may be a human, an AI agent, CI automation, or a mixed human--AI arrangement. In the current self-application case, \texttt{governor-reviewer} is the primary human-held role, while \texttt{contribution-auditor} is represented as a mixed human--AI role in the project orientation. Multiple AI systems can participate concurrently, either by holding different roles or by contributing advisory review under a declared role. The intended adoption pattern is incremental: projects should begin with the smallest role set that can preserve planning, implementation, review, and decision authority, then activate additional specialist or advisory roles only when risk, evidence, or workload justifies the added coordination cost. Any participant can propose adding or activating a role, but the durable authority change is a manifest update requiring \texttt{governor-reviewer} approval; in the bootstrap system, \texttt{agents-govern/agents/MANIFEST.yaml} is the current authority. Durable coordination therefore routes through roles rather than model identities. Model names, tool surfaces, and session identifiers are provenance metadata for audit and diagnosis, not governance authority.
+
+Strict role boundaries and artifact ownership are central. Agent definitions declare jurisdiction through responsibilities, owned artifacts, read-only context, \texttt{cannot\_touch} paths, boundary conditions, and escalation routes. This is the framework's answer to authority conflicts and capability drift: a capable model may be able to edit many files, but a governed role should act only inside its declared mandate unless that boundary is changed through an approved governance artifact.
+
+The same distinction applies to communication. Roles do not merely talk to whichever actor is available; they communicate through declared handoff, review, advisory, and decision channels. Figure~\ref{fig:role-communication-topology} summarizes the observed and declared topology in the self-application case. The central pattern is intentionally narrow: planning and implementation traffic routes through \texttt{planner-architect}, \texttt{coder-tester}, and \texttt{governor-reviewer}; specialist roles provide findings or checks; and human authority remains explicit at the decision boundary.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.86\textwidth]{figures/role-communication-topology.pdf}
+  \caption{Role communication topology in the self-application case. Solid edges indicate observed durable coordination or review traffic; dashed edges indicate declared, required, or tool-mediated channels without a distinct authored coordination record in the analyzed channel; gold marks the human final-authority path.}
+  \label{fig:role-communication-topology}
+\end{figure*}
+
+Participation can therefore be assessed from artifacts, but only with careful semantics. In the current self-application record, \texttt{planner-architect}, \texttt{coder-tester}, \texttt{governor-reviewer}, \texttt{contribution-auditor}, and \texttt{academic-peer-reviewer} have durable participation evidence through coordination records or review artifacts. \texttt{fact-checker} is active in the manifest for documentation and factual-claim review, but has no distinct authored coordination record in the analyzed channel. \texttt{infosec-sentinel} is active as a CI/tooling role rather than a conversational author. Early \texttt{claude} or \texttt{human} senders are pre-normalization identifiers and should be treated as alias/provenance evidence, not separate governance roles.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/agent-participation-by-phase.pdf}
+  \caption{Participation evidence differs by role and phase. Solid edges indicate durable authored coordination or review evidence; dashed edges indicate active or required roles without a distinct authored record in the analyzed channel; dotted edges indicate pre-normalization alias or provenance evidence.}
+  \label{fig:agent-participation}
+\end{figure*}
+
+Human final authority gives the system an accountable decision point for approvals, role activation, and merge decisions. It also creates a bottleneck and a circular-validation risk: the same human authority that approves framework evolution may shape the evidence used to justify it. Mixed human--AI advisory roles therefore need explicit records of what was reviewed, which claims were accepted or rejected, and which decisions remained human-owned.
+
+\subsection{Schemas and Validators}
+
+Foundry uses JSON Schema and Elixir Mix tasks to validate coordination messages, plans, role manifests, and handoff state. The design principle is conservative: hardcode invariant governance requirements, but read configurable governance participants from the declared authority. A recent validator change illustrates this rule. Gate 1 plans must always include \texttt{infosec-sentinel} and \texttt{contribution-auditor}, but additional advisory roles are allowed when they are active in the manifest. Suspended, skipped, misspelled, or unknown roles remain invalid.
+
+Table~\ref{tab:maturity} distinguishes what is enforced from what is merely planned or conventional. This distinction is central: foundry should not market a rule as supported merely because it is documented.
+
+\begin{table*}[t]
+\caption{Governance mechanism maturity in the analyzed snapshot.}
+\label{tab:maturity}
+\centering
+\scriptsize
+\begin{tabular}{@{}p{0.21\textwidth}p{0.15\textwidth}p{0.31\textwidth}p{0.17\textwidth}@{}}
+\hline
+Mechanism & Status & Current evidence & Main gap \\
+\hline
+Coordination message front matter & Schema-validated & JSON Schema plus \texttt{agov.coord.validate} & Append-only remains review/rule based \\
+Gate 1 advisory consultation & Validator-enforced & Plan schema, fixtures, and \texttt{agov.plan.validate} & Required advisory roles are bootstrap-policy specific \\
+Optional active advisory roles & Validator-enforced & Manifest-aware plan validation & Final AGF-NG role authority location unresolved \\
+Role boundaries and artifact ownership & Documented/schema-shaped; partially review-enforced & Agent jurisdiction, \texttt{cannot\_touch} fields, escalation routes & Tool-level write restrictions are not universal yet \\
+Handoff queue resolution & Validator/tool-enforced behavior & \texttt{HandoffTracker}, \texttt{HandoffReader}, and tests & Reference-based resolution may miss ambiguous decisions \\
+Learning disposition & Warning-only & Coordination validator warning and fixtures & Not yet structured or blocking \\
+Branch/worktree preflight & Conventional/rule candidate & Learning record and rule discussion & No universal pre-write validator yet \\
+Downstream replace-on-upgrade distinction & Documented design rule & Coordination decisions and paper text & Needs installer/upgrade test coverage \\
+Generated PDF/site documentation & Partially validated & Podman LaTeX build and rendered PDF review & Site/PDF CI still needs release integration \\
+CI enforcement & Planned/partial & Validators run locally; infosec role defined for CI & Project CI pipeline not yet complete \\
+\hline
+\end{tabular}
+\end{table*}
+
+\subsection{Gates}
+
+Gate 1 verifies intent before implementation. Gate 2 verifies implementation before merge. This separation mirrors the Plan-Do-Check-Act cycle \cite{deming1986crisis}: planning reduces conceptual error early, and review prevents implementation drift late. The gates are intentionally slower than ungoverned development, but their purpose is to improve orientation quality and reduce hidden risk.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/gate-workflow.pdf}
+  \caption{Gate 1 reviews intent before implementation, while Gate 2 reviews implementation before merge. Rejected or incomplete work returns to planning or rework rather than silently entering the governed baseline.}
+  \label{fig:gate-workflow}
+\end{figure*}
+
+\subsection{Learning Records}
+
+The framework treats operational friction as data. A repeated failure can move from incident to learning record, from learning record to rule, and from rule to validator when it can be made deterministic. Wrong-branch work, stale handoff resolution, and advisory-role validation are examples. A second disposition path is upstream proposal capture: when learning evidence implies a framework-level change, the record should preserve not only the local incident but the proposal that upstream maintainers or future framework work must evaluate. Version provenance matters: v1.x learning records may be preserved as bootstrap evidence for v2.0, but they should not be relabeled as native v2.0 learnings merely because a directory layout or release package changes. Native successor-version learning status requires an explicit learning, migration, or derivation artifact with its own authority and timestamp. This is continuous improvement with an audit trail: the framework changes because evidence changed, and the change is itself governed. The learning framing draws on organizational learning theory and systems thinking \cite{argyris1978organizational,bateson1972ecology,senge1990fifth} but operationalizes it as reviewable project artifacts.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/learning-disposition-pipeline.pdf}
+  \caption{Operational friction is reviewed before being promoted. Some events require no action, some become documentation, and recurring deterministic failures can advance from learning records to rules, warn-only validators, and blocking CI checks.}
+  \label{fig:learning-disposition}
+\end{figure*}
+
+\subsection{Downstream Impact and Exit}
+
+A governance framework affects downstream projects by adding artifacts, review steps, CI checks, and role expectations. Adoption documentation must therefore state both the expected impact and the exit path. Foundry's own distribution work surfaced a concrete lifecycle distinction: upstream evidence such as \texttt{learnings/foundry.yaml} can ship as read-only reference material and be replaced on framework upgrade, while adopter-owned learning files such as \texttt{learnings/<codename>.yaml} must remain local and must not be overwritten by upgrade tooling. Downstream projects should be able to identify which files are authoritative, which files are framework-owned, which generated artifacts can be removed, how CI validators are disabled, how coordination records are archived, and what residual obligations remain after decommissioning.
+
+\section{Discussion}
+
+Foundry's main design choice is to treat governance as process data. A plan file is not merely prose; it has validated front matter. A coordination message is not merely chat; it is a version-controlled record with type and provenance. A learning is not merely memory; it is structured evidence that can later justify a rule. This framing connects AI governance to data governance: process artifacts need schema, lineage, quality checks, and lifecycle policy.
+
+The recent literature supports this direction. Systematic AI governance reviews show that governance analysis should make roles, governed objects, lifecycle stages, and implementation mechanisms explicit \cite{batool2025governance}. Governance maturity and readiness models show that capability should be staged, operational, and resource-aware \cite{hussein2026haira,kim2026ppto}. Governance documentation research shows that documents can improve outcomes when they are designed as operational tools rather than static declarations \cite{winecoff2025documentation}. Responsible AI governance tool surveys show that roles, stages, and artifacts matter \cite{kuehnert2025who}. AGORA shows the value of curated, validated governance corpora \cite{arnold2024agora}. Social-disruption analysis shows that governance should account for impacts beyond narrow risk classifications \cite{marchiori2025social}. Foundry combines these ideas at the development-process layer.
+
+The strongest near-term opportunity is a curated corpus of governed-agent behavior. Such a corpus should include:
+
+\begin{enumerate}
+  \item canonical successful traces suitable for supervised fine-tuning or later evaluation;
+  \item adversarial examples showing common failures;
+  \item machine-checkable schemas;
+  \item deterministic validators and negative fixtures;
+  \item explanations of what good governed-agent conduct looks like; and
+  \item downstream decommissioning, upgrade, exit, and replace-on-upgrade examples.
+\end{enumerate}
+
+This corpus should not be marketed as training data prematurely. Its first job is evaluation and pedagogy. If it later becomes suitable for supervised fine-tuning or reinforcement learning from human feedback, that should follow from curation quality, licensing clarity, and privacy review. Federated learning provides only a loose structural analogy for separating local experience from central synthesis \cite{mcmahan2017communication}; the framework needs more directly applicable provenance, privacy, and distributed-evaluation literature before making stronger claims about privacy-preserving corpus design.
+
+\section{Future Work}
+
+The immediate future work is to turn the current self-study evidence into release-grade adopter artifacts. First, foundry needs end-user documentation that progresses from basic concepts to advanced practice: installation, roles, coordination records, gates, validators, learning records, downstream impact, upgrade behavior, and exit or decommissioning. This documentation should be generated for both the HTML site and release-specific PDF outputs from shared sources wherever possible.
+
+Second, the curated corpus should become an explicit evaluation asset. The near-term target is not model training but a reviewed corpus of canonical traces, adversarial examples, negative fixtures, and explanations of good governed-agent behavior. Each trace should include provenance, licensing status, privacy review, expected validator outcomes, and a short rationale explaining why the behavior is good, risky, or invalid. Only after this evaluation corpus is stable should the project consider supervised fine-tuning or reinforcement learning uses.
+
+Third, foundry should evaluate applicability to local LLMs and other locally hosted agents. Local models may improve privacy, data residency, cost control, and reproducibility, but they may also have smaller context windows, weaker instruction following, different tool-use reliability, and less consistent long-horizon planning. A useful evaluation should compare whether the same coordination records, schemas, validators, handoff rules, and learning-disposition checks remain effective when roles are performed by local models rather than hosted frontier models. The relevant question is not only whether local models can complete tasks, but whether they can remain governable under the same audit trail.
+
+Fourth, the framework needs a high-clockspeed deliberation model for multi-runtime participation. As more LLM-backed tools and agent roles participate, the limiting resource becomes not the production of review but the synthesis of review into binding decisions. A future revision should distinguish the compact coordination ``bulletin board'' from an on-record deliberation space where noisy evaluator notes, competing analyses, and raw validation traces can accumulate without burying approvals, handoffs, and obligations. Any finding that becomes binding should be lifted back to the coordination board as a decision, review, handoff, or completion.
+
+Fifth, the framework needs stronger operational metrics. Plausible measures include Gate 1 latency, Gate 2 review churn, validator failure rate, stale handoff count, override frequency, learning-review frequency, and learning-to-rule promotion rate. These metrics should be reported without collapsing governance maturity into a single score; their role is to expose cost, friction, and improvement opportunities.
+
+Sixth, the validators should move from warning-only checks toward deterministic enforcement only where the project has enough evidence. Candidate areas include resolution-aware handoff queues, branch/worktree preflight before durable writes, learning-review presence for coordination records that identify reusable process friction, distributable checks that distinguish upstream-owned artifacts from adopter-owned files during upgrade, and provenance checks that prevent historical v1.x learnings from being silently reclassified as native v2.0 records.
+
+Finally, foundry needs independent adoption evidence, especially in team projects and across different project lifecycle stages. Self-application can expose real failure modes, but it cannot establish generality alone. Future studies should compare small, medium, and larger downstream projects, including projects with multiple human developers, multiple AI agents, role rotation, shared ownership, contested decisions, and asynchronous handoffs. They should also compare greenfield adoption, where governance starts with the project, against maintenance-phase adoption, where governance is introduced into an existing codebase with established habits, legacy artifacts, and ongoing obligations. These studies should document adoption cost and exit cost, and preserve cases where the framework was rejected, partially adopted, or decommissioned. Negative adoption evidence is especially important because a governance framework that only records successes will learn the wrong lesson.
+
+\section{Limitations}
+
+The project currently has one primary human governor, represented by the \texttt{governor-reviewer} role, and a small number of AI-held or mixed roles. This limits the evidence for multi-team and enterprise-scale claims. Self-application also risks circular validation: the framework may reward behaviors it already expects. The public v1.x documentation and the earlier \texttt{blue-marlin} downstream study provide useful antecedent evidence about positioning and adopter-facing documentation, but they do not replace an independent evaluation of the v2.0 framework. Independent downstream adoption is therefore necessary before strong claims can be made about generality.
+
+The framework also needs clearer measures of governance overhead. Gate latency, review churn, validator failure rate, override frequency, stale handoff count, and learning-record promotion rate are plausible metrics, but they require longitudinal evidence. This is especially important because coordination overhead is a known software-project scaling risk \cite{brooks1975mythical}. High-clockspeed multi-agent participation may intensify that risk: more agents can produce more analysis, but not necessarily more resolution. Finally, documentation must remain honest about maturity. Some capabilities are planned, some are schema-defined, some are validated, and some are deployable. These states should not be collapsed into a single ``supported'' claim.
+
+\section{Conclusion}
+
+Foundry provides preliminary evidence for a practical thesis: AI development governance should be made inspectable as it operates. The framework's value is not that it eliminates judgment, but that it records, structures, and validates the conditions under which judgment is exercised. Self-application exposes governance tooling to real work, creates candidate canonical traces, and turns operational friction into evidence for improvement.
+
+The next step is not to claim completeness. It is to make the evidence base stronger: better documentation, clearer exit paths, generated reference artifacts, curated behavior traces, adversarial examples, and independent adoption records. Governance that cannot learn from its own use will drift. Governance that makes its own operation inspectable can improve.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

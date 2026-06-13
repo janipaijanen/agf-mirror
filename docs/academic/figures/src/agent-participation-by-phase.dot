@@ -1,0 +1,105 @@
+digraph agent_participation_by_phase {
+  graph [
+    rankdir=LR,
+    bgcolor="transparent",
+    pad=0.25,
+    nodesep=0.42,
+    ranksep=0.62,
+    splines=true,
+    fontname="Helvetica",
+    label="Agent participation by governance phase",
+    labelloc=t,
+    fontsize=18,
+    fontcolor="#1F2933"
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=10.5,
+    color="#536471",
+    penwidth=1.3,
+    fillcolor="#EEF2F4",
+    fontcolor="#1F2933",
+    margin="0.10,0.07"
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize=8.5,
+    color="#536471",
+    fontcolor="#536471",
+    arrowsize=0.65,
+    penwidth=1.15
+  ];
+
+  subgraph cluster_agents {
+    label="Roles";
+    color="#D7DEE3";
+    fontname="Helvetica";
+    fontsize=12;
+    fontcolor="#536471";
+    style="rounded";
+
+    planner [label="planner-\narchitect", fillcolor="#E7F3F3", color="#2A7F7F"];
+    coder [label="coder-\ntester", fillcolor="#E7F3F3", color="#2A7F7F"];
+    governor [label="governor-\nreviewer", fillcolor="#FFF5DE", color="#C89B3C"];
+    auditor [label="contribution-\nauditor", fillcolor="#F6ECE6", color="#B66A3C"];
+    academic [label="academic-peer-\nreviewer", fillcolor="#F6ECE6", color="#B66A3C"];
+    fact [label="fact-\nchecker", fillcolor="#EEF2F4", color="#536471", style="rounded,dashed,filled"];
+    infosec [label="infosec-\nsentinel", fillcolor="#EEF2F4", color="#536471", style="rounded,dashed,filled"];
+    alias [label="pre-normalized\nclaude / human", fillcolor="#FFFFFF", color="#9AA6AF", style="rounded,dotted,filled"];
+  }
+
+  subgraph cluster_phases {
+    label="Governance phases";
+    color="#D7DEE3";
+    fontname="Helvetica";
+    fontsize=12;
+    fontcolor="#536471";
+    style="rounded";
+
+    bootstrap [label="Bootstrap\nsetup"];
+    gate1 [label="Gate 1\nplanning"];
+    advisory [label="Advisory\nreview"];
+    implementation [label="Implementation\nand validation"];
+    gate2 [label="Gate 2\ndecision"];
+    academic_phase [label="Academic\npaper review"];
+    ci [label="CI / tooling\nchecks"];
+  }
+
+  alias -> bootstrap [label="early records", style=dotted, color="#9AA6AF", fontcolor="#9AA6AF"];
+
+  planner -> bootstrap [label="setup"];
+  planner -> gate1 [label="plans"];
+  planner -> advisory [label="routes"];
+
+  auditor -> advisory [label="audits"];
+  fact -> advisory [label="active; no\nseparate post", style=dashed];
+  infosec -> advisory [label="required\nconsultation", style=dashed];
+
+  coder -> implementation [label="implements"];
+  coder -> ci [label="runs local\nvalidators"];
+  infosec -> ci [label="tooling role", style=dashed];
+
+  governor -> gate1 [label="approves"];
+  governor -> gate2 [label="decides"];
+  governor -> advisory [label="activates\nroles"];
+
+  academic -> academic_phase [label="review"];
+  governor -> academic_phase [label="requested /\nreceived"];
+  coder -> academic_phase [label="revised\npaper"];
+
+  gate1 -> implementation [label="approved"];
+  implementation -> gate2 [label="handoff"];
+  advisory -> gate1 [label="findings", style=dashed];
+  academic_phase -> implementation [label="revision\nrequests", style=dashed];
+
+  legend1 [label="solid = durable authored\ncoordination/review evidence", shape=note, fillcolor="#FFFFFF", color="#9AA6AF", fontsize=9];
+  legend2 [label="dashed = active or required role\nwithout separate authored record", shape=note, fillcolor="#FFFFFF", color="#9AA6AF", fontsize=9];
+  legend3 [label="dotted = pre-normalization\nalias/provenance evidence", shape=note, fillcolor="#FFFFFF", color="#9AA6AF", fontsize=9];
+
+  legend1 -> legend2 [style=invis];
+  legend2 -> legend3 [style=invis];
+}
