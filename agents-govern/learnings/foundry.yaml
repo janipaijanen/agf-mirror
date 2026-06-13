@@ -597,6 +597,43 @@ learnings:
       "gate disposition" view that groups records by topic or branch and labels
       each record by role authority rather than relying on newest-message order.
 
+  - id: L014
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      Per-file coordination validation is insufficient when multiple worktrees
+      or agents can allocate the same global sequence number.
+    detail: >
+      During the Tier 1 provenance-labels Gate 2 flow, `00241-coder-tester.md`
+      and `00241-planner-architect.md` were both created with `seq: 241` on the
+      same feature branch. Each file validated independently, but the channel
+      invariant is global append-only sequencing, not merely schema-valid
+      Markdown front matter.
+
+      The same merge also exposed an older branch/worktree collision:
+      `master` already contained a tooling-conformance handoff at
+      `00236-coder-tester.md`, while `feat/tier1-provenance-labels` contained a
+      different provenance Gate 2 handoff at the same path. The merge could not
+      preserve both files at that filename. The repair preserved the tooling
+      handoff as `00248-coder-tester.md`, resolved the path collision in favor
+      of the provenance branch's `00236-coder-tester.md` so later references
+      remained coherent, and recorded governor risk acceptance at seq 247.
+
+      The incident shows that coordination safety requires channel-level and
+      branch-level checks before filing and before merge. A file can be valid
+      while the channel state is not.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Before creating a coordination record, agents should check the current
+      highest sequence in the intended target branch/worktree and re-check
+      immediately before commit. Gate 2 review should include a channel-level
+      invariant check for duplicate sequence numbers, path collisions against
+      the base branch, and branch-local obligations. Tooling should distinguish
+      active collisions from explicitly superseded/documented incidents, but
+      should not silently ignore either class.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
