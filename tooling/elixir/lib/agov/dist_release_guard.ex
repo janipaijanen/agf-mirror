@@ -8,7 +8,7 @@ defmodule Agov.DistReleaseGuard do
   # Compare a tag string against a version string.
   # A v-prefix is stripped before comparison.
   # Returns :ok, :no_tag, or {:error, message}.
-  def check(tag, version) when tag in [nil, ""], do: :no_tag
+  def check(tag, _version) when tag in [nil, ""], do: :no_tag
 
   def check(tag, version) when is_binary(tag) and is_binary(version) do
     normalized_tag = String.trim_leading(tag, "v")
