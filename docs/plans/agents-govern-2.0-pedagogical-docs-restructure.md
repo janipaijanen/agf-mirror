@@ -1,17 +1,36 @@
+---
+id: agents-govern-2.0-pedagogical-docs-restructure
+status: pending-gate1
+topic: pedagogical-docs-restructure
+gate1_approved_by: ""
+gate1_approved_at: ""
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: documentation-only restructuring; no secrets, auth, or security boundary changes
+  - role: contribution-auditor
+    status: consulted
+    reason: seq 143 pedagogical review and seq 155 planner-architect argument reviewed scope and documentation quality risks
+---
+
 # Plan: Pedagogical Restructure of v2.0 Public Documentation
 #
 # Timestamp: 2026-06-13T11:26:08Z
 # Status: pending-gate1
-# References: seq 142 (planner-architect), seq 143 (Codex pedagogical review)
+# References: seq 142 (planner-architect), seq 143 (Codex pedagogical review),
+# seq 155 (planner-architect customer-success argument)
 
 ## Intent
 
 The v2.0 public documentation site has the right content but an uneven
 learning progression. Validator command names appear before they are taught.
 Page order sends readers to "first governed change" before "install". Figures
-and tables lack first-reference prose introductions. This plan restructures
-the learning path to follow the progressive-disclosure model described in
-`content-plan.md`'s pedagogical principles section.
+and tables lack first-reference prose introductions. Seq 155 adds a
+customer-success concern: first-time evaluators need enough synthesis on a
+single page to build confidence without being forced through a "next, next,
+next" chain. This plan restructures the learning path to follow the
+progressive-disclosure model described in `content-plan.md`'s pedagogical
+principles section while strengthening synthesis pages.
 
 ## Problem statement (from seq 143)
 
@@ -22,6 +41,10 @@ the learning path to follow the progressive-disclosure model described in
   conflicting with the prerequisite column that says "Install done".
 - Several pages ask readers to operate artifacts before showing concrete shapes.
 - Figures lack first-reference prose on multiple pages.
+- `should-you-adopt.md` is not self-contained on cold read: it uses terms
+  such as governor and gates before briefly defining the decision being made.
+- The landing-page routing table uses audience/persona-ish phrasing where
+  reader intent would be more precise.
 
 ## Proposed learning path (from seq 143)
 
@@ -83,6 +106,21 @@ Content-plan.md references pages that may not yet exist as full drafts:
 - `use-cases.md` (page 3 — use cases and non-use cases)
 - `docs/index.md` (page 4 — docs learning path index)
 
+### Customer-success / evaluator synthesis additions (from seq 155)
+- `agents-govern-2.0/docs/site/docs/start/should-you-adopt.md`
+  — add a short standalone lead section ("What you are deciding") so the
+  page explains what AGF is and what trade-off adoption makes before the
+  adopt/wait/skip checklist.
+- `agents-govern-2.0/docs/site/index.md`
+  — update the routing table from audience/persona-ish phrasing to reader
+  intents while keeping the main nav stage labels.
+- `agents-govern-2.0/docs/site/index.md`
+  `agents-govern-2.0/docs/site/value.md`
+  `agents-govern-2.0/docs/site/docs/start/should-you-adopt.md`
+  — apply "expert term, plain job" definitions on first use for the main
+  synthesis-page terms: governor, coordination channel, Gate 1, Gate 2,
+  learning record, fast-track waiver.
+
 ## Migration needed
 
 No database migration. MkDocs nav changes are additive or ordering changes.
@@ -118,9 +156,12 @@ broken internal links.
 | T5: Strengthen first-governed-change.md with concrete filenames | 30 min | Slice A merged |
 | T6: Validate missing pages (value.md, use-cases.md, docs/index.md) — stub or draft | 45 min | governor decides scope |
 | T7: Page split of contracts-and-validators.md (if governor approves) | 45 min | T1, T3 |
+| T8: Expand should-you-adopt.md with cold-read synthesis lead | 20 min | none |
+| T9: Update landing routing table to reader-intent phrasing | 10 min | none |
+| T10: Add first-use "expert term, plain job" definitions to synthesis pages | 25 min | T8 |
 
-T1 and T2 are small enough for a fast-track commit on `feat/v2-visual-system-figures`
-if the governor prefers to keep them in Slice A. Otherwise T1–T7 form a new slice.
+Slice A has already merged, so T1 and T2 should be handled in this new docs
+slice rather than as follow-ups on `feat/v2-visual-system-figures`.
 
 ## Rollback
 
@@ -129,10 +170,10 @@ or schema is at risk.
 
 ## Questions for Gate 1
 
-1. Should T1 (validator intro) be applied to `feat/v2-visual-system-figures`
-   immediately (small enough to be part of Slice A's Gate 2 cycle), or should
-   it wait for a new slice?
+1. Approve T1 and T2 as part of this new docs slice now that Slice A is merged?
 2. Should T7 (page split) be in scope, or is the targeted intro paragraph
    sufficient for now?
 3. Are value.md, use-cases.md, and docs/index.md within scope of this
    restructure, or are they a separate content-creation slice?
+4. Approve absorbing seq 155's T8-T10 evaluator-experience additions into
+   this Gate 1 plan rather than creating a separate customer-success slice?
