@@ -52,7 +52,7 @@ model actually used.
 ## Local Telemetry POC
 
 Foundry now has a lightweight local telemetry proof of concept for collecting
-tool-output sizes over time:
+tool-output sizes and potential token-savings estimates over time:
 
 ```bash
 cd tooling/elixir
@@ -78,20 +78,23 @@ The path is local and ignored by git through the repository's existing `tmp/`
 ignore rule. Set `AGOV_TOKEN_ROI_LOG` to write somewhere else. Set
 `AGOV_TOKEN_ROI=0` to disable automatic writes.
 
-Automatic POC collection currently records successful output sizes for:
+Automatic POC collection currently records successful output sizes and
+workflow-baseline savings estimates for:
 
 - `mix agov.session.resume`
 - `mix agov.handoff.next`
 
 Each JSONL record stores the command name, arguments, workflow label, character
-count, approximate token count, and timestamp. The log intentionally does not
-capture prompts, model responses, secrets, billing data, or external API
-metadata.
+count, approximate token count, prompt-overhead estimate, baseline source, and
+approximate saved-token range when the workflow has a documented baseline. The
+log intentionally does not capture prompts, model responses, secrets, billing
+data, or external API metadata.
 
 This is enough to answer local questions such as:
 
 - how often the deterministic resume and handoff tools are used;
 - how many characters/tokens their summaries produce;
+- how much context was probably avoided for known workflows;
 - whether manual baseline estimates recorded with `--manual-chars` exceed the
   deterministic tool-output size.
 
@@ -117,12 +120,14 @@ when the question is narrow.
 
 A more realistic cold-start comparison is:
 
-| Workflow | Manual context estimate | Tool output estimate | Estimated saving |
-|---|---:|---:|---:|
-| Cold start: identify role, pending handoffs, decisions, dirty state | 3,000-5,000 tokens | 300-500 tokens | 2,500-4,500 tokens |
-| Find next governor-reviewer handoff | 1,000-3,000 tokens | 100-300 tokens | 700-2,900 tokens |
-| Role activity review, last 50 messages | 2,000-6,000 tokens | 100-300 tokens | 1,700-5,900 tokens |
-| Branch visibility review | 4,000-12,000 tokens | 1,000-3,000 tokens | 1,000-11,000 tokens |
+These ranges are also used by automatic telemetry for known workflows:
+
+| Workflow | Manual context estimate | Tool output estimate | Estimated saving | Automatic workflow labels |
+|---|---:|---:|---:|---|
+| Cold start: identify role, pending handoffs, decisions, dirty state | 3,000-5,000 tokens | 300-500 tokens | 2,500-4,500 tokens | `cold-start`, `session-resume:<role>` |
+| Find next governor-reviewer handoff | 1,000-3,000 tokens | 100-300 tokens | 700-2,900 tokens | `next-handoff:<role>` |
+| Role activity review, last 50 messages | 2,000-6,000 tokens | 100-300 tokens | 1,700-5,900 tokens | not automatic yet |
+| Branch visibility review | 4,000-12,000 tokens | 1,000-3,000 tokens | 1,000-11,000 tokens | not automatic yet |
 
 The branch visibility scanner can still produce long output because it reports
 real unresolved historical state. Even then, it is cheaper and safer than
@@ -167,8 +172,9 @@ fixed prompt. Most AGF evidence should use ranges.
 
 ## Remaining Gaps
 
-The POC reports measured output size, but more automation is still useful. A
-future workflow-aware command could compute:
+The POC reports measured output size and potential savings for known live
+workflows. More automation is still useful. A future workflow-aware command
+could compute:
 
 ```bash
 mix agov.token.roi --workflow cold-start --role governor-reviewer

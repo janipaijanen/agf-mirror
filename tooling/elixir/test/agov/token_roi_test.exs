@@ -41,7 +41,25 @@ defmodule Agov.TokenRoiTest do
     assert record["workflow"] == "cold-start"
     assert record["chars"] == 4
     assert record["approx_tokens"] == 1
+    assert record["manual_baseline_min_tokens"] == 3_000
+    assert record["manual_baseline_max_tokens"] == 5_000
+    assert record["prompt_overhead_tokens"] > 0
+    assert record["approx_saved_min_tokens"] > 0
+    assert record["approx_saved_max_tokens"] > record["approx_saved_min_tokens"]
     assert is_binary(record["timestamp"])
+  end
+
+  test "workflow_baseline returns documented ranges for known live workflows" do
+    assert {:ok, %{min_tokens: 3_000, max_tokens: 5_000}} =
+             TokenRoi.workflow_baseline("cold-start")
+
+    assert {:ok, %{min_tokens: 3_000, max_tokens: 5_000}} =
+             TokenRoi.workflow_baseline("session-resume:coder-tester")
+
+    assert {:ok, %{min_tokens: 1_000, max_tokens: 3_000}} =
+             TokenRoi.workflow_baseline("next-handoff:governor-reviewer")
+
+    assert :unknown = TokenRoi.workflow_baseline("custom")
   end
 
   test "record_tool_output honors AGOV_TOKEN_ROI disable switch" do
@@ -69,8 +87,17 @@ defmodule Agov.TokenRoiTest do
     assert summary.total_approx_tokens == 25
     assert summary.manual_chars == 500
     assert summary.manual_approx_tokens == 125
-    assert summary.estimated_saved_tokens == 100
-    assert %{command: "manual", count: 1, chars: 100, approx_tokens: 25} in summary.commands
+    assert summary.estimated_saved_min_tokens == 100
+    assert summary.estimated_saved_max_tokens == 100
+
+    assert %{
+             command: "manual",
+             count: 1,
+             chars: 100,
+             approx_tokens: 25,
+             approx_saved_min_tokens: 100,
+             approx_saved_max_tokens: 100
+           } in summary.commands
   end
 
   test "summarize groups automatic tool output by command and workflow" do
@@ -80,30 +107,67 @@ defmodule Agov.TokenRoiTest do
         "command" => "a",
         "workflow" => "x",
         "chars" => 4,
-        "approx_tokens" => 1
+        "approx_tokens" => 1,
+        "approx_saved_min_tokens" => 10,
+        "approx_saved_max_tokens" => 20
       },
       %{
         "event" => "tool_output",
         "command" => "a",
         "workflow" => "x",
         "chars" => 8,
-        "approx_tokens" => 2
+        "approx_tokens" => 2,
+        "approx_saved_min_tokens" => 30,
+        "approx_saved_max_tokens" => 40
       },
       %{
         "event" => "tool_output",
         "command" => "b",
         "workflow" => "y",
         "chars" => 12,
-        "approx_tokens" => 3
+        "approx_tokens" => 3,
+        "approx_saved_min_tokens" => 50,
+        "approx_saved_max_tokens" => 60
       }
     ]
 
     summary = TokenRoi.summarize(records)
 
-    assert %{command: "a", count: 2, chars: 12, approx_tokens: 3} in summary.commands
-    assert %{command: "b", count: 1, chars: 12, approx_tokens: 3} in summary.commands
-    assert %{workflow: "x", count: 2, chars: 12, approx_tokens: 3} in summary.workflows
-    assert %{workflow: "y", count: 1, chars: 12, approx_tokens: 3} in summary.workflows
+    assert %{
+             command: "a",
+             count: 2,
+             chars: 12,
+             approx_tokens: 3,
+             approx_saved_min_tokens: 40,
+             approx_saved_max_tokens: 60
+           } in summary.commands
+
+    assert %{
+             command: "b",
+             count: 1,
+             chars: 12,
+             approx_tokens: 3,
+             approx_saved_min_tokens: 50,
+             approx_saved_max_tokens: 60
+           } in summary.commands
+
+    assert %{
+             workflow: "x",
+             count: 2,
+             chars: 12,
+             approx_tokens: 3,
+             approx_saved_min_tokens: 40,
+             approx_saved_max_tokens: 60
+           } in summary.workflows
+
+    assert %{
+             workflow: "y",
+             count: 1,
+             chars: 12,
+             approx_tokens: 3,
+             approx_saved_min_tokens: 50,
+             approx_saved_max_tokens: 60
+           } in summary.workflows
   end
 
   test "format_report prints a compact report" do
@@ -113,6 +177,8 @@ defmodule Agov.TokenRoiTest do
         total_chars: 0,
         total_approx_tokens: 0,
         manual_chars: 0,
+        estimated_saved_min_tokens: 0,
+        estimated_saved_max_tokens: 0,
         commands: [],
         workflows: []
       }
