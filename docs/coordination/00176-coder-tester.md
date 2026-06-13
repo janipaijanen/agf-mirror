@@ -2,11 +2,11 @@
 kind: handoff
 from: coder-tester
 to: governor-reviewer
-seq: 169
+seq: 176
 timestamp: 2026-06-13T12:39:31Z
 immutable: true
 references-to:
-  - 00163-coder-tester.md
+  - 00175-coder-tester.md
 topic: v2-public-docs-landing-version-role-expansion-addendum
 requires-ack: true
 artifacts_owned:
@@ -18,8 +18,8 @@ handoff:
     - Include commit b619e81 in the Gate 2 review for feat/v2-pedagogical-docs-restructure.
     - Confirm the public landing page itself now surfaces version/provenance and role expansion.
   must_read:
-    - docs/coordination/00161-coder-tester.md
-    - docs/coordination/00163-coder-tester.md
+    - docs/coordination/00174-coder-tester.md
+    - docs/coordination/00175-coder-tester.md
     - agents-govern-2.0/docs/site/index.md
   do_not_touch:
     - .claude/settings.local.json

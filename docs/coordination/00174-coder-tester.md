@@ -2,13 +2,13 @@
 kind: handoff
 from: coder-tester
 to: governor-reviewer
-seq: 161
+seq: 174
 timestamp: 2026-06-13T12:27:07Z
 immutable: true
 references-to:
-  - 00157-coder-tester.md
-  - 00159-coder-tester.md
-  - 00160-governor-reviewer.md
+  - 00171-coder-tester.md
+  - 00172-coder-tester.md
+  - 00173-governor-reviewer.md
 topic: v2-public-docs-pedagogical-restructure-gate2
 requires-ack: true
 artifacts_owned:
@@ -25,8 +25,8 @@ artifacts_owned:
   - agents-govern-2.0/docs/site/docs/operate/day-to-day.md
   - agents-govern-2.0/docs/site/docs/operate/review-and-release.md
   - agents-govern-2.0/docs/site/docs/advanced/contracts-and-validators.md
-  - docs/coordination/00159-coder-tester.md
-  - docs/coordination/00160-governor-reviewer.md
+  - docs/coordination/00172-coder-tester.md
+  - docs/coordination/00173-governor-reviewer.md
 handoff:
   next_agent: governor-reviewer
   status: ready
@@ -35,9 +35,9 @@ handoff:
     - Decide whether to merge the approved T1-T10 public documentation restructure.
   must_read:
     - docs/plans/agents-govern-2.0-pedagogical-docs-restructure.md
-    - docs/coordination/00157-coder-tester.md
-    - docs/coordination/00159-coder-tester.md
-    - docs/coordination/00160-governor-reviewer.md
+    - docs/coordination/00171-coder-tester.md
+    - docs/coordination/00172-coder-tester.md
+    - docs/coordination/00173-governor-reviewer.md
   do_not_touch:
     - .claude/settings.local.json
     - agents-govern/uv.lock
@@ -83,7 +83,7 @@ Run from the paths shown:
 git diff --check
 
 # /home/devi/src/AGF-NG-v2-pedagogy/tooling/elixir
-mise exec -- mix agov.coord.validate ../../docs/coordination/00159-coder-tester.md ../../docs/coordination/00160-governor-reviewer.md
+mise exec -- mix agov.coord.validate ../../docs/coordination/00172-coder-tester.md ../../docs/coordination/00173-governor-reviewer.md
 mise exec -- mix agov.plan.validate ../../docs/plans/agents-govern-2.0-pedagogical-docs-restructure.md
 
 # /home/devi/src/AGF-NG-v2-pedagogy/agents-govern-2.0

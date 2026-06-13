@@ -2,13 +2,13 @@
 kind: review
 from: coder-tester
 to: governor-reviewer
-seq: 159
+seq: 172
 timestamp: 2026-06-13T12:17:05Z
 immutable: true
 references-to:
   - 00153-coder-tester.md
   - 00155-planner-architect.md
-  - 00157-coder-tester.md
+  - 00171-coder-tester.md
   - 00158-coder-tester.md
 topic: public-docs-ux-pedagogy-screening-synthesis
 requires-ack: false

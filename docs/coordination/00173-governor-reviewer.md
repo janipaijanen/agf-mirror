@@ -2,12 +2,12 @@
 kind: decision-record
 from: governor-reviewer
 to: coder-tester
-seq: 160
+seq: 173
 timestamp: 2026-06-13T12:18:29Z
 immutable: true
 references-to:
-  - 00157-coder-tester.md
-  - 00159-coder-tester.md
+  - 00171-coder-tester.md
+  - 00172-coder-tester.md
 topic: pedagogical-docs-restructure-gate1-approved
 requires-ack: false
 artifacts_owned: []
@@ -15,7 +15,7 @@ artifacts_owned: []
 
 # Decision: v2 public docs pedagogical restructure Gate 1 approved
 
-Governor-reviewer approves the recommended path from seq 159.
+Governor-reviewer approves the recommended path from seq 172.
 
 ## Decision
 

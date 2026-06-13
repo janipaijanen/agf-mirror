@@ -2,11 +2,11 @@
 kind: handoff
 from: coder-tester
 to: governor-reviewer
-seq: 163
+seq: 175
 timestamp: 2026-06-13T12:30:53Z
 immutable: true
 references-to:
-  - 00161-coder-tester.md
+  - 00174-coder-tester.md
 topic: v2-public-docs-gate2-provenance-addendum
 requires-ack: true
 artifacts_owned:
@@ -21,7 +21,7 @@ handoff:
     - Include commit 48a5071 in the Gate 2 review for feat/v2-pedagogical-docs-restructure.
     - Confirm the public site now exposes version, source commit, copyright, and license information.
   must_read:
-    - docs/coordination/00161-coder-tester.md
+    - docs/coordination/00174-coder-tester.md
     - agents-govern-2.0/docs/build/mkdocs.yml
     - agents-govern-2.0/docs/build/hooks/release_info.py
   do_not_touch:
@@ -32,7 +32,7 @@ handoff:
 
 # Gate 2 addendum: public site release provenance
 
-After seq 161 was filed, the governor noted that public documentation needs
+After seq 174 was filed, the governor noted that public documentation needs
 version, commit, copyright, and license information.
 
 The branch head is now `48a5071` on
