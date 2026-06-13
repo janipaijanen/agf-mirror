@@ -9,10 +9,11 @@
 **Scope:** Any commit that touches one or more of these trigger paths:
 
 - `.claude/rules/**/*.md`
-- `spec/rules-template/**/*.md`
+- `agf/rules/**/*.md`
+- `agf/agents/*.yaml`
 - `agents-govern/agents/*.yaml`
 - `agents-govern/src/agents_govern/`
-- `spec/schemas/*.json`
+- `agf/schemas/*.json`
 - `docs/coordination/agov-config.yaml`
 - `AGENTS.md`
 
