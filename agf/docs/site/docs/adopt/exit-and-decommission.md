@@ -45,11 +45,15 @@ In outline:
 1. Delete the framework-owned `agf/` directory.
 2. Remove copied assistant rules from `.claude/rules/` or your tool's
    equivalent install path.
-3. Remove hooks (pre-commit entries, assistant settings, `core.hooksPath`).
-4. Revert CI jobs the framework added.
-5. Commit as a single atomic removal.
-6. Verify: grep the repo for `agov-` and framework references; an empty
-   result is the done-condition.
+3. Decide whether to keep or remove project-owned evidence in `docs/plans/`
+   and `docs/coordination/`. Keeping it in git history is normal; no history
+   rewrite is part of exit.
+4. Remove hooks (pre-commit entries, assistant settings, `core.hooksPath`).
+5. Revert CI jobs the framework added.
+6. Commit as a single atomic removal.
+7. Verify: grep the repo for `agov`, `agents-govern`, copied rule paths, and
+   assistant settings. Any remaining match should be intentionally kept and
+   documented.
 
 ## Why this page exists
 

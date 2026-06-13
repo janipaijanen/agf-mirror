@@ -26,18 +26,24 @@ maintain.
 | Agent definitions | `agf/agents/*.yaml` | Role contracts: jurisdiction, authority, escalation |
 | Governance rules | `.claude/rules/**/*.md` (or your tool's equivalent) | Constraints your AI assistant loads every session |
 | Learning records | `agf/learnings/<your-codename>.yaml` | Your project's incident and pattern evidence |
-| Coordination channel | `agf/docs/coordination/` or configured project path | Append-only message files, one per decision/handoff |
+| Working plans | `docs/plans/` | Gate 1 plan files for project work |
+| Coordination channel | `docs/coordination/` | Append-only message files, one per decision/handoff |
 | Governance docs | `agf/docs/governance/`, ADRs | Who decides what; recorded decisions |
 | Schemas | `agf/schemas/` | Machine-checkable contracts for records and definitions |
+| Starter templates | `agf/templates/` | Copyable first-run plan, coordination, and learning files |
 
 AGF v2.0 confines framework-owned content to `agf/`. Assistant rule files are
 copied to `.claude/rules/` or your tool's equivalent because those tools read
-configuration from their own root-level locations.
+configuration from their own root-level locations. Working plans and
+coordination entries are adopter-owned project evidence and default to root
+`docs/` so current validators can run without extra path configuration.
 
 ## CI jobs added
 
 - **Validator jobs** — schema checks on agent definitions and learning
-  records. Fast (seconds); run per merge request.
+  records where tooling exists. Current shipped Mix tasks validate
+  coordination messages and Gate 1 plans. Agent and learning validators remain
+  contract targets until their Mix tasks ship.
 - **Optional gates** — pre-tag version checks, secrets detection,
   anonymization scanning, depending on which rules you adopt.
 

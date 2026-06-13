@@ -31,14 +31,19 @@ there.
 | Agent definitions | `agf/agents/*.yaml` |
 | ADRs and governance docs | `agf/docs/adr/` |
 | Framework rules | `agf/rules/` |
+| Working plans | `docs/plans/` |
+| Coordination channel | `docs/coordination/` |
 | Assistant rule install target | `.claude/rules/` |
 
-> **Why this matters — silent failure mode.** AI agents and humans
-> following this guide literally will create files at the paths written
-> here. If the guide says `learnings/`, an agent may create `learnings/`
-> at the project root — polluting it with governance artifacts that do not
-> belong there, and breaking adoption validation. AGF v2.0 avoids that by
-> making `agf/` the single framework-owned directory.
+Working plans and coordination entries are adopter-owned evidence. The POC
+default keeps them in root `docs/` because the current Mix validators use those
+paths. Framework-owned files stay under `agf/`.
+
+> **Why this matters — silent failure mode.** AI agents and humans following
+> this guide literally create files at the paths written here. If the guide
+> alternates between `agf/docs/coordination/` and `docs/coordination/`, agents
+> will split the audit trail. AGF v2.0 avoids that by stating one default path
+> before work begins.
 
 ---
 
@@ -48,9 +53,11 @@ If you want to try the framework before committing to full adoption,
 this minimal path gets you running. It assumes the release archive has been
 extracted as `agf/` in your existing project.
 
-0. **Install Elixir/Mix** if you want to run the current validators
-   locally. In this repository, `mise install` provisions the pinned
-   Elixir/Erlang toolchain from `mise.toml`.
+0. **Install Elixir/Mix** if you want to run the current validators locally.
+   Today the Mix tasks live in `tooling/elixir/`, outside the `agf/`
+   distribution directory. Use a full repository checkout when validating this
+   POC. In this repository, `mise install` provisions the pinned Elixir/Erlang
+   toolchain from `mise.toml`.
    ```bash
    mise install
    ```
@@ -67,16 +74,23 @@ extracted as `agf/` in your existing project.
    The `mkdir -p .claude` is necessary on a fresh project — `cp` will
    not create `.claude/` for you.
 
-3. **Pick one agent definition** to start with. For most projects,
-   `agf/agents/coder-tester.yaml` is the right choice — it
-   combines the coding and testing roles that most AI assistants
-   already perform.
+3. **Pick the minimum role set.**
+
+   | Trial shape | Active roles |
+   |---|---|
+   | Solo trial | `coder-tester`, `governor-reviewer` |
+   | Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` |
+   | CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed |
+
+   Gateway assistants and agent runtimes are execution surfaces, not AGF gate
+   authorities.
 
 4. **Start working.** Use your AI assistant as usual. The rules will
    guide its behavior. When something surprises you (good or bad),
    record it under the framework directory:
    ```bash
    mkdir -p agf/learnings
+   cp agf/templates/learning-record.yaml agf/learnings/my-project.yaml
    $EDITOR agf/learnings/my-project.yaml
    # Fill in the project section and add your first learning
    ```
@@ -85,7 +99,7 @@ extracted as `agf/` in your existing project.
    paths exist in your project:
    ```bash
    cd tooling/elixir
-   mix agov.coord.validate ../../agf/docs/coordination/<seq>-<sender>.md
+   mix agov.coord.validate ../../docs/coordination/<seq>-<sender>.md
    mix agov.plan.validate ../../docs/plans/*.md
    ```
 
@@ -94,12 +108,12 @@ extracted as `agf/` in your existing project.
    `agov-validate-*` examples as v1.x/Python-era instructions until the Mix
    tasks exist.
 
-This quickstart skips the full assessment (Step 0), governance setup,
-and agent customization. For a concrete walkthrough of what governed
-development looks like in practice, see
-[docs/example-workflow.md](docs/example-workflow.md). When you're
-ready for production adoption, return to the full process below
-starting at [Step 0: Assess Your Project](#step-0-assess-your-project).
+This quickstart skips the full assessment (Step 0), governance setup, and agent
+customization. For a concrete walkthrough of what governed development looks
+like in practice, copy the templates in `agf/templates/` and follow
+`agf/docs/site/docs/start/first-governed-change.md`. When you're ready for
+production adoption, return to the full process below starting at
+[Step 0: Assess Your Project](#step-0-assess-your-project).
 
 ---
 
@@ -136,9 +150,10 @@ agents and cross-cutting concerns are urgent for your project.
 > **Anonymization requirement (mandatory).** All submissions to this framework
 > MUST use a codename instead of the real project, product, or organisation
 > name. This protects adopters' commercial interests and keeps the public
-> learning corpus free of identifying information. See the anonymization
-> policy in `learnings/_template.yaml` for full details on what to mask and
-> what to keep as-is.
+> learning corpus free of identifying information. See
+> `agf/templates/learning-record.yaml` and
+> `docs/governance/anonymization-notice.md` for what to mask and what to keep
+> as-is.
 >
 > **Codename-only also applies to other externally-destined content** — issues
 > filed against this tracker, MRs against the framework, blog posts, content
@@ -152,9 +167,10 @@ agents and cross-cutting concerns are urgent for your project.
 1. **Choose a codename** for your project (e.g., "blue-heron", "project-aurora").
    Use it consistently in the filename and all fields.
 2. **Record the mapping** between codename and real name in your own private
-   records (see `learnings/.adopter-mapping.example` for the format). Do NOT
-   commit the mapping to this repository.
-3. Copy `learnings/_template.yaml` to `learnings/<codename>.yaml`.
+   records (see `agf/templates/private-codename-mapping.example` for the
+   format). Do NOT commit the mapping to this repository.
+3. Copy `agf/templates/learning-record.yaml` to
+   `agf/learnings/<codename>.yaml`.
 
 Fill in every field in the `project`, `business_domain`, `regulatory_context`,
 `team`, `lifecycle_state`, `customer_state`, `revenue_context`, and `codebase`
@@ -1185,7 +1201,8 @@ You do not need all agent definitions. Start with a few:
 ### How to contribute learnings
 
 1. Fork the repository (or submit via email if you prefer).
-2. Copy `learnings/_template.yaml` to `learnings/<your-codename>.yaml`.
+2. Copy `agf/templates/learning-record.yaml` to
+   `agf/learnings/<your-codename>.yaml`.
 3. Fill in the project context and add your learnings.
 4. Validate the learning against `agf/schemas/learning.schema.json` and run
    the InfoSec/anonymization check once the corresponding Mix tasks ship.

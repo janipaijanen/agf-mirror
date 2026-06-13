@@ -1,4 +1,12 @@
-# agents-govern 1.1.50
+# AGF v2 provisional manifest
+
+This page still carries inherited agents-govern v1.x provenance below. For AGF
+v2 evaluation, treat `agf/` as the adopter-facing distribution and
+`agf/templates/` as the first-run starter bundle. The remaining v1.x-shaped
+content is a documented cutoff item, not a claim that adopters should create a
+v1 layout.
+
+# Inherited agents-govern 1.1.50 manifest
 
 ## Provenance
 
@@ -18,15 +26,16 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 
 | Directory / File | Purpose | Action |
 |------------------|---------|--------|
-| `agents/` | Agent definitions (Phase 1 + Phase 3) | Copy to `governance/agents/`, customize |
+| `agents/` | Agent definitions (Phase 1 + Phase 3) | Keep under `agf/agents/`; activate the minimum role set for your project |
 | `rules/` | Governance rules | Copy to `.claude/rules/`, customize |
 | `skills/` | AI assistant workflows (upgrade, learning, infosec) | Copy to `.claude/skills/`, customize (optional) |
 | `project-specific-examples/` | Stack-specific rule examples | Copy if stack matches |
 | `schemas/` | Strict-contract JSON Schemas and invariants | Use for validation and integration checks |
+| `templates/` | First-run AGF v2 starter files | Copy into `docs/plans/`, `docs/coordination/`, and `agf/learnings/` for a trial |
 | `scripts/generate-schemas.py` | Schema regeneration helper | Use when maintaining schema artefacts |
 | `learnings/foundry.yaml` | Upstream learning records (framework evidence) | Read-only reference; replaced on upgrade |
-| `learnings/_template.yaml` | Learning record template | Copy to `learnings/<codename>.yaml` |
-| `learnings/.adopter-mapping.example` | Codename mapping format | Keep private (see anonymization policy) |
+| `templates/learning-record.yaml` | Learning record template | Copy to `agf/learnings/<codename>.yaml` |
+| `templates/private-codename-mapping.example` | Codename mapping format | Keep private, outside git |
 | `framework.yaml` | Machine-readable framework declaration | Copy and tune for adopter compliance profile |
 | `framework.md` | Framework theory & reference | Read-only reference |
 | `ADOPTING.md` | Adoption guide | Follow step by step |
@@ -40,7 +49,7 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 | `docs/adopt/compliance-profile.md` | Compliance target definitions | Use to choose adoption depth |
 | `docs/governance/anonymization-notice.md` | Anonymization policy details | Read before submitting learnings |
 | `docs/adr/` | Architecture decision records | Informational |
-| `pyproject.toml` + `src/agents_govern/` | CLI tools (`uv run agov-*`) | Validation, bumping, health check |
+| `tooling/elixir/` in a full checkout | Current Mix validator tasks | Use until a standalone tooling distribution exists |
 | `.pre-commit-config.yaml` | Pre-commit hook config | Optional: `pre-commit install` |
 | `CONTRIBUTING.md` | Contribution guidelines | Read before submitting |
 | `CODE_OF_CONDUCT.md` | Community standards | Read-only reference |
@@ -50,33 +59,29 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 ## Quick start
 
 ```bash
-# 1. Copy agent definitions to your project
-mkdir -p governance/agents
-cp agents/*.yaml governance/agents/
+# 1. Copy AGF into your project as agf/
+#    Keep agent definitions under agf/agents/
 
 # 2. Copy governance rules
-cp -r rules/ .claude/rules/
+mkdir -p .claude
+cp -r agf/rules/ .claude/rules/
 
 # 2b. (Optional) Copy AI assistant skills
-cp -r skills/ .claude/skills/
+cp -r agf/skills/ .claude/skills/
 
 # 3. Create your project learning record (use a codename, not the real name)
-mkdir -p learnings
-cp learnings/_template.yaml learnings/<codename>.yaml
-# Note: learnings/foundry.yaml is upstream evidence — do not edit it.
+mkdir -p agf/learnings
+cp agf/templates/learning-record.yaml agf/learnings/<codename>.yaml
+# Note: upstream evidence is read-only reference material.
 #       It will be replaced when you upgrade to a new agents-govern release.
 
-# 4. Copy license
-cp LICENSE .
+# 4. Create working evidence directories
+mkdir -p docs/plans docs/coordination
 
 # 5. Customize
-#    - governance/agents/*.yaml — set jurisdiction to your domain
+#    - agf/agents/*.yaml — choose the minimum role set
 #    - .claude/rules/ — search for <!-- CUSTOMIZE --> comments
-#    - learnings/<codename>.yaml — fill in project context and assessments
-
-# 6. Write your GOVERNANCE.md (use the included template as a starting point)
-cp docs/governance/governance.md ./GOVERNANCE.md
-#    Edit to match your project's roles, pipeline, and gate rules.
+#    - agf/learnings/<codename>.yaml — fill in project context and assessments
 
 # 7. (Optional) Copy stack-specific examples if applicable
 #    cp -r project-specific-examples/python-flask/ .claude/rules/

@@ -1,0 +1,38 @@
+project:
+  codename: sample-project
+  description: "Example adopter project; replace with a non-identifying description."
+  started_adopting: "2026-06-14"
+
+adoption:
+  framework_id: agf
+  framework_version: "2.0.0-provisional"
+  framework_commit: unknown
+  agent_definitions:
+    - planner-architect
+    - coder-tester
+    - governor-reviewer
+  upgrade_history: []
+
+learnings:
+  - date: "2026-06-14"
+    category: validation
+    scope: project
+    title: first-governed-change-completed
+    description: "The project completed its first governed change using Gate 1 and Gate 2."
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - governor-reviewer
+    framework_section: first-governed-change
+    business_impact:
+      type: neutral
+      description: "Initial trial evidence only."
+    recommendation: "Keep measuring whether the gate overhead earns its keep."
+    severity: informational
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - docs/coordination/00004-coder-tester.md
+
+sentinel_ack: []

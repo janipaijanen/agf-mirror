@@ -12,7 +12,9 @@ place and understand the single supported v2.0 layout.*
   tool-agnostic and has been tested with Cursor, Codex CLI, Copilot, and
   Windsurf).
 - Elixir and Mix available if you want to run the current validators locally
-  and in CI.
+  and in CI. Today those validators live in `tooling/elixir/`, outside the
+  `agf/` distribution directory, so validator use requires a full checkout or
+  a separately packaged tooling distribution.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
@@ -38,17 +40,24 @@ the visible `agf/` directory.
 | Framework rules | `agf/rules/**/*.md` |
 | Schemas | `agf/schemas/*` |
 | Learning records | `agf/learnings/<your-codename>.yaml` |
-| Coordination channel | `agf/docs/coordination/` or the project path you explicitly configure |
+| Working plans | `docs/plans/` |
+| Coordination channel | `docs/coordination/` |
 | Assistant rule install target | `.claude/rules/` or your tool's equivalent |
 
 The assistant rule install target stays at the project root because tools read
 their own configuration there. It is the exception, not a second framework
 layout.
 
+Working plans and coordination entries are adopter-owned evidence, not
+upstream-owned framework files. The current POC default keeps them in root
+`docs/` because the shipped Mix tasks default to those paths. If your project
+chooses another coordination path, configure and document it before agents
+start writing files.
+
 Mixed layouts are the documented failure mode: agents following path
 instructions literally will create root-level `agents/`, `learnings/`, or
-`docs/coordination/` directories unless the single `agf/` boundary is stated
-where humans and agents can read it.
+duplicate coordination directories unless the default boundary is stated where
+humans and agents can read it.
 
 ## Step 3: Copy and customize the rules
 
@@ -67,16 +76,40 @@ Use `agf/agents/*.yaml`. The role definitions ship with explicit
 jurisdiction and authority boundaries; start with the core pipeline roles
 (planner-architect, coder-tester, governor-reviewer) and add the extended
 roles only when the work warrants them — the
-[quick reference](https://gitlab.com/janipaijanen/agent-governance)
-(shipped at `agf/docs/reference/quick-reference.md`) lists which phase each
-role belongs to.
+[roles and gates](../concepts/roles-and-gates.md) page explains the mental
+model, and the shipped raw reference at `agf/docs/reference/quick-reference.md`
+lists which phase each role belongs to.
+
+Minimum commissioning matrix:
+
+| Trial shape | Active roles | Advisory/checklist coverage |
+|---|---|---|
+| Solo trial | `coder-tester`, `governor-reviewer` | Human governor checks plans and merges; use fast track only when criteria fit |
+| Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` | `contribution-auditor` and `infosec-sentinel` are consulted for non-trivial plans |
+| CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed | CI runs validators; security-sensitive changes require explicit evidence |
+
+Gateway assistants, chat bridges, and agent runtimes are execution surfaces.
+They do not become AGF approval authorities unless a human governor explicitly
+changes the role manifest and records that decision.
 
 ## Step 5: Wire the validators
 
-Add the validator jobs to CI so schema drift is caught per merge request.
-Validators run in seconds; per the gate-self-test discipline, verify each
-gate fires by feeding it a deliberately bad input once, on the MR that
-introduces it.
+If you have the full checkout, run the shipped validators from
+`tooling/elixir/`:
+
+```bash
+cd tooling/elixir
+mix deps.get
+mix agov.coord.validate ../../docs/coordination/*.md
+mix agov.plan.validate ../../docs/plans/*.md
+```
+
+A release archive containing only `agf/` has schemas and templates, but not
+the current Mix tasks. In that case, either use a full checkout for validation
+or wait for a packaged `agov` tooling distribution.
+
+When adding validator jobs to CI, verify each gate fires by feeding it a
+deliberately bad input once on the merge request that introduces the job.
 
 ## Step 6: Initialise your evidence
 
@@ -84,15 +117,18 @@ introduces it.
   The codename is the only project handle that crosses the codebase
   boundary — see the anonymization rule before sharing anything upstream.
 - Create the coordination channel path you will use and file your first entry:
-  a note recording the adoption decision and the governor. Keep it under the
-  `agf/` boundary unless you have an explicit project reason to configure a
-  different path.
+  a note recording the adoption decision and the governor. The POC default is
+  `docs/coordination/`.
+- Copy starter templates from `agf/templates/` when taking the first governed
+  change through both gates.
 
 ## Verify
 
 - Your assistant lists the rules when asked what constraints apply.
 - The validators pass on your fresh files.
 - A trivial change still commits without ceremony (fast track works).
+- You can remove the trial by following
+  [exit and decommission](exit-and-decommission.md) without rewriting history.
 
 ## Next
 

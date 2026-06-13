@@ -19,8 +19,8 @@ rather than finished tooling.
 
 | Artifact | Contract | Checked by |
 |---|---|---|
-| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
-| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `agf plan validate` |
+| Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
+| Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agf plan validate` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `agf coord visibility` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
 | Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
@@ -66,7 +66,10 @@ downstream-facing command; Mix remains the reference implementation detail.
 When using Elixir 1.20 or newer, compile warnings include the compiler's
 built-in type inference and gradual type-checking findings, so
 `mix compile --warnings-as-errors` is part of the gate rather than a cosmetic
-lint step. Two disciplines from the rule library apply directly here:
+lint step. The current reference tooling is Mix-based and pinned in foundry's
+`mise.toml`; a release archive containing only `agf/` has schemas and templates,
+but not the current Mix task implementation. Two disciplines from the rule
+library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the
