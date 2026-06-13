@@ -49,7 +49,7 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
 ### 5. Advanced — integration and customization
 
 - [Contracts and validators](advanced/contracts-and-validators.md) —
-  JSON schemas, binding contracts, wiring `agov-validate-*` into CI.
+  JSON schemas, binding contracts, wiring `mix agov.*` checks into CI.
 - [Customizing the framework](advanced/customizing-the-framework.md) —
   what you may tune freely, and where customization breaks contract
   semantics.

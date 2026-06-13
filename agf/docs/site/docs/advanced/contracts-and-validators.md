@@ -7,21 +7,26 @@ and how to wire validation into your pipeline.*
 
 ## What is under contract
 
-The framework ships validator commands: command-line checks that read the
+The framework uses validator commands: command-line checks that read the
 governance files and fail when the files no longer match their contracts.
-Table 1 summarizes the main contracted artifacts and the validator command
-that checks each one.
+Current tooling is implemented as Elixir Mix tasks under `tooling/elixir/`.
+Table 1 summarizes the main contracted artifacts, the shipped checks, and the
+checks still treated as contract targets rather than finished tooling.
 
 | Artifact | Contract | Checked by |
 |---|---|---|
-| Agent definitions (`agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov-validate-agents` |
-| Learning records (`learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | `agov-validate-contributions` |
-| InfoSec-relevant artifacts | Anonymization and disclosure checks | `agov-validate-infosec` |
-| Release tags | VERSION ↔ tag alignment | `agov-pre-tag-check` |
+| Coordination messages (`docs/coordination/*.md`) | JSON schema: front matter shape, message kind, required handoff fields | `mix agov.coord.validate` |
+| Gate 1 plans (`docs/plans/*.md`) | JSON schema: plan front matter and required advisory consultation fields | `mix agov.plan.validate` |
+| Hidden coordination obligations | Branch visibility scan against a base branch | `mix agov.coord.visibility` |
+| Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
+| Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
+| InfoSec-relevant artifacts | Anonymization and disclosure checks | Contract target; validator task not yet shipped |
+| Release tags | VERSION ↔ tag alignment | Contract target; validator task not yet shipped |
 
-Coordination channel files are governed by convention and review, not by
-an automated validator — a known gap, stated here rather than papered
-over. If your project builds one, that is a contribution upstream wants.
+The distinction matters: a schema can be binding before every validator is
+implemented, but the documentation must not present future checks as shipped
+capability. If your project builds one of the missing validators, that is a
+contribution upstream wants.
 
 ## The stability promise
 
@@ -35,21 +40,25 @@ unclassified breaking change is a defect you should report.
 
 ## Wiring CI
 
-Run validators per merge request; they complete in seconds, so no path
-scoping is needed:
+Run shipped validators per merge request; they complete in seconds, so no path
+scoping is usually needed:
 
 ```yaml
 validate-governance:
+  image: hexpm/elixir:1.18.4-erlang-27.3.4-debian-bookworm-20250407-slim
+  before_script:
+    - cd tooling/elixir
+    - mix deps.get
   script:
-    - uv run agov-validate-agents
-    - uv run agov-validate-contributions
+    - mix agov.coord.validate ../../docs/coordination/*.md
+    - mix agov.plan.validate ../../docs/plans/*.md
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Adapt the runner image and invocation to your stack; the validators are
-plain Python entry points. Two disciplines from the rule library apply
-directly here:
+Adapt the runner image and invocation to your stack; the current reference
+tooling is Mix-based. Two disciplines from the rule library apply directly
+here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
   negative test — a deliberately malformed file, shown to fail the

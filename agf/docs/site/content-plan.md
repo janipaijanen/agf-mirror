@@ -30,12 +30,12 @@ topic — so no reader commits without seeing the cost and the way out.
 | 6 | `docs/adopt/install-and-layouts.md` | New adopter | Beginner | Install the files under the supported `agf/` directory | Decision made | — | File list matches MANIFEST |
 | 7 | `docs/start/first-governed-change.md` | New adopter | Beginner | Run one small change through Gate 1 → implement → Gate 2 | Install done | gate-pipeline | Command names exist in tooling |
 | 8 | `docs/adopt/downstream-impact.md` | New adopter | Beginner | Know every file, CI job, and obligation adoption introduces | 7 | adoption-impact-map | File/CI inventory matches ADOPTING.md |
-| 9 | `docs/adopt/exit-and-decommission.md` | New + exiting | Beginner | Remove or downgrade adoption cleanly and verify removal | 7 | exit-flow | Steps match docs/adopt/decommission.md |
+| 9 | `docs/adopt/exit-and-decommission.md` | New + exiting | Beginner | Remove or downgrade adoption cleanly and verify removal | 7 | exit-flow | Steps match the single `agf/` boundary |
 | 10 | `docs/concepts/roles-and-gates.md` | New adopter | Intermediate | Explain agents, authority, gates, coordination channel | 6 | agent-communication, gate-pipeline | Role list matches agents/MANIFEST.yaml |
 | 11 | `docs/concepts/evidence-and-learnings.md` | Operating | Intermediate | Write a learning record; distinguish upstream vs adopter-owned | 10 | evidence-lifecycle | foundry.yaml replace-on-upgrade behavior |
 | 12 | `docs/operate/day-to-day.md` | Operating | Intermediate | Run the daily loop: claims, handoffs, gates, completions | 10 | governance-loop | — |
 | 13 | `docs/operate/review-and-release.md` | Operating | Intermediate | Conduct Gate 2, release via MR, upgrade, keep audit trail | 12 | gate-pipeline | Release steps match release-via-merge-request rule |
-| 14 | `docs/advanced/contracts-and-validators.md` | Advanced | Advanced | Wire schemas + `agov-validate-*` into their CI | 10 | — | Validator names match cli.py entry points |
+| 14 | `docs/advanced/contracts-and-validators.md` | Advanced | Advanced | Wire schemas + `mix agov.*` checks into their CI | 10 | — | Validator names match Mix tasks |
 | 15 | `docs/advanced/customizing-the-framework.md` | Advanced | Advanced | Know what may be tuned vs what breaks contract semantics | 14 | — | Boundaries match contract-stability.md |
 | 16 | `future/evolution.md` | All | Future | Distinguish shipped capability from non-binding hypotheses | None | — | Every item labelled Provisional/hypothesis |
 

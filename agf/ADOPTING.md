@@ -48,12 +48,11 @@ If you want to try the framework before committing to full adoption,
 this minimal path gets you running. It assumes the release archive has been
 extracted as `agf/` in your existing project.
 
-0. **Install uv** (the only prerequisite — uv manages Python for you):
+0. **Install Elixir/Mix** if you want to run the current validators
+   locally. In this repository, `mise install` provisions the pinned
+   Elixir/Erlang toolchain from `mise.toml`.
    ```bash
-   # Linux / macOS
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   # Windows (PowerShell)
-   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   mise install
    ```
 
 1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agent-governance/-/releases/permalink/latest)
@@ -82,10 +81,18 @@ extracted as `agf/` in your existing project.
    # Fill in the project section and add your first learning
    ```
 
-5. **Validate** your learning record:
+5. **Validate** the shipped governance records you have created when those
+   paths exist in your project:
    ```bash
-   cd agf && uv run agov-validate-learnings learnings/my-project.yaml
+   cd tooling/elixir
+   mix agov.coord.validate ../../agf/docs/coordination/<seq>-<sender>.md
+   mix agov.plan.validate ../../docs/plans/*.md
    ```
+
+   Agent and learning schemas are included in `agf/schemas/`, but the
+   Elixir agent and learning validators are not yet shipped. Treat any older
+   `agov-validate-*` examples as v1.x/Python-era instructions until the Mix
+   tasks exist.
 
 This quickstart skips the full assessment (Step 0), governance setup,
 and agent customization. For a concrete walkthrough of what governed
@@ -265,7 +272,7 @@ Before copying anything, record which version of the framework you are adopting.
 This is critical for auditability — future learnings and incidents must be
 traceable to the framework version that was in effect.
 
-> **Which version?** The `framework_version` to record is the **framework content version** from the [VERSION](VERSION) file (or the header of `framework.md`). Do not confuse it with the Python tooling package version in `pyproject.toml` — those track different things. See [README §Versioning](README.md#versioning) for the distinction.
+> **Which version?** The `framework_version` to record is the **framework content version** from the [VERSION](VERSION) file (or the header of `framework.md`). Do not confuse it with the Elixir tooling package version in `tooling/elixir/mix.exs` — those track different things.
 
 In your project's `learnings/<project-name>.yaml`, fill in the `adoption` section:
 
@@ -356,7 +363,7 @@ When you create new agent definitions for your project:
   copyright, your choice of license. The template structure (field names,
   section layout) is not copyrightable — only creative content is. However,
   if you want to contribute the agent upstream, CC-BY-SA-4.0 is required.
-- **Python validation tools** are Massachusetts Institute of Technology (MIT) licensed — embed, modify, and redistribute
+- **Elixir validation tools** are Massachusetts Institute of Technology (MIT) licensed — embed, modify, and redistribute
   without ShareAlike obligations.
 
 When in doubt: keep your copyright header, add CC-BY-SA-4.0, and
@@ -365,14 +372,15 @@ definition that others can adopt.
 
 **Verify communication symmetry after adding or customizing agents.**
 When you add a project-specific or domain-specific agent, or modify an
-existing agent's `sends_to`/`receives_from`, run the validator:
+existing agent's `sends_to`/`receives_from`, run the agent validator after
+the AGF v2 Mix task ships. Planned command shape:
 
 ```bash
 # Check structure, communication symmetry, ownership overlaps, phase distribution
-uv run agov-validate-agents
+mix agov.agent.validate ../../agf/agents/*.yaml
 
 # Generate a Mermaid communication graph (paste into any Mermaid renderer)
-uv run agov-validate-agents --graph
+mix agov.agent.validate ../../agf/agents/*.yaml --graph
 ```
 
 The validator checks that every `sends_to` has a matching `receives_from`
@@ -380,8 +388,8 @@ on the other side and vice versa. Asymmetries accumulate silently — an
 agent that sends messages to a peer that doesn't acknowledge receiving
 them is a governance gap. Fix all asymmetries before committing.
 
-This check runs automatically on pre-commit and CI if you adopt the
-provided `.pre-commit-config.yaml`.
+Until that Mix task exists, review communication changes manually against the
+role definitions and do not present the graph command as a shipped gate.
 
 > **Tip — `.claude/rules/` directory for detailed guidance.** For complex
 > projects with many domain-specific rules, consider separating concise
@@ -737,7 +745,7 @@ Attach the checklist to a gate event so it fires automatically. Options:
 security-review:
   stage: review
   script:
-    - uv run agov-validate-infosec --include-md
+    - "# planned AGF v2 command: mix agov.infosec.validate --include-md"
   rules:
     - if: $CI_MERGE_REQUEST_IID
 
@@ -1062,18 +1070,14 @@ learning categories (gap, overkill, tension) against agent names in
 `agents_involved`. Report patterns that appear 3+ times. Produce proposals
 in the format shown in the capability-developer YAML definition.
 
-**For humans:** Run `uv run agov-validate-agents` and review the phase
-distribution and communication graph. Compare against your GOVERNANCE.md.
-Read your last 5-10 learnings and ask: "Is the same pain showing up
-repeatedly? Does an agent definition need to change?"
+**For humans:** Once the agent validator ships, run it and review the phase
+distribution and communication graph. Until then, compare `agf/agents/*.yaml`
+against your governance file manually. Read your last 5-10 learnings and ask:
+"Is the same pain showing up repeatedly? Does an agent definition need to
+change?"
 
-```bash
-# Validate agents and review phase distribution
-uv run agov-validate-agents
-
-# Generate communication graph for visual review
-uv run agov-validate-agents --graph > docs/agent-communication.md
-```
+Planned command shape: `mix agov.agent.validate ../../agf/agents/*.yaml
+--graph > docs/agent-communication.md`.
 
 The capability-developer is not a replacement for human judgment — it is a
 systematic way to surface the evidence that human judgment acts on.
@@ -1183,8 +1187,8 @@ You do not need all agent definitions. Start with a few:
 1. Fork the repository (or submit via email if you prefer).
 2. Copy `learnings/_template.yaml` to `learnings/<your-codename>.yaml`.
 3. Fill in the project context and add your learnings.
-4. Run `uv run agov-validate-learnings` and
-   `uv run agov-validate-infosec` to check for issues.
+4. Validate the learning against `agf/schemas/learning.schema.json` and run
+   the InfoSec/anonymization check once the corresponding Mix tasks ship.
 5. Submit a merge request. The framework maintainer will review.
 
 Your project's real name is never used — only the codename. See

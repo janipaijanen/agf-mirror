@@ -11,7 +11,8 @@ place and understand the single supported v2.0 layout.*
   (the reference implementation targets Claude Code; the rule content is
   tool-agnostic and has been tested with Cursor, Codex CLI, Copilot, and
   Windsurf).
-- Python 3.x available if you want to run the validators locally and in CI.
+- Elixir and Mix available if you want to run the current validators locally
+  and in CI.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 

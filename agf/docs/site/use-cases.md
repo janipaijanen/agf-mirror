@@ -16,8 +16,8 @@ human would provide.
 Adopters in the evidence base (e.g. *silver-birch*, *copper-rapids*)
 used the rule library to make existing conventions — migration hygiene,
 test tiers, CI scoping — binding on assistants across Elixir and Python
-stacks. The value is consistency: the assistant follows the same written
-rules in every session.
+application stacks. The value is consistency: the assistant follows the same
+written rules in every session.
 
 **Projects with audit or compliance pressure.**
 The append-only coordination channel and audit-log rules give projects
