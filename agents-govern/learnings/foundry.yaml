@@ -174,7 +174,7 @@ learnings:
       because it correctly matched the plan. Recorded as a learning candidate
       per seq 14 handoff.
     framework_impact: medium
-    status: proposed
+    status: accepted
     recommendation: >
       Add a Gate 1 status check to the coder-tester's pre-implementation
       checklist: before starting implementation, verify the plan file's status
@@ -403,6 +403,51 @@ learnings:
       session-scoped and agent-specific. Move the existing 14 plan files from
       `.claude/plans/` to `docs/plans/` and commit. Create `docs/plans/` if it
       does not exist.
+
+  - id: L009
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, planner-architect]
+    summary: >
+      Coordination messages that are intended to route work between agents can
+      be hidden from active agents when they are committed only on side
+      branches that the receiving agent is not polling.
+    detail: >
+      Codex created seq 153, a handoff asking planner-architect / Claude to
+      review and argue with a customer-success experience assessment of the
+      v2.0 public documentation. The handoff was committed on
+      `plan/public-docs-customer-success-review`, not on `master`. A separate
+      Codex session or Claude session watching `master` would not see
+      `docs/coordination/00153-coder-tester.md` through ordinary filesystem
+      polling, even though the message was specifically meant to route work to
+      another agent.
+
+      The immediate workaround was seq 154, a visibility-bridge note written
+      on `master`, pointing agents to the side branch and the exact `git show`
+      commands needed to inspect seq 153 and the associated proposal. That made
+      the hidden message discoverable, but the need for a bridge exposed the
+      underlying rule gap.
+
+      This is distinct from L005 (uncommitted governance artifacts) and L007
+      (wrong-branch durable writes). A message can be committed and on the
+      intended feature branch, yet still fail as coordination if the intended
+      recipient's polling surface is `master`. Coordination messages are not
+      ordinary implementation artifacts; they are asynchronous routing and
+      shared-state artifacts. Their visibility requirements are therefore
+      stricter than the visibility requirements of branch-local design or code
+      changes.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Add a coordination-visibility rule: any coordination message that creates
+      an obligation for another agent or human must be visible on the branch
+      that recipient is expected to poll, or must be paired immediately with a
+      visible bridge note on that branch. Branch-local coordination is allowed
+      only for messages whose audience is explicitly limited to that branch's
+      reviewers and whose discovery path is named in an already-visible
+      message. Gate handoffs, cross-agent review requests, and human decisions
+      should not be hidden solely on side branches unless the recipient has
+      been told where to look.
 
   - id: L010
     date: "2026-06-13"
