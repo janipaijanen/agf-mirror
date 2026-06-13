@@ -14,7 +14,10 @@ site_description: >-
   review gates, an append-only coordination channel, and an
   evidence-driven learning system.
 site_author: Jani Päijänen
-copyright: CC BY-SA 4.0
+copyright: >-
+  Copyright (c) 2026 Jani Päijänen.
+  Documentation and framework content licensed CC BY-SA 4.0;
+  software tooling licensed MIT.
 
 docs_dir: ../site
 site_dir: ../../site-html
@@ -23,6 +26,9 @@ theme:
   name: mkdocs
 
 strict: true
+
+hooks:
+  - hooks/release_info.py
 
 # content-plan.md is a planning control artifact, not a site page.
 exclude_docs: |
@@ -53,4 +59,5 @@ nav:
   - Reference:
       - Visual palette: reference/palette.md
       - Figures: reference/figures.md
+      - Release information: reference/release-info.md
   - Evolution: future/evolution.md

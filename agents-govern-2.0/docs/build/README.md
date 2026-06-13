@@ -17,6 +17,11 @@ The deferral is a governance decision (coordination seq 107): polish-heavy
 figure and PDF work waits until the directory structure and the site
 pipeline are stable.
 
+The HTML build generates `docs/site/reference/release-info.md` at build time.
+That page records the framework version from `VERSION`, the source git commit,
+build timestamp, copyright, and license split. It is intentionally generated so
+CI-published documentation points at the commit that actually produced it.
+
 ## Building the site locally
 
 ```bash
