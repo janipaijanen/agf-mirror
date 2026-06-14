@@ -677,6 +677,47 @@ learnings:
       active collisions from explicitly superseded/documented incidents, but
       should not silently ignore either class.
 
+  - id: L016
+    date: "2026-06-14"
+    category: gap
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      Merged Gate 2 handoffs can remain pending unless a later resolver record
+      explicitly references the handoff file.
+    detail: >
+      After GitLab MR !3 and MR !4 were merged and their source branches were
+      deleted, `mix agov.session.resume --base-branch main` still reported
+      seq 327 and seq 329 as pending governor-reviewer handoffs. The GitLab
+      merge state was correct, and the implementation work had landed on
+      `main`, but the coordination channel had no later `decision-record`,
+      `completion`, or `ack` referencing `00327-coder-tester.md` or
+      `00329-coder-tester.md`.
+
+      The handoff tracker was behaving correctly according to its protocol:
+      handoff resolution is a coordination-channel fact, not an inference from
+      GitLab merge state. The process gap was that merge completion did not
+      create a resolver record. Coder-tester filed seq 330 as a completion
+      record referencing both handoffs; with that record present,
+      `mix agov.session.resume --base-branch main` no longer reported seq 327
+      or seq 329 as pending.
+
+      This is distinct from L015. L015 concerns duplicate sequence numbers and
+      branch-local coordination collisions before or during merge. L016
+      concerns post-merge queue hygiene: a handoff can be schema-valid,
+      correctly reviewed, and merged, yet remain operationally pending until a
+      later resolver record closes it.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add a lightweight merge/push guardrail for handoff closure. The first
+      implementation should be warn-only: after merge, and before pushing a
+      branch that adds Gate 2 handoffs, run `mix agov.session.resume
+      --base-branch main` or a narrower handoff-resolution check and report
+      any handoff whose MR has been merged but lacks a later resolver record.
+      A future tracked git hook can implement this as a pre-push or post-merge
+      check, but it must chain existing Git LFS hooks safely and remain
+      advisory until the rule authority for blocking behavior is explicit.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
