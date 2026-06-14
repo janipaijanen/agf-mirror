@@ -62,6 +62,30 @@ completion or learning.
   sequence-guard rule says: name the break, ask for explicit
   confirmation, and only then proceed.
 
+## Context hygiene
+
+Long AI sessions become expensive and less reliable as context grows. AGF
+treats durable project artifacts as shared memory, not chat history.
+
+Before compacting, clearing, switching tasks, or handing work to another
+agent, write or request a short durable state note when the task is
+non-trivial. The note should identify:
+
+- current branch and latest relevant commit;
+- files or artifacts changed;
+- validations run and their result;
+- open decisions or blockers;
+- the next concrete action;
+- coordination records or plans the next agent must read.
+
+Prefer references to repository files over restating large content in chat.
+Coordination records, plans, reviews, and generated summaries are the source of
+continuity. Use compaction during long tasks after state has been externalized,
+and clear the session when switching to an unrelated task.
+
+Do not rely on an AI session's private conversation memory for governance
+decisions, approvals, or obligations.
+
 ## Multi-agent sessions
 
 When more than one assistant works the repository concurrently:
