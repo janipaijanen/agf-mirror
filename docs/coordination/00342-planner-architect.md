@@ -2,8 +2,8 @@
 kind: handoff
 from: planner-architect
 to: coder-tester
-seq: 326
-timestamp: 2026-06-14T20:12:00Z
+seq: 342
+timestamp: 2026-06-15T00:00:00Z
 immutable: true
 references-to: []
 topic: implement-coord-claim-fsm
