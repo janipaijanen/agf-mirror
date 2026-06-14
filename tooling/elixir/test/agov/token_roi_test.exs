@@ -190,7 +190,8 @@ defmodule Agov.TokenRoiTest do
   end
 
   defp tmp_log_path do
-    Path.join(System.tmp_dir!(), "agov_token_roi_#{System.unique_integer([:positive])}.jsonl")
+    unique = "#{System.system_time(:nanosecond)}_#{System.unique_integer([:positive])}"
+    Path.join(System.tmp_dir!(), "agov_token_roi_#{unique}.jsonl")
   end
 
   defp restore_env(key, nil), do: System.delete_env(key)

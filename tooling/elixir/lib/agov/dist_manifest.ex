@@ -32,16 +32,29 @@ defmodule Agov.DistManifest do
   def build(manifest_path \\ @default_manifest, opts \\ []) do
     with {:ok, spec} <- validate(manifest_path, opts),
          :ok <- File.mkdir_p(Path.join(spec.root, spec.package["output_dir"] || "dist")),
-         :ok <- write_archives(spec) do
-      {:ok, spec}
+         :ok <- write_archives(spec),
+         {:ok, checksums} <- write_checksums(spec),
+         {:ok, provenance_path} <- write_provenance(spec, checksums) do
+      {:ok, Map.merge(spec, %{checksums: checksums, provenance_path: provenance_path})}
     end
   end
 
   def format_summary({:ok, spec}) do
     outputs =
       spec.outputs
-      |> Enum.map(fn {_format, path} -> "  - #{Path.relative_to(path, spec.root)}" end)
+      |> Enum.map(fn {format, path} ->
+        checksum = spec[:checksums] && Map.get(spec[:checksums], format)
+        suffix = if checksum, do: " (sha256: #{checksum})", else: ""
+        "  - #{Path.relative_to(path, spec.root)}#{suffix}"
+      end)
       |> Enum.join("\n")
+
+    provenance =
+      if spec[:provenance_path] do
+        "\nProvenance: #{Path.relative_to(spec[:provenance_path], spec.root)}"
+      else
+        ""
+      end
 
     """
     OK  release manifest valid
@@ -49,7 +62,7 @@ defmodule Agov.DistManifest do
     Package:  #{spec.package["name"]} #{spec.version}
     Files:    #{length(spec.files)}
     Outputs:
-    #{outputs}
+    #{outputs}#{provenance}
     """
     |> String.trim_trailing()
   end
@@ -306,6 +319,68 @@ defmodule Agov.DistManifest do
     |> case do
       {:ok, _} -> :ok
       {:error, reason} -> {:error, ["could not write zip archive: #{inspect(reason)}"]}
+    end
+  end
+
+  defp write_checksums(spec) do
+    Enum.reduce_while(spec.outputs, {:ok, %{}}, fn {format, archive_path}, {:ok, acc} ->
+      with {:ok, hex} <- sha256_file(archive_path),
+           basename = Path.basename(archive_path),
+           :ok <- File.write(archive_path <> ".sha256", "#{hex}  #{basename}\n") do
+        {:cont, {:ok, Map.put(acc, format, hex)}}
+      else
+        {:error, reason} ->
+          {:halt, {:error, ["could not write checksum for #{format}: #{inspect(reason)}"]}}
+      end
+    end)
+  end
+
+  defp sha256_file(path) do
+    case File.read(path) do
+      {:ok, content} ->
+        {:ok, :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp write_provenance(spec, checksums) do
+    output_dir = Path.join(spec.root, spec.package["output_dir"])
+    base = String.replace(spec.package["basename"], "{{version}}", spec.version)
+    provenance_path = Path.join(output_dir, base <> "-provenance.json")
+
+    checksums_by_basename =
+      Map.new(checksums, fn {format, hex} ->
+        {Path.basename(spec.outputs[format]), hex}
+      end)
+
+    archive_basenames =
+      spec.outputs |> Map.values() |> Enum.map(&Path.basename/1) |> Enum.sort()
+
+    provenance = %{
+      "version" => spec.version,
+      "source_commit" => System.get_env("CI_COMMIT_SHA", "unknown"),
+      "tag" => System.get_env("CI_COMMIT_TAG") || "untagged",
+      "build_timestamp" => DateTime.utc_now() |> DateTime.to_iso8601(),
+      "pipeline_identity" => %{
+        "pipeline_id" => System.get_env("CI_PIPELINE_ID", "unknown"),
+        "job_id" => System.get_env("CI_JOB_ID", "unknown")
+      },
+      "manifest_path" => Path.relative_to(spec.manifest_path, spec.root),
+      "archive_filenames" => archive_basenames,
+      "checksums" => checksums_by_basename
+    }
+
+    case Jason.encode(provenance, pretty: true) do
+      {:ok, json} ->
+        case File.write(provenance_path, json <> "\n") do
+          :ok -> {:ok, provenance_path}
+          {:error, reason} -> {:error, ["could not write provenance: #{inspect(reason)}"]}
+        end
+
+      {:error, reason} ->
+        {:error, ["could not encode provenance JSON: #{inspect(reason)}"]}
     end
   end
 
