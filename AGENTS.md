@@ -35,15 +35,13 @@ to govern this project's own development (Layout B). It is **not** the product
 being built — it is the governance tool currently in use.
 
 Treat it as legacy/bootstrap: avoid making product changes there unless
-explicitly directed. The two currently permitted exception paths are:
-- `agents-govern/agents/MANIFEST.yaml` — agent status changes, governor-reviewer approval required
+explicitly directed. The currently permitted exception path is:
 - `agents-govern/learnings/foundry.yaml` — learning records, append-only
 
-**Role authority note:** `agents-govern/agents/MANIFEST.yaml` is the current
-bootstrap authority for active agents and role status. Where the non-legacy role
-authority will live in AGF-NG itself (a local manifest, a spec file, or this
-README) is an open question tracked in `docs/coordination/00013-planner-architect.md`.
-Until that is resolved, MANIFEST.yaml is authoritative.
+**Role authority note:** `agf/agents/MANIFEST.yaml` is the current AGF-NG
+project role authority for active agents and role status. Agent status changes
+require governor-reviewer approval. `agents-govern/agents/MANIFEST.yaml`
+remains historical bootstrap reference material only.
 
 The adopter-facing product is in `agf/`. Foundry tooling sources are in
 `tooling/`.
@@ -59,15 +57,21 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | governor-reviewer | Jani (human) | Gate 1 approval, Gate 2 merge, all binding decisions |
 | contribution-auditor | Jani + claude | Reviews plans and proposals; filed as coordination messages |
 | infosec-sentinel | CI (agov-validate-infosec) | Mechanically blocks configured checks on credential or cross-record leaks in learnings; governor-reviewer resolves the finding |
+| fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
+| academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
 
-Suspended: build-engineer (no CI yet), fact-checker, capability-developer.
-Skipped: documentation-writer, deployment-engineer, academic-peer-reviewer.
+Suspended: build-engineer (no CI pipeline yet), capability-developer.
+Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
-Authoritative status: `agents-govern/agents/MANIFEST.yaml` (bootstrap, see note above).
+Authoritative status: `agf/agents/MANIFEST.yaml`.
 
 Tooling and CI may block progress mechanically when configured to do so, but
 they do not approve or reject governance gates. Binding Gate 1 and Gate 2
 decisions remain governor-reviewer decisions recorded in coordination.
+
+**Automation rule:** A tool or CI check may only block work when a named rule
+in `agf/rules/` explicitly grants that check blocking authority. All other
+tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-rule.md`.
 
 ---
 
@@ -193,10 +197,10 @@ mix agov.handoff.next planner-architect   # run from tooling/elixir/
 mix agov.coord.visibility --base-branch master
 ```
 
-**Snapshot (2026-06-11):** Three tasks merged to master (T1-1 Phase A, T1-1 Phase B,
-T1-3). T2-5 (advisory consultation gate) is on `feat/T2-5-advisory-consultation-gate`
-awaiting Gate 2. A README cleanup proposal for `docs/coordination/README.md` is
-tracked in seq 13 as a separate follow-on.
+**Snapshot (2026-06-14):** `agf/agents/MANIFEST.yaml` is the AGF-NG role
+authority. GitLab upstream is available at
+`https://gitlab.com/janipaijanen/agents-govern-framework.git`; current feature
+work is tracked on branches and coordinated through `docs/coordination/`.
 
 ---
 
