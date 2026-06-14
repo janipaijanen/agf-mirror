@@ -60,7 +60,7 @@ pages:
   extends: .mkdocs-base
   stage: deploy
   script:
-    - mkdocs build -f agf/docs/build/mkdocs.yml --strict --site-dir public
+    - mkdocs build -f agf/docs/build/mkdocs.yml --strict --site-dir ../../../public
   artifacts:
     paths:
       - public
