@@ -275,7 +275,15 @@ def validate_plan(data: dict[str, Any]) -> list[str]:
     return errors
 
 
-def validate_files(paths: list[str], validator) -> int:
+def advisory_coord(data: dict[str, Any]) -> list[str]:
+    """Return advisory (non-blocking) warnings for a parsed coordination message."""
+    warnings: list[str] = []
+    if not data.get("model"):
+        warnings.append("recommended field 'model' not set; provenance tracking is weaker without it")
+    return warnings
+
+
+def validate_files(paths: list[str], validator, advisory=None) -> int:
     exit_code = 0
     for raw_path in paths:
         path = Path(raw_path)
@@ -288,6 +296,9 @@ def validate_files(paths: list[str], validator) -> int:
             for error in errors:
                 print(f"    {error}", file=sys.stderr)
         else:
+            if advisory is not None and data is not None:
+                for warning in advisory(data):
+                    print(f"WARN severity: advisory {raw_path}: {warning}")
             print(f"OK  severity: blocking {raw_path}")
 
     return exit_code
@@ -325,7 +336,7 @@ def main(argv: list[str]) -> int:
 
     try:
         if args.area == "coord" and args.command == "validate":
-            return validate_files(args.files, validate_coord)
+            return validate_files(args.files, validate_coord, advisory=advisory_coord)
         if args.area == "plan" and args.command == "validate":
             return validate_files(args.files, validate_plan)
     except RuntimeError as exc:

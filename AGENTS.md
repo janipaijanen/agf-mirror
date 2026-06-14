@@ -69,6 +69,10 @@ Tooling and CI may block progress mechanically when configured to do so, but
 they do not approve or reject governance gates. Binding Gate 1 and Gate 2
 decisions remain governor-reviewer decisions recorded in coordination.
 
+**Automation rule:** A tool or CI check may only block work when a named rule
+in `agf/rules/` explicitly grants that check blocking authority. All other
+tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-rule.md`.
+
 ---
 
 ## Coordination channel

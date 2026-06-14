@@ -35,20 +35,24 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
 
   defp validate_and_report(path) do
     case Agov.CoordValidator.validate_file(path) do
-      {:ok, _data} ->
-        Mix.shell().info("OK  #{path}")
+      {:ok, data} ->
+        Enum.each(Agov.CoordValidator.advisory_findings(data), fn msg ->
+          Mix.shell().info("WARN severity: advisory #{path}: #{msg}")
+        end)
+
+        Mix.shell().info("OK  severity: blocking #{path}")
         :ok
 
       {:error, :file_not_found} ->
-        Mix.shell().error("ERR #{path}: file not found")
+        Mix.shell().error("ERR severity: blocking #{path}: file not found")
         :error
 
       {:error, :no_frontmatter} ->
-        Mix.shell().error("ERR #{path}: no YAML front matter found")
+        Mix.shell().error("ERR severity: blocking #{path}: no YAML front matter found")
         :error
 
       {:error, errors} when is_list(errors) ->
-        Mix.shell().error("ERR #{path}:")
+        Mix.shell().error("ERR severity: blocking #{path}:")
 
         Enum.each(errors, fn {msg, path_str} ->
           Mix.shell().error("    #{path_str}: #{msg}")
@@ -57,7 +61,7 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
         :error
 
       {:error, reason} ->
-        Mix.shell().error("ERR #{path}: #{inspect(reason)}")
+        Mix.shell().error("ERR severity: blocking #{path}: #{inspect(reason)}")
         :error
     end
   end

@@ -1,12 +1,36 @@
 defmodule Agov.CoordValidator do
   @moduledoc false
 
+  # Backing rule for blocking authority: agf/rules/always/tool-authority-boundary-rule.md
+  # Schema: agf/schemas/coordination-message.schema.json
+
   def validate_file(path) do
     with {:ok, content} <- read_file(path),
          {:ok, yaml_str} <- extract_frontmatter(content),
          {:ok, data} <- parse_yaml(yaml_str),
          :ok <- validate_against_schema(data) do
       {:ok, data}
+    end
+  end
+
+  @doc """
+  Returns a list of advisory warning strings for a parsed coordination message.
+
+  Advisory findings do not affect exit codes or block work. They surface
+  recommended practices that are not enforced by the schema.
+  """
+  def advisory_findings(data) when is_map(data) do
+    []
+    |> check_model_field(data)
+  end
+
+  defp check_model_field(findings, data) do
+    case Map.get(data, "model") do
+      nil ->
+        ["recommended field 'model' not set; provenance tracking is weaker without it" | findings]
+
+      _ ->
+        findings
     end
   end
 
