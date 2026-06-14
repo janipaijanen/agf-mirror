@@ -12,6 +12,7 @@ build/
 .env
 .env.*
 *.env
+.netrc
 
 # Elixir
 tooling/elixir/_build/
