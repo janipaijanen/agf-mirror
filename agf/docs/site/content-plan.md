@@ -35,7 +35,7 @@ topic — so no reader commits without seeing the cost and the way out.
 | 11 | `docs/concepts/evidence-and-learnings.md` | Operating | Intermediate | Write a learning record; distinguish upstream vs adopter-owned | 10 | evidence-lifecycle | foundry.yaml replace-on-upgrade behavior |
 | 12 | `docs/operate/day-to-day.md` | Operating | Intermediate | Run the daily loop: claims, handoffs, gates, completions | 10 | governance-loop | — |
 | 13 | `docs/operate/review-and-release.md` | Operating | Intermediate | Conduct Gate 2, release via MR, upgrade, keep audit trail | 12 | gate-pipeline | Release steps match release-via-merge-request rule |
-| 14 | `docs/advanced/contracts-and-validators.md` | Advanced | Advanced | Wire schemas + `mix agov.*` checks into their CI | 10 | — | Validator names match Mix tasks |
+| 14 | `docs/advanced/contracts-and-validators.md` | Advanced | Advanced | Wire schemas + `agov` checks into their CI | 10 | — | Validator names match current tooling |
 | 15 | `docs/advanced/customizing-the-framework.md` | Advanced | Advanced | Know what may be tuned vs what breaks contract semantics | 14 | — | Boundaries match contract-stability.md |
 | 16 | `future/evolution.md` | All | Future | Distinguish shipped capability from non-binding hypotheses | None | — | Every item labelled Provisional/hypothesis |
 

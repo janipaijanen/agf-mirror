@@ -8,19 +8,26 @@ and how to wire validation into your pipeline.*
 ## What is under contract
 
 The framework uses validator commands: command-line checks that read the
-governance files and fail when the files no longer match their contracts.
-For adopters, the public command surface is `agf ...`; the current reference
-implementation delegates to Elixir Mix tasks under `tooling/elixir/`. The
-[tooling conformance](../../reference/tooling-conformance.md) reference
-defines how future Python, Rust, Ruby, C, C++, Julia, or other implementations
-can be considered AGF-compatible. Table 1 summarizes the main contracted
-artifacts, the shipped checks, and the checks still treated as contract targets
-rather than finished tooling.
+governance files and fail when the files no longer match their contracts. The
+current foundry operator command is `agov`. It provides bootstrap validation
+for coordination messages and Gate 1 plans, while the Elixir Mix tasks under
+`tooling/elixir/` remain the reference/development implementation for the wider
+command set. The [tooling conformance](../../reference/tooling-conformance.md)
+reference defines how future implementations can be considered AGF-compatible.
+Table 1 summarizes the main contracted artifacts, the shipped checks, and the
+checks still treated as contract targets rather than finished tooling.
+
+Contracts define what tooling may check; they do not make tooling the
+governor. A validator failure becomes a blocking gate only when a named AGF
+rule, contract, CI policy, or recorded governor decision says that check is
+blocking. Otherwise the result is advisory evidence for the responsible role.
+This distinction lets teams add useful automation without accidentally giving a
+script authority the framework never granted.
 
 | Artifact | Contract | Checked by |
 |---|---|---|
-| Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
-| Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agf plan validate` |
+| Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agov coord validate` |
+| Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agov plan validate` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `agf coord visibility` |
 | Release artifact contents | Manifest-driven source archive allowlist and forbidden-path policy | `mix agov.dist.validate` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
@@ -32,6 +39,25 @@ The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped
 capability. If your project builds one of the missing validators, that is a
 contribution upstream wants.
+
+## Advisory and blocking checks
+
+Every validator integration should answer two questions:
+
+| Question | Required answer |
+|---|---|
+| What artifact is being checked? | Path pattern and schema or rule reference |
+| Is failure advisory or blocking? | `advisory` unless a named rule or decision grants blocking authority |
+
+Good CI job names make the authority visible:
+
+- `advisory:agf-coordination-review` for a non-blocking report.
+- `blocking:agf-coordination-schema` when the coordination schema is a required gate.
+
+Do not turn every useful warning into a blocker. Advisory checks are valuable:
+they let evaluators, reviewers, and local models surface friction without
+stalling work. Reserve blocking checks for violations that the project has
+explicitly decided must stop a merge or release.
 
 ## The stability promise
 
@@ -56,25 +82,23 @@ validate-governance:
   variables:
     # Set only if this disposable runner image executes jobs as UID 0.
     AGOV_ALLOW_ROOT: "1"
-  before_script:
-    - cd tooling/elixir && mix deps.get && mix compile --warnings-as-errors && cd ../..
   script:
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/[0-9][0-9][0-9][0-9][0-9]-*.md' | xargs -0r ./bin/agf coord validate
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' | xargs -0r ./bin/agf plan validate
+    - ln -sfn "$PWD/tooling/agov" /usr/local/bin/agov
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/[0-9][0-9][0-9][0-9][0-9]-*.md' | xargs -0r agov coord validate
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' | xargs -0r agov plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Adapt the runner image and invocation to your stack. The `agf` wrapper is the
-downstream-facing command; Mix remains the reference implementation detail.
-When using Elixir 1.20 or newer, compile warnings include the compiler's
-built-in type inference and gradual type-checking findings, so
-`mix compile --warnings-as-errors` is part of the gate rather than a cosmetic
-lint step. The current reference tooling is Mix-based and pinned in foundry's
-`mise.toml`; a release archive containing only `agf/` has schemas and templates,
-but not the current Mix task implementation. If your runner intentionally
-executes as UID 0, use the documented root override from the
-[environment variable reference](../../reference/environment-variables.md).
+Adapt the runner image and invocation to your stack. `agov` is the current
+foundry operator command for core validation. Mix remains the
+reference/development implementation for commands not yet wrapped by `agov`.
+The current reference tooling is pinned in foundry's `mise.toml`; a release
+archive containing only `agf/` has schemas and templates, but not the current
+tooling implementation. If your runner intentionally executes as UID 0, use the
+documented root override for Mix tasks from the
+[environment variable reference](../../reference/environment-variables.md);
+the repo-local `agov` executable does not currently implement that root guard.
 Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a

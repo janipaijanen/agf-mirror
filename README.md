@@ -29,13 +29,19 @@ Wait or skip when:
 
 | Path | Meaning |
 |---|---|
-| `agf/` | The adopter-facing AGF v2 distribution: roles, rules, schemas, docs, templates |
-| `tooling/elixir/` | Current `agov` Mix tasks and validators |
+| `agf/` | The adopter-facing AGF v2 product: roles, rules, schemas, docs, templates |
+| `tooling/` | Implementation tooling for validation, build, release, and conformance checks |
 | `docs/` | This repository's own governed work: plans, coordination, proposals |
 | `agents-govern/` | Legacy/bootstrap v1.x reference used to govern this repo; not the v2 product |
 | `AGENTS.md` | Contributor and agent orientation for this repository |
 
 For product evaluation, start in `agf/`, not `agents-govern/`.
+
+`tooling/` helps exercise the framework, but it is not the source of
+governance authority. The normative files live in `agf/` and the binding
+decisions come from the roles and gates recorded in the coordination channel.
+Tool output is evidence; it becomes blocking only when a named AGF rule or
+governor decision makes that check blocking.
 
 ## Five-minute path
 
@@ -61,9 +67,21 @@ Default POC layout:
 | Working plans | `docs/plans/` |
 | Coordination channel | `docs/coordination/` |
 | Learning record | `agf/learnings/<codename>.yaml` |
-| Current validators | `tooling/elixir/` from a full checkout |
+| Current core validators | `agov` from a full checkout |
 
-The current validator tooling is Mix-based and lives outside the `agf/`
-distribution. A release-archive-only adopter can use the framework docs and
-templates, but needs the full repository checkout or a future packaged `agov`
-tooling distribution to run the current validators.
+The current `agov` executable lives outside the `agf/` distribution. A
+release-archive-only adopter can use the framework docs and templates, but
+needs the full repository checkout or a future packaged `agov` tooling
+distribution to run the current core validators.
+
+## Safety and independence
+
+Only run AI agents and tooling on systems, repositories, and data where you
+have the necessary authorization. AGF guidance is not legal, security, or
+compliance advice; it is a governance framework you must adapt to your own
+context.
+
+AGF-NG is developed independently. The project has not received external
+funding from, and has no dependency or endorsement relationship with, the
+companies or brands whose tools, models, or runtimes may be discussed in the
+documentation.

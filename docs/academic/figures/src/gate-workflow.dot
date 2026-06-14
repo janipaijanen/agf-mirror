@@ -1,0 +1,56 @@
+digraph gate_workflow {
+  graph [
+    rankdir=LR,
+    bgcolor="transparent",
+    pad=0.22,
+    nodesep=0.48,
+    ranksep=0.65,
+    fontname="Helvetica",
+    label="Gate 1 / Gate 2 workflow",
+    labelloc=t,
+    fontsize=18,
+    fontcolor="#1F2933"
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="Helvetica",
+    fontsize=10.5,
+    color="#536471",
+    penwidth=1.3,
+    fillcolor="#EEF2F4",
+    fontcolor="#1F2933",
+    margin="0.10,0.07"
+  ];
+
+  edge [
+    fontname="Helvetica",
+    fontsize=9,
+    color="#536471",
+    fontcolor="#536471",
+    arrowsize=0.72,
+    penwidth=1.25
+  ];
+
+  idea [label="Change\nidea"];
+  plan [label="Gate 1\nplan"];
+  advisory [label="Advisory\nconsultation", fillcolor="#E7F3F3", color="#2A7F7F"];
+  decision1 [label="Governor\nGate 1 decision", fillcolor="#FFF5DE", color="#C89B3C"];
+  branch [label="Scoped\nfeature branch"];
+  validate [label="Tests and\nvalidators", fillcolor="#F6ECE6", color="#B66A3C"];
+  review [label="Gate 2\nreview"];
+  merge [label="Merge to\nmaster", fillcolor="#E7F3F3", color="#2A7F7F"];
+  rework [label="Reject or\nrework", fillcolor="#FDECEC", color="#B42318"];
+
+  idea -> plan;
+  plan -> advisory;
+  advisory -> decision1;
+  decision1 -> branch [label="approved"];
+  decision1 -> rework [label="not approved"];
+  branch -> validate;
+  validate -> review;
+  review -> merge [label="approved"];
+  review -> rework [label="changes needed"];
+  rework -> plan [label="revise", style=dashed];
+}

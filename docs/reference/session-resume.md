@@ -37,9 +37,17 @@ Also run it after:
 - context compaction;
 - receiving a coordination message that says the queue changed.
 
+Before deliberately compacting, clearing, or handing a non-trivial task to
+another model, externalize state first. A durable note, handoff, review, or
+completion should name the branch, latest relevant commit, changed files,
+validation results, open blockers, next concrete action, and must-read
+coordination or plan files. Session memory is never the authority for a
+governance decision or obligation.
+
 ## Command
 
-Run from the Mix project:
+Session resume is not yet wrapped by the repo-local `agov` executable. Run it
+from the Mix project:
 
 ```bash
 cd tooling/elixir
@@ -98,6 +106,12 @@ Treat the output as a pre-flight briefing, not as permission to proceed.
 
 If the output conflicts with session memory, trust the files and git state over
 memory.
+
+For long sessions, preserve context deliberately. Prefer reading named files to
+carrying large excerpts in prompt history. When context is high, write a short
+state note before compaction. When switching to an unrelated task, clear the
+session only after the current task's state is durable enough for a cold-starting
+agent to resume.
 
 ### Coordination Visibility And L009
 

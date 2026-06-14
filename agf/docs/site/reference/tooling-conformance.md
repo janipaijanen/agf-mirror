@@ -3,9 +3,11 @@
 *Status: Draft AGF v2 contract.*
 
 AGF defines contracts, not a sacred implementation language. The current
-Elixir tooling is the reference implementation, but future Python, Rust, Ruby,
-C, C++, Julia, or other implementations can be AGF-compatible if they conform
-to the same command behavior, schemas, exit codes, and conformance fixtures.
+foundry operator entrypoint is `agov` for bootstrap validation, and the Elixir
+tooling is the reference/development implementation for the wider command set.
+Future Python, Rust, Ruby, C, C++, Julia, or other implementations can be
+AGF-compatible if they conform to the same command behavior, schemas, exit
+codes, and conformance fixtures.
 
 ## Compatibility terms
 
@@ -16,22 +18,24 @@ to the same command behavior, schemas, exit codes, and conformance fixtures.
 | Experimental implementation | Useful for evaluation, but not yet passing the conformance suite. |
 | Not verified for AGF v2 | Inherited, partial, or third-party tooling with no current AGF v2 conformance result. |
 
-## Public CLI surface
+## Current and Target CLI Surface
 
-The long-term adopter interface is the `agf` command. Mix tasks are developer
-and reference-implementation internals.
+The current foundry operator command is `agov`. The long-term adopter-facing
+interface may become `agf`; Mix tasks are developer and
+reference-implementation internals. Only the two bootstrap validation commands
+are currently wrapped by the repo-local `agov` executable.
 
-| Public command | Reference command |
-|---|---|
-| `agf coord validate <file>...` | `mix agov.coord.validate <file>...` |
-| `agf coord status [args...]` | `mix agov.coord.status [args...]` |
-| `agf coord stale [args...]` | `mix agov.coord.stale [args...]` |
-| `agf coord visibility [args...]` | `mix agov.coord.visibility [args...]` |
-| `agf coord brief [args...]` | `mix agov.coord.brief [args...]` |
-| `agf plan validate <file>...` | `mix agov.plan.validate <file>...` |
-| `agf handoff next <role> [args...]` | `mix agov.handoff.next <role> [args...]` |
-| `agf session resume [args...]` | `mix agov.session.resume [args...]` |
-| `agf usage report [args...]` | `mix agov.usage.report [args...]` |
+| Current operator command | Long-term public command | Reference command |
+|---|---|---|
+| `agov coord validate <file>...` | `agf coord validate <file>...` | `mix agov.coord.validate <file>...` |
+| `agov plan validate <file>...` | `agf plan validate <file>...` | `mix agov.plan.validate <file>...` |
+| not wrapped yet | `agf coord status [args...]` | `mix agov.coord.status [args...]` |
+| not wrapped yet | `agf coord stale [args...]` | `mix agov.coord.stale [args...]` |
+| not wrapped yet | `agf coord visibility [args...]` | `mix agov.coord.visibility [args...]` |
+| not wrapped yet | `agf coord brief [args...]` | `mix agov.coord.brief [args...]` |
+| not wrapped yet | `agf handoff next <role> [args...]` | `mix agov.handoff.next <role> [args...]` |
+| not wrapped yet | `agf session resume [args...]` | `mix agov.session.resume [args...]` |
+| not wrapped yet | `agf usage report [args...]` | `mix agov.usage.report [args...]` |
 
 ## Exit codes
 

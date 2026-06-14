@@ -1,21 +1,99 @@
-# Agov
+# AGF Tooling
 
-**TODO: Add description**
+`tooling/` contains AGF-NG validation and operator support. `tooling/agov` is
+the repo-local executable for bootstrap validation. `tooling/elixir/` contains
+the Elixir reference implementation for the wider command set.
 
-## Installation
+The tooling is implementation support. It validates and summarizes governance
+artifacts, but it is not the source of governance authority. Authority lives in
+`agf/` rules and schemas, in role decisions, and in the coordination record.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `agov` to your list of dependencies in `mix.exs`:
+## User-local entrypoint
 
-```elixir
-def deps do
-  [
-    {:agov, "~> 0.1.0"}
-  ]
-end
+Use the `agov` command for core validation:
+
+```bash
+agov coord validate docs/coordination/<file>.md
+agov plan validate docs/plans/<file>.md
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/agov>.
+In this checkout, `agov` is a user-local symlink to the repo executable. To set
+that up in another checkout:
 
+```bash
+mkdir -p ~/.local/bin
+ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
+agov plan validate docs/plans/<file>.md
+```
+
+The executable currently covers core coordination and Gate 1 plan validation,
+including dotted compatibility aliases:
+
+```bash
+agov agov.coord.validate docs/coordination/<file>.md
+agov agov.plan.validate docs/plans/<file>.md
+```
+
+It is a compatibility layer for the reference implementation below, not a
+separate source of governance authority.
+
+## What The Mix Tooling Checks
+
+Run commands from this directory unless noted otherwise:
+
+```bash
+cd tooling/elixir
+```
+
+| Command | Purpose |
+|---|---|
+| `mix agov.coord.validate ../../docs/coordination/<file>.md` | Validate coordination message front matter |
+| `mix agov.plan.validate ../../docs/plans/<file>.md` | Validate Gate 1 plan front matter and advisory consultation fields |
+| `mix agov.session.resume --base-branch master` | Cold-start briefing: roles, pending handoffs, project map |
+| `mix agov.session.resume --role <role> --base-branch master` | Role-specific resume before acting |
+| `mix agov.handoff.next <role>` | Find the next pending handoff for a role |
+| `mix agov.coord.visibility --base-branch master` | Detect coordination messages hidden on non-master branches |
+| `mix agov.dist.validate <path>` | Validate release distribution contents where available |
+
+## Setup
+
+In this repository, `mise.toml` pins the Elixir/Erlang toolchain:
+
+```bash
+mise install
+cd tooling/elixir
+mix deps.get
+mix test
+```
+
+If you are using a release archive that contains only `agf/`, this Mix project
+is not included. Use a full repository checkout or a future packaged `agov`
+tooling distribution when you need validators.
+
+## Authority Boundary
+
+Tool output is evidence. It becomes a blocking gate only when a named AGF rule,
+contract, CI policy, or recorded governor decision says that check is blocking.
+
+Examples:
+
+- Coordination schema validation may be blocking for files committed to
+  `docs/coordination/` if the project has adopted that gate.
+- A branch visibility report is usually advisory until the governor decides how
+  to reconcile the hidden coordination messages.
+- A session resume summary is a briefing, not permission to proceed.
+
+When adding a new validator, document:
+
+1. the artifact path it checks;
+2. the rule, schema, or contract it implements;
+3. whether failures are advisory or blocking;
+4. at least one valid fixture and one invalid fixture.
+
+## Safety
+
+Run AGF tooling only on repositories and systems where you have authorization.
+Do not feed private project names, credentials, customer data, or regulated data
+into external AI systems unless your project policy permits it. Local tooling
+does not remove the need for human review before commits, merges, releases, or
+history-rewriting operations.

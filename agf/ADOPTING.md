@@ -14,6 +14,8 @@ For the theory behind each step, see framework.md. This document is the practice
 > pre-flight checks and backups. You are responsible for evaluating
 > whether each step is appropriate for your project. See
 > [disclaimer](docs/governance/disclaimer.md) for the full terms.
+> Run AI assistants and AGF tooling only on systems, repositories, and
+> data where you have the necessary authorization.
 
 ---
 
@@ -24,6 +26,14 @@ existing project as the visible `agf/` directory. Framework-owned governance
 artifacts stay under `agf/`; assistant tool configuration such as
 `.claude/rules/` stays at the project root because the assistant reads it
 there.
+
+Treat `agf/` as the adopter-facing product and `tooling/` as implementation
+support. Tooling can validate, package, summarize, and report on governance
+artifacts, but it does not become the source of governance authority. Authority
+lives in the framework rules, schemas, role decisions, and the coordination
+record. A tool check is blocking only when a named rule or recorded governor
+decision grants that check blocking authority; otherwise it is advisory
+evidence.
 
 | Artifact | Path |
 |----------|------|
@@ -36,8 +46,8 @@ there.
 | Assistant rule install target | `.claude/rules/` |
 
 Working plans and coordination entries are adopter-owned evidence. The POC
-default keeps them in root `docs/` because the current Mix validators use those
-paths. Framework-owned files stay under `agf/`.
+default keeps them in root `docs/` because the current `agov` validators use
+those paths. Framework-owned files stay under `agf/`.
 
 > **Why this matters — silent failure mode.** AI agents and humans following
 > this guide literally create files at the paths written here. If the guide
@@ -53,14 +63,14 @@ If you want to try the framework before committing to full adoption,
 this minimal path gets you running. It assumes the release archive has been
 extracted as `agf/` in your existing project.
 
-0. **Install Elixir/Mix** if you want to run the current validators locally.
-   Today the Mix tasks live in `tooling/elixir/`, outside the `agf/`
-   distribution directory. Use a full repository checkout when validating this
-   POC. In this repository, `mise install` provisions the pinned Elixir/Erlang
-   toolchain from `mise.toml`.
+0. **Make `agov` available** if you want to run the current core validators
+   locally. In a full checkout, symlink the repository-local executable:
    ```bash
-   mise install
+   mkdir -p ~/.local/bin
+   ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
    ```
+   A release archive containing only `agf/` does not yet include packaged
+   tooling. Use a full repository checkout when validating this POC.
 
 1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agent-governance/-/releases/permalink/latest)
    and extract it into your project as `agf/`.
@@ -98,9 +108,8 @@ extracted as `agf/` in your existing project.
 5. **Validate** the shipped governance records you have created when those
    paths exist in your project:
    ```bash
-   cd tooling/elixir
-   mix agov.coord.validate ../../docs/coordination/<seq>-<sender>.md
-   mix agov.plan.validate ../../docs/plans/*.md
+   agov coord validate docs/coordination/<seq>-<sender>.md
+   agov plan validate docs/plans/*.md
    ```
 
    Agent and learning schemas are included in `agf/schemas/`, but the
@@ -243,7 +252,7 @@ List every environment that exists or needs to exist:
 
 ### Step 0 output
 
-A filled-in `learnings/<codename>.yaml` with all context sections complete,
+A filled-in `agf/learnings/<codename>.yaml` with all context sections complete,
 plus the four checklists above with boxes checked. You now know:
 - Whether PII is present (determines Privacy/Data Guardian urgency)
 - Your security gaps (determines Security Guardian focus)
@@ -290,7 +299,8 @@ traceable to the framework version that was in effect.
 
 > **Which version?** The `framework_version` to record is the **framework content version** from the [VERSION](VERSION) file (or the header of `framework.md`). Do not confuse it with the Elixir tooling package version in `tooling/elixir/mix.exs` — those track different things.
 
-In your project's `learnings/<project-name>.yaml`, fill in the `adoption` section:
+In your project's `agf/learnings/<codename>.yaml`, fill in the `adoption`
+section:
 
 ```yaml
 adoption:
@@ -299,27 +309,24 @@ adoption:
   framework_commit: "<git-hash>"    # run: git rev-parse HEAD in the framework repo
   agent_definitions:
     - id: "agents-govern:planner-architect:0.2.0"
-      local_path: "agents/planner-architect.yaml"
+      local_path: "agf/agents/planner-architect.yaml"
       customized: false
     - id: "agents-govern:coder-tester:0.2.0"
-      local_path: "agents/coder-tester.yaml"
+      local_path: "agf/agents/coder-tester.yaml"
       customized: false
     - id: "agents-govern:governor-reviewer:0.2.0"
-      local_path: "agents/governor-reviewer.yaml"
+      local_path: "agf/agents/governor-reviewer.yaml"
       customized: false
 ```
 
 ### 1.3 Copy and adapt agent definitions
 
-Copy the Phase 1 YAML files from this repo's `agents/` directory into your project:
+Use the Phase 1 YAML files from the adopted `agf/agents/` directory. They are
+framework-owned reference definitions; customize copies only when your project
+has a documented reason.
 
 ```
-cp agents/planner-architect.yaml    <your-project>/agents/
-cp agents/coder-tester.yaml         <your-project>/agents/
-cp agents/governor-reviewer.yaml    <your-project>/agents/
-cp agents/build-engineer.yaml       <your-project>/agents/   # if project has CI
-cp agents/contribution-auditor.yaml <your-project>/agents/   # mandatory
-cp agents/infosec-sentinel.yaml     <your-project>/agents/   # mandatory
+ls agf/agents/
 ```
 
 Then edit each file:
@@ -335,11 +342,12 @@ Then edit each file:
   record and note what changed. The `id` stays the same (it tracks the
   upstream origin), but the customization is documented for auditability.
 
-**Create an agent manifest.** Copy `agents/MANIFEST.yaml` to your project
-and set the status of each agent:
+**Create an agent manifest when your project needs one.** If you track role
+activation locally, keep the manifest under your adopted framework directory
+unless your project has documented a different role-authority file:
 
 ```yaml
-# agents/MANIFEST.yaml
+# agf/agents/MANIFEST.yaml
 agents:
   planner-architect:
     status: active
@@ -358,15 +366,16 @@ agents:
     reason: "english only"      # suspended/skipped require a reason
 ```
 
-The manifest declares which agents are commissioned. `validate-agents`
-checks it for consistency — every YAML agent must appear in the manifest,
-and every manifest entry must have a YAML file. Run `validate-adoption`
-to verify.
+The manifest declares which agents are commissioned. The AGF v2 Mix validator
+for agent manifests has not shipped yet; until it does, review consistency
+manually: every active manifest entry should have a corresponding YAML role
+definition, and every role definition you rely on should have an explicit
+status.
 
 **Copyright and licensing for custom agents.**
 When you create new agent definitions for your project:
 
-- **Derived from framework agents** (copied and modified from `agents/*.yaml`):
+- **Derived from framework agents** (copied and modified from `agf/agents/*.yaml`):
   your modifications are yours, but the result is a derivative work under
   CC-BY-SA-4.0. If you share it (e.g., submit upstream), it carries
   ShareAlike. Add your copyright line alongside the original:
@@ -418,11 +427,11 @@ role definitions and do not present the graph command as a shipped gate.
 ### 1.4 Copy rule templates
 
 The framework provides ready-to-adopt rule files in
-[`rules/`](rules/). These implement governance
+[`agf/rules/`](rules/). These implement governance
 principles as concrete Claude Code `.claude/rules/` files.
 
 **To adopt:**
-1. Copy `rules/` into your project as `.claude/rules/`
+1. Copy `agf/rules/` into your project as `.claude/rules/`
 2. Search for `<!-- CUSTOMIZE -->` comments and adapt to your stack
 3. If your stack matches a provided example (e.g., Python + Flask),
    copy the stack-specific rules from
@@ -961,7 +970,7 @@ If you adopted the framework from the agents-govern repository:
 
 ### 6.3 Learning record sync policy
 
-Your project's local `learnings/<codename>.yaml` is the **source of truth**.
+Your project's local `agf/learnings/<codename>.yaml` is the **source of truth**.
 The upstream copy in the agents-govern repo is a submitted snapshot.
 
 When upgrading the framework:
@@ -1041,7 +1050,8 @@ is **reactive only** — it does not scan proactively. Activate it when:
 
 **How to apply it:**
 
-1. Copy `agents/capability-developer.yaml` to your project.
+1. Review `agf/agents/capability-developer.yaml` and activate it in your
+   local role manifest when the trigger conditions apply.
 2. Feed it your learnings, escalation logs, and agent definitions.
 3. Ask it to analyze patterns and produce proposals.
 4. All proposals go through the Governor-Reviewer gate and require human
@@ -1081,7 +1091,7 @@ agent definitions. Suggested cadence:
 - "Which agents are still at v0.1.0 — are they exercised or dead weight?"
 
 **For AI agents:** When playing the capability-developer role, read all
-files in `learnings/`, `agents/`, and any review documents. Cross-reference
+files in `agf/learnings/`, `agf/agents/`, and any review documents. Cross-reference
 learning categories (gap, overkill, tension) against agent names in
 `agents_involved`. Report patterns that appear 3+ times. Produce proposals
 in the format shown in the capability-developer YAML definition.
@@ -1233,6 +1243,6 @@ feedback valuable.
 | Team of 5+ | Assign Governor-Reviewer to a dedicated person from day one. |
 | Pre-launch SaaS | Complete all steps + SaaS addendum before launch. |
 | Post-launch SaaS | Start at Step 0, apply retroactively, prioritize gaps from assessment. |
-| Academic / documentation project | Pipeline maps naturally (plan→draft→review→verify→commit). Skip most cross-cutting agents. Verifiable-claims and implementation-honesty rules are high-value. See academic agents in `agents/`. |
+| Academic / documentation project | Pipeline maps naturally (plan→draft→review→verify→commit). Skip most cross-cutting agents. Verifiable-claims and implementation-honesty rules are high-value. See academic agents in `agf/agents/`. |
 | Mixed artifact types (docs + code) | One set of agent definitions, one GOVERNANCE.md, but split pipelines and checklists per artifact type. |
 | Framework files outside `agf/` | Move framework-owned files under `agf/`; v2.0 supports the single visible `agf/` directory. |

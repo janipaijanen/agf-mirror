@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Sitemap: /sitemap.xml
+
+# Advisory content-use signal. This is not access control.
+# Search indexing is welcome. AI-assisted retrieval/use should respect the
+# published licenses and disclaimers. This file does not grant AI training
+# rights beyond the applicable license terms.
+Content-Signal: search=yes, ai-input=yes, ai-train=no

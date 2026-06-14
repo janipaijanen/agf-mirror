@@ -14,6 +14,20 @@ operational incidents into framework evidence.
 > is recorded in [Release information](reference/release-info.md).
 > Adopters who need stability today should adopt v1.x.
 
+## What AGF is, and is not
+
+AGF is a governance framework for software-development work involving AI
+agents. It gives a project file-based roles, gates, rules, schemas,
+coordination records, and learning records so humans and AI assistants can work
+inside auditable boundaries.
+
+AGF is not a hosted service, agent runtime, model policy engine, legal or
+compliance product, security audit, or general AI product-governance system. It
+does not run agents, grant tool permissions, replace CI, approve its own gates,
+or make external AI services safe for confidential data. Your existing tools
+execute the work; AGF defines the governance artifacts and review discipline
+around that work.
+
 ## Why this exists
 
 AI coding assistants optimise for task completion. Without structural

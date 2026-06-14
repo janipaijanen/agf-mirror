@@ -48,6 +48,12 @@ In particular:
   complete solutions. They must be adapted to your project's domain,
   regulatory context, and risk profile.
 
+- **AI assistants and local tooling** must be run only on systems,
+  repositories, model weights, and data where you have the necessary
+  authorization. AGF does not grant tool-call permissions, bypass local access
+  controls, authorize use of third-party code or data, or make it safe to send
+  confidential material to external AI services.
+
 ## Your responsibility
 
 You are solely responsible for:
@@ -57,7 +63,23 @@ You are solely responsible for:
 - Backing up your data and codebase before applying any procedure
 - Complying with applicable laws, regulations, and contractual obligations
 - Reviewing all changes before committing or pushing them
+- Confirming that any AI assistant, local model, hardware, runtime, or
+  connector you use is permitted by your project, employer, customer, and
+  applicable license terms
 - Obtaining independent professional advice where appropriate
+
+## Independence and third-party brands
+
+AGF-NG is developed independently. Unless a separate written agreement says
+otherwise, the project has not received external funding from, and has no
+dependency, endorsement, reseller, partnership, or governance relationship
+with, companies or brands whose tools, models, hardware, or runtimes are
+mentioned in the documentation.
+
+References to products such as AI assistants, model providers, local runtimes,
+hardware platforms, editors, CI systems, or package managers are compatibility
+and evaluation examples only. They do not imply sponsorship, endorsement,
+certification, or that those vendors approve the framework.
 
 ## No professional advice
 

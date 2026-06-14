@@ -37,6 +37,32 @@ defmodule Agov.CoordValidatorTest do
     end
   end
 
+  describe "advisory_findings/1" do
+    test "returns empty list when model field is present" do
+      data = %{"model" => "claude-sonnet-4-6", "kind" => "note"}
+      assert CoordValidator.advisory_findings(data) == []
+    end
+
+    test "returns advisory warning when model field is absent" do
+      data = %{"kind" => "note", "from" => "planner-architect"}
+      advisories = CoordValidator.advisory_findings(data)
+      assert length(advisories) == 1
+      assert hd(advisories) =~ "model"
+    end
+
+    test "returns no advisory for file with model field" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_note_with_model.md"))
+      assert CoordValidator.advisory_findings(data) == []
+    end
+
+    test "returns advisory warning for file without model field" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_note_no_model.md"))
+      advisories = CoordValidator.advisory_findings(data)
+      assert length(advisories) == 1
+      assert hd(advisories) =~ "model"
+    end
+  end
+
   describe "extract_frontmatter/1" do
     test "extracts YAML block from file with front matter" do
       content = "---\nkind: note\nfrom: claude\n---\nBody text"

@@ -2,6 +2,15 @@
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Integration Contract
 
+> **AGF v2 status note:** This contract was inherited from the v1.x/Python
+> agents-govern line. It remains useful historical reference for integration
+> concepts, but several paths and command names below are not the current AGF-NG
+> v2 public command surface. For current v2 adopter guidance, use
+> `agf/docs/site/docs/advanced/contracts-and-validators.md` and the
+> `tooling/elixir/` reference implementation. Treat any `agents/`,
+> `learnings/`, `schemas/`, or `agov-validate-*` examples in this file as v1.x
+> legacy unless a v2 page explicitly repeats them.
+
 How a Continuous Integration (CI) engine, an external policy engine,
 or any other consumer system **integrates** with agents-govern's
 governance artefacts. This page is the canonical home for the

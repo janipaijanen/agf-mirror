@@ -1,0 +1,93 @@
+#!/usr/bin/env sh
+set -eu
+
+script_path=$0
+if command -v readlink >/dev/null 2>&1; then
+  resolved=$(readlink -f "$0" 2>/dev/null || true)
+  if [ -n "$resolved" ]; then
+    script_path=$resolved
+  fi
+fi
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
+escript="$repo_root/tooling/elixir/agov"
+
+export AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}"
+export AGOV_MANIFEST_PATH="${AGOV_MANIFEST_PATH:-$repo_root/agents-govern/agents/MANIFEST.yaml}"
+
+case "${1:-}" in
+  -h|--help)
+    cat <<EOF
+Usage:
+  agov coord validate <file>...
+  agov plan validate <file>...
+  agov agov.coord.validate <file>...
+  agov agov.plan.validate <file>...
+
+Build local executable:
+  cd tooling/elixir && mix deps.get && mix escript.build
+EOF
+    exit 0
+    ;;
+esac
+
+if [ -x "$escript" ]; then
+  first_line=$(sed -n '1p' "$escript" 2>/dev/null || true)
+  case "$first_line" in
+    *escript*)
+      if command -v escript >/dev/null 2>&1; then
+        exec "$escript" "$@"
+      fi
+      if command -v mise >/dev/null 2>&1; then
+        exec mise exec -- "$escript" "$@"
+      fi
+      ;;
+    *)
+      exec "$escript" "$@"
+      ;;
+  esac
+fi
+
+if command -v mix >/dev/null 2>&1; then
+  case "${1:-}" in
+    coord)
+      shift
+      if [ "${1:-}" = "validate" ]; then
+        shift
+        exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.coord.validate "$@"' sh "$repo_root" "$@"
+      fi
+      ;;
+    plan)
+      shift
+      if [ "${1:-}" = "validate" ]; then
+        shift
+        exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.plan.validate "$@"' sh "$repo_root" "$@"
+      fi
+      ;;
+    agov.coord.validate)
+      shift
+      exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.coord.validate "$@"' sh "$repo_root" "$@"
+      ;;
+    agov.plan.validate)
+      shift
+      exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.plan.validate "$@"' sh "$repo_root" "$@"
+      ;;
+  esac
+fi
+
+cat >&2 <<EOF
+agov executable not available.
+
+Build or install the Elixir agov executable, or run the Mix reference tasks
+from tooling/elixir when Mix is available.
+
+Expected local executable:
+  tooling/elixir/agov
+
+Supported launcher forms after build:
+  agov coord validate <file>...
+  agov plan validate <file>...
+  agov agov.coord.validate <file>...
+  agov agov.plan.validate <file>...
+EOF
+exit 127
