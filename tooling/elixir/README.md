@@ -7,7 +7,29 @@ The tooling is implementation support. It validates and summarizes governance
 artifacts, but it is not the source of governance authority. Authority lives in
 `agf/` rules and schemas, in role decisions, and in the coordination record.
 
-## What This Tooling Checks
+## Repo-local executable
+
+Use the repository-local executable for bootstrap validation, especially in
+environments where `mix` is not on `PATH`:
+
+```bash
+./tooling/agov coord validate docs/coordination/<file>.md
+./tooling/agov plan validate docs/plans/<file>.md
+```
+
+For a user-local command, symlink it into `~/.local/bin`:
+
+```bash
+mkdir -p ~/.local/bin
+ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
+agov plan validate docs/plans/<file>.md
+```
+
+The executable currently covers core coordination and Gate 1 plan validation.
+It is a compatibility layer for the reference Mix tasks below, not a separate
+source of governance authority.
+
+## What The Mix Tooling Checks
 
 Run commands from this directory unless noted otherwise:
 
