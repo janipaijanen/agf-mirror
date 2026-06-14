@@ -19,6 +19,8 @@
 
 .elixir-base:
   image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
+  variables:
+    AGOV_ALLOW_ROOT: "1"
   cache:
     key: elixir-deps-$CI_COMMIT_REF_SLUG
     paths:
