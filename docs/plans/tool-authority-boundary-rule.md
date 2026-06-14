@@ -1,7 +1,9 @@
 ---
 id: tool-authority-boundary-rule
-status: pending-gate1
+status: approved
 topic: tool-authority-boundary
+gate1_approved_by: "governor-reviewer direct instruction, coordination seq 302"
+gate1_approved_at: "2026-06-14T07:28:47Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted

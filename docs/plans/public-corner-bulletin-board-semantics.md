@@ -1,7 +1,9 @@
 ---
 id: public-corner-bulletin-board-semantics
-status: pending-gate1
+status: approved
 topic: public-corner-bulletin-board
+gate1_approved_by: "governor-reviewer direct instruction, coordination seq 302"
+gate1_approved_at: "2026-06-14T07:28:47Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
