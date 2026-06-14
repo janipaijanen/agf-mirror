@@ -13,8 +13,7 @@
     "immutable",
     "references-to",
     "topic",
-    "requires-ack",
-    "artifacts_owned"
+    "requires-ack"
   ],
   "properties": {
     "kind": {
@@ -98,7 +97,7 @@
   "allOf": [
     {
       "if":   { "properties": { "kind": { "const": "claim" } }, "required": ["kind"] },
-      "then": { "properties": { "artifacts_owned": { "minItems": 1 } } }
+      "then": { "required": ["artifacts_owned"], "properties": { "artifacts_owned": { "minItems": 1 } } }
     },
     {
       "if":   { "properties": { "kind": { "const": "completion" } }, "required": ["kind"] },
