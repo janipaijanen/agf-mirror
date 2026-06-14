@@ -9,9 +9,11 @@
 #
 # Pipeline structure:
 #   site-html-build   — MkDocs strict build; review artifact on MRs and branches
-#   pages             — publish to GitLab Pages from master only
-#   elixir-test       — compile + test Elixir tooling; runs on every push
-#   release-artifacts — tag pipelines only; tag/VERSION guard then build archives
+#   pages             — publish to GitLab Pages from the default branch
+#   elixir:test       — compile + test Elixir tooling
+#   agf:dist:validate — validate the manifest-driven framework package
+#   agf:dist:preview  — build review-only framework archives on MRs/default branch
+#   agf:dist:release  — tag pipelines only; tag/VERSION guard then build archives
 
 # ── Shared templates ──────────────────────────────────────────────────────────
 
@@ -50,7 +52,7 @@ site-html-build:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
 
-# Publish to GitLab Pages from master only.
+# Publish to GitLab Pages from the default branch.
 # The pages job must produce a public/ artifact.
 pages:
   extends: .mkdocs-base
@@ -66,18 +68,45 @@ pages:
 # ── Elixir tooling ────────────────────────────────────────────────────────────
 
 # Compile and test the Elixir tooling on every push.
-elixir-test:
+elixir:test:
   extends: .elixir-base
   stage: test
   script:
     - mix compile --warnings-as-errors
     - mix test
 
-# ── Release artifacts ─────────────────────────────────────────────────────────
+# ── Framework package artifacts ───────────────────────────────────────────────
+
+# Validate the manifest-driven framework package on merge requests, branches,
+# and tags without writing archives.
+agf:dist:validate:
+  extends: .elixir-base
+  stage: test
+  script:
+    - mix agov.dist.validate
+
+# Build preview archives for reviewers. These artifacts are not releases.
+agf:dist:preview:
+  extends: .elixir-base
+  stage: build
+  script:
+    - mix agov.dist.validate
+    - mix agov.dist.build
+  artifacts:
+    name: "agf-preview-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - dist/*.tar.gz
+      - dist/*.zip
+      - dist/*.sha256
+      - dist/*-provenance.json
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # Build release archives only on tag pipelines.
 # The tag must match agf/VERSION or this job fails before any archive is written.
-release-artifacts:
+agf:dist:release:
   extends: .elixir-base
   stage: deploy
   script:

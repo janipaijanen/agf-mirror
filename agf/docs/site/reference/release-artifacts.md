@@ -16,7 +16,8 @@ mix agov.dist.build
 the repository, match forbidden paths, or would collide in the archive.
 `mix agov.dist.build` writes the configured `.tar.gz` and `.zip` archives under
 `dist/`, along with SHA-256 checksum files and a machine-readable provenance
-record.
+record. In merge-request and default-branch pipelines, these are preview
+artifacts for review evidence. They are not immutable releases.
 
 The current archive policy is allowlist-first:
 
@@ -63,7 +64,8 @@ If `CI_COMMIT_TAG` is not set the guard exits 0 (local build, guard skipped).
 
 ## GitLab CI wiring
 
-The root `.gitlab-ci.yml` wires three release-related stages:
+The root `.gitlab-ci.yml` wires validation, preview packaging, and tag-only
+release packaging:
 
 ```yaml
 # MkDocs strict build — review artifact on MRs and branches
@@ -72,21 +74,42 @@ site-html-build:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
 
-# GitLab Pages — published from master only
+# GitLab Pages — published from the default branch
 pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# Manifest validation — MRs, branches, and tags
+agf:dist:validate:
+  script:
+    - mix agov.dist.validate
+
+# Preview archives — MRs and default branch only, not releases
+agf:dist:preview:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # Release archives — tag pipelines only, tag/VERSION guard runs first
-release-artifacts:
+agf:dist:release:
   rules:
     - if: $CI_COMMIT_TAG
 ```
 
-The `release-artifacts` job runs `mix agov.dist.check_tag` before
+The `agf:dist:validate` job runs `mix agov.dist.validate` without writing
+archives. The `agf:dist:preview` job runs `mix agov.dist.build` for
+merge-request and default-branch review artifacts; those artifacts expire and
+must not be described as releases.
+
+The `agf:dist:release` job runs `mix agov.dist.check_tag` before
 `mix agov.dist.validate` and `mix agov.dist.build`. If the tag does not match
 `agf/VERSION` the job exits 1 before any archive is written.
 
-Artifacts produced by `release-artifacts` are kept indefinitely (`expire_in:
+Artifacts produced by `agf:dist:release` are kept indefinitely (`expire_in:
 never`) and include the `.tar.gz`, `.zip`, all `.sha256` checksum files, and the
 provenance JSON.
+
+This slice ships source framework archives only. Binary tooling bundles,
+installer scripts, package registry publishing, release signing, Software Bill
+of Materials (SBOM) generation, and third-party notices are deferred follow-on
+work.
