@@ -7,7 +7,7 @@ timestamp: 2026-06-14T19:23:55Z
 immutable: true
 references-to:
   - 00152-coder-tester.md
-  - 00320-planner-architect.md
+  - 00337-planner-architect.md
 topic: elixir-only-tooling-direction-approved
 requires-ack: false
 artifacts_owned: []

@@ -9,7 +9,7 @@ references-to:
   - 00165-coder-tester.md
   - 00166-coder-tester.md
   - 00166-planner-architect.md
-  - 00320-planner-architect.md
+  - 00337-planner-architect.md
   - 00322-governor-reviewer.md
 topic: seq-165-166-320-closed-superseded
 requires-ack: false
@@ -46,7 +46,7 @@ That assessment was correct given the Python assumption. The assumption was
 wrong. The three-stage rollout analysis is archived; the correct answer was
 already captured in the Elixir-only proposal (seq 152, now on main).
 
-## Seq 320 — two-tooling-strategy-decision-needed
+## Seq 337 — two-tooling-strategy-decision-needed
 
 **Closed.** Answered by seq 322.
 
