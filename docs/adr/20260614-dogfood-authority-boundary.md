@@ -47,10 +47,10 @@ The governing principle:
 This means:
 
 - `agov coord validate` and `agov plan validate` carry **blocking authority**
-  for the schema checks defined in `agf/schemas/`. This authority is granted
-  by the coordination-message and gate1-plan schemas, which are part of the
-  normative framework. The validators surface schema violations as
-  `severity: blocking`.
+  for the schema checks defined in `agf/schemas/`. The schemas define the
+  contracts; `agf/rules/always/tool-authority-boundary-rule.md` grants
+  validators permission to block work when those contracts are violated. The
+  validators surface schema violations as `severity: blocking`.
 
 - Findings without a named backing rule are **advisory** (`severity: advisory`).
   They surface for role review but do not halt work autonomously.
@@ -105,6 +105,8 @@ rule before any blocking authority is exercised.
 
 - Every validator that blocks work MUST name the rule granting that authority.
   Currently: `agov coord validate` and `agov plan validate` cite
+  `agf/rules/always/tool-authority-boundary-rule.md` as the blocking authority
+  rule and validate the contracts in
   `agf/schemas/coordination-message.schema.json` and
   `agf/schemas/gate1-plan.schema.json` respectively.
 - New automated checks default to advisory until a rule update promotes them.

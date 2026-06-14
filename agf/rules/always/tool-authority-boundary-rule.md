@@ -43,6 +43,12 @@ not replace them.
 A validator or CI job MUST declare which level its findings carry. Undeclared
 output is treated as advisory.
 
+This rule grants blocking authority to schema-validation checks for contracts
+named by the adopter's governance process, such as AGF-NG's coordination
+message and Gate 1 plan schemas. The schema defines the contract being checked;
+this rule grants validators permission to halt work when that contract is
+violated.
+
 ## Rules for validator authors
 
 - **Name the rule that grants blocking authority.** A blocking check without a

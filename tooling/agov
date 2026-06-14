@@ -1,351 +1,93 @@
-#!/usr/bin/env python3
-"""Repo-local AGF tooling entrypoint.
-
-This executable keeps core validation available in environments where the
-Elixir/Mix toolchain is not installed. It intentionally covers the narrow
-bootstrap surface needed by agents and humans before they can rely on packaged
-tooling.
-"""
-
-from __future__ import annotations
-
-import argparse
-import datetime as _dt
-import os
-import sys
-from pathlib import Path
-from typing import Any
-
-try:
-    import yaml
-except ImportError:  # pragma: no cover - depends on host Python packaging
-    yaml = None
-
-
-COORD_KINDS = {
-    "claim",
-    "completion",
-    "review",
-    "ack",
-    "handoff",
-    "decision-record",
-    "fast-track-waiver",
-    "lesson-proposal",
-    "note",
-}
-
-PLAN_STATUSES = {"pending-gate1", "approved", "active", "complete"}
-ADVISORY_STATUSES = {"consulted", "waived", "not-applicable"}
-REQUIRED_ADVISORY_ROLES = {"infosec-sentinel", "contribution-auditor"}
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
-
-
-def load_yaml(text: str) -> Any:
-    if yaml is None:
-        raise RuntimeError(
-            "PyYAML is required for tooling/agov fallback validation. "
-            "Install python3-yaml or use the Elixir Mix tooling."
-        )
-    return yaml.safe_load(text)
-
-
-def extract_frontmatter(path: Path) -> tuple[dict[str, Any] | None, list[str]]:
-    try:
-        text = path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return None, ["file not found"]
-    except OSError as exc:
-        return None, [str(exc)]
-
-    if not text.startswith("---\n"):
-        return None, ["no YAML front matter found"]
-
-    parts = text.split("---\n", 2)
-    if len(parts) < 3:
-        return None, ["no YAML front matter terminator found"]
-
-    try:
-        data = load_yaml(parts[1])
-    except Exception as exc:  # noqa: BLE001 - user-facing validator
-        return None, [f"YAML parse error: {exc}"]
-
-    if not isinstance(data, dict):
-        return None, ["front matter must be a mapping"]
-
-    return data, []
-
-
-def is_string(value: Any) -> bool:
-    return isinstance(value, str) and len(value) > 0
-
-
-def is_bool(value: Any) -> bool:
-    return isinstance(value, bool)
-
-
-def is_isoish_timestamp(value: Any) -> bool:
-    if isinstance(value, (_dt.datetime, _dt.date)):
-        return True
-    if not isinstance(value, str):
-        return False
-    try:
-        _dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
-        return True
-    except ValueError:
-        return False
-
-
-def require(data: dict[str, Any], key: str, errors: list[str]) -> Any:
-    if key not in data:
-        errors.append(f"#/{key}: required field missing")
-        return None
-    return data[key]
-
-
-def validate_string(data: dict[str, Any], key: str, errors: list[str]) -> None:
-    if key in data and not is_string(data[key]):
-        errors.append(f"#/{key}: must be a non-empty string")
-
-
-def validate_string_list(data: dict[str, Any], key: str, errors: list[str]) -> None:
-    if key not in data:
-        return
-    value = data[key]
-    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        errors.append(f"#/{key}: must be a list of strings")
-
-
-def active_manifest_roles() -> set[str]:
-    manifest = Path(
-        os.environ.get(
-            "AGOV_MANIFEST_PATH",
-            str(repo_root() / "agents-govern" / "agents" / "MANIFEST.yaml"),
-        )
-    )
-    try:
-        data = load_yaml(manifest.read_text(encoding="utf-8"))
-    except Exception:  # noqa: BLE001 - fallback mirrors Mix validator leniency
-        return set(REQUIRED_ADVISORY_ROLES)
-
-    agents = data.get("agents", {}) if isinstance(data, dict) else {}
-    if not isinstance(agents, dict):
-        return set(REQUIRED_ADVISORY_ROLES)
-
-    active = {
-        role
-        for role, attrs in agents.items()
-        if isinstance(attrs, dict) and attrs.get("status") == "active"
-    }
-    return active | REQUIRED_ADVISORY_ROLES
-
-
-def validate_coord(data: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    for key in [
-        "kind",
-        "from",
-        "to",
-        "seq",
-        "timestamp",
-        "immutable",
-        "references-to",
-        "topic",
-        "requires-ack",
-        "artifacts_owned",
-    ]:
-        require(data, key, errors)
-
-    for key in ["kind", "from", "to", "topic"]:
-        validate_string(data, key, errors)
-
-    kind = data.get("kind")
-    if "kind" in data and kind not in COORD_KINDS:
-        errors.append(f"#/kind: unsupported kind {kind!r}")
-
-    if "seq" in data and not isinstance(data["seq"], int):
-        errors.append("#/seq: must be an integer")
-
-    if "timestamp" in data and not is_isoish_timestamp(data["timestamp"]):
-        errors.append("#/timestamp: must be an ISO 8601 timestamp")
-
-    if data.get("immutable") is not True:
-        errors.append("#/immutable: must be true")
-
-    if "requires-ack" in data and not is_bool(data["requires-ack"]):
-        errors.append("#/requires-ack: must be boolean")
-
-    validate_string_list(data, "references-to", errors)
-    validate_string_list(data, "artifacts_owned", errors)
-
-    if kind == "claim" and not data.get("artifacts_owned"):
-        errors.append("#/artifacts_owned: claim messages must own artifacts")
-
-    if kind == "completion" and data.get("artifacts_owned"):
-        errors.append("#/artifacts_owned: completion messages must not own artifacts")
-
-    if kind == "ack" and not data.get("references-to"):
-        errors.append("#/references-to: ack messages must reference another entry")
-
-    if kind == "handoff":
-        handoff = data.get("handoff")
-        if not isinstance(handoff, dict):
-            errors.append("#/handoff: handoff messages require a handoff object")
-        else:
-            validate_handoff(handoff, errors)
-
-    for key in ["model", "session"]:
-        if key in data and not is_string(data[key]):
-            errors.append(f"#/{key}: must be a non-empty string")
-
-    return errors
-
-
-def validate_handoff(handoff: dict[str, Any], errors: list[str]) -> None:
-    for key in ["next_agent", "status", "task", "must_read", "do_not_touch"]:
-        if key not in handoff:
-            errors.append(f"#/handoff/{key}: required field missing")
-
-    if "next_agent" in handoff and not is_string(handoff["next_agent"]):
-        errors.append("#/handoff/next_agent: must be a non-empty string")
-
-    if handoff.get("status") not in {"ready", "blocked"}:
-        errors.append("#/handoff/status: must be ready or blocked")
-
-    task = handoff.get("task")
-    if not isinstance(task, list) or not task or not all(isinstance(item, str) for item in task):
-        errors.append("#/handoff/task: must be a non-empty list of strings")
-
-    for key in ["must_read", "do_not_touch"]:
-        value = handoff.get(key)
-        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-            errors.append(f"#/handoff/{key}: must be a list of strings")
-
-
-def validate_plan(data: dict[str, Any]) -> list[str]:
-    errors: list[str] = []
-    for key in ["id", "status", "advisory_consultation"]:
-        require(data, key, errors)
-
-    for key in ["id", "topic"]:
-        validate_string(data, key, errors)
-
-    status = data.get("status")
-    if "status" in data and status not in PLAN_STATUSES:
-        errors.append(f"#/status: unsupported status {status!r}")
-
-    entries = data.get("advisory_consultation")
-    if not isinstance(entries, list) or not entries:
-        errors.append("#/advisory_consultation: must be a non-empty list")
-        return errors
-
-    roles: list[str] = []
-    allowed_roles = active_manifest_roles()
-
-    for index, entry in enumerate(entries):
-        path = f"#/advisory_consultation/{index}"
-        if not isinstance(entry, dict):
-            errors.append(f"{path}: must be a mapping")
-            continue
-
-        role = entry.get("role")
-        entry_status = entry.get("status")
-        if not is_string(role):
-            errors.append(f"{path}/role: must be a non-empty string")
-        else:
-            roles.append(role)
-            if role not in allowed_roles:
-                errors.append(f"#/advisory_consultation: unknown advisory role: {role}")
-
-        if entry_status not in ADVISORY_STATUSES:
-            errors.append(f"{path}/status: unsupported status {entry_status!r}")
-
-        if entry_status == "waived" and not is_string(entry.get("reason")):
-            errors.append(f"{path}/reason: waived entries require a reason")
-
-    missing = sorted(REQUIRED_ADVISORY_ROLES - set(roles))
-    for role in missing:
-        errors.append(f"#/advisory_consultation: missing required advisory role: {role}")
-
-    for role in sorted({role for role in roles if roles.count(role) > 1}):
-        errors.append(f"#/advisory_consultation: duplicate advisory role: {role}")
-
-    return errors
-
-
-def advisory_coord(data: dict[str, Any]) -> list[str]:
-    """Return advisory (non-blocking) warnings for a parsed coordination message."""
-    warnings: list[str] = []
-    if not data.get("model"):
-        warnings.append("recommended field 'model' not set; provenance tracking is weaker without it")
-    return warnings
-
-
-def validate_files(paths: list[str], validator, advisory=None) -> int:
-    exit_code = 0
-    for raw_path in paths:
-        path = Path(raw_path)
-        data, frontmatter_errors = extract_frontmatter(path)
-        errors = frontmatter_errors if data is None else validator(data)
-
-        if errors:
-            exit_code = 1
-            print(f"ERR severity: blocking {raw_path}:", file=sys.stderr)
-            for error in errors:
-                print(f"    {error}", file=sys.stderr)
-        else:
-            if advisory is not None and data is not None:
-                for warning in advisory(data):
-                    print(f"WARN severity: advisory {raw_path}: {warning}")
-            print(f"OK  severity: blocking {raw_path}")
-
-    return exit_code
-
-
-def normalize_args(argv: list[str]) -> list[str]:
-    aliases = {
-        "agov.coord.validate": ["coord", "validate"],
-        "agov.plan.validate": ["plan", "validate"],
-    }
-    if argv and argv[0] in aliases:
-        return aliases[argv[0]] + argv[1:]
-    return argv
-
-
-def main(argv: list[str]) -> int:
-    argv = normalize_args(argv)
-    parser = argparse.ArgumentParser(
-        prog="agov",
-        description="Repo-local AGF tooling executable",
-    )
-    subparsers = parser.add_subparsers(dest="area", required=True)
-
-    coord_parser = subparsers.add_parser("coord")
-    coord_sub = coord_parser.add_subparsers(dest="command", required=True)
-    coord_validate = coord_sub.add_parser("validate")
-    coord_validate.add_argument("files", nargs="+")
-
-    plan_parser = subparsers.add_parser("plan")
-    plan_sub = plan_parser.add_subparsers(dest="command", required=True)
-    plan_validate = plan_sub.add_parser("validate")
-    plan_validate.add_argument("files", nargs="+")
-
-    args = parser.parse_args(argv)
-
-    try:
-        if args.area == "coord" and args.command == "validate":
-            return validate_files(args.files, validate_coord, advisory=advisory_coord)
-        if args.area == "plan" and args.command == "validate":
-            return validate_files(args.files, validate_plan)
-    except RuntimeError as exc:
-        print(f"ERR {exc}", file=sys.stderr)
-        return 1
-
-    parser.error("unsupported command")
-    return 2
-
-
-if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1:]))
+#!/usr/bin/env sh
+set -eu
+
+script_path=$0
+if command -v readlink >/dev/null 2>&1; then
+  resolved=$(readlink -f "$0" 2>/dev/null || true)
+  if [ -n "$resolved" ]; then
+    script_path=$resolved
+  fi
+fi
+
+repo_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
+escript="$repo_root/tooling/elixir/agov"
+
+export AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}"
+export AGOV_MANIFEST_PATH="${AGOV_MANIFEST_PATH:-$repo_root/agents-govern/agents/MANIFEST.yaml}"
+
+case "${1:-}" in
+  -h|--help)
+    cat <<EOF
+Usage:
+  agov coord validate <file>...
+  agov plan validate <file>...
+  agov agov.coord.validate <file>...
+  agov agov.plan.validate <file>...
+
+Build local executable:
+  cd tooling/elixir && mix deps.get && mix escript.build
+EOF
+    exit 0
+    ;;
+esac
+
+if [ -x "$escript" ]; then
+  first_line=$(sed -n '1p' "$escript" 2>/dev/null || true)
+  case "$first_line" in
+    *escript*)
+      if command -v escript >/dev/null 2>&1; then
+        exec "$escript" "$@"
+      fi
+      if command -v mise >/dev/null 2>&1; then
+        exec mise exec -- "$escript" "$@"
+      fi
+      ;;
+    *)
+      exec "$escript" "$@"
+      ;;
+  esac
+fi
+
+if command -v mix >/dev/null 2>&1; then
+  case "${1:-}" in
+    coord)
+      shift
+      if [ "${1:-}" = "validate" ]; then
+        shift
+        exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.coord.validate "$@"' sh "$repo_root" "$@"
+      fi
+      ;;
+    plan)
+      shift
+      if [ "${1:-}" = "validate" ]; then
+        shift
+        exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.plan.validate "$@"' sh "$repo_root" "$@"
+      fi
+      ;;
+    agov.coord.validate)
+      shift
+      exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.coord.validate "$@"' sh "$repo_root" "$@"
+      ;;
+    agov.plan.validate)
+      shift
+      exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.plan.validate "$@"' sh "$repo_root" "$@"
+      ;;
+  esac
+fi
+
+cat >&2 <<EOF
+agov executable not available.
+
+Build or install the Elixir agov executable, or run the Mix reference tasks
+from tooling/elixir when Mix is available.
+
+Expected local executable:
+  tooling/elixir/agov
+
+Supported launcher forms after build:
+  agov coord validate <file>...
+  agov plan validate <file>...
+  agov agov.coord.validate <file>...
+  agov agov.plan.validate <file>...
+EOF
+exit 127
