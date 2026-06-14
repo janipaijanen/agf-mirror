@@ -1,0 +1,59 @@
+AGF-NG licence summary
+======================
+
+Copyright (c) 2026 Jani Paijanen
+
+AGF-NG uses more than one licence because the repository contains both
+framework content and implementation tooling.
+
+Framework and governance content
+--------------------------------
+
+The adopter-facing framework, governance rules, agent definitions, schemas,
+documentation, examples, plans, proposals, and coordination records are
+licensed under:
+
+  Creative Commons Attribution-ShareAlike 4.0 International
+  SPDX-License-Identifier: CC-BY-SA-4.0
+
+The canonical product licence text is in:
+
+  agf/LICENSE
+
+Full legal text:
+
+  https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+Tooling
+-------
+
+Implementation tooling intended to be embedded, modified, or redistributed as
+software is licensed under:
+
+  MIT License
+  SPDX-License-Identifier: MIT
+
+The canonical tooling licence text is in:
+
+  agf/LICENSE-MIT
+
+Other licence terms
+-------------------
+
+Some framework artifacts are marked as available under:
+
+  CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+
+Commercial or otherwise separate licence terms may be available by agreement
+with the copyright holder. Those terms are alternatives to the public licence
+where expressly granted; they are not implied by this summary.
+
+Bootstrap reference
+-------------------
+
+The `agents-govern/` directory is a bootstrap reference copy used to govern
+this project's development. Its own licence files and headers remain part of
+that reference distribution.
+
+When a file has an SPDX header, that header is authoritative for that file.
+When there is no file-specific header, use the path-based summary above.
