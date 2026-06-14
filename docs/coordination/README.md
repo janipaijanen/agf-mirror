@@ -28,9 +28,9 @@ Schema: [`spec/schemas/coordination-message.schema.json`](../../spec/schemas/coo
 `coder-tester`, `governor-reviewer`, `contribution-auditor`, `all`).
 Never a model name (not `claude`, not `gpt-4`).
 
-The current role registry is `agents-govern/agents/MANIFEST.yaml` — this is
-the bootstrap authority for the current development phase. Where AGF-NG will
-define its own role authority is an open question (see seq 13 note).
+The current role registry is `agf/agents/MANIFEST.yaml`. It is the AGF-NG
+project role authority for active agents and role status; status changes
+require governor-reviewer approval.
 
 ```yaml
 ---
