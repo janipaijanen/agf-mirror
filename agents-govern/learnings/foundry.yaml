@@ -718,6 +718,89 @@ learnings:
       check, but it must chain existing Git LFS hooks safely and remain
       advisory until the rule authority for blocking behavior is explicit.
 
+  - id: L017
+    date: "2026-06-14"
+    category: gap
+    agents_involved: [planner-architect, coder-tester, governor-reviewer]
+    summary: >
+      Sequential coordination sequence numbers cannot be safely allocated by
+      concurrent agents without a shared counter; time-sortable unique identifiers
+      eliminate the structural collision problem.
+    detail: >
+      On 2026-06-14, two agents independently chose seq 320 for different
+      coordination messages during parallel sessions: coder-tester filed a
+      Gate 1 handoff for the CI/CD adopter packaging plan; planner-architect
+      filed a note on the two-tooling strategy decision. Both files were valid
+      individually. When the local branch was rebased onto the remote, an
+      add/add conflict on `00320-planner-architect.md` required manual
+      intervention.
+
+      The repair required: choosing which file to keep at the colliding
+      filename, renumbering the other to seq 337, updating all `references-to`
+      fields that cited the old filename, restoring the remote's version of
+      `00320-planner-architect.md` that was accidentally deleted by the rename
+      commit, and reverifying the channel state with `mix agov.session.resume`.
+      Total cost: approximately one hour of careful git surgery.
+
+      The existing design acknowledged this failure mode. `docs/coordination/README.md`
+      stated "Sequence collisions are valid. When two agents write at the same
+      sequence, both files are authoritative." The coordination visibility scanner
+      (`mix agov.coord.visibility`) was built to detect collisions. L015 recommended
+      that agents check the current highest sequence before filing.
+
+      None of these mitigations prevent the collision. They detect it after the
+      fact and require human repair. The root cause is structural: sequential
+      integers require a shared counter to allocate safely. In an async
+      multi-agent system with no shared counter, discipline-based collision
+      avoidance is unreliable. Any two agents working from independently cached
+      channel states will eventually converge on the same next integer.
+
+      The structural fix is to replace sequential integers with time-sortable
+      unique identifiers that agents generate independently without coordination.
+      ULID (Universally Unique Lexicographically Sortable Identifier) was chosen:
+      26-char Crockford base32, 48-bit millisecond timestamp prefix. Properties:
+      - Collision-proof: probability of two agents generating the same ULID in
+        the same millisecond is astronomically small (~1 in 2^80).
+      - Sortable: lexicographic order = creation-time order; no loss of the
+        temporal ordering the seq prefix provided.
+      - Short: 26 chars, shorter than UUID (36 chars), embeds timestamp for
+        human inspection of the first 10 chars.
+
+      A secondary insight emerged: the `references-to` field in coordination
+      front matter already uses filenames as stable node identifiers, not seq
+      integers. The channel was already a directed graph in structure; the only
+      missing property was that its node identifiers (filenames) needed to be
+      collision-proof. ULID-based filenames complete the design that
+      `references-to` began.
+
+      This learning is related to L015 but proposes a different resolution.
+      L015's recommendation (agents check highest seq before filing) addresses
+      the symptom with process discipline. L017's recommendation addresses the
+      cause with structural change.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Replace sequential `seq`-based coordination filenames with ULID-based
+      filenames (`<ulid>-<role>.md`). The `seq` field in front matter becomes
+      optional (existing files stay valid); a new `id` field (ULID string)
+      replaces it for new messages. Tooling sorts by the `timestamp` front
+      matter field (ISO 8601 sorts lexicographically) rather than by filename
+      prefix, unifying old and new formats in a single channel.
+
+      The `references-to` field already uses filenames as references; no change
+      to the graph protocol is needed. The "Sequence collisions are valid"
+      documentation note becomes obsolete and should be removed.
+
+      The collision detection in `mix agov.coord.visibility` should be retained
+      for old-format files but will be structurally unreachable for ULID-named
+      files. The `mix agov.coord.brief` template generator should emit `id: <ulid>`
+      instead of `seq: <n>`. The session.resume display of pending handoffs
+      should show the first 8 chars of the ULID (which encode the timestamp)
+      rather than the seq integer.
+
+      Implementation plan: `docs/plans/coordination-ulid-migration.md`.
+      Gate 1 handoff: seq 341.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
