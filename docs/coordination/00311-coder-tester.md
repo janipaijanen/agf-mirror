@@ -50,4 +50,3 @@ Remaining Gate 2 note:
   branch is merged as-is, governor-reviewer should explicitly accept that
   coordination entry or request a bridge/move through the multi-AI workspace
   isolation branch.
-

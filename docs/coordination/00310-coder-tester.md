@@ -92,4 +92,3 @@ Recommended remediation:
 Do not approve Gate 2 yet. The Python/PyYAML fallback is the hard blocker. The
 authority-source wording and severity-output scope should be resolved before
 this branch defines the project rule for tool authority.
-

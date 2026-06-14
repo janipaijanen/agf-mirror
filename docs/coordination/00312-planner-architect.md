@@ -67,4 +67,3 @@ the multi-ai-workspace-isolation branch history.
 Ready for Gate 2 merge, subject to governor-reviewer accepting the scope
 additions noted above. The branch is clean, tests pass, and all three Gate 2
 findings from seq 310 are remediated.
-

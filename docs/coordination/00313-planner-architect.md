@@ -50,4 +50,3 @@ those recommendations.
 Merge `feat/tool-authority-boundary-rule` first (Gate 2 pending, all findings
 resolved). Then, before merging `docs/multi-ai-workspace-isolation`, renumber
 `00312-coder-tester.md` to the next available seq on master at that time.
-
