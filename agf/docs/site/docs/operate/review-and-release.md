@@ -5,10 +5,10 @@ developers operating gates and releases. After this page you can run a
 Gate 2 review that earns its keep, and a release that cannot ship broken
 twice the same way.*
 
-!!! warning "Inherited from agents-govern v1.x"
-    Not yet verified under the AGF v2 layout and tooling. Treat as
-    background context only until updated. Adopters may verify and
-    report evidence upstream.
+!!! note "AGF v2 layout"
+    Gate evidence is recorded in the adopter-owned coordination channel,
+    `docs/coordination/` by default. Release tooling is currently the
+    Mix-backed reference implementation under `tooling/elixir/`.
 
 ## Gate 2 in practice
 

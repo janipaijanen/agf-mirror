@@ -17,6 +17,13 @@ can be considered AGF-compatible. Table 1 summarizes the main contracted
 artifacts, the shipped checks, and the checks still treated as contract targets
 rather than finished tooling.
 
+Contracts define what tooling may check; they do not make tooling the
+governor. A validator failure becomes a blocking gate only when a named AGF
+rule, contract, CI policy, or recorded governor decision says that check is
+blocking. Otherwise the result is advisory evidence for the responsible role.
+This distinction lets teams add useful automation without accidentally giving a
+script authority the framework never granted.
+
 | Artifact | Contract | Checked by |
 |---|---|---|
 | Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agf coord validate` |
@@ -32,6 +39,25 @@ The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped
 capability. If your project builds one of the missing validators, that is a
 contribution upstream wants.
+
+## Advisory and blocking checks
+
+Every validator integration should answer two questions:
+
+| Question | Required answer |
+|---|---|
+| What artifact is being checked? | Path pattern and schema or rule reference |
+| Is failure advisory or blocking? | `advisory` unless a named rule or decision grants blocking authority |
+
+Good CI job names make the authority visible:
+
+- `advisory:agf-coordination-review` for a non-blocking report.
+- `blocking:agf-coordination-schema` when the coordination schema is a required gate.
+
+Do not turn every useful warning into a blocker. Advisory checks are valuable:
+they let evaluators, reviewers, and local models surface friction without
+stalling work. Reserve blocking checks for violations that the project has
+explicitly decided must stop a merge or release.
 
 ## The stability promise
 

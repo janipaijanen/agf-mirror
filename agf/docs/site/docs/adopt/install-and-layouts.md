@@ -33,6 +33,12 @@ upgrade.
 AGF v2.0 supports one layout: copy the distribution into your repository as
 the visible `agf/` directory.
 
+`agf/` is the adopter-facing framework product. It contains the normative
+assets your project adopts: roles, rules, schemas, templates, and docs.
+`tooling/` is implementation support for validation, build, release, and
+conformance checks. Tooling reports evidence against the framework; it is not
+itself the source of governance authority.
+
 | Artifact | Location |
 |---|---|
 | Framework directory | `agf/` |
@@ -80,6 +86,12 @@ roles only when the work warrants them — the
 model, and the shipped raw reference at `agf/docs/reference/quick-reference.md`
 lists which phase each role belongs to.
 
+The manifest file currently present in `agf/agents/MANIFEST.yaml` is the
+AGF-NG/foundry dogfooding manifest. Treat it as an example of role-status
+tracking, not as an adopter-ready roster. Before wiring manifest-driven
+tooling, create or document your own local role-status authority and point
+tooling at it explicitly.
+
 Minimum commissioning matrix:
 
 | Trial shape | Active roles | Advisory/checklist coverage |
@@ -110,6 +122,10 @@ or wait for a packaged `agov` tooling distribution.
 
 When adding validator jobs to CI, verify each gate fires by feeding it a
 deliberately bad input once on the merge request that introduces the job.
+
+Validator output is advisory unless a named AGF rule, contract, or recorded
+governor decision makes the check blocking. When a check is blocking, document
+the rule that grants it blocking authority in the CI job or release procedure.
 
 ## Step 6: Initialise your evidence
 
