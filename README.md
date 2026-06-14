@@ -8,6 +8,8 @@ an append-only coordination channel, and structured learning records. The aim
 is simple: keep AI-assisted changes fast while making decisions, handoffs, and
 risk acceptance reconstructible from files.
 
+Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
+
 ## Should you try it?
 
 Try AGF when:
