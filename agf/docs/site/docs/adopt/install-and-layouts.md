@@ -11,10 +11,10 @@ place and understand the single supported v2.0 layout.*
   (the reference implementation targets Claude Code; the rule content is
   tool-agnostic and has been tested with Cursor, Codex CLI, Copilot, and
   Windsurf).
-- Elixir and Mix available if you want to run the current validators locally
-  and in CI. Today those validators live in `tooling/elixir/`, outside the
-  `agf/` distribution directory, so validator use requires a full checkout or
-  a separately packaged tooling distribution.
+- The `agov` command available if you want to run the current core validators
+  locally and in CI. In a full checkout, symlink `tooling/agov` into
+  `~/.local/bin/agov` or run it directly. A release archive containing only
+  `agf/` does not yet include packaged tooling.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
@@ -56,7 +56,7 @@ layout.
 
 Working plans and coordination entries are adopter-owned evidence, not
 upstream-owned framework files. The current POC default keeps them in root
-`docs/` because the shipped Mix tasks default to those paths. If your project
+`docs/` because the shipped `agov` validators default to those paths. If your project
 chooses another coordination path, configure and document it before agents
 start writing files.
 
@@ -106,18 +106,15 @@ changes the role manifest and records that decision.
 
 ## Step 5: Wire the validators
 
-If you have the full checkout, run the shipped validators from
-`tooling/elixir/`:
+If you have the full checkout, run the shipped core validators with `agov`:
 
 ```bash
-cd tooling/elixir
-mix deps.get
-mix agov.coord.validate ../../docs/coordination/*.md
-mix agov.plan.validate ../../docs/plans/*.md
+agov coord validate docs/coordination/*.md
+agov plan validate docs/plans/*.md
 ```
 
 A release archive containing only `agf/` has schemas and templates, but not
-the current Mix tasks. In that case, either use a full checkout for validation
+the current tooling executable. In that case, either use a full checkout for validation
 or wait for a packaged `agov` tooling distribution.
 
 When adding validator jobs to CI, verify each gate fires by feeding it a

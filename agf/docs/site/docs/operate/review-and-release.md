@@ -7,8 +7,9 @@ twice the same way.*
 
 !!! note "AGF v2 layout"
     Gate evidence is recorded in the adopter-owned coordination channel,
-    `docs/coordination/` by default. Release tooling is currently the
-    Mix-backed reference implementation under `tooling/elixir/`.
+    `docs/coordination/` by default. Core plan and coordination validation uses
+    `agov`; release tooling is still in the Mix-backed reference implementation
+    under `tooling/elixir/`.
 
 ## Gate 2 in practice
 

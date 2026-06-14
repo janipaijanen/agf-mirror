@@ -46,8 +46,8 @@ evidence.
 | Assistant rule install target | `.claude/rules/` |
 
 Working plans and coordination entries are adopter-owned evidence. The POC
-default keeps them in root `docs/` because the current Mix validators use those
-paths. Framework-owned files stay under `agf/`.
+default keeps them in root `docs/` because the current `agov` validators use
+those paths. Framework-owned files stay under `agf/`.
 
 > **Why this matters — silent failure mode.** AI agents and humans following
 > this guide literally create files at the paths written here. If the guide
@@ -63,14 +63,14 @@ If you want to try the framework before committing to full adoption,
 this minimal path gets you running. It assumes the release archive has been
 extracted as `agf/` in your existing project.
 
-0. **Install Elixir/Mix** if you want to run the current validators locally.
-   Today the Mix tasks live in `tooling/elixir/`, outside the `agf/`
-   distribution directory. Use a full repository checkout when validating this
-   POC. In this repository, `mise install` provisions the pinned Elixir/Erlang
-   toolchain from `mise.toml`.
+0. **Make `agov` available** if you want to run the current core validators
+   locally. In a full checkout, symlink the repository-local executable:
    ```bash
-   mise install
+   mkdir -p ~/.local/bin
+   ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
    ```
+   A release archive containing only `agf/` does not yet include packaged
+   tooling. Use a full repository checkout when validating this POC.
 
 1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agent-governance/-/releases/permalink/latest)
    and extract it into your project as `agf/`.
@@ -108,9 +108,8 @@ extracted as `agf/` in your existing project.
 5. **Validate** the shipped governance records you have created when those
    paths exist in your project:
    ```bash
-   cd tooling/elixir
-   mix agov.coord.validate ../../docs/coordination/<seq>-<sender>.md
-   mix agov.plan.validate ../../docs/plans/*.md
+   agov coord validate docs/coordination/<seq>-<sender>.md
+   agov plan validate docs/plans/*.md
    ```
 
    Agent and learning schemas are included in `agf/schemas/`, but the

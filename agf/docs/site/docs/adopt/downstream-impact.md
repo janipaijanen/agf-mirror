@@ -36,14 +36,14 @@ AGF v2.0 confines framework-owned content to `agf/`. Assistant rule files are
 copied to `.claude/rules/` or your tool's equivalent because those tools read
 configuration from their own root-level locations. Working plans and
 coordination entries are adopter-owned project evidence and default to root
-`docs/` so current validators can run without extra path configuration.
+`docs/` so current `agov` validators can run without extra path configuration.
 
 ## CI jobs added
 
 - **Validator jobs** — schema checks on agent definitions and learning
-  records where tooling exists. Current shipped Mix tasks validate
+  records where tooling exists. Current shipped `agov` commands validate
   coordination messages and Gate 1 plans. Agent and learning validators remain
-  contract targets until their Mix tasks ship.
+  contract targets until their validator commands ship.
 - **Optional gates** — pre-tag version checks, secrets detection,
   anonymization scanning, depending on which rules you adopt.
 

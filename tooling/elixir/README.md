@@ -1,23 +1,24 @@
-# AGF Elixir Tooling
+# AGF Tooling
 
-`tooling/elixir/` contains the current reference implementation of `agov`
-validators and session helpers for AGF-NG.
+`tooling/` contains AGF-NG validation and operator support. `tooling/agov` is
+the repo-local executable for bootstrap validation. `tooling/elixir/` contains
+the Elixir reference implementation for the wider command set.
 
 The tooling is implementation support. It validates and summarizes governance
 artifacts, but it is not the source of governance authority. Authority lives in
 `agf/` rules and schemas, in role decisions, and in the coordination record.
 
-## Repo-local executable
+## User-local entrypoint
 
-Use the repository-local executable for bootstrap validation, especially in
-environments where `mix` is not on `PATH`:
+Use the `agov` command for core validation:
 
 ```bash
-./tooling/agov coord validate docs/coordination/<file>.md
-./tooling/agov plan validate docs/plans/<file>.md
+agov coord validate docs/coordination/<file>.md
+agov plan validate docs/plans/<file>.md
 ```
 
-For a user-local command, symlink it into `~/.local/bin`:
+In this checkout, `agov` is a user-local symlink to the repo executable. To set
+that up in another checkout:
 
 ```bash
 mkdir -p ~/.local/bin
@@ -25,9 +26,16 @@ ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
 agov plan validate docs/plans/<file>.md
 ```
 
-The executable currently covers core coordination and Gate 1 plan validation.
-It is a compatibility layer for the reference Mix tasks below, not a separate
-source of governance authority.
+The executable currently covers core coordination and Gate 1 plan validation,
+including dotted compatibility aliases:
+
+```bash
+agov agov.coord.validate docs/coordination/<file>.md
+agov agov.plan.validate docs/plans/<file>.md
+```
+
+It is a compatibility layer for the reference implementation below, not a
+separate source of governance authority.
 
 ## What The Mix Tooling Checks
 

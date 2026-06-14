@@ -67,12 +67,12 @@ Default POC layout:
 | Working plans | `docs/plans/` |
 | Coordination channel | `docs/coordination/` |
 | Learning record | `agf/learnings/<codename>.yaml` |
-| Current validators | `tooling/elixir/` from a full checkout |
+| Current core validators | `agov` from a full checkout |
 
-The current validator tooling is Mix-based and lives outside the `agf/`
-distribution. A release-archive-only adopter can use the framework docs and
-templates, but needs the full repository checkout or a future packaged `agov`
-tooling distribution to run the current validators.
+The current `agov` executable lives outside the `agf/` distribution. A
+release-archive-only adopter can use the framework docs and templates, but
+needs the full repository checkout or a future packaged `agov` tooling
+distribution to run the current core validators.
 
 ## Safety and independence
 

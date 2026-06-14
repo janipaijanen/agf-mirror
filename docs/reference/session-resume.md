@@ -46,7 +46,8 @@ governance decision or obligation.
 
 ## Command
 
-Run from the Mix project:
+Session resume is not yet wrapped by the repo-local `agov` executable. Run it
+from the Mix project:
 
 ```bash
 cd tooling/elixir

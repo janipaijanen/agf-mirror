@@ -19,7 +19,7 @@ governance context to answer narrow operational questions:
 | Who owns or has claimed an artifact? | Search coordination records and infer claim state. | `mix agov.coord.status` and `mix agov.coord.stale` |
 | What is the next handoff for a role? | Search handoff files and mentally subtract resolved items. | `mix agov.handoff.next` |
 | Is a feature branch hiding coordination obligations? | Compare branch-local messages against base branch manually. | `mix agov.coord.visibility` |
-| Is a coordination message or plan structurally valid? | Ask an AI or reviewer to inspect front matter. | `mix agov.coord.validate` and `mix agov.plan.validate` |
+| Is a coordination message or plan structurally valid? | Ask an AI or reviewer to inspect front matter. | `agov coord validate` and `agov plan validate` |
 | Which roles have been active recently? | Count senders across the channel manually. | `mix agov.usage.report` |
 | How much deterministic output is replacing manual context reads? | Manually count command output and compare to broad context ranges. | `mix agov.token.roi` |
 
@@ -135,7 +135,8 @@ asking an AI to compare every local branch by hand.
 
 ## How To Reproduce
 
-Run from `tooling/elixir/`:
+Run from the repository root for `agov` validation, and from `tooling/elixir/`
+for Mix-only commands:
 
 ```bash
 # Full channel size, from repository root:
@@ -145,7 +146,12 @@ find docs/coordination -maxdepth 1 -type f \
   | xargs wc -c \
   | tail -1
 
-# Tool output sizes:
+# Core validation output sizes:
+agov coord validate docs/coordination/00302-governor-reviewer.md 2>&1 | wc -c
+agov plan validate docs/plans/tool-authority-boundary-rule.md 2>&1 | wc -c
+
+# Mix-only tool output sizes:
+cd tooling/elixir
 mix agov.session.resume --base-branch master | wc -c
 mix agov.session.resume --role governor-reviewer --base-branch master | wc -c
 mix agov.handoff.next governor-reviewer 2>&1 | wc -c

@@ -44,15 +44,13 @@ inside each copied file.
 
 ## 3. Validate the plan and first handoff
 
-Current validators are Mix tasks in `tooling/elixir/`, so this step requires a
-full checkout or future packaged tooling distribution:
+Use the `agov` command for core validation. In this repository it points at
+`tooling/agov`; in another checkout, symlink that executable into
+`~/.local/bin` or run `./tooling/agov` directly.
 
 ```bash
-cd tooling/elixir
-mix deps.get
-mix agov.plan.validate ../../docs/plans/sample-login-error-message.md
-mix agov.coord.validate ../../docs/coordination/00001-planner-architect.md
-cd ../..
+agov plan validate docs/plans/sample-login-error-message.md
+agov coord validate docs/coordination/00001-planner-architect.md
 ```
 
 The plan contains real YAML front matter, including the required advisory
@@ -78,9 +76,7 @@ In real work, the governor writes the actual decision and conditions.
 Validate it:
 
 ```bash
-cd tooling/elixir
-mix agov.coord.validate ../../docs/coordination/00002-governor-reviewer.md
-cd ../..
+agov coord validate docs/coordination/00002-governor-reviewer.md
 ```
 
 Nothing is implemented before Gate 1 approval lands.
@@ -102,9 +98,7 @@ files and validation commands:
 
 ```bash
 $EDITOR docs/coordination/00003-coder-tester.md
-cd tooling/elixir
-mix agov.coord.validate ../../docs/coordination/00003-coder-tester.md
-cd ../..
+agov coord validate docs/coordination/00003-coder-tester.md
 ```
 
 The governor-reviewer reviews the implementation diff, the tests, and the
@@ -118,9 +112,7 @@ completion entry:
 
 ```bash
 $EDITOR docs/coordination/00004-coder-tester.md
-cd tooling/elixir
-mix agov.coord.validate ../../docs/coordination/00004-coder-tester.md
-cd ../..
+agov coord validate docs/coordination/00004-coder-tester.md
 ```
 
 The chain is now reconstructible:
