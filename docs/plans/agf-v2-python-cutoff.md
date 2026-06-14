@@ -1,7 +1,10 @@
 ---
 id: agf-v2-python-cutoff
-status: pending-gate1
+status: approved
 topic: agf-v2-python-cutoff
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-06-14T20:10:15Z
+gate1_approved_seq: 335
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
