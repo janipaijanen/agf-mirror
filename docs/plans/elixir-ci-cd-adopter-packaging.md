@@ -43,13 +43,26 @@ Current state on `main`:
   bundles, and deferring binary tooling artifacts until adoption evidence
   justifies the platform matrix.
 
+Existing implementation source:
+
+- Branch `feat/release-pages-artifacts` already contains a root
+  `.gitlab-ci.yml`, release guard implementation, checksum/provenance support,
+  tests, and release artifact documentation updates.
+- This CI/CD slice should reuse that branch as the starting implementation
+  rather than recreate the pipeline from scratch.
+- Gate 2 should reconcile that branch against current `main`, preserve the MR
+  workflow decision from seq 318, and verify whether any coordination sequence
+  entries on the implementation branch need renumbering or bridging before
+  merge.
+
 ## Scope
 
 Implement a root GitLab CI configuration and the smallest supporting Elixir
 tooling/docs changes needed for adopter framework packaging:
 
-1. Add `.gitlab-ci.yml` with pinned runner image(s) or a pinned setup path for
-   Elixir `1.20.1` / OTP `29`, matching the project toolchain.
+1. Rebase or otherwise reconcile the existing `.gitlab-ci.yml` from
+   `feat/release-pages-artifacts`, preserving its pinned Elixir `1.20.1` /
+   OTP `29.0.2` image unless Gate 2 review finds a better pinned image.
 2. Add merge-request and branch validation jobs:
    - fetch dependencies;
    - compile with warnings as errors;
