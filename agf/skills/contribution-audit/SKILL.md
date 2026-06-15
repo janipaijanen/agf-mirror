@@ -25,11 +25,12 @@ agent's review process.
 ## Step 1 — Run automated heuristics
 
 ```bash
-uv run agov-validate-contributions [FILES...]
+cd tooling/elixir
+mix agov.validate.contributions [LEARNINGS_DIR]
 ```
 
-Without arguments, scans all `learnings/*.yaml`. Pass specific files
-to audit targeted contributions.
+Without arguments, scans the default learning record directory. Pass a specific
+learning-record directory to audit targeted contributions.
 
 The tool checks three dimensions mechanically:
 

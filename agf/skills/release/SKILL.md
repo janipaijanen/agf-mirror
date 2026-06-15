@@ -17,16 +17,15 @@ gate requires explicit human confirmation.
 ## Prerequisites
 
 - Working tree is clean (no uncommitted changes)
-- All tests pass (`uv run pytest` or project-specific test command)
+- All tests pass (`mix test` from `tooling/elixir/` or the
+  project-specific test command)
 - You know the bump type: `major`, `minor`, or `patch`
 
 ## Step 1 — Bump version
 
-```bash
-uv run agov-bump <major|minor|patch>
-```
+Version bump tooling is deferred to E4. Until `mix agov.bump` exists, perform
+the release bump manually:
 
-This updates:
 - `VERSION` file
 - `CHANGELOG.md` (placeholder section)
 - `README.md` citation (major.minor)
@@ -59,10 +58,12 @@ Present the draft to the user.
 ## Step 3 — Run health check
 
 ```bash
-uv run agov-health
+mix agov.validate
 ```
 
-All checks must pass. If any errors, fix before proceeding.
+Run this from `tooling/elixir/`. Full `mix agov.health` summary coverage is
+deferred to E4. All available checks must pass; if any errors, fix before
+proceeding.
 
 ## Step 4 — Create release branch and commit
 
@@ -72,7 +73,7 @@ git add <changed files>
 git commit -m "chore: bump to v<version> — VERSION, CHANGELOG, agent framework_versions"
 ```
 
-Do not stage unrelated files. Stage only files changed by `agov-bump`
+Do not stage unrelated files. Stage only files changed by the version bump
 and the changelog.
 
 ## Step 5 — Push and create merge request

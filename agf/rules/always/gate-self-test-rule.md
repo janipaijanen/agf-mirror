@@ -48,7 +48,7 @@ $ echo $?
 1
 ```
 
-### Validator (`agov-validate-*`)
+### Validator (`mix agov.validate.*`)
 
 If the MR adds a new validator:
 
@@ -57,7 +57,8 @@ If the MR adds a new validator:
 $ cat > /tmp/bad-input.yaml <<EOF
 [malformed content per the validator's contract]
 EOF
-$ uv run agov-validate-newthing /tmp/bad-input.yaml
+$ cd tooling/elixir
+$ mix agov.validate.newthing /tmp/bad-input.yaml
 [validator output: errors listed]
 $ echo $?
 1
@@ -109,7 +110,7 @@ Per-MR: the contributor includes the negative test in the MR description; the re
 
 Per-milestone: framework operators audit recent gate-introduction MRs; any that landed without a negative test are flagged and the gate is re-verified post-hoc.
 
-Tooling (recommended, future): a CI check that scans MR descriptions for a `## Negative test` heading or similar marker, blocking merge if absent on MRs that touch known gate-introduction paths (`.git-hooks/`, `src/agents_govern/validate_*`, `.gitlab-ci.yml` rules blocks). Out of scope for the rule's introduction; track as a follow-up issue if adopted.
+Tooling (recommended, future): a CI check that scans MR descriptions for a `## Negative test` heading or similar marker, blocking merge if absent on MRs that touch known gate-introduction paths (`.git-hooks/`, `tooling/elixir/lib/mix/tasks/agov.validate*`, `.gitlab-ci.yml` rules blocks). Out of scope for the rule's introduction; track as a follow-up issue if adopted.
 
 ## Why MUST on three-source evidence
 

@@ -2,7 +2,7 @@
 name: infosec-screen
 origin: upstream
 description: >
-  Run the InfoSec Sentinel screening pipeline: validate-infosec.sh,
+  Run the InfoSec Sentinel screening pipeline: the AGF infosec validator,
   pre-commit hooks, SPDX header verification, and project-specific
   pattern checks.
 ---
@@ -12,21 +12,19 @@ description: >
 # InfoSec screen
 
 Run a comprehensive information-leak screening of the project's
-governance artifacts. This wraps `validate-infosec.sh` with additional
+governance artifacts. This wraps `mix agov.validate.infosec` with additional
 checks that the script alone does not cover.
 
 ## Step 1 — Run the automated sentinel
 
 ```bash
-uv run agov-validate-infosec
+cd tooling/elixir
+mix agov.validate.infosec
 ```
 
-If the `--include-md` flag is relevant (project has narrative docs
-like `docs/governance/retrospective.md` or `reviews/*.md`), use:
-
-```bash
-uv run agov-validate-infosec --include-md
-```
+Markdown inclusion flags are deferred to E4. Until that option exists, run the
+available task and add targeted manual checks for narrative docs such as
+`docs/governance/retrospective.md` or `reviews/*.md`.
 
 Record the output: number of blocks, warnings, and acknowledged findings.
 
