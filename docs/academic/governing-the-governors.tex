@@ -14,7 +14,7 @@
 \author{\IEEEauthorblockN{Project codename: foundry}
 \IEEEauthorblockA{\textit{Self-applied governance framework working paper}\\
 \textit{WIP internal draft; low-priority background artifact}\\
-2026-06-13}}
+2026-06-15}}
 
 \begin{document}
 \maketitle
@@ -96,13 +96,13 @@ Recent AI governance work makes resource sensitivity especially visible. \cite{h
 
 \section{Method: Self-Application as Evidence}
 
-Foundry's method is self-application under version control. The framework is built using the governance system it is replacing. At the agent level, this treats the coordination log as part of the agent's perceptual substrate: agents can act more rationally only when they can observe the relevant governance state \cite{russell2021ai}. The analyzed snapshot for this revision is branch commit \texttt{bd512ed} on 2026-06-13. It contains 105 tracked coordination messages, 13 tracked plan files, three JSON Schemas, 18 Elixir library or Mix task files, and ten Elixir test files. These artifacts were not sampled as an independent empirical dataset. They were reviewed as a design-case self-study corpus.
+Foundry's method is self-application under version control. The framework is built using the governance system it is replacing. At the agent level, this treats the coordination log as part of the agent's perceptual substrate: agents can act more rationally only when they can observe the relevant governance state \cite{russell2021ai}. The analyzed snapshot for this revision is current \texttt{main} commit \texttt{b641c44} on 2026-06-15, after the Elixir migration and stale-handoff reconciliation work had closed. It contains 348 tracked coordination messages, 34 tracked plan files, six JSON Schemas, 49 Elixir library or Mix task files, and 26 Elixir test files. These counts were produced with repository file scans over \texttt{docs/coordination}, \texttt{docs/plans}, \texttt{agf/schemas}, and \texttt{tooling/elixir}. The artifacts were not sampled as an independent empirical dataset. They were reviewed as a design-case self-study corpus.
 
 The self-study is informed by two kinds of antecedent public evidence from the earlier framework lineage. First, the v1.1.50 documentation site positions agents-govern as a governance layer rather than an agent runtime, and explicitly distinguishes it from orchestrators that execute agents \cite{agentsgovern2026position}. Second, the public \texttt{blue-marlin} pier-modelling study documents a downstream use of agents-govern v0.34.0, including generated agent maps, active role inventories, GitLab Pages outputs, and explicit disclaimers that the artifact is a theoretical study rather than a construction plan \cite{bluemarlin2026governance}. These materials are not the empirical corpus analyzed in this paper, but they constrain the design problem: the successor framework must preserve the governance/runtime boundary and support downstream documentation that is honest about authority, safety, and intended use.
 
 The analysis procedure was exploratory but explicit. First, coordination records, plan files, validators, tests, and learning records were grouped by governance mechanism: planning, handoff, role authority, validation, learning, documentation, and downstream adoption. Second, incidents were included when they had a durable artifact trail: a coordination record, learning record, validator change, test fixture, review artifact, or decision record. Third, each incident was classified by failure mode, governance response, enforcement status, and residual limitation. Historical v1.x learning records were treated as antecedent/bootstrap evidence unless an explicit later artifact promoted, migrated, or derived them under the successor contract. This is a single-project self-study rather than an inter-rater qualitative analysis; it is useful for surfacing candidate mechanisms and failure categories, not for estimating external effect sizes.
 
-Reproducibility is limited but concrete. The paper source and generated PDF are in \texttt{docs/academic/}; schemas are in \texttt{spec/schemas/}; validators and tests are under \texttt{tooling/elixir/}. The core checks used during drafting are \texttt{mise exec -- mix test}, \texttt{mise exec -- mix agov.coord.validate <file>}, \texttt{mise exec -- mix agov.plan.validate <file>}, and a Podman build using \texttt{docker.io/kjarosh/latex:2025.1-medium}. Some evidence remains branch-local until merge, and append-only behavior is enforced by rule and review rather than by cryptographic log design.
+Reproducibility is limited but concrete. The paper source and generated PDF are in \texttt{docs/academic/}; schemas are in \texttt{agf/schemas/}; validators and tests are under \texttt{tooling/elixir/}. The core checks used during drafting are \texttt{mix test}, \texttt{agov coord validate <file>}, \texttt{agov plan validate <file>}, and a LaTeX build of \texttt{docs/academic/governing-the-governors.tex}. Some evidence remains branch-local until merge, and append-only behavior is enforced by rule and review rather than by cryptographic log design.
 
 Each non-trivial change is expected to pass through:
 
@@ -134,12 +134,12 @@ The evaluation criteria are intentionally modest. A governance mechanism is cons
 \hline
 Episode & Evidence artifact & Governance response & Enforcement status & Residual limitation \\
 \hline
-Required advisory roles were easy to omit from Gate 1 plans & Plan T2-5; fixtures \texttt{invalid\_plan\_*}; \texttt{PlanValidator} & Plan schema and validator require infosec and contribution-auditor entries; waiver reasons are checked & Blocking local validator; review-blocking rule & Required roles are still bootstrap-policy specific \\
-Active optional advisory roles were rejected by a hardcoded allow-list & Seq 117; optional-advisor plan fixtures; manifest-aware tests & Validator now allows additional advisory roles when active in the manifest & Blocking local validator with manifest lookup & Role authority location is still bootstrap-specific \\
-Resolved handoffs still appeared in \texttt{handoff.next} & Seq 100--105; handoff reader/tracker tests & Handoff reader became resolution-aware by consulting later referencing records & Blocking task behavior with tests & Resolution semantics are reference-based, not semantic approval analysis \\
-Reusable process lessons were easy to miss & Learning-disposition proposal; rule candidate; high-severity fixture & Coordination validator warns when high-signal messages lack a learning review section & Warning-only validator & Not yet blocking; structured front matter deferred \\
-Wrong-branch work recurred & Branch/worktree records; adjacent-learning preflight branch & Branch/worktree preflight became an explicit learning and rule candidate & Rule/proposal; partially procedural & Preflight is not yet a universal blocking check \\
-Downstream replace-on-upgrade ownership needed clarification & Upgrade coordination; downstream-impact discussion; adopter-owned learning examples & Upstream learning files and adopter-owned learning files are distinguished & Documented rule; implementation-dependent & Needs adopter-facing tests and installer behavior \\
+Required advisory roles were easy to omit from Gate 1 plans & \texttt{docs/plans/T2-5-*}; \texttt{tooling/elixir/lib/agov/plan\_validator.ex}; \texttt{plan\_validator\_test.exs} & Plan schema and validator require infosec and contribution-auditor entries; waiver reasons are checked & Blocking local validator; review-blocking rule & Required roles are project-policy specific \\
+Active optional advisory roles were rejected by a hardcoded allow-list & Seq 117; \texttt{agf/agents/MANIFEST.yaml}; \texttt{plan\_validator\_test.exs} & Validator now allows additional advisory roles when active in the manifest & Blocking local validator with manifest lookup & Role authority still depends on local manifest quality \\
+Resolved handoffs still appeared in \texttt{handoff.next} & Seq 100--105; \texttt{handoff\_tracker.ex}; \texttt{handoff\_tracker\_test.exs} & Handoff tracking became resolution-aware by consulting later referencing records & Blocking task behavior with tests & Resolution semantics are reference-based, not semantic approval analysis \\
+Reusable process lessons were easy to miss & Seq 121--128; learning-disposition proposal; high-severity fixture & Coordination validation warns when high-signal messages lack a learning review section & Warning-only validator & Not yet blocking; structured front matter deferred \\
+Wrong-branch work recurred & Seq 106, 116; active-branch preflight rule; branch/worktree records & Branch/worktree preflight became an explicit rule and learning candidate & Rule/proposal; partially procedural & Preflight is not yet a universal blocking check \\
+Downstream replace-on-upgrade ownership needed clarification & Seq 88, 102; \texttt{agf/docs/adopt/decommission.md}; \texttt{agf/dist/release-manifest.yaml} & Upstream-owned and adopter-owned artifacts are distinguished in docs and distribution metadata & Documented rule; implementation-dependent & Needs adopter-facing upgrade tests \\
 \hline
 \end{tabular}
 \end{table*}
@@ -199,11 +199,11 @@ Table~\ref{tab:maturity} distinguishes what is enforced from what is merely plan
 \hline
 Mechanism & Status & Current evidence & Main gap \\
 \hline
-Coordination message front matter & Schema-validated & JSON Schema plus \texttt{agov.coord.validate} & Append-only remains review/rule based \\
-Gate 1 advisory consultation & Validator-enforced & Plan schema, fixtures, and \texttt{agov.plan.validate} & Required advisory roles are bootstrap-policy specific \\
-Optional active advisory roles & Validator-enforced & Manifest-aware plan validation & Final AGF-NG role authority location unresolved \\
+Coordination message front matter & Schema-validated & JSON Schema plus \texttt{agov coord validate} & Append-only remains review/rule based \\
+Gate 1 advisory consultation & Validator-enforced & Plan schema, fixtures, and \texttt{agov plan validate} & Required advisory roles are project-policy specific \\
+Optional active advisory roles & Validator-enforced & Manifest-aware plan validation & Authority depends on maintaining \texttt{agf/agents/MANIFEST.yaml} \\
 Role boundaries and artifact ownership & Documented/schema-shaped; partially review-enforced & Agent jurisdiction, \texttt{cannot\_touch} fields, escalation routes & Tool-level write restrictions are not universal yet \\
-Handoff queue resolution & Validator/tool-enforced behavior & \texttt{HandoffTracker}, \texttt{HandoffReader}, and tests & Reference-based resolution may miss ambiguous decisions \\
+Handoff queue resolution & Validator/tool-enforced behavior & \texttt{HandoffTracker}, \texttt{HandoffReader}, tests, and stale-queue reconciliation & Reference-based resolution may miss ambiguous decisions \\
 Learning disposition & Warning-only & Coordination validator warning and fixtures & Not yet structured or blocking \\
 Branch/worktree preflight & Conventional/rule candidate & Learning record and rule discussion & No universal pre-write validator yet \\
 Downstream replace-on-upgrade distinction & Documented design rule & Coordination decisions and paper text & Needs installer/upgrade test coverage \\
