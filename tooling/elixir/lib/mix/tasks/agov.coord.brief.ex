@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Agov.Coord.Brief do
   use Mix.Task
 
-  @shortdoc "Generate a coordination message skeleton for the next seq"
+  @shortdoc "Generate a coordination message skeleton with a new ULID"
 
   def run(args) do
     Agov.CliSafety.ensure_not_root!()
@@ -23,12 +23,23 @@ defmodule Mix.Tasks.Agov.Coord.Brief do
       case Agov.ChannelReader.scan(coord_dir) do
         {:error, :dir_not_found} ->
           Mix.shell().error("ERR  directory not found: #{coord_dir}")
-          %{next_seq: 1, total: 0, seq_range: nil, active_claims: 0}
+
+          %{
+            next_id: Agov.CoordIdentity.generate_ulid(),
+            total: 0,
+            timestamp_range: nil,
+            active_claims: 0
+          }
 
         {:ok, %{messages: [], total: 0}} ->
-          %{next_seq: 1, total: 0, seq_range: nil, active_claims: 0}
+          %{
+            next_id: Agov.CoordIdentity.generate_ulid(),
+            total: 0,
+            timestamp_range: nil,
+            active_claims: 0
+          }
 
-        {:ok, %{messages: messages, total: total, seq_range: {_min, max} = range}} ->
+        {:ok, %{messages: messages, total: total, timestamp_range: range}} ->
           parsed = Enum.map(messages, &elem(&1, 1))
 
           active_claims =
@@ -37,7 +48,12 @@ defmodule Mix.Tasks.Agov.Coord.Brief do
               _ -> 0
             end
 
-          %{next_seq: max + 1, total: total, seq_range: range, active_claims: active_claims}
+          %{
+            next_id: Agov.CoordIdentity.generate_ulid(),
+            total: total,
+            timestamp_range: range,
+            active_claims: active_claims
+          }
       end
 
     gen_opts =

@@ -8,7 +8,6 @@
     "kind",
     "from",
     "to",
-    "seq",
     "timestamp",
     "immutable",
     "references-to",
@@ -43,6 +42,10 @@
     "seq": {
       "type": "integer",
       "minimum": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
     },
     "timestamp": {
       "type": "string",

@@ -3,13 +3,20 @@ defmodule Agov.BriefGeneratorTest do
 
   alias Agov.BriefGenerator
 
-  @channel_info %{next_seq: 1, total: 0, seq_range: nil, active_claims: 0}
-  @channel_info_21 %{next_seq: 22, total: 21, seq_range: {1, 21}, active_claims: 3}
+  @next_id "01KV6BPDNNDCBMEWER3ZFKQHVG"
+  @channel_info %{next_id: @next_id, total: 0, timestamp_range: nil, active_claims: 0}
+  @channel_info_21 %{
+    next_id: @next_id,
+    total: 21,
+    timestamp_range: {"2026-06-13T00:00:00Z", "2026-06-15T00:00:00Z"},
+    active_claims: 3
+  }
 
   describe "generate/2 — default note kind" do
-    test "contains seq from channel_info" do
+    test "contains id from channel_info" do
       {:ok, skeleton} = BriefGenerator.generate(@channel_info_21)
-      assert skeleton =~ "seq: 22"
+      assert skeleton =~ "id: #{@next_id}"
+      refute skeleton =~ "seq:"
     end
 
     test "contains kind: note by default" do
@@ -28,14 +35,14 @@ defmodule Agov.BriefGeneratorTest do
     test "channel summary header present" do
       {:ok, skeleton} = BriefGenerator.generate(@channel_info_21)
       assert skeleton =~ "21 messages"
-      assert skeleton =~ "seq 1"
-      assert skeleton =~ "Next seq: 22"
+      assert skeleton =~ "2026-06-13T00:00:00Z to 2026-06-15T00:00:00Z"
+      assert skeleton =~ "Next id: #{@next_id}"
     end
 
-    test "empty channel shows 0 messages and seq 1" do
+    test "empty channel shows 0 messages and next id" do
       {:ok, skeleton} = BriefGenerator.generate(@channel_info)
       assert skeleton =~ "0 messages"
-      assert skeleton =~ "Next seq: 1"
+      assert skeleton =~ "Next id: #{@next_id}"
     end
   end
 

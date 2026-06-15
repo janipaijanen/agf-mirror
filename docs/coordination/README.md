@@ -9,11 +9,12 @@ in agents-govern 1.1.50 field evidence.
 
 - **Immutable files.** A message file is never edited after creation.
   Corrections are new messages that reference the original.
-- **File naming:** `<zero-padded-seq>-<sender>.md`
-  e.g. `00001-planner-architect.md`, `00002-governor-reviewer.md`
-- **Sequence collisions** are valid. When two agents write at the same
-  sequence, both files are authoritative. Read ALL files at a sequence
-  before advancing.
+- **File naming:** `<ulid>-<sender>.md`
+  e.g. `01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md`
+- **Existing seq files remain immutable.** Older
+  `<zero-padded-seq>-<sender>.md` files are still authoritative history.
+  New files use ULIDs so concurrent agents can create messages without
+  choosing the same sequence number.
 - **Raw files are authoritative.** Digests (under `digests/`) are reading
   aids only. When raw files and a digest conflict, the raw file wins.
 - **Digest boundaries** must be fully historical — no active claims at close.
@@ -37,7 +38,7 @@ require governor-reviewer approval.
 kind: claim | completion | review | ack | handoff | decision-record | fast-track-waiver | lesson-proposal | note
 from: <role-identifier>
 to: <role-identifier> | all
-seq: N
+id: 01KV6BPDNNDCBMEWER3ZFKQHVG
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to: []                    # list of prior message filenames
@@ -99,7 +100,7 @@ when useful for audit or provenance.
 kind: claim
 from: planner-architect
 to: all
-seq: N
+id: 01KV6BPDNNDCBMEWER3ZFKQHVG
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to: []
@@ -128,11 +129,11 @@ Planned verification:
 kind: completion
 from: coder-tester
 to: all
-seq: N
+id: 01KV6BPDNNDCBMEWER3ZFKQHVG
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to:
-  - 000NN-coder-tester.md
+  - 01KV6BPDNNDCBMEWER3ZFKQHVG-coder-tester.md
 topic: completion-topic
 requires-ack: false
 artifacts_owned: []
@@ -156,11 +157,11 @@ Remaining risk or next handoff:
 kind: handoff
 from: planner-architect
 to: governor-reviewer
-seq: N
+id: 01KV6BPDNNDCBMEWER3ZFKQHVG
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to:
-  - 000NN-planner-architect.md
+  - 01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md
 topic: handoff-topic
 requires-ack: false
 artifacts_owned: []
@@ -170,7 +171,7 @@ handoff:
   task:
     - specific action item
   must_read:
-    - docs/coordination/000NN-planner-architect.md
+    - docs/coordination/01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md
   do_not_touch: []
 ---
 ```
@@ -181,7 +182,7 @@ handoff:
 kind: fast-track-waiver
 from: governor-reviewer
 to: planner-architect
-seq: N
+id: 01KV6BPDNNDCBMEWER3ZFKQHVG
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to: []

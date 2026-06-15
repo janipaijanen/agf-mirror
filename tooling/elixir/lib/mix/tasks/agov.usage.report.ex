@@ -9,8 +9,10 @@ defmodule Mix.Tasks.Agov.Usage.Report do
   def run(args) do
     Agov.CliSafety.ensure_not_root!()
 
-    {opts, _, _} = OptionParser.parse(args,
-      strict: [dir: :string, manifest: :string, last: :integer])
+    {opts, _, _} =
+      OptionParser.parse(args,
+        strict: [dir: :string, manifest: :string, last: :integer]
+      )
 
     coord_dir = Keyword.get(opts, :dir, @default_coord_dir)
     manifest_path = Keyword.get(opts, :manifest, @default_manifest)
@@ -24,38 +26,52 @@ defmodule Mix.Tasks.Agov.Usage.Report do
         Mix.shell().error("ERR  directory not found: #{coord_dir}")
         exit({:shutdown, 1})
 
-      {:ok, %{messages: messages, total: total, seq_range: seq_range, invalid_files: invalid_files}} ->
+      {:ok,
+       %{
+         messages: messages,
+         total: total,
+         timestamp_range: timestamp_range,
+         invalid_files: invalid_files
+       }} ->
         report_opts = [invalid_files: invalid_files] |> maybe_put(:last, last_n)
 
-        report = Agov.UsageReporter.report(
-          messages, agents, config.from_aliases, report_opts
-        )
+        report =
+          Agov.UsageReporter.report(
+            messages,
+            agents,
+            config.from_aliases,
+            report_opts
+          )
 
-        print_report(report, coord_dir, total, seq_range)
+        print_report(report, coord_dir, total, timestamp_range)
     end
   end
 
   defp load_agents(path) do
     case Agov.ManifestReader.load(path) do
-      {:ok, agents} -> agents
+      {:ok, agents} ->
+        agents
+
       {:error, :enoent} ->
         Mix.shell().error("WARN manifest not found: #{path}  (agent cross-reference unavailable)")
         %{}
     end
   end
 
-  defp print_report(report, coord_dir, total, seq_range) do
-    range_str = case seq_range do
-      nil -> "(empty)"
-      {min, max} -> "seq #{min}–#{max}"
-    end
+  defp print_report(report, coord_dir, total, timestamp_range) do
+    range_str =
+      case timestamp_range do
+        nil -> "(empty)"
+        {min, max} -> "#{min} to #{max}"
+      end
 
     Mix.shell().info("Channel: #{coord_dir}  (#{total} messages, #{range_str})")
 
-    window_str = case report.window do
-      :all -> "all messages"
-      {:last, n} -> "last #{n} messages"
-    end
+    window_str =
+      case report.window do
+        :all -> "all messages"
+        {:last, n} -> "last #{n} messages"
+      end
 
     Mix.shell().info("Window:  #{window_str}")
     Mix.shell().info("")
@@ -74,11 +90,13 @@ defmodule Mix.Tasks.Agov.Usage.Report do
 
   defp print_kind_counts(kind_counts) do
     Mix.shell().info("Kind distribution:")
+
     kind_counts
     |> Enum.sort_by(fn {_, count} -> -count end)
     |> Enum.each(fn {kind, count} ->
       Mix.shell().info("  #{String.pad_trailing(kind, 18)}  #{count}")
     end)
+
     Mix.shell().info("")
   end
 
@@ -89,12 +107,14 @@ defmodule Mix.Tasks.Agov.Usage.Report do
 
   defp print_sender_counts(sender_counts, inactive_agents) do
     Mix.shell().info("Sender activity (aliases applied):")
+
     sender_counts
     |> Enum.sort_by(fn {_, count} -> -count end)
     |> Enum.each(fn {sender, count} ->
       flag = if sender in inactive_agents, do: "  ← inactive", else: ""
       Mix.shell().info("  #{String.pad_trailing(sender, 24)}  #{count}#{flag}")
     end)
+
     Mix.shell().info("")
   end
 

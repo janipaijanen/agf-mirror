@@ -207,6 +207,7 @@ defmodule Agov.SessionResumeTest do
     dir =
       Path.join(System.tmp_dir!(), "agov_session_resume_#{System.unique_integer([:positive])}")
 
+    File.rm_rf!(dir)
     File.mkdir_p!(dir)
 
     Enum.each(files, fn {name, content} ->

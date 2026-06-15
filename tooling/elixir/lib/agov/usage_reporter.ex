@@ -5,7 +5,10 @@ defmodule Agov.UsageReporter do
     last_n = Keyword.get(opts, :last)
     invalid_files = Keyword.get(opts, :invalid_files, [])
 
-    sorted = Enum.sort_by(messages, fn {filename, data} -> {data["seq"], filename} end)
+    sorted =
+      Enum.sort_by(messages, fn {filename, data} ->
+        Agov.CoordIdentity.sort_key(filename, data)
+      end)
 
     {window_messages, window} =
       case last_n do
@@ -13,10 +16,11 @@ defmodule Agov.UsageReporter do
         n -> {Enum.take(sorted, -n), {:last, n}}
       end
 
-    resolved = Enum.map(window_messages, fn {filename, data} ->
-      canonical = Map.get(aliases, data["from"], data["from"])
-      {filename, Map.put(data, "from", canonical)}
-    end)
+    resolved =
+      Enum.map(window_messages, fn {filename, data} ->
+        canonical = Map.get(aliases, data["from"], data["from"])
+        {filename, Map.put(data, "from", canonical)}
+      end)
 
     kind_counts =
       resolved

@@ -1,15 +1,18 @@
 ---
 id: coordination-ulid-migration
-status: pending-gate1
+status: approved
 topic: coordination-message-ulid-identifiers
 timestamp: 2026-06-14T20:50:25Z
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-06-15T17:55:51Z
+gate1_approved_seq: 343
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: no credentials, auth, network, or secret handling; pure file-naming and schema change
   - role: contribution-auditor
-    status: pending
-    reason: filename convention change affects every future coordination message; adopter migration guidance needed
+    status: waived
+    reason: governor-reviewer approved implementation in seq 343; adopter migration guidance remains a post-Gate-2 follow-up
 ---
 
 # Plan: Coordination Channel ULID Migration

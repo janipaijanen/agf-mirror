@@ -1,8 +1,21 @@
 defmodule Agov.HandoffTracker do
-  @moduledoc false
+  @moduledoc """
+  Tracks unresolved coordination handoffs by graph reachability.
+
+  A handoff is pending until a later resolver message can be reached from it
+  through `references-to` front matter or coordination filename mentions in
+  message bodies. Resolver message kinds are `decision-record`, `completion`,
+  and `ack`.
+
+  This is intentionally not a per-message lifecycle FSM. Resolution can arrive
+  through a chain of related messages, so the tracker builds a descendant graph
+  and searches outward from each handoff.
+  """
+
+  alias Agov.CoordIdentity
 
   @resolver_kinds ~w(decision-record completion ack)
-  @coord_filename_re ~r/(?:^|[\s`"'(\/])(\d{5}-[A-Za-z0-9_-]+\.md)(?=$|[\s`"'),.:;])/
+  @coord_filename_re ~r/(?:^|[\s`"'(\/])((?:\d{5}|[0-9A-HJKMNP-TV-Z]{26})-[A-Za-z0-9_-]+\.md)(?=$|[\s`"'),.:;])/
 
   def scan(file_messages) do
     messages = normalize_messages(file_messages)
@@ -25,6 +38,10 @@ defmodule Agov.HandoffTracker do
         file: file,
         basename: Path.basename(file),
         seq: data["seq"],
+        id: data["id"],
+        timestamp: data["timestamp"],
+        display_id: CoordIdentity.display(data),
+        sort_key: CoordIdentity.sort_key(file, data),
         data: data,
         refs: referenced_files(data)
       }
@@ -57,14 +74,22 @@ defmodule Agov.HandoffTracker do
 
   defp build_descendants_by_file(messages) do
     known_files = MapSet.new(messages, & &1.basename)
-    seq_by_file = Map.new(messages, &{&1.basename, &1.seq})
+    message_by_file = Map.new(messages, &{&1.basename, &1})
 
     Enum.reduce(messages, %{}, fn message, acc ->
       message.refs
       |> Enum.filter(&MapSet.member?(known_files, &1))
-      |> Enum.filter(fn referenced -> message.seq > Map.fetch!(seq_by_file, referenced) end)
+      |> Enum.filter(fn referenced ->
+        referenced_message = Map.fetch!(message_by_file, referenced)
+        message.sort_key > referenced_message.sort_key
+      end)
       |> Enum.reduce(acc, fn referenced, inner ->
-        Map.update(inner, referenced, MapSet.new([message.basename]), &MapSet.put(&1, message.basename))
+        Map.update(
+          inner,
+          referenced,
+          MapSet.new([message.basename]),
+          &MapSet.put(&1, message.basename)
+        )
       end)
     end)
   end
@@ -76,7 +101,7 @@ defmodule Agov.HandoffTracker do
     |> reachable_files(descendants_by_file)
     |> Enum.any?(fn file ->
       message = Map.fetch!(messages_by_file, file)
-      message.seq > handoff.seq and message.data["kind"] in @resolver_kinds
+      message.sort_key > handoff.sort_key and message.data["kind"] in @resolver_kinds
     end)
   end
 
@@ -102,15 +127,15 @@ defmodule Agov.HandoffTracker do
 
   defp format(messages) do
     messages
-    |> Enum.map(fn %{data: data} ->
-      %{
-        seq: data["seq"],
+    |> Enum.map(fn %{file: file, data: data} ->
+      CoordIdentity.entry_fields(file, data)
+      |> Map.merge(%{
         from: data["from"],
         to: data["to"],
         topic: data["topic"],
         status: get_in(data, ["handoff", "status"]) || "ready"
-      }
+      })
     end)
-    |> Enum.sort_by(& &1.seq, :desc)
+    |> Enum.sort_by(& &1.sort_key, :desc)
   end
 end
