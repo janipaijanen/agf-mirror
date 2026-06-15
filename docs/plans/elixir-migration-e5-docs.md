@@ -1,7 +1,9 @@
 ---
 id: elixir-migration-e5-docs
-status: pending-gate1
+status: approved
 topic: elixir-tooling-documentation-update
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-15"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -14,7 +16,7 @@ advisory_consultation:
 # Plan: E5 — Elixir Tooling Documentation Update
 
 **Date:** 2026-06-15T20:39:10Z
-**Status:** PENDING GATE 1
+**Status:** GATE 1 APPROVED
 **Depends on:** E1+E2 complete; E3 merged and Gate 2 closed.
 **Proposed branch:** `docs/elixir-migration-e5-docs`
 **Expected implementer:** coder-tester

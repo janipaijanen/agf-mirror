@@ -72,7 +72,7 @@ defmodule Agov.BriefGenerator do
       "  must_read: []\n" <>
       "  do_not_touch:\n" <>
       "    - .claude/settings.local.json\n" <>
-      "    - agents-govern/uv.lock\n"
+      "    - tooling/elixir/mix.lock\n"
   end
 
   defp kind_front_matter("claim", _to, topic) do

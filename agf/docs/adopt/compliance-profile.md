@@ -125,10 +125,11 @@ The reasoning:
   v0.58.0 entry on the missing pre-merge gate).
 - **Full is mechanically achievable as of v1.1.45.** The
   binding-contract work ([B1]–[B3]) shipped across v1.1.44 and
-  v1.1.45. Adopters declaring the Full target use
-  `agov-validate-binding` plus sidecar metadata on non-commit
-  artefacts; see [Binding contract](../contracts/binding-contract.md) for
-  the per-leg specification.
+  v1.1.45. In the v2 Elixir migration, the binding validator remains deferred
+  to E4; adopters declaring the Full target use the binding validator plus
+  sidecar metadata on non-commit artefacts when that command is available.
+  See [Binding contract](../contracts/binding-contract.md) for the per-leg
+  specification.
 - **Process-aware is the cheaper baseline.** All the layers it
   enforces are mechanically achievable today using the shipped
   validators plus the framework's own
@@ -158,7 +159,7 @@ A short decision shortcut:
 compliance_target: process-aware  # one of: artefact-only | process-aware | full
 ```
 
-`agov-validate-framework-config` validates the file against
+`mix agov.validate.framework_config` validates the file against
 [`schemas/framework.schema.json`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/schemas/framework.schema.json)
 (Draft 7, `additionalProperties: false`); `agov --capabilities` reads
 the declaration to compute the actionable list.

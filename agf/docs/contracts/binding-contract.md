@@ -94,8 +94,9 @@ Every artefact in **binding scope** must carry the identifier.
 *Binding scope* is defined per compliance tier in
 [Compliance profile](../adopt/compliance-profile.md):
 
-- **Artefact-only tier:** binding not required; `agov-validate-binding`
-  passes regardless.
+- **Artefact-only tier:** binding not required; the binding validator passes
+  regardless. In the v2 Elixir migration, `mix agov.validate.binding` is
+  deferred to E4.
 - **Process-aware tier:** Layer 2 enforced; binding still optional.
 - **Full tier:** every commit on an agent-active branch carries one
   or more `Agent-ID:` trailers; every artefact stored outside the
@@ -280,10 +281,11 @@ later steps cannot reconstruct an identifier they were never given.
 
 ## Validator surface
 
-The CI-callable entry point is `agov-validate-binding`, exposed as
-a Python script in `pyproject.toml [project.scripts]`. The
-underlying Application Programming Interface (API) is also
-importable for adopter glue:
+In the v1.x Python line, the CI-callable entry point is
+`agov-validate-binding`, exposed as a Python script in
+`pyproject.toml [project.scripts]`. In the v2 Elixir migration,
+`mix agov.validate.binding` is deferred to E4. The underlying Application
+Programming Interface (API) is also importable for adopter glue:
 
 ```python
 from agents_govern.validate_binding import (

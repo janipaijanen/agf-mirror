@@ -9,6 +9,11 @@ on across releases of `agents-govern`. The framework's
 machine-checkable surface; this page names the *stability
 discipline* that surface follows release-to-release.
 
+> **AGF v2 status note:** The v1.x Python command names below remain historical
+> contract context. Current AGF-NG tooling is implemented as Elixir Mix tasks
+> under `tooling/elixir/`; E4-deferred commands are named explicitly where they
+> have not yet migrated.
+
 This is the canonical home. Action plan item
 [A5](https://gitlab.com/janipaijanen/agent-governance/-/issues/54)
 from the
@@ -54,12 +59,13 @@ migration step.
 The contract is the machine-checkable surface — what an external
 CI engine consumes:
 
-- **Validator command names** (`agov-validate-agents`,
-  `agov-validate-learnings`, `agov-validate-acronyms`,
-  `agov-validate-infosec`, `agov-validate-adoption`,
-  `agov-validate-contributions`, `agov-validate-readme-stats`,
-  `agov-pre-tag-check`, `agov-validate-tag-push`, `agov-validate`,
-  `agov-bump`, `agov-dist`, `agov-health`).
+- **Validator command names** for the current AGF-NG Elixir surface:
+  `mix agov.validate`, `mix agov.validate.agents`,
+  `mix agov.validate.learnings`, `mix agov.validate.infosec`,
+  `mix agov.validate.adoption`, `mix agov.validate.contributions`,
+  `mix agov.validate.framework_config`, `mix agov.dist.check_tag`,
+  and `mix agov.dist.build`. Binding, README stats, acronym, bump, and
+  health commands are deferred to E4.
 - **Exit code semantics** per the
   [v1.1.36 taxonomy](integration-contract.md#exit-codes):
   `0` pass, `1` validation failure, `2` configuration error,
@@ -69,9 +75,10 @@ CI engine consumes:
   requires a major release.
 - **Output format shape** per the
   [Output formats section](integration-contract.md#output-formats):
-  the `agov-validate --json` aggregate JavaScript Object Notation
-  (JSON) shape (`exit_code` + `validators[]` array with `name` /
-  `exit_code` / `output` per entry).
+  the aggregate validator output shape. In v1.x this was
+  `agov-validate --json`; AGF-NG currently exposes human-readable Mix task
+  output while JSON aggregation remains a contract item to preserve or
+  reintroduce explicitly when the v2 CLI surface is finalized.
 - **Trigger set** documented in the
   [Path-based revalidation triggers table](integration-contract.md#path-based-revalidation-triggers)
   — adding new path globs is minor-additive; removing one is
@@ -168,11 +175,12 @@ target removal version.
 
 ## Command Line Interface (CLI) surface
 
-**Shipped v1.1.43.** The `agov` umbrella entry point — the first
-`agov` parent command in the framework — exposes the
-contract-discovery flags directly. Existing flat `agov-validate-*`
-scripts (validate-agents, validate-learnings, etc.) continue to
-work unchanged; the umbrella is additive.
+**v1.x status:** The `agov` umbrella entry point shipped in v1.1.43 and the
+flat `agov-validate-*` scripts continued to work unchanged.
+
+**AGF-NG status:** Current migrated tooling runs through Elixir Mix tasks such
+as `mix agov.validate`, `mix agov.validate.agents`, and
+`mix agov.dist.build`. The remaining non-migrated commands are deferred to E4.
 
 - `agov --version` — framework version (= contract version per
   this page's *Single-version discipline*).

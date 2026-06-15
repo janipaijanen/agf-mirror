@@ -124,8 +124,9 @@ carry summaries pointing here.
 - **Layer 3** ties artefacts to execution traces via correlation
   identifiers, commit trailers, and (for non-commit artefacts)
   sidecar metadata. [B1] (UUID v7 generator) and [B2] (`Agent-ID:`
-  trailer parser / branch classifier / `agov-validate-binding`)
-  shipped in v1.1.44; [B3] (`<artefact>.agov.json` sidecar +
+  trailer parser / branch classifier / v1.x `agov-validate-binding`)
+  shipped in v1.1.44; the Elixir binding validator is deferred to E4. [B3]
+  (`<artefact>.agov.json` sidecar +
   filename-suffix fallback for environments stripping non-image
   files) shipped in v1.1.45. The umbrella `binding` capability is
   now `true` in the [capability report](#capability-reporting). See
@@ -137,33 +138,27 @@ carry summaries pointing here.
 
 ## Validator command surface
 
-The framework ships these validators. Each is a Python entry point
-exposed in `pyproject.toml [project.scripts]`.
+AGF-NG v2 currently exposes migrated tooling as Elixir Mix tasks under
+`tooling/elixir/`. The v1.x Python entry points remain historical compatibility
+context and are not the current v2 public command surface.
 
 | Command | Validates | Default scope |
 |---|---|---|
-| `agov-validate-agents` | `agents/*.yaml` and `agents/MANIFEST.yaml` for structural correctness, communication graph closure, ownership overlap detection | Whole `agents/` directory |
-| `agov-validate-learnings` | `learnings/*.yaml` for schema, append-only invariant, anonymisation policy | Whole `learnings/` directory |
-| `agov-validate-infosec` | Learning records for information leaks (credentials, organisation identifiers, etc.) before publication | Per-file or whole directory |
-| `agov-validate-acronyms` | Markdown files in the repository for first-use acronym expansion (per [.claude/rules/docs/abbreviation-rule.md](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.claude/rules/docs/abbreviation-rule.md)) | Per-file (Pull Request (PR) discipline) or whole repo (drain) |
-| `agov-validate-adoption` | The framework's own adoption discipline (ADOPTING.md steps, self-conformance) | Whole repo |
-| `agov-validate-contributions` | Contribution metadata and release-archive integrity | Whole repo |
-| `agov-validate-readme-stats` | The README.md "X projects, Y learnings" claim against actual corpus state | Top-level README |
-| `agov-validate-binding` | Layer 3 binding contract — UUID v7 correlation identifiers (B1), `Agent-ID:` commit trailers (B2), and `<artefact>.agov.json` sidecar metadata + filename-suffix fallback (B3). Reads `framework.yaml` `binding:` section when present (added v1.1.47); see [Binding contract](binding-contract.md) | Whole repo (commit history + artefact sidecars) |
-| `agov-validate-framework-config` | `framework.yaml` validator — schema check (additionalProperties: false per round-5 §7), contract_version equals VERSION, compliance_target enum. Opt-in: passes when no `framework.yaml` exists. See [`framework.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/framework.yaml) reference | Repo root |
-| `agov` | Umbrella entry point: `--version` / `--contract-version` (alias) / `--contract-changelog` (A5) / `--capabilities` (A6 JSON capability report) — see *Contract versioning* and *Capability reporting* below | n/a (introspection only) |
-| `agov-validate` | Aggregate runner for the default validator set; emits highest-precedence exit code with `--json` support — see *Orchestrator* below | Whole repo |
-| `agov-pre-tag-check` | All validators above plus pre-release-only checks (VERSION / CHANGELOG / tag / working-tree / graph generation) — see *Orchestrator* below | Whole repo |
-| `agov-validate-tag-push` | Pre-push hook validating tag-vs-VERSION consistency | Single tag |
-| `agov-bump` | Atomically bump VERSION + CHANGELOG skeleton + 12 agent YAMLs + README citation | Whole repo |
-| `agov-dist` | Build the release archive | Whole repo |
-| `agov-health` | Self-check the framework's own state | Whole repo |
+| `mix agov.validate.agents` | `agents/*.yaml` for schema and tier checks | Whole `agents/` directory |
+| `mix agov.validate.learnings` | `learnings/*.yaml` for schema, anonymisation heuristics, and confidence corroboration thresholds | Whole `learnings/` directory |
+| `mix agov.validate.infosec` | Learning records for token-like material, connection strings, key/password patterns, private keys, and absolute filesystem paths | Whole `learnings/` directory |
+| `mix agov.validate.adoption` | Required adoption layout, mandatory advisory agents, manifest presence, and governance documentation | Whole repo |
+| `mix agov.validate.contributions` | Advisory contribution warnings for absence-of-incident claims, governance relaxation language, and weak evidence | Whole `learnings/` directory |
+| `mix agov.validate.framework_config` | Optional `framework.yaml` validator against `framework.schema.json`; passes when no `framework.yaml` exists | Repo root |
+| `mix agov.validate` | Aggregate runner for the migrated validator set | Whole repo |
+| `mix agov.dist.check_tag` | Version / tag consistency checks for release validation | Repo root or CI tag context |
+| `mix agov.dist.build` | Build the release archive | Repo root |
 
-**Canonical CI invocation today** is per-validator (each validator
-is its own CI job in the framework's own
-[`.gitlab-ci.yml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.gitlab-ci.yml)).
-A single-entry-point orchestrator (`agov-validate`) ships as of
-v1.1.37 — see *Orchestrator* below.
+Deferred to E4: binding validation, README statistics validation, acronym
+validation, bump, and health commands.
+
+**Canonical CI invocation today** is either per-validator Mix tasks or the
+single migrated orchestrator `mix agov.validate`.
 
 ## Path-based revalidation triggers
 
@@ -172,22 +167,14 @@ invoke the relevant validator(s) on the affected files.
 
 | Path glob | Triggers |
 |---|---|
-| `agents/**` | `agov-validate-agents`, `agov-validate-readme-stats` |
-| `agents/MANIFEST.yaml` | `agov-validate-agents` |
-| `learnings/**` | `agov-validate-learnings`, `agov-validate-infosec`, `agov-validate-contributions`, `agov-validate-readme-stats` |
-| `.claude/rules/**` | `agov-validate-readme-stats` (count of rule templates) — no full coherence validator yet (planned: `agov-validate-coherence`) |
-| `rules/**` | `agov-validate-readme-stats` — same as above |
-| `skills/**` | `agov-validate-readme-stats` |
-| `framework.yaml` | `agov-validate-framework-config` (shipped v1.1.47, [P1]) |
-| `*.md` (changed in PR / staged) | `agov-validate-acronyms` |
-| `README.md` | `agov-validate-readme-stats` |
+| `agents/**` | `mix agov.validate.agents` |
+| `agents/MANIFEST.yaml` | `mix agov.validate.adoption` |
+| `learnings/**` | `mix agov.validate.learnings`, `mix agov.validate.infosec`, `mix agov.validate.contributions` |
+| `framework.yaml` | `mix agov.validate.framework_config` |
+| Release manifest / release metadata | `mix agov.dist.validate`, `mix agov.dist.check_tag`, `mix agov.dist.build` as applicable |
 
-`agov-validate-readme-stats` appears against several corpus paths
-because the README's stat claims (project / learning / rule / agent
-/ skill counts) drift whenever the underlying corpus changes, not
-only when the README is edited. Triggering on the corpus paths
-catches the drift at MR time instead of waiting for `agov-pre-tag-check`
-at release.
+README statistics and acronym validators are deferred to E4 in the Elixir
+migration. Until they migrate, those checks are manual or v1.x/Python-era.
 
 **Pre-merge enforcement: required.** Non-zero exit blocks the merge
 via branch protection rules on `main`. The framework's own
@@ -232,11 +219,11 @@ minor-version-additive change.
 
 ## Output formats
 
-**Today** individual validators emit human-readable text on standard
-output and exit with a code. The orchestrator (`agov-validate`,
-shipped v1.1.37) additionally emits a single JavaScript Object
-Notation (JSON) aggregate with the `--json` flag. The JSON shape is
-part of the strict-contract surface:
+**Today** migrated AGF-NG validators emit human-readable text on standard
+output and exit with a code. In v1.x, the orchestrator (`agov-validate`,
+shipped v1.1.37) additionally emitted a single JavaScript Object Notation
+(JSON) aggregate with the `--json` flag. That JSON shape remains historical
+contract context:
 
 ```json
 {
@@ -249,33 +236,22 @@ part of the strict-contract surface:
 ```
 
 **Planned**: Static Analysis Results Interchange Format (SARIF) for
-security-relevant validators (e.g., `agov-validate-infosec`) since
-SARIF is the GitLab / GitHub native security-finding format.
+security-relevant validators (e.g., `mix agov.validate.infosec`) since SARIF is
+the GitLab / GitHub native security-finding format.
 
 ## Orchestrator
 
-**Today** there are two orchestrator entry points:
+**Today** AGF-NG has these Elixir aggregate/release entry points:
 
-- [`agov-validate`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/orchestrator.py)
-  (shipped v1.1.37) — the Continuous Integration (CI)-friendly
-  aggregate runner. Runs the default validator set (every
-  no-argument-required validator), captures per-validator stdout,
-  and emits the highest-precedence exit code per the taxonomy
-  above. `--json` switches output from per-validator text blocks
-  to the strict-contract JSON shape documented in *Output formats*.
-- [`agov-pre-tag-check`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/pre_tag_check.py)
-  — the pre-release composite. Runs the same per-validator
-  aggregation as `agov-validate` (via the shared
-  `orchestrator.run_validator` helper) plus pre-release-only
-  checks (VERSION / CHANGELOG / tag existence / working-tree /
-  README citation / self-conformance / communication graph
-  generation). Exits with the highest non-zero code among the
-  composite checks.
+- `mix agov.validate` — runs the migrated validator set and exits non-zero if
+  any blocking validator fails.
+- `mix agov.dist.check_tag` — performs release/tag consistency checks.
+- `mix agov.dist.build` — builds the release archive.
 
-Both entry points consume the same shared helper at
-`src/agents_govern/orchestrator.py`, so the aggregation logic has a
-single implementation. Individual validators remain callable
-directly for targeted Pull Request (PR) jobs.
+The v1.x Python `agov-validate` and `agov-pre-tag-check` entry points remain
+historical context for the contract but are not the current AGF-NG command
+surface. Individual validators remain callable directly for targeted Pull
+Request (PR) jobs.
 
 Convention follows tools like `pre-commit run --all-files` and
 `make test` — single entry point with deterministic aggregation,
@@ -383,8 +359,9 @@ three shipped across v1.1.44 and v1.1.45:
 - [B2] **Commit trailer schema** — `Agent-ID: <agent-name>:<version>:<correlation-id>`,
   branch-level enforcement policy. **Shipped v1.1.44** as
   [`src/agents_govern/validate_binding.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/validate_binding.py)
-  with the `agov-validate-binding` Command Line Interface (CLI)
-  entry point.
+  with the v1.x `agov-validate-binding` Command Line Interface (CLI)
+  entry point. The Elixir `mix agov.validate.binding` command is deferred to
+  E4.
 - [B3] **Sidecar metadata + filename fallback** — `<artefact>.agov.json`
   with `correlation_id`, `agent_id`, `produced_at`, `artefact_sha256`;
   filename-suffix fallback for environments stripping non-image
@@ -409,22 +386,22 @@ for the framing.
 
 | Area | Status | Issue |
 |---|---|---|
-| Validator surface | **Shipped** | — |
+| Validator surface | **Partially migrated to Elixir** (`mix agov.validate*`; E4 commands deferred) | — |
 | Path-based revalidation triggers | **Shipped** (in framework's own `.gitlab-ci.yml`) | [A2] |
 | Pull-based architecture commitment | **Shipped** (this page) | [A1] |
 | Schema-of-record hierarchy | **Shipped** (this page) | [A1] |
 | Five-layer verifiability model | **Shipped** (this page; canonical home) | [A1], [D4] |
 | Exit code taxonomy (5-code) | **Shipped** (defined v1.1.36; validators adopt 2/3/4 opportunistically) | [A4] |
-| `agov-validate` orchestrator | **Shipped** (v1.1.37; shared helper consumed by `agov-pre-tag-check`) | [A3] |
-| JSON aggregate output | **Shipped** (v1.1.37 `--json`); SARIF still planned | [A3] |
+| `mix agov.validate` orchestrator | **Shipped in AGF-NG E3**; v1.x `agov-validate --json` remains historical context | [A3] |
+| JSON aggregate output | **Historical v1.x surface**; SARIF still planned | [A3] |
 | Contract versioning + stability promise | **Shipped** (v1.1.41 docs at [`contract-stability.md`](contract-stability.md); v1.1.43 CLI flags `agov --version` / `--contract-version` / `--contract-changelog`) | [A5] |
 | `agov --capabilities` report | **Shipped** (v1.1.43; JSON shape under *Capability reporting* above) | [A6] |
 | Compliance profile (3 tiers) | **Shipped** (v1.1.38; canonical home at [`adopt/compliance-profile.md`](../adopt/compliance-profile.md)) | [D5] |
-| Binding contract — correlation identifier + trailer | **Shipped v1.1.44** ([Binding contract](binding-contract.md); validator `agov-validate-binding`) | [B1], [B2] |
+| Binding contract — correlation identifier + trailer | **Specified; Elixir validator deferred to E4** ([Binding contract](binding-contract.md)) | [B1], [B2] |
 | Binding contract — sidecar metadata + filename fallback | **Shipped v1.1.45** (`Sidecar`, `verify_sidecar`, `parse_filename_fallback`) | [B3] |
 | Per-artefact JSON Schema | **Shipped v1.1.46** ([`schemas/`](https://gitlab.com/janipaijanen/agent-governance/-/tree/main/schemas)) | [C1] |
 | Cross-artefact invariant manifest | **Shipped v1.1.46** ([`schemas/invariants.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/schemas/invariants.yaml)) | [C2] |
-| `framework.yaml` (precedence + binding config) | **Shipped v1.1.47** ([`framework.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/framework.yaml); validator `agov-validate-framework-config`) | [P1] |
+| `framework.yaml` (precedence + binding config) | **Validator migrated as `mix agov.validate.framework_config`** | [P1] |
 | Mandatory `category: tension` recording for cross-layer conflicts | **Shipped v1.1.47** (canonical home at [Concept — Tension recording](concept/principles.md#tension-recording); `learnings/_template.yaml` header naming the discipline) | [P2] |
 
 The 21 issues filed under
