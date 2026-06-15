@@ -1,5 +1,5 @@
 ---
-provenance: inherited-v1x-unverified
+provenance: verified-agf-v2
 ---
 # Downstream Impact: Assess Before Committing to Framework Artifacts
 #

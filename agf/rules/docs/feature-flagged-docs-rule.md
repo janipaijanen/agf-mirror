@@ -1,5 +1,5 @@
 ---
-provenance: inherited-v1x-unverified
+provenance: verified-agf-v2
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
