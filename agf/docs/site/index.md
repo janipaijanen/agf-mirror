@@ -8,11 +8,12 @@ review gates before implementation and before merge, an append-only
 coordination channel (the decision log), and a learning system that turns
 operational incidents into framework evidence.
 
-> **Status:** agents-govern **v1.x is canonical**. This site documents
-> **v2.0.0, which is Provisional** — its structure and documentation are
-> under evaluation and may change. The exact source commit for this build
-> is recorded in [Release information](reference/release-info.md).
-> Adopters who need stability today should adopt v1.x.
+> **Status:** This site documents **agents-govern v2.0.0, which is
+> Provisional** — its structure and documentation are under evaluation and
+> may change. The exact source commit for this build is recorded in
+> [Release information](reference/release-info.md). Adopters who need a
+> stable release should wait for v2.0 promotion. The v1.x series is the
+> historical predecessor; v2.0 is the current development line.
 
 ## What AGF is, and is not
 

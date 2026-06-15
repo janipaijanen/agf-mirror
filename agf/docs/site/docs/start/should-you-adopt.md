@@ -43,8 +43,8 @@ tools; it does not replace them.
 
 - You need multi-project or multi-governor federation — that is a
   [hypothesis](../../future/evolution.md), not a shipped capability.
-- You want v2.0's structure specifically: v2.0 is Provisional; v1.x is
-  canonical. Waiting for v2.0 promotion is reasonable.
+- You want a stable release: v2.0 is Provisional and may still change.
+  Waiting for v2.0 promotion is reasonable.
 - Your team has no capacity for the governor role right now. Gates without
   a governor are theatre; adopt when someone can own the role.
 
