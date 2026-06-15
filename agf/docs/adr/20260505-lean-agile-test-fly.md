@@ -99,7 +99,9 @@ Filed at [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/ag
 
 ### D4. No tooling changes
 
-`pyproject.toml`, `src/agents_govern/`, `agov-validate-*` — untouched. Validators continue to pass on existing artifacts.
+At the time of this ADR, `pyproject.toml`, `src/agents_govern/`, and
+`agov-validate-*` were untouched. This remains historical context; current v2
+validator guidance lives in the Elixir Mix tasks under `tooling/elixir/`.
 
 ### D5. CHANGELOG entry
 

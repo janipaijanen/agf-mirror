@@ -21,8 +21,8 @@ Run the validators once before removal so the final governed state is
 captured in your project history:
 
 ```bash
-uv run agov-validate-agents
-uv run agov-validate-contributions
+mix agov.validate.agents
+mix agov.validate.contributions
 ```
 
 Commit any outstanding governed work first. Do not mix in-flight feature
@@ -43,7 +43,7 @@ Delete the files you copied at adoption time. Depending on your layout
 | Framework declaration | `framework.yaml` (your tuned copy) |
 | Governance charter | `GOVERNANCE.md` (if based on the template) |
 | Coordination channel | `docs/coordination/` (see history note below) |
-| Framework tooling | `pyproject.toml` entries / `src/agents_govern/` if vendored |
+| Framework tooling | `tooling/elixir/` or legacy `pyproject.toml` entries / `src/agents_govern/` if vendored |
 
 **Keep your own learning record** (`learnings/<codename>.yaml`) unless you
 have a reason to delete it — it documents decisions made while governed and
@@ -62,7 +62,8 @@ produced under governance: they describe your project, not the framework.
 
 ## 4. CI changes to revert
 
-- Remove validator jobs (`agov-validate-*` invocations) from your CI config.
+- Remove validator jobs (`mix agov.validate*` or legacy `agov-validate-*`
+  invocations) from your CI config.
 - Remove path-scoped trigger rules that existed only to scope governance
   changes (see `ci-trigger-scoping-rule`); re-evaluate whether the scoping
   is still wanted for other reasons before deleting it.

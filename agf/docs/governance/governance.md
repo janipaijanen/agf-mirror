@@ -17,7 +17,7 @@ It replaces the upstream GOVERNANCE.md for this project's purposes.
 | **Coder-Tester** | Claude (claude-sonnet-4-6) | Implements framework artifact changes |
 | **Governor-Reviewer** | Human (Jani) | Approves all gates; final authority |
 | **Contribution-Auditor** | Human + Claude | Reviews incoming proposals for adversarial patterns |
-| **Infosec-Sentinel** | CI (agov-validate-infosec) | Automated on commit |
+| **Infosec-Sentinel** | CI (`mix agov.validate.infosec`) | Automated on commit |
 
 Claude plays both Planner-Architect and Coder-Tester in Phase 1.
 Split signals are in each agent's YAML `phase_notes`.
@@ -32,7 +32,7 @@ Split signals are in each agent's YAML `phase_notes`.
 | Plan | Coordination claim + plan doc in `docs/plans/` |
 | Gate 1 | Governor-Reviewer approval in coordination channel |
 | Implement | Coder-Tester edits framework artifacts |
-| Verify | `uv run agov-validate-*` passes; Infosec-Sentinel clean |
+| Verify | `mix agov.validate` passes; Infosec-Sentinel clean |
 | Gate 2 | Governor-Reviewer reviews in coordination channel |
 | Commit | Merge to main |
 
@@ -53,8 +53,8 @@ backward-compatibility risk. Waiver recorded in coordination channel.
 
 ### Gate 2 (Merge Approval)
 
-- [ ] `agov-validate-*` validators pass
-- [ ] `agov-validate-infosec --include-md` clean
+- [ ] `mix agov.validate` passes
+- [ ] `mix agov.validate.infosec` clean
 - [ ] Implements exactly what the approved plan specified
 - [ ] Evidence citation present in changed docs (where applicable)
 - [ ] CHANGELOG.md updated (for user-visible changes)

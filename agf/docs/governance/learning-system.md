@@ -78,7 +78,7 @@ Without a structured feedback loop:
    the project's YAML file. Tag it with a category and severity.
 
 4. **InfoSec Sentinel screens the submission.** The CI pipeline runs
-   `uv run agov-validate-infosec` on changed files. It checks for leaked
+   `mix agov.validate.infosec` on changed files. It checks for leaked
    credentials, sensitive internal details, cross-field re-identification
    risk, cumulative information leakage across entries, and cross-record
    linkage. If findings are flagged, the MR is blocked until the human
@@ -261,9 +261,11 @@ checklist.
 - Self-conformance: does the framework repo follow every ADOPTING.md step it
   prescribes to adopters? (agents/ exists, .claude/rules/ exists, tests/ has
   tests, GOVERNANCE.md exists, pre-commit hooks active)
-- Communication symmetry: run `uv run agov-validate-agents` — zero asymmetries
+- Communication symmetry: run `mix agov.validate.agents` — zero asymmetries
   expected
-- README stats: run `uv run agov-validate-readme-stats` — all stats match
+- README stats: `agov-validate-readme-stats` is deferred to the E4 Elixir
+  migration slice; until then, verify README stats manually or with the v1.x
+  Python-era tool if maintaining that line.
 
 **Authority and succession.** The Sentinel's decisions (change vs. no-change)
 are final but must be documented with rationale. If the Sentinel role
