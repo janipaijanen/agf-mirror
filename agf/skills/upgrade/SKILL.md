@@ -91,9 +91,10 @@ upgrade_history:
 
 ## Step 5 — Verify
 
-1. Run `uv run agov-validate-infosec` — ensure no new findings.
-2. Run `uv run agov-validate-learnings` — ensure learning record is
-   still valid.
+1. From `tooling/elixir/`, run `mix agov.validate.infosec ../../agf/learnings`
+   — ensure no new findings.
+2. Run `mix agov.validate.learnings ../../agf/learnings` — ensure learning
+   record is still valid.
 3. If pre-commit hooks are configured, run them.
 
 ## Step 6 — Summarise

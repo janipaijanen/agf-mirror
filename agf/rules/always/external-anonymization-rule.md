@@ -70,7 +70,7 @@ Per-MR: contributor verifies anonymization on any artifact destined for external
 
 Per-milestone: framework operators audit external-facing artifacts generated in the period for forbidden-term recurrences.
 
-Tooling: a forbidden-term scanner SHOULD be implemented as a follow-up to this rule, extending the framework's `agov-validate-infosec` Python tool to detect forbidden patterns in artifacts staged for external destinations. Pre-commit hooks SHOULD refuse the commit when forbidden patterns are present in a path tagged for external destination (e.g. `docs/external-reviews/`, files with a `destination: external` frontmatter). Follow-up tracking issue: [#46](https://gitlab.com/janipaijanen/agent-governance/-/issues/46).
+Tooling: a forbidden-term scanner SHOULD be implemented as a follow-up to this rule, extending the framework's infosec validation surface to detect forbidden patterns in artifacts staged for external destinations. Pre-commit hooks SHOULD refuse the commit when forbidden patterns are present in a path tagged for external destination (e.g. `docs/external-reviews/`, files with a `destination: external` frontmatter). Follow-up tracking issue: [#46](https://gitlab.com/janipaijanen/agent-governance/-/issues/46).
 
 ## CUSTOMIZE
 

@@ -22,18 +22,19 @@ periodically to catch drift before it accumulates.
   quality, and adoption conformance)
 - After adding or modifying agents (verifies communication symmetry)
 
-## Step 1 — Run the health check
+## Step 1 — Run the available aggregate checks
 
 ```bash
-uv run agov-health
+cd tooling/elixir
+mix agov.validate
 ```
 
-This runs in sequence:
+Full `mix agov.health` summary coverage is deferred to E4. The available
+aggregate validation surface runs:
 
 1. **Adoption conformance** — mandatory agents present, rules exist,
    GOVERNANCE.md exists, tests exist, pre-commit configured
-2. **Agent definitions (strict)** — structural validity, communication
-   symmetry, communication completeness, ownership overlaps
+2. **Agent definitions** — structural validity and tier checks
 3. **Contribution audit** — absence-bias detection, governance
    relaxation detection, evidence quality in learnings
 4. **InfoSec screening** — credential leaks, PII, cross-field
@@ -52,7 +53,7 @@ on what to fix.
 
 ## Step 3 — Fix and re-run
 
-Fix any errors. Re-run `uv run agov-health` to verify.
+Fix any errors. Re-run `mix agov.validate` to verify.
 
 Warnings are advisory — review each one and decide whether to act.
 Not every warning requires a change (e.g., ownership overlap between
@@ -72,9 +73,9 @@ To add to pre-commit:
 
 ```yaml
 # .pre-commit-config.yaml
-- id: agov-health
+- id: agov-validate
   name: Governance health check
-  entry: uv run agov-health
+  entry: bash -lc 'cd tooling/elixir && mix agov.validate'
   language: system
   pass_filenames: false
   always_run: true
