@@ -106,7 +106,7 @@ defmodule Agov.PlanValidator do
   end
 
   defp manifest_path do
-    System.get_env("AGOV_MANIFEST_PATH", "../../agents-govern/agents/MANIFEST.yaml")
+    System.get_env("AGOV_MANIFEST_PATH", "../../agf/agents/MANIFEST.yaml")
   end
 
   defp load_schema do

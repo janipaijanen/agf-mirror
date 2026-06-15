@@ -18,7 +18,7 @@ defmodule Agov.SessionResume do
 
   defp bootstrap(coord_dir, opts) do
     git_status = Keyword.get(opts, :git_status, Agov.GitStatus)
-    base_branch = Keyword.get(opts, :base_branch, "master")
+    base_branch = Keyword.get(opts, :base_branch, "main")
     manifest_path = Keyword.get(opts, :manifest_path)
 
     case ChannelReader.scan(coord_dir) do
@@ -45,7 +45,7 @@ defmodule Agov.SessionResume do
   defp build(coord_dir, role, config, opts) do
     git_status = Keyword.get(opts, :git_status, Agov.GitStatus)
     now = Keyword.get(opts, :now, DateTime.utc_now())
-    base_branch = Keyword.get(opts, :base_branch, "master")
+    base_branch = Keyword.get(opts, :base_branch, "main")
 
     case ChannelReader.scan(coord_dir) do
       {:error, :dir_not_found} ->
@@ -250,7 +250,7 @@ defmodule Agov.SessionResume do
   defp render_active_roles(:unavailable, _base_branch) do
     [
       "Active roles: unavailable (manifest not found)",
-      "Choose a role from AGENTS.md or agents-govern/agents/MANIFEST.yaml.",
+      "Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.",
       ""
     ]
   end

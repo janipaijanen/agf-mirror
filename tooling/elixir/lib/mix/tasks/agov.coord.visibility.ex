@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Agov.Coord.Visibility do
   Scans local branches for coordination messages that create obligations but are
   not visible from the base branch.
 
-      mix agov.coord.visibility [--base-branch master] [--branch feat/x] [--format text|json]
+      mix agov.coord.visibility [--base-branch main] [--branch feat/x] [--format text|json]
   """
 
   @default_coord_dir "../../docs/coordination"
@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Agov.Coord.Visibility do
       )
 
     scan_opts = [
-      base_branch: Keyword.get(opts, :base_branch, "master"),
+      base_branch: Keyword.get(opts, :base_branch, "main"),
       dir: Keyword.get(opts, :dir, @default_coord_dir)
     ]
 

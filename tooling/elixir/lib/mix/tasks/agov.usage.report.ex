@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Agov.Usage.Report do
   @shortdoc "Print coordination channel usage report"
 
   @default_coord_dir "../../docs/coordination"
-  @default_manifest "../../agents-govern/agents/MANIFEST.yaml"
+  @default_manifest "../../agf/agents/MANIFEST.yaml"
 
   def run(args) do
     Agov.CliSafety.ensure_not_root!()

@@ -15,13 +15,13 @@ defmodule Mix.Tasks.Agov.Session.Resume do
 
   Options:
     --role         Agent role. Overrides current_role in agov-config.yaml.
-    --base-branch  Branch used for branch-local coordination checks. Defaults to master.
+    --base-branch  Branch used for branch-local coordination checks. Defaults to main.
     --dir          Coordination directory. Defaults to ../../docs/coordination.
-    --manifest     Agent manifest path. Defaults to ../../agents-govern/agents/MANIFEST.yaml.
+    --manifest     Agent manifest path. Defaults to ../../agf/agents/MANIFEST.yaml.
   """
 
   @default_coord_dir "../../docs/coordination"
-  @default_manifest "../../agents-govern/agents/MANIFEST.yaml"
+  @default_manifest "../../agf/agents/MANIFEST.yaml"
 
   @impl Mix.Task
   def run(args) do
@@ -39,7 +39,7 @@ defmodule Mix.Tasks.Agov.Session.Resume do
     resume_opts =
       opts
       |> Keyword.take([:role])
-      |> Keyword.put(:base_branch, Keyword.get(opts, :base_branch, "master"))
+      |> Keyword.put(:base_branch, Keyword.get(opts, :base_branch, "main"))
       |> Keyword.put(:manifest_path, manifest_path)
 
     case Agov.SessionResume.run(coord_dir, resume_opts) do
