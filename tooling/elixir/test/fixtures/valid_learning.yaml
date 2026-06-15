@@ -1,0 +1,9 @@
+project:
+  codename: foundry-fixture
+learnings:
+  - title: Guardrail adoption
+    description: Generic governance finding with no sensitive material.
+    recommendation: Keep the validator active.
+    confidence:
+      level: single-adopter
+      evidence_count: 1
