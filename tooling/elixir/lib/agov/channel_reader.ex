@@ -25,22 +25,41 @@ defmodule Agov.ChannelReader do
         messages =
           messages
           |> Enum.reverse()
-          |> Enum.sort_by(fn {_file, data} -> data["seq"] end)
+          |> Enum.sort_by(fn {file, data} -> Agov.CoordIdentity.sort_key(file, data) end)
 
         invalid_files = Enum.reverse(invalid_files)
         total = length(messages)
 
-        seq_range =
+        timestamp_range =
           case messages do
             [] ->
               nil
 
             _ ->
-              seqs = Enum.map(messages, fn {_file, data} -> data["seq"] end)
-              {Enum.min(seqs), Enum.max(seqs)}
+              timestamps = Enum.map(messages, fn {_file, data} -> data["timestamp"] end)
+              {Enum.min(timestamps), Enum.max(timestamps)}
           end
 
-        {:ok, %{messages: messages, total: total, seq_range: seq_range, invalid_files: invalid_files}}
+        {:ok,
+         %{
+           messages: messages,
+           total: total,
+           timestamp_range: timestamp_range,
+           seq_range: legacy_seq_range(messages),
+           invalid_files: invalid_files
+         }}
+    end
+  end
+
+  defp legacy_seq_range(messages) do
+    seqs =
+      messages
+      |> Enum.map(fn {_file, data} -> data["seq"] end)
+      |> Enum.reject(&is_nil/1)
+
+    case seqs do
+      [] -> nil
+      _ -> {Enum.min(seqs), Enum.max(seqs)}
     end
   end
 

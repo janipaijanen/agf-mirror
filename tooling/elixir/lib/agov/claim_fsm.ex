@@ -12,20 +12,25 @@ defmodule Agov.ClaimFSM do
   Events:
 
   * `{:claim, from, seq, claimed_at, expires_on}`
+  * `{:claim, from, seq, id, claimed_at, expires_on}`
   * `{:complete, from}`
   * `{:tick, now}`
   """
 
-  def transition(:unclaimed, {:claim, from, seq, claimed_at, expires_on}, now) do
-    classify(claim_entry(from, seq, claimed_at, expires_on), now)
+  def transition(state, {:claim, from, seq, claimed_at, expires_on}, now) do
+    transition(state, {:claim, from, seq, nil, claimed_at, expires_on}, now)
   end
 
-  def transition({:active, _entry}, {:claim, from, seq, claimed_at, expires_on}, now) do
-    classify(claim_entry(from, seq, claimed_at, expires_on), now)
+  def transition(:unclaimed, {:claim, from, seq, id, claimed_at, expires_on}, now) do
+    classify(claim_entry(from, seq, id, claimed_at, expires_on), now)
   end
 
-  def transition({:stale, _entry}, {:claim, from, seq, claimed_at, expires_on}, now) do
-    classify(claim_entry(from, seq, claimed_at, expires_on), now)
+  def transition({:active, _entry}, {:claim, from, seq, id, claimed_at, expires_on}, now) do
+    classify(claim_entry(from, seq, id, claimed_at, expires_on), now)
+  end
+
+  def transition({:stale, _entry}, {:claim, from, seq, id, claimed_at, expires_on}, now) do
+    classify(claim_entry(from, seq, id, claimed_at, expires_on), now)
   end
 
   def transition({:active, %{from: from} = entry}, {:complete, from}, _now) do
@@ -67,7 +72,7 @@ defmodule Agov.ClaimFSM do
 
   def transition(
         {:released, _entry} = state,
-        {:claim, _from, _seq, _claimed_at, _expires_on},
+        {:claim, _from, _seq, _id, _claimed_at, _expires_on},
         _now
       ) do
     state
@@ -81,8 +86,8 @@ defmodule Agov.ClaimFSM do
     state
   end
 
-  defp claim_entry(from, seq, claimed_at, expires_on) do
-    %{from: from, seq: seq, claimed_at: claimed_at, expires_on: expires_on}
+  defp claim_entry(from, seq, id, claimed_at, expires_on) do
+    %{from: from, seq: seq, id: id, claimed_at: claimed_at, expires_on: expires_on}
   end
 
   defp classify(%{expires_on: nil} = entry, _now), do: {:active, entry}

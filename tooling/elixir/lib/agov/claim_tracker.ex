@@ -28,6 +28,7 @@ defmodule Agov.ClaimTracker do
 
   defp process_message(%{"kind" => "claim"} = msg, states, _aliases, now) do
     seq = msg["seq"]
+    id = msg["id"]
     from = msg["from"]
     claimed_at = msg["timestamp"]
     expires_raw = Map.get(msg, "expires_on")
@@ -37,7 +38,7 @@ defmodule Agov.ClaimTracker do
         err
 
       {:ok, expires_on} ->
-        event = {:claim, from, seq, claimed_at, expires_on}
+        event = {:claim, from, seq, id, claimed_at, expires_on}
 
         new_states =
           Enum.reduce(msg["artifacts_owned"] || [], states, fn path, acc ->

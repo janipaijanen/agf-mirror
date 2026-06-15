@@ -24,7 +24,8 @@ defmodule Agov.MixProject do
     [
       {:jason, "~> 1.4"},
       {:ex_json_schema, "~> 0.10"},
-      {:yaml_elixir, "~> 2.9"}
+      {:yaml_elixir, "~> 2.9"},
+      {:ulid, "~> 0.2.0"}
     ]
   end
 end

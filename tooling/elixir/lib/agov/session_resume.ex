@@ -1,7 +1,14 @@
 defmodule Agov.SessionResume do
   @moduledoc false
 
-  alias Agov.{ChannelReader, ClaimTracker, CoordConfig, HandoffTracker, ManifestReader}
+  alias Agov.{
+    ChannelReader,
+    ClaimTracker,
+    CoordConfig,
+    CoordIdentity,
+    HandoffTracker,
+    ManifestReader
+  }
 
   @coord_paths ["docs/coordination"]
 
@@ -108,13 +115,13 @@ defmodule Agov.SessionResume do
     with {:ok, %{pending: pending}} <- HandoffTracker.scan(messages) do
       pending
       |> Enum.filter(&(&1.to == role))
-      |> Enum.sort_by(& &1.seq, :desc)
+      |> Enum.sort_by(& &1.sort_key, :desc)
     end
   end
 
   defp pending_handoffs(messages) do
     with {:ok, %{pending: pending}} <- HandoffTracker.scan(messages) do
-      Enum.sort_by(pending, & &1.seq, :desc)
+      Enum.sort_by(pending, & &1.sort_key, :desc)
     end
   end
 
@@ -136,26 +143,33 @@ defmodule Agov.SessionResume do
   defp filter_claims(entries, role, aliases) do
     entries
     |> Enum.filter(&(Map.get(aliases, &1.from, &1.from) == role))
-    |> Enum.sort_by(& &1.seq, :desc)
+    |> Enum.sort_by(&claim_sort_key/1, :desc)
   end
 
   defp recent_decisions(messages) do
     messages
-    |> Enum.map(&elem(&1, 1))
-    |> Enum.filter(&(&1["kind"] == "decision-record"))
-    |> Enum.sort_by(& &1["seq"], :desc)
+    |> Enum.filter(fn {_file, data} -> data["kind"] == "decision-record" end)
+    |> Enum.sort_by(fn {file, data} -> CoordIdentity.sort_key(file, data) end, :desc)
+    |> Enum.map(fn {_file, data} -> data end)
     |> Enum.take(5)
   end
 
+  defp claim_sort_key(claim) do
+    {claim.claimed_at || "", to_string(claim.id || claim.seq || "")}
+  end
+
   defp must_read(messages, role) do
-    pending_seqs =
+    pending_files =
       messages
       |> pending_handoffs(role)
-      |> MapSet.new(& &1.seq)
+      |> MapSet.new(& &1.file)
 
     messages
     |> Enum.filter(fn {_filename, data} ->
-      data["kind"] == "handoff" and MapSet.member?(pending_seqs, data["seq"])
+      data["kind"] == "handoff"
+    end)
+    |> Enum.filter(fn {filename, _data} ->
+      MapSet.member?(pending_files, filename)
     end)
     |> Enum.flat_map(fn {_filename, data} ->
       get_in(data, ["handoff", "must_read"]) || []
@@ -274,14 +288,17 @@ defmodule Agov.SessionResume do
       |> Enum.group_by(& &1.to)
       |> Enum.sort_by(fn {role, _items} -> role end)
       |> Enum.flat_map(fn {role, items} ->
-        ["  #{role}:" | Enum.map(items, &"    - seq #{&1.seq}  #{&1.topic}  [#{&1.status}]")]
+        [
+          "  #{role}:"
+          | Enum.map(items, &"    - #{&1.display_id}  #{&1.topic}  [#{&1.status}]")
+        ]
       end)
 
     ["Pending handoffs by role:" | lines] ++ [""]
   end
 
   defp format_handoff(handoff) do
-    "  - seq #{handoff.seq}  #{handoff.topic}  [#{handoff.status}]"
+    "  - #{handoff.display_id}  #{handoff.topic}  [#{handoff.status}]"
   end
 
   defp render_claims(title, []), do: [title <> " none", ""]
@@ -297,7 +314,14 @@ defmodule Agov.SessionResume do
         value -> "  expires #{DateTime.to_iso8601(value)}"
       end
 
-    "  - #{claim.path}  seq #{claim.seq}#{expires}"
+    label =
+      cond do
+        is_binary(Map.get(claim, :id)) -> "id #{String.slice(claim.id, 0, 8)}"
+        not is_nil(claim.seq) -> "seq #{claim.seq}"
+        true -> "id <unknown>"
+      end
+
+    "  - #{claim.path}  #{label}#{expires}"
   end
 
   defp render_decisions([]), do: ["Recent decisions: none", ""]
@@ -307,7 +331,7 @@ defmodule Agov.SessionResume do
   end
 
   defp format_decision(decision) do
-    "  - seq #{decision["seq"]}  #{decision["topic"]}"
+    "  - #{CoordIdentity.display(decision)}  #{decision["topic"]}"
   end
 
   defp render_must_read([]), do: ["Must read: none"]

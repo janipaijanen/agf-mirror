@@ -4,10 +4,10 @@ defmodule Agov.BriefGenerator do
   @supported_kinds ~w(note handoff claim completion ack review)
 
   def generate(channel_info, opts \\ []) do
-    kind      = Keyword.get(opts, :kind, "note")
-    from      = Keyword.get(opts, :from, "<from>")
-    to        = Keyword.get(opts, :to, "<to>")
-    topic     = Keyword.get(opts, :topic, "<topic>")
+    kind = Keyword.get(opts, :kind, "note")
+    from = Keyword.get(opts, :from, "<from>")
+    to = Keyword.get(opts, :to, "<to>")
+    topic = Keyword.get(opts, :topic, "<topic>")
     timestamp = Keyword.get(opts, :timestamp, "<TIMESTAMP>")
 
     if kind in @supported_kinds do
@@ -25,11 +25,16 @@ defmodule Agov.BriefGenerator do
     header <> front_matter <> body
   end
 
-  defp build_header(%{next_seq: next_seq, total: total, seq_range: seq_range, active_claims: claims}) do
+  defp build_header(%{
+         next_id: next_id,
+         total: total,
+         timestamp_range: timestamp_range,
+         active_claims: claims
+       }) do
     range_str =
-      case seq_range do
+      case timestamp_range do
         nil -> "(empty)"
-        {min, max} -> "seq #{min}–#{max}"
+        {min, max} -> "#{min} to #{max}"
       end
 
     claims_str =
@@ -37,16 +42,16 @@ defmodule Agov.BriefGenerator do
 
     "# Channel: #{total} messages, #{range_str}\n" <>
       "# Ownership: #{claims_str} (run mix agov.coord.status for details)\n" <>
-      "# Next seq: #{next_seq}\n"
+      "# Next id: #{next_id}\n"
   end
 
-  defp build_front_matter(kind, from, to, topic, timestamp, %{next_seq: next_seq}) do
+  defp build_front_matter(kind, from, to, topic, timestamp, %{next_id: next_id}) do
     base =
       "---\n" <>
         "kind: #{kind}\n" <>
         "from: #{from}\n" <>
         "to: #{to}\n" <>
-        "seq: #{next_seq}\n" <>
+        "id: #{next_id}\n" <>
         "timestamp: #{timestamp}\n" <>
         "immutable: true\n"
 

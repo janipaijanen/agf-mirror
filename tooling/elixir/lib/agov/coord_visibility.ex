@@ -1,6 +1,8 @@
 defmodule Agov.CoordVisibility do
   @moduledoc false
 
+  alias Agov.CoordIdentity
+
   @coord_dir "docs/coordination"
 
   defmodule GitAdapter do
@@ -104,6 +106,9 @@ defmodule Agov.CoordVisibility do
   def base_sequence_collisions(file_messages) do
     file_messages
     |> Enum.flat_map(&normalize_file_message/1)
+    |> Enum.reject(fn {file, data} ->
+      CoordIdentity.ulid_filename?(file) or is_nil(data["seq"])
+    end)
     |> Enum.group_by(fn {_file, data} -> data["seq"] end, fn {file, _data} -> file end)
     |> Enum.filter(fn {_seq, files} -> length(files) > 1 end)
     |> Enum.map(fn {seq, files} ->
@@ -179,7 +184,7 @@ defmodule Agov.CoordVisibility do
       obligations =
         branch_local_messages
         |> Enum.filter(fn {_file, data} -> obligation?(data) end)
-        |> Enum.reject(fn {file, data} -> bridged?(base_messages, branch, file, data["seq"]) end)
+        |> Enum.reject(fn {file, data} -> bridged?(base_messages, branch, file, data) end)
         |> Enum.map(fn {file, data} -> obligation_entry(branch, file, data) end)
 
       {:ok,
@@ -241,13 +246,13 @@ defmodule Agov.CoordVisibility do
 
   defp obligation?(_data), do: false
 
-  defp bridged?(base_messages, branch, file, seq) do
-    Enum.any?(base_messages, fn {_base_file, data} ->
-      data["seq"] > seq and
-        (file in (data["references-to"] || []) or
-           String.contains?(data["_body"] || "", file) or
-           (String.contains?(data["_body"] || "", branch) and
-              String.contains?(data["_body"] || "", Path.basename(file))))
+  defp bridged?(base_messages, branch, file, data) do
+    Enum.any?(base_messages, fn {base_file, base_data} ->
+      CoordIdentity.later?(base_file, base_data, file, data) and
+        (file in (base_data["references-to"] || []) or
+           String.contains?(base_data["_body"] || "", file) or
+           (String.contains?(base_data["_body"] || "", branch) and
+              String.contains?(base_data["_body"] || "", Path.basename(file))))
     end)
   end
 
@@ -266,9 +271,15 @@ defmodule Agov.CoordVisibility do
   defp sequence_collisions(branch, branch_messages, base_messages) do
     base_by_seq =
       base_messages
+      |> Enum.reject(fn {file, data} ->
+        CoordIdentity.ulid_filename?(file) or is_nil(data["seq"])
+      end)
       |> Enum.group_by(fn {_file, data} -> data["seq"] end)
 
     branch_messages
+    |> Enum.reject(fn {file, data} ->
+      CoordIdentity.ulid_filename?(file) or is_nil(data["seq"])
+    end)
     |> Enum.flat_map(fn {file, data} ->
       base_by_seq
       |> Map.get(data["seq"], [])

@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Agov.Coord.Status do
   use Mix.Task
 
+  alias Agov.CoordIdentity
+
   @shortdoc "Print coordination channel overview"
 
   def run(args) do
@@ -19,8 +21,8 @@ defmodule Mix.Tasks.Agov.Coord.Status do
       {:ok, %{messages: [], total: 0}} ->
         Mix.shell().info("Channel: #{coord_dir}  (empty)")
 
-      {:ok, %{messages: messages, total: total, seq_range: {min_seq, max_seq}}} ->
-        Mix.shell().info("Channel: #{coord_dir}  (#{total} messages, seq #{min_seq}–#{max_seq})")
+      {:ok, %{messages: messages, total: total, timestamp_range: timestamp_range}} ->
+        Mix.shell().info("Channel: #{coord_dir}  (#{total} messages, #{range(timestamp_range)})")
         Mix.shell().info("")
         print_ownership(messages, config.from_aliases)
         print_stale(messages, config.from_aliases)
@@ -43,9 +45,7 @@ defmodule Mix.Tasks.Agov.Coord.Status do
         Mix.shell().info("Ownership:")
 
         Enum.each(active, fn entry ->
-          Mix.shell().info(
-            "  #{entry.path}  claimed-by: #{entry.from}  seq: #{entry.seq}"
-          )
+          Mix.shell().info("  #{entry.path}  claimed-by: #{entry.from}  #{claim_label(entry)}")
         end)
     end
 
@@ -67,7 +67,7 @@ defmodule Mix.Tasks.Agov.Coord.Status do
 
         Enum.each(stale, fn entry ->
           Mix.shell().info(
-            "  #{entry.path}  claimed-by: #{entry.from}  seq: #{entry.seq}" <>
+            "  #{entry.path}  claimed-by: #{entry.from}  #{claim_label(entry)}" <>
               "  expired: #{DateTime.to_iso8601(entry.expires_on)}"
           )
         end)
@@ -86,7 +86,7 @@ defmodule Mix.Tasks.Agov.Coord.Status do
 
         Enum.each(pending, fn entry ->
           Mix.shell().info(
-            "  → #{entry.to}  seq: #{entry.seq}  #{entry.topic}  [#{entry.status}]"
+            "  → #{entry.to}  #{entry.display_id}  #{entry.topic}  [#{entry.status}]"
           )
         end)
     end
@@ -97,17 +97,29 @@ defmodule Mix.Tasks.Agov.Coord.Status do
   defp print_recent(messages, n) do
     recent =
       messages
-      |> Enum.sort_by(fn {_file, data} -> data["seq"] end, :desc)
+      |> Enum.sort_by(fn {file, data} -> CoordIdentity.sort_key(file, data) end, :desc)
       |> Enum.take(n)
 
     Mix.shell().info("Recent messages (last #{n}):")
 
     Enum.each(recent, fn {_file, data} ->
       kind = String.pad_trailing(data["kind"], 14)
+
       Mix.shell().info(
-        "  seq #{String.pad_leading(to_string(data["seq"]), 3)}  " <>
+        "  #{CoordIdentity.display(data)}  " <>
           "#{data["from"]} → #{data["to"]}  #{kind}  #{data["topic"]}"
       )
     end)
+  end
+
+  defp range(nil), do: "(empty)"
+  defp range({min, max}), do: "#{min} to #{max}"
+
+  defp claim_label(entry) do
+    cond do
+      is_binary(Map.get(entry, :id)) -> "id #{String.slice(entry.id, 0, 8)}"
+      not is_nil(entry.seq) -> "seq #{entry.seq}"
+      true -> "id <unknown>"
+    end
   end
 end

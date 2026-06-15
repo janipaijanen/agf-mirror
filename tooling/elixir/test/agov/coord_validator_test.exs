@@ -16,6 +16,12 @@ defmodule Agov.CoordValidatorTest do
       assert {:ok, _data} = CoordValidator.validate_file(fixture("valid_ack.md"))
     end
 
+    test "returns :ok for a valid ULID-format message" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_note_with_id.md"))
+      assert data["id"] == "01KV6BPDNNDCBMEWER3ZFKQHVG"
+      refute Map.has_key?(data, "seq")
+    end
+
     test "returns {:error, errors} list for message missing required field kind" do
       assert {:error, errors} = CoordValidator.validate_file(fixture("invalid_missing_kind.md"))
       assert is_list(errors)
