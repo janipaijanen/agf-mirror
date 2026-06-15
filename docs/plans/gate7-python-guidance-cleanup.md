@@ -1,7 +1,9 @@
 ---
 id: gate7-python-guidance-cleanup
-status: pending-gate1
+status: approved
 topic: gate7-residual-python-guidance-cleanup
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-06-15T21:20:46Z
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -14,7 +16,7 @@ advisory_consultation:
 # Plan: Gate 7 Residual Python Guidance Cleanup
 
 **Date:** 2026-06-15T21:14:55Z
-**Status:** PENDING GATE 1
+**Status:** APPROVED
 **Depends on:** E6 final audit accepted; Gate 6 closed; Gate 7 left open.
 **Proposed branch:** `docs/gate7-python-guidance-cleanup`
 **Expected implementer:** coder-tester
