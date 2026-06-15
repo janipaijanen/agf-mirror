@@ -1,104 +1,95 @@
-# AGF v2 provisional manifest
+# AGF v2 manifest
 
-This page still carries inherited agents-govern v1.x provenance below. For AGF
-v2 evaluation, treat `agf/` as the adopter-facing distribution and
-`agf/templates/` as the first-run starter bundle. The remaining v1.x-shaped
-content is a documented cutoff item, not a claim that adopters should create a
-v1 layout.
-
-# Inherited agents-govern 1.1.50 manifest
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+<!-- Copyright (c) 2026 Jani Päijänen -->
 
 ## Provenance
 
 | Field | Value |
 |-------|-------|
-| Framework | agents-govern |
-| Version | 1.1.50 |
-| Commit | 47a1792523e453065d2c1aa557cab67cc5635b87 |
-| Date | 2026-05-08 |
-| Repository | https://gitlab.com/janipaijanen/agent-governance |
+| Framework | agents-govern (AGF) |
+| Version | 2.0.0 (provisional — unreleased) |
+| Source | AGF-NG foundry |
+| Repository | https://gitlab.com/janipaijanen/agents-govern-framework |
 | License | CC-BY-SA-4.0 |
+| Layout | B (single `agf/` directory; adopter files stay in `docs/`) |
+
+This manifest describes the `agf/` directory as it stands in the foundry.
+AGF v2.0 is provisional and not yet independently packaged. Adopters who
+adopt from this repository adopt from the foundry directly.
 
 ## Contents
 
-This distribution contains the adoptable files from the agents-govern
-framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
-
-| Directory / File | Purpose | Action |
-|------------------|---------|--------|
-| `agents/` | Agent definitions (Phase 1 + Phase 3) | Keep under `agf/agents/`; activate the minimum role set for your project |
-| `rules/` | Governance rules | Copy to `.claude/rules/`, customize |
-| `skills/` | AI assistant workflows (upgrade, learning, infosec) | Copy to `.claude/skills/`, customize (optional) |
+| Path | Purpose | Adopt as |
+|------|---------|---------|
+| `agents/` | Agent role definitions (one YAML per role) | Copy to `agf/agents/` or use in place |
+| `agents/MANIFEST.yaml` | Example active-role status file (foundry dogfood) | Replace with your own project's role-status file |
+| `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Copy to `.claude/rules/`; search `<!-- CUSTOMIZE -->` |
+| `schemas/` | JSON schemas and invariants for validation | Use with Elixir tooling (`tooling/elixir/`) |
+| `templates/` | First-run starter files (coordination, plans, learning) | Copy into `docs/coordination/`, `docs/plans/`, `agf/learnings/` |
+| `skills/` | AI assistant workflow scripts | Copy to `.claude/skills/` (optional) |
 | `project-specific-examples/` | Stack-specific rule examples | Copy if stack matches |
-| `schemas/` | Strict-contract JSON Schemas and invariants | Use for validation and integration checks |
-| `templates/` | First-run AGF v2 starter files | Copy into `docs/plans/`, `docs/coordination/`, and `agf/learnings/` for a trial |
-| `scripts/generate-schemas.py` | Schema regeneration helper | Use when maintaining schema artefacts |
-| `learnings/foundry.yaml` | Upstream learning records (framework evidence) | Read-only reference; replaced on upgrade |
-| `templates/learning-record.yaml` | Learning record template | Copy to `agf/learnings/<codename>.yaml` |
-| `templates/private-codename-mapping.example` | Codename mapping format | Keep private, outside git |
-| `framework.yaml` | Machine-readable framework declaration | Copy and tune for adopter compliance profile |
-| `framework.md` | Framework theory & reference | Read-only reference |
-| `ADOPTING.md` | Adoption guide | Follow step by step |
-| `docs/governance/governance.md` | Governance template | Basis for project-specific governance |
-| `docs/governance/learning-system.md` | Learnings guide & privacy policy | Read-only reference |
-| `docs/governance/retrospective.md` | Narrative lessons from adopters | Read-only reference |
-| `README.md` | Overview and quick start | Read-only reference |
-| `docs/contracts/binding-contract.md` | Agent-output binding contract | Read before enabling full compliance |
-| `docs/contracts/integration-contract.md` | Validator and integration contract | Read before integrating tooling |
-| `docs/contracts/contract-stability.md` | Contract versioning and stability promise | Read before upgrading |
-| `docs/adopt/compliance-profile.md` | Compliance target definitions | Use to choose adoption depth |
-| `docs/governance/anonymization-notice.md` | Anonymization policy details | Read before submitting learnings |
+| `ADOPTING.md` | Step-by-step adoption guide | Follow step by step |
+| `framework.md` | Framework theory and reference | Read-only reference |
+| `CHANGELOG.md` | v2.0 change history | Reference |
+| `VERSION` | Current version string (`2.0.0`) | Reference |
+| `LICENSE` / `LICENSE-MIT` | CC-BY-SA-4.0 and MIT dual license | Include in project |
+| `docs/governance/` | Governance documents (this file, learning system, retrospective) | Read-only reference |
+| `docs/contracts/` | Agent-output binding contract, integration contract, stability promise | Read before enabling full compliance |
+| `docs/adopt/` | Compliance profile definitions | Use to choose adoption depth |
 | `docs/adr/` | Architecture decision records | Informational |
-| `tooling/elixir/` in a full checkout | Current Mix validator tasks | Use until a standalone tooling distribution exists |
-| `.pre-commit-config.yaml` | Pre-commit hook config | Optional: `pre-commit install` |
-| `CONTRIBUTING.md` | Contribution guidelines | Read before submitting |
-| `CODE_OF_CONDUCT.md` | Community standards | Read-only reference |
-| `.gitlab/issue_templates/` | Issue templates (Learning, Rule Proposal, Bug) | Use when filing issues |
-| `LICENSE` | CC BY-SA 4.0 | Include in project |
 
 ## Quick start
 
 ```bash
-# 1. Copy AGF into your project as agf/
-#    Keep agent definitions under agf/agents/
+# 1. Create your agf/ directory (copy from foundry or clone)
+git clone https://gitlab.com/janipaijanen/agents-govern-framework
+cp -r agents-govern-framework/agf/ your-project/agf/
 
-# 2. Copy governance rules
+# 2. Copy governance rules into your AI assistant's rules directory
 mkdir -p .claude
 cp -r agf/rules/ .claude/rules/
 
-# 2b. (Optional) Copy AI assistant skills
+# 3. (Optional) Copy skills
 cp -r agf/skills/ .claude/skills/
 
-# 3. Create your project learning record (use a codename, not the real name)
+# 4. Create your project learning record (use a codename, not the real name)
 mkdir -p agf/learnings
 cp agf/templates/learning-record.yaml agf/learnings/<codename>.yaml
-# Note: upstream evidence is read-only reference material.
-#       It will be replaced when you upgrade to a new agents-govern release.
 
-# 4. Create working evidence directories
+# 5. Create working evidence directories
 mkdir -p docs/plans docs/coordination
 
-# 5. Customize
-#    - agf/agents/*.yaml — choose the minimum role set
-#    - .claude/rules/ — search for <!-- CUSTOMIZE --> comments
-#    - agf/learnings/<codename>.yaml — fill in project context and assessments
+# 6. Replace foundry role-status with your own
+cp agf/agents/MANIFEST.yaml agf/agents/MANIFEST.yaml
+# Edit to reflect your project's actual roles and who plays them
 
-# 7. (Optional) Copy stack-specific examples if applicable
-#    cp -r project-specific-examples/python-flask/ .claude/rules/
+# 7. Customize rules
+#    Search for <!-- CUSTOMIZE --> in .claude/rules/**/*.md
+#    Edit to match your stack, locale set, and project conventions
+
+# 8. (Optional) Stack-specific rules
+#    cp -r agf/project-specific-examples/python-flask/ .claude/rules/
 ```
 
-For the full 7-step adoption process, see [ADOPTING.md](ADOPTING.md).
+For the full 7-step adoption process, see [ADOPTING.md](../../ADOPTING.md).
 
 ## Upgrading
 
-When upgrading from a previous version, record the upgrade in your
-`learnings/<project>.yaml` adoption section:
+When upgrading from a previous version, record the upgrade in your learning record:
 
 ```yaml
 upgrade_history:
-  - date: "2026-05-08"
+  - date: "<date>"
     from_version: "<previous>"
-    to_version: "1.1.50"
+    to_version: "2.0.0"
     agent_changes: []
     notes: ""
 ```
+
+## v1.x adopters
+
+If you adopted from agents-govern v1.x, the `agf/` directory is a structural
+restructure of the same rules, agents, and schemas. No rule or agent behaviour
+changed in v2.0.0. See `CHANGELOG.md` for the full list of path renames.
+The v1.x manifest (agents-govern 1.1.50) is no longer part of this distribution.
