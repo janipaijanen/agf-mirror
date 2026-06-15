@@ -20,7 +20,10 @@ defmodule Agov.ClaimFSMTest do
     end
 
     test "unclaimed claim stores ULID id when present" do
-      event = {:claim, "coder-tester", nil, "01KV6BPDNNDCBMEWER3ZFKQHVG", "2026-01-01T00:00:00Z", @future}
+      event =
+        {:claim, "coder-tester", nil, "01KV6BPDNNDCBMEWER3ZFKQHVG",
+         "2026-01-01T00:00:00Z", @future}
+
       assert {:active, entry} = ClaimFSM.transition(:unclaimed, event, @now)
       assert entry.id == "01KV6BPDNNDCBMEWER3ZFKQHVG"
       assert entry.seq == nil
