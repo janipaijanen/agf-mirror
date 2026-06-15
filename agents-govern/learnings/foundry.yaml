@@ -1,13 +1,12 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # Copyright (c) 2026 Jani Päijänen
 # =============================================================================
-# Project Learning Record: foundry
+# Project Learning Record: foundry (FROZEN — legacy v1.x)
 # =============================================================================
 # Codename: foundry
-# Note: This project IS the framework upstream. Learnings here directly shape
-# the next framework release; they are not submitted to an external repo but
-# fed back into this project's own evolution. The anonymization policy is
-# relaxed in the private working copy; public submissions use the codename.
+# FROZEN: 2026-06-15 — AGF v2 home established at agf/learnings/foundry.yaml
+# New learning records (L018+) go in agf/learnings/foundry.yaml.
+# This file is read-only historical reference for L001–L017.
 # =============================================================================
 
 project:

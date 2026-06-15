@@ -1,0 +1,114 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+# =============================================================================
+# Project Learning Record: foundry (AGF v2)
+# =============================================================================
+# Codename: foundry
+# Note: This project IS the framework upstream. Learnings here directly shape
+# the next framework release; they are not submitted to an external repo but
+# fed back into this project's own evolution. The anonymization policy is
+# relaxed in the private working copy; public submissions use the codename.
+#
+# AGF v2 home established: 2026-06-15
+# Legacy records L001–L017: agents-govern/learnings/foundry.yaml (frozen)
+# New records start at L018 in this file.
+# =============================================================================
+
+project:
+  codename: "foundry"
+  description: >
+    Next-generation governance framework for multi-agent software development.
+    Builds on field evidence from two independent adopter projects to address
+    known gaps: operational substrate (ownership queries, handoff state,
+    coordination schemas), governance tightening (advisory consultation
+    enforcement, digest tooling), and adoption experience improvements.
+  started_adopting: "2026-06-11"
+
+adoption:
+  framework_id: "agf"
+  framework_version: "2.0.0-provisional"
+  framework_commit: ""
+  agent_definitions:
+    - id: "agf:planner-architect"
+      local_path: "agf/agents/planner-architect.yaml"
+      customized: false
+    - id: "agf:coder-tester"
+      local_path: "agf/agents/coder-tester.yaml"
+      customized: false
+    - id: "agf:governor-reviewer"
+      local_path: "agf/agents/governor-reviewer.yaml"
+      customized: false
+    - id: "agf:contribution-auditor"
+      local_path: "agf/agents/contribution-auditor.yaml"
+      customized: false
+    - id: "agf:infosec-sentinel"
+      local_path: "agf/agents/infosec-sentinel.yaml"
+      customized: false
+  upgrade_history:
+    - date: "2026-06-15"
+      from_version: "agents-govern 1.1.50"
+      to_version: "agf 2.0.0-provisional"
+      agent_changes: []
+      notes: >
+        Structural migration from agents-govern/ layout to agf/ layout.
+        Learning records L001-L017 preserved in agents-govern/learnings/foundry.yaml
+        (frozen). New records continue from L018 in this file.
+
+business_domain:
+  primary: "developer-tools"
+  secondary: ["framework", "ai-governance", "multi-agent-systems"]
+
+regulatory_context:
+  frameworks: ["CC-BY-SA-4.0"]
+  data_residency: "no constraints"
+  notes: "Open-source framework; no personal data processed"
+
+team:
+  size: 1
+  roles: ["framework-author", "governor-reviewer"]
+  ai_agents_used: ["claude-sonnet-4-6", "codex-gpt-5"]
+
+lifecycle_state:
+  current: "active"
+  target: "framework release — AGF v2.0 stable"
+
+customer_state:
+  paying_customers: false
+  notes: "Open-source; adopters are the users"
+
+revenue_context:
+  model: "open-source"
+
+codebase:
+  primary_language: "elixir"
+  secondary_languages: ["python", "yaml", "markdown"]
+  test_coverage_estimate: "159 tests (Elixir tooling)"
+  ci_cd: true
+  notes: >
+    AGF v2 artifacts: agf/ (rules, agents, schemas, templates, skills).
+    Elixir tooling: tooling/elixir/ (Mix validators, session.resume, coord.brief).
+    Python tooling: agents-govern/ (legacy v1.x validators, frozen).
+
+environments:
+  - name: "development"
+    has_pii: false
+    policy_level: "relaxed"
+  - name: "release"
+    has_pii: false
+    policy_level: "strict"
+
+# ---- Learning Records ----
+# Legacy records L001–L017: see agents-govern/learnings/foundry.yaml
+# New records start below at L018.
+
+learnings: []
+
+sentinel_ack:
+  - finding_id: "ISEC-CROSSRECORD-001"
+    decision: "false_positive"
+    rationale: >
+      agents-govern/ is the frozen 1.1.50 reference distribution,
+      not project-authored content. The cross-project phrase is in
+      the upstream framework's own documentation.
+    acknowledged_by: "governor-reviewer"
+    date: "2026-06-10"
