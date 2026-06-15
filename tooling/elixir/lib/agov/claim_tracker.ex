@@ -1,30 +1,32 @@
 defmodule Agov.ClaimTracker do
   @moduledoc false
 
+  alias Agov.ClaimFSM
+
   def scan(messages, opts \\ []) do
-    now     = Keyword.get(opts, :now, DateTime.utc_now())
+    now = Keyword.get(opts, :now, DateTime.utc_now())
     aliases = Keyword.get(opts, :from_aliases, %{})
 
-    case process_messages(messages, aliases) do
+    case process_messages(messages, aliases, now) do
       {:error, error} ->
         {:error, [error]}
 
-      {:ok, active_map, released} ->
-        {stale, active} = classify(active_map, now)
+      {:ok, states} ->
+        %{stale: stale, active: active, released: released} = format_states(states, now)
         {:ok, %{stale: stale, active: active, released: released}}
     end
   end
 
-  defp process_messages(messages, aliases) do
-    Enum.reduce_while(messages, {:ok, %{}, []}, fn msg, {:ok, active, released} ->
-      case process_message(msg, active, released, aliases) do
+  defp process_messages(messages, aliases, now) do
+    Enum.reduce_while(messages, {:ok, %{}}, fn msg, {:ok, states} ->
+      case process_message(msg, states, aliases, now) do
         {:error, _} = err -> {:halt, err}
-        {:ok, new_active, new_released} -> {:cont, {:ok, new_active, new_released}}
+        {:ok, new_states} -> {:cont, {:ok, new_states}}
       end
     end)
   end
 
-  defp process_message(%{"kind" => "claim"} = msg, active, released, _aliases) do
+  defp process_message(%{"kind" => "claim"} = msg, states, _aliases, now) do
     seq = msg["seq"]
     from = msg["from"]
     claimed_at = msg["timestamp"]
@@ -35,75 +37,82 @@ defmodule Agov.ClaimTracker do
         err
 
       {:ok, expires_on} ->
-        new_active =
-          Enum.reduce(msg["artifacts_owned"] || [], active, fn path, acc ->
-            Map.put(acc, path, %{
-              from: from,
-              seq: seq,
-              claimed_at: claimed_at,
-              expires_on: expires_on
-            })
+        event = {:claim, from, seq, claimed_at, expires_on}
+
+        new_states =
+          Enum.reduce(msg["artifacts_owned"] || [], states, fn path, acc ->
+            Map.update(acc, path, ClaimFSM.transition(:unclaimed, event, now), fn state ->
+              ClaimFSM.transition(state, event, now)
+            end)
           end)
 
-        {:ok, new_active, released}
+        {:ok, new_states}
     end
   end
 
   defp process_message(
          %{"kind" => "completion", "artifacts_owned" => paths} = msg,
-         active,
-         released,
-         aliases
+         states,
+         aliases,
+         now
        )
        when is_list(paths) and paths != [] do
     from = resolve_from(msg["from"], aliases)
 
-    {releasing, remaining} =
-      Enum.split_with(active, fn {path, entry} ->
-        path in paths and resolve_from(entry.from, aliases) == from
+    new_states =
+      Enum.reduce(paths, states, fn path, acc ->
+        Map.update(acc, path, :unclaimed, fn state ->
+          ClaimFSM.transition(state, {:complete, completion_from(state, from, aliases)}, now)
+        end)
       end)
 
-    newly_released = Enum.map(releasing, fn {path, entry} -> Map.put(entry, :path, path) end)
-    {:ok, Map.new(remaining), released ++ newly_released}
+    {:ok, remove_unclaimed(new_states)}
   end
 
   defp process_message(
          %{"kind" => "completion", "artifacts_owned" => []} = msg,
-         active,
-         released,
-         aliases
+         states,
+         aliases,
+         now
        ) do
     from = resolve_from(msg["from"], aliases)
 
-    {releasing, remaining} =
-      Enum.split_with(active, fn {_path, entry} ->
-        resolve_from(entry.from, aliases) == from
+    new_states =
+      Map.new(states, fn {path, state} ->
+        {path,
+         ClaimFSM.transition(state, {:complete, completion_from(state, from, aliases)}, now)}
       end)
 
-    newly_released = Enum.map(releasing, fn {path, entry} -> Map.put(entry, :path, path) end)
-    {:ok, Map.new(remaining), released ++ newly_released}
+    {:ok, new_states}
   end
 
-  defp process_message(_msg, active, released, _aliases) do
-    {:ok, active, released}
+  defp process_message(_msg, states, _aliases, _now) do
+    {:ok, states}
   end
 
-  defp classify(active_map, now) do
-    Enum.reduce(active_map, {[], []}, fn {path, entry}, {stale, active} ->
-      with_path = Map.put(entry, :path, path)
+  defp format_states(states, now) do
+    Enum.reduce(states, %{stale: [], active: [], released: []}, fn {path, state}, acc ->
+      case ClaimFSM.transition(state, {:tick, now}, now) do
+        {:active, entry} ->
+          %{acc | active: [Map.put(entry, :path, path) | acc.active]}
 
-      case entry.expires_on do
-        nil ->
-          {stale, [with_path | active]}
+        {:stale, entry} ->
+          %{acc | stale: [Map.put(entry, :path, path) | acc.stale]}
 
-        dt ->
-          if DateTime.compare(dt, now) == :lt do
-            {[with_path | stale], active}
-          else
-            {stale, [with_path | active]}
-          end
+        {:released, entry} ->
+          %{acc | released: [Map.put(entry, :path, path) | acc.released]}
       end
     end)
+  end
+
+  defp completion_from({_status, %{from: owner}}, from, aliases) do
+    if resolve_from(owner, aliases) == from, do: owner, else: from
+  end
+
+  defp completion_from(:unclaimed, from, _aliases), do: from
+
+  defp remove_unclaimed(states) do
+    Map.reject(states, fn {_path, state} -> state == :unclaimed end)
   end
 
   defp resolve_from(from, aliases), do: Map.get(aliases, from, from)

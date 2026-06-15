@@ -1,5 +1,16 @@
 defmodule Agov.HandoffTracker do
-  @moduledoc false
+  @moduledoc """
+  Tracks unresolved coordination handoffs by graph reachability.
+
+  A handoff is pending until a later resolver message can be reached from it
+  through `references-to` front matter or coordination filename mentions in
+  message bodies. Resolver message kinds are `decision-record`, `completion`,
+  and `ack`.
+
+  This is intentionally not a per-message lifecycle FSM. Resolution can arrive
+  through a chain of related messages, so the tracker builds a descendant graph
+  and searches outward from each handoff.
+  """
 
   @resolver_kinds ~w(decision-record completion ack)
   @coord_filename_re ~r/(?:^|[\s`"'(\/])(\d{5}-[A-Za-z0-9_-]+\.md)(?=$|[\s`"'),.:;])/
@@ -64,7 +75,12 @@ defmodule Agov.HandoffTracker do
       |> Enum.filter(&MapSet.member?(known_files, &1))
       |> Enum.filter(fn referenced -> message.seq > Map.fetch!(seq_by_file, referenced) end)
       |> Enum.reduce(acc, fn referenced, inner ->
-        Map.update(inner, referenced, MapSet.new([message.basename]), &MapSet.put(&1, message.basename))
+        Map.update(
+          inner,
+          referenced,
+          MapSet.new([message.basename]),
+          &MapSet.put(&1, message.basename)
+        )
       end)
     end)
   end
