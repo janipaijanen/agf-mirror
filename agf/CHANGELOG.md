@@ -3,50 +3,82 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## [2.0.0] — Unreleased (Provisional)
+## [2.0.0] — 2026-06-16
 
-Structural restructure into the canonical `agf/` adopter-facing directory.
+First release of AGF v2. Restructures the framework into the canonical
+`agf/` adopter-facing directory and ships a GitLab CI/CD pipeline with
+framework source archives, a linux-x86_64 tooling binary, and a combined
+release bundle.
 
-### Changed (structure only — no rule or agent behaviour changes)
+### Added — CI/CD and release artifacts
 
-- Repository root reduced to essential files; governance documents moved
-  under `docs/governance/` with role-named files:
-  `GOVERNANCE.md` → `docs/governance/governance.md`,
-  `LEARNINGS.md` → `docs/governance/learning-system.md`,
-  `LESSONS-LEARNED.md` → `docs/governance/retrospective.md`,
-  `MANIFEST.md` → `docs/governance/manifest.md`,
-  `DISCLAIMER.md` → `docs/governance/disclaimer.md`,
-  `docs/ANONYMIZATION-NOTICE.md` → `docs/governance/anonymization-notice.md`.
-- Contract documents consolidated under `docs/contracts/`
-  (`binding-contract.md`, `integration-contract.md`, `contract-stability.md`).
-- Adoption material consolidated under `docs/adopt/`
-  (`compliance-profile.md`, new `decommission.md`).
-- Cross-links in carried-over files repaired to the new paths; mentions of
-  adopter-side files (an adopter's own `GOVERNANCE.md`) and historical
-  narrative (`docs/governance/retrospective.md`, ADRs) intentionally
-  unchanged.
-- `framework_version` in all agent definitions and `contract_version` in
-  `framework.yaml` set to `2.0.0`.
+- Root `.gitlab-ci.yml` with six jobs:
+  - `elixir:test` — compile with `--warnings-as-errors` and run `mix test`
+    on every MR, branch, and tag.
+  - `agf:dist:validate` — validate the manifest-driven release manifest.
+  - `agf:dist:preview` — build framework source archives as review artifacts
+    on MRs and the default branch (1-week expiry).
+  - `agf:dist:release` — build `agf-2.0.0.{tar.gz,zip}` with SHA-256
+    checksums and provenance JSON on tag pipelines only; tag/VERSION
+    mismatch blocks production before any upload.
+  - `agov:tooling:preview` / `agov:tooling:release` — build the linux-x86_64
+    Mix release archive (`agov-2.0.0-linux-x86_64-otp-29.tar.gz`) with
+    SHA-256 and provenance. Release job runs on tags only; guarded by
+    `mix agov.dist.check_tag`.
+  - `agf:bundle:preview` / `agf:bundle:release` — assemble
+    `agf-2.0.0-bundle.tar.gz` wrapping the framework archives and tooling
+    binary with `SHA256SUMS` and `bundle-provenance.json`. Release job
+    runs on tags only, after both `agf:dist:release` and
+    `agov:tooling:release`.
+- `mix agov.tooling.build` — builds the ERTS-bundled linux-x86_64 Mix
+  release; derives OTP major version at build time; checks for forbidden
+  paths (`agf/`, `.env`, `.git/`, `tmp/`, `agents-govern/`) before
+  archiving.
+- `mix agov.bundle.build` — assembles the bundle archive from framework
+  archives already in `dist/`; fails cleanly if tooling archive is missing.
+- Tooling binary provenance includes `otp_version`, `elixir_version`,
+  `target_platform`, and `packaging` fields.
 
-### Added
+### Added — framework content
 
 - `docs/site/` — 16-page documentation site (MkDocs, strict mode):
   marketing lane (landing, value proposition, use cases with explicit
   non-use cases) and a progressive learning path
   (start → adopt → concepts → operate → advanced → evolution), including
   pre-adoption `downstream-impact` and `exit-and-decommission` pages.
-- `docs/build/` — site build configuration; `.gitlab-ci.yml` with
-  validator, strict site build, and Pages publish jobs (pinned image and
-  tool versions; path-scoped MR rules).
 - `docs/adopt/decommission.md` — full downgrade/pause/remove procedure
   with verification steps.
 - `docs/reference/quick-reference.md` — one-page roles, pipeline,
   coordination kinds, and key rules summary.
+- `docs/academic/governing-the-governors.tex` — working paper describing
+  the framework's design science foundations, formative evaluation, and
+  design goals.
+- New rules in `agf/rules/`: `tool-authority-boundary-rule`,
+  `active-branch-preflight-rule`, `answer-only-rule`,
+  `coordination-sequence-guard-rule`, `coordination-message-rule`,
+  `deputy-governor-rule`, `downstream-impact-rule`, `gate-self-test-rule`,
+  `visible-artifact-verification-rule`, `file-generator-rule`,
+  `boundary-shape-testing-rule`, `concept-modelling-rule`,
+  `ci-trigger-scoping-rule`, `migration-generation-rule`,
+  `merge-request-description-rule`, `release-via-merge-request-rule`,
+  `merge-request-workflow-rule`.
+- New agents: `academic-peer-reviewer`, `academic-visual-reviewer`,
+  `build-engineer`, `capability-developer`, `contribution-auditor`,
+  `deployment-engineer`, `documentation-writer`, `fact-checker`.
+- New skills: `capability-review`, `contribution-audit`, `health`,
+  `infosec-screen`, `learning`, `release`, `upgrade`.
 
-### Deferred (tracked, not in 2.0.0 structural scope)
+### Changed (structure only — no rule or agent behaviour changes)
 
+- Repository root reduced to essential files; governance documents moved
+  under `docs/governance/`.
+- Contract documents consolidated under `docs/contracts/`.
+- Adoption material consolidated under `docs/adopt/`.
+- `framework_version` in all agent definitions and `contract_version` in
+  `framework.yaml` set to `2.0.0`.
+
+### Deferred (not in 2.0.0 scope)
+
+- macOS, Windows, and ARM tooling binaries.
+- Package registry publishing, release signing, SBOM.
 - Design system, semantic colour palette, and Graphviz figure sources.
-- `docs/paper/` academic PDF pipeline (Pandoc → TeX → latexmk).
-- Marketing copy polish passes.
-
-Each returns as its own Gate-1-scoped change (coordination seq 107).
