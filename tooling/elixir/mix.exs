@@ -8,6 +8,14 @@ defmodule Agov.MixProject do
       elixir: "~> 1.20",
       start_permanent: Mix.env() == :prod,
       escript: [main_module: Agov.CLI],
+      releases: [
+        agov: [
+          include_erts: true,
+          include_executables_for: [:unix],
+          strip_beams: true,
+          overlays: ["rel/overlays"]
+        ]
+      ],
       deps: deps()
     ]
   end

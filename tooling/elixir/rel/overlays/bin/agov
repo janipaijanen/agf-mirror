@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+erts=$(find "$root" -maxdepth 1 -type d -name 'erts-*' | sort | tail -1)
+release_vsn=$(find "$root/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | tail -1)
+
+export RELEASE_ROOT="$root"
+export RELEASE_LIB="$root/lib"
+export RELEASE_NAME=agov
+export RELEASE_VSN="$release_vsn"
+
+exec "$erts/bin/erl" \
+  -boot "$root/releases/$release_vsn/start" \
+  -boot_var RELEASE_LIB "$root/lib" \
+  -noshell \
+  -pa "$root/lib"/*/ebin \
+  -eval 'Args = [unicode:characters_to_binary(A) || A <- init:get_plain_arguments()], '\''Elixir.Agov.CLI'\'':main(Args).' \
+  -extra "$@"
