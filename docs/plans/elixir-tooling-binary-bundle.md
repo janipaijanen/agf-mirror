@@ -1,6 +1,8 @@
 ---
 id: elixir-tooling-binary-bundle
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-16"
 topic: elixir-tooling-binary-and-release-bundle
 advisory_consultation:
   - role: infosec-sentinel

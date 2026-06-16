@@ -1,10 +1,9 @@
 ---
 id: elixir-ci-cd-adopter-packaging
 status: approved
-topic: elixir-ci-cd-adopter-packaging
 gate1_approved_by: governor-reviewer
-gate1_approved_at: 2026-06-14T17:48:58Z
-gate1_approved_seq: 323
+gate1_approved_at: "2026-06-16"
+topic: elixir-ci-cd-adopter-packaging
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
