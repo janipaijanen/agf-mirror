@@ -1,67 +1,97 @@
 # Summary
 
-Revises the academic working paper after academic-peer-reviewer findings on
-methodology framing, validity boundaries, design-goal structure, and discussion
-placement.
+Implements the approved tooling binary and release bundle slice for
+`feat/tooling-binary-bundle`.
 
-This MR updates `docs/academic/governing-the-governors.tex` so the paper is
-clearer about its design science status: it is a formative design-case
-self-study, not an external effectiveness evaluation.
+This MR adds a linux-x86_64 Mix release archive for the `agov` tooling and a
+single AGF bundle archive that wraps the framework source archives plus the
+tooling binary archive.
 
 # Scope
 
-- Adds design science methodology framing in Section 4.
-- Adds citations to:
-  - Hevner et al. (2004), `Design Science in Information Systems Research`.
-  - Wieringa (2014), `Design Science Methodology for Information Systems and
-    Software Engineering`.
-- Renames research-question framing to Design Goals.
-- Reframes the observations section as evaluation against DG1--DG3.
-- Labels the self-application evidence as formative evaluation, not summative
-  validation.
-- States the external-validity boundary: independent adoption, independent role
-  holders, and non-successful or partially successful cases are still needed.
-- Reduces the abstract's literature list to three anchors.
-- Moves "governance as process data" into the abstract.
-- Splits artifact-supported contributions from framing contributions.
-- Adds role/actor substitution as an explicit design contribution.
-- Grounds Table II in the project's implementation-honesty maturity ladder.
-- Moves the governed-agent corpus proposal from Discussion to Future Work.
+- Adds Mix release configuration for `agov` with bundled ERTS.
+- Adds a release overlay so unpacked `bin/agov` runs `Agov.CLI` directly.
+- Adds `Agov.ReleasePackage` for tooling archive and bundle assembly.
+- Adds `mix agov.tooling.build`.
+- Adds `mix agov.bundle.build`.
+- Adds CI preview jobs:
+  - `agov:tooling:preview`
+  - `agf:bundle:preview`
+- Adds CI release jobs:
+  - `agov:tooling:release`
+  - `agf:bundle:release`
+- Adds tests for tooling archive layout/provenance/checksum, bundle layout and
+  `SHA256SUMS`, and missing-tooling-archive failure.
 - Adds the Gate 2 handoff record:
-  `docs/coordination/01KV7GMHR7XC48HNWEMF577XRS-coder-tester.md`.
+  `docs/coordination/01KV7NDSZEMZ1G87JTBRGGWAVC-coder-tester.md`.
 
 # Governance Trail
 
-- Academic peer review:
-  `docs/coordination/01KV7EET8T62F2NQ93D9XXY8VW-academic-peer-reviewer.md`.
-- Governor action request:
-  `docs/coordination/01KV7FN0YJEYR5BSJ5JQNZ5GFA-governor-reviewer.md`.
-- Prior snapshot-refresh handoff:
-  `docs/coordination/01KV6M8H2DCGECCZ8MNC5ZZJE0-coder-tester.md`.
-- This Gate 2 handoff:
-  `docs/coordination/01KV7GMHR7XC48HNWEMF577XRS-coder-tester.md`.
+- Gate 1 approval:
+  `docs/coordination/01KV7MABYEEK6R1N18J9M4S8JQ-governor-reviewer.md`.
+- Implementation handoff:
+  `docs/coordination/01KV7MAZC8PEX9XF60T8XXPYA2-governor-reviewer.md`.
+- Gate 2 handoff:
+  `docs/coordination/01KV7NDSZEMZ1G87JTBRGGWAVC-coder-tester.md`.
+- Gate 2 approval:
+  `docs/coordination/01KV7P02E16RFK4343JF0V8WB2-governor-reviewer.md`.
 
 # Implementation Notes
 
-The prior snapshot-refresh pass updated currency and evidence alignment, but
-did not perform a full academic soundness review. This MR answers that
-detection gap in the Gate 2 handoff and recommends that future paper-touching
-work either include an academic-content checklist or explicitly invoke
-`academic-peer-reviewer` after source-changing edits.
+`mix agov.tooling.build` runs `mix release agov --overwrite` with `MIX_ENV=prod`,
+then packages the release as:
 
-The PDF was not regenerated; this is a source-only revision.
+`agov-<version>-linux-x86_64-otp-<otp_major>.tar.gz`
+
+with:
+
+- `agov-<version>-linux-x86_64-otp-<otp_major>.sha256`
+- `agov-<version>-linux-x86_64-otp-<otp_major>-provenance.json`
+
+`mix agov.bundle.build` wraps existing `dist/agf-<version>.tar.gz`,
+`dist/agf-<version>.zip`, and the tooling archive as:
+
+`agf-<version>-bundle.tar.gz`
+
+with:
+
+- `agf-<version>-bundle.sha256`
+- bundled `SHA256SUMS`
+- bundled `bundle-provenance.json`
+
+The tooling binary archive was smoke-tested after unpacking:
+
+```text
+bin/agov --help
+```
+
+and printed the expected AGOV CLI usage.
 
 # Verification
 
 - `git diff --check` passed.
+- `mix compile --warnings-as-errors` passed.
+- `mix test` passed: 200 passed, 0 failures.
 - `mix agov.validate` passed.
-- `mix test` passed: 197 passed, 0 failures.
-- `agov coord validate docs/coordination/01KV7GMHR7XC48HNWEMF577XRS-coder-tester.md`
-  passed.
+- `mix agov.dist.validate` passed.
+- `mix agov.dist.build` passed.
+- `mix agov.tooling.build` passed.
+- `mix agov.bundle.build` passed.
+- Unpacked `bin/agov --help` passed.
+- Gate self-test passed for both new release command sequences:
+  - `CI_COMMIT_TAG=v9.99.99 mix agov.dist.check_tag && mix agov.tooling.build`
+    exited 1 at the tag guard.
+  - `CI_COMMIT_TAG=v9.99.99 mix agov.dist.check_tag && mix agov.bundle.build`
+    exited 1 at the tag guard.
 
 # Review Notes
 
-- Local `pdflatex`, `latexmk`, and `bibtex` were not available.
+- Generated archives are not committed.
+- The tooling archive content check found no forbidden `agf/`, `agents-govern/`,
+  `tmp/`, `.git/`, or `.env` paths.
+- Release jobs run only on tags.
+- Preview artifacts expire in one week.
+- Release artifacts use `expire_in: never`.
 - The full test run still emits two pre-existing warnings:
   - unused `@tag` before `describe` in `test/agov/coord_config_test.exs`
   - unused default argument in private `claim/3` in
@@ -71,8 +101,9 @@ The PDF was not regenerated; this is a source-only revision.
 
 # Out of Scope
 
-- Rebuilding or visually reviewing the PDF.
-- Redesigning figures or tables.
-- Full paper rewrite.
-- New validators or workflow changes.
-- Version bumps or tags.
+- macOS, Windows, or ARM binaries.
+- Burrito, escript, or Nerves packaging.
+- Package registry publishing.
+- Installer scripts or PATH manipulation.
+- Release signing or Sigstore.
+- SBOM generation.
