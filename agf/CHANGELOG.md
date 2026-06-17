@@ -3,6 +3,15 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.0.1] — 2026-06-17
+
+### Fixed
+
+- CI: add `release:create` job to upload release archives to the GitLab generic
+  package registry and create a GitLab release entry with download links.
+  `v2.0.0` shipped without this job; archives were only accessible as CI job
+  artifacts.
+
 ## [2.0.0] — 2026-06-16
 
 First release of AGF v2. Restructures the framework into the canonical
