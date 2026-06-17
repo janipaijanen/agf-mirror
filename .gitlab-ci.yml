@@ -16,6 +16,7 @@
 #   agf:dist:release  — tag pipelines only; tag/VERSION guard then build archives
 #   agov:tooling:*    — build review/release linux-x86_64 AGOV tooling archives
 #   agf:bundle:*      — build review/release framework + tooling bundles
+#   release:create    — upload archives to package registry; create GitLab release entry
 
 # ── Shared templates ──────────────────────────────────────────────────────────
 
@@ -216,3 +217,47 @@ agf:bundle:release:
       artifacts: true
     - job: agov:tooling:release
       artifacts: true
+
+# Publish all release archives to the generic package registry and create the
+# GitLab release entry with download links. Runs after all three release jobs.
+release:create:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - job: agf:dist:release
+      artifacts: true
+    - job: agov:tooling:release
+      artifacts: true
+    - job: agf:bundle:release
+      artifacts: true
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - PKG_BASE="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/agf/$CI_COMMIT_TAG"
+    # Upload every release artifact to the generic package registry.
+    # The glob covers framework archives, tooling archive, bundle, checksums, and provenance.
+    - |
+      for f in dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz \
+                dist/agf-*-bundle.tar.gz dist/*.sha256 dist/*-provenance.json \
+                dist/SHA256SUMS 2>/dev/null; do
+        [ -f "$f" ] || continue
+        fname=$(basename "$f")
+        echo "Uploading $fname"
+        curl --silent --fail --show-error \
+             --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+             --upload-file "$f" \
+             "$PKG_BASE/$fname"
+      done
+    # Resolve the tooling binary filename (OTP version is derived at build time).
+    - TOOLING_TAR=$(ls dist/agov-${VERSION}-linux-x86_64-otp-*.tar.gz 2>/dev/null | head -1 | xargs basename)
+    # Create the GitLab release entry with links to the uploaded packages.
+    - |
+      release-cli create \
+        --name "agents-govern $CI_COMMIT_TAG" \
+        --tag-name "$CI_COMMIT_TAG" \
+        --description "See [CHANGELOG](https://gitlab.com/$CI_PROJECT_PATH/-/blob/$CI_COMMIT_TAG/agf/CHANGELOG.md) for release notes." \
+        --assets-link "{\"name\":\"agf-${VERSION}.tar.gz\",\"url\":\"${PKG_BASE}/agf-${VERSION}.tar.gz\",\"link_type\":\"package\"}" \
+        --assets-link "{\"name\":\"agf-${VERSION}.zip\",\"url\":\"${PKG_BASE}/agf-${VERSION}.zip\",\"link_type\":\"package\"}" \
+        --assets-link "{\"name\":\"${TOOLING_TAR}\",\"url\":\"${PKG_BASE}/${TOOLING_TAR}\",\"link_type\":\"package\"}" \
+        --assets-link "{\"name\":\"agf-${VERSION}-bundle.tar.gz\",\"url\":\"${PKG_BASE}/agf-${VERSION}-bundle.tar.gz\",\"link_type\":\"package\"}"
