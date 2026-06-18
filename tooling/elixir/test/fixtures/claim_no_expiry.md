@@ -2,6 +2,7 @@
 kind: claim
 from: coder-tester
 to: all
+id: "01KVD6GF0TFTJHYFBJ7FYFEZWJ"
 seq: 102
 timestamp: 2025-01-01T00:00:00Z
 immutable: true

@@ -2,6 +2,7 @@
 kind: note
 from: planner-architect
 to: all
+id: "01KVD6GF0VMZAQTJAGGYFNXK8Y"
 seq: 99
 timestamp: 2026-06-14T00:00:00Z
 immutable: true
