@@ -31,7 +31,11 @@ A version tag MUST only be created on the main branch **after** a merge request 
    archives build correctly.
 6. Merge the MR.
 7. Tag the merge commit on main with the version (e.g. `v0.15.0`).
-8. Push the tag — CI creates the release with archives.
+8. Push the tag immediately — CI creates the release with archives.
+
+**Steps 7–8 require no additional confirmation.** The merged MR is the
+authorization. An agent or contributor MUST tag and push in a single action
+immediately after merge — not stop to ask permission.
 
 **Critical:** Never commit the version bump to main before creating the
 release branch. If you do, the MR will have no diff and cannot be
