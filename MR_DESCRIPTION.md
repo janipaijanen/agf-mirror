@@ -1,23 +1,12 @@
 # Summary
 
-Fix `release:create` CI job: install `curl` before uploading archives.
+Release 2.0.4 — patch for `release:create` missing `curl` on Alpine.
 
-# Scope
+# Changes
 
-- `.gitlab-ci.yml` `release:create` job: add `apk add --no-cache curl`
-  as the first script step.
-
-# Why
-
-The `release-cli:latest` image is Alpine-based and does not include `curl`.
-The upload loop uses `curl --upload-file` to PUT archives to the GitLab
-generic package registry. All other tools used in the script (`ls`, `head`,
-`basename`, `xargs`, `sh`) are BusyBox standard utils that ship with Alpine.
-
-# Verification
-
-- CI-only change; no Elixir code modified.
+- `agf/VERSION`: 2.0.3 → 2.0.4
+- `agf/CHANGELOG.md`: add 2.0.4 entry
 
 # Out of Scope
 
-No behavior changes beyond unblocking the upload step.
+No code changes; version bump and changelog only.
