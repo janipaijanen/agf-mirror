@@ -6,8 +6,9 @@ defmodule Agov.DistManifestTest do
   test "validates the repository release manifest" do
     assert {:ok, spec} = DistManifest.validate("../../agf/dist/release-manifest.yaml")
 
+    expected_version = "../../agf/VERSION" |> File.read!() |> String.trim()
     assert spec.package["name"] == "agf"
-    assert spec.version == "2.0.0"
+    assert spec.version == expected_version
     assert "agf/VERSION" in spec.files
     assert "agf/dist/release-manifest.yaml" in spec.files
     refute Enum.any?(spec.files, &String.starts_with?(&1, "agents-govern/"))
