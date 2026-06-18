@@ -31,16 +31,18 @@ start writing files. Do not let agents split records across two channels.
 
 ```bash
 cp agf/templates/gate1-plan.md docs/plans/sample-login-error-message.md
-cp agf/templates/coord-handoff.md docs/coordination/00001-planner-architect.md
-cp agf/templates/coord-decision-record.md docs/coordination/00002-governor-reviewer.md
-cp agf/templates/coord-gate2-handoff.md docs/coordination/00003-coder-tester.md
-cp agf/templates/coord-completion.md docs/coordination/00004-coder-tester.md
+cp agf/templates/coord-handoff.md      docs/coordination/COORD-20260614-001.md
+cp agf/templates/coord-decision-record.md docs/coordination/COORD-20260614-002.md
+cp agf/templates/coord-gate2-handoff.md  docs/coordination/COORD-20260614-003.md
+cp agf/templates/coord-completion.md     docs/coordination/COORD-20260614-004.md
 cp agf/templates/learning-record.yaml agf/learnings/sample-project.yaml
 ```
 
-The fixed sequence numbers are for a fresh trial. In an existing coordination
-channel, use the next global sequence numbers instead and update the references
-inside each copied file.
+Replace `20260614` with today's date and `001`–`004` with random 3-character
+suffixes (hex or Crockford Base32). Each file's `id:` field must also be
+replaced with a freshly generated ULID — use any ULID library or
+<https://www.ulidtools.com>. These two mechanisms keep coordination filenames
+conflict-free under parallel-branch and multi-agent workflows.
 
 ## 3. Validate the plan and first handoff
 
@@ -50,7 +52,7 @@ Use the `agov` command for core validation. In this repository it points at
 
 ```bash
 agov plan validate docs/plans/sample-login-error-message.md
-agov coord validate docs/coordination/00001-planner-architect.md
+agov coord validate docs/coordination/COORD-20260614-001.md
 ```
 
 The plan contains real YAML front matter, including the required advisory
@@ -67,16 +69,16 @@ decision.
 The governor-reviewer reads:
 
 - `docs/plans/sample-login-error-message.md`
-- `docs/coordination/00001-planner-architect.md`
+- `docs/coordination/COORD-20260614-001.md`
 
 Then the governor files the decision. For this trial, the copied
-`docs/coordination/00002-governor-reviewer.md` is a valid approval example.
+`docs/coordination/COORD-20260614-002.md` is a valid approval example.
 In real work, the governor writes the actual decision and conditions.
 
 Validate it:
 
 ```bash
-agov coord validate docs/coordination/00002-governor-reviewer.md
+agov coord validate docs/coordination/COORD-20260614-002.md
 ```
 
 Nothing is implemented before Gate 1 approval lands.
@@ -97,8 +99,8 @@ After implementation, update the copied Gate 2 handoff with the real changed
 files and validation commands:
 
 ```bash
-$EDITOR docs/coordination/00003-coder-tester.md
-agov coord validate docs/coordination/00003-coder-tester.md
+$EDITOR docs/coordination/COORD-20260614-003.md
+agov coord validate docs/coordination/COORD-20260614-003.md
 ```
 
 The governor-reviewer reviews the implementation diff, the tests, and the
@@ -111,8 +113,8 @@ Merge through your normal reviewed merge path. Then update and file the
 completion entry:
 
 ```bash
-$EDITOR docs/coordination/00004-coder-tester.md
-agov coord validate docs/coordination/00004-coder-tester.md
+$EDITOR docs/coordination/COORD-20260614-004.md
+agov coord validate docs/coordination/COORD-20260614-004.md
 ```
 
 The chain is now reconstructible:

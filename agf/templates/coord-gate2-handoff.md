@@ -2,11 +2,11 @@
 kind: handoff
 from: coder-tester
 to: governor-reviewer
-seq: 3
+id: "01JXD2XYNQD8P8RAW9ZBMK94XJ"
 timestamp: 2026-06-14T00:30:00Z
 immutable: true
 references-to:
-  - docs/coordination/00002-governor-reviewer.md
+  - docs/coordination/COORD-20260614-002.md
   - docs/plans/sample-login-error-message.md
 topic: sample-login-error-message-gate2
 requires-ack: true
@@ -21,7 +21,7 @@ handoff:
     - Confirm tests pass and scope matches the approved plan.
   must_read:
     - docs/plans/sample-login-error-message.md
-    - docs/coordination/00002-governor-reviewer.md
+    - docs/coordination/COORD-20260614-002.md
   do_not_touch:
     - production-secrets
 ---

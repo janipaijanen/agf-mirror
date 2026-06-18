@@ -2,11 +2,11 @@
 kind: decision-record
 from: governor-reviewer
 to: planner-architect
-seq: 2
+id: "01JXQCM70CXACZ5E3PX84SVBTM"
 timestamp: 2026-06-14T00:05:00Z
 immutable: true
 references-to:
-  - docs/coordination/00001-planner-architect.md
+  - docs/coordination/COORD-20260614-001.md
   - docs/plans/sample-login-error-message.md
 topic: sample-login-error-message-gate1-approved
 requires-ack: false
