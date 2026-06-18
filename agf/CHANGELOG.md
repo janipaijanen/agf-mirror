@@ -3,6 +3,14 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.0.4] — 2026-06-18
+
+### Fixed
+
+- CI: `release:create` job failed with `curl: not found` on Alpine sh.
+  The `release-cli:latest` image does not include `curl`; added
+  `apk add --no-cache curl` as the first script step.
+
 ## [2.0.3] — 2026-06-18
 
 ### Fixed
