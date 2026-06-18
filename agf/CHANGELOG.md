@@ -3,6 +3,13 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.1] — 2026-06-18
+
+### Changed
+
+- `release-via-merge-request-rule.md`: steps 7–8 (tag + push) now explicitly
+  require no additional confirmation — the merged release MR is the authorization.
+
 ## [2.1.0] — 2026-06-18
 
 ### Added
