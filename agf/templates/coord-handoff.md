@@ -2,7 +2,7 @@
 kind: handoff
 from: planner-architect
 to: governor-reviewer
-seq: 1
+id: "01JXEXEDHX08WAQEXSFCNE8AYJ"
 timestamp: 2026-06-14T00:00:00Z
 immutable: true
 references-to:

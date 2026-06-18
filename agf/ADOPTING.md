@@ -108,7 +108,7 @@ extracted as `agf/` in your existing project.
 5. **Validate** the shipped governance records you have created when those
    paths exist in your project:
    ```bash
-   agov coord validate docs/coordination/<seq>-<sender>.md
+   agov coord validate docs/coordination/COORD-YYYYMMDD-XXX.md
    agov plan validate docs/plans/*.md
    ```
 

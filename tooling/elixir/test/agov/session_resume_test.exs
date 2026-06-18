@@ -48,7 +48,7 @@ defmodule Agov.SessionResumeTest do
     assert output =~ "Role: coder-tester"
     assert output =~ "Branch: feat/session-resume"
     assert output =~ "Pending handoffs for coder-tester:"
-    assert output =~ "seq 100  implement session resume"
+    assert output =~ "implement session resume"
     refute output =~ "write docs"
   end
 
@@ -69,7 +69,7 @@ defmodule Agov.SessionResumeTest do
              )
 
     assert output =~ "Role: coder-tester"
-    assert output =~ "seq 100  coder task"
+    assert output =~ "coder task"
     refute output =~ "planner task"
   end
 
@@ -98,9 +98,9 @@ defmodule Agov.SessionResumeTest do
              )
 
     assert output =~ "Open claims for coder-tester:"
-    assert output =~ "tooling/elixir/lib/agov/session_resume.ex  seq 100"
+    assert output =~ "tooling/elixir/lib/agov/session_resume.ex  id "
     assert output =~ "Stale claims for coder-tester:"
-    assert output =~ "docs/coordination/00101-coder-tester.md  seq 101"
+    assert output =~ "docs/coordination/00101-coder-tester.md  id "
     refute output =~ "docs/plans/other.md"
   end
 
@@ -121,10 +121,10 @@ defmodule Agov.SessionResumeTest do
                base_branch: "master"
              )
 
-    assert output =~ "seq 102  new handoff"
-    refute output =~ "seq 100  old handoff"
+    assert output =~ "new handoff"
+    refute output =~ "old handoff  [ready]"
     assert output =~ "Recent decisions:"
-    assert output =~ "seq 101  approve old handoff"
+    assert output =~ "approve old handoff"
   end
 
   test "surfaces dirty tree and hidden branch-local coordination warnings" do
@@ -229,11 +229,14 @@ defmodule Agov.SessionResumeTest do
   end
 
   defp handoff(seq, to, topic) do
+    id = Agov.CoordIdentity.generate_ulid()
+
     """
     ---
     kind: handoff
     from: planner-architect
     to: #{to}
+    id: #{id}
     seq: #{seq}
     timestamp: 2026-06-13T00:00:00Z
     immutable: true
@@ -256,6 +259,8 @@ defmodule Agov.SessionResumeTest do
   end
 
   defp claim(seq, from, path, expires_on) do
+    id = Agov.CoordIdentity.generate_ulid()
+
     expires =
       case expires_on do
         nil -> ""
@@ -267,6 +272,7 @@ defmodule Agov.SessionResumeTest do
     kind: claim
     from: #{from}
     to: governor-reviewer
+    id: #{id}
     seq: #{seq}
     timestamp: 2026-06-13T00:00:00Z
     immutable: true
@@ -282,6 +288,7 @@ defmodule Agov.SessionResumeTest do
   end
 
   defp decision(seq, topic, refs) do
+    id = Agov.CoordIdentity.generate_ulid()
     refs_yaml = Enum.map_join(refs, "\n", &"  - #{&1}")
 
     """
@@ -289,6 +296,7 @@ defmodule Agov.SessionResumeTest do
     kind: decision-record
     from: governor-reviewer
     to: all
+    id: #{id}
     seq: #{seq}
     timestamp: 2026-06-13T00:00:00Z
     immutable: true
