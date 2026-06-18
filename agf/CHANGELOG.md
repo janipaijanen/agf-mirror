@@ -3,6 +3,15 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.0.3] — 2026-06-18
+
+### Fixed
+
+- CI: `release:create` job failed with `syntax error: unexpected redirection`
+  on Alpine sh. Removed `2>/dev/null` from the `for`-`in` glob list; the
+  `[ -f "$f" ] || continue` guard inside the loop already handles unmatched
+  globs.
+
 ## [2.0.2] — 2026-06-18
 
 ### Fixed
