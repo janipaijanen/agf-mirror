@@ -43,6 +43,7 @@
     "seq": {
       "type": "integer",
       "minimum": 1,
+      "x-deprecated": true,
       "description": "Deprecated. Advisory only — do NOT assign as a global counter. Causal ordering belongs in references-to and timestamp. Kept for backward compatibility with existing channels."
     },
     "id": {

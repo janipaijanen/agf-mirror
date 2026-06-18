@@ -21,7 +21,26 @@ defmodule Agov.CoordValidator do
   """
   def advisory_findings(data) when is_map(data) do
     []
+    |> check_deprecated_fields(data)
     |> check_model_field(data)
+  end
+
+  defp check_deprecated_fields(findings, data) do
+    raw = load_raw_schema()
+    properties = Map.get(raw, "properties", %{})
+
+    deprecated =
+      properties
+      |> Enum.filter(fn {_name, prop} -> prop["x-deprecated"] == true end)
+      |> Enum.map(fn {name, _prop} -> name end)
+
+    Enum.reduce(deprecated, findings, fn field, acc ->
+      if Map.has_key?(data, field) do
+        ["'#{field}' is deprecated; remove it — causal ordering belongs in references-to and timestamp" | acc]
+      else
+        acc
+      end
+    end)
   end
 
   defp check_model_field(findings, data) do
@@ -74,5 +93,11 @@ defmodule Agov.CoordValidator do
     |> File.read!()
     |> Jason.decode!()
     |> ExJsonSchema.Schema.resolve()
+  end
+
+  defp load_raw_schema do
+    schema_path()
+    |> File.read!()
+    |> Jason.decode!()
   end
 end

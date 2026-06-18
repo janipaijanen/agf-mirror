@@ -67,6 +67,32 @@ defmodule Agov.CoordValidatorTest do
       assert length(advisories) == 1
       assert hd(advisories) =~ "model"
     end
+
+    test "returns deprecated advisory when seq field is present alongside id" do
+      data = %{"id" => "01KVF3R0BZKZD8H9MTJXEQ5Y7N", "seq" => 42, "model" => "claude-sonnet-4-6"}
+      advisories = CoordValidator.advisory_findings(data)
+      assert Enum.any?(advisories, &(&1 =~ "seq"))
+      assert Enum.any?(advisories, &(&1 =~ "deprecated"))
+    end
+
+    test "returns no deprecated advisory when seq is absent" do
+      data = %{"id" => "01KVF3R0BZKZD8H9MTJXEQ5Y7N", "model" => "claude-sonnet-4-6"}
+      advisories = CoordValidator.advisory_findings(data)
+      refute Enum.any?(advisories, &(&1 =~ "deprecated"))
+    end
+
+    test "returns deprecated advisory for file with both id and seq" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_note_with_seq.md"))
+      advisories = CoordValidator.advisory_findings(data)
+      assert Enum.any?(advisories, &(&1 =~ "seq"))
+      assert Enum.any?(advisories, &(&1 =~ "deprecated"))
+    end
+
+    test "returns no deprecated advisory for file with id only" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_note_with_id.md"))
+      advisories = CoordValidator.advisory_findings(data)
+      refute Enum.any?(advisories, &(&1 =~ "deprecated"))
+    end
   end
 
   describe "extract_frontmatter/1" do
