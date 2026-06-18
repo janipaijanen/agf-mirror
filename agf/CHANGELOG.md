@@ -3,6 +3,14 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.0.2] — 2026-06-18
+
+### Fixed
+
+- Test: `DistManifestTest` integration test hardcoded `"2.0.0"` as the
+  expected version, causing `elixir:test` to fail on every version bump.
+  Fixed by reading `agf/VERSION` dynamically at test time.
+
 ## [2.0.1] — 2026-06-17
 
 ### Fixed
