@@ -240,7 +240,7 @@ release:create:
     - |
       for f in dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz \
                 dist/agf-*-bundle.tar.gz dist/*.sha256 dist/*-provenance.json \
-                dist/SHA256SUMS 2>/dev/null; do
+                dist/SHA256SUMS; do
         [ -f "$f" ] || continue
         fname=$(basename "$f")
         echo "Uploading $fname"
