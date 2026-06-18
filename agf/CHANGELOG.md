@@ -3,6 +3,19 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.0] — 2026-06-18
+
+### Added
+
+- Coordination validator now emits an advisory WARN when a message contains
+  the deprecated `seq` field. Detection is schema-driven via `x-deprecated: true`
+  on the `seq` property — any future deprecated field needs only a schema change.
+- `agf/schemas/coordination-message.schema.json`: `id` (ULID) is now required;
+  `seq` marked deprecated. Conflict-free `COORD-YYYYMMDD-XXX` filename convention
+  adopted for all coordination templates and documentation (issue #2).
+- GitLab issue templates (Bug Report, External Review, Learning, Rule Proposal)
+  and MR templates (Default, Learning Record, Rule or Agent) adopted from v1.
+
 ## [2.0.4] — 2026-06-18
 
 ### Fixed
