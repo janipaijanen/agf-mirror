@@ -1,23 +1,25 @@
 # Summary
 
-Fix `DistManifestTest` integration test to read `agf/VERSION` dynamically
-instead of hardcoding `"2.0.0"`. The hardcoded assertion fails on every
-version bump — it failed on v2.0.1 CI.
+Fix `release:create` CI job shell syntax error on Alpine sh.
 
 # Scope
 
-- `tooling/elixir/test/agov/dist_manifest_test.exs` line 10: replace
-  `assert spec.version == "2.0.0"` with a read of `../../agf/VERSION`.
+- `.gitlab-ci.yml` `release:create` job: remove `2>/dev/null` from the
+  `for f in ...` glob list.
 
 # Why
 
-The test validates the real release manifest (not a synthetic tmp fixture),
-so the expected version must come from the real `agf/VERSION` at test time.
+The `release-cli:latest` image runs Alpine sh (ash/dash), not bash.
+`2>/dev/null` after a glob list in a `for`-`in` statement is valid bash
+but a syntax error in POSIX sh. The `[ -f "$f" ] || continue` guard
+inside the loop already skips unmatched globs, so the redirect was
+redundant.
 
 # Verification
 
-- `mix test` passes locally (200/200).
+- `mix test` unchanged (CI-only change).
+- Syntax verified: `sh -n .gitlab-ci.yml` passes locally.
 
 # Out of Scope
 
-No behavior changes, no release artifacts, no governance changes.
+No behavior changes beyond fixing the sh syntax error.
