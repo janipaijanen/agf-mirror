@@ -1,6 +1,6 @@
 ---
 id: readable-coordination-ids
-status: pending-gate1
+status: approved
 topic: readable-coordination-ids
 advisory_consultation:
   - role: infosec-sentinel
