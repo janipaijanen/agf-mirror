@@ -10,6 +10,8 @@ From `tooling/elixir/`:
 ```bash
 mix agov.dist.validate
 mix agov.dist.build
+mix agov.tooling.build
+mix agov.bundle.build
 ```
 
 `mix agov.dist.validate` expands the manifest and fails if selected files escape
@@ -18,6 +20,12 @@ the repository, match forbidden paths, or would collide in the archive.
 `dist/`, along with SHA-256 checksum files and a machine-readable provenance
 record. In merge-request and default-branch pipelines, these are preview
 artifacts for review evidence. They are not immutable releases.
+
+`mix agov.tooling.build` builds the optional linux-x86_64 packaged `agov`
+tooling archive with bundled ERTS. `mix agov.bundle.build` wraps the framework
+source archives and the tooling archive into one convenience bundle. The
+framework source archive remains the primary adopter artifact; the tooling
+archive and bundle are optional.
 
 The current archive policy is allowlist-first:
 
@@ -32,7 +40,7 @@ release policy.
 
 ## Artifacts produced by a release build
 
-For version `X.Y.Z`, `mix agov.dist.build` produces:
+For version `X.Y.Z`, a full release build produces:
 
 | File | Content |
 |---|---|
@@ -41,10 +49,17 @@ For version `X.Y.Z`, `mix agov.dist.build` produces:
 | `dist/agf-X.Y.Z.tar.gz.sha256` | SHA-256 checksum (BSD format) |
 | `dist/agf-X.Y.Z.zip.sha256` | SHA-256 checksum (BSD format) |
 | `dist/agf-X.Y.Z-provenance.json` | Machine-readable build provenance |
+| `dist/agov-X.Y.Z-linux-x86_64-otp-<major>.tar.gz` | Optional packaged `agov` tooling archive |
+| `dist/agov-X.Y.Z-linux-x86_64-otp-<major>.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-linux-x86_64-otp-<major>-provenance.json` | Tooling archive provenance |
+| `dist/agf-X.Y.Z-bundle.tar.gz` | Optional convenience bundle containing the framework archives and tooling archive |
+| `dist/agf-X.Y.Z-bundle.sha256` | Bundle SHA-256 checksum |
 
-The provenance JSON records: `version`, `source_commit`, `tag`,
+The framework provenance JSON records: `version`, `source_commit`, `tag`,
 `build_timestamp`, `pipeline_identity` (CI pipeline and job IDs),
 `manifest_path`, `archive_filenames`, and `checksums` keyed by filename.
+The tooling provenance also records `otp_version`, `elixir_version`,
+`target_platform`, and `packaging`.
 
 ## Tag/version guard
 
@@ -94,6 +109,15 @@ agf:dist:preview:
 agf:dist:release:
   rules:
     - if: $CI_COMMIT_TAG
+
+# Optional tooling and bundle archives
+agov:tooling:release:
+  rules:
+    - if: $CI_COMMIT_TAG
+
+agf:bundle:release:
+  rules:
+    - if: $CI_COMMIT_TAG
 ```
 
 The `agf:dist:validate` job runs `mix agov.dist.validate` without writing
@@ -109,7 +133,10 @@ Artifacts produced by `agf:dist:release` are kept indefinitely (`expire_in:
 never`) and include the `.tar.gz`, `.zip`, all `.sha256` checksum files, and the
 provenance JSON.
 
-This slice ships source framework archives only. Binary tooling bundles,
-installer scripts, package registry publishing, release signing, Software Bill
+Artifacts produced by `agov:tooling:release` and `agf:bundle:release` are also
+kept indefinitely. The bundle depends on the framework and tooling archives,
+but framework-only adoption does not depend on the bundle.
+
+Installer scripts, package registry publishing, release signing, Software Bill
 of Materials (SBOM) generation, and third-party notices are deferred follow-on
 work.

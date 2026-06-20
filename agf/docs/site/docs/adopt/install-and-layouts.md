@@ -13,8 +13,9 @@ place and understand the single supported v2.0 layout.*
   Windsurf).
 - The `agov` command available if you want to run the current core validators
   locally and in CI. In a full checkout, symlink `tooling/agov` into
-  `~/.local/bin/agov` or run it directly. A release archive containing only
-  `agf/` does not yet include packaged tooling.
+  `~/.local/bin/agov` or run it directly. A framework-only release archive
+  contains `agf/` without packaged tooling; use the optional tooling archive
+  or bundle when you want `agov` without a full checkout.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
@@ -113,9 +114,9 @@ agov coord validate docs/coordination/*.md
 agov plan validate docs/plans/*.md
 ```
 
-A release archive containing only `agf/` has schemas and templates, but not
-the current tooling executable. In that case, either use a full checkout for validation
-or wait for a packaged `agov` tooling distribution.
+A framework-only release archive has schemas and templates, but not the
+current tooling executable. In that case, either use a full checkout for
+validation or unpack the optional packaged `agov` tooling archive.
 
 When adding validator jobs to CI, verify each gate fires by feeding it a
 deliberately bad input once on the merge request that introduces the job.
