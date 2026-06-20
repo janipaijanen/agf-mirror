@@ -41,7 +41,7 @@ pub fn extract_frontmatter(content: &str) -> Result<String, YamlError> {
 
 /// Parse a YAML string into a typed value.
 pub fn parse_yaml<T: DeserializeOwned + 'static>(yaml: &str) -> Result<T, YamlError> {
-    serde_yml::from_str(yaml).map_err(|err| YamlError::ParseError(err.to_string()))
+    serde_norway::from_str(yaml).map_err(|err| YamlError::ParseError(err.to_string()))
 }
 
 /// Extract frontmatter and immediately deserialize it.
