@@ -71,10 +71,10 @@ Default POC layout:
 | Learning record | `agf/learnings/<codename>.yaml` |
 | Current core validators | `agov` from a full checkout |
 
-The current `agov` executable lives outside the `agf/` distribution. A
-release-archive-only adopter can use the framework docs and templates, but
-needs the full repository checkout or a future packaged `agov` tooling
-distribution to run the current core validators.
+The framework source archive is usable on its own. Adopters who want the
+current core validators can use a full checkout or the optional packaged
+`agov` tooling archive; the combined bundle is a convenience artifact, not a
+prerequisite for adopting AGF.
 
 ## Safety and independence
 
