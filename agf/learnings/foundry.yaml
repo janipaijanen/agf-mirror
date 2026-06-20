@@ -140,6 +140,78 @@ learnings:
       be marked passive or scoped to a different branch. Status replies should
       include the watched branch so "no new coordination" is never ambiguous.
 
+  - id: L019
+    date: "2026-06-20"
+    category: bug
+    agents_involved: [planner-architect, coder-tester]
+    summary: >
+      agov coord brief --id-format readable appended a redundant -<role> suffix
+      to the output filename when the role is already embedded in the readable
+      ID stem.
+    detail: >
+      The readable coordination ID format is
+      YYYYMMDDThhmmssZ-<role-slug>-<4-char-suffix>. The filename for a
+      readable-ID file should be <id>.md — the role is part of the ID itself
+      and does not need to be appended again.
+
+      agov coord brief --id-format readable was producing filenames of the form
+      <id>-<role>.md (e.g. 20260620T214350Z-coder-tester-g66b-coder-tester.md)
+      — doubling the role component. Two files committed with this wrong suffix
+      are now permanent historical artifacts on main (they cannot be renamed
+      once pushed). The bug was surfaced by the planner-architect during the
+      polling loop and documented in coordination finding
+      20260620T215403Z-planner-architect-8b8b.
+
+      By contrast, ULID-format coordination IDs do NOT embed the role in the
+      ID itself, so their filenames legitimately use the form
+      <26-char-ulid>-<role>.md. The two formats have different filename rules,
+      and the generator was applying the ULID rule to readable IDs.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Fix agov coord brief --id-format readable to output <id>.md (no appended
+      role suffix). Add a validator advisory that detects the double-role
+      suffix pattern and warns that the file was likely generated with the
+      buggy version. Document the per-format filename rules in AGENTS.md and
+      the coordination-id rule so future contributors know which format uses
+      which filename convention.
+
+  - id: L020
+    date: "2026-06-21"
+    category: process
+    agents_involved: [planner-architect]
+    summary: >
+      When an agent resumes from a compacted context, it must file a
+      coordination entry for the polling cycle even if no new branch activity
+      was found — not only when new messages are present.
+    detail: >
+      On context-resume after compaction, the planner-architect (Claude)
+      initially responded with text only, without first running git fetch or
+      filing a coordination entry. The coordination-message-rule requires that
+      any "action" — including a polling-cycle assessment — produces a
+      coordination entry referencing the triggering state. A "no new activity"
+      assessment is still an observable outcome that other agents and the human
+      need to be able to reconstruct from the coordination trail.
+
+      The failure mode: after compaction, the agent loses the session state
+      that normally drives the polling discipline. The rule is context-
+      independent, but the discipline is only reliable if explicitly re-
+      derived on each resume rather than assumed to be covered by prior
+      session behaviour.
+
+      The user's correction: "did [you] send a coordination message? if not,
+      why not? you MUST always send a coordination message for other LLMs to
+      catch-up with your work and assessments."
+    framework_impact: low
+    status: proposed
+    recommendation: >
+      Add a cold-start checklist item to the coordination polling loop
+      description: "on context-resume, always run git fetch and file a
+      coordination entry for the current cycle status before responding in
+      text." Consider adding this as a check in the session.resume guidance
+      so agents explicitly re-derive the coordination discipline rather than
+      assuming it carries over from the prior session state.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
