@@ -19,10 +19,28 @@ defmodule Agov.CoordValidator do
   Advisory findings do not affect exit codes or block work. They surface
   recommended practices that are not enforced by the schema.
   """
-  def advisory_findings(data) when is_map(data) do
+  def advisory_findings(data, path \\ nil)
+
+  def advisory_findings(data, path) when is_map(data) do
     []
     |> check_deprecated_fields(data)
     |> check_model_field(data)
+    |> check_readable_id_drift(data, path)
+  end
+
+  def duplicate_id_errors(file_data) do
+    file_data
+    |> Enum.filter(fn {_file, data} -> is_map(data) and is_binary(data["id"]) end)
+    |> Enum.group_by(fn {_file, data} -> data["id"] end, fn {file, _data} -> file end)
+    |> Enum.filter(fn {_id, files} -> length(files) > 1 end)
+    |> Enum.flat_map(fn {id, files} ->
+      sorted = Enum.sort(files)
+      [first | rest] = sorted
+
+      Enum.map(rest, fn file ->
+        {file, "duplicate coordination id '#{id}' also used by #{first}"}
+      end)
+    end)
   end
 
   defp check_deprecated_fields(findings, data) do
@@ -36,7 +54,10 @@ defmodule Agov.CoordValidator do
 
     Enum.reduce(deprecated, findings, fn field, acc ->
       if Map.has_key?(data, field) do
-        ["'#{field}' is deprecated; remove it — causal ordering belongs in references-to and timestamp" | acc]
+        [
+          "'#{field}' is deprecated; remove it — causal ordering belongs in references-to and timestamp"
+          | acc
+        ]
       else
         acc
       end
@@ -50,6 +71,80 @@ defmodule Agov.CoordValidator do
 
       _ ->
         findings
+    end
+  end
+
+  defp check_readable_id_drift(findings, data, path) do
+    id = data["id"]
+
+    if Agov.CoordIdentity.readable_id?(id) do
+      findings
+      |> check_readable_id_role(data, id)
+      |> check_readable_id_timestamp(data, id)
+      |> check_readable_filename(data, id, path)
+    else
+      findings
+    end
+  end
+
+  defp check_readable_id_role(findings, data, id) do
+    with {:ok, %{role: role}} <- Agov.CoordIdentity.readable_parts(id),
+         from when is_binary(from) <- data["from"],
+         expected <- Agov.CoordIdentity.role_slug(from),
+         false <- role == expected do
+      [
+        "readable id role '#{role}' differs from from '#{from}' (expected slug '#{expected}')"
+        | findings
+      ]
+    else
+      _ -> findings
+    end
+  end
+
+  defp check_readable_id_timestamp(findings, data, id) do
+    with {:ok, %{timestamp: id_timestamp}} <- Agov.CoordIdentity.readable_parts(id),
+         timestamp when is_binary(timestamp) <- data["timestamp"],
+         {:ok, dt, _offset} <- DateTime.from_iso8601(timestamp),
+         frontmatter_timestamp <- Agov.CoordIdentity.basic_utc_timestamp(dt),
+         false <- id_timestamp == frontmatter_timestamp do
+      [
+        "readable id timestamp '#{id_timestamp}' differs from frontmatter timestamp '#{frontmatter_timestamp}'"
+        | findings
+      ]
+    else
+      _ -> findings
+    end
+  end
+
+  defp check_readable_filename(findings, _data, _id, nil), do: findings
+
+  defp check_readable_filename(findings, data, id, path) do
+    basename = Path.basename(path)
+    prefix = id <> "-"
+
+    cond do
+      not String.ends_with?(basename, ".md") ->
+        findings
+
+      not String.starts_with?(basename, prefix) ->
+        ["readable filename does not start with frontmatter id '#{id}'" | findings]
+
+      true ->
+        filename_sender =
+          basename
+          |> String.trim_trailing(".md")
+          |> String.replace_prefix(prefix, "")
+
+        from = data["from"]
+
+        if is_binary(from) and filename_sender != from do
+          [
+            "filename sender '#{filename_sender}' differs from frontmatter from '#{from}'"
+            | findings
+          ]
+        else
+          findings
+        end
     end
   end
 
@@ -77,6 +172,7 @@ defmodule Agov.CoordValidator do
 
   defp validate_against_schema(data) do
     schema = load_schema()
+
     case ExJsonSchema.Validator.validate(schema, data) do
       :ok -> :ok
       {:error, errors} -> {:error, errors}

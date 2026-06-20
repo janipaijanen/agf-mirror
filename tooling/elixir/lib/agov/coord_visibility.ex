@@ -107,7 +107,8 @@ defmodule Agov.CoordVisibility do
     file_messages
     |> Enum.flat_map(&normalize_file_message/1)
     |> Enum.reject(fn {file, data} ->
-      CoordIdentity.ulid_filename?(file) or is_nil(data["seq"])
+      CoordIdentity.ulid_filename?(file) or CoordIdentity.readable_filename?(file) or
+        is_nil(data["seq"])
     end)
     |> Enum.group_by(fn {_file, data} -> data["seq"] end, fn {file, _data} -> file end)
     |> Enum.filter(fn {_seq, files} -> length(files) > 1 end)
@@ -272,13 +273,15 @@ defmodule Agov.CoordVisibility do
     base_by_seq =
       base_messages
       |> Enum.reject(fn {file, data} ->
-        CoordIdentity.ulid_filename?(file) or is_nil(data["seq"])
+        CoordIdentity.ulid_filename?(file) or CoordIdentity.readable_filename?(file) or
+          is_nil(data["seq"])
       end)
       |> Enum.group_by(fn {_file, data} -> data["seq"] end)
 
     branch_messages
     |> Enum.reject(fn {file, data} ->
-      CoordIdentity.ulid_filename?(file) or is_nil(data["seq"])
+      CoordIdentity.ulid_filename?(file) or CoordIdentity.readable_filename?(file) or
+        is_nil(data["seq"])
     end)
     |> Enum.flat_map(fn {file, data} ->
       base_by_seq

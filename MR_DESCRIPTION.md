@@ -19,7 +19,8 @@ distinct job; Evolution mixes shipped capabilities with hypotheses and stays
 separate under `implementation-honesty-rule`.
 
 The Material theme was already declared in `agents-govern/pyproject.toml`
-(`mkdocs-material>=9.5,<10`) but was not active. No new packages are required.
+(`mkdocs-material>=9.5,<10`) but was not active. CI now installs the MkDocs
+Material and docs plugin dependencies needed by the site build job.
 
 ## Changes
 
@@ -43,7 +44,11 @@ The Material theme was already declared in `agents-govern/pyproject.toml`
 - Adds automatic light/dark palette configuration and manual toggle.
 - Adds `navigation.top` and `content.code.copy`.
 
-## Verification
+### `.gitlab-ci.yml`
+
+- Installs the MkDocs docs dependency set required by the Material theme in CI.
+
+## Validation
 
 - `mise exec -- uv run --project agents-govern --group docs mkdocs build -f agf/docs/build/mkdocs.yml --strict`
 - `git diff --check`
@@ -52,5 +57,5 @@ The Material theme was already declared in `agents-govern/pyproject.toml`
 
 - [x] No nav entry remains for deleted `value.md`
 - [x] Value Proposition content is preserved in `index.md`
-- [x] No new package dependencies
+- [x] CI installs the docs dependencies required for the configured theme
 - [x] No `Co-authored-by` or AI-tool trailers in commits

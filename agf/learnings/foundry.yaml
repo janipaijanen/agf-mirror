@@ -101,7 +101,44 @@ environments:
 # Legacy records L001–L017: see agents-govern/learnings/foundry.yaml
 # New records start below at L018.
 
-learnings: []
+learnings:
+
+  - id: L018
+    date: "2026-06-20"
+    category: gap
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      Multi-agent polling can silently diverge when agents watch different
+      branches without an explicit branch-watch ownership protocol.
+    detail: >
+      During the Rust agov Phase 1 and readable-ID planning work, Codex and
+      Claude both ran coordination polling loops, but they were watching
+      different upstream branches: one on the Rust implementation MR branch and
+      one on the readable-ID planning branch. Each timer was locally correct,
+      yet the user had to reconcile which branch was being watched by whom.
+
+      The friction is not a tool failure; it is an ownership ambiguity. Branch
+      watch state is operational coordination state, but it was only present in
+      ephemeral chat/timer output rather than in a durable coordination record.
+      This makes it easy for agents to miss relevant messages, duplicate
+      polling, or report stale confidence about "no new coordination" on the
+      wrong branch.
+
+      The useful pattern is to make branch watching explicit whenever multiple
+      agents are active: record which agent is watching which branch/upstream,
+      the polling interval, the expected duration, and whether the watch is
+      active, passive, or handed off. A later agent can then decide whether to
+      keep, move, or stop a timer without relying on session memory.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add a lightweight branch-watch protocol to coordination guidance. When an
+      agent starts or changes a polling timer, it should record the branch,
+      upstream, interval, duration, purpose, and owner in coordination, or use a
+      future `agov watch`/`agov session` helper that records the same state.
+      One branch should have a named primary watcher; additional watchers should
+      be marked passive or scoped to a different branch. Status replies should
+      include the watched branch so "no new coordination" is never ambiguous.
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"

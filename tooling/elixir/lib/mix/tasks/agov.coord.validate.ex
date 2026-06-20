@@ -26,9 +26,24 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
   def run(files) do
     Agov.CliSafety.ensure_not_root!()
 
-    results = Enum.map(files, &validate_and_report/1)
+    results =
+      Enum.map(files, fn path ->
+        {path, validate_and_report(path)}
+      end)
 
-    if Enum.any?(results, &(&1 == :error)) do
+    valid_file_data =
+      results
+      |> Enum.filter(fn {_path, {_status, data}} -> is_map(data) end)
+      |> Enum.map(fn {path, {_status, data}} -> {path, data} end)
+
+    duplicate_errors = Agov.CoordValidator.duplicate_id_errors(valid_file_data)
+
+    Enum.each(duplicate_errors, fn {path, message} ->
+      Mix.shell().error("ERR severity: blocking #{path}: #{message}")
+    end)
+
+    if Enum.any?(results, fn {_path, {status, _data}} -> status == :error end) or
+         duplicate_errors != [] do
       exit({:shutdown, 1})
     end
   end
@@ -36,20 +51,20 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
   defp validate_and_report(path) do
     case Agov.CoordValidator.validate_file(path) do
       {:ok, data} ->
-        Enum.each(Agov.CoordValidator.advisory_findings(data), fn msg ->
+        Enum.each(Agov.CoordValidator.advisory_findings(data, path), fn msg ->
           Mix.shell().info("WARN severity: advisory #{path}: #{msg}")
         end)
 
         Mix.shell().info("OK  severity: blocking #{path}")
-        :ok
+        {:ok, data}
 
       {:error, :file_not_found} ->
         Mix.shell().error("ERR severity: blocking #{path}: file not found")
-        :error
+        {:error, nil}
 
       {:error, :no_frontmatter} ->
         Mix.shell().error("ERR severity: blocking #{path}: no YAML front matter found")
-        :error
+        {:error, nil}
 
       {:error, errors} when is_list(errors) ->
         Mix.shell().error("ERR severity: blocking #{path}:")
@@ -58,11 +73,11 @@ defmodule Mix.Tasks.Agov.Coord.Validate do
           Mix.shell().error("    #{path_str}: #{msg}")
         end)
 
-        :error
+        {:error, nil}
 
       {:error, reason} ->
         Mix.shell().error("ERR severity: blocking #{path}: #{inspect(reason)}")
-        :error
+        {:error, nil}
     end
   end
 end
