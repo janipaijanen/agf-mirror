@@ -1,36 +1,45 @@
-# Gate 1 plan: Rust port of agov CLI tooling
+# docs: merge Value Proposition into Home; switch to Material theme
 
 ## Summary
 
-- Adds `docs/plans/rust-agov-port.md` — architecture and phased scope for porting the `agov` CLI from Elixir/OTP to Rust
-- Adds `docs/coordination/01KVJZBMN8FRGPZZYPAQDAW3MF-planner-architect.md` — Gate 1 handoff to governor-reviewer
+- Merges `agf/docs/site/value.md` content into `agf/docs/site/index.md` — one entry point instead of two
+- Deletes `agf/docs/site/value.md` and removes its nav entry
+- Switches MkDocs theme from `mkdocs` (basic) to `material` with automatic dark/light mode via `prefers-color-scheme`
 
-## What the plan proposes
+## Why
 
-The current `agov` CLI ships a bundled ERTS runtime (~50–70 MB, Linux x86_64 only). The Rust port produces statically-linked binaries of 5–12 MB for Linux x86_64/ARM64 and macOS x86_64/ARM64, with no runtime dependency on Elixir or OTP.
+The Home and Value Proposition pages covered the same reader intent (what is AGF and why adopt it?) with overlapping content. Per `marketing-tone-rule`, each claim is stated once in canonical form; the duplication invited drift. The merged page preserves all content from both sources, organised as: what AGF is → the situation → what you get → what it costs → who benefits → where to go next → evidence.
 
-Key architectural decisions in the plan:
+Use Cases and Evolution pages were assessed and kept separate: Use Cases is distinct in purpose; Evolution mixes hypothesis with shipped capabilities and must stay separate per `implementation-honesty-rule`.
 
-- **Workspace layout**: `tooling/rust/` with four crates — `agov-core`, `agov-coord`, `agov-validators`, `agov` (binary)
-- **Concurrency**: `rayon` for parallel file validation; no async runtime needed for a CLI
-- **Output compatibility**: byte-for-byte parity with the Elixir CLI output; parity test suite is a blocking CI check
-- **Saved-token evidence**: Phase 1 Rust validation commands append local
-  JSONL token ROI records compatible with existing Elixir reporting
-- **Phasing**: Phase 1 = all validation commands; Phase 2 = channel analysis commands; Elixir tooling untouched throughout
-- **Distribution**: `cross`-compiled via CI for four platform targets; archive layout mirrors current Elixir format
+The Material theme was already declared in `agents-govern/pyproject.toml` (`mkdocs-material>=9.5,<10`) but never activated. No new packages required. The `prefers-color-scheme` palette reads the user's OS/browser preference automatically; a toggle allows manual override.
 
-## What Gate 1 approval authorises
+## Changes
 
-- Creation of `feat/rust-agov-phase1` branch
-- Implementation of `tooling/rust/` workspace covering Phase 1 validation commands
-- Local saved-token logging for successful Phase 1 validation commands, using
-  `tmp/agov-token-roi.jsonl` by default and `AGOV_TOKEN_ROI_LOG` as override
-- Addition of `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:build:preview` CI jobs
+### `agf/docs/site/index.md`
+- Absorbed all content from `value.md`
+- Structure: what AGF is and is not → the situation → what you get → what it costs → who benefits → where to go next → evidence
+- Removed duplication: "Why this exists" and "The situation" unified into one narrative
+- Scope disclaimer ("not a replacement for review culture") preserved verbatim from value.md
 
-It does not authorise Phase 2 implementation, bundle rewiring, or removal of the Elixir tooling.
+### `agf/docs/site/value.md`
+- Deleted (`git rm`) — all content now lives in `index.md`
 
-## Advisory consultations
+### `agf/docs/build/mkdocs.yml`
+- Removed `- Value proposition: value.md` nav entry
+- `theme.name` changed from `mkdocs` to `material`
+- Added `palette` block: `prefers-color-scheme: light` → `default`/indigo; `prefers-color-scheme: dark` → `slate`/indigo; both with manual toggle
+- Added `features: [navigation.top, content.code.copy]`
 
-- `infosec-sentinel`: crate supply chain, cross toolchain, static linking, CI secrets — consulted
-- `contribution-auditor`: new `tooling/rust/` subtree, workspace layout — consulted
-- `build-engineer`: suspended; CI concerns documented in §10 of the plan; reviewed by governor-reviewer at Gate 2
+## Verification
+
+- `mkdocs build --strict` passes (0.27s, no warnings, no broken links)
+- Dark/light mode switches automatically on browser preference; toggle visible in header
+
+## Checklist
+
+- [x] No new nav entry added for deleted `value.md`
+- [x] All `value.md` content preserved in `index.md`
+- [x] No new package dependencies
+- [x] Strict-mode build passes
+- [x] No `Co-authored-by` or AI-tool trailers in commits
