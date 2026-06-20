@@ -104,7 +104,7 @@ tooling/rust/
 
 | Function | Elixir equivalent | Rust crate | Notes |
 |----------|-------------------|------------|-------|
-| YAML parsing | yaml_elixir | `serde_yaml` | 0.9.x; **unmaintained upstream** — accepted risk for Phase 1; tracked replacement criterion in §13 |
+| YAML parsing | yaml_elixir | `serde_yml` | maintained community fork of `serde_yaml`; drop-in API compatible |
 | JSON parsing | Jason | `serde_json` | Industry standard |
 | JSON schema validation | ex_json_schema | `jsonschema` | draft-07 support matches current schemas |
 | ULID | ulid | `ulid` | Same semantics |
@@ -383,7 +383,7 @@ The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes
 
 | Risk | Likelihood | Mitigation |
 |------|-----------|------------|
-| `serde_yaml` is unmaintained; YAML edge-case divergence | Medium | Parity test suite catches divergence; replacement criterion: if a parity failure or CVE is attributed to `serde_yaml`, evaluate `serde_yml` (maintained fork) or `yaml-rust2` before Phase 2 Gate 2 |
+| `serde_yml` diverges from yaml_elixir on edge cases | Low | Parity test suite catches divergence per file |
 | `jsonschema` crate lacks draft-07 feature parity | Low | Evaluate against all AGF schemas before committing; crate supports draft-07 |
 | `cross` Docker images unavailable in CI | Medium | Pin image digests; keep Elixir jobs active as fallback |
 | Output format drift breaks adopter scripts | Low | Parity tests are blocking; format is tested per command |
