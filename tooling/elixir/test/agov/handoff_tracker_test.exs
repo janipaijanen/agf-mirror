@@ -103,7 +103,12 @@ defmodule Agov.HandoffTrackerTest do
     test "body mention alone does not resolve a handoff" do
       messages = [
         handoff("00010-coder-tester.md", 10, "governor-reviewer"),
-        handoff_mentioning("00011-coder-tester.md", 11, "governor-reviewer", "00010-coder-tester.md")
+        handoff_mentioning(
+          "00011-coder-tester.md",
+          11,
+          "governor-reviewer",
+          "00010-coder-tester.md"
+        )
       ]
 
       {:ok, result} = HandoffTracker.scan(messages)
@@ -137,11 +142,54 @@ defmodule Agov.HandoffTrackerTest do
       assert Enum.map(result.resolved, & &1.seq) == [190, 189]
     end
 
+    test "handoff resolves through readable-id body mention and later decision chain" do
+      handoff_file = "20260620T183914Z-coder-tester-r7k2-coder-tester.md"
+      bridge_file = "20260620T183915Z-coder-tester-r7k3-coder-tester.md"
+
+      messages = [
+        {handoff_file,
+         %{
+           "kind" => "handoff",
+           "from" => "coder-tester",
+           "to" => "governor-reviewer",
+           "timestamp" => "2026-06-20T18:39:14Z",
+           "topic" => "readable bridge",
+           "handoff" => %{"status" => "ready"}
+         }},
+        {bridge_file,
+         %{
+           "kind" => "review",
+           "from" => "planner-architect",
+           "to" => "governor-reviewer",
+           "timestamp" => "2026-06-20T18:39:15Z",
+           "references-to" => [],
+           "_body" => "Bridge keeps docs/coordination/#{handoff_file} visible."
+         }},
+        {"20260620T183916Z-governor-reviewer-r7k4-governor-reviewer.md",
+         %{
+           "kind" => "decision-record",
+           "from" => "governor-reviewer",
+           "to" => "all",
+           "timestamp" => "2026-06-20T18:39:16Z",
+           "references-to" => [bridge_file]
+         }}
+      ]
+
+      {:ok, result} = HandoffTracker.scan(messages)
+      assert result.pending == []
+      assert Enum.map(result.resolved, & &1.file) == [handoff_file]
+    end
+
     test "non-handoff messages are not classified" do
       messages = [
         {"00010-coder-tester.md",
-         %{"kind" => "completion", "from" => "coder-tester", "seq" => 10,
-           "references-to" => [], "artifacts_owned" => []}}
+         %{
+           "kind" => "completion",
+           "from" => "coder-tester",
+           "seq" => 10,
+           "references-to" => [],
+           "artifacts_owned" => []
+         }}
       ]
 
       {:ok, result} = HandoffTracker.scan(messages)

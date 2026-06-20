@@ -78,11 +78,14 @@ tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-
 ## Coordination channel
 
 All inter-agent communication goes through immutable Markdown files at
-`docs/coordination/<seq>-<sender>.md`. Front matter is validated by
+`docs/coordination/<id>-<sender>.md`. New readable IDs use
+`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>`; existing ULID and legacy
+sequence filenames remain valid history. Front matter is validated by
 `agov coord validate`.
 
-**Sequence numbers are global and append-only.** Never reuse or reorder them.
-To find the current highest: `ls docs/coordination/*.md | sort | tail -1`.
+Use `agov coord brief --id-format readable --from <role>` to generate new
+coordination IDs unless tooling is unavailable. Do not rename historical
+coordination files.
 
 **Nine message kinds:** `claim`, `completion`, `review`, `ack`, `handoff`,
 `decision-record`, `fast-track-waiver`, `lesson-proposal`, `note`.

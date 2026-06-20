@@ -38,11 +38,12 @@ cp agf/templates/coord-completion.md     docs/coordination/COORD-20260614-004.md
 cp agf/templates/learning-record.yaml agf/learnings/sample-project.yaml
 ```
 
-Replace `20260614` with today's date and `001`–`004` with random 3-character
-suffixes (hex or Crockford Base32). Each file's `id:` field must also be
-replaced with a freshly generated ULID — use any ULID library or
-<https://www.ulidtools.com>. These two mechanisms keep coordination filenames
-conflict-free under parallel-branch and multi-agent workflows.
+For current tooling, prefer generating coordination skeletons with
+`agov coord brief --id-format readable --from <role>`. Readable IDs use
+`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>` and appear in both the filename
+and frontmatter `id:`. Existing template `COORD-YYYYMMDD-XXX` examples and
+ULID records remain valid compatibility forms; do not use sequential integers
+for new messages.
 
 ## 3. Validate the plan and first handoff
 

@@ -1,111 +1,94 @@
-# feat(rust): Phase 1 Rust agov CLI port
+# plan: Readable coordination IDs
 
 ## Summary
 
-Implements the approved Phase 1 Rust `agov` CLI port.
+Adds the approved Gate 1 plan for human-readable coordination message IDs and
+tooling-first ID generation.
 
-This MR adds a Rust workspace under `tooling/rust/` for Phase 1 validation
-commands, keeps Elixir as the reference implementation, and wires CI preview,
-test, clippy, dependency-policy, parity, and build jobs for the Rust tooling
-lane.
+The target readable ID format is:
+
+```text
+20260620T183914Z-coder-tester-r7k2
+```
+
+Existing 26-character ULID coordination IDs remain valid forever. This MR does
+not rename historical coordination records and does not implement the readable
+ID generator yet.
 
 ## Scope
 
-- Adds the Rust workspace:
-  - `agov-core`
-  - `agov-coord`
-  - `agov-validators`
-  - `agov`
-- Implements:
-  - `agov coord validate <file>...`
-  - `agov plan validate <file>...`
-  - `agov validate`
-  - `agov validate agents`
-  - `agov validate learnings`
-  - `agov validate adoption`
-  - `agov validate infosec`
-  - `agov validate contributions`
-  - `agov validate framework-config`
-- Preserves dotted compatibility aliases:
-  - `agov agov.coord.validate <file>...`
-  - `agov agov.plan.validate <file>...`
-- Adds local saved-token ROI logging for successful Rust validation commands:
-  - default: `tmp/agov-token-roi.jsonl`
-  - override: `AGOV_TOKEN_ROI_LOG`
-  - disable: `AGOV_TOKEN_ROI=0|false|off`
-- Adds live Rust-vs-Elixir parity cases in `tooling/rust/tests/parity/run.sh`.
-- Adds Rust CI jobs:
-  - `rust:tooling:test`
-  - `rust:tooling:deny`
-  - `rust:tooling:clippy`
-  - `rust:tooling:parity`
-  - `rust:tooling:build:preview` for Linux musl preview targets:
-    - `x86_64-unknown-linux-musl`
-    - `aarch64-unknown-linux-musl`
-- Adds a CI workflow guard so `coordination:` audit-trail commits do not
-  retrigger the full MR build matrix.
-- Adds dependency policy via `tooling/rust/deny.toml`.
-- Uses `serde_norway` instead of `serde_yml` after the RustSec advisory.
-- Updates token ROI reference docs with validation workflow baselines.
+- Adds `docs/plans/readable-coordination-ids.md`.
+- Defines readable coordination ID and filename policy.
+- Preserves ULID backward compatibility.
+- Requires tooling-first ID generation for AI agents, with manual fallback when
+  tooling is unavailable and validation passes.
+- Scopes RFC 2119/8174 keywords to explicitly declared normative surfaces.
+- Defines an interim branch-watch ownership protocol for multi-agent polling.
+- Specifies validator work for the implementation phase:
+  - accept both ULID and readable IDs;
+  - block duplicate frontmatter IDs;
+  - warn on filename/frontmatter timestamp or sender drift;
+  - keep references and handoff tracking backward compatible.
+- Records the branch-watch learning in `agf/learnings/foundry.yaml`.
+- Records coordination proposals, Gate 1 routing, approval, supersession of
+  invalid records, and coder-tester ack.
 
 ## Governance Trail
 
-- Gate 1 approval:
-  `docs/coordination/01KVK1QRVS3WAW4FPKMAT2W00J-governor-reviewer.md`
-- Collaboration protocol:
-  `docs/coordination/01KVK1V68PYXVJ45ST8ENMBVVY-planner-architect.md`
-- Codex protocol ack:
-  `docs/coordination/01KVK1YT6KZNVN0WVFNV6728JT-coder-tester.md`
-- Scaffold API review request:
-  `docs/coordination/01KVK2QMMGE2G8VFXJ599HQ5WA-planner-architect.md`
-- Codex API review ack:
-  `docs/coordination/01KVK2Y6RMYPA795AYVJN1X4C0-coder-tester.md`
-- Implementation cleared:
-  `docs/coordination/01KVK3049XQPM1GE8WBJ5N2D00-planner-architect.md`
-- Implementation start:
-  `docs/coordination/01KVK3KF8D5HEB9KQH1EYC4QJW-coder-tester.md`
-- Scaffold/dependency notes:
-  `docs/coordination/01KVK3XCNFHV6TK8WQPC1Y0M00-planner-architect.md`
-  `docs/coordination/01KVK4D2PH56CX8MXY3J7MNVR0-planner-architect.md`
-- Gate 2 handoff and final CI evidence:
-  `docs/coordination/01KVK58XFZ91W97F11EZE9BCEW-coder-tester.md`
-  `docs/coordination/01KVKB0BS8GERB05Q5RVNX06P3-coder-tester.md`
+- Tooling-first readable ID proposal:
+  `docs/coordination/01KVK62WGAZAMKHDQD3DAXPM9R-coder-tester.md`
+- Scoped RFC 2119/8174 proposal:
+  `docs/coordination/01KVK6AFC7PRYDTH4DNGGYWJK7-coder-tester.md`
+- Branch-watch ownership learning:
+  `docs/coordination/01KVK6P77H34DASXBVGRMPD9CV-coder-tester.md`
+- Planner direction:
+  `docs/coordination/01KVK6VK01RF18HHK69W-planner-architect.md`
+- Plan handoff:
+  `docs/coordination/01KVK77ACVM6TF8VKHZ5ZHJQ0T-coder-tester.md`
+- Branch watcher record:
+  `docs/coordination/01KVK7A38Z63ST2DTG0FKNTXXN-coder-tester.md`
+- Valid Gate 1 routing:
+  `docs/coordination/01KVK7TFMY6DQNPRH7SAS5BSHP-planner-architect.md`
+- Valid Gate 1 approval:
+  `docs/coordination/01KVK7TFMYC725T6V5CQDDASK5-governor-reviewer.md`
+- Valid implementation handoff:
+  `docs/coordination/01KVK7TFN1ADA2WBZDWKFRPBXR-planner-architect.md`
+- Remediation ack for invalid earlier Gate 1 records:
+  `docs/coordination/01KVK7TFN3S02ZFJ9WJJF8YQ6F-planner-architect.md`
+- Coder-tester handoff ack:
+  `docs/coordination/01KVK82P4N9PQZB1JMPZSEPY0T-coder-tester.md`
 
-## Verification
+## Validation
 
-- `cargo test --workspace` passed.
-- `cargo clippy --workspace -- -D warnings` passed.
-- `bash tooling/rust/tests/parity/run.sh` passed: 13 passed, 0 failed.
-- `agov plan validate docs/plans/rust-agov-port.md` passed.
-- New coordination messages validated.
-- Rust ROI JSONL smoke test passed.
-- Elixir `mix agov.token.roi report` read a Rust-generated JSONL record.
-- Logging-enabled vs logging-disabled stdout/stderr parity check passed.
+- `agov plan validate docs/plans/readable-coordination-ids.md` passed.
+- `agov coord validate` passed for the valid superseding Gate 1 records:
+  - `docs/coordination/01KVK7TFMY6DQNPRH7SAS5BSHP-planner-architect.md`
+  - `docs/coordination/01KVK7TFMYC725T6V5CQDDASK5-governor-reviewer.md`
+  - `docs/coordination/01KVK7TFN1ADA2WBZDWKFRPBXR-planner-architect.md`
+  - `docs/coordination/01KVK7TFN3S02ZFJ9WJJF8YQ6F-planner-architect.md`
+- `agov coord validate docs/coordination/01KVK82P4N9PQZB1JMPZSEPY0T-coder-tester.md`
+  passed.
 - `git diff --check` passed.
-- GitLab MR pipeline `2616471585` passed after the final Rust preview and
-  cache-safety fixes, including `rust:tooling:build:preview`,
-  `rust:tooling:deny`, `rust:tooling:test`, `rust:tooling:clippy`, and
-  `rust:tooling:parity`.
-- GitLab CI lint passed for the `coordination:` workflow skip guard.
 
 ## Review Notes
 
-- `cargo deny check` was not run locally because `cargo-deny` is not installed
-  in this shell. The CI job installs `cargo-deny` before running the check, and
-  the MR pipeline passed the dependency policy job.
-- Generated Rust `target/` output and local token ROI logs are not committed.
-- Elixir tooling remains the reference implementation and is not removed.
-- macOS preview builds are deferred because upstream `cross` does not provide
-  Darwin images; those targets require a separately approved macOS SDK/custom
-  image supply-chain path.
-- The `coordination:` workflow skip is intentionally commit-title based. It
-  preserves full CI for code, docs, and CI changes while avoiding repeated full
-  MR rebuilds for plain governance coordination updates.
+- This is a Gate 1 planning and coordination MR, not the implementation MR.
+- MR !31 (`feat/rust-agov-phase1`) has merged to `main`, satisfying the
+  implementation precondition recorded in the Gate 1 approval.
+- Three earlier Gate 1 coordination files in this branch used invalid
+  20-character IDs:
+  - `docs/coordination/01KVK7DYM21GGQ7ZZ5RR-planner-architect.md`
+  - `docs/coordination/01KVK7J9MZSH6RJA7TKS-governor-reviewer.md`
+  - `docs/coordination/01KVK7J9N2AW8DJZQAG2-planner-architect.md`
+- Those invalid records are immutable and intentionally superseded by valid
+  26-character ULID records listed in the governance trail.
 
 ## Out of Scope
 
-- Phase 2 channel analysis commands.
-- Rust-native `agov token roi report`.
-- Release build CI (`rust:tooling:build:release`).
-- Bundle rewiring or Elixir deprecation.
-- macOS/Windows binary or installer work beyond the Linux preview build lane.
+- Implementing readable ID generation.
+- Making readable IDs the default immediately.
+- Adding `agov watch start/status/stop`.
+- Renaming historical coordination files.
+- Removing ULID support.
+- Extending readable IDs to plan files or other governance artifacts in this
+  phase.

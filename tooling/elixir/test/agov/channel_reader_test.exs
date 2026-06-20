@@ -20,7 +20,7 @@ defmodule Agov.ChannelReaderTest do
       assert keys == Enum.sort(keys)
     end
 
-    test "supports mixed legacy seq and new ULID messages" do
+    test "supports mixed legacy seq, ULID, and readable ID messages" do
       tmp = new_dir!()
 
       File.write!(
@@ -33,14 +33,20 @@ defmodule Agov.ChannelReaderTest do
         message("id: 01KV6BPDNNDCBMEWER3ZFKQHVG", "2026-06-14T00:00:00Z")
       )
 
+      File.write!(
+        Path.join(tmp, "20260615T000000Z-coder-tester-r7k2-coder-tester.md"),
+        message("id: 20260615T000000Z-coder-tester-r7k2", "2026-06-15T00:00:00Z")
+      )
+
       assert {:ok, result} = ChannelReader.scan(tmp)
 
       assert Enum.map(result.messages, &elem(&1, 0)) == [
                "00001-planner-architect.md",
-               "01KV6BPDNNDCBMEWER3ZFKQHVG-coder-tester.md"
+               "01KV6BPDNNDCBMEWER3ZFKQHVG-coder-tester.md",
+               "20260615T000000Z-coder-tester-r7k2-coder-tester.md"
              ]
 
-      assert result.timestamp_range == {"2026-06-13T00:00:00Z", "2026-06-14T00:00:00Z"}
+      assert result.timestamp_range == {"2026-06-13T00:00:00Z", "2026-06-15T00:00:00Z"}
 
       File.rm_rf!(tmp)
     end

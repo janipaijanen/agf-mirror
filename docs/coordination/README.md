@@ -9,12 +9,16 @@ in agents-govern 1.1.50 field evidence.
 
 - **Immutable files.** A message file is never edited after creation.
   Corrections are new messages that reference the original.
-- **File naming:** `<ulid>-<sender>.md`
-  e.g. `01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md`
-- **Existing seq files remain immutable.** Older
-  `<zero-padded-seq>-<sender>.md` files are still authoritative history.
-  New files use ULIDs so concurrent agents can create messages without
-  choosing the same sequence number.
+- **File naming:** `<id>-<sender>.md`
+  e.g. `20260620T183914Z-planner-architect-r7k2-planner-architect.md`
+  or legacy-compatible `01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md`.
+- **Generate IDs with tooling.** Prefer
+  `agov coord brief --id-format readable --from <role>` for new messages.
+  Manual IDs are valid when tooling is unavailable, but must keep the
+  frontmatter `id`, timestamp, and sender aligned.
+- **Existing seq and ULID files remain immutable.** Older
+  `<zero-padded-seq>-<sender>.md` and `<ulid>-<sender>.md` files are still
+  authoritative history. Do not rename historical records.
 - **Raw files are authoritative.** Digests (under `digests/`) are reading
   aids only. When raw files and a digest conflict, the raw file wins.
 - **Digest boundaries** must be fully historical — no active claims at close.
@@ -23,7 +27,7 @@ in agents-govern 1.1.50 field evidence.
 
 ## Message Front Matter (required)
 
-Schema: [`spec/schemas/coordination-message.schema.json`](../../spec/schemas/coordination-message.schema.json)
+Schema: [`agf/schemas/coordination-message.schema.json`](../../agf/schemas/coordination-message.schema.json)
 
 **`from` and `to` MUST be role identifiers** (e.g. `planner-architect`,
 `coder-tester`, `governor-reviewer`, `contribution-auditor`, `all`).
@@ -38,7 +42,7 @@ require governor-reviewer approval.
 kind: claim | completion | review | ack | handoff | decision-record | fast-track-waiver | lesson-proposal | note
 from: <role-identifier>
 to: <role-identifier> | all
-id: 01KV6BPDNNDCBMEWER3ZFKQHVG
+id: 20260620T183914Z-planner-architect-r7k2
 timestamp: YYYY-MM-DDTHH:MM:SSZ
 immutable: true
 references-to: []                    # list of prior message filenames

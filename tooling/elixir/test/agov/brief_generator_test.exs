@@ -2,6 +2,7 @@ defmodule Agov.BriefGeneratorTest do
   use ExUnit.Case, async: true
 
   alias Agov.BriefGenerator
+  alias Agov.CoordBrief
 
   @next_id "01KV6BPDNNDCBMEWER3ZFKQHVG"
   @channel_info %{next_id: @next_id, total: 0, timestamp_range: nil, active_claims: 0}
@@ -135,6 +136,29 @@ defmodule Agov.BriefGeneratorTest do
     test "shows no active claims when zero" do
       {:ok, skeleton} = BriefGenerator.generate(@channel_info)
       assert skeleton =~ "no active"
+    end
+  end
+
+  describe "CoordBrief.generate/1 — id format" do
+    test "generates readable id skeleton when explicitly requested" do
+      {:ok, skeleton} =
+        CoordBrief.generate([
+          "--dir",
+          Path.join([__DIR__, "..", "fixtures"]),
+          "--id-format",
+          "readable",
+          "--from",
+          "coder-tester"
+        ])
+
+      assert skeleton =~ ~r/id: [0-9]{8}T[0-9]{6}Z-coder-tester-[a-z0-9]{4}/
+      assert skeleton =~ "from: coder-tester"
+      assert skeleton =~ ~r/timestamp: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z/
+      refute skeleton =~ "<TIMESTAMP>"
+    end
+
+    test "readable id format requires a sender role" do
+      assert {:error, :readable_requires_from} = CoordBrief.generate(["--id-format", "readable"])
     end
   end
 end

@@ -14,8 +14,8 @@ Default adopter paths:
 | `learning-record.yaml` | `agf/learnings/<codename>.yaml` |
 | `private-codename-mapping.example` | private records outside git |
 
-**Coordination filename convention:** `COORD-YYYYMMDD-XXX.md` where `YYYYMMDD`
-is the ISO date and `XXX` is a 3-character random suffix (hex or Crockford
-Base32). Each file also carries a `id:` ULID — replace the example values with
-freshly generated ULIDs. Both mechanisms are conflict-free under parallel-branch
-and multi-agent workflows; do not use sequential integers.
+**Coordination filename convention:** Prefer generating files with
+`agov coord brief --id-format readable --from <role>`. Readable IDs use
+`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>` in both the filename and
+frontmatter `id:`. The `COORD-YYYYMMDD-XXX.md` template names and existing
+ULID records remain valid compatibility forms; do not use sequential integers.
