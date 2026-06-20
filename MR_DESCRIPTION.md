@@ -73,8 +73,8 @@ ID generator yet.
 ## Review Notes
 
 - This is a Gate 1 planning and coordination MR, not the implementation MR.
-- Implementation is explicitly gated on MR !31 (`feat/rust-agov-phase1`)
-  merging first.
+- MR !31 (`feat/rust-agov-phase1`) has merged to `main`, satisfying the
+  implementation precondition recorded in the Gate 1 approval.
 - Three earlier Gate 1 coordination files in this branch used invalid
   20-character IDs:
   - `docs/coordination/01KVK7DYM21GGQ7ZZ5RR-planner-architect.md`
@@ -82,8 +82,6 @@ ID generator yet.
   - `docs/coordination/01KVK7J9N2AW8DJZQAG2-planner-architect.md`
 - Those invalid records are immutable and intentionally superseded by valid
   26-character ULID records listed in the governance trail.
-- If MR !31 has not merged to `main` yet, this MR should either wait or be
-  reviewed with that dependency in mind.
 
 ## Out of Scope
 

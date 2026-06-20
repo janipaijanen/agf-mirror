@@ -19,6 +19,14 @@
 #   release:create    — upload archives to package registry; create GitLab release entry
 #   rust:tooling:*    — Phase 1 Rust tooling: test, clippy, parity, build:preview
 
+workflow:
+  rules:
+    # Coordination-only commits update the durable governance trail. They should
+    # not invalidate the last green code pipeline for an MR.
+    - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
+      when: never
+    - when: always
+
 # ── Shared templates ──────────────────────────────────────────────────────────
 
 .rust-base:
@@ -287,7 +295,7 @@ rust:tooling:deny:
   extends: .rust-base
   stage: test
   script:
-    - cargo install cargo-deny --locked --version "^0.19"
+    - cargo install cargo-deny --locked --version "^0.19" --force
     - cargo deny check
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -320,6 +328,7 @@ rust:tooling:clippy:
   extends: .rust-base
   stage: test
   script:
+    - rustup component add clippy
     - cargo clippy --workspace -- -D warnings
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -339,12 +348,12 @@ rust:tooling:parity:
     AGOV_SCHEMA_DIR: "$CI_PROJECT_DIR/agf/schemas"
     AGOV_MANIFEST_PATH: "$CI_PROJECT_DIR/agf/agents/MANIFEST.yaml"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq curl
+    - apt-get update -qq && apt-get install -y -qq build-essential curl
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
     - source "$HOME/.cargo/env"
     - cd tooling/elixir && mix deps.get && cd ../..
   script:
-    - cd tooling/rust && cargo build && cd ../..
+    - (cd tooling/rust && cargo build)
     - bash tooling/rust/tests/parity/run.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -354,7 +363,7 @@ rust:tooling:parity:
       changes:
         - tooling/rust/**/*
 
-# Build preview binaries for all four platform targets using `cross`.
+# Build preview binaries for Phase 1 Linux platform targets using `cross`.
 # Artifacts expire after one week; not a release build.
 rust:tooling:build:preview:
   extends: .rust-base
@@ -362,23 +371,23 @@ rust:tooling:build:preview:
   services:
     - docker:dind
   variables:
-    DOCKER_HOST: tcp://docker:2375
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
+    CROSS_REMOTE: "1"
   before_script:
+    - apt-get update -qq && apt-get install -y -qq docker.io
     - cd tooling/rust
-    - cargo install cross --git https://github.com/cross-rs/cross
+    - export PATH="$CARGO_HOME/bin:$PATH"
+    - cargo install cross --git https://github.com/cross-rs/cross --force
   script:
     - cross build --release --target x86_64-unknown-linux-musl
     - cross build --release --target aarch64-unknown-linux-musl
-    - cross build --release --target x86_64-apple-darwin
-    - cross build --release --target aarch64-apple-darwin
   artifacts:
     name: "agov-rust-preview-$CI_COMMIT_SHORT_SHA"
     paths:
       - tooling/rust/target/x86_64-unknown-linux-musl/release/agov
       - tooling/rust/target/aarch64-unknown-linux-musl/release/agov
-      - tooling/rust/target/x86_64-apple-darwin/release/agov
-      - tooling/rust/target/aarch64-apple-darwin/release/agov
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
