@@ -26,9 +26,9 @@ advisory_consultation:
 ## 1. Intent
 
 Port the `agov` CLI from Elixir/OTP to Rust to eliminate the bundled ERTS
-runtime (~50–70 MB), enable true static binaries for Linux, macOS (Intel +
-Apple Silicon), and Windows, and unblock adopters who cannot or do not want
-to run an Elixir/OTP stack.
+runtime (~50–70 MB), enable true static binaries for Linux and macOS, and
+unblock adopters who cannot or do not want to run an Elixir/OTP stack.
+Windows support is a future goal deferred beyond Phase 2.
 
 The Rust port must also make its own value measurable. Phase 1 records local,
 append-only saved-token evidence for successful Rust validation commands so the
@@ -49,7 +49,7 @@ This plan does not cover:
 | Problem | Current state | After port |
 |---------|--------------|------------|
 | Binary size | ~50–70 MB (ERTS bundled) | ~5–12 MB (static) |
-| Platform support | Linux x86_64 only | Linux x86_64+ARM64, macOS x86_64+ARM64, Windows x86_64 |
+| Platform support | Linux x86_64 only | Linux x86_64+ARM64, macOS x86_64+ARM64 (Windows: future) |
 | Runtime dependency | Elixir + OTP required on dev machine for source build | `cargo` only; binary adopters need nothing |
 | Parallel validation | OTP processes (startup cost per file) | `rayon` data parallelism, zero per-task overhead |
 | Installation | Mix release unpack + PATH config | Single binary, drop anywhere |
@@ -104,7 +104,7 @@ tooling/rust/
 
 | Function | Elixir equivalent | Rust crate | Notes |
 |----------|-------------------|------------|-------|
-| YAML parsing | yaml_elixir | `serde_yaml` | Draft versions 0.9.x; well-maintained |
+| YAML parsing | yaml_elixir | `serde_yaml` | 0.9.x; **unmaintained upstream** — accepted risk for Phase 1; tracked replacement criterion in §13 |
 | JSON parsing | Jason | `serde_json` | Industry standard |
 | JSON schema validation | ex_json_schema | `jsonschema` | draft-07 support matches current schemas |
 | ULID | ulid | `ulid` | Same semantics |
@@ -182,6 +182,16 @@ binary for all Phase 1 and Phase 2 commands. This enables:
 - Parity testing: run both on the same fixture set, `diff` the output
 - CI gate: parity test is a blocking CI check during the transition period
 - Adopter confidence: existing scripts that parse `agov` output continue to work
+
+**Ordering and stream requirements (applies even under parallel execution):**
+
+- File-level results MUST appear in the same order as the Elixir CLI regardless
+  of which rayon thread completes first. The implementation collects parallel
+  results and sorts them by input argument order before writing to stdout/stderr.
+- `OK` lines go to stdout; `ERR` lines go to stderr — same as Elixir.
+- Exit code semantics are identical: 0 if all files pass, 1 if any file fails.
+- Parity tests run with a fixed multi-file argument list and verify both
+  stdout and stderr byte-for-byte against the Elixir reference output.
 
 Output format is owned by `agov-core`. Any format change requires a
 coordination message noting the deviation and a CHANGELOG entry.
@@ -320,18 +330,23 @@ pick up Rust binaries instead of the Elixir Mix release.
 
 ## 10. CI pipeline changes
 
-New jobs added to `.gitlab-ci.yml`:
+New jobs added to `.gitlab-ci.yml` — Phase 1 only:
 
 ```
 rust:tooling:test       # cargo test --workspace, every MR touching tooling/rust/
 rust:tooling:clippy     # cargo clippy --workspace -- -D warnings
+rust:tooling:parity     # parity test suite against AGF fixture set, blocking
 rust:tooling:build:preview  # cross build for all 4 targets, MR + default branch
-rust:tooling:build:release  # cross build + archive + SHA256, $CI_COMMIT_TAG only
 ```
 
+`rust:tooling:build:release` (tag-triggered archive production) is **not
+authorized in Phase 1**. It requires a separate explicit decision — either
+as part of Phase 2 Gate 2 approval or a standalone coordination entry —
+before it is added to the pipeline.
+
 Path scoping per `ci-trigger-scoping-rule.md`:
-- `rust:tooling:test` and `rust:tooling:clippy` trigger on `tooling/rust/**`
-- `rust:tooling:build:*` trigger on `tooling/rust/**` + tag events
+- `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:parity` trigger on `tooling/rust/**`
+- `rust:tooling:build:preview` triggers on `tooling/rust/**` + MR + default branch
 
 The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes.
 
@@ -340,10 +355,13 @@ The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes
 1. `tooling/rust/` subtree created on `feat/rust-agov-phase1` branch.
 2. Phase 1 implemented; parity and saved-token evidence tests written and
    passing.
-3. Gate 2 review: governor-reviewer + build-engineer + infosec-sentinel.
+3. Gate 2 review: governor-reviewer owns the review and covers build-risk
+   (CI pipeline changes, cross toolchain, archive layout). infosec-sentinel
+   and contribution-auditor consulted as advisors. build-engineer is suspended
+   and is not a required reviewer.
 4. Merge Phase 1. Elixir tooling unchanged.
 5. Phase 2 implemented on `feat/rust-agov-phase2`.
-6. Gate 2: same reviewers.
+6. Gate 2: same reviewer structure as Phase 1.
 7. Merge Phase 2. Bundle CI rewired. Elixir tooling enters maintenance mode.
 8. Separate future decision: deprecate / remove Elixir tooling.
 
@@ -365,7 +383,7 @@ The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes
 
 | Risk | Likelihood | Mitigation |
 |------|-----------|------------|
-| `serde_yaml` diverges from yaml_elixir on edge cases | Low | Parity test suite catches divergence per file |
+| `serde_yaml` is unmaintained; YAML edge-case divergence | Medium | Parity test suite catches divergence; replacement criterion: if a parity failure or CVE is attributed to `serde_yaml`, evaluate `serde_yml` (maintained fork) or `yaml-rust2` before Phase 2 Gate 2 |
 | `jsonschema` crate lacks draft-07 feature parity | Low | Evaluate against all AGF schemas before committing; crate supports draft-07 |
 | `cross` Docker images unavailable in CI | Medium | Pin image digests; keep Elixir jobs active as fallback |
 | Output format drift breaks adopter scripts | Low | Parity tests are blocking; format is tested per command |
