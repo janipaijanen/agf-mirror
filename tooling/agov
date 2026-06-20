@@ -11,9 +11,55 @@ fi
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
 escript="$repo_root/tooling/elixir/agov"
+rust_debug="$repo_root/tooling/rust/target/debug/agov"
+rust_release="$repo_root/tooling/rust/target/release/agov"
 
 export AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}"
 export AGOV_MANIFEST_PATH="${AGOV_MANIFEST_PATH:-$repo_root/agents-govern/agents/MANIFEST.yaml}"
+
+rust_supported() {
+  case "${1:-}" in
+    coord)
+      case "${2:-}" in
+        validate|brief) return 0 ;;
+      esac
+      ;;
+    plan)
+      case "${2:-}" in
+        validate) return 0 ;;
+      esac
+      ;;
+    validate)
+      return 0
+      ;;
+    handoff)
+      case "${2:-}" in
+        next) return 0 ;;
+      esac
+      ;;
+    agov.coord.validate|agov.plan.validate)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+run_rust() {
+  if [ -x "$rust_release" ]; then
+    exec "$rust_release" "$@"
+  fi
+
+  if [ -x "$rust_debug" ]; then
+    exec "$rust_debug" "$@"
+  fi
+
+  if command -v cargo >/dev/null 2>&1; then
+    exec cargo run --quiet --manifest-path "$repo_root/tooling/rust/Cargo.toml" -p agov -- "$@"
+  fi
+
+  return 127
+}
 
 case "${1:-}" in
   -h|--help)
@@ -24,13 +70,22 @@ Usage:
   agov plan validate <file>...
   agov agov.coord.validate <file>...
   agov agov.plan.validate <file>...
+  agov validate [adoption|agents|learnings|infosec|contributions|framework-config]
+  agov handoff next <agent-role> [--dir <coord-dir>]
 
-Build local executable:
-  cd tooling/elixir && mix deps.get && mix escript.build
+Rust implementation is preferred for supported commands. Elixir/Mix remains the
+fallback for commands not yet ported to Rust.
+
+Build local Rust executable:
+  cd tooling/rust && cargo build -p agov
 EOF
     exit 0
     ;;
 esac
+
+if rust_supported "$@"; then
+  run_rust "$@"
+fi
 
 if [ -x "$escript" ]; then
   if [ "${1:-}" = "coord" ] && command -v mix >/dev/null 2>&1; then

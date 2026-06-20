@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 
 type ValidationErrors = Vec<(String, String)>;
 type FileValidator<T> = fn(&std::path::Path) -> Result<T, ValidationErrors>;
@@ -29,6 +30,11 @@ enum Command {
         #[command(subcommand)]
         sub: Option<ValidateCommand>,
     },
+    /// Handoff queue commands.
+    Handoff {
+        #[command(subcommand)]
+        sub: HandoffCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -37,7 +43,22 @@ enum CoordCommand {
     Validate {
         /// Files to validate.
         #[arg(required = true)]
-        files: Vec<std::path::PathBuf>,
+        files: Vec<PathBuf>,
+    },
+    /// Generate a coordination message skeleton with a new coordination id.
+    Brief {
+        #[arg(long, default_value = "ulid", value_parser = ["ulid", "readable"])]
+        id_format: String,
+        #[arg(long)]
+        from: Option<String>,
+        #[arg(long)]
+        to: Option<String>,
+        #[arg(long, default_value = "note")]
+        kind: String,
+        #[arg(long)]
+        topic: Option<String>,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
     },
     // Phase 2: Status, Stale
 }
@@ -65,6 +86,16 @@ enum ValidateCommand {
     Contributions,
     /// Validate framework-config.
     FrameworkConfig,
+}
+
+#[derive(Subcommand)]
+enum HandoffCommand {
+    /// Show the next ready handoff for an agent role.
+    Next {
+        agent_role: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+    },
 }
 
 fn main() {
@@ -97,6 +128,17 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub: CoordCommand::Validate { files },
         } => validate_coord_files(files, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::Brief {
+                    id_format,
+                    from,
+                    to,
+                    kind,
+                    topic,
+                    dir,
+                },
+        } => coord_brief(id_format, from, to, kind, topic, dir, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -107,7 +149,433 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             "plan-validate",
         ),
         Command::Validate { sub } => run_validate(sub, &args),
+        Command::Handoff {
+            sub: HandoffCommand::Next { agent_role, dir },
+        } => handoff_next(&agent_role, dir, &args),
     }
+}
+
+fn coord_brief(
+    id_format: String,
+    from: Option<String>,
+    to: Option<String>,
+    kind: String,
+    topic: Option<String>,
+    dir: PathBuf,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+
+    if !matches!(
+        kind.as_str(),
+        "note" | "handoff" | "claim" | "completion" | "ack" | "review"
+    ) {
+        output.stderr(format!(
+            "ERR  unknown kind: {kind}  (supported: note handoff claim completion ack review)"
+        ));
+        return 1;
+    }
+
+    if id_format == "readable" && from.is_none() {
+        output.stderr("ERR  --id-format readable requires --from <role>");
+        return 1;
+    }
+
+    let now = time::OffsetDateTime::now_utc();
+    let next_id = if id_format == "readable" {
+        readable_id(from.as_deref().unwrap_or("unknown"), now)
+    } else {
+        agov_core::ulid_util::new()
+    };
+    let timestamp = if id_format == "readable" {
+        iso_timestamp(now)
+    } else {
+        "<TIMESTAMP>".to_string()
+    };
+    let from = from.unwrap_or_else(|| "<from>".to_string());
+    let to = to.unwrap_or_else(|| "<to>".to_string());
+    let topic = topic.unwrap_or_else(|| "<topic>".to_string());
+    let coord_dir = repo_relative_path(dir);
+    let channel = channel_summary(&coord_dir);
+
+    output.stdout(format!(
+        "# Channel: {} messages, {}",
+        channel.total, channel.range
+    ));
+    output.stdout(format!(
+        "# Ownership: {} (run mix agov.coord.status for details)",
+        channel.claims
+    ));
+    output.stdout(format!("# Next id: {next_id}"));
+    output.stdout("---");
+    output.stdout(format!("kind: {kind}"));
+    output.stdout(format!("from: {from}"));
+    output.stdout(format!("to: {to}"));
+    output.stdout(format!("id: {next_id}"));
+    output.stdout(format!("timestamp: {timestamp}"));
+    output.stdout("immutable: true");
+    render_kind_front_matter(&mut output, &kind, &to, &topic);
+    output.stdout("---");
+
+    if kind == "review" {
+        output.stdout("");
+        output.stdout("# <findings — severity: BLOCK | WARN | INFO>");
+    } else {
+        output.stdout("");
+        output.stdout("# <message body>");
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-brief", output.chars);
+    0
+}
+
+struct ChannelSummary {
+    total: usize,
+    range: String,
+    claims: String,
+}
+
+fn channel_summary(dir: &Path) -> ChannelSummary {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(_) => {
+            return ChannelSummary {
+                total: 0,
+                range: "(empty)".to_string(),
+                claims: "no active claims".to_string(),
+            }
+        }
+    };
+
+    let mut timestamps = Vec::new();
+    let mut total = 0usize;
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+
+        if let Ok(message) = agov_coord::coord_validator::validate_file(&path) {
+            total += 1;
+            if let Some(timestamp) = message
+                .raw
+                .get("timestamp")
+                .and_then(|value| value.as_str())
+                .map(str::to_string)
+            {
+                timestamps.push(timestamp);
+            }
+        }
+    }
+
+    timestamps.sort();
+    let range = match (timestamps.first(), timestamps.last()) {
+        (Some(first), Some(last)) => format!("{first} to {last}"),
+        _ => "(empty)".to_string(),
+    };
+
+    ChannelSummary {
+        total,
+        range,
+        claims: "no active claims".to_string(),
+    }
+}
+
+fn repo_relative_path(path: PathBuf) -> PathBuf {
+    if path.is_absolute() {
+        path
+    } else {
+        agov_core::repo_root().join(path)
+    }
+}
+
+fn render_kind_front_matter(output: &mut OutputCounter, kind: &str, to: &str, topic: &str) {
+    match kind {
+        "handoff" => {
+            output.stdout("references-to: []");
+            output.stdout(format!("topic: {topic}"));
+            output.stdout("requires-ack: false");
+            output.stdout("artifacts_owned: []");
+            output.stdout("handoff:");
+            output.stdout(format!("  next_agent: {to}"));
+            output.stdout("  status: ready");
+            output.stdout("  task: []");
+            output.stdout("  must_read: []");
+            output.stdout("  do_not_touch:");
+            output.stdout("    - .claude/settings.local.json");
+            output.stdout("    - tooling/elixir/mix.lock");
+        }
+        "claim" => {
+            output.stdout("references-to: []");
+            output.stdout(format!("topic: {topic}"));
+            output.stdout("requires-ack: false");
+            output.stdout("artifacts_owned:");
+            output.stdout("  # list paths you are claiming ownership of");
+            output.stdout("  - <path>");
+        }
+        "completion" => {
+            output.stdout("references-to: []");
+            output.stdout(format!("topic: {topic}"));
+            output.stdout("requires-ack: false");
+            output.stdout("artifacts_owned:");
+            output.stdout("  # list paths being released; [] releases all by this sender");
+            output.stdout("  []");
+        }
+        "ack" => {
+            output.stdout("references-to:");
+            output.stdout("  # filename(s) this ACK acknowledges");
+            output.stdout("  - <filename>");
+            output.stdout(format!("topic: {topic}"));
+            output.stdout("requires-ack: false");
+            output.stdout("artifacts_owned: []");
+        }
+        _ => {
+            output.stdout("references-to: []");
+            output.stdout(format!("topic: {topic}"));
+            output.stdout("requires-ack: false");
+            output.stdout("artifacts_owned: []");
+        }
+    }
+}
+
+fn readable_id(role: &str, now: time::OffsetDateTime) -> String {
+    format!(
+        "{}-{}-{}",
+        basic_utc_timestamp(now),
+        role_slug(role),
+        readable_suffix()
+    )
+}
+
+fn basic_utc_timestamp(now: time::OffsetDateTime) -> String {
+    format!(
+        "{:04}{:02}{:02}T{:02}{:02}{:02}Z",
+        now.year(),
+        u8::from(now.month()),
+        now.day(),
+        now.hour(),
+        now.minute(),
+        now.second()
+    )
+}
+
+fn iso_timestamp(now: time::OffsetDateTime) -> String {
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+        now.year(),
+        u8::from(now.month()),
+        now.day(),
+        now.hour(),
+        now.minute(),
+        now.second()
+    )
+}
+
+fn role_slug(role: &str) -> String {
+    let mut slug = String::new();
+    let mut last_dash = false;
+
+    for ch in role.chars().flat_map(char::to_lowercase) {
+        if ch.is_ascii_alphanumeric() {
+            slug.push(ch);
+            last_dash = false;
+        } else if !last_dash && !slug.is_empty() {
+            slug.push('-');
+            last_dash = true;
+        }
+    }
+
+    while slug.ends_with('-') {
+        slug.pop();
+    }
+
+    if slug.is_empty() {
+        "unknown".to_string()
+    } else {
+        slug
+    }
+}
+
+fn readable_suffix() -> String {
+    let alphabet = b"0123456789abcdefghjkmnpqrstvwxyz";
+    let ulid = agov_core::ulid_util::new();
+
+    ulid.bytes()
+        .rev()
+        .take(4)
+        .map(|byte| alphabet[(byte as usize) % alphabet.len()] as char)
+        .collect()
+}
+
+#[derive(Clone)]
+struct HandoffMessage {
+    file: String,
+    sort_key: (String, String),
+    raw: serde_json::Value,
+}
+
+fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!(
+                "Coordination directory not found: {}",
+                dir.display()
+            ));
+            return 1;
+        }
+    };
+
+    let pending = pending_handoffs(&messages);
+    let next = pending
+        .into_iter()
+        .filter(|message| string_field(&message.raw, "to") == Some(agent_role))
+        .max_by_key(|message| message.sort_key.clone());
+
+    let Some(message) = next else {
+        output.stdout(format!("No handoff found for role: {agent_role}"));
+        return 2;
+    };
+
+    render_handoff_summary(&mut output, &message);
+    agov_core::roi::record_tool_output(
+        "agov.handoff.next",
+        args,
+        &format!("next-handoff:{agent_role}"),
+        output.chars,
+    );
+    0
+}
+
+fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io::Error> {
+    let mut messages = Vec::new();
+
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+
+        let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+            continue;
+        };
+        let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+
+        let timestamp = string_field(&message.raw, "timestamp")
+            .unwrap_or("")
+            .to_string();
+        let file = file_name.to_string();
+        messages.push(HandoffMessage {
+            sort_key: (timestamp, file.clone()),
+            file,
+            raw: message.raw,
+        });
+    }
+
+    messages.sort_by_key(|message| message.sort_key.clone());
+    Ok(messages)
+}
+
+fn pending_handoffs(messages: &[HandoffMessage]) -> Vec<HandoffMessage> {
+    let mut resolved_files = std::collections::BTreeSet::new();
+
+    for message in messages {
+        let kind = string_field(&message.raw, "kind");
+        if !matches!(kind, Some("ack" | "completion" | "decision-record")) {
+            continue;
+        }
+
+        for referenced in references_to(&message.raw) {
+            resolved_files.insert(referenced);
+        }
+    }
+
+    messages
+        .iter()
+        .filter(|message| string_field(&message.raw, "kind") == Some("handoff"))
+        .filter(|message| !resolved_files.contains(&message.file))
+        .cloned()
+        .collect()
+}
+
+fn references_to(raw: &serde_json::Value) -> Vec<String> {
+    raw.get("references-to")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .filter_map(|reference| Path::new(reference).file_name()?.to_str())
+        .map(str::to_string)
+        .collect()
+}
+
+fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) {
+    let handoff = message
+        .raw
+        .get("handoff")
+        .and_then(|value| value.as_object());
+    let next_agent = handoff
+        .and_then(|value| value.get("next_agent"))
+        .and_then(|value| value.as_str())
+        .unwrap_or_else(|| string_field(&message.raw, "to").unwrap_or("unknown"));
+    let status = handoff
+        .and_then(|value| value.get("status"))
+        .and_then(|value| value.as_str())
+        .unwrap_or("ready");
+
+    output.stdout(format!("Handoff for: {next_agent}"));
+    output.stdout(format!("Status:      {status}"));
+    output.stdout("Task:");
+    render_string_list(output, handoff, "task");
+    render_titled_string_list(output, handoff, "Must read:", "must_read");
+    render_titled_string_list(output, handoff, "Do not touch:", "do_not_touch");
+    output.stdout(format!("Source: {}", message.file));
+}
+
+fn render_titled_string_list(
+    output: &mut OutputCounter,
+    handoff: Option<&serde_json::Map<String, serde_json::Value>>,
+    title: &str,
+    field: &str,
+) {
+    let Some(items) = handoff
+        .and_then(|value| value.get(field))
+        .and_then(|value| value.as_array())
+        .filter(|items| !items.is_empty())
+    else {
+        return;
+    };
+
+    output.stdout(title);
+    for item in items.iter().filter_map(|item| item.as_str()) {
+        output.stdout(format!("  - {item}"));
+    }
+}
+
+fn render_string_list(
+    output: &mut OutputCounter,
+    handoff: Option<&serde_json::Map<String, serde_json::Value>>,
+    field: &str,
+) {
+    if let Some(items) = handoff
+        .and_then(|value| value.get(field))
+        .and_then(|value| value.as_array())
+    {
+        for item in items.iter().filter_map(|item| item.as_str()) {
+            output.stdout(format!("  - {item}"));
+        }
+    }
+}
+
+fn string_field<'a>(raw: &'a serde_json::Value, field: &str) -> Option<&'a str> {
+    raw.get(field).and_then(|value| value.as_str())
 }
 
 fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
