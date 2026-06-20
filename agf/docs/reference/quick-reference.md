@@ -59,9 +59,10 @@ proposal → Gate 1 (plan approval) → implement + test → Gate 2 (review) →
 
 ## Coordination channel kinds
 
-Append-only messages in `docs/coordination/<id>-sender.md` by default.
-Prefer `agov coord brief --id-format readable --from <role>` for new entries;
-historical sequence and ULID filenames remain valid:
+Append-only messages in `docs/coordination/`. Prefer
+`agov coord brief --id-format readable --from <role>` for new entries and save
+readable-ID messages as `<id>.md`; historical sequence and ULID filenames
+remain valid:
 
 | Kind | Meaning |
 |---|---|

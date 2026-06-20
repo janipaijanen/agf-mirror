@@ -25,6 +25,7 @@ defmodule Agov.CoordValidator do
     []
     |> check_deprecated_fields(data)
     |> check_model_field(data)
+    |> check_agent_manual_id(data)
     |> check_readable_id_drift(data, path)
   end
 
@@ -74,6 +75,28 @@ defmodule Agov.CoordValidator do
     end
   end
 
+  defp check_agent_manual_id(findings, data) do
+    id = data["id"]
+    from = data["from"]
+
+    cond do
+      !is_binary(id) or !is_binary(from) ->
+        findings
+
+      Agov.CoordIdentity.readable_id?(id) or Agov.CoordIdentity.ulid?(id) ->
+        findings
+
+      ai_agent_role?(from) ->
+        [
+          "AI agent role '#{from}' used manual coordination id '#{id}'; use agov coord brief --id-format readable unless tooling is unavailable"
+          | findings
+        ]
+
+      true ->
+        findings
+    end
+  end
+
   defp check_readable_id_drift(findings, data, path) do
     id = data["id"]
 
@@ -118,33 +141,43 @@ defmodule Agov.CoordValidator do
 
   defp check_readable_filename(findings, _data, _id, nil), do: findings
 
-  defp check_readable_filename(findings, data, id, path) do
+  defp check_readable_filename(findings, _data, id, path) do
     basename = Path.basename(path)
-    prefix = id <> "-"
+    expected = id <> ".md"
 
     cond do
       not String.ends_with?(basename, ".md") ->
         findings
 
-      not String.starts_with?(basename, prefix) ->
-        ["readable filename does not start with frontmatter id '#{id}'" | findings]
+      basename == expected ->
+        findings
+
+      String.starts_with?(basename, id <> "-") ->
+        [
+          "readable filename '#{basename}' repeats sender suffix; expected '#{expected}'"
+          | findings
+        ]
 
       true ->
-        filename_sender =
-          basename
-          |> String.trim_trailing(".md")
-          |> String.replace_prefix(prefix, "")
+        ["readable filename '#{basename}' does not match expected '#{expected}'" | findings]
+    end
+  end
 
-        from = data["from"]
+  defp ai_agent_role?(role) do
+    case Agov.ManifestReader.load(manifest_path()) do
+      {:ok, agents} ->
+        case Map.get(agents, role) do
+          %{played_by: played_by} when is_binary(played_by) ->
+            played_by
+            |> String.downcase()
+            |> then(&(String.contains?(&1, "ai") or String.contains?(&1, "claude")))
 
-        if is_binary(from) and filename_sender != from do
-          [
-            "filename sender '#{filename_sender}' differs from frontmatter from '#{from}'"
-            | findings
-          ]
-        else
-          findings
+          _ ->
+            false
         end
+
+      _ ->
+        false
     end
   end
 
@@ -182,6 +215,10 @@ defmodule Agov.CoordValidator do
   defp schema_path do
     dir = System.get_env("AGOV_SCHEMA_DIR", "../../agf/schemas")
     Path.join(dir, "coordination-message.schema.json")
+  end
+
+  defp manifest_path do
+    System.get_env("AGOV_MANIFEST_PATH", "../../agf/agents/MANIFEST.yaml")
   end
 
   defp load_schema do

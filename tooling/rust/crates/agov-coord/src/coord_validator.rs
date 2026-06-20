@@ -86,6 +86,8 @@ pub fn advisory_findings_for_path(msg: &CoordMessage, path: Option<&Path>) -> Ve
         );
     }
 
+    add_agent_manual_id_finding(&mut findings, msg);
+
     if let Some(id) = msg.id().filter(|id| is_readable_id(id)) {
         add_readable_drift_findings(&mut findings, msg, id, path);
     }
@@ -95,6 +97,13 @@ pub fn advisory_findings_for_path(msg: &CoordMessage, path: Option<&Path>) -> Ve
 
 fn is_readable_id(id: &str) -> bool {
     readable_parts(id).is_some()
+}
+
+fn is_ulid(id: &str) -> bool {
+    id.len() == 26
+        && id
+            .chars()
+            .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
 }
 
 fn readable_parts(id: &str) -> Option<(&str, &str, &str)> {
@@ -169,26 +178,61 @@ fn add_readable_drift_findings(
         return;
     }
 
-    let prefix = format!("{id}-");
-    if !basename.starts_with(&prefix) {
+    let expected = format!("{id}.md");
+    if basename == expected {
+        return;
+    }
+
+    if basename.starts_with(&format!("{id}-")) {
         findings.push(format!(
-            "readable filename does not start with frontmatter id '{id}'"
+            "readable filename '{basename}' repeats sender suffix; expected '{expected}'"
         ));
         return;
     }
 
-    let filename_sender = basename
-        .trim_end_matches(".md")
-        .strip_prefix(&prefix)
-        .unwrap_or_default();
+    findings.push(format!(
+        "readable filename '{basename}' does not match expected '{expected}'"
+    ));
+}
 
-    if let Some(from) = msg.raw.get("from").and_then(|value| value.as_str()) {
-        if filename_sender != from {
-            findings.push(format!(
-                "filename sender '{filename_sender}' differs from frontmatter from '{from}'"
-            ));
-        }
+fn add_agent_manual_id_finding(findings: &mut Vec<String>, msg: &CoordMessage) {
+    let Some(id) = msg.id() else {
+        return;
+    };
+    if is_readable_id(id) || is_ulid(id) {
+        return;
     }
+
+    let Some(from) = msg.raw.get("from").and_then(|value| value.as_str()) else {
+        return;
+    };
+
+    if ai_agent_role(from) {
+        findings.push(format!(
+            "AI agent role '{from}' used manual coordination id '{id}'; use agov coord brief --id-format readable unless tooling is unavailable"
+        ));
+    }
+}
+
+fn ai_agent_role(role: &str) -> bool {
+    let manifest = match std::fs::read_to_string(agov_core::manifest_path()) {
+        Ok(content) => content,
+        Err(_) => return false,
+    };
+    let data: serde_json::Value = match serde_norway::from_str::<serde_json::Value>(&manifest) {
+        Ok(data) => data,
+        Err(_) => return false,
+    };
+
+    data.get("agents")
+        .and_then(|value| value.get(role))
+        .and_then(|value| value.get("played_by"))
+        .and_then(|value| value.as_str())
+        .map(|played_by| {
+            let played_by = played_by.to_ascii_lowercase();
+            played_by.contains("ai") || played_by.contains("claude")
+        })
+        .unwrap_or(false)
 }
 
 fn role_slug(value: &str) -> String {
@@ -233,5 +277,73 @@ fn basic_utc_timestamp(timestamp: &str) -> Option<String> {
         ))
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    fn message(id: &str, from: &str) -> CoordMessage {
+        CoordMessage {
+            raw: serde_json::json!({
+                "id": id,
+                "from": from,
+                "timestamp": "2026-06-20T18:39:14Z",
+                "model": "codex-gpt-5"
+            }),
+        }
+    }
+
+    #[test]
+    fn readable_filename_without_sender_suffix_has_no_filename_warning() {
+        let msg = message("20260620T183914Z-coder-tester-r7k2", "coder-tester");
+        let findings = advisory_findings_for_path(
+            &msg,
+            Some(Path::new("20260620T183914Z-coder-tester-r7k2.md")),
+        );
+
+        assert!(!findings.iter().any(|finding| finding.contains("filename")));
+    }
+
+    #[test]
+    fn readable_filename_with_sender_suffix_warns() {
+        let msg = message("20260620T183914Z-coder-tester-r7k2", "coder-tester");
+        let findings = advisory_findings_for_path(
+            &msg,
+            Some(Path::new(
+                "20260620T183914Z-coder-tester-r7k2-coder-tester.md",
+            )),
+        );
+
+        assert!(findings
+            .iter()
+            .any(|finding| finding.contains("repeats sender suffix")));
+        assert!(findings
+            .iter()
+            .any(|finding| finding.contains("20260620T183914Z-coder-tester-r7k2.md")));
+    }
+
+    #[test]
+    fn ai_agent_manual_id_warns() {
+        let msg = message("manual-recovery-1", "coder-tester");
+        let findings = advisory_findings_for_path(&msg, Some(Path::new("manual-recovery-1.md")));
+
+        assert!(findings
+            .iter()
+            .any(|finding| finding
+                .contains("AI agent role 'coder-tester' used manual coordination id")));
+    }
+
+    #[test]
+    fn human_governor_manual_id_does_not_warn() {
+        let msg = message("manual-governor-decision", "governor-reviewer");
+        let findings =
+            advisory_findings_for_path(&msg, Some(Path::new("manual-governor-decision.md")));
+
+        assert!(!findings
+            .iter()
+            .any(|finding| finding.contains("manual coordination id")));
     }
 }

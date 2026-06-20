@@ -20,7 +20,13 @@ defmodule Agov.ManifestReader do
   defp normalize_agents(map) when is_map(map) do
     map
     |> Enum.filter(fn {k, v} -> is_binary(k) and is_map(v) end)
-    |> Map.new(fn {name, attrs} -> {name, %{status: Map.get(attrs, "status", "unknown")}} end)
+    |> Map.new(fn {name, attrs} ->
+      {name,
+       %{
+         status: Map.get(attrs, "status", "unknown"),
+         played_by: Map.get(attrs, "played_by", "")
+       }}
+    end)
   end
 
   defp normalize_agents(_), do: %{}

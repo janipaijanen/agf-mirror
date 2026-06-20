@@ -15,7 +15,7 @@ defmodule Agov.HandoffTracker do
   alias Agov.CoordIdentity
 
   @resolver_kinds ~w(decision-record completion ack)
-  @coord_filename_re ~r/(?:^|[\s`"'(\/])((?:(?:\d{5}|[0-9A-HJKMNP-TV-Z]{26}|[0-9]{8}T[0-9]{6}Z-[a-z0-9][a-z0-9-]*-[a-z0-9]{4,6})-[A-Za-z0-9_-]+)\.md)(?=$|[\s`"'),.:;])/
+  @coord_filename_re ~r/(?:^|[\s`"'(\/])((?:(?:[0-9]{8}T[0-9]{6}Z-[a-z0-9][a-z0-9-]*-[a-z0-9]{4,6})(?:-[A-Za-z0-9_-]+)?|(?:\d{5}|[0-9A-HJKMNP-TV-Z]{26})-[A-Za-z0-9_-]+)\.md)(?=$|[\s`"'),.:;])/
 
   def scan(file_messages) do
     messages = normalize_messages(file_messages)

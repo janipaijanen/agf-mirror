@@ -35,10 +35,10 @@ defmodule Agov.CoordIdentity do
   def readable_filename?(file, id \\ nil)
 
   def readable_filename?(file, id) when is_binary(file) and is_binary(id) do
+    basename = Path.basename(file)
+
     readable_id?(id) and
-      file
-      |> Path.basename()
-      |> String.starts_with?(id <> "-")
+      (basename == id <> ".md" or String.starts_with?(basename, id <> "-"))
   end
 
   def readable_filename?(file, nil) when is_binary(file) do
@@ -46,9 +46,10 @@ defmodule Agov.CoordIdentity do
 
     with true <- String.ends_with?(basename, ".md"),
          stem <- String.trim_trailing(basename, ".md") do
-      stem
-      |> possible_readable_ids()
-      |> Enum.any?(&readable_id?/1)
+      readable_id?(stem) or
+        stem
+        |> possible_readable_ids()
+        |> Enum.any?(&readable_id?/1)
     else
       _ -> false
     end

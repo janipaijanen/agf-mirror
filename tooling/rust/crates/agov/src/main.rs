@@ -187,6 +187,7 @@ fn coord_brief(
     } else {
         agov_core::ulid_util::new()
     };
+    let suggested_filename = suggested_filename(&id_format, from.as_deref(), &next_id);
     let timestamp = if id_format == "readable" {
         iso_timestamp(now)
     } else {
@@ -207,6 +208,7 @@ fn coord_brief(
         channel.claims
     ));
     output.stdout(format!("# Next id: {next_id}"));
+    output.stdout(format!("# Suggested file: {suggested_filename}"));
     output.stdout("---");
     output.stdout(format!("kind: {kind}"));
     output.stdout(format!("from: {from}"));
@@ -346,6 +348,16 @@ fn readable_id(role: &str, now: time::OffsetDateTime) -> String {
         role_slug(role),
         readable_suffix()
     )
+}
+
+fn suggested_filename(id_format: &str, from: Option<&str>, id: &str) -> String {
+    if id_format == "readable" {
+        format!("{id}.md")
+    } else if let Some(from) = from {
+        format!("{id}-{from}.md")
+    } else {
+        format!("{id}-<from>.md")
+    }
 }
 
 fn basic_utc_timestamp(now: time::OffsetDateTime) -> String {

@@ -9,13 +9,14 @@ in agents-govern 1.1.50 field evidence.
 
 - **Immutable files.** A message file is never edited after creation.
   Corrections are new messages that reference the original.
-- **File naming:** `<id>-<sender>.md`
-  e.g. `20260620T183914Z-planner-architect-r7k2-planner-architect.md`
-  or legacy-compatible `01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md`.
-- **Generate IDs with tooling.** Prefer
-  `agov coord brief --id-format readable --from <role>` for new messages.
-  Manual IDs are valid when tooling is unavailable, but must keep the
-  frontmatter `id`, timestamp, and sender aligned.
+- **File naming:** new readable-ID messages use `<id>.md`, e.g.
+  `20260620T183914Z-planner-architect-r7k2.md`. Legacy-compatible ULID files
+  use `<ulid>-<sender>.md`, e.g.
+  `01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md`.
+- **Generate IDs with tooling.** AI agents MUST use
+  `agov coord brief --id-format readable --from <role>` for new messages unless
+  tooling is unavailable. Humans SHOULD use the tooling. Manual IDs are valid
+  when they pass schema and uniqueness validation.
 - **Existing seq and ULID files remain immutable.** Older
   `<zero-padded-seq>-<sender>.md` and `<ulid>-<sender>.md` files are still
   authoritative history. Do not rename historical records.

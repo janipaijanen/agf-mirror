@@ -30,7 +30,9 @@ defmodule Agov.BriefGenerator do
          total: total,
          timestamp_range: timestamp_range,
          active_claims: claims
-       }) do
+       } = channel_info) do
+    suggested_filename = Map.get(channel_info, :suggested_filename, next_id <> ".md")
+
     range_str =
       case timestamp_range do
         nil -> "(empty)"
@@ -42,7 +44,8 @@ defmodule Agov.BriefGenerator do
 
     "# Channel: #{total} messages, #{range_str}\n" <>
       "# Ownership: #{claims_str} (run mix agov.coord.status for details)\n" <>
-      "# Next id: #{next_id}\n"
+      "# Next id: #{next_id}\n" <>
+      "# Suggested file: #{suggested_filename}\n"
   end
 
   defp build_front_matter(kind, from, to, topic, timestamp, %{next_id: next_id}) do
