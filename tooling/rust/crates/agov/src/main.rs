@@ -155,46 +155,54 @@ fn run_validate(sub: Option<ValidateCommand>) -> i32 {
     };
 
     match sub {
-        ValidateCommand::Adoption => render_collection(
-            "adoption",
-            agov_validators::adoption::validate_all(&agov_core::repo_root()),
+        ValidateCommand::Adoption => render_single_collection(
+            "agov.validate.adoption",
+            agov_validators::adoption::validate_all(&agov_core::repo_root().join("agf")),
         ),
         ValidateCommand::Agents => render_collection(
-            "agents",
+            "agov.validate.agents",
             agov_validators::agents::validate_all(
                 &agov_core::repo_root().join("agf").join("agents"),
             ),
         ),
         ValidateCommand::Learnings => render_collection(
-            "learnings",
+            "agov.validate.learnings",
             agov_validators::learnings::validate_all(
                 &agov_core::repo_root().join("agf").join("learnings"),
             ),
         ),
         ValidateCommand::Infosec => render_collection(
-            "infosec",
+            "agov.validate.infosec",
             agov_validators::infosec::validate_all(
                 &agov_core::repo_root().join("agf").join("learnings"),
             ),
         ),
-        ValidateCommand::Contributions => render_collection(
-            "contributions",
+        ValidateCommand::Contributions => render_warning_collection(
+            "agov.validate.contributions",
             agov_validators::contributions::validate_all(
-                &agov_core::repo_root().join("docs").join("contributions"),
+                &agov_core::repo_root().join("agf").join("learnings"),
             ),
         ),
-        ValidateCommand::FrameworkConfig => render_collection(
-            "framework-config",
-            agov_validators::framework_config::validate_all(&agov_core::repo_root()),
-        ),
+        ValidateCommand::FrameworkConfig => {
+            let root = agov_core::repo_root();
+            if !root.join("agf").join("framework.yaml").exists() {
+                println!("OK agov.validate.framework_config: skipped");
+                0
+            } else {
+                render_single_collection(
+                    "agov.validate.framework_config",
+                    agov_validators::framework_config::validate_all(&root.join("agf")),
+                )
+            }
+        }
     }
 }
 
 fn run_all_validators() -> i32 {
     let results = [
-        run_validate(Some(ValidateCommand::Adoption)),
-        run_validate(Some(ValidateCommand::Agents)),
         run_validate(Some(ValidateCommand::Learnings)),
+        run_validate(Some(ValidateCommand::Agents)),
+        run_validate(Some(ValidateCommand::Adoption)),
         run_validate(Some(ValidateCommand::Infosec)),
         run_validate(Some(ValidateCommand::Contributions)),
         run_validate(Some(ValidateCommand::FrameworkConfig)),
@@ -209,6 +217,9 @@ fn run_all_validators() -> i32 {
 
 fn render_collection(label: &str, result: agov_validators::CollectionResult) -> i32 {
     if result.is_ok() {
+        for file in result.ok_files {
+            agov_core::output::validate_ok(&file);
+        }
         agov_core::output::validate_ok(label);
         return 0;
     }
@@ -225,4 +236,32 @@ fn render_collection(label: &str, result: agov_validators::CollectionResult) -> 
     }
 
     1
+}
+
+fn render_single_collection(label: &str, result: agov_validators::CollectionResult) -> i32 {
+    if result.is_ok() {
+        agov_core::output::validate_ok(label);
+        return 0;
+    }
+
+    for file_error in result.file_errors {
+        for finding in file_error.findings {
+            let location = finding.location.as_deref().unwrap_or(&file_error.file);
+            agov_core::output::validate_err(label, location, &finding.message);
+        }
+    }
+
+    1
+}
+
+fn render_warning_collection(label: &str, result: agov_validators::CollectionResult) -> i32 {
+    for file_error in result.file_errors {
+        for finding in file_error.findings {
+            let location = finding.location.as_deref().unwrap_or(&file_error.file);
+            agov_core::output::validate_warn(&file_error.file, location, &finding.message);
+        }
+    }
+
+    agov_core::output::validate_ok(label);
+    0
 }

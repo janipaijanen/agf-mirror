@@ -12,3 +12,4 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 serde_norway = { workspace = true }
 rayon = { workspace = true }
+regex = { workspace = true }
