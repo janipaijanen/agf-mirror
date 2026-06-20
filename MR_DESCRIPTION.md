@@ -1,94 +1,61 @@
-# plan: Readable coordination IDs
+# docs: merge Value Proposition into Home; switch to Material theme
 
 ## Summary
 
-Adds the approved Gate 1 plan for human-readable coordination message IDs and
-tooling-first ID generation.
+- Merges `agf/docs/site/value.md` content into `agf/docs/site/index.md` as one reader entry point
+- Deletes `agf/docs/site/value.md` and removes its nav entry
+- Switches MkDocs theme from `mkdocs` to `material` with automatic dark/light mode via `prefers-color-scheme`
 
-The target readable ID format is:
+## Why
 
-```text
-20260620T183914Z-coder-tester-r7k2
-```
+The Home and Value Proposition pages covered the same reader intent: what AGF is
+and why a team would adopt it. Per `marketing-tone-rule`, each claim should be
+stated once in canonical form. The merged page preserves the value content and
+organizes it as: what AGF is, the situation, what you get, what it costs, who
+benefits, where to go next, and evidence.
 
-Existing 26-character ULID coordination IDs remain valid forever. This MR does
-not rename historical coordination records and does not implement the readable
-ID generator yet.
+Use Cases and Evolution were assessed and kept separate. Use Cases has a
+distinct job; Evolution mixes shipped capabilities with hypotheses and stays
+separate under `implementation-honesty-rule`.
 
-## Scope
+The Material theme was already declared in `agents-govern/pyproject.toml`
+(`mkdocs-material>=9.5,<10`) but was not active. CI now installs the MkDocs
+Material and docs plugin dependencies needed by the site build job.
 
-- Adds `docs/plans/readable-coordination-ids.md`.
-- Defines readable coordination ID and filename policy.
-- Preserves ULID backward compatibility.
-- Requires tooling-first ID generation for AI agents, with manual fallback when
-  tooling is unavailable and validation passes.
-- Scopes RFC 2119/8174 keywords to explicitly declared normative surfaces.
-- Defines an interim branch-watch ownership protocol for multi-agent polling.
-- Specifies validator work for the implementation phase:
-  - accept both ULID and readable IDs;
-  - block duplicate frontmatter IDs;
-  - warn on filename/frontmatter timestamp or sender drift;
-  - keep references and handoff tracking backward compatible.
-- Records the branch-watch learning in `agf/learnings/foundry.yaml`.
-- Records coordination proposals, Gate 1 routing, approval, supersession of
-  invalid records, and coder-tester ack.
+## Changes
 
-## Governance Trail
+### `agf/docs/site/index.md`
 
-- Tooling-first readable ID proposal:
-  `docs/coordination/01KVK62WGAZAMKHDQD3DAXPM9R-coder-tester.md`
-- Scoped RFC 2119/8174 proposal:
-  `docs/coordination/01KVK6AFC7PRYDTH4DNGGYWJK7-coder-tester.md`
-- Branch-watch ownership learning:
-  `docs/coordination/01KVK6P77H34DASXBVGRMPD9CV-coder-tester.md`
-- Planner direction:
-  `docs/coordination/01KVK6VK01RF18HHK69W-planner-architect.md`
-- Plan handoff:
-  `docs/coordination/01KVK77ACVM6TF8VKHZ5ZHJQ0T-coder-tester.md`
-- Branch watcher record:
-  `docs/coordination/01KVK7A38Z63ST2DTG0FKNTXXN-coder-tester.md`
-- Valid Gate 1 routing:
-  `docs/coordination/01KVK7TFMY6DQNPRH7SAS5BSHP-planner-architect.md`
-- Valid Gate 1 approval:
-  `docs/coordination/01KVK7TFMYC725T6V5CQDDASK5-governor-reviewer.md`
-- Valid implementation handoff:
-  `docs/coordination/01KVK7TFN1ADA2WBZDWKFRPBXR-planner-architect.md`
-- Remediation ack for invalid earlier Gate 1 records:
-  `docs/coordination/01KVK7TFN3S02ZFJ9WJJF8YQ6F-planner-architect.md`
-- Coder-tester handoff ack:
-  `docs/coordination/01KVK82P4N9PQZB1JMPZSEPY0T-coder-tester.md`
+- Absorbs the Value Proposition page content.
+- Keeps current Home framing from main, including the file-based coordination
+  model for single-assistant and multi-assistant operation.
+- Adds cost and beneficiary sections from the value page.
+- Preserves the scope disclaimer that AGF is not a replacement for review
+  culture.
+
+### `agf/docs/site/value.md`
+
+- Deleted. Content now lives in `index.md`.
+
+### `agf/docs/build/mkdocs.yml`
+
+- Removes the `Value proposition: value.md` nav entry.
+- Switches `theme.name` from `mkdocs` to `material`.
+- Adds automatic light/dark palette configuration and manual toggle.
+- Adds `navigation.top` and `content.code.copy`.
+
+### `.gitlab-ci.yml`
+
+- Installs the MkDocs docs dependency set required by the Material theme in CI.
 
 ## Validation
 
-- `agov plan validate docs/plans/readable-coordination-ids.md` passed.
-- `agov coord validate` passed for the valid superseding Gate 1 records:
-  - `docs/coordination/01KVK7TFMY6DQNPRH7SAS5BSHP-planner-architect.md`
-  - `docs/coordination/01KVK7TFMYC725T6V5CQDDASK5-governor-reviewer.md`
-  - `docs/coordination/01KVK7TFN1ADA2WBZDWKFRPBXR-planner-architect.md`
-  - `docs/coordination/01KVK7TFN3S02ZFJ9WJJF8YQ6F-planner-architect.md`
-- `agov coord validate docs/coordination/01KVK82P4N9PQZB1JMPZSEPY0T-coder-tester.md`
-  passed.
-- `git diff --check` passed.
+- `mise exec -- uv run --project agents-govern --group docs mkdocs build -f agf/docs/build/mkdocs.yml --strict`
+- `git diff --check`
 
-## Review Notes
+## Checklist
 
-- This is a Gate 1 planning and coordination MR, not the implementation MR.
-- MR !31 (`feat/rust-agov-phase1`) has merged to `main`, satisfying the
-  implementation precondition recorded in the Gate 1 approval.
-- Three earlier Gate 1 coordination files in this branch used invalid
-  20-character IDs:
-  - `docs/coordination/01KVK7DYM21GGQ7ZZ5RR-planner-architect.md`
-  - `docs/coordination/01KVK7J9MZSH6RJA7TKS-governor-reviewer.md`
-  - `docs/coordination/01KVK7J9N2AW8DJZQAG2-planner-architect.md`
-- Those invalid records are immutable and intentionally superseded by valid
-  26-character ULID records listed in the governance trail.
-
-## Out of Scope
-
-- Implementing readable ID generation.
-- Making readable IDs the default immediately.
-- Adding `agov watch start/status/stop`.
-- Renaming historical coordination files.
-- Removing ULID support.
-- Extending readable IDs to plan files or other governance artifacts in this
-  phase.
+- [x] No nav entry remains for deleted `value.md`
+- [x] Value Proposition content is preserved in `index.md`
+- [x] CI installs the docs dependencies required for the configured theme
+- [x] No `Co-authored-by` or AI-tool trailers in commits
