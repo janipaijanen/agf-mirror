@@ -12,6 +12,8 @@ dependencies = [
  "clap",
  "insta",
  "rayon",
+ "serde_json",
+ "time",
 ]
 
 [[package]]
