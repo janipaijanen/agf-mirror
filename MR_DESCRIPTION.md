@@ -1,119 +1,36 @@
-# Summary
+# Gate 1 plan: Rust port of agov CLI tooling
 
-Implements the approved tooling binary and release bundle slice for
-`feat/tooling-binary-bundle`.
+## Summary
 
-This MR adds a linux-x86_64 Mix release archive for the `agov` tooling and a
-single AGF bundle archive that wraps the framework source archives plus the
-tooling binary archive.
+- Adds `docs/plans/rust-agov-port.md` — architecture and phased scope for porting the `agov` CLI from Elixir/OTP to Rust
+- Adds `docs/coordination/01KVJZBMN8FRGPZZYPAQDAW3MF-planner-architect.md` — Gate 1 handoff to governor-reviewer
 
-The framework source archive remains usable on its own. The tooling archive and
-combined bundle are optional convenience artifacts, not prerequisites for
-adopting AGF.
+## What the plan proposes
 
-# Scope
+The current `agov` CLI ships a bundled ERTS runtime (~50–70 MB, Linux x86_64 only). The Rust port produces statically-linked binaries of 5–12 MB for Linux x86_64/ARM64 and macOS x86_64/ARM64, with no runtime dependency on Elixir or OTP.
 
-- Adds Mix release configuration for `agov` with bundled ERTS.
-- Adds a release overlay so unpacked `bin/agov` runs `Agov.CLI` directly.
-- Adds `Agov.ReleasePackage` for tooling archive and bundle assembly.
-- Adds `mix agov.tooling.build`.
-- Adds `mix agov.bundle.build`.
-- Adds CI preview jobs:
-  - `agov:tooling:preview`
-  - `agf:bundle:preview`
-- Adds CI release jobs:
-  - `agov:tooling:release`
-  - `agf:bundle:release`
-- Adds tests for tooling archive layout/provenance/checksum, bundle layout and
-  `SHA256SUMS`, and missing-tooling-archive failure.
-- Updates adopter-facing release/install wording so framework-only,
-  tooling-only, and bundle release lanes are described consistently.
-- Adds the Gate 2 handoff record:
-  `docs/coordination/01KV7NDSZEMZ1G87JTBRGGWAVC-coder-tester.md`.
+Key architectural decisions in the plan:
 
-# Governance Trail
+- **Workspace layout**: `tooling/rust/` with four crates — `agov-core`, `agov-coord`, `agov-validators`, `agov` (binary)
+- **Concurrency**: `rayon` for parallel file validation; no async runtime needed for a CLI
+- **Output compatibility**: byte-for-byte parity with the Elixir CLI output; parity test suite is a blocking CI check
+- **Saved-token evidence**: Phase 1 Rust validation commands append local
+  JSONL token ROI records compatible with existing Elixir reporting
+- **Phasing**: Phase 1 = all validation commands; Phase 2 = channel analysis commands; Elixir tooling untouched throughout
+- **Distribution**: `cross`-compiled via CI for four platform targets; archive layout mirrors current Elixir format
 
-- Gate 1 approval:
-  `docs/coordination/01KV7MABYEEK6R1N18J9M4S8JQ-governor-reviewer.md`.
-- Implementation handoff:
-  `docs/coordination/01KV7MAZC8PEX9XF60T8XXPYA2-governor-reviewer.md`.
-- Gate 2 handoff:
-  `docs/coordination/01KV7NDSZEMZ1G87JTBRGGWAVC-coder-tester.md`.
-- Framework-only adoption note:
-  `docs/coordination/01KVA0V3DTSXCGRS67GEH0SVQ1-coder-tester.md`.
-- Review-fix note:
-  `docs/coordination/01KVJZ98VPESN1YB9ATJQ3KXY4-coder-tester.md`.
+## What Gate 1 approval authorises
 
-# Implementation Notes
+- Creation of `feat/rust-agov-phase1` branch
+- Implementation of `tooling/rust/` workspace covering Phase 1 validation commands
+- Local saved-token logging for successful Phase 1 validation commands, using
+  `tmp/agov-token-roi.jsonl` by default and `AGOV_TOKEN_ROI_LOG` as override
+- Addition of `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:build:preview` CI jobs
 
-`mix agov.tooling.build` runs `mix release agov --overwrite` with `MIX_ENV=prod`,
-then packages the release as:
+It does not authorise Phase 2 implementation, bundle rewiring, or removal of the Elixir tooling.
 
-`agov-<version>-linux-x86_64-otp-<otp_major>.tar.gz`
+## Advisory consultations
 
-with:
-
-- `agov-<version>-linux-x86_64-otp-<otp_major>.sha256`
-- `agov-<version>-linux-x86_64-otp-<otp_major>-provenance.json`
-
-`mix agov.bundle.build` wraps existing `dist/agf-<version>.tar.gz`,
-`dist/agf-<version>.zip`, and the tooling archive as:
-
-`agf-<version>-bundle.tar.gz`
-
-with:
-
-- `agf-<version>-bundle.sha256`
-- bundled `SHA256SUMS`
-- bundled `bundle-provenance.json`
-
-The tooling binary archive was smoke-tested after unpacking:
-
-```text
-bin/agov --help
-```
-
-and printed the expected AGOV CLI usage.
-
-# Verification
-
-- `git diff --check` passed.
-- `mix compile --warnings-as-errors` passed.
-- `mix test` passed after merging `origin/main`: 204 passed, 0 failures.
-- `mix agov.validate` passed.
-- `mix agov.dist.validate` passed.
-- `mix agov.dist.build` passed.
-- `mix agov.tooling.build` passed.
-- `mix agov.bundle.build` passed.
-- Unpacked `bin/agov --help` passed.
-- `agov coord validate
-  docs/coordination/01KVJZ98VPESN1YB9ATJQ3KXY4-coder-tester.md` passed.
-- Gate self-test passed for both new release command sequences:
-  - `CI_COMMIT_TAG=v9.99.99 mix agov.dist.check_tag && mix agov.tooling.build`
-    exited 1 at the tag guard.
-  - `CI_COMMIT_TAG=v9.99.99 mix agov.dist.check_tag && mix agov.bundle.build`
-    exited 1 at the tag guard.
-
-# Review Notes
-
-- Generated archives are not committed.
-- The tooling archive content check found no forbidden `agf/`, `agents-govern/`,
-  `tmp/`, `.git/`, or `.env` paths.
-- Release jobs run only on tags.
-- Preview artifacts expire in one week.
-- Release artifacts use `expire_in: never`.
-- The full test run still emits two pre-existing warnings:
-  - unused `@tag` before `describe` in `test/agov/coord_config_test.exs`
-  - unused default argument in private `claim/3` in
-    `test/agov/claim_tracker_test.exs`
-- Local MkDocs strict build was not rerun after the review-fix docs commit
-  because `mkdocs` is not installed in this shell.
-
-# Out of Scope
-
-- macOS, Windows, or ARM binaries.
-- Burrito, escript, or Nerves packaging.
-- Package registry publishing.
-- Installer scripts or PATH manipulation.
-- Release signing or Sigstore.
-- SBOM generation.
+- `infosec-sentinel`: crate supply chain, cross toolchain, static linking, CI secrets — consulted
+- `contribution-auditor`: new `tooling/rust/` subtree, workspace layout — consulted
+- `build-engineer`: suspended; CI concerns documented in §10 of the plan; reviewed by governor-reviewer at Gate 2
