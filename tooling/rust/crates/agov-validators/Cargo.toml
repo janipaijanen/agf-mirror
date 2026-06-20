@@ -10,5 +10,5 @@ license.workspace = true
 agov-core = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-serde_yml = { workspace = true }
+serde_norway = { workspace = true }
 rayon = { workspace = true }

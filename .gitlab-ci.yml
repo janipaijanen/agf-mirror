@@ -29,6 +29,7 @@
     key: rust-$CI_COMMIT_REF_SLUG
     paths:
       - .cargo/registry
+      - .cargo/bin
       - tooling/rust/target
   before_script:
     - cd tooling/rust
@@ -279,6 +280,23 @@ release:create:
 # ── Rust tooling (Phase 1) ─────────────────────────────────────────────────────
 # Path-scoped per ci-trigger-scoping-rule.md: only fire when tooling/rust/ changes.
 # rust:tooling:build:release is NOT authorised in Phase 1 — see plan §10.
+
+# Scan dependency licenses and advisories. Blocks on GPL/AGPL/LGPL/SSPL and known
+# vulnerabilities. deny.toml defines the allowed-license allow-list.
+rust:tooling:deny:
+  extends: .rust-base
+  stage: test
+  script:
+    - cargo install cargo-deny --locked --version "^0.19"
+    - cargo deny check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_TAG
 
 # Compile and test the Rust workspace on every push touching tooling/rust/.
 rust:tooling:test:

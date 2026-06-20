@@ -16,14 +16,14 @@ authors = ["Jani Päijänen"]
 license = "CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial"
 
 [workspace.dependencies]
-agov-core = { path = "crates/agov-core" }
-agov-coord = { path = "crates/agov-coord" }
-agov-validators = { path = "crates/agov-validators" }
+agov-core = { path = "crates/agov-core", version = "0.1.0" }
+agov-coord = { path = "crates/agov-coord", version = "0.1.0" }
+agov-validators = { path = "crates/agov-validators", version = "0.1.0" }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-# serde_yml: maintained community fork of unmaintained serde_yaml
-serde_yml = "0.0"
+# serde_norway: maintained fork of serde_yaml (serde_yml is unsound, RUSTSEC-2025-0068)
+serde_norway = "0.9"
 # Draft-07 JSON schema validation; no remote-reference fetching, no async features
 jsonschema = { version = "0.18", default-features = false }
 ulid = "1"
