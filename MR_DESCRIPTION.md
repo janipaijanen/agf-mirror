@@ -42,6 +42,8 @@ lane.
   - `rust:tooling:build:preview` for Linux musl preview targets:
     - `x86_64-unknown-linux-musl`
     - `aarch64-unknown-linux-musl`
+- Adds a CI workflow guard so `coordination:` audit-trail commits do not
+  retrigger the full MR build matrix.
 - Adds dependency policy via `tooling/rust/deny.toml`.
 - Uses `serde_norway` instead of `serde_yml` after the RustSec advisory.
 - Updates token ROI reference docs with validation workflow baselines.
@@ -65,6 +67,9 @@ lane.
 - Scaffold/dependency notes:
   `docs/coordination/01KVK3XCNFHV6TK8WQPC1Y0M00-planner-architect.md`
   `docs/coordination/01KVK4D2PH56CX8MXY3J7MNVR0-planner-architect.md`
+- Gate 2 handoff and final CI evidence:
+  `docs/coordination/01KVK58XFZ91W97F11EZE9BCEW-coder-tester.md`
+  `docs/coordination/01KVKB0BS8GERB05Q5RVNX06P3-coder-tester.md`
 
 ## Verification
 
@@ -77,16 +82,25 @@ lane.
 - Elixir `mix agov.token.roi report` read a Rust-generated JSONL record.
 - Logging-enabled vs logging-disabled stdout/stderr parity check passed.
 - `git diff --check` passed.
+- GitLab MR pipeline `2616471585` passed after the final Rust preview and
+  cache-safety fixes, including `rust:tooling:build:preview`,
+  `rust:tooling:deny`, `rust:tooling:test`, `rust:tooling:clippy`, and
+  `rust:tooling:parity`.
+- GitLab CI lint passed for the `coordination:` workflow skip guard.
 
 ## Review Notes
 
 - `cargo deny check` was not run locally because `cargo-deny` is not installed
-  in this shell. The CI job installs `cargo-deny` before running the check.
+  in this shell. The CI job installs `cargo-deny` before running the check, and
+  the MR pipeline passed the dependency policy job.
 - Generated Rust `target/` output and local token ROI logs are not committed.
 - Elixir tooling remains the reference implementation and is not removed.
 - macOS preview builds are deferred because upstream `cross` does not provide
   Darwin images; those targets require a separately approved macOS SDK/custom
   image supply-chain path.
+- The `coordination:` workflow skip is intentionally commit-title based. It
+  preserves full CI for code, docs, and CI changes while avoiding repeated full
+  MR rebuilds for plain governance coordination updates.
 
 ## Out of Scope
 
