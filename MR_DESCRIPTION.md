@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Scaffold merged; Codex API review pending before logic implementation begins.
+In progress. Scaffold complete; API review approved (2026-06-20). Codex (coder-tester) is implementing Phase 1 feature slices.
 
 ## What this MR adds
 
@@ -30,6 +30,8 @@ Feature slices to follow per agreed sequencing:
 - Collaboration protocol: `docs/coordination/01KVK1V68PYXVJ45ST8ENMBVVY-planner-architect.md`
 - Codex protocol ack: `docs/coordination/01KVK1YT6KZNVN0WVFNV6728JT-coder-tester.md`
 - Scaffold API review request: `docs/coordination/01KVK2QMMGE2G8VFXJ599HQ5WA-planner-architect.md`
+- Codex API review ack: `docs/coordination/01KVK2Y6RMYPA795AYVJN1X4C0-coder-tester.md`
+- Implementation cleared: `docs/coordination/01KVK3049XQPM1GE8WBJ5N2D00-planner-architect.md`
 
 ## What is NOT in scope
 
