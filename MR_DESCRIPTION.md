@@ -1,40 +1,92 @@
 # feat(rust): Phase 1 Rust agov CLI port
 
-## Status
+## Summary
 
-In progress. Scaffold complete; API review approved (2026-06-20). Codex (coder-tester) is implementing Phase 1 feature slices.
+Implements the approved Phase 1 Rust `agov` CLI port.
 
-## What this MR adds
+This MR adds a Rust workspace under `tooling/rust/` for Phase 1 validation
+commands, keeps Elixir as the reference implementation, and wires CI preview,
+test, clippy, dependency-policy, parity, and build jobs for the Rust tooling
+lane.
 
-### Workspace scaffold (planner-architect)
+## Scope
 
-- `tooling/rust/` — 4-crate Cargo workspace: `agov-core`, `agov-coord`, `agov-validators`, `agov`
-- Public API surface for all Phase 1 validation commands (all logic stubs use `todo!()`)
-- CI jobs: `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:parity`, `rust:tooling:build:preview`
-- Parity test harness skeleton: `tooling/rust/tests/parity/run.sh`
-- `.cargo/config.toml`: musl linker config for Linux cross-compilation targets
+- Adds the Rust workspace:
+  - `agov-core`
+  - `agov-coord`
+  - `agov-validators`
+  - `agov`
+- Implements:
+  - `agov coord validate <file>...`
+  - `agov plan validate <file>...`
+  - `agov validate`
+  - `agov validate agents`
+  - `agov validate learnings`
+  - `agov validate adoption`
+  - `agov validate infosec`
+  - `agov validate contributions`
+  - `agov validate framework-config`
+- Preserves dotted compatibility aliases:
+  - `agov agov.coord.validate <file>...`
+  - `agov agov.plan.validate <file>...`
+- Adds local saved-token ROI logging for successful Rust validation commands:
+  - default: `tmp/agov-token-roi.jsonl`
+  - override: `AGOV_TOKEN_ROI_LOG`
+  - disable: `AGOV_TOKEN_ROI=0|false|off`
+- Adds live Rust-vs-Elixir parity cases in `tooling/rust/tests/parity/run.sh`.
+- Adds Rust CI jobs:
+  - `rust:tooling:test`
+  - `rust:tooling:deny`
+  - `rust:tooling:clippy`
+  - `rust:tooling:parity`
+  - `rust:tooling:build:preview`
+- Adds dependency policy via `tooling/rust/deny.toml`.
+- Uses `serde_norway` instead of `serde_yml` after the RustSec advisory.
+- Updates token ROI reference docs with validation workflow baselines.
 
-### Phase 1 implementation (coder-tester — in progress)
+## Governance Trail
 
-Feature slices to follow per agreed sequencing:
-1. Core parsing and frontmatter extraction
-2. Schema validation and output formatting
-3. Coordination and plan validation end-to-end
-4. Aggregate validators
-5. Token ROI JSONL logging
-6. Parity fixtures and final compatibility fixes
+- Gate 1 approval:
+  `docs/coordination/01KVK1QRVS3WAW4FPKMAT2W00J-governor-reviewer.md`
+- Collaboration protocol:
+  `docs/coordination/01KVK1V68PYXVJ45ST8ENMBVVY-planner-architect.md`
+- Codex protocol ack:
+  `docs/coordination/01KVK1YT6KZNVN0WVFNV6728JT-coder-tester.md`
+- Scaffold API review request:
+  `docs/coordination/01KVK2QMMGE2G8VFXJ599HQ5WA-planner-architect.md`
+- Codex API review ack:
+  `docs/coordination/01KVK2Y6RMYPA795AYVJN1X4C0-coder-tester.md`
+- Implementation cleared:
+  `docs/coordination/01KVK3049XQPM1GE8WBJ5N2D00-planner-architect.md`
+- Implementation start:
+  `docs/coordination/01KVK3KF8D5HEB9KQH1EYC4QJW-coder-tester.md`
+- Scaffold/dependency notes:
+  `docs/coordination/01KVK3XCNFHV6TK8WQPC1Y0M00-planner-architect.md`
+  `docs/coordination/01KVK4D2PH56CX8MXY3J7MNVR0-planner-architect.md`
 
-### Governance trail
+## Verification
 
-- Gate 1 approval: `docs/coordination/01KVK1QRVS3WAW4FPKMAT2W00J-governor-reviewer.md`
-- Collaboration protocol: `docs/coordination/01KVK1V68PYXVJ45ST8ENMBVVY-planner-architect.md`
-- Codex protocol ack: `docs/coordination/01KVK1YT6KZNVN0WVFNV6728JT-coder-tester.md`
-- Scaffold API review request: `docs/coordination/01KVK2QMMGE2G8VFXJ599HQ5WA-planner-architect.md`
-- Codex API review ack: `docs/coordination/01KVK2Y6RMYPA795AYVJN1X4C0-coder-tester.md`
-- Implementation cleared: `docs/coordination/01KVK3049XQPM1GE8WBJ5N2D00-planner-architect.md`
+- `cargo test --workspace` passed.
+- `cargo clippy --workspace -- -D warnings` passed.
+- `bash tooling/rust/tests/parity/run.sh` passed: 13 passed, 0 failed.
+- `agov plan validate docs/plans/rust-agov-port.md` passed.
+- New coordination messages validated.
+- Rust ROI JSONL smoke test passed.
+- Elixir `mix agov.token.roi report` read a Rust-generated JSONL record.
+- Logging-enabled vs logging-disabled stdout/stderr parity check passed.
+- `git diff --check` passed.
 
-## What is NOT in scope
+## Review Notes
 
-- `rust:tooling:build:release` CI job (requires separate Gate 2 decision)
-- Phase 2 channel analysis commands (`coord status`, `session resume`, etc.)
-- Bundle rewiring or removal of Elixir tooling
+- `cargo deny check` was not run locally because `cargo-deny` is not installed
+  in this shell. The CI job installs `cargo-deny` before running the check.
+- Generated Rust `target/` output and local token ROI logs are not committed.
+- Elixir tooling remains the reference implementation and is not removed.
+
+## Out of Scope
+
+- Phase 2 channel analysis commands.
+- Rust-native `agov token roi report`.
+- Release build CI (`rust:tooling:build:release`).
+- Bundle rewiring or Elixir deprecation.
+- macOS/Windows installer work beyond the authorized preview build lane.
