@@ -19,6 +19,14 @@
 #   release:create    — upload archives to package registry; create GitLab release entry
 #   rust:tooling:*    — Phase 1 Rust tooling: test, clippy, parity, build:preview
 
+workflow:
+  rules:
+    # Coordination-only commits update the durable governance trail. They should
+    # not invalidate the last green code pipeline for an MR.
+    - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
+      when: never
+    - when: always
+
 # ── Shared templates ──────────────────────────────────────────────────────────
 
 .rust-base:
