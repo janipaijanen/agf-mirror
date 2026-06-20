@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use std::collections::BTreeMap;
 
 type ValidationErrors = Vec<(String, String)>;
 type FileValidator<T> = fn(&std::path::Path) -> Result<T, ValidationErrors>;
@@ -95,13 +96,7 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
     match cli.command {
         Command::Coord {
             sub: CoordCommand::Validate { files },
-        } => validate_files(
-            files,
-            agov_coord::coord_validator::validate_file,
-            Some(agov_coord::coord_validator::advisory_findings),
-            &args,
-            "coord-validate",
-        ),
+        } => validate_coord_files(files, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -113,6 +108,70 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         ),
         Command::Validate { sub } => run_validate(sub, &args),
     }
+}
+
+fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
+    let mut failed = false;
+    let mut output = OutputCounter::default();
+    let mut valid_messages = Vec::new();
+
+    for file in files {
+        let label = file.to_string_lossy().to_string();
+        match agov_coord::coord_validator::validate_file(&file) {
+            Ok(data) => {
+                for message in
+                    agov_coord::coord_validator::advisory_findings_for_path(&data, Some(&file))
+                {
+                    output.coord_warn(&label, &message);
+                }
+                output.coord_ok(&label);
+                valid_messages.push((label, data));
+            }
+            Err(errors) => {
+                failed = true;
+                render_coord_errors(&mut output, &label, &errors);
+            }
+        }
+    }
+
+    for (path, message) in duplicate_id_errors(&valid_messages) {
+        failed = true;
+        output.coord_err(&path, &message);
+    }
+
+    if failed {
+        1
+    } else {
+        agov_core::roi::record_tool_output("agov", args, "coord-validate", output.chars);
+        0
+    }
+}
+
+fn duplicate_id_errors(
+    messages: &[(String, agov_coord::coord_validator::CoordMessage)],
+) -> Vec<(String, String)> {
+    let mut by_id: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for (path, message) in messages {
+        if let Some(id) = message.id() {
+            by_id.entry(id.to_string()).or_default().push(path.clone());
+        }
+    }
+
+    let mut errors = Vec::new();
+    for (id, mut paths) in by_id {
+        paths.sort();
+        if let Some(first) = paths.first().cloned() {
+            for path in paths.into_iter().skip(1) {
+                errors.push((
+                    path,
+                    format!("duplicate coordination id '{id}' also used by {first}"),
+                ));
+            }
+        }
+    }
+
+    errors
 }
 
 fn validate_files<T>(

@@ -20,6 +20,7 @@ case "${1:-}" in
     cat <<EOF
 Usage:
   agov coord validate <file>...
+  agov coord brief [--id-format ulid|readable] [--from <role>] [--to <role>] [--kind <kind>] [--topic <topic>]
   agov plan validate <file>...
   agov agov.coord.validate <file>...
   agov agov.plan.validate <file>...
@@ -32,6 +33,17 @@ EOF
 esac
 
 if [ -x "$escript" ]; then
+  if [ "${1:-}" = "coord" ] && command -v mix >/dev/null 2>&1; then
+    if [ "${2:-}" = "validate" ]; then
+      shift 2
+      exec bash -c 'root=$1; shift; cwd=$PWD; args=(); for arg in "$@"; do case "$arg" in /*) args+=("$arg");; *) args+=("$cwd/$arg");; esac; done; cd "$root/tooling/elixir" && mix agov.coord.validate "${args[@]}"' bash "$repo_root" "$@"
+    fi
+    if [ "${2:-}" = "brief" ]; then
+      shift 2
+      exec sh -c 'root=$1; shift; cd "$root/tooling/elixir" && mix agov.coord.brief --dir "$root/docs/coordination" "$@"' sh "$repo_root" "$@"
+    fi
+  fi
+
   first_line=$(sed -n '1p' "$escript" 2>/dev/null || true)
   case "$first_line" in
     *escript*)
@@ -54,7 +66,11 @@ if command -v mix >/dev/null 2>&1; then
       shift
       if [ "${1:-}" = "validate" ]; then
         shift
-        exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.coord.validate "$@"' sh "$repo_root" "$@"
+        exec bash -c 'root=$1; shift; cwd=$PWD; args=(); for arg in "$@"; do case "$arg" in /*) args+=("$arg");; *) args+=("$cwd/$arg");; esac; done; cd "$root/tooling/elixir" && mix agov.coord.validate "${args[@]}"' bash "$repo_root" "$@"
+      fi
+      if [ "${1:-}" = "brief" ]; then
+        shift
+        exec sh -c 'root=$1; shift; cd "$root/tooling/elixir" && mix agov.coord.brief --dir "$root/docs/coordination" "$@"' sh "$repo_root" "$@"
       fi
       ;;
     plan)

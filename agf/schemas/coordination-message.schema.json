@@ -48,8 +48,8 @@
     },
     "id": {
       "type": "string",
-      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
-      "description": "ULID — time-sortable, conflict-free unique identifier. Required. Generate with any ULID library or https://www.ulidtools.com"
+      "pattern": "^([0-9A-HJKMNP-TV-Z]{26}|[0-9]{8}T[0-9]{6}Z-[a-z0-9][a-z0-9-]*-[a-z0-9]{4,6})$",
+      "description": "Coordination message identifier. Either a legacy ULID or a readable ID in YYYYMMDDThhmmssZ-<role-slug>-<random-suffix> form. Required. Generate with AGF tooling when available."
     },
     "timestamp": {
       "type": "string",
