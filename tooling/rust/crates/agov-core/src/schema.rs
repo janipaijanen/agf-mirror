@@ -3,8 +3,9 @@ use std::path::Path;
 /// An opaque wrapper around the compiled JSON schema validator.
 ///
 /// Wrapping avoids leaking the `jsonschema` crate version into the public API.
-/// Codex must compile with Draft7, no remote-reference fetching, no async features.
-pub struct CompiledSchema(jsonschema::Validator);
+/// v0.18.x uses `jsonschema::JSONSchema`; newer versions use `jsonschema::Validator`.
+/// Callers see only `CompiledSchema` — version differences are invisible.
+pub struct CompiledSchema(jsonschema::JSONSchema);
 
 #[derive(Debug)]
 pub struct SchemaFinding {
