@@ -20,7 +20,9 @@ operational incidents into framework evidence.
 AGF is a governance framework for software-development work involving AI
 agents. It gives a project file-based roles, gates, rules, schemas,
 coordination records, and learning records so humans and AI assistants can work
-inside auditable boundaries.
+inside auditable boundaries. It is not a replacement for your existing review
+culture — it is the structure that makes that culture enforceable when agents
+do the typing.
 
 AGF is not a hosted service, agent runtime, model policy engine, legal or
 compliance product, security audit, or general AI product-governance system. It
@@ -29,34 +31,59 @@ or make external AI services safe for confidential data. Your existing tools
 execute the work; AGF defines the governance artifacts and review discipline
 around that work.
 
-## Why this exists
+## The situation
 
-AI coding assistants optimise for task completion. Without structural
-gates they will push to main, skip review, and accumulate ungoverned
-changes — not from malice, but because nothing stops them. agents-govern
-adds the stopping structure: the same quality gates, audit trails, and
-escalation paths that disciplined human teams use, expressed so that both
-humans and AI agents follow them.
+Teams adopting AI coding assistants gain speed and lose certainty. Changes
+arrive faster than review capacity; assistants complete tasks in ways that
+bypass the team's quality conventions; and when something breaks, the trail of
+*who decided what, and why* is thin. Most teams respond with prompt instructions
+— "always write tests", "never push to main" — and discover that instructions
+without enforcement degrade under pressure.
+
+This is not a tooling failure. It is a governance gap: the assistant has
+production-level write access and intern-level accountability.
 
 ## What you get
 
-- **Defined roles** — twelve agent definitions (planner, implementer,
-  reviewer, auditor, security sentinel, and more) with explicit
-  jurisdiction and authority boundaries. Role expansion is supported,
-  but evidence-led: add a role when repeated work, incidents, or
-  ownership conflicts show that an existing boundary is too broad.
-- **Two gates** — plan approval before implementation (Gate 1, the
-  "should we build this?" checkpoint) and review before merge (Gate 2, the
-  "is this ready to land?" checkpoint), with a formal fast-track for small
-  tasks.
-- **A coordination channel** — an append-only, schema-shaped decision log
-  that makes every handoff, decision, and completion reconstructible.
-- **A rule library** — thirty-plus governance rules (TDD, immutable tags,
-  merge-request workflow, security hardening, …) ready to copy into your
-  AI assistant's configuration.
-- **Evidence discipline** — learning records, the structured incident and
-  pattern notes, with anonymization built in, so what you learn can flow
-  upstream without leaking what you build.
+**Accountability structure for AI agents.** Each agent operates under a
+written definition: what it owns, what it may change, what it must escalate.
+The governor — the human who approves gates and owns project risk — can delegate
+work without delegating final authority. An implementing agent cannot approve
+its own work; a reviewing agent cannot implement. The separation is structural,
+not aspirational.
+
+**Decisions you can reconstruct.** Every plan approval, review finding, and
+merge decision is a file in the coordination channel, the append-only decision
+log. Six months later, you can answer "why was this merged?" by reading the
+chain, not by archaeology on commit messages.
+
+**Quality gates that bind assistants too.** The rule library expresses your
+engineering discipline (test-first, migration hygiene, immutable tags,
+merge-request workflow) in a form AI assistants load as instructions and
+validators enforce in CI. Gate 1 is plan approval before implementation; Gate
+2 is review before merge. The discipline survives the speed.
+
+**Learning that compounds.** Incidents become learning records — structured
+incident and pattern notes; recurring patterns become rules; rules ship to
+every adopter. The framework grows from evidence, and the anonymization policy
+means your learnings can flow upstream without revealing your project.
+
+## What it costs
+
+Adoption is not free, and the documentation does not pretend otherwise:
+copied files in your repo, CI jobs, review overhead per change, and a
+learning-record habit to maintain. The [downstream impact](docs/adopt/downstream-impact.md)
+page itemises the full cost, and [exit and decommission](docs/adopt/exit-and-decommission.md)
+documents the way out. Read both before adopting — that is what they are for.
+
+## Who benefits
+
+- **Engineering leads** get review gates that hold even when changes are
+  machine-generated at machine speed.
+- **Developers** get an assistant that follows the project's actual
+  conventions instead of re-deriving its own each session.
+- **Auditors and security reviewers** get an append-only decision trail
+  and explicit security escalation boundaries.
 
 ## Where to go next
 
