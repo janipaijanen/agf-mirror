@@ -1,36 +1,38 @@
-# Gate 1 plan: Rust port of agov CLI tooling
+# feat(rust): Phase 1 Rust agov CLI port
 
-## Summary
+## Status
 
-- Adds `docs/plans/rust-agov-port.md` — architecture and phased scope for porting the `agov` CLI from Elixir/OTP to Rust
-- Adds `docs/coordination/01KVJZBMN8FRGPZZYPAQDAW3MF-planner-architect.md` — Gate 1 handoff to governor-reviewer
+In progress. Scaffold merged; Codex API review pending before logic implementation begins.
 
-## What the plan proposes
+## What this MR adds
 
-The current `agov` CLI ships a bundled ERTS runtime (~50–70 MB, Linux x86_64 only). The Rust port produces statically-linked binaries of 5–12 MB for Linux x86_64/ARM64 and macOS x86_64/ARM64, with no runtime dependency on Elixir or OTP.
+### Workspace scaffold (planner-architect)
 
-Key architectural decisions in the plan:
+- `tooling/rust/` — 4-crate Cargo workspace: `agov-core`, `agov-coord`, `agov-validators`, `agov`
+- Public API surface for all Phase 1 validation commands (all logic stubs use `todo!()`)
+- CI jobs: `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:parity`, `rust:tooling:build:preview`
+- Parity test harness skeleton: `tooling/rust/tests/parity/run.sh`
+- `.cargo/config.toml`: musl linker config for Linux cross-compilation targets
 
-- **Workspace layout**: `tooling/rust/` with four crates — `agov-core`, `agov-coord`, `agov-validators`, `agov` (binary)
-- **Concurrency**: `rayon` for parallel file validation; no async runtime needed for a CLI
-- **Output compatibility**: byte-for-byte parity with the Elixir CLI output; parity test suite is a blocking CI check
-- **Saved-token evidence**: Phase 1 Rust validation commands append local
-  JSONL token ROI records compatible with existing Elixir reporting
-- **Phasing**: Phase 1 = all validation commands; Phase 2 = channel analysis commands; Elixir tooling untouched throughout
-- **Distribution**: `cross`-compiled via CI for four platform targets; archive layout mirrors current Elixir format
+### Phase 1 implementation (coder-tester — in progress)
 
-## What Gate 1 approval authorises
+Feature slices to follow per agreed sequencing:
+1. Core parsing and frontmatter extraction
+2. Schema validation and output formatting
+3. Coordination and plan validation end-to-end
+4. Aggregate validators
+5. Token ROI JSONL logging
+6. Parity fixtures and final compatibility fixes
 
-- Creation of `feat/rust-agov-phase1` branch
-- Implementation of `tooling/rust/` workspace covering Phase 1 validation commands
-- Local saved-token logging for successful Phase 1 validation commands, using
-  `tmp/agov-token-roi.jsonl` by default and `AGOV_TOKEN_ROI_LOG` as override
-- Addition of `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:build:preview` CI jobs
+### Governance trail
 
-It does not authorise Phase 2 implementation, bundle rewiring, or removal of the Elixir tooling.
+- Gate 1 approval: `docs/coordination/01KVK1QRVS3WAW4FPKMAT2W00J-governor-reviewer.md`
+- Collaboration protocol: `docs/coordination/01KVK1V68PYXVJ45ST8ENMBVVY-planner-architect.md`
+- Codex protocol ack: `docs/coordination/01KVK1YT6KZNVN0WVFNV6728JT-coder-tester.md`
+- Scaffold API review request: `docs/coordination/01KVK2QMMGE2G8VFXJ599HQ5WA-planner-architect.md`
 
-## Advisory consultations
+## What is NOT in scope
 
-- `infosec-sentinel`: crate supply chain, cross toolchain, static linking, CI secrets — consulted
-- `contribution-auditor`: new `tooling/rust/` subtree, workspace layout — consulted
-- `build-engineer`: suspended; CI concerns documented in §10 of the plan; reviewed by governor-reviewer at Gate 2
+- `rust:tooling:build:release` CI job (requires separate Gate 2 decision)
+- Phase 2 channel analysis commands (`coord status`, `session resume`, etc.)
+- Bundle rewiring or removal of Elixir tooling
