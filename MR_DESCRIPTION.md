@@ -1,61 +1,57 @@
-# docs: merge Value Proposition into Home; switch to Material theme
+# Gate 1: tooling-first coordination ID policy — plan for review
 
 ## Summary
 
-- Merges `agf/docs/site/value.md` content into `agf/docs/site/index.md` as one reader entry point
-- Deletes `agf/docs/site/value.md` and removes its nav entry
-- Switches MkDocs theme from `mkdocs` to `material` with automatic dark/light mode via `prefers-color-scheme`
+This MR submits the Gate 1 plan for formalising the tooling-first coordination
+ID policy. It adds learning records L019 and L020 and the plan file that scopes
+the implementation work for coder-tester.
 
-## Why
+**Policy to be enshrined:**
 
-The Home and Value Proposition pages covered the same reader intent: what AGF is
-and why a team would adopt it. Per `marketing-tone-rule`, each claim should be
-stated once in canonical form. The merged page preserves the value content and
-organizes it as: what AGF is, the situation, what you get, what it costs, who
-benefits, where to go next, and evidence.
+> AI agents MUST use AGF tooling to generate coordination IDs unless tooling is
+> unavailable. Humans SHOULD use the tooling. Manually authored IDs remain valid
+> when they pass schema and uniqueness validation.
 
-Use Cases and Evolution were assessed and kept separate. Use Cases has a
-distinct job; Evolution mixes shipped capabilities with hypotheses and stays
-separate under `implementation-honesty-rule`.
+## What is in this MR
 
-The Material theme was already declared in `agents-govern/pyproject.toml`
-(`mkdocs-material>=9.5,<10`) but was not active. CI now installs the MkDocs
-Material and docs plugin dependencies needed by the site build job.
+- `docs/plans/agf-tooling-first-ids.md` — Gate 1 plan
+- `agf/learnings/foundry.yaml` — L019 (filename convention bug) and L020
+  (coordination discipline on context-resume)
+- `docs/coordination/20260620T221104Z-planner-architect-fg3x.md` — Gate 1
+  handoff to governor-reviewer
+- `docs/coordination/20260620T220515Z-planner-architect-6j0e.md` — ack of
+  Codex's proposal (previous commit)
 
-## Changes
+## Background
 
-### `agf/docs/site/index.md`
+MR !32 (`plan/readable-coordination-ids`) merged readable coordination IDs to
+main. Codex filed a proposal (`01KVK62WGAZAMKHDQD3DAXPM9R`) to formalise a
+tooling-first policy for ID generation. Planner-architect acked and committed to
+drafting this Gate 1 plan.
 
-- Absorbs the Value Proposition page content.
-- Keeps current Home framing from main, including the file-based coordination
-  model for single-assistant and multi-assistant operation.
-- Adds cost and beneficiary sections from the value page.
-- Preserves the scope disclaimer that AGF is not a replacement for review
-  culture.
+This plan also covers the generator bug (L019) where `agov coord brief
+--id-format readable` appended a redundant `-<role>` suffix to the output
+filename. Two historical files with wrong suffixes are immutable on main.
 
-### `agf/docs/site/value.md`
+## Scope (for Gate 1 review — no implementation in this MR)
 
-- Deleted. Content now lives in `index.md`.
+The plan decomposes the implementation into 6 tasks for coder-tester:
 
-### `agf/docs/build/mkdocs.yml`
+1. New `agf/rules/workflow/coordination-id-rule.md`
+2. AGENTS.md update (policy + filename convention table)
+3. Generator fix — `agov coord brief --id-format readable` → `<id>.md`
+4. Validator advisory — WARN on AI-authored manual IDs
+5. Gate self-test (per `gate-self-test-rule.md`)
+6. Learning records L019/L020 — already done on this branch
 
-- Removes the `Value proposition: value.md` nav entry.
-- Switches `theme.name` from `mkdocs` to `material`.
-- Adds automatic light/dark palette configuration and manual toggle.
-- Adds `navigation.top` and `content.code.copy`.
+## Gate 1 checklist
 
-### `.gitlab-ci.yml`
-
-- Installs the MkDocs docs dependency set required by the Material theme in CI.
-
-## Validation
-
-- `mise exec -- uv run --project agents-govern --group docs mkdocs build -f agf/docs/build/mkdocs.yml --strict`
-- `git diff --check`
-
-## Checklist
-
-- [x] No nav entry remains for deleted `value.md`
-- [x] Value Proposition content is preserved in `index.md`
-- [x] CI installs the docs dependencies required for the configured theme
-- [x] No `Co-authored-by` or AI-tool trailers in commits
+- [x] Plan file in `docs/plans/` with timestamp from OS
+- [x] Affected files list complete
+- [x] Migration needed: No
+- [x] Test strategy stated
+- [x] Risks assessed: Low
+- [x] Rollback path stated
+- [x] Downstream impact: EDITORIAL
+- [x] Decomposition into implementable tasks
+- [x] Gate 1 handoff coordination message filed
