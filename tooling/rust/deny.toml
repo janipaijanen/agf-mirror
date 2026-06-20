@@ -1,0 +1,52 @@
+# cargo deny configuration — license compliance for agov Rust tooling.
+#
+# Policy: permissive licenses only.
+# Everything not in the allow list is denied by default (cargo-deny 0.17+ behaviour).
+# Explicitly denied: GPL, AGPL, LGPL, SSPL, OSL, EUPL, CDDL — any license that
+# would impose copyleft obligations on the binary or require source disclosure.
+#
+# OR-expression crates: cargo-deny resolves to the first allowed arm.
+# Example: r-efi is "MIT OR Apache-2.0 OR LGPL-2.1-or-later" — MIT is chosen.
+
+[licenses]
+confidence-threshold = 0.9
+
+allow = [
+    # Permissive
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unlicense",
+    "CC0-1.0",
+    # Unicode / ICU data files
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    # Our own workspace crates (framework dual-license)
+    "CC-BY-SA-4.0",
+    "LicenseRef-AgentsGovern-Commercial",
+]
+
+# No [[licenses.exceptions]] needed today.
+# r-efi (LGPL-2.1-or-later) is resolved via its MIT arm automatically.
+# If a future dependency introduces LGPL with no permissive alternative, add
+# a justified exception here with rationale.
+
+[bans]
+# Warn on multiple versions of the same crate pulled into the graph.
+multiple-versions = "warn"
+# Deny wildcard version requirements (forces explicit pinning).
+wildcards = "deny"
+
+[advisories]
+# Deny crates with known security vulnerabilities (RustSec advisory database).
+# Add specific advisory IDs to `ignore` only with documented rationale.
+ignore = []
+
+[sources]
+# Only crates.io is an approved source; deny unknown registries and git sources.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

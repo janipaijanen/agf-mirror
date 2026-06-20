@@ -29,6 +29,21 @@ Adopters generating CAD drawings and documents (*blue-marlin*) used the
 visual-verification and file-generator rules to catch defect classes that
 unit tests structurally miss.
 
+**One assistant across sessions, or several assistants working in parallel.**
+The framework places no requirement on how many AI tools are involved. A single
+assistant — Claude Code, Codex CLI, Cursor, Windsurf, or any tool that loads
+the rule files — can fill every role sequentially across work sessions; the
+coordination channel preserves continuity between them.
+
+When several assistants are active simultaneously, each holds a distinct role
+and exchanges work through the same channel. One assistant commits a handoff
+entry and pushes it; another pulls and picks it up. The medium is git: plain
+files in the repository, no shared runtime, no message API, no session
+continuity required between the tools. Each assistant is configured
+independently with the framework rules and reads only what the coordination
+channel contains. Role boundaries in the agent definitions keep the tools from
+stepping on each other — each knows what it owns and what requires a handoff.
+
 ## Non-use cases
 
 Be skeptical of adopting if any of these describe you:

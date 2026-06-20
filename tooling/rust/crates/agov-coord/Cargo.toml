@@ -1,0 +1,13 @@
+[package]
+name = "agov-coord"
+description = "Coordination channel domain: coord and plan file validation, channel reader"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+agov-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_norway = { workspace = true }

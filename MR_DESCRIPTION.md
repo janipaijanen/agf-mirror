@@ -1,36 +1,111 @@
-# Gate 1 plan: Rust port of agov CLI tooling
+# feat(rust): Phase 1 Rust agov CLI port
 
 ## Summary
 
-- Adds `docs/plans/rust-agov-port.md` — architecture and phased scope for porting the `agov` CLI from Elixir/OTP to Rust
-- Adds `docs/coordination/01KVJZBMN8FRGPZZYPAQDAW3MF-planner-architect.md` — Gate 1 handoff to governor-reviewer
+Implements the approved Phase 1 Rust `agov` CLI port.
 
-## What the plan proposes
+This MR adds a Rust workspace under `tooling/rust/` for Phase 1 validation
+commands, keeps Elixir as the reference implementation, and wires CI preview,
+test, clippy, dependency-policy, parity, and build jobs for the Rust tooling
+lane.
 
-The current `agov` CLI ships a bundled ERTS runtime (~50–70 MB, Linux x86_64 only). The Rust port produces statically-linked binaries of 5–12 MB for Linux x86_64/ARM64 and macOS x86_64/ARM64, with no runtime dependency on Elixir or OTP.
+## Scope
 
-Key architectural decisions in the plan:
+- Adds the Rust workspace:
+  - `agov-core`
+  - `agov-coord`
+  - `agov-validators`
+  - `agov`
+- Implements:
+  - `agov coord validate <file>...`
+  - `agov plan validate <file>...`
+  - `agov validate`
+  - `agov validate agents`
+  - `agov validate learnings`
+  - `agov validate adoption`
+  - `agov validate infosec`
+  - `agov validate contributions`
+  - `agov validate framework-config`
+- Preserves dotted compatibility aliases:
+  - `agov agov.coord.validate <file>...`
+  - `agov agov.plan.validate <file>...`
+- Adds local saved-token ROI logging for successful Rust validation commands:
+  - default: `tmp/agov-token-roi.jsonl`
+  - override: `AGOV_TOKEN_ROI_LOG`
+  - disable: `AGOV_TOKEN_ROI=0|false|off`
+- Adds live Rust-vs-Elixir parity cases in `tooling/rust/tests/parity/run.sh`.
+- Adds Rust CI jobs:
+  - `rust:tooling:test`
+  - `rust:tooling:deny`
+  - `rust:tooling:clippy`
+  - `rust:tooling:parity`
+  - `rust:tooling:build:preview` for Linux musl preview targets:
+    - `x86_64-unknown-linux-musl`
+    - `aarch64-unknown-linux-musl`
+- Adds a CI workflow guard so `coordination:` audit-trail commits do not
+  retrigger the full MR build matrix.
+- Adds dependency policy via `tooling/rust/deny.toml`.
+- Uses `serde_norway` instead of `serde_yml` after the RustSec advisory.
+- Updates token ROI reference docs with validation workflow baselines.
 
-- **Workspace layout**: `tooling/rust/` with four crates — `agov-core`, `agov-coord`, `agov-validators`, `agov` (binary)
-- **Concurrency**: `rayon` for parallel file validation; no async runtime needed for a CLI
-- **Output compatibility**: byte-for-byte parity with the Elixir CLI output; parity test suite is a blocking CI check
-- **Saved-token evidence**: Phase 1 Rust validation commands append local
-  JSONL token ROI records compatible with existing Elixir reporting
-- **Phasing**: Phase 1 = all validation commands; Phase 2 = channel analysis commands; Elixir tooling untouched throughout
-- **Distribution**: `cross`-compiled via CI for four platform targets; archive layout mirrors current Elixir format
+## Governance Trail
 
-## What Gate 1 approval authorises
+- Gate 1 approval:
+  `docs/coordination/01KVK1QRVS3WAW4FPKMAT2W00J-governor-reviewer.md`
+- Collaboration protocol:
+  `docs/coordination/01KVK1V68PYXVJ45ST8ENMBVVY-planner-architect.md`
+- Codex protocol ack:
+  `docs/coordination/01KVK1YT6KZNVN0WVFNV6728JT-coder-tester.md`
+- Scaffold API review request:
+  `docs/coordination/01KVK2QMMGE2G8VFXJ599HQ5WA-planner-architect.md`
+- Codex API review ack:
+  `docs/coordination/01KVK2Y6RMYPA795AYVJN1X4C0-coder-tester.md`
+- Implementation cleared:
+  `docs/coordination/01KVK3049XQPM1GE8WBJ5N2D00-planner-architect.md`
+- Implementation start:
+  `docs/coordination/01KVK3KF8D5HEB9KQH1EYC4QJW-coder-tester.md`
+- Scaffold/dependency notes:
+  `docs/coordination/01KVK3XCNFHV6TK8WQPC1Y0M00-planner-architect.md`
+  `docs/coordination/01KVK4D2PH56CX8MXY3J7MNVR0-planner-architect.md`
+- Gate 2 handoff and final CI evidence:
+  `docs/coordination/01KVK58XFZ91W97F11EZE9BCEW-coder-tester.md`
+  `docs/coordination/01KVKB0BS8GERB05Q5RVNX06P3-coder-tester.md`
 
-- Creation of `feat/rust-agov-phase1` branch
-- Implementation of `tooling/rust/` workspace covering Phase 1 validation commands
-- Local saved-token logging for successful Phase 1 validation commands, using
-  `tmp/agov-token-roi.jsonl` by default and `AGOV_TOKEN_ROI_LOG` as override
-- Addition of `rust:tooling:test`, `rust:tooling:clippy`, `rust:tooling:build:preview` CI jobs
+## Verification
 
-It does not authorise Phase 2 implementation, bundle rewiring, or removal of the Elixir tooling.
+- `cargo test --workspace` passed.
+- `cargo clippy --workspace -- -D warnings` passed.
+- `bash tooling/rust/tests/parity/run.sh` passed: 13 passed, 0 failed.
+- `agov plan validate docs/plans/rust-agov-port.md` passed.
+- New coordination messages validated.
+- Rust ROI JSONL smoke test passed.
+- Elixir `mix agov.token.roi report` read a Rust-generated JSONL record.
+- Logging-enabled vs logging-disabled stdout/stderr parity check passed.
+- `git diff --check` passed.
+- GitLab MR pipeline `2616471585` passed after the final Rust preview and
+  cache-safety fixes, including `rust:tooling:build:preview`,
+  `rust:tooling:deny`, `rust:tooling:test`, `rust:tooling:clippy`, and
+  `rust:tooling:parity`.
+- GitLab CI lint passed for the `coordination:` workflow skip guard.
 
-## Advisory consultations
+## Review Notes
 
-- `infosec-sentinel`: crate supply chain, cross toolchain, static linking, CI secrets — consulted
-- `contribution-auditor`: new `tooling/rust/` subtree, workspace layout — consulted
-- `build-engineer`: suspended; CI concerns documented in §10 of the plan; reviewed by governor-reviewer at Gate 2
+- `cargo deny check` was not run locally because `cargo-deny` is not installed
+  in this shell. The CI job installs `cargo-deny` before running the check, and
+  the MR pipeline passed the dependency policy job.
+- Generated Rust `target/` output and local token ROI logs are not committed.
+- Elixir tooling remains the reference implementation and is not removed.
+- macOS preview builds are deferred because upstream `cross` does not provide
+  Darwin images; those targets require a separately approved macOS SDK/custom
+  image supply-chain path.
+- The `coordination:` workflow skip is intentionally commit-title based. It
+  preserves full CI for code, docs, and CI changes while avoiding repeated full
+  MR rebuilds for plain governance coordination updates.
+
+## Out of Scope
+
+- Phase 2 channel analysis commands.
+- Rust-native `agov token roi report`.
+- Release build CI (`rust:tooling:build:release`).
+- Bundle rewiring or Elixir deprecation.
+- macOS/Windows binary or installer work beyond the Linux preview build lane.
