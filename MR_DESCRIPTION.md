@@ -39,7 +39,9 @@ lane.
   - `rust:tooling:deny`
   - `rust:tooling:clippy`
   - `rust:tooling:parity`
-  - `rust:tooling:build:preview`
+  - `rust:tooling:build:preview` for Linux musl preview targets:
+    - `x86_64-unknown-linux-musl`
+    - `aarch64-unknown-linux-musl`
 - Adds dependency policy via `tooling/rust/deny.toml`.
 - Uses `serde_norway` instead of `serde_yml` after the RustSec advisory.
 - Updates token ROI reference docs with validation workflow baselines.
@@ -82,6 +84,9 @@ lane.
   in this shell. The CI job installs `cargo-deny` before running the check.
 - Generated Rust `target/` output and local token ROI logs are not committed.
 - Elixir tooling remains the reference implementation and is not removed.
+- macOS preview builds are deferred because upstream `cross` does not provide
+  Darwin images; those targets require a separately approved macOS SDK/custom
+  image supply-chain path.
 
 ## Out of Scope
 
@@ -89,4 +94,4 @@ lane.
 - Rust-native `agov token roi report`.
 - Release build CI (`rust:tooling:build:release`).
 - Bundle rewiring or Elixir deprecation.
-- macOS/Windows installer work beyond the authorized preview build lane.
+- macOS/Windows binary or installer work beyond the Linux preview build lane.

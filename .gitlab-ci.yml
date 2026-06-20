@@ -354,7 +354,7 @@ rust:tooling:parity:
       changes:
         - tooling/rust/**/*
 
-# Build preview binaries for all four platform targets using `cross`.
+# Build preview binaries for Phase 1 Linux platform targets using `cross`.
 # Artifacts expire after one week; not a release build.
 rust:tooling:build:preview:
   extends: .rust-base
@@ -374,15 +374,11 @@ rust:tooling:build:preview:
   script:
     - cross build --release --target x86_64-unknown-linux-musl
     - cross build --release --target aarch64-unknown-linux-musl
-    - cross build --release --target x86_64-apple-darwin
-    - cross build --release --target aarch64-apple-darwin
   artifacts:
     name: "agov-rust-preview-$CI_COMMIT_SHORT_SHA"
     paths:
       - tooling/rust/target/x86_64-unknown-linux-musl/release/agov
       - tooling/rust/target/aarch64-unknown-linux-musl/release/agov
-      - tooling/rust/target/x86_64-apple-darwin/release/agov
-      - tooling/rust/target/aarch64-apple-darwin/release/agov
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
