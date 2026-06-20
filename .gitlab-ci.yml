@@ -371,7 +371,7 @@ rust:tooling:build:preview:
     - apt-get update -qq && apt-get install -y -qq docker.io
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install cross --git https://github.com/cross-rs/cross
+    - cargo install cross --git https://github.com/cross-rs/cross --force
   script:
     - cross build --release --target x86_64-unknown-linux-musl
     - cross build --release --target aarch64-unknown-linux-musl
