@@ -19,12 +19,14 @@ defmodule Agov.HandoffReaderTest do
 
   defp write_decision!(dir, filename, seq, references) do
     refs = Enum.map_join(references, "\n", &"  - #{&1}")
+    id = Agov.CoordIdentity.generate_ulid()
 
     File.write!(Path.join(dir, filename), """
     ---
     kind: decision-record
     from: governor-reviewer
     to: planner-architect
+    id: #{id}
     seq: #{seq}
     timestamp: 2026-06-11T00:02:00Z
     immutable: true

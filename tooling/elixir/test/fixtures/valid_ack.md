@@ -2,6 +2,7 @@
 kind: ack
 from: governor-reviewer
 to: planner-architect
+id: "01KVD6GF0V3SNBF1NV644Z2ZFP"
 seq: 43
 timestamp: 2026-06-10T00:01:00Z
 immutable: true

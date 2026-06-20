@@ -25,7 +25,7 @@ defmodule Agov.ChannelReaderTest do
 
       File.write!(
         Path.join(tmp, "00001-planner-architect.md"),
-        message("seq: 1", "2026-06-13T00:00:00Z")
+        message("id: 01KVD6GF0V4XBT269H8EBPWTKW\nseq: 1", "2026-06-13T00:00:00Z")
       )
 
       File.write!(

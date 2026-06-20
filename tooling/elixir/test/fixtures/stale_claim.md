@@ -2,6 +2,7 @@
 kind: claim
 from: planner-architect
 to: all
+id: "01KVD6GF0VS4PFSAZD7T0AJP1M"
 seq: 100
 timestamp: 2020-01-01T00:00:00Z
 immutable: true

@@ -2,6 +2,7 @@
 kind: claim
 from: planner-architect
 to: governor-reviewer
+id: "01KVD6GF0V1PSV2JJ6MPXH0T96"
 seq: 42
 timestamp: 2026-06-10T00:00:00Z
 immutable: true

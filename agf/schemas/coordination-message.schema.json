@@ -5,6 +5,7 @@
   "description": "Front matter schema for AGF-NG coordination channel messages (docs/coordination/*.md)",
   "type": "object",
   "required": [
+    "id",
     "kind",
     "from",
     "to",
@@ -41,11 +42,14 @@
     },
     "seq": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "x-deprecated": true,
+      "description": "Deprecated. Advisory only — do NOT assign as a global counter. Causal ordering belongs in references-to and timestamp. Kept for backward compatibility with existing channels."
     },
     "id": {
       "type": "string",
-      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+      "description": "ULID — time-sortable, conflict-free unique identifier. Required. Generate with any ULID library or https://www.ulidtools.com"
     },
     "timestamp": {
       "type": "string",

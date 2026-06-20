@@ -79,7 +79,7 @@ and printed the expected AGOV CLI usage.
 
 - `git diff --check` passed.
 - `mix compile --warnings-as-errors` passed.
-- `mix test` passed: 200 passed, 0 failures.
+- `mix test` passed after merging `origin/main`: 204 passed, 0 failures.
 - `mix agov.validate` passed.
 - `mix agov.dist.validate` passed.
 - `mix agov.dist.build` passed.

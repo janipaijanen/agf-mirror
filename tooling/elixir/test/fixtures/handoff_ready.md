@@ -2,6 +2,7 @@
 kind: handoff
 from: planner-architect
 to: coder-tester
+id: "01KVD6GF0T7VEH9XKTEZDWDPC6"
 seq: 50
 timestamp: 2026-06-11T00:00:00Z
 immutable: true
