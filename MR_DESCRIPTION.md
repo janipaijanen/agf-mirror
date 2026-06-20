@@ -7,6 +7,10 @@ This MR adds a linux-x86_64 Mix release archive for the `agov` tooling and a
 single AGF bundle archive that wraps the framework source archives plus the
 tooling binary archive.
 
+The framework source archive remains usable on its own. The tooling archive and
+combined bundle are optional convenience artifacts, not prerequisites for
+adopting AGF.
+
 # Scope
 
 - Adds Mix release configuration for `agov` with bundled ERTS.
@@ -22,6 +26,8 @@ tooling binary archive.
   - `agf:bundle:release`
 - Adds tests for tooling archive layout/provenance/checksum, bundle layout and
   `SHA256SUMS`, and missing-tooling-archive failure.
+- Updates adopter-facing release/install wording so framework-only,
+  tooling-only, and bundle release lanes are described consistently.
 - Adds the Gate 2 handoff record:
   `docs/coordination/01KV7NDSZEMZ1G87JTBRGGWAVC-coder-tester.md`.
 
@@ -33,6 +39,10 @@ tooling binary archive.
   `docs/coordination/01KV7MAZC8PEX9XF60T8XXPYA2-governor-reviewer.md`.
 - Gate 2 handoff:
   `docs/coordination/01KV7NDSZEMZ1G87JTBRGGWAVC-coder-tester.md`.
+- Framework-only adoption note:
+  `docs/coordination/01KVA0V3DTSXCGRS67GEH0SVQ1-coder-tester.md`.
+- Review-fix note:
+  `docs/coordination/01KVJZ98VPESN1YB9ATJQ3KXY4-coder-tester.md`.
 
 # Implementation Notes
 
@@ -76,6 +86,8 @@ and printed the expected AGOV CLI usage.
 - `mix agov.tooling.build` passed.
 - `mix agov.bundle.build` passed.
 - Unpacked `bin/agov --help` passed.
+- `agov coord validate
+  docs/coordination/01KVJZ98VPESN1YB9ATJQ3KXY4-coder-tester.md` passed.
 - Gate self-test passed for both new release command sequences:
   - `CI_COMMIT_TAG=v9.99.99 mix agov.dist.check_tag && mix agov.tooling.build`
     exited 1 at the tag guard.
@@ -94,6 +106,8 @@ and printed the expected AGOV CLI usage.
   - unused `@tag` before `describe` in `test/agov/coord_config_test.exs`
   - unused default argument in private `claim/3` in
     `test/agov/claim_tracker_test.exs`
+- Local MkDocs strict build was not rerun after the review-fix docs commit
+  because `mkdocs` is not installed in this shell.
 
 # Out of Scope
 
