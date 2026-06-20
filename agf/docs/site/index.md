@@ -49,8 +49,13 @@ humans and AI agents follow them.
   "should we build this?" checkpoint) and review before merge (Gate 2, the
   "is this ready to land?" checkpoint), with a formal fast-track for small
   tasks.
-- **A coordination channel** — an append-only, schema-shaped decision log
-  that makes every handoff, decision, and completion reconstructible.
+- **A coordination channel** — an append-only, file-based decision log that
+  records every handoff, decision, and completion as a plain YAML file
+  committed to git. Because the channel is just files in a repository, it
+  works the same way whether one assistant fills all roles across sessions or
+  several assistants collaborate in parallel: each reads and writes the same
+  files through ordinary git operations, with no shared runtime or message
+  API required.
 - **A rule library** — thirty-plus governance rules (TDD, immutable tags,
   merge-request workflow, security hardening, …) ready to copy into your
   AI assistant's configuration.
