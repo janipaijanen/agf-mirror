@@ -1,3 +1,23 @@
+---
+id: agf-tooling-first-ids
+status: pending-gate1
+topic: tooling-first-coordination-ids
+advisory_consultation:
+  - role: infosec-sentinel
+    status: consulted
+    reason: >
+      The plan adds coordination ID generation and validation policy, including
+      advisory validation behavior. No credentials or secret handling are in
+      scope, but InfoSec should confirm the advisory/manual-ID policy does not
+      weaken audit integrity.
+  - role: contribution-auditor
+    status: consulted
+    reason: >
+      The plan changes workflow rules, AGENTS.md contributor guidance, tooling
+      behavior, and learning records. Contribution audit should confirm the
+      policy and implementation scope remain aligned with AGF governance.
+---
+
 # Plan: Tooling-First Coordination ID Policy
 
 **Date:** 2026-06-20T22:10:23Z
