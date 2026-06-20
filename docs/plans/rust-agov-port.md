@@ -30,6 +30,10 @@ runtime (~50–70 MB), enable true static binaries for Linux, macOS (Intel +
 Apple Silicon), and Windows, and unblock adopters who cannot or do not want
 to run an Elixir/OTP stack.
 
+The Rust port must also make its own value measurable. Phase 1 records local,
+append-only saved-token evidence for successful Rust validation commands so the
+project can justify Rust usage with data instead of anecdote.
+
 The Elixir tooling remains in place during the transition. Both tooling
 implementations coexist under `tooling/elixir/` and `tooling/rust/`
 respectively until the Rust port reaches Phase 2 feature parity, at which
@@ -49,6 +53,7 @@ This plan does not cover:
 | Runtime dependency | Elixir + OTP required on dev machine for source build | `cargo` only; binary adopters need nothing |
 | Parallel validation | OTP processes (startup cost per file) | `rayon` data parallelism, zero per-task overhead |
 | Installation | Mix release unpack + PATH config | Single binary, drop anywhere |
+| Token ROI evidence | Existing Elixir-only local JSONL telemetry | Rust validation commands append compatible saved-token records |
 
 ## 3. Workspace layout
 
@@ -198,6 +203,11 @@ Commands:
 
 Gate: parity test suite passes for all Phase 1 commands on the AGF fixture set.
 
+Successful Phase 1 validation commands also record local token ROI evidence as
+defined in section 8. Logging is part of Phase 1 because validation commands
+are the first Rust surface whose deterministic output can replace repeated AI
+context reads.
+
 ### Phase 2 — Channel analysis
 
 Commands:
@@ -220,7 +230,71 @@ Gate: parity test suite passes for all Phase 2 commands.
 - `agov dist build` / `agov tooling build` / `agov bundle build`
 - Mix release packaging tasks
 
-## 8. Distribution strategy
+## 8. Saved-token evidence log
+
+Phase 1 Rust validation commands append local token ROI records compatible with
+the existing Elixir `Agov.TokenRoi` JSONL format.
+
+### 8.1 Path and switches
+
+- Default path: repository-root `tmp/agov-token-roi.jsonl`.
+- Override: `AGOV_TOKEN_ROI_LOG=<path>`.
+- Disable: `AGOV_TOKEN_ROI=0`, `AGOV_TOKEN_ROI=false`, or
+  `AGOV_TOKEN_ROI=off`.
+- Format: append-only JSONL, one record per successful Rust command run.
+- Consumer: existing Elixir `mix agov.token.roi report`; no Rust-native
+  `agov token roi report` command is authorized in Phase 1.
+
+The log remains local and gitignored through the repository's existing `tmp/`
+ignore rule. It must not store prompts, command output bodies, model responses,
+secrets, billing data, or remote telemetry.
+
+### 8.2 Record shape
+
+Each Rust-generated record must include at minimum:
+
+- `event: "tool_output"`;
+- `timestamp`;
+- `implementation: "rust-agov"`;
+- `command`;
+- `args`;
+- `workflow`;
+- `chars`;
+- `approx_tokens`;
+- `prompt_overhead_tokens`;
+- `baseline_source` when a workflow baseline is known;
+- `approx_saved_min_tokens` and `approx_saved_max_tokens` when a workflow
+  baseline is known.
+
+Token estimates use the existing approximation:
+
+```text
+approx_tokens = ceil(character_count / 4)
+```
+
+Savings estimates use the documented manual-baseline ranges in
+`docs/reference/tooling-token-roi.md`. Unknown workflows may record measured
+usage without inventing saved-token fields.
+
+### 8.3 Phase 1 workflow labels
+
+Rust Phase 1 commands use these workflow labels:
+
+| Command | Workflow label |
+|---|---|
+| `agov coord validate <file>...` | `coord-validate` |
+| `agov plan validate <file>...` | `plan-validate` |
+| `agov validate` | `validate:umbrella` |
+| `agov validate <subcommand>` | `validate:<subcommand>` |
+
+### 8.4 Compatibility requirements
+
+Saved-token logging must not alter command stdout, stderr, output ordering, or
+exit codes. Logging failure is non-fatal by default. Strict telemetry failure
+handling is not part of this plan unless a future Gate 1 decision explicitly
+adds it.
+
+## 9. Distribution strategy
 
 CI builds four platform targets using `cross`:
 
@@ -244,7 +318,7 @@ agov-<version>-<platform>/
 Bundle job (`agf:bundle:release`) is rewired after Phase 2 completion to
 pick up Rust binaries instead of the Elixir Mix release.
 
-## 9. CI pipeline changes
+## 10. CI pipeline changes
 
 New jobs added to `.gitlab-ci.yml`:
 
@@ -261,10 +335,11 @@ Path scoping per `ci-trigger-scoping-rule.md`:
 
 The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes.
 
-## 10. Migration path
+## 11. Migration path
 
 1. `tooling/rust/` subtree created on `feat/rust-agov-phase1` branch.
-2. Phase 1 implemented; parity tests written and passing.
+2. Phase 1 implemented; parity and saved-token evidence tests written and
+   passing.
 3. Gate 2 review: governor-reviewer + build-engineer + infosec-sentinel.
 4. Merge Phase 1. Elixir tooling unchanged.
 5. Phase 2 implemented on `feat/rust-agov-phase2`.
@@ -272,7 +347,7 @@ The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes
 7. Merge Phase 2. Bundle CI rewired. Elixir tooling enters maintenance mode.
 8. Separate future decision: deprecate / remove Elixir tooling.
 
-## 11. Affected files
+## 12. Affected files
 
 **New:**
 - `tooling/rust/` subtree (all files listed in §3)
@@ -286,7 +361,7 @@ The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes
 - `tooling/elixir/` — untouched throughout Phase 1 and Phase 2
 - `agf/` framework sources — no changes
 
-## 12. Risks
+## 13. Risks
 
 | Risk | Likelihood | Mitigation |
 |------|-----------|------------|
@@ -294,14 +369,20 @@ The Elixir CI jobs (`agov:tooling:*`) remain unchanged until Phase 2 gate passes
 | `jsonschema` crate lacks draft-07 feature parity | Low | Evaluate against all AGF schemas before committing; crate supports draft-07 |
 | `cross` Docker images unavailable in CI | Medium | Pin image digests; keep Elixir jobs active as fallback |
 | Output format drift breaks adopter scripts | Low | Parity tests are blocking; format is tested per command |
+| Saved-token logging changes command output or failure behavior | Low | Logging is side-channel JSONL only; parity tests run with logging enabled and disabled |
 | Rust build time slows CI | Medium | `sccache` + CI caching; `cargo-chef` for Docker layer caching |
 
-## 13. Test strategy
+## 14. Test strategy
 
 - **Unit tests**: per crate, `cargo test`
 - **Parity tests**: run Elixir and Rust CLI on the same AGF fixture set, `diff` output; blocking CI check
 - **Snapshot tests**: `insta` for CLI output stability across refactors
 - **Integration tests**: run `agov validate` against the live `agf/` directory in CI
+- **Token ROI tests**: cover token estimate math, JSONL serialization,
+  `AGOV_TOKEN_ROI_LOG`, disable switch, default path resolution, compatible
+  Elixir `Agov.TokenRoi.load/summarize` consumption, successful validation
+  append behavior, invalid validation non-recording, and stdout/stderr parity
+  with logging enabled
 
 Coverage floor: no existing Elixir test scenario may be left without a
 corresponding Rust test.
