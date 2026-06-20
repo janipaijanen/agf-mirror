@@ -17,8 +17,30 @@
 #   agov:tooling:*    — build review/release linux-x86_64 AGOV tooling archives
 #   agf:bundle:*      — build review/release framework + tooling bundles
 #   release:create    — upload archives to package registry; create GitLab release entry
+#   rust:tooling:*    — Phase 1 Rust tooling: test, clippy, parity, build:preview
+
+workflow:
+  rules:
+    # Coordination-only commits update the durable governance trail. They should
+    # not invalidate the last green code pipeline for an MR.
+    - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
+      when: never
+    - when: always
 
 # ── Shared templates ──────────────────────────────────────────────────────────
+
+.rust-base:
+  image: rust:1
+  variables:
+    CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  cache:
+    key: rust-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cargo/registry
+      - .cargo/bin
+      - tooling/rust/target
+  before_script:
+    - cd tooling/rust
 
 .elixir-base:
   image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
@@ -262,3 +284,115 @@ release:create:
         --assets-link "{\"name\":\"agf-${VERSION}.zip\",\"url\":\"${PKG_BASE}/agf-${VERSION}.zip\",\"link_type\":\"package\"}" \
         --assets-link "{\"name\":\"${TOOLING_TAR}\",\"url\":\"${PKG_BASE}/${TOOLING_TAR}\",\"link_type\":\"package\"}" \
         --assets-link "{\"name\":\"agf-${VERSION}-bundle.tar.gz\",\"url\":\"${PKG_BASE}/agf-${VERSION}-bundle.tar.gz\",\"link_type\":\"package\"}"
+
+# ── Rust tooling (Phase 1) ─────────────────────────────────────────────────────
+# Path-scoped per ci-trigger-scoping-rule.md: only fire when tooling/rust/ changes.
+# rust:tooling:build:release is NOT authorised in Phase 1 — see plan §10.
+
+# Scan dependency licenses and advisories. Blocks on GPL/AGPL/LGPL/SSPL and known
+# vulnerabilities. deny.toml defines the allowed-license allow-list.
+rust:tooling:deny:
+  extends: .rust-base
+  stage: test
+  script:
+    - cargo install cargo-deny --locked --version "^0.19" --force
+    - cargo deny check
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_TAG
+
+# Compile and test the Rust workspace on every push touching tooling/rust/.
+rust:tooling:test:
+  extends: .rust-base
+  stage: test
+  script:
+    - cargo test --workspace
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_TAG
+      changes:
+        - tooling/rust/**/*
+
+# Lint the Rust workspace. Warnings are treated as errors.
+rust:tooling:clippy:
+  extends: .rust-base
+  stage: test
+  script:
+    - rustup component add clippy
+    - cargo clippy --workspace -- -D warnings
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/rust/**/*
+
+# Parity test: diff Rust and Elixir CLI output on the same fixture set.
+# Blocking CI check during the Phase 1 transition period.
+rust:tooling:parity:
+  image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
+  stage: test
+  variables:
+    AGOV_ALLOW_ROOT: "1"
+    AGOV_SCHEMA_DIR: "$CI_PROJECT_DIR/agf/schemas"
+    AGOV_MANIFEST_PATH: "$CI_PROJECT_DIR/agf/agents/MANIFEST.yaml"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq build-essential curl
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+    - source "$HOME/.cargo/env"
+    - cd tooling/elixir && mix deps.get && cd ../..
+  script:
+    - (cd tooling/rust && cargo build)
+    - bash tooling/rust/tests/parity/run.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/rust/**/*
+
+# Build preview binaries for Phase 1 Linux platform targets using `cross`.
+# Artifacts expire after one week; not a release build.
+rust:tooling:build:preview:
+  extends: .rust-base
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    CROSS_REMOTE: "1"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq docker.io
+    - cd tooling/rust
+    - export PATH="$CARGO_HOME/bin:$PATH"
+    - cargo install cross --git https://github.com/cross-rs/cross --force
+  script:
+    - cross build --release --target x86_64-unknown-linux-musl
+    - cross build --release --target aarch64-unknown-linux-musl
+  artifacts:
+    name: "agov-rust-preview-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - tooling/rust/target/x86_64-unknown-linux-musl/release/agov
+      - tooling/rust/target/aarch64-unknown-linux-musl/release/agov
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - tooling/rust/**/*

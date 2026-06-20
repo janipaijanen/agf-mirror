@@ -2,44 +2,55 @@
 
 ## Summary
 
-- Merges `agf/docs/site/value.md` content into `agf/docs/site/index.md` — one entry point instead of two
+- Merges `agf/docs/site/value.md` content into `agf/docs/site/index.md` as one reader entry point
 - Deletes `agf/docs/site/value.md` and removes its nav entry
-- Switches MkDocs theme from `mkdocs` (basic) to `material` with automatic dark/light mode via `prefers-color-scheme`
+- Switches MkDocs theme from `mkdocs` to `material` with automatic dark/light mode via `prefers-color-scheme`
 
 ## Why
 
-The Home and Value Proposition pages covered the same reader intent (what is AGF and why adopt it?) with overlapping content. Per `marketing-tone-rule`, each claim is stated once in canonical form; the duplication invited drift. The merged page preserves all content from both sources, organised as: what AGF is → the situation → what you get → what it costs → who benefits → where to go next → evidence.
+The Home and Value Proposition pages covered the same reader intent: what AGF is
+and why a team would adopt it. Per `marketing-tone-rule`, each claim should be
+stated once in canonical form. The merged page preserves the value content and
+organizes it as: what AGF is, the situation, what you get, what it costs, who
+benefits, where to go next, and evidence.
 
-Use Cases and Evolution pages were assessed and kept separate: Use Cases is distinct in purpose; Evolution mixes hypothesis with shipped capabilities and must stay separate per `implementation-honesty-rule`.
+Use Cases and Evolution were assessed and kept separate. Use Cases has a
+distinct job; Evolution mixes shipped capabilities with hypotheses and stays
+separate under `implementation-honesty-rule`.
 
-The Material theme was already declared in `agents-govern/pyproject.toml` (`mkdocs-material>=9.5,<10`) but never activated. No new packages required. The `prefers-color-scheme` palette reads the user's OS/browser preference automatically; a toggle allows manual override.
+The Material theme was already declared in `agents-govern/pyproject.toml`
+(`mkdocs-material>=9.5,<10`) but was not active. No new packages are required.
 
 ## Changes
 
 ### `agf/docs/site/index.md`
-- Absorbed all content from `value.md`
-- Structure: what AGF is and is not → the situation → what you get → what it costs → who benefits → where to go next → evidence
-- Removed duplication: "Why this exists" and "The situation" unified into one narrative
-- Scope disclaimer ("not a replacement for review culture") preserved verbatim from value.md
+
+- Absorbs the Value Proposition page content.
+- Keeps current Home framing from main, including the file-based coordination
+  model for single-assistant and multi-assistant operation.
+- Adds cost and beneficiary sections from the value page.
+- Preserves the scope disclaimer that AGF is not a replacement for review
+  culture.
 
 ### `agf/docs/site/value.md`
-- Deleted (`git rm`) — all content now lives in `index.md`
+
+- Deleted. Content now lives in `index.md`.
 
 ### `agf/docs/build/mkdocs.yml`
-- Removed `- Value proposition: value.md` nav entry
-- `theme.name` changed from `mkdocs` to `material`
-- Added `palette` block: `prefers-color-scheme: light` → `default`/indigo; `prefers-color-scheme: dark` → `slate`/indigo; both with manual toggle
-- Added `features: [navigation.top, content.code.copy]`
+
+- Removes the `Value proposition: value.md` nav entry.
+- Switches `theme.name` from `mkdocs` to `material`.
+- Adds automatic light/dark palette configuration and manual toggle.
+- Adds `navigation.top` and `content.code.copy`.
 
 ## Verification
 
-- `mkdocs build --strict` passes (0.27s, no warnings, no broken links)
-- Dark/light mode switches automatically on browser preference; toggle visible in header
+- `mise exec -- uv run --project agents-govern --group docs mkdocs build -f agf/docs/build/mkdocs.yml --strict`
+- `git diff --check`
 
 ## Checklist
 
-- [x] No new nav entry added for deleted `value.md`
-- [x] All `value.md` content preserved in `index.md`
+- [x] No nav entry remains for deleted `value.md`
+- [x] Value Proposition content is preserved in `index.md`
 - [x] No new package dependencies
-- [x] Strict-mode build passes
 - [x] No `Co-authored-by` or AI-tool trailers in commits

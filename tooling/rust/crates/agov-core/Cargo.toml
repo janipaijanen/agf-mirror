@@ -1,0 +1,16 @@
+[package]
+name = "agov-core"
+description = "Core types, YAML/JSON parsing, schema validation, and output formatting for agov"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_norway = { workspace = true }
+jsonschema = { workspace = true }
+ulid = { workspace = true }
+regex = { workspace = true }
+time = { workspace = true }

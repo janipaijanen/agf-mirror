@@ -1,0 +1,21 @@
+[package]
+name = "agov"
+description = "agov CLI — AGF governance tooling"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "agov"
+path = "src/main.rs"
+
+[dependencies]
+agov-core = { workspace = true }
+agov-coord = { workspace = true }
+agov-validators = { workspace = true }
+clap = { workspace = true }
+rayon = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }

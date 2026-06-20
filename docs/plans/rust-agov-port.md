@@ -306,16 +306,16 @@ adds it.
 
 ## 9. Distribution strategy
 
-CI builds four platform targets using `cross`:
+Phase 1 CI preview builds the Linux platform targets using `cross`:
 
 | Target triple | Archive name | Notes |
 |---------------|-------------|-------|
 | `x86_64-unknown-linux-musl` | `agov-<version>-linux-x86_64.tar.gz` | fully static |
 | `aarch64-unknown-linux-musl` | `agov-<version>-linux-aarch64.tar.gz` | fully static |
-| `x86_64-apple-darwin` | `agov-<version>-macos-x86_64.tar.gz` | std dynamic linking |
-| `aarch64-apple-darwin` | `agov-<version>-macos-aarch64.tar.gz` | std dynamic linking |
 
-Windows (`x86_64-pc-windows-gnu`) deferred to Phase 3.
+macOS (`x86_64-apple-darwin`, `aarch64-apple-darwin`) is deferred until a
+separate decision covers the required macOS SDK/custom-image supply chain.
+Windows (`x86_64-pc-windows-gnu`) remains deferred to Phase 3.
 
 Archive layout (mirrors current Elixir tooling format):
 ```
@@ -336,7 +336,7 @@ New jobs added to `.gitlab-ci.yml` — Phase 1 only:
 rust:tooling:test       # cargo test --workspace, every MR touching tooling/rust/
 rust:tooling:clippy     # cargo clippy --workspace -- -D warnings
 rust:tooling:parity     # parity test suite against AGF fixture set, blocking
-rust:tooling:build:preview  # cross build for all 4 targets, MR + default branch
+rust:tooling:build:preview  # cross build for Linux preview targets, MR + default branch
 ```
 
 `rust:tooling:build:release` (tag-triggered archive production) is **not

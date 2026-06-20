@@ -129,6 +129,19 @@ These ranges are also used by automatic telemetry for known workflows:
 | Role activity review, last 50 messages | 2,000-6,000 tokens | 100-300 tokens | 1,700-5,900 tokens | not automatic yet |
 | Branch visibility review | 4,000-12,000 tokens | 1,000-3,000 tokens | 1,000-11,000 tokens | not automatic yet |
 
+### Validation Baseline
+
+Rust `agov` Phase 1 validation commands also record local `tool_output`
+telemetry when they complete successfully. These ranges estimate the manual
+schema/rule/context reads avoided by deterministic validation output:
+
+| Workflow | Manual context estimate | Tool output estimate | Estimated saving | Automatic workflow labels |
+|---|---:|---:|---:|---|
+| Coordination message validation | 500-1,500 tokens | 25-300 tokens | 200-1,400 tokens | `coord-validate` |
+| Gate 1 plan validation | 800-2,000 tokens | 25-400 tokens | 400-1,900 tokens | `plan-validate` |
+| Full validation suite | 1,500-4,000 tokens | 300-1,500 tokens | 0-3,700 tokens | `validate:umbrella` |
+| Single validation subcommand | 500-2,000 tokens | 25-1,000 tokens | 0-1,900 tokens | `validate:<subcommand>` |
+
 The branch visibility scanner can still produce long output because it reports
 real unresolved historical state. Even then, it is cheaper and safer than
 asking an AI to compare every local branch by hand.

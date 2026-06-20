@@ -75,6 +75,10 @@ checksum = "sha256:66b065143e538c07f069f764d831d8ffae95507907d4ca211304e6f3a0564
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260602/cpython-3.14.5+20260602-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
+[[tools.rust]]
+version = "stable"
+backend = "core:rust"
+
 [[tools.uv]]
 version = "0.11.20"
 backend = "aqua:astral-sh/uv"

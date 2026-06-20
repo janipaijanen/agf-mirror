@@ -1,0 +1,15 @@
+[package]
+name = "agov-validators"
+description = "Adoption, agents, learnings, infosec, contributions, and framework-config validators"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+agov-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_norway = { workspace = true }
+rayon = { workspace = true }
+regex = { workspace = true }

@@ -1,0 +1,9 @@
+# Target aliases used by `cross` for multi-platform builds.
+# Local musl builds (without cross) require the corresponding musl-gcc toolchain.
+# In CI, `cross` handles the toolchain via Docker; linker settings here are
+# only exercised if building natively without Docker.
+[target.x86_64-unknown-linux-musl]
+linker = "x86_64-linux-musl-gcc"
+
+[target.aarch64-unknown-linux-musl]
+linker = "aarch64-linux-musl-gcc"

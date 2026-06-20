@@ -55,7 +55,11 @@ not aspirational.
 **Decisions you can reconstruct.** Every plan approval, review finding, and
 merge decision is a file in the coordination channel, the append-only decision
 log. Six months later, you can answer "why was this merged?" by reading the
-chain, not by archaeology on commit messages.
+chain, not by archaeology on commit messages. Because the channel is just files
+in a repository, it works the same way whether one assistant fills all roles
+across sessions or several assistants collaborate in parallel: each reads and
+writes the same files through ordinary git operations, with no shared runtime
+or message API required.
 
 **Quality gates that bind assistants too.** The rule library expresses your
 engineering discipline (test-first, migration hygiene, immutable tags,
