@@ -9,6 +9,6 @@ pub struct SecretHit {
 ///
 /// Mirrors `Agov.ValidateInfosec` regex scanning logic. Patterns are compiled
 /// once at startup; this function is safe to call from rayon threads.
-pub fn scan_content(content: &str) -> Vec<SecretHit> {
+pub fn scan_content(_content: &str) -> Vec<SecretHit> {
     todo!()
 }

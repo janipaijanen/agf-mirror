@@ -34,6 +34,6 @@ pub fn log_path() -> Option<PathBuf> {
 ///
 /// Failures are silently swallowed — logging must not affect stdout, stderr,
 /// output ordering, or exit codes (plan §8.4).
-pub fn try_append(record: &RoiRecord) {
+pub fn try_append(_record: &RoiRecord) {
     todo!()
 }

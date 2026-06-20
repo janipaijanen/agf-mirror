@@ -5,6 +5,6 @@ use std::path::Path;
 ///
 /// Mirrors `Agov.ValidateLearnings.validate_all/1`. Each file is validated
 /// against `learning.schema.json`.
-pub fn validate_all(dir: &Path) -> CollectionResult {
+pub fn validate_all(_dir: &Path) -> CollectionResult {
     todo!()
 }

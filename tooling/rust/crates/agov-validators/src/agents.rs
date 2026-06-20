@@ -5,6 +5,6 @@ use std::path::Path;
 ///
 /// Mirrors `Agov.ValidateAgents.validate_all/1`. Each file is validated
 /// against `agent.schema.json` and checked for a valid `agent.tier`.
-pub fn validate_all(dir: &Path) -> CollectionResult {
+pub fn validate_all(_dir: &Path) -> CollectionResult {
     todo!()
 }

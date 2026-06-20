@@ -5,6 +5,6 @@ use std::path::Path;
 ///
 /// Mirrors `Agov.ValidateInfosec.validate_all/1`. Scans freetext fields
 /// (description, text, summary, recommendation) for secret patterns.
-pub fn validate_all(dir: &Path) -> CollectionResult {
+pub fn validate_all(_dir: &Path) -> CollectionResult {
     todo!()
 }

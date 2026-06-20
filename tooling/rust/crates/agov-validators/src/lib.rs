@@ -6,7 +6,6 @@ pub mod infosec;
 pub mod learnings;
 
 use agov_core::Finding;
-use std::path::Path;
 
 /// Aggregate result from a collection validator (agents, learnings, etc.).
 ///

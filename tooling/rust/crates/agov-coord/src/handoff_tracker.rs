@@ -12,6 +12,6 @@ pub struct PendingHandoff {
 /// Find all pending (unresolved) handoffs in a set of messages.
 ///
 /// Phase 2 command: backing logic for `agov handoff next`.
-pub fn find_pending(messages: &[CoordMessage]) -> Vec<PendingHandoff> {
+pub fn find_pending(_messages: &[CoordMessage]) -> Vec<PendingHandoff> {
     todo!()
 }
