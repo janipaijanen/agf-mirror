@@ -13,3 +13,4 @@ serde_norway = { workspace = true }
 jsonschema = { workspace = true }
 ulid = { workspace = true }
 regex = { workspace = true }
+time = { workspace = true }
