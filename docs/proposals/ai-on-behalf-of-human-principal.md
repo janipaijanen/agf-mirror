@@ -369,6 +369,75 @@ only need `kind`, `identifier`, `delegation_scope`, and `cannot_approve`, but
 the docs should name the richer terms so adopters understand what they are
 choosing not to record.
 
+## Minimum viable shape
+
+The minimum viable design should be two-tiered:
+
+| Tier | Audience | Metadata burden |
+|---|---|---|
+| Tier 0 | Solo and small-team AGF use | Current coordination fields only; no `principal` block |
+| Tier 1 | Multi-person, enterprise, regulated, or delegated-access use | Current coordination fields plus an optional `principal` block |
+
+Tier 0 is not a lesser mode. It is the default AGF model: role-first,
+coordination-first, with no personal principal metadata to aggregate. That
+keeps small teams from paying an enterprise compliance tax and preserves data
+minimization.
+
+Tier 1 activates only when a record names a principal. If `principal` is
+present, the minimum useful block is:
+
+```yaml
+principal:
+  kind: human | service | team
+  identifier: "@handle-or-service-name"
+  delegation_scope:
+    - "prepare patch"
+    - "run tests"
+  valid_until: "2026-06-22T18:00:00Z"
+  voluntary: true | false | unknown
+  cannot_approve:
+    - "Gate 1"
+    - "Gate 2"
+    - "release tag"
+```
+
+Notes on the minimum:
+
+- `kind`, `identifier`, and positive `delegation_scope` are required if the
+  `principal` block exists.
+- `valid_until` is recommended but not mandatory; it avoids indefinite
+  delegation without forcing every small record to carry expiry metadata.
+- `voluntary` is optional and defaults semantically to `unknown`; AGF cannot
+  prove workplace voluntariness.
+- `review_status` should live on human review or decision records, not on every
+  AI-authored coordination message.
+- Contestation should be a later coordination record that references the
+  contested message, not a mutable edit to the original immutable message.
+
+Example contestation record using current AGF coordination vocabulary:
+
+```yaml
+kind: review
+from: governor-reviewer
+to: planner-architect
+id: 20260622T090000Z-governor-reviewer-abcd
+timestamp: 2026-06-22T09:00:00Z
+immutable: true
+references-to:
+  - 20260621T161500Z-coder-tester-wxyz
+topic: principal-delegation-contested
+requires-ack: true
+artifacts_owned: []
+contestation:
+  status: filed
+  reason: "claimed delegation exceeded scope"
+```
+
+The schema may not accept this exact `contestation` object today; this proposal
+is naming the design direction. If implemented, the object should mark the
+record as disputed for audit reconstruction without deleting history or
+deciding liability.
+
 ## Implementation sketch
 
 ### Schema addition
