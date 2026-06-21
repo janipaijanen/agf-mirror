@@ -1,0 +1,26 @@
+/* AGF palette tokens — matches reference/palette.md */
+:root {
+  --agf-blue-mid:   #0077BB;
+  --agf-blue-light: #99CCEE;
+  --agf-green-mid:  #009944;
+  --agf-amber:      #EE7700;
+  --agf-red-mid:    #CC3311;
+  --agf-grey-mid:   #888888;
+}
+
+/* Mobile figure scroll — ready for future use; no existing pages require
+   wrapping in this slice */
+.figure-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Admonition colour accents using AGF palette */
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--agf-blue-mid);
+}
+.md-typeset .admonition.note > .admonition-title,
+.md-typeset details.note > summary {
+  background-color: color-mix(in srgb, var(--agf-blue-light) 30%, transparent);
+}

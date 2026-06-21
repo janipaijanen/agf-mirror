@@ -45,6 +45,14 @@ theme:
 
 strict: true
 
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+extra_css:
+  - stylesheets/agf.css
+
 hooks:
   - hooks/release_info.py
 
