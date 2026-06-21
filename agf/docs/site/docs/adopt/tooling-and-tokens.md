@@ -49,12 +49,12 @@ Level 5 is deployable and in active use; Level 1 is planned.
 | `agov coord brief [--id-format readable\|ulid] [--from <role>] [--kind <kind>]` | Agent guesses a coordination ID, makes up a filename, or asks a human for the next ID. The command generates a valid, non-colliding ID with the correct filename format. |
 | `agov handoff next <role>` | Agent reads handoff messages, mentally subtracts resolved items, and selects the pending one for its role. The command returns the relevant handoff in one invocation. |
 
-### Level 1 — Planned (Rust, Phase 2A)
+### Level 1 — Planned (Rust, in progress)
 
 The following commands exist in the Elixir reference implementation and are in
-operational use today via Mix. A Gate 1 plan (`docs/plans/rust-agov-phase2a.md`)
-has been submitted to port them to Rust. When that plan is implemented, these
-will reach Level 5 via parity testing.
+operational use today via Mix. The approved plan `docs/plans/rust-agov-complete.md`
+covers porting the full command surface to Rust, including these commands.
+When implemented, each will reach Level 5 via parity testing.
 
 | Command | What it replaces |
 |---|---|

@@ -62,18 +62,17 @@ Level 5 are in production use on this project:
 | `agov validate` | AI reads adoption, agent, and learning files to spot problems | Level 5 — Deployable |
 | `agov coord brief ...` | AI asks a human or guesses a coordination ID and filename | Level 5 — Deployable |
 | `agov handoff next <role>` | Agent scans handoff files and mentally subtracts resolved items | Level 5 — Deployable |
-| `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 1 — Planned (Phase 2A) |
-| `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 1 — Planned (Phase 2A) |
-| `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 1 — Planned (Phase 2A) |
+| `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 1 — Planned |
+| `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 1 — Planned |
+| `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 1 — Planned |
 
 *Maturity levels follow the [implementation honesty model](docs/concepts/evidence-and-learnings.md):
 Level 5 is deployable and in active use; Level 1 is planned. Do not conflate
 the two.*
 
-The Elixir Mix reference implementation covers the full command set including
-Phase 2A commands and is always available as a fallback. If the Rust binary is
-not present, the `agov` wrapper falls through to Mix automatically — no
-configuration required. See
+The Elixir Mix reference implementation covers the full command set and is
+always available as a fallback. If the Rust binary is not present, the `agov`
+wrapper falls through to Mix automatically — no configuration required. See
 [Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup,
 estimates, and the evidence base behind the savings claims.
 
