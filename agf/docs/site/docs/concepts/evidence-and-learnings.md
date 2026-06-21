@@ -60,6 +60,29 @@ needs one. Use the fields in the shipped template. If a downstream project
 adds IDs later, use `YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for
 same-second disambiguation, or equivalent local tooling that cannot collide.
 
+## When evidence becomes a learning
+
+Not every change deserves a learning record. Use learning records for
+operational evidence that should change future behavior, not as a diary of
+normal work.
+
+Table 2 gives the default threshold.
+
+| Situation | Default action | Example |
+|---|---|---|
+| Normal iteration | Do not record | A test failed, the agent fixed the implementation, and no governance rule or review path changed. |
+| First commissioning run | Record | The assistant installed `agf/`, created the loader, and left decisions for the governor clearly enough to repeat. |
+| Repeated friction | Record | Two branches in one week needed the same manual correction to coordination metadata or assistant rule loading. |
+| Rule helped | Record | A validator, checklist, or governor gate caught a risky migration before merge. |
+| Rule hurt | Record | A rule was so heavy that the team routed around it or used fast track where full review was warranted. |
+| Near-miss | Record and consider upstream | A malformed decision record almost became merge evidence, but review caught it. |
+| Irreversible loss, secret exposure, moved release tag, or boundary breach | Escalate immediately, then record | Stop work, notify the governor, preserve evidence, and write the learning after containment. |
+
+If you are unsure, ask: **Would the next agent, reviewer, or adopter make a
+better decision if this were written down?** If yes, record it. If the answer
+is only "we completed routine work", keep it in the normal plan, review, or
+merge request trail.
+
 ## Anonymization: codenames at the boundary
 
 Inside your repository, your project's natural vocabulary is correct and

@@ -69,9 +69,18 @@ The two-gate cycle is the core cost. For a solo project with an engaged
 governor, a gate is minutes, not days — but it is never zero, and it is
 per change.
 
+For planning, expect a non-trivial first-trial change to need roughly
+5-15 minutes of governor attention across Gate 1 and Gate 2 after the agent
+has prepared the plan, evidence, and test results. A fast-track waiver may take
+only a minute or two to confirm. High-risk changes do not have a useful fixed
+estimate: the governor should spend whatever the risk review needs.
+
 ## Ongoing obligations
 
-- **Learning records** when incidents occur — structured YAML, validated.
+- **Learning records** when incidents or reusable patterns occur — structured
+  YAML, validated. Do not record every ordinary bugfix; do record first
+  commissioning evidence, repeated friction, rule catches, rule workarounds,
+  and near-misses.
   Who drafts them, what triggers one, and how to submit upstream:
   [When should we write a learning record?](../start/adopter-faq.md#when-should-we-write-a-learning-record)
   and [How do we draft a learning?](../start/adopter-faq.md#how-do-we-draft-a-learning)

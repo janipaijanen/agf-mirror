@@ -38,6 +38,11 @@ security scanner, legal/compliance system, or substitute for human gate
 ownership. It works beside your existing assistant, CI, review, and release
 tools; it does not replace them.
 
+"No new infrastructure" means no hosted service, daemon, or orchestration
+server. It does **not** mean zero human effort. The governor role is real:
+someone must read gate evidence, accept or reject risk, and stop work when the
+trail is not good enough.
+
 ## Adopt now if…
 
 - AI assistants write a significant share of your code, **and** you have
@@ -83,7 +88,8 @@ Table 1 summarizes the commitments you accept when you adopt the framework.
 |---|---|
 | Initial install | Assistant-prepared file setup, human-reviewed rule choices — an afternoon |
 | Per-change overhead | Plan + two gates for non-trivial changes; fast track for small ones when no agent holds an active claim (an exclusive reservation in the coordination channel) |
-| Ongoing | Learning records when incidents happen; upgrade hygiene per release |
+| Governor attention | Often 5-15 minutes for a non-trivial first-trial change; more for high-risk work |
+| Ongoing | Learning records when incidents or reusable patterns happen; upgrade hygiene per release |
 | Reversibility | Full removal is documented and verifiable — see [exit](../adopt/exit-and-decommission.md) |
 
 The complete itemisation is on the [downstream impact](../adopt/downstream-impact.md)
