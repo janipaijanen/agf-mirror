@@ -5,13 +5,12 @@ AGF source release archives are built from
 calls the AGF tooling instead of maintaining a separate artifact include/exclude
 list.
 
-From `tooling/elixir/`:
+Framework source archives are still built by the Elixir reference tooling. From
+`tooling/elixir/`:
 
 ```bash
 mix agov.dist.validate
 mix agov.dist.build
-mix agov.tooling.build
-mix agov.bundle.build
 ```
 
 `mix agov.dist.validate` expands the manifest and fails if selected files escape
@@ -21,11 +20,10 @@ the repository, match forbidden paths, or would collide in the archive.
 record. In merge-request and default-branch pipelines, these are preview
 artifacts for review evidence. They are not immutable releases.
 
-`mix agov.tooling.build` builds the optional linux-x86_64 packaged `agov`
-tooling archive with bundled ERTS. `mix agov.bundle.build` wraps the framework
-source archives and the tooling archive into one convenience bundle. The
-framework source archive remains the primary adopter artifact; the tooling
-archive and bundle are optional.
+GitLab CI does not build or publish the Elixir/ERTS packaged `agov` tooling
+archive. Release-page tooling downloads are Rust archives built per target
+platform. The framework source archive remains the primary adopter artifact;
+the Rust tooling archives are optional convenience downloads.
 
 The current archive policy is allowlist-first:
 
@@ -49,17 +47,18 @@ For version `X.Y.Z`, a full release build produces:
 | `dist/agf-X.Y.Z.tar.gz.sha256` | SHA-256 checksum (BSD format) |
 | `dist/agf-X.Y.Z.zip.sha256` | SHA-256 checksum (BSD format) |
 | `dist/agf-X.Y.Z-provenance.json` | Machine-readable build provenance |
-| `dist/agov-X.Y.Z-linux-x86_64-otp-<major>.tar.gz` | Optional packaged `agov` tooling archive |
-| `dist/agov-X.Y.Z-linux-x86_64-otp-<major>.sha256` | Tooling archive SHA-256 checksum |
-| `dist/agov-X.Y.Z-linux-x86_64-otp-<major>-provenance.json` | Tooling archive provenance |
-| `dist/agf-X.Y.Z-bundle.tar.gz` | Optional convenience bundle containing the framework archives and tooling archive |
-| `dist/agf-X.Y.Z-bundle.sha256` | Bundle SHA-256 checksum |
+| `dist/agov-X.Y.Z-x86_64-unknown-linux-musl.tar.gz` | Optional Rust `agov` tooling archive for Linux x86_64 |
+| `dist/agov-X.Y.Z-x86_64-unknown-linux-musl.tar.gz.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-x86_64-unknown-linux-musl-provenance.json` | Tooling archive provenance |
+| `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz` | Optional Rust `agov` tooling archive for Linux arm64 |
+| `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-aarch64-unknown-linux-musl-provenance.json` | Tooling archive provenance |
 
 The framework provenance JSON records: `version`, `source_commit`, `tag`,
 `build_timestamp`, `pipeline_identity` (CI pipeline and job IDs),
 `manifest_path`, `archive_filenames`, and `checksums` keyed by filename.
-The tooling provenance also records `otp_version`, `elixir_version`,
-`target_platform`, and `packaging`.
+The tooling provenance records `target_platform`, `implementation: rust`, and
+`packaging`.
 
 ## Tag/version guard
 
@@ -110,12 +109,8 @@ agf:dist:release:
   rules:
     - if: $CI_COMMIT_TAG
 
-# Optional tooling and bundle archives
-agov:tooling:release:
-  rules:
-    - if: $CI_COMMIT_TAG
-
-agf:bundle:release:
+# Optional Rust tooling archives
+rust:tooling:release:
   rules:
     - if: $CI_COMMIT_TAG
 ```
@@ -133,10 +128,9 @@ Artifacts produced by `agf:dist:release` are kept indefinitely (`expire_in:
 never`) and include the `.tar.gz`, `.zip`, all `.sha256` checksum files, and the
 provenance JSON.
 
-Artifacts produced by `agov:tooling:release` and `agf:bundle:release` are also
-kept indefinitely. The bundle depends on the framework and tooling archives,
-but framework-only adoption does not depend on the bundle.
+Artifacts produced by `rust:tooling:release` are also kept indefinitely. They
+are platform-specific Rust archives; no Elixir/ERTS `agov` package is published
+to the release page.
 
-Installer scripts, package registry publishing, release signing, Software Bill
-of Materials (SBOM) generation, and third-party notices are deferred follow-on
-work.
+Installer scripts, release signing, Software Bill of Materials (SBOM)
+generation, and third-party notices are deferred follow-on work.

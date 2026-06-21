@@ -92,17 +92,18 @@ After that, `agov coord validate`, `agov coord brief`, `agov handoff next`,
 ### Option B — Framework-only release archive
 
 A release archive containing only `agf/` has schemas and templates but not
-the tooling executable. In that case, use the wrapper with Mix as the backend
-(Option A without the Rust build step). A packaged `agov` tooling binary is
-planned for a future release.
+the tooling executable. In that case, download the optional Rust `agov` archive
+for your platform from the project release page, or use a full checkout and
+build the Rust binary locally with Cargo.
 
 ### Option C — CI integration
 
 ```yaml
 validate-governance:
-  image: hexpm/elixir:<tag>
+  image: debian:stable-slim
   script:
-    - ln -sfn "$PWD/tooling/agov" /usr/local/bin/agov
+    - tar -xzf agov-<version>-x86_64-unknown-linux-musl.tar.gz
+    - install -m 0755 agov-<version>-x86_64-unknown-linux-musl/agov /usr/local/bin/agov
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
         xargs -0r agov coord validate
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |
@@ -159,11 +160,11 @@ for the full list of telemetry controls.
 
 ## Why Rust
 
-The Elixir tooling bundles a 50–70 MB ERTS runtime. The Rust binary is a
-static 5–12 MB executable with no runtime dependency — download and run,
-no Elixir install required. For adopters who do not use Elixir and want to
-integrate the validators into their CI without pulling in a language runtime,
-the Rust binary is the lower-friction path.
+The earlier Elixir tooling package design bundled a 50–70 MB ERTS runtime. The
+Rust binary is a static 5–12 MB executable with no runtime dependency: download
+the archive for your platform, unpack it, and run `agov`. For adopters who do
+not use Elixir and want to integrate the validators into CI without pulling in a
+language runtime, the Rust binary is the release path.
 
 The Elixir Mix implementation remains the authoritative reference and is not
 going away. Rust Phase 1 passes a byte-for-byte parity test against the Elixir

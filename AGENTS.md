@@ -177,8 +177,10 @@ rerun the same command with the role you are actually playing.
 
 Use Mix directly only for Elixir implementation work, parity/reference checks,
 the Elixir test suite, or commands that are not yet exposed through `agov`
-(currently the distribution/package helpers such as `mix agov.dist.*`,
-`mix agov.tooling.build`, and `mix agov.bundle.build`).
+(currently the framework source archive helpers such as `mix agov.dist.*`).
+Do not use Elixir/ERTS tooling package helpers for GitLab CI or release-page
+downloads; shipped `agov` tooling artifacts are Rust, with platform-specific
+archive names.
 
 ```bash
 # Validate coordination messages
