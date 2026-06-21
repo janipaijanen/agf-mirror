@@ -1,114 +1,183 @@
 ---
 name: compact-agf
-origin: foundry
+origin: project
 description: >
-  Write current session state to memory, then compact. Use this instead of
-  /compact so you can resume after a cold-start without losing in-flight
-  context. Triggers /compact automatically after writing state.
+  Save the current AGF session state to a durable coordination note before
+  context compaction, shutdown, model switch, or cold-start handoff.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-# Compact with session state checkpoint
+# Compact AGF
 
-Write the current session state to the memory system, then trigger /compact.
-The memory file is loaded automatically on cold-start so you can resume
-without re-reading the full coordination channel.
+Preserve the current session state before context is compacted or abandoned.
+This command writes a durable coordination note that a cold-starting agent can
+read before continuing the work.
 
-## Step 1 — Gather current state
+Do not rely on background processes, timers, terminal sessions, or model memory
+to signal later. The saved file is the handoff surface.
 
-Run in parallel:
+## When to run
+
+- Before `/compact`
+- Before a model switch or tool-surface switch
+- Before a long pause with active work
+- Before leaving unmerged branch work for another agent
+- Whenever the user asks to "save before compact"
+
+If there is no active work and nothing material would be lost, say that clearly
+instead of writing noise to the coordination channel.
+
+## Step 1 - Identify role and branch
+
+Determine the role you are currently playing. Prefer an explicit role from the
+session or current task. If uncertain, run the project resume command first:
 
 ```bash
-git fetch --prune origin
+agov session resume --base-branch main
+```
+
+If `agov session resume` is unavailable in this checkout, use the reference
+implementation:
+
+```bash
+cd tooling/elixir
+mix agov.session.resume --base-branch main
+```
+
+Then collect the live repository facts:
+
+```bash
+date -u +%Y-%m-%dT%H:%M:%SZ
 git branch --show-current
-./tooling/agov session resume --role <current-role>
+git status --short --branch
+git log --oneline --decorate -5
 ```
 
-Also run:
+If you know the active role, also run:
 
 ```bash
-ls docs/coordination/ | grep -E "^202" | sort | tail -20
-git branch -r | grep -vE "(HEAD|main$)" | sort
+agov session resume --role <role> --base-branch main
 ```
 
-## Step 2 — Identify what is in-flight
+Treat any hidden coordination, dirty-tree, or pending-handoff warnings as
+important resume context.
 
-From the session resume output, identify:
+## Step 2 - Generate a coordination ID
 
-- **Pending handoffs for planner-architect** — tasks Codex has completed and
-  returned to us for Gate 1 review or decision.
-- **Active branches** — branches on origin that are not yet merged to main.
-- **Gate 2 handoffs awaiting governor** — coordination files where
-  `to: governor-reviewer` and the topic needs human approval.
-- **Decisions filed this session** — `decision-record` entries we wrote.
-- **Timers** — any active polling window (interval, expiry time).
-- **Next expected event** — what Codex is working on, what the governor needs
-  to act on, what the planner is waiting for.
+Use the coordination tooling whenever available:
 
-## Step 3 — Write session state to memory
+```bash
+agov coord brief --id-format readable --from <role>
+```
 
-Write a file to the memory system:
-**Path:** `/home/devi/.claude/projects/-home-devi-src-AGF-NG/memory/session-state.md`
+Use the generated `id` as both the front-matter `id` and the filename:
 
-Use this exact frontmatter and structure:
+```text
+docs/coordination/<id>.md
+```
 
-```markdown
+If the tooling is unavailable, create a readable ID manually in this shape:
+
+```text
+YYYYMMDDThhmmssZ-<role-slug>-<4-to-6-random-lowercase-alnum>
+```
+
+Do not use a sequence number.
+
+## Step 3 - Write the closeout note
+
+Create a `kind: note` coordination message addressed to `all` unless the saved
+state creates a concrete obligation for a specific role. If another agent or
+the governor must act next, use `kind: handoff` instead and fill the required
+`handoff:` object.
+
+For an ordinary compaction save, use this note shape:
+
+````markdown
 ---
-name: session-state
-description: In-flight session state as of <ISO timestamp> — active work, pending handoffs, governor actions needed
-metadata:
-  type: project
+kind: note
+from: <role>
+to: all
+id: <id>
+timestamp: <UTC timestamp>
+immutable: true
+references-to: []
+topic: session-closeout-before-compact
+requires-ack: false
+artifacts_owned: []
 ---
 
-# Session state — <ISO timestamp>
+# Session closeout before compact
 
-## Role
-<current role, e.g. planner-architect>
+## Resume first
 
-## Active branches
-<list of non-merged branches on origin with one-line description of what each contains>
+Read this note before continuing the interrupted session. Then run:
 
-## Gate 2 handoffs awaiting governor review
-<for each: coordination file ID, topic, branch, what the governor needs to decide>
-
-## Pending Codex handoffs (planner action needed)
-<for each: coordination file ID, topic, what we need to do>
-
-## Decisions filed this session
-<list of decision-record IDs and topics>
-
-## Polling timer
-<interval / window expiry / what we are watching for>
-
-## Next expected event
-<who does what next — Codex implementing X, governor reviewing Y, planner watching for Z>
-
-## Do not re-derive
-<facts established in this session that would be expensive to re-derive:
-specific constraints, format decisions, approved plans, etc.>
+```bash
+agov session resume --role <role> --base-branch main
 ```
 
-**Why:** On cold-start, `agov session resume` shows pending handoffs but not
-the narrative context — what is actively in flight, what the governor needs
-to act on, and decisions made this session. This file bridges that gap.
+## Current state
 
-## Step 4 — Update MEMORY.md
+- Role: `<role>`
+- Branch: `<branch>`
+- Worktree: `<absolute or repo-relative path>`
+- Latest commit: `<short hash and subject>`
+- Dirty tree: `<yes/no; summarize changed files>`
+- Active request: `<one sentence>`
 
-Ensure `MEMORY.md` has an entry for `session-state.md`. If the entry already
-exists, update the description line to reflect the new timestamp. The entry
-belongs in the index as:
+## What changed in this session
 
+- `<completed work, files touched, commits made, MRs updated, or none>`
+
+## Verification
+
+- `<commands run and pass/fail/skip>`
+
+## Open work
+
+- `<next concrete action>`
+- `<blockers or decisions needed>`
+
+## Must read
+
+- `<coordination files, plan files, docs, or MR links needed to continue>`
+
+## Do not assume
+
+- `<anything session memory might falsely imply>`
+- `<branches/files that must not be touched>`
+````
+
+Keep the note factual and short. Prefer filenames, commits, MR URLs, and exact
+commands over prose memory.
+
+## Step 4 - Validate
+
+Validate the file before treating the save as durable:
+
+```bash
+agov coord validate docs/coordination/<id>.md
 ```
-- [Session state](session-state.md) — in-flight work as of <date>; active branches, pending handoffs, governor actions
+
+If `agov` is unavailable, use the Mix reference task:
+
+```bash
+cd tooling/elixir
+mix agov.coord.validate ../../docs/coordination/<id>.md
 ```
 
-## Step 5 — Compact
+Fix validation failures before proceeding.
 
-After writing the memory file, tell the user:
+## Step 5 - Report compact readiness
 
-> "Session state written to memory. Ready to compact — run /compact now."
+Tell the user:
 
-Do NOT call /compact yourself. The user triggers it. This step is a
-reminder to the user to run /compact immediately after this command
-completes.
+- the path of the saved coordination note;
+- whether validation passed;
+- whether there is still uncommitted work;
+- that the session is ready for `/compact`.
+
+Do not run more implementation work after this command unless the user
+explicitly cancels compaction or gives a new request.
