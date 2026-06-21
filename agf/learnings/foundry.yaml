@@ -254,6 +254,101 @@ learnings:
       notification target, and whether the watch is active, advisory, or
       expired.
 
+  - id: "20260621T084900Z"
+    date: "2026-06-21"
+    category: gap
+    agents_involved: [planner-architect, coder-tester]
+    summary: >
+      Coordination messages are only visible to other AI assistants after
+      both git commit and git push — a local commit is invisible across
+      sessions and environments.
+    detail: >
+      When a coordination message is committed locally but not pushed, other
+      AI assistants in separate sessions or environments cannot see it, even
+      if they run git fetch. The fetch only retrieves objects that have been
+      pushed to the remote.
+
+      This matters in multi-agent workflows where one AI (e.g., Claude in an
+      interactive session) files a coordination note and another AI (e.g.,
+      Codex in a separate environment) is expected to pick it up via the
+      polling loop. If the author commits but does not push, the recipient's
+      cold-start protocol (git fetch --all) returns nothing and the message
+      is effectively dropped.
+
+      The failure mode is silent: the author sees the file locally and assumes
+      the channel is up to date; the recipient runs a clean fetch and sees
+      nothing. No error is produced on either side.
+
+      The constraint is architectural: AI assistants are isolated processes
+      with no shared filesystem. The only shared state is the remote git
+      repository. A commit that does not reach the remote does not reach other
+      agents.
+
+      Observed on 2026-06-21 when a coordination note to coder-tester was
+      committed but not yet pushed; the user explicitly stated: "other AIs
+      only can find coordination messages which are stored in the git and
+      pushed."
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add an explicit rule to the coordination channel guidance: a coordination
+      message is not filed until it is both committed and pushed to the remote.
+      Committing without pushing is equivalent to not filing the message from
+      the perspective of any other agent. The cold-start protocol and polling
+      loop descriptions should state this requirement explicitly. Consider
+      adding a push step to the coordination message checklist alongside the
+      commit step, so the two actions are treated as a single atomic unit.
+
+  - id: "20260621T084922Z"
+    date: "2026-06-21"
+    category: gap
+    agents_involved: [planner-architect, coder-tester, governor-reviewer]
+    summary: >
+      Sequential learning IDs (L001, L002, ...) cause write conflicts when
+      multiple agents or contributors add entries concurrently; timestamp-based
+      IDs eliminate the collision surface.
+    detail: >
+      Learning entries were originally identified with sequential integers
+      (L018, L019, L020, L021). Sequential IDs require a shared counter: the
+      next ID is determined by reading the highest existing ID and incrementing
+      it. When two agents or two contributors append a learning entry in
+      separate sessions or branches without coordinating the counter, they
+      produce entries with the same ID. The conflict is not detected until
+      merge time, by which point the entries may have been referenced elsewhere.
+
+      The coordination channel solved this same problem by using timestamp-based
+      IDs in the format YYYYMMDDThhmmssZ (with an optional random suffix for
+      sub-second disambiguation). A timestamp ID requires no shared counter:
+      each agent generates the ID from the local clock at write time. Two
+      entries filed in different sessions at different moments are structurally
+      guaranteed to have different IDs.
+
+      The same logic applies to learning IDs. Learning entries are appended
+      independently by different agents across sessions and branches. The
+      sequential integer format has no enforcement mechanism to prevent
+      collisions; timestamp IDs have no collision surface under normal
+      conditions (wall-clock second granularity is sufficient for the
+      infrequent rate at which learnings are filed).
+
+      Observed on 2026-06-21 when the user pointed out that L-number IDs
+      would collide if multiple contributors added entries on different branches:
+      "learning entries must not be sequential, but also time-based as the
+      coordination ids are. Reason: prevent id conflicts."
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Replace all sequential L-number learning IDs with timestamp IDs in the
+      format YYYYMMDDThhmmssZ, matching the coordination channel convention.
+      Update: (1) the learnings/_template.yaml to specify the timestamp format
+      for the id field; (2) the LEARNINGS.md guidance; (3) the agov-validators
+      learning record schema to accept the new format and reject bare integers
+      or L-prefixed integers; (4) any documentation or rules that reference the
+      sequential format. Existing sequential IDs in foundry.yaml should be
+      migrated to timestamp IDs derived from their entry dates (or left in place
+      with a note that they predate the timestamp convention — either approach
+      is acceptable as long as the schema accepts both during a transition
+      window).
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
