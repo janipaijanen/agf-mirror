@@ -35,6 +35,11 @@ Do not turn installation into a manual copying exercise unless you have to.
 Ask your assistant to do the clerical work, then review the diff like any other
 change.
 
+Rule of thumb: let the AI act; make the human decide. The assistant should
+move files, create directories, install rules, and prepare skeleton evidence.
+The human reviews the diff, chooses the governor, accepts the codename, and
+owns risk-bearing rule choices.
+
 Paste this into your coding assistant:
 
 ```text
@@ -69,10 +74,10 @@ rule choices that affect risk.
 If you are working without an assistant, copy the distribution manually into
 the visible `agf/` directory and then follow the same review checklist.
 
-## Step 3: Put AGF in one directory
+## Step 3: Review the framework layout
 
-AGF v2.0 supports one layout: copy the distribution into your repository as
-the visible `agf/` directory.
+AGF v2.0 supports one layout: the assistant-prepared diff should place the
+distribution in your repository as the visible `agf/` directory.
 
 `agf/` is the adopter-facing framework product. It contains the normative
 assets your project adopts: roles, rules, schemas, templates, and docs.
@@ -108,7 +113,7 @@ humans and agents can read it.
 
 ## Step 4: Review and customize the rules
 
-1. Confirm the assistant copied `agf/rules/` into your assistant's rules
+1. Confirm the assistant installed `agf/rules/` into your assistant's rules
    directory (Claude Code: `.claude/rules/`).
 2. Review every remaining `CUSTOMIZE` marker and adapt each one to your stack:
    locale set, migration commands, CI paths, audit functions, target consumers
