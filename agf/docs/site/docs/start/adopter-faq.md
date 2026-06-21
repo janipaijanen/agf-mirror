@@ -60,7 +60,7 @@ and [Contracts and validators](../advanced/contracts-and-validators.md).
 
 ## Does AGF replace our code review?
 
-No. It gives your review a spine.
+No. It gives your review structure.
 
 Humans still approve plans, accept risk, and decide what gets merged. Agents
 can draft plans, implement changes, run tests, prepare reviews, and collect

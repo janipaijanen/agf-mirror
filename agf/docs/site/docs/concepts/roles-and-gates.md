@@ -67,9 +67,10 @@ files so the decision remains reconstructible.
 ![Coordination channel](../../reference/figures/coordination-channel.svg)
 
 Every handoff, decision, and completion is a file:
-`docs/coordination/<id>-sender.md`, YAML frontmatter plus a short body.
-New readable IDs look like `YYYYMMDDThhmmssZ-<role-slug>-<suffix>`.
-Historical sequence and ULID records remain immutable once filed —
+`docs/coordination/<YYYYMMDDThhmmssZ-role-slug-suffix>.md`, YAML frontmatter
+plus a short body. This is the current preferred convention. Earlier projects
+used sequence numbers (`00001-sender.md`) or ULIDs; those records are
+immutable once filed —
 corrections are new entries that reference the old, never edits. Nine
 message kinds cover the lifecycle: claim, handoff, review,
 decision-record, completion, note, ack, fast-track-waiver,

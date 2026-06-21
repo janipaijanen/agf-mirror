@@ -1,31 +1,44 @@
-# docs: admonition extensions and AGF palette CSS (Slice 3)
+# docs: language polish — idiom replacements, adopt nav reorder, filename guidance (Slice 4)
 
-Governor-approved remediation slice 3.
-Plan: `docs/plans/agf-docs-visual-rendering-fix.md`
+Governor-approved remediation slice 4.
+Plan: `docs/plans/agf-docs-language-polish.md`
 
 ## What changed
 
-- `agf/docs/build/mkdocs.yml` — added `markdown_extensions` (admonition,
-  pymdownx.details, pymdownx.superfences) and `extra_css: stylesheets/agf.css`
-  after the `strict: true` line.
-- `agf/docs/site/stylesheets/agf.css` — new file with AGF palette CSS tokens
-  (matching `reference/palette.md`) and admonition colour accents.
+Four idiom replacements (exact substitutions):
+- `should-you-adopt.md`: "are theatre" → "become ceremony"
+- `adopter-faq.md`: "gives your review a spine" → "gives your review structure"
+- `first-governed-change.md`: "chain is the product" → "chain is the audit trail"
+- `downstream-impact.md`: "are theatre" → "become ceremony"
+
+Adopt nav reorder (`mkdocs.yml` and `docs/index.md`):
+- Downstream impact and Exit now appear before Install, so readers see
+  cost and reversibility before they commit.
+
+Coordination filename guidance (`concepts/roles-and-gates.md`):
+- Readable IDs (`YYYYMMDDThhmmssZ-role-slug-suffix`) documented as the
+  current preferred convention; earlier sequence and ULID formats
+  acknowledged as historical but still valid.
 
 ## Verification
 
-- `mkdocs build --strict`: clean.
-- Five pages that use `!!! note "AGF v2 layout"` callouts will now render
-  styled boxes rather than literal `!!! note` text.
+- `mkdocs build --strict`: clean (no broken links — nav reorder keeps all files
+  in place, only changes ordering).
+
+## Merge Order
+
+Merge after Slice 3 (`docs/visual-rendering-fix`) so the shared
+`mkdocs.yml` changes stay easy to review.
 
 ## Review Focus
 
 Please verify:
 
-- [ ] The MkDocs extension additions are limited to admonition rendering.
-- [ ] `extra_css` points at the new site stylesheet path.
-- [ ] The CSS tokens match `reference/palette.md`.
-- [ ] This slice does not change page wording or navigation.
+- [ ] The idiom replacements read more professional without changing meaning.
+- [ ] Adopt navigation puts impact and exit information before installation.
+- [ ] Readable coordination IDs are presented as the current preferred format.
+- [ ] Legacy sequence and ULID records are described as historical but still valid.
 
 ## Does not touch
 
-Content `.md` files — all changes are build config and CSS only.
+`agf/docs/site/stylesheets/agf.css` and all other non-targeted files.
