@@ -250,8 +250,10 @@ agf:bundle:preview:
   needs:
     - job: agf:dist:preview
       artifacts: true
+      optional: true
     - job: agov:tooling:preview
       artifacts: true
+      optional: true
 
 # Build release tooling binary archives only on tag pipelines.
 # The tag must match agf/VERSION or this job fails before any archive is written.
