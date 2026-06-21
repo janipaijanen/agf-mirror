@@ -393,7 +393,7 @@ learnings:
       both cases. Consider surfacing this as a validator warning when the ROI
       log shows a session with no session.resume entry.
 
-  - id: learn-20260621T182100Z-figure-count-legends-9x4m
+  - id: "20260621T182100Z-9x4m"
     date: "2026-06-21"
     category: gap
     agents_involved: [coder-tester, governor-reviewer]
