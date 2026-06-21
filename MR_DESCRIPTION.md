@@ -1,39 +1,24 @@
-# rule+docs: gate posture and consequence framing
+# docs: remove Elixir implementation references from public docs
 
-Research-driven improvements from external governance article scan (June 2026).
-No Gate 1 plan required — fast-track waiver applies (docs/rules only, no behaviour change).
+## Summary
 
-## What changed
+- Rewrites four public documentation pages to reflect that `agov` is the only supported CLI — a single static Rust binary, no Elixir fallback.
+- Removes dual-implementation framing, Elixir Mix task references, and "(Rust)" / "(Elixir reference)" column qualifiers that implied a parallel implementation still existed.
+- Verified clean: `grep -rni "elixir" agf/docs/site/docs/` produces no matches; `mkdocs build --strict` produces zero errors and zero warnings.
 
-**`agf/rules/always/high-risk-operations-rule.md`** (+ `.claude/rules/` copy)
-- Per-area consequence/blast-radius statements added to each high-risk bullet.
-  Rationale: consequence-based framing ("if broken, X") improves compliance
-  vs "stop before touching" alone (normalization of deviance under repeated
-  approval tasks).
+## Files changed
 
-**`agf/rules/workflow/systematic-code-review-rule.md`** (+ `.claude/rules/` copy)
-- "Gate types" section added with structural vs advisory enforcement table.
-  Honest about the gap: advisory gates depend on agent discipline; structural
-  gates enforce regardless of cooperation.
+| File | Change |
+|---|---|
+| `agf/docs/site/docs/adopt/tooling-and-tokens.md` | Removed dual-implementation framing, Elixir fallback chain, `mix agov.token.roi report`, "Why Rust" section. Single `agov` binary description; merged command table; simplified setup to three options (cargo build, release archive, CI). |
+| `agf/docs/site/docs/advanced/contracts-and-validators.md` | Removed "(Rust)" / "(Elixir reference)" column qualifiers; replaced Elixir-image CI example with Rust binary installation snippet; removed "Mix remains the reference" framing. |
+| `agf/docs/site/docs/operate/review-and-release.md` | Removed "release tooling still in Mix-backed reference implementation" note from AGF v2 layout admonition. |
+| `agf/docs/site/docs/start/adopter-faq.md` | Simplified upstream contribution validation step to `agov validate` / `agov validate learnings` only. |
 
-**`agf/docs/site/docs/adopt/tooling-and-tokens.md`**
-- "Why meter at the governance gate" section added before the evidence model.
-  Covers the chokepoint principle: gate-level metering provides per-role,
-  per-gate attribution that API billing cannot.
+## Fast-track waiver
 
-**`agf/docs/site/docs/concepts/roles-and-gates.md`**
-- "Structural and advisory enforcement" section added — gate-type table and
-  link to contracts-and-validators. Consistent with the systematic-code-review
-  change above.
+Documentation only. No routes, models, migrations, tests, or security boundaries affected. Waiver recorded in commit message.
 
-## Verification
+## Gate 2 handoff
 
-- `mkdocs build --strict`: clean.
-- Both rule copies in sync (only provenance frontmatter differs).
-- No security boundaries, no new locales, no breaking changes.
-
-## Sources
-
-- tenureai.dev — AI governance enforcement transparency
-- Amazon/The Register, June 2026 — normalization of deviance under approval pressure
-- r-lopes blog — governance metering and the chokepoint principle
+`docs/coordination/20260621T182550Z-planner-architect-4m57.md`

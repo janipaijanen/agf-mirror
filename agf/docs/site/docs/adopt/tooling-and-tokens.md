@@ -20,18 +20,8 @@ what the evidence base for the savings looks like.
 ## What the tooling does
 
 The `agov` command is the adopter-facing CLI for AGF validators and coordination
-helpers. It has two implementations that coexist:
-
-- **Rust binary** (`tooling/rust/`) — the preferred path for supported commands.
-  Static binary (~5–12 MB), no runtime dependency. Phase 1 commands are in
-  production use on the AGF foundry project itself.
-- **Elixir Mix reference implementation** (`tooling/elixir/`) — the full command
-  set, including commands not yet ported to Rust. The `agov` wrapper falls
-  through to Mix automatically when the Rust binary is absent or the command
-  is not yet supported in Rust.
-
-You do not choose between them. The wrapper chooses for you based on what is
-available.
+helpers. It is a static binary (~5–12 MB) with no runtime dependency. Download
+the archive for your platform, unpack it, and run `agov`.
 
 ## Current command maturity
 
@@ -39,7 +29,7 @@ Maturity levels follow the
 [implementation honesty model](../concepts/evidence-and-learnings.md):
 Level 5 is deployable and in active use; Level 1 is planned.
 
-### Level 5 — Deployable (Rust, in production use)
+### Level 5 — Deployable (in production use)
 
 | Command | What it replaces |
 |---|---|
@@ -49,15 +39,6 @@ Level 5 is deployable and in active use; Level 1 is planned.
 | `agov coord brief [--id-format readable\|ulid] [--from <role>] [--kind <kind>]` | Agent guesses a coordination ID, makes up a filename, or asks a human for the next ID. The command generates a valid, non-colliding ID with the correct filename format. |
 | `agov handoff next <role>` | Agent reads handoff messages, mentally subtracts resolved items, and selects the pending one for its role. The command returns the relevant handoff in one invocation. |
 | `agov coord status [--recent N] [--roles]` | Agent counts pending handoffs, reads claim messages, and scans the channel for channel health. The `--roles` flag adds a per-role activity summary for session orientation. |
-
-### Level 5 — Additional deployable commands
-
-The following commands are available through the `agov` wrapper. The wrapper
-uses the Rust implementation when present and falls back to the Elixir
-reference implementation for commands that have not yet been ported.
-
-| Command | What it replaces |
-|---|---|
 | `agov session resume [--role <role>]` | Agent reads recent coordination files, the manifest, branch status, and claims to reconstruct its starting state for the session. This is potentially the highest-token-cost activity in the agent loop because it happens at every session boundary. |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages and comparing timestamps. |
 | `agov coord visibility` | Agent compares branches for coordination obligations that exist off the base branch. |
@@ -69,33 +50,25 @@ For adoption work, `agov usage report --last 50` is the quickest answer to
 
 ## How to set it up
 
-### Option A — Use the `agov` wrapper (recommended)
+### Option A — Full checkout (recommended)
 
-If you have a full checkout, the `tooling/agov` wrapper handles routing. Add it
-to your PATH:
-
-```bash
-ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
-```
-
-The wrapper prefers the Rust binary when available. If the Rust binary is not
-built, it falls through to the compiled Elixir escript, then to Mix. Build the
-Rust binary once per machine:
+If you have a full checkout, build the binary once per machine:
 
 ```bash
 cd tooling/rust && cargo build -p agov
 ```
 
-After that, `agov coord validate`, `agov coord brief`, `agov handoff next`,
-`agov coord status`, and the other supported commands use Rust automatically.
+Then add it to your PATH:
 
-### Option B — Framework-only release archive
+```bash
+ln -sfn "$PWD/tooling/rust/target/debug/agov" ~/.local/bin/agov
+```
 
-A release archive containing only `agf/` has schemas and templates but not
-the tooling executable. In that case, download the optional Rust `agov` archive
-for your platform from the
+### Option B — Release archive
+
+Download the `agov` archive for your platform from the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases),
-or use a full checkout and build the Rust binary locally with Cargo.
+unpack it, and place the `agov` executable on PATH.
 
 ### Option C — CI integration
 
@@ -158,18 +131,16 @@ approx_tokens = ceil(character_count / 4)
 ```
 
 **What the foundry project has measured:** The AGF foundry project (which
-develops the framework itself) runs the Rust tooling in every agent polling
+develops the framework itself) runs the `agov` tooling in every agent polling
 loop. The `agov coord validate` and `agov coord brief` commands each run in
 under 100 milliseconds and produce output that is one to two orders of magnitude
 shorter than reading the underlying coordination files with an AI agent.
 
-The local telemetry proof-of-concept (`mix agov.token.roi`) collects saved-token
-estimates in a local JSONL file (`tmp/agov-token-roi.jsonl`) and can report
-them on request. Rust Phase 1 commands also append compatible records to the
-same log. To print accumulated records:
+The telemetry system collects saved-token estimates in a local JSONL file
+(`tmp/agov-token-roi.jsonl`). To print accumulated records:
 
 ```bash
-cd tooling/elixir && mix agov.token.roi report
+agov token roi report
 ```
 
 To disable telemetry:
@@ -181,25 +152,11 @@ export AGOV_TOKEN_ROI=0
 See the [environment variable reference](../../reference/environment-variables.md)
 for the full list of telemetry controls.
 
-## Why Rust
-
-The earlier Elixir tooling package design bundled a 50–70 MB ERTS runtime. The
-Rust binary is a static 5–12 MB executable with no runtime dependency: download
-the archive for your platform, unpack it, and run `agov`. For adopters who do
-not use Elixir and want to integrate the validators into CI without pulling in a
-language runtime, the Rust binary is the release path.
-
-The Elixir Mix implementation remains the authoritative reference and is not
-going away. Rust Phase 1 passes a byte-for-byte parity test against the Elixir
-output for all supported commands; that parity check is a blocking CI gate.
-Both run side-by-side; the wrapper picks the best available implementation.
-
 ## What is not in scope
 
-- Removing the Elixir tooling (a separate future decision)
 - Registry publishing or code signing (a separate future decision)
-- Windows x64 packaged release (preview CI artifact exists as of 2026-06-21;
-  downloadable release not yet available)
+- Windows x64 packaged release (preview CI artifact exists; downloadable
+  release not yet available)
 
 ## See also
 
