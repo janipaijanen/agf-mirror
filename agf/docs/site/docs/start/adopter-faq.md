@@ -166,13 +166,9 @@ Today, treat it like a normal contribution:
 
 1. Anonymize the learning. Use only the project codename and neutral technical
    descriptions.
-2. Validate it locally with the AGF tooling when available. At minimum, run the
-   general validator (`agov validate`) before sending the record outside your
-   repository. If you are using the Elixir reference tasks, run the learning,
-   infosec, and contribution validators before opening the upstream request.
-   From `tooling/elixir/`, those checks are:
-   `mix agov.validate.learnings`, `mix agov.validate.infosec`, and
-   `mix agov.validate.contributions`.
+2. Validate it locally with the AGF tooling when available. Run
+   `agov validate` and `agov validate learnings` before sending the record
+   outside your repository.
 3. Open an upstream issue or merge request in the
    [AGF project](https://gitlab.com/janipaijanen/agents-govern-framework) with
    the anonymized learning or a summary derived from it.

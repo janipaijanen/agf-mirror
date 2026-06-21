@@ -9,13 +9,9 @@ and how to wire validation into your pipeline.*
 
 The framework uses validator commands: command-line checks that read the
 governance files and fail when the files no longer match their contracts. The
-current foundry operator command is `agov`. It provides bootstrap validation
-for coordination messages and Gate 1 plans, while the Elixir Mix tasks under
-`tooling/elixir/` remain the reference/development implementation for the wider
-command set. The [tooling conformance](../../reference/tooling-conformance.md)
-reference defines how future implementations can be considered AGF-compatible.
-Table 1 summarizes the main contracted artifacts, the shipped checks, and the
-checks still treated as contract targets rather than finished tooling.
+adopter-facing command is `agov`. Table 1 summarizes the main contracted
+artifacts, the shipped checks, and the checks still treated as contract targets
+rather than finished tooling.
 
 Contracts define what tooling may check; they do not make tooling the
 governor. A validator failure becomes a blocking gate only when a named AGF
@@ -29,11 +25,9 @@ script authority the framework never granted.
 | Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agov coord validate` |
 | Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agov plan validate` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `agov coord visibility` |
-| Release artifact contents | Manifest-driven source archive allowlist and forbidden-path policy | `mix agov.dist.validate` |
-| Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov validate agents` (Rust); `mix agov.validate.agents` (Elixir reference) |
-| Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | `agov validate learnings` (Rust); `mix agov.validate.learnings` (Elixir reference) |
-| InfoSec-relevant artifacts | Anonymization and disclosure checks | `agov validate infosec` (Rust); `mix agov.validate.infosec` (Elixir reference) |
-| Release tags | VERSION ↔ tag alignment | `mix agov.dist.check_tag` (Elixir) |
+| Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov validate agents` |
+| Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | `agov validate learnings` |
+| InfoSec-relevant artifacts | Anonymization and disclosure checks | `agov validate infosec` |
 
 The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped
@@ -78,27 +72,23 @@ request:
 
 ```yaml
 validate-governance:
-  image: hexpm/elixir:<tag-matching-your-pinned-elixir-and-erlang>
-  variables:
-    # Set only if this disposable runner image executes jobs as UID 0.
-    AGOV_ALLOW_ROOT: "1"
+  image: debian:stable-slim
   script:
-    - ln -sfn "$PWD/tooling/agov" /usr/local/bin/agov
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' | xargs -0r agov coord validate
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' | xargs -0r agov plan validate
+    - tar -xzf agov-<version>-x86_64-unknown-linux-musl.tar.gz
+    - install -m 0755 agov-<version>-x86_64-unknown-linux-musl/agov /usr/local/bin/agov
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
+        xargs -0r agov coord validate
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |
+        xargs -0r agov plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Adapt the runner image and invocation to your stack. `agov` is the current
-foundry operator command for core validation. Mix remains the
-reference/development implementation for commands not yet wrapped by `agov`.
-The current reference tooling is pinned in foundry's `mise.toml`; a release
-archive containing only `agf/` has schemas and templates, but not the current
-tooling implementation. If your runner intentionally executes as UID 0, use the
-documented root override for Mix tasks from the
-[environment variable reference](../../reference/environment-variables.md);
-the repo-local `agov` executable does not currently implement that root guard.
+Download the `agov` release archive for your platform from the
+[GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+See [Tooling and token savings](../adopt/tooling-and-tokens.md) for the full
+setup guide including local development options.
+
 Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
