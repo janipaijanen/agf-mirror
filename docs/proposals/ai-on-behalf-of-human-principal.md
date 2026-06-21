@@ -168,6 +168,20 @@ If the model says "reviewed by X", it should distinguish skim, checklist
 review, code review, and binding gate approval. Otherwise, review labels become
 ceremony.
 
+### Organizational misuse
+
+Principal metadata creates a tempting paper shield: an organization can mandate
+AI-assisted work, configure the tools and deadlines, then point at the
+principal field when something goes wrong. AGF should explicitly reject that
+interpretation. Delegation metadata helps reconstruct authority; it does not
+transfer all organizational responsibility to the named person.
+
+The same risk appears in consent. If a workplace requires a person to attach
+their name to AI sessions to remain eligible for certain work, "consent" is
+thin. AGF should avoid language that treats principal attribution as a
+voluntary personal choice when the surrounding organization controls tool
+access, staffing, and performance incentives.
+
 ### Power asymmetry
 
 In workplaces, "AI on behalf of employee X" may become monitoring of the
@@ -240,10 +254,12 @@ Recommended default:
 2. Add optional principal-bound delegation metadata for adopters that need it.
 3. Explicitly reject AI impersonation of humans.
 4. Require disclosure in coordination records when AI work is done under a
-   human or service principal.
+   human, team, or service principal.
 5. Keep governor-reviewer gate approval separate from the principal.
 6. Add docs language: "principal attribution is not legal advice, employment
    attribution, or proof of meaningful human review."
+7. Treat workplace monitoring, performance scoring, and disciplinary use as
+   sensitive downstream uses outside AGF's normal code-governance purpose.
 
 Possible rule:
 
@@ -251,6 +267,72 @@ Possible rule:
 > authority, the coordination record must identify the AI role/session, the
 > principal, the delegation scope, and the human gate decision separately. An
 > AI session must not be represented as the human principal.
+
+## Delegation terms
+
+The hard question is not whether a `principal` field can exist. It can. The
+hard question is what an AI is allowed to do "on behalf of" a person without
+collapsing into impersonation, blame shifting, or fake review.
+
+Minimum terms:
+
+1. **Identity separation:** the AI session and AGF role remain visible. The
+   principal is the authority source, not the author identity.
+2. **Scoped delegation:** delegation names action scope, artifact boundaries,
+   and freshness. "Act as me" is not a scope.
+3. **Non-delegable gates:** Gate 1, Gate 2, release approval, and binding risk
+   acceptance remain human governor-reviewer decisions.
+4. **Revocation:** the principal can withdraw delegation without needing the AI
+   session to agree.
+5. **Escalation:** the AI must pause or escalate when it encounters scope
+   ambiguity, sensitive data, conflicting claims, CI or validator failures, or
+   instructions that would convert delegated work into approval.
+6. **Review depth:** `reviewed` is too vague. Records should distinguish at
+   least `unreviewed`, `skimmed`, `checklist-reviewed`, `substantively-reviewed`,
+   and `gate-approved`.
+7. **Anti-scapegoating:** delegation metadata must not be the sole explanation
+   of fault when the organization chose the tool, configured the workflow, or
+   imposed the deadline.
+
+Possible delegation depth vocabulary:
+
+| Level | Name | AI may do | Human still must do |
+|---|---|---|---|
+| D1 | Informational | Read, search, summarize, answer questions | All edits, gates, and approvals |
+| D2 | Preparatory | Draft plans, patches, tests, and evidence | Review drafts and approve gates |
+| D3 | Execution | Commit to a branch, open MRs, respond within scope | Approve gates, merge, release |
+| D4 | Operational | Trigger CI and limited non-production operations | Approve gates, production changes, security decisions |
+
+AGF should be conservative: D2 is the safest default for most teams. D3 and D4
+should require explicit scope and stronger coordination evidence. "After the
+fact" supervision is acceptable only for low-risk reconstruction; it cannot
+replace gate approval before merge.
+
+Example:
+
+```yaml
+principal:
+  kind: human
+  identifier: "@example-user"
+  authority_source: "explicit session instruction"
+  delegation_depth: D2
+  delegation_scope:
+    actions: ["prepare patch", "run tests", "draft review notes"]
+    artifacts: ["agf/docs/**", "docs/proposals/**"]
+    valid_until: "2026-06-22T18:00:00Z"
+  supervision: checkpoint
+  voluntary: true
+  cannot_approve:
+    - "Gate 1"
+    - "Gate 2"
+    - "release tag"
+  review_status: unreviewed
+```
+
+This shape is intentionally heavier than the minimum schema. Small teams may
+only need `kind`, `identifier`, `delegation_scope`, and `cannot_approve`, but
+the docs should name the richer terms so adopters understand what they are
+choosing not to record.
 
 ## Implementation sketch
 
@@ -263,15 +345,19 @@ principal:
   kind: human | service | team | none
   identifier: "@handle-or-service-name"
   authority_source: "GitLab role, ticket, policy, or explicit instruction"
+  delegation_depth: D1 | D2 | D3 | D4
   delegation_scope:
     - "prepare patch"
     - "run tests"
     - "draft review notes"
+  valid_until: "2026-06-22T18:00:00Z"
+  supervision: realtime | checkpoint | after-the-fact
+  voluntary: true | false | unknown
   cannot_approve:
     - "Gate 1"
     - "Gate 2"
     - "release tag"
-  review_status: unreviewed | reviewed | gate-approved
+  review_status: unreviewed | skimmed | checklist-reviewed | substantively-reviewed | gate-approved
 ```
 
 ### Tooling
