@@ -28,12 +28,12 @@ script authority the framework never granted.
 |---|---|---|
 | Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agov coord validate` |
 | Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agov plan validate` |
-| Hidden coordination obligations | Branch visibility scan against a base branch | `agf coord visibility` |
+| Hidden coordination obligations | Branch visibility scan against a base branch | `agov coord visibility` |
 | Release artifact contents | Manifest-driven source archive allowlist and forbidden-path policy | `mix agov.dist.validate` |
-| Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | Contract target; validator task not yet shipped |
-| Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | Contract target; validator task not yet shipped |
-| InfoSec-relevant artifacts | Anonymization and disclosure checks | Contract target; validator task not yet shipped |
-| Release tags | VERSION ↔ tag alignment | Contract target; validator task not yet shipped |
+| Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov validate agents` (Rust); `mix agov.validate.agents` (Elixir reference) |
+| Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | `agov validate learnings` (Rust); `mix agov.validate.learnings` (Elixir reference) |
+| InfoSec-relevant artifacts | Anonymization and disclosure checks | `agov validate infosec` (Rust); `mix agov.validate.infosec` (Elixir reference) |
+| Release tags | VERSION ↔ tag alignment | `mix agov.dist.check_tag` (Elixir) |
 
 The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped

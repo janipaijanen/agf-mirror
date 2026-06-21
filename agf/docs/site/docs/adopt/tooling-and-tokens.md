@@ -92,9 +92,9 @@ After that, `agov coord validate`, `agov coord brief`, `agov handoff next`,
 ### Option B — Framework-only release archive
 
 A release archive containing only `agf/` has schemas and templates but not
-the tooling executable. In that case, download the optional packaged `agov`
-tooling archive from the release page, or use the wrapper with Mix as the
-backend.
+the tooling executable. In that case, use the wrapper with Mix as the backend
+(Option A without the Rust build step). A packaged `agov` tooling binary is
+planned for a future release.
 
 ### Option C — CI integration
 
@@ -174,8 +174,8 @@ Both run side-by-side; the wrapper picks the best available implementation.
 
 - Removing the Elixir tooling (a separate future decision)
 - Registry publishing or code signing (a separate future decision)
-- Windows x64 distribution (Phase 3, not yet planned)
-- Token ROI reporting in Rust (Phase 2B)
+- Windows x64 packaged release (preview CI artifact exists as of 2026-06-21;
+  downloadable release not yet available)
 
 ## See also
 
