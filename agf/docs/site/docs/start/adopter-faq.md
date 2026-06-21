@@ -106,6 +106,28 @@ to relax or tighten governance.
 If nobody is willing to be governor, do not adopt AGF yet. Gates without a
 governor become ceremony.
 
+## How much governor time should we expect?
+
+Budget real human attention. AGF has no server to operate, but it does add a
+human decision role.
+
+For a small first trial, a useful planning range is:
+
+| Work shape | Typical governor attention |
+|---|---|
+| Trivial typo or comment | Usually none beyond normal review |
+| Small low-risk change using fast track | 1-3 minutes to confirm the waiver fits |
+| Non-trivial governed change | 5-15 minutes across Gate 1 and Gate 2 |
+| High-risk change | As long as the risk review needs; do not optimize this to a fixed number |
+
+These are planning estimates, not service-level promises. The governor is not
+reading every file in every session. They are checking the plan before work
+starts, deciding whether the evidence is enough before merge, and pulling work
+into deeper review when something feels wrong.
+
+If those minutes are unavailable, wait. A gate that nobody has time to read is
+worse than no gate because it teaches the team to treat approval as theatre.
+
 ## When should we write a learning record?
 
 Write one when the project learns something the next agent, reviewer, or
@@ -128,6 +150,18 @@ the governor, and produce validation output you could understand?
 
 Do not write a learning for every ordinary task. The learning file is not a
 diary. It is the place where operational evidence becomes durable.
+
+Use this default threshold:
+
+| Do this | When |
+|---|---|
+| Do not record | Routine implementation friction that stayed inside the normal plan, review, or test loop. |
+| Record locally | Commissioning, repeated friction, a useful rule catch, a rule that caused workarounds, or a governance near-miss. |
+| Escalate, then record | Secret exposure, irreversible data or release damage, authority-boundary violations, or anything the governor must stop immediately. |
+
+When in doubt, write a short local learning and mark confidence honestly. You
+can always decide later that it stays local. You cannot reconstruct a missing
+incident trail from memory six months later.
 
 ## How do we draft a learning?
 
