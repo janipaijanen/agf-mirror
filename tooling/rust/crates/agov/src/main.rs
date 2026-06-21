@@ -102,6 +102,13 @@ enum CoordCommand {
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
     },
+    /// Emit a Graphviz dot communication map of the coordination channel.
+    Graph {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "dot", value_parser = ["dot", "text"])]
+        format: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -253,6 +260,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     format,
                 },
         } => coord_visibility(base_branch, branch, dir, format, &args),
+        Command::Coord {
+            sub: CoordCommand::Graph { dir, format },
+        } => coord_graph(dir, format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -1249,6 +1259,72 @@ enum VisibilityCollision {
         branch_file: String,
         base_file: String,
     },
+}
+
+fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!("ERR  directory not found: {}", dir.display()));
+            agov_core::roi::record_tool_output("agov", args, "coord-graph", output.chars);
+            return 1;
+        }
+    };
+
+    // Collect (from, to, kind) counts
+    let mut edges: std::collections::BTreeMap<(String, String, String), usize> =
+        std::collections::BTreeMap::new();
+    let mut roles: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+
+    for message in &messages {
+        let from = match string_field(&message.raw, "from") {
+            Some(v) => v.to_string(),
+            None => continue,
+        };
+        let to = match string_field(&message.raw, "to") {
+            Some(v) => v.to_string(),
+            None => continue,
+        };
+        let kind = string_field(&message.raw, "kind")
+            .unwrap_or("note")
+            .to_string();
+        roles.insert(from.clone());
+        roles.insert(to.clone());
+        *edges.entry((from, to, kind)).or_insert(0) += 1;
+    }
+
+    if format == "dot" {
+        output.stdout("digraph agf_coordination {".to_string());
+        output.stdout("  rankdir=LR;".to_string());
+        output.stdout("  node [fontname=\"Helvetica\", fontsize=11];".to_string());
+        output.stdout("  edge [fontname=\"Helvetica\", fontsize=9];".to_string());
+        for role in &roles {
+            let attrs = if role == "governor-reviewer" {
+                "shape=box, style=filled, fillcolor=\"#e8f0fe\""
+            } else if role == "all" {
+                "shape=ellipse"
+            } else {
+                "shape=box"
+            };
+            output.stdout(format!("  \"{role}\" [{attrs}];"));
+        }
+        for ((from, to, kind), count) in &edges {
+            output.stdout(format!(
+                "  \"{from}\" -> \"{to}\" [label=\"{kind} ({count})\"];"
+            ));
+        }
+        output.stdout("}".to_string());
+    } else {
+        for ((from, to, kind), count) in &edges {
+            output.stdout(format!("{from} -> {to}  {kind}  ({count})"));
+        }
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-graph", output.chars);
+    0
 }
 
 fn coord_visibility(
