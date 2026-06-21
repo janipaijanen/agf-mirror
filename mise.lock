@@ -36,6 +36,45 @@ url = "https://builds.hex.pm/builds/elixir/v1.20.1-otp-29.zip"
 version = "29.0.2"
 backend = "core:erlang"
 
+[[tools.glab]]
+version = "1.103.0"
+backend = "gitlab:gitlab-org/cli"
+
+[tools.glab."platforms.linux-arm64"]
+checksum = "sha256:100811e68f405531254f35b074d42afee3c9e4350855a9a528207170066a65cb"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_linux_arm64.tar.gz"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_linux_arm64%2Etar%2Egz"
+
+[tools.glab."platforms.linux-arm64-musl"]
+checksum = "sha256:100811e68f405531254f35b074d42afee3c9e4350855a9a528207170066a65cb"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_linux_arm64.tar.gz"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_linux_arm64%2Etar%2Egz"
+
+[tools.glab."platforms.linux-x64"]
+checksum = "sha256:6264d0de9e3b8f8bcafd368dfeaa19948ae680372a206b0b21038b1daabfaf58"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_linux_amd64.tar.gz"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_linux_amd64%2Etar%2Egz"
+
+[tools.glab."platforms.linux-x64-musl"]
+checksum = "sha256:6264d0de9e3b8f8bcafd368dfeaa19948ae680372a206b0b21038b1daabfaf58"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_linux_amd64.tar.gz"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_linux_amd64%2Etar%2Egz"
+
+[tools.glab."platforms.macos-arm64"]
+checksum = "sha256:fea5a07e6b41dfd04585c1ba08deaf95cd7e9b320a86d056f65415e254732fe3"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_darwin_arm64.tar.gz"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_darwin_arm64%2Etar%2Egz"
+
+[tools.glab."platforms.macos-x64"]
+checksum = "sha256:c32fb1df724bc3cee2da828b24e19a3f518f4b4d382410984eb4a415498284da"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_darwin_amd64.tar.gz"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_darwin_amd64%2Etar%2Egz"
+
+[tools.glab."platforms.windows-x64"]
+checksum = "sha256:42f0af1ad1f187fb6d0c24c12718ab98e624bbdc8ae1cfad20bd078d11fcb9fc"
+url = "https://gitlab.com/gitlab-org/cli/-/releases/v1.103.0/downloads/glab_1.103.0_windows_amd64.zip"
+url_api = "https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/1%2E103%2E0/glab_1%2E103%2E0_windows_amd64%2Ezip"
+
 [[tools.python]]
 version = "3.14.5"
 backend = "core:python"
