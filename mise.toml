@@ -4,6 +4,7 @@ python = "3.14"
 erlang = "29.0.2"
 elixir = "1.20.1-otp-29"
 rust = "stable"
+glab = "1.103.0"
 
 [env]
 UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
