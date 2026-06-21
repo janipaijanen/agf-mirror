@@ -188,6 +188,31 @@ In workplaces, "AI on behalf of employee X" may become monitoring of the
 employee's productivity or judgement. AGF should avoid features that require
 more personal surveillance than the governance trail needs.
 
+### Governance metadata versus surveillance
+
+Useful governance metadata asks: who authorized this AI session, what was it
+allowed to touch, what gate decision was made, and what evidence supports that
+decision? Surveillance metadata asks: how much AI did this person use, how long
+did they take, how much effort did they personally contribute, and how do they
+compare to peers?
+
+AGF should keep that boundary structural, not only rhetorical:
+
+- Do not add numeric review-quality fields such as review scores, minutes
+  spent reviewing, lines checked, or effort percentages.
+- Do not build native productivity, principal-ranking, or cross-user
+  comparison reports from coordination metadata.
+- Prefer categorical review labels over quantitative scores, and document that
+  categories are audit context, not performance ratings.
+- Record positive authority scope: what the AI may do. Avoid negative scope
+  fields that imply surveillance of what the human did not do.
+- Treat export of principal metadata for cross-user analysis as outside AGF's
+  intended governance purpose.
+
+This does not prevent an adopter from misusing logs with external tooling. It
+does avoid handing them a first-class AGF feature that turns governance records
+into a productivity dashboard.
+
 ## EU and regulatory context to consider
 
 This section is issue-spotting, not advice.
@@ -260,6 +285,8 @@ Recommended default:
    attribution, or proof of meaningful human review."
 7. Treat workplace monitoring, performance scoring, and disciplinary use as
    sensitive downstream uses outside AGF's normal code-governance purpose.
+8. Decline native tooling for review scores, time tracking, principal ranking,
+   or productivity comparisons.
 
 Possible rule:
 
@@ -284,15 +311,22 @@ Minimum terms:
    acceptance remain human governor-reviewer decisions.
 4. **Revocation:** the principal can withdraw delegation without needing the AI
    session to agree.
-5. **Escalation:** the AI must pause or escalate when it encounters scope
+5. **Contestation:** a principal must be able to file a later coordination
+   record disputing or disavowing a claimed delegation. The original record
+   remains immutable for technical traceability, but the later record must be
+   visible in session resume and audit views.
+6. **Escalation:** the AI must pause or escalate when it encounters scope
    ambiguity, sensitive data, conflicting claims, CI or validator failures, or
    instructions that would convert delegated work into approval.
-6. **Review depth:** `reviewed` is too vague. Records should distinguish at
+7. **Review depth:** `reviewed` is too vague. Records should distinguish at
    least `unreviewed`, `skimmed`, `checklist-reviewed`, `substantively-reviewed`,
    and `gate-approved`.
-7. **Anti-scapegoating:** delegation metadata must not be the sole explanation
+8. **Anti-scapegoating:** delegation metadata must not be the sole explanation
    of fault when the organization chose the tool, configured the workflow, or
    imposed the deadline.
+9. **Anti-surveillance:** AGF should not provide native metrics or aggregation
+   features that make principal metadata easy to reuse for productivity
+   scoring.
 
 Possible delegation depth vocabulary:
 
@@ -322,6 +356,7 @@ principal:
     valid_until: "2026-06-22T18:00:00Z"
   supervision: checkpoint
   voluntary: true
+  contested_by_principal: false
   cannot_approve:
     - "Gate 1"
     - "Gate 2"
@@ -353,6 +388,7 @@ principal:
   valid_until: "2026-06-22T18:00:00Z"
   supervision: realtime | checkpoint | after-the-fact
   voluntary: true | false | unknown
+  contested_by_principal: true | false
   cannot_approve:
     - "Gate 1"
     - "Gate 2"
@@ -364,10 +400,16 @@ principal:
 
 - `agov coord validate` validates the shape but does not decide legal meaning.
 - `agov session resume` surfaces the active principal/delegation scope when
-  present.
-- `agov usage report` may count human principals separately from AI senders.
+  present, and highlights later contestation or disavowal records that
+  reference the same delegation.
+- `agov usage report` should avoid principal productivity reports. If it ever
+  counts principal-bound records, the count should be scoped to artifact audit
+  and should not rank or compare people.
 - `agov coord graph` could optionally render role-to-role and
   principal-to-role views separately.
+- AGF should not add native commands that rank principals, compare AI usage
+  across humans, calculate human oversight scores, or export principal
+  metadata as an HR-ready dataset.
 
 ### Docs
 
