@@ -24,4 +24,8 @@ digraph governance_loop {
     incident -> learn     [style=dashed]
     learn    -> plan      [label="new rule /\ntool / doc", color="#888888",
                            fontcolor="#888888"]
+
+    legend [label="Legend\nblue box = governed workflow step\ngreen box = merged outcome\ngrey box/edge = learning feedback\norange ellipse = incident or observation\ndashed edge = rework or external trigger",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    learn -> legend [style=invis]
 }

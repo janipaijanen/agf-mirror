@@ -34,4 +34,8 @@ digraph operating_responsibility_map {
                       fontcolor="#009944"]
     record -> read [label="next cycle", color="#888888",
                     fontcolor="#888888"]
+
+    legend [label="Legend\nwhite box = mixed human + AI work\nblue box = AI-executed delegated work\norange diamond/box = human-only authority\ngreen edge = approved decision\ndashed orange edge = changes requested\ngrey edge = next-cycle feedback",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    record -> legend [style=invis]
 }

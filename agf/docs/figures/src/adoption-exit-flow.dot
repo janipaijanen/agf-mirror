@@ -39,4 +39,8 @@ digraph adoption_exit {
     freeze   -> decomm   [style=dashed, color="#888888"]
     replace  -> decomm   [style=dashed, color="#888888",
                           label="after migration"]
+
+    legend [label="Legend\nblue box = adoption/operation step\nwhite box = reversible exit option\ndark box = decommissioned state\ndashed grey edge = exit path",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    operate -> legend [style=invis]
 }

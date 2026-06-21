@@ -23,4 +23,8 @@ digraph learning_loop {
     use -> disposition [label="review\noutcome"]
     disposition -> work [label="feeds next\ncycle", color="#888888",
                          fontcolor="#888888"]
+
+    legend [label="Legend\nwhite ellipse = evidence source\nblue box = recorded learning or proposal\ngreen box = accepted disposition\ngrey edge = feedback into next cycle\nsolid edge = lifecycle progression",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    disposition -> legend [style=invis]
 }

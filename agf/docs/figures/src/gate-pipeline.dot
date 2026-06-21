@@ -34,4 +34,8 @@ digraph gate_pipeline {
                      fontcolor="#EE7700"]
     gate2 -> blocked [label="rejected", style=dashed, color="#CC3311",
                       fontcolor="#CC3311"]
+
+    legend [label="Legend\nellipse = request/start state\ndiamond = human gate review\nblue box = planned or implemented work\ngreen edge/box = approved path\norange dashed edge = changes requested\nred dashed edge/box = rejected or blocked",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    blocked -> legend [style=invis]
 }

@@ -26,6 +26,10 @@ The site-rendered copies of the SVGs live at
 `docs/site/reference/figures/` (served by MkDocs). Keep both in sync by
 running the generation command below.
 
+Every figure must include an embedded legend in the generated image. Explain
+color, shape, and line semantics inside the DOT source rather than relying on
+page prose or captions.
+
 ## Generating figures
 
 ```bash
