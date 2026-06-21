@@ -65,9 +65,10 @@ Without a structured feedback loop:
 
 ### Step by Step
 
-1. **A project adopts the framework.** Copy `learnings/_template.yaml` to
-   `learnings/<codename>.yaml` and fill in the project context section.
-   Use a codename, not the real project name (see Submission Privacy Policy below).
+1. **A project adopts the framework.** Ask the assistant to prepare
+   `learnings/<codename>.yaml` from `learnings/_template.yaml`, then review
+   the project context section. Use a codename, not the real project name
+   (see Submission Privacy Policy below).
 
 2. **The project encounters something noteworthy.** A governance gap, an
    agent that was overkill, a principle that worked exactly as predicted,
@@ -330,7 +331,7 @@ architecture to competitors and the public.
 
 ```
 learnings/
-  _template.yaml              # copy this for each new project
+  _template.yaml              # source template for each new project file
   .adopter-mapping.example    # format for the private codename → real-name mapping
   blue-heron.yaml             # example: project codename "blue-heron"
   project-aurora.yaml         # example: project codename "project-aurora"

@@ -86,7 +86,7 @@ Table 1 summarizes the commitments you accept when you adopt the framework.
 
 | Commitment | Size |
 |---|---|
-| Initial install | Copy files, customize rules — an afternoon |
+| Initial install | Assistant-prepared file setup, human-reviewed rule choices — an afternoon |
 | Per-change overhead | Plan + two gates for non-trivial changes; fast track for small ones |
 | Ongoing | Learning records when incidents happen; upgrade hygiene per release |
 | Reversibility | Full removal is documented and verifiable — see [exit](../adopt/exit-and-decommission.md) |

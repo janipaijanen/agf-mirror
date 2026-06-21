@@ -27,13 +27,12 @@ you accept, and the costs stated plainly. Also read
 [Exit and decommission](docs/adopt/exit-and-decommission.md): knowing how to
 leave without rewriting history is part of the decision.
 
-**Step 2 — Copy the files and customize the rules.**
+**Step 2 — Let the assistant prepare the files; you review the rules.**
 Follow [Install the `agf/` directory](docs/adopt/install-and-layouts.md) to
-copy the framework into your repository in the single supported v2.0 layout.
-Search the copied rules for `CUSTOMIZE` markers and adapt each one to your
-stack — your supported locales, your migration commands, your CI paths. Delete
-rules that do not apply; an inapplicable rule trains agents that rules are
-optional.
+commission the framework in the single supported v2.0 layout. The guide gives
+you a pasteable assistant prompt for the clerical setup. Your job is to review
+the diff, resolve `CUSTOMIZE` markers, and delete rules that do not apply; an
+inapplicable rule trains agents that rules are optional.
 
 **Step 3 — Run one real change through both gates.**
 Work through [Your first governed change](docs/start/first-governed-change.md).

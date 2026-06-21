@@ -10,7 +10,7 @@ digraph adoption_exit {
 
     assess   [label="Step 0: Assess\n(risk profile, team size)", shape=ellipse,
               fillcolor=white, color="#888888"]
-    install  [label="Install\n(copy rules, configure CI)"]
+    install  [label="Install\n(assistant setup,\nreview rules)"]
     first    [label="First governed\nchange"]
     operate  [label="Operate\n(ongoing gate discipline)"]
 

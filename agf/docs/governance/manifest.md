@@ -22,13 +22,13 @@ adopt from this repository adopt from the foundry directly.
 
 | Path | Purpose | Adopt as |
 |------|---------|---------|
-| `agents/` | Agent role definitions (one YAML per role) | Copy to `agf/agents/` or use in place |
+| `agents/` | Agent role definitions (one YAML per role) | Install under `agf/agents/` or use in place |
 | `agents/MANIFEST.yaml` | Example active-role status file (foundry dogfood) | Replace with your own project's role-status file |
-| `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Copy to `.claude/rules/`; search `<!-- CUSTOMIZE -->` |
+| `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Install to your assistant's rules directory; search `<!-- CUSTOMIZE -->` |
 | `schemas/` | JSON schemas and invariants for validation | Use with Elixir tooling (`tooling/elixir/`) |
-| `templates/` | First-run starter files (coordination, plans, learning) | Copy into `docs/coordination/`, `docs/plans/`, `agf/learnings/` |
-| `skills/` | AI assistant workflow scripts | Copy to `.claude/skills/` (optional) |
-| `project-specific-examples/` | Stack-specific rule examples | Copy if stack matches |
+| `templates/` | First-run starter files (coordination, plans, learning) | Ask your assistant to prepare first-run evidence from these templates |
+| `skills/` | AI assistant workflow scripts | Install to your assistant's skills directory when supported |
+| `project-specific-examples/` | Stack-specific rule examples | Use only when the stack matches |
 | `ADOPTING.md` | Step-by-step adoption guide | Follow step by step |
 | `framework.md` | Framework theory and reference | Read-only reference |
 | `CHANGELOG.md` | v2.0 change history | Reference |
@@ -41,36 +41,23 @@ adopt from this repository adopt from the foundry directly.
 
 ## Quick start
 
-```bash
-# 1. Create your agf/ directory (copy from foundry or clone)
-git clone https://gitlab.com/janipaijanen/agents-govern-framework
-cp -r agents-govern-framework/agf/ your-project/agf/
+Use the public installation guide first:
+[Install the `agf/` directory](../site/docs/adopt/install-and-layouts.md).
+It gives you a pasteable commissioning prompt so your assistant prepares the
+file moves, local evidence directories, rule install target, and first learning
+record.
 
-# 2. Copy governance rules into your AI assistant's rules directory
-mkdir -p .claude
-cp -r agf/rules/ .claude/rules/
+After the assistant prepares the diff, review:
 
-# 3. (Optional) Copy skills
-cp -r agf/skills/ .claude/skills/
-
-# 4. Create your project learning record (use a codename, not the real name)
-mkdir -p agf/learnings
-cp agf/templates/learning-record.yaml agf/learnings/<codename>.yaml
-
-# 5. Create working evidence directories
-mkdir -p docs/plans docs/coordination
-
-# 6. Replace foundry role-status with your own
-cp agf/agents/MANIFEST.yaml agf/agents/MANIFEST.yaml
-# Edit to reflect your project's actual roles and who plays them
-
-# 7. Customize rules
-#    Search for <!-- CUSTOMIZE --> in .claude/rules/**/*.md
-#    Edit to match your stack, locale set, and project conventions
-
-# 8. (Optional) Stack-specific rules
-#    cp -r agf/project-specific-examples/python-flask/ .claude/rules/
-```
+- `agf/` exists as the single framework directory;
+- your assistant rules directory contains the AGF rules it will load;
+- `agf/learnings/<codename>.yaml` exists and does not reveal the real project
+  name;
+- `docs/plans/` and `docs/coordination/` exist, or your project has documented
+  different paths;
+- `agf/agents/MANIFEST.yaml` is replaced or clearly documented as your local
+  role-status authority, not the foundry dogfood roster;
+- remaining `CUSTOMIZE` markers are deliberate and tracked.
 
 For the full 7-step adoption process, see [ADOPTING.md](../../ADOPTING.md).
 
