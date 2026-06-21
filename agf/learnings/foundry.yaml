@@ -393,6 +393,37 @@ learnings:
       both cases. Consider surfacing this as a validator warning when the ROI
       log shows a session with no session.resume entry.
 
+  - id: learn-20260621T182100Z-figure-count-legends-9x4m
+    date: "2026-06-21"
+    category: gap
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      Figure labels that include numeric counts must explain what the numbers
+      count in both the embedded legend and the surrounding page text.
+    detail: >
+      The coordination map example used edge labels such as `handoff (22)` and
+      `decision-record (9)`. The embedded legend said "Edge label = kind
+      (message count)", but the text before the figure did not explicitly tell
+      readers that the parenthesized numbers were observed message counts from
+      the dated AGF foundry coordination sample. When viewed directly at
+      `/reference/figures/coordination-map-example.svg`, the figure therefore
+      depended on a compact legend phrase that was easy to overlook.
+
+      This is a figure-quality failure because numbers inside a visual carry
+      analytical authority. If the denominator, unit, sampling window, or
+      source is unclear, readers can misinterpret the counts as priorities,
+      weights, version numbers, sequence IDs, or requirements. Direct SVG URLs
+      make the risk higher because the page prose may not be visible.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Extend the figure UX standard: any figure that displays numeric labels
+      must explain the unit and sampling context inside the figure itself, and
+      the page text immediately before or after the figure must repeat the
+      meaning in plain language. For generated coordination maps, prefer
+      wording such as "parenthesized numbers are message counts in this
+      captured channel sample" in the legend or caption-equivalent prose.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
