@@ -22,6 +22,7 @@ rust_supported() {
     coord)
       case "${2:-}" in
         validate|brief|status|stale) return 0 ;;
+        visibility) return 0 ;;
       esac
       ;;
     plan)
@@ -74,6 +75,7 @@ Usage:
   agov coord brief [--id-format ulid|readable] [--from <role>] [--to <role>] [--kind <kind>] [--topic <topic>]
   agov coord status [--dir <coord-dir>] [--recent <n>] [--roles]
   agov coord stale [--dir <coord-dir>]
+  agov coord visibility [--base-branch <branch>] [--branch <branch>] [--format text|json]
   agov plan validate <file>...
   agov agov.coord.validate <file>...
   agov agov.plan.validate <file>...

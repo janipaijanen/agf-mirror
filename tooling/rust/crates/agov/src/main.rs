@@ -81,6 +81,17 @@ enum CoordCommand {
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
     },
+    /// Scan local branches for hidden coordination obligations.
+    Visibility {
+        #[arg(long, default_value = "main", alias = "base_branch")]
+        base_branch: String,
+        #[arg(long)]
+        branch: Vec<String>,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -184,6 +195,15 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub: CoordCommand::Stale { dir },
         } => coord_stale(dir, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::Visibility {
+                    base_branch,
+                    branch,
+                    dir,
+                    format,
+                },
+        } => coord_visibility(base_branch, branch, dir, format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -881,6 +901,540 @@ fn string_array_field(raw: &serde_json::Value, field: &str) -> Vec<String> {
         .filter_map(|value| value.as_str())
         .map(str::to_string)
         .collect()
+}
+
+#[derive(Debug)]
+struct VisibilityMessage {
+    file: String,
+    raw: serde_json::Value,
+}
+
+#[derive(Debug)]
+struct VisibilityReport {
+    base_branch: String,
+    scanned_branches: Vec<String>,
+    unbridged_obligations: Vec<VisibilityObligation>,
+    sequence_collisions: Vec<VisibilityCollision>,
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct VisibilityObligation {
+    branch: String,
+    file: String,
+    seq: Option<i64>,
+    kind: String,
+    to: String,
+    topic: String,
+}
+
+#[derive(Debug, Clone)]
+enum VisibilityCollision {
+    BaseDuplicateSeq {
+        seq: i64,
+        files: Vec<String>,
+    },
+    BranchBaseSeq {
+        seq: i64,
+        branch: String,
+        branch_file: String,
+        base_file: String,
+    },
+}
+
+fn coord_visibility(
+    base_branch: String,
+    branches: Vec<String>,
+    dir: PathBuf,
+    format: String,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let coord_dir = match git_coord_dir(&dir) {
+        Ok(path) => path,
+        Err(reason) => {
+            output.stderr(format!("ERR coordination visibility scan failed: {reason}"));
+            return 2;
+        }
+    };
+
+    let report = match visibility_scan(&base_branch, branches, &coord_dir) {
+        Ok(report) => report,
+        Err(reason) => {
+            output.stderr(format!("ERR coordination visibility scan failed: {reason}"));
+            return 2;
+        }
+    };
+
+    if format == "json" {
+        output.stdout(visibility_json(&report));
+    } else {
+        render_visibility_text(&mut output, &report);
+    }
+
+    let exit_code = visibility_exit_code(&report);
+    if exit_code == 0 {
+        agov_core::roi::record_tool_output("agov", args, "coord-visibility", output.chars);
+    }
+    exit_code
+}
+
+fn visibility_scan(
+    base_branch: &str,
+    requested_branches: Vec<String>,
+    coord_dir: &str,
+) -> Result<VisibilityReport, String> {
+    let base_files = git_coord_files(base_branch, coord_dir)
+        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
+    let base_messages = load_git_messages(base_branch, &base_files)?;
+    let base_file_set: std::collections::BTreeSet<&str> = base_messages
+        .iter()
+        .map(|message| message.file.as_str())
+        .collect();
+
+    let branches = if requested_branches.is_empty() {
+        git_local_branches()?
+            .into_iter()
+            .filter(|branch| branch != base_branch)
+            .collect()
+    } else {
+        requested_branches
+    };
+
+    let mut unbridged_obligations = Vec::new();
+    let mut sequence_collisions = base_sequence_collisions_visibility(&base_messages);
+
+    for branch in &branches {
+        let branch_files = git_coord_files(branch, coord_dir)?;
+        let branch_local_files: Vec<String> = branch_files
+            .into_iter()
+            .filter(|file| !base_file_set.contains(file.as_str()))
+            .collect();
+        let branch_messages = load_git_messages(branch, &branch_local_files)?;
+
+        for message in branch_messages
+            .iter()
+            .filter(|message| visibility_obligation(&message.raw))
+            .filter(|message| !visibility_bridged(&base_messages, branch, message))
+        {
+            unbridged_obligations.push(VisibilityObligation {
+                branch: branch.clone(),
+                file: message.file.clone(),
+                seq: message.raw.get("seq").and_then(|value| value.as_i64()),
+                kind: string_field(&message.raw, "kind").unwrap_or("").to_string(),
+                to: string_field(&message.raw, "to").unwrap_or("").to_string(),
+                topic: string_field(&message.raw, "topic")
+                    .unwrap_or("")
+                    .to_string(),
+            });
+        }
+
+        sequence_collisions.extend(branch_sequence_collisions(
+            branch,
+            &branch_messages,
+            &base_messages,
+        ));
+    }
+
+    unbridged_obligations.sort_by(|left, right| {
+        (
+            left.branch.as_str(),
+            left.seq.unwrap_or_default(),
+            left.file.as_str(),
+        )
+            .cmp(&(
+                right.branch.as_str(),
+                right.seq.unwrap_or_default(),
+                right.file.as_str(),
+            ))
+    });
+
+    Ok(VisibilityReport {
+        base_branch: base_branch.to_string(),
+        scanned_branches: branches,
+        unbridged_obligations,
+        sequence_collisions,
+        errors: Vec::new(),
+    })
+}
+
+fn git_coord_dir(dir: &Path) -> Result<String, String> {
+    if !dir.is_absolute() {
+        return Ok(dir.display().to_string());
+    }
+
+    let root = git_output(&["rev-parse", "--show-toplevel"])?;
+    let root = PathBuf::from(root);
+    dir.strip_prefix(&root)
+        .map(|path| path.display().to_string())
+        .map_err(|_| {
+            format!(
+                "coordination directory is outside git root: {}",
+                dir.display()
+            )
+        })
+}
+
+fn git_local_branches() -> Result<Vec<String>, String> {
+    let output = git_output(&["for-each-ref", "--format=%(refname:short)", "refs/heads"])?;
+    let mut branches: Vec<String> = output
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(str::to_string)
+        .collect();
+    branches.sort();
+    Ok(branches)
+}
+
+fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, String> {
+    let output = git_output(&["ls-tree", "-r", "--name-only", ref_name, "--", coord_dir])?;
+    let mut files: Vec<String> = output
+        .lines()
+        .filter(|line| line.ends_with(".md"))
+        .map(str::to_string)
+        .collect();
+    files.sort();
+    Ok(files)
+}
+
+fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityMessage>, String> {
+    let mut messages = Vec::new();
+    for file in files {
+        let content = match git_output(&["show", &format!("{ref_name}:{file}")]) {
+            Ok(content) => content,
+            Err(_) => continue,
+        };
+        let Ok(mut raw) = agov_core::yaml::parse_frontmatter_json(&content) else {
+            continue;
+        };
+        if let Some(object) = raw.as_object_mut() {
+            object.insert(
+                "_body".to_string(),
+                serde_json::Value::String(markdown_body(&content)),
+            );
+        }
+        messages.push(VisibilityMessage {
+            file: file.clone(),
+            raw,
+        });
+    }
+    Ok(messages)
+}
+
+fn markdown_body(content: &str) -> String {
+    content
+        .splitn(3, "---")
+        .nth(2)
+        .unwrap_or_default()
+        .to_string()
+}
+
+fn visibility_obligation(raw: &serde_json::Value) -> bool {
+    if string_field(raw, "kind") == Some("handoff") {
+        return true;
+    }
+    if raw
+        .get("requires-ack")
+        .and_then(|value| value.as_bool())
+        .unwrap_or(false)
+    {
+        return true;
+    }
+    if string_field(raw, "to") == Some("all") {
+        return true;
+    }
+    if matches!(
+        string_field(raw, "kind"),
+        Some("review" | "decision-record" | "note")
+    ) {
+        return string_field(raw, "from") != string_field(raw, "to");
+    }
+    false
+}
+
+fn visibility_bridged(
+    base_messages: &[VisibilityMessage],
+    branch: &str,
+    branch_message: &VisibilityMessage,
+) -> bool {
+    base_messages.iter().any(|base| {
+        visibility_later(base, branch_message)
+            && (string_array_field(&base.raw, "references-to").contains(&branch_message.file)
+                || string_field(&base.raw, "_body")
+                    .map(|body| body.contains(&branch_message.file))
+                    .unwrap_or(false)
+                || string_field(&base.raw, "_body")
+                    .map(|body| {
+                        body.contains(branch)
+                            && Path::new(&branch_message.file)
+                                .file_name()
+                                .and_then(|name| name.to_str())
+                                .map(|filename| body.contains(filename))
+                                .unwrap_or(false)
+                    })
+                    .unwrap_or(false))
+    })
+}
+
+fn visibility_later(left: &VisibilityMessage, right: &VisibilityMessage) -> bool {
+    visibility_sort_key(left) > visibility_sort_key(right)
+}
+
+fn visibility_sort_key(message: &VisibilityMessage) -> (String, String) {
+    (
+        string_field(&message.raw, "timestamp")
+            .unwrap_or("")
+            .to_string(),
+        Path::new(&message.file)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or(&message.file)
+            .to_string(),
+    )
+}
+
+fn base_sequence_collisions_visibility(
+    base_messages: &[VisibilityMessage],
+) -> Vec<VisibilityCollision> {
+    let mut by_seq: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for message in base_messages {
+        if visibility_modern_filename(&message.file) {
+            continue;
+        }
+        let Some(seq) = message.raw.get("seq").and_then(|value| value.as_i64()) else {
+            continue;
+        };
+        by_seq.entry(seq).or_default().push(message.file.clone());
+    }
+
+    by_seq
+        .into_iter()
+        .filter_map(|(seq, mut files)| {
+            if files.len() <= 1 {
+                return None;
+            }
+            files.sort();
+            Some(VisibilityCollision::BaseDuplicateSeq { seq, files })
+        })
+        .collect()
+}
+
+fn branch_sequence_collisions(
+    branch: &str,
+    branch_messages: &[VisibilityMessage],
+    base_messages: &[VisibilityMessage],
+) -> Vec<VisibilityCollision> {
+    let mut base_by_seq: BTreeMap<i64, Vec<&VisibilityMessage>> = BTreeMap::new();
+    for message in base_messages {
+        if visibility_modern_filename(&message.file) {
+            continue;
+        }
+        let Some(seq) = message.raw.get("seq").and_then(|value| value.as_i64()) else {
+            continue;
+        };
+        base_by_seq.entry(seq).or_default().push(message);
+    }
+
+    let mut collisions = Vec::new();
+    for message in branch_messages {
+        if visibility_modern_filename(&message.file) {
+            continue;
+        }
+        let Some(seq) = message.raw.get("seq").and_then(|value| value.as_i64()) else {
+            continue;
+        };
+        for base in base_by_seq.get(&seq).into_iter().flatten() {
+            if base.file == message.file {
+                continue;
+            }
+            collisions.push(VisibilityCollision::BranchBaseSeq {
+                seq,
+                branch: branch.to_string(),
+                branch_file: message.file.clone(),
+                base_file: base.file.clone(),
+            });
+        }
+    }
+    collisions.sort_by(|left, right| {
+        visibility_collision_key(left).cmp(&visibility_collision_key(right))
+    });
+    collisions
+}
+
+fn visibility_collision_key(collision: &VisibilityCollision) -> (i64, String, String) {
+    match collision {
+        VisibilityCollision::BaseDuplicateSeq { seq, files } => (
+            *seq,
+            String::new(),
+            files.first().cloned().unwrap_or_default(),
+        ),
+        VisibilityCollision::BranchBaseSeq {
+            seq,
+            branch,
+            branch_file,
+            ..
+        } => (*seq, branch.clone(), branch_file.clone()),
+    }
+}
+
+fn visibility_modern_filename(file: &str) -> bool {
+    let basename = Path::new(file)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(file);
+    let stem = basename.strip_suffix(".md").unwrap_or(basename);
+    is_ulid_stem(stem)
+        || is_readable_stem(stem)
+        || stem
+            .rsplit_once('-')
+            .map(|(possible, _sender)| is_readable_stem(possible))
+            .unwrap_or(false)
+}
+
+fn is_ulid_stem(value: &str) -> bool {
+    value.len() == 26
+        && value
+            .chars()
+            .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
+}
+
+fn is_readable_stem(value: &str) -> bool {
+    let Some((timestamp, rest)) = value.split_once('-') else {
+        return false;
+    };
+    timestamp.len() == 16
+        && timestamp.ends_with('Z')
+        && timestamp.as_bytes().get(8) == Some(&b'T')
+        && timestamp[..8].chars().all(|ch| ch.is_ascii_digit())
+        && timestamp[9..15].chars().all(|ch| ch.is_ascii_digit())
+        && rest
+            .rsplit_once('-')
+            .map(|(role, suffix)| {
+                !role.is_empty()
+                    && suffix.len() >= 4
+                    && suffix.len() <= 6
+                    && suffix
+                        .chars()
+                        .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit())
+            })
+            .unwrap_or(false)
+}
+
+fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport) {
+    if report.sequence_collisions.is_empty() && report.unbridged_obligations.is_empty() {
+        output.stdout(format!(
+            "OK coordination visibility clean relative to {}",
+            report.base_branch
+        ));
+        return;
+    }
+
+    if !report.sequence_collisions.is_empty() {
+        output.stdout("ERR sequence collision");
+        for collision in &report.sequence_collisions {
+            match collision {
+                VisibilityCollision::BaseDuplicateSeq { seq, files } => {
+                    output.stdout(format!("  seq: {seq}"));
+                    for file in files {
+                        output.stdout(format!("  base-file: {file}"));
+                    }
+                }
+                VisibilityCollision::BranchBaseSeq {
+                    seq,
+                    branch,
+                    branch_file,
+                    base_file,
+                } => {
+                    output.stdout(format!("  seq: {seq}"));
+                    output.stdout(format!("  base: {base_file}"));
+                    output.stdout(format!("  branch: {branch}"));
+                    output.stdout(format!("  branch-file: {branch_file}"));
+                }
+            }
+        }
+    }
+
+    if !report.unbridged_obligations.is_empty() {
+        output.stdout("WARN branch-local coordination obligations not visible on base branch");
+        for obligation in &report.unbridged_obligations {
+            output.stdout(format!("  branch: {}", obligation.branch));
+            output.stdout(format!("  file: {}", obligation.file));
+            output.stdout(format!(
+                "  seq: {}",
+                obligation
+                    .seq
+                    .map(|seq| seq.to_string())
+                    .unwrap_or_default()
+            ));
+            output.stdout(format!("  kind: {}", obligation.kind));
+            output.stdout(format!("  to: {}", obligation.to));
+            output.stdout(format!("  topic: {}", obligation.topic));
+            output.stdout("  bridge: missing");
+        }
+    }
+}
+
+fn visibility_json(report: &VisibilityReport) -> String {
+    let obligations: Vec<serde_json::Value> = report
+        .unbridged_obligations
+        .iter()
+        .map(|entry| {
+            serde_json::json!({
+                "branch": entry.branch,
+                "file": entry.file,
+                "seq": entry.seq,
+                "kind": entry.kind,
+                "to": entry.to,
+                "topic": entry.topic,
+                "bridge": "missing",
+            })
+        })
+        .collect();
+    let collisions: Vec<serde_json::Value> = report
+        .sequence_collisions
+        .iter()
+        .map(|collision| match collision {
+            VisibilityCollision::BaseDuplicateSeq { seq, files } => {
+                serde_json::json!({
+                    "type": "base_duplicate_seq",
+                    "seq": seq,
+                    "files": files,
+                })
+            }
+            VisibilityCollision::BranchBaseSeq {
+                seq,
+                branch,
+                branch_file,
+                base_file,
+            } => serde_json::json!({
+                "type": "branch_base_seq_collision",
+                "seq": seq,
+                "branch": branch,
+                "branch_file": branch_file,
+                "base_file": base_file,
+            }),
+        })
+        .collect();
+
+    serde_json::json!({
+        "base_branch": report.base_branch,
+        "scanned_branches": report.scanned_branches,
+        "unbridged_obligations": obligations,
+        "sequence_collisions": collisions,
+        "errors": report.errors,
+        "exit_code": visibility_exit_code(report),
+    })
+    .to_string()
+}
+
+fn visibility_exit_code(report: &VisibilityReport) -> i32 {
+    if !report.sequence_collisions.is_empty() || !report.errors.is_empty() {
+        2
+    } else if !report.unbridged_obligations.is_empty() {
+        1
+    } else {
+        0
+    }
 }
 
 fn session_resume(
