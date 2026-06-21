@@ -202,8 +202,12 @@ AGF should keep that boundary structural, not only rhetorical:
   spent reviewing, lines checked, or effort percentages.
 - Do not build native productivity, principal-ranking, or cross-user
   comparison reports from coordination metadata.
-- Prefer categorical review labels over quantitative scores, and document that
-  categories are audit context, not performance ratings.
+- Do not require routine per-person review-depth labels on every decision
+  record. Even categorical labels such as `skimmed` or `substantive` can become
+  a career signal when they are grep-able across permanent records.
+- When review depth is necessary, prefer incident-gated reconstruction: record
+  it only when investigating or explaining a specific failure, exception, or
+  disputed gate.
 - Record positive authority scope: what the AI may do. Avoid negative scope
   fields that imply surveillance of what the human did not do.
 - Treat export of principal metadata for cross-user analysis as outside AGF's
@@ -287,6 +291,8 @@ Recommended default:
    sensitive downstream uses outside AGF's normal code-governance purpose.
 8. Decline native tooling for review scores, time tracking, principal ranking,
    or productivity comparisons.
+9. Make review-depth metadata incident-gated by default, not routine on every
+   human decision record.
 
 Possible rule:
 
@@ -318,9 +324,11 @@ Minimum terms:
 6. **Escalation:** the AI must pause or escalate when it encounters scope
    ambiguity, sensitive data, conflicting claims, CI or validator failures, or
    instructions that would convert delegated work into approval.
-7. **Review depth:** `reviewed` is too vague. Records should distinguish at
-   least `unreviewed`, `skimmed`, `checklist-reviewed`, `substantively-reviewed`,
-   and `gate-approved`.
+7. **Review depth:** `reviewed` is too vague, but routine per-person review
+   depth is also surveillance-prone. If review depth is recorded, it should be
+   incident-gated by default and tied to a specific reconstruction need, using
+   categorical labels such as `skimmed`, `checklist-reviewed`,
+   `substantively-reviewed`, and `gate-approved`.
 8. **Anti-scapegoating:** delegation metadata must not be the sole explanation
    of fault when the organization chose the tool, configured the workflow, or
    imposed the deadline.
@@ -361,7 +369,6 @@ principal:
     - "Gate 1"
     - "Gate 2"
     - "release tag"
-  review_status: unreviewed
 ```
 
 This shape is intentionally heavier than the minimum schema. Small teams may
@@ -409,8 +416,8 @@ Notes on the minimum:
   delegation without forcing every small record to carry expiry metadata.
 - `voluntary` is optional and defaults semantically to `unknown`; AGF cannot
   prove workplace voluntariness.
-- `review_status` should live on human review or decision records, not on every
-  AI-authored coordination message.
+- Review depth should not be routine on every human decision record. If needed,
+  record it in an incident, exception, or disputed-gate reconstruction record.
 - Contestation should be a later coordination record that references the
   contested message, not a mutable edit to the original immutable message.
 
@@ -462,8 +469,20 @@ principal:
     - "Gate 1"
     - "Gate 2"
     - "release tag"
-  review_status: unreviewed | skimmed | checklist-reviewed | substantively-reviewed | gate-approved
 ```
+
+Optional incident-gated review reconstruction metadata:
+
+```yaml
+review_depth:
+  category: skimmed | checklist-reviewed | substantively-reviewed | gate-approved
+  context: incident | exception | disputed-gate
+  notes: "Free-text explanation tied to the specific reconstruction."
+```
+
+Do not require `review_depth` on routine decision records. Requiring it by
+default creates a dense, durable, per-person quality signal that can be
+aggregated with basic text search.
 
 ### Tooling
 
@@ -479,6 +498,7 @@ principal:
 - AGF should not add native commands that rank principals, compare AI usage
   across humans, calculate human oversight scores, or export principal
   metadata as an HR-ready dataset.
+- AGF should not add native commands that aggregate review depth by person.
 
 ### Docs
 
