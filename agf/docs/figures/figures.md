@@ -14,7 +14,6 @@ docs/figures/
     governance-loop.dot
     gate-pipeline.dot
     coordination-channel.dot
-    coordination-lifecycle.dot
     operating-responsibility-map.dot
     evidence-lifecycle.dot
     learning-loop.dot

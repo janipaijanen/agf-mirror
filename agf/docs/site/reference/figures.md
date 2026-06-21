@@ -62,25 +62,9 @@ notes carry advisory or status information.
 
 ---
 
-## Coordination lifecycle
-
-Figure 4 shows a governed change moving through Gate 1 approval,
-implementation, Gate 2 review, decision, and completion.
-
-![Governed change coordination lifecycle](figures/coordination-lifecycle.svg)
-
-The sequence shows which role writes each coordination message. The
-planner-architect hands an approved plan to coder-tester, coder-tester
-implements and routes Gate 2 to governor-reviewer, and the final decision
-and completion close the thread.
-
-**Source:** `docs/figures/src/coordination-lifecycle.dot`
-
----
-
 ## Operating responsibility map
 
-Figure 5 separates human-only authority, AI-executed work, and mixed
+Figure 4 separates human-only authority, AI-executed work, and mixed
 work in the day-to-day audit trail.
 
 ![Day-to-day responsibility modes](figures/operating-responsibility-map.svg)
@@ -95,7 +79,7 @@ not autonomous approval authority.
 
 ## Evidence lifecycle
 
-Figure 6 shows how incidents and observations become learning records,
+Figure 5 shows how incidents and observations become learning records,
 then rules, validators, or documentation updates.
 
 ![Evidence lifecycle](figures/evidence-lifecycle.svg)
@@ -111,7 +95,7 @@ to Recommended.
 
 ## Learning loop
 
-Figure 7 shows the evidence-driven feedback loop as a recurring cycle.
+Figure 6 shows the evidence-driven feedback loop as a recurring cycle.
 
 ![Learning loop](figures/learning-loop.svg)
 
@@ -126,7 +110,7 @@ revises, or retires the change and feeds the next cycle.
 
 ## Adoption and exit flow
 
-Figure 8 shows the adoption path and the documented exit paths.
+Figure 7 shows the adoption path and the documented exit paths.
 
 ![Adoption and exit flow](figures/adoption-exit-flow.svg)
 
@@ -141,7 +125,7 @@ the coordination record history.
 
 ## Coordination map example
 
-Figure 9 shows a dated example communication map from the AGF foundry
+Figure 8 shows a dated example communication map from the AGF foundry
 coordination channel.
 
 ![Example AGF Foundry coordination map](figures/coordination-map-example.svg)
