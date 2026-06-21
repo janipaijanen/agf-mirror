@@ -10,14 +10,14 @@
 # Pipeline structure:
 #   site-html-build   — MkDocs strict build; review artifact on MRs and branches
 #   pages             — publish to GitLab Pages from the default branch
-#   elixir:test       — compile + test Elixir tooling
+#   elixir:test       — compile + test Elixir tooling only when Elixir changes
 #   agf:dist:validate — validate the manifest-driven framework package
 #   agf:dist:preview  — build review-only framework archives on MRs/default branch
 #   agf:dist:release  — tag pipelines only; tag/VERSION guard then build archives
 #   agov:tooling:*    — build review/release linux-x86_64 AGOV tooling archives
 #   agf:bundle:*      — build review/release framework + tooling bundles
 #   release:create    — upload archives to package registry; create GitLab release entry
-#   rust:tooling:*    — Phase 1 Rust tooling: test, clippy, parity, build:preview
+#   rust:tooling:*    — Rust tooling: test, clippy, parity, preview binaries
 
 workflow:
   rules:
@@ -83,7 +83,19 @@ site-html-build:
     when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/docs/**/*
+        - agf/ADOPTING.md
+        - agf/framework.md
+        - mkdocs.yml
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - agf/docs/**/*
+        - agf/ADOPTING.md
+        - agf/framework.md
+        - mkdocs.yml
+        - .gitlab-ci.yml
 
 # Publish to GitLab Pages from the default branch.
 # The pages job must produce a public/ artifact.
@@ -97,6 +109,12 @@ pages:
       - public
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - agf/docs/**/*
+        - agf/ADOPTING.md
+        - agf/framework.md
+        - mkdocs.yml
+        - .gitlab-ci.yml
 
 # ── Elixir tooling ────────────────────────────────────────────────────────────
 
@@ -109,7 +127,13 @@ elixir:test:
     - mix test
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/elixir/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/elixir/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
 
 # ── Framework package artifacts ───────────────────────────────────────────────
@@ -123,7 +147,13 @@ agf:dist:validate:
     - mix agov.dist.validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
+      changes:
+        - agf/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
 
 # Build preview archives for reviewers. These artifacts are not releases.
@@ -143,7 +173,13 @@ agf:dist:preview:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - agf/**/*
+        - .gitlab-ci.yml
 
 # Build release archives only on tag pipelines.
 # The tag must match agf/VERSION or this job fails before any archive is written.
@@ -180,7 +216,13 @@ agov:tooling:preview:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/elixir/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - tooling/elixir/**/*
+        - .gitlab-ci.yml
 
 # Build preview bundle archives from preview framework and tooling artifacts.
 agf:bundle:preview:
@@ -196,7 +238,15 @@ agf:bundle:preview:
     expire_in: 1 week
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/**/*
+        - tooling/elixir/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - agf/**/*
+        - tooling/elixir/**/*
+        - .gitlab-ci.yml
   needs:
     - job: agf:dist:preview
       artifacts: true
@@ -291,7 +341,7 @@ release:create:
         --assets-link "{\"name\":\"${TOOLING_TAR}\",\"url\":\"${PKG_BASE}/${TOOLING_TAR}\",\"link_type\":\"package\"}" \
         --assets-link "{\"name\":\"agf-${VERSION}-bundle.tar.gz\",\"url\":\"${PKG_BASE}/agf-${VERSION}-bundle.tar.gz\",\"link_type\":\"package\"}"
 
-# ── Rust tooling (Phase 1) ─────────────────────────────────────────────────────
+# ── Rust tooling ───────────────────────────────────────────────────────────────
 # Path-scoped per ci-trigger-scoping-rule.md: only fire when tooling/rust/ changes.
 # rust:tooling:build:release is NOT authorised in Phase 1 — see plan §10.
 
@@ -307,9 +357,11 @@ rust:tooling:deny:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
 
 # Compile and test the Rust workspace on every push touching tooling/rust/.
@@ -322,12 +374,15 @@ rust:tooling:test:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
 
 # Lint the Rust workspace. Warnings are treated as errors.
 rust:tooling:clippy:
@@ -340,9 +395,11 @@ rust:tooling:clippy:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
 
 # Parity test: diff Rust and Elixir CLI output on the same fixture set.
 # Blocking CI check during the Phase 1 transition period.
@@ -365,11 +422,13 @@ rust:tooling:parity:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
 
-# Build preview binaries for Phase 1 Linux platform targets using `cross`.
+# Build preview binaries for Linux platform targets using `cross`.
 # Artifacts expire after one week; not a release build.
 rust:tooling:build:preview:
   extends: .rust-base
@@ -399,6 +458,47 @@ rust:tooling:build:preview:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
+        - .gitlab-ci.yml
+
+# Manual Windows x64 preview build. This is intentionally separate from the
+# default Rust preview job so ordinary MRs do not pay the Windows cross-build
+# cost, while release preparation can still request an agov.exe artifact.
+rust:tooling:build:windows:preview:
+  extends: .rust-base
+  stage: build
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    CROSS_REMOTE: "1"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq docker.io
+    - cd tooling/rust
+    - export PATH="$CARGO_HOME/bin:$PATH"
+    - cargo install cross --git https://github.com/cross-rs/cross --force
+  script:
+    - cross build --release --target x86_64-pc-windows-gnu
+  artifacts:
+    name: "agov-rust-windows-preview-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - tooling/rust/target/x86_64-pc-windows-gnu/release/agov.exe
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+        - .gitlab-ci.yml
+      when: manual
+      allow_failure: true
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - tooling/rust/**/*
+        - .gitlab-ci.yml
+      when: manual
+      allow_failure: true
