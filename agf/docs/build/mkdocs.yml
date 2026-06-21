@@ -59,6 +59,7 @@ nav:
       - Overview: docs/index.md
       - 'Start':
           - Should you adopt?: docs/start/should-you-adopt.md
+          - Adopter FAQ: docs/start/adopter-faq.md
       - 'Adopt':
           - Install the agf directory: docs/adopt/install-and-layouts.md
           - Downstream impact: docs/adopt/downstream-impact.md
