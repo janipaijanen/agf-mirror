@@ -1,6 +1,6 @@
 # Customizing the framework
 
-*Status: Provisional (v2.0 documentation). Audience: administrators and
+*Status: Released (v2.1 documentation). Audience: administrators and
 governors adapting the framework to a project. After this page you know
 the three customization zones — free, marked, and contracted — and the
 costs of crossing them.*

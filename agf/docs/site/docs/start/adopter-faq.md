@@ -1,6 +1,6 @@
 # Adopter FAQ
 
-*Status: Provisional (v2.0 documentation). Audience: people deciding whether
+*Status: Released (v2.1 documentation). Audience: people deciding whether
 to commission AGF in a real repository. This page answers the questions that
 usually appear after the idea makes sense, but before the first governed
 change feels safe.*

@@ -1,6 +1,6 @@
 # Exit and decommission
 
-*Status: Provisional (v2.0 documentation). Audience: evaluators and
+*Status: Released (v2.1 documentation). Audience: evaluators and
 administrators. Read this page **before** adopting — knowing the way out
 is part of deciding to come in.*
 
@@ -58,7 +58,7 @@ In outline:
 
 A governance framework that is hard to leave creates pressure to never
 evaluate it honestly. Documenting the exit path next to the entry path is
-deliberate: you can adopt provisionally, measure whether the gates earn
+deliberate: you can adopt in stages, measure whether the gates earn
 their overhead in your project, and reverse the decision cheaply if they
 do not. The [downstream impact](downstream-impact.md) page itemises what
 you would be reversing.

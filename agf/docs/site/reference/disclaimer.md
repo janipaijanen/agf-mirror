@@ -1,6 +1,6 @@
 # Disclaimer
 
-*Status: Provisional (v2.0 documentation).*
+*Status: Released (v2.1 documentation).*
 
 AGF is a governance framework for AI-assisted software development. It gives
 you files, roles, review gates, coordination records, and validation tooling

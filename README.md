@@ -29,7 +29,7 @@ Wait or skip when:
 - you need a hosted runtime or agent orchestrator;
 - your project is disposable or exploratory;
 - nobody can own gate decisions;
-- you need interface stability today — AGF v2.0 is provisional and structure may still change.
+- you need every rule and extension point to be backed by multi-project evidence today.
 
 ## Repository map
 

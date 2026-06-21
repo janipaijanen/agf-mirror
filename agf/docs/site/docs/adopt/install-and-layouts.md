@@ -1,6 +1,6 @@
 # Install the `agf/` directory
 
-*Status: Provisional (v2.0 documentation). Audience: administrators and
+*Status: Released (v2.1 documentation). Audience: administrators and
 developers installing the framework. After this page you have the files in
 place and understand the single supported v2.0 layout.*
 

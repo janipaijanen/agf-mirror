@@ -1,6 +1,6 @@
 # Roles and gates
 
-*Status: Provisional (v2.0 documentation). Audience: developers and
+*Status: Released (v2.1 documentation). Audience: developers and
 governors building the mental model. After this page you can name the
 roles, say what each gate decides, and read a coordination chain.*
 

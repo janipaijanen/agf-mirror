@@ -9,6 +9,9 @@ distribution.
 
 - `release-via-merge-request-rule.md`: steps 7–8 (tag + push) now explicitly
   require no additional confirmation — the merged release MR is the authorization.
+- Public README and documentation pages now describe v2.1 as the released
+  documentation line while keeping evidence-limited rule status visible where
+  it applies.
 
 ## [2.1.0] — 2026-06-18
 

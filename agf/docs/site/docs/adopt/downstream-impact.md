@@ -1,6 +1,6 @@
 # Downstream impact: what adoption changes in your project
 
-*Status: Provisional (v2.0 documentation). Audience: evaluators and
+*Status: Released (v2.1 documentation). Audience: evaluators and
 administrators. Read this page **before** adopting. After it you can
 itemise every artifact, obligation, and cost adoption introduces.*
 
