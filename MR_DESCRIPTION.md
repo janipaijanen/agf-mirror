@@ -25,6 +25,15 @@ Coordination filename guidance (`concepts/roles-and-gates.md`):
 - `mkdocs build --strict`: clean (no broken links — nav reorder keeps all files
   in place, only changes ordering).
 
+## Review Focus
+
+Please verify:
+
+- [ ] The idiom replacements read more professional without changing meaning.
+- [ ] Adopt navigation puts impact and exit information before installation.
+- [ ] Readable coordination IDs are presented as the current preferred format.
+- [ ] Legacy sequence and ULID records are described as historical but still valid.
+
 ## Does not touch
 
 `agf/docs/site/stylesheets/agf.css` and all other non-targeted files.
