@@ -123,6 +123,21 @@ the coordination record history.
 
 ---
 
+## Coordination map example
+
+Figure 8 shows a dated example communication map from the AGF foundry
+coordination channel.
+
+![Example AGF Foundry coordination map](figures/coordination-map-example.svg)
+
+This is an example, not a required topology. Adopting projects may define
+more specialized agent roles and may show different communication patterns
+as their governance model matures.
+
+**Source:** `docs/figures/src/coordination-map-example.dot`
+
+---
+
 ## Usage rules
 
 - Embed SVG in Markdown with `![Alt text](figures/name.svg)` from this page,

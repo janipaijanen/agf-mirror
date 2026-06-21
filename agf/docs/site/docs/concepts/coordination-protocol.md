@@ -82,9 +82,14 @@ directed edge per triple, labelled with the kind and count.
 `governor-reviewer` is distinguished with a filled node to reflect its
 approval authority; `all` (the broadcast target) renders as an ellipse.
 
-The following dot output is a dated sample from the AGF foundry channel
-captured during the v2.0 documentation work. It shows a representative
-subset of the busier edges:
+The following rendered map is a dated example from the AGF foundry channel
+captured during the v2.0 documentation work. It is not a required topology:
+adopting projects may define more specialized agent roles and may show
+different communication patterns as their governance model matures.
+
+![Example AGF Foundry coordination map](../../reference/figures/coordination-map-example.svg)
+
+The matching dot output shows the representative subset of the busier edges:
 
 ```dot
 digraph agf_coordination {

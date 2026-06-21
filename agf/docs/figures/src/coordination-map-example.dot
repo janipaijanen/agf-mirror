@@ -1,0 +1,128 @@
+digraph agf_coordination_example {
+  graph [
+    rankdir=LR,
+    bgcolor="transparent",
+    fontname="Helvetica",
+    label="Example AGF Foundry Coordination Map",
+    labelloc=t,
+    fontsize=18
+  ];
+  node [
+    fontname="Helvetica",
+    fontsize=11,
+    shape=box,
+    style="rounded,filled",
+    color="#42526e",
+    fillcolor="#f4f7fb",
+    penwidth=1.4
+  ];
+  edge [
+    fontname="Helvetica",
+    fontsize=9,
+    color="#5e6c84",
+    fontcolor="#172b4d",
+    arrowsize=0.8,
+    penwidth=1.4
+  ];
+
+  "all" [
+    label="all\nbroadcast",
+    shape=ellipse,
+    fillcolor="#fff7d6",
+    color="#8a6d1d"
+  ];
+  "coder-tester" [
+    label="coder-tester"
+  ];
+  "governor-reviewer" [
+    label="governor-reviewer\napproval authority",
+    fillcolor="#e8f0fe",
+    color="#3367d6",
+    penwidth=1.8
+  ];
+  "planner-architect" [
+    label="planner-architect"
+  ];
+
+  "coder-tester" -> "governor-reviewer" [
+    label="handoff (22)",
+    color="#3367d6",
+    penwidth=2.2
+  ];
+  "coder-tester" -> "planner-architect" [
+    label="handoff (16)",
+    color="#6554c0",
+    penwidth=1.9
+  ];
+  "governor-reviewer" -> "all" [
+    label="decision-record (9)",
+    color="#00875a",
+    penwidth=1.7
+  ];
+  "governor-reviewer" -> "coder-tester" [
+    label="ack (9)",
+    color="#00875a",
+    penwidth=1.7
+  ];
+  "planner-architect" -> "all" [
+    label="note (14)",
+    color="#ff8b00",
+    penwidth=1.8
+  ];
+  "planner-architect" -> "coder-tester" [
+    label="handoff (11)",
+    color="#6554c0",
+    penwidth=1.7
+  ];
+  "planner-architect" -> "governor-reviewer" [
+    label="handoff (8)",
+    color="#6554c0",
+    penwidth=1.6
+  ];
+
+  subgraph cluster_legend {
+    label="Legend";
+    color="#d6dde8";
+    fontname="Helvetica";
+    fontsize=12;
+    margin=12;
+    style="rounded";
+
+    legend_role [
+      label="Agent role",
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#f4f7fb",
+      color="#42526e"
+    ];
+    legend_authority [
+      label="Governor approval role",
+      shape=box,
+      style="rounded,filled",
+      fillcolor="#e8f0fe",
+      color="#3367d6"
+    ];
+    legend_broadcast [
+      label="Broadcast target",
+      shape=ellipse,
+      style=filled,
+      fillcolor="#fff7d6",
+      color="#8a6d1d"
+    ];
+    legend_edge [
+      label="Edge label = kind (message count)",
+      shape=plaintext
+    ];
+
+    legend_role -> legend_authority [
+      label="handoff / review",
+      color="#6554c0",
+      penwidth=1.7
+    ];
+    legend_authority -> legend_broadcast [
+      label="decision / note",
+      color="#00875a",
+      penwidth=1.7
+    ];
+  }
+}
