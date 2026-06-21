@@ -4,12 +4,12 @@ Gate 1 approved. Plan: `docs/plans/feat-coord-graph-command.md`
 
 ## What changed
 
-- Added `agov coord graph` to the Rust CLI.
+- Added `agov coord graph` to the Rust CLI with `--dir` and `--format`
+  arguments.
 - Reused the existing coordination reader so the graph is based on valid
   coordination messages from the channel.
-- Counts `(from, to, kind)` communication edges and emits either:
-  - Graphviz `dot`;
-  - plain text lines for terminal review.
+- Counts `(from, to, kind)` communication edges and emits either Graphviz `dot`
+  text or human-readable terminal text.
 - Added role-aware node styling:
   - `governor-reviewer` is visually emphasized;
   - `all` is rendered as a broadcast target;
@@ -17,23 +17,25 @@ Gate 1 approved. Plan: `docs/plans/feat-coord-graph-command.md`
 - Added five focused Rust tests for empty directories, edge counts, node
   styling, text output, and missing-directory errors.
 - Added a Concepts docs page for the coordination protocol, including `agov
-  coord graph` usage.
+  coord graph` usage with a dated foundry-channel sample.
 - Added the new docs page to the Concepts nav and linked it from `README.md`.
 
 ## Verification
 
-- `cargo check -p agov`: clean before rebase.
-- `cargo test -p agov`: clean before rebase.
-- `mkdocs build --strict`: clean before rebase.
+- `git diff --check`: clean after rebase.
+- `/home/devi/.cargo/bin/cargo test -p agov --test coord_graph`: 5 passed
+  after rebase.
+- `mkdocs build --strict`: clean after rebase.
 - `agov coord graph` on the live foundry channel produced valid dot output.
+- Rebased onto current `main` after !72 figure-legend restore.
 
 ## Review Focus
 
 Please verify:
 
-- [ ] The command output is useful for reviewing role-to-role communication.
-- [ ] The command does not require the Graphviz binary; it only emits dot text.
-- [ ] The docs page explains the coordination protocol without adding new
-      governance rules.
-- [ ] The README mention is discoverable but not over-promoted.
+- [ ] `agov coord graph` reads only valid coordination messages.
+- [ ] Dot output is deterministic and valid for Graphviz rendering.
+- [ ] Text output is useful without requiring Graphviz.
+- [ ] The docs do not imply Graphviz is a runtime dependency of `agov`.
+- [ ] The README link and MkDocs navigation target the new protocol page.
 - [ ] The rebase preserved current `main` docs and figure changes.

@@ -82,8 +82,9 @@ directed edge per triple, labelled with the kind and count.
 `governor-reviewer` is distinguished with a filled node to reflect its
 approval authority; `all` (the broadcast target) renders as an ellipse.
 
-The following dot output is the actual AGF foundry channel at the time
-of this release — a representative subset of the busier edges:
+The following dot output is a dated sample from the AGF foundry channel
+captured during the v2.0 documentation work. It shows a representative
+subset of the busier edges:
 
 ```dot
 digraph agf_coordination {
