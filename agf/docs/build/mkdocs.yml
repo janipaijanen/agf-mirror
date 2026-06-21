@@ -55,6 +55,7 @@ exclude_docs: |
 nav:
   - Home: index.md
   - Use cases: use-cases.md
+  - Evaluate: evaluate.md
   - Documentation:
       - Overview: docs/index.md
       - 'Start':
