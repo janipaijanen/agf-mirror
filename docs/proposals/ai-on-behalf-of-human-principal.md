@@ -71,6 +71,7 @@ topic: delegation-grant-docs-branch
 note_type: delegation-grant
 delegation:
   principal_kind: human
+  identifier_namespace: "gitlab.com/example-group/example-project"
   identifier: "@example-user"
   delegation_scope:
     - "prepare branch"
@@ -401,6 +402,7 @@ artifacts_owned: []
 note_type: delegation-grant
 delegation:
   principal_kind: human | service | team
+  identifier_namespace: "gitlab.com/example-group/example-project"
   identifier: "@handle-or-service-name"
   delegation_scope:
     - "prepare patch"
@@ -416,8 +418,14 @@ Notes on the minimum:
 
 - `note_type: delegation-grant` is a convention, not a new message kind in the
   current schema.
-- `principal_kind`, `identifier`, and positive `delegation_scope` are the
-  minimum useful grant fields.
+- `principal_kind`, `identifier_namespace`, `identifier`, and positive
+  `delegation_scope` are the minimum useful grant fields.
+- `identifier_namespace` names the authority that makes the identifier
+  meaningful: for example a GitLab project/user namespace, GitHub organization,
+  SSO directory, service-account registry, or team-alias registry.
+- `identifier` is explicitly recorded by the human grant author. It is not
+  inferred from git author, committer, or email metadata, because git identity
+  is already one of the places where AI/human attribution can blur.
 - `valid_until` is useful when the human writes the grant; it should not be
   inferred by the AI.
 - `voluntary` is intentionally omitted from the minimum because AGF cannot
@@ -476,6 +484,7 @@ Human-authored delegation grant:
 note_type: delegation-grant
 delegation:
   principal_kind: human | service | team
+  identifier_namespace: "gitlab.com/example-group/example-project"
   identifier: "@handle-or-service-name"
   delegation_scope:
     - "prepare patch"
