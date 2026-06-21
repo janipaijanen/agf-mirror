@@ -99,7 +99,9 @@ environments:
 
 # ---- Learning Records ----
 # Legacy records L001–L017: see agents-govern/learnings/foundry.yaml
-# New records start below at L018.
+# Transitional records L018-L021 were created before the timestamp-ID
+# convention for learning records. New learning IDs use YYYYMMDDThhmmssZ with
+# an optional -<4-char> suffix for same-second disambiguation.
 
 learnings:
 

@@ -17,7 +17,7 @@ agents-govern adoption tasks.
 | Skill | What it automates |
 |-------|-------------------|
 | [`upgrade/`](upgrade/SKILL.md) | 6-step gated upgrade: extract → compare → apply → track → verify → summarise |
-| [`learning/`](learning/SKILL.md) | Find next ID, gather fields, format YAML, insert at correct position, validate |
+| [`learning/`](learning/SKILL.md) | Generate timestamp ID when needed, gather fields, format YAML, insert at correct position, validate |
 | [`infosec-screen/`](infosec-screen/SKILL.md) | Run validate-infosec.sh + pre-commit + SPDX check + project-specific patterns |
 
 ## Adoption

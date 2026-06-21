@@ -34,6 +34,11 @@
       "items": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^(L[0-9]{3}|[0-9]{8}T[0-9]{6}Z(-[a-z0-9]{4})?)$",
+            "description": "Stable learning identifier. Historical records may use L###. New records use YYYYMMDDThhmmssZ with an optional -<4-char> suffix for same-second disambiguation."
+          },
           "date": {"type": "string"},
           "category": {
             "type": "string",
