@@ -1,26 +1,39 @@
-## Summary
+# rule+docs: gate posture and consequence framing
 
-- Replaces the static `coordination-lifecycle.svg` figure with an embedded
-  Mermaid `sequenceDiagram` on the coordination protocol page.
-- Enables the MkDocs Mermaid custom fence so Mermaid blocks render as diagrams
-  rather than highlighted code.
-- Removes the lifecycle DOT/SVG files from the Graphviz figure inventory.
-- Renumbers the remaining reference figure entries after removing that static
-  figure.
+Research-driven improvements from external governance article scan (June 2026).
+No Gate 1 plan required — fast-track waiver applies (docs/rules only, no behaviour change).
+
+## What changed
+
+**`agf/rules/always/high-risk-operations-rule.md`** (+ `.claude/rules/` copy)
+- Per-area consequence/blast-radius statements added to each high-risk bullet.
+  Rationale: consequence-based framing ("if broken, X") improves compliance
+  vs "stop before touching" alone (normalization of deviance under repeated
+  approval tasks).
+
+**`agf/rules/workflow/systematic-code-review-rule.md`** (+ `.claude/rules/` copy)
+- "Gate types" section added with structural vs advisory enforcement table.
+  Honest about the gap: advisory gates depend on agent discipline; structural
+  gates enforce regardless of cooperation.
+
+**`agf/docs/site/docs/adopt/tooling-and-tokens.md`**
+- "Why meter at the governance gate" section added before the evidence model.
+  Covers the chokepoint principle: gate-level metering provides per-role,
+  per-gate attribution that API billing cannot.
+
+**`agf/docs/site/docs/concepts/roles-and-gates.md`**
+- "Structural and advisory enforcement" section added — gate-type table and
+  link to contracts-and-validators. Consistent with the systematic-code-review
+  change above.
 
 ## Verification
 
-- `rg -n 'coordination-lifecycle\\.(svg|dot)' agf/docs MR_DESCRIPTION.md docs/coordination/20260621T181158Z-coder-tester-hbgq.md`
-- `rg -n 'sequenceDiagram|```mermaid' agf/docs/site/docs/concepts/coordination-protocol.md`
-- `rg -n 'class="mermaid"|sequenceDiagram' agf/site-html/docs/concepts/coordination-protocol/index.html`
-- `git diff --check`
-- `/home/devi/.local/share/mise/installs/uv/0.11.20/uv-x86_64-unknown-linux-musl/uv run --project agents-govern --group docs mkdocs build -f agf/docs/build/mkdocs.yml --strict`
-- `agov coord validate docs/coordination/20260621T181158Z-coder-tester-hbgq.md`
+- `mkdocs build --strict`: clean.
+- Both rule copies in sync (only provenance frontmatter differs).
+- No security boundaries, no new locales, no breaking changes.
 
-## Review Focus
+## Sources
 
-- [ ] The coordination lifecycle appears as Mermaid, not a direct SVG image.
-- [ ] Mermaid renders as a diagram in MkDocs, not as a highlighted code block.
-- [ ] The obsolete `/reference/figures/coordination-lifecycle.svg` asset is no
-      longer documented as a figure.
-- [ ] The remaining figure inventory numbering is coherent.
+- tenureai.dev — AI governance enforcement transparency
+- Amazon/The Register, June 2026 — normalization of deviance under approval pressure
+- r-lopes blog — governance metering and the chokepoint principle

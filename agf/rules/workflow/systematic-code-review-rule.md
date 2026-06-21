@@ -11,6 +11,26 @@ provenance: verified-agf-v2
 Run this checklist before proposing any commit. Every section. Every time.
 A **BLOCK** item means: do not propose the commit until it is fixed.
 
+## Gate types
+
+Not every gate in this pipeline has equal enforcement strength. A **structural**
+gate enforces regardless of whether the agent cooperates; an **advisory** gate
+depends on the agent reading and following the rule.
+
+| Gate | Type | How enforced |
+|---|---|---|
+| Pre-commit hook (linter, secret scan) | Structural | Git refuses commit |
+| CI tests / `agov coord validate` in CI | Structural | Pipeline blocks merge |
+| BLOCK items in this checklist | Advisory | Agent self-checks; reviewer verifies |
+| Gate 2 reviewer approval | Advisory + social | Governor must sign off before merge |
+
+An advisory gate is not weaker in intent — it relies on review discipline rather
+than automation. The honest gap: an agent that skips self-checks can propose a
+commit that passes structural gates but violates an advisory one. The fix is to
+automate where the cost of doing so is low (add pre-commit hooks, add CI checks),
+and accept the advisory model where it is not — while making the distinction
+visible to reviewers.
+
 ---
 
 ### 1. Specification compliance
