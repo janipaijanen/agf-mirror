@@ -37,7 +37,7 @@ pipeline files; it does not require a specific CI vendor.
 │  CI engine      │ reads → │  Governance artefacts        │
 │  (any vendor)   │         │  agents/*.yaml               │
 │                 │         │  learnings/*.yaml            │
-│                 │         │  .claude/rules/*.md          │
+│                 │         │  agf/rules/*.md              │
 │                 │         │  framework.yaml              │
 │                 │         │  schemas/*.schema.json       │
 │                 │         │  schemas/invariants.yaml     │

@@ -44,7 +44,7 @@ current files:
 | Category | Archive path | Local path | Compare how |
 |----------|-------------|------------|-------------|
 | Agent definitions | `agents/*.yaml` | <!-- CUSTOMIZE: e.g., agf/agents/*.yaml --> `agents/*.yaml` | diff field by field; flag `customized: true` agents |
-| Rule templates | `rules/` | `.claude/rules/` | diff; skip files with `origin: project` |
+| Rule templates | `rules/` | `agf/rules/` | diff; keep project-local loader files separate |
 | Scripts | `scripts/` | <!-- CUSTOMIZE --> `scripts/` | diff |
 | Learning template | `learnings/_template.yaml` | `learnings/_template.yaml` | diff; check for new fields |
 | Framework docs | `framework.md`, `ADOPTING.md`, etc. | local copies | diff |

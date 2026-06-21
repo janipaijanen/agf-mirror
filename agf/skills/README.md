@@ -8,9 +8,9 @@ agents-govern adoption tasks.
 > **Two-layer design.** The agents-govern framework is
 > technology-agnostic at the conceptual level (agent taxonomy,
 > jurisdiction model, governance principles). These skills are the
-> **reference implementation layer** — they target Claude Code's
-> `.claude/skills/` convention but the workflows they encode can be
-> adapted to any AI coding assistant that supports skill-like prompts.
+> **reference implementation layer** — they can be exposed through Claude Code
+> or another assistant, but the canonical workflow definitions stay under
+> `agf/skills/`.
 
 ## Available skills
 
@@ -22,12 +22,11 @@ agents-govern adoption tasks.
 
 ## Adoption
 
-Copy the skills you need into your project's `.claude/skills/` directory
-(or equivalent for your tool):
-
-```bash
-cp -r skills/ .claude/skills/
-```
+Ask your assistant to read the skills it needs from `agf/skills/`. If your
+tool needs slash-command wrappers or another local command surface, create
+small project-local wrappers that point to the canonical `agf/skills/*/SKILL.md`
+files. Do not copy upstream skill definitions into a second source-of-truth
+directory.
 
 Search for `<!-- CUSTOMIZE -->` comments in each skill and adapt paths
 and patterns to your project.

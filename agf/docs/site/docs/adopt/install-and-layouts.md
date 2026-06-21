@@ -51,7 +51,8 @@ adopted until I review the diff.
 
 Create or update:
 - agf/ as the single framework directory
-- the assistant rule install target for this tool, such as .claude/rules/
+- a small assistant loader file for this tool, if needed, that tells the
+  assistant to read the rules from agf/rules/
 - agf/learnings/<project-codename>.yaml from agf/templates/learning-record.yaml
 - docs/plans/
 - docs/coordination/
@@ -70,6 +71,17 @@ After editing, show me:
 The assistant should prepare the files and tell you what it changed. You still
 own the decision to adopt, the codename, the governor assignment, and any local
 rule choices that affect risk.
+
+Expected AI output:
+
+- `agf/` present as the only framework-owned directory;
+- `agf/learnings/<project-codename>.yaml` prepared from the learning template;
+- `docs/plans/` and `docs/coordination/` created for project-owned evidence;
+- a tiny tool-specific loader created only if your assistant needs one;
+- no copied `agf/rules/` tree under `.claude/rules/`, `.cursor/rules/`, or an
+  equivalent tool directory;
+- a short report listing changed files, remaining `CUSTOMIZE` markers, and
+  decisions still needed from the governor.
 
 If you are working without an assistant, copy the distribution manually into
 the visible `agf/` directory and then follow the same review checklist.
@@ -94,11 +106,14 @@ itself the source of governance authority.
 | Learning records | `agf/learnings/<your-codename>.yaml` |
 | Working plans | `docs/plans/` |
 | Coordination channel | `docs/coordination/` |
-| Assistant rule install target | `.claude/rules/` or your tool's equivalent |
+| Optional assistant loader | Tool-specific root file that points to `agf/rules/` |
 
-The assistant rule install target stays at the project root because tools read
-their own configuration there. It is the exception, not a second framework
-layout.
+Some assistants need a root-level configuration file before they will read
+project instructions. That file is a local loader, not a copy of the
+framework. It should point the assistant at `agf/rules/` and any local project
+rules you choose to add. Do not duplicate the AGF rule tree into
+`.claude/rules/` or an equivalent tool directory; that breaks the clean
+carve-out promised by this layout.
 
 Working plans and coordination entries are adopter-owned evidence, not
 upstream-owned framework files. The current POC default keeps them in root
@@ -111,10 +126,11 @@ instructions literally will create root-level `agents/`, `learnings/`, or
 duplicate coordination directories unless the default boundary is stated where
 humans and agents can read it.
 
-## Step 4: Review and customize the rules
+## Step 4: Review rule loading and customization
 
-1. Confirm the assistant installed `agf/rules/` into your assistant's rules
-   directory (Claude Code: `.claude/rules/`).
+1. Confirm the assistant will read `agf/rules/` from its canonical location.
+   If your tool needs a root-level file, review that file as a pointer or
+   loader, not as a copied rule tree.
 2. Review every remaining `CUSTOMIZE` marker and adapt each one to your stack:
    locale set, migration commands, CI paths, audit functions, target consumers
    for generated files.

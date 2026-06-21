@@ -94,10 +94,10 @@ The framework's *loose-prose surface* (per
 [`docs/position/dual-surface.md`](position/dual-surface.md)) is
 intentionally not under the contract:
 
-- **Rule wording** — the prose of any
-  [`.claude/rules/`](https://gitlab.com/janipaijanen/agent-governance/-/tree/main/.claude/rules)
-  file may be edited freely. Adopters who copy rule files into
-  their own projects own those copies after the copy.
+- **Rule wording** — the prose of framework rules under `agf/rules/` may be
+  adapted by adopters. If an adopter creates project-local rules outside
+  `agf/`, those local rules are owned by the adopter and are outside this
+  contract.
 - **Learning record content** — `learnings/*.yaml` files evolve
   on every meaningful merge; their *individual* content is
   evidence, not contract.

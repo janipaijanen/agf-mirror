@@ -36,9 +36,10 @@ Delete the files you copied at adoption time. Depending on your layout
 | Artifact | Typical location |
 |---|---|
 | Agent definitions | `governance/agents/*.yaml` (incl. `MANIFEST.yaml`) |
-| Governance rules | `.claude/rules/` (the copied rules content) |
-| AI assistant skills | `.claude/skills/` (the copied skills, if adopted) |
-| Stack-specific rule examples | `.claude/rules/<stack>/` (if adopted) |
+| Governance rules | `agf/rules/` |
+| AI assistant loader | Tool-specific root file pointing at `agf/rules/`, if created |
+| AI assistant skills | `agf/skills/` plus any optional tool wrapper, if adopted |
+| Stack-specific rule examples | Project-local rule files derived from `agf/project-specific-examples/`, if adopted |
 | Upstream learning records | `learnings/foundry.yaml` |
 | Framework declaration | `framework.yaml` (your tuned copy) |
 | Governance charter | `GOVERNANCE.md` (if based on the template) |

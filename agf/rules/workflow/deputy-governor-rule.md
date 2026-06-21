@@ -65,8 +65,8 @@ delegation and escalate to the Human Governor:
   red list, widening the delegable categories, or extending an active
   Delegation Artifact. Meta-governance is never delegable.
 - **Rule and agent definitions** — modifications to
-  `rules/`, `agents/*.yaml`, `framework.md`, or the adopter's
-  `.claude/rules/` directory.
+  `agf/rules/`, `agf/agents/*.yaml`, `agf/framework.md`, or the adopter's
+  tool-specific assistant loader.
 - **Compliance, licensing, or legal artifacts** — SPDX headers,
   LICENSE, consent artifacts, risk-acceptance records.
 

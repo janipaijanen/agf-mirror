@@ -9,7 +9,8 @@ provenance: verified-agf-v2
 # See: framework.md -- Principle 5 (Escalation over Improvisation)
 # Evidence: silver-birch and copper-rapids (validated across Python and Elixir stacks)
 
-Before acting, read and apply relevant rules from `.claude/rules/`.
+Before acting, read and apply relevant rules from `agf/rules/` and any
+project-local rule loader configured for this repository.
 
 ## Analyze the Ask First
 

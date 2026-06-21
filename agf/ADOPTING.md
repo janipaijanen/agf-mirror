@@ -6,7 +6,11 @@ Concrete steps for applying this framework to an existing software project.
 Follow in order. Each step has a defined output — do not skip to the next
 step until the output exists.
 
-For the theory behind each step, see framework.md. This document is the practice.
+For the theory behind each step, see framework.md. This document is the
+assistant/operator practice guide: AI assistants may execute the file setup and
+produce reviewable diffs, while humans decide whether to adopt, which risks to
+accept, and which governance roles have authority. Human-facing flow guidance
+lives in `docs/site/docs/adopt/install-and-layouts.md`.
 
 > **Disclaimer:** All guidance in this document is advisory, not
 > authoritative. Procedures (especially anonymization and git history
@@ -24,8 +28,9 @@ For the theory behind each step, see framework.md. This document is the practice
 AGF v2.0 supports one adoption layout: the framework lives inside your
 existing project as the visible `agf/` directory. Framework-owned governance
 artifacts stay under `agf/`; assistant tool configuration such as
-`.claude/rules/` stays at the project root because the assistant reads it
-there.
+`CLAUDE.md`, `AGENTS.md`, or another tool-specific loader may stay at the
+project root because the assistant reads it there. That loader must point to
+`agf/rules/`; it must not duplicate the AGF rule tree.
 
 Treat `agf/` as the adopter-facing product and `tooling/` as implementation
 support. Tooling can validate, package, summarize, and report on governance
@@ -43,7 +48,7 @@ evidence.
 | Framework rules | `agf/rules/` |
 | Working plans | `docs/plans/` |
 | Coordination channel | `docs/coordination/` |
-| Assistant rule install target | `.claude/rules/` |
+| Optional assistant loader | Tool-specific root file that points to `agf/rules/` |
 
 Working plans and coordination entries are adopter-owned evidence. The POC
 default keeps them in root `docs/` because the current `agov` validators use
@@ -75,14 +80,11 @@ extracted as `agf/` in your existing project.
 1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agent-governance/-/releases/permalink/latest)
    and extract it into your project as `agf/`.
 
-2. **Copy rule templates** into your AI assistant's rules directory
-   (stays at project root — tool config, not a governance artifact):
-   ```bash
-   mkdir -p .claude
-   cp -r agf/rules/ .claude/rules/
-   ```
-   The `mkdir -p .claude` is necessary on a fresh project — `cp` will
-   not create `.claude/` for you.
+2. **Ask the assistant to wire rule loading** without copying the rules out of
+   `agf/`. If your tool needs a root file, create a small local loader such as
+   `CLAUDE.md`, `AGENTS.md`, or the tool's equivalent that tells the assistant
+   to read `agf/rules/` before acting. Keep the framework-owned rule files in
+   `agf/rules/`.
 
 3. **Pick the minimum role set.**
 
@@ -95,15 +97,11 @@ extracted as `agf/` in your existing project.
    Gateway assistants and agent runtimes are execution surfaces, not AGF gate
    authorities.
 
-4. **Start working.** Use your AI assistant as usual. The rules will
-   guide its behavior. When something surprises you (good or bad),
-   record it under the framework directory:
-   ```bash
-   mkdir -p agf/learnings
-   cp agf/templates/learning-record.yaml agf/learnings/my-project.yaml
-   $EDITOR agf/learnings/my-project.yaml
-   # Fill in the project section and add your first learning
-   ```
+4. **Start working.** Use your AI assistant as usual. The rules will guide its
+   behavior after it has loaded `agf/rules/`. When something surprises you
+   (good or bad), ask the assistant to prepare
+   `agf/learnings/my-project.yaml` from `agf/templates/learning-record.yaml`,
+   then review the project section and the first learning before committing.
 
 5. **Validate** the shipped governance records you have created when those
    paths exist in your project:
@@ -168,18 +166,17 @@ agents and cross-cutting concerns are urgent for your project.
 > filed against this tracker, MRs against the framework, blog posts, content
 > sent to external Large Language Model (LLM) APIs. See
 > [`rules/always/external-anonymization-rule.md`](rules/always/external-anonymization-rule.md)
-> for the boundary table and the AI-assisted-development specifics. The rule
-> ships with the framework's standard rule-template inheritance; copy it into
-> your project's `.claude/rules/always/` and customize the codename plus
-> forbidden-term list per Step 0.1's codename choice.
+> for the boundary table and the AI-assisted-development specifics. Keep the
+> rule in `agf/rules/always/`; customize the codename plus forbidden-term list
+> per Step 0.1's codename choice, and make sure your assistant loader reads it.
 
 1. **Choose a codename** for your project (e.g., "blue-heron", "project-aurora").
    Use it consistently in the filename and all fields.
 2. **Record the mapping** between codename and real name in your own private
    records (see `agf/templates/private-codename-mapping.example` for the
    format). Do NOT commit the mapping to this repository.
-3. Copy `agf/templates/learning-record.yaml` to
-   `agf/learnings/<codename>.yaml`.
+3. Ask the assistant to prepare `agf/learnings/<codename>.yaml` from
+   `agf/templates/learning-record.yaml`.
 
 Fill in every field in the `project`, `business_domain`, `regulatory_context`,
 `team`, `lifecycle_state`, `customer_state`, `revenue_context`, and `codebase`
@@ -416,29 +413,35 @@ them is a governance gap. Fix all asymmetries before committing.
 Until that Mix task exists, review communication changes manually against the
 role definitions and do not present the graph command as a shipped gate.
 
-> **Tip — `.claude/rules/` directory for detailed guidance.** For complex
-> projects with many domain-specific rules, consider separating concise
-> identity and hard rules (in `CLAUDE.md`) from detailed guidance (in
-> `.claude/rules/` organized by category — e.g., `always/`, `domain/`,
-> `workflow/`). This pattern has been validated by projects with 30+ rules
-> where a single `CLAUDE.md` became unwieldy. Simpler projects may not
-> need this separation.
+> **Tip — keep the framework carve-out clean.** For complex projects with many
+> domain-specific rules, keep AGF's upstream-owned rules in `agf/rules/` and
+> put only local project guidance in your tool's native rule location. If you
+> need a root `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/`, or similar file, make
+> it a local loader that points the assistant at `agf/rules/`.
 
-### 1.4 Copy rule templates
+### 1.4 Load and customize rules
 
 The framework provides ready-to-adopt rule files in
-[`agf/rules/`](rules/). These implement governance
-principles as concrete Claude Code `.claude/rules/` files.
+[`agf/rules/`](rules/). These implement governance principles as
+assistant-readable Markdown files, and they stay there as the canonical
+framework copy.
 
 **To adopt:**
-1. Copy `agf/rules/` into your project as `.claude/rules/`
-2. Search for `<!-- CUSTOMIZE -->` comments and adapt to your stack
-3. If your stack matches a provided example (e.g., Python + Flask),
-   copy the stack-specific rules from
-   [`project-specific-examples/`](project-specific-examples/) into
-   the corresponding `.claude/rules/` subdirectories
-4. Create a `.claude/CLAUDE.md` index — see
-   `project-specific-examples/python-flask/CLAUDE.md` for a template
+1. Ask the assistant to confirm it can read `agf/rules/` from the repository.
+2. If your tool needs a root-level loader, ask the assistant to create or
+   update that loader so it points at `agf/rules/`; do not copy the AGF rule
+   tree into the tool directory.
+3. Search `agf/rules/` for `<!-- CUSTOMIZE -->` comments and adapt only the
+   values that belong to your project: test commands, migration commands,
+   locale sets, CI paths, and generated-file consumers.
+4. If your stack matches a provided example (e.g., Python + Flask), ask the
+   assistant to prepare a local rule or loader section derived from
+   [`project-specific-examples/`](project-specific-examples/). Keep clear
+   provenance: upstream framework files stay under `agf/`; project-specific
+   additions are local project rules.
+5. Ask the assistant to summarize what it produced: loader files, customized
+   AGF rules, remaining `CUSTOMIZE` markers, and decisions still needed from
+   the governor.
 
 **Rule categories:**
 
@@ -452,7 +455,7 @@ principles as concrete Claude Code `.claude/rules/` files.
 Each rule file includes a header comment citing the framework principle
 it implements — e.g., `# Framework principle: Immutability Constraint`.
 
-### 1.4b Copy skills (Claude Code users only — skip if using other tools)
+### 1.4b Configure skill access (optional)
 
 > **Not using Claude Code?** Skip this step entirely. The governance
 > framework works without skills — they are tool-specific automation,
@@ -460,10 +463,9 @@ it implements — e.g., `# Framework principle: Immutability Constraint`.
 > regardless of which AI assistant (or no assistant) you use.
 
 The framework provides reusable AI assistant workflows in
-[`skills/`](skills/). These target Claude Code's `.claude/skills/`
-convention. The workflows they encode can be adapted to other AI
-coding assistants that support skill-like prompts, but this is
-optional.
+[`skills/`](skills/). Keep the canonical workflow definitions under
+`agf/skills/`. The workflows they encode can be adapted to AI coding
+assistants that support skill-like prompts, but this is optional.
 
 > **Two-layer design.** The framework's conceptual layer (agent taxonomy,
 > jurisdiction model, governance principles in framework.md) is
@@ -472,31 +474,14 @@ optional.
 > assistants can skip this step entirely.
 
 **To adopt:**
-1. Copy `skills/` into your project as `.claude/skills/`
-   (or your tool's equivalent).
-2. **Install as Claude Code slash commands** — `.claude/skills/` holds
-   the source-of-truth definitions, but Claude Code only surfaces them
-   as `/<skill>` slash commands when their `SKILL.md` files are in
-   `.claude/commands/`. Install with:
-
-   ```bash
-   mkdir -p .claude/commands
-   for skill in agf/skills/*/SKILL.md; do
-     name=$(basename "$(dirname "$skill")")
-     cp "$skill" ".claude/commands/$name.md"
-   done
-   ```
-
-   Keep framework-owned source paths under `agf/`. After install,
-   `/upgrade`, `/learning`, `/release`, etc.
-   become available as slash commands. Skipping this step leaves the
-   skills installed but unreachable from the slash-command UI — adopters
-   then either invoke them as verbose prompt instructions or skip them
-   entirely (silver-birch learning, framework issue #35).
-3. **Other AI assistants:** the install path differs per tool (e.g.,
-   Cursor uses its own commands directory). Consult your tool's docs;
-   the principle is the same — slash-command surface needs the SKILL.md
-   in the right location.
+1. Ask the assistant to confirm it can read `agf/skills/` directly.
+2. If your tool needs slash-command wrappers, ask the assistant to create
+   small local wrappers that point to the canonical `agf/skills/*/SKILL.md`
+   files. Do not copy the upstream skill definitions into the tool directory
+   as a second source of truth.
+3. **Other AI assistants:** the wrapper path differs per tool. Consult your
+   tool's docs; the principle is the same — local wrapper, canonical source
+   under `agf/skills/`.
 4. Search for `<!-- CUSTOMIZE -->` comments and adapt paths to your layout.
 5. When creating project-specific skills, set `origin: project` in the
    YAML frontmatter — do not modify `origin: upstream` skills in place.
@@ -520,9 +505,9 @@ details.
 
 ### 1.4a Audit codebase against adopted rules
 
-After copying rules (Step 1.4), audit your existing codebase against each
-rule before running your first pipeline task. For each rule file in
-`.claude/rules/`, assess whether the codebase is:
+After wiring rule loading (Step 1.4), audit your existing codebase against
+each adopted rule before running your first pipeline task. For each canonical
+rule file in `agf/rules/`, assess whether the codebase is:
 
 - **CONFORMANT** — codebase already follows the rule
 - **PARTIAL** — codebase follows in some places but not others
@@ -552,8 +537,10 @@ Restrict each agent's tool access to only what its `capabilities.allowed` lists.
 - Role assignment table filled in
 - Framework and agent versions recorded in `adoption` section of learnings YAML
 - Three YAML definitions adapted for your project (customizations documented)
-- Rule templates copied to `.claude/rules/` and customized (Step 1.4)
-- Skills copied to `.claude/skills/` and customized (Step 1.4b, if using AI assistants)
+- Assistant can read `agf/rules/`; any root loader points to that canonical
+  rule directory (Step 1.4)
+- Assistant can read `agf/skills/`; any tool-specific skill wrappers point to
+  the canonical skill definitions (Step 1.4b, if using AI assistants)
 - Codebase audited against adopted rules; GAPs fixed, PARTIALs tracked (Step 1.4a)
 - System prompts created (if using AI agents)
 

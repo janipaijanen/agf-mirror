@@ -1350,14 +1350,15 @@ AI coding tool:
 | Concept | Claude Code | OpenAI Codex CLI | GitHub Copilot | Cursor | Windsurf |
 |---------|-------------|------------------|----------------|--------|----------|
 | Project instructions | `.claude/CLAUDE.md` | `AGENTS.md` | `.github/copilot-instructions.md` | `.cursorrules` | `.windsurfrules` |
-| Rules directory | `.claude/rules/*.md` | (inline in `AGENTS.md`) | (inline in instructions) | `.cursor/rules/*.md` | (inline in `.windsurfrules`) |
-| Skills / workflows | `.claude/skills/*/SKILL.md` | N/A | N/A | N/A | N/A |
+| Rule loading | Loader points at `agf/rules/*.md` | `AGENTS.md` points at `agf/rules/*.md` | Instructions point at `agf/rules/*.md` | Loader points at `agf/rules/*.md` | `.windsurfrules` points at `agf/rules/*.md` |
+| Skills / workflows | Wrapper points at `agf/skills/*/SKILL.md` | N/A | N/A | N/A | N/A |
 
-The reference implementation targets Claude Code. Adopters using other
-tools should copy the rule and skill *content* and place it where their
-tool expects. The governance value is in the content, not the file path.
-See [docs/tool-enforcement.md](docs/tool-enforcement.md) for detailed
-setup instructions per tool.
+The reference implementation targets Claude Code. Adopters using other tools
+should configure the tool to read the canonical rule content from `agf/rules/`
+instead of copying the framework rule tree into a tool-specific directory. The
+governance value is in the content, and the clean removal boundary is the
+`agf/` directory. See [docs/tool-enforcement.md](docs/tool-enforcement.md) for
+detailed setup instructions per tool.
 
 ### Rule–Principle Mappings
 

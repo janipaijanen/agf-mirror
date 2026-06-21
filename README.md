@@ -65,7 +65,8 @@ Default POC layout:
 | Artifact | Default path |
 |---|---|
 | AGF distribution | `agf/` |
-| Assistant rules | `.claude/rules/` or your tool's equivalent |
+| Assistant rules | `agf/rules/` |
+| Optional assistant loader | Tool-specific root file that points at `agf/rules/` |
 | Working plans | `docs/plans/` |
 | Coordination channel | `docs/coordination/` |
 | Learning record | `agf/learnings/<codename>.yaml` |

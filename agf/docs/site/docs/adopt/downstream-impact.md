@@ -24,7 +24,8 @@ maintain.
 |---|---|---|
 | Framework directory | `agf/` | Single upstream-owned boundary for AGF content |
 | Agent definitions | `agf/agents/*.yaml` | Role contracts: jurisdiction, authority, escalation |
-| Governance rules | `.claude/rules/**/*.md` (or your tool's equivalent) | Constraints your AI assistant loads every session |
+| Governance rules | `agf/rules/**/*.md` | Constraints your AI assistant loads every session |
+| Optional assistant loader | Tool-specific root file | Points your assistant at `agf/rules/`; not a copied rule tree |
 | Learning records | `agf/learnings/<your-codename>.yaml` | Your project's incident and pattern evidence |
 | Working plans | `docs/plans/` | Gate 1 plan files for project work |
 | Coordination channel | `docs/coordination/` | Append-only message files, one per decision/handoff |
@@ -32,11 +33,12 @@ maintain.
 | Schemas | `agf/schemas/` | Machine-checkable contracts for records and definitions |
 | Starter templates | `agf/templates/` | Copyable first-run plan, coordination, and learning files |
 
-AGF v2.0 confines framework-owned content to `agf/`. Assistant rule files are
-copied to `.claude/rules/` or your tool's equivalent because those tools read
-configuration from their own root-level locations. Working plans and
-coordination entries are adopter-owned project evidence and default to root
-`docs/` so current `agov` validators can run without extra path configuration.
+AGF v2.0 confines framework-owned content to `agf/`. If an assistant needs a
+root-level configuration file, keep it small and local: it should tell the tool
+to read `agf/rules/`, not duplicate the framework rule files. Working plans
+and coordination entries are adopter-owned project evidence and default to
+root `docs/` so current `agov` validators can run without extra path
+configuration.
 
 ## CI jobs added
 
@@ -84,8 +86,8 @@ per change.
 - Your data and code never leave your infrastructure; the anonymization
   rule governs the one outbound path (learnings shared upstream).
 - No runtime, no daemon, no service dependency. Removing the framework is
-  removal of `agf/`, copied assistant rules, and any CI hooks — see
-  [exit](exit-and-decommission.md).
+  removal of `agf/`, any small assistant loader you added, and any CI hooks —
+  see [exit](exit-and-decommission.md).
 
 ## Honest summary
 

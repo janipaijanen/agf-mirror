@@ -23,6 +23,7 @@ Before creating or modifying governance files (`learnings/`, `agents/`,
 
 Rules:
 - Governance artifacts go under GOVERNANCE_ROOT, not the project root.
-- `.claude/rules/` stays at the project root (it is a tool config, not a governance artifact).
+- Framework rules stay under `agf/rules/`. Tool-specific root files may point
+  assistants at those rules, but must not duplicate the AGF rule tree.
 - If unsure which layout is in use, check: does `GOVERNANCE.md` exist at the project root or in a subdirectory? Follow the existing pattern.
 - Never create `learnings/`, `agents/`, or `docs/adr/` at the project root if a `GOVERNANCE.md` exists in a subdirectory.
