@@ -164,9 +164,9 @@ Minimum commissioning matrix:
 | Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` | `contribution-auditor` and `infosec-sentinel` are consulted for non-trivial plans |
 | CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed | CI runs validators; security-sensitive changes require explicit evidence |
 
-Gateway assistants, chat bridges, and agent runtimes are execution surfaces.
-They do not become AGF approval authorities unless a human governor explicitly
-changes the role manifest and records that decision.
+Assistant tools and automation runtimes are execution surfaces. They do not
+become AGF approval authorities unless a human governor explicitly changes the
+role manifest and records that decision.
 
 ## Step 6: Wire the validators
 

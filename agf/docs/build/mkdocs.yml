@@ -93,8 +93,6 @@ nav:
   - Reference:
       - Environment variables: reference/environment-variables.md
       - Release artifacts: reference/release-artifacts.md
-      - Visual palette: reference/palette.md
-      - Figures: reference/figures.md
       - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
   - Evolution: future/evolution.md

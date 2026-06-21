@@ -10,25 +10,25 @@ commands fail in surprising ways.
 
 | Variable | Default | Used by | Purpose |
 |---|---|---|---|
-| `AGOV_ALLOW_ROOT` | unset | all `mix agov.*` tasks | Safety override. By default, AGF Mix tasks refuse to run as UID 0. Set `AGOV_ALLOW_ROOT=1` only for a disposable CI/container invocation where root is intentional. Accepted true values are `1`, `true`, `yes`, and `on`. The repo-local `agov` bootstrap executable does not currently implement this root guard. |
-| `AGOV_MANIFEST_PATH` | Foundry default: `agf/agents/MANIFEST.yaml` for `agov`; `../../agf/agents/MANIFEST.yaml` for Mix from `tooling/elixir/` | `agov plan validate`, `mix agov.plan.validate` | Overrides the agent manifest used to decide which advisory roles are valid. Release-archive adopters should set this explicitly to their local role-status authority, for example `agf/agents/MANIFEST.yaml` if they maintain a local manifest there. |
-| `AGOV_SCHEMA_DIR` | `../../agf/schemas` | `mix agov.coord.validate`, `mix agov.plan.validate` | Overrides the directory containing AGF JSON schemas. The default is relative to `tooling/elixir/`. |
-| `AGOV_TOKEN_ROI` | enabled | automatic token ROI telemetry | Set to `0`, `false`, or `off` to disable automatic token ROI log writes. |
-| `AGOV_TOKEN_ROI_LOG` | `../../tmp/agov-token-roi.jsonl` | `mix agov.token.roi`, automatic token ROI telemetry | Overrides the token ROI JSONL log path. The parent directory is created automatically when logging succeeds. |
+| `AGOV_ALLOW_ROOT` | unset | `agov` and development tasks that implement the root guard | Safety override. Set `AGOV_ALLOW_ROOT=1` only for a disposable CI/container invocation where root is intentional. Accepted true values are `1`, `true`, `yes`, and `on`. |
+| `AGOV_MANIFEST_PATH` | Tool-dependent | `agov plan validate` and related plan validators | Overrides the agent manifest used to decide which advisory roles are valid. Release-archive adopters should set this explicitly to their local role-status authority, for example `agf/agents/MANIFEST.yaml` if they maintain a local manifest there. |
+| `AGOV_SCHEMA_DIR` | Tool-dependent | `agov coord validate`, `agov plan validate`, and related validators | Overrides the directory containing AGF JSON schemas. Release-archive adopters should set this explicitly when running the binary outside a repository layout that contains `agf/schemas`. |
+| `AGOV_TOKEN_ROI` | enabled when telemetry is supported | automatic token ROI telemetry | Set to `0`, `false`, or `off` to disable automatic token ROI log writes. |
+| `AGOV_TOKEN_ROI_LOG` | Tool-dependent | token ROI telemetry and `agov token roi report` | Overrides the token ROI JSONL log path. The parent directory is created automatically when logging succeeds. Choose an ignored project-local path unless your policy deliberately tracks telemetry. |
 
-Example: choose a downstream-local token ROI log path:
+Example: point a release-binary invocation at an explicit schema directory:
 
 ```bash
-AGOV_TOKEN_ROI_LOG=path/to/their/chosen-log.jsonl \
-  mix agov.session.resume --base-branch master
+AGOV_SCHEMA_DIR=agf/schemas \
+  agov coord validate docs/coordination/*.md
 ```
 
 Example: run inside a disposable container that intentionally uses UID 0:
 
 ```bash
-AGOV_ALLOW_ROOT=1 mix agov.coord.validate ../../docs/coordination/*.md
+AGOV_ALLOW_ROOT=1 agov coord validate docs/coordination/*.md
 ```
 
-Do not commit local telemetry by accident. The foundry default writes under
+Do not commit local telemetry by accident. The foundry project writes under
 `tmp/`, which is ignored locally; downstream projects may choose another ignored
 path or deliberately track telemetry if their policy allows it.
