@@ -38,6 +38,7 @@ defmodule Agov.BriefGeneratorTest do
       assert skeleton =~ "21 messages"
       assert skeleton =~ "2026-06-13T00:00:00Z to 2026-06-15T00:00:00Z"
       assert skeleton =~ "Next id: #{@next_id}"
+      assert skeleton =~ "Suggested file: #{@next_id}.md"
     end
 
     test "empty channel shows 0 messages and next id" do
@@ -154,6 +155,8 @@ defmodule Agov.BriefGeneratorTest do
       assert skeleton =~ ~r/id: [0-9]{8}T[0-9]{6}Z-coder-tester-[a-z0-9]{4}/
       assert skeleton =~ "from: coder-tester"
       assert skeleton =~ ~r/timestamp: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z/
+      assert skeleton =~ ~r/Suggested file: [0-9]{8}T[0-9]{6}Z-coder-tester-[a-z0-9]{4}\.md/
+      refute skeleton =~ ~r/Suggested file: [0-9]{8}T[0-9]{6}Z-coder-tester-[a-z0-9]{4}-coder-tester\.md/
       refute skeleton =~ "<TIMESTAMP>"
     end
 

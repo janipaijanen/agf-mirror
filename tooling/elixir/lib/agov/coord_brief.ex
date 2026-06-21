@@ -61,10 +61,13 @@ defmodule Agov.CoordBrief do
   defp readable_from(_format, from), do: {:ok, from}
 
   defp channel_info(coord_dir, config, id_format, from, timestamp) do
+    id = next_id(id_format, from, timestamp)
+
     case Agov.ChannelReader.scan(coord_dir) do
       {:error, :dir_not_found} ->
         %{
-          next_id: next_id(id_format, from, timestamp),
+          next_id: id,
+          suggested_filename: suggested_filename(id_format, from, id),
           total: 0,
           timestamp_range: nil,
           active_claims: 0
@@ -72,7 +75,8 @@ defmodule Agov.CoordBrief do
 
       {:ok, %{messages: [], total: 0}} ->
         %{
-          next_id: next_id(id_format, from, timestamp),
+          next_id: id,
+          suggested_filename: suggested_filename(id_format, from, id),
           total: 0,
           timestamp_range: nil,
           active_claims: 0
@@ -88,7 +92,8 @@ defmodule Agov.CoordBrief do
           end
 
         %{
-          next_id: next_id(id_format, from, timestamp),
+          next_id: id,
+          suggested_filename: suggested_filename(id_format, from, id),
           total: total,
           timestamp_range: range,
           active_claims: active_claims
@@ -106,6 +111,12 @@ defmodule Agov.CoordBrief do
     do: Agov.CoordIdentity.generate_readable_id(from, timestamp)
 
   defp next_id("ulid", _from, _timestamp), do: Agov.CoordIdentity.generate_ulid()
+
+  defp suggested_filename("readable", _from, id), do: id <> ".md"
+
+  defp suggested_filename("ulid", from, id) when is_binary(from), do: id <> "-" <> from <> ".md"
+
+  defp suggested_filename("ulid", _from, id), do: id <> "-<from>.md"
 
   defp maybe_put(opts, _key, nil), do: opts
   defp maybe_put(opts, key, value), do: Keyword.put(opts, key, value)

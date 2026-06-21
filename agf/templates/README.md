@@ -16,6 +16,7 @@ Default adopter paths:
 
 **Coordination filename convention:** Prefer generating files with
 `agov coord brief --id-format readable --from <role>`. Readable IDs use
-`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>` in both the filename and
-frontmatter `id:`. The `COORD-YYYYMMDD-XXX.md` template names and existing
-ULID records remain valid compatibility forms; do not use sequential integers.
+`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>`; new readable-ID files are named
+`<id>.md` and use the same value in frontmatter `id:`. The
+`COORD-YYYYMMDD-XXX.md` template names and existing ULID records remain valid
+compatibility forms; do not use sequential integers.

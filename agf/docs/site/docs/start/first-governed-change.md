@@ -40,10 +40,10 @@ cp agf/templates/learning-record.yaml agf/learnings/sample-project.yaml
 
 For current tooling, prefer generating coordination skeletons with
 `agov coord brief --id-format readable --from <role>`. Readable IDs use
-`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>` and appear in both the filename
-and frontmatter `id:`. Existing template `COORD-YYYYMMDD-XXX` examples and
-ULID records remain valid compatibility forms; do not use sequential integers
-for new messages.
+`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>` and new readable-ID files are
+named `<id>.md`. Existing template `COORD-YYYYMMDD-XXX` examples and ULID
+records remain valid compatibility forms; do not use sequential integers for
+new messages.
 
 ## 3. Validate the plan and first handoff
 

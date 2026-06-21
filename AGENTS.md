@@ -77,15 +77,22 @@ tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-
 
 ## Coordination channel
 
-All inter-agent communication goes through immutable Markdown files at
-`docs/coordination/<id>-<sender>.md`. New readable IDs use
-`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>`; existing ULID and legacy
-sequence filenames remain valid history. Front matter is validated by
-`agov coord validate`.
+All inter-agent communication goes through immutable Markdown files in
+`docs/coordination/`. Front matter is validated by `agov coord validate`.
 
-Use `agov coord brief --id-format readable --from <role>` to generate new
-coordination IDs unless tooling is unavailable. Do not rename historical
-coordination files.
+AI agents MUST use `agov coord brief --id-format readable --from <role>` to
+generate coordination IDs unless tooling is unavailable. Humans SHOULD use the
+tooling. Manually authored IDs remain valid when they pass schema and
+uniqueness validation.
+
+| ID format | Filename convention | Use |
+|---|---|---|
+| Readable ID | `<id>.md` | Preferred for new AI-authored messages. |
+| ULID | `<ulid>-<sender>.md` | Valid legacy format; do not use for new AI messages unless recovering. |
+| Legacy sequence | `<zero-padded-seq>-<sender>.md` | Historical only. |
+
+New readable IDs use `YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>`. Do not
+rename historical coordination files.
 
 **Nine message kinds:** `claim`, `completion`, `review`, `ack`, `handoff`,
 `decision-record`, `fast-track-waiver`, `lesson-proposal`, `note`.

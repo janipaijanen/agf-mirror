@@ -109,11 +109,24 @@ defmodule Agov.CoordValidatorTest do
       advisories =
         CoordValidator.advisory_findings(
           data,
-          fixture("20260620T183914Z-coder-tester-r7k2-coder-tester.md")
+          fixture("20260620T183914Z-coder-tester-r7k2.md")
         )
 
       refute Enum.any?(advisories, &(&1 =~ "readable id"))
       refute Enum.any?(advisories, &(&1 =~ "filename"))
+    end
+
+    test "returns readable filename advisory for historical sender suffix" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_note_with_readable_id.md"))
+
+      advisories =
+        CoordValidator.advisory_findings(
+          data,
+          fixture("20260620T183914Z-coder-tester-r7k2-coder-tester.md")
+        )
+
+      assert Enum.any?(advisories, &(&1 =~ "repeats sender suffix"))
+      assert Enum.any?(advisories, &(&1 =~ "expected '20260620T183914Z-coder-tester-r7k2.md'"))
     end
 
     test "returns readable drift advisories for role timestamp and filename mismatches" do
@@ -128,11 +141,36 @@ defmodule Agov.CoordValidatorTest do
         CoordValidator.advisory_findings(
           data,
           fixture("20260620T183914Z-planner-architect-r7k2-planner-architect.md")
-        )
+      )
 
       assert Enum.any?(advisories, &(&1 =~ "role"))
       assert Enum.any?(advisories, &(&1 =~ "timestamp"))
-      assert Enum.any?(advisories, &(&1 =~ "filename sender"))
+      assert Enum.any?(advisories, &(&1 =~ "repeats sender suffix"))
+    end
+
+    test "returns manual id advisory for AI agent role" do
+      assert {:ok, data} = CoordValidator.validate_file(fixture("valid_manual_ai_id.md"))
+
+      advisories =
+        CoordValidator.advisory_findings(
+          data,
+          fixture("valid_manual_ai_id.md")
+        )
+
+      assert Enum.any?(advisories, &(&1 =~ "AI agent role 'coder-tester' used manual coordination id 'manual-recovery-1'"))
+      assert Enum.any?(advisories, &(&1 =~ "agov coord brief --id-format readable"))
+    end
+
+    test "does not return manual id advisory for human governor role" do
+      data = %{
+        "id" => "manual-governor-decision",
+        "from" => "governor-reviewer",
+        "timestamp" => "2026-06-20T18:39:14Z",
+        "model" => "human"
+      }
+
+      advisories = CoordValidator.advisory_findings(data)
+      refute Enum.any?(advisories, &(&1 =~ "manual coordination id"))
     end
   end
 
