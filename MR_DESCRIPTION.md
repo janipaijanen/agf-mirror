@@ -25,6 +25,11 @@ Coordination filename guidance (`concepts/roles-and-gates.md`):
 - `mkdocs build --strict`: clean (no broken links — nav reorder keeps all files
   in place, only changes ordering).
 
+## Merge Order
+
+Merge after Slice 3 (`docs/visual-rendering-fix`) so the shared
+`mkdocs.yml` changes stay easy to review.
+
 ## Review Focus
 
 Please verify:
