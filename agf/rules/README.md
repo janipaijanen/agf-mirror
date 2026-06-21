@@ -8,23 +8,22 @@ describing constraints and guidelines — the content is
 technology-agnostic and works with any AI coding assistant that accepts
 natural-language instructions.
 
-The reference implementation targets Claude Code (`.claude/rules/`).
-Adopters using other tools should copy the rule content into their
-tool's equivalent directory (e.g., `.cursor/rules/`, `.cursorrules`,
-`AGENTS.md` for Codex CLI, `.github/copilot-instructions.md` for
-Copilot, `.windsurfrules` for Windsurf). See
-[docs/tool-enforcement.md](../docs/tool-enforcement.md) for detailed
-setup instructions per tool.
+The canonical rule copy stays in `agf/rules/`. Tool-specific root files
+should point assistants at this directory instead of duplicating the rule tree
+into `.claude/rules/`, `.cursor/rules/`, `AGENTS.md`, or another assistant
+location. That keeps the framework carve-out honest: removing `agf/` removes
+AGF-owned content.
 
 ## How to adopt
 
-1. Copy this entire directory into your project's rules directory
-   (Claude Code: `.claude/rules/`, or your tool's equivalent)
-2. Search for `<!-- CUSTOMIZE -->` comments and adapt to your stack
-3. Add stack-specific rules from `project-specific-examples/` if your
+1. Confirm your assistant can read this canonical `agf/rules/` directory.
+2. If your tool needs a root-level configuration file, create a small local
+   loader that tells it to read `agf/rules/`.
+3. Search for `<!-- CUSTOMIZE -->` comments and adapt to your stack.
+4. Add stack-specific local guidance from `project-specific-examples/` if your
    stack matches (e.g. `python-flask/`)
-4. Create an index file if your tool supports one (Claude Code:
-   `.claude/CLAUDE.md` — see `project-specific-examples/` for a template)
+5. Create an index or loader file if your tool supports one. Keep that file
+   local and small; do not copy the AGF rule files into it.
 
 ## Directory structure
 

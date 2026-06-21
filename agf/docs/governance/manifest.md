@@ -24,10 +24,10 @@ adopt from this repository adopt from the foundry directly.
 |------|---------|---------|
 | `agents/` | Agent role definitions (one YAML per role) | Install under `agf/agents/` or use in place |
 | `agents/MANIFEST.yaml` | Example active-role status file (foundry dogfood) | Replace with your own project's role-status file |
-| `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Install to your assistant's rules directory; search `<!-- CUSTOMIZE -->` |
+| `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Keep under `agf/rules/`; point your assistant at this canonical copy |
 | `schemas/` | JSON schemas and invariants for validation | Use with Elixir tooling (`tooling/elixir/`) |
 | `templates/` | First-run starter files (coordination, plans, learning) | Ask your assistant to prepare first-run evidence from these templates |
-| `skills/` | AI assistant workflow scripts | Install to your assistant's skills directory when supported |
+| `skills/` | AI assistant workflow scripts | Keep under `agf/skills/`; use local wrappers only when your tool requires them |
 | `project-specific-examples/` | Stack-specific rule examples | Use only when the stack matches |
 | `ADOPTING.md` | Step-by-step adoption guide | Follow step by step |
 | `framework.md` | Framework theory and reference | Read-only reference |
@@ -44,13 +44,13 @@ adopt from this repository adopt from the foundry directly.
 Use the public installation guide first:
 [Install the `agf/` directory](../site/docs/adopt/install-and-layouts.md).
 It gives you a pasteable commissioning prompt so your assistant prepares the
-file moves, local evidence directories, rule install target, and first learning
-record.
+file moves, local evidence directories, optional assistant loader, and first
+learning record.
 
 After the assistant prepares the diff, review:
 
 - `agf/` exists as the single framework directory;
-- your assistant rules directory contains the AGF rules it will load;
+- your assistant can read the canonical AGF rules from `agf/rules/`;
 - `agf/learnings/<codename>.yaml` exists and does not reveal the real project
   name;
 - `docs/plans/` and `docs/coordination/` exist, or your project has documented

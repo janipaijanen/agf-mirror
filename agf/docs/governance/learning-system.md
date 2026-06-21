@@ -260,8 +260,8 @@ checklist.
 
 **Standing items (check at every sentinel review):**
 - Self-conformance: does the framework repo follow every ADOPTING.md step it
-  prescribes to adopters? (agents/ exists, .claude/rules/ exists, tests/ has
-  tests, GOVERNANCE.md exists, pre-commit hooks active)
+  prescribes to adopters? (`agf/` exists, assistants can read `agf/rules/`,
+  tests exist, GOVERNANCE.md exists, pre-commit hooks active)
 - Communication symmetry: run `mix agov.validate.agents` — zero asymmetries
   expected
 - README stats: `agov-validate-readme-stats` is deferred to the E4 Elixir

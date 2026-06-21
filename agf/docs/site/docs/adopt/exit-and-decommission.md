@@ -24,7 +24,7 @@ artifacts completely.
 | Mode | What it means | Effort |
 |---|---|---|
 | **Pause** | Stop enforcing gates; keep files in place | Disable CI jobs and hooks; one commit |
-| **Downgrade** | Drop from full governance to rules-only (keep the rule library, drop gates and coordination) | Remove agents/ and coordination obligations; keep `.claude/rules/` |
+| **Downgrade** | Drop from full governance to rules-only (keep `agf/rules/`, drop gates and coordination) | Keep the selected `agf/rules/` files and remove gate obligations |
 | **Remove** | Delete every framework artifact | One atomic removal commit |
 
 ## What you keep after full removal
@@ -43,15 +43,14 @@ artifacts completely.
 In outline:
 
 1. Delete the framework-owned `agf/` directory.
-2. Remove copied assistant rules from `.claude/rules/` or your tool's
-   equivalent install path.
+2. Remove any small assistant loader file that only pointed at `agf/rules/`.
 3. Decide whether to keep or remove project-owned evidence in `docs/plans/`
    and `docs/coordination/`. Keeping it in git history is normal; no history
    rewrite is part of exit.
 4. Remove hooks (pre-commit entries, assistant settings, `core.hooksPath`).
 5. Revert CI jobs the framework added.
 6. Commit as a single atomic removal.
-7. Verify: grep the repo for `agov`, `agents-govern`, copied rule paths, and
+7. Verify: grep the repo for `agov`, `agents-govern`, `agf/rules`, and
    assistant settings. Any remaining match should be intentionally kept and
    documented.
 

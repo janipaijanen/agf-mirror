@@ -12,14 +12,13 @@ provenance: verified-agf-v2
 artifacts to downstream users — framework forks, governance-as-a-product
 projects, or projects that publish a rules or agent library for
 others to adopt. A standard adopter (web app, CLI tool, data pipeline) using
-this framework for its own governance should omit this rule: their
-.claude/rules/ is their own project governance, not something they
-distribute. -->
+this framework for its own governance should omit this rule: their local
+assistant loader and project-specific rules are their own project governance,
+not something they distribute. -->
 
 **Scope:** Any commit that touches one or more of these trigger paths:
 
 <!-- CUSTOMIZE: Replace with your project's distributable artifact paths. -->
-- `.claude/rules/**/*.md`
 - `agf/rules/**/*.md`
 - `agf/agents/*.yaml`
 - `agf/tooling/` or framework tooling distributed with AGF

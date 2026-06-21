@@ -79,8 +79,8 @@ backward-compatibility risk. Waiver recorded in coordination channel.
 | `docs/coordination/*.md` | Originating agent (immutable) | All |
 | `agf/GOVERNANCE.md` | Governor-Reviewer | All |
 | `agf/agents/MANIFEST.yaml` | Governor-Reviewer | All |
-| `.claude/rules/**` | Coder-Tester | Claude |
-| `.claude/commands/**` | Coder-Tester | Claude |
+| Tool-specific assistant loaders | Coder-Tester | Relevant tool |
+| Tool-specific assistant commands | Coder-Tester | Relevant tool |
 
 ---
 
