@@ -68,6 +68,32 @@ evidence. AGF's job is to keep those responsibilities visible so the assistant
 does not become its own planner, implementer, reviewer, and approver in one
 smooth blur.
 
+## How do ADRs fit with AGF?
+
+Keep Architecture Decision Records. AGF does not replace them.
+
+Use ADRs for durable architecture choices: technology selection, data model
+shape, integration boundaries, security posture, and decisions that future
+maintainers will ask about. Use AGF coordination messages for the work trail:
+who proposed the change, who reviewed it, what gate decision landed, and which
+branch or merge request carried the implementation.
+
+For downstream adoption, create your own `docs/adr/` directory and copy the ADR
+template pattern from `agf/docs/adr/`. Then make ADR discipline part of the
+governed loop:
+
+- a Gate 1 plan references any proposed or accepted ADR that shapes the work;
+- the planner-architect drafts or updates ADRs for significant design choices;
+- affected humans or agents are consulted before the ADR is accepted;
+- the governor-reviewer approves the gate, not the author of the ADR alone;
+- Gate 2 verifies that the implementation still matches the accepted decision;
+- if the architecture changes later, write a new ADR that supersedes the old
+  one instead of rewriting history.
+
+The useful split is simple: ADRs explain why the architecture is the way it is;
+coordination records explain how a specific governed change moved from proposal
+to merge.
+
 ## Who is the governor?
 
 The governor is the human who can say yes, no, wait, or stop.
