@@ -24,9 +24,9 @@ This project **is not**:
 - An ML / model governance framework (compare MLflow, Evidently)
 - An agent runtime, orchestrator, or hosted service
 
-agents-govern is a file-based process framework. You copy files into a
-repository; AI assistants load them as instructions; your existing CI
-runs the validators. No accounts, no runtime, no new infrastructure.
+agents-govern is a file-based process framework. The framework files live in
+your repository; AI assistants load them as instructions; your existing CI runs
+the validators. No accounts, no runtime, no new infrastructure.
 
 ## Canonical reading list
 

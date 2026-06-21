@@ -25,8 +25,9 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
 
 ### 2. Adopt — install with eyes open
 
-- [Install the `agf/` directory](adopt/install-and-layouts.md) — copying the
-  files into the single supported v2.0 layout.
+- [Install the `agf/` directory](adopt/install-and-layouts.md) — commissioning
+  the files into the single supported v2.0 layout with an assistant-prepared
+  diff.
 - [Downstream impact](adopt/downstream-impact.md) — **read before
   adopting**: every file, CI job, obligation, and ongoing cost adoption
   introduces.

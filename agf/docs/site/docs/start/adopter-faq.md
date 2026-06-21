@@ -48,10 +48,11 @@ and handoffs.
 
 The practical path is:
 
-1. Copy `agf/`.
-2. Run one small governed change.
-3. Add `agov coord validate` and `agov plan validate` to CI.
-4. Add more checks only when the team understands what each one is allowed to
+1. Ask your assistant to commission `agf/` and the first local evidence files.
+2. Review the diff and remaining `CUSTOMIZE` markers.
+3. Run one small governed change.
+4. Add `agov coord validate` and `agov plan validate` to CI.
+5. Add more checks only when the team understands what each one is allowed to
    block.
 
 For setup details, see [Tooling and token savings](../adopt/tooling-and-tokens.md)
@@ -98,11 +99,10 @@ diary. It is the place where operational evidence becomes durable.
 
 ## How do we draft a learning?
 
-Start from the shipped template:
-`agf/templates/learning-record.yaml`.
-
-Copy it to your adopter-owned learning file:
-`agf/learnings/<your-codename>.yaml`.
+Ask your assistant to start from the shipped template
+`agf/templates/learning-record.yaml` and prepare your adopter-owned learning
+file at `agf/learnings/<your-codename>.yaml`. Review the result before it is
+used as evidence.
 
 Keep the first draft simple:
 
@@ -240,8 +240,9 @@ Keep it small.
 Day 1: read [Should you adopt?](should-you-adopt.md), [Downstream impact](../adopt/downstream-impact.md),
 and [Exit and decommission](../adopt/exit-and-decommission.md).
 
-Day 2: copy `agf/`, pick a codename, and customize only the rules that plainly
-need local values.
+Day 2: ask your assistant to commission `agf/`, pick a codename, and customize
+only the rules that plainly need local values. Review the diff instead of doing
+the copying by hand.
 
 Day 3: run [Your first governed change](first-governed-change.md) on a small,
 real task.
