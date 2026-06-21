@@ -21,6 +21,7 @@ handoff:
     - Slices C and D are deferred — do not implement without a separate handoff.
   must_read:
     - docs/coordination/20260621T192432Z-coder-tester-4sh2.md
+    - docs/plans/docs-assessment-2026-06-21.md
   do_not_touch:
     - agf/docs/site/docs/start/first-governed-change.md  (Slice B — pending PA decision)
     - agf/docs/build/mkdocs.yml nav ordering  (Slice B — pending PA decision)
