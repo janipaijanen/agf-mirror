@@ -84,6 +84,7 @@ def on_pre_build(config, **kwargs) -> None:
 | Field | Value |
 |---|---|
 | Framework content version | `{version}` |
+| Published docs | <https://janipaijanen.gitlab.io/agents-govern-framework/> |
 | Source commit | `{commit}` |
 | Short commit | `{short_commit}` |
 | Source branch | `{branch}` |

@@ -9,6 +9,7 @@
 # negative case is a link to a missing page — see docs/build/README.md).
 
 site_name: agents-govern
+site_url: https://janipaijanen.gitlab.io/agents-govern-framework/
 site_description: >-
   Governance for AI-assisted software development: defined roles,
   review gates, an append-only coordination channel, and an
