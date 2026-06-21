@@ -84,7 +84,7 @@ validate-governance:
     AGOV_ALLOW_ROOT: "1"
   script:
     - ln -sfn "$PWD/tooling/agov" /usr/local/bin/agov
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/[0-9][0-9][0-9][0-9][0-9]-*.md' | xargs -0r agov coord validate
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' | xargs -0r agov coord validate
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' | xargs -0r agov plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
