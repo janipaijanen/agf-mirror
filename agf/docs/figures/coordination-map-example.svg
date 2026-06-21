@@ -8,10 +8,11 @@
  viewBox="0.00 0.00 925.70 307.63" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 303.63)">
 <title>agf_coordination_example</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-303.63 921.7,-303.63 921.7,4 -4,4"/>
 <text text-anchor="middle" x="458.85" y="-281.23" font-family="Helvetica,sans-Serif" font-size="18.00">Example AGF Foundry Coordination Map</text>
 <g id="clust1" class="cluster">
 <title>cluster_legend</title>
-<path fill="transparent" stroke="#d6dde8" d="M20,-128.63C20,-128.63 736.29,-128.63 736.29,-128.63 742.29,-128.63 748.29,-134.63 748.29,-140.63 748.29,-140.63 748.29,-251.63 748.29,-251.63 748.29,-257.63 742.29,-263.63 736.29,-263.63 736.29,-263.63 20,-263.63 20,-263.63 14,-263.63 8,-257.63 8,-251.63 8,-251.63 8,-140.63 8,-140.63 8,-134.63 14,-128.63 20,-128.63"/>
+<path fill="#ffffff" stroke="#d6dde8" d="M20,-128.63C20,-128.63 736.29,-128.63 736.29,-128.63 742.29,-128.63 748.29,-134.63 748.29,-140.63 748.29,-140.63 748.29,-251.63 748.29,-251.63 748.29,-257.63 742.29,-263.63 736.29,-263.63 736.29,-263.63 20,-263.63 20,-263.63 14,-263.63 8,-257.63 8,-251.63 8,-251.63 8,-140.63 8,-140.63 8,-134.63 14,-128.63 20,-128.63"/>
 <text text-anchor="middle" x="378.15" y="-250.03" font-family="Helvetica,sans-Serif" font-size="12.00">Legend</text>
 </g>
 <!-- all -->

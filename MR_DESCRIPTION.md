@@ -1,30 +1,19 @@
-# docs: publish coordination map example
+## Summary
 
-## What changed
-
-- Added a rendered example communication map to the Coordination protocol page.
-- Added nearby wording that the map is an example from AGF Foundry, not a
-  required adopter topology.
-- Added a DOT source file for the example map and committed generated SVGs.
-- Added the example to the reference figure inventory.
-- Embedded a legend inside the SVG so the figure explains node and edge
-  semantics without relying on page prose.
+- Changes the coordination map example DOT source to render on a white canvas.
+- Regenerates both SVG copies used by the docs and reference figure pages.
+- Keeps the embedded legend and existing coordination-map content unchanged.
 
 ## Verification
 
-- `dot -Tsvg agf/docs/figures/src/coordination-map-example.dot`: clean.
-- `mkdocs build --strict`: clean.
-- `git diff --check`: clean.
-- Generated SVG contains embedded `Legend` and `Edge label = kind (message count)` text.
+- `dot -Tsvg agf/docs/figures/src/coordination-map-example.dot -o agf/docs/figures/coordination-map-example.svg`
+- `cp agf/docs/figures/coordination-map-example.svg agf/docs/site/reference/figures/coordination-map-example.svg`
+- `rg -n 'fill="#ffffff"|fill="transparent"|Legend' agf/docs/figures/coordination-map-example.svg agf/docs/site/reference/figures/coordination-map-example.svg`
+- `git diff --check`
+- `/home/devi/.local/share/mise/installs/uv/0.11.20/uv-x86_64-unknown-linux-musl/uv run --project agents-govern --group docs mkdocs build -f agf/docs/build/mkdocs.yml --strict`
 
 ## Review Focus
 
-Please verify:
-
-- [ ] The Coordination protocol page shows the rendered communication map near
-      the `agov coord graph` instructions.
-- [ ] The text clearly says this is an example and adopters may have richer
-      roles and different communication patterns.
-- [ ] The SVG legend is embedded in the figure.
-- [ ] The figure inventory and DOT source path are consistent with the existing
-      docs figure workflow.
+- [ ] The public `coordination-map-example.svg` has an explicit white background.
+- [ ] The DOT source, canonical SVG, and site SVG copy stay in sync.
+- [ ] The embedded legend remains present and readable.
