@@ -50,9 +50,9 @@ deterministic command output: the tool answers the question in milliseconds and
 returns a compact summary the agent reads instead of scanning dozens of files
 itself.
 
-The shipped Rust binary (`agov`) has reached operational parity for the
-inner agent polling loop. The table below shows current maturity — commands at
-Level 5 are in production use on this project:
+The shipped Rust binary (`agov`) is the adopter-facing tooling surface. The
+table below shows current maturity — commands at Level 5 are in production use
+on this project:
 
 | Command | Replaces | Maturity |
 |---|---|---|
@@ -72,22 +72,16 @@ Level 5 are in production use on this project:
 Level 5 is deployable and in active use; Level 1 is planned. Do not conflate
 the two.*
 
-The Elixir Mix reference implementation covers the full command set and is
-always available as a fallback. If the Rust binary is not present, the `agov`
-wrapper falls through to Mix automatically — no configuration required. See
-[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup,
-estimates, and the evidence base behind the savings claims.
+Release archives ship platform-specific Rust tooling. Source-checkout users who
+also have the development toolchain can run Mix tasks directly when they need
+developer-only commands. See [Tooling and token savings](docs/adopt/tooling-and-tokens.md)
+for setup, estimates, and the evidence base behind the savings claims.
 
 ## How it works
 
 **Role separation.** Agents get plain-language job descriptions. An implementer
 writes code. A reviewer checks it. A human governor approves gates and owns the
 project risk. An agent cannot approve its own work.
-
-**Decision log.** Every plan, review, handoff, and merge decision is saved as a
-Markdown file in the repository. Six months later, you can reconstruct why a
-change happened by reading the chain instead of relying on chat history or
-memory.
 
 **Hard gates.** Gate 1 asks whether the agent has a plan worth implementing.
 Gate 2 asks whether the implementation followed the rules and is ready to
@@ -128,9 +122,10 @@ your learnings can flow upstream without revealing your project.
 Adoption is not free, and the documentation does not pretend otherwise: files
 added to your repo, CI jobs to run, review ceremony per non-trivial change, and
 a habit to record incidents as learning notes. The overhead is proportional to
-change size — trivial edits use a fast track with no ceremony; architecture
-changes get the full gate sequence. The [downstream impact](docs/adopt/downstream-impact.md)
-page itemises the full cost, and [exit and decommission](docs/adopt/exit-and-decommission.md)
+change size — trivial edits use a fast track (three files or fewer, no shared
+interface or data contract change); architecture changes get the full gate
+sequence. The [downstream impact](docs/adopt/downstream-impact.md) page itemises
+the full cost, and [exit and decommission](docs/adopt/exit-and-decommission.md)
 documents the way out. Read both before adopting.
 
 ## Who benefits

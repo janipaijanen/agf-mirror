@@ -10,11 +10,6 @@ development. In plain terms: it is a set of files that tell your AI assistant
 how to behave, a review process that a human approves before anything merges,
 and a decision log that makes those approvals reconstructible later.
 
-More precisely: it gives AI coding agents explicit role definitions, Gate 1
-(plan approval before implementation), Gate 2 (review before merge), a
-coordination channel (the append-only decision log), and learning records
-(structured incident and pattern notes).
-
 The trade is deliberate: you accept a little ceremony so the human governor —
 the person who approves gates and owns project risk — can reconstruct what was
 decided and stop unsafe work before it lands. Adopt when that audit trail is
@@ -87,7 +82,7 @@ Table 1 summarizes the commitments you accept when you adopt the framework.
 | Commitment | Size |
 |---|---|
 | Initial install | Assistant-prepared file setup, human-reviewed rule choices — an afternoon |
-| Per-change overhead | Plan + two gates for non-trivial changes; fast track for small ones |
+| Per-change overhead | Plan + two gates for non-trivial changes; fast track for small ones when no agent holds an active claim (an exclusive reservation in the coordination channel) |
 | Ongoing | Learning records when incidents happen; upgrade hygiene per release |
 | Reversibility | Full removal is documented and verifiable — see [exit](../adopt/exit-and-decommission.md) |
 

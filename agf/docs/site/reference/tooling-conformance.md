@@ -2,10 +2,12 @@
 
 *Status: Draft AGF v2 contract.*
 
-AGF defines contracts, not a sacred implementation language. The current
-foundry operator entrypoint is `agov` for bootstrap validation, and the Elixir
-tooling is the reference/development implementation for the wider command set.
-Future Python, Rust, Ruby, C, C++, Julia, or other implementations can be
+AGF defines contracts, not a sacred implementation language. For adopters, the
+current distributed tooling surface is the platform-specific Rust `agov` binary.
+Source-checkout contributors may also run development Mix tasks, but those tasks
+are not part of the release archive contract.
+
+Future Python, Ruby, C, C++, Julia, or other implementations can be
 AGF-compatible if they conform to the same command behavior, schemas, exit
 codes, and conformance fixtures.
 
@@ -13,34 +15,39 @@ codes, and conformance fixtures.
 
 | Term | Meaning |
 |---|---|
-| AGF reference implementation | Maintained in this repository and used as the contract oracle for AGF v2. |
+| AGF release implementation | The platform-specific Rust `agov` binary distributed for adopters. |
 | AGF-compatible implementation | Independently implemented, but passes the AGF conformance suite for the claimed version. |
+| Development implementation | Source-checkout tooling used by framework contributors; useful as implementation evidence, but not itself a release artifact. |
 | Experimental implementation | Useful for evaluation, but not yet passing the conformance suite. |
 | Not verified for AGF v2 | Inherited, partial, or third-party tooling with no current AGF v2 conformance result. |
 
 ## Current and Target CLI Surface
 
-The current foundry operator command is `agov`. The long-term adopter-facing
-interface may become `agf`; Mix tasks are developer and
-reference-implementation internals. The `agov` wrapper routes each command to
-the best available implementation: Rust binary if built and supported, compiled
-Elixir escript next, Mix as final fallback.
+The current adopter command is `agov`. A future public interface may become
+`agf`, but released v2.0 archives document `agov`.
 
-The "Rust" column shows which commands have a Rust implementation that passes
-the byte-for-byte parity test against the Elixir reference output.
+The table lists the adopter-facing command surface. Source-checkout Mix tasks
+may exist for development and parity checks, but they are not required for a
+release-archive adopter.
 
-| Current operator command | Long-term public command | Reference command | Rust |
-|---|---|---|---|
-| `agov coord validate <file>...` | `agf coord validate <file>...` | `mix agov.coord.validate <file>...` | ✓ Phase 1 |
-| `agov plan validate <file>...` | `agf plan validate <file>...` | `mix agov.plan.validate <file>...` | ✓ Phase 1 |
-| `agov validate [subcommand]` | `agf validate [subcommand]` | `mix agov.validate [subcommand]` | ✓ Phase 1 |
-| `agov coord brief [args...]` | `agf coord brief [args...]` | `mix agov.coord.brief [args...]` | ✓ Phase 1 |
-| `agov handoff next <role> [args...]` | `agf handoff next <role> [args...]` | `mix agov.handoff.next <role> [args...]` | ✓ Phase 1 |
-| `agov coord status [args...]` | `agf coord status [args...]` | `mix agov.coord.status [args...]` | ✓ Phase 2 |
-| `agov session resume [args...]` | `agf session resume [args...]` | `mix agov.session.resume [args...]` | ✓ Phase 2 |
-| `agov coord stale [args...]` | `agf coord stale [args...]` | `mix agov.coord.stale [args...]` | ✓ Phase 2 |
-| `agov coord visibility [args...]` | `agf coord visibility [args...]` | `mix agov.coord.visibility [args...]` | ✓ Phase 2 |
-| `agov usage report [args...]` | `agf usage report [args...]` | `mix agov.usage.report [args...]` | ✓ Phase 2 |
+| Adopter command | Purpose | Status |
+|---|---|---|
+| `agov coord validate <file>...` | Validate coordination messages against the schema. | Release surface |
+| `agov plan validate <file>...` | Validate Gate 1 plan front matter and advisory consultation metadata. | Release surface |
+| `agov validate [subcommand]` | Validate framework artifacts such as adoption, agents, learnings, infosec, contributions, or framework config. | Release surface |
+| `agov coord brief [args...]` | Generate a coordination message ID and front matter. | Release surface |
+| `agov handoff next <role> [args...]` | Show the next unresolved handoff for one role. | Release surface |
+| `agov coord status [args...]` | Summarize coordination channel activity, roles, pending handoffs, and claims. | Release surface |
+| `agov session resume [args...]` | Print cold-start or role-specific session context. | Release surface |
+| `agov coord stale [args...]` | Report expired artifact claims. | Release surface |
+| `agov coord visibility [args...]` | Detect coordination obligations hidden on non-base branches. | Release surface |
+| `agov coord graph [args...]` | Render role-to-role coordination flows as Graphviz dot or text. | Release surface |
+| `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |
+| `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
+
+Developer/source-checkout equivalents may use `mix agov.*` names while the Rust
+implementation is developed and tested. Public docs should not require a
+release-archive adopter to have Elixir installed.
 
 ## Exit codes
 

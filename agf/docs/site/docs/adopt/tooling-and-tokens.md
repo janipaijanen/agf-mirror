@@ -106,10 +106,9 @@ per day" is. The `agov token roi report` command reads the local JSONL telemetry
 and surfaces savings per command, giving teams the visibility to reduce
 coordination overhead without reducing coordination discipline.
 
-Governance also enables greater agent autonomy safely: a controlled blast radius
-(budget caps in the policy engine, audit log for every gate pass) means agents
-can be trusted with more latitude because the consequences of missteps are
-bounded and visible.
+Governance also enables greater agent autonomy safely: scoped permissions,
+recorded gate decisions, and reviewable coordination history make the
+consequences of missteps bounded and visible.
 
 ## Token savings: the evidence model
 
@@ -134,7 +133,8 @@ approx_tokens = ceil(character_count / 4)
 develops the framework itself) runs the `agov` tooling in every agent polling
 loop. The `agov coord validate` and `agov coord brief` commands each run in
 under 100 milliseconds and produce output that is one to two orders of magnitude
-shorter than reading the underlying coordination files with an AI agent.
+shorter than reading the underlying coordination files with an AI agent (foundry
+estimate; your channel size will vary).
 
 The telemetry system collects saved-token estimates in a local JSONL file
 (`tmp/agov-token-roi.jsonl`). To print accumulated records:
