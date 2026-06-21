@@ -32,7 +32,7 @@ handoff:
 # Gate 2 handoff: coordination map example
 
 Branch: `docs/coord-map-example`
-MR: pending creation
+MR: https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/73
 
 ## What changed
 
