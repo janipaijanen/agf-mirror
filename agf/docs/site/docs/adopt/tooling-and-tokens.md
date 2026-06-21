@@ -93,8 +93,9 @@ After that, `agov coord validate`, `agov coord brief`, `agov handoff next`,
 
 A release archive containing only `agf/` has schemas and templates but not
 the tooling executable. In that case, download the optional Rust `agov` archive
-for your platform from the project release page, or use a full checkout and
-build the Rust binary locally with Cargo.
+for your platform from the
+[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases),
+or use a full checkout and build the Rust binary locally with Cargo.
 
 ### Option C — CI integration
 

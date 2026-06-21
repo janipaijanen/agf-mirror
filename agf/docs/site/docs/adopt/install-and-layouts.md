@@ -15,7 +15,9 @@ place and understand the single supported v2.0 layout.*
   locally and in CI. In a full checkout, symlink `tooling/agov` into
   `~/.local/bin/agov` or run it directly. A framework-only release archive
   contains `agf/` without packaged tooling; use the optional Rust tooling
-  archive for your platform when you want `agov` without a full checkout.
+  archive from the
+  [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
+  for your platform when you want `agov` without a full checkout.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
@@ -177,8 +179,9 @@ agov plan validate docs/plans/*.md
 
 A framework-only release archive has schemas and templates, but not the
 current tooling executable. In that case, either use a full checkout for
-validation or unpack the optional Rust `agov` tooling archive for your
-platform.
+validation or unpack the optional Rust `agov` tooling archive for your platform
+from the
+[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 When adding validator jobs to CI, verify each gate fires by feeding it a
 deliberately bad input once on the merge request that introduces the job.

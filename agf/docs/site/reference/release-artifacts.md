@@ -21,9 +21,11 @@ record. In merge-request and default-branch pipelines, these are preview
 artifacts for review evidence. They are not immutable releases.
 
 GitLab CI does not build or publish the Elixir/ERTS packaged `agov` tooling
-archive. Release-page tooling downloads are Rust archives built per target
-platform. The framework source archive remains the primary adopter artifact;
-the Rust tooling archives are optional convenience downloads.
+archive. Tooling downloads on the
+[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
+are Rust archives built per target platform. The framework source archive
+remains the primary adopter artifact; the Rust tooling archives are optional
+convenience downloads.
 
 The current archive policy is allowlist-first:
 
@@ -130,7 +132,8 @@ provenance JSON.
 
 Artifacts produced by `rust:tooling:release` are also kept indefinitely. They
 are platform-specific Rust archives; no Elixir/ERTS `agov` package is published
-to the release page.
+to the
+[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 Installer scripts, release signing, Software Bill of Materials (SBOM)
 generation, and third-party notices are deferred follow-on work.
