@@ -89,6 +89,25 @@ Download the `agov` release archive for your platform from the
 See [Tooling and token savings](../adopt/tooling-and-tokens.md) for the full
 setup guide including local development options.
 
+## Minimum structural guardrail
+
+The smallest useful structural guardrail for the first real governed change is:
+
+1. Protect the default branch so merges require the project review and the
+   validator job.
+2. Run `agov coord validate` on changed `docs/coordination/*.md` files.
+3. Run `agov plan validate` on changed `docs/plans/*.md` files.
+4. Make schema failures blocking under a named rule, CI policy, or recorded
+   governor decision.
+5. Prove the guardrail fires once with a deliberately malformed coordination
+   or plan file on the merge request that introduces the job.
+
+This guardrail does not make the tool a governor. The schemas can catch
+malformed records, missing required fields, invalid message kinds, and
+handoffs without required handoff metadata. They cannot prove that a human
+actually approved the work, that the approval was wise, or that the diff
+faithfully implements the plan. Those remain governor-reviewer judgments.
+
 Two disciplines from the rule library apply directly here:
 
 - **Gate self-test:** the MR that introduces a validator job includes a
