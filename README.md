@@ -100,7 +100,9 @@ for the APA and BibTeX entry with the exact version number.
 Only run AI agents and tooling on systems, repositories, and data where you
 have the necessary authorization. AGF guidance is not legal, security, or
 compliance advice; it is a governance framework you must adapt to your own
-context.
+context. See the
+[disclaimer](https://janipaijanen.gitlab.io/agents-govern-framework/reference/disclaimer/)
+for the fuller statement of responsibility and tooling limits.
 
 AGF-NG is developed independently. The project has not received external
 funding from, and has no dependency or endorsement relationship with, the

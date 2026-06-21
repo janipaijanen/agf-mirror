@@ -9,10 +9,10 @@ the path forward.
 ## The path
 
 ```
-Start ──► Adopt ──► Concepts ──► Operate ──► Advanced ──► Evolution
- (decide)  (install,   (mental     (daily      (contracts,   (future,
-            impact,     model)      loop,       customize)    non-binding)
-            exit path)              release)
+Start ──► Concepts ──► Adopt ──► Operate ──► Advanced ──► Evolution
+ (decide)   (mental      (impact,    (daily      (contracts,   (future,
+             model)       install,    loop,       customize)    non-binding)
+                          exit path)  release)
 ```
 
 ### 1. Start — decide
@@ -23,13 +23,21 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
   usually appear while commissioning the framework: tooling, learnings,
   upstreaming evidence, and multi-agent team use.
 
-### 2. Adopt — install with eyes open
+### 2. Concepts — the mental model
+
+- [Roles and gates](concepts/roles-and-gates.md) — agents, authority
+  boundaries, Gate 1/Gate 2, the coordination channel.
+- [Coordination protocol](concepts/coordination-protocol.md) — message kinds,
+  handoffs, acknowledgements, and the communication map that keeps roles
+  reconstructible across sessions.
+- [Evidence and learnings](concepts/evidence-and-learnings.md) — the
+  learning system; upstream-owned vs adopter-owned records; anonymization.
+
+### 3. Adopt — install with eyes open
 
 - [Downstream impact](adopt/downstream-impact.md) — **read before
   adopting**: every file, CI job, obligation, and ongoing cost adoption
   introduces.
-- [Exit and decommission](adopt/exit-and-decommission.md) — **read before
-  adopting**: how to leave cleanly, so you know adoption is reversible.
 - [Install the `agf/` directory](adopt/install-and-layouts.md) — commissioning
   the files into the single supported v2.0 layout with an assistant-prepared
   diff.
@@ -38,13 +46,8 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
 - [Tooling and token savings](adopt/tooling-and-tokens.md) — how the `agov`
   CLI replaces repeated AI reads with deterministic tool output, current
   command maturity, and how to wire it into CI.
-
-### 3. Concepts — the mental model
-
-- [Roles and gates](concepts/roles-and-gates.md) — agents, authority
-  boundaries, Gate 1/Gate 2, the coordination channel.
-- [Evidence and learnings](concepts/evidence-and-learnings.md) — the
-  learning system; upstream-owned vs adopter-owned records; anonymization.
+- [Exit and decommission](adopt/exit-and-decommission.md) — how to leave
+  cleanly, so you know adoption is reversible.
 
 ### 4. Operate — the daily loop
 

@@ -74,16 +74,16 @@ nav:
       - 'Start':
           - Should you adopt?: docs/start/should-you-adopt.md
           - Adopter FAQ: docs/start/adopter-faq.md
-      - 'Adopt':
-          - Downstream impact: docs/adopt/downstream-impact.md
-          - Exit and decommission: docs/adopt/exit-and-decommission.md
-          - Install the agf directory: docs/adopt/install-and-layouts.md
-          - Your first governed change: docs/start/first-governed-change.md
-          - Tooling and token savings: docs/adopt/tooling-and-tokens.md
       - 'Concepts':
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Coordination protocol: docs/concepts/coordination-protocol.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md
+      - 'Adopt':
+          - Downstream impact: docs/adopt/downstream-impact.md
+          - Install the agf directory: docs/adopt/install-and-layouts.md
+          - Your first governed change: docs/start/first-governed-change.md
+          - Tooling and token savings: docs/adopt/tooling-and-tokens.md
+          - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
           - Day-to-day operation: docs/operate/day-to-day.md
           - Review and release: docs/operate/review-and-release.md
@@ -95,4 +95,5 @@ nav:
       - Release artifacts: reference/release-artifacts.md
       - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
+      - Disclaimer: reference/disclaimer.md
   - Evolution: future/evolution.md
