@@ -70,7 +70,10 @@ treats durable project artifacts as shared memory, not chat history.
 
 Before compacting, clearing, switching tasks, or handing work to another
 agent, write or request a short durable state note when the task is
-non-trivial. The note should identify:
+non-trivial. In AI-assisted sessions, the shared instruction `/compact-agf`
+means: save the current AGF state to `docs/coordination/` first, then compact.
+After a restart, model switch, or cold start, run `agov session resume` before
+continuing. The saved note should identify:
 
 - current branch and latest relevant commit;
 - files or artifacts changed;
@@ -81,8 +84,8 @@ non-trivial. The note should identify:
 
 Prefer references to repository files over restating large content in chat.
 Coordination records, plans, reviews, and generated summaries are the source of
-continuity. Use compaction during long tasks after state has been externalized,
-and clear the session when switching to an unrelated task.
+continuity. Use compaction during long tasks only after state has been
+externalized, and clear the session when switching to an unrelated task.
 
 Do not rely on an AI session's private conversation memory for governance
 decisions, approvals, or obligations.

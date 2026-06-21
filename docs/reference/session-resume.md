@@ -1,6 +1,6 @@
 # Session Resume Reference
 
-`mix agov.session.resume` gives a returning human or AI agent a compact,
+`agov session resume` gives a returning human or AI agent a compact,
 role-specific starting point before it acts on the repository.
 
 It is read-only. It does not approve work, resolve handoffs, release claims,
@@ -14,11 +14,11 @@ instead of adding another tool.
 
 For humans and AI agents, the startup path is:
 
-1. Run `mix agov.session.resume --base-branch master` without `--role` to get
-   the project map.
+1. Run `agov session resume --base-branch main` without `--role` to get the
+   project map.
 2. Choose the role you are actually playing from that output.
 3. Rerun the same command with the selected role, for example
-   `mix agov.session.resume --role coder-tester --base-branch master`.
+   `agov session resume --role coder-tester --base-branch main`.
 
 The first run answers “where do I start?” The second run answers “what must I
 do for this role before acting?”
@@ -44,25 +44,25 @@ validation results, open blockers, next concrete action, and must-read
 coordination or plan files. Session memory is never the authority for a
 governance decision or obligation.
 
-Claude Code users can run `/compact-agf` before `/compact` to write that
-state as a validated coordination note. The command is defined in
-`.claude/commands/compact-agf.md`.
+Claude Code users can run `/compact-agf` before `/compact`; Codex and other AI
+agents should treat the same phrase as an instruction to write the same durable
+closeout note before compaction. The project command definition lives at
+`.claude/commands/compact-agf.md`, but the AGF contract is tool-neutral:
+externalize the state to `docs/coordination/`, validate it, then compact.
 
 ## Command
 
-Session resume is not yet wrapped by the repo-local `agov` executable. Run it
-from the Mix project:
+Run session resume through the Rust `agov` command:
 
 ```bash
-cd tooling/elixir
-mix agov.session.resume --role coder-tester --base-branch master
+agov session resume --role coder-tester --base-branch main
 ```
 
 For a true cold start, when you do not yet know which role you are playing, run
 the command without `--role`:
 
 ```bash
-mix agov.session.resume --base-branch master
+agov session resume --base-branch main
 ```
 
 That prints:
@@ -78,9 +78,8 @@ Options:
 | Option | Use |
 |---|---|
 | `--role <agent-role>` | Role whose queue should be shown. Overrides `current_role` in `agov-config.yaml`. |
-| `--base-branch <branch>` | Branch used to detect coordination files present only on the current branch. Defaults to `master`. |
-| `--dir <path>` | Coordination directory. Defaults to `../../docs/coordination`. |
-| `--manifest <path>` | Agent manifest used for cold-start role discovery. Defaults to `../../agents-govern/agents/MANIFEST.yaml`. |
+| `--base-branch <branch>` | Branch used to detect coordination files present only on the current branch. Use the repository's active integration branch, normally `main`. |
+| `--dir <path>` | Coordination directory. Defaults to `docs/coordination` from the repository root. |
 
 If `--role` is omitted, the command uses `current_role` from
 `docs/coordination/agov-config.yaml` when present. If neither is available, it
@@ -183,8 +182,8 @@ coordination messages, approvals, or merge decisions.
 
 This command is the first session-continuity slice. It does not replace:
 
-- `mix agov.handoff.next`, when you only need the newest handoff for one role;
-- `mix agov.coord.status`, when you need the wider channel overview;
+- `agov handoff next`, when you only need the newest handoff for one role;
+- `agov coord status`, when you need the wider channel overview;
 - human governor-reviewer approval;
 - closeout discipline before shutdown or handoff.
 
