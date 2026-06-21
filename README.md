@@ -76,6 +76,19 @@ current core validators can use a full checkout or the optional packaged
 `agov` tooling archive; the combined bundle is a convenience artifact, not a
 prerequisite for adopting AGF.
 
+## How to cite
+
+If you use agents-govern in research or a published project:
+
+**APA 7th edition:**
+
+> Päijänen, J. (2026). *agents-govern: Governance for AI-assisted software
+> development* [Computer software]. https://gitlab.com/janipaijanen/agents-govern-framework
+
+For version-specific citations, see the `reference/release-info/` page on the
+[published docs site](https://janipaijanen.gitlab.io/agents-govern-framework/)
+for the APA and BibTeX entry with the exact version number.
+
 ## Safety and independence
 
 Only run AI agents and tooling on systems, repositories, and data where you
