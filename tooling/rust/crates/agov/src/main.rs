@@ -60,7 +60,17 @@ enum CoordCommand {
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
     },
-    // Phase 2: Status, Stale
+    /// Print coordination channel overview.
+    Status {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value_t = 5)]
+        recent: usize,
+        /// Include per-role activity derived from manifest + coordination messages.
+        #[arg(long)]
+        roles: bool,
+    },
+    // Phase 2: Stale
 }
 
 #[derive(Subcommand)]
@@ -139,6 +149,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     dir,
                 },
         } => coord_brief(id_format, from, to, kind, topic, dir, &args),
+        Command::Coord {
+            sub: CoordCommand::Status { dir, recent, roles },
+        } => coord_status(dir, recent, roles, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -424,7 +437,204 @@ fn readable_suffix() -> String {
 struct HandoffMessage {
     file: String,
     sort_key: (String, String),
+    refs: Vec<String>,
     raw: serde_json::Value,
+}
+
+fn coord_status(dir: PathBuf, recent: usize, roles: bool, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!("ERR  directory not found: {}", dir.display()));
+            return 1;
+        }
+    };
+
+    let display_dir = display_coord_dir(&dir);
+    if messages.is_empty() {
+        output.stdout(format!("Channel: {display_dir}  (empty)"));
+        agov_core::roi::record_tool_output("agov", args, "coord-status", output.chars);
+        return 0;
+    }
+
+    output.stdout(format!(
+        "Channel: {display_dir}  ({} messages, {})",
+        messages.len(),
+        message_range(&messages)
+    ));
+    output.stdout("");
+    output.stdout("Ownership:    none");
+    output.stdout("");
+    output.stdout("Stale claims: none");
+    output.stdout("");
+
+    let pending = pending_handoffs(&messages);
+    if pending.is_empty() {
+        output.stdout("Pending handoffs: none");
+    } else {
+        output.stdout("Pending handoffs:");
+        for message in pending.iter().rev() {
+            output.stdout(format!(
+                "  → {}  {}  {}  [{}]",
+                string_field(&message.raw, "to").unwrap_or("unknown"),
+                display_id(&message.raw),
+                string_field(&message.raw, "topic").unwrap_or(""),
+                message
+                    .raw
+                    .get("handoff")
+                    .and_then(|value| value.get("status"))
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("ready")
+            ));
+        }
+    }
+    output.stdout("");
+
+    if recent > 0 {
+        output.stdout(format!("Recent messages (last {recent}):"));
+        for message in messages.iter().rev().take(recent) {
+            output.stdout(format!(
+                "  {}  {} → {}  {:<14}  {}",
+                display_id(&message.raw),
+                string_field(&message.raw, "from").unwrap_or("unknown"),
+                string_field(&message.raw, "to").unwrap_or("unknown"),
+                string_field(&message.raw, "kind").unwrap_or("unknown"),
+                string_field(&message.raw, "topic").unwrap_or("")
+            ));
+        }
+    }
+
+    if roles {
+        if recent > 0 {
+            output.stdout("");
+        }
+        render_role_activity(&mut output, &messages);
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-status", output.chars);
+    0
+}
+
+fn display_coord_dir(dir: &Path) -> String {
+    let root = agov_core::repo_root();
+    dir.strip_prefix(&root)
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|_| dir.display().to_string())
+}
+
+fn message_range(messages: &[HandoffMessage]) -> String {
+    let first = messages
+        .iter()
+        .filter_map(|message| string_field(&message.raw, "timestamp"))
+        .min();
+    let last = messages
+        .iter()
+        .filter_map(|message| string_field(&message.raw, "timestamp"))
+        .max();
+
+    match (first, last) {
+        (Some(first), Some(last)) => format!("{first} to {last}"),
+        _ => "(empty)".to_string(),
+    }
+}
+
+fn display_id(raw: &serde_json::Value) -> String {
+    if let Some(id) = string_field(raw, "id") {
+        format!("id {}", id.chars().take(8).collect::<String>())
+    } else if let Some(seq) = raw.get("seq").and_then(|value| value.as_i64()) {
+        format!("seq {seq}")
+    } else {
+        "id <missing>".to_string()
+    }
+}
+
+#[derive(Default)]
+struct RoleActivity {
+    status: String,
+    from_count: usize,
+    to_count: usize,
+    last_seen: Option<(String, String)>,
+}
+
+fn render_role_activity(output: &mut OutputCounter, messages: &[HandoffMessage]) {
+    let mut roles = manifest_roles();
+
+    for message in messages {
+        for field in ["from", "to"] {
+            let Some(role) = string_field(&message.raw, field) else {
+                continue;
+            };
+            roles
+                .entry(role.to_string())
+                .or_insert_with(|| RoleActivity {
+                    status: "virtual".to_string(),
+                    ..RoleActivity::default()
+                });
+            let entry = roles.get_mut(role).expect("role entry was just inserted");
+            if field == "from" {
+                entry.from_count += 1;
+            } else {
+                entry.to_count += 1;
+            }
+            if let Some(timestamp) = string_field(&message.raw, "timestamp") {
+                let candidate = (timestamp.to_string(), message.file.clone());
+                if entry
+                    .last_seen
+                    .as_ref()
+                    .map(|current| candidate > *current)
+                    .unwrap_or(true)
+                {
+                    entry.last_seen = Some(candidate);
+                }
+            }
+        }
+    }
+
+    output.stdout("Role activity:");
+    for (role, activity) in roles {
+        let last_seen = activity
+            .last_seen
+            .as_ref()
+            .map(|(timestamp, file)| format!("{timestamp} ({file})"))
+            .unwrap_or_else(|| "never".to_string());
+        output.stdout(format!(
+            "  {role}  status: {}  from: {}  to: {}  last-seen: {last_seen}",
+            activity.status, activity.from_count, activity.to_count
+        ));
+    }
+}
+
+fn manifest_roles() -> BTreeMap<String, RoleActivity> {
+    let Ok(content) = std::fs::read_to_string(agov_core::manifest_path()) else {
+        return BTreeMap::new();
+    };
+    let Ok(data) = serde_norway::from_str::<serde_json::Value>(&content) else {
+        return BTreeMap::new();
+    };
+    let Some(agents) = data.get("agents").and_then(|value| value.as_object()) else {
+        return BTreeMap::new();
+    };
+
+    agents
+        .iter()
+        .map(|(role, attrs)| {
+            let status = attrs
+                .get("status")
+                .and_then(|value| value.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            (
+                role.clone(),
+                RoleActivity {
+                    status,
+                    ..RoleActivity::default()
+                },
+            )
+        })
+        .collect()
 }
 
 fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
@@ -484,9 +694,11 @@ fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io:
             .unwrap_or("")
             .to_string();
         let file = file_name.to_string();
+        let refs = message_refs(&path, &message.raw);
         messages.push(HandoffMessage {
             sort_key: (timestamp, file.clone()),
             file,
+            refs,
             raw: message.raw,
         });
     }
@@ -496,28 +708,86 @@ fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io:
 }
 
 fn pending_handoffs(messages: &[HandoffMessage]) -> Vec<HandoffMessage> {
-    let mut resolved_files = std::collections::BTreeSet::new();
-
-    for message in messages {
-        let kind = string_field(&message.raw, "kind");
-        if !matches!(kind, Some("ack" | "completion" | "decision-record")) {
-            continue;
-        }
-
-        for referenced in references_to(&message.raw) {
-            resolved_files.insert(referenced);
-        }
-    }
+    let descendants_by_file = descendants_by_file(messages);
+    let messages_by_file: BTreeMap<&str, &HandoffMessage> = messages
+        .iter()
+        .map(|message| (message.file.as_str(), message))
+        .collect();
 
     messages
         .iter()
         .filter(|message| string_field(&message.raw, "kind") == Some("handoff"))
-        .filter(|message| !resolved_files.contains(&message.file))
+        .filter(|message| !handoff_resolved(message, &descendants_by_file, &messages_by_file))
         .cloned()
         .collect()
 }
 
-fn references_to(raw: &serde_json::Value) -> Vec<String> {
+fn handoff_resolved(
+    handoff: &HandoffMessage,
+    descendants_by_file: &BTreeMap<String, Vec<String>>,
+    messages_by_file: &BTreeMap<&str, &HandoffMessage>,
+) -> bool {
+    let mut seen = std::collections::BTreeSet::new();
+    let mut stack = vec![handoff.file.clone()];
+
+    while let Some(file) = stack.pop() {
+        if !seen.insert(file.clone()) {
+            continue;
+        }
+
+        for descendant in descendants_by_file.get(&file).into_iter().flatten() {
+            if let Some(message) = messages_by_file.get(descendant.as_str()) {
+                if message.sort_key > handoff.sort_key
+                    && matches!(
+                        string_field(&message.raw, "kind"),
+                        Some("ack" | "completion" | "decision-record")
+                    )
+                {
+                    return true;
+                }
+                stack.push(descendant.clone());
+            }
+        }
+    }
+
+    false
+}
+
+fn descendants_by_file(messages: &[HandoffMessage]) -> BTreeMap<String, Vec<String>> {
+    let messages_by_file: BTreeMap<&str, &HandoffMessage> = messages
+        .iter()
+        .map(|message| (message.file.as_str(), message))
+        .collect();
+    let mut descendants: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for message in messages {
+        for referenced in &message.refs {
+            let Some(referenced_message) = messages_by_file.get(referenced.as_str()) else {
+                continue;
+            };
+            if message.sort_key <= referenced_message.sort_key {
+                continue;
+            }
+
+            descendants
+                .entry(referenced.clone())
+                .or_default()
+                .push(message.file.clone());
+        }
+    }
+
+    descendants
+}
+
+fn message_refs(path: &Path, raw: &serde_json::Value) -> Vec<String> {
+    let mut refs = frontmatter_refs(raw);
+    refs.extend(body_refs(path));
+    refs.sort();
+    refs.dedup();
+    refs
+}
+
+fn frontmatter_refs(raw: &serde_json::Value) -> Vec<String> {
     raw.get("references-to")
         .and_then(|value| value.as_array())
         .into_iter()
@@ -526,6 +796,44 @@ fn references_to(raw: &serde_json::Value) -> Vec<String> {
         .filter_map(|reference| Path::new(reference).file_name()?.to_str())
         .map(str::to_string)
         .collect()
+}
+
+fn body_refs(path: &Path) -> Vec<String> {
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let body = content.splitn(3, "---").nth(2).unwrap_or(content.as_str());
+
+    body.split(|ch: char| ch.is_whitespace() || matches!(ch, '`' | '"' | '\'' | '(' | ')' | ','))
+        .filter_map(clean_coord_filename)
+        .collect()
+}
+
+fn clean_coord_filename(token: &str) -> Option<String> {
+    let filename = token
+        .trim_matches(|ch: char| matches!(ch, '.' | ':' | ';' | ']' | '[' | ')' | '('))
+        .rsplit('/')
+        .next()?;
+
+    if filename.ends_with(".md") && looks_like_coord_filename(filename) {
+        Some(filename.to_string())
+    } else {
+        None
+    }
+}
+
+fn looks_like_coord_filename(filename: &str) -> bool {
+    let stem = filename.strip_suffix(".md").unwrap_or(filename);
+    let first = stem.split('-').next().unwrap_or("");
+
+    first.len() == 5 && first.chars().all(|ch| ch.is_ascii_digit())
+        || first.len() == 26
+            && first
+                .chars()
+                .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
+        || stem.len() >= 17
+            && stem.as_bytes().get(8) == Some(&b'T')
+            && stem.as_bytes().get(15) == Some(&b'Z')
 }
 
 fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) {
@@ -960,5 +1268,55 @@ impl OutputCounter {
 
     fn count_line(&mut self, line: &str) {
         self.chars += line.chars().count() as u64 + 1;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn message(file: &str, kind: &str, timestamp: &str, refs: &[&str]) -> HandoffMessage {
+        HandoffMessage {
+            file: file.to_string(),
+            sort_key: (timestamp.to_string(), file.to_string()),
+            refs: refs.iter().map(|value| value.to_string()).collect(),
+            raw: serde_json::json!({
+                "kind": kind,
+                "from": "coder-tester",
+                "to": "governor-reviewer",
+                "topic": "test",
+                "timestamp": timestamp,
+                "id": file.trim_end_matches(".md"),
+                "handoff": {
+                    "status": "ready"
+                }
+            }),
+        }
+    }
+
+    #[test]
+    fn pending_handoffs_follow_transitive_resolution_refs() {
+        let handoff = message(
+            "00001-coder-tester.md",
+            "handoff",
+            "2026-06-21T00:00:00Z",
+            &[],
+        );
+        let note = message(
+            "00002-planner-architect.md",
+            "note",
+            "2026-06-21T00:01:00Z",
+            &["00001-coder-tester.md"],
+        );
+        let completion = message(
+            "00003-coder-tester.md",
+            "completion",
+            "2026-06-21T00:02:00Z",
+            &["00002-planner-architect.md"],
+        );
+
+        let pending = pending_handoffs(&[handoff, note, completion]);
+
+        assert!(pending.is_empty());
     }
 }

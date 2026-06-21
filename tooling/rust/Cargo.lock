@@ -13,6 +13,7 @@ dependencies = [
  "insta",
  "rayon",
  "serde_json",
+ "serde_norway",
  "time",
 ]
 
