@@ -1,25 +1,45 @@
-# docs: show version and commit in the docs top bar
+# docs: restore embedded figure legends on main
+
+## What happened
+
+The embedded-legend figure fixes were merged on `master`, but GitLab Pages is
+publishing from `main`. The live site therefore kept serving the older SVGs
+without embedded legends even though the corrected figures existed on the other
+branch.
 
 ## What changed
 
-- `release_info.py` now exposes build provenance through
-  `config.extra.agf_release` for templates.
-- `mkdocs.yml` enables a Material theme override directory.
-- A header partial override adds a compact top-bar badge linking to
-  `reference/release-info/`.
-- `agf.css` styles the badge so it remains visible on desktop and mobile.
+- Restored embedded legends for every public docs figure on `main`.
+- Updated both source figures and published site-copy SVGs:
+  - `adoption-exit-flow`
+  - `coordination-channel`
+  - `evidence-lifecycle`
+  - `gate-pipeline`
+  - `governance-loop`
+  - `learning-loop`
+  - `operating-responsibility-map`
+- Preserved the newer `main` wording in `adoption-exit-flow` while restoring
+  the legend layer.
+- Kept the final branch diff free of legacy seq-only coordination files that do
+  not validate against current coordination schema.
+- Added a current Gate 2 handoff for this restore branch.
 
 ## Verification
 
 - `mkdocs build --strict`: clean.
-- Generated HTML includes `agf-header-version`, the framework version, and the
-  short commit on the home page, docs overview, and release-info page.
+- `git diff --check`: clean.
+- All seven `agf/docs/site/reference/figures/*.svg` files contain embedded
+  `Legend` text.
+- All seven `agf/docs/figures/*.svg` source-copy files contain embedded
+  `Legend` text.
+- Coordination handoff validates with current `agov coord validate`.
 
 ## Review Focus
 
 Please verify:
 
-- [ ] The top bar shows the framework version and short commit on generated pages.
-- [ ] The badge links to `reference/release-info/`.
-- [ ] The release metadata comes from the existing build-time provenance hook.
-- [ ] The Material override is limited to the header partial.
+- [ ] The live Pages-target branch receives the embedded-legend SVGs.
+- [ ] Each public reference figure has its legend inside the figure itself.
+- [ ] The `adoption-exit-flow` figure keeps the newer `main` wording.
+- [ ] No legacy Elixir/sequence-only coordination files are introduced by this
+      restore.
