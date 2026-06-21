@@ -59,19 +59,26 @@ Cons:
 
 ### B. Principal-bound delegation model
 
-Every AI session may optionally record a human or service principal:
+A human or service principal may record a delegation grant in the coordination
+channel. AI sessions then reference that grant instead of asserting the
+principal themselves:
 
 ```yaml
-principal:
-  type: human
-  handle: "@example-user"
-  authority_source: "GitLab Maintainer on project X"
-  delegation_scope: "prepare branch and tests; no merge approval"
-  reviewed_by: "@example-user"
+kind: note
+from: governor-reviewer
+to: coder-tester
+topic: delegation-grant-docs-branch
+note_type: delegation-grant
+delegation:
+  principal_kind: human
+  identifier: "@example-user"
+  delegation_scope:
+    - "prepare branch"
+    - "run tests"
 ```
 
-The AI remains identified as an AI session and AGF role. The principal is the
-person or accountable service identity under whose authorization it worked.
+The AI remains identified as an AI session and AGF role. The principal is
+recorded by the authority source, not self-asserted by the AI.
 
 Pros:
 
@@ -79,6 +86,7 @@ Pros:
 - Makes access delegation auditable.
 - Aligns well with enterprise IAM and code-owner practices.
 - Helps answer incident questions: who delegated, what scope, who reviewed?
+- Avoids AI self-attestation of the human principal.
 
 Cons:
 
@@ -115,16 +123,30 @@ Cons:
 If AGF adopts principal-bound delegation, prefer additive metadata over a
 rewrite of the role model.
 
+The most important architecture question is who writes the authority record.
+An AI-authored coordination message that says `principal: "@example-user"` is
+self-attestation: the AI is claiming who authorized it. Schema validation can
+check shape, but it cannot verify that authority.
+
+The cleaner direction is inversion:
+
+1. A human writes a coordination note that grants or describes delegation.
+2. The AI session references that human-authored note in its work records.
+3. The governor-reviewer decision remains separate and human-authored.
+4. Any contestation is a later coordination note referencing the disputed
+   message or delegation grant.
+
 Possible places:
 
-- coordination message front matter: optional `principal:` object;
-- plan front matter: optional `principal` or `delegation` section for the AI
-  session preparing the plan;
-- claim messages: principal-bound claims for branch or artifact ownership;
+- human-authored coordination note: delegation grant or session authorization;
+- AI-authored coordination messages: references to the human-authored grant,
+  not self-asserted principal identity;
+- plan front matter: possibly reference the delegation grant when a plan was
+  prepared under delegated authority;
 - decision records: explicit `reviewed_by` / `approved_by` stays human and
   cannot be delegated to the AI session;
-- `agov session resume`: show role, session, branch, pending handoffs, and
-  principal/delegation scope when present.
+- `agov session resume`: show role, session, branch, pending handoffs, and any
+  referenced delegation grant or contestation when present.
 
 Keep these invariants:
 
@@ -293,6 +315,8 @@ Recommended default:
    or productivity comparisons.
 9. Make review-depth metadata incident-gated by default, not routine on every
    human decision record.
+10. Do not let AI-authored messages self-assert a human principal. Prefer
+    human-authored delegation-grant notes that AI sessions reference.
 
 Possible rule:
 
@@ -338,70 +362,50 @@ Minimum terms:
 
 Possible delegation depth vocabulary:
 
-| Level | Name | AI may do | Human still must do |
-|---|---|---|---|
-| D1 | Informational | Read, search, summarize, answer questions | All edits, gates, and approvals |
-| D2 | Preparatory | Draft plans, patches, tests, and evidence | Review drafts and approve gates |
-| D3 | Execution | Commit to a branch, open MRs, respond within scope | Approve gates, merge, release |
-| D4 | Operational | Trigger CI and limited non-production operations | Approve gates, production changes, security decisions |
-
-AGF should be conservative: D2 is the safest default for most teams. D3 and D4
-should require explicit scope and stronger coordination evidence. "After the
-fact" supervision is acceptable only for low-risk reconstruction; it cannot
-replace gate approval before merge.
-
-Example:
-
-```yaml
-principal:
-  kind: human
-  identifier: "@example-user"
-  authority_source: "explicit session instruction"
-  delegation_depth: D2
-  delegation_scope:
-    actions: ["prepare patch", "run tests", "draft review notes"]
-    artifacts: ["agf/docs/**", "docs/proposals/**"]
-    valid_until: "2026-06-22T18:00:00Z"
-  supervision: checkpoint
-  voluntary: true
-  contested_by_principal: false
-  cannot_approve:
-    - "Gate 1"
-    - "Gate 2"
-    - "release tag"
-```
-
-This shape is intentionally heavier than the minimum schema. Small teams may
-only need `kind`, `identifier`, `delegation_scope`, and `cannot_approve`, but
-the docs should name the richer terms so adopters understand what they are
-choosing not to record.
+A D1-D4 taxonomy could eventually distinguish informational, preparatory,
+execution, and operational delegation. Do not ship that taxonomy in v2.x. It
+adds learning curve before there is adopter evidence that the distinction is
+needed. For the docs-only slice, plain positive `delegation_scope` is enough.
 
 ## Minimum viable shape
 
-The minimum viable design should be two-tiered:
+The minimum viable design should be two-tiered and docs-first:
 
 | Tier | Audience | Metadata burden |
 |---|---|---|
-| Tier 0 | Solo and small-team AGF use | Current coordination fields only; no `principal` block |
-| Tier 1 | Multi-person, enterprise, regulated, or delegated-access use | Current coordination fields plus an optional `principal` block |
+| Tier 0 | Solo and small-team AGF use | Current coordination fields only; no delegation convention |
+| Tier 1 | Multi-person, enterprise, regulated, or delegated-access use | Current coordination fields plus human-authored delegation-grant notes |
 
 Tier 0 is not a lesser mode. It is the default AGF model: role-first,
 coordination-first, with no personal principal metadata to aggregate. That
 keeps small teams from paying an enterprise compliance tax and preserves data
 minimization.
 
-Tier 1 activates only when a record names a principal. If `principal` is
-present, the minimum useful block is:
+Tier 1 activates only when a human writes a delegation-grant note. The AI does
+not write `principal` into its own coordination messages; it references the
+grant.
+
+Possible human-authored grant convention using existing `kind: note`:
 
 ```yaml
-principal:
-  kind: human | service | team
+kind: note
+from: governor-reviewer
+to: coder-tester
+id: 20260622T083000Z-governor-reviewer-abcd
+timestamp: 2026-06-22T08:30:00Z
+immutable: true
+references-to: []
+topic: delegation-grant-docs-branch
+requires-ack: true
+artifacts_owned: []
+note_type: delegation-grant
+delegation:
+  principal_kind: human | service | team
   identifier: "@handle-or-service-name"
   delegation_scope:
     - "prepare patch"
     - "run tests"
   valid_until: "2026-06-22T18:00:00Z"
-  voluntary: true | false | unknown
   cannot_approve:
     - "Gate 1"
     - "Gate 2"
@@ -410,12 +414,16 @@ principal:
 
 Notes on the minimum:
 
-- `kind`, `identifier`, and positive `delegation_scope` are required if the
-  `principal` block exists.
-- `valid_until` is recommended but not mandatory; it avoids indefinite
-  delegation without forcing every small record to carry expiry metadata.
-- `voluntary` is optional and defaults semantically to `unknown`; AGF cannot
+- `note_type: delegation-grant` is a convention, not a new message kind in the
+  current schema.
+- `principal_kind`, `identifier`, and positive `delegation_scope` are the
+  minimum useful grant fields.
+- `valid_until` is useful when the human writes the grant; it should not be
+  inferred by the AI.
+- `voluntary` is intentionally omitted from the minimum because AGF cannot
   prove workplace voluntariness.
+- `cannot_approve` is redundant with Gate 1/Gate 2 authority, but useful as
+  defense-in-depth wording in a human-authored grant.
 - Review depth should not be routine on every human decision record. If needed,
   record it in an incident, exception, or disputed-gate reconstruction record.
 - Contestation should be a later coordination record that references the
@@ -424,7 +432,7 @@ Notes on the minimum:
 Example contestation record using current AGF coordination vocabulary:
 
 ```yaml
-kind: review
+kind: note
 from: governor-reviewer
 to: planner-architect
 id: 20260622T090000Z-governor-reviewer-abcd
@@ -435,40 +443,60 @@ references-to:
 topic: principal-delegation-contested
 requires-ack: true
 artifacts_owned: []
+note_type: contestation
 contestation:
   status: filed
   reason: "claimed delegation exceeded scope"
 ```
 
-The schema may not accept this exact `contestation` object today; this proposal
-is naming the design direction. If implemented, the object should mark the
-record as disputed for audit reconstruction without deleting history or
-deciding liability.
+The schema may not accept `note_type`, `delegation`, or `contestation` objects
+today; this proposal is naming the convention and design direction. If
+implemented, these objects should make grants and disputes discoverable without
+adding new message kinds prematurely.
+
+The GDPR and immutability tension should be framed as purpose limitation, not
+as a total blocker. Git repositories already contain personal data in commits
+and review trails. Principal or delegation records should be documented as
+governance, audit, and safety metadata. Repurposing them for employee
+monitoring or performance evaluation exceeds that stated purpose and may
+require separate legal basis or consent. AGF cannot enforce purpose limitation
+technically; it can document the intended purpose and decline native misuse
+features.
 
 ## Implementation sketch
 
-### Schema addition
+### Docs-first convention
 
-Optional `principal` object on coordination messages:
+For v2.x, prefer no schema addition. Document a convention for human-authored
+delegation grants and contestations using existing `kind: note` messages.
+
+Human-authored delegation grant:
 
 ```yaml
-principal:
-  kind: human | service | team | none
+note_type: delegation-grant
+delegation:
+  principal_kind: human | service | team
   identifier: "@handle-or-service-name"
-  authority_source: "GitLab role, ticket, policy, or explicit instruction"
-  delegation_depth: D1 | D2 | D3 | D4
   delegation_scope:
     - "prepare patch"
     - "run tests"
-    - "draft review notes"
   valid_until: "2026-06-22T18:00:00Z"
-  supervision: realtime | checkpoint | after-the-fact
-  voluntary: true | false | unknown
-  contested_by_principal: true | false
   cannot_approve:
     - "Gate 1"
     - "Gate 2"
     - "release tag"
+```
+
+AI-authored messages should reference the grant through `references-to`, not
+repeat or self-assert the principal.
+
+Human-authored contestation:
+
+```yaml
+note_type: contestation
+contestation:
+  status: filed
+  reason: "claimed delegation exceeded scope"
 ```
 
 Optional incident-gated review reconstruction metadata:
@@ -487,9 +515,8 @@ aggregated with basic text search.
 ### Tooling
 
 - `agov coord validate` validates the shape but does not decide legal meaning.
-- `agov session resume` surfaces the active principal/delegation scope when
-  present, and highlights later contestation or disavowal records that
-  reference the same delegation.
+- `agov session resume` could eventually surface referenced delegation grants
+  and contestation notes if the convention proves useful.
 - `agov usage report` should avoid principal productivity reports. If it ever
   counts principal-bound records, the count should be scoped to artifact audit
   and should not rank or compare people.
