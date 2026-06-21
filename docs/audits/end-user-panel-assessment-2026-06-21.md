@@ -199,7 +199,9 @@ missing path promises.
 Proposed changes:
 
 - Convert `agf/ADOPTING.md` into a short bridge:
-  "For v2.0 adoption, follow the staged docs."
+  "For v2.0 adoption, follow the public documentation path: evaluate fit and
+  cost, install AGF, complete one governed change, then move into day-to-day
+  operation and advanced customization."
 - Move any still-current checklist material into the site pages or advanced
   references.
 - Put a clear warning at the top if the file remains historical/reference-only.
