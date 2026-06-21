@@ -9,11 +9,11 @@ learning system that turns incidents into framework evidence. It is files in
 your repository, loaded by your existing AI assistant, enforced by your existing
 CI — no hosted service, no runtime, no new accounts.
 
-> **Status:** This site documents **agents-govern v2.0.0, which is
-> Provisional** — its structure and documentation are under evaluation and
-> may change. The exact source commit for this build is recorded in
-> [Release information](reference/release-info.md). Adopters who need a
-> stable release should wait for v2.0 promotion.
+> **Status:** This site documents the released **agents-govern v2.1** line.
+> Some rules and extension points are still marked experimental or
+> evidence-limited where the evidence base is narrow. The exact version and
+> source commit for this build are recorded in
+> [Release information](reference/release-info.md).
 
 ## How to adopt
 

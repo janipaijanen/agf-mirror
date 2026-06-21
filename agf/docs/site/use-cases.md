@@ -1,6 +1,6 @@
 # Use cases and non-use cases
 
-*Status: Provisional (v2.0 documentation). Use cases below trace to
+*Status: Released (v2.1 documentation). Use cases below trace to
 learning records in the framework's evidence base; codenames refer to
 anonymized adopter projects.*
 

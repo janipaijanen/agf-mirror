@@ -1,6 +1,6 @@
 # Contracts and validators
 
-*Status: Provisional (v2.0 documentation). Audience: administrators and
+*Status: Released (v2.1 documentation). Audience: administrators and
 developers integrating the framework into CI. After this page you know
 which artifacts are schema-bound, which guarantees the contracts make,
 and how to wire validation into your pipeline.*

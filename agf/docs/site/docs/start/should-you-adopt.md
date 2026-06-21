@@ -1,6 +1,6 @@
 # Should you adopt?
 
-*Status: Provisional (v2.0 documentation). Audience: evaluators. After
+*Status: Released (v2.1 documentation). Audience: evaluators. After
 this page you can make an informed adopt / wait / skip decision.*
 
 ## What you are deciding
@@ -60,8 +60,8 @@ tools; it does not replace them.
 
 - You need multi-project or multi-governor federation — that is a
   [hypothesis](../../future/evolution.md), not a shipped capability.
-- You want a stable release: v2.0 is Provisional and may still change.
-  Waiting for v2.0 promotion is reasonable.
+- You need every rule and extension point to be backed by multi-project
+  evidence today. Some evidence-limited rules are marked in their rule text.
 - Your team has no capacity for the governor role right now. Gates without
   a governor become ceremony; adopt when someone can own the role.
 

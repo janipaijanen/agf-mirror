@@ -1,6 +1,6 @@
 # Your first governed change
 
-*Status: Provisional (v2.0 documentation). Audience: developers who have
+*Status: Released (v2.1 documentation). Audience: developers who have
 completed [install and layouts](../adopt/install-and-layouts.md). After
 this page you have taken one real change through both gates and validated the
 files that make the audit trail.*

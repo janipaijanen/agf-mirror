@@ -1,6 +1,6 @@
 # Documentation
 
-*Status: Provisional (v2.0 documentation).*
+*Status: Released (v2.1 documentation).*
 
 This documentation is a learning path, not a pile of pages. Each stage
 assumes the previous one. Pick your entry point from the table, then follow
