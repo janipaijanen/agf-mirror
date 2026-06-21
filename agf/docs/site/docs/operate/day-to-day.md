@@ -57,10 +57,11 @@ completion or learning.
   (recording the outcome). Silent action breaks the causal chain.
 - **Never edit a filed entry.** Files are immutable; corrections are new
   entries referencing the old.
-- **Sequence numbers are sacred.** Append-only, no gaps filled
-  retroactively. If a human instruction would break the chain, the
-  sequence-guard rule says: name the break, ask for explicit
-  confirmation, and only then proceed.
+- **Use tooling-generated readable IDs for new entries.** Historical
+  sequence-numbered and ULID files remain immutable history, but new
+  coordination records should use `agov coord brief --id-format readable`.
+  If tooling is unavailable, create a valid manual ID and say why in the
+  record.
 
 ## Context hygiene
 
