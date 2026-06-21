@@ -212,6 +212,48 @@ learnings:
       so agents explicitly re-derive the coordination discipline rather than
       assuming it carries over from the prior session state.
 
+  - id: L021
+    date: "2026-06-21"
+    category: gap
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      AI agents must not claim durable timer coverage unless the timer is backed
+      by a real persistence and notification mechanism visible outside the
+      current chat turn.
+    detail: >
+      The governor asked Codex to start 300-second and 180-minute timers. Codex
+      first attempted to create shell `sleep` processes and write their output
+      to `tmp/`, then correctly recognized that this does not satisfy the
+      operational need. A shell timer may continue in the local process table,
+      but it does not wake the AI agent after the turn ends, does not produce an
+      inter-agent coordination signal by itself, and can create false confidence
+      if the agent later says "timers are running" without a durable watcher.
+
+      The failure mode is a capability illusion: the user asks for an agent
+      behavior ("remind yourself / resume after interval"), while the available
+      mechanism only creates a local side effect ("a process may append to a
+      log"). Treating those as equivalent weakens coordination because other
+      agents cannot rely on the timer state and the human may assume work will
+      resume automatically.
+
+      The useful rule is to be explicit about timer semantics. During an active
+      turn, an agent can poll, watch CI, and report status on a cadence. Across
+      turns, it needs a durable mechanism: a coordination claim/watch record,
+      external scheduler, issue/MR reminder, or future AGF watch/session
+      command that records owner, branch, interval, expiry, and expected action.
+      Without that mechanism, the honest answer is "I cannot start a timer that
+      will wake me later; I can record the desired check and act when resumed."
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add explicit timer/watch semantics to session and coordination guidance.
+      Agents should distinguish active-turn polling from durable timers, and
+      must not report timers as active unless the mechanism can notify or be
+      observed by future agents. A future `agov watch` or session-resume feature
+      should record timer owner, branch or MR, interval, due time, expiry,
+      notification target, and whether the watch is active, advisory, or
+      expired.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
