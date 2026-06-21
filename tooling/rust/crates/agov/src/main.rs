@@ -2055,9 +2055,20 @@ fn render_invalid_files(output: &mut OutputCounter, invalid_files: &[String]) {
         return;
     }
 
-    output.stdout("Invalid coordination files ignored:");
-    for file in invalid_files {
+    const INVALID_FILE_SAMPLE_LIMIT: usize = 10;
+
+    output.stdout(format!(
+        "Invalid coordination files ignored: {}",
+        invalid_files.len()
+    ));
+    for file in invalid_files.iter().take(INVALID_FILE_SAMPLE_LIMIT) {
         output.stdout(format!("  - {file}"));
+    }
+    if invalid_files.len() > INVALID_FILE_SAMPLE_LIMIT {
+        output.stdout(format!(
+            "  ... {} more; run `agov coord validate docs/coordination/<file>.md` for details",
+            invalid_files.len() - INVALID_FILE_SAMPLE_LIMIT
+        ));
     }
     output.stdout("");
 }
