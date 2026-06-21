@@ -40,7 +40,14 @@ digraph adoption_exit {
     replace  -> decomm   [style=dashed, color="#888888",
                           label="after migration"]
 
-    legend [label="Legend\nblue box = adoption/operation step\nwhite box = reversible exit option\ndark box = decommissioned state\ndashed grey edge = exit path",
-            shape=note, fillcolor=white, color="#888888", fontsize=9]
-    operate -> legend [style=invis]
+    legend [shape=plain, label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
+            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
+            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">adoption / operation step</TD></TR>
+            <TR><TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">reversible exit option</TD></TR>
+            <TR><TD BGCOLOR="#888888" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">decommissioned state</TD></TR>
+            <TR><TD><FONT COLOR="#888888">- - -</FONT></TD><TD ALIGN="LEFT">exit path</TD></TR>
+        </TABLE>
+    >]
+    decomm -> legend [style=invis]
 }
