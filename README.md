@@ -15,7 +15,7 @@ Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
 Try AGF when:
 
 - AI assistants write or review a meaningful share of your code.
-- A human can own the governor role and approve plans and merges.
+- A human can serve as governor (approving plans before implementation and reviews before merge).
 - Your project will live long enough for an audit trail to matter.
 - Prompt-only discipline has not kept assistants consistently inside your
   quality, security, or review boundaries.
@@ -25,7 +25,7 @@ Wait or skip when:
 - you need a hosted runtime or agent orchestrator;
 - your project is disposable or exploratory;
 - nobody can own gate decisions;
-- you need v2.0 stability today. AGF v2.0 is still provisional.
+- you need interface stability today — AGF v2.0 is provisional and structure may still change.
 
 ## Repository map
 

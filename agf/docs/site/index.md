@@ -62,8 +62,8 @@ Level 5 are in production use on this project:
 | `agov validate` | AI reads adoption, agent, and learning files to spot problems | Level 5 — Deployable |
 | `agov coord brief ...` | AI asks a human or guesses a coordination ID and filename | Level 5 — Deployable |
 | `agov handoff next <role>` | Agent scans handoff files and mentally subtracts resolved items | Level 5 — Deployable |
+| `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 5 — Deployable |
 | `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 1 — Planned |
-| `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 1 — Planned |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 1 — Planned |
 
 *Maturity levels follow the [implementation honesty model](docs/concepts/evidence-and-learnings.md):
@@ -103,9 +103,11 @@ your learnings can flow upstream without revealing your project.
 
 ## What it costs
 
-Adoption is not free, and the documentation does not pretend otherwise: copied
-files in your repo, CI jobs, review overhead per change, and a learning-record
-habit to maintain. The [downstream impact](docs/adopt/downstream-impact.md)
+Adoption is not free, and the documentation does not pretend otherwise: files
+added to your repo, CI jobs to run, review ceremony per non-trivial change, and
+a habit to record incidents as learning notes. The overhead is proportional to
+change size — trivial edits use a fast track with no ceremony; architecture
+changes get the full gate sequence. The [downstream impact](docs/adopt/downstream-impact.md)
 page itemises the full cost, and [exit and decommission](docs/adopt/exit-and-decommission.md)
 documents the way out. Read both before adopting.
 
@@ -114,7 +116,8 @@ documents the way out. Read both before adopting.
 - **Engineering leads** get review gates that hold even when changes are
   machine-generated at machine speed.
 - **Developers** get an assistant that follows the project's actual conventions
-  instead of re-deriving its own each session.
+  consistently — the rules load as files the assistant reads every session, not
+  as prompts you retype or conventions the assistant re-derives from scratch.
 - **Auditors and security reviewers** get an append-only decision trail and
   explicit security escalation boundaries.
 
