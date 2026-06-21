@@ -23,6 +23,8 @@ Gate 1 approved. Plan: `docs/plans/feat-coord-graph-command.md`
 ## Verification
 
 - `git diff --check`: clean after rebase.
+- `/home/devi/.cargo/bin/cargo clippy --workspace -- -D warnings`: clean after
+  the CI clippy fix.
 - `/home/devi/.cargo/bin/cargo test -p agov --test coord_graph`: 5 passed
   after rebase.
 - `mkdocs build --strict`: clean after rebase.

@@ -1297,10 +1297,10 @@ fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
     }
 
     if format == "dot" {
-        output.stdout("digraph agf_coordination {".to_string());
-        output.stdout("  rankdir=LR;".to_string());
-        output.stdout("  node [fontname=\"Helvetica\", fontsize=11];".to_string());
-        output.stdout("  edge [fontname=\"Helvetica\", fontsize=9];".to_string());
+        output.stdout("digraph agf_coordination {");
+        output.stdout("  rankdir=LR;");
+        output.stdout("  node [fontname=\"Helvetica\", fontsize=11];");
+        output.stdout("  edge [fontname=\"Helvetica\", fontsize=9];");
         for role in &roles {
             let attrs = if role == "governor-reviewer" {
                 "shape=box, style=filled, fillcolor=\"#e8f0fe\""
@@ -1316,7 +1316,7 @@ fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
                 "  \"{from}\" -> \"{to}\" [label=\"{kind} ({count})\"];"
             ));
         }
-        output.stdout("}".to_string());
+        output.stdout("}");
     } else {
         for ((from, to, kind), count) in &edges {
             output.stdout(format!("{from} -> {to}  {kind}  ({count})"));
