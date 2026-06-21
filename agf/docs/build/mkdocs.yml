@@ -82,6 +82,7 @@ nav:
       - 'Adopt':
           - Downstream impact: docs/adopt/downstream-impact.md
           - Install the agf directory: docs/adopt/install-and-layouts.md
+          - Assistant loader configuration: docs/adopt/assistant-loader-configuration.md
           - Your first governed change: docs/start/first-governed-change.md
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md

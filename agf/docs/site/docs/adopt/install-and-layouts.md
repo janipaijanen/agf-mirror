@@ -10,7 +10,9 @@ place and understand the single supported v2.0 layout.*
 - An AI coding assistant that loads natural-language instructions
   (the reference implementation targets Claude Code; the rule content is
   tool-agnostic and has been tested with Cursor, Codex CLI, Copilot, and
-  Windsurf).
+  Windsurf). Before the first governed change, configure the assistant to
+  see the AGF files and verify that it can name the rules it loaded; see
+  [assistant loader configuration](assistant-loader-configuration.md).
 - The `agov` command available if you want to run the current core validators
   locally and in CI. In a full checkout, symlink `tooling/agov` into
   `~/.local/bin/agov` or run it directly. A framework-only release archive
@@ -140,6 +142,10 @@ humans and agents can read it.
    accessibility rule). Deleting is better than ignoring — an inapplicable
    rule trains agents that rules are optional.
 
+For tool-specific loader patterns and a verification prompt, use
+[assistant loader configuration](assistant-loader-configuration.md). A loader
+that exists but is not read by the active assistant is no protection.
+
 ## Step 5: Adopt the agent definitions
 
 Use `agf/agents/*.yaml`. The role definitions ship with explicit
@@ -189,6 +195,14 @@ deliberately bad input once on the merge request that introduces the job.
 Validator output is advisory unless a named AGF rule, contract, or recorded
 governor decision makes the check blocking. When a check is blocking, document
 the rule that grants it blocking authority in the CI job or release procedure.
+
+For the first real governed change, install at least the
+[minimum structural guardrail](../advanced/contracts-and-validators.md#minimum-structural-guardrail):
+validate changed coordination and plan files in the merge request, require the
+job before merge, and self-test the job once with a deliberately malformed
+governance file. Without that bridge to branch protection, the gates still
+bind the process, but malformed governance files may not mechanically stop a
+merge.
 
 ## Step 7: Initialise your evidence
 
