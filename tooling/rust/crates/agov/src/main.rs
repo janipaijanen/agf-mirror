@@ -46,6 +46,11 @@ enum Command {
         #[command(subcommand)]
         sub: TokenCommand,
     },
+    /// Coordination usage reporting commands.
+    Usage {
+        #[command(subcommand)]
+        sub: UsageCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -167,6 +172,19 @@ enum TokenRoiCommand {
     },
 }
 
+#[derive(Subcommand)]
+enum UsageCommand {
+    /// Print coordination channel usage report.
+    Report {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "agf/agents/MANIFEST.yaml")]
+        manifest: PathBuf,
+        #[arg(long)]
+        last: Option<usize>,
+    },
+}
+
 fn main() {
     let args = normalized_args();
     let cli = Cli::parse_from(args.clone());
@@ -193,6 +211,10 @@ fn normalized_args() -> Vec<String> {
             "agov.token.roi" => {
                 *command = "token".to_string();
                 args.insert(2, "roi".to_string());
+            }
+            "agov.usage.report" => {
+                *command = "usage".to_string();
+                args.insert(2, "report".to_string());
             }
             _ => {}
         }
@@ -259,6 +281,14 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     sub: TokenRoiCommand::Report { log },
                 },
         } => token_roi_report(log),
+        Command::Usage {
+            sub:
+                UsageCommand::Report {
+                    dir,
+                    manifest,
+                    last,
+                },
+        } => usage_report(dir, manifest, last, &args),
     }
 }
 
@@ -278,6 +308,234 @@ fn token_roi_report(log: Option<PathBuf>) -> i32 {
             1
         }
     }
+}
+
+fn usage_report(dir: PathBuf, manifest: PathBuf, last: Option<usize>, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let manifest = repo_relative_path(manifest);
+
+    let (messages, invalid_files) = match read_coord_messages_with_invalid(&dir) {
+        Ok(result) => result,
+        Err(_) => {
+            output.stderr(format!("ERR  directory not found: {}", dir.display()));
+            return 1;
+        }
+    };
+
+    let agents = match load_agent_statuses(&manifest) {
+        Ok(agents) => agents,
+        Err(_) => {
+            output.stderr(format!(
+                "WARN manifest not found: {}  (agent cross-reference unavailable)",
+                manifest.display()
+            ));
+            BTreeMap::new()
+        }
+    };
+    let aliases = load_from_aliases(&dir);
+    let report = build_usage_report(&messages, &agents, &aliases, last, invalid_files);
+
+    render_usage_report(&mut output, &report, &dir, messages.len());
+    agov_core::roi::record_tool_output("agov", args, "usage-report", output.chars);
+    0
+}
+
+#[derive(Debug)]
+struct UsageReport {
+    window: UsageWindow,
+    range: Option<(String, String)>,
+    kind_counts: BTreeMap<String, usize>,
+    sender_counts: BTreeMap<String, usize>,
+    inactive_agents: Vec<String>,
+    unknown_senders: Vec<String>,
+    invalid_files: Vec<String>,
+}
+
+#[derive(Debug)]
+enum UsageWindow {
+    All,
+    Last(usize),
+}
+
+fn build_usage_report(
+    messages: &[HandoffMessage],
+    agents: &BTreeMap<String, String>,
+    aliases: &BTreeMap<String, String>,
+    last: Option<usize>,
+    invalid_files: Vec<String>,
+) -> UsageReport {
+    let window_start = last
+        .map(|last| messages.len().saturating_sub(last))
+        .unwrap_or(0);
+    let window_messages = &messages[window_start..];
+    let mut kind_counts = BTreeMap::new();
+    let mut sender_counts = BTreeMap::new();
+
+    for message in window_messages {
+        let kind = string_field(&message.raw, "kind").unwrap_or("unknown");
+        *kind_counts.entry(kind.to_string()).or_insert(0) += 1;
+
+        let sender = resolve_alias(
+            string_field(&message.raw, "from").unwrap_or("unknown"),
+            aliases,
+        );
+        *sender_counts.entry(sender).or_insert(0) += 1;
+    }
+
+    let inactive_agents = agents
+        .iter()
+        .filter(|(_agent, status)| status.as_str() == "active")
+        .filter(|(agent, _status)| !sender_counts.contains_key(*agent))
+        .map(|(agent, _status)| agent.clone())
+        .collect();
+
+    let unknown_senders = sender_counts
+        .keys()
+        .filter(|sender| !agents.contains_key(*sender))
+        .cloned()
+        .collect();
+
+    UsageReport {
+        window: last.map(UsageWindow::Last).unwrap_or(UsageWindow::All),
+        range: usage_timestamp_range(messages),
+        kind_counts,
+        sender_counts,
+        inactive_agents,
+        unknown_senders,
+        invalid_files,
+    }
+}
+
+fn render_usage_report(output: &mut OutputCounter, report: &UsageReport, dir: &Path, total: usize) {
+    let range = report
+        .range
+        .as_ref()
+        .map(|(first, last)| format!("{first} to {last}"))
+        .unwrap_or_else(|| "(empty)".to_string());
+    output.stdout(format!(
+        "Channel: {}  ({} messages, {})",
+        display_coord_dir(dir),
+        total,
+        range
+    ));
+
+    let window = match report.window {
+        UsageWindow::All => "all messages".to_string(),
+        UsageWindow::Last(last) => format!("last {last} messages"),
+    };
+    output.stdout(format!("Window:  {window}"));
+    output.stdout("");
+
+    render_usage_counts(output, "Kind distribution:", &report.kind_counts, 18, None);
+    render_usage_counts(
+        output,
+        "Sender activity (aliases applied):",
+        &report.sender_counts,
+        24,
+        Some(&report.inactive_agents),
+    );
+    render_usage_list(
+        output,
+        "Inactive active-status agents:",
+        "none",
+        &report.inactive_agents,
+    );
+    render_usage_list(
+        output,
+        "Unknown senders (after alias resolution):",
+        "none",
+        &report.unknown_senders,
+    );
+
+    if report.invalid_files.is_empty() {
+        output.stdout("Invalid coordination files: none");
+    } else {
+        output.stderr(format!(
+            "WARN  {} invalid coordination file(s) skipped:",
+            report.invalid_files.len()
+        ));
+        for file in &report.invalid_files {
+            output.stderr(format!("  {file}"));
+        }
+    }
+}
+
+fn render_usage_counts(
+    output: &mut OutputCounter,
+    title: &str,
+    counts: &BTreeMap<String, usize>,
+    pad: usize,
+    inactive_agents: Option<&[String]>,
+) {
+    if counts.is_empty() {
+        output.stdout(format!("{title} (none)"));
+        output.stdout("");
+        return;
+    }
+
+    let mut rows: Vec<_> = counts.iter().collect();
+    rows.sort_by(|(left_name, left_count), (right_name, right_count)| {
+        right_count
+            .cmp(left_count)
+            .then_with(|| left_name.cmp(right_name))
+    });
+
+    output.stdout(title);
+    for (name, count) in rows {
+        let flag = if inactive_agents
+            .map(|agents| agents.iter().any(|agent| agent == name))
+            .unwrap_or(false)
+        {
+            "  <- inactive"
+        } else {
+            ""
+        };
+        output.stdout(format!("  {name:<pad$}  {count}{flag}"));
+    }
+    output.stdout("");
+}
+
+fn render_usage_list(output: &mut OutputCounter, title: &str, empty: &str, items: &[String]) {
+    if items.is_empty() {
+        output.stdout(format!("{title} {empty}"));
+        output.stdout("");
+    } else {
+        output.stdout(title);
+        for item in items {
+            output.stdout(format!("  {item}"));
+        }
+        output.stdout("");
+    }
+}
+
+fn usage_timestamp_range(messages: &[HandoffMessage]) -> Option<(String, String)> {
+    let first = messages
+        .iter()
+        .filter_map(|message| string_field(&message.raw, "timestamp"))
+        .min()?;
+    let last = messages
+        .iter()
+        .filter_map(|message| string_field(&message.raw, "timestamp"))
+        .max()?;
+    Some((first.to_string(), last.to_string()))
+}
+
+fn load_agent_statuses(path: &Path) -> Result<BTreeMap<String, String>, std::io::Error> {
+    let content = std::fs::read_to_string(path)?;
+    let data = serde_norway::from_str::<serde_json::Value>(&content)
+        .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
+    let agents = data
+        .get("agents")
+        .and_then(|value| value.as_object())
+        .into_iter()
+        .flatten()
+        .filter_map(|(agent, attrs)| {
+            let status = attrs.get("status").and_then(|value| value.as_str())?;
+            Some((agent.clone(), status.to_string()))
+        })
+        .collect();
+    Ok(agents)
 }
 
 fn coord_brief(

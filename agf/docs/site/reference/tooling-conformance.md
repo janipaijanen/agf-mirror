@@ -37,10 +37,10 @@ the byte-for-byte parity test against the Elixir reference output.
 | `agov coord brief [args...]` | `agf coord brief [args...]` | `mix agov.coord.brief [args...]` | ✓ Phase 1 |
 | `agov handoff next <role> [args...]` | `agf handoff next <role> [args...]` | `mix agov.handoff.next <role> [args...]` | ✓ Phase 1 |
 | `agov coord status [args...]` | `agf coord status [args...]` | `mix agov.coord.status [args...]` | ✓ Phase 2 |
-| `agov session resume [args...]` | `agf session resume [args...]` | `mix agov.session.resume [args...]` | Phase 2 in progress |
-| `agov coord stale [args...]` | `agf coord stale [args...]` | `mix agov.coord.stale [args...]` | Phase 2 in progress |
-| not wrapped yet | `agf coord visibility [args...]` | `mix agov.coord.visibility [args...]` | Phase 2B |
-| not wrapped yet | `agf usage report [args...]` | `mix agov.usage.report [args...]` | Phase 2B or later |
+| `agov session resume [args...]` | `agf session resume [args...]` | `mix agov.session.resume [args...]` | ✓ Phase 2 |
+| `agov coord stale [args...]` | `agf coord stale [args...]` | `mix agov.coord.stale [args...]` | ✓ Phase 2 |
+| `agov coord visibility [args...]` | `agf coord visibility [args...]` | `mix agov.coord.visibility [args...]` | ✓ Phase 2 |
+| `agov usage report [args...]` | `agf usage report [args...]` | `mix agov.usage.report [args...]` | ✓ Phase 2 |
 
 ## Exit codes
 
