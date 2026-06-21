@@ -17,9 +17,9 @@ as such, each with the evidence that would justify building it.
 
 **Coordination-channel validator.** The channel is the audit trail, yet
 it is the one contracted-adjacent artifact with no automated validation —
-frontmatter shape, sequence continuity, and reference integrity are
+frontmatter shape, ID uniqueness, and reference integrity are
 checked by eyes only. This is the framework's most concrete known gap;
-its own operation has already produced sequence anomalies that a
+its own operation has already produced coordination-ID anomalies that a
 validator would have caught. *Evidence that would promote it:* recurring
 channel-integrity incidents in adopter learning records.
 
