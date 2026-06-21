@@ -37,12 +37,12 @@ session or current task. If uncertain, run the project resume command first:
 agov session resume --base-branch main
 ```
 
-If `agov session resume` is unavailable in this checkout, use the reference
-implementation:
+If `agov session resume` is unavailable in this checkout, build or run the Rust
+implementation directly:
 
 ```bash
-cd tooling/elixir
-mix agov.session.resume --base-branch main
+cd tooling/rust
+cargo run -q -p agov -- session resume --base-branch main
 ```
 
 Then collect the live repository facts:
@@ -161,11 +161,11 @@ Validate the file before treating the save as durable:
 agov coord validate docs/coordination/<id>.md
 ```
 
-If `agov` is unavailable, use the Mix reference task:
+If the wrapper is unavailable, run the Rust implementation directly:
 
 ```bash
-cd tooling/elixir
-mix agov.coord.validate ../../docs/coordination/<id>.md
+cd tooling/rust
+cargo run -q -p agov -- coord validate ../../docs/coordination/<id>.md
 ```
 
 Fix validation failures before proceeding.
