@@ -17,7 +17,7 @@ lives in `docs/site/docs/adopt/install-and-layouts.md`.
 > rewriting) may damage your codebase if applied without proper
 > pre-flight checks and backups. You are responsible for evaluating
 > whether each step is appropriate for your project. See
-> [disclaimer](docs/governance/disclaimer.md) for the full terms.
+> [disclaimer](docs/site/reference/disclaimer.md) for the full terms.
 > Run AI assistants and AGF tooling only on systems, repositories, and
 > data where you have the necessary authorization.
 
