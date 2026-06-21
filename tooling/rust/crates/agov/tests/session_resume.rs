@@ -162,6 +162,35 @@ fn dotted_session_resume_alias_is_supported() {
     assert!(stdout.contains("Role: coder-tester"));
 }
 
+#[test]
+fn invalid_coordination_files_are_summarized() {
+    let fixture = Fixture::new();
+    fixture.write_coord("agov-config.yaml", "current_role: coder-tester\n");
+    for index in 1..=12 {
+        fixture.write_coord(
+            &format!("legacy-{index:02}.md"),
+            "---\nkind: note\n---\nMissing required front matter.\n",
+        );
+    }
+
+    let output = agov(&[
+        "session",
+        "resume",
+        "--dir",
+        fixture.coord_dir().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Invalid coordination files ignored: 12"));
+    assert!(stdout.contains("legacy-01.md"));
+    assert!(stdout.contains("legacy-10.md"));
+    assert!(!stdout.contains("legacy-11.md"));
+    assert!(!stdout.contains("legacy-12.md"));
+    assert!(stdout
+        .contains("... 2 more; run `agov coord validate docs/coordination/<file>.md` for details"));
+}
+
 fn agov(args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_agov"))
         .args(args)
