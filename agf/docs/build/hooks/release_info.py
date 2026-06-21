@@ -89,6 +89,11 @@ def on_pre_build(config, **kwargs) -> None:
 | Source branch | `{branch}` |
 | Build timestamp | `{timestamp}` |
 
+## Downloads
+
+Release archives and platform-specific Rust tooling binaries are published on
+the [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+
 ## How to cite
 
 If you use agents-govern in research or a published project, please cite it as:
