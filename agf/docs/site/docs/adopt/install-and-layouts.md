@@ -191,11 +191,23 @@ the rule that grants it blocking authority in the CI job or release procedure.
 - Confirm `agf/learnings/<your-codename>.yaml` exists and uses only the
   codename. The codename is the only project handle that crosses the codebase
   boundary — see the anonymization rule before sharing anything upstream.
+- Record commissioning as your first learning. This is not busywork: the first
+  adoption run tells you, and upstream, whether the assistant understood the
+  commissioning prompt, kept AGF-owned files inside `agf/`, created only a
+  small loader if needed, and left the human with clear decisions.
 - Confirm the coordination channel path you will use and file your first entry:
   a note recording the adoption decision and the governor. The POC default is
   `docs/coordination/`.
 - For the first governed change, ask the assistant to prepare starter files
   from `agf/templates/`; the walkthrough gives a pasteable prompt.
+
+If commissioning exposed confusion, missing instructions, validation failures,
+or surprisingly smooth automation, mark the learning as an upstream candidate.
+Share only a sanitized summary or codename-safe learning record.
+
+Use the fields in `agf/templates/learning-record.yaml`; do not invent fixed
+sequential learning IDs. If your project later wants IDs, generate them with a
+project-local convention or tooling that cannot collide.
 
 ## Verify
 

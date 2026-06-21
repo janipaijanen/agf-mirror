@@ -15,24 +15,23 @@ adoption:
 
 learnings:
   - date: "2026-06-14"
-    category: validation
+    category: adoption-friction
     scope: project
-    title: first-governed-change-completed
-    description: "The project completed its first governed change using Gate 1 and Gate 2."
+    title: agf-commissioning-completed
+    description: "The project commissioned AGF with an assistant-prepared diff and human review."
     agents_involved:
-      - planner-architect
       - coder-tester
       - governor-reviewer
-    framework_section: first-governed-change
+    framework_section: install-and-layouts
     business_impact:
       type: neutral
-      description: "Initial trial evidence only."
-    recommendation: "Keep measuring whether the gate overhead earns its keep."
+      description: "Initial commissioning evidence only."
+    recommendation: "Record whether the assistant kept AGF-owned files under agf/, created only a small loader if needed, and left clear governor decisions."
     severity: informational
     confidence:
       level: single-adopter
       evidence_count: 1
       evidence_refs:
-        - docs/coordination/00004-coder-tester.md
+        - docs/coordination/<commissioning-note-id>.md
 
 sentinel_ack: []

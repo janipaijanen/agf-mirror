@@ -2,6 +2,14 @@
 
 These files make the first governed change copyable.
 
+The starter learning record is intentionally usable before the first governed
+code change: commissioning AGF is itself useful evidence. It records whether
+the assistant prepared the expected files, kept AGF-owned content under
+`agf/`, and left clear decisions for the governor.
+
+Do not add fixed example learning IDs; downstream projects that want IDs must
+generate them with a local non-colliding convention or tooling.
+
 Default adopter paths:
 
 | Template | Copy to |

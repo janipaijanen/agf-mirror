@@ -87,12 +87,18 @@ adopter should not have to rediscover.
 
 Good triggers:
 
+- the first AGF commissioning run;
 - an incident or near-miss;
 - a repeated coordination failure;
 - a rule that prevented real damage;
 - a rule that was too heavy and caused workarounds;
 - a validator that caught something a human review missed;
 - a pattern that happened twice and should become guidance.
+
+Commissioning is a useful first learning because it tests the adoption
+promise in the smallest real setting: did the assistant keep AGF-owned files
+inside `agf/`, create only a small loader if needed, leave clear decisions for
+the governor, and produce validation output you could understand?
 
 Do not write a learning for every ordinary task. The learning file is not a
 diary. It is the place where operational evidence becomes durable.
@@ -112,6 +118,10 @@ Keep the first draft simple:
 - what evidence proves it happened;
 - what should change, if anything;
 - how confident you are.
+
+Do not invent globally meaningful sequential learning IDs. If your local
+template has no ID field, leave it that way. If your project adds one later,
+generate it with tooling or a project-local convention that cannot collide.
 
 Use the project codename at the boundary. Do not include customer names,
 private paths, secrets, domain-revealing identifiers, or chat transcripts that
@@ -137,6 +147,8 @@ Send it upstream when it would improve AGF for other adopters.
 
 Good upstream candidates:
 
+- a first commissioning run revealed adoption friction or unusually smooth
+  automation;
 - a rule failed in a way others could hit;
 - a rule prevented a meaningful failure;
 - the documentation led you into confusion;
