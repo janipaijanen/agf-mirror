@@ -14,6 +14,7 @@ docs/figures/
     governance-loop.dot
     gate-pipeline.dot
     coordination-channel.dot
+    coordination-lifecycle.dot
     operating-responsibility-map.dot
     evidence-lifecycle.dot
     learning-loop.dot
@@ -30,6 +31,27 @@ running the generation command below.
 Every figure must include an embedded legend in the generated image. Explain
 color, shape, and line semantics inside the DOT source rather than relying on
 page prose or captions.
+
+## Figure UX standard
+
+Figures are read inside documentation pages, not as isolated artboards. Design
+for the size at which MkDocs will embed the SVG.
+
+- DOT source is canonical. Do not hand-edit generated SVG output.
+- Use a white graph background unless a specific output format requires
+  transparency.
+- Use `fontsize=12` for graph and cluster labels, `fontsize=11` for node
+  labels, and `fontsize=10` for edge labels. Do not use text below `9pt`.
+- Keep generated SVG width near or below `720pt` for Markdown embedding. Prefer
+  top-to-bottom layout for walkthroughs, loops, and pipelines that would become
+  wide, shallow strips in left-to-right layout.
+- Keep line weights visible after scaling. Use `penwidth=1.4` for ordinary
+  nodes and edges unless a figure has a specific reason to vary.
+- Use the documented palette and never rely on colour alone. Shape, label, or
+  line style must also carry the meaning.
+- Every figure must include an embedded legend when colour, shape, or line style
+  has semantics.
+- Markdown alt text must name what the figure shows, not just say "diagram".
 
 ## Generating figures
 

@@ -2,8 +2,8 @@
 // agents-govern: evidence-driven learning loop
 // Generate: dot -Tsvg learning-loop.dot -o ../learning-loop.svg
 digraph learning_loop {
-    graph [rankdir=LR, splines=spline, pad=0.3, nodesep=0.35, ranksep=0.55,
-           fontname="Helvetica", fontsize=11, labelloc=b, label=<
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.35, ranksep=0.55,
+           bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
         <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
             <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
             <TR>
@@ -18,9 +18,9 @@ digraph learning_loop {
             </TR>
         </TABLE>
     >]
-    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
-           fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
-    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+    node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
+           fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
+    edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
     work [label="Governed work\nincidents / friction\nvalidation results",
           shape=ellipse, fillcolor=white, color="#888888",

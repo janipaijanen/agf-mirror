@@ -30,19 +30,7 @@ Any agent, CI job, or human can read it with `ls` and a text editor.
 Figure 1 traces the lifecycle of a governed change through the coordination
 channel.
 
-```
-planner-architect           coder-tester          governor-reviewer
-      │                          │                        │
-      │── handoff (Gate 1 ──────►│                        │
-      │   plan approved)         │                        │
-      │◄── ack ─────────────────│                        │
-      │                          │ implement              │
-      │                          │── handoff (Gate 2) ───►│
-      │                          │                        │ review
-      │                          │◄─ decision-record ─────│
-      │◄─ completion ────────────│                        │
-      │                          │                        │
-```
+![Governed change coordination lifecycle](../../reference/figures/coordination-lifecycle.svg)
 
 One agent writes a `handoff`; another reads it via `agov session resume`,
 implements, then files a Gate 2 `handoff` to `governor-reviewer`. The

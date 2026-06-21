@@ -2,11 +2,11 @@
 // agents-govern: evidence lifecycle (incident → learning → improvement)
 // Generate: dot -Tsvg evidence-lifecycle.dot -o ../evidence-lifecycle.svg
 digraph evidence_lifecycle {
-    graph [rankdir=LR, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.6,
-           fontname="Helvetica", fontsize=11]
-    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
-           fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
-    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.6,
+           bgcolor=white, fontname="Helvetica", fontsize=12]
+    node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
+           fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
+    edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
     incident  [label="Incident /\nObservation", shape=ellipse,
                fillcolor="#EE7700", fontcolor=white, color="#EE7700"]
