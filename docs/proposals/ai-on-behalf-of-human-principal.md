@@ -247,6 +247,19 @@ AGF records are text files in a git repository. Even if AGF refuses to ship
 principal-ranking commands or HR-ready exports, an adopter can still aggregate
 coordination files with ordinary shell tools or external analytics.
 
+The key comparison is not "AGF creates surveillance risk where plain git had
+none." Plain git already exposes authors, committers, timestamps, changed
+files, branches, review comments, and merge events. The difference is that
+plain git leaves AI delegation mostly implicit, noisy, or hidden, while AGF
+would make delegation explicit and structured.
+
+That is the transparency paradox: the metadata that makes incident
+reconstruction possible also lowers the friction for workforce monitoring. AGF
+trades plausible deniability for accountability. Without structured delegation
+records, an organization may struggle to reconstruct whether work was
+human-only, AI-assisted, or delegated. With structured delegation records, the
+answer is clearer, but the resulting dataset is easier to query and misuse.
+
 Three residual risks should be documented for any public docs that recommend
 principal-bound delegation:
 
@@ -289,6 +302,12 @@ repository. What it can do is make misuse visible and contestable, avoid
 shipping native surveillance affordances, and state that repurposing
 coordination metadata for workforce monitoring exceeds AGF's intended
 governance purpose.
+
+The honest adopter-facing message is therefore not "AGF prevents surveillance."
+It is: "Using AGF makes delegation habits more visible because visibility is
+required for safety and incident reconstruction. If that visibility is unsafe
+in your organization, use identity-minimizing conventions or do not enable
+principal-bound delegation."
 
 ## EU and regulatory context to consider
 
