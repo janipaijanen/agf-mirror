@@ -48,6 +48,7 @@ Level 5 is deployable and in active use; Level 1 is planned.
 | `agov validate` | Agent reads adoption, agent definitions, and learning records to spot structural problems across the governance tree. |
 | `agov coord brief [--id-format readable\|ulid] [--from <role>] [--kind <kind>]` | Agent guesses a coordination ID, makes up a filename, or asks a human for the next ID. The command generates a valid, non-colliding ID with the correct filename format. |
 | `agov handoff next <role>` | Agent reads handoff messages, mentally subtracts resolved items, and selects the pending one for its role. The command returns the relevant handoff in one invocation. |
+| `agov coord status [--recent N] [--roles]` | Agent counts pending handoffs, reads claim messages, and scans the channel for channel health. The `--roles` flag adds a per-role activity summary for session orientation. |
 
 ### Level 1 — Planned (Rust, in progress)
 
@@ -59,10 +60,9 @@ When implemented, each will reach Level 5 via parity testing.
 | Command | What it replaces |
 |---|---|
 | `agov session resume [--role <role>]` | Agent reads recent coordination files, the manifest, branch status, and claims to reconstruct its starting state for the session. This is potentially the highest-token-cost activity in the agent loop because it happens at every session boundary. |
-| `agov coord status [--recent N]` | Agent counts pending handoffs, reads claim messages, and scans the channel for channel health information. |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages and comparing timestamps. |
 
-Until the Rust port lands, these three commands are available via Mix for
+Until the Rust port lands, these two commands are available via Mix for
 projects that have Elixir installed. The `agov` wrapper routes to Mix when the
 Rust binary does not support the command.
 
@@ -85,8 +85,8 @@ Rust binary once per machine:
 cd tooling/rust && cargo build -p agov
 ```
 
-After that, `agov coord validate`, `agov coord brief`, `agov handoff next`, and
-the other supported commands use Rust automatically.
+After that, `agov coord validate`, `agov coord brief`, `agov handoff next`,
+`agov coord status`, and the other supported commands use Rust automatically.
 
 ### Option B — Framework-only release archive
 

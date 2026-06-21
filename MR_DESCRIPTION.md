@@ -1,57 +1,47 @@
-# Gate 1: tooling-first coordination ID policy — plan for review
+# docs: adoption flow + Rust tooling page
 
 ## Summary
 
-This MR submits the Gate 1 plan for formalising the tooling-first coordination
-ID policy. It adds learning records L019 and L020 and the plan file that scopes
-the implementation work for coder-tester.
+- Homepage restructured: "How to adopt" section (three numbered steps) appears
+  immediately after the status block, replacing the philosophy-first layout.
+  New "Token savings with the Rust tooling" block with command maturity table
+  (Level 5 / Level 1).
+- New page `agf/docs/site/docs/adopt/tooling-and-tokens.md`: agov CLI setup,
+  Phase 1 and Phase 2 Rust commands with honest maturity levels, three setup
+  options (wrapper / release archive / CI), token savings model, telemetry POC.
+- `tooling-conformance.md` updated: Phase 1 parity status reflected for
+  coord validate, coord brief, plan validate, validate, handoff next. Phase 2
+  parity status for coord status (shipped). Session resume and coord stale
+  marked "Phase 2 in progress".
+- `mkdocs.yml` and `docs/index.md` updated to include the new page in nav.
+- Maturity references updated from "Phase 2A" to `rust-agov-complete.md` plan
+  after the Phase 2A plan was superseded.
+- `coord status` maturity updated to Level 5 after `feat/rust-agov-complete`
+  merged (coord status is now in production in Rust).
 
-**Policy to be enshrined:**
+## Rationale
 
-> AI agents MUST use AGF tooling to generate coordination IDs unless tooling is
-> unavailable. Humans SHOULD use the tooling. Manually authored IDs remain valid
-> when they pass schema and uniqueness validation.
+The old homepage led with philosophy before offering any action path. An
+evaluator reading for the first time had to navigate several paragraphs before
+reaching the decision guide or install steps. The restructured homepage leads
+with action, with costs and evidence after.
 
-## What is in this MR
+The tooling page covers the token savings angle with honest maturity levels per
+the implementation-honesty-rule: no overclaiming on commands still in progress.
+The Level 5/Level 1 split is updated as Rust commands ship.
 
-- `docs/plans/agf-tooling-first-ids.md` — Gate 1 plan
-- `agf/learnings/foundry.yaml` — L019 (filename convention bug) and L020
-  (coordination discipline on context-resume)
-- `docs/coordination/20260620T221104Z-planner-architect-fg3x.md` — Gate 1
-  handoff to governor-reviewer
-- `docs/coordination/20260620T220515Z-planner-architect-6j0e.md` — ack of
-  Codex's proposal (previous commit)
+## Collaboration
 
-## Background
+A coordination note was filed to coder-tester requesting review of tone/flow,
+a before/after token example, and potential use-cases.md additions. No response
+received yet — MR is ready to merge as-is and improves with Codex's additions.
 
-MR !32 (`plan/readable-coordination-ids`) merged readable coordination IDs to
-main. Codex filed a proposal (`01KVK62WGAZAMKHDQD3DAXPM9R`) to formalise a
-tooling-first policy for ID generation. Planner-architect acked and committed to
-drafting this Gate 1 plan.
+## Checklist
 
-This plan also covers the generator bug (L019) where `agov coord brief
---id-format readable` appended a redundant `-<role>` suffix to the output
-filename. Two historical files with wrong suffixes are immutable on main.
-
-## Scope (for Gate 1 review — no implementation in this MR)
-
-The plan decomposes the implementation into 6 tasks for coder-tester:
-
-1. New `agf/rules/workflow/coordination-id-rule.md`
-2. AGENTS.md update (policy + filename convention table)
-3. Generator fix — `agov coord brief --id-format readable` → `<id>.md`
-4. Validator advisory — WARN on AI-authored manual IDs
-5. Gate self-test (per `gate-self-test-rule.md`)
-6. Learning records L019/L020 — already done on this branch
-
-## Gate 1 checklist
-
-- [x] Plan file in `docs/plans/` with timestamp from OS
-- [x] Affected files list complete
-- [x] Migration needed: No
-- [x] Test strategy stated
-- [x] Risks assessed: Low
-- [x] Rollback path stated
-- [x] Downstream impact: EDITORIAL
-- [x] Decomposition into implementable tasks
-- [x] Gate 1 handoff coordination message filed
+- [x] Docs-only change, no schema or tooling changes
+- [x] All new links exist in the nav and resolve within the site
+- [x] Maturity levels accurate per implementation-honesty-rule
+- [x] No vendor names alongside weakness language (marketing-tone-rule)
+- [x] Documentation audience: developers and system administrators
+- [x] Coordination message filed to coder-tester
+- [x] coord status maturity updated to Level 5 after Phase 2 merge
