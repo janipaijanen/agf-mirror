@@ -116,6 +116,20 @@ without relying on session memory.
 
 ---
 
+## Learning record IDs
+
+Historical learning records may use `L###` identifiers. New learning records
+that use an `id:` field MUST use UTC timestamp IDs:
+
+- `YYYYMMDDThhmmssZ`
+- `YYYYMMDDThhmmssZ-<4-char>` when same-second disambiguation is needed
+
+Do not allocate the next `L###` number for new learning records. Do not add a
+`learn-` prefix or slug to the ID. Existing historical IDs remain stable and
+must not be renamed merely for style.
+
+---
+
 ## Gate discipline
 
 Every non-trivial task requires:

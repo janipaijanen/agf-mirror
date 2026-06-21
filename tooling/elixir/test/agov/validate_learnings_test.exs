@@ -36,6 +36,65 @@ defmodule Agov.ValidateLearningsTest do
     assert Enum.any?(errors, &String.contains?(&1.message, "requires evidence_count >= 2"))
   end
 
+  test "accepts timestamp and historical learning ids" do
+    dir = tmp_dir("learnings")
+    path = Path.join(dir, "ids.yaml")
+
+    File.write!(path, """
+    project:
+      codename: foundry-fixture
+    learnings:
+      - id: L021
+        title: Historical id
+        description: Generic finding.
+      - id: 20260621T150000Z
+        title: Timestamp id
+        description: Generic finding.
+      - id: 20260621T150000Z-a3fx
+        title: Timestamp id with suffix
+        description: Generic finding.
+    """)
+
+    assert {:ok, _data} = Agov.ValidateLearnings.validate_file(path)
+  end
+
+  test "rejects non-canonical learning ids" do
+    dir = tmp_dir("learnings")
+    path = Path.join(dir, "bad-id.yaml")
+
+    File.write!(path, """
+    project:
+      codename: foundry-fixture
+    learnings:
+      - id: learn-20260621T145130Z-os-background-timers-7rhn
+        title: Bad id
+        description: Generic finding.
+    """)
+
+    assert {:error, errors} = Agov.ValidateLearnings.validate_file(path)
+    assert Enum.any?(errors, &String.contains?(&1.message, "learning id"))
+  end
+
+  test "rejects duplicate learning ids" do
+    dir = tmp_dir("learnings")
+    path = Path.join(dir, "duplicate-id.yaml")
+
+    File.write!(path, """
+    project:
+      codename: foundry-fixture
+    learnings:
+      - id: 20260621T150000Z
+        title: First
+        description: Generic finding.
+      - id: 20260621T150000Z
+        title: Second
+        description: Generic finding.
+    """)
+
+    assert {:error, errors} = Agov.ValidateLearnings.validate_file(path)
+    assert Enum.any?(errors, &String.contains?(&1.message, "duplicate learning id"))
+  end
+
   defp tmp_dir(name) do
     path = Path.join(System.tmp_dir!(), "agov-#{name}-#{System.unique_integer([:positive])}")
     File.mkdir_p!(path)

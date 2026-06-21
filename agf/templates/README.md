@@ -7,8 +7,9 @@ code change: commissioning AGF is itself useful evidence. It records whether
 the assistant prepared the expected files, kept AGF-owned content under
 `agf/`, and left clear decisions for the governor.
 
-Do not add fixed example learning IDs; downstream projects that want IDs must
-generate them with a local non-colliding convention or tooling.
+Do not add fixed example learning IDs. Downstream projects that want IDs should
+use `YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for same-second
+disambiguation, or equivalent local tooling that cannot collide.
 
 Default adopter paths:
 

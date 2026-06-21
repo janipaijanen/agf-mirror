@@ -206,8 +206,9 @@ or surprisingly smooth automation, mark the learning as an upstream candidate.
 Share only a sanitized summary or codename-safe learning record.
 
 Use the fields in `agf/templates/learning-record.yaml`; do not invent fixed
-sequential learning IDs. If your project later wants IDs, generate them with a
-project-local convention or tooling that cannot collide.
+sequential learning IDs. If your project later wants IDs, use
+`YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for same-second
+disambiguation, or equivalent project-local tooling that cannot collide.
 
 ## Verify
 
