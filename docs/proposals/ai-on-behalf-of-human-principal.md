@@ -240,6 +240,56 @@ This does not prevent an adopter from misusing logs with external tooling. It
 does avoid handing them a first-class AGF feature that turns governance records
 into a productivity dashboard.
 
+### Residual surveillance and correlation risk
+
+The anti-surveillance boundary above is necessary, but it is not sufficient.
+AGF records are text files in a git repository. Even if AGF refuses to ship
+principal-ranking commands or HR-ready exports, an adopter can still aggregate
+coordination files with ordinary shell tools or external analytics.
+
+Three residual risks should be documented for any public docs that recommend
+principal-bound delegation:
+
+1. **Identifier frequency analysis:** named identifiers in delegation grants
+   are countable. Over time, a simple search can show which people or teams
+   delegated AI-assisted work most often. That can be a legitimate audit
+   signal, but it can also become a performance narrative about who is
+   "outsourcing" work or relying on assistants.
+2. **Temporal profiling:** coordination records and delegation grants have
+   timestamps. Aggregating grant timestamps by principal can reveal working
+   patterns, evening/weekend usage, or changes in workload. Removing explicit
+   duration fields does not remove this risk.
+3. **Git correlation:** commit author names, emails, timestamps, changed
+   files, and merge request links can be correlated with delegation grants. AGF
+   should warn that git metadata is not proof of human authorship, review depth,
+   or meaningful approval.
+
+Privacy-conscious teams may prefer documented conventions that reduce
+cross-person correlation while preserving enough reconstruction value for
+governance:
+
+```yaml
+delegation:
+  principal_kind: team
+  identifier_namespace: "team-alpha-duty-aliases"
+  identifier: "@author-03"
+  delegation_scope:
+    - "prepare patch"
+    - "run tests"
+```
+
+This is a tradeoff, not a free win. Team aliases, rotating duty aliases,
+batch-grant patterns, and shorter retention after project closure reduce
+workforce-monitoring risk, but they also reduce audit precision. AGF should
+document that choice honestly and let adopters choose a stronger identity link
+only when their governance need justifies it.
+
+AGF also cannot prevent an employer from building custom scripts over a
+repository. What it can do is make misuse visible and contestable, avoid
+shipping native surveillance affordances, and state that repurposing
+coordination metadata for workforce monitoring exceeds AGF's intended
+governance purpose.
+
 ## EU and regulatory context to consider
 
 This section is issue-spotting, not advice.
@@ -318,6 +368,11 @@ Recommended default:
    human decision record.
 10. Do not let AI-authored messages self-assert a human principal. Prefer
     human-authored delegation-grant notes that AI sessions reference.
+11. Document residual surveillance risks from identifier frequency, timestamps,
+    git correlation, and repository-wide search.
+12. Allow privacy-conscious adopters to use team aliases, rotating duty
+    aliases, batch grants, or retention limits when they intentionally trade
+    audit precision for reduced personal profiling.
 
 Possible rule:
 
@@ -535,6 +590,15 @@ aggregated with basic text search.
   across humans, calculate human oversight scores, or export principal
   metadata as an HR-ready dataset.
 - AGF should not add native commands that aggregate review depth by person.
+- If delegation grants become schema-visible in a future v2.1+ slice, CI could
+  require that delegated merge requests include a linked human decision record
+  or handoff referencing the grant. This would not prevent git-correlation
+  attacks, but it would make missing review/approval linkage detectable.
+- CI should reject opaque or shared bot-account patterns when they hide whether
+  a change was AI-authored, human-authored, or prepared under delegation. A
+  blanket ban on AI bot commit authorship would be too strong: transparent bot
+  authorship can be safer than laundering AI work through a human-looking git
+  identity.
 
 ### Docs
 
@@ -542,6 +606,12 @@ aggregated with basic text search.
 - Add a FAQ entry: "Can an assistant work on behalf of a human?"
 - Add a warning against shared bot accounts and hidden impersonation.
 - Add a small example coordination record.
+- Add a short residual-risk warning to the adoption decision path: AGF reduces
+  but does not eliminate the ability to infer workforce patterns from named
+  identifiers, timestamps, and git history. Teams in environments with
+  adversarial HR/legal dynamics should consider identity minimization, batch
+  grants, retention limits, and explicit local policy or consent before
+  enabling principal-bound delegation.
 
 ## Questions for Claude / planner-architect
 
