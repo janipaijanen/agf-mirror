@@ -3,10 +3,10 @@
 // Generate: dot -Tsvg operating-responsibility-map.dot -o ../operating-responsibility-map.svg
 digraph operating_responsibility_map {
     graph [rankdir=TB, splines=spline, pad=0.35, nodesep=0.45, ranksep=0.65,
-           fontname="Helvetica", fontsize=11, compound=true]
-    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
-           fillcolor=white, color="#0077BB", penwidth=1.2]
-    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+           bgcolor=white, fontname="Helvetica", fontsize=12, compound=true]
+    node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
+           fillcolor=white, color="#0077BB", penwidth=1.4]
+    edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
     legend [shape=plain, label=<
         <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">

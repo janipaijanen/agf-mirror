@@ -10,12 +10,14 @@ separated so content authors never touch pipeline files and vice versa.
 | Output | Config | Status |
 |---|---|---|
 | HTML site (GitLab Pages) | `mkdocs.yml` | Active — built by `.gitlab-ci.yml` |
-| Figures (Graphviz SVG/PNG/PDF) | `figures.yml` | **Deferred** — returns as its own Gate-1-scoped slice |
+| Figures (Graphviz SVG) | Manual Graphviz workflow | Active — source and SVGs are committed together |
+| Figure validation | `figures.yml` | **Deferred** — returns as its own Gate-1-scoped slice |
 | Academic PDF (Pandoc → TeX → latexmk) | `pdf.yml` | **Deferred** — returns as its own Gate-1-scoped slice |
 
-The deferral is a governance decision (coordination seq 107): polish-heavy
-figure and PDF work waits until the directory structure and the site
-pipeline are stable.
+The validation deferral is a governance decision (coordination seq 107):
+polish-heavy figure and PDF pipeline work waits until the directory structure
+and the site pipeline are stable. Figure source and generated SVGs may still be
+maintained manually when documentation changes require them.
 
 The HTML build generates `docs/site/reference/release-info.md` at build time.
 That page records the framework version from `VERSION`, the source git commit,
@@ -48,6 +50,11 @@ from the v2.0 directory). The jobs:
   site, kept for reviewer download on merge requests.
 - `pages` — publishes the built site via GitLab Pages on the default
   branch only.
+
+A future figure-validation job should stay separate from `site-html-build` so
+reviewers can distinguish image-source drift from MkDocs navigation failures.
+Low-risk checks include DOT-to-SVG inventory, regeneration drift, palette
+allow-listing, minimum font size, and non-empty Markdown alt text.
 
 While v2.0 lives side-by-side with canonical v1.x, this CI file is not
 the repository's root pipeline; it is included from the root (or promoted

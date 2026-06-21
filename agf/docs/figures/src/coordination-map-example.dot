@@ -1,11 +1,11 @@
 digraph agf_coordination_example {
   graph [
-    rankdir=LR,
+    rankdir=TB,
     bgcolor="#ffffff",
     fontname="Helvetica",
     label="Example AGF Foundry Coordination Map",
     labelloc=t,
-    fontsize=18
+    fontsize=14
   ];
   node [
     fontname="Helvetica",
@@ -18,7 +18,7 @@ digraph agf_coordination_example {
   ];
   edge [
     fontname="Helvetica",
-    fontsize=9,
+    fontsize=10,
     color="#5e6c84",
     fontcolor="#172b4d",
     arrowsize=0.8,

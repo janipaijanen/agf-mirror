@@ -3,10 +3,10 @@
 // Generate: dot -Tsvg adoption-exit-flow.dot -o ../adoption-exit-flow.svg
 digraph adoption_exit {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.55,
-           fontname="Helvetica", fontsize=11]
-    node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
-           fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
-    edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
+           bgcolor=white, fontname="Helvetica", fontsize=12]
+    node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
+           fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
+    edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
     assess   [label="Step 0: Assess\n(risk profile, team size)", shape=ellipse,
               fillcolor=white, color="#888888"]
@@ -20,7 +20,7 @@ digraph adoption_exit {
         fillcolor="#99CCEE"
         color="#888888"
         fontname="Helvetica"
-        fontsize=10
+        fontsize=12
 
         freeze   [label="Freeze\n(stop new governed\nchanges)", fillcolor=white,
                   color="#888888"]
