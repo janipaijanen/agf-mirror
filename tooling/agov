@@ -43,7 +43,12 @@ rust_supported() {
         resume) return 0 ;;
       esac
       ;;
-    agov.coord.validate|agov.plan.validate|agov.session.resume)
+    token)
+      case "${2:-}:${3:-}" in
+        roi:report) return 0 ;;
+      esac
+      ;;
+    agov.coord.validate|agov.plan.validate|agov.session.resume|agov.token.roi)
       return 0
       ;;
   esac
@@ -83,6 +88,8 @@ Usage:
   agov handoff next <agent-role> [--dir <coord-dir>]
   agov session resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
   agov agov.session.resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
+  agov token roi report [--log <path>]
+  agov agov.token.roi report [--log <path>]
 
 Rust implementation is preferred for supported commands. Elixir/Mix remains the
 fallback for commands not yet ported to Rust.
@@ -172,5 +179,6 @@ Supported launcher forms after build:
   agov agov.coord.validate <file>...
   agov agov.plan.validate <file>...
   agov agov.session.resume [--role <agent-role>]
+  agov agov.token.roi report [--log <path>]
 EOF
 exit 127
