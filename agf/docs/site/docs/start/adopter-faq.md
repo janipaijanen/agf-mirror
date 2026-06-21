@@ -18,6 +18,24 @@ If the code is throwaway, AGF is probably too much. If the code will live for
 months and AI assistants are making real changes, the structure starts to earn
 its keep.
 
+## What are the hard rules?
+
+Most of AGF is meant to be adapted: roles, local commands, review cadence, CI
+shape, and which specialist agents you actually use. A small set of rules is
+hard because breaking them destroys trust in the record.
+
+The big one is immutability:
+
+- filed coordination messages are never edited; corrections are new messages;
+- pushed git tags are never moved, deleted, or recreated; a broken release is
+  fixed by a new version;
+- historical evidence is preserved rather than rewritten to make the story
+  cleaner.
+
+This may feel strict until the first failure. Then it becomes calming: everyone
+can trust that the trail says what happened, not what someone later wished had
+happened.
+
 ## Should we commission the tooling too?
 
 Usually yes, but not on day one.
