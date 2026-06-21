@@ -14,6 +14,7 @@
 #   agf:dist:validate — validate the manifest-driven framework package
 #   agf:dist:preview  — build review-only framework archives on MRs/default branch
 #   agf:dist:release  — tag pipelines only; tag/VERSION guard then build archives
+#   dependency:cve-scan — scan dependency lockfiles for known vulnerabilities
 #   rust:tooling:*    — Rust tooling: test, clippy, parity, platform archives
 #   release:create    — upload archives to package registry; create GitLab release entry
 
@@ -63,6 +64,77 @@ workflow:
       'mkdocs-awesome-pages-plugin>=2.9,<3'
       'mkdocs-gen-files>=0.5,<1'
       'pymdown-extensions>=10.7,<11'
+
+# ── Dependency vulnerability scanning ─────────────────────────────────────────
+
+# Scan committed dependency manifests and lockfiles for known CVEs.
+# Trivy filesystem scanning detects language lockfiles, including Cargo.lock
+# and mix.lock, without building project artifacts. The JSON report is kept for
+# review; HIGH and CRITICAL findings with fixes available block the pipeline.
+dependency:cve-scan:
+  image:
+    name: aquasec/trivy:0.66.0
+    entrypoint: [""]
+  stage: test
+  variables:
+    TRIVY_CACHE_DIR: "$CI_PROJECT_DIR/.trivy-cache"
+    TRIVY_NO_PROGRESS: "true"
+  cache:
+    key: trivy-db
+    paths:
+      - .trivy-cache/
+  script:
+    - trivy --version
+    - >-
+      trivy fs
+      --scanners vuln
+      --skip-dirs agents-govern/.venv
+      --skip-dirs agf/site-html
+      --skip-dirs tooling/elixir/_build
+      --skip-dirs tooling/elixir/deps
+      --skip-dirs tooling/rust/target
+      --format json
+      --output trivy-dependency-vulnerabilities.json
+      .
+    - >-
+      trivy fs
+      --scanners vuln
+      --severity HIGH,CRITICAL
+      --ignore-unfixed
+      --dependency-tree
+      --skip-dirs agents-govern/.venv
+      --skip-dirs agf/site-html
+      --skip-dirs tooling/elixir/_build
+      --skip-dirs tooling/elixir/deps
+      --skip-dirs tooling/rust/target
+      --exit-code 1
+      .
+  artifacts:
+    name: "dependency-cve-scan-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - trivy-dependency-vulnerabilities.json
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - .gitlab-ci.yml
+        - mise.toml
+        - tooling/rust/Cargo.lock
+        - tooling/rust/**/*.toml
+        - tooling/elixir/mix.lock
+        - tooling/elixir/mix.exs
+        - agents-govern/pyproject.toml
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - .gitlab-ci.yml
+        - mise.toml
+        - tooling/rust/Cargo.lock
+        - tooling/rust/**/*.toml
+        - tooling/elixir/mix.lock
+        - tooling/elixir/mix.exs
+        - agents-govern/pyproject.toml
+    - if: $CI_COMMIT_TAG
 
 # ── Documentation ─────────────────────────────────────────────────────────────
 
