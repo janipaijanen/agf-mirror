@@ -1,6 +1,6 @@
 # agents-govern
 
-**Governance for AI-assisted software development.**
+**AI coding with human accountability.**
 
 agents-govern is an open framework for running AI coding agents under explicit,
 auditable governance: defined roles with bounded authority, review gates before
@@ -76,6 +76,26 @@ wrapper falls through to Mix automatically — no configuration required. See
 [Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup,
 estimates, and the evidence base behind the savings claims.
 
+## How it works
+
+**Role separation.** Agents get plain-language job descriptions. An implementer
+writes code. A reviewer checks it. A human governor approves gates and owns the
+project risk. An agent cannot approve its own work.
+
+**Decision log.** Every plan, review, handoff, and merge decision is saved as a
+Markdown file in the repository. Six months later, you can reconstruct why a
+change happened by reading the chain instead of relying on chat history or
+memory.
+
+**Hard gates.** Gate 1 asks whether the agent has a plan worth implementing.
+Gate 2 asks whether the implementation followed the rules and is ready to
+merge. Validators and CI provide evidence, but human governor decisions remain
+binding.
+
+**Git-native operation.** There is no hosted service, shared runtime, or message
+API. Assistants coordinate by reading and writing files in git, so the framework
+can work with different coding tools across separate sessions.
+
 ## What you get
 
 **Accountability structure for AI agents.** Each agent operates under a
@@ -113,6 +133,10 @@ documents the way out. Read both before adopting.
 
 ## Who benefits
 
+- **Solo maintainers** get a repeatable review structure around AI-generated
+  work, even when one human owns the final decision.
+- **Small teams** get shared conventions that assistants can follow across
+  sessions and tools.
 - **Engineering leads** get review gates that hold even when changes are
   machine-generated at machine speed.
 - **Developers** get an assistant that follows the project's actual conventions

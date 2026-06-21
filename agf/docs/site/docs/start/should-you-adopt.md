@@ -20,6 +20,15 @@ the person who approves gates and owns project risk — can reconstruct what was
 decided and stop unsafe work before it lands. Adopt when that audit trail is
 worth more than the overhead.
 
+## The practical test
+
+Use AGF when the cost of an unreviewable AI-generated change is higher than
+the cost of pausing for a plan, a review, and a recorded decision.
+
+Do not use AGF because it sounds rigorous. Use it when you need the rigor:
+long-lived code, real users, regulated or security-sensitive work, shared team
+conventions, or a codebase where "it worked in my session" is not good enough.
+
 ## What AGF is / is not
 
 AGF is a repository-local governance framework for AI-assisted software
@@ -38,10 +47,17 @@ tools; it does not replace them.
 
 - AI assistants write a significant share of your code, **and** you have
   (or are willing to be) a human governor who approves plans and merges.
+- You are a solo maintainer who wants a repeatable review discipline around
+  AI-generated work before you approve it yourself.
+- You are a small team that needs the same conventions to hold across tools,
+  sessions, and contributors.
 - Your project will live long enough for an audit trail to matter —
   months, not days.
 - You already have quality conventions you want assistants to follow
   consistently, and prompting alone has not held.
+- You need reconstructible evidence for internal audit, security review, or
+  compliance work. AGF supplies the trail; it does not make the project
+  compliant by itself.
 - You accept review overhead per change as a deliberate trade for
   reconstructible decisions.
 
@@ -59,6 +75,8 @@ tools; it does not replace them.
 - No AI assistants in your loop — conventional review and CI serve a
   human-only team better.
 - The codebase is exploratory or disposable.
+- You expect the AI to self-regulate without a human governor. AGF makes
+  human accountability explicit; it does not remove it.
 - You expect a hosted service or a runtime. This framework is files,
   rules, and conventions that your existing tools load and enforce.
 
