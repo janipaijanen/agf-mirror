@@ -6,7 +6,11 @@ system for AI-assisted software development.
 It gives AI coding agents explicit roles, bounded authority, two review gates,
 an append-only coordination channel, and structured learning records. The aim
 is simple: keep AI-assisted changes fast while making decisions, handoffs, and
-risk acceptance reconstructible from files.
+risk acceptance reconstructible from files. The coordination protocol is
+file-based: no server required. `agov coord graph` renders the channel as a
+Graphviz communication map — see
+[Coordination protocol](https://janipaijanen.gitlab.io/agents-govern-framework/docs/concepts/coordination-protocol/)
+in the docs.
 
 Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
 
@@ -71,6 +75,7 @@ Default POC layout:
 | Coordination channel | `docs/coordination/` |
 | Learning record | `agf/learnings/<codename>.yaml` |
 | Current core validators | `agov` from a full checkout |
+| Communication map | `agov coord graph` — Graphviz dot map of role-to-role coordination flows |
 
 The framework source archive is usable on its own. Adopters who want the
 current core validators can use a full checkout or the optional packaged

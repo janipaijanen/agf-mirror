@@ -1,45 +1,43 @@
-# docs: restore embedded figure legends on main
+# feat: add agov coord graph command
 
-## What happened
-
-The embedded-legend figure fixes were merged on `master`, but GitLab Pages is
-publishing from `main`. The live site therefore kept serving the older SVGs
-without embedded legends even though the corrected figures existed on the other
-branch.
+Gate 1 approved. Plan: `docs/plans/feat-coord-graph-command.md`
 
 ## What changed
 
-- Restored embedded legends for every public docs figure on `main`.
-- Updated both source figures and published site-copy SVGs:
-  - `adoption-exit-flow`
-  - `coordination-channel`
-  - `evidence-lifecycle`
-  - `gate-pipeline`
-  - `governance-loop`
-  - `learning-loop`
-  - `operating-responsibility-map`
-- Preserved the newer `main` wording in `adoption-exit-flow` while restoring
-  the legend layer.
-- Kept the final branch diff free of legacy seq-only coordination files that do
-  not validate against current coordination schema.
-- Added a current Gate 2 handoff for this restore branch.
+- Added `agov coord graph` to the Rust CLI with `--dir` and `--format`
+  arguments.
+- Reused the existing coordination reader so the graph is based on valid
+  coordination messages from the channel.
+- Counts `(from, to, kind)` communication edges and emits either Graphviz `dot`
+  text or human-readable terminal text.
+- Added role-aware node styling:
+  - `governor-reviewer` is visually emphasized;
+  - `all` is rendered as a broadcast target;
+  - other roles render as ordinary role nodes.
+- Added five focused Rust tests for empty directories, edge counts, node
+  styling, text output, and missing-directory errors.
+- Added a Concepts docs page for the coordination protocol, including `agov
+  coord graph` usage with a dated foundry-channel sample.
+- Added the new docs page to the Concepts nav and linked it from `README.md`.
 
 ## Verification
 
-- `mkdocs build --strict`: clean.
-- `git diff --check`: clean.
-- All seven `agf/docs/site/reference/figures/*.svg` files contain embedded
-  `Legend` text.
-- All seven `agf/docs/figures/*.svg` source-copy files contain embedded
-  `Legend` text.
-- Coordination handoff validates with current `agov coord validate`.
+- `git diff --check`: clean after rebase.
+- `/home/devi/.cargo/bin/cargo clippy --workspace -- -D warnings`: clean after
+  the CI clippy fix.
+- `/home/devi/.cargo/bin/cargo test -p agov --test coord_graph`: 5 passed
+  after rebase.
+- `mkdocs build --strict`: clean after rebase.
+- `agov coord graph` on the live foundry channel produced valid dot output.
+- Rebased onto current `main` after !72 figure-legend restore.
 
 ## Review Focus
 
 Please verify:
 
-- [ ] The live Pages-target branch receives the embedded-legend SVGs.
-- [ ] Each public reference figure has its legend inside the figure itself.
-- [ ] The `adoption-exit-flow` figure keeps the newer `main` wording.
-- [ ] No legacy Elixir/sequence-only coordination files are introduced by this
-      restore.
+- [ ] `agov coord graph` reads only valid coordination messages.
+- [ ] Dot output is deterministic and valid for Graphviz rendering.
+- [ ] Text output is useful without requiring Graphviz.
+- [ ] The docs do not imply Graphviz is a runtime dependency of `agov`.
+- [ ] The README link and MkDocs navigation target the new protocol page.
+- [ ] The rebase preserved current `main` docs and figure changes.

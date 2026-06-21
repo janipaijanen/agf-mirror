@@ -78,6 +78,7 @@ nav:
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
       - 'Concepts':
           - Roles and gates: docs/concepts/roles-and-gates.md
+          - Coordination protocol: docs/concepts/coordination-protocol.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md
       - 'Operate':
           - Day-to-day operation: docs/operate/day-to-day.md
