@@ -55,15 +55,18 @@ exclude_docs: |
 nav:
   - Home: index.md
   - Use cases: use-cases.md
+  - Evaluate: evaluate.md
   - Documentation:
       - Overview: docs/index.md
       - 'Start':
           - Should you adopt?: docs/start/should-you-adopt.md
+          - Adopter FAQ: docs/start/adopter-faq.md
       - 'Adopt':
           - Install the agf directory: docs/adopt/install-and-layouts.md
           - Downstream impact: docs/adopt/downstream-impact.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
           - Your first governed change: docs/start/first-governed-change.md
+          - Tooling and token savings: docs/adopt/tooling-and-tokens.md
       - 'Concepts':
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md

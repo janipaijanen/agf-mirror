@@ -6,13 +6,17 @@ this page you can make an informed adopt / wait / skip decision.*
 ## What you are deciding
 
 agents-govern is a file-based governance framework for AI-assisted software
-development. It gives AI coding agents explicit role definitions, Gate 1
+development. In plain terms: it is a set of files that tell your AI assistant
+how to behave, a review process that a human approves before anything merges,
+and a decision log that makes those approvals reconstructible later.
+
+More precisely: it gives AI coding agents explicit role definitions, Gate 1
 (plan approval before implementation), Gate 2 (review before merge), a
 coordination channel (the append-only decision log), and learning records
 (structured incident and pattern notes).
 
-The trade is deliberate: you accept a little ceremony so the human governor,
-the person who approves gates and owns project risk, can reconstruct what was
+The trade is deliberate: you accept a little ceremony so the human governor —
+the person who approves gates and owns project risk — can reconstruct what was
 decided and stop unsafe work before it lands. Adopt when that audit trail is
 worth more than the overhead.
 
@@ -21,7 +25,9 @@ worth more than the overhead.
 AGF is a repository-local governance framework for AI-assisted software
 development. It defines the files and decisions that make agentic work
 auditable: roles, gates, plans, coordination records, schemas, validators, and
-learning records.
+learning records. No new infrastructure: the rules live in your repository,
+your existing AI assistant loads them as instructions, and your existing CI
+runs the validators.
 
 AGF is not an agent runner, hosted workflow service, model-safety filter,
 security scanner, legal/compliance system, or substitute for human gate
