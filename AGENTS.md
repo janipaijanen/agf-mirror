@@ -17,7 +17,9 @@ AGF-NG/
 │   ├── rules/                # Governance rule templates
 │   └── schemas/              # JSON Schema draft-07 definitions
 ├── tooling/
-│   └── elixir/               # Elixir Mix project: agov 0.1.0 (mix tasks + validators)
+│   ├── agov                  # User-facing wrapper; prefers Rust, falls back when needed
+│   ├── rust/                 # Preferred AGF tooling implementation
+│   └── elixir/               # Reference/development implementation and parity oracle
 ├── docs/
 │   ├── coordination/         # Immutable coordination channel (append-only)
 │   ├── plans/                # Gate 1 plan files
@@ -151,16 +153,32 @@ merging — the repository may be local-only or the target branch name may diffe
 
 ## Tooling quick reference
 
-Use the user-local `agov` command for core plan and coordination validation.
-It points at this repository's `tooling/agov` executable.
+Use the user-local `agov` command for AGF tooling. It points at this
+repository's `tooling/agov` executable. The wrapper prefers the Rust
+implementation for supported commands, then falls back to Elixir only when
+needed.
 
-Mix remains the Elixir reference/development path for commands that are not yet
-wrapped by `agov`, such as session resume, handoff lookup, branch visibility,
-distribution checks, token ROI, and the test suite.
+Rust is the default operator path for supported commands:
+
+- `agov coord validate`
+- `agov coord brief`
+- `agov coord status`
+- `agov coord stale`
+- `agov coord visibility`
+- `agov handoff next`
+- `agov session resume`
+- `agov validate ...`
+- `agov token roi report`
+- `agov usage report`
 
 Cold-start rule for humans and AI agents: use one command in two steps. First,
-run `mix agov.session.resume` without `--role` to get the project map. Then
+run `agov session resume` without `--role` to get the project map. Then
 rerun the same command with the role you are actually playing.
+
+Use Mix directly only for Elixir implementation work, parity/reference checks,
+the Elixir test suite, or commands that are not yet exposed through `agov`
+(currently the distribution/package helpers such as `mix agov.dist.*`,
+`mix agov.tooling.build`, and `mix agov.bundle.build`).
 
 ```bash
 # Validate coordination messages
@@ -173,25 +191,26 @@ agov plan validate docs/plans/<file>.md
 agov agov.coord.validate docs/coordination/<file>.md
 agov agov.plan.validate docs/plans/<file>.md
 
-# Elixir reference/development commands run from tooling/elixir/
-cd tooling/elixir
-
 # Cold start: discover active roles and pending queues
-mix agov.session.resume --base-branch master
+agov session resume --base-branch master
 
 # Resume a session before acting or writing durable files
-mix agov.session.resume --role <agent-role> --base-branch master
+agov session resume --role <agent-role> --base-branch master
 
 # Find the next handoff for an agent role
-mix agov.handoff.next planner-architect
+agov handoff next planner-architect
 
 # Scan local branches for coordination obligations hidden from master
-mix agov.coord.visibility --base-branch master
+agov coord visibility --base-branch master
 
 # Report local deterministic-tool token ROI telemetry
-mix agov.token.roi report
+agov token roi report
 
-# Run all tests
+# Report recent coordination usage
+agov usage report
+
+# Elixir reference/development only
+cd tooling/elixir
 mix test
 ```
 
@@ -215,10 +234,10 @@ git log --oneline --decorate -5
 ls docs/coordination/ | sort | tail -5
 agov coord validate docs/coordination/<file>.md
 agov plan validate docs/plans/<file>.md
-mix agov.session.resume --base-branch master                         # cold start
-mix agov.session.resume --role planner-architect --base-branch master  # run from tooling/elixir/
-mix agov.handoff.next planner-architect   # run from tooling/elixir/
-mix agov.coord.visibility --base-branch master
+agov session resume --base-branch master                         # cold start
+agov session resume --role planner-architect --base-branch master
+agov handoff next planner-architect
+agov coord visibility --base-branch master
 ```
 
 **Snapshot (2026-06-14):** `agf/agents/MANIFEST.yaml` is the AGF-NG role
