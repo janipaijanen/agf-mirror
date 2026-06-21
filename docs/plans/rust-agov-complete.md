@@ -1,6 +1,6 @@
 ---
 id: rust-agov-complete
-status: pending-gate1
+status: approved
 topic: rust-agov-complete
 advisory_consultation:
   - role: infosec-sentinel
