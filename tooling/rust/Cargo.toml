@@ -30,6 +30,6 @@ ulid = "1"
 regex = "1"
 rayon = "1"
 clap = { version = "4", features = ["derive"] }
-time = { version = "0.3", features = ["formatting"] }
+time = { version = "0.3", features = ["formatting", "parsing"] }
 
 insta = { version = "1", features = ["yaml"] }
