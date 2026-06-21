@@ -36,4 +36,8 @@ digraph coord_channel {
     agent_a  -> completion [label="files\n(after merge)"]
     agent_a  -> note      [label="files\n(advisory / status)"]
     agent_b  -> note      [label="files\n(advisory / status)"]
+
+    legend [label="Legend\nblue area = append-only coordination directory\nellipse = participating agent\ngreen box = completed work\ngrey outline = advisory/status entry\nsolid edge = authored entry or attention flow",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    decision -> legend [style=invis]
 }

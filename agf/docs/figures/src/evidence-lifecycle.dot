@@ -25,4 +25,8 @@ digraph evidence_lifecycle {
     tool     -> promoted [style=dashed, label="validated\nin CI"]
 
     {rank=same; rule tool doc}
+
+    legend [label="Legend\norange ellipse = incident or observation\nblue box = record or candidate improvement\ngreen box = promoted/recommended state\nsolid edge = evidence-derived change\ndashed edge = optional validation path",
+            shape=note, fillcolor=white, color="#888888", fontsize=9]
+    doc -> legend [style=invis]
 }
