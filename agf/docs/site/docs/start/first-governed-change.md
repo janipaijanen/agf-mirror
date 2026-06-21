@@ -15,7 +15,7 @@ Gate 2, merge, and completion.
 
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
-## 1. Create the working directories
+## 1. Know where the files will go
 
 AGF itself lives in `agf/`. The POC default keeps project-owned gate evidence
 in root `docs/`:
@@ -24,26 +24,52 @@ in root `docs/`:
 mkdir -p docs/plans docs/coordination agf/learnings
 ```
 
-If your project chooses another coordination path, configure it before agents
-start writing files. Do not let agents split records across two channels.
+You can run that command yourself, but the next step asks your assistant to
+create any missing directories. If your project chooses another coordination
+path, configure it before agents start writing files. Do not let agents split
+records across two channels.
 
-## 2. Copy the starter files
+## 2. Ask your assistant to prepare the starter files
 
-```bash
-cp agf/templates/gate1-plan.md docs/plans/sample-login-error-message.md
-cp agf/templates/coord-handoff.md      docs/coordination/COORD-20260614-001.md
-cp agf/templates/coord-decision-record.md docs/coordination/COORD-20260614-002.md
-cp agf/templates/coord-gate2-handoff.md  docs/coordination/COORD-20260614-003.md
-cp agf/templates/coord-completion.md     docs/coordination/COORD-20260614-004.md
-cp agf/templates/learning-record.yaml agf/learnings/sample-project.yaml
+Do not spend your first AGF trial copying template files by hand. Let the AI do
+the clerk work, then review what it produced.
+
+Paste this into your coding assistant:
+
+```text
+Prepare the starter files for my first governed AGF change.
+
+Use this example task:
+"Use a safer, less revealing login error message."
+
+Create or update:
+- docs/plans/
+- docs/coordination/
+- agf/learnings/
+- docs/plans/sample-login-error-message.md from agf/templates/gate1-plan.md
+- one Gate 1 handoff coordination message
+- one Gate 1 decision-record coordination message
+- one Gate 2 handoff coordination message
+- one completion coordination message
+- agf/learnings/sample-project.yaml from agf/templates/learning-record.yaml
+
+Use `agov coord brief --id-format readable --from <role>` for new coordination
+messages when the tooling is available. New readable-ID coordination filenames
+must be `<id>.md`.
+
+Fill only the fields you can honestly fill for this trial. Leave obvious
+placeholders where the governor or implementation evidence must be supplied
+later. Do not invent tests, commits, approvals, or validation results.
 ```
 
-For current tooling, prefer generating coordination skeletons with
-`agov coord brief --id-format readable --from <role>`. Readable IDs use
-`YYYYMMDDThhmmssZ-<role-slug>-<random-suffix>` and new readable-ID files are
-named `<id>.md`. Existing template `COORD-YYYYMMDD-XXX` examples and ULID
-records remain valid compatibility forms; do not use sequential integers for
-new messages.
+The assistant should create the files and tell you what it changed. Review the
+diff. The point of the first trial is not to test your ability to copy
+templates; it is to see whether the assistant can work inside the governance
+loop and leave an audit trail you can read.
+
+If you are working without an assistant for the setup step, the manual fallback
+is to copy the starter templates yourself and then rename the coordination
+files using readable IDs from `agov coord brief`.
 
 ## 3. Validate the plan and first handoff
 
@@ -53,7 +79,7 @@ Use the `agov` command for core validation. In this repository it points at
 
 ```bash
 agov plan validate docs/plans/sample-login-error-message.md
-agov coord validate docs/coordination/COORD-20260614-001.md
+agov coord validate docs/coordination/<gate-1-handoff-id>.md
 ```
 
 The plan contains real YAML front matter, including the required advisory
@@ -70,16 +96,16 @@ decision.
 The governor-reviewer reads:
 
 - `docs/plans/sample-login-error-message.md`
-- `docs/coordination/COORD-20260614-001.md`
+- the Gate 1 handoff coordination message
 
-Then the governor files the decision. For this trial, the copied
-`docs/coordination/COORD-20260614-002.md` is a valid approval example.
-In real work, the governor writes the actual decision and conditions.
+Then the governor files the decision. For this trial, the assistant may prepare
+a decision-record skeleton, but the governor writes the actual decision and
+conditions. Do not let the assistant approve its own plan.
 
 Validate it:
 
 ```bash
-agov coord validate docs/coordination/COORD-20260614-002.md
+agov coord validate docs/coordination/<gate-1-decision-id>.md
 ```
 
 Nothing is implemented before Gate 1 approval lands.
@@ -96,12 +122,12 @@ small.
 
 ## 6. Gate 2: review before merge
 
-After implementation, update the copied Gate 2 handoff with the real changed
+After implementation, update the prepared Gate 2 handoff with the real changed
 files and validation commands:
 
 ```bash
-$EDITOR docs/coordination/COORD-20260614-003.md
-agov coord validate docs/coordination/COORD-20260614-003.md
+$EDITOR docs/coordination/<gate-2-handoff-id>.md
+agov coord validate docs/coordination/<gate-2-handoff-id>.md
 ```
 
 The governor-reviewer reviews the implementation diff, the tests, and the
@@ -114,8 +140,8 @@ Merge through your normal reviewed merge path. Then update and file the
 completion entry:
 
 ```bash
-$EDITOR docs/coordination/COORD-20260614-004.md
-agov coord validate docs/coordination/COORD-20260614-004.md
+$EDITOR docs/coordination/<completion-id>.md
+agov coord validate docs/coordination/<completion-id>.md
 ```
 
 The chain is now reconstructible:
