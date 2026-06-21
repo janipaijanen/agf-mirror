@@ -17,6 +17,15 @@ Plan: `docs/plans/agf-docs-visual-rendering-fix.md`
 - Five pages that use `!!! note "AGF v2 layout"` callouts will now render
   styled boxes rather than literal `!!! note` text.
 
+## Review Focus
+
+Please verify:
+
+- [ ] The MkDocs extension additions are limited to admonition rendering.
+- [ ] `extra_css` points at the new site stylesheet path.
+- [ ] The CSS tokens match `reference/palette.md`.
+- [ ] This slice does not change page wording or navigation.
+
 ## Does not touch
 
 Content `.md` files — all changes are build config and CSS only.
