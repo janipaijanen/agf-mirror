@@ -36,6 +36,11 @@ enum Command {
         #[command(subcommand)]
         sub: HandoffCommand,
     },
+    /// Session orientation commands.
+    Session {
+        #[command(subcommand)]
+        sub: SessionCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -113,6 +118,21 @@ enum HandoffCommand {
     },
 }
 
+#[derive(Subcommand)]
+enum SessionCommand {
+    /// Summarize session state for a returning agent.
+    Resume {
+        #[arg(long)]
+        role: Option<String>,
+        #[arg(long, default_value = "main", alias = "base_branch")]
+        base_branch: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "agf/agents/MANIFEST.yaml")]
+        manifest: PathBuf,
+    },
+}
+
 fn main() {
     let args = normalized_args();
     let cli = Cli::parse_from(args.clone());
@@ -131,6 +151,10 @@ fn normalized_args() -> Vec<String> {
             "agov.plan.validate" => {
                 *command = "plan".to_string();
                 args.insert(2, "validate".to_string());
+            }
+            "agov.session.resume" => {
+                *command = "session".to_string();
+                args.insert(2, "resume".to_string());
             }
             _ => {}
         }
@@ -173,6 +197,15 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
         } => handoff_next(&agent_role, dir, &args),
+        Command::Session {
+            sub:
+                SessionCommand::Resume {
+                    role,
+                    base_branch,
+                    dir,
+                    manifest,
+                },
+        } => session_resume(role, &base_branch, dir, manifest, &args),
     }
 }
 
@@ -713,6 +746,21 @@ fn stale_claims(
     aliases: &BTreeMap<String, String>,
     now: time::OffsetDateTime,
 ) -> Result<Vec<ClaimEntry>, Vec<InvalidExpiresOn>> {
+    Ok(claim_states(messages, aliases)?
+        .into_iter()
+        .filter(|entry| {
+            entry
+                .expires_on
+                .map(|expires| expires < now)
+                .unwrap_or(false)
+        })
+        .collect())
+}
+
+fn claim_states(
+    messages: &[HandoffMessage],
+    aliases: &BTreeMap<String, String>,
+) -> Result<Vec<ClaimEntry>, Vec<InvalidExpiresOn>> {
     let mut states: BTreeMap<String, ClaimEntry> = BTreeMap::new();
     let mut errors = Vec::new();
 
@@ -766,15 +814,7 @@ fn stale_claims(
         return Err(errors);
     }
 
-    Ok(states
-        .into_values()
-        .filter(|entry| {
-            entry
-                .expires_on
-                .map(|expires| expires < now)
-                .unwrap_or(false)
-        })
-        .collect())
+    Ok(states.into_values().collect())
 }
 
 fn release_claims(
@@ -843,6 +883,500 @@ fn string_array_field(raw: &serde_json::Value, field: &str) -> Vec<String> {
         .collect()
 }
 
+fn session_resume(
+    role: Option<String>,
+    base_branch: &str,
+    dir: PathBuf,
+    manifest: PathBuf,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let manifest = repo_relative_path(manifest);
+
+    let (messages, invalid_files) = match read_coord_messages_with_invalid(&dir) {
+        Ok(result) => result,
+        Err(_) => {
+            output.stderr(format!(
+                "Coordination directory not found: {}",
+                dir.display()
+            ));
+            return 1;
+        }
+    };
+
+    let selected_role = role.or_else(|| load_current_role(&dir));
+    let git = SessionGitStatus::read(base_branch);
+    let aliases = load_from_aliases(&dir);
+
+    if let Some(role) = selected_role.filter(|role| !role.is_empty()) {
+        render_session_resume(
+            &mut output,
+            &role,
+            base_branch,
+            &git,
+            &messages,
+            &invalid_files,
+            &aliases,
+        );
+        agov_core::roi::record_tool_output(
+            "agov.session.resume",
+            args,
+            &format!("session-resume:{role}"),
+            output.chars,
+        );
+    } else {
+        render_session_bootstrap(
+            &mut output,
+            &git,
+            &messages,
+            &invalid_files,
+            &manifest,
+            base_branch,
+        );
+        agov_core::roi::record_tool_output("agov.session.resume", args, "cold-start", output.chars);
+    }
+
+    0
+}
+
+struct SessionGitStatus {
+    branch: String,
+    dirty_files: Vec<String>,
+    branch_local_result: BranchLocalResult,
+}
+
+enum BranchLocalResult {
+    Files(Vec<String>),
+    Skipped(String),
+}
+
+impl SessionGitStatus {
+    fn read(base_branch: &str) -> Self {
+        Self {
+            branch: current_git_branch(),
+            dirty_files: git_dirty_files()
+                .unwrap_or_else(|reason| vec![format!("unable to read git status: {reason}")]),
+            branch_local_result: branch_local_coord_files(base_branch),
+        }
+    }
+
+    fn warnings(&self, base_branch: &str) -> Vec<String> {
+        let mut warnings = Vec::new();
+        if !self.dirty_files.is_empty() {
+            warnings.push(format!(
+                "working tree has uncommitted changes: {}",
+                self.dirty_files.join(", ")
+            ));
+        }
+
+        match &self.branch_local_result {
+            BranchLocalResult::Files(files) if files.is_empty() => {}
+            BranchLocalResult::Files(files) => warnings.push(format!(
+                "coordination files exist on this branch but not on {base_branch}: {}",
+                files.join(", ")
+            )),
+            BranchLocalResult::Skipped(reason) => {
+                warnings.push(format!("branch-local coordination check skipped: {reason}"))
+            }
+        }
+
+        warnings
+    }
+}
+
+fn current_git_branch() -> String {
+    match git_output(&["rev-parse", "--abbrev-ref", "HEAD"]) {
+        Ok(value) if !value.is_empty() => value,
+        Ok(_) => "unknown".to_string(),
+        Err(reason) => format!("unknown ({reason})"),
+    }
+}
+
+fn git_dirty_files() -> Result<Vec<String>, String> {
+    let output = git_output(&["status", "--short", "--untracked-files=all"])?;
+    Ok(output
+        .lines()
+        .filter_map(|line| line.get(3..).or(Some(line)))
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(str::to_string)
+        .collect())
+}
+
+fn branch_local_coord_files(base_branch: &str) -> BranchLocalResult {
+    let candidates = [
+        format!("origin/{base_branch}"),
+        format!("refs/remotes/origin/{base_branch}"),
+        base_branch.to_string(),
+    ];
+
+    for candidate in candidates {
+        let range = format!("{candidate}...HEAD");
+        if let Ok(output) = git_output(&["diff", "--name-only", &range, "--", "docs/coordination"])
+        {
+            let files = output
+                .lines()
+                .filter(|line| line.ends_with(".md"))
+                .map(str::to_string)
+                .collect();
+            return BranchLocalResult::Files(files);
+        }
+    }
+
+    BranchLocalResult::Skipped("base_branch_unavailable".to_string())
+}
+
+fn git_output(args: &[&str]) -> Result<String, String> {
+    let output = std::process::Command::new("git")
+        .args(args)
+        .output()
+        .map_err(|err| err.to_string())?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout)
+            .trim_end_matches(['\r', '\n'])
+            .to_string())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        Err(if stderr.is_empty() {
+            format!("git exited with {}", output.status)
+        } else {
+            stderr
+        })
+    }
+}
+
+fn load_current_role(dir: &Path) -> Option<String> {
+    let content = std::fs::read_to_string(dir.join("agov-config.yaml")).ok()?;
+    let data = serde_norway::from_str::<serde_json::Value>(&content).ok()?;
+    data.get("current_role")
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+}
+
+fn render_session_resume(
+    output: &mut OutputCounter,
+    role: &str,
+    base_branch: &str,
+    git: &SessionGitStatus,
+    messages: &[HandoffMessage],
+    invalid_files: &[String],
+    aliases: &BTreeMap<String, String>,
+) {
+    output.stdout("Session resume");
+    output.stdout(format!("Role: {role}"));
+    output.stdout(format!("Branch: {}", git.branch));
+    output.stdout("");
+    render_warnings(output, &git.warnings(base_branch));
+    render_invalid_files(output, invalid_files);
+    render_pending_handoffs_for_role(output, role, messages);
+    render_claims_for_role(output, role, messages, aliases);
+    render_recent_decisions(output, messages);
+    render_must_read(output, role, messages);
+}
+
+fn render_session_bootstrap(
+    output: &mut OutputCounter,
+    git: &SessionGitStatus,
+    messages: &[HandoffMessage],
+    invalid_files: &[String],
+    manifest: &Path,
+    base_branch: &str,
+) {
+    output.stdout("Session bootstrap");
+    output.stdout("Role: not selected");
+    output.stdout(format!("Branch: {}", git.branch));
+    output.stdout("");
+    render_warnings(output, &git.warnings(base_branch));
+    render_invalid_files(output, invalid_files);
+    render_active_roles(output, manifest, base_branch);
+    render_pending_handoffs_by_role(output, messages);
+    render_recent_decisions(output, messages);
+    output.stdout("Next step: rerun with the role you are playing, for example:");
+    output.stdout(format!(
+        "  agov session resume --role coder-tester --base-branch {base_branch}"
+    ));
+}
+
+fn render_warnings(output: &mut OutputCounter, warnings: &[String]) {
+    if warnings.is_empty() {
+        output.stdout("Warnings: none");
+    } else {
+        output.stdout("Warnings:");
+        for warning in warnings {
+            output.stdout(format!("  - {warning}"));
+        }
+    }
+    output.stdout("");
+}
+
+fn render_invalid_files(output: &mut OutputCounter, invalid_files: &[String]) {
+    if invalid_files.is_empty() {
+        return;
+    }
+
+    output.stdout("Invalid coordination files ignored:");
+    for file in invalid_files {
+        output.stdout(format!("  - {file}"));
+    }
+    output.stdout("");
+}
+
+fn render_active_roles(output: &mut OutputCounter, manifest: &Path, base_branch: &str) {
+    let Ok(content) = std::fs::read_to_string(manifest) else {
+        output.stdout("Active roles: unavailable (manifest not found)");
+        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("");
+        return;
+    };
+    let Ok(data) = serde_norway::from_str::<serde_json::Value>(&content) else {
+        output.stdout("Active roles: unavailable (manifest not found)");
+        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("");
+        return;
+    };
+    let Some(agents) = data.get("agents").and_then(|value| value.as_object()) else {
+        output.stdout("Active roles: unavailable (manifest not found)");
+        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("");
+        return;
+    };
+
+    let mut roles: Vec<&str> = agents
+        .iter()
+        .filter(|(_role, attrs)| {
+            attrs
+                .get("status")
+                .and_then(|value| value.as_str())
+                .is_some_and(|status| status == "active")
+        })
+        .map(|(role, _attrs)| role.as_str())
+        .collect();
+    roles.sort();
+
+    if roles.is_empty() {
+        output.stdout("Active roles: none");
+    } else {
+        output.stdout("Active roles:");
+        for role in roles {
+            output.stdout(format!(
+                "  - {role}  -> agov session resume --role {role} --base-branch {base_branch}"
+            ));
+        }
+    }
+    output.stdout("");
+}
+
+fn render_pending_handoffs_for_role(
+    output: &mut OutputCounter,
+    role: &str,
+    messages: &[HandoffMessage],
+) {
+    let mut pending: Vec<HandoffMessage> = pending_handoffs(messages)
+        .into_iter()
+        .filter(|message| string_field(&message.raw, "to") == Some(role))
+        .collect();
+    pending.sort_by_key(|message| message.sort_key.clone());
+
+    if pending.is_empty() {
+        output.stdout(format!("Pending handoffs for {role}: none"));
+    } else {
+        output.stdout(format!("Pending handoffs for {role}:"));
+        for message in pending.iter().rev() {
+            output.stdout(format_pending_handoff(message));
+        }
+    }
+    output.stdout("");
+}
+
+fn render_pending_handoffs_by_role(output: &mut OutputCounter, messages: &[HandoffMessage]) {
+    let mut grouped: BTreeMap<String, Vec<HandoffMessage>> = BTreeMap::new();
+    for message in pending_handoffs(messages) {
+        let role = string_field(&message.raw, "to").unwrap_or("unknown");
+        grouped.entry(role.to_string()).or_default().push(message);
+    }
+
+    if grouped.is_empty() {
+        output.stdout("Pending handoffs by role: none");
+    } else {
+        output.stdout("Pending handoffs by role:");
+        for (role, mut items) in grouped {
+            output.stdout(format!("  {role}:"));
+            items.sort_by_key(|message| message.sort_key.clone());
+            for message in items.iter().rev() {
+                output.stdout(format!("    - {}", pending_handoff_label(message)));
+            }
+        }
+    }
+    output.stdout("");
+}
+
+fn format_pending_handoff(message: &HandoffMessage) -> String {
+    format!("  - {}", pending_handoff_label(message))
+}
+
+fn pending_handoff_label(message: &HandoffMessage) -> String {
+    format!(
+        "{}  {}  [{}]",
+        display_id(&message.raw),
+        string_field(&message.raw, "topic").unwrap_or(""),
+        message
+            .raw
+            .get("handoff")
+            .and_then(|value| value.get("status"))
+            .and_then(|value| value.as_str())
+            .unwrap_or("ready")
+    )
+}
+
+fn render_claims_for_role(
+    output: &mut OutputCounter,
+    role: &str,
+    messages: &[HandoffMessage],
+    aliases: &BTreeMap<String, String>,
+) {
+    let resolved_role = resolve_alias(role, aliases);
+    let now = time::OffsetDateTime::now_utc();
+    let claims = match claim_states(messages, aliases) {
+        Ok(claims) => claims,
+        Err(errors) => {
+            output.stdout(format!("Open claims for {role}: none"));
+            output.stdout("");
+            output.stdout(format!("Stale claims for {role}: none"));
+            for error in errors {
+                output.stdout(format!(
+                    "  - invalid expires_on in {}: {}",
+                    error.file, error.value
+                ));
+            }
+            output.stdout("");
+            return;
+        }
+    };
+
+    let mut active = Vec::new();
+    let mut stale = Vec::new();
+    for claim in claims {
+        if resolve_alias(&claim.from, aliases) != resolved_role {
+            continue;
+        }
+        if claim
+            .expires_on
+            .map(|expires| expires < now)
+            .unwrap_or(false)
+        {
+            stale.push(claim);
+        } else {
+            active.push(claim);
+        }
+    }
+
+    active.sort_by_key(claim_sort_key);
+    stale.sort_by_key(claim_sort_key);
+    render_claim_list(output, &format!("Open claims for {role}:"), &active);
+    render_claim_list(output, &format!("Stale claims for {role}:"), &stale);
+}
+
+fn claim_sort_key(claim: &ClaimEntry) -> (String, String) {
+    (
+        claim.claimed_at.clone(),
+        claim
+            .id
+            .clone()
+            .unwrap_or_else(|| claim.seq.map(|seq| seq.to_string()).unwrap_or_default()),
+    )
+}
+
+fn render_claim_list(output: &mut OutputCounter, title: &str, claims: &[ClaimEntry]) {
+    if claims.is_empty() {
+        output.stdout(format!("{title} none"));
+    } else {
+        output.stdout(title);
+        for claim in claims.iter().rev() {
+            let expires = claim
+                .expires_on
+                .and_then(|expires| expires.format(&Rfc3339).ok())
+                .map(|expires| format!("  expires {expires}"))
+                .unwrap_or_default();
+            output.stdout(format!(
+                "  - {}  {}{}",
+                claim.path,
+                claim_display_label(claim),
+                expires
+            ));
+        }
+    }
+    output.stdout("");
+}
+
+fn claim_display_label(claim: &ClaimEntry) -> String {
+    if let Some(id) = &claim.id {
+        format!("id {}", id.chars().take(8).collect::<String>())
+    } else if let Some(seq) = claim.seq {
+        format!("seq {seq}")
+    } else {
+        "id <unknown>".to_string()
+    }
+}
+
+fn render_recent_decisions(output: &mut OutputCounter, messages: &[HandoffMessage]) {
+    let mut decisions: Vec<&HandoffMessage> = messages
+        .iter()
+        .filter(|message| string_field(&message.raw, "kind") == Some("decision-record"))
+        .collect();
+    decisions.sort_by_key(|message| message.sort_key.clone());
+
+    if decisions.is_empty() {
+        output.stdout("Recent decisions: none");
+    } else {
+        output.stdout("Recent decisions:");
+        for decision in decisions.iter().rev().take(5) {
+            output.stdout(format!(
+                "  - {}  {}",
+                display_id(&decision.raw),
+                string_field(&decision.raw, "topic").unwrap_or("")
+            ));
+        }
+    }
+    output.stdout("");
+}
+
+fn render_must_read(output: &mut OutputCounter, role: &str, messages: &[HandoffMessage]) {
+    let mut items = Vec::new();
+    for handoff in pending_handoffs(messages)
+        .iter()
+        .filter(|message| string_field(&message.raw, "to") == Some(role))
+    {
+        if let Some(handoff_data) = handoff
+            .raw
+            .get("handoff")
+            .and_then(|value| value.as_object())
+        {
+            for item in handoff_data
+                .get("must_read")
+                .and_then(|value| value.as_array())
+                .into_iter()
+                .flatten()
+                .filter_map(|value| value.as_str())
+            {
+                if !items.contains(&item.to_string()) {
+                    items.push(item.to_string());
+                }
+            }
+        }
+    }
+
+    if items.is_empty() {
+        output.stdout("Must read: none");
+    } else {
+        output.stdout("Must read:");
+        for item in items {
+            output.stdout(format!("  - {item}"));
+        }
+    }
+}
+
 fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
     let mut output = OutputCounter::default();
     let dir = repo_relative_path(dir);
@@ -880,7 +1414,14 @@ fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
 }
 
 fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io::Error> {
+    read_coord_messages_with_invalid(dir).map(|(messages, _invalid)| messages)
+}
+
+fn read_coord_messages_with_invalid(
+    dir: &Path,
+) -> Result<(Vec<HandoffMessage>, Vec<String>), std::io::Error> {
     let mut messages = Vec::new();
+    let mut invalid_files = Vec::new();
 
     for entry in std::fs::read_dir(dir)? {
         let entry = entry?;
@@ -889,10 +1430,12 @@ fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io:
             continue;
         }
 
-        let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+        let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
             continue;
         };
-        let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+
+        let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+            invalid_files.push(file_name.to_string());
             continue;
         };
 
@@ -910,7 +1453,8 @@ fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io:
     }
 
     messages.sort_by_key(|message| message.sort_key.clone());
-    Ok(messages)
+    invalid_files.sort();
+    Ok((messages, invalid_files))
 }
 
 fn pending_handoffs(messages: &[HandoffMessage]) -> Vec<HandoffMessage> {
