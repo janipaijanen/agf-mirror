@@ -44,6 +44,10 @@ validation results, open blockers, next concrete action, and must-read
 coordination or plan files. Session memory is never the authority for a
 governance decision or obligation.
 
+Claude Code users can run `/compact-agf` before `/compact` to write that
+state as a validated coordination note. The command is defined in
+`.claude/commands/compact-agf.md`.
+
 ## Command
 
 Session resume is not yet wrapped by the repo-local `agov` executable. Run it
