@@ -72,7 +72,13 @@ per change.
 ## Ongoing obligations
 
 - **Learning records** when incidents occur — structured YAML, validated.
+  Who drafts them, what triggers one, and how to submit upstream:
+  [When should we write a learning record?](../start/adopter-faq.md#when-should-we-write-a-learning-record)
+  and [How do we draft a learning?](../start/adopter-faq.md#how-do-we-draft-a-learning)
 - **Coordination entries** for actions other agents or humans must see.
+  Any active agent — AI or human — files one when taking an action
+  whose result others must reconstruct. Rules for when and how:
+  [Coordination hygiene](../operate/day-to-day.md#coordination-hygiene)
 - **Upgrade hygiene** — new framework releases replace upstream-owned files;
   your own files (codename learnings, customized rules) are preserved.
   The boundary between upstream-owned and adopter-owned is explicit in the
