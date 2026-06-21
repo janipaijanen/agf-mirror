@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use time::format_description::well_known::Rfc3339;
 
 type ValidationErrors = Vec<(String, String)>;
 type FileValidator<T> = fn(&std::path::Path) -> Result<T, ValidationErrors>;
@@ -70,7 +71,11 @@ enum CoordCommand {
         #[arg(long)]
         roles: bool,
     },
-    // Phase 2: Stale
+    /// Report stale artifact claims in the coordination channel.
+    Stale {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -152,6 +157,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub: CoordCommand::Status { dir, recent, roles },
         } => coord_status(dir, recent, roles, &args),
+        Command::Coord {
+            sub: CoordCommand::Stale { dir },
+        } => coord_stale(dir, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -634,6 +642,204 @@ fn manifest_roles() -> BTreeMap<String, RoleActivity> {
                 },
             )
         })
+        .collect()
+}
+
+#[derive(Debug, Clone)]
+struct ClaimEntry {
+    path: String,
+    from: String,
+    seq: Option<i64>,
+    id: Option<String>,
+    claimed_at: String,
+    expires_on: Option<time::OffsetDateTime>,
+    expires_raw: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct InvalidExpiresOn {
+    file: String,
+    value: String,
+}
+
+fn coord_stale(dir: PathBuf, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!("ERR  directory not found: {}", dir.display()));
+            return 2;
+        }
+    };
+
+    let aliases = load_from_aliases(&dir);
+    let now = time::OffsetDateTime::now_utc();
+    let stale = match stale_claims(&messages, &aliases, now) {
+        Ok(stale) => stale,
+        Err(errors) => {
+            for error in errors {
+                output.stderr(format!(
+                    "ERR  {}  invalid expires_on: {}",
+                    error.file, error.value
+                ));
+            }
+            return 2;
+        }
+    };
+
+    if stale.is_empty() {
+        output.stdout("OK  no stale claims");
+        agov_core::roi::record_tool_output("agov", args, "coord-stale", output.chars);
+        return 0;
+    }
+
+    for entry in stale {
+        output.stdout(format!(
+            "STALE  {}  claimed-by: {}  seq: {}  claimed-at: {}  expired-at: {}",
+            entry.path,
+            entry.from,
+            claim_seq_label(&entry),
+            entry.claimed_at,
+            entry.expires_raw.unwrap_or_default()
+        ));
+    }
+    1
+}
+
+fn stale_claims(
+    messages: &[HandoffMessage],
+    aliases: &BTreeMap<String, String>,
+    now: time::OffsetDateTime,
+) -> Result<Vec<ClaimEntry>, Vec<InvalidExpiresOn>> {
+    let mut states: BTreeMap<String, ClaimEntry> = BTreeMap::new();
+    let mut errors = Vec::new();
+
+    for message in messages {
+        match string_field(&message.raw, "kind") {
+            Some("claim") => {
+                let expires_raw = string_field(&message.raw, "expires_on").map(str::to_string);
+                let expires_on = match expires_raw.as_deref() {
+                    Some(value) => match time::OffsetDateTime::parse(value, &Rfc3339) {
+                        Ok(parsed) => Some(parsed),
+                        Err(_) => {
+                            errors.push(InvalidExpiresOn {
+                                file: message.file.clone(),
+                                value: value.to_string(),
+                            });
+                            continue;
+                        }
+                    },
+                    None => None,
+                };
+                let from = string_field(&message.raw, "from")
+                    .unwrap_or("unknown")
+                    .to_string();
+                let seq = message.raw.get("seq").and_then(|value| value.as_i64());
+                let id = string_field(&message.raw, "id").map(str::to_string);
+                let claimed_at = string_field(&message.raw, "timestamp")
+                    .unwrap_or("")
+                    .to_string();
+
+                for path in string_array_field(&message.raw, "artifacts_owned") {
+                    states.insert(
+                        path.clone(),
+                        ClaimEntry {
+                            path,
+                            from: from.clone(),
+                            seq,
+                            id: id.clone(),
+                            claimed_at: claimed_at.clone(),
+                            expires_on,
+                            expires_raw: expires_raw.clone(),
+                        },
+                    );
+                }
+            }
+            Some("completion") => release_claims(&mut states, &message.raw, aliases),
+            _ => {}
+        }
+    }
+
+    if !errors.is_empty() {
+        return Err(errors);
+    }
+
+    Ok(states
+        .into_values()
+        .filter(|entry| {
+            entry
+                .expires_on
+                .map(|expires| expires < now)
+                .unwrap_or(false)
+        })
+        .collect())
+}
+
+fn release_claims(
+    states: &mut BTreeMap<String, ClaimEntry>,
+    raw: &serde_json::Value,
+    aliases: &BTreeMap<String, String>,
+) {
+    let from = resolve_alias(string_field(raw, "from").unwrap_or("unknown"), aliases);
+    let paths = string_array_field(raw, "artifacts_owned");
+
+    if paths.is_empty() {
+        states.retain(|_path, entry| resolve_alias(&entry.from, aliases) != from);
+    } else {
+        for path in paths {
+            let should_release = states
+                .get(&path)
+                .map(|entry| resolve_alias(&entry.from, aliases) == from)
+                .unwrap_or(false);
+            if should_release {
+                states.remove(&path);
+            }
+        }
+    }
+}
+
+fn claim_seq_label(entry: &ClaimEntry) -> String {
+    entry
+        .seq
+        .map(|seq| seq.to_string())
+        .or_else(|| entry.id.as_ref().map(|_id| String::new()))
+        .unwrap_or_default()
+}
+
+fn load_from_aliases(dir: &Path) -> BTreeMap<String, String> {
+    let path = dir.join("agov-config.yaml");
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return BTreeMap::new();
+    };
+    let Ok(data) = serde_norway::from_str::<serde_json::Value>(&content) else {
+        return BTreeMap::new();
+    };
+    let Some(aliases) = data.get("from_aliases").and_then(|value| value.as_object()) else {
+        return BTreeMap::new();
+    };
+
+    aliases
+        .iter()
+        .filter_map(|(from, to)| Some((from.clone(), to.as_str()?.to_string())))
+        .collect()
+}
+
+fn resolve_alias(value: &str, aliases: &BTreeMap<String, String>) -> String {
+    aliases
+        .get(value)
+        .cloned()
+        .unwrap_or_else(|| value.to_string())
+}
+
+fn string_array_field(raw: &serde_json::Value, field: &str) -> Vec<String> {
+    raw.get(field)
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .map(str::to_string)
         .collect()
 }
 
@@ -1318,5 +1524,127 @@ mod tests {
         let pending = pending_handoffs(&[handoff, note, completion]);
 
         assert!(pending.is_empty());
+    }
+
+    fn claim_message(
+        file: &str,
+        from: &str,
+        seq: i64,
+        path: &str,
+        expires_on: Option<&str>,
+    ) -> HandoffMessage {
+        let mut raw = serde_json::json!({
+            "kind": "claim",
+            "from": from,
+            "to": "all",
+            "topic": "test",
+            "timestamp": "2026-01-01T00:00:00Z",
+            "seq": seq,
+            "id": file.trim_end_matches(".md"),
+            "artifacts_owned": [path],
+        });
+        if let Some(expires_on) = expires_on {
+            raw["expires_on"] = serde_json::Value::String(expires_on.to_string());
+        }
+
+        HandoffMessage {
+            file: file.to_string(),
+            sort_key: ("2026-01-01T00:00:00Z".to_string(), file.to_string()),
+            refs: Vec::new(),
+            raw,
+        }
+    }
+
+    fn completion_message(file: &str, from: &str, paths: Vec<&str>) -> HandoffMessage {
+        HandoffMessage {
+            file: file.to_string(),
+            sort_key: ("2026-01-01T00:01:00Z".to_string(), file.to_string()),
+            refs: Vec::new(),
+            raw: serde_json::json!({
+                "kind": "completion",
+                "from": from,
+                "to": "all",
+                "topic": "test",
+                "timestamp": "2026-01-01T00:01:00Z",
+                "id": file.trim_end_matches(".md"),
+                "artifacts_owned": paths,
+            }),
+        }
+    }
+
+    #[test]
+    fn stale_claims_reports_expired_unreleased_claims() {
+        let now = time::OffsetDateTime::parse("2026-01-01T00:00:00Z", &Rfc3339).unwrap();
+        let claim = claim_message(
+            "00010-coder-tester.md",
+            "coder-tester",
+            10,
+            "docs/stale.md",
+            Some("2025-01-01T00:00:00Z"),
+        );
+
+        let stale = stale_claims(&[claim], &BTreeMap::new(), now).unwrap();
+
+        assert_eq!(stale.len(), 1);
+        assert_eq!(stale[0].path, "docs/stale.md");
+        assert_eq!(stale[0].seq, Some(10));
+    }
+
+    #[test]
+    fn stale_claims_ignores_active_and_non_expiring_claims() {
+        let now = time::OffsetDateTime::parse("2026-01-01T00:00:00Z", &Rfc3339).unwrap();
+        let active = claim_message(
+            "00010-coder-tester.md",
+            "coder-tester",
+            10,
+            "docs/active.md",
+            Some("2099-01-01T00:00:00Z"),
+        );
+        let no_expiry = claim_message(
+            "00011-coder-tester.md",
+            "coder-tester",
+            11,
+            "docs/no-expiry.md",
+            None,
+        );
+
+        let stale = stale_claims(&[active, no_expiry], &BTreeMap::new(), now).unwrap();
+
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_claims_excludes_released_claims() {
+        let now = time::OffsetDateTime::parse("2026-01-01T00:00:00Z", &Rfc3339).unwrap();
+        let claim = claim_message(
+            "00010-coder-tester.md",
+            "coder-tester",
+            10,
+            "docs/stale.md",
+            Some("2025-01-01T00:00:00Z"),
+        );
+        let completion = completion_message("00011-coder-tester.md", "coder-tester", vec![]);
+
+        let stale = stale_claims(&[claim, completion], &BTreeMap::new(), now).unwrap();
+
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_claims_rejects_invalid_expires_on() {
+        let now = time::OffsetDateTime::parse("2026-01-01T00:00:00Z", &Rfc3339).unwrap();
+        let claim = claim_message(
+            "00010-coder-tester.md",
+            "coder-tester",
+            10,
+            "docs/stale.md",
+            Some("not-a-date"),
+        );
+
+        let errors = stale_claims(&[claim], &BTreeMap::new(), now).unwrap_err();
+
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].file, "00010-coder-tester.md");
+        assert_eq!(errors[0].value, "not-a-date");
     }
 }
