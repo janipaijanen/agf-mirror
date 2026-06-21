@@ -24,6 +24,7 @@ site_dir: ../../site-html
 
 theme:
   name: material
+  custom_dir: ../site/overrides
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default

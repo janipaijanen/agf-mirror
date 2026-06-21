@@ -24,3 +24,38 @@
 .md-typeset details.note > summary {
   background-color: color-mix(in srgb, var(--agf-blue-light) 30%, transparent);
 }
+
+.agf-header-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.6rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--md-primary-bg-color) 35%, transparent);
+  border-radius: 0.2rem;
+  color: var(--md-primary-bg-color);
+  font-size: 0.55rem;
+  line-height: 1.35;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.agf-header-version:hover,
+.agf-header-version:focus {
+  color: var(--md-primary-bg-color);
+  opacity: 1;
+}
+
+.agf-header-version__commit {
+  font-family: var(--md-code-font-family);
+  opacity: 0.82;
+}
+
+@media screen and (max-width: 44.984375em) {
+  .agf-header-version {
+    gap: 0.2rem;
+    margin-left: 0.25rem;
+    padding: 0.05rem 0.25rem;
+    font-size: 0.48rem;
+  }
+}
