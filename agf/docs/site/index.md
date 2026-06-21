@@ -62,8 +62,11 @@ Level 5 are in production use on this project:
 | `agov coord brief ...` | AI asks a human or guesses a coordination ID and filename | Level 5 — Deployable |
 | `agov handoff next <role>` | Agent scans handoff files and mentally subtracts resolved items | Level 5 — Deployable |
 | `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 5 — Deployable |
-| `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 1 — Planned |
-| `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 1 — Planned |
+| `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 5 — Deployable |
+| `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 5 — Deployable |
+| `agov coord visibility` | Agent scans branches for hidden coordination obligations | Level 5 — Deployable |
+| `agov token roi report` | Agent summarizes deterministic-tool token savings from local telemetry | Level 5 — Deployable |
+| `agov usage report` | Agent counts active roles, senders, message kinds, and unknown senders | Level 5 — Deployable |
 
 *Maturity levels follow the [implementation honesty model](docs/concepts/evidence-and-learnings.md):
 Level 5 is deployable and in active use; Level 1 is planned. Do not conflate

@@ -50,21 +50,22 @@ Level 5 is deployable and in active use; Level 1 is planned.
 | `agov handoff next <role>` | Agent reads handoff messages, mentally subtracts resolved items, and selects the pending one for its role. The command returns the relevant handoff in one invocation. |
 | `agov coord status [--recent N] [--roles]` | Agent counts pending handoffs, reads claim messages, and scans the channel for channel health. The `--roles` flag adds a per-role activity summary for session orientation. |
 
-### Level 1 — Planned (Rust, in progress)
+### Level 5 — Additional deployable commands
 
-The following commands exist in the Elixir reference implementation and are in
-operational use today via Mix. The approved plan `docs/plans/rust-agov-complete.md`
-covers porting the full command surface to Rust, including these commands.
-When implemented, each will reach Level 5 via parity testing.
+The following commands are available through the `agov` wrapper. The wrapper
+uses the Rust implementation when present and falls back to the Elixir
+reference implementation for commands that have not yet been ported.
 
 | Command | What it replaces |
 |---|---|
 | `agov session resume [--role <role>]` | Agent reads recent coordination files, the manifest, branch status, and claims to reconstruct its starting state for the session. This is potentially the highest-token-cost activity in the agent loop because it happens at every session boundary. |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages and comparing timestamps. |
+| `agov coord visibility` | Agent compares branches for coordination obligations that exist off the base branch. |
+| `agov token roi report` | Agent summarizes local deterministic-tool telemetry instead of estimating savings by hand. |
+| `agov usage report [--last <n>]` | Agent counts message kinds, active senders, inactive active-status agents, and unknown senders. |
 
-Until the Rust port lands, these two commands are available via Mix for
-projects that have Elixir installed. The `agov` wrapper routes to Mix when the
-Rust binary does not support the command.
+For adoption work, `agov usage report --last 50` is the quickest answer to
+"which roles have actually been active recently?"
 
 ## How to set it up
 
