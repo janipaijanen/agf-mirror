@@ -92,8 +92,39 @@ either exists or does not. In the framework's own operation, the gates
 have caught scope drift, branch collisions, and unverifiable claims that
 prompting alone did not.
 
+## Structural and advisory enforcement
+
+Not every gate has equal enforcement strength. The distinction matters for
+adopters deciding where to invest in automation.
+
+A **structural gate** enforces regardless of agent cooperation — the check
+runs outside the agent's control flow. Pre-commit hooks and CI pipeline jobs
+are structural: the commit is refused or the merge is blocked before anyone
+decides whether to cooperate.
+
+An **advisory gate** relies on the agent reading and following the rule. The
+coordination-message rule, the review checklist, and Gate 1 plan approval are
+advisory: they are woven into the agent's briefing and enforced through review
+and the immutable audit trail. An agent that skips an advisory gate leaves a
+visible audit gap — not an automated block.
+
+| Gate | Enforcement type |
+|---|---|
+| Pre-commit hook (linter, secret scan) | Structural — adopter configures |
+| CI schema validation (`agov coord validate`) | Structural — see [contracts and validators](../advanced/contracts-and-validators.md) |
+| Gate 1 plan approval | Advisory — governor verifies |
+| Gate 2 review checklist | Advisory — agent self-checks, reviewer verifies |
+| Gate 2 decision record | Advisory + social — governor must file before merge |
+
+The rule files in `agf/rules/` are advisory by nature. What makes the advisory
+layer effective is discipline, review, and the audit trail. What makes the
+structural layer effective is automation. Add structural checks wherever the
+automation cost is low; accept the advisory model where it is not — and make
+the distinction visible so adopters know what to reinforce.
+
 ## Next
 
 - How evidence accumulates and becomes rules:
   [evidence and learnings](evidence-and-learnings.md)
+- Wiring validators as CI blockers: [contracts and validators](../advanced/contracts-and-validators.md)
 - The gates in daily practice: [day-to-day operation](../operate/day-to-day.md)
