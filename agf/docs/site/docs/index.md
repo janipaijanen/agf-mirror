@@ -31,6 +31,9 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
   adopting**: how to leave cleanly, so you know adoption is reversible.
 - [Your first governed change](start/first-governed-change.md) — one small
   change through plan approval, implementation, and review.
+- [Tooling and token savings](adopt/tooling-and-tokens.md) — how the `agov`
+  CLI replaces repeated AI reads with deterministic tool output, current
+  command maturity, and how to wire it into CI.
 
 ### 3. Concepts — the mental model
 

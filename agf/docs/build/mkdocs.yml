@@ -64,6 +64,7 @@ nav:
           - Downstream impact: docs/adopt/downstream-impact.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
           - Your first governed change: docs/start/first-governed-change.md
+          - Tooling and token savings: docs/adopt/tooling-and-tokens.md
       - 'Concepts':
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md
