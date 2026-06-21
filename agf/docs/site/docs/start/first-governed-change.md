@@ -48,9 +48,6 @@ Create or update:
 - agf/learnings/
 - docs/plans/sample-login-error-message.md from agf/templates/gate1-plan.md
 - one Gate 1 handoff coordination message
-- one Gate 1 decision-record coordination message
-- one Gate 2 handoff coordination message
-- one completion coordination message
 - agf/learnings/sample-project.yaml from agf/templates/learning-record.yaml
 
 Use `agov coord brief --id-format readable --from <role>` for new coordination
