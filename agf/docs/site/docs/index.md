@@ -19,6 +19,9 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
 
 - [Should you adopt?](start/should-you-adopt.md) — an honest decision page:
   who benefits now, who should wait, who should skip.
+- [Adopter FAQ](start/adopter-faq.md) — plain answers to the questions that
+  usually appear while commissioning the framework: tooling, learnings,
+  upstreaming evidence, and multi-agent team use.
 
 ### 2. Adopt — install with eyes open
 

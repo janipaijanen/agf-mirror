@@ -126,6 +126,7 @@ documents the way out. Read both before adopting.
 | Intent | Start here |
 |---|---|
 | Make the adopt / wait / skip decision | [Should you adopt?](docs/start/should-you-adopt.md) |
+| Answer commissioning questions | [Adopter FAQ](docs/start/adopter-faq.md) |
 | Understand cost and exit path | [Downstream impact](docs/adopt/downstream-impact.md) → [Exit and decommission](docs/adopt/exit-and-decommission.md) |
 | Install and run one governed change | [Install the `agf/` directory](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
 | Set up the tooling and understand token savings | [Tooling and token savings](docs/adopt/tooling-and-tokens.md) |
