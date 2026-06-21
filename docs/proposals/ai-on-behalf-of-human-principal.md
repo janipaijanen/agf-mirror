@@ -1,0 +1,327 @@
+# Proposal note: AI acting on behalf of a human principal
+
+*Status: exploratory analysis. Audience: planner-architect, governor-reviewer,
+external reviewers. This is not legal advice.*
+
+## Question
+
+Should AGF support an operating model where an AI assistant works **on behalf
+of person X**, similar to enterprise approaches where a tool acts within a
+named employee's workspace, permissions, and accountability boundary?
+
+Short answer: yes, AGF should consider it, but only if it treats the model as
+**delegated agency with explicit attribution**, not as human impersonation.
+
+The distinction matters:
+
+- **Acceptable framing:** "AI session S acted under delegated authority from
+  human principal X, using role R, with constraints C, and human decision D."
+- **Unsafe framing:** "X did this", when the material action, text, or code was
+  produced by an AI assistant and X did not meaningfully review or approve it.
+
+## Why this matters
+
+The current AGF role model is role-first: `planner-architect`,
+`coder-tester`, `governor-reviewer`, and other roles communicate through
+coordination records. Enterprise adoption may also need a principal-first
+dimension:
+
+- a developer asks an AI to operate in their branch or IDE session;
+- a maintainer delegates triage or patch preparation to an assistant;
+- a security owner authorizes an assistant to collect evidence;
+- a manager or tech lead wants a trace of "whose authority was used" without
+  pretending the AI was that human.
+
+Without a principal model, downstream projects may invent weaker patterns:
+shared bot accounts, opaque "AI did it" commit authorship, or commits that
+look human-authored while hiding the delegation chain.
+
+## Candidate models
+
+### A. Pure role model
+
+AI sessions act only as AGF roles. Human names appear only in governor
+decisions and normal Git history.
+
+Pros:
+
+- Simple and already implemented.
+- Avoids collecting personal data in AGF records beyond what git already
+  records.
+- Keeps governance focused on authority boundaries instead of org charts.
+
+Cons:
+
+- Weak in enterprise settings where tool access is delegated from a named
+  person or team.
+- Harder to answer "who authorized this AI session?"
+- Encourages external identity systems to carry accountability silently.
+
+### B. Principal-bound delegation model
+
+Every AI session may optionally record a human or service principal:
+
+```yaml
+principal:
+  type: human
+  handle: "@example-user"
+  authority_source: "GitLab Maintainer on project X"
+  delegation_scope: "prepare branch and tests; no merge approval"
+  reviewed_by: "@example-user"
+```
+
+The AI remains identified as an AI session and AGF role. The principal is the
+person or accountable service identity under whose authorization it worked.
+
+Pros:
+
+- Preserves human accountability without pretending the AI is human.
+- Makes access delegation auditable.
+- Aligns well with enterprise IAM and code-owner practices.
+- Helps answer incident questions: who delegated, what scope, who reviewed?
+
+Cons:
+
+- Adds personal-data handling and retention questions.
+- Can create a chilling effect or blame routing if used punitively.
+- Requires careful UI/docs language so "principal" does not become fake
+  approval.
+- Could be confused with legal agency, employment authority, or signature
+  authority if wording is sloppy.
+
+### C. Impersonation model
+
+The AI works as person X and records only X as actor.
+
+Recommendation: reject.
+
+Pros:
+
+- Operationally easy in tools that only understand a human account.
+- Matches how some IDE assistants feel in practice.
+
+Cons:
+
+- Weak audit trail: reviewers cannot distinguish human-authored work from AI
+  work.
+- Creates accountability confusion after incidents.
+- Makes disclosure, review, and contestability harder.
+- Ethically fragile: a person can be blamed for AI outputs that they did not
+  meaningfully review, or the AI can launder action through a trusted human
+  identity.
+
+## Architectural implications
+
+If AGF adopts principal-bound delegation, prefer additive metadata over a
+rewrite of the role model.
+
+Possible places:
+
+- coordination message front matter: optional `principal:` object;
+- plan front matter: optional `principal` or `delegation` section for the AI
+  session preparing the plan;
+- claim messages: principal-bound claims for branch or artifact ownership;
+- decision records: explicit `reviewed_by` / `approved_by` stays human and
+  cannot be delegated to the AI session;
+- `agov session resume`: show role, session, branch, pending handoffs, and
+  principal/delegation scope when present.
+
+Keep these invariants:
+
+- The AI identity and role must remain visible.
+- The human principal does not equal approval.
+- Gate decisions still require governor-reviewer authority.
+- A principal can delegate preparation, evidence collection, and drafting; AGF
+  should not imply that they delegated binding risk acceptance unless a
+  recorded governance rule says so.
+- System accounts should be explicitly typed as service principals, not hidden
+  as humans.
+
+## Ethical questions
+
+### Attribution
+
+Every record should answer three questions:
+
+1. Who or what produced the work?
+2. Under whose authority was it allowed to act?
+3. Who accepted the risk at the gate?
+
+Combining those into one name is convenient and dangerous.
+
+### Consent and knowledge
+
+A human principal should know when an AI is acting under their authority. A
+team should not silently attach a person's name to AI work after the fact.
+
+### Accountability without scapegoating
+
+Principal attribution should support reconstruction, not blame automation. A
+bad pattern would be: "The AI made a bad decision, but it was under X, so X is
+solely responsible." A better pattern is: "X delegated scope C; the AI exceeded
+or stayed within C; the governor accepted or rejected gate D; tooling did or
+did not catch E."
+
+### Human review quality
+
+If the model says "reviewed by X", it should distinguish skim, checklist
+review, code review, and binding gate approval. Otherwise, review labels become
+ceremony.
+
+### Power asymmetry
+
+In workplaces, "AI on behalf of employee X" may become monitoring of the
+employee's productivity or judgement. AGF should avoid features that require
+more personal surveillance than the governance trail needs.
+
+## EU and regulatory context to consider
+
+This section is issue-spotting, not advice.
+
+- The EU AI Act entered into force on 1 August 2024. Some obligations already
+  apply: prohibited practices and AI literacy from 2 February 2025, and GPAI
+  governance obligations from 2 August 2025. The Commission states the Act is
+  generally applicable from 2 August 2026, with high-risk timelines affected by
+  later simplification/political agreement.
+  Source: European Commission AI Act page:
+  <https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai>
+- The Commission page also states that high-risk systems used in areas such as
+  biometrics, critical infrastructure, education, employment, migration, asylum,
+  and border control are expected to apply from 2 December 2027 under the
+  simplification timeline. Employment and worker-management use cases are
+  therefore a sensitive boundary for any "AI on behalf of employee" framing.
+- AI Act transparency tools and guidance are still developing. The Commission
+  notes forthcoming support for marking and labelling AI-generated content and
+  transparent AI systems. AGF should avoid overclaiming compliance and instead
+  preserve auditable disclosure.
+- The AI Liability Directive proposal was officially withdrawn in October 2025,
+  according to the European Parliament Legislative Train. That does not remove
+  liability risk; it means AGF should not build around a withdrawn directive as
+  if it were enacted law.
+  Source:
+  <https://www.europarl.europa.eu/legislative-train/theme-a-europe-fit-for-the-digital-age/file-ai-liability-directive>
+- GDPR remains relevant when records identify humans, process personal data, or
+  feed automated decisions about people. Article 22 concerns solely automated
+  decisions with legal or similarly significant effects; AGF should not imply
+  that a logged human principal automatically solves meaningful human
+  involvement. Source for GDPR text:
+  <https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng>
+
+Design consequence: AGF should treat principal metadata as accountability and
+audit metadata, not as a legal compliance claim.
+
+## Pros of supporting principal-bound delegation
+
+- Better enterprise fit: maps to IAM, branch permissions, code ownership, and
+  existing accountability practices.
+- Better incident reconstruction: distinguishes actor, delegator, reviewer, and
+  gate approver.
+- Better ethics: avoids hidden AI work under a human-looking identity.
+- Better cross-tool operation: multiple assistants can act for the same human
+  while still preserving session and role boundaries.
+- Better future compliance posture: keeps disclosure and logs available without
+  claiming AGF is a compliance system.
+
+## Cons and risks
+
+- Adds complexity to schemas and docs.
+- May make small-team adoption feel heavier.
+- May collect more personal data than necessary.
+- May be misread as "the principal approved this".
+- May conflict with local labour, employment, or monitoring expectations.
+- May encourage organizations to shift responsibility to individuals while
+  the organization controls the tools, prompts, and deadlines.
+
+## Possible AGF policy direction
+
+Recommended default:
+
+1. Keep role-first AGF as the base model.
+2. Add optional principal-bound delegation metadata for adopters that need it.
+3. Explicitly reject AI impersonation of humans.
+4. Require disclosure in coordination records when AI work is done under a
+   human or service principal.
+5. Keep governor-reviewer gate approval separate from the principal.
+6. Add docs language: "principal attribution is not legal advice, employment
+   attribution, or proof of meaningful human review."
+
+Possible rule:
+
+> If an AI assistant acts under a named human or service account's delegated
+> authority, the coordination record must identify the AI role/session, the
+> principal, the delegation scope, and the human gate decision separately. An
+> AI session must not be represented as the human principal.
+
+## Implementation sketch
+
+### Schema addition
+
+Optional `principal` object on coordination messages:
+
+```yaml
+principal:
+  kind: human | service | team | none
+  identifier: "@handle-or-service-name"
+  authority_source: "GitLab role, ticket, policy, or explicit instruction"
+  delegation_scope:
+    - "prepare patch"
+    - "run tests"
+    - "draft review notes"
+  cannot_approve:
+    - "Gate 1"
+    - "Gate 2"
+    - "release tag"
+  review_status: unreviewed | reviewed | gate-approved
+```
+
+### Tooling
+
+- `agov coord validate` validates the shape but does not decide legal meaning.
+- `agov session resume` surfaces the active principal/delegation scope when
+  present.
+- `agov usage report` may count human principals separately from AI senders.
+- `agov coord graph` could optionally render role-to-role and
+  principal-to-role views separately.
+
+### Docs
+
+- Add "Delegated AI work" to Roles and gates or Advanced customization.
+- Add a FAQ entry: "Can an assistant work on behalf of a human?"
+- Add a warning against shared bot accounts and hidden impersonation.
+- Add a small example coordination record.
+
+## Questions for Claude / planner-architect
+
+- Should this become a v2.x optional extension, or wait for v3 because it
+  touches schemas, identity, and ethics?
+- Should principal metadata live in every coordination message, only claims,
+  or only handoffs/decision records?
+- What is the minimum useful shape that avoids personal-data overcollection?
+- How should AGF handle service principals, team aliases, and rotating duty
+  roles?
+- Should "reviewed by principal" and "approved by governor" be separate schema
+  fields?
+- Should public docs mention Amazon-style enterprise delegation generically, or
+  avoid naming vendors and describe the pattern abstractly?
+
+## Prompt for Lumo or another external AI reviewer
+
+Please review the AGF proposal note
+`docs/proposals/ai-on-behalf-of-human-principal.md` as an external AI reviewer.
+
+Questions:
+
+- Does the proposal correctly distinguish delegated authority from
+  impersonation?
+- What ethical risks are missing, especially for workplace monitoring,
+  accountability, and blame shifting?
+- What EU regulatory issues should AGF consider without pretending to provide
+  legal advice?
+- Is optional `principal` metadata a reasonable architecture, or should AGF
+  keep identity outside the framework?
+- What minimum docs wording would help adopters avoid representing AI work as
+  human work?
+- Which parts are too heavy for a small team?
+
+Please cite what you read, say what you did not inspect, and separate legal
+observations from product/design recommendations.
