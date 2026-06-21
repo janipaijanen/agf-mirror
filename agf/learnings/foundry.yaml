@@ -349,6 +349,48 @@ learnings:
       is acceptable as long as the schema accepts both during a transition
       window).
 
+  - id: "20260621T143908Z"
+    date: "2026-06-21"
+    category: gap
+    agents_involved: [planner-architect]
+    summary: >
+      After context compaction, agents default to manual git and file reads
+      for session orientation instead of calling agov session resume first,
+      defeating the tooling's token-saving purpose at the highest-cost moment.
+    detail: >
+      On 2026-06-21, after a context compaction mid-session, the planner-architect
+      resumed by reading the session state note, running git log, and directly
+      inspecting coordination files — none of which were recorded in the token
+      ROI log. The agov session resume command exists precisely for this moment:
+      it compacts coordination state into a brief oriented summary at a fraction
+      of the token cost of manual file reads.
+
+      The ROI log only records a saving when the tool runs. Manual reads consume
+      more tokens and record nothing. The cold-start guidance documents the
+      session resume command but does not state that it must be the first
+      substantive action before any manual reads. Without that constraint, agents
+      default to familiar git and file reads on context-resume, assuming the
+      agov invocation is optional or can come later.
+
+      The failure mode is invisible: the agent arrives at the correct state
+      either way, but the token-saving path goes unused at the most expensive
+      moment of every session — resumption after compaction.
+
+      The user surfaced the gap by noting no new ROI entries appeared in
+      tmp/agov-token-roi.jsonl during the planner-architect's session.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Update the cold-start and session-resume guidance to make agov session
+      resume the mandatory first substantive action — before any git log, git
+      show, direct file reads, or coordination file inspection. Add a checklist
+      item to the context-resume protocol: "run agov session resume before any
+      manual reads; the tooling compacts what you would otherwise read at full
+      token cost." Document that this applies equally to fresh sessions and to
+      context-resume after compaction, since the failure mode is identical in
+      both cases. Consider surfacing this as a validator warning when the ROI
+      log shows a session with no session.resume entry.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
