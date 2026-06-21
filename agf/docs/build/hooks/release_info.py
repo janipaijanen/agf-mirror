@@ -51,6 +51,16 @@ def on_pre_build(config, **kwargs) -> None:
 
     timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
+    extra = dict(config.get("extra") or {})
+    extra["agf_release"] = {
+        "version": version,
+        "commit": commit,
+        "short_commit": short_commit,
+        "branch": branch,
+        "timestamp": timestamp,
+    }
+    config["extra"] = extra
+
     target = Path(config.docs_dir).resolve() / "reference" / "release-info.md"
     target.parent.mkdir(parents=True, exist_ok=True)
     bibtex = (
