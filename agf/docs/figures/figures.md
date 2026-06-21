@@ -18,6 +18,7 @@ docs/figures/
     evidence-lifecycle.dot
     learning-loop.dot
     adoption-exit-flow.dot
+    coordination-map-example.dot
   *.svg                   Generated SVGs (committed as source-of-truth)
   figures.md              This file
 ```
