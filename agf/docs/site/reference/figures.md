@@ -128,6 +128,8 @@ the coordination record history.
 - Embed SVG in Markdown with `![Alt text](figures/name.svg)` from this page,
   or with the full relative path from other pages.
 - Do not hand-edit generated SVG files — edit the DOT source and regenerate.
+- Every figure must include an embedded legend in the generated image. Do not
+  rely on page prose or captions to explain color, shape, or line semantics.
 - Use the [visual palette](palette.md) for all new figures.
 
 ## See also
