@@ -13,7 +13,9 @@ CI — no hosted service, no runtime, no new accounts.
 > Some rules and extension points are still marked experimental or
 > evidence-limited where the evidence base is narrow. The exact version and
 > source commit for this build are recorded in
-> [Release information](reference/release-info.md).
+> [Release information](reference/release-info.md). Release archives and
+> platform-specific Rust binaries are published on the
+> [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 ## How to adopt
 

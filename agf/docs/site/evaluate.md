@@ -111,4 +111,4 @@ Structure the output with these sections:
 
 Open an [External Review issue](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/new?issuable_template=External+Review)
 on the framework repository. The issue template matches this output
-format.
+format. A free GitLab account is required to create an issue.
