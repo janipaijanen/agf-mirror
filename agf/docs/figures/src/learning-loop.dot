@@ -2,25 +2,40 @@
 // agents-govern: evidence-driven learning loop
 // Generate: dot -Tsvg learning-loop.dot -o ../learning-loop.svg
 digraph learning_loop {
-    graph [rankdir=LR, splines=spline, pad=0.35, nodesep=0.45, ranksep=0.65,
-           fontname="Helvetica", fontsize=11]
+    graph [rankdir=LR, splines=spline, pad=0.3, nodesep=0.35, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, labelloc=b, label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
+            <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
+            <TR>
+                <TD BORDER="1" COLOR="#888888" WIDTH="28">oval</TD><TD ALIGN="LEFT">evidence source</TD>
+                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">learning or proposal</TD>
+                <TD BGCOLOR="#009944" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">accepted disposition</TD>
+            </TR>
+            <TR>
+                <TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">lifecycle progression</TD>
+                <TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">feedback into next cycle</TD>
+                <TD></TD><TD></TD>
+            </TR>
+        </TABLE>
+    >]
     node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
     edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
 
-    work [label="Governed work\nincidents, friction,\nor validation results",
+    work [label="Governed work\nincidents / friction\nvalidation results",
           shape=ellipse, fillcolor=white, color="#888888",
           fontcolor="#888888"]
-    record [label="Learning record\nstructured YAML,\nschema-validated"]
-    proposal [label="Rule, docs,\nor tool proposal\nProvisional when\nsingle-source"]
-    use [label="Use in projects\nadopters confirm,\nreject, or refine"]
-    disposition [label="Recommended rule,\nrevised rule,\nor retirement",
+    record [label="Learning record\nschema-validated"]
+    proposal [label="Proposal\nrule / docs / tool\nProvisional"]
+    use [label="Project use\nconfirm / refine"]
+    disposition [label="Disposition\nrecommend / revise /\nretire",
                  fillcolor="#009944", fontcolor=white, color="#009944"]
 
     work -> record [label="capture\nevidence"]
-    record -> proposal [label="extract\nchange"]
-    proposal -> use [label="try under\ngovernance"]
+    record -> proposal [label="extract"]
+    proposal -> use [label="try"]
     use -> disposition [label="review\noutcome"]
     disposition -> work [label="feeds next\ncycle", color="#888888",
                          fontcolor="#888888"]
+
 }

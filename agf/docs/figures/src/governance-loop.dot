@@ -2,26 +2,44 @@
 // agents-govern: self-applied governance loop
 // Generate: dot -Tsvg governance-loop.dot -o ../governance-loop.svg
 digraph governance_loop {
-    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.6,
-           fontname="Helvetica", fontsize=11]
+    graph [rankdir=LR, splines=spline, pad=0.3, nodesep=0.35, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, labelloc=b, label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
+            <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
+            <TR>
+                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">governed workflow step</TD>
+                <TD BGCOLOR="#009944" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">merged outcome</TD>
+                <TD BGCOLOR="#888888" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">learning feedback</TD>
+            </TR>
+            <TR>
+                <TD BGCOLOR="#EE7700" WIDTH="28"><FONT COLOR="white">oval</FONT></TD><TD ALIGN="LEFT">incident / observation</TD>
+                <TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">feeds next plan</TD>
+                <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rework or trigger</TD>
+            </TR>
+        </TABLE>
+    >]
     node  [fontname="Helvetica", fontsize=10, style=filled, shape=box,
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.2]
     edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
 
-    plan     [label="Plan\n(Gate 1)", fillcolor="#99CCEE"]
-    implement [label="Implement\n(Coder-Tester)"]
-    review   [label="Review\n(Gate 2)", fillcolor="#99CCEE"]
+    plan     [label="Plan\nGate 1", fillcolor="#99CCEE"]
+    implement [label="Implement"]
+    review   [label="Review\nGate 2", fillcolor="#99CCEE"]
     merge    [label="Merge\n(to main)", fillcolor="#009944", fontcolor=white]
-    learn    [label="Learn\n(learning record)", fillcolor="#888888", fontcolor=white]
+    learn    [label="Learn\nrecord evidence", fillcolor="#888888", fontcolor=white]
     incident [label="Incident /\nObservation", shape=ellipse, fillcolor="#EE7700",
               fontcolor=white, color="#EE7700"]
 
     plan     -> implement [label="approved"]
     implement -> review   [label="Gate 2\nhandoff"]
     review   -> merge     [label="approved"]
-    review   -> implement [label="changes\nrequested", style=dashed]
+    review   -> implement [label="changes\nrequested", style=dashed,
+                           color="#EE7700", fontcolor="#EE7700",
+                           constraint=false]
     merge    -> learn     [label="finding\nor incident"]
-    incident -> learn     [style=dashed]
-    learn    -> plan      [label="new rule /\ntool / doc", color="#888888",
-                           fontcolor="#888888"]
+    incident -> learn     [style=dashed, color="#EE7700", constraint=false]
+    learn    -> plan      [label="feeds next\nplan", color="#888888",
+                           fontcolor="#888888", constraint=false]
+
+    { rank=same; incident; learn }
 }

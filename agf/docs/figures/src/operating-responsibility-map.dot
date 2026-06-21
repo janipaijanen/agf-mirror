@@ -8,14 +8,17 @@ digraph operating_responsibility_map {
            fillcolor=white, color="#0077BB", penwidth=1.2]
     edge  [fontname="Helvetica", fontsize=9, color="#0077BB", penwidth=1.2]
 
-    mixed_items [label="Mixed: human + AI\n\nRead coordination and claims\nSize tasks and choose path\nReview evidence and trade-offs\nRecord learnings and doc/rule updates",
-                 fillcolor=white]
-    ai_items [label="AI-executed\n(delegated work, no final authority)\n\nDraft plans, proposals, and docs\nImplement scoped changes\nRun tests and validators\nGenerate candidate figures\nPrepare handoffs with evidence",
-              fillcolor="#99CCEE"]
-    human_items [label="Human-only authority\n\nApprove Gate 1 plans\nApprove Gate 2 merges\nAccept or reject risk\nActivate or suspend roles\nAdopt, freeze, or exit",
-                 fillcolor="#EE7700", fontcolor=white, color="#EE7700"]
-
-    { rank=same; mixed_items; ai_items; human_items }
+    legend [shape=plain, label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
+            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
+            <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">mixed human + AI</TD></TR>
+            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">AI-executed delegated work</TD></TR>
+            <TR><TD BGCOLOR="#EE7700" WIDTH="28"><FONT COLOR="white">diamond</FONT></TD><TD ALIGN="LEFT">human-only authority</TD></TR>
+            <TR><TD><FONT COLOR="#009944">-----&gt;</FONT></TD><TD ALIGN="LEFT">approved decision</TD></TR>
+            <TR><TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD></TR>
+            <TR><TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">next-cycle feedback</TD></TR>
+        </TABLE>
+    >]
 
     read    [label="1. Read, claim,\nand size\n(Mixed)", fillcolor=white]
     execute [label="2. Draft, implement,\ntest, validate\n(AI-executed)",
@@ -34,4 +37,6 @@ digraph operating_responsibility_map {
                       fontcolor="#009944"]
     record -> read [label="next cycle", color="#888888",
                     fontcolor="#888888"]
+
+    legend -> read [style=invis]
 }
