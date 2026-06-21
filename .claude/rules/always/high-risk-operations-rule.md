@@ -6,12 +6,12 @@
 # See: framework.md — Principle 5 (Escalation over Improvisation), Pattern 3 (Escalation)
 
 - STOP before editing any of the following high-risk areas:
-  - **Audit log pipeline** — the service(s) that record audit entries
-  - **Access control / authorization** — the policy or permissions module
-  - **Authentication flow** — OIDC, session, or login handling
-  - **Row-level security or tenant isolation** — RLS policies, tenant scoping logic
-  - **Migration scripts** — especially those touching security policies or constraints
-  - **Time-lock or state-lock logic** — any code that enforces read-only periods
+  - **Audit log pipeline** — the service(s) that record audit entries. *Consequence if broken: changes are recorded incompletely or silently; the gap surfaces only during an incident or compliance audit.*
+  - **Access control / authorization** — the policy or permissions module. *Consequence if misconfigured: any role can escalate privileges; cross-tenant data exposure is exploitable before it is detected.*
+  - **Authentication flow** — OIDC, session, or login handling. *Consequence if broken: users are locked out, or sessions are forged and tokens accepted past expiry.*
+  - **Row-level security or tenant isolation** — RLS policies, tenant scoping logic. *Consequence if weakened: one tenant reads another's data; the violation may not surface until a customer or regulator looks.*
+  - **Migration scripts** — especially those touching security policies or constraints. *Consequence if wrong: schema changes are irreversible once applied in production; a bad migration can corrupt or lose data with no rollback.*
+  - **Time-lock or state-lock logic** — any code that enforces read-only periods. *Consequence if bypassed: writes land in periods they must not; financial, legal, or audit integrity is compromised.*
 
 <!-- CUSTOMIZE: add project-specific high-risk areas (e.g. billing, payment processing) -->
 

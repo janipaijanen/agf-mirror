@@ -116,6 +116,28 @@ validate-governance:
 See [Contracts and validators](../advanced/contracts-and-validators.md) for the
 full CI wiring guide, including how to declare checks as blocking vs advisory.
 
+## Why meter at the governance gate
+
+"You cannot optimise what you do not meter, and you cannot meter what flows
+through no chokepoint."
+
+Every agent invocation passes through one or more AGF gates: coordination
+validation, handoff routing, session resume. Capturing token consumption at
+those chokepoints produces attribution data that API-level billing cannot: cost
+per role, per coordination message kind, per gate pass. API billing shows total
+spend; gate-level metering shows which governance activity caused it.
+
+This matters for efficiency decisions. "AI is expensive" is not actionable.
+"Session-resume accounts for 40% of coordination overhead and runs 12 times
+per day" is. The `agov token roi report` command reads the local JSONL telemetry
+and surfaces savings per command, giving teams the visibility to reduce
+coordination overhead without reducing coordination discipline.
+
+Governance also enables greater agent autonomy safely: a controlled blast radius
+(budget caps in the policy engine, audit log for every gate pass) means agents
+can be trusted with more latitude because the consequences of missteps are
+bounded and visible.
+
 ## Token savings: the evidence model
 
 AGF does not claim exact token counts — token consumption varies by model,
