@@ -1,4 +1,5 @@
-use std::path::PathBuf;
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 
 /// A saved-token ROI record appended to `tmp/agov-token-roi.jsonl`.
 ///
@@ -115,6 +116,224 @@ pub fn estimate_tokens(chars: u64) -> u64 {
     chars.div_ceil(4)
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RoiSummary {
+    pub total_records: usize,
+    pub total_chars: u64,
+    pub total_approx_tokens: u64,
+    pub manual_chars: u64,
+    pub manual_approx_tokens: u64,
+    pub estimated_saved_min_tokens: u64,
+    pub estimated_saved_max_tokens: u64,
+    pub commands: Vec<RoiCommandRow>,
+    pub workflows: Vec<RoiWorkflowRow>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RoiCommandRow {
+    pub command: String,
+    pub count: usize,
+    pub chars: u64,
+    pub approx_tokens: u64,
+    pub approx_saved_min_tokens: u64,
+    pub approx_saved_max_tokens: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RoiWorkflowRow {
+    pub workflow: String,
+    pub count: usize,
+    pub chars: u64,
+    pub approx_tokens: u64,
+    pub approx_saved_min_tokens: u64,
+    pub approx_saved_max_tokens: u64,
+}
+
+pub fn default_report_path() -> PathBuf {
+    std::env::var_os("AGOV_TOKEN_ROI_LOG")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| crate::repo_root().join("tmp").join("agov-token-roi.jsonl"))
+}
+
+pub fn load_records(path: &Path) -> Result<Vec<serde_json::Value>, std::io::Error> {
+    let content = match std::fs::read_to_string(path) {
+        Ok(content) => content,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(err) => return Err(err),
+    };
+
+    Ok(content
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+        .collect())
+}
+
+pub fn summarize(records: &[serde_json::Value]) -> RoiSummary {
+    let mut command_groups: BTreeMap<String, Vec<&serde_json::Value>> = BTreeMap::new();
+    let mut workflow_groups: BTreeMap<String, Vec<&serde_json::Value>> = BTreeMap::new();
+
+    for record in records {
+        if let Some(command) = record.get("command").and_then(|value| value.as_str()) {
+            command_groups
+                .entry(command.to_string())
+                .or_default()
+                .push(record);
+        }
+        if let Some(workflow) = record.get("workflow").and_then(|value| value.as_str()) {
+            workflow_groups
+                .entry(workflow.to_string())
+                .or_default()
+                .push(record);
+        }
+    }
+
+    let mut commands: Vec<RoiCommandRow> = command_groups
+        .into_iter()
+        .map(|(command, group)| RoiCommandRow {
+            command,
+            count: group.len(),
+            chars: sum_field(&group, "chars"),
+            approx_tokens: sum_field(&group, "approx_tokens"),
+            approx_saved_min_tokens: sum_field(&group, "approx_saved_min_tokens"),
+            approx_saved_max_tokens: sum_field(&group, "approx_saved_max_tokens"),
+        })
+        .collect();
+    commands.sort_by(|left, right| {
+        right
+            .approx_tokens
+            .cmp(&left.approx_tokens)
+            .then_with(|| left.command.cmp(&right.command))
+    });
+
+    let mut workflows: Vec<RoiWorkflowRow> = workflow_groups
+        .into_iter()
+        .map(|(workflow, group)| RoiWorkflowRow {
+            workflow,
+            count: group.len(),
+            chars: sum_field(&group, "chars"),
+            approx_tokens: sum_field(&group, "approx_tokens"),
+            approx_saved_min_tokens: sum_field(&group, "approx_saved_min_tokens"),
+            approx_saved_max_tokens: sum_field(&group, "approx_saved_max_tokens"),
+        })
+        .collect();
+    workflows.sort_by(|left, right| {
+        right
+            .approx_tokens
+            .cmp(&left.approx_tokens)
+            .then_with(|| left.workflow.cmp(&right.workflow))
+    });
+
+    let manual_chars = sum_field_values(records, "manual_chars");
+    let total_chars = sum_field_values(records, "chars");
+
+    RoiSummary {
+        total_records: records.len(),
+        total_chars,
+        total_approx_tokens: estimate_tokens(total_chars),
+        manual_chars,
+        manual_approx_tokens: estimate_tokens(manual_chars),
+        estimated_saved_min_tokens: sum_field_values(records, "approx_saved_min_tokens"),
+        estimated_saved_max_tokens: sum_field_values(records, "approx_saved_max_tokens"),
+        commands,
+        workflows,
+    }
+}
+
+pub fn format_report(summary: &RoiSummary, log_path: &Path) -> String {
+    [
+        "Token ROI telemetry".to_string(),
+        format!("Log: {}", log_path.display()),
+        format!("Records: {}", summary.total_records),
+        format!(
+            "Measured tool output: {} chars / {} approx tokens",
+            summary.total_chars, summary.total_approx_tokens
+        ),
+        savings_line(summary),
+        String::new(),
+        format_command_rows(&summary.commands),
+        String::new(),
+        format_workflow_rows(&summary.workflows),
+    ]
+    .join("\n")
+}
+
+fn savings_line(summary: &RoiSummary) -> String {
+    if summary.estimated_saved_min_tokens == 0
+        && summary.estimated_saved_max_tokens == 0
+        && summary.manual_chars == 0
+    {
+        return "Potential savings: none recorded".to_string();
+    }
+
+    let manual = if summary.manual_chars == 0 {
+        "Manual baseline: automatic workflow baselines only".to_string()
+    } else {
+        format!(
+            "Manual baseline: {} chars / {} approx tokens",
+            summary.manual_chars, summary.manual_approx_tokens
+        )
+    };
+
+    format!(
+        "{manual}; potential saved: {}",
+        savings_range(
+            summary.estimated_saved_min_tokens,
+            summary.estimated_saved_max_tokens
+        )
+    )
+}
+
+fn format_command_rows(rows: &[RoiCommandRow]) -> String {
+    if rows.is_empty() {
+        return "Commands: none".to_string();
+    }
+
+    std::iter::once("Commands:".to_string())
+        .chain(rows.iter().map(|row| {
+            format!(
+                "  {:<24} {:>3} runs  {:>7} chars  {:>6} tokens  {:>18} saved",
+                row.command,
+                row.count,
+                row.chars,
+                row.approx_tokens,
+                savings_range(row.approx_saved_min_tokens, row.approx_saved_max_tokens)
+            )
+        }))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn format_workflow_rows(rows: &[RoiWorkflowRow]) -> String {
+    if rows.is_empty() {
+        return "Workflows: none".to_string();
+    }
+
+    std::iter::once("Workflows:".to_string())
+        .chain(rows.iter().map(|row| {
+            format!(
+                "  {:<28} {:>3} records  {:>7} chars  {:>6} tokens  {:>18} saved",
+                row.workflow,
+                row.count,
+                row.chars,
+                row.approx_tokens,
+                savings_range(row.approx_saved_min_tokens, row.approx_saved_max_tokens)
+            )
+        }))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+fn savings_range(min: u64, max: u64) -> String {
+    if min == 0 && max == 0 {
+        "0".to_string()
+    } else if min == max {
+        min.to_string()
+    } else {
+        format!("{min}-{max}")
+    }
+}
+
 fn timestamp() -> String {
     time::OffsetDateTime::now_utc()
         .format(&time::format_description::well_known::Rfc3339)
@@ -165,6 +384,20 @@ fn workflow_baseline(workflow: &str) -> Option<Baseline> {
 
 fn saved_tokens(manual_tokens: u64, tool_tokens: u64, prompt_overhead_tokens: u64) -> u64 {
     manual_tokens.saturating_sub(tool_tokens + prompt_overhead_tokens)
+}
+
+fn sum_field(records: &[&serde_json::Value], field: &str) -> u64 {
+    records
+        .iter()
+        .filter_map(|record| record.get(field).and_then(|value| value.as_u64()))
+        .sum()
+}
+
+fn sum_field_values(records: &[serde_json::Value], field: &str) -> u64 {
+    records
+        .iter()
+        .filter_map(|record| record.get(field).and_then(|value| value.as_u64()))
+        .sum()
 }
 
 #[cfg(test)]
@@ -241,5 +474,78 @@ mod tests {
             json["baseline_source"],
             "docs/reference/tooling-token-roi.md#validation-baseline"
         );
+    }
+
+    #[test]
+    fn summarize_groups_mixed_rust_and_elixir_records() {
+        let records = vec![
+            serde_json::json!({
+                "event": "tool_output",
+                "implementation": "rust-agov",
+                "command": "agov",
+                "workflow": "coord-validate",
+                "chars": 40,
+                "approx_tokens": 10,
+                "approx_saved_min_tokens": 20,
+                "approx_saved_max_tokens": 30
+            }),
+            serde_json::json!({
+                "event": "tool_output",
+                "command": "agov",
+                "workflow": "coord-validate",
+                "chars": 80,
+                "approx_tokens": 20,
+                "approx_saved_min_tokens": 40,
+                "approx_saved_max_tokens": 50
+            }),
+            serde_json::json!({
+                "event": "measurement",
+                "command": "manual",
+                "workflow": "cold-start",
+                "chars": 100,
+                "manual_chars": 500,
+                "approx_tokens": 25,
+                "approx_saved_min_tokens": 100,
+                "approx_saved_max_tokens": 100
+            }),
+        ];
+
+        let summary = summarize(&records);
+
+        assert_eq!(summary.total_records, 3);
+        assert_eq!(summary.total_chars, 220);
+        assert_eq!(summary.total_approx_tokens, 55);
+        assert_eq!(summary.manual_chars, 500);
+        assert_eq!(summary.manual_approx_tokens, 125);
+        assert_eq!(summary.estimated_saved_min_tokens, 160);
+        assert_eq!(summary.estimated_saved_max_tokens, 180);
+        assert!(summary.commands.contains(&RoiCommandRow {
+            command: "agov".to_string(),
+            count: 2,
+            chars: 120,
+            approx_tokens: 30,
+            approx_saved_min_tokens: 60,
+            approx_saved_max_tokens: 80,
+        }));
+        assert!(summary.workflows.contains(&RoiWorkflowRow {
+            workflow: "coord-validate".to_string(),
+            count: 2,
+            chars: 120,
+            approx_tokens: 30,
+            approx_saved_min_tokens: 60,
+            approx_saved_max_tokens: 80,
+        }));
+    }
+
+    #[test]
+    fn format_report_prints_empty_shape() {
+        let summary = summarize(&[]);
+        let report = format_report(&summary, PathBuf::from("tmp/roi.jsonl").as_path());
+
+        assert!(report.contains("Token ROI telemetry"));
+        assert!(report.contains("Log: tmp/roi.jsonl"));
+        assert!(report.contains("Records: 0"));
+        assert!(report.contains("Commands: none"));
+        assert!(report.contains("Workflows: none"));
     }
 }

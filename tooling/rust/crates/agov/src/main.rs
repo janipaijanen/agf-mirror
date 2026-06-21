@@ -41,6 +41,11 @@ enum Command {
         #[command(subcommand)]
         sub: SessionCommand,
     },
+    /// Token ROI telemetry commands.
+    Token {
+        #[command(subcommand)]
+        sub: TokenCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -144,6 +149,24 @@ enum SessionCommand {
     },
 }
 
+#[derive(Subcommand)]
+enum TokenCommand {
+    /// Token ROI telemetry.
+    Roi {
+        #[command(subcommand)]
+        sub: TokenRoiCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum TokenRoiCommand {
+    /// Report accumulated token ROI telemetry.
+    Report {
+        #[arg(long)]
+        log: Option<PathBuf>,
+    },
+}
+
 fn main() {
     let args = normalized_args();
     let cli = Cli::parse_from(args.clone());
@@ -166,6 +189,10 @@ fn normalized_args() -> Vec<String> {
             "agov.session.resume" => {
                 *command = "session".to_string();
                 args.insert(2, "resume".to_string());
+            }
+            "agov.token.roi" => {
+                *command = "token".to_string();
+                args.insert(2, "roi".to_string());
             }
             _ => {}
         }
@@ -226,6 +253,30 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     manifest,
                 },
         } => session_resume(role, &base_branch, dir, manifest, &args),
+        Command::Token {
+            sub:
+                TokenCommand::Roi {
+                    sub: TokenRoiCommand::Report { log },
+                },
+        } => token_roi_report(log),
+    }
+}
+
+fn token_roi_report(log: Option<PathBuf>) -> i32 {
+    let path = log.unwrap_or_else(agov_core::roi::default_report_path);
+    match agov_core::roi::load_records(&path) {
+        Ok(records) => {
+            let summary = agov_core::roi::summarize(&records);
+            println!("{}", agov_core::roi::format_report(&summary, &path));
+            0
+        }
+        Err(reason) => {
+            eprintln!(
+                "ERR  could not read token ROI log {}: {reason}",
+                path.display()
+            );
+            1
+        }
     }
 }
 
