@@ -25,14 +25,14 @@ Start ──► Adopt ──► Concepts ──► Operate ──► Advanced �
 
 ### 2. Adopt — install with eyes open
 
-- [Install the `agf/` directory](adopt/install-and-layouts.md) — commissioning
-  the files into the single supported v2.0 layout with an assistant-prepared
-  diff.
 - [Downstream impact](adopt/downstream-impact.md) — **read before
   adopting**: every file, CI job, obligation, and ongoing cost adoption
   introduces.
 - [Exit and decommission](adopt/exit-and-decommission.md) — **read before
   adopting**: how to leave cleanly, so you know adoption is reversible.
+- [Install the `agf/` directory](adopt/install-and-layouts.md) — commissioning
+  the files into the single supported v2.0 layout with an assistant-prepared
+  diff.
 - [Your first governed change](start/first-governed-change.md) — one small
   change through plan approval, implementation, and review.
 - [Tooling and token savings](adopt/tooling-and-tokens.md) — how the `agov`

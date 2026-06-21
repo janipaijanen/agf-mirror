@@ -68,7 +68,7 @@ tools; it does not replace them.
 - You want a stable release: v2.0 is Provisional and may still change.
   Waiting for v2.0 promotion is reasonable.
 - Your team has no capacity for the governor role right now. Gates without
-  a governor are theatre; adopt when someone can own the role.
+  a governor become ceremony; adopt when someone can own the role.
 
 ## Skip if…
 

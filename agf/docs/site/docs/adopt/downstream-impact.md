@@ -83,7 +83,7 @@ per change.
   your own files (codename learnings, customized rules) are preserved.
   The boundary between upstream-owned and adopter-owned is explicit in the
   distribution manifest.
-- **Governor attention** — gates without a governor are theatre. Someone
+- **Governor attention** — gates without a governor become ceremony. Someone
   must own approvals, audits, and the decision to revoke any delegation.
 
 ## What adoption does *not* change

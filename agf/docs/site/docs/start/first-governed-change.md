@@ -147,7 +147,7 @@ The chain is now reconstructible:
 plan -> Gate 1 handoff -> Gate 1 decision -> implementation -> Gate 2 handoff -> Gate 2 decision -> completion
 ```
 
-That chain is the product. Six months later, "why did this land?" is answered
+That chain is the audit trail. Six months later, "why did this land?" is answered
 by files, not memory.
 
 ## 8. Record what you learned
