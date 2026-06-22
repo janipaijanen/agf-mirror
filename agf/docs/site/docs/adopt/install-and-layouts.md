@@ -176,9 +176,11 @@ role manifest and records that decision.
 
 ## Step 6: Wire the validators
 
-If you have the full checkout, run the shipped core validators with `agov`:
+If you choose to use the optional `agov` CLI from the full checkout or tooling
+archive, run the shipped core validators:
 
 ```bash
+agov validate
 agov coord validate docs/coordination/*.md
 agov plan validate docs/plans/*.md
 ```
@@ -188,6 +190,17 @@ current tooling executable. In that case, either use a full checkout for
 validation or unpack the optional Rust `agov` tooling archive for your platform
 from the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+If you operate without `agov`, perform the equivalent manual review: confirm
+the framework layout, inspect plan and coordination front matter against the
+schemas, and record which checks were manual in the upgrade or adoption MR.
+
+When upgrading an older copied-assistant layout, check for stale AGF copies in
+tool-specific directories such as `.claude/rules/` and `.claude/skills/`.
+If a file is an AGF-provided rule or skill copied for convenience, replace the
+copy with a small loader reference to `agf/`. If it is an intentional
+project-specific override, move it outside the copied AGF rule or skill tree so
+future upgrades do not confuse local instructions with upstream framework
+content.
 
 When adding validator jobs to CI, verify each gate fires by feeding it a
 deliberately bad input once on the merge request that introduces the job.

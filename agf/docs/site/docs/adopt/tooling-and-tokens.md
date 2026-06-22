@@ -19,9 +19,9 @@ what the evidence base for the savings looks like.
 
 ## What the tooling does
 
-The `agov` command is the adopter-facing CLI for AGF validators and coordination
-helpers. It is a static binary (~5–12 MB) with no runtime dependency. Download
-the archive for your platform, unpack it, and run `agov`.
+The optional `agov` command is the adopter-facing CLI for AGF validators and
+coordination helpers. It is a static binary (~5–12 MB) with no runtime
+dependency. Download the archive for your platform, unpack it, and run `agov`.
 
 ## Current command maturity
 
@@ -35,7 +35,7 @@ Level 5 is deployable and in active use; Level 1 is planned.
 |---|---|
 | `agov coord validate <file>...` | Agent reads a coordination file and judges schema compliance. Validation is deterministic; agents should not improvise it. |
 | `agov plan validate <file>...` | Agent reads a Gate 1 plan file and checks front-matter. |
-| `agov validate` | Agent reads adoption, agent definitions, and learning records to spot structural problems across the governance tree. |
+| `agov validate` | Agent reads adoption, agent definitions, learning records, and copied-assistant drift warnings to spot structural problems across the framework tree. It does not validate every plan or coordination file. |
 | `agov coord brief [--id-format readable\|ulid] [--from <role>] [--kind <kind>]` | Agent guesses a coordination ID, makes up a filename, or asks a human for the next ID. The command generates a valid, non-colliding ID with the correct filename format. |
 | `agov handoff next <role>` | Agent reads handoff messages, mentally subtracts resolved items, and selects the pending one for its role. The command returns the relevant handoff in one invocation. |
 | `agov coord status [--recent N] [--roles]` | Agent counts pending handoffs, reads claim messages, and scans the channel for channel health. The `--roles` flag adds a per-role activity summary for session orientation. |
@@ -88,6 +88,13 @@ validate-governance:
 
 See [Contracts and validators](../advanced/contracts-and-validators.md) for the
 full CI wiring guide, including how to declare checks as blocking vs advisory.
+
+`agov` is optional tooling. If you do not install it, keep the same governance
+obligations: manually review changed plan and coordination front matter,
+confirm assistant loaders point at `agf/`, and record the manual checks in the
+MR. When `agov validate` is available, treat its output as framework coverage;
+for complete governance coverage also run `agov plan validate` and
+`agov coord validate` on the relevant files.
 
 ## Why meter at the governance gate
 

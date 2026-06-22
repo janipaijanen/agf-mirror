@@ -56,6 +56,13 @@ user can decide what to merge manually.
 **For rule files with `origin: project`** in frontmatter: skip entirely.
 These are project-specific and must not be touched.
 
+Also inspect copied assistant-rule or assistant-skill trees such as
+`.claude/rules/` and `.claude/skills/` when they exist. If they contain
+AGF-provided files copied from an older release, replace those copies with a
+loader reference to `agf/`. If they contain intentional project-specific
+overrides, move those overrides outside copied AGF rule or skill trees before
+continuing the upgrade.
+
 Present a summary table: files unchanged / updated / new / skipped.
 
 ### GATE 2 — User confirms comparison summary
@@ -95,7 +102,11 @@ upgrade_history:
    — ensure no new findings.
 2. Run `mix agov.validate.learnings ../../agf/learnings` — ensure learning
    record is still valid.
-3. If pre-commit hooks are configured, run them.
+3. If the optional `agov` CLI is available, run `agov validate`,
+   `agov plan validate` on changed plan files, and `agov coord validate` on
+   changed coordination files. Without `agov`, perform the equivalent manual
+   front-matter and loader-drift review and record that manual check in the MR.
+4. If pre-commit hooks are configured, run them.
 
 ## Step 6 — Summarise
 
