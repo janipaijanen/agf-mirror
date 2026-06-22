@@ -3,6 +3,23 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.4] — 2026-06-22
+
+### Changed
+
+- Framework source release archives are now built by the Rust `agov` CLI via
+  `agov dist validate`, `agov dist build`, and `agov dist check-tag`.
+- GitLab `agf:dist:*` CI jobs now use the Rust tooling path for manifest
+  validation, preview archives, and tag-only release archives.
+- The release-artifacts reference page now describes framework source archives
+  as the canonical versioned framework snapshot and Rust `agov` archives as the
+  execution surface.
+
+### Fixed
+
+- Release documentation no longer presents Mix-backed source packaging as the
+  current release implementation.
+
 ## [2.1.3] — 2026-06-22
 
 ### Changed
