@@ -73,6 +73,7 @@ Table 2 gives the default threshold.
 | Normal iteration | Do not record | A test failed, the agent fixed the implementation, and no governance rule or review path changed. |
 | First commissioning run | Record | The assistant installed `agf/`, created the loader, and left decisions for the governor clearly enough to repeat. |
 | Repeated friction | Record | Two branches in one week needed the same manual correction to coordination metadata or assistant rule loading. |
+| Rule boundary violation | Record and consider upstream | An assistant wrote outside the approved `agf/` boundary, used an unapproved branch, or skipped a required coordination entry. |
 | Rule helped | Record | A validator, checklist, or governor gate caught a risky migration before merge. |
 | Rule hurt | Record | A rule was so heavy that the team routed around it or used fast track where full review was warranted. |
 | Near-miss | Record and consider upstream | A malformed decision record almost became merge evidence, but review caught it. |
