@@ -463,6 +463,46 @@ learnings:
       rule and skill trees, and running `agov validate`, `agov plan validate`,
       and `agov coord validate`.
 
+  - id: "20260622T111100Z"
+    date: "2026-06-22"
+    category: process
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      GitLab CI artifacts can dominate project storage unless `.gitlab-ci.yml`
+      treats repeatable job outputs as short-lived handoff material.
+    detail: >
+      During release follow-up for AGF 2.1.x, GitLab project statistics showed
+      unexpectedly high storage usage even though the repository itself was
+      only a few megabytes and package registry uploads were modest. The large
+      category was CI job artifacts: about 3.13 GB, compared with about 83.5 MB
+      of packages and about 3 MB of repository data.
+
+      The cause was not the durable release surface. It was repeatable job
+      output retained too generously: preview distribution bundles, preview
+      Rust tooling builds, generated docs/site artifacts, and release handoff
+      artifacts configured with long or indefinite retention. These artifacts
+      are useful for MR review and for passing files between release jobs, but
+      they are not the durable user-facing archive of record once package
+      registry uploads and GitLab Release links exist.
+
+      The operational lesson is that CI configuration needs an explicit
+      artifact-retention policy. Durable release assets should live in the
+      package registry and release links. CI artifacts should expire quickly
+      unless there is a documented reason to keep them. Preview artifacts and
+      generated docs builds are especially easy to multiply across branches,
+      MRs, retries, and release prep work.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Add CI hygiene guidance to AGF release and project templates: every
+      artifact-producing job should declare whether its output is durable or
+      ephemeral. Preview, docs-build, and review-only artifacts should normally
+      expire within a day; release handoff artifacts should expire after a
+      short grace period once `release:create` has uploaded durable package
+      registry assets. Project maintainers should periodically check GitLab
+      storage statistics and delete stale preview/docs-build job artifacts
+      rather than deleting packages or release assets.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
