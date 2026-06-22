@@ -48,6 +48,11 @@ rust_supported() {
         roi:report) return 0 ;;
       esac
       ;;
+    dist)
+      case "${2:-}" in
+        validate|build|check-tag) return 0 ;;
+      esac
+      ;;
     usage)
       case "${2:-}" in
         report) return 0 ;;
@@ -95,6 +100,9 @@ Usage:
   agov agov.session.resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
   agov token roi report [--log <path>]
   agov agov.token.roi report [--log <path>]
+  agov dist validate
+  agov dist build
+  agov dist check-tag
   agov usage report [--dir <coord-dir>] [--manifest <path>] [--last <n>]
   agov agov.usage.report [--dir <coord-dir>] [--manifest <path>] [--last <n>]
 
