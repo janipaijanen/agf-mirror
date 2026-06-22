@@ -1,9 +1,9 @@
 ---
 id: scenario-router-docs
-status: pending-gate1
+status: approved
 topic: public-docs
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-22T14:05:58Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -27,7 +27,7 @@ advisory_consultation:
 
 **Date:** 2026-06-22
 **Role:** coder-tester
-**Status:** PENDING GATE 1
+**Status:** GATE 1 APPROVED - 2026-06-22
 
 ---
 
