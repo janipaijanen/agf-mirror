@@ -92,8 +92,11 @@ estimate: the governor should spend whatever the risk review needs.
   your own files (codename learnings, customized rules) are preserved.
   The boundary between upstream-owned and adopter-owned is explicit in the
   distribution manifest.
-- **Governor attention** — gates without a governor become ceremony. Someone
-  must own approvals, audits, and the decision to revoke any delegation.
+- **Governor attention** — gates without an engaged governor become ceremony.
+  Someone must own approvals, audits, and the decision to revoke any
+  delegation. Plan for this role explicitly: a named maintainer is enough for
+  a solo project, while a team may need a primary governor, backup, or rotation
+  so review capacity does not disappear when work gets busy.
 
 ## What adoption does *not* change
 

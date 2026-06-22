@@ -56,6 +56,12 @@ governor files a `decision-record`. The original agent closes with a
 pointing to its predecessor — the audit trail is reconstructible from
 the files alone.
 
+The references make the work thread navigable; they are not a magic conflict
+resolver. Validators can check message shape, required fields, and duplicate
+identifiers. The human review still decides whether a chain proves the right
+thing: that the cited plan, review, and decision actually authorize the change
+being merged.
+
 ## Message kinds
 
 | Kind | Direction | Purpose |
@@ -67,6 +73,27 @@ the files alone.
 | `review` | reviewer → all | Gate 2 findings before the decision record |
 | `ack` | agent → agent | Acknowledge receipt of a `requires-ack` handoff |
 | `claim` | agent → all | Reserve ownership of an artifact |
+
+## Parallel work and conflicts
+
+The channel is append-only, so most parallel work does not create text-file
+conflicts: two agents normally create two different files. The hard part is not
+the Markdown merge; it is deciding whether two work threads are trying to own
+the same artifact, plan, or gate.
+
+Use `claim` messages for work that needs temporary artifact ownership. Before
+starting or resuming, run `agov coord status` or `agov session resume` and look
+for active claims and pending handoffs. If two branches claim the same file or
+scope, do not edit either historical claim to make the conflict disappear.
+Resolve it with a new `note`, `review`, or `decision-record` that names the
+winning scope, the postponed scope, or the split of responsibility.
+
+If git reports an actual conflict in `docs/coordination/`, keep both immutable
+messages whenever they have distinct IDs. If the conflict is a duplicated manual
+filename or duplicated ID, create a new coordination message with a fresh ID on
+the branch being repaired, reference the superseded message from the body, and
+leave the old record visible in history. Corrections are new records; filed
+coordination messages are not rewritten to make the log look cleaner.
 
 ## Generating the communication map
 

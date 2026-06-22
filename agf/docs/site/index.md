@@ -141,9 +141,9 @@ or several assistants collaborate in parallel.
 
 **Quality gates that bind assistants too.** The rule library expresses your
 engineering discipline (test-first, migration hygiene, immutable tags,
-merge-request workflow) in a form AI assistants load as instructions and
-validators enforce in CI. Gate 1 is plan approval before implementation; Gate 2
-is review before merge.
+merge-request workflow) in a form AI assistants load as instructions. Gate 1
+and Gate 2 provide human-reviewed checkpoints with CI validators supplying
+evidence; the governor makes the binding decision.
 
 **Learning that compounds.** Incidents become learning records — structured
 incident and pattern notes; recurring patterns become rules; rules ship to every

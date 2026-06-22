@@ -66,6 +66,11 @@ Not every change deserves a learning record. Use learning records for
 operational evidence that should change future behavior, not as a diary of
 normal work.
 
+A single typo, self-corrected compile failure, or routine test failure is
+usually normal iteration. Record it only when it exposes a rule gap, repeats
+often enough to change how agents should work, or nearly becomes bad merge
+evidence.
+
 Table 2 gives the default threshold.
 
 | Situation | Default action | Example |

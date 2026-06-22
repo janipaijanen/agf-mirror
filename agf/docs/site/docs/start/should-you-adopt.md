@@ -68,7 +68,9 @@ trail is not good enough.
 - You need every rule and extension point to be backed by multi-project
   evidence today. Some evidence-limited rules are marked in their rule text.
 - Your team has no capacity for the governor role right now. Gates without
-  a governor become ceremony; adopt when someone can own the role.
+  an engaged governor become lightweight ceremony; the framework is designed
+  for human accountability and does not substitute for it. Adopt when you, or
+  a designated owner, can realistically provide gate decisions.
 
 ## Skip if…
 
