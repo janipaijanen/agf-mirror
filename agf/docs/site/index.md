@@ -2,12 +2,42 @@
 
 **AI coding with human accountability.**
 
-agents-govern is an open framework for running AI coding agents under explicit,
-auditable governance: defined roles with bounded authority, review gates before
-implementation and before merge, an append-only coordination channel, and a
-learning system that turns incidents into framework evidence. It is files in
-your repository, loaded by your existing AI assistant, enforced by your existing
-CI — no hosted service, no runtime, no new accounts.
+AI coding agents can produce changes you cannot reconstruct later.
+agents-govern makes AI-assisted software work auditable without adding a hosted
+service or runtime.
+
+Your assistant can plan, patch, and test. Six months later, git history alone
+often cannot answer why a change was requested, who accepted the risk, or what
+the AI was supposed to do. agents-govern adds three file-based controls on top
+of your existing repository:
+
+- **Roles:** AI agents operate under named responsibilities. An agent cannot
+  approve its own work, and a human governor holds gate authority.
+- **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
+  the implementation before merge. CI validators provide evidence; the governor
+  decides.
+- **Decision log:** Plans, reviews, approvals, and handoffs are files in the
+  repository, so later readers can reconstruct the chain of decisions.
+
+No new accounts. No hosted service. No runtime. The framework is files in your
+repo, instructions your AI assistant reads, and optional validators your CI can
+run.
+
+```mermaid
+flowchart LR
+    plan[AI writes a plan] --> gate1{Governor approves?}
+    gate1 --> implement[AI implements + CI validates]
+    implement --> gate2{Governor approves merge?}
+    gate2 --> merge[Merge]
+```
+
+Typical cost: an afternoon to install, plus about 5-15 minutes of governor
+attention for a non-trivial change. Exit is documented: pause the gates, keep
+only the rules you still want, or remove the AGF files in an ordinary cleanup
+commit for a small default install.
+
+Next step: read [Should you adopt?](docs/start/should-you-adopt.md), the
+five-minute filter for deciding whether AGF is useful for your project now.
 
 > **Status:** This site documents the released **agents-govern v2.1** line.
 > Some rules and extension points are still marked experimental or
@@ -19,8 +49,9 @@ CI — no hosted service, no runtime, no new accounts.
 
 ## How to adopt
 
-Adoption is an afternoon for a developer who has read both linked pages below
-and already has a git repository with an AI assistant.
+Use this as the twenty-minute path after the first scan. Adoption is an
+afternoon for a developer who has read the linked pages below and already has a
+git repository with an AI assistant.
 
 **Step 1 — Make the decision once.**
 Read [Should you adopt?](docs/start/should-you-adopt.md). It is a single page
@@ -43,6 +74,21 @@ One small change teaches you the loop without committing the whole project.
 
 That is the full install. Everything else — validators, token savings, advanced
 configuration — layers on top once the basics work.
+
+## How it works
+
+**Role separation.** Agents get plain-language job descriptions. An implementer
+writes code. A reviewer checks it. A human governor approves gates and owns the
+project risk. An agent cannot approve its own work.
+
+**Hard gates.** Gate 1 asks whether the agent has a plan worth implementing.
+Gate 2 asks whether the implementation followed the rules and is ready to
+merge. Validators and CI provide evidence, but human governor decisions remain
+binding.
+
+**Git-native operation.** There is no hosted service, shared runtime, or message
+API. Assistants coordinate by reading and writing files in git, so the framework
+can work with different coding tools across separate sessions.
 
 ## Token savings with the Rust tooling (optional)
 
@@ -78,21 +124,6 @@ Release archives ship platform-specific Rust tooling. Source-checkout users who
 also have the development toolchain can run Mix tasks directly when they need
 developer-only commands. See [Tooling and token savings](docs/adopt/tooling-and-tokens.md)
 for setup, estimates, and the evidence base behind the savings claims.
-
-## How it works
-
-**Role separation.** Agents get plain-language job descriptions. An implementer
-writes code. A reviewer checks it. A human governor approves gates and owns the
-project risk. An agent cannot approve its own work.
-
-**Hard gates.** Gate 1 asks whether the agent has a plan worth implementing.
-Gate 2 asks whether the implementation followed the rules and is ready to
-merge. Validators and CI provide evidence, but human governor decisions remain
-binding.
-
-**Git-native operation.** There is no hosted service, shared runtime, or message
-API. Assistants coordinate by reading and writing files in git, so the framework
-can work with different coding tools across separate sessions.
 
 ## What you get
 

@@ -1,20 +1,43 @@
-# AGF-NG
+# agents-govern
 
-AGF-NG is the next-generation agents-govern framework: a file-based governance
-system for AI-assisted software development.
+AI coding agents can produce changes you cannot reconstruct later.
+agents-govern makes AI-assisted software work auditable without adding a hosted
+service or runtime.
 
-It gives AI coding agents explicit roles, bounded authority, two review gates,
-an append-only coordination channel, and structured learning records. The aim
-is simple: keep AI-assisted changes fast while making decisions, handoffs, and
-risk acceptance reconstructible from files. The coordination protocol is
-file-based: no server required. `agov coord graph` renders the channel as a
-Graphviz communication map — see
-[Coordination protocol](https://janipaijanen.gitlab.io/agents-govern-framework/docs/concepts/coordination-protocol/)
-in the docs.
+Your assistant can plan, patch, and test. Six months later, git history alone
+often cannot answer why a change was requested, who accepted the risk, or what
+the AI was supposed to do. agents-govern adds three file-based controls on top
+of your existing repository:
+
+- **Roles:** AI agents operate under named responsibilities; an agent cannot
+  approve its own work, and a human governor holds gate authority.
+- **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
+  the implementation before merge. CI validators provide evidence; the governor
+  decides.
+- **Decision log:** Plans, reviews, approvals, and handoffs are files in the
+  repository, so later readers can reconstruct the chain of decisions.
+
+No new accounts. No hosted service. No runtime. The framework is files in your
+repo, instructions your AI assistant reads, and optional validators your CI can
+run.
+
+```text
+AI writes a plan -> Governor approves -> AI implements + CI validates -> Merge
+       Gate 1                                      Gate 2
+```
+
+Typical cost: an afternoon to install, plus about 5-15 minutes of governor
+attention for a non-trivial change. Exit is documented: pause the gates, keep
+only the rules you still want, or remove the AGF files in an ordinary cleanup
+commit for a small default install.
 
 Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
 
-## Should you try it?
+## Should you adopt?
+
+Start with [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
+It is the five-minute filter for deciding whether AGF is useful for your
+project now.
 
 Try AGF when:
 
@@ -49,7 +72,7 @@ decisions come from the roles and gates recorded in the coordination channel.
 Tool output is evidence; it becomes blocking only when a named AGF rule or
 governor decision makes that check blocking.
 
-## Five-minute path
+## Twenty-minute path
 
 1. Read [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
 2. Check cost and reversibility:
