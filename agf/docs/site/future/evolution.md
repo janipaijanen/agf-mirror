@@ -46,6 +46,17 @@ deliberately empty (no delegable categories) on single-project evidence.
 Adopter audits could corroborate which categories are routinely safe to
 delegate — or show that none are, retiring the pattern.
 
+**Delegated AI work validation.** v2.x documents principal-bound AI work as an
+audit convention: a human, team, or service principal may grant bounded scope,
+while the AI session and AGF role remain visible. The current convention uses
+ordinary `kind: note` coordination records and is not semantically enforced by
+tooling. A future version could add schema-backed delegation and contestation
+objects, validate grant authorship, expiry, scope references, and contested
+records, and report expired or disputed grants through `agov`. *Evidence that
+would promote it:* adopters using the convention repeatedly and reporting that
+manual grant review is either too error-prone or too costly for the audit value
+it provides.
+
 ## What would *not* change
 
 The invariants are not up for evolution: separated authority, immutable
