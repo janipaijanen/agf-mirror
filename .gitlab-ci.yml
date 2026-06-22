@@ -149,7 +149,7 @@ site-html-build:
     name: "docs-$CI_COMMIT_SHORT_SHA"
     paths:
       - agf/site-html/
-    expire_in: 1 week
+    expire_in: 1 day
     when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -181,6 +181,7 @@ pages:
   artifacts:
     paths:
       - public
+    expire_in: 1 day
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
@@ -244,7 +245,7 @@ agf:dist:preview:
       - dist/*.zip
       - dist/*.sha256
       - dist/*-provenance.json
-    expire_in: 1 week
+    expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
@@ -271,7 +272,7 @@ agf:dist:release:
       - dist/*.zip
       - dist/*.sha256
       - dist/*-provenance.json
-    expire_in: never
+    expire_in: 1 week
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -499,7 +500,7 @@ rust:tooling:preview:
   extends: .rust-tooling-package
   artifacts:
     name: "agov-rust-preview-$CI_COMMIT_SHORT_SHA"
-    expire_in: 1 week
+    expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
@@ -515,7 +516,7 @@ rust:tooling:release:
   extends: .rust-tooling-package
   artifacts:
     name: "agov-rust-$CI_COMMIT_TAG"
-    expire_in: never
+    expire_in: 1 week
   rules:
     - if: $CI_COMMIT_TAG
 
@@ -543,7 +544,7 @@ rust:tooling:build:windows:preview:
     name: "agov-rust-windows-preview-$CI_COMMIT_SHORT_SHA"
     paths:
       - tooling/rust/target/x86_64-pc-windows-gnu/release/agov.exe
-    expire_in: 1 week
+    expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:

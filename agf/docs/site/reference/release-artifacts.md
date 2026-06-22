@@ -136,13 +136,15 @@ building source archives. That sequence is `agov dist check-tag`,
 `agov dist validate`, and `agov dist build`. If the tag does not match
 `agf/VERSION`, the job exits 1 before any archive is written.
 
-Artifacts produced by `agf:dist:release` are kept indefinitely (`expire_in:
-never`) and include the `.tar.gz`, `.zip`, all `.sha256` checksum files, and the
-provenance JSON.
+Artifacts produced by `agf:dist:release` and `rust:tooling:release` are CI
+handoff artifacts for the `release:create` job. They are retained briefly in CI
+and then expire; the durable release copies are the package registry uploads
+and GitLab Release links created by `release:create`.
 
-Artifacts produced by `rust:tooling:release` are also kept indefinitely. Linux
-targets are published as `.tar.gz`; Windows x64 is published as `.zip`. No
-Elixir/ERTS `agov` package is published to the
+Framework release assets include the `.tar.gz`, `.zip`, all `.sha256` checksum
+files, and the provenance JSON. Linux Rust tooling targets are published as
+`.tar.gz`; Windows x64 is published as `.zip`. No Elixir/ERTS `agov` package is
+published to the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 Installer scripts, release signing, Software Bill of Materials (SBOM)
