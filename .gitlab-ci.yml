@@ -295,7 +295,7 @@ release:create:
     # Upload every release artifact to the generic package registry.
     # The glob covers framework archives, Rust tooling archives, checksums, and provenance.
     - |
-      for f in dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz \
+      for f in dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz dist/agov-*.zip \
                 dist/*.sha256 dist/*-provenance.json \
                 dist/SHA256SUMS; do
         [ -f "$f" ] || continue
@@ -314,7 +314,7 @@ release:create:
         --description "See [CHANGELOG](https://gitlab.com/$CI_PROJECT_PATH/-/blob/$CI_COMMIT_TAG/agf/CHANGELOG.md) for release notes." \
         --assets-link "{\"name\":\"agf-${VERSION}.tar.gz\",\"url\":\"${PKG_BASE}/agf-${VERSION}.tar.gz\",\"link_type\":\"package\"}" \
         --assets-link "{\"name\":\"agf-${VERSION}.zip\",\"url\":\"${PKG_BASE}/agf-${VERSION}.zip\",\"link_type\":\"package\"}"
-      for f in dist/agov-${VERSION}-*.tar.gz; do
+      for f in dist/agov-${VERSION}-*.tar.gz dist/agov-${VERSION}-*.zip; do
         [ -f "$f" ] || continue
         fname=$(basename "$f")
         set -- "$@" --assets-link "{\"name\":\"${fname}\",\"url\":\"${PKG_BASE}/${fname}\",\"link_type\":\"package\"}"
@@ -435,7 +435,7 @@ rust:tooling:parity:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq docker.io
+    - apt-get update -qq && apt-get install -y -qq docker.io zip
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install cross --git https://github.com/cross-rs/cross --force
@@ -467,10 +467,30 @@ rust:tooling:parity:
           > "../../dist/agov-${VERSION}-${target}-provenance.json"
         rm -rf "$staging"
       done
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        target="x86_64-pc-windows-gnu"
+        cross build --release --target "$target" -p agov
+        archive="agov-${VERSION}-${target}.zip"
+        staging="$(mktemp -d)"
+        dist_dir="$(cd ../../dist && pwd)"
+        mkdir -p "$staging/agov-${VERSION}-${target}"
+        cp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${target}/agov.exe"
+        printf "AGF agov Rust CLI\nVersion: %s\nTarget: %s\n\nInstall by placing agov.exe on PATH.\n" \
+          "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
+        (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${target}")
+        sha256sum "../../dist/${archive}" > "../../dist/${archive}.sha256"
+        printf '{"version":"%s","source_commit":"%s","tag":"%s","build_timestamp":"%s","pipeline_identity":{"pipeline_id":"%s","job_id":"%s"},"target_platform":"%s","implementation":"rust","packaging":"zip"}\n' \
+          "$VERSION" "${CI_COMMIT_SHA}" "${CI_COMMIT_TAG:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${CI_PIPELINE_ID:-}" "${CI_JOB_ID:-}" "$target" \
+          > "../../dist/agov-${VERSION}-${target}-provenance.json"
+        rm -rf "$staging"
+      fi
   artifacts:
     paths:
       - dist/agov-*.tar.gz
       - dist/agov-*.tar.gz.sha256
+      - dist/agov-*.zip
+      - dist/agov-*.zip.sha256
       - dist/agov-*-provenance.json
 
 # Build preview Rust tooling archives for Linux platform targets. These

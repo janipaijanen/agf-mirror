@@ -10,7 +10,7 @@ There are two release surfaces:
 | Surface | Published artifact | Build tooling (current) |
 |---|---|---|
 | Framework source distribution | `agf-X.Y.Z.tar.gz`, `agf-X.Y.Z.zip` | Manifest-driven packaging implemented by the Rust `agov` CLI |
-| `agov` adopter tooling | `agov-X.Y.Z-<target>.tar.gz` | Rust binary archives built per target platform |
+| `agov` adopter tooling | `agov-X.Y.Z-<target>.tar.gz`, `agov-X.Y.Z-<target>.zip` | Rust binary archives built per target platform |
 
 The framework source archives and adopter tooling archives are now both built
 through the Rust tooling surface. GitLab CI does not publish an Elixir/ERTS
@@ -61,6 +61,9 @@ For version `X.Y.Z`, a full release build produces:
 | `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz` | Optional Rust `agov` tooling archive for Linux arm64 |
 | `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz.sha256` | Tooling archive SHA-256 checksum |
 | `dist/agov-X.Y.Z-aarch64-unknown-linux-musl-provenance.json` | Tooling archive provenance |
+| `dist/agov-X.Y.Z-x86_64-pc-windows-gnu.zip` | Optional Rust `agov` tooling archive for Windows x64 |
+| `dist/agov-X.Y.Z-x86_64-pc-windows-gnu.zip.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-x86_64-pc-windows-gnu-provenance.json` | Tooling archive provenance |
 
 The framework provenance JSON records: `version`, `source_commit`, `tag`,
 `build_timestamp`, `pipeline_identity` (CI pipeline and job IDs),
@@ -117,7 +120,7 @@ agf:dist:release:
   rules:
     - if: $CI_COMMIT_TAG
 
-# Optional Rust tooling archives
+# Optional Rust tooling archives, including Linux tarballs and Windows zip on tag pipelines
 rust:tooling:release:
   rules:
     - if: $CI_COMMIT_TAG
@@ -137,9 +140,9 @@ Artifacts produced by `agf:dist:release` are kept indefinitely (`expire_in:
 never`) and include the `.tar.gz`, `.zip`, all `.sha256` checksum files, and the
 provenance JSON.
 
-Artifacts produced by `rust:tooling:release` are also kept indefinitely. They
-are platform-specific Rust archives; no Elixir/ERTS `agov` package is published
-to the
+Artifacts produced by `rust:tooling:release` are also kept indefinitely. Linux
+targets are published as `.tar.gz`; Windows x64 is published as `.zip`. No
+Elixir/ERTS `agov` package is published to the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 Installer scripts, release signing, Software Bill of Materials (SBOM)
