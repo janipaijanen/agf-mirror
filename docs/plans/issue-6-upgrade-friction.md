@@ -73,6 +73,8 @@ Implement a narrow Rust tooling and docs change:
 - A full `agov adoption drift` or `agov upgrade` command.
 - Automatic rewriting or deletion of `.claude/` files.
 - Blocking CI status for drift warnings.
+- CI integration of drift warnings; path sanitization may be required before
+  emitting adopter-internal assistant file paths in pipeline logs.
 - Validation of all historical `docs/plans/` and `docs/coordination/` files
   from `agov validate`; historical repositories may contain pre-contract
   records that are intentionally not clean.
@@ -99,6 +101,12 @@ without turning tool output into a new approval authority.
 - Documentation tells 2.1.x upgraders how to migrate away from copied
   assistant rule/skill trees without making the `agov` binary a prerequisite
   for AGF adoption.
+- Documentation tells adopters what to do after a drift warning: replace
+  copied AGF-provided rules/skills with a loader reference, or move intentional
+  project-specific overrides outside the scanned copied-AGF directories.
+- Gate 2 review explicitly checks the docs wording for optional-tooling
+  consistency: no sentence may imply the `agov` binary is required for valid
+  AGF governance.
 - Tests cover drift warnings, no-warning loader-only layout, and the coverage
   note.
 
@@ -119,6 +127,12 @@ without turning tool output into a new approval authority.
 - `./tooling/agov plan validate docs/plans/issue-6-upgrade-friction.md`
 - `./tooling/agov coord validate <handoff>`
 - `mkdocs build -f agf/docs/build/mkdocs.yml --strict`
+
+Implementation wording constraint: phrase the umbrella coverage note as a
+positive affordance, for example, "For complete governance coverage, also run
+`agov plan validate` and `agov coord validate`; the umbrella command does not
+validate those records." Equivalent manual review wording must accompany this
+where the docs discuss teams that do not install optional tooling.
 
 ## Gate Request
 
