@@ -10,12 +10,12 @@
 # Pipeline structure:
 #   site-html-build   — MkDocs strict build; review artifact on MRs and branches
 #   pages             — publish to GitLab Pages from the default branch
-#   elixir:test       — compile + test Elixir tooling only when Elixir changes
+#   elixir:test       — legacy Elixir reference tests only when Elixir changes
 #   agf:dist:validate — validate the manifest-driven framework package
 #   agf:dist:preview  — build review-only framework archives on MRs/default branch
 #   agf:dist:release  — tag pipelines only; tag/VERSION guard then build archives
 #   dependency:cve-scan — scan dependency lockfiles for known vulnerabilities
-#   rust:tooling:*    — Rust tooling: test, clippy, parity, platform archives
+#   rust:tooling:*    — Rust tooling: validation, tests, clippy, parity, archives
 #   release:create    — upload archives to package registry; create GitLab release entry
 
 workflow:
@@ -155,6 +155,8 @@ site-html-build:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - agf/docs/**/*
+        - agf/VERSION
+        - agf/CHANGELOG.md
         - agf/ADOPTING.md
         - agf/framework.md
         - mkdocs.yml
@@ -162,6 +164,8 @@ site-html-build:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
         - agf/docs/**/*
+        - agf/VERSION
+        - agf/CHANGELOG.md
         - agf/ADOPTING.md
         - agf/framework.md
         - mkdocs.yml
@@ -181,6 +185,8 @@ pages:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - agf/docs/**/*
+        - agf/VERSION
+        - agf/CHANGELOG.md
         - agf/ADOPTING.md
         - agf/framework.md
         - mkdocs.yml
@@ -188,7 +194,8 @@ pages:
 
 # ── Elixir tooling ────────────────────────────────────────────────────────────
 
-# Compile and test the Elixir tooling on every push.
+# Compile and test the legacy Elixir reference only when Elixir sources change.
+# Release and documentation CI should not depend on this job.
 elixir:test:
   extends: .elixir-base
   stage: test
@@ -199,12 +206,9 @@ elixir:test:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - tooling/elixir/**/*
-        - .gitlab-ci.yml
     - if: $CI_COMMIT_BRANCH
       changes:
         - tooling/elixir/**/*
-        - .gitlab-ci.yml
-    - if: $CI_COMMIT_TAG
 
 # ── Framework package artifacts ───────────────────────────────────────────────
 
@@ -321,6 +325,25 @@ release:create:
 # ── Rust tooling ───────────────────────────────────────────────────────────────
 # Path-scoped per ci-trigger-scoping-rule.md: only fire when tooling/rust/ changes.
 
+# Validate AGF framework content with the Rust agov CLI. This is the
+# release-direction check for framework metadata and governance files; Elixir
+# remains only for Mix-backed dist packaging until that surface is ported.
+rust:agov:validate:
+  extends: .rust-base
+  stage: test
+  script:
+    - cargo run --quiet -p agov -- validate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/**/*
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - agf/**/*
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_TAG
+
 # Scan dependency licenses and advisories. Blocks on GPL/AGPL/LGPL/SSPL and known
 # vulnerabilities. deny.toml defines the allowed-license allow-list.
 rust:tooling:deny:
@@ -340,7 +363,7 @@ rust:tooling:deny:
         - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
 
-# Compile and test the Rust workspace on every push touching tooling/rust/.
+# Compile and test the Rust workspace on tooling changes and release tags.
 rust:tooling:test:
   extends: .rust-base
   stage: test
@@ -356,11 +379,9 @@ rust:tooling:test:
         - tooling/rust/**/*
         - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
 
-# Lint the Rust workspace. Warnings are treated as errors.
+# Lint the Rust workspace on tooling changes and release tags. Warnings are
+# treated as errors.
 rust:tooling:clippy:
   extends: .rust-base
   stage: test
@@ -376,6 +397,7 @@ rust:tooling:clippy:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+    - if: $CI_COMMIT_TAG
 
 # Parity test: diff Rust and Elixir CLI output on the same fixture set.
 # Blocking CI check during the Phase 1 transition period.
