@@ -15,27 +15,51 @@ Confirm you are reviewing the right project before proceeding.
 |---|---|
 | **Canonical repository** | `https://gitlab.com/janipaijanen/agents-govern-framework` |
 | **Published docs** | `https://janipaijanen.gitlab.io/agents-govern-framework/` |
-| **Current version** | See `agf/VERSION` in the repository |
+| **Current version** | See [Release information](reference/release-info.md), generated from `agf/VERSION` at docs build time |
 
 This project **is not**:
 
-- Microsoft's "Agent Governance Toolkit" (April 2026)
-- An SDK for building agents (compare Claude Agent SDK, OpenAI Agents SDK)
-- An ML / model governance framework (compare MLflow, Evidently)
-- An agent runtime, orchestrator, or hosted service
+- Microsoft's "Agent Governance Toolkit" (April 2026). AGF is repository-local
+  governance loaded by your existing tools, not a Microsoft-hosted toolkit.
+- An SDK for building agents (compare Claude Agent SDK, OpenAI Agents SDK). AGF
+  defines roles, gates, and evidence; it does not provide agent APIs.
+- An ML / model governance framework (compare MLflow, Evidently). AGF governs
+  AI-assisted software work, not model training, experiment tracking, or model
+  drift monitoring.
+- A runtime governance or agent-monitoring platform. AGF uses pre-action plans,
+  CI evidence, and review records; it does not intercept production agent
+  behavior at runtime.
+- An agent runtime, orchestrator, or hosted service.
 
 agents-govern is a file-based process framework. The framework files live in
 your repository; AI assistants load them as instructions; your existing CI runs
 the validators. No accounts, no runtime, no new infrastructure.
 
+## What this page covers
+
+This page governs the review process. It is not a feature tour and does not
+replace the adoption guide. Start with the [home page](index.md): it is the
+three-minute entry for the problem, mechanism, cost, exit path, and next step.
+Then use this page to avoid common review errors and cite the specific pages
+and files that support your claims. For adoption costs, read
+[Downstream impact](docs/adopt/downstream-impact.md). For the mental model,
+read [Roles and gates](docs/concepts/roles-and-gates.md).
+
 ## Canonical reading list
 
-Read these in order. Estimated total: 40 minutes for a thorough
-assessment.
+Choose the track that matches your review goal.
+
+| Track | Pages | Time | Outcome |
+|---|---|---|---|
+| First scan | [Home](index.md) | ~3 min | Continue / stop judgment |
+| Quick assessment | [Should you adopt?](docs/start/should-you-adopt.md), [Roles and gates](docs/concepts/roles-and-gates.md), [Downstream impact](docs/adopt/downstream-impact.md) | ~20 min | Adopt / wait / skip judgment |
+| Thorough assessment | Full canonical list below | ~40 min | Substantiated external review |
+
+For a thorough assessment, read these in order.
 
 | Page | Time | Covers |
 |---|---|---|
-| [Home](index.md) | 8 min | Overview, maturity table, cost and benefit |
+| [Home](index.md) | 3 min | Problem, mechanism, cost, exit path, and next step |
 | [Should you adopt?](docs/start/should-you-adopt.md) | 5 min | Adopt / wait / skip decision guide and commitments |
 | [Roles and gates](docs/concepts/roles-and-gates.md) | 10 min | Role definitions, Gate 1 and Gate 2 |
 | [Downstream impact](docs/adopt/downstream-impact.md) | 5 min | Costs itemised, blast radius |
