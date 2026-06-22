@@ -95,6 +95,16 @@ Table 1 summarizes the commitments you accept when you adopt the framework.
 The complete itemisation is on the [downstream impact](../adopt/downstream-impact.md)
 page. If you read only one more page before deciding, read that one.
 
+If you record assistants working under human, team, or service delegation,
+AGF makes that delegation more visible. That visibility is useful for audit
+and incident reconstruction, but it also creates privacy and labor risk:
+named identifiers, timestamps, git authorship, review comments, and merge
+events can be correlated by anyone with repository access. AGF does not ship
+native productivity reports, principal ranking, review-depth scores, or
+HR-exportable datasets. Treat delegation metadata as governance evidence, use
+identity minimization where possible, and run your own privacy, labor, and
+purpose-limitation review. These mitigations are not a compliance checklist.
+
 ## Next
 
 Decided to try it → [Install the `agf/` directory](../adopt/install-and-layouts.md).

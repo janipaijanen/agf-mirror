@@ -253,6 +253,28 @@ decision remains human.
 The coordination channel is what keeps the roles from dissolving into chat
 memory. Each role leaves files for the next role to read.
 
+## Can an assistant work on behalf of a human?
+
+Yes, if you make the delegation explicit and keep the AI identity visible.
+
+Use a human-authored `kind: note` as the delegation grant. The grant names the
+principal kind, identifier namespace, identifier, scope, and preferably an
+expiry. The assistant then references that grant from its own coordination
+records. It must not write a message that self-asserts "I am acting for
+@someone" without a human-authored grant.
+
+The handle is not pulled from git. Use the human-readable identifier from the
+authority you name in `identifier_namespace`, for example a GitLab project or
+organisation namespace. If individual attribution creates more privacy risk
+than audit value, use a team alias, rotating duty alias, or batch grant instead.
+
+Delegation does not transfer gate authority. A principal may authorize patch
+preparation, evidence collection, or test runs; Gate 1, Gate 2, release
+approval, and binding risk acceptance still require the governor-reviewer.
+
+This convention is optional and docs-only in v2.x. Tooling may accept the
+fields syntactically, but it does not enforce delegation semantics yet.
+
 ## Can several AI assistants work at once?
 
 Yes, carefully.
