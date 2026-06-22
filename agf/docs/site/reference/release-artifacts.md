@@ -7,32 +7,31 @@ list.
 
 There are two release surfaces:
 
-| Surface | Published artifact | Current implementation |
+| Surface | Published artifact | Build tooling (current) |
 |---|---|---|
-| Framework source distribution | `agf-X.Y.Z.tar.gz`, `agf-X.Y.Z.zip` | Manifest-driven packaging, currently implemented by Mix tasks in CI |
+| Framework source distribution | `agf-X.Y.Z.tar.gz`, `agf-X.Y.Z.zip` | Manifest-driven packaging implemented by the Rust `agov` CLI |
 | `agov` adopter tooling | `agov-X.Y.Z-<target>.tar.gz` | Rust binary archives built per target platform |
 
-The Elixir/Mix tasks below are current **packaging implementation details** for
-the framework source archive. They are not an adopter-facing tooling
-requirement, and GitLab CI does not publish an Elixir/ERTS `agov` package.
-Adopters downloading release tooling should use the Rust `agov` archives on the
-[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+The framework source archives and adopter tooling archives are now both built
+through the Rust tooling surface. GitLab CI does not publish an Elixir/ERTS
+`agov` package. Adopters downloading release tooling should use the Rust
+`agov` archives on the [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 ```bash
-# current source-archive packaging implementation
-mix agov.dist.validate
-mix agov.dist.build
+agov dist validate
+agov dist build
 ```
 
-`mix agov.dist.validate` expands the manifest and fails if selected files escape
+`agov dist validate` expands the manifest and fails if selected files escape
 the repository, match forbidden paths, or would collide in the archive.
-`mix agov.dist.build` writes the configured `.tar.gz` and `.zip` archives under
+`agov dist build` writes the configured `.tar.gz` and `.zip` archives under
 `dist/`, along with SHA-256 checksum files and a machine-readable provenance
 record. In merge-request and default-branch pipelines, these are preview
 artifacts for review evidence. They are not immutable releases.
 
-The framework source archive remains the primary adopter artifact; the Rust
-tooling archives are optional convenience downloads.
+The framework source archive is the canonical versioned framework snapshot.
+The Rust tooling archives are the convenient execution surface for running
+`agov` without building it locally.
 
 The current archive policy is allowlist-first:
 
@@ -71,17 +70,16 @@ The tooling provenance records `target_platform`, `implementation: rust`, and
 
 ## Tag/version guard
 
-The current tag/version guard is implemented as `mix agov.dist.check_tag`. It
-reads `CI_COMMIT_TAG` from the environment and compares it to `agf/VERSION`.
-The comparison strips an optional `v` prefix from the tag.
+The tag/version guard is implemented as `agov dist check-tag`. It reads
+`CI_COMMIT_TAG` from the environment and compares it to `agf/VERSION`. The
+comparison strips an optional `v` prefix from the tag.
 
 ```bash
-# current source-archive packaging implementation
 # exits 0: tag matches VERSION
-CI_COMMIT_TAG=v2.0.0 mix agov.dist.check_tag
+CI_COMMIT_TAG=v2.0.0 agov dist check-tag
 
 # exits 1: mismatch — no archive is written
-CI_COMMIT_TAG=v9.99.99 mix agov.dist.check_tag
+CI_COMMIT_TAG=v9.99.99 agov dist check-tag
 ```
 
 If `CI_COMMIT_TAG` is not set the guard exits 0 (local build, guard skipped).
@@ -103,10 +101,10 @@ pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-# Manifest validation for source archives — current implementation uses Mix
+# Manifest validation for source archives
 agf:dist:validate:
   script:
-    - mix agov.dist.validate
+    - cargo run --quiet -p agov -- dist validate
 
 # Preview archives — MRs and default branch only, not releases
 agf:dist:preview:
@@ -126,14 +124,13 @@ rust:tooling:release:
 ```
 
 The `agf:dist:validate` job validates the framework source-archive manifest
-without writing archives. Today that job runs `mix agov.dist.validate`. The
-`agf:dist:preview` job runs `mix agov.dist.build` for
-merge-request and default-branch review artifacts; those artifacts expire and
-must not be described as releases.
+without writing archives. The `agf:dist:preview` job runs
+`agov dist build` for merge-request and default-branch review artifacts; those
+artifacts expire and must not be described as releases.
 
 The `agf:dist:release` job runs the tag/version guard before validating and
-building source archives. Today that sequence is `mix agov.dist.check_tag`,
-`mix agov.dist.validate`, and `mix agov.dist.build`. If the tag does not match
+building source archives. That sequence is `agov dist check-tag`,
+`agov dist validate`, and `agov dist build`. If the tag does not match
 `agf/VERSION`, the job exits 1 before any archive is written.
 
 Artifacts produced by `agf:dist:release` are kept indefinitely (`expire_in:

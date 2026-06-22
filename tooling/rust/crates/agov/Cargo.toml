@@ -15,10 +15,17 @@ agov-core = { workspace = true }
 agov-coord = { workspace = true }
 agov-validators = { workspace = true }
 clap = { workspace = true }
+flate2 = { workspace = true }
+glob = { workspace = true }
 rayon = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 serde_norway = { workspace = true }
+sha2 = { workspace = true }
+tar = { workspace = true }
 time = { workspace = true }
+zip = { workspace = true }
 
 [dev-dependencies]
 insta = { workspace = true }
+tempfile = { workspace = true }

@@ -11,9 +11,9 @@
 #   site-html-build   — MkDocs strict build; review artifact on MRs and branches
 #   pages             — publish to GitLab Pages from the default branch
 #   elixir:test       — legacy Elixir reference tests only when Elixir changes
-#   agf:dist:validate — validate the manifest-driven framework package
-#   agf:dist:preview  — build review-only framework archives on MRs/default branch
-#   agf:dist:release  — tag pipelines only; tag/VERSION guard then build archives
+#   agf:dist:validate — validate the manifest-driven framework package with Rust agov
+#   agf:dist:preview  — build review-only framework archives with Rust agov
+#   agf:dist:release  — tag pipelines only; Rust tag/VERSION guard then build archives
 #   dependency:cve-scan — scan dependency lockfiles for known vulnerabilities
 #   rust:tooling:*    — Rust tooling: validation, tests, clippy, parity, archives
 #   release:create    — upload archives to package registry; create GitLab release entry
@@ -215,10 +215,10 @@ elixir:test:
 # Validate the manifest-driven framework package on merge requests, branches,
 # and tags without writing archives.
 agf:dist:validate:
-  extends: .elixir-base
+  extends: .rust-base
   stage: test
   script:
-    - mix agov.dist.validate
+    - cargo run --quiet -p agov -- dist validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
@@ -232,11 +232,11 @@ agf:dist:validate:
 
 # Build preview archives for reviewers. These artifacts are not releases.
 agf:dist:preview:
-  extends: .elixir-base
+  extends: .rust-base
   stage: build
   script:
-    - mix agov.dist.validate
-    - mix agov.dist.build
+    - cargo run --quiet -p agov -- dist validate
+    - cargo run --quiet -p agov -- dist build
   artifacts:
     name: "agf-preview-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -258,12 +258,12 @@ agf:dist:preview:
 # Build release archives only on tag pipelines.
 # The tag must match agf/VERSION or this job fails before any archive is written.
 agf:dist:release:
-  extends: .elixir-base
+  extends: .rust-base
   stage: deploy
   script:
-    - mix agov.dist.check_tag
-    - mix agov.dist.validate
-    - mix agov.dist.build
+    - cargo run --quiet -p agov -- dist check-tag
+    - cargo run --quiet -p agov -- dist validate
+    - cargo run --quiet -p agov -- dist build
   artifacts:
     name: "agf-$CI_COMMIT_TAG"
     paths:
@@ -325,9 +325,7 @@ release:create:
 # ── Rust tooling ───────────────────────────────────────────────────────────────
 # Path-scoped per ci-trigger-scoping-rule.md: only fire when tooling/rust/ changes.
 
-# Validate AGF framework content with the Rust agov CLI. This is the
-# release-direction check for framework metadata and governance files; Elixir
-# remains only for Mix-backed dist packaging until that surface is ported.
+# Validate AGF framework content with the Rust agov CLI.
 rust:agov:validate:
   extends: .rust-base
   stage: test

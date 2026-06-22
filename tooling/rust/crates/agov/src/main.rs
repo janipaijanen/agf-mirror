@@ -1,3 +1,5 @@
+mod dist;
+
 use clap::{Parser, Subcommand};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -45,6 +47,11 @@ enum Command {
     Token {
         #[command(subcommand)]
         sub: TokenCommand,
+    },
+    /// Framework source distribution commands.
+    Dist {
+        #[command(subcommand)]
+        sub: DistCommand,
     },
     /// Coordination usage reporting commands.
     Usage {
@@ -180,6 +187,16 @@ enum TokenRoiCommand {
 }
 
 #[derive(Subcommand)]
+enum DistCommand {
+    /// Validate the framework source release manifest.
+    Validate,
+    /// Build framework source archives from the release manifest.
+    Build,
+    /// Check CI_COMMIT_TAG against agf/VERSION.
+    CheckTag,
+}
+
+#[derive(Subcommand)]
 enum UsageCommand {
     /// Print coordination channel usage report.
     Report {
@@ -291,6 +308,7 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     sub: TokenRoiCommand::Report { log },
                 },
         } => token_roi_report(log),
+        Command::Dist { sub } => dist_command(sub, &args),
         Command::Usage {
             sub:
                 UsageCommand::Report {
@@ -300,6 +318,55 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => usage_report(dir, manifest, last, &args),
     }
+}
+
+fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let exit_code = match sub {
+        DistCommand::Validate => match dist::validate_default() {
+            Ok(spec) => {
+                output.stdout(dist::format_validate_summary(&spec));
+                0
+            }
+            Err(errors) => {
+                for error in errors {
+                    output.stderr(format!("ERR {error}"));
+                }
+                1
+            }
+        },
+        DistCommand::Build => match dist::build_default() {
+            Ok(result) => {
+                output.stdout(dist::format_build_summary(&result));
+                0
+            }
+            Err(errors) => {
+                for error in errors {
+                    output.stderr(format!("ERR {error}"));
+                }
+                1
+            }
+        },
+        DistCommand::CheckTag => match dist::check_tag_from_env() {
+            Ok(dist::TagCheck::Matched) => {
+                output.stdout("OK tag matches agf/VERSION");
+                0
+            }
+            Ok(dist::TagCheck::NoTag) => {
+                output.stdout("OK no CI_COMMIT_TAG set; tag guard skipped");
+                0
+            }
+            Err(error) => {
+                output.stderr(format!("ERR {error}"));
+                1
+            }
+        },
+    };
+
+    if exit_code == 0 {
+        agov_core::roi::record_tool_output("agov", args, "dist", output.chars);
+    }
+    exit_code
 }
 
 fn token_roi_report(log: Option<PathBuf>) -> i32 {
