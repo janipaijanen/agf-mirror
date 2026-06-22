@@ -3,6 +3,23 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.3] — 2026-06-22
+
+### Changed
+
+- Public README and documentation homepage now provide a three-minute entry
+  path: problem, mechanism, cost, exit path, and one next step before deeper
+  tooling and evidence material.
+- The external evaluation page now treats the homepage as the first-scan entry
+  and separates first-scan, quick, and thorough assessment tracks.
+- CI now rebuilds the public documentation site when release metadata changes
+  and runs Rust `agov validate` as release-facing framework validation.
+
+### Fixed
+
+- Release-tag CI coverage now emphasizes Rust tooling checks and no longer runs
+  the Elixir test suite for release tags or CI-only changes.
+
 ## [2.1.2] — 2026-06-22
 
 ### Added
