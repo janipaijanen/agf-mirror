@@ -3,6 +3,22 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.5] — 2026-06-22
+
+### Added
+
+- GitLab tag release pipelines now publish a Windows x64 Rust `agov` archive
+  (`agov-X.Y.Z-x86_64-pc-windows-gnu.zip`) alongside the existing Linux
+  tooling archives, with checksum and provenance files.
+
+### Changed
+
+- Release creation now uploads and links `agov` zip archives as first-class
+  GitLab release assets.
+- The release-artifacts reference page now documents the Windows zip package
+  and distinguishes Linux `.tar.gz` tooling archives from Windows `.zip`
+  tooling archives.
+
 ## [2.1.4] — 2026-06-22
 
 ### Changed
