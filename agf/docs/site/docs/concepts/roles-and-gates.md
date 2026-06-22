@@ -38,6 +38,14 @@ all of them: every agent authority is delegated, revocable, and bounded
 by the red list in the deputy-governor rule (security boundaries,
 destructive operations, and meta-governance are never delegable).
 
+Do not leave the governor role implicit. In a solo project, the maintainer can
+serve as governor, but the approval still needs to be a deliberate recorded
+decision rather than an assumption hidden in the merge. In a team, name the
+person or rotation that holds governor authority for the current period, and
+name a backup before work blocks on unavailable review. "Everyone can approve"
+usually becomes "no one owned the decision"; if a rotating governor model fits
+your team, treat the rotation itself as part of the project convention.
+
 ## The two gates
 
 Figure 1 shows the two review gates as a pipeline: planning is reviewed before
@@ -191,6 +199,20 @@ layer effective is discipline, review, and the audit trail. What makes the
 structural layer effective is automation. Add structural checks wherever the
 automation cost is low; accept the advisory model where it is not — and make
 the distinction visible so adopters know what to reinforce.
+
+Advisory gates fail by leaving gaps, not by stopping the commit. Common failure
+modes look like this:
+
+| Failure mode | What happened | How to detect or recover |
+|---|---|---|
+| Skipped Gate 1 | Implementation started without an approved plan or fast-track waiver | Gate 2 reviewer asks for the plan or waiver before merge; if missing, file a review finding and reconstruct or reject the work |
+| Silent scope drift | The diff no longer matches the approved plan | Gate 2 compares the diff against the Gate 1 plan and records the drift as a review finding |
+| Missing decision record | A merge happened after informal approval in chat or memory | File a corrective coordination note; record the gap as learning if the pattern could repeat |
+| Agent self-approval | The implementing agent writes text that looks like approval | Treat it as non-binding; governor-reviewer must file the actual decision record |
+
+These are audit failures before they are tooling failures. Validators can check
+message shape and some repository contracts, but the governor still has to ask:
+"Does the evidence chain exist, and does it support this merge?"
 
 ## Next
 
