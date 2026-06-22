@@ -2892,8 +2892,15 @@ fn run_all_validators(args: &[String]) -> i32 {
                 &agov_core::repo_root().join("agf").join("learnings"),
             ),
         ),
+        render_warning_collection(
+            &mut output,
+            "agov.validate.assistant_drift",
+            agov_validators::assistant_drift::validate_all(&agov_core::repo_root()),
+        ),
         render_framework_config(&mut output),
     ];
+
+    output.stdout("OK agov.validate.coverage: framework checks complete; for complete governance coverage, also run `agov plan validate` and `agov coord validate`; the umbrella command does not validate those records");
 
     if results.contains(&1) {
         1

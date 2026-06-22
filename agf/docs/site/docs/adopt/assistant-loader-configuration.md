@@ -82,6 +82,12 @@ governor-reviewer and must be recorded in `docs/coordination/`.
 Before editing, state which AGF files you read and which gate applies.
 ```
 
+If you are upgrading from an older copied layout, remove AGF-provided copies
+from `.claude/rules/`, `.claude/skills/`, or similar tool directories. Keep a
+small loader instead. Intentional project-specific assistant instructions can
+stay local, but keep them outside copied AGF rule or skill trees so future
+upgrades do not mistake them for upstream framework content.
+
 For Claude Code, a project `CLAUDE.md` can import a shared `AGENTS.md`:
 
 ```markdown

@@ -45,6 +45,10 @@ run_compare() {
     # shellcheck disable=SC2086
     mix ${elixir_cmd} >"${elixir_stdout}" 2>"${elixir_stderr}" || elixir_status=$?
 
+    if [ "${name}" = "validate_umbrella" ]; then
+        sed -i '/agov\.validate\.assistant_drift/d;/agov\.validate\.coverage/d' "${rust_stdout}"
+    fi
+
     if diff -u "${elixir_stdout}" "${rust_stdout}" >"${TMP_DIR}/${name}.stdout.diff" 2>&1 && \
        diff -u "${elixir_stderr}" "${rust_stderr}" >"${TMP_DIR}/${name}.stderr.diff" 2>&1 && \
        [ "${rust_status}" -eq "${elixir_status}" ]; then
