@@ -3,6 +3,42 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.2] — 2026-06-22
+
+### Added
+
+- Rust `agov` tooling release archives for supported targets, with GitLab
+  release links and package-registry upload wiring.
+- Public documentation for the first-run assistant loader, tooling and token
+  savings, coordination protocol, released-artifact references, and
+  principal-bound AI delegation as a v2.x docs-only convention.
+- Readable coordination IDs and supporting `agov coord brief` guidance for new
+  AI-authored coordination messages.
+- Dependency CVE scanning for Rust tooling with `cargo-deny`.
+
+### Changed
+
+- Public documentation now presents the v2.1 line as released, clarifies the
+  canonical GitLab Pages URL, and incorporates external-review follow-up from
+  the Lumo review path.
+- Coordination, learning, and release guidance now emphasize timestamp-based
+  identifiers, session-resume hygiene, and the release-via-MR tag workflow.
+- Adoption guidance now better separates advisory governance gates from
+  structural CI/tooling gates and gives more realistic governor-effort ranges.
+
+### Fixed
+
+- Session-resume invalid-file summaries and learning ID handling were repaired
+  across Elixir and Rust tooling paths.
+- Documentation build and release metadata behavior were tightened, including
+  release-info git environment fallbacks and stricter public-doc wording.
+
+### Note
+
+- `2.1.1` was merged as a release bump but no `v2.1.1` GitLab release was
+  created. `2.1.2` is the next immutable release and includes the merged
+  `2.1.1` changelog entry plus subsequent main-branch work.
+
 ## [2.1.1] — 2026-06-18
 
 ### Changed
