@@ -482,7 +482,7 @@ learnings:
       Rust tooling builds, generated docs/site artifacts, and release handoff
       artifacts configured with long or indefinite retention. These artifacts
       are useful for MR review and for passing files between release jobs, but
-      they are not the durable user-facing archive of record once package
+      they are not the durable user-archive of record once package
       registry uploads and GitLab Release links exist.
 
       The operational lesson is that CI configuration needs an explicit
@@ -502,6 +502,45 @@ learnings:
       registry assets. Project maintainers should periodically check GitLab
       storage statistics and delete stale preview/docs-build job artifacts
       rather than deleting packages or release assets.
+
+  - id: "20260622T111800Z"
+    date: "2026-06-22"
+    category: process
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      Coordination messages must be committed and pushed to git before they
+      count as framework audit-log entries or as discoverable inter-LLM state.
+    detail: >
+      During multi-agent AGF-NG work, a governor-reviewer pointed Codex to a
+      coordination message that another assistant expected Codex to read. The
+      file was not visible in the active checkout, any linked worktree,
+      `origin/main`, fetched remote refs, or GitLab blob search. From Codex's
+      perspective the coordination message did not exist, even though it may
+      have existed in another assistant's local workspace.
+
+      This exposes a stricter version of the coordination visibility rule.
+      Creating a Markdown file locally is not enough. A local coordination file
+      is private scratch until it is committed and pushed to the shared git
+      remote. Only pushed coordination records are part of the framework audit
+      log, and only pushed records are discoverable by other LLMs that cold
+      start by fetching git state.
+
+      The failure mode is misleading because the author can see the file and
+      may believe the handoff exists, while every other agent sees an empty
+      channel. That breaks both governance reconstruction and practical
+      collaboration: downstream agents cannot acknowledge, reference, validate,
+      or act on a record they cannot fetch.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Treat "write coordination message" as incomplete until the file is
+      committed and pushed to the shared remote. Update coordination guidance
+      and agent checklists to say that pushed git is the framework audit log
+      and the inter-LLM discovery surface. Agents should verify that a
+      coordination handoff intended for another LLM is visible after fetch, or
+      include the record in the same pushed branch/MR that creates the
+      downstream obligation. Local-only coordination records should be called
+      drafts, not filed messages.
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
