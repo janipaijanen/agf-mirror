@@ -1,7 +1,9 @@
 ---
 id: issue-6-upgrade-friction
-status: pending-gate1
+status: approved
 topic: upgrade-friction
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-22T06:04:06Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
@@ -22,6 +24,7 @@ advisory_consultation:
 **Issue:** GitLab #6, "Upgrade friction from 2.1.0 to 2.1.4"  
 **Author:** planner-architect / Codex draft  
 **Date:** 2026-06-22
+**Gate 1:** Approved by governor-reviewer on 2026-06-22T06:04:06Z.
 
 ## Intent
 
