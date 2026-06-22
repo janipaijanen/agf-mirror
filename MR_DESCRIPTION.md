@@ -1,24 +1,35 @@
-# docs: remove Elixir implementation references from public docs
+# feat: add --version flag to agov CLI
 
 ## Summary
 
-- Rewrites four public documentation pages to reflect that `agov` is the only supported CLI — a single static Rust binary, no Elixir fallback.
-- Removes dual-implementation framing, Elixir Mix task references, and "(Rust)" / "(Elixir reference)" column qualifiers that implied a parallel implementation still existed.
-- Verified clean: `grep -rni "elixir" agf/docs/site/docs/` produces no matches; `mkdocs build --strict` produces zero errors and zero warnings.
+- Adds `--version` / `-V` flag to the `agov` CLI by enabling clap's built-in
+  version attribute on the top-level `Cli` struct.
 
-## Files changed
+## Change
 
-| File | Change |
-|---|---|
-| `agf/docs/site/docs/adopt/tooling-and-tokens.md` | Removed dual-implementation framing, Elixir fallback chain, `mix agov.token.roi report`, "Why Rust" section. Single `agov` binary description; merged command table; simplified setup to three options (cargo build, release archive, CI). |
-| `agf/docs/site/docs/advanced/contracts-and-validators.md` | Removed "(Rust)" / "(Elixir reference)" column qualifiers; replaced Elixir-image CI example with Rust binary installation snippet; removed "Mix remains the reference" framing. |
-| `agf/docs/site/docs/operate/review-and-release.md` | Removed "release tooling still in Mix-backed reference implementation" note from AGF v2 layout admonition. |
-| `agf/docs/site/docs/start/adopter-faq.md` | Simplified upstream contribution validation step to `agov validate` / `agov validate learnings` only. |
+One line in `tooling/rust/crates/agov/src/main.rs`:
 
-## Fast-track waiver
+```diff
+-#[command(name = "agov", about = "AGF governance tooling")]
++#[command(name = "agov", about = "AGF governance tooling", version)]
+```
 
-Documentation only. No routes, models, migrations, tests, or security boundaries affected. Waiver recorded in commit message.
+`agov --version` now prints `agov 0.1.0` (the Rust workspace tooling version,
+independent of the AGF framework version in `agf/VERSION`).
+
+## Verification
+
+- `cargo run --quiet -p agov -- --version` → `agov 0.1.0`
+- `cargo run --quiet -p agov -- validate` → pass (expected assistant-drift
+  advisory for foundry repo's copied `.claude/rules/` tree)
+- `git diff --check` → pass
+
+## Scope note
+
+Single-file change; no plan file required (fast-track waiver: trivial
+single-file feature addition, no logic, no tests needed — clap generates
+the behaviour from the attribute).
 
 ## Gate 2 handoff
 
-`docs/coordination/20260621T182550Z-planner-architect-4m57.md`
+`docs/coordination/20260622T101959Z-coder-tester-21b3.md`
