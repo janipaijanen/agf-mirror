@@ -82,6 +82,76 @@ referencing its predecessor by filename. An action without an entry is a
 gap — the coordination-message rule makes filing the entry part of the
 action itself.
 
+## Delegated AI work
+
+Sometimes an assistant works under authority delegated by a human, team, or
+service principal. AGF treats that as delegated agency, not impersonation. The
+AI session and AGF role remain visible; the principal is recorded separately;
+Gate 1 and Gate 2 approval still belong to the governor-reviewer.
+
+In v2.x this is a docs-only convention. It uses existing `kind: note`
+coordination messages. The optional `delegation` and `contestation` objects are
+not semantically enforced by AGF tooling in v2.x, so adopters should treat them
+as an audit convention rather than a validator-backed contract.
+
+A delegation grant is written by the human or service authority that grants it.
+An AI agent must not write a grant that asserts a human principal for itself.
+AI-authored records that act under the grant reference the grant through
+`references-to`; they do not repeat or infer the principal from git committer,
+email, SSH key, or branch metadata.
+
+```yaml
+kind: note
+from: governor-reviewer
+to: coder-tester
+id: 20260115T101500Z-governor-reviewer-ab12
+timestamp: 2026-01-15T10:15:00Z
+immutable: true
+references-to: []
+topic: delegation-grant-docs-branch
+requires-ack: true
+artifacts_owned: []
+note_type: delegation-grant
+delegation:
+  principal_kind: human
+  identifier_namespace: "gitlab.com/example-group/example-project"
+  identifier: "@example-member"
+  delegation_scope:
+    - "prepare documentation patch"
+    - "run documentation checks"
+  valid_until: "2026-01-16T10:15:00Z"
+  cannot_approve:
+    - "Gate 1"
+    - "Gate 2"
+    - "release tag"
+```
+
+Minimum useful convention fields are `principal_kind`,
+`identifier_namespace`, `identifier`, and `delegation_scope`. `valid_until` is
+strongly recommended for every grant; open-ended delegation is high-risk
+because it leaves old authority too easy to reuse. `cannot_approve` is
+defense-in-depth wording, not the source of gate authority: Gate 1, Gate 2,
+release approval, and binding risk acceptance remain non-delegable unless a
+future AGF version explicitly changes the role model.
+
+If a principal disputes a grant or believes an AI exceeded the delegated scope,
+file a later immutable `kind: note` with `note_type: contestation` and a
+reference to the contested record. Do not edit the old message. The correction
+belongs in the chain.
+
+Delegation metadata improves accountability, but it also makes activity more
+legible to anyone with repository access. Named identifiers, timestamps, commit
+authorship, review comments, and merge events can be correlated. AGF does not
+ship native productivity reports, principal ranking, review-depth scores, or
+HR exports, and adopters should treat that boundary as intentional.
+
+For privacy-sensitive teams, use identity minimization where audit precision
+does not require a named person: team aliases such as `@docs-team`, rotating
+duty aliases such as `@on-call-reviewer`, batch grants scoped to a sprint, and
+documented retention limits. These are privacy-risk mitigations, not a
+compliance checklist or a substitute for local privacy, labor, and legal
+review.
+
 ## Why gates bind AI agents in particular
 
 AI assistants optimise for task completion; under pressure they will
