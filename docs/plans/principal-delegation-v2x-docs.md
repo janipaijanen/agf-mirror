@@ -1,9 +1,9 @@
 ---
 id: principal-delegation-v2x-docs
-status: pending-gate1
+status: approved
 topic: public-docs
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-06-22T00:13:29Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -29,7 +29,7 @@ advisory_consultation:
 
 **Date:** 2026-06-21
 **Role:** planner-architect
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** GATE 1 APPROVED — 2026-06-22
 **Source:** `docs/proposals/ai-on-behalf-of-human-principal.md`
 **Gate 1 handoff:** `docs/coordination/20260621T235800Z-planner-architect-g1hf.md`
 **Consultation response:** `docs/coordination/20260622T000407Z-coder-tester-k66a.md`
