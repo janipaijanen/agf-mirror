@@ -424,6 +424,45 @@ learnings:
       wording such as "parenthesized numbers are message counts in this
       captured channel sample" in the legend or caption-equivalent prose.
 
+  - id: "20260622T103839Z"
+    date: "2026-06-22"
+    category: validation
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      Assistant drift diagnostics in AGF 2.1.6 made a copied-loader upgrade
+      from 2.1.4 actionable for an adopter.
+    detail: >
+      During an adopter upgrade from AGF 2.1.4 to AGF 2.1.6, the adopter
+      discovered that older copied `.claude/rules/` and `.claude/skills/`
+      trees could drift from canonical AGF-owned `agf/rules/` and `agf/skills/`
+      content after the framework moved toward small assistant loader files.
+      Before AGF 2.1.6, that drift created ambiguity about whether governed
+      work would follow current AGF rules or stale copied instructions.
+
+      After adopting AGF 2.1.6, `agov validate` reported the copied assistant
+      drift directly and gave remediation guidance. The validator output also
+      clarified that `agov validate` does not validate every historical plan or
+      coordination record; those records still require explicit `agov plan
+      validate` and `agov coord validate` checks.
+
+      The adopter resolved the upgrade ambiguity by preserving intentional
+      local project instructions separately, replacing copied command or skill
+      bodies with small wrappers pointing to `agf/skills/`, deleting copied AGF
+      `.claude/rules/` and `.claude/skills/` trees, and rerunning validation
+      until the output was clean. The external learning was filed as GitLab
+      issue #8 under adopter codename `amber-register`.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Keep the AGF 2.1.6 assistant drift and validation-coverage diagnostics.
+      Add a short migration checklist or example cleanup diff for adopters
+      moving from copied `.claude/rules/` and `.claude/skills/` trees to
+      loader-only assistant files. The checklist should cover preserving local
+      project rules outside copied AGF trees, replacing copied skill bodies
+      with wrappers that point to `agf/skills/`, deleting copied AGF assistant
+      rule and skill trees, and running `agov validate`, `agov plan validate`,
+      and `agov coord validate`.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
