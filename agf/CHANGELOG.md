@@ -3,6 +3,22 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.1.6] — 2026-06-22
+
+### Fixed
+
+- `agov validate` now reports advisory drift when copied `.claude/rules/` or
+  `.claude/skills/` trees differ from canonical `agf/rules/` or `agf/skills/`
+  content, including summarized output for large drift sets and remediation
+  guidance that preserves `agov` as optional tooling.
+- Adoption and upgrade documentation now explain the loader migration path for
+  existing copied assistant-rule adopters: keep `.claude` files as small
+  loaders, remove copied AGF content, and move intentional project-specific
+  assistant rules outside copied AGF trees.
+- `agov validate` now includes a coverage note clarifying that plan and
+  coordination records are validated separately with `agov plan validate` and
+  `agov coord validate`, or by equivalent manual review.
+
 ## [2.1.5] — 2026-06-22
 
 ### Added
