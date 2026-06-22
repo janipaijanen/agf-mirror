@@ -10,7 +10,7 @@ type FileValidator<T> = fn(&std::path::Path) -> Result<T, ValidationErrors>;
 type AdvisoryFn<T> = fn(&T) -> Vec<String>;
 
 #[derive(Parser)]
-#[command(name = "agov", about = "AGF governance tooling")]
+#[command(name = "agov", about = "AGF governance tooling", version)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
