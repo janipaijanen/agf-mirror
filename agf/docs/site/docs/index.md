@@ -53,6 +53,8 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 
 - [Day-to-day operation](operate/day-to-day.md) — claims, handoffs, gates,
   completions in an active project.
+- [Run AGF in real situations](operate/run-agf-in-real-situations.md) —
+  choose the right AGF move for common and less-common project moments.
 - [Review and release](operate/review-and-release.md) — Gate 2 practice,
   release via merge request, upgrades, audit trail hygiene.
 

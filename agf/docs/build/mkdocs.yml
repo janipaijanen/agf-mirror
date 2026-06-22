@@ -88,6 +88,7 @@ nav:
           - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
           - Day-to-day operation: docs/operate/day-to-day.md
+          - Run AGF in real situations: docs/operate/run-agf-in-real-situations.md
           - Review and release: docs/operate/review-and-release.md
       - 'Advanced':
           - Contracts and validators: docs/advanced/contracts-and-validators.md

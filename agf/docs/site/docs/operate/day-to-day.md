@@ -127,5 +127,7 @@ each one.
 
 ## Next
 
+- Scenario router for common operating moments:
+  [run AGF in real situations](run-agf-in-real-situations.md)
 - Gate 2 in depth, releases, and upgrades:
   [review and release](review-and-release.md)
