@@ -114,8 +114,8 @@ on this project:
 | `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 5 — Deployable |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 5 — Deployable |
 | `agov coord visibility` | Agent scans branches for hidden coordination obligations | Level 5 — Deployable |
-| `agov coord graph` | Agent manually summarizes role-to-role coordination flows | Level 5 — Deployable |
-| `agov coord graph-index` | Agent reads many coordination files to reconstruct references and pending handoffs | Level 5 — Deployable |
+| `agov coord graph` | Agent reads all coordination files to map which roles communicated, when, and in what sequence — outputs Graphviz dot | Level 5 — Deployable |
+| `agov coord graph-index` | Agent scans all coordination files to produce a structured JSON index of handoffs, references, and pending obligations | Level 5 — Deployable |
 | `agov token roi report` | Agent summarizes deterministic-tool token savings from local telemetry | Level 5 — Deployable |
 | `agov usage report` | Agent counts active roles, senders, message kinds, and unknown senders | Level 5 — Deployable |
 
