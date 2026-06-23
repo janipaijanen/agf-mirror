@@ -49,16 +49,10 @@ pub fn body_refs(path: &Path) -> Vec<String> {
 }
 
 fn clean_coord_filename(token: &str) -> Option<String> {
-    let filename = token
-        .trim_matches(|ch: char| matches!(ch, '.' | ':' | ';' | ']' | '[' | ')' | '('))
-        .rsplit('/')
-        .next()?;
-
-    if filename.ends_with(".md") && coord_validator::looks_like_coord_filename(filename) {
-        Some(filename.to_string())
-    } else {
-        None
-    }
+    let trimmed =
+        token.trim_matches(|ch: char| matches!(ch, '.' | ':' | ';' | ']' | '[' | ')' | '('));
+    let filename = trimmed.rsplit('/').next()?;
+    coord_validator::normalize_coord_reference(filename)
 }
 
 /// All `references-to` filenames for a message, including body-text refs.
@@ -108,5 +102,61 @@ mod tests {
         let entries = read_channel(dir.path());
         assert_eq!(entries.len(), 1);
         assert!(entries[0].1.is_err());
+    }
+
+    #[test]
+    fn body_refs_captures_bare_id() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        std::fs::write(
+            &path,
+            "---\nfoo: bar\n---\n\nSee 20260623T181212Z-governor-reviewer-grph\n",
+        )
+        .unwrap();
+        let refs = body_refs(&path);
+        assert!(
+            refs.contains(&"20260623T181212Z-governor-reviewer-grph.md".to_string()),
+            "bare ID should be normalised to .md: {:?}",
+            refs
+        );
+    }
+
+    #[test]
+    fn body_refs_captures_md_suffixed_id() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        std::fs::write(
+            &path,
+            "---\nfoo: bar\n---\n\nSee 20260623T181212Z-governor-reviewer-grph.md\n",
+        )
+        .unwrap();
+        let refs = body_refs(&path);
+        assert!(refs.contains(&"20260623T181212Z-governor-reviewer-grph.md".to_string()));
+    }
+
+    #[test]
+    fn body_refs_captures_path_qualified_id() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        std::fs::write(
+            &path,
+            "---\nfoo: bar\n---\n\nSee docs/coordination/20260623T181212Z-governor-reviewer-grph.md\n",
+        )
+        .unwrap();
+        let refs = body_refs(&path);
+        assert!(refs.contains(&"20260623T181212Z-governor-reviewer-grph.md".to_string()));
+    }
+
+    #[test]
+    fn body_refs_rejects_non_coord_tokens() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.md");
+        std::fs::write(
+            &path,
+            "---\nfoo: bar\n---\n\nSome random text with no coordination ID here\n",
+        )
+        .unwrap();
+        let refs = body_refs(&path);
+        assert!(refs.is_empty(), "no coord IDs expected, got: {:?}", refs);
     }
 }
