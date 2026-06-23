@@ -579,6 +579,43 @@ learnings:
       upgrade notes should explicitly call this out for both new learning
       files and existing learning files being updated.
 
+  - id: "20260623T122924Z-kptn"
+    date: "2026-06-23"
+    category: process
+    agents_involved: [coder-tester, governor-reviewer, planner-architect]
+    summary: >
+      Coordination timers must trigger automatic message intake and response,
+      not merely passive polling.
+    detail: >
+      During AGF-NG multi-agent coordination, the governor-reviewer asked
+      whether Codex was working with the coordination messages after a timer
+      restart. The watcher had detected a new Gate 1 approval from
+      governor-reviewer, but Codex had initially treated the timer as a status
+      mechanism rather than an action trigger and waited for an explicit user
+      prompt before reading and acting on the message.
+
+      That behavior undermines the purpose of the 300-second coordination
+      timer. A timer that only prints queue state still leaves the human as the
+      dispatcher. In an asynchronous multi-agent workflow, the agent running
+      the watcher must automatically ingest new actionable messages addressed
+      to its role, classify them, and either act, acknowledge, or write a
+      coordination response explaining the blocker or idle state.
+
+      The correction is especially important after compaction or session
+      restart. L018 already says timers are session-local and must be
+      restarted after resumption; this learning adds that restarted timers
+      must also drive work intake, not just visibility.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Update Codex internal practice and adopter guidance for timer-based
+      coordination: after every poll, if a new coordination message or MR
+      requires the agent's role, the agent should immediately read the record,
+      summarize the obligation, and proceed under gate discipline. If it
+      cannot act, it should write and push a coordination message explaining
+      the blocker or no-job state. Human prompts should not be required to
+      convert a visible handoff into agent action.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
