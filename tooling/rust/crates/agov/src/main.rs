@@ -2560,9 +2560,27 @@ fn frontmatter_refs(raw: &serde_json::Value) -> Vec<String> {
         .into_iter()
         .flatten()
         .filter_map(|value| value.as_str())
-        .filter_map(|reference| Path::new(reference).file_name()?.to_str())
-        .map(str::to_string)
+        .filter_map(normalize_coord_reference)
         .collect()
+}
+
+fn normalize_coord_reference(reference: &str) -> Option<String> {
+    let filename = Path::new(reference).file_name()?.to_str()?;
+
+    if filename.ends_with(".md") {
+        if looks_like_coord_filename(filename) {
+            Some(filename.to_string())
+        } else {
+            None
+        }
+    } else {
+        let candidate = format!("{filename}.md");
+        if looks_like_coord_filename(&candidate) {
+            Some(candidate)
+        } else {
+            None
+        }
+    }
 }
 
 fn body_refs(path: &Path) -> Vec<String> {
@@ -3092,6 +3110,72 @@ mod tests {
         let pending = pending_handoffs(&[handoff, note, completion]);
 
         assert!(pending.is_empty());
+    }
+
+    #[test]
+    fn frontmatter_refs_normalize_bare_readable_ids_to_filenames() {
+        let raw = serde_json::json!({
+            "references-to": [
+                "20260622T202034Z-governor-reviewer-8ma3",
+                "docs/coordination/20260623T051041Z-coder-tester-p4ph.md",
+                "not-a-coordination-id"
+            ]
+        });
+
+        assert_eq!(
+            frontmatter_refs(&raw),
+            vec![
+                "20260622T202034Z-governor-reviewer-8ma3.md".to_string(),
+                "20260623T051041Z-coder-tester-p4ph.md".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn pending_handoffs_resolve_with_bare_frontmatter_refs() {
+        let handoff = message(
+            "20260622T202119Z-governor-reviewer-idra.md",
+            "handoff",
+            "2026-06-22T20:21:19Z",
+            &[],
+        );
+        let raw = serde_json::json!({
+            "references-to": ["20260622T202119Z-governor-reviewer-idra"]
+        });
+        let resolution = message(
+            "20260623T051032Z-governor-reviewer-g1ap.md",
+            "decision-record",
+            "2026-06-23T05:10:32Z",
+            &frontmatter_refs(&raw)
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+        );
+
+        let pending = pending_handoffs(&[handoff, resolution]);
+
+        assert!(pending.is_empty());
+    }
+
+    #[test]
+    fn note_descendants_do_not_resolve_handoffs() {
+        let handoff = message(
+            "00001-coder-tester.md",
+            "handoff",
+            "2026-06-21T00:00:00Z",
+            &[],
+        );
+        let note = message(
+            "00002-planner-architect.md",
+            "note",
+            "2026-06-21T00:01:00Z",
+            &["00001-coder-tester.md"],
+        );
+
+        let pending = pending_handoffs(&[handoff.clone(), note]);
+
+        assert_eq!(pending.len(), 1);
+        assert_eq!(pending[0].file, handoff.file);
     }
 
     fn claim_message(
