@@ -40,6 +40,24 @@ fn dotted_token_roi_alias_is_supported() {
     assert!(stdout.contains("Commands: none"));
 }
 
+#[test]
+fn committed_codex_snapshot_reports_realistic_roi() {
+    let log = repo_root().join(
+        "tooling/rust/crates/agov/tests/fixtures/token_roi/codex-agov-token-roi-20260623.jsonl",
+    );
+
+    let output = agov(&["token", "roi", "report", "--log", log.to_str().unwrap()]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Token ROI telemetry"));
+    assert!(stdout.contains("Records: 224"));
+    assert!(stdout.contains("Measured tool output: 1013665 chars / 253417 approx tokens"));
+    assert!(stdout.contains("potential saved: 276840-572694"));
+    assert!(stdout.contains("agov.session.resume"));
+    assert!(stdout.contains("coord-validate"));
+}
+
 fn agov(args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_agov"))
         .args(args)

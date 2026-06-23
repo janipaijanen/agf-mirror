@@ -116,7 +116,7 @@ on this project:
 | `agov token roi report` | Agent summarizes deterministic-tool token savings from local telemetry | Level 5 — Deployable |
 | `agov usage report` | Agent counts active roles, senders, message kinds, and unknown senders | Level 5 — Deployable |
 
-*Maturity levels follow the [implementation honesty model](docs/concepts/evidence-and-learnings.md):
+*Maturity levels follow the [maturity vocabulary](reference/maturity-vocabulary.md):
 Level 5 is deployable and in active use; Level 1 is planned. Do not conflate
 the two.*
 
@@ -193,7 +193,13 @@ The framework's evidence base is its [learning records](docs/concepts/evidence-a
 operational incidents and validated patterns from the framework's own development
 and from early adopters, recorded under codenames. Rules shipped on
 single-adopter evidence are explicitly marked **Provisional** in the rule text
-itself. We state maturity levels rather than claiming capabilities — see the
+itself.
+
+We state capability maturity and evidence status separately. Capability maturity
+answers "what exists?" using Level 1 Planned through Level 5 Deployable.
+Evidence status answers "how strong is the proof?" using Empirically validated,
+Empirically informed, and Theoretical. See the
+[maturity vocabulary](reference/maturity-vocabulary.md) and
 [evolution page](future/evolution.md) for what is shipped versus hypothesised.
 
 Version, source commit, copyright, and license details are listed in

@@ -670,6 +670,45 @@ learnings:
       principle: AGF separates audit evidence, decision rationale, executable
       validation, and agent memory.
 
+  - id: "20260623T212425Z-roi1"
+    date: "2026-06-23"
+    category: process
+    agents_involved: [coder-tester, planner-architect]
+    summary: >
+      Multi-assistant token ROI telemetry needs stable per-assistant log files,
+      not a shared default path.
+    detail: >
+      During the readable-ID and local-build work, Codex and Claude both had
+      token ROI telemetry configured around the default
+      `tmp/agov-token-roi.jsonl` path. That made the live evidence stream
+      ambiguous: if both assistants append to the same ignored JSONL file, later
+      analysis cannot reliably separate Codex savings from Claude savings, and
+      renaming the file for tests risks hiding the continuation point from the
+      next agent on another machine.
+
+      The correction was to rename the existing shared Codex log to
+      `tmp/codex-agov-token-roi.jsonl`, document that Claude should use
+      `tmp/claude-agov-token-roi.jsonl`, and generalize the rule for future
+      assistants: each AI chooses a stable lowercase abbreviation and uses
+      `tmp/<ai-abbrev>-agov-token-roi.jsonl` via `AGOV_TOKEN_ROI_LOG`.
+
+      The important distinction is between live telemetry and committed test
+      fixtures. Live telemetry should stay ignored under `tmp/` but use stable
+      per-assistant names so future sessions can continue from the same file.
+      If committed fixtures are needed later, they should be copied from the
+      live files into explicit fixture paths and labelled as snapshots, not
+      treated as the active continuation logs.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Keep `AGOV_TOKEN_ROI_LOG` guidance explicit in AI and developer docs:
+      new assistants must choose a stable lowercase abbreviation and write to
+      `tmp/<ai-abbrev>-agov-token-roi.jsonl`. Do not ask multiple assistants to
+      share `tmp/agov-token-roi.jsonl` in the same checkout. When creating test
+      fixtures, copy and rename telemetry snapshots into fixture directories
+      with clear README notes that identify their source and state that live
+      logging continues in the ignored per-assistant `tmp/` file.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

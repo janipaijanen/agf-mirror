@@ -82,10 +82,11 @@ tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-
 All inter-agent communication goes through immutable Markdown files in
 `docs/coordination/`. Front matter is validated by `agov coord validate`.
 
-AI agents MUST use `agov coord brief --id-format readable --from <role>` to
-generate coordination IDs unless tooling is unavailable. Humans SHOULD use the
-tooling. Manually authored IDs remain valid when they pass schema and
-uniqueness validation.
+AI agents MUST use `agov coord brief --from <role>` to generate coordination
+IDs unless tooling is unavailable. Readable IDs are the default; the explicit
+`--id-format readable` flag remains valid for clarity. Humans SHOULD use the
+tooling. Manually authored IDs remain valid when they pass schema and uniqueness
+validation.
 
 | ID format | Filename convention | Use |
 |---|---|---|
@@ -153,19 +154,43 @@ merging — the repository may be local-only or the target branch name may diffe
 
 ## Tooling quick reference
 
+### Time and telemetry memory
+
+Use UTC for durable project records unless an external artifact explicitly
+requires a local timezone. This includes coordination timestamps, learning
+record IDs and dates, telemetry continuation notes, scheduler references, and
+handoff evidence. Prefer `date -u` when deriving timestamps by hand.
+
+Use AGF maturity labels for capability-sensitive claims. For tooling and
+framework features, distinguish Level 1 Planned, Level 2 Surface-defined,
+Level 3 Instantiated, Level 4 Validated, and Level 5 Deployable. A command
+implemented and tested in a branch is Level 4; it is not Level 5 until the
+supported operator path or release artifact includes it and documentation
+matches that path.
+
+Use evidence-status labels for framework claims, principles, and recommendations:
+Empirically validated, Empirically informed, or Theoretical. Capability maturity
+answers "what exists?"; evidence status answers "how strong is the proof behind
+the claim?" Use both when a claim could otherwise sound stronger than the
+evidence supports. See `agf/docs/site/reference/maturity-vocabulary.md`.
+
 ### Using the locally built binary (required for in-development commands)
 
 The distribution archive (`agov-X.Y.Z-*/agov`) is a release snapshot. It does
 not include commands added after that release. To use the current development
 build, build the Rust workspace and shadow the release binary with the local
-build:
+build. For routine agent/operator work, prefer the local **release** build;
+use the debug build only when actively debugging Rust internals.
 
 ```bash
-# Build once (or after any Rust change)
+# Preferred: local release build for normal agent/operator work
+cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+
+# Optional: debug build for active Rust development/debugging
 cargo build --manifest-path tooling/rust/Cargo.toml -p agov
 
 # Prepend tooling/ to PATH for this shell session.
-# tooling/agov is a wrapper that auto-selects the local debug or release build.
+# tooling/agov is a wrapper that auto-selects the local release build first.
 export PATH="$PWD/tooling:$PATH"
 
 # Verify the local build is in use
@@ -174,6 +199,34 @@ agov coord graph-index --help   # should print usage for graph-index if built fr
 
 Add the `export PATH=…` line to your shell profile (`.bashrc`, `.zshrc`) for
 the repo, or use a per-directory tool like `direnv` to set it automatically.
+
+Live token ROI telemetry belongs under `tmp/` using a stable per-assistant
+filename:
+
+```text
+tmp/<ai-abbrev>-agov-token-roi.jsonl
+```
+
+These files are local runtime telemetry and are not committed. When telemetry
+is needed as test evidence or showcase data, copy a dated snapshot into an
+explicit fixture path and document its source, date, and confidence limits. Do
+not let multiple AI assistants write to the same default file when comparing
+tool savings. Codex sessions should use:
+
+```bash
+export AGOV_TOKEN_ROI_LOG="$PWD/tmp/codex-agov-token-roi.jsonl"
+```
+
+Claude sessions should use:
+
+```bash
+export AGOV_TOKEN_ROI_LOG="$PWD/tmp/claude-agov-token-roi.jsonl"
+```
+
+The historical shared Codex log was renamed from
+`tmp/agov-token-roi.jsonl` to `tmp/codex-agov-token-roi.jsonl`. Use the
+AI-specific filenames as the durable continuation points on future machines;
+do not rename them back to the shared default.
 
 The `tooling/agov` wrapper prefers (in order):
 1. `tooling/rust/target/release/agov` — if a release build exists

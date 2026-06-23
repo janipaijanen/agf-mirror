@@ -30,6 +30,17 @@ Example: run inside a disposable container that intentionally uses UID 0:
 AGOV_ALLOW_ROOT=1 agov coord validate docs/coordination/*.md
 ```
 
-Do not commit local telemetry by accident. The foundry project writes under
-`tmp/`, which is ignored locally; downstream projects may choose another ignored
-path or deliberately track telemetry if their policy allows it.
+Live token ROI telemetry belongs under `tmp/` using a stable per-assistant
+filename: `tmp/<ai-abbrev>-agov-token-roi.jsonl`. These files are local runtime
+telemetry and are not committed. When telemetry is needed as test evidence or
+showcase data, copy a dated snapshot into an explicit fixture path and document
+its source, date, and confidence limits.
+
+When multiple assistants work in the same checkout, use stable per-assistant
+paths rather than the shared default. In foundry, Codex continues at
+`tmp/codex-agov-token-roi.jsonl` and Claude should continue at
+`tmp/claude-agov-token-roi.jsonl`:
+
+```bash
+export AGOV_TOKEN_ROI_LOG="$PWD/tmp/codex-agov-token-roi.jsonl"
+```
