@@ -153,6 +153,38 @@ merging — the repository may be local-only or the target branch name may diffe
 
 ## Tooling quick reference
 
+### Using the locally built binary (required for in-development commands)
+
+The distribution archive (`agov-X.Y.Z-*/agov`) is a release snapshot. It does
+not include commands added after that release. To use the current development
+build, build the Rust workspace and shadow the release binary with the local
+build:
+
+```bash
+# Build once (or after any Rust change)
+cargo build --manifest-path tooling/rust/Cargo.toml -p agov
+
+# Prepend tooling/ to PATH for this shell session.
+# tooling/agov is a wrapper that auto-selects the local debug or release build.
+export PATH="$PWD/tooling:$PATH"
+
+# Verify the local build is in use
+agov coord graph-index --help   # should print usage for graph-index if built from main
+```
+
+Add the `export PATH=…` line to your shell profile (`.bashrc`, `.zshrc`) for
+the repo, or use a per-directory tool like `direnv` to set it automatically.
+
+The `tooling/agov` wrapper prefers (in order):
+1. `tooling/rust/target/release/agov` — if a release build exists
+2. `tooling/rust/target/debug/agov` — if a debug build exists
+3. `cargo run -p agov` — if Cargo is available but no binary is built yet
+
+If a command is not available in the local Rust build, stop and report the gap;
+do not fall back to Elixir/Mix.
+
+### Supported commands
+
 Use the user-local `agov` command for AGF tooling. It points at this
 repository's `tooling/agov` executable. The Rust implementation is the
 supported operator path. If a needed command is not available in Rust, stop and
@@ -165,6 +197,8 @@ Rust is the default operator path for supported commands:
 - `agov coord status`
 - `agov coord stale`
 - `agov coord visibility`
+- `agov coord graph`
+- `agov coord graph-index`
 - `agov handoff next`
 - `agov session resume`
 - `agov validate ...`
