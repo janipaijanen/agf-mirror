@@ -18,6 +18,9 @@ export AGOV_MANIFEST_PATH="${AGOV_MANIFEST_PATH:-$repo_root/agf/agents/MANIFEST.
 
 rust_supported() {
   case "${1:-}" in
+    -V|--version|version)
+      return 0
+      ;;
     coord)
       case "${2:-}" in
         -h|--help|help) return 0 ;;
@@ -87,11 +90,15 @@ case "${1:-}" in
   -h|--help)
     cat <<EOF
 Usage:
+  agov --version
+  agov version [--format text|json]
   agov coord validate <file>...
   agov coord brief [--id-format ulid|readable] [--from <role>] [--to <role>] [--kind <kind>] [--topic <topic>]
   agov coord status [--dir <coord-dir>] [--recent <n>] [--roles]
   agov coord stale [--dir <coord-dir>]
   agov coord visibility [--base-branch <branch>] [--branch <branch>] [--format text|json]
+  agov coord graph [--dir <coord-dir>] [--format dot|text]
+  agov coord graph-index [--dir <coord-dir>] [--output <file>]
   agov plan validate <file>...
   agov agov.coord.validate <file>...
   agov agov.plan.validate <file>...
@@ -137,11 +144,14 @@ If the command is not yet implemented in Rust, stop and report the gap.
 Do not use legacy tooling for routine agent or operator work.
 
 Supported Rust commands:
+  agov --version
+  agov version [--format text|json]
   agov coord validate <file>...
   agov coord brief [--id-format ulid|readable] [--from <role>]
   agov coord status [--dir <coord-dir>]
   agov coord stale [--dir <coord-dir>]
   agov coord visibility [--base-branch <branch>]
+  agov coord graph [--dir <coord-dir>] [--format dot|text]
   agov coord graph-index [--dir <coord-dir>] [--output <file>]
   agov plan validate <file>...
   agov handoff next <agent-role> [--dir <coord-dir>]

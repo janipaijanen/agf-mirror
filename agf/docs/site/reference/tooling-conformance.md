@@ -48,6 +48,7 @@ release-archive adopter.
 | `agov coord stale [args...]` | Report expired artifact claims. | Release surface |
 | `agov coord visibility [args...]` | Detect coordination obligations hidden on non-base branches. | Release surface |
 | `agov coord graph [args...]` | Render role-to-role coordination flows as Graphviz dot or text. | Release surface |
+| `agov coord graph-index [args...]` | Emit the coordination graph as deterministic JSON for cold starts and tooling. See the [graph-index contract](coord-graph-index.md). | Release surface |
 | `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |
 | `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
 
