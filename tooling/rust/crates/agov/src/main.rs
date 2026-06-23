@@ -116,6 +116,14 @@ enum CoordCommand {
         #[arg(long, default_value = "dot", value_parser = ["dot", "text"])]
         format: String,
     },
+    /// Emit a compact JSON index of the coordination graph for LLM cold-start.
+    GraphIndex {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        /// Write output to a file instead of stdout.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -280,6 +288,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub: CoordCommand::Graph { dir, format },
         } => coord_graph(dir, format, &args),
+        Command::Coord {
+            sub: CoordCommand::GraphIndex { dir, output },
+        } => coord_graph_index(dir, output, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -664,7 +675,7 @@ fn coord_brief(
         channel.total, channel.range
     ));
     output.stdout(format!(
-        "# Ownership: {} (run mix agov.coord.status for details)",
+        "# Ownership: {} (run agov coord status for details)",
         channel.claims
     ));
     output.stdout(format!("# Next id: {next_id}"));
@@ -1392,6 +1403,162 @@ fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
 
     agov_core::roi::record_tool_output("agov", args, "coord-graph", output.chars);
     0
+}
+
+fn coord_graph_index(dir: PathBuf, output_path: Option<PathBuf>, args: &[String]) -> i32 {
+    use agov_coord::channel_reader::{all_refs, read_channel};
+    use agov_coord::handoff_tracker::{find_pending, MessageDescriptor};
+
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let entries = read_channel(&dir);
+    if entries.is_empty() && !dir.is_dir() {
+        output.stderr(format!("ERR  directory not found: {}", dir.display()));
+        return 1;
+    }
+
+    let generated_at = iso_timestamp(time::OffsetDateTime::now_utc());
+
+    // Separate valid from invalid.
+    let mut descriptors: Vec<MessageDescriptor> = Vec::new();
+    let mut invalid_files: Vec<String> = Vec::new();
+
+    for (file, result) in &entries {
+        match result {
+            Ok(msg) => {
+                let path = dir.join(file);
+                let refs = all_refs(&path, msg);
+                let sort_key = format!(
+                    "{}_{}",
+                    msg.timestamp().unwrap_or(""),
+                    file
+                );
+                descriptors.push(MessageDescriptor {
+                    file: file.clone(),
+                    sort_key,
+                    refs,
+                    msg: msg.clone(),
+                });
+            }
+            Err(_) => invalid_files.push(file.clone()),
+        }
+    }
+
+    // Determine resolved state for handoffs.
+    let pending = find_pending(&descriptors);
+    let pending_files: std::collections::BTreeSet<&str> =
+        pending.iter().map(|p| p.file.as_str()).collect();
+
+    // Build nodes.
+    let nodes: Vec<serde_json::Value> = descriptors
+        .iter()
+        .map(|d| {
+            let resolved = if d.msg.kind() == Some("handoff") {
+                serde_json::Value::Bool(!pending_files.contains(d.file.as_str()))
+            } else {
+                serde_json::Value::Null
+            };
+            let summary = graph_index_summary(&dir.join(&d.file), d.msg.topic());
+            serde_json::json!({
+                "id": d.msg.id(),
+                "file": d.file,
+                "kind": d.msg.kind(),
+                "from": d.msg.from(),
+                "to": d.msg.to(),
+                "topic": d.msg.topic(),
+                "timestamp": d.msg.timestamp(),
+                "requires_ack": d.msg.requires_ack(),
+                "resolved": resolved,
+                "summary": summary
+            })
+        })
+        .collect();
+
+    // Build edges. Frontmatter refs use type "references-to"; body-text refs
+    // that were not in the frontmatter use "body-reference". Both sets are used
+    // by find_pending() for resolution, so the graph exposes the same reference
+    // set the resolver sees.
+    let mut edges: Vec<serde_json::Value> = Vec::new();
+    for d in &descriptors {
+        let frontmatter_refs = d.msg.references_to();
+        let frontmatter_set: std::collections::BTreeSet<&str> =
+            frontmatter_refs.iter().map(|s| s.as_str()).collect();
+        for referenced in &frontmatter_refs {
+            edges.push(serde_json::json!({
+                "from": d.file,
+                "to": referenced,
+                "type": "references-to"
+            }));
+        }
+        for referenced in &d.refs {
+            if !frontmatter_set.contains(referenced.as_str()) {
+                edges.push(serde_json::json!({
+                    "from": d.file,
+                    "to": referenced,
+                    "type": "body-reference"
+                }));
+            }
+        }
+    }
+
+    // Build pending list.
+    let pending_json: Vec<serde_json::Value> = pending
+        .iter()
+        .map(|p| {
+            serde_json::json!({
+                "id": p.id,
+                "file": p.file,
+                "from": p.from,
+                "to": p.to,
+                "topic": p.topic,
+                "pending_since": p.pending_since
+            })
+        })
+        .collect();
+
+    let index = serde_json::json!({
+        "generated_at": generated_at,
+        "nodes": nodes,
+        "edges": edges,
+        "pending": pending_json,
+        "invalid_files": invalid_files
+    });
+
+    let json_str = match serde_json::to_string_pretty(&index) {
+        Ok(s) => s,
+        Err(err) => {
+            output.stderr(format!("ERR  failed to serialise graph index: {err}"));
+            return 1;
+        }
+    };
+
+    if let Some(path) = output_path {
+        if let Err(err) = std::fs::write(&path, &json_str) {
+            output.stderr(format!("ERR  could not write {}: {err}", path.display()));
+            return 1;
+        }
+        output.stdout(format!("OK  wrote graph index to {}", path.display()));
+    } else {
+        println!("{json_str}");
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-graph-index", output.chars);
+    0
+}
+
+/// Deterministic one-line summary: first H1/H2 heading from body, else topic.
+fn graph_index_summary(path: &std::path::Path, topic: Option<&str>) -> String {
+    if let Ok(content) = std::fs::read_to_string(path) {
+        let body = content.splitn(3, "---").nth(2).unwrap_or("");
+        for line in body.lines() {
+            let trimmed = line.trim_start_matches('#').trim();
+            if line.starts_with('#') && !trimmed.is_empty() {
+                return trimmed.to_string();
+            }
+        }
+    }
+    topic.unwrap_or("").to_string()
 }
 
 fn coord_visibility(
