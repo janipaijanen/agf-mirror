@@ -1,3 +1,6 @@
+use crate::readable_id::{
+    is_readable_id, parse_readable_id, readable_timestamp_from_iso, role_slug,
+};
 use agov_core::{schema, yaml};
 use std::path::Path;
 
@@ -60,9 +63,7 @@ impl CoordMessage {
 /// Strips path components; appends `.md` to bare IDs; rejects strings that
 /// don't look like coordination filenames.
 pub fn normalize_coord_reference(reference: &str) -> Option<String> {
-    let filename = std::path::Path::new(reference)
-        .file_name()?
-        .to_str()?;
+    let filename = std::path::Path::new(reference).file_name()?.to_str()?;
 
     if filename.ends_with(".md") {
         if looks_like_coord_filename(filename) {
@@ -177,46 +178,11 @@ pub fn advisory_findings_for_path(msg: &CoordMessage, path: Option<&Path>) -> Ve
     findings
 }
 
-fn is_readable_id(id: &str) -> bool {
-    readable_parts(id).is_some()
-}
-
 fn is_ulid(id: &str) -> bool {
     id.len() == 26
         && id
             .chars()
             .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
-}
-
-fn readable_parts(id: &str) -> Option<(&str, &str, &str)> {
-    let (timestamp, rest) = id.split_once('-')?;
-    if timestamp.len() != 16
-        || !timestamp.ends_with('Z')
-        || !timestamp[..8].chars().all(|ch| ch.is_ascii_digit())
-        || &timestamp[8..9] != "T"
-        || !timestamp[9..15].chars().all(|ch| ch.is_ascii_digit())
-    {
-        return None;
-    }
-
-    let (role, suffix) = rest.rsplit_once('-')?;
-    if role.is_empty()
-        || !role
-            .chars()
-            .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '-')
-        || !role
-            .chars()
-            .next()
-            .is_some_and(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit())
-        || !(4..=6).contains(&suffix.len())
-        || !suffix
-            .chars()
-            .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit())
-    {
-        return None;
-    }
-
-    Some((timestamp, role, suffix))
 }
 
 fn add_readable_drift_findings(
@@ -225,24 +191,26 @@ fn add_readable_drift_findings(
     id: &str,
     path: Option<&Path>,
 ) {
-    let Some((id_timestamp, id_role, _suffix)) = readable_parts(id) else {
+    let Some(parts) = parse_readable_id(id) else {
         return;
     };
 
     if let Some(from) = msg.raw.get("from").and_then(|value| value.as_str()) {
         let expected = role_slug(from);
-        if id_role != expected {
+        if parts.role != expected {
             findings.push(format!(
-                "readable id role '{id_role}' differs from from '{from}' (expected slug '{expected}')"
+                "readable id role '{}' differs from from '{from}' (expected slug '{expected}')",
+                parts.role
             ));
         }
     }
 
     if let Some(timestamp) = msg.raw.get("timestamp").and_then(|value| value.as_str()) {
-        if let Some(frontmatter_timestamp) = basic_utc_timestamp(timestamp) {
-            if id_timestamp != frontmatter_timestamp {
+        if let Some(frontmatter_timestamp) = readable_timestamp_from_iso(timestamp) {
+            if parts.timestamp != frontmatter_timestamp {
                 findings.push(format!(
-                    "readable id timestamp '{id_timestamp}' differs from frontmatter timestamp '{frontmatter_timestamp}'"
+                    "readable id timestamp '{}' differs from frontmatter timestamp '{frontmatter_timestamp}'",
+                    parts.timestamp
                 ));
             }
         }
@@ -315,51 +283,6 @@ fn ai_agent_role(role: &str) -> bool {
             played_by.contains("ai") || played_by.contains("claude")
         })
         .unwrap_or(false)
-}
-
-fn role_slug(value: &str) -> String {
-    let mut slug = String::new();
-    let mut previous_dash = false;
-
-    for ch in value.chars().flat_map(|ch| ch.to_lowercase()) {
-        if ch.is_ascii_lowercase() || ch.is_ascii_digit() {
-            slug.push(ch);
-            previous_dash = false;
-        } else if !previous_dash {
-            slug.push('-');
-            previous_dash = true;
-        }
-    }
-
-    let trimmed = slug.trim_matches('-');
-    if trimmed.is_empty() {
-        "unknown".to_string()
-    } else {
-        trimmed.to_string()
-    }
-}
-
-fn basic_utc_timestamp(timestamp: &str) -> Option<String> {
-    if timestamp.len() >= 20
-        && timestamp.as_bytes().get(4) == Some(&b'-')
-        && timestamp.as_bytes().get(7) == Some(&b'-')
-        && timestamp.as_bytes().get(10) == Some(&b'T')
-        && timestamp.as_bytes().get(13) == Some(&b':')
-        && timestamp.as_bytes().get(16) == Some(&b':')
-        && timestamp.ends_with('Z')
-    {
-        Some(format!(
-            "{}{}{}T{}{}{}Z",
-            &timestamp[0..4],
-            &timestamp[5..7],
-            &timestamp[8..10],
-            &timestamp[11..13],
-            &timestamp[14..16],
-            &timestamp[17..19]
-        ))
-    } else {
-        None
-    }
 }
 
 #[cfg(test)]

@@ -1,5 +1,6 @@
 mod dist;
 
+use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -812,15 +813,6 @@ fn render_kind_front_matter(output: &mut OutputCounter, kind: &str, to: &str, to
     }
 }
 
-fn readable_id(role: &str, now: time::OffsetDateTime) -> String {
-    format!(
-        "{}-{}-{}",
-        basic_utc_timestamp(now),
-        role_slug(role),
-        readable_suffix()
-    )
-}
-
 fn suggested_filename(id_format: &str, from: Option<&str>, id: &str) -> String {
     if id_format == "readable" {
         format!("{id}.md")
@@ -829,66 +821,6 @@ fn suggested_filename(id_format: &str, from: Option<&str>, id: &str) -> String {
     } else {
         format!("{id}-<from>.md")
     }
-}
-
-fn basic_utc_timestamp(now: time::OffsetDateTime) -> String {
-    format!(
-        "{:04}{:02}{:02}T{:02}{:02}{:02}Z",
-        now.year(),
-        u8::from(now.month()),
-        now.day(),
-        now.hour(),
-        now.minute(),
-        now.second()
-    )
-}
-
-fn iso_timestamp(now: time::OffsetDateTime) -> String {
-    format!(
-        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
-        now.year(),
-        u8::from(now.month()),
-        now.day(),
-        now.hour(),
-        now.minute(),
-        now.second()
-    )
-}
-
-fn role_slug(role: &str) -> String {
-    let mut slug = String::new();
-    let mut last_dash = false;
-
-    for ch in role.chars().flat_map(char::to_lowercase) {
-        if ch.is_ascii_alphanumeric() {
-            slug.push(ch);
-            last_dash = false;
-        } else if !last_dash && !slug.is_empty() {
-            slug.push('-');
-            last_dash = true;
-        }
-    }
-
-    while slug.ends_with('-') {
-        slug.pop();
-    }
-
-    if slug.is_empty() {
-        "unknown".to_string()
-    } else {
-        slug
-    }
-}
-
-fn readable_suffix() -> String {
-    let alphabet = b"0123456789abcdefghjkmnpqrstvwxyz";
-    let ulid = agov_core::ulid_util::new();
-
-    ulid.bytes()
-        .rev()
-        .take(4)
-        .map(|byte| alphabet[(byte as usize) % alphabet.len()] as char)
-        .collect()
 }
 
 #[derive(Clone)]
@@ -1903,10 +1835,10 @@ fn visibility_modern_filename(file: &str) -> bool {
         .unwrap_or(file);
     let stem = basename.strip_suffix(".md").unwrap_or(basename);
     is_ulid_stem(stem)
-        || is_readable_stem(stem)
+        || is_readable_id(stem)
         || stem
             .rsplit_once('-')
-            .map(|(possible, _sender)| is_readable_stem(possible))
+            .map(|(possible, _sender)| is_readable_id(possible))
             .unwrap_or(false)
 }
 
@@ -1915,28 +1847,6 @@ fn is_ulid_stem(value: &str) -> bool {
         && value
             .chars()
             .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
-}
-
-fn is_readable_stem(value: &str) -> bool {
-    let Some((timestamp, rest)) = value.split_once('-') else {
-        return false;
-    };
-    timestamp.len() == 16
-        && timestamp.ends_with('Z')
-        && timestamp.as_bytes().get(8) == Some(&b'T')
-        && timestamp[..8].chars().all(|ch| ch.is_ascii_digit())
-        && timestamp[9..15].chars().all(|ch| ch.is_ascii_digit())
-        && rest
-            .rsplit_once('-')
-            .map(|(role, suffix)| {
-                !role.is_empty()
-                    && suffix.len() >= 4
-                    && suffix.len() <= 6
-                    && suffix
-                        .chars()
-                        .all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit())
-            })
-            .unwrap_or(false)
 }
 
 fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport) {
