@@ -529,6 +529,9 @@ learnings:
       set, file size/mtime, and max sequence number. A "no new messages" poll
       should always include the current max sequence so humans and agents can
       see which baseline is being held.
+    superseded_by: >-
+      Polling timers must be restarted immediately after session boundary events
+      to avoid silent gaps in coordination visibility
 
   - id: L012
     date: "2026-06-13"
@@ -800,7 +803,91 @@ learnings:
       Implementation plan: `docs/plans/coordination-ulid-migration.md`.
       Gate 1 handoff: seq 341.
 
+  - id: L018
+    date: "2026-06-23"
+    category: gap
+    scope: framework
+    title: >-
+      Polling timers must be restarted immediately after session boundary events
+      to avoid silent gaps in coordination visibility
+    agents_involved: [governor-reviewer]
+    summary: >
+      After a session boundary — context compaction (/compact), session restart,
+      or context-window exhaustion — all ScheduleWakeup timers are lost silently.
+      Without explicit restart on resumption, coordination messages and MRs filed
+      during the gap are missed.
+    detail: >
+      On 2026-06-23, Codex filed a handoff (requires-ack: true, to
+      planner-architect) approximately 10 minutes after the governor-reviewer
+      completed Gate 2 approval. The message was already on origin/main when
+      the governor-reviewer polled, but was not detected because the polling
+      fetch had already run and the 20-minute scan window was not re-checked
+      in that cycle. The human user had to point it out.
+
+      More structurally: after context compaction earlier in the same session,
+      the governor-reviewer's ScheduleWakeup timers were silently dropped. The
+      human user manually restarted the polling prompt each time (supplying the
+      full context and steps), which is the correct workaround — but it places
+      the continuity burden on the human rather than on the agent.
+
+      This is distinct from L011, which describes a timer that misses files
+      already present when the timer arms. This learning describes a
+      session-boundary gap: the timer does not exist at all after /compact, so
+      no baseline is printed and no future deltas are reported until the timer
+      is explicitly re-armed. The two gaps compound: a session that ends mid-poll
+      interval and resumes without re-arming silently drops both the baseline
+      and the interval.
+
+      In a multi-agent async system, the gap between session end and timer
+      restart may span minutes to hours depending on human availability.
+      Coordination messages filed during the gap are only discovered if a human
+      intervenes.
+    framework_impact: medium
+    status: accepted
+    severity: significant
+    business_impact:
+      type: cost_overhead
+      description: >
+        Missed coordination messages require human intervention to surface,
+        adding latency to governance handoffs and increasing the human
+        operator's monitoring burden.
+    recommendation: >
+      1. On every session resumption after /compact, restart, or compaction:
+         immediately run a wide-window branch scan (--since="2 hours ago" or
+         the time since the last known poll) and check open MRs before doing
+         anything else.
+
+      2. Restart a ScheduleWakeup timer as the final step of cold-start
+         protocol, using the same polling prompt that was active before the
+         session ended. Store the prompt text in persistent memory (e.g.,
+         MEMORY.md) so it can be re-armed without reconstructing it from
+         conversation history.
+
+      3. Widen the lookback window in the first post-resumption poll. The
+         standard interval window (e.g., 15-20 minutes) is appropriate for
+         mid-session polls but too narrow for post-compaction re-orientation.
+         Use at least 2× the session's scheduled interval as the first-poll
+         lookback.
+
+      4. The cold-start protocol must list timer restart as an explicit
+         mandatory step, not implied by "check for new coordination messages."
+         The distinction matters: checking once is orientation; scheduling a
+         wakeup is continuity.
+
+      5. Gate-review sessions with a named polling prompt should record that
+         prompt in memory at the start of the session, so any future
+         resumption can re-arm it without human-supplied context.
+
 sentinel_ack:
+  - finding_id: "ISEC-DETAIL-001"
+    decision: "false_positive"
+    rationale: >
+      The path is in L010, documenting a historical incident about session-resume
+      files that were accidentally created at a local absolute path. It is not a
+      credential or a secret. The learning record is internal project documentation;
+      the path would need to be redacted before any upstream submission.
+    acknowledged_by: "governor-reviewer"
+    date: "2026-06-23"
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
     rationale: >
