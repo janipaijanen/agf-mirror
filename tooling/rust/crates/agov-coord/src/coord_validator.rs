@@ -12,8 +12,90 @@ pub struct CoordMessage {
 
 impl CoordMessage {
     pub fn id(&self) -> Option<&str> {
-        self.raw.get("id").and_then(|value| value.as_str())
+        self.raw.get("id").and_then(|v| v.as_str())
     }
+
+    pub fn kind(&self) -> Option<&str> {
+        self.raw.get("kind").and_then(|v| v.as_str())
+    }
+
+    pub fn from(&self) -> Option<&str> {
+        self.raw.get("from").and_then(|v| v.as_str())
+    }
+
+    pub fn to(&self) -> Option<&str> {
+        self.raw.get("to").and_then(|v| v.as_str())
+    }
+
+    pub fn topic(&self) -> Option<&str> {
+        self.raw.get("topic").and_then(|v| v.as_str())
+    }
+
+    pub fn timestamp(&self) -> Option<&str> {
+        self.raw.get("timestamp").and_then(|v| v.as_str())
+    }
+
+    pub fn requires_ack(&self) -> bool {
+        self.raw
+            .get("requires-ack")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false)
+    }
+
+    /// Normalised `references-to` filenames (bare IDs resolved to `<id>.md`).
+    pub fn references_to(&self) -> Vec<String> {
+        self.raw
+            .get("references-to")
+            .and_then(|v| v.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|v| v.as_str())
+            .filter_map(normalize_coord_reference)
+            .collect()
+    }
+}
+
+/// Normalise a single `references-to` entry to a coordination filename.
+///
+/// Strips path components; appends `.md` to bare IDs; rejects strings that
+/// don't look like coordination filenames.
+pub fn normalize_coord_reference(reference: &str) -> Option<String> {
+    let filename = std::path::Path::new(reference)
+        .file_name()?
+        .to_str()?;
+
+    if filename.ends_with(".md") {
+        if looks_like_coord_filename(filename) {
+            Some(filename.to_string())
+        } else {
+            None
+        }
+    } else {
+        let candidate = format!("{filename}.md");
+        if looks_like_coord_filename(&candidate) {
+            Some(candidate)
+        } else {
+            None
+        }
+    }
+}
+
+/// Returns true when a filename looks like a coordination message file.
+pub fn looks_like_coord_filename(filename: &str) -> bool {
+    let stem = filename.strip_suffix(".md").unwrap_or(filename);
+    let first = stem.split('-').next().unwrap_or("");
+
+    // Sequence-numbered: `00001-role.md`
+    first.len() == 5 && first.chars().all(|ch| ch.is_ascii_digit())
+        // ULID-prefixed: 26-char Crockford base32
+        || first.len() == 26
+            && first.chars().all(|ch| {
+                matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z')
+            })
+        // Readable timestamp: `20260623T181212Z-…`
+        || stem.len() >= 17
+            && stem.as_bytes().get(8) == Some(&b'T')
+            && stem.as_bytes().get(15) == Some(&b'Z')
 }
 
 /// Validate a coordination message file.
