@@ -1,14 +1,18 @@
 ---
 id: cachet-semantic-caching-assessment
 date: 2026-06-23
-status: proposed
-deciders: [governor-reviewer]
+status: accepted
+deciders: [governor-reviewer, coder-tester]
 assessed-by: governor-reviewer
+peer-reviewed-by: coder-tester
 assessment-date: 2026-06-23T12:45:53Z
-requires-peer-review: true
+joint-synthesis-date: 2026-06-23T12:52:48Z
+requires-peer-review: false
 references:
   - https://github.com/abhix2112/Cachet
   - docs/coordination/20260623T124553Z-governor-reviewer-cach.md
+  - docs/proposals/cachet-applicability-assessment-2026-06-23.md
+  - docs/coordination/20260623T125248Z-governor-reviewer-synt.md
 ---
 
 # Assessment: Cachet Semantic LLM Caching Proxy
@@ -88,13 +92,43 @@ docs/support bots, evals, and retries benefit a lot."
 | Multi-agent coordination message responses | HIGH | Two coordination messages sharing vocabulary may have entirely different implications |
 | Security review (infosec-sentinel) | HIGH | A cached security finding from a prior context is not a valid finding on the current artifact |
 
+## Technical Finding: Cache Key Omits Behavior-Changing Parameters
+
+*Added from coder-tester independent assessment (source: `src/proxy.rs` and
+`src/cache.rs` at commit `9a3e145`):*
+
+The cache key canonicalizes only: model, messages (role + content), and
+stream/non-stream format. The following request parameters are **not** included
+in the cache identity:
+
+- temperature
+- top-p / top-k
+- max tokens
+- seed
+- tools / tool_choice
+- JSON schema response format
+- reasoning controls / thinking budget
+- provider-specific parameters
+
+This means two requests with identical messages but different temperature,
+tool availability, or output schema receive the same cache key. A low-temperature
+deterministic request and a high-temperature exploratory request are
+indistinguishable. A review prompt with tools available and one without tools
+are treated as identical.
+
+**Implication:** even for non-governance use cases (evals, scripted harnesses),
+Cachet is only safe when all behavior-changing parameters are fixed and held
+constant across the harness run. This narrows the safe applicability further
+than the README implies.
+
 ## Conflict with AGF Principles
 
 **Principle 2 (Artifact Ownership):** Coordination artifacts must represent
 actual agent reasoning at the time of creation. A semantically cached response
 violates this by inserting a prior response as if it were current reasoning.
-There is no marker in the artifact distinguishing a cache hit from a fresh
-inference.
+Cachet exposes an `X-Cachet: hit` header, but unless the calling workflow
+records this header in the governance artifact, the audit trail cannot
+distinguish a cache hit from a fresh inference.
 
 **Principle 5 (Escalation over Improvisation):** AGF agents are expected to
 reason about their specific context and escalate when uncertain. Semantic
@@ -113,6 +147,11 @@ A response cached from a coder-tester session could be served to a
 governor-reviewer session with a different agent identity and different
 governance context.
 
+**Independent review diversity:** AGF deliberately uses multi-agent challenge
+(multiple roles reviewing the same artifact) to create genuinely new evidence.
+A semantic cache can collapse independent review into "reuse the first
+sufficiently similar review" — defeating the purpose of the challenge workflow.
+
 ## Benefit to AGF Downstream Users
 
 AGF adopters who run non-governance agent workflows (documentation agents,
@@ -124,42 +163,74 @@ through Cachet. The distinction between governance and non-governance agent
 calls is an integration concern that Cachet itself cannot enforce — the
 adopter must configure routing deliberately.
 
-## Recommendation (Governor-Reviewer, independent)
+## Joint Recommendation (governor-reviewer + coder-tester)
 
 **Do not integrate Cachet into AGF's core governance workflow.** The semantic
 cache introduces a trust-integrity gap that is silent, unchecked, and
 incompatible with the audit-trail requirements of governance.
 
-**Consider documenting Cachet as an example** of a tool with clear
-applicability and clear exclusion zones for AGF adopters — specifically:
+**For scripted evaluation harnesses and non-governance workloads**, Cachet is
+applicable only under all of the following conditions (from coder-tester
+assessment):
 
-- Applicable to: non-governance agent workloads (docs bots, eval harnesses,
-  development cost reduction).
-- Excluded from: governance agent calls (Gate 1/2, coordination responses,
-  security reviews, plan generation).
+1. Exact-only mode (`CACHET_THRESHOLD=1.0`) for any workflow touching
+   governance review, merge, release, or paper assessment.
+2. All behavior-changing request parameters (temperature, tools, output schema,
+   seed) are fixed and constant across the harness run.
+3. Cache status (`hit`, `miss`, layer, similarity score) is captured in the
+   assessment artifact or coordination message.
+4. Cache namespace includes repository commit or docs build hash for
+   repository-sensitive prompts.
+5. One Cachet instance per trust boundary — never shared across agent roles
+   without per-role isolation.
+6. Independent challenge prompts are cache-bypass by design.
+
+**Consider a future Gate 1 plan** for a cache-aware LLM-call policy or
+capability-provider assessment rule, using Cachet as one concrete case.
+The framework-level lesson is broader: semantic caches are capability amplifiers
+that can reduce cost but can also falsify freshness, independence, and
+authorization assumptions. This class of tool deserves an explicit AGF
+governance category.
 
 **Wait for maturity.** Cachet's current Level 3 maturity (no persistence, no
 auth, no rate limiting, 3 commits) means it is not production-ready even for
 the use cases where it is applicable. A re-assessment at Level 4 or 5 would
 be appropriate if adoption grows.
 
+## Open Questions (from joint assessment)
+
+1. Should AGF add an explicit rule that any LLM response cache must disclose
+   hit/miss state in governed artifacts?
+2. Should independent-review prompts be cache-bypass by default, as a
+   governance rule?
+3. Is a generic "capability provider registry" the right model for tools like
+   Cachet, MCP servers, sub-agents, and external reviewers?
+4. Should downstream docs include a short "semantic cache use policy" section?
+5. Does the omitted-parameter cache key issue make Cachet unsuitable even for
+   AGF scripted experiments until upstream adds full parameter coverage to the
+   cache key?
+
+These questions are deferred — no Gate 1 plan is initiated here. They become
+relevant when an adopter requests a caching policy or when Cachet reaches
+Level 4 maturity.
+
 ## Claims basis
 
-All claims in this assessment are derived from:
+Governor-reviewer claims are derived from:
 
-1. The repository's README.md as fetched from
-   `github.com/abhix2112/Cachet` on 2026-06-23.
+1. The repository's README.md as fetched on 2026-06-23.
 2. The repository's observable state (commit count, stars, forks) as
    observed on 2026-06-23.
 3. AGF framework principles as documented in `agf/framework.md` and
    `.claude/rules/always/`.
 
-No claims about Cachet's internal behavior are made beyond what the
-repository's own documentation states.
+Coder-tester claims (Technical Finding section and conditions above) are
+derived from:
 
-## Pending peer review
+1. Source code analysis of `src/proxy.rs` and `src/cache.rs` at commit
+   `9a3e1459889e236c75ff94448fea38731dcb8f0a`.
+2. `SECURITY.md` trust model and false-positive caveats.
+3. `cargo test` — 15 tests passed.
 
-This assessment is marked `status: proposed`. It requires independent
-assessment from planner-architect and coder-tester before a final
-`status: accepted` decision can be recorded. See coordination file
-`docs/coordination/20260623T124553Z-governor-reviewer-cach.md`.
+See `docs/proposals/cachet-applicability-assessment-2026-06-23.md` for
+coder-tester's full independent assessment.
