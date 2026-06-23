@@ -6,6 +6,13 @@ agents-govern 1.1.50 as its own governance framework. The project is both the
 product under development and a live proof-of-concept of the governance model
 it will supersede.
 
+**Use `agov` first for project orientation and validation.** It saves context
+tokens by returning compact deterministic summaries instead of making agents
+read the full coordination channel, plans, and schemas by hand. Prefer the
+repo-local `./tooling/agov` wrapper in this checkout. For adopter/release
+binaries, use the GitLab Releases page:
+`https://gitlab.com/janipaijanen/agents-govern-framework/-/releases`.
+
 ---
 
 ## Project layout
