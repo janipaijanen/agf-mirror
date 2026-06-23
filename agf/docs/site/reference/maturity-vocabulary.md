@@ -55,9 +55,9 @@ Use compliance profiles for an adopter's chosen verifiability target.
 
 | Profile | What is enforced |
 |---|---|
-| Artefact-only | Schema and cross-field validation on governance artifacts. |
-| Process-aware | Artefact-only plus gate execution evidence and recorded decisions. |
 | Full | Process-aware plus binding identifiers, trailers, or sidecars that connect artifacts to execution traces. |
+| Process-aware | Artefact-only plus gate execution evidence and recorded decisions. |
+| Artefact-only | Schema and cross-field validation on governance artifacts. |
 
 Compliance profile answers "which verifiability layers does this project
 enforce?" It is separate from adoption intensity, capability maturity, and
