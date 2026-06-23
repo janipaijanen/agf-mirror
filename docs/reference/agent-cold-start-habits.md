@@ -20,6 +20,11 @@ backed by governed artifacts.
 6. If Git transport is stale or broken, use the GitLab/API source of truth and
    say that you did.
 
+When the coordination channel is large, run `agov coord graph-index` after
+`coord status`. Treat `pending` as the first handoff queue to inspect, and use
+`nodes[].resolved` only as a handoff state: `true` means resolved, `false`
+means pending, and `null` means the message is not a handoff.
+
 ## Treat Timers As Intake
 
 A timer is useful only if it drives action. After each poll, read new messages

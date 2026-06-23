@@ -2,6 +2,7 @@ mod dist;
 
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
+use serde::Serialize;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use time::format_description::well_known::Rfc3339;
@@ -19,6 +20,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Print agov version and build provenance.
+    Version {
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
     /// Coordination channel commands.
     Coord {
         #[command(subcommand)]
@@ -220,6 +226,10 @@ enum UsageCommand {
 
 fn main() {
     let args = normalized_args();
+    if matches!(args.get(1).map(String::as_str), Some("--version" | "-V")) {
+        println!("{}", version_text());
+        std::process::exit(0);
+    }
     let cli = Cli::parse_from(args.clone());
     let exit_code = run(cli, args.into_iter().skip(1).collect());
     std::process::exit(exit_code);
@@ -257,6 +267,7 @@ fn normalized_args() -> Vec<String> {
 
 fn run(cli: Cli, args: Vec<String>) -> i32 {
     match cli.command {
+        Command::Version { format } => version_command(&format, &args),
         Command::Coord {
             sub: CoordCommand::Validate { files },
         } => validate_coord_files(files, &args),
@@ -330,6 +341,43 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => usage_report(dir, manifest, last, &args),
     }
+}
+
+#[derive(Serialize)]
+struct VersionInfo {
+    version: &'static str,
+    commit: &'static str,
+    dirty: bool,
+}
+
+fn build_version_info() -> VersionInfo {
+    VersionInfo {
+        version: env!("CARGO_PKG_VERSION"),
+        commit: option_env!("AGOV_GIT_SHA").unwrap_or("unknown"),
+        dirty: option_env!("AGOV_GIT_DIRTY").unwrap_or("false") == "true",
+    }
+}
+
+fn version_text() -> String {
+    let info = build_version_info();
+    let state = if info.dirty { "dirty" } else { "clean" };
+    format!("agov {} ({} {state})", info.version, info.commit)
+}
+
+fn version_command(format: &str, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    match format {
+        "json" => match serde_json::to_string(&build_version_info()) {
+            Ok(json) => output.stdout(json),
+            Err(err) => {
+                output.stderr(format!("ERR failed to serialise version info: {err}"));
+                return 1;
+            }
+        },
+        _ => output.stdout(version_text()),
+    }
+    agov_core::roi::record_tool_output("agov", args, "version", output.chars);
+    0
 }
 
 fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
