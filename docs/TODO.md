@@ -73,6 +73,41 @@ Before AGF v2 is promoted beyond Provisional:
 - What is the minimum acceptable label for inherited v1.x content so that it is
   honest without making the docs unreadable?
 
+## Rust Implementation Health Assessment
+
+Status: open TODO. Owner: planner-architect for assessment shape; coder-tester
+for implementation evidence; governor-reviewer for urgency and release impact.
+
+Assess the current Rust `agov` implementation before AGF v2 release hardening,
+with special attention to whether refactoring/modularization has become urgent.
+The question is not "can we keep adding features?" but "are command contracts,
+validators, graph tooling, version provenance, and downstream documentation
+still landing in a structure that future AI and human maintainers can reason
+about safely?"
+
+Minimum assessment scope:
+
+- command boundaries and whether CLI subcommands have clear module ownership;
+- repeated parsing/normalization logic across coordination, plans, learnings,
+  and graph-index code;
+- test architecture for stable stdout JSON, exit codes, fixtures, and failure
+  behavior;
+- whether version provenance should be centralized before more commands depend
+  on it;
+- where machine-readable command contracts should live and how they should be
+  tested;
+- whether current coupling will make the three downstream guidance layers
+  harder to keep synchronized: human manuals, AI manuals/cold-start guidance,
+  and machine-readable command contracts.
+
+Candidate output:
+
+1. A short implementation-health review that names concrete refactoring risks.
+2. A decision on urgency: defer, opportunistic cleanup, or release-blocking
+   modularization.
+3. If refactoring is needed, a Gate 1 plan that sequences it before contract
+   sprawl makes the cost higher.
+
 ## Codex Opinion
 
 Make this a staged release gate, not an immediate blocker for all development.
