@@ -115,6 +115,8 @@ Default POC layout:
 | Learning record | `agf/learnings/<codename>.yaml` |
 | Current core validators | `agov` from a full checkout |
 | Communication map | `agov coord graph` — Graphviz dot map of role-to-role coordination flows |
+| Coordination index | `agov coord graph-index` — JSON index of handoffs and references |
+| Tool provenance | `agov --version` / `agov version --format json` |
 
 The framework source archive is usable on its own. Adopters who want the
 current core validators can use a full checkout or the optional packaged

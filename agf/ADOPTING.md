@@ -2,6 +2,14 @@
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Adopting the Governance Framework
 
+> **RC readiness label — `adapted-from-v1x`, partially verified for AGF v2.**
+> This long-form operator guide contains material inherited from agents-govern
+> v1.x and older tooling eras. The current adopter-facing path is the public
+> documentation site under `agf/docs/site/`; when this file mentions Mix,
+> Elixir validators, or not-yet-shipped commands, treat that passage as
+> historical or provisional unless a current Rust `agov` command and public
+> docs page confirm it.
+
 Concrete steps for applying this framework to an existing software project.
 Follow in order. Each step has a defined output — do not skip to the next
 step until the output exists.

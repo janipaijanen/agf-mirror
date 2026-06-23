@@ -104,6 +104,7 @@ on this project:
 
 | Command | Replaces | Maturity |
 |---|---|---|
+| `agov --version` / `agov version --format json` | Human or CI guesses which binary/source revision is running | Level 5 — Deployable |
 | `agov coord validate <file>...` | AI reads a coordination file to check schema compliance | Level 5 — Deployable |
 | `agov plan validate <file>...` | AI reads a Gate 1 plan file to check front-matter | Level 5 — Deployable |
 | `agov validate` | AI reads adoption, agent, and learning files to spot problems | Level 5 — Deployable |
@@ -113,6 +114,8 @@ on this project:
 | `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 5 — Deployable |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 5 — Deployable |
 | `agov coord visibility` | Agent scans branches for hidden coordination obligations | Level 5 — Deployable |
+| `agov coord graph` | Agent manually summarizes role-to-role coordination flows | Level 5 — Deployable |
+| `agov coord graph-index` | Agent reads many coordination files to reconstruct references and pending handoffs | Level 5 — Deployable |
 | `agov token roi report` | Agent summarizes deterministic-tool token savings from local telemetry | Level 5 — Deployable |
 | `agov usage report` | Agent counts active roles, senders, message kinds, and unknown senders | Level 5 — Deployable |
 

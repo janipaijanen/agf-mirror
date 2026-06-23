@@ -17,7 +17,7 @@ AGF-NG/
 │   ├── rules/                # Governance rule templates
 │   └── schemas/              # JSON Schema draft-07 definitions
 ├── tooling/
-│   ├── agov                  # User-facing wrapper; prefers Rust, falls back when needed
+│   ├── agov                  # User-facing wrapper for the Rust agov CLI
 │   ├── rust/                 # Preferred AGF tooling implementation
 │   └── elixir/               # Reference/development implementation and parity oracle
 ├── docs/
@@ -245,6 +245,8 @@ report the Rust tooling gap instead of falling back to legacy tooling.
 
 Rust is the default operator path for supported commands:
 
+- `agov --version`
+- `agov version --format json`
 - `agov coord validate`
 - `agov coord brief`
 - `agov coord status`
@@ -279,16 +281,16 @@ agov agov.coord.validate docs/coordination/<file>.md
 agov agov.plan.validate docs/plans/<file>.md
 
 # Cold start: discover active roles and pending queues
-agov session resume --base-branch master
+agov session resume --base-branch main
 
 # Resume a session before acting or writing durable files
-agov session resume --role <agent-role> --base-branch master
+agov session resume --role <agent-role> --base-branch main
 
 # Find the next handoff for an agent role
 agov handoff next planner-architect
 
-# Scan local branches for coordination obligations hidden from master
-agov coord visibility --base-branch master
+# Scan local branches for coordination obligations hidden from main
+agov coord visibility --base-branch main
 
 # Report local deterministic-tool token ROI telemetry
 agov token roi report
@@ -320,10 +322,10 @@ git log --oneline --decorate -5
 ls docs/coordination/ | sort | tail -5
 agov coord validate docs/coordination/<file>.md
 agov plan validate docs/plans/<file>.md
-agov session resume --base-branch master                         # cold start
-agov session resume --role planner-architect --base-branch master
+agov session resume --base-branch main                           # cold start
+agov session resume --role planner-architect --base-branch main
 agov handoff next planner-architect
-agov coord visibility --base-branch master
+agov coord visibility --base-branch main
 ```
 
 **Snapshot (2026-06-14):** `agf/agents/MANIFEST.yaml` is the AGF-NG role
@@ -336,7 +338,7 @@ work is tracked on branches and coordinated through `docs/coordination/`.
 ## Branch discipline
 
 - Feature branches: `feat/<task>`, `fix/<what>`, `chore/<what>`, etc.
-- Never commit directly to `master`.
+- Never commit directly to `main`.
 - All changes merged after governor-reviewer Gate 2 approval.
 - No version bumps or tags on feature branches.
 
