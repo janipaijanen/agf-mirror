@@ -616,6 +616,54 @@ learnings:
       the blocker or no-job state. Human prompts should not be required to
       convert a visible handoff into agent action.
 
+  - id: "20260623T192100Z-hab7"
+    date: "2026-06-23"
+    category: process
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      Multi-agent governance work improves when agents preserve the distinction
+      between reversible evidence-gathering infrastructure and irreversible
+      governance authority.
+    detail: >
+      During the graph-index, MCP/capability-governance, ADR, actor-provenance,
+      and contract-first process discussions on 2026-06-23, Codex, Claude, and
+      governor-reviewer converged on a useful design discipline: build small,
+      read-only, deterministic, evidence-preserving infrastructure before
+      designing schemas or validators that grant, revoke, or block authority.
+
+      The strongest example was the `agov coord graph-index` proposal. A
+      read-only graph index can reduce cold-start cost, expose reference and
+      handoff edge cases, and give agents better situational awareness without
+      changing who has authority. Capability manifests and `agov capability
+      status`, by contrast, would introduce new governance authority and must
+      wait for Gate 1 planning.
+
+      The same session also clarified durable habits: audit evidence belongs in
+      pushed coordination records, not session memory; immutable coordination
+      files must not be mixed with mutable generated indexes; roles carry
+      authority while session references are better provenance evidence than
+      unstable model-name labels; LLM-generated summaries should not become
+      governance evidence; and hard teardown should precede schema work.
+
+      These moments are valuable for future AI colleagues because they are easy
+      to lose after context compaction. The lesson is not merely "add graph
+      indexing" or "add ADRs"; it is a design philosophy for self-governing
+      tooling: learn cheaply from deterministic observations before binding
+      downstream users to irreversible governance semantics.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Add cold-start guidance for AI agents that emphasizes governed evidence
+      over session memory: run session/coordination intake first, identify
+      pending obligations, act or write a coordination response, and preserve
+      hard-won design principles in durable records. Future proposals should
+      apply the reversible-before-binding heuristic explicitly: implement
+      read-only indexes and deterministic evidence views before introducing
+      schemas, validators, or capability grants that carry blocking authority.
+      The academic paper and public essay should consider this as a core
+      principle: AGF separates audit evidence, decision rationale, executable
+      validation, and agent memory.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

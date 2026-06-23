@@ -116,6 +116,10 @@ state note before compaction. When switching to an unrelated task, clear the
 session only after the current task's state is durable enough for a cold-starting
 agent to resume.
 
+See also `docs/reference/agent-cold-start-habits.md` for the companion habits:
+start from governed evidence, treat timers as intake, keep generated indexes out
+of the immutable coordination trail, and leave the next agent a durable handle.
+
 ### Coordination Visibility And L009
 
 L009 is the governing lesson for branch-local coordination warnings:
