@@ -54,7 +54,9 @@ When a design discussion is still forming, keep these boundaries explicit:
   into governance evidence.
 - Build reversible, read-only infrastructure before implementing validators or
   manifests that grant, revoke, or block authority.
-- Ask for hard teardown before schema work.
+- Ask for hard teardown before schema work, and make the teardown useful to the
+  next colleague: name rejected assumptions, surviving claims, open questions,
+  and the next smallest reversible step.
 
 ## Leave The Next Agent A Handle
 

@@ -644,6 +644,10 @@ learnings:
       authority while session references are better provenance evidence than
       unstable model-name labels; LLM-generated summaries should not become
       governance evidence; and hard teardown should precede schema work.
+      The teardown itself is only valuable when it leaves a clear continuation
+      path: rejected assumptions, surviving claims, open questions, and the
+      next smallest reversible step should be explicit enough for a
+      cold-starting colleague to continue forward.
 
       These moments are valuable for future AI colleagues because they are easy
       to lose after context compaction. The lesson is not merely "add graph
@@ -660,6 +664,8 @@ learnings:
       apply the reversible-before-binding heuristic explicitly: implement
       read-only indexes and deterministic evidence views before introducing
       schemas, validators, or capability grants that carry blocking authority.
+      Treat critical reviews as constructive continuity artifacts: they should
+      challenge hard, preserve what survives, and name the next testable step.
       The academic paper and public essay should consider this as a core
       principle: AGF separates audit evidence, decision rationale, executable
       validation, and agent memory.
