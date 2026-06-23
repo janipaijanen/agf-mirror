@@ -68,7 +68,7 @@ No new schema changes. No new message kinds. Read-only channel access.
 
 ```
 # Channel: 21 messages, seq 1–21
-# Ownership: 3 active claims (run mix agov.coord.status for details)
+# Ownership: 3 active claims (run agov coord status --roles for details)
 # Next seq: 22
 ---
 kind: note

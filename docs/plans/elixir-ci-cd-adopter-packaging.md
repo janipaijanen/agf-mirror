@@ -107,7 +107,7 @@ Expected jobs:
 
 | Job | Trigger | Purpose |
 |---|---|---|
-| `elixir:test` | merge requests, branches, tags | compile and run Mix tests |
+| `elixir:test` | merge requests, branches, tags | compile and run legacy Elixir tests |
 | `agf:dist:validate` | merge requests, branches, tags | validate release manifest and archive policy |
 | `agf:dist:preview` | merge requests and default branch | build source archives as non-release review artifacts |
 | `agf:dist:release` | tags only | build release archives, checksums, and provenance |

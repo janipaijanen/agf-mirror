@@ -395,14 +395,14 @@ definition that others can adopt.
 **Verify communication symmetry after adding or customizing agents.**
 When you add a project-specific or domain-specific agent, or modify an
 existing agent's `sends_to`/`receives_from`, run the agent validator after
-the AGF v2 Mix task ships. Planned command shape:
+the AGF v2 Rust command ships. Planned command shape:
 
 ```bash
 # Check structure, communication symmetry, ownership overlaps, phase distribution
-mix agov.agent.validate ../../agf/agents/*.yaml
+agov validate agents ../../agf/agents/*.yaml
 
 # Generate a Mermaid communication graph (paste into any Mermaid renderer)
-mix agov.agent.validate ../../agf/agents/*.yaml --graph
+agov validate agents ../../agf/agents/*.yaml --graph
 ```
 
 The validator checks that every `sends_to` has a matching `receives_from`
@@ -757,7 +757,7 @@ Attach the checklist to a gate event so it fires automatically. Options:
 security-review:
   stage: review
   script:
-    - "# planned AGF v2 command: mix agov.infosec.validate --include-md"
+    - "# planned AGF v2 command: agov validate infosec --include-md"
   rules:
     - if: $CI_MERGE_REQUEST_IID
 
@@ -1089,7 +1089,7 @@ against your governance file manually. Read your last 5-10 learnings and ask:
 "Is the same pain showing up repeatedly? Does an agent definition need to
 change?"
 
-Planned command shape: `mix agov.agent.validate ../../agf/agents/*.yaml
+Planned command shape: `agov validate agents ../../agf/agents/*.yaml
 --graph > docs/agent-communication.md`.
 
 The capability-developer is not a replacement for human judgment — it is a

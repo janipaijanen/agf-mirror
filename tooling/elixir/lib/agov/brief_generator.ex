@@ -43,7 +43,7 @@ defmodule Agov.BriefGenerator do
       if claims == 0, do: "no active claims", else: "#{claims} active claims"
 
     "# Channel: #{total} messages, #{range_str}\n" <>
-      "# Ownership: #{claims_str} (run mix agov.coord.status for details)\n" <>
+      "# Ownership: #{claims_str} (run agov coord status --roles for details)\n" <>
       "# Next id: #{next_id}\n" <>
       "# Suggested file: #{suggested_filename}\n"
   end

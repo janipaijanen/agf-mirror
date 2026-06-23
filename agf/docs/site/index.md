@@ -120,10 +120,10 @@ on this project:
 Level 5 is deployable and in active use; Level 1 is planned. Do not conflate
 the two.*
 
-Release archives ship platform-specific Rust tooling. Source-checkout users who
-also have the development toolchain can run Mix tasks directly when they need
-developer-only commands. See [Tooling and token savings](docs/adopt/tooling-and-tokens.md)
-for setup, estimates, and the evidence base behind the savings claims.
+Release archives ship platform-specific Rust tooling. Source-checkout users
+should use the same `agov` command surface as release-archive adopters. See
+[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup,
+estimates, and the evidence base behind the savings claims.
 
 ## What you get
 

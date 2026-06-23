@@ -12,14 +12,13 @@ description: >
 # InfoSec screen
 
 Run a comprehensive information-leak screening of the project's
-governance artifacts. This wraps `mix agov.validate.infosec` with additional
+governance artifacts. This wraps `agov validate infosec` with additional
 checks that the script alone does not cover.
 
 ## Step 1 — Run the automated sentinel
 
 ```bash
-cd tooling/elixir
-mix agov.validate.infosec
+agov validate infosec
 ```
 
 Markdown inclusion flags are deferred to E4. Until that option exists, run the

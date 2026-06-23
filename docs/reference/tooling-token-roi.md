@@ -15,13 +15,13 @@ governance context to answer narrow operational questions:
 
 | Question | Manual AI work before tooling | Current tooling |
 |---|---|---|
-| What role should I resume as, and what is pending? | Read recent coordination files, manifest, branch status, and claims. | `mix agov.session.resume` |
-| Who owns or has claimed an artifact? | Search coordination records and infer claim state. | `mix agov.coord.status` and `mix agov.coord.stale` |
-| What is the next handoff for a role? | Search handoff files and mentally subtract resolved items. | `mix agov.handoff.next` |
-| Is a feature branch hiding coordination obligations? | Compare branch-local messages against base branch manually. | `mix agov.coord.visibility` |
+| What role should I resume as, and what is pending? | Read recent coordination files, manifest, branch status, and claims. | `agov session resume` |
+| Who owns or has claimed an artifact? | Search coordination records and infer claim state. | `agov coord status` and `agov coord stale` |
+| What is the next handoff for a role? | Search handoff files and mentally subtract resolved items. | `agov handoff next` |
+| Is a feature branch hiding coordination obligations? | Compare branch-local messages against base branch manually. | `agov coord visibility` |
 | Is a coordination message or plan structurally valid? | Ask an AI or reviewer to inspect front matter. | `agov coord validate` and `agov plan validate` |
-| Which roles have been active recently? | Count senders across the channel manually. | `mix agov.usage.report` |
-| How much deterministic output is replacing manual context reads? | Manually count command output and compare to broad context ranges. | `mix agov.token.roi` |
+| Which roles have been active recently? | Count senders across the channel manually. | `agov usage report` |
+| How much deterministic output is replacing manual context reads? | Manually count command output and compare to broad context ranges. | `agov token roi` |
 
 The goal is not to eliminate AI reasoning. The goal is to reserve AI context for
 judgment, design, review, and synthesis, while tooling handles scanning,
@@ -55,13 +55,12 @@ Foundry now has a lightweight local telemetry proof of concept for collecting
 tool-output sizes and potential token-savings estimates over time:
 
 ```bash
-cd tooling/elixir
 
 # Print accumulated records.
-mix agov.token.roi report
+agov token roi report
 
 # Explicitly record a measurement from any command or manual count.
-mix agov.token.roi record \
+agov token roi record \
   --command agov.coord.visibility \
   --workflow branch-visibility \
   --chars 8235 \
@@ -81,8 +80,8 @@ documentation of `AGOV_TOKEN_ROI_LOG` and `AGOV_TOKEN_ROI`.
 Automatic POC collection currently records successful output sizes and
 workflow-baseline savings estimates for:
 
-- `mix agov.session.resume`
-- `mix agov.handoff.next`
+- `agov session resume`
+- `agov handoff next`
 
 Each JSONL record stores the command name, arguments, workflow label, character
 count, approximate token count, prompt-overhead estimate, baseline source, and
@@ -107,12 +106,12 @@ Measured on the foundry coordination channel after seq 251:
 | Artifact or command | Character count | Approx tokens |
 |---|---:|---:|
 | Numbered coordination files, full channel | 489,229 | 122,308 |
-| `mix agov.session.resume --base-branch master` | 1,802 | 451 |
-| `mix agov.session.resume --role governor-reviewer --base-branch master` | 1,098 | 275 |
-| `mix agov.handoff.next governor-reviewer` | 618 | 155 |
-| `mix agov.coord.status` | 1,118 | 280 |
-| `mix agov.usage.report --last 50` | 577 | 145 |
-| `mix agov.coord.visibility --base-branch master` | 8,235 | 2,059 |
+| `agov session resume --base-branch master` | 1,802 | 451 |
+| `agov session resume --role governor-reviewer --base-branch master` | 1,098 | 275 |
+| `agov handoff next governor-reviewer` | 618 | 155 |
+| `agov coord status` | 1,118 | 280 |
+| `agov usage report --last 50` | 577 | 145 |
+| `agov coord visibility --base-branch master` | 8,235 | 2,059 |
 
 These numbers do not mean every session previously read the whole channel.
 They show the upper bound of context that tooling protects agents from loading
@@ -148,8 +147,7 @@ asking an AI to compare every local branch by hand.
 
 ## How To Reproduce
 
-Run from the repository root for `agov` validation, and from `tooling/elixir/`
-for Mix-only commands:
+Run from the repository root:
 
 ```bash
 # Full channel size, from repository root:
@@ -163,14 +161,13 @@ find docs/coordination -maxdepth 1 -type f \
 agov coord validate docs/coordination/00302-governor-reviewer.md 2>&1 | wc -c
 agov plan validate docs/plans/tool-authority-boundary-rule.md 2>&1 | wc -c
 
-# Mix-only tool output sizes:
-cd tooling/elixir
-mix agov.session.resume --base-branch master | wc -c
-mix agov.session.resume --role governor-reviewer --base-branch master | wc -c
-mix agov.handoff.next governor-reviewer 2>&1 | wc -c
-mix agov.coord.status 2>&1 | wc -c
-mix agov.usage.report --last 50 2>&1 | wc -c
-mix agov.coord.visibility --base-branch master 2>&1 | wc -c
+# Tool output sizes:
+agov session resume --base-branch master | wc -c
+agov session resume --role governor-reviewer --base-branch master | wc -c
+agov handoff next governor-reviewer 2>&1 | wc -c
+agov coord status 2>&1 | wc -c
+agov usage report --last 50 2>&1 | wc -c
+agov coord visibility --base-branch master 2>&1 | wc -c
 ```
 
 Then divide each character count by 4 for the rough token estimate.
@@ -196,7 +193,7 @@ workflows. More automation is still useful. A future workflow-aware command
 could compute:
 
 ```bash
-mix agov.token.roi --workflow cold-start --role governor-reviewer
+agov token roi --workflow cold-start --role governor-reviewer
 ```
 
 Useful follow-ons:
@@ -206,8 +203,8 @@ Useful follow-ons:
 - Extend automatic collection to more deterministic commands once their output
   formatting is centralized.
 - Track command output character counts in coordination handoffs when useful.
-- Add a lightweight `mix agov.token.estimate <file-or-command-output>` helper.
-- Extend `mix agov.usage.report` to include receiver counts and model/session
+- Add a lightweight `agov token estimate <file-or-command-output>` helper.
+- Extend `agov usage report` to include receiver counts and model/session
   provenance once coordination records consistently include those fields.
 
 ## Conclusion

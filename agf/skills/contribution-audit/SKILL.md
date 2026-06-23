@@ -25,8 +25,7 @@ agent's review process.
 ## Step 1 — Run automated heuristics
 
 ```bash
-cd tooling/elixir
-mix agov.validate.contributions [LEARNINGS_DIR]
+agov validate contributions [LEARNINGS_DIR]
 ```
 
 Without arguments, scans the default learning record directory. Pass a specific

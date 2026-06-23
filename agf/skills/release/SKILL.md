@@ -17,13 +17,13 @@ gate requires explicit human confirmation.
 ## Prerequisites
 
 - Working tree is clean (no uncommitted changes)
-- All tests pass (`mix test` from `tooling/elixir/` or the
+- All tests pass (`cargo test --manifest-path tooling/rust/Cargo.toml` or the
   project-specific test command)
 - You know the bump type: `major`, `minor`, or `patch`
 
 ## Step 1 — Bump version
 
-Version bump tooling is deferred to E4. Until `mix agov.bump` exists, perform
+Version bump tooling is deferred. Until `agov bump` exists, perform
 the release bump manually:
 
 - `VERSION` file
@@ -58,12 +58,11 @@ Present the draft to the user.
 ## Step 3 — Run health check
 
 ```bash
-mix agov.validate
+agov validate
 ```
 
-Run this from `tooling/elixir/`. Full `mix agov.health` summary coverage is
-deferred to E4. All available checks must pass; if any errors, fix before
-proceeding.
+Full `agov health` summary coverage is deferred. All available checks must
+pass; if any errors, fix before proceeding.
 
 ## Step 4 — Create release branch and commit
 

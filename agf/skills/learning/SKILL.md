@@ -85,10 +85,9 @@ Insert at the position identified in Step 2.
 
 ## Step 6 — Validate
 
-1. From `tooling/elixir/`, run
-   `mix agov.validate.learnings ../../agf/learnings`
-   if the validation task exists in the project.
-2. Run `mix agov.validate.infosec ../../agf/learnings`
+1. Run `agov validate learnings`
+   if the validation command exists in the project.
+2. Run `agov validate infosec`
    to screen for information leaks.
 3. If either validator reports issues, fix them before finishing.
 
