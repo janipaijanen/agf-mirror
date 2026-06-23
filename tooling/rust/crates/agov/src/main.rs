@@ -2823,9 +2823,7 @@ fn run_validate(sub: Option<ValidateCommand>, args: &[String]) -> i32 {
             render_collection(
                 &mut output,
                 "agov.validate.learnings",
-                agov_validators::learnings::validate_all(
-                    &agov_core::repo_root().join("agf").join("learnings"),
-                ),
+                agov_validators::learnings::validate_all(&agov_core::learnings_dir()),
             ),
             "validate:learnings",
         ),
@@ -2833,9 +2831,7 @@ fn run_validate(sub: Option<ValidateCommand>, args: &[String]) -> i32 {
             render_collection(
                 &mut output,
                 "agov.validate.infosec",
-                agov_validators::infosec::validate_all(
-                    &agov_core::repo_root().join("agf").join("learnings"),
-                ),
+                agov_validators::infosec::validate_all(&agov_core::learnings_dir()),
             ),
             "validate:infosec",
         ),
@@ -2843,9 +2839,7 @@ fn run_validate(sub: Option<ValidateCommand>, args: &[String]) -> i32 {
             render_warning_collection(
                 &mut output,
                 "agov.validate.contributions",
-                agov_validators::contributions::validate_all(
-                    &agov_core::repo_root().join("agf").join("learnings"),
-                ),
+                agov_validators::contributions::validate_all(&agov_core::learnings_dir()),
             ),
             "validate:contributions",
         ),
@@ -2880,9 +2874,7 @@ fn run_all_validators(args: &[String]) -> i32 {
         render_collection(
             &mut output,
             "agov.validate.learnings",
-            agov_validators::learnings::validate_all(
-                &agov_core::repo_root().join("agf").join("learnings"),
-            ),
+            agov_validators::learnings::validate_all(&agov_core::learnings_dir()),
         ),
         render_collection(
             &mut output,
@@ -2899,16 +2891,12 @@ fn run_all_validators(args: &[String]) -> i32 {
         render_collection(
             &mut output,
             "agov.validate.infosec",
-            agov_validators::infosec::validate_all(
-                &agov_core::repo_root().join("agf").join("learnings"),
-            ),
+            agov_validators::infosec::validate_all(&agov_core::learnings_dir()),
         ),
         render_warning_collection(
             &mut output,
             "agov.validate.contributions",
-            agov_validators::contributions::validate_all(
-                &agov_core::repo_root().join("agf").join("learnings"),
-            ),
+            agov_validators::contributions::validate_all(&agov_core::learnings_dir()),
         ),
         render_warning_collection(
             &mut output,
@@ -2947,9 +2935,21 @@ fn render_collection(
     label: &str,
     result: agov_validators::CollectionResult,
 ) -> i32 {
-    if result.is_ok() {
+    let has_blocking = result
+        .file_errors
+        .iter()
+        .flat_map(|file_error| file_error.findings.iter())
+        .any(|finding| finding.severity == agov_core::Severity::Blocking);
+
+    if !has_blocking {
         for file in result.ok_files {
             output.validate_ok(&file);
+        }
+        for file_error in result.file_errors {
+            for finding in file_error.findings {
+                let location = finding.location.as_deref().unwrap_or(&file_error.file);
+                output.validate_warn(&file_error.file, location, &finding.message);
+            }
         }
         output.validate_ok(label);
         return 0;
@@ -2962,7 +2962,14 @@ fn render_collection(
 
         for finding in file_error.findings {
             let location = finding.location.as_deref().unwrap_or(&file_error.file);
-            output.validate_err(label, location, &finding.message);
+            match finding.severity {
+                agov_core::Severity::Blocking => {
+                    output.validate_err(label, location, &finding.message);
+                }
+                agov_core::Severity::Advisory => {
+                    output.validate_warn(&file_error.file, location, &finding.message);
+                }
+            }
         }
     }
 

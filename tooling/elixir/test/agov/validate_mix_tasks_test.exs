@@ -29,6 +29,25 @@ defmodule Agov.ValidateMixTasksTest do
     assert_received {:mix_shell, :info, ["OK agov.validate.learnings"]}
   end
 
+  test "learning task prints WARN records and exits cleanly for bare timestamp ids" do
+    dir = tmp_dir("learning-task-warning")
+
+    File.write!(Path.join(dir, "learning.yaml"), """
+    project:
+      codename: fixture
+    learnings:
+      - id: 20260621T150000Z
+        title: Bare timestamp
+        description: Historical transition record.
+    """)
+
+    Mix.Tasks.Agov.Validate.Learnings.run([dir])
+
+    assert_received {:mix_shell, :info, ["WARN " <> warning]}
+    assert warning =~ "bare timestamp learning id"
+    assert_received {:mix_shell, :info, ["OK agov.validate.learnings"]}
+  end
+
   test "contribution task prints WARN records and exits cleanly" do
     dir = tmp_dir("contribution-task")
 

@@ -74,6 +74,13 @@ pub fn schema_dir() -> PathBuf {
         .unwrap_or_else(|| repo_root().join("agf").join("schemas"))
 }
 
+/// Resolve the AGF learning records directory, honoring `AGOV_LEARNINGS_DIR`.
+pub fn learnings_dir() -> PathBuf {
+    std::env::var_os("AGOV_LEARNINGS_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| repo_root().join("agf").join("learnings"))
+}
+
 /// Resolve the AGF agent manifest path, honoring `AGOV_MANIFEST_PATH`.
 pub fn manifest_path() -> PathBuf {
     std::env::var_os("AGOV_MANIFEST_PATH")

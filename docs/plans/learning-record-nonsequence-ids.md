@@ -32,8 +32,11 @@ records with independently generated, time-sortable unique identifiers.
 The approved policy:
 
 > Historical `L###` learning IDs remain stable references. New AI-authored
-> learning records MUST use timestamp IDs in the form `YYYYMMDDThhmmssZ`, with
-> an optional `-<4-char>` suffix when same-second disambiguation is needed.
+> learning records MUST use timestamp IDs in the form
+> `YYYYMMDDThhmmssZ-<4-char>`.
+
+Settled 2026-06-23: suffix is required for all new records; see
+`docs/coordination/20260623T114836Z-governor-reviewer-lids.md`.
 
 ## Background
 
@@ -51,11 +54,11 @@ collision risk. Planner-architect recorded Gate 1 approval with conditions in
 
 Canonical new learning IDs:
 
-- `20260621T150000Z`
 - `20260621T150000Z-a3fx`
 
 Rejected forms:
 
+- `20260621T150000Z`
 - `learn-20260621T150000Z-some-slug-a3fx`
 - newly allocated `L###` sequence IDs
 
