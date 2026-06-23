@@ -112,6 +112,10 @@ from Rust, stop and report the tooling gap instead of falling back to legacy
 tooling.
 
 Build local Rust executable:
+  cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+
+Use release builds for normal agent/operator work. Use debug builds only when
+actively debugging Rust internals:
   cargo build --manifest-path tooling/rust/Cargo.toml -p agov
 EOF
     exit 0
@@ -126,7 +130,7 @@ cat >&2 <<EOF
 agov: command not available in local Rust tooling.
 
 If this is a supported command, build the Rust executable first:
-  cargo build --manifest-path tooling/rust/Cargo.toml -p agov
+  cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
   export PATH="\$PWD/tooling:\$PATH"
 
 If the command is not yet implemented in Rust, stop and report the gap.

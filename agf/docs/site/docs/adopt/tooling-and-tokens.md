@@ -26,8 +26,8 @@ dependency. Download the archive for your platform, unpack it, and run `agov`.
 ## Current command maturity
 
 Maturity levels follow the
-[implementation honesty model](../concepts/evidence-and-learnings.md):
-Level 5 is deployable and in active use; Level 1 is planned.
+[maturity vocabulary](../../reference/maturity-vocabulary.md): Level 5 is
+deployable and in active use; Level 1 is planned.
 
 ### Level 5 — Deployable (in production use)
 
@@ -52,16 +52,18 @@ For adoption work, `agov usage report --last 50` is the quickest answer to
 
 ### Option A — Full checkout (recommended)
 
-If you have a full checkout, build the binary once per machine:
+If you have a full checkout, build the binary once per machine. Prefer the
+release build for normal development, agent, and operator work; use the debug
+build only when actively debugging Rust internals.
 
 ```bash
-cd tooling/rust && cargo build -p agov
+cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
 ```
 
 Then add it to your PATH:
 
 ```bash
-ln -sfn "$PWD/tooling/rust/target/debug/agov" ~/.local/bin/agov
+ln -sfn "$PWD/tooling/rust/target/release/agov" ~/.local/bin/agov
 ```
 
 ### Option B — Release archive
@@ -143,11 +145,29 @@ under 100 milliseconds and produce output that is one to two orders of magnitude
 shorter than reading the underlying coordination files with an AI agent (foundry
 estimate; your channel size will vary).
 
-The telemetry system collects saved-token estimates in a local JSONL file
-(`tmp/agov-token-roi.jsonl`). To print accumulated records:
+The telemetry system collects saved-token estimates in a local JSONL file. Live
+token ROI telemetry belongs under `tmp/` using a stable per-assistant filename:
+
+```text
+tmp/<ai-abbrev>-agov-token-roi.jsonl
+```
+
+These files are local runtime telemetry and are not committed. When telemetry
+is needed as test evidence or showcase data, copy a dated snapshot into an
+explicit fixture path and document its source, date, and confidence limits.
+Teams running multiple assistants in the same checkout should split the logs by
+agent so later analysis does not mix streams accidentally:
 
 ```bash
-agov token roi report
+export AGOV_TOKEN_ROI_LOG="$PWD/tmp/codex-agov-token-roi.jsonl"
+# or, for a Claude-run shell:
+export AGOV_TOKEN_ROI_LOG="$PWD/tmp/claude-agov-token-roi.jsonl"
+```
+
+To print accumulated records:
+
+```bash
+agov token roi report --log tmp/codex-agov-token-roi.jsonl
 ```
 
 To disable telemetry:

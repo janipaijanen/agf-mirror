@@ -14,9 +14,10 @@ in agents-govern 1.1.50 field evidence.
   use `<ulid>-<sender>.md`, e.g.
   `01KV6BPDNNDCBMEWER3ZFKQHVG-planner-architect.md`.
 - **Generate IDs with tooling.** AI agents MUST use
-  `agov coord brief --id-format readable --from <role>` for new messages unless
-  tooling is unavailable. Humans SHOULD use the tooling. Manual IDs are valid
-  when they pass schema and uniqueness validation.
+  `agov coord brief --from <role>` for new messages unless tooling is
+  unavailable. Readable IDs are the default; `--id-format readable` remains
+  accepted for clarity. Humans SHOULD use the tooling. Manual IDs are valid when
+  they pass schema and uniqueness validation.
 - **Existing seq and ULID files remain immutable.** Older
   `<zero-padded-seq>-<sender>.md` and `<ulid>-<sender>.md` files are still
   authoritative history. Do not rename historical records.

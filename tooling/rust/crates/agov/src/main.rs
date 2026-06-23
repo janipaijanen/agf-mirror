@@ -71,7 +71,7 @@ enum CoordCommand {
     },
     /// Generate a coordination message skeleton with a new coordination id.
     Brief {
-        #[arg(long, default_value = "ulid", value_parser = ["ulid", "readable"])]
+        #[arg(long, default_value = "readable", value_parser = ["readable", "ulid"])]
         id_format: String,
         #[arg(long)]
         from: Option<String>,

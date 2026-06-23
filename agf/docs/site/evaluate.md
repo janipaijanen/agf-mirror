@@ -65,6 +65,7 @@ For a thorough assessment, read these in order.
 | [Downstream impact](docs/adopt/downstream-impact.md) | 5 min | Costs itemised, blast radius |
 | [Exit and decommission](docs/adopt/exit-and-decommission.md) | 3 min | Reversibility |
 | [Evidence and learnings](docs/concepts/evidence-and-learnings.md) | 5 min | How the evidence base works, provisional rule status |
+| [Maturity vocabulary](reference/maturity-vocabulary.md) | 3 min | Capability maturity, evidence status, compliance profile |
 | [Tooling conformance](reference/tooling-conformance.md) | 4 min | Command surface and maturity levels |
 
 For a deeper technical assessment, also read:
@@ -101,12 +102,19 @@ the five-level maturity model:
 | Level 5 — Deployable | Shipped, in production use, fully operational |
 | Level 4 — Validated | Implemented and tested, not yet in production |
 | Level 3 — Instantiated | Implementation exists, incomplete verification |
-| Level 2 — Schema-defined | Type definitions only |
+| Level 2 — Surface-defined | Interface, type, or schema surface exists only |
 | Level 1 — Planned | Named in roadmap, not yet in schema |
 
 Do not claim Level 5 for a feature listed at Level 1. The
-[home page](index.md) and [tooling conformance](reference/tooling-conformance.md)
-page list current levels explicitly.
+[maturity vocabulary](reference/maturity-vocabulary.md), [home page](index.md),
+and [tooling conformance](reference/tooling-conformance.md) pages list current
+levels explicitly.
+
+**Evidence status.** When describing a framework claim, principle, or
+recommendation, state whether it is **Empirically validated**, **Empirically
+informed**, or **Theoretical**. Capability maturity and evidence status are
+separate: a command can be Level 5 Deployable while the broader claim about its
+organizational benefit is only empirically informed.
 
 **Evidence.** For every factual claim, name the specific source. "The
 docs say X" is insufficient; "The [Downstream impact](docs/adopt/downstream-impact.md)

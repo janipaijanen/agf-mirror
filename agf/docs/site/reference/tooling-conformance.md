@@ -26,6 +26,12 @@ codes, and conformance fixtures.
 The current adopter command is `agov`. A future public interface may become
 `agf`, but released v2.0 archives document `agov`.
 
+Command status uses the [maturity vocabulary](maturity-vocabulary.md): Level 4
+Validated means implemented and tested in a branch or checkout; Level 5
+Deployable means the supported operator path or release artifact includes the
+command and the documentation matches that path. Do not describe a command as
+deployable merely because a wrapper advertises it.
+
 The table lists the adopter-facing command surface. Source-checkout Mix tasks
 may exist for development and parity checks, but they are not required for a
 release-archive adopter.

@@ -72,6 +72,22 @@ decisions come from the roles and gates recorded in the coordination channel.
 Tool output is evidence; it becomes blocking only when a named AGF rule or
 governor decision makes that check blocking.
 
+## Maturity and evidence labels
+
+AGF uses explicit labels so public claims do not overstate what exists or how
+well it is proven.
+
+Capability maturity answers "what exists?": Level 1 Planned, Level 2
+Surface-defined, Level 3 Instantiated, Level 4 Validated, and Level 5
+Deployable. A command implemented and tested in a branch is Level 4; it is not
+Level 5 for an operator path or release until that selected binary includes it
+and the documentation matches.
+
+Evidence status answers "how strong is the proof?": Empirically validated,
+Empirically informed, or Theoretical. Use both labels when a claim could
+otherwise sound stronger than the evidence supports. See
+[Maturity vocabulary](agf/docs/site/reference/maturity-vocabulary.md).
+
 ## Twenty-minute path
 
 1. Read [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).

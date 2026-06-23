@@ -119,3 +119,40 @@ adoption path without verification.
 
 The cleanest long-term mechanism is probably a small audit manifest generated or
 validated by Elixir tooling, with optional inline labels for human-facing pages.
+
+## Token ROI Zero-Savings Workflow Assessment
+
+Status: open TODO. Owner: coder-tester for investigation; planner-architect for
+modeling guidance; governor-reviewer for whether the result affects public
+claims.
+
+Assess why some workflow rows report zero saved tokens in:
+
+```bash
+./tooling/agov token roi report --log /home/devi/src/AGF-NG/tmp/codex-agov-token-roi.jsonl
+```
+
+Known example from the Codex snapshot: workflows such as `coord-status`,
+`coord-brief`, and `coord-stale` may show measured output tokens but `0 saved`.
+Determine whether this is correct because those workflows intentionally have no
+configured baseline, or whether the ROI model/reporting logic is silently
+dropping useful savings evidence.
+
+Minimum assessment scope:
+
+- list workflows that report non-zero `approx_tokens` and zero
+  `approx_saved_*`;
+- identify whether each workflow lacks a baseline by design, lacks a baseline
+  accidentally, or should be excluded from savings totals;
+- check whether command-level grouping hides workflow-level zero-savings
+  explanations;
+- decide whether reports need a confidence/uncertainty note for zero-savings
+  rows;
+- update fixture expectations if the model changes.
+
+Candidate output:
+
+1. A short note explaining which zero rows are expected and why.
+2. A proposed baseline policy for routine coordination commands.
+3. Tests that protect the intended zero-savings behavior or the corrected
+   savings behavior.
