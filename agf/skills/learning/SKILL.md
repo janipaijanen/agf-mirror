@@ -3,8 +3,8 @@ name: record-learning
 origin: upstream
 description: >
   Create a new learning record entry in the project's learnings YAML.
-  Generates a timestamp learning ID when IDs are used, finds the insertion
-  point, scaffolds all required fields, and validates the result.
+  Generates a timestamp-plus-random learning ID when IDs are used, finds the
+  insertion point, scaffolds all required fields, and validates the result.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -32,18 +32,24 @@ Count existing entries to confirm the position.
 
 ## Step 3 — Generate an ID if this record uses IDs
 
-If the target learning file uses `id:` fields, generate a timestamp ID:
+If the target learning file uses `id:` fields, generate a timestamp ID with a
+random suffix:
 
 ```text
-YYYYMMDDThhmmssZ
+YYYYMMDDThhmmssZ-<4-char>
 ```
 
-Use UTC. Add an optional `-<4-char>` lowercase alphanumeric suffix only when
-filing multiple entries in the same second, for example
-`20260621T150000Z-a3fx`.
+Use UTC and a four-character lowercase alphanumeric suffix, for example
+`20260621T150000Z-a3fx`. Do not create timestamp-only IDs for new records.
 
 Do not allocate the next `L###` number. Historical `L###` records remain valid,
 but new records must not use a shared sequence counter.
+
+When updating an existing learning record, preserve its existing `id:`. Do not
+rename historical `L###` or timestamp-only records for consistency. If the old
+record needs to be superseded, add a new learning entry with a new suffixed
+timestamp ID and link the old entry forward using the local supersession
+convention.
 
 If the target learning file does not use IDs, do not invent one unless the user
 or local project guidance asks for IDs.
