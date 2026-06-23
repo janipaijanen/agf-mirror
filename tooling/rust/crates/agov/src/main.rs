@@ -1475,15 +1475,30 @@ fn coord_graph_index(dir: PathBuf, output_path: Option<PathBuf>, args: &[String]
         })
         .collect();
 
-    // Build edges from references-to (frontmatter only, normalised).
+    // Build edges. Frontmatter refs use type "references-to"; body-text refs
+    // that were not in the frontmatter use "body-reference". Both sets are used
+    // by find_pending() for resolution, so the graph exposes the same reference
+    // set the resolver sees.
     let mut edges: Vec<serde_json::Value> = Vec::new();
     for d in &descriptors {
-        for referenced in &d.msg.references_to() {
+        let frontmatter_refs = d.msg.references_to();
+        let frontmatter_set: std::collections::BTreeSet<&str> =
+            frontmatter_refs.iter().map(|s| s.as_str()).collect();
+        for referenced in &frontmatter_refs {
             edges.push(serde_json::json!({
                 "from": d.file,
                 "to": referenced,
                 "type": "references-to"
             }));
+        }
+        for referenced in &d.refs {
+            if !frontmatter_set.contains(referenced.as_str()) {
+                edges.push(serde_json::json!({
+                    "from": d.file,
+                    "to": referenced,
+                    "type": "body-reference"
+                }));
+            }
         }
     }
 
