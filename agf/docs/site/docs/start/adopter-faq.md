@@ -181,8 +181,9 @@ Keep the first draft simple:
 
 Do not invent globally meaningful sequential learning IDs. If your local
 template has no ID field, leave it that way. If your project adds one later,
-use `YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for same-second
-disambiguation, or equivalent project-local tooling that cannot collide.
+use `YYYYMMDDThhmmssZ-<4-char-random>`, or equivalent project-local tooling
+that cannot collide. Keep existing IDs stable when updating old records; add a
+new suffixed ID for a new or superseding learning.
 
 Use the project codename at the boundary. Do not include customer names,
 private paths, secrets, domain-revealing identifiers, or chat transcripts that

@@ -238,8 +238,10 @@ Share only a sanitized summary or codename-safe learning record.
 
 Use the fields in `agf/templates/learning-record.yaml`; do not invent fixed
 sequential learning IDs. If your project later wants IDs, use
-`YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for same-second
-disambiguation, or equivalent project-local tooling that cannot collide.
+`YYYYMMDDThhmmssZ-<4-char-random>`, or equivalent project-local tooling that
+cannot collide. When updating an existing learning, keep its existing ID
+stable; when replacing it, add a new suffixed ID and point the old entry
+forward.
 
 ## Verify
 

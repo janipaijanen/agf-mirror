@@ -57,8 +57,9 @@ tests the adoption path before the first governed code change.
 
 Do not add a made-up global learning ID just because an example looks like it
 needs one. Use the fields in the shipped template. If a downstream project
-adds IDs later, use `YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for
-same-second disambiguation, or equivalent local tooling that cannot collide.
+adds IDs later, use `YYYYMMDDThhmmssZ-<4-char-random>`, or equivalent local
+tooling that cannot collide. Preserve existing IDs when updating old learning
+records; use a new suffixed ID only for a new or superseding entry.
 
 ## When evidence becomes a learning
 

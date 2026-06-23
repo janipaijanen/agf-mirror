@@ -8,8 +8,14 @@ the assistant prepared the expected files, kept AGF-owned content under
 `agf/`, and left clear decisions for the governor.
 
 Do not add fixed example learning IDs. Downstream projects that want IDs should
-use `YYYYMMDDThhmmssZ` with an optional `-<4-char>` suffix for same-second
-disambiguation, or equivalent local tooling that cannot collide.
+use `YYYYMMDDThhmmssZ-<4-char>`, where the suffix is random lowercase
+alphanumeric text, or equivalent local tooling that cannot collide.
+
+For new learning entries, avoid both shared sequence IDs such as `L018` and
+timestamp-only IDs such as `20260623T120000Z`. For updates to existing learning
+entries, keep the existing ID stable; if the old entry needs replacement, add a
+new suffixed ID and point the old entry to the superseding record instead of
+renaming history.
 
 Default adopter paths:
 

@@ -100,8 +100,9 @@ environments:
 # ---- Learning Records ----
 # Legacy records L001–L017: see agents-govern/learnings/foundry.yaml
 # Transitional records L018-L021 were created before the timestamp-ID
-# convention for learning records. New learning IDs use YYYYMMDDThhmmssZ with
-# an optional -<4-char> suffix for same-second disambiguation.
+# convention for learning records. New learning IDs use
+# YYYYMMDDThhmmssZ-<4-char-random> to avoid shared-counter and same-second
+# timestamp collisions. Preserve existing IDs when updating historical records.
 
 learnings:
 
@@ -541,6 +542,42 @@ learnings:
       include the record in the same pushed branch/MR that creates the
       downstream obligation. Local-only coordination records should be called
       drafts, not filed messages.
+
+  - id: "20260623T114300Z-rjka"
+    date: "2026-06-23"
+    category: process
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      New learning records need random-suffixed IDs; sequential and
+      timestamp-only IDs are too collision-prone for asynchronous agents.
+    detail: >
+      During AGF-NG coordination, governor-reviewer observed that
+      sequential-only learning IDs such as `L018` are unsafe in multi-agent
+      work because each agent may choose the same next number from stale local
+      state. The same risk also applies, at smaller but real scale, to
+      timestamp-only IDs when parallel agents or automation create records in
+      the same second.
+
+      The repository already had transitional evidence of the confusion:
+      `agf/learnings/foundry.yaml` and `agents-govern/learnings/foundry.yaml`
+      both contain historical or transitional `L018` records with different
+      meanings. Historical IDs must remain stable, but new guidance should not
+      perpetuate either shared counters or timestamp-only identifiers.
+
+      Coordination IDs already solved the same class of problem by adding
+      random entropy. Learning records need the same operational discipline.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Update framework guidance, learning skills, templates, and validators so
+      new learning records use `YYYYMMDDThhmmssZ-<4-char-random>` or an
+      equivalent collision-resistant local scheme. Do not allocate new `L###`
+      sequence IDs. Do not create timestamp-only IDs for new records. When
+      updating an existing learning, preserve the existing ID; when replacing
+      or superseding an old learning, append a new record with a suffixed ID
+      and point the old record forward rather than renaming history. Adopter
+      upgrade notes should explicitly call this out for both new learning
+      files and existing learning files being updated.
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
