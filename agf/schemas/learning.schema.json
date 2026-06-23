@@ -36,8 +36,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^(L[0-9]{3}|[0-9]{8}T[0-9]{6}Z(-[a-z0-9]{4})?)$",
-            "description": "Stable learning identifier. Historical records may use L### or timestamp-only IDs. New records use YYYYMMDDThhmmssZ-<4-char-random>; preserve existing IDs when updating historical records."
+            "pattern": "^(L[0-9]{3}|[0-9]{8}T[0-9]{6}Z-[a-z0-9]{4})$",
+            "description": "Stable learning identifier. Historical records may use L###; bare timestamp IDs may exist as historical references but new records use YYYYMMDDThhmmssZ-<4-char-random>. Preserve existing IDs when updating historical records."
           },
           "date": {"type": "string"},
           "category": {

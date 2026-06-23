@@ -47,15 +47,47 @@ defmodule Agov.ValidateLearningsTest do
       - id: L021
         title: Historical id
         description: Generic finding.
-      - id: 20260621T150000Z
-        title: Timestamp id
-        description: Generic finding.
       - id: 20260621T150000Z-a3fx
         title: Timestamp id with suffix
         description: Generic finding.
     """)
 
     assert {:ok, _data} = Agov.ValidateLearnings.validate_file(path)
+  end
+
+  test "skips template learning files in collection validation" do
+    dir = tmp_dir("learnings")
+    path = Path.join(dir, "_template.yaml")
+
+    File.write!(path, """
+    project:
+      codename: ""
+    learnings: []
+    """)
+
+    assert {:ok, []} = Agov.ValidateLearnings.validate_all(dir)
+  end
+
+  test "warns for bare timestamp learning ids" do
+    dir = tmp_dir("learnings")
+    path = Path.join(dir, "bare-timestamp.yaml")
+
+    File.write!(path, """
+    project:
+      codename: foundry-fixture
+    learnings:
+      - id: 20260621T150000Z
+        title: Bare timestamp id
+        description: Generic finding.
+    """)
+
+    assert {:error, errors} = Agov.ValidateLearnings.validate_file(path)
+
+    assert Enum.any?(errors, fn error ->
+             error.message =~ "bare timestamp learning id" and error.severity == :advisory
+           end)
+
+    assert Enum.all?(errors, &(&1.severity == :advisory))
   end
 
   test "rejects non-canonical learning ids" do

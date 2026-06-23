@@ -11,14 +11,15 @@ const CONFIDENCE_LEVELS: &[&str] = &[
 ];
 const CORROBORATED_LEVELS: &[&str] = &["multi-adopter", "longitudinal"];
 const HISTORICAL_ID: &str = r#"^L\d{3}$"#;
-const TIMESTAMP_ID: &str = r#"^\d{8}T\d{6}Z(-[a-z0-9]{4})?$"#;
+const BARE_TIMESTAMP_ID: &str = r#"^\d{8}T\d{6}Z$"#;
+const SUFFIXED_TIMESTAMP_ID: &str = r#"^\d{8}T\d{6}Z-[a-z0-9]{4}$"#;
 
 /// Validate all learning record YAML files in `dir`.
 ///
 /// Mirrors `Agov.ValidateLearnings.validate_all/1`. Each file is validated
 /// against `learning.schema.json`.
 pub fn validate_all(dir: &Path) -> CollectionResult {
-    let results = yaml_files(dir)
+    let results = learning_files(dir)
         .into_iter()
         .map(|file| {
             let result = validate_file(&file);
@@ -29,9 +30,23 @@ pub fn validate_all(dir: &Path) -> CollectionResult {
     split_results(results)
 }
 
+fn learning_files(dir: &Path) -> Vec<std::path::PathBuf> {
+    yaml_files(dir)
+        .into_iter()
+        .filter(|path| {
+            path.file_name()
+                .and_then(std::ffi::OsStr::to_str)
+                .is_none_or(|name| !name.starts_with('_'))
+        })
+        .collect()
+}
+
 fn validate_file(path: &Path) -> Result<serde_json::Value, Vec<Finding>> {
     let data = crate::read_yaml_file(path)?;
-    let mut errors = validate_schema(&data, "learning.schema.json");
+    let mut errors = validate_schema(&data, "learning.schema.json")
+        .into_iter()
+        .filter(|finding| !is_learning_id_schema_finding(finding))
+        .collect::<Vec<_>>();
     errors.extend(semantic_errors(&data));
 
     if errors.is_empty() {
@@ -39,6 +54,13 @@ fn validate_file(path: &Path) -> Result<serde_json::Value, Vec<Finding>> {
     } else {
         Err(errors)
     }
+}
+
+fn is_learning_id_schema_finding(finding: &Finding) -> bool {
+    finding
+        .location
+        .as_deref()
+        .is_some_and(|location| location.ends_with("/id"))
 }
 
 fn semantic_errors(data: &serde_json::Value) -> Vec<Finding> {
@@ -51,7 +73,9 @@ fn semantic_errors(data: &serde_json::Value) -> Vec<Finding> {
 fn learning_id_errors(data: &serde_json::Value) -> Vec<Finding> {
     let mut errors = Vec::new();
     let historical = Regex::new(HISTORICAL_ID).expect("valid historical learning id regex");
-    let timestamp = Regex::new(TIMESTAMP_ID).expect("valid timestamp learning id regex");
+    let bare_timestamp = Regex::new(BARE_TIMESTAMP_ID).expect("valid bare timestamp id regex");
+    let suffixed_timestamp =
+        Regex::new(SUFFIXED_TIMESTAMP_ID).expect("valid suffixed timestamp id regex");
     let mut seen: std::collections::BTreeMap<String, Vec<usize>> =
         std::collections::BTreeMap::new();
 
@@ -70,10 +94,16 @@ fn learning_id_errors(data: &serde_json::Value) -> Vec<Finding> {
                 continue;
             };
 
-            if !historical.is_match(id) && !timestamp.is_match(id) {
+            if bare_timestamp.is_match(id) {
+                let mut finding = Finding::advisory(
+                    "bare timestamp learning id is transitional; new records require YYYYMMDDThhmmssZ-<4-char-random>",
+                );
+                finding.location = Some(format!("learnings/{index}/id"));
+                errors.push(finding);
+            } else if !historical.is_match(id) && !suffixed_timestamp.is_match(id) {
                 errors.push(Finding::blocking_at(
                     format!(
-                        "learning id {id:?} is invalid; use YYYYMMDDThhmmssZ with optional -<4-char> suffix"
+                        "learning id {id:?} is invalid; use L### for historical records or YYYYMMDDThhmmssZ-<4-char-random> for new records"
                     ),
                     format!("learnings/{index}/id"),
                 ));
@@ -203,9 +233,6 @@ learnings:
   - id: L021
     title: Historical id
     description: Generic finding.
-  - id: 20260621T150000Z
-    title: Timestamp id
-    description: Generic finding.
   - id: 20260621T150000Z-a3fx
     title: Timestamp id with suffix
     description: Generic finding.
@@ -213,6 +240,31 @@ learnings:
         );
 
         assert!(validate_file(&path).is_ok());
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn warns_for_bare_timestamp_learning_ids() {
+        let path = write_fixture(
+            "bare-timestamp-learning-id",
+            r#"
+project:
+  codename: foundry-fixture
+learnings:
+  - id: 20260621T150000Z
+    title: Bare timestamp id
+    description: Generic finding.
+"#,
+        );
+
+        let findings = validate_file(&path).expect_err("bare timestamp id should warn");
+        assert!(findings.iter().any(|finding| {
+            finding.severity == agov_core::Severity::Advisory
+                && finding.message.contains("bare timestamp learning id")
+        }));
+        assert!(findings
+            .iter()
+            .all(|finding| finding.severity == agov_core::Severity::Advisory));
         let _ = fs::remove_file(path);
     }
 
@@ -259,6 +311,27 @@ learnings:
             .iter()
             .any(|error| error.message.contains("duplicate learning id")));
         let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn skips_template_learning_files() {
+        let dir = tempfile::tempdir().expect("create temp dir");
+        let template = dir.path().join("_template.yaml");
+        fs::write(
+            &template,
+            r#"
+project:
+  codename: ""
+learnings: []
+"#,
+        )
+        .expect("write template");
+
+        let result = validate_all(dir.path());
+
+        assert!(result.is_ok());
+        assert!(result.ok_files.is_empty());
+        assert!(result.file_errors.is_empty());
     }
 
     fn write_fixture(name: &str, content: &str) -> PathBuf {

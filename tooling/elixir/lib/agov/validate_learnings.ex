@@ -6,7 +6,8 @@ defmodule Agov.ValidateLearnings do
   @confidence_levels ~w(single-adopter multi-adopter longitudinal industry-corroborated)
   @corroborated_levels ~w(multi-adopter longitudinal)
   @historical_id ~r/^L\d{3}$/
-  @timestamp_id ~r/^\d{8}T\d{6}Z(-[a-z0-9]{4})?$/
+  @bare_timestamp_id ~r/^\d{8}T\d{6}Z$/
+  @suffixed_timestamp_id ~r/^\d{8}T\d{6}Z-[a-z0-9]{4}$/
   @pii_patterns [
     {"URL", ~r/https?:\/\/[^\s"]+/},
     {"email address", ~r/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/},
@@ -18,7 +19,11 @@ defmodule Agov.ValidateLearnings do
     with {:ok, data, _content} <- ValidatorUtil.read_yaml_file(path) do
       errors =
         []
-        |> Kernel.++(ValidatorUtil.validate_schema(data, "learning.schema.json"))
+        |> Kernel.++(
+          data
+          |> ValidatorUtil.validate_schema("learning.schema.json")
+          |> Enum.reject(&learning_id_schema_finding?/1)
+        )
         |> Kernel.++(semantic_errors(data))
 
       if errors == [], do: {:ok, data}, else: {:error, errors}
@@ -30,13 +35,25 @@ defmodule Agov.ValidateLearnings do
 
     target
     |> ValidatorUtil.yaml_files()
+    |> Enum.reject(&template_file?/1)
     |> Enum.map(fn file -> {file, validate_file(file)} end)
     |> split_results()
+  end
+
+  defp template_file?(file) do
+    file
+    |> Path.basename()
+    |> String.starts_with?("_")
   end
 
   defp semantic_errors(data) do
     learning_id_errors(data) ++ pii_errors(data) ++ confidence_errors(data)
   end
+
+  defp learning_id_schema_finding?(%{location: location}) when is_binary(location),
+    do: String.ends_with?(location, "/id")
+
+  defp learning_id_schema_finding?(_finding), do: false
 
   defp learning_id_errors(data) do
     data
@@ -48,16 +65,28 @@ defmodule Agov.ValidateLearnings do
   end
 
   defp learning_id_entry_errors(%{"id" => id}, index) when is_binary(id) do
-    if Regex.match?(@historical_id, id) or Regex.match?(@timestamp_id, id) do
-      []
-    else
-      [
-        %{
-          message:
-            "learning id #{inspect(id)} is invalid; use YYYYMMDDThhmmssZ with optional -<4-char> suffix",
-          location: "learnings/#{index}/id"
-        }
-      ]
+    cond do
+      Regex.match?(@bare_timestamp_id, id) ->
+        [
+          %{
+            message:
+              "bare timestamp learning id is transitional; new records require YYYYMMDDThhmmssZ-<4-char-random>",
+            location: "learnings/#{index}/id",
+            severity: :advisory
+          }
+        ]
+
+      Regex.match?(@historical_id, id) or Regex.match?(@suffixed_timestamp_id, id) ->
+        []
+
+      true ->
+        [
+          %{
+            message:
+              "learning id #{inspect(id)} is invalid; use L### for historical records or YYYYMMDDThhmmssZ-<4-char-random> for new records",
+            location: "learnings/#{index}/id"
+          }
+        ]
     end
   end
 

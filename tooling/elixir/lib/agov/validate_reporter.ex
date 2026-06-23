@@ -25,8 +25,14 @@ defmodule Agov.ValidateReporter do
 
   def report_collection_result(label, {:error, file_errors}) do
     Enum.each(file_errors, &report_file_errors/1)
-    Mix.shell().error("ERR #{label}")
-    :error
+
+    if collection_blocking?(file_errors) do
+      Mix.shell().error("ERR #{label}")
+      :error
+    else
+      Mix.shell().info("OK #{label}")
+      :ok
+    end
   end
 
   def report_warning_collection(label, {:ok, warnings}) do
@@ -60,12 +66,26 @@ defmodule Agov.ValidateReporter do
   end
 
   defp report_file_errors(%{file: file, errors: errors}) do
-    Enum.each(errors, &err(file, &1))
+    Enum.each(errors, &report_finding(file, &1))
   end
 
   defp report_file_errors(%{file: file, findings: findings}) do
-    Enum.each(findings, &err(file, &1))
+    Enum.each(findings, &report_finding(file, &1))
   end
+
+  defp collection_blocking?(file_errors) do
+    Enum.any?(file_errors, fn
+      %{errors: findings} -> Enum.any?(findings, &blocking?/1)
+      %{findings: findings} -> Enum.any?(findings, &blocking?/1)
+      _other -> true
+    end)
+  end
+
+  defp report_finding(file, %{severity: :advisory} = finding), do: warn(file, finding)
+  defp report_finding(file, finding), do: err(file, finding)
+
+  defp blocking?(%{severity: :advisory}), do: false
+  defp blocking?(_finding), do: true
 
   defp err(file, %{message: message, location: location}) do
     Mix.shell().error("ERR #{file}: #{location}: #{message}")
