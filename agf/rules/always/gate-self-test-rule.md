@@ -48,7 +48,7 @@ $ echo $?
 1
 ```
 
-### Validator (`mix agov.validate.*`)
+### Validator (`agov validate ...`)
 
 If the MR adds a new validator:
 
@@ -57,8 +57,7 @@ If the MR adds a new validator:
 $ cat > /tmp/bad-input.yaml <<EOF
 [malformed content per the validator's contract]
 EOF
-$ cd tooling/elixir
-$ mix agov.validate.newthing /tmp/bad-input.yaml
+$ agov validate newthing /tmp/bad-input.yaml
 [validator output: errors listed]
 $ echo $?
 1

@@ -79,7 +79,7 @@ Without a structured feedback loop:
    the project's YAML file. Tag it with a category and severity.
 
 4. **InfoSec Sentinel screens the submission.** The CI pipeline runs
-   `mix agov.validate.infosec` on changed files. It checks for leaked
+   `agov validate infosec` on changed files. It checks for leaked
    credentials, sensitive internal details, cross-field re-identification
    risk, cumulative information leakage across entries, and cross-record
    linkage. If findings are flagged, the MR is blocked until the human
@@ -262,7 +262,7 @@ checklist.
 - Self-conformance: does the framework repo follow every ADOPTING.md step it
   prescribes to adopters? (`agf/` exists, assistants can read `agf/rules/`,
   tests exist, GOVERNANCE.md exists, pre-commit hooks active)
-- Communication symmetry: run `mix agov.validate.agents` — zero asymmetries
+- Communication symmetry: run `agov validate agents` — zero asymmetries
   expected
 - README stats: `agov-validate-readme-stats` is deferred to the E4 Elixir
   migration slice; until then, verify README stats manually or with the v1.x

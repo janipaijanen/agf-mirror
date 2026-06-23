@@ -1,6 +1,6 @@
 # Coordination Visibility Scanner
 
-`mix agov.coord.visibility` scans local git branches for coordination messages
+`agov coord visibility` scans local git branches for coordination messages
 that create obligations but are not visible from the branch where the recipient
 is expected to poll.
 
@@ -21,23 +21,22 @@ Also run it:
 
 ## Command
 
-Run from the Mix project:
+Run from the repository root:
 
 ```bash
-cd tooling/elixir
-mix agov.coord.visibility --base-branch master
+agov coord visibility --base-branch main
 ```
 
 To focus on one branch:
 
 ```bash
-mix agov.coord.visibility --base-branch master --branch feat/session-resume
+agov coord visibility --base-branch main --branch feat/session-resume
 ```
 
 For machine-readable output:
 
 ```bash
-mix agov.coord.visibility --base-branch master --format json
+agov coord visibility --base-branch main --format json
 ```
 
 ## What It Checks

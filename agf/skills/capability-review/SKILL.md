@@ -29,8 +29,7 @@ Collect inputs for the analysis:
 
 1. **Learning records** — read all `learnings/*.yaml`, count by category
    (gap, validation, adaptation, tension, overkill)
-2. **Agent versions** — from `tooling/elixir/`, run
-   `mix agov.validate.agents` and note which
+2. **Agent versions** — run `agov validate agents` and note which
    agents are still at v0.1.x vs which have matured
 3. **Communication topology** — graph output is deferred to E4; until it
    exists, review the manifest and recent coordination records manually for
@@ -96,10 +95,10 @@ For each approved proposal:
 1. Modify the relevant agent YAML files
 2. Update framework.md if phase distribution changed
 3. Update ADOPTING.md if adoption steps changed
-4. From `tooling/elixir/`, run `mix agov.validate.agents` to verify
+4. Run `agov validate agents` to verify
    structural agent validity
-5. Run `mix agov.validate` for the available aggregate validation surface;
-   strict topology and health summary coverage are deferred to E4
+5. Run `agov validate` for the available aggregate validation surface;
+   strict topology and health summary coverage are deferred
 
 ## Step 5 — Record the review
 

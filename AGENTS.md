@@ -154,9 +154,9 @@ merging — the repository may be local-only or the target branch name may diffe
 ## Tooling quick reference
 
 Use the user-local `agov` command for AGF tooling. It points at this
-repository's `tooling/agov` executable. The wrapper prefers the Rust
-implementation for supported commands, then falls back to Elixir only when
-needed.
+repository's `tooling/agov` executable. The Rust implementation is the
+supported operator path. If a needed command is not available in Rust, stop and
+report the Rust tooling gap instead of falling back to legacy tooling.
 
 Rust is the default operator path for supported commands:
 
@@ -175,12 +175,10 @@ Cold-start rule for humans and AI agents: use one command in two steps. First,
 run `agov session resume` without `--role` to get the project map. Then
 rerun the same command with the role you are actually playing.
 
-Use Mix directly only for Elixir implementation work, parity/reference checks,
-the Elixir test suite, or commands that are not yet exposed through `agov`
-(currently the framework source archive helpers such as `mix agov.dist.*`).
-Do not use Elixir/ERTS tooling package helpers for GitLab CI or release-page
-downloads; shipped `agov` tooling artifacts are Rust, with platform-specific
-archive names.
+Legacy Elixir sources remain in `tooling/elixir/` as reference material. Do
+not use them for routine agent work, cold start, validation, release-page
+downloads, or missing-command fallback. Shipped `agov` tooling artifacts are
+Rust, with platform-specific archive names.
 
 ```bash
 # Validate coordination messages
@@ -211,13 +209,12 @@ agov token roi report
 # Report recent coordination usage
 agov usage report
 
-# Elixir reference/development only
-cd tooling/elixir
-mix test
+# Rust tooling tests
+cargo test --manifest-path tooling/rust/Cargo.toml
 ```
 
-Schema path resolution uses `AGOV_SCHEMA_DIR` (default: `../../agf/schemas`
-relative to cwd for Mix commands run from `tooling/elixir/`). AGF-controlled
+Schema path resolution uses `AGOV_SCHEMA_DIR` (the `tooling/agov` launcher
+defaults it to `agf/schemas` in the repository root). AGF-controlled
 environment variables are documented together in
 `agf/docs/site/reference/environment-variables.md`.
 

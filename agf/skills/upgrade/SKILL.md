@@ -98,14 +98,14 @@ upgrade_history:
 
 ## Step 5 — Verify
 
-1. From `tooling/elixir/`, run `mix agov.validate.infosec ../../agf/learnings`
+1. Run `agov validate infosec`
    — ensure no new findings.
-2. Run `mix agov.validate.learnings ../../agf/learnings` — ensure learning
+2. Run `agov validate learnings` — ensure learning
    record is still valid.
-3. If the optional `agov` CLI is available, run `agov validate`,
-   `agov plan validate` on changed plan files, and `agov coord validate` on
-   changed coordination files. Without `agov`, perform the equivalent manual
-   front-matter and loader-drift review and record that manual check in the MR.
+3. Run `agov validate`, `agov plan validate` on changed plan files, and
+   `agov coord validate` on changed coordination files. If a needed Rust
+   command is missing, report the tooling gap and record any manual check in
+   the MR.
 4. If pre-commit hooks are configured, run them.
 
 ## Step 6 — Summarise

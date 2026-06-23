@@ -45,9 +45,9 @@ release-archive adopter.
 | `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |
 | `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
 
-Developer/source-checkout equivalents may use `mix agov.*` names while the Rust
-implementation is developed and tested. Public docs should not require a
-release-archive adopter to have Elixir installed.
+Developer/source-checkout users should use the same `agov` command surface as
+release-archive adopters. Public docs must not require a release-archive
+adopter to have Elixir installed.
 
 ## Exit codes
 

@@ -675,7 +675,7 @@ fn coord_brief(
         channel.total, channel.range
     ));
     output.stdout(format!(
-        "# Ownership: {} (run agov coord status for details)",
+        "# Ownership: {} (run agov coord status --roles for details)",
         channel.claims
     ));
     output.stdout(format!("# Next id: {next_id}"));

@@ -62,7 +62,7 @@ The cost of a merge request is minutes. The cost of a broken immutable tag is a 
 - [ ] `VERSION` file matches the intended release version.
 - [ ] `CHANGELOG.md` contains an entry for this version (not backfilled later).
 - [ ] All version references are consistent (agent definitions, documentation).
-- [ ] `mix agov.dist.validate` and `mix agov.dist.build` pass from `tooling/elixir/` (if applicable).
+- [ ] `agov dist validate` and `agov dist build` pass (if applicable).
 - [ ] CI pipeline configuration is correct for the release.
 - [ ] SPDX headers and license are correct across all files.
 

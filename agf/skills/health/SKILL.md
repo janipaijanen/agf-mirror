@@ -25,11 +25,10 @@ periodically to catch drift before it accumulates.
 ## Step 1 — Run the available aggregate checks
 
 ```bash
-cd tooling/elixir
-mix agov.validate
+agov validate
 ```
 
-Full `mix agov.health` summary coverage is deferred to E4. The available
+Full `agov health` summary coverage is deferred. The available
 aggregate validation surface runs:
 
 1. **Adoption conformance** — mandatory agents present, rules exist,
@@ -53,7 +52,7 @@ on what to fix.
 
 ## Step 3 — Fix and re-run
 
-Fix any errors. Re-run `mix agov.validate` to verify.
+Fix any errors. Re-run `agov validate` to verify.
 
 Warnings are advisory — review each one and decide whether to act.
 Not every warning requires a change (e.g., ownership overlap between
@@ -75,7 +74,7 @@ To add to pre-commit:
 # .pre-commit-config.yaml
 - id: agov-validate
   name: Governance health check
-  entry: bash -lc 'cd tooling/elixir && mix agov.validate'
+  entry: agov validate
   language: system
   pass_filenames: false
   always_run: true

@@ -10,7 +10,7 @@
 #
 # Framework version: 2.0.0  |  Layout: B
 # Governor-Reviewer approval required for all status changes.
-# Run: cd tooling/elixir && mix agov.validate.agents
+# Run: agov validate agents
 # =============================================================================
 
 agents:
@@ -35,7 +35,7 @@ agents:
 
   infosec-sentinel:
     status: active
-    played_by: "ci (mix agov.validate.infosec, on commit)"
+    played_by: "ci (agov validate infosec, on commit)"
 
   build-engineer:
     status: suspended
