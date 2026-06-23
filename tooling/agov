@@ -10,7 +10,6 @@ if command -v readlink >/dev/null 2>&1; then
 fi
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
-escript="$repo_root/tooling/elixir/agov"
 rust_debug="$repo_root/tooling/rust/target/debug/agov"
 rust_release="$repo_root/tooling/rust/target/release/agov"
 
@@ -21,6 +20,7 @@ rust_supported() {
   case "${1:-}" in
     coord)
       case "${2:-}" in
+        -h|--help|help) return 0 ;;
         validate|brief|status|stale) return 0 ;;
         visibility) return 0 ;;
         graph|graph-index) return 0 ;;
@@ -107,11 +107,12 @@ Usage:
   agov usage report [--dir <coord-dir>] [--manifest <path>] [--last <n>]
   agov agov.usage.report [--dir <coord-dir>] [--manifest <path>] [--last <n>]
 
-Rust implementation is preferred for supported commands. Elixir/Mix remains the
-fallback for commands not yet ported to Rust.
+Rust implementation is the supported operator path. If a command is missing
+from Rust, stop and report the tooling gap instead of falling back to legacy
+tooling.
 
 Build local Rust executable:
-  cd tooling/rust && cargo build -p agov
+  cargo build --manifest-path tooling/rust/Cargo.toml -p agov
 EOF
     exit 0
     ;;
@@ -119,65 +120,6 @@ esac
 
 if rust_supported "$@"; then
   run_rust "$@"
-fi
-
-if [ -x "$escript" ]; then
-  if [ "${1:-}" = "coord" ] && command -v mix >/dev/null 2>&1; then
-    if [ "${2:-}" = "validate" ]; then
-      shift 2
-      exec bash -c 'root=$1; shift; cwd=$PWD; args=(); for arg in "$@"; do case "$arg" in /*) args+=("$arg");; *) args+=("$cwd/$arg");; esac; done; cd "$root/tooling/elixir" && mix agov.coord.validate "${args[@]}"' bash "$repo_root" "$@"
-    fi
-    if [ "${2:-}" = "brief" ]; then
-      shift 2
-      exec sh -c 'root=$1; shift; cd "$root/tooling/elixir" && mix agov.coord.brief --dir "$root/docs/coordination" "$@"' sh "$repo_root" "$@"
-    fi
-  fi
-
-  first_line=$(sed -n '1p' "$escript" 2>/dev/null || true)
-  case "$first_line" in
-    *escript*)
-      if command -v escript >/dev/null 2>&1; then
-        exec "$escript" "$@"
-      fi
-      if command -v mise >/dev/null 2>&1; then
-        exec mise exec -- "$escript" "$@"
-      fi
-      ;;
-    *)
-      exec "$escript" "$@"
-      ;;
-  esac
-fi
-
-if command -v mix >/dev/null 2>&1; then
-  case "${1:-}" in
-    coord)
-      shift
-      if [ "${1:-}" = "validate" ]; then
-        shift
-        exec bash -c 'root=$1; shift; cwd=$PWD; args=(); for arg in "$@"; do case "$arg" in /*) args+=("$arg");; *) args+=("$cwd/$arg");; esac; done; cd "$root/tooling/elixir" && mix agov.coord.validate "${args[@]}"' bash "$repo_root" "$@"
-      fi
-      if [ "${1:-}" = "brief" ]; then
-        shift
-        exec sh -c 'root=$1; shift; cd "$root/tooling/elixir" && mix agov.coord.brief --dir "$root/docs/coordination" "$@"' sh "$repo_root" "$@"
-      fi
-      ;;
-    plan)
-      shift
-      if [ "${1:-}" = "validate" ]; then
-        shift
-        exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.plan.validate "$@"' sh "$repo_root" "$@"
-      fi
-      ;;
-    agov.coord.validate)
-      shift
-      exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.coord.validate "$@"' sh "$repo_root" "$@"
-      ;;
-    agov.plan.validate)
-      shift
-      exec sh -c 'cd "$1/tooling/elixir" && shift && mix agov.plan.validate "$@"' sh "$repo_root" "$@"
-      ;;
-  esac
 fi
 
 cat >&2 <<EOF
@@ -188,7 +130,7 @@ If this is a supported command, build the Rust executable first:
   export PATH="\$PWD/tooling:\$PATH"
 
 If the command is not yet implemented in Rust, stop and report the gap.
-Do not use the Elixir fallback for routine agent or operator work.
+Do not use legacy tooling for routine agent or operator work.
 
 Supported Rust commands:
   agov coord validate <file>...
