@@ -33,6 +33,7 @@ deployable and in active use; Level 1 is planned.
 
 | Command | What it replaces |
 |---|---|
+| `agov --version` / `agov version --format json` | Human or CI guesses which binary/source revision is running. |
 | `agov coord validate <file>...` | Agent reads a coordination file and judges schema compliance. Validation is deterministic; agents should not improvise it. |
 | `agov plan validate <file>...` | Agent reads a Gate 1 plan file and checks front-matter. |
 | `agov validate` | Agent reads adoption, agent definitions, learning records, and copied-assistant drift warnings to spot structural problems across the framework tree. It does not validate every plan or coordination file. |
@@ -42,6 +43,8 @@ deployable and in active use; Level 1 is planned.
 | `agov session resume [--role <role>]` | Agent reads recent coordination files, the manifest, branch status, and claims to reconstruct its starting state for the session. This is potentially the highest-token-cost activity in the agent loop because it happens at every session boundary. |
 | `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages and comparing timestamps. |
 | `agov coord visibility` | Agent compares branches for coordination obligations that exist off the base branch. |
+| `agov coord graph` | Agent manually summarizes role-to-role coordination flows. |
+| `agov coord graph-index` | Agent reads many coordination files to reconstruct references and pending handoffs. |
 | `agov token roi report` | Agent summarizes local deterministic-tool telemetry instead of estimating savings by hand. |
 | `agov usage report [--last <n>]` | Agent counts message kinds, active senders, inactive active-status agents, and unknown senders. |
 

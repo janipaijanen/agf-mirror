@@ -38,6 +38,8 @@ release-archive adopter.
 
 | Adopter command | Purpose | Status |
 |---|---|---|
+| `agov --version` | Print the binary version plus build commit SHA and dirty state. | Release surface |
+| `agov version --format json` | Print structured version, commit, and dirty-state provenance. | Release surface |
 | `agov coord validate <file>...` | Validate coordination messages against the schema. | Release surface |
 | `agov plan validate <file>...` | Validate Gate 1 plan front matter and advisory consultation metadata. | Release surface |
 | `agov validate [subcommand]` | Validate framework artifacts such as adoption, agents, learnings, infosec, contributions, or framework config. | Release surface |

@@ -10,6 +10,13 @@ Acknowledgment: This document's first version is based on The Alignment Layer's 
 
 A technology-agnostic framework for designing multi-agent systems with clear boundaries, separation of concerns, and governance. This document is both a learning resource and a practical reference.
 
+> **RC readiness label — `adapted-from-v1x`, partially verified for AGF v2.**
+> This monolithic framework reference carries inherited agents-govern v1.x
+> material. Use the public documentation site, schemas, rules, and Rust `agov`
+> command contracts as the current AGF v2 operator surface. Treat historical
+> examples or stack-specific passages here as provisional unless they are also
+> represented in current AGF v2 docs or tests.
+
 **Validation key:** Each section is tagged with its validation status.
 See the [Appendix: Framework Evolution](#appendix-framework-evolution)
 for definitions.
