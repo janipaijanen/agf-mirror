@@ -39,6 +39,7 @@ dependencies = [
  "serde_json",
  "serde_norway",
  "tempfile",
+ "time",
 ]
 
 [[package]]
