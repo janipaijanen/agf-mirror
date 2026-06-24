@@ -3,6 +3,56 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.2.0] — 2026-06-24
+
+### Added
+
+- **Readable coordination IDs** — `agov coord brief` now defaults to the
+  readable `YYYYMMDDThhmmssZ-<role-slug>-<4char>` format. The explicit
+  `--id-format readable` flag remains valid. ULID format is still accepted
+  for legacy compatibility.
+
+- **Version provenance** — `agov --version` now includes the git commit SHA
+  and dirty-flag at build time. `agov version --format json` emits a
+  machine-readable provenance record. Cross-compilation CI jobs embed
+  `AGOV_BUILD_COMMIT`/`AGOV_BUILD_DIRTY` to produce correct provenance in
+  release archives.
+
+- **`agov coord graph-index`** — read-only command that emits a JSON graph
+  of the coordination channel: nodes, causal edges (`references-to`),
+  pending handoffs, and invalid files.
+
+- **`agf/templates/AGENTS.md`** — adopter template for the project root
+  `AGENTS.md` loader (Codex / GitHub Copilot). Includes cold-start commands,
+  an AGF version reference comment, rule orientation, coordination channel
+  guidance, and CUSTOMIZE markers. Copy to project root after adoption.
+
+- **`agov.validate.assistant_loader`** — new advisory in the umbrella
+  `agov validate`. Warns when no loader file exists (`AGENTS.md` or
+  `.claude/CLAUDE.md`) and when a loader's `<!-- AGF: X.Y.Z -->` version
+  comment is stale relative to `agf/VERSION`. Advisory only; never blocks.
+
+### Changed
+
+- `agf/ADOPTING.md` §1.4 step 2 now names specific starter templates per
+  assistant surface: Codex → `agf/templates/AGENTS.md`; Claude Code →
+  `agf/project-specific-examples/python-flask/CLAUDE.md`.
+
+- `ADOPTING.md` §2.4 prescribes the `YYYYMMDD-` filename prefix convention
+  for ADR files.
+
+- Parity test exclusion list extended to cover `assistant_loader` (Rust-only,
+  parallel to the existing `assistant_drift` exclusion).
+
+### Documentation
+
+- RC-1 readiness audit completed: operator path verified, all v1.x legacy
+  material labelled, three-layer contract documented for `agov coord
+  graph-index`.
+
+- Adopter learnings from amber-register (issues #9 and #10) incorporated into
+  `agf/learnings/foundry.yaml`.
+
 ## [2.1.6] — 2026-06-22
 
 ### Fixed
