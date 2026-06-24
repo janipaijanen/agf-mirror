@@ -21,6 +21,7 @@ Default adopter paths:
 
 | Template | Copy to |
 |---|---|
+| `AGENTS.md` | project root `AGENTS.md` (Codex / GitHub Copilot loader) |
 | `gate1-plan.md` | `docs/plans/sample-login-error-message.md` |
 | `coord-handoff.md` | `docs/coordination/COORD-YYYYMMDD-XXX.md` |
 | `coord-decision-record.md` | `docs/coordination/COORD-YYYYMMDD-XXX.md` |

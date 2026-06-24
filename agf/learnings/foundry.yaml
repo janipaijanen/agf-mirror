@@ -738,7 +738,13 @@ learnings:
       require extra human intervention to orient. This turns adoption hygiene into
       a memory/user-prompt obligation rather than a durable repository contract.
     framework_impact: high
-    status: proposed
+    status: partially-implemented
+    implementation_notes: >
+      Action 1 (AGENTS.md template) shipped in 2.2.0: agf/templates/AGENTS.md
+      added with cold-start commands, version reference comment, and CUSTOMIZE
+      markers. ADOPTING.md §1.4 updated to reference the template for
+      Codex/GitHub Copilot users. Action 2 (agov validate advisory for absent or
+      stale loader files) deferred — tracked separately.
     recommendation: >
       Two complementary actions: (1) Ship a downstream-adopter AGENTS.md template
       in the AGF distribution alongside the existing CLAUDE.md template. The
