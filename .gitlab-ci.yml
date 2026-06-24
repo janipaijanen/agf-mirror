@@ -442,6 +442,8 @@ rust:tooling:parity:
     - cargo install cross --git https://github.com/cross-rs/cross --force
   script:
     - VERSION="$(cat ../../agf/VERSION)"
+    - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
+    - export AGOV_BUILD_DIRTY=false
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
         TAG_VERSION="${CI_COMMIT_TAG#v}"
