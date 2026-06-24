@@ -15,7 +15,7 @@ Confirm you are reviewing the right project before proceeding.
 |---|---|
 | **Canonical repository** | `https://gitlab.com/janipaijanen/agents-govern-framework` |
 | **Published docs** | `https://janipaijanen.gitlab.io/agents-govern-framework/` |
-| **Current version** | See [Release information](reference/release-info.md), generated from `agf/VERSION` at docs build time |
+| **Current version** | See [Release information](reference/release-info.md), generated from `agf/VERSION` at docs build time. Also shown in the page header (top-right corner). |
 
 This project **is not**:
 
@@ -74,7 +74,7 @@ For a deeper technical assessment, also read:
 |---|---|---|
 | Role definitions | `agf/agents/*.yaml` | Authoritative agent role specifications |
 | Governance rules | `agf/rules/` | Rule library loaded by AI assistants |
-| Coordination schemas | `agf/schemas/` | Schema for coordination messages and learning records |
+| Coordination schemas | [`agf/schemas/`](https://gitlab.com/janipaijanen/agents-govern-framework/-/tree/main/agf/schemas) | Schema for coordination messages and learning records |
 | Coordination channel | `docs/coordination/` | This project's own governed decision log |
 
 ## Verification checks

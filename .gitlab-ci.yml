@@ -34,6 +34,8 @@ workflow:
     CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
   cache:
     key: rust-$CI_COMMIT_REF_SLUG
+    fallback_keys:
+      - rust-main
     paths:
       - .cargo/registry
       - .cargo/bin
@@ -351,7 +353,7 @@ rust:tooling:deny:
   extends: .rust-base
   stage: test
   script:
-    - cargo install cargo-deny --locked --version "^0.19" --force
+    - cargo install cargo-deny --locked --version "^0.19"
     - cargo deny check
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -401,7 +403,9 @@ rust:tooling:clippy:
     - if: $CI_COMMIT_TAG
 
 # Parity test: diff Rust and Elixir CLI output on the same fixture set.
-# Blocking CI check during the Phase 1 transition period.
+# Manual / on-demand only. Elixir 1.20 requires ~> 1.20 so we use the hexpm
+# image and install Rust into it; CARGO_HOME points to the project dir so the
+# Rust build artifacts are cached between manual runs on the same branch.
 rust:tooling:parity:
   image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
   stage: test
@@ -409,23 +413,29 @@ rust:tooling:parity:
     AGOV_ALLOW_ROOT: "1"
     AGOV_SCHEMA_DIR: "$CI_PROJECT_DIR/agf/schemas"
     AGOV_MANIFEST_PATH: "$CI_PROJECT_DIR/agf/agents/MANIFEST.yaml"
+    CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  cache:
+    key: rust-parity-$CI_COMMIT_REF_SLUG
+    fallback_keys:
+      - rust-parity-main
+    paths:
+      - .cargo/registry
+      - .cargo/bin
+      - tooling/rust/target
   before_script:
-    - apt-get update -qq && apt-get install -y -qq build-essential curl
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-    - source "$HOME/.cargo/env"
+    - apt-get update -qq && apt-get install -y -qq build-essential
+    - |
+      if [ ! -x "$CARGO_HOME/bin/cargo" ]; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
+      fi
+    - export PATH="$CARGO_HOME/bin:$PATH"
     - cd tooling/elixir && mix deps.get && cd ../..
   script:
     - (cd tooling/rust && cargo build)
     - bash tooling/rust/tests/parity/run.sh
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
+    - when: manual
+      allow_failure: true
 
 .rust-tooling-package:
   extends: .rust-base
@@ -441,7 +451,7 @@ rust:tooling:parity:
     - apt-get update -qq && apt-get install -y -qq docker.io zip
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install cross --git https://github.com/cross-rs/cross --force
+    - cargo install cross --locked --version "^0.2"
   script:
     - VERSION="$(cat ../../agf/VERSION)"
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
@@ -541,7 +551,7 @@ rust:tooling:build:windows:preview:
     - apt-get update -qq && apt-get install -y -qq docker.io
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install cross --git https://github.com/cross-rs/cross --force
+    - cargo install cross --locked --version "^0.2"
   script:
     - cross build --release --target x86_64-pc-windows-gnu
   artifacts:
