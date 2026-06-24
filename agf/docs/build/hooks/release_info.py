@@ -90,6 +90,17 @@ def on_pre_build(config, **kwargs) -> None:
 | Source branch | `{branch}` |
 | Build timestamp | `{timestamp}` |
 
+## Versioning note
+
+Two version concepts appear in the documentation:
+
+- **Framework content version** — the precise `MAJOR.MINOR.PATCH` release number
+  shown in the table above. This is the authoritative version.
+- **Documentation line** — content pages marked *"Released (v2.x documentation)"*
+  indicate the documentation generation series in which those pages were first
+  published. It is an authoring marker, not the current framework content version.
+  When citing or comparing, use the framework content version above.
+
 ## Downloads
 
 Release archives and platform-specific Rust tooling binaries are published on

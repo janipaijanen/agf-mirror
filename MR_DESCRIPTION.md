@@ -1,41 +1,54 @@
-# chore: tighten AGENTS.md template cold-start and filing discipline
+# learn: incorporate external reviewer fit assessment (#17) + implement doc proposals
 
-Branch: `chore/agents-template-cold-start-fixes`
+Branch: `learn/external-review-17`
 
 ## Summary
 
-Addresses four learning-cluster gaps in the AGENTS.md template:
+Incorporates the external LLM fit assessment from GitLab issue #17 and implements
+the four highest-impact improvement proposals identified in that review.
 
-**1. session resume before any reads (L020, 20260621T143908Z)**
-Previous text said "Never start implementing before running session resume."
-Gap: agents ran reads (git log, file inspection, coordination reads) before
-resume, missing pending messages. Fix: "before anything else — before reading
-coordination files, before git log, before any file inspection."
+**Learning recorded:** `20260624T214609Z-30gz` — external reviewer confirmed AGF
+2.2.4's strengths (authority model, two-gate design, coordination protocol, evidence
+discipline) and surfaced 8 actionable doc improvement proposals. Verdict: "Adopt now"
+for the validated core (single repo, single governor, AI in the loop, long-lived work).
 
-**2. Post-resume coordination note (20260623T192100Z-hab7)**
-After a context resume or cold start, agents proceeded silently without filing
-a current-state note. Other agents saw no baseline for the new cycle. Fix:
-added instruction to file a brief `kind: note` after resume before proceeding.
+## Proposals implemented
 
-**3. Filed = committed + pushed (20260621T084900Z, 20260622T111800Z)**
-"File the entry... never as an afterthought" was ambiguous about what "filed"
-means. An unpushed commit is invisible to other agents. Fix: explicit note
-that a message is not filed until committed AND pushed.
+| Proposal | Change | File |
+|---|---|---|
+| #1 — Versioning clarity | Added "Versioning note" section explaining documentation line vs framework content version | `agf/docs/build/hooks/release_info.py` (generated into release-info.md at build time) |
+| #3 — Gate 2 checklist | Added 7-item copyable Gate 2 review checklist | `agf/docs/site/docs/operate/review-and-release.md` |
+| #4 — Daily operation checklist | Added 6-item daily checklist + AI agent session-resume note | `agf/docs/site/docs/operate/day-to-day.md` |
+| #7 — First-week checklist | Added 7-item first-week adoption checklist | `agf/docs/site/docs/start/adopter-faq.md` |
 
-**4. Timer claims require a real mechanism (L021)**
-No instruction existed against stating "I will check in N minutes" without a
-mechanism that fires. Fix: added to the "What NOT to do" list.
+Proposals #2 (visual customization zones), #5 (validator surface matrix), #6
+(coordination thread example), and #8 (configuration drift in upgrades) deferred
+to a follow-up — they require layout/visual work beyond prose additions.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/templates/AGENTS.md` | Cold start, coordination, and what-not-to-do sections updated |
+| `agf/learnings/foundry.yaml` | Added learning `20260624T214609Z-30gz` (single-adopter, external reviewer) |
+| `agf/docs/build/hooks/release_info.py` | Versioning note added to generated release-info.md template |
+| `agf/docs/site/docs/operate/review-and-release.md` | Gate 2 review checklist |
+| `agf/docs/site/docs/operate/day-to-day.md` | Daily operation checklist |
+| `agf/docs/site/docs/start/adopter-faq.md` | First-week adoption checklist |
+
+## Validation
+
+```
+$ agov validate learnings
+OK agov.validate.learnings
+```
 
 ## Review checklist
 
-- [ ] Cold start section covers reads, not just implementation
-- [ ] Post-resume coordination note instruction added
-- [ ] Commit + push filing requirement is explicit
-- [ ] Timer claims added to what-not-to-do
-- [ ] No `Co-authored-by` trailers in commit
+- [ ] Learning content faithfully captures issue #17 assessment and proposals
+- [ ] ID format: `YYYYMMDDThhmmssZ-<4-char-random>` ✓
+- [ ] Gate 2 checklist aligns with existing review-and-release guidance
+- [ ] Daily checklist aligns with existing day-to-day guidance
+- [ ] First-week checklist matches the Day 1–5 prose it follows
+- [ ] Versioning note appears in generated release-info.md (hook change, verified by MkDocs build)
+- [ ] `agov validate learnings` passes
+- [ ] No `Co-authored-by` trailers in commits

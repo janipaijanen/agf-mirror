@@ -992,6 +992,62 @@ learnings:
       evidence_refs:
         - "harbor-workshop:2026-06-24:agf-v2-switchover"
 
+  - id: "20260624T214609Z-30gz"
+    date: "2026-06-24"
+    category: adaptation
+    agents_involved: [governor-reviewer, coder-tester]
+    summary: >
+      External LLM fit assessment of AGF 2.2.4 confirmed strong docs and authority
+      model but surfaced eight actionable improvement proposals, primarily around
+      versioning clarity and missing operational checklists.
+    detail: >
+      An LLM evaluator reviewed AGF 2.2.4 documentation (GitLab issue #17)
+      after manually copying the /evaluate/ page and subsequent content pages.
+      The review covered all main documentation sections but not the actual
+      rule/schema/contract files.
+
+      Strengths cited (ten items): sharp problem definition and fit boundary;
+      strong human-accountability authority model; two-gate model is legible and
+      operationally useful; low-infrastructure coordination protocol; daily
+      operating model not just setup ceremony; AI context hygiene and externalized
+      state coverage; evidence discipline as a differentiator; tooling correctly
+      subordinate; contract philosophy is excellent; Gate 2 and release discipline
+      are unusually strong.
+
+      Risks cited (seven items): not a universal framework; depends on real
+      governor capacity; behavioral discipline still required alongside
+      structural discipline; artifact-level implementation quality not verified
+      directly; versioning language slightly confusing; strongest at project
+      level not org scale; customization model introduces customization risk.
+
+      Eight improvement proposals, all actionable:
+      (1) Clarify "v2.1 documentation" vs framework content version 2.2.4 —
+      add an explanatory note in release information.
+      (2) Add compact visual table for free/marked/contracted customization zones.
+      (3) Add compact Gate 2 review checklist to review-and-release.
+      (4) Add compact daily operation checklist to day-to-day.
+      (5) Add visual validator surface matrix (shipped/contract-target/blocking/advisory).
+      (6) Add miniature end-to-end coordination thread example.
+      (7) Add first-week adoption checklist to FAQ or install page.
+      (8) Add configuration drift review step to upgrade guidance.
+
+      Final verdict: "Adopt now" for the validated core (single repo, single governor,
+      AI in the loop, long-lived work). "Wait" for org-scale federation, broader
+      validator maturity before piloting, or teams without real governor capacity.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Implement improvement proposals 1, 3, 4, and 7 as priority (quick doc changes
+      with high adoption impact). Proposals 2, 5, and 6 require layout work (visual
+      elements) — defer to a follow-up. Proposal 8 is a small addition to
+      customizing-the-framework. Update status to implemented when proposals
+      1/3/4/7 are merged. Record the two-concept versioning model (documentation
+      line vs framework content version) in a canonical explanation so it can be
+      cited consistently.
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
