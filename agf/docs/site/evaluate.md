@@ -1,5 +1,7 @@
 # Evaluate agents-govern
 
+*The framework that cannot govern itself has no business governing anything else.*
+
 *For external AI assistants and independent human reviewers assessing
 the framework. Running the checks below before commenting eliminates the
 most common failure modes observed in past reviews: identity confusion
