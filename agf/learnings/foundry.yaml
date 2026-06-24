@@ -861,6 +861,92 @@ learnings:
       level: single-adopter
       evidence_count: 3
 
+  - id: L008
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      Branch preflight existed as a rule, but was not adjacent enough to the
+      commit that resolved academic-paper handoffs.
+    detail: >
+      After the academic paper was explicitly marked WIP and low priority,
+      Codex prepared a governor-reviewer decision record resolving seq 121,
+      seq 124, and seq 126. Earlier in the turn, Codex checked the branch and
+      observed `docs/academic-paper-draft`. The decision record was then
+      written, validated, and committed. The commit landed on `master` as
+      `f97c2ed` rather than on the expected paper branch.
+
+      The existing L007 learning and `active-branch-preflight-rule` already
+      required checking branch identity immediately before durable writes. This
+      incident shows that the rule was still too easy to satisfy mentally with
+      an earlier branch check. In a shared multi-agent checkout, "earlier in
+      the same turn" is not adjacent enough: another agent, worktree operation,
+      resume, or local branch movement can invalidate the branch state between
+      validation and commit.
+
+      No content loss occurred, and the decision record itself was valid. The
+      governance problem is process reliability: a valid coordination decision
+      traveled on an unexpected branch, creating review-scope ambiguity and
+      requiring another human reminder.
+
+      Root cause: branch preflight was treated as situational awareness rather
+      than as a required final gate in the exact command sequence that performs
+      `git add`/`git commit`.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Strengthen the active-branch preflight habit and tooling requirement:
+      the final command group before every `git add`/`git commit` must include
+      `git branch --show-current` and `git status --short --branch`, and the
+      agent must compare that output to the intended branch in the same
+      reasoning step as staging. If the branch is unexpected, stop before
+      staging. Commit summaries or coordination completions for branch-sensitive
+      work should state the branch observed immediately before commit. Future
+      tooling should consider a wrapper/pre-commit check that records or
+      enforces the intended branch for governed commits.
+
+  - id: L009
+    date: "2026-06-13"
+    category: gap
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      Learning records are still too manual and should be recordable through
+      dedicated governance tooling rather than another sidecar tool.
+    detail: >
+      While recording L008, Codex used the legacy Python learning validator
+      directly from the vendored bootstrap framework. That worked, but it
+      exposed a tooling mismatch in AGF-NG: coordination validation, plan
+      validation, handoff reading, and usage reporting are now surfaced through
+      the Rust `agov` binary, while learning capture still depends on manual
+      YAML editing plus Python-era validation habits.
+
+      This fragments the operational surface. Agents and humans should not
+      need to remember a separate toolchain to record the exact learning
+      records that are supposed to drive continuous improvement. Learning
+      capture should be a first-class AGF-NG capability in the same tooling
+      family as the rest of the governance workflow.
+
+      The desired direction is not "add another script". It is to add `agov`
+      support, for example `agov learning validate` and eventually
+      `agov learning record`, using the existing learning schema/contract
+      and preserving append-only semantics. The task should be able to compute
+      the next learning id, validate required fields, preserve YAML structure,
+      and make it hard to accidentally edit historical learning entries.
+
+      This also improves agent ergonomics: when a coordination record says
+      "Learning Review: Triggered", the same `agov` toolchain should support
+      converting that trigger into a structured learning record or confirming
+      the disposition.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Plan an `agov learning` subcommand slice before adding any new standalone
+      learning tool. Minimum viable scope: `agov learning validate <file>`
+      for learning records and a documented design for
+      `agov learning record` that appends a new record safely. Later scope:
+      connect coordination-message Learning Review sections to learning-record
+      creation/disposition, and add tests that preserve append-only behavior.
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
