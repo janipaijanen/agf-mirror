@@ -3,7 +3,7 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## [Unreleased]
+## [2.2.3] — 2026-06-24
 
 ### Changed
 
