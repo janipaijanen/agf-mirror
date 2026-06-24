@@ -1,48 +1,41 @@
-# learn: incorporate harbor-workshop v1-to-v2 switchover learning (#16)
+# chore: tighten AGENTS.md template cold-start and filing discipline
 
-Branch: `learn/harbor-workshop-v1-v2-switchover`
+Branch: `chore/agents-template-cold-start-fixes`
 
 ## Summary
 
-Incorporates the learning record submitted in issue #16 by adopter
-`harbor-workshop` (2026-06-24). Added as `20260624T120000Z-q7wj` to
-`agf/learnings/foundry.yaml`.
+Addresses four learning-cluster gaps in the AGENTS.md template:
 
-**Finding:** AGF v1-to-v2 switchovers need a migration checklist and
-role-reviewed learning cleanup. The friction during migration was not copying
-files — it was finding every active instruction surface still teaching the old
-layout, old numbering scheme, or local machine-specific tool paths. A later
-role review also caught that the adopter's own learning record could pass YAML
-validation while still carrying stale v1 framework metadata and retired role
-paths.
+**1. session resume before any reads (L020, 20260621T143908Z)**
+Previous text said "Never start implementing before running session resume."
+Gap: agents ran reads (git log, file inspection, coordination reads) before
+resume, missing pending messages. Fix: "before anything else — before reading
+coordination files, before git log, before any file inspection."
 
-**Recommendation recorded:** Add an upstream v1-to-v2 switchover checklist
-covering path retirement (agents/, agents-govern/), role migration into agf/agents/,
-loader and cold-start instruction updates, coordination ID migration to readable
-IDs via `agov coord brief`, adopter validation (`agov validate adoption/agents/
-learnings/infosec`), active-doc scan for old paths, and a full role review
-(infosec-sentinel, contribution-auditor, fact-checker) of the adopter's own
-learning records before submission.
+**2. Post-resume coordination note (20260623T192100Z-hab7)**
+After a context resume or cold start, agents proceeded silently without filing
+a current-state note. Other agents saw no baseline for the new cycle. Fix:
+added instruction to file a brief `kind: note` after resume before proceeding.
+
+**3. Filed = committed + pushed (20260621T084900Z, 20260622T111800Z)**
+"File the entry... never as an afterthought" was ambiguous about what "filed"
+means. An unpushed commit is invisible to other agents. Fix: explicit note
+that a message is not filed until committed AND pushed.
+
+**4. Timer claims require a real mechanism (L021)**
+No instruction existed against stating "I will check in N minutes" without a
+mechanism that fires. Fix: added to the "What NOT to do" list.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/learnings/foundry.yaml` | Added learning `20260624T120000Z-q7wj` (single-adopter, harbor-workshop) |
-
-## Validation
-
-```
-$ agov validate learnings
-OK agov.validate.learnings
-```
-
-Pre-existing WARN entries on bare timestamp IDs (L018–L021 era) unchanged.
+| `agf/templates/AGENTS.md` | Cold start, coordination, and what-not-to-do sections updated |
 
 ## Review checklist
 
-- [ ] Learning content faithfully captures the issue #16 submission
-- [ ] ID format: `YYYYMMDDThhmmssZ-<4-char-random>` ✓
-- [ ] Evidence ref recorded: `harbor-workshop:2026-06-24:agf-v2-switchover`
-- [ ] `agov validate learnings` passes (no new errors)
+- [ ] Cold start section covers reads, not just implementation
+- [ ] Post-resume coordination note instruction added
+- [ ] Commit + push filing requirement is explicit
+- [ ] Timer claims added to what-not-to-do
 - [ ] No `Co-authored-by` trailers in commit
