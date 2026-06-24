@@ -29,9 +29,14 @@ agov handoff next <agent-role>
 agov coord visibility --base-branch main
 ```
 
-Never start implementing before running `session resume`. It surfaces pending
-coordination messages, active decisions, and unresolved handoffs that must be
-read before any new work begins.
+Run `session resume` before anything else — before reading coordination files,
+before `git log`, before any file inspection. It surfaces pending coordination
+messages, active decisions, and unresolved handoffs. Starting with reads before
+the resume means acting on stale context.
+
+After the resume output, file a brief coordination `kind: note` for the current
+cycle status before proceeding. This gives other agents and the governor a
+current baseline rather than an invisible state from the previous session.
 
 ---
 
@@ -95,6 +100,10 @@ Write a coordination entry whenever your action creates an obligation for
 another agent or the human governor. File the entry before or immediately after
 acting — never as an afterthought.
 
+A coordination message is not filed until it is both committed **and pushed**.
+A message that exists only in the local working tree or in an unpushed commit
+is invisible to other agents and the human governor.
+
 ---
 
 ## Gate discipline
@@ -139,11 +148,16 @@ agov usage report                              # recent coordination activity
 
 ## What NOT to do
 
-- Do not implement without running `session resume` first
+- Do not start any work — reads, git log, or implementation — without running
+  `session resume` first
 - Do not commit directly to `main`
 - Do not edit `agf/` files without governor-reviewer approval
 - Do not upgrade packages without explicit user request
 - Do not commit secrets, `.env` files, or credentials
 - Do not add `Co-authored-by` or AI-tool trailers to commit messages
+- Do not claim a polling timer is active unless a real notification mechanism
+  backs it. Stating "I will check in N minutes" without a mechanism that fires
+  is misleading — another agent or human may wait for a notification that
+  never comes
 
 <!-- CUSTOMIZE: add any project-specific prohibitions -->
