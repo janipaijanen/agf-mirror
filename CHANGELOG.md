@@ -16,6 +16,14 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 - Root `CHANGELOG.md` to make repository-level changes visible before readers
   enter the adopter-facing `agf/` distribution or bootstrap reference tree.
 
+## [2.2.0-rc.2] - 2026-06-24
+
+### Fixed
+
+- Rust `agov` release archives now embed CI commit provenance in the binary
+  itself, so `agov --version` and `agov version --format json` report the tag
+  pipeline commit instead of `unknown dirty`.
+
 ## [2.2.0-rc.1] - 2026-06-24
 
 ### Added
