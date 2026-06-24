@@ -6,6 +6,7 @@ pub mod contributions;
 pub mod framework_config;
 pub mod infosec;
 pub mod learnings;
+pub mod readme_stats;
 
 use agov_core::Finding;
 use std::path::{Path, PathBuf};

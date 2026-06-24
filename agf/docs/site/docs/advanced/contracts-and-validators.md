@@ -25,9 +25,13 @@ script authority the framework never granted.
 | Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agov coord validate` |
 | Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agov plan validate` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `agov coord visibility` |
+| Adoption structure | Directory layout, required files, version pin | `agov validate adoption` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov validate agents` |
 | Learning records (`agf/learnings/*.yaml`) | JSON schema: structure, severity grades, evidence fields | `agov validate learnings` |
 | InfoSec-relevant artifacts | Anonymization and disclosure checks | `agov validate infosec` |
+| Contribution-auditor learning records | Advisory scan for adversarial patterns: absence-of-incident bias, governance relaxation proposals, weak universal claims | `agov validate contributions` |
+| Framework configuration | `agov-config.yaml` shape and required fields | `agov validate framework-config` |
+| README.md stat claims | Claimed rule, agent, and skill counts match actual `agf/` file counts (advisory) | `agov validate readme-stats` |
 
 The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped

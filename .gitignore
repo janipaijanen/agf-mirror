@@ -19,10 +19,8 @@ build/
 *.env
 .netrc
 
-# Elixir
-tooling/elixir/_build/
-tooling/elixir/deps/
-tooling/elixir/erl_crash.dump
+# Elixir (removed from repo; ignore lingering local build state)
+tooling/elixir/
 
 # Local/generated bootstrap artifacts
 agents-govern/uv.lock
