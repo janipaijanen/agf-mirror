@@ -1,80 +1,40 @@
-# feat: agov coord graph-index — channel graph-index command (MR 1 of 3)
+# feat: ship AGENTS.md adopter template for Codex/GitHub Copilot sessions
 
-Branch: `feat/agov-coord-graph-index`
+Branch: `feat/agents-md-template`
 
 ## Summary
 
-Implements `agov coord graph-index [--dir DIR] [--output FILE]`:
-a read-only command that emits a JSON graph of all coordination channel
-messages, their causal edges, pending handoffs, and invalid files.
+Addresses learning `20260624T065743Z-ag7x` action 1. Adopters upgrading AGF
+can now copy `agf/templates/AGENTS.md` to their project root to get a
+cold-start–ready loader with:
 
-This is MR 1 of the three-MR phased proposal approved at
-`20260623T181212Z-governor-reviewer-grph`. It covers only read-only
-tooling and CoordMessage accessors; the session-resume integration and
-`agov learnings index` follow in MR 2.
+- `agov session resume` prominently featured as the mandatory first command
+- AGF version reference comment (`<!-- AGF: X.Y.Z -->`) — stale after upgrade,
+  giving agents a visible signal to update
+- Rule orientation table, coordination channel commands, gate and branch
+  discipline summaries
+- `<!-- CUSTOMIZE -->` markers throughout
 
-### Library changes (agov-coord)
+Four files changed; no code or schema changes.
 
-- **`coord_validator.rs`** — added `CoordMessage` accessors: `kind()`,
-  `from()`, `to()`, `topic()`, `timestamp()`, `requires_ack()`, `id()`,
-  `references_to()`. Added public `normalize_coord_reference()` and
-  `looks_like_coord_filename()` for reuse across crates.
+## Files changed
 
-- **`channel_reader.rs`** — implemented `read_channel(dir) → Vec<ChannelEntry>`:
-  reads all `.md` files sorted by filename, validates each, collects
-  failures without short-circuiting. Added `body_refs(path)` (scans body
-  for coordination filename tokens) and `all_refs(path, msg)` (frontmatter
-  + body, sorted, deduped). Four unit tests.
+| File | Change |
+|---|---|
+| `agf/templates/AGENTS.md` | New — adopter AGENTS.md loader template |
+| `agf/templates/README.md` | Added AGENTS.md row to the copy-to table |
+| `agf/ADOPTING.md` | §1.4 step 2 names specific templates per assistant surface |
+| `agf/learnings/foundry.yaml` | ag7x status → `partially-implemented`; action 2 deferred |
 
-- **`handoff_tracker.rs`** — implemented `find_pending(descriptors) →
-  Vec<PendingHandoff>`: finds handoffs with no resolving descendant.
-  Resolution semantics: `ack`, `completion`, and `decision-record` kinds
-  resolve a handoff; `note` does not. Uses DFS over a descendant map.
-  Extended `PendingHandoff` with `file` and `pending_since` fields.
-  Added `MessageDescriptor` struct for graph-index use. Four unit tests.
+## What is NOT in this MR
 
-- **`Cargo.toml`** — added `tempfile` dev-dependency for tests.
+- `agov validate` advisory for absent/stale loader files (ag7x action 2) —
+  deferred. A green validate result still does not warn about a missing or
+  stale `AGENTS.md`. Tracked separately before 2.2.0 final or 2.3.0.
 
-### Binary changes (agov)
+## Review checklist
 
-- Added `GraphIndex { dir, output }` variant to `CoordCommand`.
-- Implemented `coord_graph_index()`: reads channel, separates valid/invalid,
-  builds node/edge/pending lists, serialises to pretty-printed JSON.
-- Added `graph_index_summary()`: deterministic one-line summary from first
-  H1/H2 heading in body, falling back to `topic`.
-
-### Output shape
-
-```json
-{
-  "generated_at": "...",
-  "nodes": [{ "id", "file", "kind", "from", "to", "topic", "timestamp",
-               "requires_ack", "resolved", "summary" }],
-  "edges": [{ "from", "to", "type": "references-to" }],
-  "pending": [{ "id", "file", "from", "to", "topic", "pending_since" }],
-  "invalid_files": [...]
-}
-```
-
-`resolved` is `null` for non-handoff records, `true`/`false` for handoffs.
-No `graph-index.json` is committed to `docs/coordination/` (append-only
-audit trail constraint, confirmed in `75lm`).
-
-### Smoke test (live channel, 636 files)
-
-```
-nodes: 309  edges: 521  pending: 2  invalid_files: 327
-```
-
-The 327 invalid files are legacy sequence-numbered messages that fail
-current schema validation (same set the existing `agov coord status` skips).
-The 2 pending handoffs are genuinely unresolved; the 9 previously shown
-in the old binary were false positives from the coord-scanner-resolution bug
-fixed in MR !125.
-
-## Test plan
-
-- [x] `cargo test -p agov-coord` — 10 tests pass
-- [x] `cargo build -p agov` — clean build
-- [x] `agov coord graph-index --dir docs/coordination` — live channel output correct
-- [x] Pending handoff count consistent with post-!125 resolution semantics
+- [ ] Template cold-start section is complete and commands are correct
+- [ ] ADOPTING.md §1.4 prose reads naturally for a first-time adopter
+- [ ] Learning status update is accurate (`partially-implemented` + notes)
+- [ ] No `Co-authored-by` trailers in commit
