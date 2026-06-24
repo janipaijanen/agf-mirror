@@ -353,7 +353,7 @@ rust:tooling:deny:
   extends: .rust-base
   stage: test
   script:
-    - cargo install cargo-deny --locked --version "^0.19"
+    - cargo install --list 2>/dev/null | grep -qE "^cargo-deny v0\.19\.[0-9]+:" || cargo install cargo-deny --locked --version "^0.19" --force
     - cargo deny check
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
