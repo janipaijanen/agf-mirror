@@ -156,6 +156,8 @@ enum ValidateCommand {
     Contributions,
     /// Validate framework-config.
     FrameworkConfig,
+    /// Check README.md stat claims against actual file counts.
+    ReadmeStats,
 }
 
 #[derive(Subcommand)]
@@ -2984,6 +2986,10 @@ fn run_validate(sub: Option<ValidateCommand>, args: &[String]) -> i32 {
                 )
             }
         }
+        ValidateCommand::ReadmeStats => (
+            render_readme_stats(&mut output, &agov_core::repo_root()),
+            "validate:readme-stats",
+        ),
     };
 
     if exit_code == 0 {
@@ -3034,6 +3040,7 @@ fn run_all_validators(args: &[String]) -> i32 {
             agov_validators::assistant_loader::validate_all(&agov_core::repo_root()),
         ),
         render_framework_config(&mut output),
+        render_readme_stats(&mut output, &agov_core::repo_root()),
     ];
 
     output.stdout("OK agov.validate.coverage: framework checks complete; for complete governance coverage, also run `agov plan validate` and `agov coord validate`; the umbrella command does not validate those records");
@@ -3057,6 +3064,21 @@ fn render_framework_config(output: &mut OutputCounter) -> i32 {
             "agov.validate.framework_config",
             agov_validators::framework_config::validate_all(&root.join("agf")),
         )
+    }
+}
+
+fn render_readme_stats(output: &mut OutputCounter, root: &std::path::Path) -> i32 {
+    let result = agov_validators::readme_stats::validate(root);
+    let label = "agov.validate.readme_stats";
+    if result.findings.is_empty() {
+        output.stdout(format!("OK {label}"));
+        0
+    } else {
+        for f in &result.findings {
+            let loc = f.location.as_deref().unwrap_or("README.md");
+            output.stdout(format!("WARN {label}: {} ({loc})", f.message));
+        }
+        0 // advisory only — never blocking
     }
 }
 

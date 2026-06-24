@@ -118,6 +118,9 @@ Default POC layout:
 | Coordination index | `agov coord graph-index` — JSON index of handoffs and references |
 | Tool provenance | `agov --version` / `agov version --format json` |
 
+The `agf/` distribution ships **44 governance rules**, **12 agent definitions**,
+and **7 skills**.
+
 The framework source archive is usable on its own. Adopters who want the
 current core validators can use a full checkout or the optional packaged
 `agov` tooling archive; the combined bundle is a convenience artifact, not a
