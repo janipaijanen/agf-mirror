@@ -3,6 +3,29 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [Unreleased]
+
+### Changed
+
+- `evaluate.md`: version and commit hash are now mentioned explicitly in the
+  identity check table, pointing reviewers to the page header badge.
+- `evaluate.md`: `agf/schemas/` in the technical reading list is now a
+  clickable link to the GitLab repository browser.
+
+### CI
+
+- `rust:tooling:parity` is now manual / on-demand only (`when: manual`); it
+  no longer runs automatically on every MR touching `tooling/rust/`. The job
+  caches its Rust build artifacts via a dedicated `rust-parity-*` cache key so
+  repeated manual runs on the same branch are faster.
+- `rust:tooling:deny`: dropped `--force` from `cargo install cargo-deny`; the
+  binary is now served from the `.cargo/bin` cache on subsequent runs.
+- `.rust-tooling-package`: `cross` is now installed from crates.io
+  (`--locked --version "^0.2"`) instead of from git source, saving 2–3 minutes
+  per release build.
+- `.rust-base` cache now declares `fallback_keys: [rust-main]` so new branches
+  warm from the main branch cache instead of starting cold.
+
 ## [2.2.2] — 2026-06-24
 
 ### Fixed
