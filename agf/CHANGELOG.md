@@ -3,6 +3,15 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.2.2] — 2026-06-24
+
+### Fixed
+
+- All Rust CI jobs now set `AGOV_BUILD_COMMIT`/`AGOV_BUILD_DIRTY` via the
+  `.rust-base` template `before_script`. Previously only the dist/release job
+  set these; test/clippy/deny/parity jobs fell back to git at compile time,
+  and a warm cache could serve a stale binary with `(unknown dirty)` provenance.
+
 ## [2.2.1] — 2026-06-24
 
 ### Fixed
