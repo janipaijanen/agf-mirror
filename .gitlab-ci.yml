@@ -40,6 +40,8 @@ workflow:
       - tooling/rust/target
   before_script:
     - cd tooling/rust
+    - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
+    - export AGOV_BUILD_DIRTY=false
 
 .elixir-base:
   image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
