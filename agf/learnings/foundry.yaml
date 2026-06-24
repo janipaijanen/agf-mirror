@@ -798,6 +798,69 @@ learnings:
       level: single-adopter
       evidence_count: 4
 
+  - id: "20260624T060000Z-k7m2"
+    date: "2026-06-24"
+    category: validation
+    scope: framework
+    title: agf-2-2-0-rc1-upgrade-low-friction
+    source: "adopter amber-register, issue #10 (2026-06-24)"
+    description: >
+      Upgrading an existing adopter repository from AGF 2.1.6 to 2.2.0-rc.1
+      was low-friction. The release archive could be extracted, compared against
+      the adopted agf/ tree, synced into place, and validated without requiring
+      project plan or coordination rewrites. The installed agov binary matched
+      the RC binary package by SHA-256. The only adoption judgement required was
+      preserving adopter-local evidence under agf/learnings/ while allowing
+      upstream-owned AGF files to change, including deletion of a workflow rule
+      no longer present in the release.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: "ADOPTING.md upgrade guidance"
+    framework_impact: low
+    status: implemented
+    recommendation: >
+      Make learning-register preservation explicit in ADOPTING.md upgrade
+      guidance: adopter-local files under agf/learnings/ are evidence and MUST
+      be preserved across framework tarball syncs; upstream-owned files may be
+      added, changed, or deleted. The current upgrade section implies this but
+      does not state it explicitly enough for a first-time upgrader.
+    confidence:
+      level: single-adopter
+      evidence_count: 4
+
+  - id: "20260624T104500Z-rp3h"
+    date: "2026-06-24"
+    category: boundary
+    scope: framework
+    title: adopter-artifacts-should-not-use-framework-acronym-prefix
+    source: "adopter amber-register, issue #15 (2026-06-24)"
+    description: >
+      During adoption work, Gate 1 plans and upstream-submittable review files
+      were given filenames prefixed with the framework acronym (agf-*, agov-*).
+      The governor corrected this: adopter product artifacts should be named for
+      the adopter domain and decision, not branded with the framework acronym.
+      Framework-branded filenames are appropriate inside the framework source
+      tree, but create confusion when used for downstream product plans, ADRs,
+      coordination records, or review packets — they make a CRM plan look like
+      a framework-development artifact and blur ownership between support
+      utilities and the governed product.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: "adopter artifact naming; ADOPTING.md; agf/templates/"
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Adopter guidance and templates should warn against using the framework
+      acronym as a prefix for downstream adopter artifact filenames. Prefer
+      domain-first filenames: crm-concept-gate1-plan.md, phase0-foundation.md,
+      learning-adopter-artifact-naming-boundary.yaml. Reserve agf-*/agov-*
+      prefixes for files that are part of the framework tree itself.
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
