@@ -3028,6 +3028,11 @@ fn run_all_validators(args: &[String]) -> i32 {
             "agov.validate.assistant_drift",
             agov_validators::assistant_drift::validate_all(&agov_core::repo_root()),
         ),
+        render_warning_collection(
+            &mut output,
+            "agov.validate.assistant_loader",
+            agov_validators::assistant_loader::validate_all(&agov_core::repo_root()),
+        ),
         render_framework_config(&mut output),
     ];
 
