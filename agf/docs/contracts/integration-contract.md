@@ -7,9 +7,9 @@
 > concepts, but several paths and command names below are not the current AGF-NG
 > v2 public command surface. For current v2 adopter guidance, use
 > `agf/docs/site/docs/advanced/contracts-and-validators.md` and the
-> `tooling/elixir/` reference implementation. Treat any `agents/`,
-> `learnings/`, `schemas/`, or `agov-validate-*` examples in this file as v1.x
-> legacy unless a v2 page explicitly repeats them.
+> `tooling/rust/` reference implementation (`agov` binary). Treat any
+> `agents/`, `learnings/`, `schemas/`, or `agov-validate-*` examples in this
+> file as v1.x legacy unless a v2 page explicitly repeats them.
 
 How a Continuous Integration (CI) engine, an external policy engine,
 or any other consumer system **integrates** with agents-govern's
@@ -138,9 +138,9 @@ carry summaries pointing here.
 
 ## Validator command surface
 
-AGF-NG v2 currently exposes migrated tooling as Elixir Mix tasks under
-`tooling/elixir/`. The v1.x Python entry points remain historical compatibility
-context and are not the current v2 public command surface.
+AGF-NG v2 exposes tooling as the Rust `agov` binary under `tooling/rust/`.
+The v1.x Python entry points remain historical compatibility context and are
+not the current v2 public command surface.
 
 | Command | Validates | Default scope |
 |---|---|---|

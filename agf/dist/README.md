@@ -4,11 +4,11 @@
 contents. Release jobs should call the AGF tooling against this manifest instead
 of maintaining separate GitLab CI include/exclude globs.
 
-From `tooling/elixir/`:
+From `tooling/rust/`:
 
 ```bash
-mix agov.dist.validate
-mix agov.dist.build
+cargo run -p agov -- dist validate
+cargo run -p agov -- dist build
 ```
 
 The manifest is allowlist-first. Excludes are only for generated or local files

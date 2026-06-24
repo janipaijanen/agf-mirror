@@ -4,10 +4,9 @@
 # Tooling Conformance
 
 Status: draft AGF v2 contract. This page defines the language-neutral command
-surface that AGF tooling implementations should provide. The current Elixir
-tooling is the reference implementation; other implementations may be written
-in Python, Rust, Ruby, C, C++, Julia, or another language if they conform to the
-same behavior.
+surface that AGF tooling implementations should provide. The Rust `agov` binary
+is the reference implementation; alternative implementations may be written in
+any language if they conform to the same behavior.
 
 ## Principle
 
@@ -15,7 +14,7 @@ AGF defines contracts, not a sacred implementation language.
 
 - `agf/schemas/` are the machine-readable artifact contracts.
 - `agf/docs/contracts/` defines behavior, exit codes, and compatibility terms.
-- `tooling/elixir/` is the reference implementation.
+- `tooling/rust/` is the reference implementation (`agov` binary).
 - Alternative implementations are conforming implementations only if they pass
   the same conformance fixtures and command behavior.
 
@@ -33,20 +32,19 @@ claimed AGF contract version are visible to users.
 
 ## Public CLI Surface
 
-The long-term adopter interface is the `agf` command. Mix tasks are developer
-and reference-implementation internals.
+The adopter interface is the `agov` command.
 
-| Public command | Reference command |
-|---|---|
-| `agf coord validate <file>...` | `mix agov.coord.validate <file>...` |
-| `agf coord status [args...]` | `mix agov.coord.status [args...]` |
-| `agf coord stale [args...]` | `mix agov.coord.stale [args...]` |
-| `agf coord visibility [args...]` | `mix agov.coord.visibility [args...]` |
-| `agf coord brief [args...]` | `mix agov.coord.brief [args...]` |
-| `agf plan validate <file>...` | `mix agov.plan.validate <file>...` |
-| `agf handoff next <role> [args...]` | `mix agov.handoff.next <role> [args...]` |
-| `agf session resume [args...]` | `mix agov.session.resume [args...]` |
-| `agf usage report [args...]` | `mix agov.usage.report [args...]` |
+| Command |
+|---|
+| `agov coord validate <file>...` |
+| `agov coord status [args...]` |
+| `agov coord stale [args...]` |
+| `agov coord visibility [args...]` |
+| `agov coord brief [args...]` |
+| `agov plan validate <file>...` |
+| `agov handoff next <role> [args...]` |
+| `agov session resume [args...]` |
+| `agov usage report [args...]` |
 
 Future commands such as `agf learning validate`, `agf workitem validate`, and
 `agf provenance validate` should be added to this table before they are treated
@@ -64,9 +62,8 @@ Conforming implementations must use these meanings:
 | `3` | Reserved for cross-artifact invariant failure. |
 | `4` | Reserved for infrastructure or input/output failure. |
 
-The current Elixir reference implementation still has some command-specific
-exit behavior inherited from Mix task development. This table is the target AGF
-CLI contract; divergences should be fixed before AGF v2 leaves Provisional.
+This table is the target AGF CLI contract. The Rust `agov` implementation is
+the authoritative reference for exit code behavior.
 
 ## Output Modes
 
@@ -115,9 +112,8 @@ AGF may later publish an implementation registry:
 
 | Implementation | Status | Language | Command | Notes |
 |---|---|---|---|---|
-| Elixir reference | Reference | Elixir | `agf` / Mix tasks | Maintained in this repository. |
+| Rust reference | Reference | Rust | `agov` | Maintained in this repository (`tooling/rust/`). |
 | Python | Not verified for AGF v2 | Python | TBD | v1.x heritage; must pass AGF v2 conformance before compatibility claims. |
-| Rust | Experimental | Rust | TBD | Candidate for single-binary distribution. |
 
 The registry is descriptive, not exclusive. Downstream projects may build their
 own tooling. Upstream acceptance is required only for "reference

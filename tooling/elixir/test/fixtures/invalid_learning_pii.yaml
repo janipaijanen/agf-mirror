@@ -1,8 +1,0 @@
-project:
-  codename: foundry-fixture
-learnings:
-  - title: Leaky record
-    description: Contact admin@example.com for the internal project details.
-    confidence:
-      level: single-adopter
-      evidence_count: 1
