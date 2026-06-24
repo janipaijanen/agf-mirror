@@ -257,6 +257,8 @@ Rust is the default operator path for supported commands:
 - `agov handoff next`
 - `agov session resume`
 - `agov validate ...`
+  - `agov.validate.assistant_loader` — checks that AGENTS.md/.claude/CLAUDE.md
+    exist and that their `<!-- AGF: X.Y.Z -->` comment matches `agf/VERSION`
 - `agov token roi report`
 - `agov usage report`
 
