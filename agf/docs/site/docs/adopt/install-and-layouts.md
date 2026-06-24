@@ -23,6 +23,15 @@ place and understand the single supported v2.0 layout.*
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
+!!! tip "A quick way to hand the archive to your assistant"
+    Download `agf-<version>.tar.gz` or `agf-<version>.zip` from the
+    [Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
+    into a `tmp/` directory inside your project, then prompt your assistant:
+    "There is a `.tar.gz` file in `tmp/`. Adopt it into the project."
+    The assistant will unpack and wire everything; you review the diff.
+    You can also extract the archive yourself first and point the assistant
+    at the directory — either way works. — *Jani*
+
 ## Step 1: Get the distribution
 
 Download the release archive from the project repository, or copy the
