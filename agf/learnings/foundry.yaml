@@ -709,6 +709,88 @@ learnings:
       with clear README notes that identify their source and state that live
       logging continues in the ignored per-assistant `tmp/` file.
 
+  - id: "20260624T065743Z-ag7x"
+    date: "2026-06-24"
+    category: gap
+    scope: framework
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      An adopter can successfully upgrade to AGF 2.2.0-rc.1 and still have no
+      Codex-readable root loader — because no AGENTS.md template is shipped and
+      agov validate does not check for loader presence or version freshness.
+    detail: >
+      Adopter amber-register upgraded from AGF 2.1.6 to 2.2.0-rc.1.
+      The upgrade passed agov validate and produced a correct agf/VERSION file.
+      However, the repository had no AGENTS.md loader for Codex. A loader for
+      another assistant surface (Claude / CLAUDE.md) existed but still named
+      AGF 2.1.6 after the upgrade. A future Codex session starting cold in that
+      repository would not reliably discover the agov cold-start commands, and
+      the other assistant surface would load stale framework version context.
+
+      The gap is structural: the AGF distribution ships no AGENTS.md template,
+      and agov validate has no advisory for absent or stale loader files. An
+      adopter following all documented upgrade steps can arrive at a state that
+      looks governed (green validate output, correct VERSION) but is operationally
+      under-configured for at least one AI assistant surface.
+
+      The failure mode is session-continuum degradation: agents miss cold-start
+      commands (session resume, coord graph-index), miss pending handoffs, and
+      require extra human intervention to orient. This turns adoption hygiene into
+      a memory/user-prompt obligation rather than a durable repository contract.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Two complementary actions: (1) Ship a downstream-adopter AGENTS.md template
+      in the AGF distribution alongside the existing CLAUDE.md template. The
+      template should document agov cold-start commands and reference the
+      framework version in agf/VERSION. (2) Add an agov validate advisory that
+      detects absence of common loader files (AGENTS.md, CLAUDE.md) and flags
+      any loader file that references a framework version string older than
+      agf/VERSION. The check should be advisory (WARN, not BLOCK) and should
+      name the file(s) requiring update. This closes the gap between a green
+      validate result and an operationally complete adoption. Source: adopter
+      amber-register, issue #9 (2026-06-24), severity: significant.
+    confidence:
+      level: single-adopter
+      evidence_count: 5
+
+  - id: "20260624T065744Z-k7m2"
+    date: "2026-06-24"
+    category: validation
+    scope: framework
+    agents_involved: [coder-tester, governor-reviewer]
+    summary: >
+      AGF 2.2.0-rc.1 upgrade from 2.1.6 was low-friction for an existing adopter:
+      extract, compare, sync, validate, commit worked without coordination rewrites.
+    detail: >
+      Adopter amber-register upgraded from AGF 2.1.6 to 2.2.0-rc.1 using the
+      release archive. The installed agov binary matched the RC archive binary by
+      SHA-256 (no rebuild required). Framework files were synced into agf/ while
+      preserving the adopter-local learning register under agf/learnings/. The
+      only judgment required was allowing upstream-owned files to change (including
+      deletion of a workflow rule absent from the RC release) while keeping the
+      adopter's own evidence. agov validate, agov plan validate, and agov coord
+      validate all passed immediately after sync.
+
+      This corroborates the extract/compare/sync/validate/commit upgrade path as
+      a viable and low-overhead mechanism for existing adopters. No coordination
+      rewrites, plan updates, or agent redefinitions were required for the upgrade
+      itself. The total adoption judgment was approximately: preserve learnings/,
+      allow everything else to change.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Make learning-register preservation explicit in ADOPTING.md upgrade guidance.
+      State that adopter-local files under agf/learnings/ are evidence and MUST be
+      preserved across framework tarball syncs, while upstream-owned files may be
+      added, changed, or deleted. The current ADOPTING.md upgrade section implies
+      this but does not state it explicitly enough for a first-time upgrader to act
+      on confidently. Source: adopter amber-register, issue #10 (2026-06-24),
+      severity: informational.
+    confidence:
+      level: single-adopter
+      evidence_count: 4
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
