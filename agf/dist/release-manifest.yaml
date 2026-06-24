@@ -44,8 +44,6 @@ forbidden:
   - dist/**
   - public/**
   - agents-govern/**
-  - tooling/elixir/_build/**
-  - tooling/elixir/deps/**
   - .env
   - .env.*
   - agf/site-html/**

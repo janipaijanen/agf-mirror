@@ -10,9 +10,9 @@ machine-checkable surface; this page names the *stability
 discipline* that surface follows release-to-release.
 
 > **AGF v2 status note:** The v1.x Python command names below remain historical
-> contract context. Current AGF-NG tooling is implemented as Elixir Mix tasks
-> under `tooling/elixir/`; E4-deferred commands are named explicitly where they
-> have not yet migrated.
+> contract context. Current AGF-NG tooling is the Rust `agov` binary under
+> `tooling/rust/`; E4-deferred commands are named explicitly where they
+> have not yet been implemented.
 
 This is the canonical home. Action plan item
 [A5](https://gitlab.com/janipaijanen/agent-governance/-/issues/54)

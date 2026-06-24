@@ -5,10 +5,9 @@
 > **RC readiness label — `adapted-from-v1x`, partially verified for AGF v2.**
 > This long-form operator guide contains material inherited from agents-govern
 > v1.x and older tooling eras. The current adopter-facing path is the public
-> documentation site under `agf/docs/site/`; when this file mentions Mix,
-> Elixir validators, or not-yet-shipped commands, treat that passage as
-> historical or provisional unless a current Rust `agov` command and public
-> docs page confirm it.
+> documentation site under `agf/docs/site/`. Treat any passage describing
+> not-yet-shipped commands as historical or provisional unless a current
+> `agov` command and public docs page confirm it.
 
 Concrete steps for applying this framework to an existing software project.
 Follow in order. Each step has a defined output — do not skip to the next
@@ -118,10 +117,8 @@ extracted as `agf/` in your existing project.
    agov plan validate docs/plans/*.md
    ```
 
-   Agent and learning schemas are included in `agf/schemas/`, but the
-   Elixir agent and learning validators are not yet shipped. Treat any older
-   `agov-validate-*` examples as v1.x/Python-era instructions until the Mix
-   tasks exist.
+   Agent and learning schemas are included in `agf/schemas/`. Use
+   `agov validate` to check adoption, agent, and learning files.
 
 This quickstart skips the full assessment (Step 0), governance setup, and agent
 customization. For a concrete walkthrough of what governed development looks
@@ -302,7 +299,7 @@ Before copying anything, record which version of the framework you are adopting.
 This is critical for auditability — future learnings and incidents must be
 traceable to the framework version that was in effect.
 
-> **Which version?** The `framework_version` to record is the **framework content version** from the [VERSION](VERSION) file (or the header of `framework.md`). Do not confuse it with the Elixir tooling package version in `tooling/elixir/mix.exs` — those track different things.
+> **Which version?** The `framework_version` to record is the **framework content version** from the [VERSION](VERSION) file (or the header of `framework.md`).
 
 In your project's `agf/learnings/<codename>.yaml`, fill in the `adoption`
 section:
@@ -371,10 +368,9 @@ agents:
     reason: "english only"      # suspended/skipped require a reason
 ```
 
-The manifest declares which agents are commissioned. The AGF v2 Mix validator
-for agent manifests has not shipped yet; until it does, review consistency
-manually: every active manifest entry should have a corresponding YAML role
-definition, and every role definition you rely on should have an explicit
+The manifest declares which agents are commissioned. Use `agov validate` to
+check consistency: every active manifest entry should have a corresponding YAML
+role definition, and every role definition you rely on should have an explicit
 status.
 
 **Copyright and licensing for custom agents.**
@@ -393,9 +389,6 @@ When you create new agent definitions for your project:
   copyright, your choice of license. The template structure (field names,
   section layout) is not copyrightable — only creative content is. However,
   if you want to contribute the agent upstream, CC-BY-SA-4.0 is required.
-- **Elixir validation tools** are Massachusetts Institute of Technology (MIT) licensed — embed, modify, and redistribute
-  without ShareAlike obligations.
-
 When in doubt: keep your copyright header, add CC-BY-SA-4.0, and
 contribute upstream. The framework benefits from every new agent
 definition that others can adopt.
@@ -417,9 +410,6 @@ The validator checks that every `sends_to` has a matching `receives_from`
 on the other side and vice versa. Asymmetries accumulate silently — an
 agent that sends messages to a peer that doesn't acknowledge receiving
 them is a governance gap. Fix all asymmetries before committing.
-
-Until that Mix task exists, review communication changes manually against the
-role definitions and do not present the graph command as a shipped gate.
 
 > **Tip — keep the framework carve-out clean.** For complex projects with many
 > domain-specific rules, keep AGF's upstream-owned rules in `agf/rules/` and
@@ -1220,7 +1210,7 @@ You do not need all agent definitions. Start with a few:
    `agf/learnings/<your-codename>.yaml`.
 3. Fill in the project context and add your learnings.
 4. Validate the learning against `agf/schemas/learning.schema.json` and run
-   the InfoSec/anonymization check once the corresponding Mix tasks ship.
+   `agov validate` to check infosec and anonymization concerns.
 5. Submit a merge request. The framework maintainer will review.
 
 Your project's real name is never used — only the codename. See

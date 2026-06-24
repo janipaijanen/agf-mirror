@@ -3,14 +3,13 @@
 #
 # AGF v2.0 CI pipeline
 #
-# Jobs run from the repository root. Paths are prefixed with agf/,
-# tooling/elixir/, or tooling/rust/ accordingly (local commands run from
-# within those subdirectories instead — see agf/docs/build/README.md).
+# Jobs run from the repository root. Paths are prefixed with agf/ or
+# tooling/rust/ accordingly (local commands run from within those
+# subdirectories instead — see agf/docs/build/README.md).
 #
 # Pipeline structure:
 #   site-html-build   — MkDocs strict build; review artifact on MRs and branches
 #   pages             — publish to GitLab Pages from the default branch
-#   elixir:test       — legacy Elixir reference tests only when Elixir changes
 #   agf:dist:validate — validate the manifest-driven framework package with Rust agov
 #   agf:dist:preview  — build review-only framework archives with Rust agov
 #   agf:dist:release  — tag pipelines only; Rust tag/VERSION guard then build archives
@@ -44,19 +43,6 @@ workflow:
     - cd tooling/rust
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
-
-.elixir-base:
-  image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
-  variables:
-    AGOV_ALLOW_ROOT: "1"
-  cache:
-    key: elixir-deps-$CI_COMMIT_REF_SLUG
-    paths:
-      - tooling/elixir/_build
-      - tooling/elixir/deps
-  before_script:
-    - cd tooling/elixir
-    - mix deps.get
 
 .mkdocs-base:
   image: python:3.14-slim
@@ -94,8 +80,6 @@ dependency:cve-scan:
       --scanners vuln
       --skip-dirs agents-govern/.venv
       --skip-dirs agf/site-html
-      --skip-dirs tooling/elixir/_build
-      --skip-dirs tooling/elixir/deps
       --skip-dirs tooling/rust/target
       --format json
       --output trivy-dependency-vulnerabilities.json
@@ -108,8 +92,6 @@ dependency:cve-scan:
       --dependency-tree
       --skip-dirs agents-govern/.venv
       --skip-dirs agf/site-html
-      --skip-dirs tooling/elixir/_build
-      --skip-dirs tooling/elixir/deps
       --skip-dirs tooling/rust/target
       --exit-code 1
       .
@@ -126,8 +108,6 @@ dependency:cve-scan:
         - mise.toml
         - tooling/rust/Cargo.lock
         - tooling/rust/**/*.toml
-        - tooling/elixir/mix.lock
-        - tooling/elixir/mix.exs
         - agents-govern/pyproject.toml
     - if: $CI_COMMIT_BRANCH
       changes:
@@ -135,8 +115,6 @@ dependency:cve-scan:
         - mise.toml
         - tooling/rust/Cargo.lock
         - tooling/rust/**/*.toml
-        - tooling/elixir/mix.lock
-        - tooling/elixir/mix.exs
         - agents-govern/pyproject.toml
     - if: $CI_COMMIT_TAG
 
@@ -196,24 +174,6 @@ pages:
         - agf/framework.md
         - mkdocs.yml
         - .gitlab-ci.yml
-
-# ── Elixir tooling ────────────────────────────────────────────────────────────
-
-# Compile and test the legacy Elixir reference only when Elixir sources change.
-# Release and documentation CI should not depend on this job.
-elixir:test:
-  extends: .elixir-base
-  stage: test
-  script:
-    - mix compile --warnings-as-errors
-    - mix test
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - tooling/elixir/**/*
-    - if: $CI_COMMIT_BRANCH
-      changes:
-        - tooling/elixir/**/*
 
 # ── Framework package artifacts ───────────────────────────────────────────────
 
@@ -401,41 +361,6 @@ rust:tooling:clippy:
         - tooling/rust/**/*
         - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
-
-# Parity test: diff Rust and Elixir CLI output on the same fixture set.
-# Manual / on-demand only. Elixir 1.20 requires ~> 1.20 so we use the hexpm
-# image and install Rust into it; CARGO_HOME points to the project dir so the
-# Rust build artifacts are cached between manual runs on the same branch.
-rust:tooling:parity:
-  image: hexpm/elixir:1.20.1-erlang-29.0.2-debian-bookworm-20260610-slim
-  stage: test
-  variables:
-    AGOV_ALLOW_ROOT: "1"
-    AGOV_SCHEMA_DIR: "$CI_PROJECT_DIR/agf/schemas"
-    AGOV_MANIFEST_PATH: "$CI_PROJECT_DIR/agf/agents/MANIFEST.yaml"
-    CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
-  cache:
-    key: rust-parity-$CI_COMMIT_REF_SLUG
-    fallback_keys:
-      - rust-parity-main
-    paths:
-      - .cargo/registry
-      - .cargo/bin
-      - tooling/rust/target
-  before_script:
-    - apt-get update -qq && apt-get install -y -qq build-essential
-    - |
-      if [ ! -x "$CARGO_HOME/bin/cargo" ]; then
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
-      fi
-    - export PATH="$CARGO_HOME/bin:$PATH"
-    - cd tooling/elixir && mix deps.get && cd ../..
-  script:
-    - (cd tooling/rust && cargo build)
-    - bash tooling/rust/tests/parity/run.sh
-  rules:
-    - when: manual
-      allow_failure: true
 
 .rust-tooling-package:
   extends: .rust-base

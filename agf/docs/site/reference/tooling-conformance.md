@@ -2,10 +2,9 @@
 
 *Status: Draft AGF v2 contract.*
 
-AGF defines contracts, not a sacred implementation language. For adopters, the
-current distributed tooling surface is the platform-specific Rust `agov` binary.
-Source-checkout contributors may also run development Mix tasks, but those tasks
-are not part of the release archive contract.
+AGF defines contracts, not a sacred implementation language. The distributed
+tooling surface is the platform-specific Rust `agov` binary; it is both the
+release artifact and the reference implementation.
 
 Future Python, Ruby, C, C++, Julia, or other implementations can be
 AGF-compatible if they conform to the same command behavior, schemas, exit
@@ -32,9 +31,7 @@ Deployable means the supported operator path or release artifact includes the
 command and the documentation matches that path. Do not describe a command as
 deployable merely because a wrapper advertises it.
 
-The table lists the adopter-facing command surface. Source-checkout Mix tasks
-may exist for development and parity checks, but they are not required for a
-release-archive adopter.
+The table lists the adopter-facing command surface.
 
 | Adopter command | Purpose | Status |
 |---|---|---|
@@ -55,8 +52,7 @@ release-archive adopter.
 | `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
 
 Developer/source-checkout users should use the same `agov` command surface as
-release-archive adopters. Public docs must not require a release-archive
-adopter to have Elixir installed.
+release-archive adopters.
 
 ## Exit codes
 

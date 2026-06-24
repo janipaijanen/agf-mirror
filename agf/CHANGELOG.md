@@ -3,6 +3,24 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [Unreleased]
+
+### Removed
+
+- `tooling/elixir/` — the Elixir reference implementation is removed.
+  The Rust `agov` binary is the sole tooling implementation going forward.
+- `elixir:test` and `rust:tooling:parity` CI jobs removed; the parity job
+  had no purpose without the Elixir implementation.
+
+### Changed
+
+- `agf/docs/contracts/tooling-conformance.md`: Rust `agov` is now the
+  reference implementation; Elixir reference row removed from the
+  implementation registry.
+- `agf/ADOPTING.md`: removed Elixir/Mix forward-references and the
+  Elixir licensing clause; updated validator instructions to use `agov`.
+- `agf/dist/README.md`: dist commands updated to `cargo run -p agov`.
+
 ## [2.2.3] — 2026-06-24
 
 ### Changed
