@@ -1,54 +1,27 @@
-# learn: incorporate external reviewer fit assessment (#17) + implement doc proposals
+# chore: update implemented learning statuses
 
-Branch: `learn/external-review-17`
+Branch: `chore/learning-status-updates`
 
 ## Summary
 
-Incorporates the external LLM fit assessment from GitLab issue #17 and implements
-the four highest-impact improvement proposals identified in that review.
+Four learning records whose recommendations have been fully implemented are
+updated from `status: proposed` to `status: implemented`.
 
-**Learning recorded:** `20260624T214609Z-30gz` — external reviewer confirmed AGF
-2.2.4's strengths (authority model, two-gate design, coordination protocol, evidence
-discipline) and surfaced 8 actionable doc improvement proposals. Verdict: "Adopt now"
-for the validated core (single repo, single governor, AI in the loop, long-lived work).
-
-## Proposals implemented
-
-| Proposal | Change | File |
+| ID | What was implemented | MR / commit |
 |---|---|---|
-| #1 — Versioning clarity | Added "Versioning note" section explaining documentation line vs framework content version | `agf/docs/build/hooks/release_info.py` (generated into release-info.md at build time) |
-| #3 — Gate 2 checklist | Added 7-item copyable Gate 2 review checklist | `agf/docs/site/docs/operate/review-and-release.md` |
-| #4 — Daily operation checklist | Added 6-item daily checklist + AI agent session-resume note | `agf/docs/site/docs/operate/day-to-day.md` |
-| #7 — First-week checklist | Added 7-item first-week adoption checklist | `agf/docs/site/docs/start/adopter-faq.md` |
-
-Proposals #2 (visual customization zones), #5 (validator surface matrix), #6
-(coordination thread example), and #8 (configuration drift in upgrades) deferred
-to a follow-up — they require layout/visual work beyond prose additions.
+| L019 | `agov coord brief --id-format readable` now outputs `<id>.md` (no redundant role suffix); validator advisory and coord-id-rule per-format table added | cc9a23e, !172 |
+| `20260622T103839Z` | AGF 2.1.6 assistant drift diagnostics and validation-coverage reporting already shipped and operational | built-in since 2.1.6 |
+| `20260624T120000Z-q7wj` | v1-to-v2 migration checklist `upgrade-from-v1.md` added to Adopt docs | !177 |
+| `20260624T214609Z-30gz` | Proposals 1, 3, 4, 7 implemented: versioning note, Gate 2 checklist, daily checklist, first-week checklist | !176 |
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/learnings/foundry.yaml` | Added learning `20260624T214609Z-30gz` (single-adopter, external reviewer) |
-| `agf/docs/build/hooks/release_info.py` | Versioning note added to generated release-info.md template |
-| `agf/docs/site/docs/operate/review-and-release.md` | Gate 2 review checklist |
-| `agf/docs/site/docs/operate/day-to-day.md` | Daily operation checklist |
-| `agf/docs/site/docs/start/adopter-faq.md` | First-week adoption checklist |
-
-## Validation
-
-```
-$ agov validate learnings
-OK agov.validate.learnings
-```
+| `agf/learnings/foundry.yaml` | Four `status: proposed` → `status: implemented` |
 
 ## Review checklist
 
-- [ ] Learning content faithfully captures issue #17 assessment and proposals
-- [ ] ID format: `YYYYMMDDThhmmssZ-<4-char-random>` ✓
-- [ ] Gate 2 checklist aligns with existing review-and-release guidance
-- [ ] Daily checklist aligns with existing day-to-day guidance
-- [ ] First-week checklist matches the Day 1–5 prose it follows
-- [ ] Versioning note appears in generated release-info.md (hook change, verified by MkDocs build)
-- [ ] `agov validate learnings` passes
-- [ ] No `Co-authored-by` trailers in commits
+- [ ] `agov validate learnings` passes (advisory WARNs on pre-existing bare timestamp IDs only)
+- [ ] Each status change cites MR or commit confirming the implementation landed
+- [ ] No `Co-authored-by` trailers in commit

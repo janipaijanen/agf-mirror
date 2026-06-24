@@ -170,7 +170,7 @@ learnings:
       <26-char-ulid>-<role>.md. The two formats have different filename rules,
       and the generator was applying the ULID rule to readable IDs.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Fix agov coord brief --id-format readable to output <id>.md (no appended
       role suffix). Add a validator advisory that detects the double-role
@@ -453,7 +453,7 @@ learnings:
       until the output was clean. The external learning was filed as GitLab
       issue #8 under adopter codename `amber-register`.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Keep the AGF 2.1.6 assistant drift and validation-coverage diagnostics.
       Add a short migration checklist or example cleanup diff for adopters
@@ -972,7 +972,7 @@ learnings:
 
       Evidence ref: harbor-workshop:2026-06-24:agf-v2-switchover.
     framework_impact: high
-    status: proposed
+    status: implemented
     recommendation: >
       Add an upstream AGF v1-to-v2 switchover checklist covering: retiring old
       live agents/ and agents-govern/ paths; copying or adapting project roles
@@ -1035,7 +1035,7 @@ learnings:
       AI in the loop, long-lived work). "Wait" for org-scale federation, broader
       validator maturity before piloting, or teams without real governor capacity.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Implement improvement proposals 1, 3, 4, and 7 as priority (quick doc changes
       with high adoption impact). Proposals 2, 5, and 6 require layout work (visual
