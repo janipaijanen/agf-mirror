@@ -2,6 +2,8 @@
 
 **AI coding with human accountability.**
 
+*The framework that cannot govern itself has no business governing anything else.*
+
 AI coding agents can produce changes you cannot reconstruct later.
 agents-govern makes AI-assisted software work auditable without adding a hosted
 service or runtime.
