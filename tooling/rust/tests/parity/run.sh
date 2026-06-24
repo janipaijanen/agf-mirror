@@ -46,7 +46,7 @@ run_compare() {
     mix ${elixir_cmd} >"${elixir_stdout}" 2>"${elixir_stderr}" || elixir_status=$?
 
     if [ "${name}" = "validate_umbrella" ]; then
-        sed -i '/agov\.validate\.assistant_drift/d;/agov\.validate\.coverage/d' "${rust_stdout}"
+        sed -i '/agov\.validate\.assistant_drift/d;/agov\.validate\.assistant_loader/d;/agov\.validate\.coverage/d' "${rust_stdout}"
     fi
 
     if diff -u "${elixir_stdout}" "${rust_stdout}" >"${TMP_DIR}/${name}.stdout.diff" 2>&1 && \

@@ -436,9 +436,15 @@ framework copy.
 
 **To adopt:**
 1. Ask the assistant to confirm it can read `agf/rules/` from the repository.
-2. If your tool needs a root-level loader, ask the assistant to create or
-   update that loader so it points at `agf/rules/`; do not copy the AGF rule
-   tree into the tool directory.
+2. If your tool needs a root-level loader, copy the appropriate starter
+   template from `agf/templates/` and fill in the `<!-- CUSTOMIZE -->` markers:
+   - **Codex / GitHub Copilot:** copy `agf/templates/AGENTS.md` to your project
+     root as `AGENTS.md`.
+   - **Claude Code:** copy `agf/project-specific-examples/python-flask/CLAUDE.md`
+     (or equivalent) to `.claude/CLAUDE.md` and adapt.
+   - **Other tools:** ask the assistant to create an equivalent loader that points
+     at `agf/rules/`.
+   Do not copy the AGF rule tree into the tool directory — keep rules under `agf/`.
 3. Search `agf/rules/` for `<!-- CUSTOMIZE -->` comments and adapt only the
    values that belong to your project: test commands, migration commands,
    locale sets, CI paths, and generated-file consumers.

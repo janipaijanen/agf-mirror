@@ -738,7 +738,14 @@ learnings:
       require extra human intervention to orient. This turns adoption hygiene into
       a memory/user-prompt obligation rather than a durable repository contract.
     framework_impact: high
-    status: proposed
+    status: implemented
+    implementation_notes: >
+      Both actions shipped in 2.2.0. Action 1: agf/templates/AGENTS.md added
+      with cold-start commands, AGF version reference comment, and CUSTOMIZE
+      markers; ADOPTING.md §1.4 updated to reference the template per assistant
+      surface. Action 2: agov.validate.assistant_loader added to the umbrella
+      agov validate; checks for presence of AGENTS.md/.claude/CLAUDE.md and
+      warns when a loader's AGF version comment is stale relative to agf/VERSION.
     recommendation: >
       Two complementary actions: (1) Ship a downstream-adopter AGENTS.md template
       in the AGF distribution alongside the existing CLAUDE.md template. The
