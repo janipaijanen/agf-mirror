@@ -622,6 +622,10 @@ Record significant architecture decisions as they arise — technology
 choices, data model designs, integration approaches, scope boundaries.
 See `docs/adr/README.md` for the required format and lifecycle.
 
+Name ADR files `YYYYMMDD-short-slug.md`, matching the framework's own ADR
+convention. Sequential numbers (`0001-*.md`) create avoidable merge conflicts
+in branch-based and multi-agent workflows.
+
 You do not need to backfill past decisions immediately. Start recording
 from now; backfill selectively when a past decision becomes relevant
 (e.g., someone asks "why did we choose X?").
