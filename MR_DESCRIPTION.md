@@ -1,42 +1,39 @@
-# docs+fix: restore self-governance epigraph + CI cargo-install cache guards
+# docs: back-fill L008 and L009 learning records to agf/ path
 
-Branch: `docs/self-governance-epigraph`
+Branch: `fix/learnings-l008-l009-correct-path`
 
 ## Summary
 
-**1 — Self-governance epigraph (docs)**
-Restores the one-line epigraph under the h1 in three locations:
+L008 and L009 were recorded on 2026-06-13 and committed to the legacy
+`agents-govern/learnings/foundry.yaml` path (branch `fix/branch-preflight-adjacent-learning`,
+never merged). This MR adds them to the correct v2.0 path at
+`agf/learnings/foundry.yaml`.
 
-> *The framework that cannot govern itself has no business governing anything else.*
+**L008 — Branch preflight adjacency**
+Branch preflight existed as a rule (L007), but a commit landed on the wrong
+branch because the preflight check was performed earlier in the same agent
+turn rather than immediately before staging. The rule was satisfied mentally
+while the state had changed. Root cause: branch preflight was treated as
+situational awareness rather than as a required final gate in the exact
+`git add`/`git commit` command sequence.
 
-Added to `README.md`, `agf/docs/site/index.md`, and `agf/docs/site/evaluate.md`.
-Two lines each (blank line + italic line), no other content changed.
-
-**2 — CI `cargo install` cache guards**
-Two CI jobs were reinstalling `cargo-deny` and `cross` from crates.io on every
-pipeline run, even when the cached binary was already present. Replaced bare
-`cargo install` calls with a check-then-install guard:
-
-```bash
-cargo install --list 2>/dev/null | grep -qE "^cargo-deny v0\.19\.[0-9]+:" \
-  || cargo install cargo-deny --locked --version "^0.19" --force
-```
-
-Same pattern for `cross`. This avoids a network round-trip and a full
-recompile when the cached version is already correct.
+**L009 — Learning capture tooling gap**
+Recording L008 exposed that learning capture still depended on manual YAML
+editing plus a Python-era validator, while all other governance operations
+use the Rust `agov` binary. The operational surface is fragmented.
+Recommendation: plan an `agov learning` subcommand (validate + record) before
+adding any new standalone tool. Updated the tooling reference from the
+original Elixir recommendation to `agov` (Rust), which is the current
+production implementation.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `README.md` | +2 lines: epigraph under h1 |
-| `agf/docs/site/index.md` | +2 lines: epigraph under h1 |
-| `agf/docs/site/evaluate.md` | +2 lines: epigraph under h1 |
-| `.gitlab-ci.yml` | `rust:tooling:deny` + `rust:tooling:parity` + `rust:tooling:build:windows:preview` — check-then-install guard for `cargo-deny` and `cross` |
+| `agf/learnings/foundry.yaml` | Added L008 and L009 entries before `sentinel_ack:` |
 
 ## Review checklist
 
-- [ ] Epigraph text is identical across all three files
-- [ ] CI cache guards use `grep -qE` (quiet exit code, no output on hit)
-- [ ] Version pattern matches the pinned version constraint in the same job
-- [ ] No `Co-authored-by` trailers in commits
+- [ ] `agov validate learnings` passes (advisory WARNs on pre-existing bare timestamp IDs only)
+- [ ] L008 and L009 content matches original intent; L009 tooling reference updated from Elixir to agov
+- [ ] No `Co-authored-by` trailers in commit
