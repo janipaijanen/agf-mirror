@@ -344,6 +344,16 @@ Day 4: add the first CI validators for plans and coordination messages.
 Day 5: review friction honestly. Keep what helped. Remove or defer what became
 empty ceremony.
 
+**First-week checklist:**
+
+- [ ] Read decision, cost, and exit pages (Days 1 and 5 are the honest-cost moments)
+- [ ] Install `agf/` and configure the assistant loader
+- [ ] Verify your assistant actually loaded AGF: ask it to name the current framework version and an active rule
+- [ ] Run one complete governed change — plan, implement, Gate 2, merge
+- [ ] Add at minimum one CI validator job (coordination or plan schema)
+- [ ] Prove the validator fires with a deliberately malformed test file
+- [ ] Review friction after the first real task — not after setup, after actual work
+
 ## What should we avoid in the first week?
 
 Avoid turning adoption into a platform project.

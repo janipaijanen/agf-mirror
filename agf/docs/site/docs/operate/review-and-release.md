@@ -35,6 +35,18 @@ Figure 1 places Gate 2 in the full governed pipeline. The reviewer is checking
 the implemented branch against the approved plan before the merge, not after
 the fact.
 
+### Gate 2 review checklist
+
+Copy this into your review entry or run through it before approving:
+
+- [ ] Approved plan or fast-track waiver identified in submission
+- [ ] Branch name matches the sized work; diff answers exactly one yes/no question
+- [ ] All named tests green; no deleted or weakened tests without replacement
+- [ ] Visible outputs inspected where applicable (drawings, PDFs, generated docs)
+- [ ] No security-boundary changes, secret exposure, or unreviewed infrastructure
+- [ ] Findings recorded (blocking findings return the work; non-blocking noted)
+- [ ] Decision record references branch and any merge conditions
+
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
 ## Releases: the immutability discipline

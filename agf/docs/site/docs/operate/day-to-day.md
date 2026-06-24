@@ -50,6 +50,19 @@ completion or learning.
    cycle from [your first governed change](../start/first-governed-change.md),
    now routine.
 
+### Daily checklist
+
+A one-screen checklist for each working session:
+
+- [ ] Read new coordination entries; acknowledge any that require a response
+- [ ] Claim pending work before starting (prevents collisions)
+- [ ] Choose fast track or full gate path; record fast-track waivers in the commit message
+- [ ] Verify branch before any commit (`git branch --show-current` immediately before staging)
+- [ ] Externalize state before compacting, switching tasks, or handing off
+- [ ] File completion or learning record when work closes
+
+For AI agents specifically: run `agov session resume` before any manual reads or implementation — this is the first action after context compaction or cold start.
+
 ## Coordination hygiene
 
 - **Acknowledge before acting.** A message that triggers action gets an
