@@ -3,6 +3,14 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.2.1] — 2026-06-24
+
+### Fixed
+
+- Rust workspace version (`tooling/rust/Cargo.toml`) was `0.1.0` and had not
+  been synced to the AGF framework version. `agov --version` now reports
+  `2.2.1` matching `agf/VERSION`.
+
 ## [2.2.0] — 2026-06-24
 
 ### Added
