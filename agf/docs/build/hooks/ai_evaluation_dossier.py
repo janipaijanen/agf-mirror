@@ -54,6 +54,7 @@ EXCLUDE = {
 
 MARKDOWN_LINK_RE = re.compile(r"(!?\[[^\]]*\]\()([^)\s]+)(\))")
 HTML_HREF_RE = re.compile(r'(<a\s+[^>]*href=")([^"]+)(")')
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 IMAGE_EXTENSIONS = {
     ".apng",
     ".avif",
@@ -74,6 +75,19 @@ def _is_external_target(target: str) -> bool:
 def _source_anchor(src_path: str) -> str:
     stem = src_path.removesuffix(".md").lower()
     return "dossier-source-" + re.sub(r"[^a-z0-9]+", "-", stem).strip("-")
+
+
+def _section_anchor(page_anchor: str, section_anchor: str) -> str:
+    return f"{page_anchor}--{section_anchor}"
+
+
+def _slugify_heading(heading: str) -> str:
+    heading = re.sub(r"<[^>]+>", "", heading)
+    heading = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", heading)
+    heading = heading.replace("`", "").replace("*", "").replace("_", "")
+    heading = heading.lower()
+    heading = re.sub(r"[^a-z0-9]+", "-", heading)
+    return heading.strip("-")
 
 
 def _split_target(target: str) -> tuple[str, str, str]:
@@ -141,10 +155,10 @@ def _rewrite_target(
 
     doc_path = _doc_target(normalized_path, page_anchor_by_path)
     if doc_path is not None:
-        # Keep links inside the dossier. Page-fragment links resolve to the
-        # source page root because appended headings are demoted and may collide
-        # with curated front-matter headings.
-        return f"#{page_anchor_by_path[doc_path]}"
+        page_anchor = page_anchor_by_path[doc_path]
+        if anchor:
+            return f"#{_section_anchor(page_anchor, anchor.removeprefix('#'))}"
+        return f"#{page_anchor}"
 
     return normalized_path + query + anchor
 
@@ -173,10 +187,17 @@ def _rewrite_html_links(
     return HTML_HREF_RE.sub(replace, markdown)
 
 
-def _demote_headings(markdown: str, levels: int = 2) -> str:
+def _demote_headings(
+    markdown: str,
+    *,
+    page_anchor: str = "",
+    section_anchors: set[str] | None = None,
+    levels: int = 2,
+) -> str:
     output = []
     in_fence = False
     fence_marker = ""
+    section_anchors = section_anchors or set()
 
     for line in markdown.splitlines():
         stripped = line.lstrip()
@@ -191,11 +212,15 @@ def _demote_headings(markdown: str, levels: int = 2) -> str:
             output.append(line)
             continue
 
-        if not in_fence and line.startswith("#"):
-            hashes, rest = line.split(" ", 1) if " " in line else (line, "")
-            if set(hashes) == {"#"} and len(hashes) <= 6:
+        if not in_fence:
+            heading_match = HEADING_RE.match(line)
+            if heading_match:
+                hashes, rest = heading_match.groups()
+                slug = _slugify_heading(rest)
+                if page_anchor and slug in section_anchors:
+                    output.append(f'<span id="{_section_anchor(page_anchor, slug)}"></span>')
                 new_level = min(6, len(hashes) + levels)
-                output.append("#" * new_level + (" " + rest if rest else ""))
+                output.append("#" * new_level + " " + rest)
                 continue
 
         output.append(line)
@@ -214,18 +239,50 @@ def _all_markdown_pages(docs_dir: Path) -> list[str]:
     return ordered + extras
 
 
+def _section_anchor_map(
+    docs_dir: Path,
+    pages: list[str],
+    page_anchor_by_path: dict[str, str],
+) -> dict[str, set[str]]:
+    section_anchors = {src_path: set() for src_path in pages}
+    for src_path in [*pages, DOSSIER_PAGE]:
+        path = docs_dir / src_path
+        if not path.exists():
+            continue
+        source = PurePosixPath(src_path)
+        text = path.read_text(encoding="utf-8")
+        for pattern in (MARKDOWN_LINK_RE, HTML_HREF_RE):
+            for match in pattern.finditer(text):
+                target = match.group(2)
+                if _is_external_target(target):
+                    continue
+                path_part, _query, anchor = _split_target(target)
+                if not path_part or not anchor:
+                    continue
+                normalized_path = _normalize_relative_path(path_part, source)
+                doc_path = _doc_target(normalized_path, page_anchor_by_path)
+                if doc_path is not None:
+                    section_anchors.setdefault(doc_path, set()).add(anchor.removeprefix("#"))
+    return section_anchors
+
+
 def _appendix_for_page(
     docs_dir: Path,
     src_path: str,
     index: int,
     page_anchor_by_path: dict[str, str],
+    section_anchor_by_path: dict[str, set[str]],
 ) -> str:
     source = PurePosixPath(src_path)
     path = docs_dir / src_path
     markdown = path.read_text(encoding="utf-8").strip()
     markdown = _rewrite_links(markdown, source, page_anchor_by_path)
     markdown = _rewrite_html_links(markdown, source, page_anchor_by_path)
-    markdown = _demote_headings(markdown)
+    markdown = _demote_headings(
+        markdown,
+        page_anchor=page_anchor_by_path[src_path],
+        section_anchors=section_anchor_by_path.get(src_path, set()),
+    )
 
     title = src_path
     for line in markdown.splitlines():
@@ -254,6 +311,7 @@ def on_page_markdown(markdown, page, config, files):
     docs_dir = Path(config.docs_dir).resolve()
     pages = _all_markdown_pages(docs_dir)
     page_anchor_by_path = {src_path: _source_anchor(src_path) for src_path in pages}
+    section_anchor_by_path = _section_anchor_map(docs_dir, pages, page_anchor_by_path)
     appendix_index = "\n".join(
         f"| 07.{index:02d} | [`{src_path}`](#{page_anchor_by_path[src_path]}) |"
         for index, src_path in enumerate(pages, start=1)
@@ -277,7 +335,13 @@ they still resolve from the dossier page.
         .strip(),
     ]
     appendix.extend(
-        _appendix_for_page(docs_dir, src_path, index, page_anchor_by_path)
+        _appendix_for_page(
+            docs_dir,
+            src_path,
+            index,
+            page_anchor_by_path,
+            section_anchor_by_path,
+        )
         for index, src_path in enumerate(pages, start=1)
     )
 
