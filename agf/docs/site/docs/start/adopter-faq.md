@@ -244,8 +244,9 @@ Today, treat it like a normal contribution:
 1. Anonymize the learning. Use only the project codename and neutral technical
    descriptions.
 2. Validate it locally with the AGF tooling when available. Run
-   `agov validate` and `agov validate learnings` before sending the record
-   outside your repository.
+   `agov validate` for your repository and
+   `agov validate learnings <path-to-learning.yaml>` for an upstream-submittable
+   learning packet stored outside your canonical `agf/learnings/` register.
 3. Open an upstream issue or merge request in the
    [AGF project](https://gitlab.com/janipaijanen/agents-govern-framework) with
    the anonymized learning or a summary derived from it.

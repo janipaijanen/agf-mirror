@@ -148,8 +148,11 @@ enum ValidateCommand {
     Adoption,
     /// Validate all agent YAML files.
     Agents,
-    /// Validate all learning records.
-    Learnings,
+    /// Validate learning records.
+    Learnings {
+        /// Optional learning YAML files or directories to validate. Defaults to AGOV_LEARNINGS_DIR or agf/learnings.
+        paths: Vec<PathBuf>,
+    },
     /// Scan learning records for InfoSec findings.
     Infosec,
     /// Validate contribution-auditor findings.
@@ -2946,14 +2949,17 @@ fn run_validate(sub: Option<ValidateCommand>, args: &[String]) -> i32 {
             ),
             "validate:agents",
         ),
-        ValidateCommand::Learnings => (
-            render_collection(
-                &mut output,
-                "agov.validate.learnings",
-                agov_validators::learnings::validate_all(&agov_core::learnings_dir()),
-            ),
-            "validate:learnings",
-        ),
+        ValidateCommand::Learnings { paths } => {
+            let result = if paths.is_empty() {
+                agov_validators::learnings::validate_all(&agov_core::learnings_dir())
+            } else {
+                agov_validators::learnings::validate_paths(&paths)
+            };
+            (
+                render_collection(&mut output, "agov.validate.learnings", result),
+                "validate:learnings",
+            )
+        }
         ValidateCommand::Infosec => (
             render_collection(
                 &mut output,

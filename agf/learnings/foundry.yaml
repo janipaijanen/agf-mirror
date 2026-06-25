@@ -1096,6 +1096,103 @@ learnings:
         - "docs/coordination/20260625T062351Z-coder-tester-j6t4.md"
         - "docs/coordination/20260625T063048Z-coder-tester-r5ek.md"
 
+  - id: "20260625T071500Z-c1im"
+    date: "2026-06-25"
+    category: gap
+    scope: framework
+    title: agov-official-ci-container-would-reduce-downstream-boilerplate
+    description: >
+      While planning GitLab CI validation for an adopter repository, the
+      documented pattern required each downstream project to download a pinned
+      agov release archive, extract it, install the binary, and maintain
+      checksum or platform-selection logic before running governance validators.
+      This is workable, but it repeats supply-chain and shell-installation
+      boilerplate in every adopter CI file. A small official OCI image for agov
+      would let downstream repositories run governance checks directly from a
+      pinned image tag or digest, improving consistency and lowering adoption
+      friction for merge-request validation.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+      - build-engineer
+    framework_section: "CI integration; contracts and validators; tooling distribution"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Repeated download/install/checksum boilerplate increases the work needed
+        to add AGF validation to CI and creates opportunities for inconsistent
+        pinning, missing checksum verification, or copy-paste drift across
+        adopter repositories.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Publish a tiny official agov OCI image for downstream CI use. Provide
+      exact-version tags such as agov:2.2.3, immutable digest-pinnable images,
+      and optional convenience tags that are not recommended for blocking CI.
+      The image should include only the agov binary and minimal runtime
+      dependencies, publish multi-architecture variants where feasible, and
+      expose labels for source repository, release version, commit, and license.
+      Downstream examples should still pin an exact version or digest and treat
+      the image as installation simplification, not as permission to float
+      validator versions silently.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 4
+      evidence_refs:
+        - "GitLab issue #18"
+        - "AGF documentation shows GitLab CI integration by downloading and extracting an agov release archive"
+        - "Adopter CI planning identified repeated curl/tar/install/checksum boilerplate"
+        - "Governor asked whether upstream should provide a tiny container image for CI consumers on 2026-06-25"
+
+  - id: "20260625T072500Z-svch"
+    date: "2026-06-25"
+    category: gap
+    scope: framework
+    title: schema-validation-prerequisites-unclear-for-upstream-submittable-learnings
+    description: >
+      While preparing an upstream-submittable AGF learning record, an adopter
+      attempted to validate the record against the AGF learning JSON schema.
+      The repository had the schema file and the agov binary available, but a
+      direct Python validation path failed because the local Python environment
+      lacked a YAML parser module. The fallback was an alternate YAML parse plus
+      a small structural check. Meanwhile, `agov validate learnings` validated
+      the canonical adopter learning register under `agf/learnings/` but did not
+      validate upstream-submittable records stored elsewhere. This made it
+      unclear which prerequisites an adopter must install to perform a complete
+      schema validation before submitting a learning upstream.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: "learning schema validation; upstream submissions; validator prerequisites"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Ambiguous validator prerequisites increase adoption friction and can
+        leave upstream-submittable records only partially checked. Adopters may
+        believe agov is the complete validation surface, then discover they need
+        additional language packages or local scripts at the moment they are
+        trying to submit evidence.
+    framework_impact: medium
+    status: implemented
+    recommendation: >
+      Make agov self-sufficient for AGF-owned learning schema validation,
+      including a command path that validates a named learning YAML file outside
+      `agf/learnings/` before upstream submission. Documentation should
+      distinguish canonical adopter learning registers from
+      upstream-submittable external-review packets and state the default
+      directories agov validates.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 5
+      evidence_refs:
+        - "GitLab issue #19"
+        - "Adopter attempted Python JSON-schema validation of an upstream-submittable learning record on 2026-06-25"
+        - "Python validation failed because the local Python environment had no YAML parser module"
+        - "Fallback structural validation used a separate YAML parser"
+        - "agov validate learnings validated agf/learnings/ but not external-review learning records"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

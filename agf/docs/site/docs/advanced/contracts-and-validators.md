@@ -93,6 +93,32 @@ Download the `agov` release archive for your platform from the
 See [Tooling and token savings](../adopt/tooling-and-tokens.md) for the full
 setup guide including local development options.
 
+The release archive is the current supported CI distribution. An official
+`agov` OCI/container image is not shipped yet. If your CI would be simpler with
+a pinned image tag or digest, treat that as an upstream contribution request:
+the image should still pin an exact AGF version and expose source-version
+provenance rather than encouraging floating validator versions.
+
+## Validating upstream learning submissions
+
+`agov validate learnings` without arguments validates the configured learning
+register directory: `AGOV_LEARNINGS_DIR` when set, otherwise `agf/learnings`.
+Use that mode for your canonical adopter learning register.
+
+For an upstream-submittable learning packet stored elsewhere, pass the file or
+directory explicitly:
+
+```bash
+agov validate learnings docs/external-reviews/upstream-learning.yaml
+agov validate learnings docs/external-reviews/
+```
+
+This uses the Rust `agov` YAML parser and AGF schema validator directly; no
+Python package, Ruby script, or separate JSON-schema tooling is required for
+the learning-schema check. Run `agov validate infosec` on the canonical
+learning register, and perform the export-boundary anonymization review before
+sending the learning upstream.
+
 ## Minimum structural guardrail
 
 The smallest useful structural guardrail for the first real governed change is:
