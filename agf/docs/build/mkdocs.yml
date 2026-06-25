@@ -76,10 +76,10 @@ nav:
           - Should you adopt?: docs/start/should-you-adopt.md
           - Adopter FAQ: docs/start/adopter-faq.md
       - 'Concepts':
+          - AGF and agent runtimes: docs/concepts/position.md
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Coordination protocol: docs/concepts/coordination-protocol.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md
-          - AGF and agent runtimes: docs/concepts/position.md
       - 'Adopt':
           - Downstream impact: docs/adopt/downstream-impact.md
           - Install the agf directory: docs/adopt/install-and-layouts.md

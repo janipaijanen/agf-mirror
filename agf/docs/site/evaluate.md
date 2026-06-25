@@ -33,6 +33,9 @@ This project **is not**:
   behavior at runtime.
 - An agent runtime, orchestrator, or hosted service.
 
+See [AGF and agent runtimes](docs/concepts/position.md) for how AGF
+relates to Claude Code, Codex CLI, Cursor, and orchestrator libraries.
+
 agents-govern is a file-based process framework. The framework files live in
 your repository; AI assistants load them as instructions; your existing CI runs
 the validators. No accounts, no runtime, no new infrastructure.
