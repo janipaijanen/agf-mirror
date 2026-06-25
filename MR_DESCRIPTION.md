@@ -1,29 +1,33 @@
-# chore: mark AGENTS.md-addressed learnings as implemented
+# docs+rules: address learning backlog batch 3
 
-Branch: `chore/learning-status-batch2`
+Branch: `docs/adopting-template-rule-fixes`
 
 ## Summary
 
-Seven learning records addressed by !178 (AGENTS.md template cold-start
-cluster fixes) are updated from `status: proposed` to `status: implemented`.
+Six learning records moved to `status: implemented` by making the
+recommended concrete changes.
 
-| ID | Recommendation implemented by |
+| Learning ID | Change |
 |---|---|
-| L020 | !178 — cold-start section now requires resume before any reads |
-| L021 | !178 — timer claims without mechanism added to what-not-to-do |
-| `20260621T084900Z` | !178 — filed = committed + pushed |
-| `20260621T143908Z` | !178 — cold-start section (same fix as L020) |
-| `20260622T111800Z` | !178 — coordination section (same fix as 20260621T084900Z) |
-| `20260623T122924Z-kptn` | !178 — timer claim restriction |
-| `20260623T192100Z-hab7` | !178 — post-resume coordination note instruction |
+| L008 | `branch-and-worktree-rule.md` — "immediately before" sharpened to mean same command group as `git add`/`git commit`, not earlier in session/turn |
+| L018 | `branch-and-worktree-rule.md` — added branch-watch ownership protocol: who files notes when polling, passive/primary watcher distinction, handoff requirement |
+| `20260621T084922Z` | `learning-record.yaml` template — added `id` field example with timestamp format |
+| `20260623T114300Z-rjka` | `learning-record.yaml` template — same fix (both learnings point at the template) |
+| `20260624T065744Z-k7m2` | `ADOPTING.md` §6.3 — explicit statement that `agf/learnings/` is adopter-owned evidence; must survive tarball syncs |
+| `20260624T104500Z-rp3h` | `ADOPTING.md` §0.1 — artifact naming warning: reserve `agf-*`/`agov-*` prefixes for framework files; use domain-first names for adopter artifacts |
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/learnings/foundry.yaml` | Seven status: proposed → implemented |
+| `agf/rules/workflow/branch-and-worktree-rule.md` | L008 + L018 |
+| `agf/templates/learning-record.yaml` | `id` field with timestamp format |
+| `agf/ADOPTING.md` | Learning register preservation + artifact prefix warning |
+| `agf/learnings/foundry.yaml` | Six status: proposed → implemented |
 
 ## Review checklist
 
-- [ ] agov validate learnings passes
-- [ ] No Co-authored-by trailers in commit
+- [ ] `agov validate learnings` passes (pre-existing WARNs on bare-timestamp IDs are expected)
+- [ ] Rule change preserves MUST-strength with sharpened semantics, not weakened
+- [ ] ADOPTING.md additions are additive; no existing guidance contradicted
+- [ ] No `Co-authored-by` trailers in commit
