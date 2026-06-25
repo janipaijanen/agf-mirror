@@ -82,6 +82,24 @@ governor-reviewer and must be recorded in `docs/coordination/`.
 Before editing, state which AGF files you read and which gate applies.
 ```
 
+## Optional polling timer guidance
+
+Some teams ask assistants to poll for coordination or merge-request activity
+while a human is away. If you use timer shorthand in your loader or local
+instructions, define it explicitly. For example, `15mins/180min` should mean:
+
+- scan every 15 minutes for new coordination messages and merge-request
+  activity;
+- stop after 180 minutes with no new incoming activity;
+- reset the 180-minute idle window whenever new relevant activity appears.
+
+For AI assistants, this should be an internal reminder or wake-up in the active
+assistant surface. Do not tell the assistant to start a background shell timer,
+cron job, detached `sleep`, or other external process unless you actually want
+an external monitor; the assistant may not notice it. If the assistant cannot
+schedule internal wake-ups, it should say so and scan when it is active or
+resumed.
+
 If you are upgrading from an older copied layout, remove AGF-provided copies
 from `.claude/rules/`, `.claude/skills/`, or similar tool directories. Keep a
 small loader instead. Intentional project-specific assistant instructions can

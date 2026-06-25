@@ -152,6 +152,13 @@ Each `references-to:` field links backward; `agov session resume` and
 | `ack` | agent → agent | Acknowledge receipt of a `requires-ack` handoff |
 | `claim` | agent → all | Reserve ownership of an artifact |
 
+Polling-cycle notes should be concrete. Name the branch or MR scope checked and
+the timer convention in use. If you use shorthand such as `15mins/180min`, make
+clear that it means "scan every 15 minutes, stop after 180 idle minutes, reset
+idle time on new incoming coordination or MR activity." For AI agents, prefer
+internal assistant reminders; external shell timers are monitors, not assistant
+attention.
+
 ## Parallel work and conflicts
 
 The channel is append-only, so most parallel work does not create text-file

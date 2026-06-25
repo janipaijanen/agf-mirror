@@ -78,9 +78,9 @@ maintainers will ask about. Use AGF coordination messages for the work trail:
 who proposed the change, who reviewed it, what gate decision landed, and which
 branch or merge request carried the implementation.
 
-For downstream adoption, create your own `docs/adr/` directory and copy the ADR
-template pattern from `agf/docs/adr/`. Then make ADR discipline part of the
-governed loop:
+For downstream adoption, ask your AI assistant to create your own `docs/adr/`
+directory and copy the ADR template pattern from `agf/docs/adr/`. Then make ADR
+discipline part of the governed loop:
 
 - a Gate 1 plan references any proposed or accepted ADR that shapes the work;
 - the planner-architect drafts or updates ADRs for significant design choices;

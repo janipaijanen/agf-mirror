@@ -288,7 +288,58 @@ release:create:
         "$@"
 
 # ── Rust tooling ───────────────────────────────────────────────────────────────
-# Path-scoped per ci-trigger-scoping-rule.md: only fire when tooling/rust/ changes.
+# Path-scoped per ci-trigger-scoping-rule.md: only fire when relevant inputs change.
+
+# Validate only changed coordination messages and Gate 1 plans.
+agov:governance:validate:
+  extends: .rust-base
+  stage: test
+  before_script: []
+  script:
+    - |
+      set -eu
+
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ] && [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_SHA:-}" ]; then
+        base="$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"
+      else
+        base="${CI_COMMIT_BEFORE_SHA:-}"
+      fi
+
+      case "$base" in
+        ""|0000000000000000000000000000000000000000)
+          echo "No comparison base available; skipping changed-file governance validation."
+          exit 0
+          ;;
+      esac
+
+      if ! git rev-parse --verify "$base^{commit}" >/dev/null 2>&1; then
+        git fetch --no-tags origin "$CI_DEFAULT_BRANCH"
+      fi
+      git rev-parse --verify "$base^{commit}" >/dev/null
+
+      git diff --name-only -z "$base"...HEAD -- 'docs/coordination/*.md' \
+        | xargs -0r ./tooling/agov coord validate
+      git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
+        | xargs -0r ./tooling/agov plan validate
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - docs/coordination/*.md
+        - docs/plans/*.md
+        - .gitlab-ci.yml
+        - tooling/agov
+        - tooling/rust/**/*
+        - agf/schemas/**/*
+        - agf/agents/MANIFEST.yaml
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - docs/coordination/*.md
+        - docs/plans/*.md
+        - .gitlab-ci.yml
+        - tooling/agov
+        - tooling/rust/**/*
+        - agf/schemas/**/*
+        - agf/agents/MANIFEST.yaml
 
 # Validate AGF framework content with the Rust agov CLI.
 rust:agov:validate:

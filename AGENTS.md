@@ -117,6 +117,13 @@ that led to them. Other agents and the human read it asynchronously — write
 entries so that a cold-starting agent can reconstruct what happened and why,
 without relying on session memory.
 
+**Visibility rule:** A coordination message addressed to another agent or human
+is not complete when it merely exists on disk. It must pass validation and be
+made visible where the recipient is expected to read it: committed and pushed to
+a shared branch, published through an approved shared path, or paired with a
+visible bridge note that names the branch/MR containing the record. Local files,
+untracked files, and local-only commits are draft state for inter-agent work.
+
 ---
 
 ## Learning record IDs
@@ -265,6 +272,31 @@ Rust is the default operator path for supported commands:
 Cold-start rule for humans and AI agents: use one command in two steps. First,
 run `agov session resume` without `--role` to get the project map. Then
 rerun the same command with the role you are actually playing.
+
+After reading this file, agents SHOULD check whether a repository-root
+`ai-cold-start.md` file exists. If it exists, read it as a local overlay for
+machine-specific paths, assistant-surface quirks, current operator preferences,
+or other session-local reminders. The overlay is subordinate to this
+`AGENTS.md`, AGF rules, gate discipline, coordination records, and role
+authority. It cannot override governed instructions, and it cannot replace
+published coordination for anything another agent or human must see.
+
+### Polling timer notation
+
+When the governor asks for a polling timer such as `15mins/180min`, interpret
+it as an internal attention schedule, not an external shell timer:
+
+- scan every 15 minutes for new coordination messages and merge-request
+  activity;
+- keep scanning until 180 minutes have passed with no new incoming activity;
+- reset the 180-minute idle window whenever a new relevant coordination message
+  or merge-request event appears;
+- do not start background shell, cron, sleep, or detached process timers unless
+  the governor explicitly asks for an external process.
+
+If the current assistant surface cannot schedule internal wake-ups, say so
+plainly and perform the scan when active or resumed. Do not claim that an
+external process will be noticed by the assistant.
 
 Legacy Elixir sources remain in `tooling/elixir/` as reference material. Do
 not use them for routine agent work, cold start, validation, release-page

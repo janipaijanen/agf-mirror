@@ -38,3 +38,4 @@ agf/docs/site/reference/release-info.md
 # Local assistant state; tracked assistant rules/commands remain versioned
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+ai-cold-start.md
