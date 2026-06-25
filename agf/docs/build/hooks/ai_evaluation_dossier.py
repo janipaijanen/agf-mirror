@@ -53,6 +53,17 @@ EXCLUDE = {
 }
 
 MARKDOWN_LINK_RE = re.compile(r"(!?\[[^\]]*\]\()([^)\s]+)(\))")
+HTML_HREF_RE = re.compile(r'(<a\s+[^>]*href=")([^"]+)(")')
+IMAGE_EXTENSIONS = {
+    ".apng",
+    ".avif",
+    ".gif",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".svg",
+    ".webp",
+}
 
 
 def _is_external_target(target: str) -> bool:
@@ -60,10 +71,12 @@ def _is_external_target(target: str) -> bool:
     return bool(parsed.scheme) or target.startswith("#") or target.startswith("<")
 
 
-def _rewrite_target(target: str, source_path: PurePosixPath) -> str:
-    if _is_external_target(target):
-        return target
+def _source_anchor(src_path: str) -> str:
+    stem = src_path.removesuffix(".md").lower()
+    return "dossier-source-" + re.sub(r"[^a-z0-9]+", "-", stem).strip("-")
 
+
+def _split_target(target: str) -> tuple[str, str, str]:
     anchor = ""
     path_part = target
     if "#" in path_part:
@@ -75,9 +88,10 @@ def _rewrite_target(target: str, source_path: PurePosixPath) -> str:
         path_part, query = path_part.split("?", 1)
         query = f"?{query}"
 
-    if not path_part:
-        return target
+    return path_part, query, anchor
 
+
+def _normalize_relative_path(path_part: str, source_path: PurePosixPath) -> str:
     resolved = source_path.parent.joinpath(path_part)
     normalized = PurePosixPath(*resolved.parts)
     parts = []
@@ -90,15 +104,73 @@ def _rewrite_target(target: str, source_path: PurePosixPath) -> str:
             continue
         parts.append(part)
 
-    return str(PurePosixPath(*parts)) + query + anchor
+    return str(PurePosixPath(*parts))
 
 
-def _rewrite_links(markdown: str, source_path: PurePosixPath) -> str:
+def _doc_target(normalized_path: str, page_anchor_by_path: dict[str, str]) -> str | None:
+    candidates = [normalized_path]
+    if normalized_path.endswith("/"):
+        candidates.append(normalized_path.rstrip("/") + ".md")
+    elif not PurePosixPath(normalized_path).suffix:
+        candidates.append(normalized_path + ".md")
+
+    for candidate in candidates:
+        if candidate in page_anchor_by_path:
+            return candidate
+    return None
+
+
+def _rewrite_target(
+    target: str,
+    source_path: PurePosixPath,
+    page_anchor_by_path: dict[str, str],
+    *,
+    is_image: bool = False,
+) -> str:
+    if _is_external_target(target):
+        return target
+
+    path_part, query, anchor = _split_target(target)
+    if not path_part:
+        return target
+
+    normalized_path = _normalize_relative_path(path_part, source_path)
+    suffix = PurePosixPath(normalized_path).suffix.lower()
+    if is_image or suffix in IMAGE_EXTENSIONS:
+        return normalized_path + query + anchor
+
+    doc_path = _doc_target(normalized_path, page_anchor_by_path)
+    if doc_path is not None:
+        # Keep links inside the dossier. Page-fragment links resolve to the
+        # source page root because appended headings are demoted and may collide
+        # with curated front-matter headings.
+        return f"#{page_anchor_by_path[doc_path]}"
+
+    return normalized_path + query + anchor
+
+
+def _rewrite_links(
+    markdown: str,
+    source_path: PurePosixPath,
+    page_anchor_by_path: dict[str, str],
+) -> str:
     def replace(match: re.Match[str]) -> str:
         prefix, target, suffix = match.groups()
-        return f"{prefix}{_rewrite_target(target, source_path)}{suffix}"
+        return f"{prefix}{_rewrite_target(target, source_path, page_anchor_by_path, is_image=prefix.startswith('!'))}{suffix}"
 
     return MARKDOWN_LINK_RE.sub(replace, markdown)
+
+
+def _rewrite_html_links(
+    markdown: str,
+    source_path: PurePosixPath,
+    page_anchor_by_path: dict[str, str],
+) -> str:
+    def replace(match: re.Match[str]) -> str:
+        prefix, target, suffix = match.groups()
+        return f"{prefix}{_rewrite_target(target, source_path, page_anchor_by_path)}{suffix}"
+
+    return HTML_HREF_RE.sub(replace, markdown)
 
 
 def _demote_headings(markdown: str, levels: int = 2) -> str:
@@ -142,11 +214,17 @@ def _all_markdown_pages(docs_dir: Path) -> list[str]:
     return ordered + extras
 
 
-def _appendix_for_page(docs_dir: Path, src_path: str, index: int) -> str:
+def _appendix_for_page(
+    docs_dir: Path,
+    src_path: str,
+    index: int,
+    page_anchor_by_path: dict[str, str],
+) -> str:
     source = PurePosixPath(src_path)
     path = docs_dir / src_path
     markdown = path.read_text(encoding="utf-8").strip()
-    markdown = _rewrite_links(markdown, source)
+    markdown = _rewrite_links(markdown, source, page_anchor_by_path)
+    markdown = _rewrite_html_links(markdown, source, page_anchor_by_path)
     markdown = _demote_headings(markdown)
 
     title = src_path
@@ -157,6 +235,8 @@ def _appendix_for_page(docs_dir: Path, src_path: str, index: int) -> str:
 
     return f"""
 <div class="agf-dossier-page-break"></div>
+
+<span id="{page_anchor_by_path[src_path]}"></span>
 
 ## Source Flow 07.{index:02d} - {title}
 
@@ -173,33 +253,37 @@ def on_page_markdown(markdown, page, config, files):
 
     docs_dir = Path(config.docs_dir).resolve()
     pages = _all_markdown_pages(docs_dir)
+    page_anchor_by_path = {src_path: _source_anchor(src_path) for src_path in pages}
     appendix_index = "\n".join(
-        f"| 07.{index:02d} | `{src_path}` |"
+        f"| 07.{index:02d} | [`{src_path}`](#{page_anchor_by_path[src_path]}) |"
         for index, src_path in enumerate(pages, start=1)
     )
     appendix = [
-        """
+        f"""
 <p class="agf-dossier-marker"><strong>Flow 07</strong> / generated at docs
 build time / source: all public Markdown pages except this dossier and
 <code>content-plan.md</code></p>
 
 This appendix appends the public documentation corpus into this single HTML
 page so an AI evaluator can be pointed at one URL. Each appended page keeps an
-explicit source-path marker. Links and image paths are rewritten so they still
-resolve from the dossier page.
+explicit source-path marker. Internal documentation links are rewritten to
+point to source-page anchors inside this dossier. Image paths are rewritten so
+they still resolve from the dossier page.
 
 | Flow | Original source page |
 |---|---|
+{appendix_index}
 """
         .strip(),
-        appendix_index,
     ]
     appendix.extend(
-        _appendix_for_page(docs_dir, src_path, index)
+        _appendix_for_page(docs_dir, src_path, index, page_anchor_by_path)
         for index, src_path in enumerate(pages, start=1)
     )
 
     generated = "\n\n".join(appendix)
+    markdown = _rewrite_links(markdown, PurePosixPath(DOSSIER_PAGE), page_anchor_by_path)
+    markdown = _rewrite_html_links(markdown, PurePosixPath(DOSSIER_PAGE), page_anchor_by_path)
     if APPENDIX_MARKER in markdown:
         return markdown.replace(APPENDIX_MARKER, generated)
     return markdown.rstrip() + "\n\n" + generated + "\n"
