@@ -141,6 +141,29 @@ operational mechanisms — written role boundaries, gate records, audit
 trails — within those principles. Policy sets the ceiling; AGF is one
 implementation below it.
 
+## Enterprise boundary
+
+AGF is repository-local SDLC governance evidence. It can support an enterprise
+control environment, but it is not the enterprise control environment.
+
+For organisation-wide adoption, layer AGF with the controls your environment
+already requires:
+
+- branch protection and required merge requests;
+- code owners or domain-owner review;
+- secure SDLC controls and security scanning;
+- privacy, labor, and purpose-limitation review;
+- identity governance and alias policy;
+- audit-retention policy for git, CI, issue trackers, and chat;
+- compliance control mapping, where required;
+- model/provider risk management for hosted AI assistants;
+- supplier assurance and vulnerability management.
+
+AGF gives those layers better repository evidence: plans, handoffs, gate
+decisions, validation output, learning records, and release discipline. It does
+not certify compliance, approve production risk outside the repository, monitor
+runtime behavior, or replace model-risk and privacy programs.
+
 ## What AGF does not do
 
 AGF does not:

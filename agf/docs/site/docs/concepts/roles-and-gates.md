@@ -46,6 +46,22 @@ name a backup before work blocks on unavailable review. "Everyone can approve"
 usually becomes "no one owned the decision"; if a rotating governor model fits
 your team, treat the rotation itself as part of the project convention.
 
+For teams, record the operating model before the first busy week:
+
+- primary governor for the current repository or milestone;
+- backup governor and when the backup may act;
+- rotation cadence, if any, and where the active governor is recorded;
+- conflict-of-interest rule for work authored or sponsored by the governor;
+- emergency override path and the follow-up review it requires;
+- domain-specific reviewers, such as security, database, privacy, or release
+  owners, whose advice may be required before the governor decides;
+- revocation path for any delegated authority.
+
+AI assistants may prepare gate packets, compare diffs against plans, summarize
+risks, or draft decision-record skeletons. That is AI-assisted review, not AI
+governorship. The human governor still owns Gate 1, Gate 2, release approval,
+and binding risk acceptance.
+
 ## The two gates
 
 Figure 1 shows the two review gates as a pipeline: planning is reviewed before

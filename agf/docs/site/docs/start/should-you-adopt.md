@@ -107,6 +107,29 @@ HR-exportable datasets. Treat delegation metadata as governance evidence, use
 identity minimization where possible, and run your own privacy, labor, and
 purpose-limitation review. These mitigations are not a compliance checklist.
 
+### Privacy, labor, and provider-boundary checklist
+
+Before using AGF beyond a small pilot, answer these locally:
+
+- Who may read coordination records, plans, learning records, and MR comments?
+- Are individual names required, or would duty handles, team aliases, or
+  sprint-scoped identifiers preserve enough audit value with less monitoring
+  risk?
+- How long are coordination and review records retained outside ordinary git
+  history, for example in CI logs, issue trackers, chat exports, or analytics?
+- Does local policy forbid using governance records for productivity ranking or
+  labor surveillance?
+- Which AI assistants send prompts to hosted provider APIs, and what are their
+  prompt logging, training, and retention settings?
+- What must be redacted before external model calls: secrets, customer names,
+  private paths, incident details, schema names, or domain-revealing examples?
+- Which secret-scanning or DLP controls run before prompts, logs, or learning
+  records leave the local environment?
+
+AGF can make these questions visible; it does not answer them for your
+jurisdiction or employment context. Treat this checklist as risk spotting, not
+legal, labor, privacy, or compliance advice.
+
 ## Next
 
 Decided to try it → [Install the `agf/` directory](../adopt/install-and-layouts.md).

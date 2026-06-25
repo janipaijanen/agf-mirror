@@ -33,6 +33,16 @@ script authority the framework never granted.
 | Framework configuration | `agov-config.yaml` shape and required fields | `agov validate framework-config` |
 | README.md stat claims | Claimed rule, agent, and skill counts match actual `agf/` file counts (advisory) | `agov validate readme-stats` |
 
+### Validator surface summary
+
+| Surface | Shipped now | Blocking-capable | Advisory by default | Remaining target |
+|---|---|---|---|---|
+| Coordination schema | Yes: `agov coord validate` | Yes, when CI policy or rule says so | Yes | Deeper semantic chain consistency |
+| Plan schema | Yes: `agov plan validate` | Yes, when CI policy or rule says so | Yes | Plan-to-diff scope binding |
+| Framework artifacts | Yes: `agov validate ...` | Yes, per adopted policy | Yes | Broader domain-specific validators |
+| Coordination visibility | Yes: `agov coord visibility` | Yes, for hidden obligations if adopted | Yes | Automatic MR policy integration |
+| Binding traceability | No | Not in shipped v2 tooling | N/A | Layer 3 / Full-tier direction |
+
 Binding validation is not shipped in the current AGF v2 Rust `agov` surface.
 Binding remains a planned Layer 3 / Full-tier direction: useful for adopters
 that need artefact-to-execution traceability, but not a current AGF v2
@@ -104,6 +114,67 @@ The release archive is the current supported CI distribution. An official
 a pinned image tag or digest, treat that as an upstream contribution request:
 the image should still pin an exact AGF version and expose source-version
 provenance rather than encouraging floating validator versions.
+
+## Policy profiles
+
+Adopters should choose the smallest policy profile that matches the risk of the
+repository, then tighten only when evidence shows the need.
+
+| Profile | What blocks | Good first use |
+|---|---|---|
+| Minimal | Changed coordination and plan files must pass schema validation | First pilot, solo maintainer, or low-risk internal tool |
+| Process-aware | Minimal profile plus MR template fields or labels linking a non-trivial change to a Gate 1 plan or fast-track waiver | Small team using merge requests for governed work |
+| Full | Process-aware profile plus branch protection, required CI, code-owner review, and checks that hidden coordination obligations do not exist on side branches | Risk-sensitive repository where audit evidence must be complete before merge |
+
+Profile names are examples, not new AGF maturity levels. A project may rename
+them, but it should preserve the authority rule: the profile blocks only the
+checks the governor, CI policy, or named rule has granted blocking force.
+
+### GitLab sketch
+
+```yaml
+agf:governance:validate:
+  image: debian:stable-slim
+  script:
+    - install -m 0755 agov /usr/local/bin/agov
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
+        xargs -0r agov coord validate
+    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |
+        xargs -0r agov plan validate
+    - agov coord visibility --base-branch "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" --branch "$CI_COMMIT_REF_NAME"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+```
+
+Pair this with protected `main`, required merge requests, required successful
+pipeline, and human governor review. The job can prove files are valid and
+visible; it cannot decide that the governor accepted the risk.
+
+### GitHub sketch
+
+```yaml
+name: agf-governance
+on:
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: install -m 0755 agov /usr/local/bin/agov
+      - run: |
+          git diff --name-only -z origin/${{ github.base_ref }}...HEAD -- 'docs/coordination/*.md' |
+            xargs -0r agov coord validate
+          git diff --name-only -z origin/${{ github.base_ref }}...HEAD -- 'docs/plans/*.md' |
+            xargs -0r agov plan validate
+          agov coord visibility --base-branch origin/${{ github.base_ref }} --branch HEAD
+```
+
+Pair this with branch protection, required status checks, and required human
+review. If the repository uses code owners, AGF complements them: code owners
+review domain ownership, while the governor accepts gate risk.
 
 ## Validating upstream learning submissions
 

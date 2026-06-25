@@ -342,6 +342,22 @@ Use the same boring habits for everyone.
 AGF does not make parallel work safe by itself. It gives the team a place to
 make ownership visible before the collision happens.
 
+## What adoption pattern should we start with?
+
+Start with the smallest pattern that still preserves human gate ownership.
+These are examples, not separate AGF editions.
+
+| Pattern | Start with | Keep explicit |
+|---|---|---|
+| Solo maintainer | One human governor, one assistant, one small governed change, plan and coordination validators | The maintainer may play governor, but the approval is still a deliberate recorded decision |
+| Small team | One primary governor, one backup, normal MR review, shared coordination channel | Gate decisions and code-owner review are related but not identical |
+| Security-conscious repository | Full two-gate path, protected default branch, required CI, secret scanning, visible-artifact review where relevant | AGF provides evidence; security controls still run in their own systems |
+| Multi-assistant project | One role and branch per active session, claims before non-trivial work, frequent coordination status checks | Private chats are not shared state; commit only after branch verification |
+
+If the pattern feels heavy, do not remove the governor. Narrow the pilot, use
+fast track only where the criteria fit, and record friction as evidence before
+loosening rules.
+
 ## What should our first week look like?
 
 Keep it small.

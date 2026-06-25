@@ -70,4 +70,21 @@ A future `agf/conformance/` directory should test fixtures, exit codes, JSON
 output shape where specified, path handling, deterministic ordering, and
 lifecycle behavior such as transitive handoff resolution.
 
+Initial fixture families should cover:
+
+| Fixture family | What it proves |
+|---|---|
+| Command discovery | `--help`, `--version`, and documented subcommands exist with stable spelling. |
+| Exit codes | Success, invocation failure, validation failure, and clean negative-result cases return the documented codes. |
+| Schema validation | Valid and invalid coordination, plan, agent, learning, and config files produce deterministic results. |
+| JSON output | `version --format json`, `coord graph-index`, usage reports, and other JSON outputs preserve field names, ordering expectations, and omission rules. |
+| Path handling | Relative paths, explicit `--dir` options, environment overrides, and release-archive layouts behave the same. |
+| Deterministic ordering | Status, graph, graph-index, handoff, and usage outputs sort records predictably across filesystems. |
+| Lifecycle behavior | Claims, handoffs, reviews, acks, completions, stale claims, and visibility checks resolve the same way across implementations. |
+
+Until those fixtures ship, only the Rust `agov` release binary should be
+described as the supported AGF v2 tooling implementation. Other language
+implementations may be useful experiments, but they are not AGF-compatible for
+a claimed version until they pass the conformance suite for that version.
+
 The contract source lives in `agf/docs/contracts/tooling-conformance.md`.

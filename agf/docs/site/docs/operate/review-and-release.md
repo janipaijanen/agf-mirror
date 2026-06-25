@@ -47,6 +47,18 @@ Copy this into your review entry or run through it before approving:
 - [ ] Findings recorded (blocking findings return the work; non-blocking noted)
 - [ ] Decision record references branch and any merge conditions
 
+### Evidence quality labels
+
+The governor may label a Gate 2 decision with evidence quality. This is not a
+new maturity level; it is a local review aid for spotting weak approvals later.
+
+| Label | Meaning |
+|---|---|
+| Complete | Plan or waiver, branch, diff scope, tests, visible-output review, findings, and decision chain are present. |
+| Adequate | Minor omissions exist, but no material uncertainty affects the merge decision. |
+| Weak | Approval relies partly on assertion, incomplete evidence, or missing review detail. Use only with an explicit residual-risk note. |
+| Failed | Evidence chain is missing or unverifiable; do not merge until repaired or rejected. |
+
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
 ## Releases: the immutability discipline
@@ -94,6 +106,20 @@ claims between documents, accumulating fast-track waivers — and only a
 periodic cross-cutting sweep finds them. Set a cadence (per milestone or
 per release), and let the governor's audit of deputized approvals ride
 the same rhythm.
+
+Useful anti-ceremony metrics:
+
+- coordination messages per merged governed change;
+- fast-track waivers per milestone or release;
+- corrective coordination records after missing or malformed evidence;
+- learning records promoted to rules, docs, validators, or retired as local-only;
+- rules retired or deleted as inapplicable;
+- governor review time by change class;
+- Gate 2 decisions labelled weak or failed.
+
+The point is not to optimize the numbers downward. The point is to notice when
+the trail becomes noise, when fast track becomes the default for everything, or
+when evidence records stop changing decisions.
 
 ## Next
 

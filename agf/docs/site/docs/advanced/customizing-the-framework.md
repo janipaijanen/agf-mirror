@@ -34,6 +34,12 @@ exists to provide. An implementer that can approve its own merges is not
 a customization; it is the absence of the framework with its files still
 present.
 
+| Zone | Examples | Upgrade effect | Review posture |
+|---|---|---|---|
+| Free | Local coordination records, adopter learnings, local-only rules, deleted inapplicable rules | Preserved | Normal project review |
+| Marked | `CUSTOMIZE` blocks, local command names, locale sets, path patterns, empty delegable categories | Preserved if kept in adopter-owned space; may need re-check after upstream updates | Expected completion work |
+| Contracted | Schemas, validator exit semantics, authority boundaries, upstream/adopter ownership boundary | May lose compatibility with upstream updates | Treat as a governed fork or upstream contribution candidate |
+
 ## Customizations that strengthen
 
 - **Adding project-domain rules.** Stack-specific rules alongside the
