@@ -416,7 +416,7 @@ learnings:
       weights, version numbers, sequence IDs, or requirements. Direct SVG URLs
       make the risk higher because the page prose may not be visible.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Extend the figure UX standard: any figure that displays numeric labels
       must explain the unit and sampling context inside the figure itself, and
@@ -493,7 +493,7 @@ learnings:
       generated docs builds are especially easy to multiply across branches,
       MRs, retries, and release prep work.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Add CI hygiene guidance to AGF release and project templates: every
       artifact-producing job should declare whether its output is durable or
@@ -699,7 +699,7 @@ learnings:
       live files into explicit fixture paths and labelled as snapshots, not
       treated as the active continuation logs.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Keep `AGOV_TOKEN_ROI_LOG` guidance explicit in AI and developer docs:
       new assistants must choose a stable lowercase abbreviation and write to
