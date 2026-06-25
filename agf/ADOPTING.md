@@ -1010,6 +1010,24 @@ the same red flags apply: governance relaxation without evidence, boundary
 erosion, absence-bias reasoning. This is not distrust of upstream; it is
 the same standard applied uniformly to all guidance entering your project.
 
+**Configuration drift review on upgrade.** Each upgrade is also an
+opportunity to catch drift between your customized configuration and the
+new framework defaults. After applying the upgrade, check these four areas:
+
+- **Agent definition divergence.** Compare your `agf/agents/*.yaml` files
+  against the new `agf/templates/` to find fields the upstream added that
+  your customization doesn't carry yet. New fields are usually optional, but
+  missing a new `advisory_phases:` entry or `escalates_to:` pointer means
+  your agents won't use the new guidance.
+- **Rule customization points.** Search for `<!-- CUSTOMIZE -->` comments in
+  upgraded rule files. If a rule's customize section changed, your local
+  customization may no longer cover the intended cases.
+- **Skill source paths.** If the upgrade moves a skill or renames a command,
+  any assistant loader (`CLAUDE.md`, `AGENTS.md`) that hard-codes the old
+  path will silently fall back to built-in behavior.
+- **Schema version.** If `agf/schemas/` changed, run `agov validate` to
+  confirm your coordination and learning files still pass.
+
 ### Step 6 output
 
 - Review cadence chosen and scheduled

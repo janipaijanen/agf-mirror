@@ -62,6 +62,84 @@ identifiers. The human review still decides whether a chain proves the right
 thing: that the cited plan, review, and decision actually authorize the change
 being merged.
 
+## Miniature example thread
+
+A complete four-file thread from Gate 1 approval to task closure.
+
+**Step 1 — Gate 1 plan approved** (`20260614T120000Z-pa-add-export-feature.md`)
+
+```markdown
+---
+id: 20260614T120000Z-pa-add-export-feature
+from: planner-architect
+to: governor-reviewer
+kind: handoff
+topic: add-export-feature
+status: pending
+requires-ack: false
+---
+
+Gate 1 plan filed for CSV export route.
+See docs/plans/add-export-feature.md.
+```
+
+**Step 2 — Governor approves** (`20260614T121500Z-gr-add-export-feature.md`)
+
+```markdown
+---
+id: 20260614T121500Z-gr-add-export-feature
+from: governor-reviewer
+to: planner-architect
+kind: decision-record
+topic: add-export-feature
+status: approved
+references-to:
+  - 20260614T120000Z-pa-add-export-feature.md
+---
+
+Gate 1 approved. Proceed with implementation.
+```
+
+**Step 3 — Coder-tester files Gate 2** (`20260614T150000Z-ct-add-export-feature.md`)
+
+```markdown
+---
+id: 20260614T150000Z-ct-add-export-feature
+from: coder-tester
+to: governor-reviewer
+kind: handoff
+topic: add-export-feature
+status: pending
+requires-ack: false
+references-to:
+  - 20260614T121500Z-gr-add-export-feature.md
+---
+
+Gate 2 handoff. Branch: feat/add-export-feature.
+Tests pass. MR link: <url>.
+```
+
+**Step 4 — Closure** (`20260614T160000Z-ct-add-export-feature-done.md`)
+
+```markdown
+---
+id: 20260614T160000Z-ct-add-export-feature-done
+from: coder-tester
+to: all
+kind: completion
+topic: add-export-feature
+status: resolved
+references-to:
+  - 20260614T150000Z-ct-add-export-feature.md
+---
+
+Merged. MR squash-merged to main at commit abc1234.
+```
+
+The four files form a navigable chain: plan → approval → implementation → closure.
+Each `references-to:` field links backward; `agov session resume` and
+`agov coord graph-index` follow the chain forward.
+
 ## Message kinds
 
 | Kind | Direction | Purpose |
