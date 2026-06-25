@@ -178,6 +178,7 @@ this dossier page</p>
 | 04.09 | [Limits and responsibility](#409-limits-and-responsibility) | `reference/disclaimer.md` | Risk boundary |
 | 05 | [Source references](#source-references) | Dossier bibliography | Citation targets |
 | 06 | [Reviewer checklist](#reviewer-checklist) | `evaluate.md` | Final verification |
+| 07 | [Full source page appendix](#full-source-page-appendix) | Generated from all public Markdown pages | Single-page corpus for AI evaluation |
 
 ## List of Figures
 
@@ -389,3 +390,16 @@ source-backed AI review</p>
 - Stated uncertainty and unread areas.
 - Filed findings through the External Review issue template when submitting
   feedback upstream.
+
+## Full Source Page Appendix
+
+<p class="agf-dossier-marker"><strong>Flow 07</strong> / generated at docs build
+time</p>
+
+In the rendered GitLab Pages HTML, this section appends every other public
+Markdown page in the documentation set, with one flow marker per original page.
+The source file keeps this section short to avoid copy-paste drift; the build
+hook `agf/docs/build/hooks/ai_evaluation_dossier.py` creates the full
+single-page corpus.
+
+<!-- AGF_DOSSIER_APPENDIX -->
