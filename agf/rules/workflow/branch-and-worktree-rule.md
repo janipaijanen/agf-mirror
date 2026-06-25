@@ -105,6 +105,14 @@ When an agent starts or changes a polling timer:
 - Every "no new coordination" status reply must name the branch checked, so the absence claim is unambiguous.
 - When handing off to another agent, include the branch-watch note in the handoff so the new agent knows what was being watched and why.
 
+Timer notation such as `15mins/180min` means: poll every 15 minutes, stop after
+180 minutes of no new incoming activity, and reset the 180-minute idle window
+whenever a new relevant coordination message or merge-request event arrives.
+For AI agents, this is an internal attention schedule. Do not substitute an
+external shell timer, cron job, detached `sleep`, or background process unless
+the governor explicitly asks for an external process; the agent will not
+reliably notice it.
+
 Without this record, another agent or the human cannot know whether a "nothing to do" reply reflects a complete scan or a scan of the wrong branch.
 
 ## Pre-push gate

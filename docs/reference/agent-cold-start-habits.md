@@ -33,8 +33,27 @@ means pending, and `null` means the message is not a handoff.
 
 ## Treat Timers As Intake
 
-A timer is useful only if it drives action. After each poll, read new messages
-addressed to your role and classify them:
+A timer is useful only if it drives action. AGF timer notation such as
+`15mins/180min` means:
+
+- scan every 15 minutes;
+- stop only after 180 minutes of no new incoming activity;
+- reset the 180-minute idle window whenever a new relevant coordination message
+  or merge-request event arrives.
+
+For framework development, a poll scans at least:
+
+- git-backed coordination messages on the watched branch;
+- merge-request state through the available hosting tool, such as `glab`;
+- branch-watch context, so "nothing new" names the branch and MR scope checked.
+
+Use the assistant surface's internal reminder or wake-up mechanism when it
+exists. Do not replace an internal timer with an external shell timer, cron job,
+background `sleep`, or detached process: the assistant will not reliably notice
+that process. If no internal timer exists, say so and scan when active or after
+resume.
+
+After each poll, read new messages addressed to your role and classify them:
 
 - act under gate discipline;
 - acknowledge;

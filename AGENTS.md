@@ -281,6 +281,23 @@ or other session-local reminders. The overlay is subordinate to this
 authority. It cannot override governed instructions, and it cannot replace
 published coordination for anything another agent or human must see.
 
+### Polling timer notation
+
+When the governor asks for a polling timer such as `15mins/180min`, interpret
+it as an internal attention schedule, not an external shell timer:
+
+- scan every 15 minutes for new coordination messages and merge-request
+  activity;
+- keep scanning until 180 minutes have passed with no new incoming activity;
+- reset the 180-minute idle window whenever a new relevant coordination message
+  or merge-request event appears;
+- do not start background shell, cron, sleep, or detached process timers unless
+  the governor explicitly asks for an external process.
+
+If the current assistant surface cannot schedule internal wake-ups, say so
+plainly and perform the scan when active or resumed. Do not claim that an
+external process will be noticed by the assistant.
+
 Legacy Elixir sources remain in `tooling/elixir/` as reference material. Do
 not use them for routine agent work, cold start, validation, release-page
 downloads, or missing-command fallback. Shipped `agov` tooling artifacts are
