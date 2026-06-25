@@ -79,6 +79,7 @@ nav:
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Coordination protocol: docs/concepts/coordination-protocol.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md
+          - AGF and agent runtimes: docs/concepts/position.md
       - 'Adopt':
           - Downstream impact: docs/adopt/downstream-impact.md
           - Install the agf directory: docs/adopt/install-and-layouts.md

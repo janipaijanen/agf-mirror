@@ -32,6 +32,9 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
   reconstructible across sessions.
 - [Evidence and learnings](concepts/evidence-and-learnings.md) — the
   learning system; upstream-owned vs adopter-owned records; anonymization.
+- [AGF and agent runtimes](concepts/position.md) — how AGF relates to
+  orchestrators (Claude Code, Codex CLI, Cursor, LangGraph, CrewAI);
+  per-tool setup notes.
 
 ### 3. Adopt — install with eyes open
 
