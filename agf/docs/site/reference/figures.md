@@ -130,6 +130,12 @@ coordination channel.
 
 ![Example AGF Foundry coordination map](figures/coordination-map-example.svg)
 
+Parenthesized numbers on edges (e.g. `handoff (22)`, `decision-record (9)`)
+are message counts in this captured coordination channel sample; they reflect
+the state of the foundry channel at the time the figure was generated, not
+universal ratios for all projects. The embedded legend reads
+"Edge label = kind (message count)".
+
 This is an example, not a required topology. Adopting projects may define
 more specialized agent roles and may show different communication patterns
 as their governance model matures.
@@ -145,6 +151,13 @@ as their governance model matures.
 - Do not hand-edit generated SVG files — edit the DOT source and regenerate.
 - Every figure must include an embedded legend in the generated image. Do not
   rely on page prose or captions to explain color, shape, or line semantics.
+- **Numeric labels must explain their unit.** Any figure that displays numeric
+  labels (counts, percentages, durations) must state the unit and sampling
+  context inside the figure itself (in the legend or a label), and the page
+  text immediately before or after the figure must repeat the meaning in plain
+  language. "Edge label = kind (22)" is insufficient on its own; add
+  "(message count)" or equivalent in the legend and explain what the sample
+  covers in the surrounding text.
 - Keep figure text readable at page scale: node labels should normally be
   `11pt`, edge labels `10pt`, and rendered SVGs should stay near or below
   `720pt` wide unless the page intentionally provides a scrollable view.

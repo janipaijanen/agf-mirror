@@ -943,6 +943,33 @@ and a deadline.
 
 Add the `environments` section to your project's learnings YAML file.
 
+### 5.5 CI artifact hygiene
+
+CI job artifacts accumulate silently in GitLab project storage unless you
+apply explicit expiry policies. Left unmanaged, repeatable build outputs
+(preview archives, docs builds, review-only jobs) can grow to many gigabytes
+while the actual repository stays small.
+
+A rule of thumb:
+
+| Artifact purpose | Expiry |
+|---|---|
+| Preview/review — available until MR is decided | 1 day |
+| Tag/release build — needed until release job uploads to registry | 1 week |
+| Durable release binary — uploaded to package registry | Never (uploaded, artifact path then expired) |
+| Test reports, coverage, linting output | 1 day or less |
+
+**To avoid unbounded growth:**
+- Declare `expire_in:` on every `artifacts:` block. Do not leave it unset.
+- Upload durable release binaries to the package registry before the CI
+  artifact expires. Once the package registry copy exists, the CI artifact
+  path is redundant.
+- Periodically check GitLab project storage statistics
+  (`Settings → Usage Quotas`) and delete stale preview/docs-build job
+  artifacts rather than deleting packages or releases.
+- When CI artifact storage dominates the project size, audit expiry values
+  before concluding that the project itself has grown.
+
 ### Step 5 output
 
 - Data rules enforced per environment (especially: no real PII outside production)
