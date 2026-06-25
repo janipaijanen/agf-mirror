@@ -16,6 +16,7 @@
 - `agf/schemas/*.json`
 - `docs/coordination/agov-config.yaml`
 - `AGENTS.md`
+- `tooling/**`
 
 A commit touching ONLY coordination channel entries, plan files, learning
 records, or documentation outside these paths is exempt.
