@@ -1048,6 +1048,54 @@ learnings:
       level: single-adopter
       evidence_count: 1
 
+  - id: "20260625T063214Z-dpd3"
+    date: "2026-06-25"
+    category: gap
+    scope: framework
+    title: coordination-visibility-requires-publication
+    agents_involved: [coder-tester, planner-architect, governor-reviewer]
+    summary: >
+      Coordination guidance implied that writing a message was enough, but
+      multi-agent work also requires making the message visible to its
+      intended recipient.
+    detail: >
+      During a cross-agent documentation review, coder-tester wrote and
+      validated a coordination reply to planner-architect but left it as an
+      untracked local file. The chat response treated "coordination reply
+      exists" as complete, while the recipient could not see the file because
+      it had not been committed, pushed, or otherwise shared on a branch visible
+      to that agent.
+
+      The existing guidance correctly says that downstream obligations require
+      coordination entries. The missing operational detail is the done
+      condition for inter-agent visibility: a coordination message that another
+      agent or human must act on is only draft state until it validates and is
+      published to a shared location the recipient is expected to read.
+
+      This also exposed a related cold-start documentation issue. Local helper
+      files under ignored scratch paths can be useful for the current session,
+      but they are not reliable cold-start inputs unless a tracked loader such
+      as `AGENTS.md` points agents to them explicitly.
+    framework_section: "coordination channel; session resume; assistant loader"
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Strengthen coordination and cold-start guidance with an explicit
+      visibility rule: a coordination reply is not complete until it exists on
+      disk, passes validation, is committed or otherwise published on a shared
+      branch/worktree visible to the intended recipient, and the recipient is
+      told where to read it when appropriate. Distinguish local overlay or
+      scratch files from shared coordination records. If AGF adopts an optional
+      repository-root `ai-cold-start.md` overlay, `AGENTS.md` should define it
+      as subordinate local guidance and state that it cannot replace published
+      coordination for downstream obligations.
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "docs/coordination/20260625T062351Z-coder-tester-j6t4.md"
+        - "docs/coordination/20260625T063048Z-coder-tester-r5ek.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
