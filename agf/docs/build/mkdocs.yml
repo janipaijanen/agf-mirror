@@ -70,6 +70,7 @@ nav:
   - Home: index.md
   - Use cases: use-cases.md
   - Evaluate: evaluate.md
+  - AI evaluation dossier: ai-evaluation-dossier.md
   - Documentation:
       - Overview: docs/index.md
       - 'Start':
