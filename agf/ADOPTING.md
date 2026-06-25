@@ -183,6 +183,13 @@ agents and cross-cutting concerns are urgent for your project.
 3. Ask the assistant to prepare `agf/learnings/<codename>.yaml` from
    `agf/templates/learning-record.yaml`.
 
+> **Artifact naming.** Use domain-first names for all adopter-created files:
+> `phase0-foundation.md`, `crm-gate1-plan.md`, `blue-heron.yaml`. Reserve
+> the `agf-*` and `agov-*` prefixes for files that are part of the framework
+> tree itself. Adopter plans, coordination notes, and learning records named
+> with an `agf-` prefix create confusion about ownership and may be overwritten
+> by future framework upgrades.
+
 Fill in every field in the `project`, `business_domain`, `regulatory_context`,
 `team`, `lifecycle_state`, `customer_state`, `revenue_context`, and `codebase`
 sections. Do not skip fields — write "unknown" if you genuinely do not know.
@@ -965,7 +972,16 @@ If you adopted the framework from the agents-govern repository:
 
 ### 6.3 Learning record sync policy
 
-Your project's local `agf/learnings/<codename>.yaml` is the **source of truth**.
+Your project's local `agf/learnings/<codename>.yaml` is the **source of truth**
+for your project's evidence. It is adopter-owned and must be preserved across
+every framework upgrade.
+
+**During a framework tarball sync or upgrade:** upstream-owned files in `agf/`
+may be added, changed, or deleted — that is expected and correct. Your files
+under `agf/learnings/` are evidence, not framework content. Never let a sync
+script, `cp -r`, or automated upgrade step overwrite or delete them. If you
+are unsure whether a file is adopter-owned or upstream-owned, check `agf/MANIFEST.md`.
+
 The upstream copy in the agents-govern repo is a submitted snapshot.
 
 When upgrading the framework:
