@@ -106,6 +106,22 @@ to relax or tighten governance.
 If nobody is willing to be governor, do not adopt AGF yet. Gates without a
 governor become ceremony.
 
+## Can AI act as a governor?
+
+Not as the validated AGF core today.
+
+An AI can help the governor: summarize a plan, challenge a merge request, check
+whether evidence is missing, draft a decision-record skeleton, or compare the
+work against the rules. Those are advisory tasks. They can make the human
+governor faster and better prepared, but they do not move risk out of human
+hands.
+
+AI-as-governor has not been tested enough to recommend as an AGF operating
+mode. A project may experiment with stronger AI delegation only as a local
+extension, with a human explicitly accepting the risk, defining what the AI is
+allowed to approve, and staying accountable for the outcome. If nobody human is
+prepared to bear that risk, the project does not have a governor.
+
 ## How much governor time should we expect?
 
 Budget real human attention. AGF has no server to operate, but it does add a
