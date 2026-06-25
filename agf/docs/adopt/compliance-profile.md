@@ -58,8 +58,9 @@ references them:
 - **Full.** Process-aware plus *layer 3*: every artefact carries
   a binding identifier (Universally Unique Identifier (UUID) v7
   correlation Identifier (ID), commit trailers, sidecar metadata
-  per [B1]–[B3], shipped v1.1.44–v1.1.45) so a reader can link any
-  artefact back to the execution trace that produced it.
+  per [B1]–[B3]) so a reader can link any artefact back to the
+  execution trace that produced it. In current AGF v2 tooling,
+  binding validation is planned/deferred rather than shipped.
 
 Layer 4 (runtime behaviour) is the explicit hard boundary — out
 of scope for every tier. The framework does not enforce runtime
@@ -78,17 +79,13 @@ work, when shipped, makes the tier mechanically achievable.
 |---|---|---|---|---|---|
 | **Artefact-only** | ✅ Enforced | — | — | — | (out of scope) |
 | **Process-aware** | ✅ Enforced | ✅ Enforced | ✅ Enforced | — | (out of scope) |
-| **Full** | ✅ Enforced | ✅ Enforced | ✅ Enforced | ✅ Enforced ([B1]–[B3], shipped v1.1.44–v1.1.45) | (out of scope) |
+| **Full** | ✅ Enforced | ✅ Enforced | ✅ Enforced | Planned/deferred in AGF v2 tooling ([B1]–[B3] specified) | (out of scope) |
 
-The framework today ships layers 1 and partial 2a/2b for
-Process-aware adopters, plus the binding-contract work for Full
-tier as of v1.1.45 (issues
-[B1](https://gitlab.com/janipaijanen/agent-governance/-/issues/56),
-[B2](https://gitlab.com/janipaijanen/agent-governance/-/issues/57),
-[B3](https://gitlab.com/janipaijanen/agent-governance/-/issues/58)
-all closed). The
+The framework today ships layers 1 and partial 2a/2b for Process-aware
+adopters. Full-tier binding remains specified but deferred in current AGF v2
+Rust tooling. The
 [Binding contract page](../contracts/binding-contract.md) carries the per-leg
-specification.
+specification and current implementation status.
 
 ## Degraded modes — what each tier gives up
 
@@ -123,13 +120,11 @@ The reasoning:
   evidence corpus (see
   [`learnings/iron-trellis.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/learnings/iron-trellis.yaml)
   v0.58.0 entry on the missing pre-merge gate).
-- **Full is mechanically achievable as of v1.1.45.** The
-  binding-contract work ([B1]–[B3]) shipped across v1.1.44 and
-  v1.1.45. In the v2 Elixir migration, the binding validator remains deferred
-  to E4; adopters declaring the Full target use the binding validator plus
-  sidecar metadata on non-commit artefacts when that command is available.
-  See [Binding contract](../contracts/binding-contract.md) for the per-leg
-  specification.
+- **Full is a future AGF v2 target.** The binding-contract concepts
+  ([B1]–[B3]) remain the intended Layer 3 shape, but Rust `agov` does not yet
+  ship a binding validator. Adopters who need Full-tier evidence should treat
+  binding as planned/deferred and either contribute the validator or use local
+  supplementary controls until it lands.
 - **Process-aware is the cheaper baseline.** All the layers it
   enforces are mechanically achievable today using the shipped
   validators plus the framework's own
@@ -142,10 +137,9 @@ A short decision shortcut:
 - Solo developer, throwaway exploration → **Artefact-only** is
   fine. Schema validation alone catches most copy-paste
   divergence.
-- Team project, regulated industry, audit-bound → target
-  **Full**. The binding contract is shipped; correlation IDs and
-  trailers / sidecars give the audit trail downstream auditors
-  expect.
+- Team project, regulated industry, audit-bound → **Process-aware** is the
+  current shipped AGF v2 baseline; plan for **Full** when binding validation
+  lands, or add local supplementary controls if audit needs require it sooner.
 - Anything in between → **Process-aware** is the recommended
   default; promote to Full when binding evidence is needed.
 
@@ -159,16 +153,11 @@ A short decision shortcut:
 compliance_target: process-aware  # one of: artefact-only | process-aware | full
 ```
 
-`mix agov.validate.framework_config` validates the file against
+`agov validate framework-config` validates the file against
 [`schemas/framework.schema.json`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/schemas/framework.schema.json)
-(Draft 7, `additionalProperties: false`); `agov --capabilities` reads
-the declaration to compute the actionable list.
-
-`agov --capabilities` schema and live output:
-[Capability reporting](../contracts/integration-contract.md#capability-reporting).
-With v1.1.47 closing the action plan, every shipped capability flips
-to `true` and `missing_for_full_compliance` is empty — adopters
-targeting any tier can compare against a complete capability map.
+(Draft 7, `additionalProperties: false`). The old v1.x
+`agov --capabilities` report is retired in AGF v2; use current docs and Rust
+`agov validate` output for the shipped validator surface.
 
 ## The framework's own tier
 
@@ -177,9 +166,9 @@ The `agents-govern` project declares
 [`framework.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/framework.yaml)
 (`compliance_target: process-aware`, shipped v1.1.47 with [P1]).
 Layer 3 (binding) is mechanically supported as of v1.1.45 but the
-framework's own commits are not yet retroactively `Agent-ID:`-
-trailer-tagged; promotion to **Full** lands when the framework
-starts emitting trailers on its own agent-active branches.
+framework's current AGF v2 Rust tooling does not yet ship binding validation;
+promotion to **Full** lands when AGF v2 starts emitting and validating binding
+evidence on its own agent-active branches.
 
 This is recorded explicitly per the
 [self-conformance rule](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.claude/rules/always/self-conformance-rule.md):

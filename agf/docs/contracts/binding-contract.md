@@ -8,7 +8,13 @@ of the [five-layer verifiability model](integration-contract.md#five-layer-verif
 — the missing middle between artefact compliance (Layer 1) and
 runtime behaviour (Layer 4, out-of-framework by design).
 
-The work to close Layer 3 is split across three issues:
+**AGF v2 implementation status:** binding is a planned/deferred Full-tier
+surface. The contract shape below is retained so adopters can see the intended
+Layer 3 model, but current Rust `agov` does not ship binding validation. The
+historical v1.x Python implementation is legacy reference material and should
+not be presented as current AGF v2 capability.
+
+The work to close Layer 3 is split across three concepts:
 
 - **B1** — Universally Unique Identifier (UUID) v7 correlation
   identifier convention (this page).
@@ -17,15 +23,9 @@ The work to close Layer 3 is split across three issues:
   filename-suffix fallback for environments stripping non-image
   files (this page).
 
-**Implementation status as of v1.1.45.** All three legs ship in
-[`src/agents_govern/correlation_id.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/correlation_id.py)
-and
-[`src/agents_govern/validate_binding.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/validate_binding.py).
-The
-[capability report](integration-contract.md#capability-reporting)
-flips `binding: true` at v1.1.45 — the umbrella capability is
-now claimable by any adopter targeting the Full
-[compliance tier](../adopt/compliance-profile.md).
+The v1.x line had Python helpers for these concepts. AGF v2 intentionally
+defers the Rust binding validator until adopter demand or a dedicated Full-tier
+slice justifies the implementation cost.
 
 ## Correlation identifier (B1)
 
@@ -94,9 +94,7 @@ Every artefact in **binding scope** must carry the identifier.
 *Binding scope* is defined per compliance tier in
 [Compliance profile](../adopt/compliance-profile.md):
 
-- **Artefact-only tier:** binding not required; the binding validator passes
-  regardless. In the v2 Elixir migration, `mix agov.validate.binding` is
-  deferred to E4.
+- **Artefact-only tier:** binding not required.
 - **Process-aware tier:** Layer 2 enforced; binding still optional.
 - **Full tier:** every commit on an agent-active branch carries one
   or more `Agent-ID:` trailers; every artefact stored outside the
@@ -104,10 +102,8 @@ Every artefact in **binding scope** must carry the identifier.
   per B3 (or the filename-suffix fallback in environments stripping
   sidecars).
 
-Until [P1](https://gitlab.com/janipaijanen/agent-governance/-/issues/?label_name%5B%5D=engagement-action-plan-2026-05-04)
-ships `framework.yaml` declaring an adopter's tier, the validator
-runs in *schema-only* mode — see [Validator surface](#validator-surface)
-below.
+Current AGF v2 tooling does not yet enforce this binding scope. Treat this as
+the planned Full-tier model, not a current validator guarantee.
 
 ## Commit trailer (B2)
 
@@ -199,9 +195,8 @@ mechanism is a **sidecar file** rather than a trailer.
 
 The conventional sidecar location appends `.agov.json` to the
 artefact's full filename — so `release.tar.gz` is paired with
-`release.tar.gz.agov.json` (existing extension preserved). The
-helper `validate_binding.sidecar_path(artefact)` resolves the
-location.
+`release.tar.gz.agov.json` (existing extension preserved). A future Rust
+binding validator should use this resolution rule.
 
 Required fields:
 
@@ -281,71 +276,11 @@ later steps cannot reconstruct an identifier they were never given.
 
 ## Validator surface
 
-In the v1.x Python line, the CI-callable entry point is
-`agov-validate-binding`, exposed as a Python script in
-`pyproject.toml [project.scripts]`. In the v2 Elixir migration,
-`mix agov.validate.binding` is deferred to E4. The underlying Application
-Programming Interface (API) is also importable for adopter glue:
-
-```python
-from agents_govern.validate_binding import (
-    # Commit trailer (B2)
-    parse_trailer,           # parse one trailer line
-    extract_trailers,        # extract from a commit message
-    is_agent_active_branch,  # classify a branch per config
-    validate_commit,         # per-commit finding list
-    # Sidecar metadata + filename fallback (B3)
-    Sidecar,                 # dataclass for parsed sidecar
-    parse_sidecar,           # JSON-text parser
-    sidecar_path,            # resolve <artefact>.agov.json
-    compute_artefact_sha256, # SHA-256 hex digest
-    read_sidecar,            # read sidecar from filesystem
-    verify_sidecar,          # recompute hash, report mismatch
-    parse_filename_fallback, # extract corr-id from filename
-)
-from agents_govern.correlation_id import generate, is_valid
-```
-
-### Schema-only mode (today)
-
-When no `framework.yaml` is present (or its `binding:` section is
-absent), the validator runs in *schema-only* mode:
-
-- **Confirms the contract is loadable** — UUID v7 generator, trailer
-  parser, branch classifier, sidecar parser, hash helper, and
-  filename-fallback parser all import without error.
-- **Flags malformed `Agent-ID:` lines** wherever they appear in a
-  commit message. A contributor who wrote `Agent-ID:` clearly
-  intended a trailer; a malformed value is a contract violation
-  regardless of where it appears.
-- **Does not flag missing trailers or sidecars.** A commit without
-  an `Agent-ID:` trailer or an artefact without a sidecar is fine
-  in schema-only mode — enforcement applies prospectively from the
-  adopter's tier-upgrade date, never retroactively.
-
-This is the mode the framework's own repository runs in at v1.1.45
-(no `framework.yaml` exists yet; P1 introduces it in a later batch).
-
-### Enforce mode (after P1 ships `framework.yaml`)
-
-When `framework.yaml` declares a `binding:` section, the validator
-walks recent commits, classifies each branch via
-`is_agent_active_branch`, and applies `validate_commit` per commit.
-Commits on agent-active branches must carry one or more well-formed
-trailers; commits on human-only or protected branches are exempt.
-
-### Exit codes
-
-Per the [strict-contract exit-code taxonomy](integration-contract.md#exit-codes):
-
-| Code | Condition |
-|---|---|
-| `0` | Pass (schema-only mode loadable; or enforce mode with no findings). |
-| `1` | Validation failure — malformed trailer, or missing trailer in enforce mode on an agent-active branch. |
-
-Higher codes (2 / 3 / 4) are reserved for configuration errors,
-invariant violations, and infrastructure failures per the taxonomy;
-the binding validator does not currently emit them.
+No binding validator is shipped in current AGF v2 Rust `agov`. A future binding
+validator is expected to validate the UUID v7 correlation ID shape, `Agent-ID:`
+trailer syntax and branch policy, sidecar metadata, SHA-256 hashes, and
+filename fallback. Until that lands, this page is specification and design
+intent only.
 
 ## Migration discipline
 
@@ -355,10 +290,8 @@ adopter's declared tier-upgrade date — typically the merge commit
 that introduces the `framework.yaml` `binding:` section into the
 adopter's repository. Earlier history is grandfathered.
 
-This mirrors the discipline the framework's own
-[acronym lint](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.claude/rules/docs/abbreviation-rule.md)
-and `validate-learnings` apply: per-MR enforcement on touched
-artefacts, never sweeping retroactive validation that would block
+This mirrors the discipline used by other validators: per-MR enforcement on
+touched artefacts, never sweeping retroactive validation that would block
 unrelated work.
 
 ## See also
@@ -375,7 +308,5 @@ unrelated work.
   artefact-production side of that refinement.
 - [Action plan — Phase 2 binding layer](plans/2026-05-04-chatgpt-engagement-action-plan.md#phase-2-binding-layer-closes-layer-3-meta-finding)
   — the engagement-derived plan that scoped B1, B2, B3.
-- [`src/agents_govern/correlation_id.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/correlation_id.py)
-  and
-  [`src/agents_govern/validate_binding.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/validate_binding.py)
-  — implementations.
+- Future Rust binding validator work should start from this specification and
+  the current `agov` validator conventions.

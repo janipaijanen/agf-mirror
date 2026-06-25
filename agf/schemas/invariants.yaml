@@ -3,18 +3,16 @@
 #
 # Cross-artefact invariant manifest (action-plan item C2, issue #60).
 #
-# Declarative summary of structural rules the Python validators in
-# src/agents_govern/validate_*.py enforce across multiple artefacts.
+# Declarative summary of structural rules the AGF validators enforce across
+# multiple artefacts. Rust agov is the current AGF v2 operator surface;
+# historical v1.x Python validators are legacy reference material.
 # External tooling (Open Policy Agent (OPA), conftest, ecosystem-
 # specific linters) consumes this manifest without re-implementing
 # validator logic.
 #
-# Per docs/contracts/integration-contract.md#schema-of-record-hierarchy: the
-# Python validators are the contract of record. This file is the
-# consumer-facing summary. tests/test_schemas.py::TestInvariantsParity
-# enforces that the parameter values here match the validators'
-# actual behaviour; if a validator's threshold changes, the parity
-# test fails until this file is updated.
+# This file is the consumer-facing invariant summary for external tooling
+# and docs. Executable validator behaviour is implemented in AGF tooling;
+# if a validator threshold changes, this file must be updated with it.
 #
 # Field shape per round-4 §1 of the 2026-05-04 ChatGPT engagement:
 #   id              dotted identifier; namespaced by scope (agents.*, learnings.*)
@@ -160,6 +158,10 @@ invariants:
       anonymisation policy.
 
   # --- Binding-contract invariants ---------------------------------------
+  #
+  # Binding is a planned/deferred AGF v2 validation surface. These entries
+  # document the intended Layer 3 invariant shape; current Rust agov does not
+  # enforce them.
 
   - id: binding.correlation_id_format
     scope: "Agent-ID: trailers; sidecar correlation_id field; filename fallback"
@@ -167,7 +169,7 @@ invariants:
     parameters:
       uuid_version: 7
     severity: error
-    enforced_by: validate_binding
+    enforced_by: planned_binding_validator
     introduced_in: "1.1.44"
     rationale: >
       All correlation identifiers must be Universally Unique
@@ -184,7 +186,7 @@ invariants:
       hex_length: 64
       case: lowercase
     severity: error
-    enforced_by: validate_binding
+    enforced_by: planned_binding_validator
     introduced_in: "1.1.45"
     rationale: >
       Sidecar artefact_sha256 field must be a 64-character lowercase

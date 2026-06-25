@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://gitlab.com/janipaijanen/agent-governance/-/raw/main/schemas/agent.schema.json",
   "title": "Agent Definition",
-  "description": "Schema for agents/*.yaml files. Generated artefact; the Python validator at src/agents_govern/validate_agents.py is the contract of record (see docs/integration-contract.md#schema-of-record-hierarchy). Cross-artefact invariants (manifest closure, ownership-overlap detection, communication symmetry) live in schemas/invariants.yaml.",
+  "description": "Schema for agents/*.yaml files. Rust agov is the current AGF v2 operator validator surface; historical v1.x Python validators are legacy reference material. Cross-artefact invariants (manifest closure, ownership-overlap detection, communication symmetry) live in schemas/invariants.yaml.",
   "type": "object",
   "required": ["agent"],
   "properties": {

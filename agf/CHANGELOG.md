@@ -3,6 +3,16 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [Unreleased]
+
+### Changed
+
+- Contract and schema documentation now mark v1.x Python-only tooling surfaces
+  as retired or deferred before historical Python code removal. Binding
+  validation is explicitly deferred in current Rust `agov`;
+  `agov-validate-acronyms`, `agov-bump`, `agov --capabilities`, and
+  `agov --contract-changelog` are retired; `agov-health` remains deferred.
+
 ## [2.2.4] — 2026-06-24
 
 ### Removed

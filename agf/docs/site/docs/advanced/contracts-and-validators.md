@@ -33,6 +33,12 @@ script authority the framework never granted.
 | Framework configuration | `agov-config.yaml` shape and required fields | `agov validate framework-config` |
 | README.md stat claims | Claimed rule, agent, and skill counts match actual `agf/` file counts (advisory) | `agov validate readme-stats` |
 
+Binding validation is not shipped in the current AGF v2 Rust `agov` surface.
+Binding remains a planned Layer 3 / Full-tier direction: useful for adopters
+that need artefact-to-execution traceability, but not a current AGF v2
+deliverable. Historical Python binding tooling from the v1.x line is legacy
+reference material, not the supported v2 operator path.
+
 The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped
 capability. If your project builds one of the missing validators, that is a
