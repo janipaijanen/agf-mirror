@@ -104,13 +104,9 @@ intentionally not under the contract:
 - **Documentation prose** — page wording on this site can change
   freely. Page *paths* and *anchor identifiers* are
   best-effort-stable but are not contract.
-- **Internal Python module structure** —
-  `src/agents_govern/`'s module names, function signatures, and
-  internal helpers are implementation. Importing from
-  `agents_govern._exit_codes`, `agents_govern.orchestrator`, etc.
-  is supported for advanced integrations, but the fully internal
-  helpers (`_files`, `_yaml`, `_output`) may change without
-  notice.
+- **Historical Python module structure** — `src/agents_govern/` belongs to the
+  v1.x Python line. It is legacy reference material in AGF-NG v2, not a
+  supported v2 extension API.
 
 The
 [Dual-surface model](position/dual-surface.md) page explains why
@@ -168,32 +164,37 @@ is supported through one deprecation cycle. Concretely:
    cycle of the new major. Critical fixes backport to the
    previous major; new features land on the new major only.
 
-There are currently **no deprecated surfaces**. When the first
-one lands this page gains a *Deprecations* section with the
-specific surface, the version it was deprecated in, and the
-target removal version.
+## Retired and deferred v1.x surfaces
+
+AGF-NG v2 uses the Rust `agov` command surface documented in the current
+adopter docs. The following v1.x/Python surfaces are not current AGF v2 product
+promises:
+
+| Surface | AGF v2 status | Replacement or note |
+|---|---|---|
+| `agov-validate-binding` | Deferred | Planned Layer 3 / Full-tier validator; no Rust `agov` implementation yet. |
+| `agov-validate-acronyms` | Retired | No current replacement; not on the critical governance path. |
+| `agov-bump` | Retired | Version discipline is handled by release workflow and `agov dist check-tag`. |
+| `agov-health` | Deferred | Useful future diagnostic, not required for v2 governance operation. |
+| `agov --capabilities` | Retired | Use current docs, manifests, and `agov validate` output. |
+| `agov --contract-changelog` | Retired | Use the changelog/release notes directly. |
 
 ## Command Line Interface (CLI) surface
 
 **v1.x status:** The `agov` umbrella entry point shipped in v1.1.43 and the
 flat `agov-validate-*` scripts continued to work unchanged.
 
-**AGF-NG status:** Current migrated tooling runs through Elixir Mix tasks such
-as `mix agov.validate`, `mix agov.validate.agents`, and
-`mix agov.dist.build`. The remaining non-migrated commands are deferred to E4.
+**AGF-NG status:** Current migrated tooling runs through the Rust `agov`
+binary. The v1.x/Python command names below are historical context unless a
+current AGF v2 page explicitly repeats them.
 
 - `agov --version` — framework version (= contract version per
   this page's *Single-version discipline*).
 - `agov --contract-version` — alias of `--version`.
-- `agov --contract-changelog` — prints the framework's
-  [`CHANGELOG.md`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/CHANGELOG.md)
-  content; filter for entries referencing validator command
-  names, exit codes, output formats, trigger set, etc. to see
-  contract-affecting changes.
-- `agov --capabilities` — prints the JavaScript Object Notation
-  (JSON) capability report (action-plan item A6); see
-  [Capability reporting](integration-contract.md#capability-reporting)
-  for the schema.
+- `agov --contract-changelog` — retired in AGF v2; use changelog/release
+  notes directly.
+- `agov --capabilities` — retired in AGF v2; use current docs, manifests, and
+  `agov validate` output.
 
 Pick exactly one action flag per invocation; mixing actions exits
 non-zero. Bare `agov` prints help.

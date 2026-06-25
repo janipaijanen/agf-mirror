@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://gitlab.com/janipaijanen/agent-governance/-/raw/main/schemas/learning.schema.json",
   "title": "Project Learning Record",
-  "description": "Schema for learnings/<codename>.yaml files. Generated artefact; the Python validator at src/agents_govern/validate_learnings.py is the contract of record (see docs/integration-contract.md#schema-of-record-hierarchy). Cross-artefact invariants (append-only supersession, confidence corroboration thresholds) live in schemas/invariants.yaml.",
+  "description": "Schema for learnings/<codename>.yaml files. Rust agov is the current AGF v2 operator validator surface; historical v1.x Python validators are legacy reference material. Cross-artefact invariants (append-only supersession, confidence corroboration thresholds) live in schemas/invariants.yaml.",
   "type": "object",
   "required": ["project"],
   "properties": {
@@ -42,7 +42,7 @@
           "date": {"type": "string"},
           "category": {
             "type": "string",
-            "description": "Conventional values per learnings/_template.yaml: gap | overkill | validation | adaptation | tension. The Python validator does not currently enforce the enum; this schema follows the validator (per source-of-truth hierarchy)."
+            "description": "Conventional values per learnings/_template.yaml: gap | overkill | validation | adaptation | tension. Rust agov validates the current AGF v2 learning record surface."
           },
           "scope": {
             "type": "string",

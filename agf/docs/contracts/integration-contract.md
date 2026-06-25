@@ -63,17 +63,18 @@ jurisdictions) is **out of scope** — see *Out of scope* below.
 
 When the framework's structural rules need to be expressed in two
 places (executable validators *and* declarative artefacts for
-external tooling), the **Python validators are the contract of
-record**. Other artefacts are generated, consumer-facing, and may
-lag the validators.
+external tooling), the current AGF v2 contract follows the Rust
+`agov` validator surface documented in the adopter docs. Historical v1.x
+Python validators are legacy reference material, not the AGF v2 operator path.
 
 | Artefact | Status | Authoritative? |
 |---|---|---|
-| `src/agents_govern/validate_*.py` | Shipped | **Yes** — contract of record |
+| Rust `agov` validators | Shipped for current v2 checks | **Yes** — current v2 operator surface |
+| `src/agents_govern/validate_*.py` | Historical v1.x | No — legacy reference |
 | Per-artefact JavaScript Object Notation (JSON) Schema (`schemas/*.schema.json`) | **Shipped v1.1.46** ([C1]) | No — consumer-facing |
 | Cross-artefact invariant manifest (`schemas/invariants.yaml`) | **Shipped v1.1.46** ([C2]) | No — declarative summary |
 
-**Why validators win the tie.** Cross-field invariants (manifest ↔
+**Why executable validators win the tie.** Cross-field invariants (manifest ↔
 agent files, communication graph closure, append-only learning
 fields) cannot be natively expressed in JSON Schema. JSON Schema
 remains the *consumer-facing* artefact (editor integration, OPA
@@ -108,7 +109,7 @@ carry summaries pointing here.
 | 1. Artefact compliance (schema, cross-field) | **Yes** | Validator fails CI | In-framework |
 | 2a. Gate execution (did CI run?) | Partial | CI job missing or misconfigured | In-framework + CI engine |
 | 2b. Decision recording (approvals logged?) | Partial | Approval missing from artefacts | In-framework + CI engine |
-| 3. Binding (artefact ↔ execution-trace correlation) | **Yes (v1.1.45)** | Mechanically supported via UUID v7 correlation IDs (B1) + `Agent-ID:` commit trailers (B2) + `<artefact>.agov.json` sidecars / filename-suffix fallback (B3) | In-framework — [B1]–[B3] all shipped |
+| 3. Binding (artefact ↔ execution-trace correlation) | Planned/deferred in AGF v2 | UUID v7 correlation IDs (B1) + `Agent-ID:` commit trailers (B2) + `<artefact>.agov.json` sidecars / filename-suffix fallback (B3) are specified, but Rust `agov` does not yet validate them | Planned Full-tier surface |
 | 4. Runtime behaviour (agent obeyed jurisdiction?) | **No, by design** | Out-of-framework | Runtime layer's responsibility |
 
 **Reading the layers.**
@@ -122,16 +123,10 @@ carry summaries pointing here.
   reviewer-driven, not rubber-stamped?"* is reviewer-judgement,
   not mechanically verifiable.
 - **Layer 3** ties artefacts to execution traces via correlation
-  identifiers, commit trailers, and (for non-commit artefacts)
-  sidecar metadata. [B1] (UUID v7 generator) and [B2] (`Agent-ID:`
-  trailer parser / branch classifier / v1.x `agov-validate-binding`)
-  shipped in v1.1.44; the Elixir binding validator is deferred to E4. [B3]
-  (`<artefact>.agov.json` sidecar +
-  filename-suffix fallback for environments stripping non-image
-  files) shipped in v1.1.45. The umbrella `binding` capability is
-  now `true` in the [capability report](#capability-reporting). See
-  [Binding contract](binding-contract.md) for the full
-  specification.
+  identifiers, commit trailers, and sidecar metadata. In current AGF v2 this is
+  a planned/deferred Full-tier surface: the shape is specified, but Rust `agov`
+  does not yet ship binding validation. See
+  [Binding contract](binding-contract.md) for the full specification.
 - **Layer 4** is the explicit hard boundary. The framework does not
   enforce runtime behaviour — see [Position overview's boundary
   refinement](position/overview.md#boundary-refinement-2026-05-04).
@@ -154,8 +149,10 @@ not the current v2 public command surface.
 | `mix agov.dist.check_tag` | Version / tag consistency checks for release validation | Repo root or CI tag context |
 | `mix agov.dist.build` | Build the release archive | Repo root |
 
-Deferred to E4: binding validation, README statistics validation, acronym
-validation, bump, and health commands.
+Current AGF v2 status: binding validation is deferred; acronym validation,
+`agov-bump`, and `agov --capabilities` / `agov --contract-changelog` are
+retired; `agov-health` is deferred. README statistics validation is available
+as `agov validate readme-stats`.
 
 **Canonical CI invocation today** is either per-validator Mix tasks or the
 single migrated orchestrator `mix agov.validate`.
@@ -188,9 +185,8 @@ revert.
 
 ## Exit codes
 
-**Taxonomy** (defined in
-[`src/agents_govern/_exit_codes.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/_exit_codes.py)
-as of v1.1.36, available for validator and orchestrator use):
+**Taxonomy** (defined by the AGF contract and implemented by current
+validators as they adopt the richer failure modes):
 
 | Code | Meaning |
 |---|---|
@@ -280,20 +276,19 @@ worked-examples table from this release thread, the
 out), the adopter-recommendations list, and the major-release
 deprecation-cycle policy.
 
-Command Line Interface (CLI) surface — *shipped v1.1.43*:
+Command Line Interface (CLI) surface — historical v1.x:
 
 - `agov --version` — framework version (= contract version).
 - `agov --contract-version` — alias.
-- `agov --contract-changelog` — prints the framework's
-  [`CHANGELOG.md`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/CHANGELOG.md);
-  filter for entries referencing validator command names, exit
-  codes, output formats, etc. to see contract-affecting changes.
+- `agov --contract-changelog` — retired in AGF v2; use changelog/release notes
+  directly.
 
 ## Capability reporting
 
-**Shipped v1.1.43** ([A6]): `agov --capabilities` emits a JSON report.
-Today's actual output shape (run `agov --capabilities` for the live
-version):
+**Historical v1.x surface:** `agov --capabilities` emitted a JSON report.
+AGF-NG v2 retires that command; use current docs, manifests, and
+`agov validate` output for the shipped validator surface. Historical output
+shape:
 
 ```json
 {
@@ -310,16 +305,9 @@ version):
 }
 ```
 
-The `binding` flag flipped to `true` in v1.1.45 when [B3] joined
-the already-shipped [B1] and [B2]; the umbrella now covers the
-full three-leg Layer 3 contract per
-[Binding contract](binding-contract.md). The `tension_recording`
-flag flipped to `true` in v1.1.47 with [P2] (mandatory
-`category: tension` recording for cross-layer conflicts; canonical
-home at
-[Concept — Tension recording](concept/principles.md#tension-recording)).
-With both flips landed, `missing_for_full_compliance` is empty —
-the strict-contract surface is complete at v1.1.47.
+In AGF-NG v2, binding is not a current shipped Rust validator and should be
+treated as planned/deferred. Do not use the historical v1.x capability report
+to claim current v2 Full-tier support.
 
 The `missing_for_full_compliance` list is the actionable surface — it
 lists exactly the capabilities currently `False`, in declaration
@@ -348,27 +336,20 @@ as `compliance_target: process-aware` from v1.1.47 onward.
 
 ## Binding contract
 
-**Layer 3** of the verifiability model. Three issues close it; all
-three shipped across v1.1.44 and v1.1.45:
+**Layer 3** of the verifiability model. In current AGF v2, binding is a
+planned/deferred Full-tier surface rather than a shipped Rust `agov` validator.
+The v1.x line specified the three legs below:
 
 - [B1] **Correlation Identifier (ID) convention** — Universally
   Unique Identifier (UUID) v7, lifecycle owned by Governor-Reviewer,
   propagation in commit trailers and log fields and sidecar
-  metadata. **Shipped v1.1.44** as
-  [`src/agents_govern/correlation_id.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/correlation_id.py).
+  metadata.
 - [B2] **Commit trailer schema** — `Agent-ID: <agent-name>:<version>:<correlation-id>`,
-  branch-level enforcement policy. **Shipped v1.1.44** as
-  [`src/agents_govern/validate_binding.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/src/agents_govern/validate_binding.py)
-  with the v1.x `agov-validate-binding` Command Line Interface (CLI)
-  entry point. The Elixir `mix agov.validate.binding` command is deferred to
-  E4.
+  branch-level enforcement policy.
 - [B3] **Sidecar metadata + filename fallback** — `<artefact>.agov.json`
   with `correlation_id`, `agent_id`, `produced_at`, `artefact_sha256`;
   filename-suffix fallback for environments stripping non-image
-  files. **Shipped v1.1.45** as additional helpers in
-  `validate_binding.py` (`Sidecar`, `parse_sidecar`,
-  `compute_artefact_sha256`, `read_sidecar`, `verify_sidecar`,
-  `parse_filename_fallback`).
+  files.
 
 The full specification — UUID v7 format, lifecycle table, multi-
 trailer policy, branch-classification rules, sidecar JSON shape,
@@ -386,19 +367,19 @@ for the framing.
 
 | Area | Status | Issue |
 |---|---|---|
-| Validator surface | **Partially migrated to Elixir** (`mix agov.validate*`; E4 commands deferred) | — |
+| Validator surface | **Rust `agov` is current AGF v2 tooling** | — |
 | Path-based revalidation triggers | **Shipped** (in framework's own `.gitlab-ci.yml`) | [A2] |
 | Pull-based architecture commitment | **Shipped** (this page) | [A1] |
 | Schema-of-record hierarchy | **Shipped** (this page) | [A1] |
 | Five-layer verifiability model | **Shipped** (this page; canonical home) | [A1], [D4] |
 | Exit code taxonomy (5-code) | **Shipped** (defined v1.1.36; validators adopt 2/3/4 opportunistically) | [A4] |
-| `mix agov.validate` orchestrator | **Shipped in AGF-NG E3**; v1.x `agov-validate --json` remains historical context | [A3] |
+| `agov validate` orchestrator | **Shipped in AGF-NG v2 Rust tooling**; v1.x `agov-validate --json` remains historical context | [A3] |
 | JSON aggregate output | **Historical v1.x surface**; SARIF still planned | [A3] |
-| Contract versioning + stability promise | **Shipped** (v1.1.41 docs at [`contract-stability.md`](contract-stability.md); v1.1.43 CLI flags `agov --version` / `--contract-version` / `--contract-changelog`) | [A5] |
-| `agov --capabilities` report | **Shipped** (v1.1.43; JSON shape under *Capability reporting* above) | [A6] |
+| Contract versioning + stability promise | **Shipped conceptually**; `agov --contract-changelog` is retired in AGF v2 | [A5] |
+| `agov --capabilities` report | **Retired in AGF v2** | [A6] |
 | Compliance profile (3 tiers) | **Shipped** (v1.1.38; canonical home at [`adopt/compliance-profile.md`](../adopt/compliance-profile.md)) | [D5] |
-| Binding contract — correlation identifier + trailer | **Specified; Elixir validator deferred to E4** ([Binding contract](binding-contract.md)) | [B1], [B2] |
-| Binding contract — sidecar metadata + filename fallback | **Shipped v1.1.45** (`Sidecar`, `verify_sidecar`, `parse_filename_fallback`) | [B3] |
+| Binding contract — correlation identifier + trailer | **Specified; Rust validator deferred** ([Binding contract](binding-contract.md)) | [B1], [B2] |
+| Binding contract — sidecar metadata + filename fallback | **Specified; Rust validator deferred** | [B3] |
 | Per-artefact JSON Schema | **Shipped v1.1.46** ([`schemas/`](https://gitlab.com/janipaijanen/agent-governance/-/tree/main/schemas)) | [C1] |
 | Cross-artefact invariant manifest | **Shipped v1.1.46** ([`schemas/invariants.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/schemas/invariants.yaml)) | [C2] |
 | `framework.yaml` (precedence + binding config) | **Validator migrated as `mix agov.validate.framework_config`** | [P1] |

@@ -8,6 +8,14 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Changed
+
+- AGF v2 contract documentation now marks v1.x Python-only tooling surfaces as
+  retired or deferred before historical Python code removal. Binding validation
+  is explicitly deferred in current Rust `agov`; `agov-validate-acronyms`,
+  `agov-bump`, `agov --capabilities`, and `agov --contract-changelog` are
+  retired; `agov-health` remains deferred.
+
 ### Added
 
 - Root `LICENCE` file summarising the repository licence map:

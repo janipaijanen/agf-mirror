@@ -14,7 +14,7 @@
     "compliance_target": {
       "type": "string",
       "enum": ["artefact-only", "process-aware", "full"],
-      "description": "The compliance tier this adopter targets, per docs/adopt/compliance-profile.md. agov --capabilities reads this to compute missing_for_declared_target."
+      "description": "The compliance tier this adopter targets, per docs/adopt/compliance-profile.md. The current AGF v2 Rust agov framework-config validator validates the declared value."
     },
     "precedence": {
       "type": "array",
@@ -34,7 +34,7 @@
     },
     "binding": {
       "type": "object",
-      "description": "Layer 3 binding-contract configuration consumed by agov-validate-binding. See docs/binding-contract.md.",
+      "description": "Layer 3 binding-contract configuration. Binding validation is deferred in current AGF v2 tooling; see docs/binding-contract.md.",
       "properties": {
         "agent_active_branches": {
           "type": "object",
