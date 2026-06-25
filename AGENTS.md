@@ -279,7 +279,9 @@ machine-specific paths, assistant-surface quirks, current operator preferences,
 or other session-local reminders. The overlay is subordinate to this
 `AGENTS.md`, AGF rules, gate discipline, coordination records, and role
 authority. It cannot override governed instructions, and it cannot replace
-published coordination for anything another agent or human must see.
+published coordination for anything another agent or human must see. The file
+is gitignored by default; adopters may track a template or pointer separately
+if their project needs one.
 
 ### Polling timer notation
 

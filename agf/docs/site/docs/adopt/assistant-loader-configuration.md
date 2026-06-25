@@ -82,6 +82,45 @@ governor-reviewer and must be recorded in `docs/coordination/`.
 Before editing, state which AGF files you read and which gate applies.
 ```
 
+## Local cold-start overlay
+
+Some repositories need local reminders that should not become governed project
+instructions: workstation paths, current operator preferences, assistant
+surface quirks, or temporary notes about how this machine is configured. Use an
+optional repository-root `ai-cold-start.md` file for that local state.
+
+Read order:
+
+1. Read the governed loader, such as `AGENTS.md` or `CLAUDE.md`.
+2. If `ai-cold-start.md` exists at the repository root, read it as a local
+   overlay.
+3. Run the normal cold-start command, such as `agov session resume`, or run it
+   alongside the overlay read if your assistant surface makes that easier.
+
+The overlay is subordinate to governed sources. It may add local paths,
+machine quirks, current operator reminders, or assistant preferences. It must
+not override gate discipline, coordination rules, role authority, product
+scope, or any governor-reviewer decision. Anything another agent or human must
+see belongs in the shared coordination channel, not in a local overlay.
+
+The file should be gitignored by default so fresh clones do not contain local
+state. Projects may track a template or short pointer if that helps adopters,
+but the actual `ai-cold-start.md` file should remain optional and local unless
+the project deliberately chooses otherwise.
+
+Minimal example:
+
+```markdown
+# Local AI cold start
+
+- Use `/home/example/src/project` as the canonical local checkout.
+- Prefer the local release build at `tooling/rust/target/release/agov`.
+- When polling is requested, use the documented `15mins/180min` cadence.
+
+This file is local. It does not override AGF gates, coordination records,
+role authority, or governor-reviewer decisions.
+```
+
 ## Optional polling timer guidance
 
 Some teams ask assistants to poll for coordination or merge-request activity
