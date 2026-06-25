@@ -4,6 +4,11 @@
 
 [![Cite this repository](https://img.shields.io/badge/cite-CITATION.cff-blue)](CITATION.cff)
 
+> **AGF-NG checkout note:** this directory is retained as historical
+> agents-govern 1.x reference material. The Python package sources and
+> `uv run agov-*` entry points have been removed from AGF-NG; use the
+> repo-local Rust launcher at `../tooling/agov` for current project work.
+
 A governance framework for multi-agent Artificial Intelligence (AI)
 systems in software development.
 

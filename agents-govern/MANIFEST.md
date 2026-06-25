@@ -1,5 +1,10 @@
 # agents-govern 1.1.50
 
+> **AGF-NG checkout note:** this manifest describes the historical
+> agents-govern 1.x reference bundle. AGF-NG no longer ships the Python
+> package sources or `uv run agov-*` entry points; current project work uses
+> the repo-local Rust launcher at `../tooling/agov`.
+
 ## Provenance
 
 | Field | Value |
@@ -23,7 +28,7 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 | `skills/` | AI assistant workflows (upgrade, learning, infosec) | Copy to `.claude/skills/`, customize (optional) |
 | `project-specific-examples/` | Stack-specific rule examples | Copy if stack matches |
 | `schemas/` | Strict-contract JSON Schemas and invariants | Use for validation and integration checks |
-| `scripts/generate-schemas.py` | Schema regeneration helper | Use when maintaining schema artefacts |
+| `scripts/generate-schemas.py` | Historical schema regeneration helper | Removed in AGF-NG; use current Rust tooling and schema sources |
 | `learnings/foundry.yaml` | Upstream learning records (framework evidence) | Read-only reference; replaced on upgrade |
 | `learnings/_template.yaml` | Learning record template | Copy to `learnings/<codename>.yaml` |
 | `learnings/.adopter-mapping.example` | Codename mapping format | Keep private (see anonymization policy) |
@@ -40,7 +45,7 @@ framework. See [ADOPTING.md](ADOPTING.md) for the step-by-step adoption guide.
 | `docs/adopt/compliance-profile.md` | Compliance target definitions | Use to choose adoption depth |
 | `docs/ANONYMIZATION-NOTICE.md` | Anonymization policy details | Read before submitting learnings |
 | `docs/adr/` | Architecture decision records | Informational |
-| `pyproject.toml` + `src/agents_govern/` | CLI tools (`uv run agov-*`) | Validation, bumping, health check |
+| `pyproject.toml` + `src/agents_govern/` | Historical Python CLI tools | Removed in AGF-NG; use repo-local Rust `tooling/agov` |
 | `.pre-commit-config.yaml` | Pre-commit hook config | Optional: `pre-commit install` |
 | `CONTRIBUTING.md` | Contribution guidelines | Read before submitting |
 | `CODE_OF_CONDUCT.md` | Community standards | Read-only reference |
