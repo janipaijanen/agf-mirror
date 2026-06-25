@@ -1,33 +1,26 @@
-# docs+rules: address learning backlog batch 3
+# docs: implement deferred #17 proposals #6 and #8
 
-Branch: `docs/adopting-template-rule-fixes`
+Branch: `docs/deferred-17-proposals`
 
 ## Summary
 
-Six learning records moved to `status: implemented` by making the
-recommended concrete changes.
+Two deferred improvement proposals from external reviewer (GitLab issue #17),
+tracked in learning `20260624T214609Z-30gz`, now implemented.
 
-| Learning ID | Change |
+| Proposal | Change |
 |---|---|
-| L008 | `branch-and-worktree-rule.md` — "immediately before" sharpened to mean same command group as `git add`/`git commit`, not earlier in session/turn |
-| L018 | `branch-and-worktree-rule.md` — added branch-watch ownership protocol: who files notes when polling, passive/primary watcher distinction, handoff requirement |
-| `20260621T084922Z` | `learning-record.yaml` template — added `id` field example with timestamp format |
-| `20260623T114300Z-rjka` | `learning-record.yaml` template — same fix (both learnings point at the template) |
-| `20260624T065744Z-k7m2` | `ADOPTING.md` §6.3 — explicit statement that `agf/learnings/` is adopter-owned evidence; must survive tarball syncs |
-| `20260624T104500Z-rp3h` | `ADOPTING.md` §0.1 — artifact naming warning: reserve `agf-*`/`agov-*` prefixes for framework files; use domain-first names for adopter artifacts |
+| #6 — Miniature coordination thread example | `coordination-protocol.md` — four concrete file snippets showing a Gate 1 plan, decision-record approval, Gate 2 handoff, and completion, forming a complete navigable chain |
+| #8 — Configuration drift review step | `ADOPTING.md` §6.4 — four-area drift checklist added after the "Audit upstream changes on upgrade" block: agent definition divergence, rule customization points, skill source paths, schema version |
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/rules/workflow/branch-and-worktree-rule.md` | L008 + L018 |
-| `agf/templates/learning-record.yaml` | `id` field with timestamp format |
-| `agf/ADOPTING.md` | Learning register preservation + artifact prefix warning |
-| `agf/learnings/foundry.yaml` | Six status: proposed → implemented |
+| `agf/docs/site/docs/concepts/coordination-protocol.md` | Miniature example thread section |
+| `agf/ADOPTING.md` | Configuration drift review on upgrade |
 
 ## Review checklist
 
-- [ ] `agov validate learnings` passes (pre-existing WARNs on bare-timestamp IDs are expected)
-- [ ] Rule change preserves MUST-strength with sharpened semantics, not weakened
-- [ ] ADOPTING.md additions are additive; no existing guidance contradicted
+- [ ] Example thread IDs are plausible timestamp format (not `COORD-YYYYMMDD`)
+- [ ] Drift checklist is accurate and actionable
 - [ ] No `Co-authored-by` trailers in commit
