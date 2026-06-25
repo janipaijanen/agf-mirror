@@ -294,10 +294,19 @@ release:create:
 agov:governance:validate:
   extends: .rust-base
   stage: test
-  before_script: []
   script:
     - |
       set -eu
+
+      # Build agov from source using provenance env vars set by .rust-base before_script.
+      # This avoids stale cached binaries carrying incorrect dirty/unknown provenance.
+      # .rust-base before_script has already cd'd to tooling/rust.
+      cargo build --quiet --release -p agov
+      agov_bin="$PWD/target/release/agov"
+      echo "agov: $($agov_bin --version)"
+
+      # Return to repo root for git operations.
+      cd "$CI_PROJECT_DIR"
 
       if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ] && [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_SHA:-}" ]; then
         base="$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"
@@ -318,9 +327,9 @@ agov:governance:validate:
       git rev-parse --verify "$base^{commit}" >/dev/null
 
       git diff --name-only -z "$base"...HEAD -- 'docs/coordination/*.md' \
-        | xargs -0r ./tooling/agov coord validate
+        | xargs -0r "$agov_bin" coord validate
       git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
-        | xargs -0r ./tooling/agov plan validate
+        | xargs -0r "$agov_bin" plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
