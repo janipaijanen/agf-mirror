@@ -1,46 +1,48 @@
-# docs: add comparisons section to position page and contribute guide
+# fix: validate upstream learning packets
 
-Branch: `docs/contribute-and-comparisons`
+Branch: `fix/upstream-learning-validation-ci-docs`
 
 ## Summary
 
-Two additions from the v1.x docs review (coordination `20260625T060132Z-planner-architect-k82k`,
-reviewed and prioritised by Codex in `20260625T062351Z-coder-tester-j6t4`):
+Addresses GitLab issues `#18` and `#19` from upstream-submittable adopter
+learning records.
 
-| Change | File |
+| Issue | Disposition |
 |---|---|
-| New section: "How AGF relates to other frameworks" + Mermaid figure | `agf/docs/site/docs/concepts/position.md` |
-| New page: Contribute (three upstream paths) | `agf/docs/site/contribute.md` |
-| Nav entry: Contribute | `agf/docs/build/mkdocs.yml` |
-| Docs index entry: Contribute | `agf/docs/site/docs/index.md` |
+| `#18` CI OCI image learning | Ingested as learning `20260625T071500Z-c1im`; documented current status that release archives are supported and an official OCI image is a proposed future distribution improvement. |
+| `#19` validation prerequisites learning | Ingested as learning `20260625T072500Z-svch`; implemented explicit-file learning validation and documented it. |
 
-## Content
+## Changes
 
-### Position page addition
+- Adds both learning records to `agf/learnings/foundry.yaml`.
+- Adds `agov validate learnings <file-or-dir>...` for validating
+  upstream-submittable learning packets outside the default `agf/learnings/`
+  register.
+- Adds a regression test for explicit learning file validation.
+- Updates contracts/validators docs, adopter FAQ, and environment-variable
+  reference.
+- Files a Gate 2 handoff:
+  `docs/coordination/20260625T072349Z-coder-tester-shad.md`.
 
-"How AGF relates to other frameworks" — Mermaid diagram showing how
-agents-govern relates to: agent runtimes (governs), CI/CD (provides
-audit artifacts), SDLC governance (narrower scope within), ML governance
-(different axis), AI policy/ethics (implemented within). Four brief
-paragraphs covering each category.
+## Validation
 
-### Contribute page
+```
+cargo test --manifest-path tooling/rust/Cargo.toml
+cargo test --manifest-path tooling/rust/Cargo.toml -p agov --test validate
+./tooling/agov validate
+./tooling/agov validate infosec
+./tooling/agov validate learnings agf/learnings/foundry.yaml
+git diff --check
+```
 
-Three upstream contribution paths with thresholds:
+Known warnings:
 
-1. **Submit a learning** — single-adopter acceptable; file an issue
-2. **Propose a rule** — Provisional by default (1 adopter); Recommended
-   requires 2+ independent corroboration
-3. **Propose an agent** — 2+ adopter evidence required; propose a rule
-   first if single-adopter
+- Existing bare timestamp learning IDs in historical records.
+- Existing .claude/rules assistant drift warning.
 
-Anonymization requirement, independent-adopter evidence gaps, links to
-Evidence and learnings and the framework issue tracker.
+## Review Checklist
 
-## Review checklist
-
-- [ ] Mermaid diagram in position page renders (flowchart LR with dotted edges)
-- [ ] Position page comparisons text is accurate and does not overclaim
-- [ ] Contribute page evidence thresholds match framework rules
-- [ ] Nav entry appears at top level between Documentation and Evolution
-- [ ] No Co-authored-by trailers in commits
+- [x] Gate 2 decision: 20260625T074918Z-governor-reviewer-qq17.md — APPROVED.
+- [ ] agov validate learnings <file> behavior is acceptable for issue #19.
+- [ ] OCI-image wording for issue #18 is clearly framed as not shipped yet.
+- [ ] Learning records preserve anonymization and evidence discipline.
