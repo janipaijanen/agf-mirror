@@ -1,48 +1,56 @@
-# fix: validate upstream learning packets
+# fix: agov:governance:validate builds agov fresh to ensure clean CI provenance
 
-Branch: `fix/upstream-learning-validation-ci-docs`
+Branch: `fix/agov-ci-provenance`
 
-## Summary
+## Problem
 
-Addresses GitLab issues `#18` and `#19` from upstream-submittable adopter
-learning records.
+`agov:governance:validate` used `before_script: []` which bypassed the
+`.rust-base` before_script that sets `AGOV_BUILD_COMMIT` and
+`AGOV_BUILD_DIRTY`. The job ran `./tooling/agov` (a shell dispatcher)
+which preferred a pre-built binary from the Cargo cache. If that cached
+binary had stale or dirty provenance (built from a local working tree
+with uncommitted changes), it would show `(unknown dirty)` in CI pipeline
+logs — making it impossible to audit which commit produced the binary.
 
-| Issue | Disposition |
-|---|---|
-| `#18` CI OCI image learning | Ingested as learning `20260625T071500Z-c1im`; documented current status that release archives are supported and an official OCI image is a proposed future distribution improvement. |
-| `#19` validation prerequisites learning | Ingested as learning `20260625T072500Z-svch`; implemented explicit-file learning validation and documented it. |
+Root cause path:
+1. A previous build (local or CI) cached `tooling/rust/target/release/agov`
+   with incorrect provenance.
+2. `agov:governance:validate` with `before_script: []` skipped the env
+   var setup, so `cargo run` fallback also lacked the vars.
+3. The cached dirty binary was used directly by subsequent jobs.
 
-## Changes
+## Fix
 
-- Adds both learning records to `agf/learnings/foundry.yaml`.
-- Adds `agov validate learnings <file-or-dir>...` for validating
-  upstream-submittable learning packets outside the default `agf/learnings/`
-  register.
-- Adds a regression test for explicit learning file validation.
-- Updates contracts/validators docs, adopter FAQ, and environment-variable
-  reference.
-- Files a Gate 2 handoff:
-  `docs/coordination/20260625T072349Z-coder-tester-shad.md`.
+`.gitlab-ci.yml` — `agov:governance:validate`:
 
-## Validation
+- Removed `before_script: []` override; `.rust-base` before_script now
+  runs, setting `AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"` and
+  `AGOV_BUILD_DIRTY=false` before the job script executes.
+- Job script builds `agov` from source first (`cargo build --release -p
+  agov`). With the Cargo cache warm, this is a relink-only operation.
+  Build flags are set correctly by the env vars.
+- Uses the freshly-built binary directly via absolute path captured
+  before `cd "$CI_PROJECT_DIR"`.
+- CI logs now show `agov: <version> (<commit> clean)` at job start.
+
+## Gate self-test (negative case)
 
 ```
-cargo test --manifest-path tooling/rust/Cargo.toml
-cargo test --manifest-path tooling/rust/Cargo.toml -p agov --test validate
-./tooling/agov validate
-./tooling/agov validate infosec
-./tooling/agov validate learnings agf/learnings/foundry.yaml
-git diff --check
+$ AGOV_BUILD_COMMIT="a0fd82e3f1d1" AGOV_BUILD_DIRTY="false" \
+  cargo build --release -p agov --manifest-path tooling/rust/Cargo.toml --quiet
+$ tooling/rust/target/release/agov --version
+agov 2.2.4 (a0fd82e3f1d1 clean)
 ```
 
-Known warnings:
+If `AGOV_BUILD_DIRTY=true` were set, the output would show `dirty`.
+The fix ensures `AGOV_BUILD_DIRTY=false` is set by `.rust-base` before
+the build runs.
 
-- Existing bare timestamp learning IDs in historical records.
-- Existing .claude/rules assistant drift warning.
+## Review checklist
 
-## Review Checklist
-
-- [x] Gate 2 decision: 20260625T074918Z-governor-reviewer-qq17.md — APPROVED.
-- [ ] agov validate learnings <file> behavior is acceptable for issue #19.
-- [ ] OCI-image wording for issue #18 is clearly framed as not shipped yet.
-- [ ] Learning records preserve anonymization and evidence discipline.
+- [ ] `.rust-base` before_script sets env vars before `cargo build` (lines 42-45).
+- [ ] `cargo build --release -p agov` runs from `tooling/rust` (cwd after `.rust-base` cd).
+- [ ] `$agov_bin` is absolute; `cd "$CI_PROJECT_DIR"` doesn't break it.
+- [ ] `xargs -0r "$agov_bin" coord validate` runs from repo root.
+- [ ] Path-scoped rules are unchanged.
+- [ ] Gate 2 handoff: 20260625T080054Z-planner-architect-ajr1.md

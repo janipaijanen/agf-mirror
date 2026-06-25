@@ -273,15 +273,15 @@ Cold-start rule for humans and AI agents: use one command in two steps. First,
 run `agov session resume` without `--role` to get the project map. Then
 rerun the same command with the role you are actually playing.
 
-After reading this file, agents SHOULD check whether a repository-root
-`ai-cold-start.md` file exists. If it exists, read it as a local overlay for
-machine-specific paths, assistant-surface quirks, current operator preferences,
-or other session-local reminders. The overlay is subordinate to this
-`AGENTS.md`, AGF rules, gate discipline, coordination records, and role
-authority. It cannot override governed instructions, and it cannot replace
-published coordination for anything another agent or human must see. The file
-is gitignored by default; adopters may track a template or pointer separately
-if their project needs one.
+After reading this file and before running `agov session resume`, agents
+MUST check whether a repository-root `ai-cold-start.md` file exists. If it
+exists, read it as a local overlay for machine-specific paths, assistant-surface
+quirks, current operator preferences, or other session-local reminders. The
+overlay is subordinate to this `AGENTS.md`, AGF rules, gate discipline,
+coordination records, and role authority. It cannot override governed
+instructions, and it cannot replace published coordination for anything another
+agent or human must see. The file is gitignored by default; adopters may track
+a template or pointer separately if their project needs one.
 
 ### Polling timer notation
 
