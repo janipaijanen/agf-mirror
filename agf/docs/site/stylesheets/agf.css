@@ -59,3 +59,34 @@
     font-size: 0.48rem;
   }
 }
+
+.agf-dossier-cover {
+  min-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.agf-dossier-cover > h1:first-child {
+  margin-top: 0;
+}
+
+.agf-dossier-marker {
+  margin: 0.8rem 0 1rem;
+  padding: 0.35rem 0.55rem;
+  border-left: 0.18rem solid var(--agf-blue-mid);
+  background: color-mix(in srgb, var(--agf-blue-light) 18%, transparent);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+@media print {
+  .agf-dossier-cover {
+    min-height: 90vh;
+    break-after: page;
+  }
+
+  .agf-dossier-page-break {
+    break-after: page;
+  }
+}
