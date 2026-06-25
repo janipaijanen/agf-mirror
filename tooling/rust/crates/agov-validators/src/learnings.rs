@@ -1,7 +1,7 @@
 use crate::{split_results, validate_schema, yaml_files, CollectionResult};
 use agov_core::Finding;
 use regex::Regex;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const CONFIDENCE_LEVELS: &[&str] = &[
     "single-adopter",
@@ -19,8 +19,20 @@ const SUFFIXED_TIMESTAMP_ID: &str = r#"^\d{8}T\d{6}Z-[a-z0-9]{4}$"#;
 /// Mirrors `Agov.ValidateLearnings.validate_all/1`. Each file is validated
 /// against `learning.schema.json`.
 pub fn validate_all(dir: &Path) -> CollectionResult {
-    let results = learning_files(dir)
-        .into_iter()
+    validate_paths(&[dir.to_path_buf()])
+}
+
+/// Validate learning records from explicit files or directories.
+pub fn validate_paths(paths: &[PathBuf]) -> CollectionResult {
+    let results = paths
+        .iter()
+        .flat_map(|path| {
+            if path.is_dir() {
+                learning_files(path)
+            } else {
+                vec![path.to_path_buf()]
+            }
+        })
         .map(|file| {
             let result = validate_file(&file);
             (file, result)
@@ -41,7 +53,7 @@ fn learning_files(dir: &Path) -> Vec<std::path::PathBuf> {
         .collect()
 }
 
-fn validate_file(path: &Path) -> Result<serde_json::Value, Vec<Finding>> {
+pub fn validate_file(path: &Path) -> Result<serde_json::Value, Vec<Finding>> {
     let data = crate::read_yaml_file(path)?;
     let mut errors = validate_schema(&data, "learning.schema.json")
         .into_iter()
