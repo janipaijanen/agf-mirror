@@ -14,11 +14,17 @@ backed by governed artifacts.
 1. Run `agov session resume --base-branch main`.
 2. Choose the role you are actually playing.
 3. Run `agov session resume --role <role> --base-branch main`.
-4. Check `agov coord status --recent 20 --roles` or the relevant graph/index
+4. If repository-root `ai-cold-start.md` exists, read it as a local overlay.
+5. Check `agov coord status --recent 20 --roles` or the relevant graph/index
    view when available.
-5. Read pending handoffs, must-read files, and recent decisions before editing.
-6. If Git transport is stale or broken, use the GitLab/API source of truth and
+6. Read pending handoffs, must-read files, and recent decisions before editing.
+7. If Git transport is stale or broken, use the GitLab/API source of truth and
    say that you did.
+
+The local overlay is for workstation/session reminders only. It must not
+override `AGENTS.md`, AGF rules, gate discipline, coordination records, or role
+authority, and it must not carry obligations that another agent is expected to
+discover through the coordination channel.
 
 When the coordination channel is large, run `agov coord graph-index` after
 `coord status`. Treat `pending` as the first handoff queue to inspect, and use
@@ -39,13 +45,17 @@ Do not leave the human as the dispatcher for messages your role can see.
 
 ## Keep The Audit Trail Honest
 
-Coordination messages count only when they are visible to other agents through
-the shared remote. A local file or local commit is draft state.
+Coordination messages count only when they are visible to the intended
+recipient through the shared remote, an approved shared path, or a visible
+bridge note that names where to read them. A local file, untracked file, or
+local-only commit is draft state.
 
 - Validate coordination messages before publishing them.
 - Commit and push, or publish through an approved API path.
 - Verify the record is visible on the branch or MR where the recipient will
   look.
+- If the recipient needs to act, tell them the coordination ID, branch, or MR
+  where the record is visible.
 - Do not put mutable generated indexes inside `docs/coordination/`.
 
 ## Preserve Design Boundaries

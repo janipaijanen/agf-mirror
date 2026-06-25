@@ -117,6 +117,13 @@ that led to them. Other agents and the human read it asynchronously — write
 entries so that a cold-starting agent can reconstruct what happened and why,
 without relying on session memory.
 
+**Visibility rule:** A coordination message addressed to another agent or human
+is not complete when it merely exists on disk. It must pass validation and be
+made visible where the recipient is expected to read it: committed and pushed to
+a shared branch, published through an approved shared path, or paired with a
+visible bridge note that names the branch/MR containing the record. Local files,
+untracked files, and local-only commits are draft state for inter-agent work.
+
 ---
 
 ## Learning record IDs
@@ -265,6 +272,14 @@ Rust is the default operator path for supported commands:
 Cold-start rule for humans and AI agents: use one command in two steps. First,
 run `agov session resume` without `--role` to get the project map. Then
 rerun the same command with the role you are actually playing.
+
+After reading this file, agents SHOULD check whether a repository-root
+`ai-cold-start.md` file exists. If it exists, read it as a local overlay for
+machine-specific paths, assistant-surface quirks, current operator preferences,
+or other session-local reminders. The overlay is subordinate to this
+`AGENTS.md`, AGF rules, gate discipline, coordination records, and role
+authority. It cannot override governed instructions, and it cannot replace
+published coordination for anything another agent or human must see.
 
 Legacy Elixir sources remain in `tooling/elixir/` as reference material. Do
 not use them for routine agent work, cold start, validation, release-page

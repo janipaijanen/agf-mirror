@@ -120,15 +120,18 @@ See also `docs/reference/agent-cold-start-habits.md` for the companion habits:
 start from governed evidence, treat timers as intake, keep generated indexes out
 of the immutable coordination trail, and leave the next agent a durable handle.
 
-### Coordination Visibility And L009
+### Coordination Visibility
 
-L009 is the governing lesson for branch-local coordination warnings:
-coordination messages that create an obligation for another agent or human must
-be visible on the branch the recipient is expected to poll, or immediately
-paired with a bridge note on that branch.
+L009 is the governing lesson for branch-local coordination warnings. Learning
+`20260625T063214Z-dpd3` adds the publication rule for local/untracked
+coordination files: coordination messages that create an obligation for another
+agent or human must be visible where the recipient is expected to poll, or
+immediately paired with a visible bridge note that names where to read them.
 
 That means:
 
+- an untracked coordination file is not a completed reply;
+- a local-only coordination commit is not a completed reply for another agent;
 - a Gate 2 handoff written only on a feature branch is not enough when the
   governor-reviewer is polling `master`;
 - a cross-agent review request written only on a side branch is not enough when
@@ -138,7 +141,10 @@ That means:
 
 When `session.resume` reports coordination files present only on the current
 branch, decide whether they create an obligation. If they do, file a visible
-bridge note before waiting for the recipient to act.
+bridge note before waiting for the recipient to act. When you create a new
+coordination reply for another agent, the done condition is: file exists,
+validates, is committed or otherwise published to a shared place, and the
+recipient can identify where to read it.
 
 ## How Humans Should Use The Output
 
