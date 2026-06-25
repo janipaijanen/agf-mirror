@@ -103,4 +103,5 @@ nav:
       - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
       - Disclaimer: reference/disclaimer.md
+  - Contribute: contribute.md
   - Evolution: future/evolution.md
