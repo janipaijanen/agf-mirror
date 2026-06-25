@@ -8,6 +8,12 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.2.5] - 2026-06-25
+
+This patch release completes AGF-NG's transition away from historical
+agents-govern 1.x Python tooling and records the repository-level metadata
+needed for the current Rust-only operator path.
+
 ### Changed
 
 - AGF v2 contract documentation now marks v1.x Python-only tooling surfaces as
