@@ -16,6 +16,12 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   `agov-bump`, `agov --capabilities`, and `agov --contract-changelog` are
   retired; `agov-health` remains deferred.
 
+### Removed
+
+- Historical agents-govern 1.x Python package sources and package metadata are
+  removed from `agents-govern/`; Rust `tooling/agov` is the only supported
+  AGF-NG operator tooling.
+
 ### Added
 
 - Root `LICENCE` file summarising the repository licence map:

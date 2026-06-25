@@ -2,6 +2,12 @@
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Adopting the Governance Framework
 
+> **AGF-NG checkout note:** this document is historical agents-govern 1.x
+> reference material inside AGF-NG. Commands that use `uv run agov-*` refer
+> to the old Python package, which is no longer shipped in this checkout.
+> Current AGF-NG tooling uses the repo-local Rust launcher at
+> `../tooling/agov`.
+
 Concrete steps for applying this framework to an existing software project.
 Follow in order. Each step has a defined output — do not skip to the next
 step until the output exists.

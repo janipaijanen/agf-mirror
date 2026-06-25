@@ -13,6 +13,11 @@ distribution.
   `agov-validate-acronyms`, `agov-bump`, `agov --capabilities`, and
   `agov --contract-changelog` are retired; `agov-health` remains deferred.
 
+### Removed
+
+- Historical agents-govern 1.x Python package sources and package metadata are
+  removed from the repository. Current AGF v2 operation uses Rust `agov`.
+
 ## [2.2.4] — 2026-06-24
 
 ### Removed
