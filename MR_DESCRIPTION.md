@@ -1,26 +1,31 @@
-# docs: implement deferred #17 proposals #6 and #8
+# docs: add position page — AGF and agent runtimes
 
-Branch: `docs/deferred-17-proposals`
+Branch: `docs/position-page`
 
 ## Summary
 
-Two deferred improvement proposals from external reviewer (GitLab issue #17),
-tracked in learning `20260624T214609Z-30gz`, now implemented.
+Adds a new Concepts page explaining how AGF relates to agent runtimes
+and orchestrators. The centrepiece is the "Concrete relationship" diagram
+from the v1.x public documentation — governance on the left, runtime on
+the right, with "constrains" and "feeds" arrows between them — which
+the governor identified as the clearest single visual for this concept.
 
-| Proposal | Change |
+| Change | File |
 |---|---|
-| #6 — Miniature coordination thread example | `coordination-protocol.md` — four concrete file snippets showing a Gate 1 plan, decision-record approval, Gate 2 handoff, and completion, forming a complete navigable chain |
-| #8 — Configuration drift review step | `ADOPTING.md` §6.4 — four-area drift checklist added after the "Audit upstream changes on upgrade" block: agent definition divergence, rule customization points, skill source paths, schema version |
+| New page: AGF and agent runtimes | `agf/docs/site/docs/concepts/position.md` |
+| Nav entry added | `agf/docs/build/mkdocs.yml` |
+| Docs index entry added | `agf/docs/site/docs/index.md` |
 
-## Files changed
+## Content
 
-| File | Change |
-|---|---|
-| `agf/docs/site/docs/concepts/coordination-protocol.md` | Miniature example thread section |
-| `agf/ADOPTING.md` | Configuration drift review on upgrade |
+- Mermaid diagram (Orchestrator runtime ↔ agents-govern governance)
+- Core framing: "The orchestrator runs agents. AGF says which agents exist, what they may do, and which gates they pass through."
+- Per-tool notes: Claude Code (reference integration), Codex CLI, Cursor/Windsurf, LangGraph/CrewAI/AutoGen
+- "What AGF does not do" — explicit scope boundary
 
 ## Review checklist
 
-- [ ] Example thread IDs are plausible timestamp format (not `COORD-YYYYMMDD`)
-- [ ] Drift checklist is accurate and actionable
-- [ ] No `Co-authored-by` trailers in commit
+- [ ] Mermaid diagram syntax is valid (flowchart TB with subgraphs and dotted edges)
+- [ ] Per-tool notes are accurate and do not overclaim
+- [ ] Nav entry appears in Concepts section after Evidence and learnings
+- [ ] No Co-authored-by trailers in commits
