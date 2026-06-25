@@ -5,6 +5,13 @@ distribution.
 
 ## [Unreleased]
 
+## [2.2.5] — 2026-06-25
+
+This patch release completes the historical Python tooling removal sequence
+after the Rust `agov` path became the only supported AGF v2 operator tooling.
+It also ships follow-up documentation and schema alignment for deferred or
+retired Python-only surfaces.
+
 ### Changed
 
 - Contract and schema documentation now mark v1.x Python-only tooling surfaces
