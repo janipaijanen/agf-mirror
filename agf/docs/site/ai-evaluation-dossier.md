@@ -26,6 +26,14 @@ header.</p>
 pages or files, separate shipped capabilities from roadmap, and state
 uncertainty.</p>
 
+<p><strong>AI navigation layer:</strong> this dossier is crafted for AI
+evaluation. Flow markers such as <code>Flow 04.03</code> and generated source
+anchors such as <code>dossier-source-docs-concepts-roles-and-gates</code> exist
+only in this dossier page. They do not exist in the original source pages. When
+making substantive claims, cite the original source path shown in the marker,
+then use the Flow marker only as a navigation aid inside this single-page
+dossier.</p>
+
 </section>
 
 <div class="agf-dossier-page-break"></div>
@@ -159,6 +167,12 @@ free GitLab account is required to create an issue.
 
 <p class="agf-dossier-marker"><strong>Flow 02</strong> / planned structure:
 this dossier page</p>
+
+!!! note "Flow markers are AI-only navigation"
+    The Flow numbers below are a dossier-specific reading order for AI
+    evaluators. They are not original page numbers, original headings, or source
+    text. The `Source basis` column names the underlying documentation files to
+    cite when making claims.
 
 | Flow | Section | Source basis | Purpose |
 |---|---|---|---|
