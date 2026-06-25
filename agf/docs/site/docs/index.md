@@ -71,7 +71,13 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 - [Tooling conformance](../reference/tooling-conformance.md) — how the
   `agf` command surface remains language-neutral as implementations evolve.
 
-### 6. Evolution — explicitly non-binding
+### 6. Contribute
+
+- [Contribute](../contribute.md) — three paths for feeding evidence back:
+  submit a learning, propose a rule, propose an agent. Evidence thresholds,
+  anonymization requirement, and independent-adopter gaps.
+
+### 7. Evolution — explicitly non-binding
 
 - [Where v2 could evolve](../future/evolution.md) — hypotheses under
   consideration, labelled as such. Nothing on that page is a commitment.

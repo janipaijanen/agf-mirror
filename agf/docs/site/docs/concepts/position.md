@@ -103,6 +103,44 @@ AGF governance around the library (plan before building the graph,
 review before deploying it) rather than embedding AGF inside the
 agent execution loop.
 
+## How AGF relates to other frameworks
+
+AGF occupies a specific niche. Understanding where it sits relative to
+adjacent categories prevents both over-scoping and under-scoping what
+adoption delivers.
+
+```mermaid
+flowchart LR
+    AGF["agents-govern\nRoles · Gates · Coordination · Learning"]
+
+    AGF -."governs agents running on".-> ORC["Agent runtimes\nClaude Code · Codex CLI · Cursor\nLangGraph · CrewAI · AutoGen"]
+    AGF -."audit artifacts consumed by".-> CI["CI/CD pipelines\nBuild · Test · Deploy"]
+    AGF -."narrower scope within".-> SDLC["SDLC governance\nChange management · Release policy"]
+    AGF -."different axis from".-> ML["ML governance\nModel cards · Dataset provenance\nBias audits"]
+    AGF -."implemented within".-> AIP["AI policy & ethics\nResponsible AI principles\nRegulatory compliance"]
+```
+
+**vs SDLC governance.** SDLC governance covers the full software delivery
+lifecycle. AGF covers the agent-specific slice: which AI agents exist,
+what they may decide, how evidence is captured. Adopters already under
+SDLC governance add AGF within that umbrella; AGF does not replace it.
+
+**vs CI/CD.** CI/CD pipelines execute builds, tests, and deployments.
+AGF generates artifacts (coordination records, learning records,
+validation outputs) that CI consumes as quality gates. The pipeline
+enforces; AGF governs what goes into it.
+
+**vs ML governance.** ML governance covers models — training data
+provenance, bias audits, model cards, deployment approval. AGF covers
+the agents that may *use* those models. The two are complementary and
+operate at different levels; both may apply to the same project.
+
+**vs AI policy and ethics frameworks.** Policy frameworks set principles
+at an organisational or regulatory level. AGF implements specific
+operational mechanisms — written role boundaries, gate records, audit
+trails — within those principles. Policy sets the ceiling; AGF is one
+implementation below it.
+
 ## What AGF does not do
 
 AGF does not:
