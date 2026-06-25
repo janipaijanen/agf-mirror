@@ -87,12 +87,25 @@ When working alongside a human IDE user, the IDE can switch the working tree bra
 
 To prevent silent collisions:
 
-1. **Always run `git branch --show-current` immediately before any commit, push, force-push, or branch-rewrite operation.** The cost is one tool call; the cost of getting it wrong is a force-push to the user's branch.
+1. **Always run `git branch --show-current` immediately before any commit, push, force-push, or branch-rewrite operation.** "Immediately before" means in the same command group as the `git add`/`git commit` — not earlier in the session or turn. An earlier check satisfies the rule mentally while the state can change between check and commit. The cost is one tool call; the cost of getting it wrong is a commit landing on the wrong branch.
 2. **If the current branch differs from the intended one, stop and investigate before correcting.** Do not `git reset --hard` the surprise away — it might represent the user's in-progress IDE work.
 3. **When force-push is the right fix, use `--force-with-lease`, never `--force`.** With-lease aborts cleanly if the remote has moved, which is a better failure mode than overwriting unseen commits.
 4. **If a wayward commit has reached origin on the wrong branch, recovery is: cherry-pick to the intended branch, then `--force-with-lease` to roll back the wrong branch.** Do not leave the polluted branch in place hoping the next merge will sort it out.
 
 This subsection is **MUST**-strength for any adopter using AI coding assistants alongside IDE work. **MAY** for human-only workflows where IDE-vs-agent collisions cannot occur.
+
+### Multi-agent branch-watch ownership
+
+When more than one agent is running coordination polling loops, branch-watch state must be explicit. Silent divergence — two agents each confident they are watching the right branch, neither aware of the other — causes missed messages and duplicated effort.
+
+When an agent starts or changes a polling timer:
+
+- File a coordination `kind: note` recording: branch being watched, polling interval, expected duration, and agent role (the watcher).
+- Mark additional watchers as passive in their own notes; only one agent per branch should be the named primary watcher.
+- Every "no new coordination" status reply must name the branch checked, so the absence claim is unambiguous.
+- When handing off to another agent, include the branch-watch note in the handoff so the new agent knows what was being watched and why.
+
+Without this record, another agent or the human cannot know whether a "nothing to do" reply reflects a complete scan or a scan of the wrong branch.
 
 ## Pre-push gate
 

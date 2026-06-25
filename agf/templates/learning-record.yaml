@@ -14,7 +14,8 @@ adoption:
   upgrade_history: []
 
 learnings:
-  - date: "2026-06-14"
+  - id: "20260614T120000Z-xxxx"   # YYYYMMDDThhmmssZ-<4-char-random>; generate with: agov coord brief --id-format readable | head -1
+    date: "2026-06-14"
     category: adoption-friction
     scope: project
     title: agf-commissioning-completed

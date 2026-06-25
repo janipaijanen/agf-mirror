@@ -133,7 +133,7 @@ learnings:
       active, passive, or handed off. A later agent can then decide whether to
       keep, move, or stop a timer without relying on session memory.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Add a lightweight branch-watch protocol to coordination guidance. When an
       agent starts or changes a polling timer, it should record the branch,
@@ -338,7 +338,7 @@ learnings:
       "learning entries must not be sequential, but also time-based as the
       coordination ids are. Reason: prevent id conflicts."
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Replace all sequential L-number learning IDs with timestamp IDs in the
       format YYYYMMDDThhmmssZ, matching the coordination channel convention.
@@ -567,7 +567,7 @@ learnings:
       Coordination IDs already solved the same class of problem by adding
       random entropy. Learning records need the same operational discipline.
     framework_impact: high
-    status: proposed
+    status: implemented
     recommendation: >
       Update framework guidance, learning skills, templates, and validators so
       new learning records use `YYYYMMDDThhmmssZ-<4-char-random>` or an
@@ -785,7 +785,7 @@ learnings:
       itself. The total adoption judgment was approximately: preserve learnings/,
       allow everything else to change.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Make learning-register preservation explicit in ADOPTING.md upgrade guidance.
       State that adopter-local files under agf/learnings/ are evidence and MUST be
@@ -850,7 +850,7 @@ learnings:
       - governor-reviewer
     framework_section: "adopter artifact naming; ADOPTING.md; agf/templates/"
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Adopter guidance and templates should warn against using the framework
       acronym as a prefix for downstream adopter artifact filenames. Prefer
@@ -893,7 +893,7 @@ learnings:
       than as a required final gate in the exact command sequence that performs
       `git add`/`git commit`.
     framework_impact: high
-    status: proposed
+    status: implemented
     recommendation: >
       Strengthen the active-branch preflight habit and tooling requirement:
       the final command group before every `git add`/`git commit` must include
