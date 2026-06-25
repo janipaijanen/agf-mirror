@@ -206,7 +206,7 @@ learnings:
       why not? you MUST always send a coordination message for other LLMs to
       catch-up with your work and assessments."
     framework_impact: low
-    status: proposed
+    status: implemented
     recommendation: >
       Add a cold-start checklist item to the coordination polling loop
       description: "on context-resume, always run git fetch and file a
@@ -247,7 +247,7 @@ learnings:
       Without that mechanism, the honest answer is "I cannot start a timer that
       will wake me later; I can record the desired check and act when resumed."
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Add explicit timer/watch semantics to session and coordination guidance.
       Agents should distinguish active-turn polling from durable timers, and
@@ -292,7 +292,7 @@ learnings:
       only can find coordination messages which are stored in the git and
       pushed."
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Add an explicit rule to the coordination channel guidance: a coordination
       message is not filed until it is both committed and pushed to the remote.
@@ -382,7 +382,7 @@ learnings:
       The user surfaced the gap by noting no new ROI entries appeared in
       tmp/agov-token-roi.jsonl during the planner-architect's session.
     framework_impact: medium
-    status: proposed
+    status: implemented
     recommendation: >
       Update the cold-start and session-resume guidance to make agov session
       resume the mandatory first substantive action — before any git log, git
@@ -532,7 +532,7 @@ learnings:
       collaboration: downstream agents cannot acknowledge, reference, validate,
       or act on a record they cannot fetch.
     framework_impact: high
-    status: proposed
+    status: implemented
     recommendation: >
       Treat "write coordination message" as incomplete until the file is
       committed and pushed to the shared remote. Update coordination guidance
@@ -606,7 +606,7 @@ learnings:
       restarted after resumption; this learning adds that restarted timers
       must also drive work intake, not just visibility.
     framework_impact: high
-    status: proposed
+    status: implemented
     recommendation: >
       Update Codex internal practice and adopter guidance for timer-based
       coordination: after every poll, if a new coordination message or MR
@@ -655,7 +655,7 @@ learnings:
       tooling: learn cheaply from deterministic observations before binding
       downstream users to irreversible governance semantics.
     framework_impact: high
-    status: proposed
+    status: implemented
     recommendation: >
       Add cold-start guidance for AI agents that emphasizes governed evidence
       over session memory: run session/coordination intake first, identify
