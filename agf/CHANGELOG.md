@@ -5,6 +5,27 @@ distribution.
 
 ## [Unreleased]
 
+## [2.2.6] — 2026-06-26
+
+This patch release publishes the external-review hardening work that followed
+the v2.2.5 AI evaluation dossier rollout.
+
+### Changed
+
+- The AI evaluation dossier now includes the full generated docs corpus with
+  dossier-local links, source-flow markers, and subsection-preserving anchors
+  so external AI reviewers can evaluate a single page without losing source
+  structure.
+- Public docs clarify shipped coordination tooling versus the remaining
+  semantic-validation gap, including validator-surface and CI policy-profile
+  summaries.
+- Adoption guidance now includes privacy/labor/provider-boundary checks,
+  enterprise boundary positioning, adoption pattern examples, governor
+  delegation guidance, evidence-quality labels, anti-ceremony metrics,
+  customization-zone summaries, and conformance fixture families.
+- Homepage status wording now points evaluators to the generated framework
+  content version instead of stale documentation-line labels.
+
 ## [2.2.5] — 2026-06-25
 
 This patch release completes the historical Python tooling removal sequence
