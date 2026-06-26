@@ -15,13 +15,17 @@ as such, each with the evidence that would justify building it.
 
 ## Hypotheses under consideration
 
-**Coordination-channel validator.** The channel is the audit trail, yet
-it is the one contracted-adjacent artifact with no automated validation —
-frontmatter shape, ID uniqueness, and reference integrity are
-checked by eyes only. This is the framework's most concrete known gap;
-its own operation has already produced coordination-ID anomalies that a
-validator would have caught. *Evidence that would promote it:* recurring
-channel-integrity incidents in adopter learning records.
+**Coordination-channel semantic validator.** The channel is the audit trail.
+Rust `agov` already validates coordination-message schema, reports channel
+status, finds stale claims, checks branch visibility, discovers handoffs, and
+renders graph and graph-index views. That is useful structural automation, but
+it does not prove the full governance chain: whether a referenced approval was
+the right one, whether a review finding was actually resolved, whether a
+handoff's policy meaning matches the work, or whether a cross-message story is
+semantically complete. That deeper consistency layer remains the framework's
+most concrete known validator gap. *Evidence that would promote it:* recurring
+channel-integrity incidents in adopter learning records that current schema,
+visibility, status, and graph tooling did not catch.
 
 **Multi-project / multi-governor federation.** Today's validated core is
 one project, one governor. Organisations running several governed

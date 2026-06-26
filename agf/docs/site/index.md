@@ -41,13 +41,16 @@ commit for a small default install.
 Next step: read [Should you adopt?](docs/start/should-you-adopt.md), the
 five-minute filter for deciding whether AGF is useful for your project now.
 
-> **Status:** This site documents the released **agents-govern v2.1** line.
-> Some rules and extension points are still marked experimental or
-> evidence-limited where the evidence base is narrow. The exact version and
-> source commit for this build are recorded in
+> **Status:** This site documents the released **agents-govern framework**.
+> The exact framework content version and source commit for this build are
+> recorded in
 > [Release information](reference/release-info.md). Release archives and
 > platform-specific Rust binaries are published on the
 > [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+> When evaluating or citing AGF, use the framework content version on the
+> Release information page. Page-level "Released (v2.x documentation)" labels
+> mark the documentation line in which a page was published; they are not the
+> current release identifier.
 
 ## How to adopt
 
