@@ -21,8 +21,11 @@ not something they distribute. -->
 <!-- CUSTOMIZE: Replace with your project's distributable artifact paths. -->
 - `agf/rules/**/*.md`
 - `agf/agents/*.yaml`
-- `agf/tooling/` or framework tooling distributed with AGF
+- `tooling/rust/` or framework tooling distributed with AGF
 - `agf/schemas/*.json`
+- `agf/templates/`
+- `agf/dist/`
+- `agf/docs/site/reference/environment-variables.md`
 - `docs/coordination/agov-config.yaml`
 - `AGENTS.md`
 
@@ -71,11 +74,39 @@ your distributed artifacts must have an explicit entry. -->
 For EDITORIAL changes, substitute the full statement with a single line:
 `editorial: [description]`
 
+## Adopter docs parity
+
+For changes to distributed framework behavior, tooling commands, validators,
+schemas, rules, agent definitions, templates, environment variables, generated
+artifacts, install flow, or upgrade flow, the Gate 2 handoff MUST include an
+`Adopter docs parity` note before the feature can be called ready.
+
+Use exactly one of these outcomes:
+
+- `Adopter docs parity: updated` — downstream-facing docs or templates were
+  changed in the same work.
+- `Adopter docs parity: not applicable` — include the reason the change has no
+  adopter-facing install, upgrade, loader, or operating impact.
+- `Adopter docs parity: waived <coordination-id>` — cite a governor-reviewer
+  decision that accepts shipping without downstream-facing docs.
+
+Reference-only documentation is not enough by itself. If a command, variable,
+validator, schema, or artifact shape is documented only in a reference page,
+also check whether adopters following `ADOPTING.md`, assistant-loader guidance,
+operate/release guidance, or the shipped templates would learn what changed.
+
+Release preparation runs `agov validate adopter-docs` as a mechanical backstop
+for this rule. The validator checks path-level evidence; governor-reviewer
+still judges whether the documentation is sufficient.
+
 ## STOP condition
 
 If the classification is BREAKING and no migration note exists: **do not
 propose the commit**. Write the migration note first. It may live in the
 commit message, a plan file, or `CHANGELOG.md`.
+
+If adopter docs parity is required and the Gate 2 handoff lacks one of the
+three allowed outcomes, the feature is not ready for merge or release.
 
 The Evidence field enforces the verifiable-claims-rule: a breaking change
 that cannot cite the incident or learning that motivated it is not ready

@@ -77,6 +77,22 @@ Two rules interlock:
 The order is load-bearing: bump-on-main-first produces an empty,
 unreviewable MR; tag-before-merge produces an ungated release.
 
+Before a release MR is approved, run `agov validate adopter-docs`. The check
+blocks releases where adopter-relevant framework or tooling changes have only
+reference/internal documentation and no downstream-facing docs, templates, or
+governor-visible waiver. Release changelog entries for adopter-relevant
+changes should include one of:
+
+- `Adopter docs: updated`
+- `Adopter docs: not applicable`
+- `Adopter docs: waived <coordination-id>`
+
+Gate 2 review remains a human decision. Current tooling does not prove
+plan-to-diff binding or semantic completeness of the evidence trail. If the
+release diff changes scope, omits adopter-facing documentation, or relies on a
+weak coordination record, the reviewer should require a plan update,
+coordination repair, or explicit waiver before approval.
+
 ## Gates must be proven to fire
 
 Any new gate — hook, validator, CI check — ships with a **negative

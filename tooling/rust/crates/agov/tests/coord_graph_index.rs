@@ -334,8 +334,7 @@ fn coord_graph_index_body_ref_emits_body_reference_edge() {
     let edges = v["edges"].as_array().unwrap();
     let body_edge = edges.iter().find(|e| {
         e["type"].as_str() == Some("body-reference")
-            && e["to"].as_str()
-                == Some("20260621T000000Z-planner-architect-h003.md")
+            && e["to"].as_str() == Some("20260621T000000Z-planner-architect-h003.md")
     });
     assert!(
         body_edge.is_some(),

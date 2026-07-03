@@ -61,7 +61,11 @@ The cost of a merge request is minutes. The cost of a broken immutable tag is a 
 
 - [ ] `VERSION` file matches the intended release version.
 - [ ] `CHANGELOG.md` contains an entry for this version (not backfilled later).
+- [ ] For adopter-relevant changes, the release changelog entry contains
+      `Adopter docs: updated`, `Adopter docs: not applicable`, or
+      `Adopter docs: waived <coordination-id>`.
 - [ ] All version references are consistent (agent definitions, documentation).
+- [ ] `agov validate adopter-docs` passes.
 - [ ] `agov dist validate` and `agov dist build` pass (if applicable).
 - [ ] CI pipeline configuration is correct for the release.
 - [ ] SPDX headers and license are correct across all files.

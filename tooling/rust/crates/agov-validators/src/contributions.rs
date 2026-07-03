@@ -263,7 +263,10 @@ mod tests {
     #[test]
     fn absence_clean_on_neutral_text() {
         let findings = absence_findings("We observed one incident and fixed it promptly.");
-        assert!(findings.is_empty(), "should not fire on incident-reporting text");
+        assert!(
+            findings.is_empty(),
+            "should not fire on incident-reporting text"
+        );
     }
 
     #[test]
@@ -281,7 +284,10 @@ mod tests {
     #[test]
     fn relaxation_clean_on_neutral_text() {
         let findings = relaxation_findings("We added a new validation step to the gate.");
-        assert!(findings.is_empty(), "should not fire on governance-strengthening text");
+        assert!(
+            findings.is_empty(),
+            "should not fire on governance-strengthening text"
+        );
     }
 
     #[test]

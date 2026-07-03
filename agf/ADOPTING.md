@@ -1037,6 +1037,14 @@ the same red flags apply: governance relaxation without evidence, boundary
 erosion, absence-bias reasoning. This is not distrust of upstream; it is
 the same standard applied uniformly to all guidance entering your project.
 
+**Adopter documentation parity on upgrade.** Upstream release preparation runs
+`agov validate adopter-docs` so framework/tooling changes that affect adopters
+must ship with downstream-facing docs/templates or a governor-visible waiver.
+When reviewing a new release, check the changelog for `Adopter docs: updated`,
+`Adopter docs: not applicable`, or `Adopter docs: waived <coordination-id>` on
+adopter-relevant entries, then review the named docs before applying the
+upgrade.
+
 **Configuration drift review on upgrade.** Each upgrade is also an
 opportunity to catch drift between your customized configuration and the
 new framework defaults. After applying the upgrade, check these four areas:

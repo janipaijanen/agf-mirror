@@ -1,3 +1,4 @@
+pub mod adopter_docs;
 pub mod adoption;
 pub mod agents;
 pub mod assistant_drift;

@@ -36,7 +36,8 @@ deployable and in active use; Level 1 is planned.
 | `agov --version` / `agov version --format json` | Inferring build provenance from file paths, timestamps, or `git log`. |
 | `agov coord validate <file>...` | Agent reads a coordination file and judges schema compliance. Validation is deterministic; agents should not improvise it. |
 | `agov plan validate <file>...` | Agent reads a Gate 1 plan file and checks front-matter. |
-| `agov validate` | Agent reads adoption, agent definitions, learning records, and copied-assistant drift warnings to spot structural problems across the framework tree. It does not validate every plan or coordination file. |
+| `agov validate` | Agent reads adoption, agent definitions, learning records, adopter-docs parity, and copied-assistant drift warnings to spot structural problems across the framework tree. It does not validate every plan or coordination file. |
+| `agov validate adopter-docs` | Agent or release reviewer checks whether adopter-relevant framework/tooling changes since the latest reachable `v*` tag include downstream-facing docs/templates or a visible changelog waiver. |
 | `agov coord brief [--id-format readable\|ulid] [--from <role>] [--kind <kind>]` | Agent guesses a coordination ID, makes up a filename, or asks a human for the next ID. The command generates a valid, non-colliding ID with the correct filename format. |
 | `agov handoff next <role>` | Agent reads handoff messages, mentally subtracts resolved items, and selects the pending one for its role. The command returns the relevant handoff in one invocation. |
 | `agov coord status [--recent N] [--roles]` | Agent counts pending handoffs, reads claim messages, and scans the channel for channel health. The `--roles` flag adds a per-role activity summary for session orientation. |

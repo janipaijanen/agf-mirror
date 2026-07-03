@@ -5,6 +5,33 @@ distribution.
 
 ## [Unreleased]
 
+### Added
+
+- `agov coord brief` now accepts `--model <name>` and uses `AGOV_MODEL` as
+  the default model provenance when set, so generated coordination front matter
+  can record the assistant/runtime used without manual editing.
+- `agov validate adopter-docs` now checks release-range diffs for
+  adopter-relevant framework/tooling changes and requires downstream-facing
+  docs/templates or an explicit changelog waiver.
+
+### Changed
+
+- Downstream-impact and release rules now require an `Adopter docs parity`
+  note for adopter-relevant work before feature-ready or release-ready claims.
+- Adopter-facing documentation now explains the docs parity gate, the
+  enterprise/multi-repository boundary, reviewer evidence sources, schema
+  claim hygiene, and the current plan-to-diff / binding-traceability limits.
+- External-review triage records now label the OpenAI web-based AI assessment
+  accurately and route fact-checking / advisory claims through durable
+  coordination notes.
+
+### Learning
+
+- Added a proposed learning record for using formal advisory roles as
+  auditable evidence producers during external-review claim assessment.
+
+Adopter docs: updated
+
 ## [2.2.6] — 2026-06-26
 
 This patch release publishes the external-review hardening work that followed

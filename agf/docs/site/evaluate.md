@@ -129,6 +129,36 @@ page states X" is auditable.
 read the rule files; my assessment of the rule library is based on the
 docs summary" is more useful than a confident summary of files not seen.
 
+## Reviewer evidence index
+
+Use this table when turning a review claim into an auditable finding.
+
+| Claim type | Cite this source | Notes |
+|---|---|---|
+| Project identity and current docs version | [Release information](reference/release-info.md) | Generated from `agf/VERSION` at docs build time. |
+| Published release artifacts | [Release artifacts](reference/release-artifacts.md) and the [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases) | Use the release page for what is actually downloadable now. |
+| Role and gate authority | [Roles and gates](docs/concepts/roles-and-gates.md), plus `agf/agents/MANIFEST.yaml` for this project | Distinguish framework roles from the current AGF-NG project role assignments. |
+| Coordination message protocol | [Coordination protocol](docs/concepts/coordination-protocol.md) and `agf/schemas/coordination-message.schema.json` | Schema shape and process intent are separate evidence. |
+| Gate 1 plan format | `agf/schemas/gate1-plan.schema.json` | Cite the schema when making field-level claims. |
+| Learning records and evidence status | [Evidence and learnings](docs/concepts/evidence-and-learnings.md) and `agf/schemas/learning-record.schema.json` | Separate evidence-status claims from capability-maturity claims. |
+| Tooling maturity | [Tooling conformance](reference/tooling-conformance.md), plus live `agov --help` / `agov validate --help` when reviewing a checkout | A documented target is not automatically a shipped command. |
+| Contracts, validators, and release gates | [Contracts and validators](docs/advanced/contracts-and-validators.md) and [Review and release](docs/operate/review-and-release.md) | Current tooling validates shapes and selected release-range evidence; semantic review remains human. |
+| Adoption cost and downstream impact | [Downstream impact](docs/adopt/downstream-impact.md) and [Exit and decommission](docs/adopt/exit-and-decommission.md) | Use these for adopter burden, reversibility, and upgrade-risk claims. |
+
+## Schema claim checklist
+
+Before stating what an AGF schema requires:
+
+- Read the exact schema file, not only prose that summarizes it.
+- Cite the schema path and, when useful, the field name.
+- Distinguish schema shape from semantic validation. A field can be required
+  by schema without proving that the referenced decision, plan, or review is
+  substantively correct.
+- Distinguish schema contract from shipped tooling. If a validator is not
+  listed as shipped, describe it as a contract target or roadmap item.
+- If you did not read the schema directly, mark the claim as docs-only or
+  unverified.
+
 ## Output format
 
 Label your output as one of: **critique**, **fit-assessment**,

@@ -31,6 +31,7 @@ script authority the framework never granted.
 | InfoSec-relevant artifacts | Anonymization and disclosure checks | `agov validate infosec` |
 | Contribution-auditor learning records | Advisory scan for adversarial patterns: absence-of-incident bias, governance relaxation proposals, weak universal claims | `agov validate contributions` |
 | Framework configuration | `agov-config.yaml` shape and required fields | `agov validate framework-config` |
+| Adopter-facing documentation parity | Release-range check that adopter-relevant framework/tooling changes have downstream-facing docs/templates or a visible waiver | `agov validate adopter-docs` |
 | README.md stat claims | Claimed rule, agent, and skill counts match actual `agf/` file counts (advisory) | `agov validate readme-stats` |
 
 ### Validator surface summary
@@ -40,6 +41,7 @@ script authority the framework never granted.
 | Coordination schema | Yes: `agov coord validate` | Yes, when CI policy or rule says so | Yes | Deeper semantic chain consistency |
 | Plan schema | Yes: `agov plan validate` | Yes, when CI policy or rule says so | Yes | Plan-to-diff scope binding |
 | Framework artifacts | Yes: `agov validate ...` | Yes, per adopted policy | Yes | Broader domain-specific validators |
+| Adopter docs parity | Yes: `agov validate adopter-docs` | Yes, for AGF release preparation | Yes | Semantic docs-quality review remains human |
 | Coordination visibility | Yes: `agov coord visibility` | Yes, for hidden obligations if adopted | Yes | Automatic MR policy integration |
 | Binding traceability | No | Not in shipped v2 tooling | N/A | Layer 3 / Full-tier direction |
 
@@ -49,10 +51,25 @@ that need artefact-to-execution traceability, but not a current AGF v2
 deliverable. Historical Python binding tooling from the v1.x line is legacy
 reference material, not the supported v2 operator path.
 
+Known limitation: current validators cannot mechanically prove that an
+implementation diff matches the approved Gate 1 plan, or that every Gate 2
+claim references a substantively valid decision record. They validate file
+shape, selected path-level evidence, and configured release checks. The
+governor-reviewer still judges plan-to-diff fit, scope drift, and whether the
+evidence is good enough to merge or release.
+
 The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped
 capability. If your project builds one of the missing validators, that is a
 contribution upstream wants.
+
+`agov validate adopter-docs` is a release backstop for upstream AGF work. It
+compares changes since the latest reachable `v*` tag. If framework behavior,
+tooling, validators, schemas, templates, environment variables, or generated
+artifact shape changed, the release range must also include downstream-facing
+docs/templates or a changelog waiver line. Reference-only docs do not satisfy
+the check by themselves because adopters often follow install, loader, upgrade,
+and operate pages before reading reference material.
 
 ## Advisory and blocking checks
 

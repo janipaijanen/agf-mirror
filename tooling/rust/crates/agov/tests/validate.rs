@@ -7,6 +7,7 @@ fn validate_prints_coverage_note() {
 
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("agov.validate.adopter_docs"));
     assert!(stdout.contains("OK agov.validate.coverage: framework checks complete"));
     assert!(stdout.contains("agov plan validate"));
     assert!(stdout.contains("agov coord validate"));
@@ -69,10 +70,44 @@ sentinel_ack: []
     );
 }
 
+#[test]
+fn validate_adopter_docs_blocks_missing_downstream_docs() {
+    let repo = temp_agf_repo();
+    write(&repo, "tooling/rust/src/main.rs", "fn main() {}\n");
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-m", "tooling without adopter docs"]);
+
+    let output = agov_in(repo.path(), &["validate", "adopter-docs"]);
+
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("ERR agov.validate.adopter_docs"));
+    assert!(stderr.contains("downstream-facing docs/templates"));
+}
+
+#[test]
+fn validate_adopter_docs_accepts_downstream_docs() {
+    let repo = temp_agf_repo();
+    write(&repo, "tooling/rust/src/main.rs", "fn main() {}\n");
+    write(&repo, "agf/ADOPTING.md", "Adopter docs parity\n");
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-m", "tooling with adopter docs"]);
+
+    let output = agov_in(repo.path(), &["validate", "adopter-docs"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("OK agov.validate.adopter_docs"));
+}
+
 fn agov(args: &[&str]) -> std::process::Output {
+    agov_in(&repo_root(), args)
+}
+
+fn agov_in(cwd: &std::path::Path, args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_agov"))
         .args(args)
-        .current_dir(repo_root())
+        .current_dir(cwd)
         .output()
         .expect("run agov")
 }
@@ -83,4 +118,39 @@ fn repo_root() -> PathBuf {
         .nth(4)
         .expect("repo root")
         .to_path_buf()
+}
+
+fn temp_agf_repo() -> tempfile::TempDir {
+    let repo = tempfile::tempdir().expect("temp repo");
+    git(&repo, &["init"]);
+    git(&repo, &["config", "user.email", "test@example.invalid"]);
+    git(&repo, &["config", "user.name", "Test User"]);
+    write(&repo, "agf/schemas/.keep", "");
+    write(&repo, "tooling/.keep", "");
+    write(&repo, "README.md", "baseline\n");
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-m", "baseline"]);
+    git(&repo, &["tag", "v1.0.0"]);
+    repo
+}
+
+fn write(repo: &tempfile::TempDir, rel: &str, content: &str) {
+    let path = repo.path().join(rel);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(path, content).expect("write");
+}
+
+fn git(repo: &tempfile::TempDir, args: &[&str]) {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo.path())
+        .args(args)
+        .output()
+        .expect("run git");
+    assert!(
+        output.status.success(),
+        "git {:?} failed: {}",
+        args,
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
