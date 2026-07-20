@@ -153,6 +153,11 @@ the visible `agf/` directory and then follow the same review checklist.
 
 ## Step 3: Review the prepared layout
 
+The canonical distinction between the complete release library and a project's
+selected operating subset is [What ships and what you activate](../start/should-you-adopt.md#what-ships-and-what-you-activate).
+The review steps below perform that selection; they do not install a separate
+starter package.
+
 Review the assistant's diff against the layout decision above:
 
 - `agf/` is present as the single framework directory.

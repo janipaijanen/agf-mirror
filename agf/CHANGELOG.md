@@ -25,6 +25,10 @@ distribution.
 
 ### Changed
 
+- Public landing, adoption, evaluation, dossier, and installation guidance now
+  distinguishes the complete shipped governance library from the smaller role
+  and rule subset a project activates. The proposed reduced starter product is
+  labelled Level 1 Planned rather than implied to ship.
 - Downstream-impact and release rules now require an `Adopter docs parity`
   note for adopter-relevant work before feature-ready or release-ready claims.
 - Adopter-facing documentation now explains the docs parity gate, the

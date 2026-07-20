@@ -43,6 +43,39 @@ server. It does **not** mean zero human effort. The governor role is real:
 someone must read gate evidence, accept or reject risk, and stop work when the
 trail is not good enough.
 
+## What ships and what you activate
+
+> AGF releases ship the complete governance library. The documented first-trial
+> path activates a selected subset rather than every role and task-specific
+> rule; a reduced starter package does not currently ship.
+
+The release includes the role, rule, skill, schema, template, and documentation
+libraries so each project can make its own governed choices. Treat that
+inventory as available framework content, not as a roster that must all be
+active on day one.
+
+For a solo trial, the documented minimum is `coder-tester` plus the human
+`governor-reviewer`. A standard governed project adds `planner-architect`.
+Activate advisory and specialist roles when the work creates the need they
+address. Core rules remain binding; workflow, documentation, UI, and other
+task-specific rules apply when their subject is present. During commissioning,
+review the rule set and remove rules that cannot apply to the project rather
+than teaching assistants to ignore loaded instructions.
+
+The current coordination schema still exposes the full message-kind vocabulary,
+and the release provides the general validator and CI surfaces. A smaller
+starter product — three roles, two gates, four message kinds, one validator,
+and one CI example — is **Level 1 Planned**, not a current installation option.
+It remains a hypothesis until independent pilots show which parts reduce
+onboarding friction without removing the evidence needed for human gate
+decisions. See
+[Where v2 could evolve](../../future/evolution.md#reduced-first-adoption-product).
+
+The [installation guide](../adopt/install-and-layouts.md#step-4-review-rule-loading-and-customization)
+shows how to select applicable rules and roles. Evaluators should judge both
+the complete distributed surface and the smaller configuration an adopter
+would actually activate; neither measurement substitutes for the other.
+
 ## Adopt now if…
 
 - AI assistants write a significant share of your code, **and** you have
