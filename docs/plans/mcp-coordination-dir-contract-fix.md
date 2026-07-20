@@ -47,6 +47,53 @@ unilaterally.
 
 ---
 
+## Why a hard rename, not a soft deprecation
+
+The first version of this plan kept `dir` alive as a permanent deprecated
+alias, mirroring the coordination-message schema's existing pattern for
+the `seq` field (`x-deprecated: true`, a non-blocking advisory WARN,
+`agf/schemas/coordination-message.schema.json:43-48`). That precedent was
+examined directly before choosing this design, and it does not actually
+establish a deprecation *policy* — `seq` was marked deprecated on
+2026-06-18 and, as of this plan's writing five weeks and multiple minor
+releases later, has never been removed or scheduled for removal. Kept
+means kept indefinitely, in current practice, not "kept until a sunset
+date."
+
+`agf/framework.md:1034` states the project's own policy directly:
+
+> For pre-customer products, documentation should show current state
+> only — no deprecation notices or migration timelines, which signal
+> instability to evaluating organisations. Deprecation governance is
+> introduced when the product has production customers.
+
+`agov-mcp` has zero production customers today — it is Level 4 Validated,
+not yet Level 5 Deployable (see `docs/mcp-maturity-claim-honesty`, MR
+!258), meaning nobody outside this project's own dogfooding could
+currently depend on `dir`. Carrying an alias, a `field_conflict`
+precedence rule, and matching test fixtures for a caller that does not yet
+exist is exactly the kind of premature-ceremony cost `simplicity-rule`
+asks to be justified, not assumed. It is not justified here.
+
+**The honest accounting, stated plainly for anyone reading this plan
+later:** this project does not yet have a real deprecation policy with an
+actual sunset mechanism — only a schema-level "mark it deprecated and nag
+forever" pattern (`seq`) that has never been exercised to completion. A
+companion change in this same review cycle
+(`agf/rules/workflow/deprecation-policy-rule.md`) establishes what this
+project's policy will actually be **once it has adopters who can depend on
+a surface** — modeled on Kubernetes' published API deprecation policy
+(the most rigorous, well-documented, and widely-cited precedent found:
+minimum support duration is the *longer* of a calendar-time floor or a
+release-count floor, never satisfied by a burst of same-day patch
+releases). Doing the hard rename now, before that policy exists to be
+tested, and documenting why here rather than silently taking the
+shortcut, is the trust-preserving choice — future readers should not have
+to guess whether this was an oversight or a deliberate, disclosed
+trade-off. It was deliberate.
+
+---
+
 ## Intent
 
 `agov-mcp`'s tools forward a `dir` argument straight to CLI `--dir`. The
@@ -62,8 +109,14 @@ wrong evidence domain.
 
 Fix the field's name, description, default-handling, and add a
 machine-visible (not just prose-buried) warning when the resolved
-directory looks wrong — without breaking existing callers that already
-pass `dir`.
+directory looks wrong.
+
+**Revised 2026-07-20 (second revision, after direct governor question):**
+the original design below kept `dir` as a permanent deprecated alias. That
+design is dropped in favor of a clean, hard-breaking rename with no
+back-compat shim — see "Why a hard rename, not a soft deprecation" below
+for the rationale. This is a deliberate, disclosed shortcut, not an
+oversight.
 
 ## Scope clarification (Gate 1 decision needed)
 
@@ -74,11 +127,11 @@ helper: `agov_handoff_next`, `agov_handoff_take`, `agov_handoff_complete`,
 `agov_coord_post`, `agov_coord_list`
 (`tooling/rust/crates/agov-mcp/src/main.rs:243,249,256,264,278,284`).
 
-**Proposal:** apply the field rename and deprecated-alias handling
-uniformly across all six tools. Fixing only `agov_session_resume` would
-leave five-sixths of the affected surface with the same silent-wrong-scope
-bug — a caller could just as easily pass the repo root to
-`agov_coord_list` and get a silently-empty listing.
+**Proposal:** apply the field rename uniformly across all six tools.
+Fixing only `agov_session_resume` would leave five-sixths of the affected
+surface with the same silent-wrong-scope bug — a caller could just as
+easily pass the repo root to `agov_coord_list` and get a silently-empty
+listing.
 
 **What does NOT get uniformly applied:** the structural warning-on-likely-
 wrong-directory behavior (see Design item 4) is scoped to
@@ -96,20 +149,23 @@ Impact:
                      untracked) and any in-flight session already default
                      to omitting `dir`, which is unaffected. No current
                      session depends on passing a literal `dir` value.
-  Direct adopters:  PREVENTIVE. The `dir` field keeps working as a
-                     deprecated alias for `coordination_dir` — no adopter
-                     integration breaks. New behavior is additive
-                     (warning field on a specific misuse pattern) and a
-                     rename that leaves the old name functional.
-  Downstream:       No change to agent-produced artifact shape. Adopters
-                     using `dir` see an unchanged response shape; adopters
-                     using the new `coordination_dir` name or reading the
-                     new warning field get more information, not less.
-  Migration:        None required. `dir` continues to work. Recommended,
-                     not mandatory: adopters update to `coordination_dir`
-                     at their own pace; `dir` may be removed in a future
-                     major version with its own deprecation-window
-                     decision (out of scope here).
+  Direct adopters:  BREAKING, by design, deliberately. Any caller that
+                     passes `dir` explicitly must switch to
+                     `coordination_dir` — no alias, no grace period.
+                     Justified because agov-mcp has zero production
+                     customers today (Level 4 Validated, not yet Level 5
+                     Deployable — MR !258) and framework.md:1034's own
+                     pre-customer policy explicitly permits this. See
+                     "Why a hard rename, not a soft deprecation" above.
+  Downstream:       Any agent-authored MCP client config or prompt that
+                     hardcodes `dir` breaks until updated to
+                     `coordination_dir`. No other artifact-shape change.
+  Migration:        Required, but trivial: rename the field in whatever
+                     MCP client config or prompt scaffolding passes it
+                     explicitly (most callers omit it and use the
+                     `docs/coordination` default, which is unaffected).
+                     Documented in the CHANGELOG entry and
+                     `agf/docs/site/docs/adopt/mcp-server.md`.
   Evidence:         Sol High assessment finding #6 (docs/reviews/
                      agf-framework-assessment-codex-sol-high.md), reproduced
                      directly against tooling/rust/crates/agov-mcp/src/main.rs
@@ -117,13 +173,15 @@ Impact:
                      session.
 ```
 
-This is classified **PREVENTIVE**, not BREAKING, specifically because the
-design below chooses "warn," not "fail," for the misuse case (see Design
-item 4 and the explicit tradeoff note there). If Gate 2 review or
-implementation experience concludes "fail" is the safer choice for a
-clearly-wrong directory, that decision must be re-classified as BREAKING
-and gain a migration note before shipping — flagging this now so it isn't
-silently decided during implementation.
+This is classified **BREAKING**, correctly, not softened to PREVENTIVE —
+per `downstream-impact-rule`'s own test ("a commit containing both a
+breaking and an additive change is BREAKING"), and per the honesty
+principle this plan is built around: calling a hard-breaking rename
+PREVENTIVE just because the blast radius happens to be small right now
+would be exactly the kind of overclaiming this project's other rules
+(`verifiable-claims-rule`, `docs/implementation-honesty-rule`) forbid.
+The migration note above satisfies the BREAKING classification's
+requirement.
 
 ## Design
 
@@ -132,16 +190,32 @@ silently decided during implementation.
    (`tooling/rust/crates/agov-mcp/src/main.rs`, the `tools()` function,
    lines ~407-489).
 
-2. **Keep `dir` as a deprecated alias, with an explicit conflict rule.**
-   In `tool_cli_args`, accept either `coordination_dir` or `dir`. If only
-   one is present, use it (attaching `deprecated_field_used: "dir"` to the
-   response when it was `dir`, so callers get a visible nudge to migrate).
-   If **both** are present and their values differ, `coordination_dir`
-   wins, but the response MUST include an explicit
-   `field_conflict: {used: "coordination_dir", ignored_dir: "<value>"}`
-   note — silently preferring one value over another supplied one is
-   exactly the kind of ambiguity that should never be invisible to the
-   caller. If both are present and equal, no conflict note is needed.
+2. **Hard rename — no alias, no back-compat, but not silent either.**
+   Verified against the current implementation before writing this:
+   `agov-mcp` does not depend on any JSON-schema validation crate and does
+   not validate incoming `tools/call` arguments against the `inputSchema`
+   it advertises — `inputSchema` is descriptive metadata for `tools/list`
+   only (`tools()`, `main.rs:372-491`); a well-behaved client may reject
+   an unknown field before sending it, but the server itself currently
+   does not. `tool_cli_args` (`main.rs:219-290`) only reads keys it
+   recognizes and silently drops the rest. So a rename with nothing else
+   changed would mean a caller still passing the old `dir` key gets it
+   silently dropped, falling back to the `docs/coordination` default with
+   no error — exactly the "plausible wrong success" failure shape this
+   plan exists to eliminate. Not an acceptable residual gap.
+
+   Fix: `tool_cli_args` explicitly checks each tool's incoming argument
+   keys against its known set (already has the `Result<_, String>` return
+   shape needed to report this) and returns an error naming any
+   unrecognized key — including `dir` specifically, with a message
+   pointing to `coordination_dir` (worth a slightly friendlier message
+   than a generic "unknown key" error, precisely because `dir` is a
+   plausible mistake this fix itself created). Also declare
+   `"additionalProperties": false` on all six tools' advertised
+   `inputSchema`s, so well-behaved clients catch the mistake even earlier,
+   client-side, before a call is ever sent — belt-and-suspenders, not a
+   substitute for the server-side check. No conflict-precedence logic, no
+   deprecation note, no alias-maintenance burden.
 
 3. **Field description text** (in the schema, shown to the calling agent):
    `"Coordination-message directory — NOT the repository root. Defaults to
@@ -172,17 +246,18 @@ silently decided during implementation.
 
 5. **Resolved-path provenance.** The `agov_session_resume` response
    includes the resolved `coordination_dir` value actually used (whether it
-   came from an explicit argument, the deprecated `dir` alias, or the
-   `docs/coordination` default), so a cold-starting agent can see what it
-   actually queried without guessing.
+   came from an explicit argument or the `docs/coordination` default), so
+   a cold-starting agent can see what it actually queried without
+   guessing.
 
-6. **Fixtures.** Add MCP integration tests covering: omitted `dir`/
+6. **Fixtures.** Add MCP integration tests covering: omitted
    `coordination_dir` (uses default), correct value, repository-root value
    (triggers the warning), absolute path, nonexistent path (CLI's existing
    "Coordination directory not found" error path,
-   `tooling/rust/crates/agov/src/main.rs:2549-2555`), and both the `dir`
-   alias and the new `coordination_dir` name producing identical CLI
-   arguments.
+   `tooling/rust/crates/agov/src/main.rs:2549-2555`), and — replacing the
+   alias-parity case from the earlier design — a case asserting that
+   passing the old `dir` key returns the explicit unrecognized-key error
+   from Design item 2, not a silent default-directory fallback.
 
 7. **CLI/MCP semantic parity test.** A direct test asserting that invoking
    `agov_session_resume` with `coordination_dir: "docs/coordination"` via
@@ -191,8 +266,11 @@ silently decided during implementation.
 
 8. **Documentation and changelog.** Update
    `agf/docs/site/docs/adopt/mcp-server.md` to describe the
-   `coordination_dir` field and the deprecated `dir` alias. Add an entry to
-   `agf/CHANGELOG.md`'s `[Unreleased]` section. Add a short pointer note at
+   `coordination_dir` field and state plainly that `dir` was renamed
+   without a back-compat alias, with the rationale from "Why a hard rename,
+   not a soft deprecation" above linked or restated briefly. Add a
+   `### Changed` (breaking) entry to `agf/CHANGELOG.md`'s `[Unreleased]`
+   section — not buried under `### Added`. Add a short pointer note at
    the top of `docs/plans/agov-mcp-server.md` referencing this plan for the
    field-contract question specifically (satisfies hpk6's "explicitly
    governed amendment" instruction without editing that plan's still-open
@@ -202,8 +280,9 @@ silently decided during implementation.
 
 Per `workflow/tdd-rule.md`: write the six fixture cases (Design item 6) and
 the parity test (Design item 7) first, confirm they fail against the
-current `dir`-only implementation (RED), then implement the rename +
-alias + warning + provenance changes to make them pass (GREEN). Existing
+current `dir`-only implementation (RED), then implement the rename,
+unrecognized-key rejection, warning, and provenance changes to make them
+pass (GREEN). Existing
 `agov-mcp` unit tests (`tool_list_contains_only_cli_backed_tools`,
 `coord_post_maps_to_cli_arguments`, etc.) must be updated in the same
 commit, not left asserting the old field name — per
@@ -215,10 +294,15 @@ match new behavior without documenting why is a BLOCK.
 - **Scope-creep risk (self-identified):** the uniform six-tool rename is
   larger than the literal ask in hpk6. Named explicitly above for Gate 1
   sign-off rather than decided unilaterally during implementation.
-- **Alias-maintenance cost:** carrying `dir` as a permanent-until-further-
-  notice alias means two field names to keep in sync in schema and tests
-  indefinitely, until a future major version removes it. Acceptable
-  cost for a zero-migration-required change.
+- **Breaking-change risk, accepted deliberately:** any caller — including
+  any of this project's own future sessions — that hardcodes the old
+  `dir` key breaks with an explicit error rather than degrading silently.
+  Accepted because current adopter count for this specific field is
+  verifiably zero (pre-release surface) and framework.md's own
+  pre-customer policy permits exactly this trade-off. Revisit this
+  judgment call the moment `agov-mcp` graduates past Level 4 Validated —
+  by then, the new `deprecation-policy-rule.md` should govern any further
+  renames on this surface instead of another one-off hard break.
 - **Heuristic fragility (Design item 4):** the "zero valid messages + one
   or more invalid files" signal is a proxy for "wrong directory," not a
   certainty — a genuinely empty coordination directory with a few stray
@@ -228,6 +312,9 @@ match new behavior without documenting why is a BLOCK.
 
 ## Rollback
 
-Revert the `agov-mcp` crate changes; `dir` was never removed, so no adopter
-migration is undone by reverting. Documentation and changelog reverts are
-trivial single-file reverts.
+Revert the `agov-mcp` crate changes; since `agov-mcp` has not yet shipped
+in a published release (Level 4 Validated only), reverting pre-release
+has no adopter migration to undo. Documentation and changelog reverts are
+trivial single-file reverts. This calculus changes once `agov-mcp` ships
+in an actual release — a later rollback after that point would itself
+need the deprecation-policy rule's guidance, not this plan's.
