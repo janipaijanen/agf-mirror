@@ -7,12 +7,12 @@ digraph gate_pipeline {
         <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
             <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
             <TR>
-                <TD BORDER="1" COLOR="#888888" WIDTH="28">oval</TD><TD ALIGN="LEFT">request / start</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28">diamond</TD><TD ALIGN="LEFT">human gate review</TD>
+                <TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">request / start (oval shape)</TD>
+                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">human gate review (diamond shape)</TD>
                 <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">planned or implemented work</TD>
             </TR>
             <TR>
-                <TD BGCOLOR="#009944" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">approved / merged</TD>
+                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">approved / merged</TD>
                 <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD>
                 <TD><FONT COLOR="#CC3311">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rejected / stopped</TD>
             </TR>
