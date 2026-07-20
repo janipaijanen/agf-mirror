@@ -128,6 +128,28 @@ current core validators can use a full checkout or the optional packaged
 `agov` tooling archive; the combined bundle is a convenience artifact, not a
 prerequisite for adopting AGF.
 
+## Local learning and upstream proposals
+
+Two concepts recur across the docs and are easier to follow as a diagram
+than as prose: how a project's own operational evidence becomes a
+learning record, and how a pattern worth sharing travels upstream as a
+rule or agent proposal. Both are explained with an embedded figure on
+the published docs site, kept in sync with the text:
+
+- [Evidence and learnings](https://janipaijanen.gitlab.io/agents-govern-framework/concepts/evidence-and-learnings/)
+  — the learning-loop diagram, and the ownership table distinguishing
+  framework-owned learning records from your own
+  `agf/learnings/<codename>.yaml` (never touched on upgrade).
+- [Contribute](https://janipaijanen.gitlab.io/agents-govern-framework/contribute/)
+  — the three upstream paths (submit a learning, propose a rule, propose
+  an agent) and the evidence bar each one requires.
+
+Figure sources are Graphviz DOT files under
+[agf/docs/figures/src/](agf/docs/figures/src/); see
+[figures.md](agf/docs/figures/figures.md) for the full inventory,
+including the governance loop, gate pipeline, coordination channel, and
+exit-flow diagrams referenced elsewhere in these docs.
+
 ## How to cite
 
 If you use agents-govern in research or a published project:
