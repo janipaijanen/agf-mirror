@@ -1250,6 +1250,88 @@ learnings:
         - "Codex external-review claim assessment session on 2026-07-03"
         - "docs/reviews/agf-external-review-claim-triage.md"
 
+  - id: "20260720T220125Z-k8s7"
+    date: "2026-07-20"
+    category: validation
+    scope: framework
+    title: cross-llm-coordination-needs-three-separable-layers-not-two
+    description: >
+      A repeated pattern across recent Gate 1 coordination threads: durable
+      Git coordination records, disposable GitLab MR-note discovery
+      bridges, and observable receipt (correct role routing plus
+      requires-ack/response/takeover) function as three separable
+      mechanisms, not two. An initial framing collapsed discovery and
+      receipt into one property ("visibility"); a routing incident during
+      this same period showed why that collapse is wrong — a durable
+      record and a visible MR note can both exist and still route work
+      into the wrong queue.
+
+      Evidence 1 (specificity of findings improves independent review): on
+      MR !255 (rename the MCP `dir` field to `coordination_dir`), Codex's
+      Gate 1 review (`sga1`, then follow-up `16p7`) cited exact evidence
+      for each BLOCK — a specific stdout-parsing line still live in Design
+      item 4 despite being described as fixed, and a specific mismatch
+      between the plan's current hard-rename/BREAKING contract and the MR
+      description's stale alias/PREVENTIVE wording. Both were fixed
+      precisely because the findings named the exact defect rather than
+      offering general disapproval.
+
+      Evidence 2 (durable record plus visible note is not sufficient
+      without observable receipt): the same period's philosophies-page
+      plan (MR !268) was handed off for Gate 1 review with
+      `to: planner-architect` instead of `to: governor-reviewer`,
+      contradicting `agf/agents/MANIFEST.yaml`'s routing authority. The
+      coordination file (`r2sr`) was durable and committed; nothing about
+      its existence caught the misrouting. Only Codex's explicit,
+      role-scoped finding (`1mr4`, escalated via MR !269) and a corrective
+      `handoff` with `requires-ack: true` addressed to the correct role
+      (`gmrh`) fixed it. The original record stays immutable as evidence
+      of the mistake; the correction supersedes it for routing purposes
+      only.
+
+      A related overclaim surfaced and was corrected in the same
+      discussion: "the coordination record survives even if the hosting
+      platform disappears" is true only once the commit is merged or
+      replicated into another clone. An unmerged branch that exists on a
+      single remote (as the supporting commits for MR !266 and MR !269
+      briefly did) remains a single point of failure until merged.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: "coordination channel; audit trail; Gate 1 routing; always/coordination-message-rule.md"
+    business_impact:
+      type: prevented_loss
+      description: >
+        The routing correction prevented a Gate 1 decision from stalling
+        indefinitely in a queue no authorized role was watching. The
+        BLOCK-specificity pattern prevented an incomplete stdout-parsing
+        fix and a stale MR description from reaching Gate 1 approval under
+        a different contract than what was actually implemented.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Document cross-LLM coordination as requiring three separable
+      mechanisms: a durable Git record, a disposable discovery bridge (MR
+      note or equivalent), and an observable receipt (correct role routing
+      plus requires-ack, response, or takeover — not mere publication).
+      Specific, evidence-backed findings improve independent review; vague
+      acknowledgments invite rubber-stamping. When documenting durability
+      claims, avoid overclaiming platform-independence: a coordination
+      record is durable once merged or replicated into another clone, not
+      merely once committed to a single remote branch. Treat this as
+      empirically informed by repeated incidents in this project, not yet
+      a universally validated design — revisit for promotion to a
+      rules-template entry after independent corroboration from a second
+      adopter.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "MR !255/!266 dir-rename Gate 1 BLOCK chain: docs/coordination/20260720T212711Z-coder-tester-16p7.md; fixed by commits af14f6d, f7b7df2"
+        - "MR !268/!269 Gate 1 routing misfire: docs/coordination/20260720T214439Z-coder-tester-r2sr.md misrouted to planner-architect; corrected by docs/coordination/20260720T215132Z-coder-tester-gmrh.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
