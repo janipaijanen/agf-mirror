@@ -1250,6 +1250,119 @@ learnings:
         - "Codex external-review claim assessment session on 2026-07-03"
         - "docs/reviews/agf-external-review-claim-triage.md"
 
+  - id: "20260720T201034Z-pmvw"
+    date: "2026-07-20"
+    category: validation
+    scope: framework
+    title: cross-llm-review-catches-planning-inconsistency-single-agent-missed
+    description: >
+      An external framework assessment (GPT-5.6 Sol High,
+      docs/reviews/agf-framework-assessment-codex-sol-high.md) was synthesized
+      with an internal TODO backlog by one LLM instance (Claude, playing
+      coder-tester) into a prioritized action list (MR !252). The synthesis
+      contained two real defects the authoring instance did not catch in its
+      own output: (1) it labeled the MCP agov-mcp `dir` field defect as P0
+      while simultaneously recommending the pending minor release proceed
+      before that defect was fixed — an internal contradiction between the
+      assigned priority and the release recommendation; (2) it split the bug
+      fix (P0) from its own conformance/fixture tests (deferred to a later
+      tier), when those tests are release-evidence if the fix ships in the
+      same release, not separable hardening.
+
+      A second LLM instance (Codex, gpt-5.6-sol-high / codex-gpt-5, also
+      playing coder-tester) reviewed the same source material independently
+      and caught both issues without access to new information — purely by
+      working through the logical implications of the first instance's own
+      stated priority. The catch was filed as a formal `kind: review`
+      coordination message referencing the triggering handoff, not an
+      informal or ephemeral aside, making it durable and auditable. The human
+      governor then directed the first instance to revise the artifacts
+      accordingly.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: "coordination channel; Gate 1 plan synthesis; release-truth reconciliation"
+    business_impact:
+      type: prevented_loss
+      description: >
+        Caught a self-contradictory release recommendation and an
+        artificially split release-evidence bundle before either was acted
+        on — specifically before the pending v2.3.0 minor release was cut.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Treat cross-agent review (not only human-gate review) as a distinct,
+      evidence-worthy mechanism, and continue exercising it deliberately for
+      planning-stage artifacts (syntheses, Gate 1 plans), not only
+      implementation diffs. An authoring instance cannot easily see the
+      logical contradiction in its own stated priorities; a second
+      independent instance reviewing the same source material can. Consider
+      whether a lightweight second-opinion step should become a documented
+      pattern specifically for prioritization/synthesis documents. This is
+      Empirically informed by a single incident in a single session; it does
+      not yet warrant a MUST-strength rule.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !252 (docs/todo-sol-high-prioritized-actions)"
+        - "docs/coordination/20260720T193644Z-coder-tester-kh7j.md"
+        - "docs/coordination/20260720T200018Z-coder-tester-psht.md"
+
+  - id: "20260720T201034Z-w6zo"
+    date: "2026-07-20"
+    category: gap
+    scope: framework
+    title: role-based-coordination-routing-cannot-target-specific-model-identity
+    description: >
+      Coordination messages route by role (`from`/`to` fields validated
+      against MANIFEST.yaml role identifiers), not by model or agent
+      identity. In this session, one LLM instance (Claude) filed a handoff
+      addressed `coder-tester -> coder-tester` intending to reach a specific
+      other instance (Codex, author of the source assessment under review),
+      but nothing in the routing mechanism guarantees the message reaches
+      that instance rather than being picked up by the filer's own next
+      coder-tester turn. Codex's own review of that exchange explicitly
+      named this as a live example of the identity/accountability limitation
+      the external assessment itself identified ("Agent identity: Recorded
+      assertion, not strong identity proof").
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: "coordination channel; role manifest; agent identity"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Without a resolution, coordinating a specific follow-up between two
+        concurrently active model instances depends on chance pickup order
+        rather than a guaranteed routing path, which costs review latency
+        and requires the human governor to manually confirm which instance
+        actually acted on a given handoff.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Open question — being jointly designed with Codex via the coordination
+      channel rather than resolved unilaterally in this record. Candidate
+      directions to evaluate jointly: (a) an optional, explicitly
+      non-binding targeting hint field on coordination messages (routing
+      stays role-based by design; identity cannot be cryptographically
+      verified, so any such field is advisory only); (b) a named-handoff
+      convention (explicit "addressed to" prose plus a claim/take
+      acknowledgment step) requiring no schema change; (c) documenting the
+      limitation as an accepted, inherent property of a file-based,
+      tool-agnostic protocol rather than solving it. Update this record once
+      the joint design lands.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "docs/coordination/20260720T193644Z-coder-tester-kh7j.md"
+        - "docs/coordination/20260720T200018Z-coder-tester-psht.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
