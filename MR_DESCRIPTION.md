@@ -21,6 +21,7 @@ in `install-and-layouts.md`'s tip block; README just didn't surface them.
 | File | Change |
 |---|---|
 | `README.md` | Step 3 of "Twenty-minute path" now states inline: download `agf-<version>.tar.gz`/`.zip` (and matching `agov-<version>-<platform>` archive) from the Releases page, put it in `tmp/`, and the exact one-line prompt to give the coding assistant — quoted verbatim from `install-and-layouts.md` rather than paraphrased |
+| `tooling/rust/Cargo.lock` | Rebased branch also updates `crossbeam-epoch` from `0.9.18` to `0.9.20` to clear `cargo deny` advisory `RUSTSEC-2026-0204` raised by the MR pipeline |
 
 ## Deliberate omission
 
@@ -31,4 +32,5 @@ every release. The Releases page link always shows the current release.
 
 - [ ] Quoted prompt matches `install-and-layouts.md`'s tip block verbatim
 - [ ] No version-specific asset URL hardcoded
+- [ ] `cargo deny check` passes after the lockfile advisory update
 - [ ] No `Co-authored-by` trailers in commit
