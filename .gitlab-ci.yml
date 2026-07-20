@@ -20,7 +20,9 @@
 workflow:
   rules:
     # Coordination-only commits update the durable governance trail. They should
-    # not invalidate the last green code pipeline for an MR.
+    # not invalidate the last green code pipeline for an MR. Use this only when
+    # the commit changes coordination records and each record was locally
+    # validated with agov coord validate; mixed commits must run normal CI.
     - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
       when: never
     - when: always
