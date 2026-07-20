@@ -28,6 +28,23 @@ remains open for its other unresolved scope; per hpk6's explicit
 instruction, its stalled `pending-gate1` status is not being used as
 retroactive authorization for this new field-contract change.
 
+**Timing relative to the pending v2.3.0 release (revised after Codex's
+review of the sibling synthesis, `docs/coordination/20260720T200018Z-
+coder-tester-psht.md`):** Codex correctly flagged that shipping v2.3.0
+while still claiming `agov-mcp` is release-quality would contradict the
+Sol High assessment's own finding that this defect "should block a claim
+that the MCP surface is Level 5 Deployable." Rather than rushing this
+plan's implementation to beat the release, `docs/plans/
+mcp-coordination-dir-contract-fix.md`'s fix ships on its own timeline
+after Gate 1 approval, and a separate change (MR !258,
+`docs/mcp-maturity-claim-honesty`) downgrades `agov-mcp`'s documented
+status to Level 4 Validated with this plan linked as the known
+limitation's tracking record — so v2.3.0 can ship honestly without this
+fix blocking it. If the governor instead prefers to hold v2.3.0 for the
+full fix, that reverses this call; either is consistent with the
+assessment, and the choice belongs to Gate 1 review, not to this plan
+unilaterally.
+
 ---
 
 ## Intent
@@ -115,11 +132,16 @@ silently decided during implementation.
    (`tooling/rust/crates/agov-mcp/src/main.rs`, the `tools()` function,
    lines ~407-489).
 
-2. **Keep `dir` as a deprecated alias.** In `tool_cli_args`, accept either
-   `coordination_dir` or `dir`; if both are present, `coordination_dir`
-   wins. If only `dir` is present, use its value but attach a
-   `deprecated_field_used: "dir"` note to the tool's JSON-RPC response
-   (not just silently accepted) so callers have a visible nudge to migrate.
+2. **Keep `dir` as a deprecated alias, with an explicit conflict rule.**
+   In `tool_cli_args`, accept either `coordination_dir` or `dir`. If only
+   one is present, use it (attaching `deprecated_field_used: "dir"` to the
+   response when it was `dir`, so callers get a visible nudge to migrate).
+   If **both** are present and their values differ, `coordination_dir`
+   wins, but the response MUST include an explicit
+   `field_conflict: {used: "coordination_dir", ignored_dir: "<value>"}`
+   note — silently preferring one value over another supplied one is
+   exactly the kind of ambiguity that should never be invisible to the
+   caller. If both are present and equal, no conflict note is needed.
 
 3. **Field description text** (in the schema, shown to the calling agent):
    `"Coordination-message directory — NOT the repository root. Defaults to
