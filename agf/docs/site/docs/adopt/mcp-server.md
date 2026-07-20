@@ -42,6 +42,22 @@ the repository root:
 }
 ```
 
+For Codex CLI, add the same stdio server through Codex's MCP configuration
+command instead of pasting the JSON block directly:
+
+```bash
+codex mcp add agov \
+  --env AGOV_MCP_AGOV_BIN=/path/to/agov \
+  -- agov-mcp
+```
+
+Then verify that Codex recorded the server:
+
+```bash
+codex mcp list
+codex mcp get agov
+```
+
 The server advertises these tools:
 
 | MCP tool | Equivalent CLI command |
