@@ -10,6 +10,7 @@
 # Pipeline structure:
 #   site-html-build   — MkDocs strict build; review artifact on MRs and branches
 #   pages             — publish to GitLab Pages from the default branch
+#   agf:flyer:verify  — check the committed nutshell-flyer PNG isn't stale vs. its source
 #   agf:dist:validate — validate the manifest-driven framework package with Rust agov
 #   agf:dist:preview  — build review-only framework archives with Rust agov
 #   agf:dist:release  — tag pipelines only; Rust tag/VERSION guard then build archives
@@ -174,6 +175,95 @@ pages:
         - agf/framework.md
         - mkdocs.yml
         - .gitlab-ci.yml
+
+# Verify the committed nutshell-flyer PNG (agf/docs/figures/agf-nutshell-flyer.png
+# and its byte-identical site copy) is not stale relative to its source.
+# Same convention as the Graphviz diagrams: source + rendered output are both
+# committed, nothing auto-regenerates. This job re-renders from source and
+# compares against the committed copies:
+#   - hard-fails if the generator errors, if the two committed copies have
+#     diverged from each other, or if the rendered dimensions differ (catches
+#     structural/layout regressions);
+#   - prints an advisory (non-blocking) note if the freshly-rendered PNG's
+#     content hash differs from the committed one, since a headless-browser
+#     PNG encode is not guaranteed byte-identical across Chromium versions —
+#     a hard pixel-diff gate here would be flaky, not meaningful.
+agf:flyer:verify:
+  image: python:3.14-slim
+  stage: test
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends chromium >/dev/null
+  script:
+    - |
+      set -eu
+      cd agf/docs/figures/src/agf-nutshell-flyer
+      python3 build_flyer.py -o /tmp/agf-nutshell-flyer-verify.html
+      chromium --headless --disable-gpu --no-sandbox --window-size=1600,1131 \
+        --screenshot=/tmp/agf-nutshell-flyer-verify.png \
+        "file:///tmp/agf-nutshell-flyer-verify.html"
+      cd "$CI_PROJECT_DIR"
+
+      python3 - <<'PY'
+      import hashlib
+      import pathlib
+      import struct
+      import sys
+
+      def dimensions(path):
+          data = pathlib.Path(path).read_bytes()
+          if data[:8] != b"\x89PNG\r\n\x1a\n":
+              sys.exit(f"{path}: not a PNG file")
+          width, height = struct.unpack(">II", data[16:24])
+          return width, height, hashlib.sha256(data).hexdigest()
+
+      committed = "agf/docs/figures/agf-nutshell-flyer.png"
+      site_copy = "agf/docs/site/reference/figures/agf-nutshell-flyer.png"
+      fresh = "/tmp/agf-nutshell-flyer-verify.png"
+
+      cw, ch, chash = dimensions(committed)
+      sw, sh, shash = dimensions(site_copy)
+      fw, fh, fhash = dimensions(fresh)
+
+      if (cw, ch) != (sw, sh) or chash != shash:
+          sys.exit(
+              f"{committed} and {site_copy} have diverged — the dual-copy "
+              "convention requires them to be byte-identical."
+          )
+
+      if (cw, ch) != (fw, fh):
+          sys.exit(
+              f"Committed flyer PNG is {cw}x{ch}, a fresh render from the "
+              f"current source is {fw}x{fh} — likely a structural/layout "
+              "regression. Regenerate and commit (see "
+              "agf/docs/figures/src/agf-nutshell-flyer/README.md)."
+          )
+
+      if chash != fhash:
+          print(
+              "ADVISORY: committed flyer PNG content hash differs from a "
+              "fresh render (dimensions match). This can be normal "
+              "Chromium-version rendering drift, or the flyer may be stale "
+              "(e.g. after an agf/VERSION bump). Not blocking; regenerate "
+              "if the content actually changed."
+          )
+      else:
+          print("Flyer PNG matches a fresh render exactly.")
+      PY
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/docs/figures/src/agf-nutshell-flyer/**/*
+        - agf/docs/figures/agf-nutshell-flyer.png
+        - agf/docs/site/reference/figures/agf-nutshell-flyer.png
+        - agf/VERSION
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - agf/docs/figures/src/agf-nutshell-flyer/**/*
+        - agf/docs/figures/agf-nutshell-flyer.png
+        - agf/docs/site/reference/figures/agf-nutshell-flyer.png
+        - agf/VERSION
+    - if: $CI_COMMIT_TAG
 
 # ── Framework package artifacts ───────────────────────────────────────────────
 

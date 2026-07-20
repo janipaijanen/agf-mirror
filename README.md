@@ -35,6 +35,8 @@ commit for a small default install.
 
 Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
 
+![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
+
 ## Should you adopt?
 
 Start with [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
