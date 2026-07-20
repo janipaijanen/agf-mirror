@@ -7,6 +7,15 @@ distribution.
 
 ### Added
 
+- Added `deprecation-policy-rule`, defining a two-phase deprecation policy:
+  Phase 0 (pre-customer, current state) permits disclosed breaking changes
+  with no deprecation cycle; Phase 1 (real external adopters) requires a
+  minimum support window (2 minor releases or 60 calendar days by default,
+  whichever is longer, modeled on Kubernetes' published API deprecation
+  policy). Motivated by the `agov-mcp` `dir` field rename
+  (`docs/plans/mcp-coordination-dir-contract-fix.md`), which is a Phase 0
+  hard rename under this rule rather than a repeat of the coordination
+  schema's never-actually-sunset `seq` field pattern.
 - Added `agent-improvement-proposal-rule`, a SHOULD-strength norm that lets
   agents surface workflow friction and improvement ideas without expanding the
   active MR or taking approval authority.
