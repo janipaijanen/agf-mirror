@@ -1,50 +1,58 @@
-# plan: Gate 1 plans for compliance-export/buyer-side AGF (#40/#41) and CRA entity-structure decision (#44)
+# plan: threat model + governance primitives cluster (issues #42, #48, #49)
 
-Branch: `plan/compliance-export-buyer-side`
+Branch: `plan/threat-model-governance-primitives`
 
 ## Summary
 
-Three issues, two of them a genuine pair (#40 produces evidence, #41
-consumes it — planned against one shared schema) and one a lightweight
-decision (#44).
+Three foundational/conceptual issues planned together so the primitives
+(#48, #49) can cite specific entries in the threat model (#42) instead
+of each justifying their own existence from scratch.
 
 ## What's in this branch
 
-- **`compliance-export-buyer-side-agf.md`** (#40 + #41): a joint
-  evidence-pack schema (`agf_evidence_pack_version`,
-  `layers_claimed`/`layers_not_available`/`layers_out_of_scope`) that
-  integrates with the repo's **existing** three-tier compliance
-  vocabulary (`agf/docs/adopt/compliance-profile.md`) rather than
-  inventing a parallel one — each section is tagged by which
-  verifiability layer it draws from, with Layer 3 (binding) explicitly
-  marked "not available, planned/deferred" rather than silently
-  omitted, and Layer 4 (runtime) never populated. The pack never claims
-  more than the adopter's declared `compliance_target` tier. Maturity
-  classified per the five-level model: mapping/schema work is Level 2;
-  the export/verify commands themselves are Level 1/Planned.
-  Regulatory dates (MCC-AI, AI Act Art. 26, CRA) cited from
-  `docs/sources.md` with explicit recheck-before-citing flags.
-- **`cra-entity-structure-decision.md`** (#44): deliberately lightweight
-  — stated explicitly as closer to a fast-track decision than a full
-  Gate 1 project. Decision: CRA Art. 24 steward regime does not
-  currently apply (AGF is a natural-person maintainer, not a legal
-  person per Art. 3(14)), with the source survey's "partially
-  unverified, draft guidance" caveat preserved, plus a named trigger
-  condition (entity formation → policy due by 2026-09-11 or formation
-  date, whichever is later).
+- **`threat-model-stpa-owasp.md`** (#42): declares AGF's threat model as
+  **cooperative-but-fallible primary, incidental-adversarial-resistance
+  secondary** — most gates are advisory (rely on agent cooperation), so
+  AGF resists honest mistakes/drift/automation-bias but does not claim
+  Byzantine-fault tolerance, non-repudiation, or collusion detection
+  against a determined adversary with repo access. Derives an STPA
+  control structure (implementer → governor-reviewer → human governor)
+  with 9 unsafe control actions, each rated Addressed/Partially/Not-
+  addressed against a named existing rule file, with OWASP LLM Top 10
+  mappings (hedged, flagged for re-verification against the live OWASP
+  page before publishing).
+- **`governance-time-budget-primitives.md`** (#48): cooling-off,
+  rate-limit, and token/action-budget throttles, explicitly citing
+  UCA-3 (machine-speed gate saturation) from the threat model. Extends
+  `deputy-governor-rule.md`'s existing `audit_trigger` (count-based,
+  deputy-only) with a time-windowed, any-governor-identity sibling
+  rather than inventing a parallel mechanism.
+- **`input-provenance-manifest.md`** (#49): citing UCA-4 (silent
+  instruction drift), reuses the existing coordination-message schema
+  (one optional `provenance` object field — additive, no Rust code
+  change needed since the validator is schema-driven) rather than a new
+  manifest file type. Tracks CycloneDX's Agent BOM proposal at Level 1
+  (Planned) only, no conformance claimed.
+
+## Open question flagged for reconciliation (not silently resolved)
+
+`input-provenance-manifest.md` explicitly flags a tension: this project
+already chose SPDX over CycloneDX for tooling binary SBOMs
+(`docs/coordination/00275-planner-architect.md`). Different artifact
+(behavioral provenance vs. binary distribution), not a hard conflict,
+but worth a one-line rationale for running two BOM-adjacent
+vocabularies, or redirecting #49 at SPDX instead. See Finding 2 in
+`docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md`.
 
 ## Assumption flagged for reconciliation
 
-CLI subcommand namespace (`agov compliance ...`) and reuse of `agov
-coord validate` internals may need reconciliation with the coordination
-CLI cluster (#33/#32/#36/#37) — no collision found (different
-namespace), but stated explicitly for the human reconciler to confirm.
+The threat model guesses that the gate-enforcement cluster (#34/#47)
+converts specific advisory gates to structural CI checks, since this
+plan had no visibility into that cluster's actual text when written.
 
 ## Review checklist
 
-- [x] Both plan files validate against `agf/schemas/gate1-plan.schema.json`
-- [ ] Evidence-pack schema reviewed against existing compliance-profile.md
-      vocabulary for consistency
-- [ ] #44's fast-track-weight recommendation reviewed (agree it doesn't
-      need a full plan cycle?)
+- [x] All three plan files validate against `agf/schemas/gate1-plan.schema.json`
+- [ ] Threat-model's cooperative-vs-adversarial framing agreed
+- [ ] SPDX vs. CycloneDX question resolved (see open question above)
 - [ ] No `Co-authored-by` trailers in commit
