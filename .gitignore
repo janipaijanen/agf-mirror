@@ -1,4 +1,5 @@
 tmp/
+/MR_DESCRIPTION.md
 .worktrees/
 docs/workitems/bundles/
 __pycache__/
