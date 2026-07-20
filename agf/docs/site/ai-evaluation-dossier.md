@@ -404,6 +404,9 @@ source-backed AI review</p>
 - Stated uncertainty and unread areas.
 - Filed findings through the External Review issue template when submitting
   feedback upstream.
+- Applied the consultative challenge questions in
+  [Philosophical lenses on AI governance](docs/concepts/philosophical-lenses.md)
+  to at least one gate or claim under review.
 
 ## Full Source Page Appendix
 
