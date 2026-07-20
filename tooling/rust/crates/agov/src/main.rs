@@ -3,7 +3,7 @@ mod dist;
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
 use serde::Serialize;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use time::format_description::well_known::Rfc3339;
 
@@ -93,6 +93,42 @@ enum CoordCommand {
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
     },
+    /// Write and validate a coordination message.
+    Post {
+        #[arg(long, default_value = "readable", value_parser = ["readable", "ulid"])]
+        id_format: String,
+        #[arg(long)]
+        from: String,
+        #[arg(long)]
+        to: String,
+        #[arg(long, default_value = "note")]
+        kind: String,
+        #[arg(long)]
+        topic: String,
+        /// Existing coordination message ids or filenames this message references.
+        #[arg(long = "ref")]
+        refs: Vec<String>,
+        /// Artifact path claimed by a claim message.
+        #[arg(long = "artifact")]
+        artifacts: Vec<String>,
+        /// Task line for a handoff message.
+        #[arg(long = "task")]
+        tasks: Vec<String>,
+        /// LLM/runtime provenance for the coordination record. Defaults to AGOV_MODEL when set.
+        #[arg(long)]
+        model: Option<String>,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+    },
+    /// List valid coordination messages after an id, filename, or RFC3339 timestamp.
+    List {
+        #[arg(long)]
+        since: Option<String>,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
     /// Print coordination channel overview.
     Status {
         #[arg(long, default_value = "docs/coordination")]
@@ -173,6 +209,24 @@ enum HandoffCommand {
     /// Show the next ready handoff for an agent role.
     Next {
         agent_role: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+    },
+    /// Acknowledge and take a pending handoff.
+    Take {
+        id: String,
+        #[arg(long)]
+        from: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+    },
+    /// Mark a pending handoff complete.
+    Complete {
+        id: String,
+        #[arg(long)]
+        from: String,
+        #[arg(long)]
+        to: Option<String>,
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
     },
@@ -305,6 +359,38 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             &args,
         ),
         Command::Coord {
+            sub:
+                CoordCommand::Post {
+                    id_format,
+                    from,
+                    to,
+                    kind,
+                    topic,
+                    refs,
+                    artifacts,
+                    tasks,
+                    model,
+                    dir,
+                },
+        } => coord_post(
+            CoordPostOptions {
+                id_format,
+                from,
+                to,
+                kind,
+                topic,
+                refs,
+                artifacts,
+                tasks,
+                model,
+                dir,
+            },
+            &args,
+        ),
+        Command::Coord {
+            sub: CoordCommand::List { since, dir, format },
+        } => coord_list(since, dir, format, &args),
+        Command::Coord {
             sub: CoordCommand::Status { dir, recent, roles },
         } => coord_status(dir, recent, roles, &args),
         Command::Coord {
@@ -338,6 +424,12 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
         } => handoff_next(&agent_role, dir, &args),
+        Command::Handoff {
+            sub: HandoffCommand::Take { id, from, dir },
+        } => handoff_take(&id, &from, dir, &args),
+        Command::Handoff {
+            sub: HandoffCommand::Complete { id, from, to, dir },
+        } => handoff_complete(&id, &from, to, dir, &args),
         Command::Session {
             sub:
                 SessionCommand::Resume {
@@ -707,6 +799,33 @@ struct CoordBriefOptions {
     dir: PathBuf,
 }
 
+struct CoordPostOptions {
+    id_format: String,
+    from: String,
+    to: String,
+    kind: String,
+    topic: String,
+    refs: Vec<String>,
+    artifacts: Vec<String>,
+    tasks: Vec<String>,
+    model: Option<String>,
+    dir: PathBuf,
+}
+
+struct CoordDraft {
+    id_format: String,
+    from: String,
+    to: String,
+    kind: String,
+    topic: String,
+    refs: Vec<String>,
+    artifacts: Vec<String>,
+    tasks: Vec<String>,
+    model: Option<String>,
+    dir: PathBuf,
+    body: String,
+}
+
 fn coord_brief(options: CoordBriefOptions, args: &[String]) -> i32 {
     let mut output = OutputCounter::default();
     let CoordBriefOptions {
@@ -719,12 +838,9 @@ fn coord_brief(options: CoordBriefOptions, args: &[String]) -> i32 {
         dir,
     } = options;
 
-    if !matches!(
-        kind.as_str(),
-        "note" | "handoff" | "claim" | "completion" | "ack" | "review"
-    ) {
+    if !valid_coord_kind(&kind) {
         output.stderr(format!(
-            "ERR  unknown kind: {kind}  (supported: note handoff claim completion ack review)"
+            "ERR  unknown kind: {kind}  (supported: claim completion review ack handoff decision-record fast-track-waiver lesson-proposal note)"
         ));
         return 1;
     }
@@ -788,6 +904,144 @@ fn coord_brief(options: CoordBriefOptions, args: &[String]) -> i32 {
     }
 
     agov_core::roi::record_tool_output("agov", args, "coord-brief", output.chars);
+    0
+}
+
+fn coord_post(options: CoordPostOptions, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+
+    if !valid_coord_kind(&options.kind) {
+        output.stderr(format!(
+            "ERR  unknown kind: {}  (supported: claim completion review ack handoff decision-record fast-track-waiver lesson-proposal note)",
+            options.kind
+        ));
+        return 1;
+    }
+
+    if options.from.trim().is_empty()
+        || options.to.trim().is_empty()
+        || options.topic.trim().is_empty()
+    {
+        output.stderr("ERR  --from, --to, and --topic must be non-empty");
+        return 1;
+    }
+
+    if options.kind == "ack" && options.refs.is_empty() {
+        output.stderr("ERR  ack messages require at least one --ref");
+        return 1;
+    }
+
+    if options.kind == "claim" && options.artifacts.is_empty() {
+        output.stderr("ERR  claim messages require at least one --artifact");
+        return 1;
+    }
+
+    let refs = match normalize_refs(&options.refs) {
+        Ok(refs) => refs,
+        Err(reference) => {
+            output.stderr(format!("ERR  invalid coordination reference: {reference}"));
+            return 1;
+        }
+    };
+
+    let body = if options.kind == "review" {
+        "# Findings\n\n- INFO: Generated coordination record.\n".to_string()
+    } else {
+        "# Message\n\nGenerated by agov coord post.\n".to_string()
+    };
+
+    let draft = CoordDraft {
+        id_format: options.id_format,
+        from: options.from,
+        to: options.to,
+        kind: options.kind,
+        topic: options.topic,
+        refs,
+        artifacts: options.artifacts,
+        tasks: options.tasks,
+        model: options
+            .model
+            .or_else(|| std::env::var("AGOV_MODEL").ok())
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty()),
+        dir: repo_relative_path(options.dir),
+        body,
+    };
+
+    match write_coord_draft(draft) {
+        Ok(path) => {
+            output.stdout(format!("Wrote {}", path.display()));
+            output.stdout(format!("Validate: agov coord validate {}", path.display()));
+            agov_core::roi::record_tool_output("agov", args, "coord-post", output.chars);
+            0
+        }
+        Err(message) => {
+            output.stderr(format!("ERR  {message}"));
+            1
+        }
+    }
+}
+
+fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!("ERR  directory not found: {}", dir.display()));
+            return 1;
+        }
+    };
+
+    let cursor = match since {
+        Some(value) => match coord_list_cursor(&messages, &value) {
+            Ok(cursor) => Some(cursor),
+            Err(message) => {
+                output.stderr(format!("ERR  {message}"));
+                return 1;
+            }
+        },
+        None => None,
+    };
+
+    let items: Vec<HandoffMessage> = messages
+        .into_iter()
+        .filter(|message| match &cursor {
+            Some(cursor) => message.sort_key > *cursor,
+            None => true,
+        })
+        .collect();
+
+    if items.is_empty() {
+        output.stdout("No coordination messages found");
+        return 2;
+    }
+
+    if format == "json" {
+        let rows: Vec<CoordListRow> = items.iter().map(CoordListRow::from).collect();
+        match serde_json::to_string_pretty(&rows) {
+            Ok(json) => output.stdout(json),
+            Err(err) => {
+                output.stderr(format!("ERR  could not render JSON: {err}"));
+                return 1;
+            }
+        }
+    } else {
+        for message in &items {
+            output.stdout(format!(
+                "{}  {}  {}  {} -> {}  {}  {}",
+                string_field(&message.raw, "timestamp").unwrap_or(""),
+                string_field(&message.raw, "id").unwrap_or(""),
+                string_field(&message.raw, "kind").unwrap_or(""),
+                string_field(&message.raw, "from").unwrap_or(""),
+                string_field(&message.raw, "to").unwrap_or(""),
+                string_field(&message.raw, "topic").unwrap_or(""),
+                message.file
+            ));
+        }
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-list", output.chars);
     0
 }
 
@@ -901,6 +1155,21 @@ fn render_kind_front_matter(output: &mut OutputCounter, kind: &str, to: &str, to
     }
 }
 
+fn valid_coord_kind(kind: &str) -> bool {
+    matches!(
+        kind,
+        "claim"
+            | "completion"
+            | "review"
+            | "ack"
+            | "handoff"
+            | "decision-record"
+            | "fast-track-waiver"
+            | "lesson-proposal"
+            | "note"
+    )
+}
+
 fn suggested_filename(id_format: &str, from: Option<&str>, id: &str) -> String {
     if id_format == "readable" {
         format!("{id}.md")
@@ -909,6 +1178,220 @@ fn suggested_filename(id_format: &str, from: Option<&str>, id: &str) -> String {
     } else {
         format!("{id}-<from>.md")
     }
+}
+
+fn normalize_refs(refs: &[String]) -> Result<Vec<String>, String> {
+    let mut normalized = Vec::new();
+    for reference in refs {
+        let Some(filename) = normalize_coord_reference(reference) else {
+            return Err(reference.clone());
+        };
+        if !normalized.contains(&filename) {
+            normalized.push(filename);
+        }
+    }
+    Ok(normalized)
+}
+
+fn write_coord_draft(draft: CoordDraft) -> Result<PathBuf, String> {
+    if draft.id_format == "readable" && draft.from.trim().is_empty() {
+        return Err("--id-format readable requires --from <role>".to_string());
+    }
+
+    let now = time::OffsetDateTime::now_utc();
+    let id = if draft.id_format == "readable" {
+        readable_id(&draft.from, now)
+    } else {
+        agov_core::ulid_util::new()
+    };
+    let filename = suggested_filename(&draft.id_format, Some(&draft.from), &id);
+    let path = draft.dir.join(filename);
+
+    std::fs::create_dir_all(&draft.dir)
+        .map_err(|err| format!("could not create {}: {err}", draft.dir.display()))?;
+    if path.exists() {
+        return Err(format!("refusing to overwrite {}", path.display()));
+    }
+
+    let content = render_coord_draft_markdown(&draft, &id, &iso_timestamp(now))?;
+    std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .and_then(|mut file| std::io::Write::write_all(&mut file, content.as_bytes()))
+        .map_err(|err| format!("could not write {}: {err}", path.display()))?;
+
+    if let Err(errors) = agov_coord::coord_validator::validate_file(&path) {
+        let _ = std::fs::remove_file(&path);
+        let rendered = errors
+            .into_iter()
+            .map(|(message, pointer)| format!("{pointer}: {message}"))
+            .collect::<Vec<_>>()
+            .join("; ");
+        return Err(format!(
+            "generated coordination message failed validation; removed {}: {rendered}",
+            path.display()
+        ));
+    }
+
+    let duplicates = duplicate_id_errors_in_dirs(std::slice::from_ref(&path));
+    if !duplicates.is_empty() {
+        let _ = std::fs::remove_file(&path);
+        let rendered = duplicates
+            .into_iter()
+            .map(|(path, message)| format!("{path}: {message}"))
+            .collect::<Vec<_>>()
+            .join("; ");
+        return Err(format!(
+            "generated coordination message duplicated an existing id; removed {}: {rendered}",
+            path.display()
+        ));
+    }
+
+    Ok(path)
+}
+
+fn render_coord_draft_markdown(
+    draft: &CoordDraft,
+    id: &str,
+    timestamp: &str,
+) -> Result<String, String> {
+    let mut front = serde_json::Map::new();
+    front.insert(
+        "kind".to_string(),
+        serde_json::Value::String(draft.kind.clone()),
+    );
+    front.insert(
+        "from".to_string(),
+        serde_json::Value::String(draft.from.clone()),
+    );
+    front.insert(
+        "to".to_string(),
+        serde_json::Value::String(draft.to.clone()),
+    );
+    front.insert("id".to_string(), serde_json::Value::String(id.to_string()));
+    front.insert(
+        "timestamp".to_string(),
+        serde_json::Value::String(timestamp.to_string()),
+    );
+    if let Some(model) = &draft.model {
+        front.insert(
+            "model".to_string(),
+            serde_json::Value::String(model.clone()),
+        );
+    }
+    front.insert("immutable".to_string(), serde_json::Value::Bool(true));
+    front.insert(
+        "references-to".to_string(),
+        serde_json::Value::Array(
+            draft
+                .refs
+                .iter()
+                .map(|value| serde_json::Value::String(value.clone()))
+                .collect(),
+        ),
+    );
+    front.insert(
+        "topic".to_string(),
+        serde_json::Value::String(draft.topic.clone()),
+    );
+    front.insert("requires-ack".to_string(), serde_json::Value::Bool(false));
+
+    match draft.kind.as_str() {
+        "claim" => {
+            front.insert(
+                "artifacts_owned".to_string(),
+                serde_json::Value::Array(
+                    draft
+                        .artifacts
+                        .iter()
+                        .map(|value| serde_json::Value::String(value.clone()))
+                        .collect(),
+                ),
+            );
+        }
+        "handoff" => {
+            front.insert(
+                "artifacts_owned".to_string(),
+                serde_json::Value::Array(vec![]),
+            );
+            let tasks = if draft.tasks.is_empty() {
+                vec!["Continue the referenced work.".to_string()]
+            } else {
+                draft.tasks.clone()
+            };
+            front.insert(
+                "handoff".to_string(),
+                serde_json::json!({
+                    "next_agent": draft.to,
+                    "status": "ready",
+                    "task": tasks,
+                    "must_read": [],
+                    "do_not_touch": [
+                        ".claude/settings.local.json",
+                        "tooling/elixir/mix.lock"
+                    ]
+                }),
+            );
+        }
+        _ => {
+            front.insert(
+                "artifacts_owned".to_string(),
+                serde_json::Value::Array(vec![]),
+            );
+        }
+    }
+
+    let yaml = serde_norway::to_string(&serde_json::Value::Object(front))
+        .map_err(|err| format!("could not render front matter: {err}"))?;
+    Ok(format!("---\n{yaml}---\n\n{}", draft.body))
+}
+
+#[derive(Serialize)]
+struct CoordListRow {
+    file: String,
+    id: String,
+    timestamp: String,
+    kind: String,
+    from: String,
+    to: String,
+    topic: String,
+}
+
+impl From<&HandoffMessage> for CoordListRow {
+    fn from(message: &HandoffMessage) -> Self {
+        Self {
+            file: message.file.clone(),
+            id: string_field(&message.raw, "id").unwrap_or("").to_string(),
+            timestamp: string_field(&message.raw, "timestamp")
+                .unwrap_or("")
+                .to_string(),
+            kind: string_field(&message.raw, "kind").unwrap_or("").to_string(),
+            from: string_field(&message.raw, "from").unwrap_or("").to_string(),
+            to: string_field(&message.raw, "to").unwrap_or("").to_string(),
+            topic: string_field(&message.raw, "topic")
+                .unwrap_or("")
+                .to_string(),
+        }
+    }
+}
+
+fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String, String), String> {
+    if let Ok(timestamp) = time::OffsetDateTime::parse(since, &Rfc3339) {
+        return Ok((iso_timestamp(timestamp), String::new()));
+    }
+
+    let normalized = normalize_coord_reference(since).unwrap_or_else(|| since.to_string());
+    let stem = normalized.strip_suffix(".md").unwrap_or(&normalized);
+    messages
+        .iter()
+        .find(|message| {
+            message.file == normalized
+                || string_field(&message.raw, "id") == Some(since)
+                || string_field(&message.raw, "id") == Some(stem)
+        })
+        .map(|message| message.sort_key.clone())
+        .ok_or_else(|| format!("--since did not match an RFC3339 timestamp or message id: {since}"))
 }
 
 #[derive(Clone)]
@@ -2591,6 +3074,145 @@ fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
     0
 }
 
+fn handoff_take(id: &str, from: &str, dir: PathBuf, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let Some(handoff) = find_pending_handoff(&dir, id, &mut output) else {
+        return 1;
+    };
+
+    let expected = handoff
+        .raw
+        .get("handoff")
+        .and_then(|value| value.get("next_agent"))
+        .and_then(|value| value.as_str())
+        .or_else(|| string_field(&handoff.raw, "to"))
+        .unwrap_or("");
+    if expected != from {
+        output.stderr(format!(
+            "WARN from role '{from}' differs from handoff next_agent '{expected}'"
+        ));
+    }
+
+    let draft = CoordDraft {
+        id_format: "readable".to_string(),
+        from: from.to_string(),
+        to: string_field(&handoff.raw, "from")
+            .unwrap_or("all")
+            .to_string(),
+        kind: "ack".to_string(),
+        topic: string_field(&handoff.raw, "topic")
+            .unwrap_or("handoff-take")
+            .to_string(),
+        refs: vec![handoff.file.clone()],
+        artifacts: Vec::new(),
+        tasks: Vec::new(),
+        model: std::env::var("AGOV_MODEL")
+            .ok()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty()),
+        dir,
+        body: format!("# ACK\n\nTaking handoff `{}`.\n", handoff.file),
+    };
+
+    match write_coord_draft(draft) {
+        Ok(path) => {
+            output.stdout(format!("Wrote {}", path.display()));
+            agov_core::roi::record_tool_output(
+                "agov.handoff.take",
+                args,
+                "handoff-take",
+                output.chars,
+            );
+            0
+        }
+        Err(message) => {
+            output.stderr(format!("ERR  {message}"));
+            1
+        }
+    }
+}
+
+fn handoff_complete(
+    id: &str,
+    from: &str,
+    to: Option<String>,
+    dir: PathBuf,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let Some(handoff) = find_pending_handoff(&dir, id, &mut output) else {
+        return 1;
+    };
+
+    let draft = CoordDraft {
+        id_format: "readable".to_string(),
+        from: from.to_string(),
+        to: to.unwrap_or_else(|| "all".to_string()),
+        kind: "completion".to_string(),
+        topic: string_field(&handoff.raw, "topic")
+            .unwrap_or("handoff-complete")
+            .to_string(),
+        refs: vec![handoff.file.clone()],
+        artifacts: Vec::new(),
+        tasks: Vec::new(),
+        model: std::env::var("AGOV_MODEL")
+            .ok()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty()),
+        dir,
+        body: format!("# Completion\n\nCompleted handoff `{}`.\n", handoff.file),
+    };
+
+    match write_coord_draft(draft) {
+        Ok(path) => {
+            output.stdout(format!("Wrote {}", path.display()));
+            agov_core::roi::record_tool_output(
+                "agov.handoff.complete",
+                args,
+                "handoff-complete",
+                output.chars,
+            );
+            0
+        }
+        Err(message) => {
+            output.stderr(format!("ERR  {message}"));
+            1
+        }
+    }
+}
+
+fn find_pending_handoff(
+    dir: &Path,
+    id: &str,
+    output: &mut OutputCounter,
+) -> Option<HandoffMessage> {
+    let messages = match read_valid_coord_messages(dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!(
+                "ERR  coordination directory not found: {}",
+                dir.display()
+            ));
+            return None;
+        }
+    };
+
+    let normalized = normalize_coord_reference(id).unwrap_or_else(|| id.to_string());
+    let stem = normalized.strip_suffix(".md").unwrap_or(&normalized);
+    let handoff = pending_handoffs(&messages).into_iter().find(|message| {
+        message.file == normalized
+            || string_field(&message.raw, "id") == Some(id)
+            || string_field(&message.raw, "id") == Some(stem)
+    });
+
+    if handoff.is_none() {
+        output.stderr(format!("ERR  pending handoff not found: {id}"));
+    }
+    handoff
+}
+
 fn read_valid_coord_messages(dir: &Path) -> Result<Vec<HandoffMessage>, std::io::Error> {
     read_coord_messages_with_invalid(dir).map(|(messages, _invalid)| messages)
 }
@@ -2848,6 +3470,7 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
     let mut failed = false;
     let mut output = OutputCounter::default();
     let mut valid_messages = Vec::new();
+    let mut valid_paths = Vec::new();
 
     for file in files {
         let label = file.to_string_lossy().to_string();
@@ -2860,6 +3483,7 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
                 }
                 output.coord_ok(&label);
                 valid_messages.push((label, data));
+                valid_paths.push(file);
             }
             Err(errors) => {
                 failed = true;
@@ -2869,6 +3493,11 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
     }
 
     for (path, message) in duplicate_id_errors(&valid_messages) {
+        failed = true;
+        output.coord_err(&path, &message);
+    }
+
+    for (path, message) in duplicate_id_errors_in_dirs(&valid_paths) {
         failed = true;
         output.coord_err(&path, &message);
     }
@@ -2906,6 +3535,71 @@ fn duplicate_id_errors(
     }
 
     errors
+}
+
+fn duplicate_id_errors_in_dirs(files: &[PathBuf]) -> Vec<(String, String)> {
+    let target_paths: BTreeSet<PathBuf> = files
+        .iter()
+        .map(|path| normalize_path_for_compare(path))
+        .collect();
+    let mut by_id: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    let mut dirs: BTreeSet<PathBuf> = BTreeSet::new();
+    for file in files {
+        if let Some(parent) = file.parent() {
+            dirs.insert(parent.to_path_buf());
+        }
+    }
+
+    for dir in dirs {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+                continue;
+            }
+            let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+                continue;
+            };
+            let Some(id) = message.id() else {
+                continue;
+            };
+            by_id
+                .entry(id.to_string())
+                .or_default()
+                .push(path.to_string_lossy().to_string());
+        }
+    }
+
+    let mut errors = Vec::new();
+    for (id, mut paths) in by_id {
+        paths.sort();
+        paths.dedup();
+        if paths.len() < 2 {
+            continue;
+        }
+        for path in &paths {
+            if target_paths.contains(&normalize_path_for_compare(Path::new(&path))) {
+                let other = paths
+                    .iter()
+                    .find(|candidate| *candidate != path)
+                    .cloned()
+                    .unwrap_or_else(|| path.clone());
+                errors.push((
+                    path.clone(),
+                    format!("duplicate coordination id '{id}' also used by {other}"),
+                ));
+            }
+        }
+    }
+
+    errors
+}
+
+fn normalize_path_for_compare(path: &Path) -> PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
 fn validate_files<T>(

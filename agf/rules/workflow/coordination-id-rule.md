@@ -46,6 +46,11 @@ The corresponding new readable-ID filename is:
 ## Validator Behavior
 
 Validators MUST block malformed front matter and duplicate frontmatter IDs.
+When validating a coordination file, validators MUST compare its `id` against
+other valid Markdown coordination files in the same directory, not only against
+files named on the command line. Malformed sibling files should be reported by
+their own validation runs, but they must not prevent duplicate-ID checks among
+valid sibling records.
 
 Validators SHOULD warn, not block, when:
 

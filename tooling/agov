@@ -24,7 +24,7 @@ rust_supported() {
     coord)
       case "${2:-}" in
         -h|--help|help) return 0 ;;
-        validate|brief|status|stale) return 0 ;;
+        validate|brief|post|list|status|stale) return 0 ;;
         visibility) return 0 ;;
         graph|graph-index) return 0 ;;
       esac
@@ -39,7 +39,7 @@ rust_supported() {
       ;;
     handoff)
       case "${2:-}" in
-        next) return 0 ;;
+        next|take|complete) return 0 ;;
       esac
       ;;
     session)
@@ -94,6 +94,8 @@ Usage:
   agov version [--format text|json]
   agov coord validate <file>...
   agov coord brief [--id-format ulid|readable] [--from <role>] [--to <role>] [--kind <kind>] [--topic <topic>]
+  agov coord post --from <role> --to <role> --kind <kind> --topic <topic> [--ref <message>]
+  agov coord list [--since <message-id-or-timestamp>] [--format text|json]
   agov coord status [--dir <coord-dir>] [--recent <n>] [--roles]
   agov coord stale [--dir <coord-dir>]
   agov coord visibility [--base-branch <branch>] [--branch <branch>] [--format text|json]
@@ -104,6 +106,8 @@ Usage:
   agov agov.plan.validate <file>...
   agov validate [adoption|agents|learnings|infosec|contributions|framework-config]
   agov handoff next <agent-role> [--dir <coord-dir>]
+  agov handoff take <handoff-id> --from <role> [--dir <coord-dir>]
+  agov handoff complete <handoff-id> --from <role> [--to <role>] [--dir <coord-dir>]
   agov session resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
   agov agov.session.resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
   agov token roi report [--log <path>]
@@ -148,6 +152,8 @@ Supported Rust commands:
   agov version [--format text|json]
   agov coord validate <file>...
   agov coord brief [--id-format ulid|readable] [--from <role>]
+  agov coord post --from <role> --to <role> --kind <kind> --topic <topic>
+  agov coord list [--since <message-id-or-timestamp>] [--format text|json]
   agov coord status [--dir <coord-dir>]
   agov coord stale [--dir <coord-dir>]
   agov coord visibility [--base-branch <branch>]
@@ -155,6 +161,8 @@ Supported Rust commands:
   agov coord graph-index [--dir <coord-dir>] [--output <file>]
   agov plan validate <file>...
   agov handoff next <agent-role> [--dir <coord-dir>]
+  agov handoff take <handoff-id> --from <role> [--dir <coord-dir>]
+  agov handoff complete <handoff-id> --from <role> [--to <role>] [--dir <coord-dir>]
   agov session resume [--role <agent-role>] [--base-branch <branch>]
   agov token roi report [--log <path>]
   agov usage report [--dir <coord-dir>] [--manifest <path>]
