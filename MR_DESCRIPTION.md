@@ -1,52 +1,40 @@
-# docs: relabel AI-operator audience lines (MR-2)
+# coord: ask coder-tester to collaborate on student-audience flyer redraft
 
-Branch: `docs/audience-operator-relabeling-mr2`
+Branch: `coord/nutshell-flyer-redraft-codex-collab`
 
 ## Status
 
-- **Pending:** Gate 2 review by governor-reviewer
-  (`docs/coordination/20260720T151740Z-coder-tester-j1d2.md`).
-- **Blocking Claude:** nothing. MR-2 is Codex-owned and does not touch the
-  mixed pages handled by Claude/MR-3 or Codex/MR-4.
+- **Codex response filed:** `docs/coordination/20260720T152811Z-coder-tester-rqn4.md`.
+- **Blocking Claude:** nothing. Claude can use the response to redraft the
+  artifact.
+- **Codex collaboration:** branch rebased on current `main` after docs MR !231
+  merged, so the coordination MR no longer appears to revert recent docs work.
 
 ## Summary
 
-MR-2 of 6 from the approved documentation audience-boundary plan
-(`docs/plans/docs-audience-boundary-proposal.md`, Gate 1 approved in
-`20260720T143255Z-governor-reviewer-s6hg.md`).
+Not part of the AGF gate pipeline — this coordinates a redraft of the
+"AGF in a Nutshell" A3 flyer, a Claude Artifact (not a repo file) shared
+directly with the human governor, not part of the documentation site.
 
-Updates six AI-operator or AI/operator-reference pages so their visible
-`Audience:` lines name AI assistants as the executor and humans as supervisors,
-reviewers, or policy owners. Also adds the approved invisible
-`<!-- audience: ... -->` source markers for grep-based review.
+The human governor reviewed the first draft and flagged that it targets the
+wrong audience (a practitioner/adopter, not a 3rd-year engineering
+bachelor's student) and misrepresents the command model (lists `agov`
+commands as a human cheat sheet, when the framework's own
+audience-boundary work — `agf/docs/site/docs/index.md`, MR !229 — says most
+of that procedure is AI-executed, not a human to-do list).
+
+This handoff asks Codex to propose content and visual direction for the
+corrected draft before Claude re-renders it.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/docs/site/docs/adopt/assistant-loader-configuration.md` | Audience now names AI assistants preparing AGF rule loading, with developers/administrators supervising |
-| `agf/docs/site/docs/adopt/upgrade-from-v1.md` | Audience now names AI assistants carrying out migration under adopter review |
-| `agf/docs/site/docs/adopt/tooling-and-tokens.md` | Audience now names AI assistants adding deterministic tooling, with humans supervising setup/evidence |
-| `agf/docs/site/docs/adopt/mcp-server.md` | Audience now names AI assistants and adopters wiring MCP access to AGF tooling |
-| `agf/docs/site/docs/operate/run-agf-in-real-situations.md` | Audience now names AI assistants operating AGF, with governors/developers supervising decisions and evidence |
-| `agf/docs/site/docs/advanced/contracts-and-validators.md` | Audience now names AI assistants wiring validators into CI, with administrators/developers reviewing contracts and blocking policy |
-| `docs/coordination/20260720T151536Z-coder-tester-appt.md` | MR-2 claim |
-| `docs/coordination/20260720T151740Z-coder-tester-j1d2.md` | Gate 2 handoff |
-
-## Scope boundary
-
-- Does not edit `first-governed-change.md`; MR-3 handled that page with
-  per-step human-vs-assistant markers.
-- Does not edit `install-and-layouts.md`; MR-4 split that page's human layout
-  decision from assistant commissioning steps.
-- Does not perform broader prose cleanup or navigation changes.
+| `docs/coordination/20260720T152054Z-planner-architect-q4dj.md` | New handoff to coder-tester |
+| `docs/coordination/20260720T152811Z-coder-tester-rqn4.md` | Codex response with student-facing content and visual direction |
 
 ## Review checklist
 
-- [x] `agov coord validate docs/coordination/20260720T151536Z-coder-tester-appt.md`
-- [x] `git diff --check`
-- [x] Grep check confirms all touched pages carry `<!-- audience: ... -->`
-      markers and visible `Audience: AI assistants...` wording
-- [x] `mkdocs build -f agf/docs/build/mkdocs.yml --strict` passes via `uvx`
-      with the CI package set
+- [x] `agov coord validate` passes
 - [x] No `Co-authored-by` trailers in commit
+- [x] Rebased after !231 to avoid stale-branch doc reversions
