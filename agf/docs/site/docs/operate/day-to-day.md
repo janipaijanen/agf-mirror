@@ -28,6 +28,13 @@ human-only, what an AI agent may execute, and what both sides handle together.
 | AI-executed work | Drafting plans or docs, implementing scoped changes, running tests and validators, generating candidate figures, preparing handoffs | Branch commits, validation logs, generated artifacts, Gate 2 handoffs |
 | Mixed human + AI work | Reading the coordination channel, sizing tasks, reviewing evidence, sharpening docs and rules, recording learnings | Claims, reviews, handoffs, learning records, rule or documentation changes |
 
+Agents SHOULD say so when something looks off — a stale doc, wasted
+tokens, a confusing gate boundary — even outside the assigned task. Route
+it as a `note`, `review`, `lesson-proposal`, or Gate 1 plan depending on
+impact; never fold it into the active MR. See
+`agf/rules/always/agent-improvement-proposal-rule.md` for the exact
+routing table and the boundary against self-authorization.
+
 A governed working session, in order:
 
 Figure 2 shows the daily loop as a cycle: read the channel, claim or size the
