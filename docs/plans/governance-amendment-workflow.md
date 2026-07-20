@@ -264,31 +264,31 @@ record, or monthly, whichever comes first" cadence that already exists.
 
 ---
 
-## Assumption about the accountability field (cross-cluster — verify against #35/#45/#34/#47's actual output)
+## Accountability field — reconciled 2026-07-20
 
-The identity/accountability cluster is defining a "named human
-accountability" field for gate/rule ownership. This plan's amendment
-workflow needs to record *who proposed* and *who approved* a rule
-change. **Assumption made here:** that cluster will land a
-`proposed_by` / `approved_by` (or equivalently-named) field, likely
-attached to gate/rule artifacts' front matter or to coordination
-messages. Until that field is defined and lands:
+**Superseded by the cross-cutting review** (see
+`docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md`, Finding 1).
+Originally this plan assumed the identity/accountability cluster would land
+a `proposed_by` / `approved_by` pair of plain strings. The reconciliation
+pass settled on one canonical field name reused verbatim across artifact
+families: `accountable_human` (defined in
+`identity-accountability-gate-enforcement.md`'s `gate_approval` object and
+`rule.schema.json`).
 
-- This plan's interim accountability record is the ADR's prose (which
-  already names who drafted it, per the template's implicit authorship)
-  plus the coordination channel's existing **required** `from` / `to`
-  role-identifier fields on the `decision-record` message (Step 4
-  above) — both already exist and already carry a role identity, just
-  not a dedicated named-human field.
-- **When #45's field lands**, the amendment-workflow ADR convention
-  (Step 1 above) should add it as an explicit ADR field, and the
-  `decision-record` coordination message should populate it. The human
-  reconciler should check that the field name and shape proposed here
-  (`proposed_by` / `approved_by`, plain strings, attached to the ADR
-  and to the `decision-record` message) match what #45 actually
-  produces — if #45 defines a structured object (e.g. `{name, role,
-  date}`) instead of a plain string, this plan's Step 1/4 wording
-  should be updated to match rather than diverging.
+Applied to this plan:
+
+- `approved_by` becomes `accountable_human` wherever it appeared above (the
+  ADR convention in Step 1, and the `decision-record` coordination message
+  in Step 4) — same concept, same field name as the gate-approval and rule
+  schemas.
+- `proposed_by` is dropped. It is redundant with the coordination message's
+  existing **required** `from` field: whoever authored the ADR/plan already
+  is the proposer, and that identity is already carried without a new
+  field.
+- Until `accountable_human` is actually implemented, this plan's interim
+  accountability record remains the ADR's prose authorship plus the
+  `decision-record` message's existing `from`/`to` fields — unchanged from
+  the original fallback, just described with the reconciled field name.
 
 ---
 
@@ -353,7 +353,7 @@ service, or database.
 |---|---|
 | The `status`/`strength` mapping table (provisional/recommended/MUST) is the wrong reconciliation of the issue text vs. the schema | Flagged explicitly above as a Gate 1 decision point, not silently resolved; human reconciler confirms or overrides before implementation |
 | `review_date` becomes another checklist item nobody looks at (the exact Goodhart/checklist-fatigue failure this issue exists to prevent) | Tied to the *existing* Sentinel cadence (not a new one) and requires a reasoned ADR to renew, not a rubber-stamp date bump |
-| Accountability field assumption (`proposed_by`/`approved_by`) diverges from what #35/#45/#34/#47 actually ship | Explicitly flagged above for the human reconciler to check; this plan's Step 1/4 wording is provisional pending that cluster's output |
+| Accountability field naming diverged from the identity/accountability cluster | Resolved by cross-cluster reconciliation 2026-07-20: canonical field is `accountable_human`, applied above |
 | Promotion-bar reuse of `confidence.level` corroboration creates a hard dependency on learning-record discipline that may not exist for framework-native (foundry) rules that have no adopter learning records yet | Demotion path requires no corroboration (asymmetric by design); promotion of a foundry-native rule with no adopter evidence yet simply stays blocked at `provisional`/`SHOULD` until evidence exists — this is the intended conservative default, not a gap |
 
 ---
