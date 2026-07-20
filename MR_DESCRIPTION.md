@@ -1,52 +1,50 @@
-# plan: Gate 1 plans for coordination CLI features + CI distribution cluster
+# plan: Gate 1 plans for compliance-export/buyer-side AGF (#40/#41) and CRA entity-structure decision (#44)
 
-Branch: `plan/coord-cli-ci-distribution`
+Branch: `plan/compliance-export-buyer-side`
 
 ## Summary
 
-Five issues (#33, #32, #36, #37, #18) planned across four files, grouped
-by real dependency structure (#33 → #32 → #36, #32 → #37) rather than
-one plan per issue.
+Three issues, two of them a genuine pair (#40 produces evidence, #41
+consumes it — planned against one shared schema) and one a lightweight
+decision (#44).
 
 ## What's in this branch
 
-- **`coord-channel-concurrency-semantics.md`** (#33, sequenced first):
-  formalizes per-writer-only ordering; states the readable-ID collision
-  probability numerically (32⁴ suffix space, birthday-bound estimate).
-  Found a real implementation gap: `agov coord validate`'s duplicate-ID
-  check only compares files passed in one CLI invocation — CI's
-  `git diff | xargs agov coord validate` never checks new files against
-  the *existing* channel. Plan adds a directory-aware check to close
-  this.
-- **`coord-cli-write-and-watch.md`** (#32 + #36, combined): `agov coord
-  post` (writes what `coord brief` currently only prints); `agov handoff
-  take/complete` (implemented via the existing `ack`/`completion`
-  message kinds the handoff-resolution algorithm already recognizes —
-  no schema change); `agov coord list --since`. `agov coord watch`
-  (blocking) deferred as follow-up, per the issue's own "optional"
-  framing.
-- **`agov-mcp-server.md`** (#37): new `agov-mcp` crate calling the same
-  library functions the CLI dispatcher calls (not shelling out).
-  Tool-to-CLI parity table as the load-bearing removability invariant.
-- **`agov-oci-image.md`** (#18): reuses the existing `rust:tooling:release`
-  musl binary via `COPY` rather than rebuilding from source; gated to
-  tag pipelines; negative-test requirement from `gate-self-test-rule.md`
-  called out explicitly.
+- **`compliance-export-buyer-side-agf.md`** (#40 + #41): a joint
+  evidence-pack schema (`agf_evidence_pack_version`,
+  `layers_claimed`/`layers_not_available`/`layers_out_of_scope`) that
+  integrates with the repo's **existing** three-tier compliance
+  vocabulary (`agf/docs/adopt/compliance-profile.md`) rather than
+  inventing a parallel one — each section is tagged by which
+  verifiability layer it draws from, with Layer 3 (binding) explicitly
+  marked "not available, planned/deferred" rather than silently
+  omitted, and Layer 4 (runtime) never populated. The pack never claims
+  more than the adopter's declared `compliance_target` tier. Maturity
+  classified per the five-level model: mapping/schema work is Level 2;
+  the export/verify commands themselves are Level 1/Planned.
+  Regulatory dates (MCC-AI, AI Act Art. 26, CRA) cited from
+  `docs/sources.md` with explicit recheck-before-citing flags.
+- **`cra-entity-structure-decision.md`** (#44): deliberately lightweight
+  — stated explicitly as closer to a fast-track decision than a full
+  Gate 1 project. Decision: CRA Art. 24 steward regime does not
+  currently apply (AGF is a natural-person maintainer, not a legal
+  person per Art. 3(14)), with the source survey's "partially
+  unverified, draft guidance" caveat preserved, plus a named trigger
+  condition (entity formation → policy due by 2026-09-11 or formation
+  date, whichever is later).
 
-## Cross-cluster assumption flagged
+## Assumption flagged for reconciliation
 
-Every mutating command requires an explicit `--from <role>` flag
-(matching the existing `coord brief` convention) — no automatic
-identity/session detection. If the identity/accountability cluster
-(#35/#45/#34/#47) adds a session convention, these commands' argument
-shapes should be revisited in lockstep. Stated in both affected plan
-files for the human reconciler.
+CLI subcommand namespace (`agov compliance ...`) and reuse of `agov
+coord validate` internals may need reconciliation with the coordination
+CLI cluster (#33/#32/#36/#37) — no collision found (different
+namespace), but stated explicitly for the human reconciler to confirm.
 
 ## Review checklist
 
-- [x] All four plan files pass `agov plan validate`
-- [ ] Duplicate-ID directory-aware check design reviewed against the
-      actual CI diff-based invocation pattern
-- [ ] `--from` flag convention checked against AB cluster's actual
-      identity mechanism once merged
+- [x] Both plan files validate against `agf/schemas/gate1-plan.schema.json`
+- [ ] Evidence-pack schema reviewed against existing compliance-profile.md
+      vocabulary for consistency
+- [ ] #44's fast-track-weight recommendation reviewed (agree it doesn't
+      need a full plan cycle?)
 - [ ] No `Co-authored-by` trailers in commit
