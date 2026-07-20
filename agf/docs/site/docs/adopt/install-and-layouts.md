@@ -199,6 +199,21 @@ current tooling executable. In that case, either use a full checkout for
 validation or unpack the optional Rust `agov` tooling archive for your platform
 from the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+Container-based CI can instead use the official `agov` OCI image from this
+project's GitLab container registry:
+
+```bash
+podman pull registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.2.6
+podman run --rm \
+  -v "$PWD:/repo" \
+  -w /repo \
+  registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.2.6 \
+  validate
+```
+
+Pin an exact version tag or digest. Do not use floating tags for CI. Published
+image tags are immutable: if an image needs a fix, upstream publishes a new
+version instead of replacing the old tag.
 If you operate without `agov`, perform the equivalent manual review: confirm
 the framework layout, inspect plan and coordination front matter against the
 schemas, and record which checks were manual in the upgrade or adoption MR.
