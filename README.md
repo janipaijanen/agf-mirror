@@ -163,6 +163,26 @@ For version-specific citations, see the `reference/release-info/` page on the
 [published docs site](https://janipaijanen.gitlab.io/agents-govern-framework/)
 for the APA and BibTeX entry with the exact version number.
 
+## Git history is a ledger, not a scratchpad
+
+This repository's git history, and the coordination trail under
+`docs/coordination/`, are append-only by policy: we do not rewrite, squash,
+or purge past commits or coordination messages to satisfy a later request.
+Treat them like a journal or ledger — corrections are new entries, not
+edits to old ones (see `agf/docs/governance/governance.md` for the
+coordination channel's immutability rule, and
+`.claude/rules/workflow/immutable-tags-rule.md` for the equivalent policy
+on release tags).
+
+This has a direct data-protection implication: an append-only trail that
+carries author identities cannot honor an erasure request by rewriting
+history without destroying the audit trail it exists to provide. Projects
+that need an erasure story handle it upstream of history — identity
+minimisation and a documented lawful basis for retention — not by rewriting
+committed history. See the [disclaimer](agf/docs/governance/disclaimer.md)
+for the fuller statement that regulatory compliance is the adopter's
+responsibility, not something this framework guarantees.
+
 ## Safety and independence
 
 Only run AI agents and tooling on systems, repositories, and data where you

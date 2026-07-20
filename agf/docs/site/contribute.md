@@ -69,6 +69,31 @@ If your evidence is single-adopter, propose a rule first. The agent can
 follow once the rule's enforcement turns out to be insufficient for the
 pattern.
 
+## Audit trail policy: append-only, not erasable
+
+The framework's coordination channel and the git history it lives in are
+designed as an append-only record — closer to a ledger or a published
+journal than a working document. Every plan, review, approval, and handoff
+is a new file or a new commit; nothing already recorded is edited or
+removed. This is deliberate: the entire value of the trail is that a later
+reader can reconstruct what happened and who decided it, and an editable
+history cannot make that promise.
+
+If your project handles personal data and is subject to a data-protection
+regime with an erasure right (for example GDPR Art. 17), be aware that an
+append-only trail carrying author identities creates a real tension with
+erasure requests: rewriting committed history to remove an entry destroys
+the audit trail the framework exists to provide, for every entry after the
+one being removed, not just the one in question. Adopters in that position
+should plan for it before publishing an exit or audit-trail guarantee to
+their own users — typically through identity minimisation (pseudonymous or
+role-based attribution rather than personal identifiers in the trail) and a
+documented lawful basis for retaining what is recorded. This framework does
+not resolve that tension for you, and following it is not a substitute for
+qualified legal advice; see the
+[disclaimer](reference/disclaimer.md) for the fuller statement of what
+the framework does and does not guarantee.
+
 ## Anonymization requirement
 
 All submissions use a **codename**, never a real project name, product
