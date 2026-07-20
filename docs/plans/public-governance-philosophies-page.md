@@ -1,9 +1,9 @@
 ---
 id: public-governance-philosophies-page
-status: pending-gate1
+status: approved
 topic: public-governance-philosophies-consultative-page
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-20T21:56:01Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -21,7 +21,10 @@ advisory_consultation:
 # Plan: publish "Philosophical lenses on AI governance" as a Concepts page
 
 **Date:** 2026-07-20T21:44:00Z
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** GATE 1 APPROVED (governor-reviewer, 2026-07-20T21:56:01Z — MR !268
+merge, following confirmation of the `r2sr`→`gmrh` routing correction).
+Gate 2 implementation (page content, per-lens citation verification per the
+table below, nav/cross-link wiring) is open work, not yet started.
 **Triggering handoff:**
 `docs/coordination/20260720T213845Z-coder-tester-hhh6.md` — Codex relaying
 a governor-surfaced suggestion to publish the `## Philosophies` section of

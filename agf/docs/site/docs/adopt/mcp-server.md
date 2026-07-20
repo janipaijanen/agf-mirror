@@ -1,14 +1,31 @@
 <!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # agov MCP server
 
-*Status: Deployable adapter. Audience: AI assistants and adopters wiring an
-MCP-capable assistant to AGF tooling without relying on shell-command
-prompting alone.*
+*Status: Level 4 Validated — implemented, tested, and built into the
+release archive by CI, but capped below Level 5 Deployable by the known
+path-contract limitation documented below. Audience: AI assistants and
+adopters wiring an MCP-capable assistant to AGF tooling without relying on
+shell-command prompting alone.*
 
 `agov-mcp` is a local stdio Model Context Protocol server for `agov`. It is a
 transport adapter only: every tool it exposes maps to an existing `agov`
 subcommand, and the append-only files under `docs/coordination/` remain the
 source of truth.
+
+## Known limitation
+
+Several tools accept a `dir` argument that is forwarded to the CLI's
+`--dir` flag, meaning "coordination-message directory" (default
+`docs/coordination`) — **not** the repository root. Passing the repository
+root currently returns a plausible-looking `ok: true` result instead of an
+error, because non-coordination files are silently treated as invalid and
+skipped rather than rejected. A fix (renaming the field to
+`coordination_dir`, keeping `dir` as a deprecated alias, and adding an
+explicit warning for this misuse pattern) is planned in
+[`docs/plans/mcp-coordination-dir-contract-fix.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/plans/mcp-coordination-dir-contract-fix.md),
+pending Gate 1 approval. Until that lands and ships in a release, treat any
+`dir` argument you pass explicitly with care — omitting it and relying on
+the `docs/coordination` default is the safest usage today.
 
 ## Install
 
