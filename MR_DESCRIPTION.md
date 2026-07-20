@@ -1,56 +1,53 @@
-# plan: identity, accountability, and gate enforcement (issues #35, #45, #34, #47)
+# plan: governance amendment workflow + CAST incident record (issues #43, #46)
 
-Branch: `plan/identity-accountability-gate-enforcement`
+Branch: `plan/incident-amendment-governance`
 
 ## Summary
 
-Four issues planned as one cluster because they all touch the same
-artifact: the Gate 1/Gate 2 approval record. Defines one coherent
-approval-artifact shape rather than four independently-invented ones.
+Two sequentially-dependent issues: #46 (incident → analysis) hands off
+into #43 (analysis → rule amendment). Planned together so the handoff
+point is a real, checkable interface rather than two independently
+guessed shapes.
 
 ## What's in this branch
 
-`docs/plans/identity-accountability-gate-enforcement.md` covers:
-
-- **#45** (human accountability): new `kind: gate-approval` coordination
-  message with a `gate_approval` object carrying `accountable_human` —
-  named human who owns the decision, distinct from the acting role/session.
-- **#35** (sender identity): git-native attribution — role identity
-  mapped in `agov-config.yaml`, verified against commit authorship;
-  explicitly rejects any external key registry or attestation service
-  (would violate the removability principle).
-- **#34** (enforceable gates): `agov coord gate-check` subcommand design
-  + an opt-in GitLab CI job (`gate2:enforce`) that exact-SHA-matches a
-  valid approval artifact before allowing merge. States explicitly what
-  this does and doesn't cover (presence-of-artifact only, not
-  authorship-fraud — that's #35's layer).
-- **#47** (verification independence): `independence` sub-object on
-  `gate_approval` recording session/model/vendor independence honestly,
-  including the valid low-independence case.
+- **`docs/plans/governance-amendment-workflow.md`** (#43): reuses
+  existing mechanisms instead of inventing new ones — the amendment
+  artifact is the existing `agf/docs/adr/` ADR template; promotion
+  (provisional→recommended→MUST) reuses the already-validator-enforced
+  `learning.schema.json` `confidence.level` corroboration bar; sunset
+  audits attach to the existing Sentinel review cadence. Flags an
+  explicit conflict rather than silently resolving it: issue #43's
+  prose describes a three-step ladder, but `rule.schema.json` actually
+  has two orthogonal fields (`status`, `strength`) with no
+  `recommended` value — proposes a mapping table and leaves the final
+  call to the human reconciler.
+- **`docs/plans/incident-workflow-cast.md`** (#46, depends on #43):
+  extends `learning.schema.json` with an optional `incident` object
+  (`control_structure`, `unsafe_control_actions`, `contributing_factors`
+  — deliberately not a single root-cause field, per the CAST-vs-root-
+  cause distinction the issue calls for) plus a `rule_amendment_ref`
+  handoff field into #43's ADR mechanism.
 
 ## Reconciliation applied (see second commit)
 
 Cross-cluster review
 (`docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md`,
-Finding 1) found this plan's `owner` field (on `rule.schema.json`) and
-the incident-amendment cluster's `approved_by`/`proposed_by` described
-the same concept with different names. Resolved to one canonical name,
-`accountable_human`, reused verbatim across both artifact families —
-applied in the second commit on this branch.
+Finding 1) settled on one canonical accountability field name,
+`accountable_human`, across all clusters. This branch originally
+assumed `proposed_by`/`approved_by`; the second commit replaces
+`approved_by` with `accountable_human` and drops `proposed_by` in
+favor of the coordination message's existing `from` field.
 
-## Ground truth used
+## Open decision for the governor
 
-Extended existing mechanisms rather than inventing new ones:
-`coordination-message.schema.json` (`from`/`session`/`model` already
-exist), `docs/coordination/agov-config.yaml` (already tooling-consumed,
-extended with `role_identities`), `deputy-governor-rule.md`'s
-Delegation Artifact (generalized its named-human concept).
+The `status`/`strength` mapping table (Finding 2 in the reconciliation
+note) — confirm or override before implementation.
 
 ## Review checklist
 
-- [x] Plan validates against `agf/schemas/gate1-plan.schema.json`
-- [ ] `gate_approval` schema shape reviewed against #46/#43's actual
-      accountability-field usage (see reconciliation note)
-- [ ] CI reference job's stated non-goals (no authorship-fraud
-      detection, no rebase-invalidation handling) are acceptable scope
+- [x] Both plans validate against `agf/schemas/gate1-plan.schema.json`
+- [ ] Status/strength mapping table reviewed and confirmed
+- [ ] Incident-record schema addition reviewed against existing
+      `learning.schema.json` consumers
 - [ ] No `Co-authored-by` trailers in commit
