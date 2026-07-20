@@ -13,6 +13,13 @@ repo-local `./tooling/agov` wrapper in this checkout. For adopter/release
 binaries, use the GitLab Releases page:
 `https://gitlab.com/janipaijanen/agents-govern-framework/-/releases`.
 
+**If you are developing `agf` or `agov` itself:** build the local Rust binary
+(see "Build agov first, then use it heavily" below) as one of the first
+things you do in the session, before exploring the repo by hand — then keep
+reaching for it for every coordination, plan, or validation check for the
+rest of the session. This is the default working habit, not a fallback for
+when a command happens to be missing.
+
 ---
 
 ## Project layout
@@ -188,13 +195,17 @@ answers "what exists?"; evidence status answers "how strong is the proof behind
 the claim?" Use both when a claim could otherwise sound stronger than the
 evidence supports. See `agf/docs/site/reference/maturity-vocabulary.md`.
 
-### Using the locally built binary (required for in-development commands)
+### Build agov first, then use it heavily
 
 The distribution archive (`agov-X.Y.Z-*/agov`) is a release snapshot. It does
-not include commands added after that release. To use the current development
-build, build the Rust workspace and shadow the release binary with the local
-build. For routine agent/operator work, prefer the local **release** build;
-use the debug build only when actively debugging Rust internals.
+not include commands added after that release, so anyone developing `agf` or
+`agov` itself needs the local build regardless of whether a specific command
+is currently missing. Build the Rust workspace once at session start and
+shadow the release binary with the local build, then default to `agov` over
+manual repo exploration for the rest of the session — every coordination
+read, plan check, or validation is a token cost avoided. For routine
+agent/operator work, prefer the local **release** build; use the debug build
+only when actively debugging Rust internals.
 
 ```bash
 # Preferred: local release build for normal agent/operator work
