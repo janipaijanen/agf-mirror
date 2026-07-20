@@ -292,7 +292,18 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     model,
                     dir,
                 },
-        } => coord_brief(id_format, from, to, kind, topic, model, dir, &args),
+        } => coord_brief(
+            CoordBriefOptions {
+                id_format,
+                from,
+                to,
+                kind,
+                topic,
+                model,
+                dir,
+            },
+            &args,
+        ),
         Command::Coord {
             sub: CoordCommand::Status { dir, recent, roles },
         } => coord_status(dir, recent, roles, &args),
@@ -686,7 +697,7 @@ fn load_agent_statuses(path: &Path) -> Result<BTreeMap<String, String>, std::io:
     Ok(agents)
 }
 
-fn coord_brief(
+struct CoordBriefOptions {
     id_format: String,
     from: Option<String>,
     to: Option<String>,
@@ -694,9 +705,19 @@ fn coord_brief(
     topic: Option<String>,
     model: Option<String>,
     dir: PathBuf,
-    args: &[String],
-) -> i32 {
+}
+
+fn coord_brief(options: CoordBriefOptions, args: &[String]) -> i32 {
     let mut output = OutputCounter::default();
+    let CoordBriefOptions {
+        id_format,
+        from,
+        to,
+        kind,
+        topic,
+        model,
+        dir,
+    } = options;
 
     if !matches!(
         kind.as_str(),
