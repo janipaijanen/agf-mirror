@@ -6,7 +6,18 @@ digraph docs_audience_map {
            bgcolor=white, fontname="Helvetica", fontsize=12, compound=true]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor=white, color="#0077BB", penwidth=1.4]
-    edge  [style=invis]
+    edge  [fontname="Helvetica", fontsize=10, color="#888888", penwidth=1.2,
+           style=invis]
+
+    legend [shape=plain, label=<
+        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
+            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
+            <TR><TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">human decides, no AI substitute</TD></TR>
+            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">AI executes; human supervises</TD></TR>
+            <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">shared mental model</TD></TR>
+            <TR><TD BGCOLOR="#CCCCCC" WIDTH="28"></TD><TD ALIGN="LEFT">reference, read after the concept is clear</TD></TR>
+        </TABLE>
+    >]
 
     human [shape=box, fillcolor="#EE7700", fontcolor=white, label=
         "Human decision\n\nshould-you-adopt.md\ndownstream-impact.md\nreview-and-release.md"]
@@ -20,8 +31,9 @@ digraph docs_audience_map {
     reference [shape=box, fillcolor="#CCCCCC", label=
         "Reference\n\nenvironment-variables.md\nmaturity-vocabulary.md\ncontracts-and-validators.md"]
 
-    {rank=same; human; ai}
+    {rank=same; legend; human; ai}
     {rank=same; concept; reference}
+    legend -> human
     human -> concept
     ai -> reference
 }
