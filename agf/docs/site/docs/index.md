@@ -6,6 +6,8 @@ This documentation is a learning path, not a pile of pages. Each stage
 assumes the previous one. Pick your entry point from the table, then follow
 the path forward.
 
+![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](../reference/figures/agf-nutshell-flyer.png)
+
 ## How to read this site
 
 Every page below falls into one of four kinds. Knowing which kind you're
