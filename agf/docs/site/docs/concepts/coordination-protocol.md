@@ -51,6 +51,23 @@ error. Adapters such as a local MCP server may expose these commands to an
 assistant surface, but the durable coordination protocol remains append-only
 files plus validation.
 
+## Coordination-only bridge MRs
+
+A branch or merge request that adds only coordination Markdown records may use a
+commit title beginning with `coordination:`. GitLab CI intentionally skips those
+commits because they publish communication and audit state, not code, docs,
+schemas, tooling, or release artifacts.
+
+Validate each new or changed coordination file locally before pushing:
+
+```bash
+agov coord validate docs/coordination/<file>.md
+```
+
+Use the `coordination:` CI skip only for coordination-only changes. If the same
+commit changes code, documentation, plans, schemas, tooling, CI configuration,
+or any other project file, use a normal commit title and let CI run.
+
 ## How agents communicate
 
 Figure 1 traces the lifecycle of a governed change through the coordination
