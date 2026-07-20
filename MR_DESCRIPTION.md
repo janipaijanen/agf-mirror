@@ -1,51 +1,52 @@
-# plan: Gate 1 plan for issue #39 (removability principle, exit guarantee, CI drill)
+# plan: Gate 1 plans for coordination CLI features + CI distribution cluster
 
-Branch: `plan/removability-exit-guarantee`
+Branch: `plan/coord-cli-ci-distribution`
 
 ## Summary
 
-Elevates AGF's low-lock-in architecture from an implicit property to a
-stated design principle, a downstream-facing exit guarantee, and a
-CI-tested removal drill. This plan is unusually foundational — every
-other cluster planned this session was told to treat its constraint as
-standing while working.
+Five issues (#33, #32, #36, #37, #18) planned across four files, grouped
+by real dependency structure (#33 → #32 → #36, #32 → #37) rather than
+one plan per issue.
 
 ## What's in this branch
 
-`docs/plans/issue-39-removability-exit-guarantee.md` covers three layers:
+- **`coord-channel-concurrency-semantics.md`** (#33, sequenced first):
+  formalizes per-writer-only ordering; states the readable-ID collision
+  probability numerically (32⁴ suffix space, birthday-bound estimate).
+  Found a real implementation gap: `agov coord validate`'s duplicate-ID
+  check only compares files passed in one CLI invocation — CI's
+  `git diff | xargs agov coord validate` never checks new files against
+  the *existing* channel. Plan adds a directory-aware check to close
+  this.
+- **`coord-cli-write-and-watch.md`** (#32 + #36, combined): `agov coord
+  post` (writes what `coord brief` currently only prints); `agov handoff
+  take/complete` (implemented via the existing `ack`/`completion`
+  message kinds the handoff-resolution algorithm already recognizes —
+  no schema change); `agov coord list --since`. `agov coord watch`
+  (blocking) deferred as follow-up, per the issue's own "optional"
+  framing.
+- **`agov-mcp-server.md`** (#37): new `agov-mcp` crate calling the same
+  library functions the CLI dispatcher calls (not shelling out).
+  Tool-to-CLI parity table as the load-bearing removability invariant.
+- **`agov-oci-image.md`** (#18): reuses the existing `rust:tooling:release`
+  musl binary via `COPY` rather than rebuilding from source; gated to
+  tag pipelines; negative-test requirement from `gate-self-test-rule.md`
+  called out explicitly.
 
-1. **Design principle** — new canonical page `agf/docs/site/docs/concepts/removability.md`, with a pointer added to `agf/framework.md`'s Boundary Principles list.
-2. **Exit guarantee** — new README section, positioned relative to the (separately in-flight) `docs/append-only-audit-trail-policy` branch's ledger section — links out rather than restating, per message-integrity.
-3. **Removal drill** — a toolchain-independent fixture under `tooling/removal-drill/` (deliberately not a Rust/Elixir project, so the drill can't false-positive via ambient tooling on PATH) + a path-scoped, tag-pipeline-only CI job.
+## Cross-cluster assumption flagged
 
-## Reconciliation done before planning
-
-Confirmed `docs/append-only-audit-trail-policy` (unmerged) covers a
-different claim (history-is-never-rewritten / GDPR tension), not
-removability/exit — no overlap. Found and flagged (not fixed) a
-pre-existing duplicate: `agf/docs/site/docs/adopt/exit-and-decommission.md`
-("Released v2.1") vs. the older `agf/docs/adopt/decommission.md`.
-
-## Honesty discipline applied
-
-Explicitly stated as Theoretical/Level 1 until the removal drill ships
-and passes — the plan forbids claiming validated/deployable status
-prematurely, per the implementation-honesty rule.
-
-## Cross-cluster flag
-
-The plan makes the #35 git-native-identity constraint concrete, but
-also flags honestly that the drill only checks file *survival*
-(checksum-identity), not whether an identity field inside those files
-stays *semantically resolvable* if #35 ships something requiring a live
-external lookup. The human reconciler should check #35's actual design
-against the git-native constraint directly.
+Every mutating command requires an explicit `--from <role>` flag
+(matching the existing `coord brief` convention) — no automatic
+identity/session detection. If the identity/accountability cluster
+(#35/#45/#34/#47) adds a session convention, these commands' argument
+shapes should be revisited in lockstep. Stated in both affected plan
+files for the human reconciler.
 
 ## Review checklist
 
-- [x] Plan validates against `agf/schemas/gate1-plan.schema.json`
-- [ ] Pre-existing exit/decommission page duplication (flagged, not
-      fixed) — confirm whether to address in this MR or a follow-up
-- [ ] Removal-drill fixture design reviewed (dependency-free by
-      construction)
+- [x] All four plan files pass `agov plan validate`
+- [ ] Duplicate-ID directory-aware check design reviewed against the
+      actual CI diff-based invocation pattern
+- [ ] `--from` flag convention checked against AB cluster's actual
+      identity mechanism once merged
 - [ ] No `Co-authored-by` trailers in commit
