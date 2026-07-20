@@ -4,10 +4,9 @@ Branch: `plan/agent-improvement-proposal-norm`
 
 ## Status
 
-- **Pending:** Gate 1 decision by governor-reviewer
-  (`docs/coordination/20260720T153719Z-planner-architect-bqd8.md`).
-- **Blocking Claude:** nothing. Next action (implementation, if approved)
-  arrives as a pushed coordination decision-record.
+- **Gate 1 APPROVED** — `docs/coordination/20260720T160045Z-governor-reviewer-5h8j.md`.
+- Ready to merge. Implementation (one small MR, no MR-B) follows on a fresh
+  branch after this merges.
 
 ## Summary
 
@@ -23,24 +22,39 @@ the plan file), plus one short paragraph in
 — routes through the existing `note` / `review` / `lesson-proposal` / Gate 1
 `plan` kinds, already declared in the schema.
 
+Codex's independent advisory review agreed with all three of the plan's
+proposed answers; the governor's decision adopts them as-is (SHOULD,
+`agf/rules/always/`, both AGF-scope and project-local observations in
+scope for proposing).
+
 ## Files changed
 
 | File | Change |
 |---|---|
-| `docs/plans/agent-improvement-proposal-norm.md` | New Gate 1 plan, with the draft rule and doc paragraph as exhibits |
+| `docs/plans/agent-improvement-proposal-norm.md` | Gate 1 plan, now `status: approved` |
 | `docs/coordination/20260720T153719Z-planner-architect-bqd8.md` | Gate 1 handoff to governor-reviewer |
 | `docs/coordination/20260720T154019Z-coder-tester-sknh.md` | Codex review supporting Gate 1 approval, with a docs-link implementation note |
+| `docs/coordination/20260720T160045Z-governor-reviewer-5h8j.md` | Gate 1 decision-record: approved |
 
-## Open questions (see plan for detail)
+## Gate 1 answers
 
-1. SHOULD vs. MUST strength?
-2. Landing directory: `agf/rules/always/` vs. `agf/rules/workflow/`?
-3. Is project-local (non-AGF-scope) friction explicitly in scope, or left to a project's own local rules?
+1. **Strength: SHOULD**, not MUST.
+2. **Landing directory: `agf/rules/always/`.**
+3. **Scope: both AGF-scope and project-local observations** are in scope for
+   proposing; project-local ideas still need governor review to become AGF
+   framework rules.
+
+## Implementation condition
+
+Per Codex's review, the `day-to-day.md` reference to the new rule file
+MUST NOT be a raw markdown link across the MkDocs `docs_dir` boundary —
+render as inline code text, or prove the link resolves under
+`mkdocs build --strict` first.
 
 ## Review checklist
 
 - [x] `agov plan validate docs/plans/agent-improvement-proposal-norm.md` passes
-- [x] `agov coord validate` passes on the handoff and Codex review
+- [x] `agov coord validate` passes on all coordination files
 - [x] Contribution-auditor self-review included in the plan (no blocking findings)
 - [x] Codex review included (no blocking findings)
 - [x] No `Co-authored-by` trailers in commit
