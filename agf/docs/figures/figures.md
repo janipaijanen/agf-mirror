@@ -50,6 +50,9 @@ for the size at which MkDocs will embed the SVG.
   line style must also carry the meaning.
 - Every figure must include an embedded legend when colour, shape, or line style
   has semantics.
+- Keep legend samples as visual samples. Do not put literal shape names such as
+  `oval`, `diamond`, or `box` inside the swatch; describe the meaning in the
+  adjacent text, and mention the shape there only when it disambiguates meaning.
 - Markdown alt text must name what the figure shows, not just say "diagram".
 
 ## Generating figures

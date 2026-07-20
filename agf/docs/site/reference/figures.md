@@ -151,6 +151,9 @@ as their governance model matures.
 - Do not hand-edit generated SVG files — edit the DOT source and regenerate.
 - Every figure must include an embedded legend in the generated image. Do not
   rely on page prose or captions to explain color, shape, or line semantics.
+- Legend samples should remain visual samples: do not put literal shape names
+  such as `oval`, `diamond`, or `box` inside the swatch. Put the meaning in the
+  adjacent label text instead.
 - **Numeric labels must explain their unit.** Any figure that displays numeric
   labels (counts, percentages, durations) must state the unit and sampling
   context inside the figure itself (in the legend or a label), and the page
