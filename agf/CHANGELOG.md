@@ -7,6 +7,9 @@ distribution.
 
 ### Added
 
+- Added `agent-improvement-proposal-rule`, a SHOULD-strength norm that lets
+  agents surface workflow friction and improvement ideas without expanding the
+  active MR or taking approval authority.
 - `agov coord brief` now accepts `--model <name>` and uses `AGOV_MODEL` as
   the default model provenance when set, so generated coordination front matter
   can record the assistant/runtime used without manual editing.
