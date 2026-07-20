@@ -1,8 +1,8 @@
 # Philosophical lenses on AI governance
 
-*Status: New. Audience: developers, evaluators, and AI systems evaluating
-this or any AI governance framework. After this page you have six
-structured questions to bring to a governance design review.*
+*Audience: developers, evaluators, and AI systems evaluating this or any
+AI governance framework. After this page you have six structured
+questions to bring to a governance design review.*
 
 !!! note "Consultative, not normative"
     These lenses are consultative review prompts, not AGF rules. They help
@@ -77,7 +77,7 @@ monitor and approve the automated output, the human's own skill at the
 underlying task tends to atrophy — while the task that remains, noticing
 when the automation is wrong, is often harder than the one that was
 automated away (Bainbridge, "Ironies of Automation," *Automatica*, 19,
-775–779, 1983; corroborated by later automation-bias research).
+775–779, 1983, describing industrial process-control operators).
 
 **The failure mode it exposes.** A human approval gate can quietly become
 a rubber stamp. The approver has less hands-on practice catching problems
@@ -90,12 +90,14 @@ independent judgment to exercise — forced justification, sampling,
 spot-verification against source evidence — or does it just ask them to
 click yes on a summary they did not generate and cannot easily check?
 
-**Evidence status:** Empirically informed. Bainbridge's original paper and
-the automation-bias literature that followed are peer-reviewed and widely
-corroborated in aviation, medicine, and process control. Their specific
-application to AI-assisted software governance gates is a reasoned
-extension, not yet independently tested across multiple governance
-frameworks.
+**Evidence status:** Empirically informed. Bainbridge's paper is a
+peer-reviewed, widely cited finding within its original domain — industrial
+process control. Its extension to other automated-monitoring contexts
+(aviation, medicine) is well known in the human-factors literature, but
+this page cites only Bainbridge's original process-control finding, not
+those later domain-specific studies. Application to AI-assisted software
+governance gates specifically is a reasoned extension, not yet
+independently tested across multiple governance frameworks.
 
 ## Goodhart's law
 
@@ -121,11 +123,13 @@ prior worth checking, not a proven law for every metric in every context.
 
 ## Psychological safety versus surveillance
 
-**The idea.** Teams that feel safe admitting mistakes and uncertainty out
-loud measurably outperform teams that do not, because problems surface
-early instead of staying hidden until they become expensive (Edmondson,
-"Psychological Safety and Learning Behavior in Work Teams," *Administrative
-Science Quarterly*, 44, 350–383, 1999).
+**The idea.** In a study of 51 work teams, psychological safety — feeling
+able to admit mistakes and uncertainty out loud — was associated with more
+team learning behavior, which was in turn associated with better team
+performance (Edmondson, "Psychological Safety and Learning Behavior in
+Work Teams," *Administrative Science Quarterly*, 44, 350–383, 1999). The
+mechanism: problems surface early instead of staying hidden until they
+become expensive.
 
 **The failure mode it exposes.** A comprehensive audit trail — recording
 every action for governance purposes — can suppress the same candor it
@@ -150,8 +154,7 @@ not originally designed to test.
 right process was followed (proceduralism); others judge whether the
 actual outcome was acceptable (outcome- or risk-based regulation). These
 reflect different bets about what is controllable and knowable in
-advance, and many regulatory regimes today blend or trend toward
-outcome- and risk-based models alongside procedural ones.
+advance.
 
 **The failure mode it exposes.** A governance system can satisfy every
 procedural requirement — every gate passed, every record filed — while
@@ -163,11 +166,12 @@ does it produce evidence that supports someone else's outcome judgment?
 Is that distinction stated plainly to the people relying on it, or left
 to be assumed?
 
-**Evidence status:** Framing, not a single citable claim — this is a
-comparison between two well-known regulatory design philosophies rather
-than an empirical finding, so no evidence-status label applies in the
-usual sense. Stated with hedged language deliberately: many, not all or
-most, regulatory regimes trend this way.
+**Evidence status:** Theoretical. This lens is a comparison between two
+well-known regulatory design philosophies rather than a claim resting on
+a single citable source — closer to a framing device than an empirical
+finding — but it uses the same vocabulary as the other five lenses rather
+than an invented category, per this page's own stated rule that every
+lens carries a vocabulary-valid label.
 
 ## How to use these lenses
 
