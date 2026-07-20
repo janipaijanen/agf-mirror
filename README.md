@@ -96,7 +96,21 @@ otherwise sound stronger than the evidence supports. See
 2. Check cost and reversibility:
    [Downstream impact](agf/docs/site/docs/adopt/downstream-impact.md) and
    [Exit and decommission](agf/docs/site/docs/adopt/exit-and-decommission.md).
-3. Try the first-run path:
+3. Install it — let your AI coding assistant do the work:
+   1. Download `agf-<version>.tar.gz` (or `.zip`) from the
+      [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
+      into a `tmp/` directory in your project. Add the matching
+      `agov-<version>-<platform>.tar.gz`/`.zip` from the **same release** if
+      you want the `agov` validator without a full source checkout — both
+      archives ship from the same tag, so "matching version" just means
+      "same release page."
+   2. Tell your coding assistant: *"There is a `.tar.gz` file in `tmp/`.
+      Adopt it into the project."* It unpacks the archive, wires `agf/`,
+      and prepares a diff for you to review — it does not commit or claim
+      adoption is complete on its own.
+
+   Full mechanics, and the longer commissioning prompt if you want more
+   control over the first pass:
    [Install the `agf/` directory](agf/docs/site/docs/adopt/install-and-layouts.md).
 4. Run one valid example:
    [Your first governed change](agf/docs/site/docs/start/first-governed-change.md).
