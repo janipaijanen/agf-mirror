@@ -15,7 +15,15 @@ Gate 2, merge, and completion.
 
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
+Each step below is marked with who actually does it: a **Human decision**
+step has no AI substitute; an **AI-operator** step is procedure your
+assistant runs while you review the result; **Shared** means both of you
+have a part.
+
 ## 1. Know where the files will go
+
+**Who does this: your choice — run it yourself, or let step 2's assistant
+prompt create the directories too.**
 
 AGF itself lives in `agf/`. The POC default keeps project-owned gate evidence
 in root `docs/`:
@@ -30,6 +38,9 @@ path, configure it before agents start writing files. Do not let agents split
 records across two channels.
 
 ## 2. Ask your assistant to prepare the starter files
+
+**Who does this: AI-operator — paste the prompt below to your assistant;
+you review what it produced.**
 
 Do not spend your first AGF trial copying template files by hand. Let the AI do
 the clerk work, then review what it produced.
@@ -70,6 +81,9 @@ files using readable IDs from `agov coord brief`.
 
 ## 3. Validate the plan and first handoff
 
+**Who does this: AI-operator — your assistant runs these commands; you
+read the pass/fail output, not the raw files.**
+
 Use the `agov` command for core validation. In this repository it points at
 `tooling/agov`; in another checkout, symlink that executable into
 `~/.local/bin` or run `./tooling/agov` directly.
@@ -90,6 +104,9 @@ decision.
 
 ## 4. Gate 1: decide before implementation
 
+**Who does this: Human decision — no AI substitute. The assistant may draft
+a decision-record skeleton, but the governor writes the actual decision.**
+
 The governor-reviewer reads:
 
 - `docs/plans/sample-login-error-message.md`
@@ -109,6 +126,9 @@ Nothing is implemented before Gate 1 approval lands.
 
 ## 5. Branch and implement test-first
 
+**Who does this: AI-operator — your assistant branches and implements;
+you review the diff and test results before Gate 2.**
+
 ```bash
 git checkout -b fix/sample-login-error-message
 ```
@@ -118,6 +138,9 @@ your assistant rules is binding on the assistant even when the change feels
 small.
 
 ## 6. Gate 2: review before merge
+
+**Who does this: Human decision — the assistant may prepare the handoff
+evidence, but the governor reviews and approves.**
 
 After implementation, update the prepared Gate 2 handoff with the real changed
 files and validation commands:
@@ -132,6 +155,9 @@ handoff evidence. Approval is a new `decision-record` naming the branch and any
 conditions. Do not merge without Gate 2 approval.
 
 ## 7. Merge and close the loop
+
+**Who does this: Human decision to merge; the assistant may prepare the
+completion entry for you to review before it's filed.**
 
 Merge through your normal reviewed merge path. Then update and file the
 completion entry:
@@ -151,6 +177,9 @@ That chain is the audit trail. Six months later, "why did this land?" is answere
 by files, not memory.
 
 ## 8. Record what you learned
+
+**Who does this: Shared — the assistant can draft the entry, but you
+decide what's worth recording and check it before it's shared upstream.**
 
 If the first run exposed friction, record it in
 `agf/learnings/sample-project.yaml` under your codename. Do not include real
