@@ -2,7 +2,7 @@
 id: merge-request-description-rule
 scope: workflow
 applies_to: [llm-agent, human-agent]
-evidence: local-dogfood-2026-06-16
+evidence: local-dogfood-2026-06-16, 20260720T164212Z-governor-reviewer-kser
 upstream_candidate: true
 strength: MUST
 status: active
@@ -18,11 +18,41 @@ provenance: foundry-native
 ## Rule
 
 Before asking a human to open, review, or merge a merge request, the agent MUST
-prepare a raw merge request description in `MR_DESCRIPTION.md` at the repository
-root.
+prepare a raw merge request description in `tmp/MR_DESCRIPTION.md` (or another
+already-gitignored scratch path the project designates).
 
-The file is a local scratch artifact by default. It SHOULD remain untracked
-unless the project explicitly asks to version it.
+The file is a local scratch artifact, not a durable repository record. It
+MUST live under a gitignored path — a project-root `MR_DESCRIPTION.md` that
+is not gitignored WILL be committed by ordinary `git add`/`git commit`
+habits, which turns branch-local drafting into a tracked file every branch
+edits and every rebase conflicts on. This is not hypothetical: a project
+that tracked the file at the repository root hit exactly this failure
+repeatedly (merge conflicts on every branch rebase, and the file drifting
+out of sync with the actual, already-merged MR body).
+
+## The GitLab (or equivalent) MR description is authoritative, not the file
+
+`tmp/MR_DESCRIPTION.md` is staging text for composing the MR body — nothing more.
+It MUST NOT be read back by any agent or reviewer as evidence of the MR's
+current state. The only authoritative surface is the hosting platform's own
+MR description, fetched live (e.g. `glab mr view <n>`).
+
+Agents MUST sync the staging file to the platform immediately after every
+edit — in the same action, not "later":
+
+```bash
+glab mr create --description "$(cat tmp/MR_DESCRIPTION.md)" ...   # first time
+glab mr update <n> --description "$(cat tmp/MR_DESCRIPTION.md)"   # every edit after
+```
+
+An edit to the staging file that is not immediately synced is not evidence of
+anything — it is indistinguishable from a stale draft.
+
+Automating this sync (e.g. a pre-push hook) is intentionally deferred: an
+implicit auto-syncing actor can fail quietly on missing auth, network issues,
+or first-push timing, which risks masking exactly the drift this rule exists
+to prevent. If tooling is added later, prefer an explicit command an agent
+calls deliberately (and records having called) over an implicit hook.
 
 ## Required sections
 
@@ -54,11 +84,11 @@ review.
 
 ## Timing
 
-Agents SHOULD write or refresh `MR_DESCRIPTION.md` immediately after the branch
+Agents SHOULD write or refresh `tmp/MR_DESCRIPTION.md` immediately after the branch
 is committed and before presenting the MR URL.
 
 If the human asks for "MR docs", "MR description", or equivalent, the agent
-MUST update `MR_DESCRIPTION.md` for the current branch rather than replying only
+MUST update `tmp/MR_DESCRIPTION.md` for the current branch rather than replying only
 with prose.
 
 ## Why
