@@ -387,6 +387,7 @@ source-backed AI review</p>
 | Release provenance | [Release information](reference/release-info.md) |
 | Release artifacts | [Release artifacts](reference/release-artifacts.md) |
 | Legal/risk limits | [Disclaimer](reference/disclaimer.md) |
+| Optional challenge questions | [Philosophical lenses on AI governance](docs/concepts/philosophical-lenses.md) |
 
 ## Reviewer Checklist
 

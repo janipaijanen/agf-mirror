@@ -22,6 +22,13 @@ distribution.
 - `agov validate adopter-docs` now checks release-range diffs for
   adopter-relevant framework/tooling changes and requires downstream-facing
   docs/templates or an explicit changelog waiver.
+- Added a new Concepts page, "Philosophical lenses on AI governance"
+  (`agf/docs/site/docs/concepts/philosophical-lenses.md`), presenting six
+  consultative governance-critique lenses (legibility, accountability
+  sinks, automation bias, Goodhart's law, psychological safety vs.
+  surveillance, proceduralism vs. outcome-based regulation) as review
+  prompts applicable to any governance design, explicitly not new AGF
+  rules or guarantees.
 
 ### Changed
 

@@ -83,6 +83,7 @@ nav:
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Coordination protocol: docs/concepts/coordination-protocol.md
           - Evidence and learnings: docs/concepts/evidence-and-learnings.md
+          - Philosophical lenses on AI governance: docs/concepts/philosophical-lenses.md
       - 'Adopt':
           - Downstream impact: docs/adopt/downstream-impact.md
           - Install the agf directory: docs/adopt/install-and-layouts.md
