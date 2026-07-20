@@ -90,14 +90,14 @@ independent judgment to exercise — forced justification, sampling,
 spot-verification against source evidence — or does it just ask them to
 click yes on a summary they did not generate and cannot easily check?
 
-**Evidence status:** Empirically informed. Bainbridge's paper is a
-peer-reviewed, widely cited finding within its original domain — industrial
-process control. Its extension to other automated-monitoring contexts
-(aviation, medicine) is well known in the human-factors literature, but
-this page cites only Bainbridge's original process-control finding, not
-those later domain-specific studies. Application to AI-assisted software
-governance gates specifically is a reasoned extension, not yet
-independently tested across multiple governance frameworks.
+**Evidence status:** Theoretical. Bainbridge's paper is a peer-reviewed,
+widely cited finding within its original domain — industrial process
+control. This page cites that finding only; it does not cite the
+separate aviation- or medicine-specific automation-bias literature, so it
+does not claim corroboration beyond process control. Application to
+AI-assisted software governance gates specifically is reasoned from
+Bainbridge's original finding, not independently established in this
+domain.
 
 ## Goodhart's law
 
