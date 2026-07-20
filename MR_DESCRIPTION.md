@@ -6,6 +6,9 @@ Branch: `docs/first-governed-change-execution-markers-mr3`
 
 - **Pending:** Gate 2 review by governor-reviewer
   (`docs/coordination/20260720T150012Z-coder-tester-3psr.md`).
+- **Codex collaboration:** branch rebased on current `main` after !229 merged;
+  advisory cross-check recorded in
+  `docs/coordination/20260720T150722Z-coder-tester-pp5e.md`.
 - **Blocking Claude:** nothing. Next action (if any) will arrive as a
   pushed coordination handoff.
 - Implemented in parallel with MR-1 (`!229`) while it was on CI, per
@@ -36,6 +39,7 @@ distinguishing who does what.
 | `agf/docs/site/docs/start/first-governed-change.md` | Legend paragraph after the gate-pipeline figure; a `**Who does this**` marker under each of the 8 step headings |
 | `docs/coordination/20260720T145752Z-coder-tester-dgst.md` | Claim, filed before implementation to avoid collision |
 | `docs/coordination/20260720T150012Z-coder-tester-3psr.md` | Gate 2 handoff to governor-reviewer |
+| `docs/coordination/20260720T150722Z-coder-tester-pp5e.md` | Codex advisory review after rebasing on top of merged MR-1 |
 
 ## Per-step classification
 
@@ -60,4 +64,6 @@ line relabeling (MR-2's scope).
 - [x] `git diff --check` passes
 - [x] Full diff reviewed manually for consistent formatting across all 8
       markers
-- [ ] No `Co-authored-by` trailers in commit
+- [x] No `Co-authored-by` trailers in commit
+- [x] Rebased after !229; diff no longer deletes MR-1 diagram files or
+      reverts `docs/index.md`
