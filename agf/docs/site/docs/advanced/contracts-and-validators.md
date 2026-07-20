@@ -109,10 +109,10 @@ request:
 
 ```yaml
 validate-governance:
-  image: debian:stable-slim
+  image:
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.2.6
+    entrypoint: [""]
   script:
-    - tar -xzf agov-<version>-x86_64-unknown-linux-musl.tar.gz
-    - install -m 0755 agov-<version>-x86_64-unknown-linux-musl/agov /usr/local/bin/agov
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
         xargs -0r agov coord validate
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |
@@ -126,11 +126,9 @@ Download the `agov` release archive for your platform from the
 See [Tooling and token savings](../adopt/tooling-and-tokens.md) for the full
 setup guide including local development options.
 
-The release archive is the current supported CI distribution. An official
-`agov` OCI/container image is not shipped yet. If your CI would be simpler with
-a pinned image tag or digest, treat that as an upstream contribution request:
-the image should still pin an exact AGF version and expose source-version
-provenance rather than encouraging floating validator versions.
+The release archive and the pinned OCI image are both supported CI
+distributions. Pin an exact image version or digest; do not use floating tags
+for governance validators.
 
 ## Policy profiles
 
@@ -151,9 +149,10 @@ checks the governor, CI policy, or named rule has granted blocking force.
 
 ```yaml
 agf:governance:validate:
-  image: debian:stable-slim
+  image:
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.2.6
+    entrypoint: [""]
   script:
-    - install -m 0755 agov /usr/local/bin/agov
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
         xargs -0r agov coord validate
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |

@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Paijanen
+
+FROM alpine:3.22.1
+
+ARG AGOV_VERSION
+ARG AGOV_REVISION
+ARG AGOV_SOURCE="https://gitlab.com/janipaijanen/agents-govern-framework"
+
+LABEL org.opencontainers.image.title="agov" \
+      org.opencontainers.image.description="AGF governance tooling CLI" \
+      org.opencontainers.image.source="${AGOV_SOURCE}" \
+      org.opencontainers.image.version="${AGOV_VERSION}" \
+      org.opencontainers.image.revision="${AGOV_REVISION}" \
+      org.opencontainers.image.licenses="CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial"
+
+RUN apk add --no-cache ca-certificates git \
+    && addgroup -S agov \
+    && adduser -S -G agov agov
+
+COPY --chmod=0755 agov /usr/local/bin/agov
+
+USER agov:agov
+ENTRYPOINT ["agov"]

@@ -80,10 +80,10 @@ unpack it, and place the `agov` executable on PATH.
 
 ```yaml
 validate-governance:
-  image: debian:stable-slim
+  image:
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.2.6
+    entrypoint: [""]
   script:
-    - tar -xzf agov-<version>-x86_64-unknown-linux-musl.tar.gz
-    - install -m 0755 agov-<version>-x86_64-unknown-linux-musl/agov /usr/local/bin/agov
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
         xargs -0r agov coord validate
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |
@@ -91,6 +91,10 @@ validate-governance:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
+
+Pin the image to an exact version tag or digest. The release archive remains a
+supported alternative when your CI environment does not allow project registry
+images.
 
 See [Contracts and validators](../advanced/contracts-and-validators.md) for the
 full CI wiring guide, including how to declare checks as blocking vs advisory.
