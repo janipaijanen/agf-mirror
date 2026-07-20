@@ -67,27 +67,37 @@ date."
 > instability to evaluating organisations. Deprecation governance is
 > introduced when the product has production customers.
 
-`agov-mcp` has zero production customers today — it is Level 4 Validated,
-not yet Level 5 Deployable (see `docs/mcp-maturity-claim-honesty`, MR
-!258), meaning nobody outside this project's own dogfooding could
-currently depend on `dir`. Carrying an alias, a `field_conflict`
-precedence rule, and matching test fixtures for a caller that does not yet
-exist is exactly the kind of premature-ceremony cost `simplicity-rule`
-asks to be justified, not assumed. It is not justified here.
+**Revised again after Codex's Gate 1 review (`sga1`):** the paragraph
+below originally claimed `agov-mcp` has "verifiably zero production
+customers." That's not something this repository can actually verify —
+it's public and open-source; the repo can confirm no *supported released*
+artifact contains a Level 5 MCP surface, but it cannot confirm nobody has
+built and used `agov-mcp` from a source checkout. Corrected: `agov-mcp`
+has **no supported released MCP consumers — it is Level 4 Validated, not
+yet Level 5 Deployable (see `docs/mcp-maturity-claim-honesty`, MR !258).
+Source-checkout consumers are possible but unknown**, which is a weaker
+and more honest claim than "zero customers," and it's sufficient on its
+own: the field has no supported released contract, the change is
+classified BREAKING (not softened), unknown old keys fail explicitly
+rather than degrading silently, and migration is a one-field rename.
+Carrying an alias, a `field_conflict` precedence rule, and matching test
+fixtures for a contract with no supported released consumers is exactly
+the kind of premature-ceremony cost `simplicity-rule` asks to be
+justified, not assumed. It is not justified here — and that conclusion
+does not depend on an unknowable adoption count.
 
 **The honest accounting, stated plainly for anyone reading this plan
 later:** this project does not yet have a real deprecation policy with an
 actual sunset mechanism — only a schema-level "mark it deprecated and nag
 forever" pattern (`seq`) that has never been exercised to completion. A
-companion change in this same review cycle
-(`agf/rules/workflow/deprecation-policy-rule.md`) establishes what this
-project's policy will actually be **once it has adopters who can depend on
-a surface** — modeled on Kubernetes' published API deprecation policy
-(the most rigorous, well-documented, and widely-cited precedent found:
-minimum support duration is the *longer* of a calendar-time floor or a
-release-count floor, never satisfied by a burst of same-day patch
-releases). Doing the hard rename now, before that policy exists to be
-tested, and documenting why here rather than silently taking the
+separate, independently-reviewed governance change
+(`agf/rules/workflow/deprecation-policy-rule.md`, its own Gate 1, MR
+!262/!263) establishes what this project's policy will actually be **once
+it has adopters who can depend on a surface**. This plan does not depend
+on that rule merging, and its approval is not required or assumed here —
+it is cited as forward-looking context for *why this is a disclosed
+one-off, not an established repeatable pattern*, nothing more. Doing the
+hard rename now, and documenting why here rather than silently taking the
 shortcut, is the trust-preserving choice — future readers should not have
 to guess whether this was an oversight or a deliberate, disclosed
 trade-off. It was deliberate.
@@ -221,48 +231,84 @@ requirement.
    `"Coordination-message directory — NOT the repository root. Defaults to
    docs/coordination when omitted."` Applied to all six tools' schemas.
 
-4. **Structural warning on likely-wrong directory — `agov_session_resume`
-   only.** When the CLI's stdout for `session resume` contains the
-   existing `"Invalid coordination files ignored: "` line (already emitted
-   by `render_invalid_files`,
-   `tooling/rust/crates/agov/src/main.rs:2764-2777`) **and** zero pending
-   handoffs / claims / decisions were found, the MCP layer attaches a
-   top-level structured `warning` field to its JSON-RPC response — not
-   relying on the agent to notice a line buried in a larger text blob.
-   Suggested wording: `"N file(s) in <resolved dir> failed
-   coordination-message validation and 0 valid messages were found. Check
-   whether <resolved dir> is the coordination-message directory, not the
-   repository root."`
+4. **Structural wrong-directory detection — `agov_session_resume` only —
+   revised per Codex's Gate 1 review (`sga1`), replacing the original
+   stdout-parsing design.** The original design here proposed string-
+   anchoring on the CLI's human-readable `"Invalid coordination files
+   ignored: "` line. Codex correctly flagged that as recreating exactly
+   the contract fragility this fix exists to remove — it would leave the
+   MCP adapter's trust signal dependent on prose formatting instead of
+   structural evidence. Agreed; replaced.
 
-   **Implementation tradeoff, left to coder-tester with Gate 2 sign-off:**
-   this can be done by (a) a light, string-anchored parse of the CLI's
-   already-stable `"Invalid coordination files ignored: "` prefix (no CLI
-   changes needed, matches this plan's PREVENTIVE/non-breaking scope), or
-   (b) adding a structured `--format json` output to `session resume`
-   exposing `{messages_count, invalid_files_count}` machine-readably (a
-   real CLI contract addition, more robust, larger surface). Recommend (a)
-   for this fix given the scope; (b) is reasonable future work, not
-   bundled here.
+   New design: before invoking the CLI, the MCP layer canonicalizes the
+   resolved `coordination_dir` (relative to `AgovCommand.cwd`) and the
+   resolved repository root, and checks structurally:
+   - If the resolved `coordination_dir` **equals the repository root**
+     AND a conventional nested `docs/coordination` directory exists there
+     — a confidently-identified instance of exactly the mistake this fix
+     targets — **fail** with a specific, actionable error (not a soft
+     warning): the caller almost certainly meant the nested directory.
+   - Otherwise, if the CLI's own existing `"Invalid coordination files
+     ignored: "` signal fires (`render_invalid_files`,
+     `tooling/rust/crates/agov/src/main.rs:2764-2777`) with zero valid
+     messages, but the structural check above did *not* confidently
+     identify the repo-root mistake (e.g. an unconventional layout), emit
+     the **softer warning** instead of failing — this tolerates
+     legitimate alternate layouts that happen to contain a few
+     non-coordination `.md` files, rather than rejecting them outright.
 
-5. **Resolved-path provenance.** The `agov_session_resume` response
-   includes the resolved `coordination_dir` value actually used (whether it
-   came from an explicit argument or the `docs/coordination` default), so
-   a cold-starting agent can see what it actually queried without
-   guessing.
+   This keeps the strong, blocking signal grounded in verifiable
+   filesystem structure the adapter already has to compute anyway (it
+   resolves paths regardless), not in parsing another program's
+   human-readable output.
 
-6. **Fixtures.** Add MCP integration tests covering: omitted
-   `coordination_dir` (uses default), correct value, repository-root value
-   (triggers the warning), absolute path, nonexistent path (CLI's existing
-   "Coordination directory not found" error path,
-   `tooling/rust/crates/agov/src/main.rs:2549-2555`), and — replacing the
-   alias-parity case from the earlier design — a case asserting that
-   passing the old `dir` key returns the explicit unrecognized-key error
-   from Design item 2, not a silent default-directory fallback.
+   **Response shape, corrected:** verified against the current
+   implementation before writing this — `call_tool`
+   (`tooling/rust/crates/agov-mcp/src/main.rs:110-119`) already places the
+   tool's structured result under `"structuredContent": execution`, where
+   `execution` is the fixed-field `ToolExecution` struct
+   (`main.rs:551`, fields: `ok, status, command, stdout, stderr`). There
+   is no room in the current response for a new sibling top-level field
+   on the JSON-RPC envelope, and adding one there would be a shape
+   inconsistent with how every other tool result is structured. Any new
+   field (the warning above, resolved-path provenance below, the
+   unrecognized-key error from Design item 2) belongs as an added field
+   on `ToolExecution` itself, appearing inside `structuredContent` — not
+   beside it.
+
+5. **Resolved-path provenance, expanded.** The `agov_session_resume`
+   response includes the resolved `coordination_dir` value actually used
+   (whether it came from an explicit argument or the `docs/coordination`
+   default) **and the resolved repository root**, so a cold-starting agent
+   can see what it actually queried without guessing. Sol High's original
+   Proposal 1 also asked for selected-binary/version and base-branch
+   provenance; this plan deliberately narrows that to path provenance only
+   for scope reasons — stated explicitly here per Codex's review, rather
+   than silently dropping the broader ask. Binary/version/base-branch
+   provenance remains open future work, not forgotten.
+
+6. **Fixtures, expanded per Codex's review.** Add MCP integration tests
+   covering: omitted `coordination_dir` (uses default), correct value,
+   confidently-identified repository-root value with a nested
+   `docs/coordination` present (triggers the **fail** path from Design
+   item 4), an ambiguous/ill-defined directory with stray non-coordination
+   `.md` files but no confident repo-root match (triggers the **warn**
+   path), absolute path, nonexistent path (CLI's existing "Coordination
+   directory not found" error path,
+   `tooling/rust/crates/agov/src/main.rs:2549-2555`), the old `dir` key
+   returning the explicit unrecognized-key error from Design item 2 (not a
+   silent default-directory fallback), an arbitrary unrelated unknown key
+   returning the same error, and the advertised `inputSchema`'s
+   `"additionalProperties": false` present for all six tools.
 
 7. **CLI/MCP semantic parity test.** A direct test asserting that invoking
    `agov_session_resume` with `coordination_dir: "docs/coordination"` via
    MCP and running `agov session resume --dir docs/coordination` via CLI
-   produce equivalent session state (same messages, same warnings).
+   produce equivalent *normalized semantic state* (same messages, same
+   warnings) — not byte-equal stdout. The MCP response wraps CLI stdout
+   plus structured additions; byte-for-byte comparison would be the wrong
+   invariant and would break the moment Design item 4's structural warning
+   ships (MCP-only content with no CLI stdout equivalent).
 
 8. **Documentation and changelog.** Update
    `agf/docs/site/docs/adopt/mcp-server.md` to describe the
@@ -303,12 +349,26 @@ match new behavior without documenting why is a BLOCK.
   judgment call the moment `agov-mcp` graduates past Level 4 Validated —
   by then, the new `deprecation-policy-rule.md` should govern any further
   renames on this surface instead of another one-off hard break.
-- **Heuristic fragility (Design item 4):** the "zero valid messages + one
-  or more invalid files" signal is a proxy for "wrong directory," not a
-  certainty — a genuinely empty coordination directory with a few stray
-  non-coordination `.md` files would also trigger it. The message is
-  phrased as a check-this warning, not an error, specifically to tolerate
-  false positives.
+- **Residual heuristic fragility (Design item 4, narrowed):** the
+  confidently-identified case (resolved path equals repo root, nested
+  `docs/coordination` exists) fails outright and is structurally sound,
+  not heuristic. The remaining ambiguous case — zero valid messages plus
+  stray invalid files, without a confident repo-root match — still relies
+  on the CLI's `"Invalid coordination files ignored: "` signal as a proxy,
+  not a certainty (a genuinely sparse coordination directory with a few
+  stray files would also trigger it). Deliberately kept as a soft warning,
+  not an error, specifically to tolerate that narrower band of false
+  positives.
+- **Plan-stage advisory consultation, addressed rather than deferred:**
+  Codex's review noted the contribution-auditor waiver (six-tool scope
+  expansion, a deliberate breaking change, migration language) is exactly
+  plan-stage material and asked that it be consulted before Gate 1 rather
+  than left to Gate 2. Rather than continue deferring for infrastructure
+  this project doesn't have (a separately-instantiated contribution-auditor
+  agent), this plan is reviewed under that role directly — see
+  `docs/reviews/mcp-coordination-dir-contract-fix-contribution-audit.md` —
+  following the same formal-advisory-role pattern already validated in
+  this project's own learning corpus (`20260703T095527Z-fadv`).
 
 ## Rollback
 
