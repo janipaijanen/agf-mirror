@@ -6,6 +6,25 @@ This documentation is a learning path, not a pile of pages. Each stage
 assumes the previous one. Pick your entry point from the table, then follow
 the path forward.
 
+## How to read this site
+
+Every page below falls into one of four kinds. Knowing which kind you're
+reading tells you who is actually meant to act on it — most of AGF's
+procedural detail (running `agov`, writing YAML frontmatter, filing
+coordination messages) is AI-executed work a human delegates and reviews,
+not a personal to-do list:
+
+- **Human decision** — pages that ask a human to decide something: adopt or
+  not, approve or reject, accept a risk. No AI substitute exists for these.
+- **AI-operator instructions** — pages that are majority procedure for an AI
+  agent to execute, with the human supervising and reviewing the result.
+- **Shared concept** — the mental model both a human and an AI agent need,
+  so they can coordinate using the same vocabulary.
+- **Reference** — command, schema, and environment-variable precision, read
+  after the concept is already clear.
+
+![Documentation map by audience and use](../reference/figures/docs-audience-map.svg)
+
 ## The path
 
 ```
