@@ -1250,6 +1250,149 @@ learnings:
         - "Codex external-review claim assessment session on 2026-07-03"
         - "docs/reviews/agf-external-review-claim-triage.md"
 
+  - id: "20260720T201034Z-pmvw"
+    date: "2026-07-20"
+    category: validation
+    scope: framework
+    title: cross-llm-review-catches-planning-inconsistency-single-agent-missed
+    description: >
+      An external framework assessment (GPT-5.6 Sol High,
+      docs/reviews/agf-framework-assessment-codex-sol-high.md) was synthesized
+      with an internal TODO backlog by one LLM instance (Claude, playing
+      coder-tester) into a prioritized action list (MR !252). The synthesis
+      contained two real defects the authoring instance did not catch in its
+      own output: (1) it labeled the MCP agov-mcp `dir` field defect as P0
+      while simultaneously recommending the pending minor release proceed
+      before that defect was fixed — an internal contradiction between the
+      assigned priority and the release recommendation; (2) it split the bug
+      fix (P0) from its own conformance/fixture tests (deferred to a later
+      tier), when those tests are release-evidence if the fix ships in the
+      same release, not separable hardening.
+
+      Note on provenance: GPT-5.6 Sol High produced the source assessment
+      being synthesized; a separate model instance, `codex-gpt-5`, authored
+      the durable `psht` review record that caught the issues below. These
+      are two distinct model identifiers, not one — do not conflate them.
+
+      A second LLM instance (`codex-gpt-5`, also playing coder-tester)
+      reviewed the same source material independently and identified both
+      issues without access to new information — purely by working through
+      the logical implications of the first instance's own stated priority.
+      The catch was filed as a formal `kind: review` coordination message
+      referencing the triggering handoff, not an informal or ephemeral
+      aside, making it durable and auditable. The human governor then
+      directed the first instance to revise the artifacts accordingly.
+    agents_involved:
+      - coder-tester
+    framework_section: "coordination channel; Gate 1 plan synthesis; release-truth reconciliation"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Caught a self-contradictory release recommendation and an
+        artificially split release-evidence bundle before either was acted
+        on — specifically before the pending v2.3.0 minor release was cut.
+        Framed as avoided release-process/rework risk, not a proven
+        monetary loss.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Treat cross-agent review (not only human-gate review) as a distinct,
+      evidence-worthy mechanism, and continue exercising it deliberately for
+      planning-stage artifacts (syntheses, Gate 1 plans), not only
+      implementation diffs. In this incident, the authoring instance did not
+      identify the logical contradiction in its own stated priorities, and a
+      second independent instance reviewing the same source material did —
+      one incident, not a general claim about what authoring instances can
+      or cannot see. This is additional dogfooding evidence from within this
+      project; it validates the mechanism locally but does not establish
+      external repeatability. Consider whether a lightweight second-opinion
+      step should become a documented pattern specifically for
+      prioritization/synthesis documents. Empirically informed by a single
+      incident in a single session; does not yet warrant a MUST-strength
+      rule.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !252 (docs/todo-sol-high-prioritized-actions)"
+        - "docs/coordination/20260720T193644Z-coder-tester-kh7j.md"
+        - "docs/coordination/20260720T200018Z-coder-tester-psht.md"
+
+  - id: "20260720T201034Z-w6zo"
+    date: "2026-07-20"
+    category: gap
+    scope: framework
+    title: role-based-coordination-lacks-advisory-delivery-targeting-and-confirmed-surfacing
+    description: >
+      Coordination messages route by role (`from`/`to` fields validated
+      against MANIFEST.yaml role identifiers), which is correct and
+      intentional — it is what lets any agent play any role across
+      sessions. The gap is narrower than "identity must become authoritative":
+      the protocol has no reliable way to surface a published,
+      role-addressed message to one specific intended active instance, or to
+      confirm that instance actually received it. In this session, one LLM
+      instance (Claude) filed a handoff addressed `coder-tester ->
+      coder-tester` intending to reach a specific other instance (Codex),
+      and it worked only because the human governor manually relayed
+      context; nothing in the protocol would have guaranteed it otherwise.
+
+      This extends an existing learning,
+      `20260625T063214Z-dpd3` (coordination-visibility-requires-publication):
+      that record established that publication is necessary but not
+      sufficient for visibility. This incident shows the operational
+      delivery chain — written -> validated -> published -> surfaced ->
+      acknowledged/taken — has strong coverage on the first three stages and
+      weak coverage on the last two.
+    agents_involved:
+      - coder-tester
+    framework_section: "coordination channel; role manifest; message delivery"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Without a resolution, coordinating a specific follow-up between two
+        concurrently active model instances depends on chance pickup order
+        rather than a confirmed delivery path, which costs review latency
+        and required the human governor to manually confirm which instance
+        actually acted on a given handoff in this incident.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Jointly designed with Codex via the coordination channel
+      (`docs/coordination/20260720T203647Z-coder-tester-sjpp.md`) rather
+      than resolved unilaterally here. Two-stage design, not a single pick
+      among the original three candidate options:
+
+      Stage 1 (existing schema, no schema change, testable now): `to`
+      remains sole routing authority. A handoff intended for a specific
+      active instance sets `requires-ack: true` and names the intended
+      recipient/surface in prose; publish a bridge on a surface the
+      recipient already watches (e.g. the relevant MR discussion); treat
+      delivery as complete only when an eligible actor posts an `ack` or
+      takes the handoff; if the intended instance does not acknowledge
+      within a working window, any eligible actor in the role may take it
+      so work is never stranded.
+
+      Stage 2 (only if Stage 1 proves insufficient after real recurrence):
+      an optional, explicitly non-authoritative `delivery` metadata object
+      (e.g. `recipient_hint`, `surface`, `locator`) that changes
+      notification priority only — grants no role or gate authority, must
+      not hide the message from the role's ordinary queue, and does not
+      overload `model` (sender provenance) as recipient identity. An
+      acknowledgment/take, not the hint, establishes actual receipt.
+
+      Keep status proposed and confidence single-adopter; do not create a
+      MUST-strength rule or schema field until Stage 1 has been exercised
+      across further handoffs.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "docs/coordination/20260720T193644Z-coder-tester-kh7j.md"
+        - "docs/coordination/20260720T200018Z-coder-tester-psht.md"
+        - "docs/coordination/20260720T203647Z-coder-tester-sjpp.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

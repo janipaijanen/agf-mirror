@@ -33,6 +33,8 @@ flowchart LR
     gate2 --> merge[Merge]
 ```
 
+![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](reference/figures/agf-nutshell-flyer.png)
+
 Typical cost: an afternoon to install, plus about 5-15 minutes of governor
 attention for a non-trivial change. Exit is documented: pause the gates, keep
 only the rules you still want, or remove the AGF files in an ordinary cleanup
