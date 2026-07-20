@@ -128,10 +128,12 @@ Default POC layout:
 | Optional assistant loader | Tool-specific root file that points at `agf/rules/` |
 | Working plans | `docs/plans/` |
 | Coordination channel | `docs/coordination/` |
+| Coordination write path | `agov coord post` / `agov handoff take` / `agov handoff complete` |
 | Learning record | `agf/learnings/<codename>.yaml` |
 | Current core validators | `agov` from a full checkout |
 | Communication map | `agov coord graph` — Graphviz dot map of role-to-role coordination flows |
 | Coordination index | `agov coord graph-index` — JSON index of handoffs and references |
+| Coordination updates | `agov coord list --since <id-or-timestamp>` |
 | Tool provenance | `agov --version` / `agov version --format json` |
 
 The `agf/` distribution ships **44 governance rules**, **12 agent definitions**,

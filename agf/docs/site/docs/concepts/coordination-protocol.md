@@ -25,6 +25,32 @@ No server, no database, no shared state: the channel is the directory.
 Any agent, CI job, or human can read it with `ls` and a text editor.
 `agov coord status` renders a structured summary.
 
+## Writing messages
+
+Use the Rust `agov` CLI as the normal write path. `agov coord post` generates
+a readable ID, writes one Markdown file, validates it immediately, and removes
+the file if validation fails.
+
+```bash
+agov coord post --from coder-tester --to governor-reviewer \
+  --kind note --topic implementation-status
+```
+
+For handoff workflow state, prefer the handoff helpers so the new record carries
+the correct `references-to:` edge:
+
+```bash
+agov handoff take <handoff-id> --from coder-tester
+agov handoff complete <handoff-id> --from coder-tester
+```
+
+`agov coord list --since <message-id-or-rfc3339-timestamp>` lists valid messages
+after a known cursor using `(timestamp, filename)` order. It exits `2` when no
+new messages match, so polling scripts can distinguish "nothing new" from an
+error. Adapters such as a local MCP server may expose these commands to an
+assistant surface, but the durable coordination protocol remains append-only
+files plus validation.
+
 ## How agents communicate
 
 Figure 1 traces the lifecycle of a governed change through the coordination
