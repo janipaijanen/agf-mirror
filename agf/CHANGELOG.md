@@ -7,6 +7,12 @@ distribution.
 
 ### Added
 
+- Added `agov-mcp`, a local stdio Model Context Protocol server exposing
+  `agov` workflow commands as MCP tools. Built into the release archive by
+  CI. Documented at `agf/docs/site/docs/adopt/mcp-server.md`, status
+  **Level 4 Validated** (not yet Level 5 Deployable — see the known
+  path-contract limitation on that page and the tracking plan at
+  `docs/plans/mcp-coordination-dir-contract-fix.md`).
 - Added `agent-improvement-proposal-rule`, a SHOULD-strength norm that lets
   agents surface workflow friction and improvement ideas without expanding the
   active MR or taking approval authority.
