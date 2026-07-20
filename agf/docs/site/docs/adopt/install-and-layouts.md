@@ -1,8 +1,9 @@
 # Install the `agf/` directory
 
 *Status: Released (v2.1 documentation). Audience: administrators and
-developers installing the framework. After this page you have the files in
-place and understand the single supported v2.0 layout.*
+developers commissioning the framework with an AI assistant. After this page
+you have chosen the supported layout, asked the assistant to prepare the files,
+and reviewed the evidence.*
 
 ## Prerequisites
 
@@ -32,6 +33,53 @@ place and understand the single supported v2.0 layout.*
     You can also extract the archive yourself first and point the assistant
     at the directory — either way works. — *Jani*
 
+## First decide the repository layout
+
+The human layout decision is small but binding: AGF v2.0 uses one supported
+layout, with the framework installed as the visible `agf/` directory in the
+repository root. Make that decision before asking an assistant to move files.
+
+`agf/` is the adopter-facing framework product. It contains the normative
+assets your project adopts: roles, rules, schemas, templates, and docs.
+`tooling/` is implementation support for validation, build, release, and
+conformance checks. Tooling reports evidence against the framework; it is not
+itself the source of governance authority.
+
+| Artifact | Location |
+|---|---|
+| Framework directory | `agf/` |
+| Agent definitions | `agf/agents/*.yaml` |
+| Framework rules | `agf/rules/**/*.md` |
+| Schemas | `agf/schemas/*` |
+| Learning records | `agf/learnings/<your-codename>.yaml` |
+| Working plans | `docs/plans/` |
+| Coordination channel | `docs/coordination/` |
+| Optional assistant loader | Tool-specific root file that points to `agf/rules/` |
+
+Some assistants need a root-level configuration file before they will read
+project instructions. That file is a local loader, not a copy of the
+framework. It should point the assistant at `agf/rules/` and any local project
+rules you choose to add. Do not duplicate the AGF rule tree into
+`.claude/rules/` or an equivalent tool directory; that breaks the clean
+carve-out promised by this layout.
+
+Working plans and coordination entries are adopter-owned evidence, not
+upstream-owned framework files. The current POC default keeps them in root
+`docs/` because the shipped `agov` validators default to those paths. If your
+project chooses another coordination path, configure and document it before
+agents start writing files.
+
+Mixed layouts are the documented failure mode: agents following path
+instructions literally will create root-level `agents/`, `learnings/`, or
+duplicate coordination directories unless the default boundary is stated where
+humans and agents can read it.
+
+!!! note "Human decision, assistant execution"
+    The human chooses the supported layout, governor, codename, and any
+    risk-bearing local rule values. The assistant copies files, creates
+    directories, prepares loaders and evidence, runs validators, and reports
+    the diff for review.
+
 ## Step 1: Get the distribution
 
 Download the release archive from the project repository, or copy the
@@ -52,6 +100,10 @@ Rule of thumb: let the AI act; make the human decide. The assistant should
 move files, create directories, install rules, and prepare skeleton evidence.
 The human reviews the diff, chooses the governor, accepts the codename, and
 owns risk-bearing rule choices.
+
+The prompt below tells the assistant to implement the layout you already chose
+above. It should not invent an alternative directory structure or treat its own
+output as approval.
 
 Paste this into your coding assistant:
 
@@ -99,45 +151,18 @@ Expected AI output:
 If you are working without an assistant, copy the distribution manually into
 the visible `agf/` directory and then follow the same review checklist.
 
-## Step 3: Review the framework layout
+## Step 3: Review the prepared layout
 
-AGF v2.0 supports one layout: the assistant-prepared diff should place the
-distribution in your repository as the visible `agf/` directory.
+Review the assistant's diff against the layout decision above:
 
-`agf/` is the adopter-facing framework product. It contains the normative
-assets your project adopts: roles, rules, schemas, templates, and docs.
-`tooling/` is implementation support for validation, build, release, and
-conformance checks. Tooling reports evidence against the framework; it is not
-itself the source of governance authority.
-
-| Artifact | Location |
-|---|---|
-| Framework directory | `agf/` |
-| Agent definitions | `agf/agents/*.yaml` |
-| Framework rules | `agf/rules/**/*.md` |
-| Schemas | `agf/schemas/*` |
-| Learning records | `agf/learnings/<your-codename>.yaml` |
-| Working plans | `docs/plans/` |
-| Coordination channel | `docs/coordination/` |
-| Optional assistant loader | Tool-specific root file that points to `agf/rules/` |
-
-Some assistants need a root-level configuration file before they will read
-project instructions. That file is a local loader, not a copy of the
-framework. It should point the assistant at `agf/rules/` and any local project
-rules you choose to add. Do not duplicate the AGF rule tree into
-`.claude/rules/` or an equivalent tool directory; that breaks the clean
-carve-out promised by this layout.
-
-Working plans and coordination entries are adopter-owned evidence, not
-upstream-owned framework files. The current POC default keeps them in root
-`docs/` because the shipped `agov` validators default to those paths. If your project
-chooses another coordination path, configure and document it before agents
-start writing files.
-
-Mixed layouts are the documented failure mode: agents following path
-instructions literally will create root-level `agents/`, `learnings/`, or
-duplicate coordination directories unless the default boundary is stated where
-humans and agents can read it.
+- `agf/` is present as the single framework directory.
+- Assistant loaders point to `agf/rules/` instead of copying that tree.
+- Working plans and coordination entries are in the documented project-owned
+  path.
+- Any non-default coordination path is documented before agents begin writing
+  records.
+- No root-level `agents/`, `learnings/`, or duplicate coordination directory
+  appeared unless you deliberately documented a local override.
 
 ## Step 4: Review rule loading and customization
 
