@@ -242,20 +242,22 @@ optional property to an object that already has one is additive to any
 document not yet using it, since it was previously simply absent):
 
 ```jsonc
-"owner": {
+"accountable_human": {
   "type": "string",
   "minLength": 1,
   "description": "Named human accountable for this rule — who could choose to change or retire it. Distinct from git blame (which shows who committed it, possibly an AI agent under human direction)."
 }
 ```
 
-Field name deliberately matches `gate_approval.accountable_human` in spirit
-(same "named human who could decide otherwise" concept) but is called
-`owner` here because it's a different artifact family (rule frontmatter vs.
-coordination message); **flagging this naming asymmetry explicitly** in case
-reconciliation prefers one canonical field name (`accountable_human`) reused
-verbatim across both schemas instead. Either is a small edit at
-implementation time; this plan does not consider it worth blocking on.
+**Reconciled 2026-07-20** (see `docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md`,
+Finding 1): originally proposed as `owner` and flagged as a naming asymmetry
+against `gate_approval.accountable_human`. The cross-cluster reconciliation
+pass resolved it in favor of one canonical field name, `accountable_human`,
+reused verbatim across both schemas — this plan's field name is updated
+accordingly. The incident/amendment-governance cluster's `proposed_by`/
+`approved_by` shape is reconciled the same way: `approved_by` becomes
+`accountable_human`; `proposed_by` is dropped in favor of the coordination
+message's existing required `from` field.
 
 **Scope boundary honestly stated:** this plan adds the field to the schema
 and sets it on the one new rule file below, as a demonstration. It does
