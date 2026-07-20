@@ -1,9 +1,9 @@
 ---
 id: agent-improvement-proposal-norm
-status: pending-gate1
+status: approved
 topic: agent-improvement-proposal-norm
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer; Claude-scribed decision in 20260720T160045Z-governor-reviewer-5h8j.md"
+gate1_approved_at: "2026-07-20T16:00:45Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
