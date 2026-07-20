@@ -90,6 +90,7 @@ nav:
           - Your first governed change: docs/start/first-governed-change.md
           - Upgrade from v1 (agents-govern): docs/adopt/upgrade-from-v1.md
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
+          - agov MCP server: docs/adopt/mcp-server.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
           - Day-to-day operation: docs/operate/day-to-day.md

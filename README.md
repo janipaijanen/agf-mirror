@@ -144,6 +144,11 @@ current core validators can use a full checkout or the optional packaged
 `agov` tooling archive; the combined bundle is a convenience artifact, not a
 prerequisite for adopting AGF.
 
+For MCP-capable assistant runtimes, the Rust tooling archive also includes
+`agov-mcp`, a local stdio adapter that exposes `agov` workflow commands as MCP
+tools without changing the file-based coordination protocol. See
+`agf/docs/site/docs/adopt/mcp-server.md`.
+
 ## Local learning and upstream proposals
 
 Two concepts recur across the docs and are easier to follow as a diagram
