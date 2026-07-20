@@ -1,40 +1,61 @@
-# coord: ask coder-tester to collaborate on student-audience flyer redraft
+# plan: agent improvement-proposal norm (Gate 1)
 
-Branch: `coord/nutshell-flyer-redraft-codex-collab`
+Branch: `plan/agent-improvement-proposal-norm`
 
 ## Status
 
-- **Codex response filed:** `docs/coordination/20260720T152811Z-coder-tester-rqn4.md`.
-- **Blocking Claude:** nothing. Claude can use the response to redraft the
-  artifact.
-- **Codex collaboration:** branch rebased on current `main` after docs MR !231
-  merged, so the coordination MR no longer appears to revert recent docs work.
+- **Gate 1 APPROVED** — `docs/coordination/20260720T160045Z-governor-reviewer-5h8j.md`.
+- Ready to merge. Implementation (one small MR, no MR-B) follows on a fresh
+  branch after this merges.
 
 ## Summary
 
-Not part of the AGF gate pipeline — this coordinates a redraft of the
-"AGF in a Nutshell" A3 flyer, a Claude Artifact (not a repo file) shared
-directly with the human governor, not part of the documentation site.
+Responds to Codex's handoff (`docs/coordination/20260720T152331Z-coder-tester-prjn.md`),
+which recorded the governor-reviewer's in-session directive that agents may
+propose improvements when they notice friction, oddness, or token-saving
+opportunities — asked to be turned into a small, non-blocking rule-ish norm.
 
-The human governor reviewed the first draft and flagged that it targets the
-wrong audience (a practitioner/adopter, not a 3rd-year engineering
-bachelor's student) and misrepresents the command model (lists `agov`
-commands as a human cheat sheet, when the framework's own
-audience-boundary work — `agf/docs/site/docs/index.md`, MR !229 — says most
-of that procedure is AI-executed, not a human to-do list).
+Plan proposes one new SHOULD-strength (Provisional) rule,
+`agf/rules/always/agent-improvement-proposal-rule.md` (full exhibit text in
+the plan file), plus one short paragraph in
+`agf/docs/site/docs/operate/day-to-day.md`. No new coordination message kind
+— routes through the existing `note` / `review` / `lesson-proposal` / Gate 1
+`plan` kinds, already declared in the schema.
 
-This handoff asks Codex to propose content and visual direction for the
-corrected draft before Claude re-renders it.
+Codex's independent advisory review agreed with all three of the plan's
+proposed answers; the governor's decision adopts them as-is (SHOULD,
+`agf/rules/always/`, both AGF-scope and project-local observations in
+scope for proposing).
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `docs/coordination/20260720T152054Z-planner-architect-q4dj.md` | New handoff to coder-tester |
-| `docs/coordination/20260720T152811Z-coder-tester-rqn4.md` | Codex response with student-facing content and visual direction |
+| `docs/plans/agent-improvement-proposal-norm.md` | Gate 1 plan, now `status: approved` |
+| `docs/coordination/20260720T153719Z-planner-architect-bqd8.md` | Gate 1 handoff to governor-reviewer |
+| `docs/coordination/20260720T154019Z-coder-tester-sknh.md` | Codex review supporting Gate 1 approval, with a docs-link implementation note |
+| `docs/coordination/20260720T160045Z-governor-reviewer-5h8j.md` | Gate 1 decision-record: approved |
+
+## Gate 1 answers
+
+1. **Strength: SHOULD**, not MUST.
+2. **Landing directory: `agf/rules/always/`.**
+3. **Scope: both AGF-scope and project-local observations** are in scope for
+   proposing; project-local ideas still need governor review to become AGF
+   framework rules.
+
+## Implementation condition
+
+Per Codex's review, the `day-to-day.md` reference to the new rule file
+MUST NOT be a raw markdown link across the MkDocs `docs_dir` boundary —
+render as inline code text, or prove the link resolves under
+`mkdocs build --strict` first.
 
 ## Review checklist
 
-- [x] `agov coord validate` passes
+- [x] `agov plan validate docs/plans/agent-improvement-proposal-norm.md` passes
+- [x] `agov coord validate` passes on all coordination files
+- [x] Contribution-auditor self-review included in the plan (no blocking findings)
+- [x] Codex review included (no blocking findings)
 - [x] No `Co-authored-by` trailers in commit
-- [x] Rebased after !231 to avoid stale-branch doc reversions
+- [x] Does not touch the MR-2 branch or any already-merged MR's files
