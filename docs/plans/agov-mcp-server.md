@@ -17,6 +17,13 @@ advisory_consultation:
 
 **Date:** 2026-07-20T07:47:31Z
 **Status:** PENDING GATE 1 APPROVAL
+**Amendment note (2026-07-20T20:05:00Z):** the `dir` field-naming question
+on `agov_session_resume` and five other tools — flagged by the Sol High
+external assessment as a trust-relevant contract defect — is governed
+separately by `docs/plans/mcp-coordination-dir-contract-fix.md`, not by
+this plan's still-open `pending-gate1` status. Do not treat this plan's
+stalled status as retroactive authorization for that specific change; see
+the new plan for its own Gate 1 approval.
 **Depends on:** `coord-cli-write-and-watch.md` (GitLab #32) — the issue
 text is explicit: "an MCP wrapper over a read-only CLI has limited value."
 This plan assumes `agov coord post` and `agov handoff take/complete` exist
