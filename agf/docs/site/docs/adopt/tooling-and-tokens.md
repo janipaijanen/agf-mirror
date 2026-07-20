@@ -1,8 +1,9 @@
+<!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Tooling and token savings
 
-*Status: Released (v2.1 documentation). Audience: developers and
-administrators who have the framework installed and want to reduce AI token
-consumption by adding deterministic tooling to the inner agent loop.*
+*Status: Released (v2.1 documentation). Audience: AI assistants adding
+deterministic tooling to the inner agent loop, with developers and
+administrators supervising setup and reviewing the evidence.*
 
 ## The premise
 

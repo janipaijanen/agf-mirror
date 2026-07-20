@@ -1,9 +1,10 @@
+<!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Run AGF in real situations
 
-*Status: Released (v2.1 documentation). Audience: governors, developers, and
-AI assistants operating an AGF-governed project. After this page you can map
-common project moments to the right AGF move, without treating example prompts
-as binding procedure.*
+*Status: Released (v2.1 documentation). Audience: AI assistants operating an
+AGF-governed project, with governors and developers supervising decisions and
+reviewing evidence. After this page you can map common project moments to the
+right AGF move, without treating example prompts as binding procedure.*
 
 !!! note "How to use this page"
     Start from the situation you are in. The authoritative source remains the
