@@ -1,35 +1,36 @@
-# docs: point README to diagram-backed learning and contribute pages
+# docs: state append-only audit trail policy vs GDPR erasure
 
-Branch: `docs/readme-diagram-pointers`
+Branch: `docs/append-only-audit-trail-policy`
 
 ## Summary
 
-README explained local learning records and upstream proposals with a
-single bare table row and no pointer to the richer, diagram-backed
-treatment that already exists on the published docs site.
+States, for the first time, an explicit policy that this repository's git
+history and coordination channel are append-only by design — closer to a
+ledger than a working document — and names the GDPR Art. 17 tension that
+creates for any project storing author identities in that trail.
 
 ## Why
 
-`evidence-and-learnings.md` already embeds the learning-loop figure and
-explains framework-owned vs. adopter-owned learning records;
-`contribute.md` already covers the three upstream paths (submit a
-learning, propose a rule, propose an agent). README pointed to neither —
-a reader had no way to discover either page from the quick-start doc.
+`docs/sources.md` (Batch 3, filed this session) flagged this as an
+unresolved amendment: "resolve GDPR erasure vs append-only tension before
+publishing the exit guarantee." This MR resolves it with a policy
+statement rather than leaving it implicit.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `README.md` | New "Local learning and upstream proposals" section, linking to `evidence-and-learnings.md` and `contribute.md` on the published docs site, plus a pointer to the full figure inventory (`agf/docs/figures/`) |
+| `README.md` | New "Git history is a ledger, not a scratchpad" section — developer-facing, states this repo's own policy |
+| `agf/docs/site/contribute.md` | New "Audit trail policy: append-only, not erasable" section — adopter/contributor-facing, states the framework-level design stance; points to identity minimisation + documented lawful basis as the upstream fix, not history rewriting |
 
-## Message integrity
+## Evidence status
 
-Links rather than duplicates the diagram-backed explanation already on
-the docs site, per the marketing-tone-rule's message-integrity
-requirement (a claim stated once, in its canonical location).
+Policy statement, not a capability claim — no maturity level applies.
+Both sections defer to `disclaimer.md` for the "not legal advice" boundary.
 
 ## Review checklist
 
-- [ ] Both linked URLs resolve on the published docs site
-- [ ] No duplicate explanation of the learning loop introduced in README
+- [ ] Both sections read correctly in isolation
+- [ ] No duplicate/contradictory claim vs. existing `disclaimer.md` /
+      `governance.md` append-only language
 - [ ] No `Co-authored-by` trailers in commit
