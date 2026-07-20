@@ -1,56 +1,63 @@
-# docs: add audience-taxonomy callout and documentation map (MR-1)
+# docs: add per-step human-vs-assistant execution markers (MR-3)
 
-Branch: `docs/audience-taxonomy-callout-mr1`
+Branch: `docs/first-governed-change-execution-markers-mr3`
 
 ## Status
 
 - **Pending:** Gate 2 review by governor-reviewer
-  (`docs/coordination/20260720T145316Z-coder-tester-ejsk.md`).
-- **Codex collaboration:** branch rebased on current `main` after !228 merged;
-  advisory cross-check recorded in
-  `docs/coordination/20260720T145632Z-coder-tester-mbtr.md`.
+  (`docs/coordination/20260720T150012Z-coder-tester-3psr.md`).
 - **Blocking Claude:** nothing. Next action (if any) will arrive as a
   pushed coordination handoff.
+- Implemented in parallel with MR-1 (`!229`) while it was on CI, per
+  direct user authorization this session — not a chat-relay trigger, a
+  literal "please proceed."
 
 ## Summary
 
-MR-1 of 6 from the approved documentation audience-boundary plan
+MR-3 of 6 from the approved documentation audience-boundary plan
 (`docs/plans/docs-audience-boundary-proposal.md`, Gate 1 approved in
-`20260720T143255Z-governor-reviewer-s6hg.md`), assigned to Claude via
-`docs/coordination/20260720T144305Z-coder-tester-hpsg.md`.
+`20260720T143255Z-governor-reviewer-s6hg.md`). No handoff existed yet
+assigning this specific MR — claimed directly
+(`docs/coordination/20260720T145752Z-coder-tester-dgst.md`) since MR-3 has
+no dependency on MR-1/MR-2 per the plan's own dependency notes.
 
-Adds the concept-heavy first slice: a "How to read this site" section on
-`agf/docs/site/docs/index.md` (before the existing stage diagram) stating
-the plan's four-bucket taxonomy — Human decision / AI-operator
-instructions / Shared concept / Reference — plus a new
-`docs-audience-map` diagram mapping example pages to each bucket.
+Adds a per-step `**Who does this: ...**` marker to each of the 8 numbered
+steps in `agf/docs/site/docs/start/first-governed-change.md`, plus a short
+legend defining the three marker kinds (Human decision / AI-operator /
+Shared). This directly answers the plan's own problem-statement example:
+the page previously mixed "paste this into your assistant" blocks with
+plain second-person steps (`git checkout -b`, `$EDITOR ...`) with nothing
+distinguishing who does what.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `agf/docs/site/docs/index.md` | New "How to read this site" section, ahead of "## The path" |
-| `agf/docs/figures/src/docs-audience-map.dot` | New DOT source, styled consistent with `operating-responsibility-map.dot` |
-| `agf/docs/figures/docs-audience-map.svg` | Rendered SVG (build-output location) |
-| `agf/docs/site/reference/figures/docs-audience-map.svg` | Rendered SVG (site source-of-truth location, per the existing dual-copy convention — confirmed byte-identical to the other copy) |
-| `docs/coordination/20260720T145316Z-coder-tester-ejsk.md` | Gate 2 handoff to governor-reviewer |
-| `docs/coordination/20260720T145632Z-coder-tester-mbtr.md` | Codex advisory review after rebasing on top of merged MR-4 |
+| `agf/docs/site/docs/start/first-governed-change.md` | Legend paragraph after the gate-pipeline figure; a `**Who does this**` marker under each of the 8 step headings |
+| `docs/coordination/20260720T145752Z-coder-tester-dgst.md` | Claim, filed before implementation to avoid collision |
+| `docs/coordination/20260720T150012Z-coder-tester-3psr.md` | Gate 2 handoff to governor-reviewer |
+
+## Per-step classification
+
+1. Know where the files will go — reader's choice
+2. Ask your assistant to prepare starter files — AI-operator
+3. Validate the plan and first handoff — AI-operator
+4. Gate 1: decide before implementation — Human decision
+5. Branch and implement test-first — AI-operator
+6. Gate 2: review before merge — Human decision
+7. Merge and close the loop — Human decision (merge), assistant may prepare the completion entry
+8. Record what you learned — Shared
 
 ## Scope boundary
 
-Per the assigning handoff: does not touch `install-and-layouts.md` (Codex's
-parallel MR-4 claim) and does not relabel other pages (MR-2's scope, which
-depends on this MR landing first).
+Does not touch `install-and-layouts.md` (Codex's MR-4) or do any audience-
+line relabeling (MR-2's scope).
 
 ## Review checklist
 
 - [x] `mkdocs build -f agf/docs/build/mkdocs.yml --strict` passes (only
       pre-existing, unrelated warnings)
 - [x] `git diff --check` passes
-- [x] New diagram rendered to PNG and visually inspected before finalizing
-      (per `visible-artifact-verification-rule`) — one cosmetic issue found
-      and fixed (stray legend placeholder)
-- [x] Both SVG copies confirmed byte-identical
-- [x] No `Co-authored-by` trailers in commit
-- [x] Rebased after !228; diff no longer touches `install-and-layouts.md` or
-      MR-4 coordination files
+- [x] Full diff reviewed manually for consistent formatting across all 8
+      markers
+- [ ] No `Co-authored-by` trailers in commit
