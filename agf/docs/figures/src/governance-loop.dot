@@ -8,11 +8,11 @@ digraph governance_loop {
             <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
             <TR>
                 <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">governed workflow step</TD>
-                <TD BGCOLOR="#009944" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">merged outcome</TD>
-                <TD BGCOLOR="#888888" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">learning feedback</TD>
+                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">merged outcome</TD>
+                <TD BGCOLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">learning feedback</TD>
             </TR>
             <TR>
-                <TD BGCOLOR="#EE7700" WIDTH="28"><FONT COLOR="white">oval</FONT></TD><TD ALIGN="LEFT">incident / observation</TD>
+                <TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">incident / observation (oval shape)</TD>
                 <TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">feeds next plan</TD>
                 <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rework or trigger</TD>
             </TR>

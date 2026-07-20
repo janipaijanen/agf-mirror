@@ -2,22 +2,11 @@
 // agents-govern: documentation map by audience and use
 // Generate: dot -Tsvg docs-audience-map.dot -o ../docs-audience-map.svg
 digraph docs_audience_map {
-    graph [rankdir=TB, splines=spline, pad=0.35, nodesep=0.5, ranksep=0.5,
+    graph [rankdir=TB, splines=spline, pad=0.35, nodesep=0.6, ranksep=0.5,
            bgcolor=white, fontname="Helvetica", fontsize=12, compound=true]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor=white, color="#0077BB", penwidth=1.4]
-    edge  [fontname="Helvetica", fontsize=10, color="#888888", penwidth=1.2,
-           style=invis]
-
-    legend [shape=plain, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
-            <TR><TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">human decides, no AI substitute</TD></TR>
-            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">AI executes; human supervises</TD></TR>
-            <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">shared mental model</TD></TR>
-            <TR><TD BGCOLOR="#CCCCCC" WIDTH="28"></TD><TD ALIGN="LEFT">reference, read after the concept is clear</TD></TR>
-        </TABLE>
-    >]
+    edge  [style=invis]
 
     human [shape=box, fillcolor="#EE7700", fontcolor=white, label=
         "Human decision\n\nshould-you-adopt.md\ndownstream-impact.md\nreview-and-release.md"]
@@ -31,8 +20,8 @@ digraph docs_audience_map {
     reference [shape=box, fillcolor="#CCCCCC", label=
         "Reference\n\nenvironment-variables.md\nmaturity-vocabulary.md\ncontracts-and-validators.md"]
 
-    legend -> human
-    human -> ai
-    ai -> concept
-    concept -> reference
+    {rank=same; human; ai}
+    {rank=same; concept; reference}
+    human -> concept
+    ai -> reference
 }

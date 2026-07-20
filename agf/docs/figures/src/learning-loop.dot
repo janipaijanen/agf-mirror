@@ -7,9 +7,9 @@ digraph learning_loop {
         <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
             <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
             <TR>
-                <TD BORDER="1" COLOR="#888888" WIDTH="28">oval</TD><TD ALIGN="LEFT">evidence source</TD>
+                <TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">evidence source (oval shape)</TD>
                 <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">learning or proposal</TD>
-                <TD BGCOLOR="#009944" WIDTH="28"><FONT COLOR="white">box</FONT></TD><TD ALIGN="LEFT">accepted disposition</TD>
+                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">accepted disposition</TD>
             </TR>
             <TR>
                 <TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">lifecycle progression</TD>

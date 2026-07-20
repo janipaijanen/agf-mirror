@@ -13,7 +13,7 @@ digraph operating_responsibility_map {
             <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
             <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">mixed human + AI</TD></TR>
             <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">AI-executed delegated work</TD></TR>
-            <TR><TD BGCOLOR="#EE7700" WIDTH="28"><FONT COLOR="white">diamond</FONT></TD><TD ALIGN="LEFT">human-only authority</TD></TR>
+            <TR><TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">human-only authority (diamond shape)</TD></TR>
             <TR><TD><FONT COLOR="#009944">-----&gt;</FONT></TD><TD ALIGN="LEFT">approved decision</TD></TR>
             <TR><TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD></TR>
             <TR><TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">next-cycle feedback</TD></TR>
@@ -38,5 +38,6 @@ digraph operating_responsibility_map {
     record -> read [label="next cycle", color="#888888",
                     fontcolor="#888888"]
 
+    {rank=same; legend; read}
     legend -> read [style=invis]
 }
