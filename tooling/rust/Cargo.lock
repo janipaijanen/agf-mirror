@@ -56,6 +56,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "agov-mcp"
+version = "2.2.6"
+dependencies = [
+ "agov-core",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "agov-validators"
 version = "2.2.6"
 dependencies = [

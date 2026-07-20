@@ -1,0 +1,19 @@
+[package]
+name = "agov-mcp"
+description = "stdio MCP adapter for agov governance tooling"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "agov-mcp"
+path = "src/main.rs"
+
+[dependencies]
+agov-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

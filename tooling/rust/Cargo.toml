@@ -7,6 +7,7 @@ members = [
     "crates/agov-coord",
     "crates/agov-validators",
     "crates/agov",
+    "crates/agov-mcp",
 ]
 
 [workspace.package]
