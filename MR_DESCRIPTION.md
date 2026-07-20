@@ -1,61 +1,36 @@
-# plan: agent improvement-proposal norm (Gate 1)
+# coordination: converge with Codex on untracking MR_DESCRIPTION.md
 
-Branch: `plan/agent-improvement-proposal-norm`
+Branch: `coord/mr-description-converged-recommendation`
 
 ## Status
 
-- **Gate 1 APPROVED** — `docs/coordination/20260720T160045Z-governor-reviewer-5h8j.md`.
-- Ready to merge. Implementation (one small MR, no MR-B) follows on a fresh
-  branch after this merges.
+- **Pending:** human governor decision on !239/!241/this MR.
+- **Blocking Claude:** nothing.
 
 ## Summary
 
-Responds to Codex's handoff (`docs/coordination/20260720T152331Z-coder-tester-prjn.md`),
-which recorded the governor-reviewer's in-session directive that agents may
-propose improvements when they notice friction, oddness, or token-saving
-opportunities — asked to be turned into a small, non-blocking rule-ish norm.
+Codex's response to the two-proposal handoff (`20260720T162959Z-coder-tester-hqhp.md`)
+found a real gap in Claude's Option A: `MR_DESCRIPTION.md` is git-tracked, so
+"keep it as scratch" still leaves every branch's edit as a tracked diff that
+must be manually reverted before merge — which is exactly what caused the
+repeated `--ours`/`--theirs` merge conflicts on this file during every
+branch rebase earlier in this session.
 
-Plan proposes one new SHOULD-strength (Provisional) rule,
-`agf/rules/always/agent-improvement-proposal-rule.md` (full exhibit text in
-the plan file), plus one short paragraph in
-`agf/docs/site/docs/operate/day-to-day.md`. No new coordination message kind
-— routes through the existing `note` / `review` / `lesson-proposal` / Gate 1
-`plan` kinds, already declared in the schema.
-
-Codex's independent advisory review agreed with all three of the plan's
-proposed answers; the governor's decision adopts them as-is (SHOULD,
-`agf/rules/always/`, both AGF-scope and project-local observations in
-scope for proposing).
+This converges on a stronger fix than either original proposal alone: move
+`MR_DESCRIPTION.md` to a gitignored path (`tmp/MR_DESCRIPTION.md`; `tmp/` is
+already gitignored in this repo), removing the drift/conflict problem
+structurally instead of disciplining around it. Both Claude and Codex agree
+on deferring the pre-push-hook idea (Option B) in favor of, if ever needed,
+an explicit `agov mr description sync` command instead of an implicit
+auto-syncing hook.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `docs/plans/agent-improvement-proposal-norm.md` | Gate 1 plan, now `status: approved` |
-| `docs/coordination/20260720T153719Z-planner-architect-bqd8.md` | Gate 1 handoff to governor-reviewer |
-| `docs/coordination/20260720T154019Z-coder-tester-sknh.md` | Codex review supporting Gate 1 approval, with a docs-link implementation note |
-| `docs/coordination/20260720T160045Z-governor-reviewer-5h8j.md` | Gate 1 decision-record: approved |
-
-## Gate 1 answers
-
-1. **Strength: SHOULD**, not MUST.
-2. **Landing directory: `agf/rules/always/`.**
-3. **Scope: both AGF-scope and project-local observations** are in scope for
-   proposing; project-local ideas still need governor review to become AGF
-   framework rules.
-
-## Implementation condition
-
-Per Codex's review, the `day-to-day.md` reference to the new rule file
-MUST NOT be a raw markdown link across the MkDocs `docs_dir` boundary —
-render as inline code text, or prove the link resolves under
-`mkdocs build --strict` first.
+| `docs/coordination/20260720T163751Z-planner-architect-hkrr.md` | Converged recommendation, routed to governor-reviewer for decision |
 
 ## Review checklist
 
-- [x] `agov plan validate docs/plans/agent-improvement-proposal-norm.md` passes
-- [x] `agov coord validate` passes on all coordination files
-- [x] Contribution-auditor self-review included in the plan (no blocking findings)
-- [x] Codex review included (no blocking findings)
+- [x] `agov coord validate` passes
 - [x] No `Co-authored-by` trailers in commit
-- [x] Does not touch the MR-2 branch or any already-merged MR's files
