@@ -79,23 +79,10 @@ withheld, not guessed. Verify before relying on them.
   independently reaches the same conclusion as AGF's agov-mcp scoping (wrapper ≠ gate).
   Adjacent competitor for the word "governance", different object (memory vs process).
 
-## Unverified — do not classify yet
+All entries formerly listed here as [unverified] were fetched and classified 2026-07-21 —
+see Batch 6 below.
 
-- https://github.com/geludobre/sovereign-agentops — [unverified] not found via search.
-- https://vektorgeist.com/blog — [unverified]
-- https://twmrg.substack.com/p/the-governance-gap — [unverified] (title suggests demand-driver essay)
-- https://coderadius.ai/ — [unverified]
-- https://github.com/irenee28/akm-clr-governance-layer — [unverified] ("governance layer" in name;
-  potential competitor — verify first)
-- https://github.com/MAVS-RESEARCH — [unverified] (org link, no specific repo)
-- https://splabs.io/compliance — [unverified]
-- https://omega-lang.org/ — [unverified]
-- https://github.com/jacobthomasmichael/GatekeeperAI/blob/main/README.md — [unverified] repo not
-  found directly; a matching-tagged project exists (CI policy-as-code linter: ai-governance,
-  eu-ai-act, nist-ai-rmf, iso-42001, github-action) but identity unconfirmed. If it is that:
-  type tooling, relation competitor/complement to issue #3's CI enforcement.
-
-## Suggested additions (surfaced during verification)
+## Suggested additions (surfaced during verification; fetched and confirmed 2026-07-21)
 
 - https://github.com/boshu2/agentops
   type: framework | relation: competitor, prior-art | action: compare-in-docs
@@ -103,22 +90,47 @@ withheld, not guessed. Verify before relying on them.
   as plain markdown in-repo, Apache-2.0, explicit portability pitch ("your .agents/ folder comes
   with you"). Strikingly convergent with AGF's plain-file + removability stance; the closest
   competitor to AGF's exit-guarantee positioning specifically.
+  Verified 2026-07-21: 414 stars, Apache-2.0 confirmed, v3.2.0 (2026-07-03), install via
+  `npx skills@latest add boshu2/agentops`. Two corrections to the note above: verdicts are
+  **plain JSON** (`.agents/ao/verdicts/sha256/`), not markdown; and the verdict model is a
+  three-state `PASS`/`FAIL`/`NOT_PROVEN`, not a binary done/not-done. Core loop: "Plan →
+  Implement → fresh Validate (separate context from the author session) → durable verdict →
+  report and stop" — the fresh-context requirement is itself a form of verification
+  independence (concept #4).
 
 - https://microsoft.github.io/agent-governance-toolkit/
-  type: tooling | relation: competitor(runtime layer), complement | action: watch
+  type: tooling | relation: competitor(runtime layer), complement | action: compare-in-docs
   note: Microsoft OSS — YAML policy engine wrapping agent tool calls (deny / require_approval),
   framework-agnostic. Runtime-call governance, not repo-process governance; useful contrast case.
+  Verified 2026-07-21: broader than originally scoped — also includes identity/trust (SPIFFE,
+  DID, mTLS), tamper-evident audit logging, execution sandboxing with "four privilege rings",
+  cost governance, and compliance mappings to OWASP/NIST/EU AI Act. Answers three questions:
+  "Is this action allowed? Which agent did this? Can you prove what happened?" — the third is
+  exactly AGF's audit-trail territory, enforced at the tool-call layer instead of the repo/
+  process layer. Action upgraded from `watch` to `compare-in-docs` given the maturity found.
 
 - https://arxiv.org/pdf/2603.26487
   type: research | relation: evidence, prior-art | action: cite
   note: "Beyond Banning AI: A First Look at GenAI Governance in Open Source Software Communities" —
   empirically studies repo-level AI governance (AGENTS.md etc.) incl. its dependence on tool
   compliance; academic support for the enforcement-gap argument and for issue #7's framing.
+  Verified 2026-07-21: authors Wenhao Yang, Runzhi He, Minghui Zhou. Analyzed 67 OSS projects,
+  identified 12 governance strategies spanning accountability, verification, review capacity,
+  code provenance, and platform infrastructure. Correction: the abstract frames venues more
+  broadly as "contribution guidelines, security policies, and repository instructions" rather
+  than specifically "AGENTS.md"; examines governance *patterns*, not tool-specific compliance
+  architecture in detail.
 
 - https://arxiv.org/pdf/2604.16870
   type: research | relation: prior-art, threat-model | action: watch
   note: "Governed MCP" — treats agent tool calls as syscalls needing kernel-level governance;
   relevant to the enforcement-locus debate (userspace/prompt-level controls are bypassable).
+  Verified 2026-07-21: full title "Governed MCP: Kernel-Level Tool Governance for AI Agents via
+  Logit-Based Safety Primitives" (Daeyeon Son). Six-layer governance pipeline in a bare-metal
+  OS kernel (schema validation, trust tiers, rate limiting, adversarial filtering, logit-based
+  semantic gate). Notable result: removing the semantic-classification layer drops F1 from
+  0.789 to 0.357 — concrete evidence that rule-based/hand-coded filtering alone is insufficient,
+  useful ammunition for issue #3's advisory-vs-structural argument.
 
 # Batch 2 (2026-07-15)
 
@@ -192,18 +204,12 @@ withheld, not guessed. Verify before relying on them.
 
 ## Unverified — do not classify yet
 
-- https://loadlore.dev/ — [unverified]
-- https://www.aicounciltoolkit.com/ — [unverified] (name suggests org-level AI council/
-  compliance templates; if so, relation likely none)
-- https://trust.aos-1.com/whitepapers/aos-1-governance — [unverified] ("AOS-1" governance
-  whitepaper; vendor trust page — potential competitor claim, verify)
-- https://lospino.so/blog/sunday-field-notes/the-workshop-has-changed/ — [unverified]
-- https://pypi.org/project/sentience-governor/0.2.5.1/ — [unverified] (name suggests an agent
-  governor package; verify maintainer/substance — very low version number)
-- https://github.com/AIObuilt/TaG — [unverified]
-- https://github.com/humancoreai/Gategraph — [unverified] (name suggests gate/graph governance —
-  potential competitor, verify first)
-- https://github.com/simonhansedasi/ai_glue — [unverified]
+- https://lospino.so/blog/sunday-field-notes/the-workshop-has-changed/ — [unverified]. Fetch
+  attempted twice (2026-07-21), both returned HTTP 403 (site blocks automated fetching). Cannot
+  classify without a human-provided copy (paste, screenshot, or saved page).
+
+All other entries formerly listed here were fetched and classified 2026-07-21 — see Batch 6
+below.
 
 # Batch 3 (2026-07-16) — standards, legal, cross-discipline, philosophies
 Source: deep-research pass. Verification status per entry; regulatory dates move — recheck before citing.
@@ -467,3 +473,289 @@ Source: deep-research pass. Verification status per entry; regulatory dates move
   published before 2026-09-11)
 - amendment to #8: resolve GDPR erasure vs append-only tension before publishing the
   exit guarantee
+
+# Batch 4 (2026-07-21) — vektorgeist.com/blog, fetched and classified
+
+Vendor: VektorGeist, promoting their product "Aviary" (local-first agent runtime). All
+six posts carry agent bylines ("Vanta", "Elif") rather than named human authors — treat
+as AI-drafted marketing copy; verify specific claims before citing per
+verifiable-claims-rule. Common thread: governance/privacy enforced by keeping model,
+orchestration, and logs on the user's own machine rather than vendor infrastructure.
+
+## Classified
+
+- https://vektorgeist.com/blog/local-first-agent-governance (2026-06-28)
+  type: tooling | relation: competitor(runtime layer), complement | action: compare-in-docs
+  note: The directly relevant entry. Argues governance should concentrate strictness at
+  the moment an agent acts on something external to itself (irreversible actions), via
+  least-privilege default-deny, explicit approval gates, credential-scrubbed logs,
+  tamper-proof audit records, and a kill switch — all enforced locally ("governance you
+  don't control isn't governance"). Same category as the Microsoft ACS and enforra
+  entries above: a runtime tool-call enforcement layer, not a repo/process layer —
+  complements rather than competes with AGF directly. Worth a compare-in-docs mention
+  alongside ACS/enforra to show AGF's process layer vs. this client-enforcement layer.
+
+- https://vektorgeist.com/blog/run-ai-agents-offline (2026-06-30)
+  type: tooling | relation: competitor(runtime layer), complement | action: compare-in-docs
+  note: Companion post to the above. Splits "offline agent" into model execution,
+  orchestration, and memory/logs, arguing governance (scope control, outbound-action
+  gating, secret hygiene, audit trails) is the hard part, not the model. Independent
+  restatement of "verify system state directly, don't trust agent summaries" — corroborates
+  AGF's audit-trail-over-self-report stance from an unrelated vendor.
+
+- https://vektorgeist.com/blog/what-local-first-actually-means (2026-07-15)
+  type: practice | relation: prior-art | action: watch
+  note: Defines "local-first" against diluted industry usage — architectural (not
+  policy-dependent) privacy via local execution; briefly mentions "agent guardrails"
+  functioning locally being structurally stronger than network-dependent ones. Tangential
+  to AGF's removability/plain-files stance but focused on runtime data locality, not
+  process governance.
+
+- https://vektorgeist.com/blog/design-agent-context-icm (2026-07-06)
+  type: practice | relation: prior-art | action: watch
+  note: "ICM" — folder-based, layered (L0 root router … L4 per-run scratch) context
+  architecture replacing orchestration code with markdown files, explicitly for human
+  readability/auditability over prompt bloat. Orthogonal to AGF (context-window
+  engineering, not gates) but shares the "readable files over opaque logic" philosophy —
+  same instinct as AGF's plain-markdown coordination trail.
+
+- https://vektorgeist.com/blog/search-claude-code-transcripts-locally (2026-06-26)
+  type: tooling | relation: none | action: ignore
+  note: Introduces magpie-search, a local keyword+semantic index over Claude Code
+  transcripts. Useful utility, no governance content; out of scope for AGF.
+
+- https://vektorgeist.com/blog/why-we-build-local-first (2026-06-24)
+  type: practice | relation: none | action: ignore
+  note: Company philosophy/build-log post (privacy and ownership rationale for
+  local-first architecture). Mentions "governing an autonomous agent" only as a passing
+  example with no detail. Background only.
+
+# Batch 5 (2026-07-21) — twmrg.substack.com, full text fetched (user-supplied, tmp/papers/twmrg.md)
+
+- https://twmrg.substack.com/p/the-governance-gap ("The Governance Gap", Alfino Hatta, 2026-07-08)
+  type: discussion | relation: demand-driver, evidence, threat-model | action: cite (with caveat)
+  note: Secondary-source essay dissecting a vendor conference talk (vendor and speaker not
+  named in the piece). Central claim — ~80% of PRs at some orgs get no human review — is
+  **unverified per the essay's own account**: one vendor's internal analysis of its own
+  product's usage, paired with a self-selected survey (~617 companies, all existing
+  customers of that vendor). Per verifiable-claims-rule, do not cite the 80%/70%/47%/88%
+  figures as established fact — attribute explicitly as "reported at a vendor conference
+  talk, methodology unpublished" if cited at all, and prefer the more concrete two: 70% of
+  scanned PRs had ≥1 high-severity issue (operational scan data, not self-report), and only
+  ~60% of review conversations stay inside auditable tooling (GitHub/GitLab/Bitbucket) vs.
+  ~40% leaking into Slack/Teams outside any audit trail.
+  Independent of the disputed number, the essay's *structural* argument is directly useful
+  and doesn't depend on the 80% figure being true: compliance controls (SOC2, ISO 27001)
+  can be satisfied on paper by an AI-only reviewer with no human involved; insurance
+  underwriting, board reporting, vendor/supplier attestations, and litigation discovery all
+  currently have no mechanism to distinguish "AI approved" from "human approved" — direct
+  support for concept #2 (named human accountability as first-class object) and the
+  compliance-export item (issue #9). Also independently corroborates the framework's
+  advisory-vs-structural argument via a historical parallel (audit standards lagging
+  CI/CD adoption; financial straight-through-processing requiring documented control
+  points and kill switches only after regulatory pressure post-adoption) — same shape as
+  the Kaptein et al. and ACS entries above (Batch 2/3).
+  Also flags a genuinely new gap not otherwise present in this registry: multi-agent
+  **disagreement arbitration** (coding agent vs. testing/planning agent reaching different
+  verdicts, no defined resolver) — candidate addition to concept #3/#4 or a new concept.
+  Caveat: essay author's own methodology is a close reading of one transcript, not
+  independent verification; treat as opinion/analysis, not a primary data source.
+
+# Batch 6 (2026-07-21) — remaining [unverified] entries from Batches 1 and 2, fetched
+
+Resolves every previously-unverified entry except `lospino.so` (blocked by the site, see the
+`## Unverified` note under Batch 2 above). Headline finding: the "runtime tool-call governance
+layer for AI agents" space is considerably more crowded than Batches 1-3 suggested — six
+separate, independently-built projects doing local/self-hosted pre-execution gating +
+audit-trail recording turned up just from following named-but-unverified links. None compete
+with AGF directly (all are runtime/tool-call layer; AGF is repo/process layer, same distinction
+already drawn for ACS, enforra, and the VektorGeist/Aviary entries) — but the crowding itself is
+worth a line in AGF's own positioning docs: the market has converged hard on "wrap the tool
+call," which is exactly the layer AGF and the "Governed MCP" paper (Batch 3 suggested additions)
+argue is necessary-but-insufficient without the accountability layer above it.
+
+## Classified
+
+- https://github.com/geludobre/sovereign-agentops
+  type: tooling | relation: competitor(runtime layer) | action: compare-in-docs
+  note: Self-hosted MCP governance server: "constitutional governance," Ed25519-signed
+  execution receipts for the audit trail, workspace path confinement, local model routing,
+  offline/air-gapped support, EU AI Act-aligned compliance tooling claimed. 7 MCP tools
+  (Community, Apache-2.0) vs. 91 tools (paid Enterprise). Early (1 star, v2.4.1 as of
+  2026-07-12) but functional and released. The signed-receipt approach parallels the
+  Sigstore/Rekor entry in Batch 3 — worth grouping in a "cryptographic non-repudiation for
+  gate decisions" comparison alongside it.
+
+- https://github.com/irenee28/akm-clr-governance-layer
+  type: tooling | relation: competitor(runtime layer, narrow) | action: watch
+  note: Multi-tenant control layer above vLLM-style OpenAI-compatible inference engines —
+  tenant authorization, domain routing, pre-inference blocking, output guards, audit logging.
+  Governs *inference-request tenancy*, not coding-agent or repo-process workflows — different
+  problem than AGF's. Prototype stage (8 commits, 1 star); watch only.
+
+- https://coderadius.ai/
+  type: tooling | relation: complement | action: watch
+  note: Cross-repo architecture dependency graph + "blast radius" diff analysis, exposed to
+  coding agents via MCP; also a CI gate blocking PRs that violate architecture policy. Local
+  analysis, no source upload, Apache-2.0, public alpha 2026. Different axis (architectural
+  awareness for agents) than AGF's process governance — complementary; a coding agent informed
+  by CodeRadius could still go through an AGF-gated review.
+
+- https://github.com/MAVS-RESEARCH
+  type: research | relation: prior-art | action: watch
+  note: Academic/research GitHub org, 9 Python/MIT repos under a "MAVS-GC" (governance +
+  consensus) research program — inference-time safety governance for multi-model systems,
+  certified updates/rollback, counterexample-driven diagnostic learning, false-rejection-rate
+  reduction. No external validation or publication venue visible from the repos themselves;
+  treat as an unreviewed research program, not citable evidence, until a paper or independent
+  reproduction surfaces. Thematically adjacent to concept #4 (verification independence) and
+  the LLM-as-judge-unreliability entry in Batch 3.
+
+  **2026-07-21 deep dive — https://github.com/MAVS-RESEARCH/MAVS-Chapter-9:** MAVS-GC is a
+  *governed aggregation pipeline* for combining outputs from multiple specialist agents:
+  per-specialist bounded scores [0,1], diagnostics for disagreement/corruption/overconfidence/
+  inconsistency, weighted aggregation with contextual rebalancing, a hard-veto path, and a
+  final governed-consensus decision. This is directly the same problem twmrg's essay (Batch 5)
+  flagged as unsolved industry-wide — "who or what resolves it when a coding agent and a
+  testing agent disagree" — MAVS-GC is a candidate mechanism for that arbitration step,
+  relevant to concept #3/#4.
+  Caveats, and they're significant: 0 stars, 0 forks, **2 commits**, MIT, no individual authors
+  credited, no linked paper/dataset/external publication. The repo's own disclaimer, quoted
+  verbatim: "This repository does not claim performance superiority" — it benchmarks against
+  synthetic, deterministically-generated cases only (mean ensemble / static weighted ensemble /
+  "Veto MAVS" baselines), not real agent transcripts or real disagreement data. Chapter-9 is
+  one of an announced "Foundation Arc" (chapters 1–8 referenced but not linked from this repo).
+  Read as: an interesting *design pattern* to track, not yet evidence of anything — action
+  stays `watch`, not `cite`, until a chapter ships with real (non-synthetic) validation or an
+  external paper appears.
+
+  **2026-07-21 deep dive — https://github.com/MAVS-RESEARCH/MAVS-Self-Learning-1A:** The most
+  substantial single artifact found in this org — 64 commits, a frozen/pinned release
+  (`perception_closure_v04_phase10_20260718_r3`), extends the Chapter-10D foundation through
+  Phases 0-10. Mechanisms of direct AGF interest: **"blind certification and anti-gaming
+  controls"** — a concrete attempt at the exact problem named in Batch 3's Goodhart's-law entry
+  (gate metrics get gamed once they become targets); a **"Perception Closure runtime"** that
+  requires explicit hypotheses and targeted evidence acquisition before a claim is accepted,
+  relevant to concept #4 (verification independence) and the LLM-as-judge-unreliability entry;
+  and **immutable, hash-bound, Ed25519-signed audit trails** — same cryptographic-non-repudiation
+  idea as the Sigstore/Rekor entry (Batch 3) and sovereign-agentops' signed receipts (this
+  batch), now a third independent instance of the pattern.
+  Claimed results (self-reported, not externally audited): Phase 10 internal audit passed all
+  25 WorkPlan clauses with zero findings; 411 regression tests (203 in a clean pinned
+  environment); "600 certification gates and 6,624 Phase 9 metric values independently
+  recompute with zero mismatch." Take these as self-reported until reproduced independently.
+  What earns real credit: the authors' own scope disclaimer, quoted verbatim — **"Universal
+  zero-error, zero-escalation outside the covered class, production deployment readiness, and
+  general-domain performance are unsupported."** That is precisely the discipline this project's
+  own implementation-honesty-rule and verifiable-claims-rule ask for, and it's rare to see a
+  research repo state it this plainly. Still: 0 stars/forks, no external paper, single-org
+  self-publication — treat the mechanism ideas as worth studying, the results as unverified.
+
+- https://splabs.io/compliance
+  type: tooling | relation: complement, competitor(evidence layer) | action: compare-in-docs
+  note: Silicon Psyche Labs' "Posture Sequence Analysis" (PSA) — a behavioral-evidence layer
+  mapped against 12 in-force 2026 regulatory frameworks (EU AI Act, NIST AI RMF, ISO, etc.),
+  six evidence primitives (event logging, tamper-evident integrity, adversarial robustness
+  testing, human-AI interaction risk, continuous monitoring, behavioral transparency).
+  Explicitly scopes itself as reading "what a model does, from its output text, from the
+  outside," and explicitly disclaims procedural/organizational governance and bias detection.
+  That explicit disclaimer is the same shape as the ACS gap noted in Batch 3 — PSA measures
+  model *output behavior*; AGF records *process/accountability*. The two are complementary,
+  not competing, and the contrast is worth stating directly in AGF's docs.
+
+- https://omega-lang.org/
+  type: framework | relation: prior-art, competitor(policy-language layer) | action: compare-in-docs
+  note: A formal governance *language* — typed `.omega` specs, load-time checked, parsed by a
+  "Safety Kernel" that returns ALLOW/DENY/UNKNOWN before an action executes; 13 "constitutional
+  primitives" (context, temporal, resource-bound, environment-interface, data-schema,
+  state-transition, trust, governance, mutation rules); inspired by TLA+ and Cedar. This is a
+  new entrant in the policy-as-code lineage already logged in Batch 3 (OPA/Rego, Cedar,
+  AuthZEN) — file alongside those rather than as a standalone category; the load-time
+  ALLOW/DENY/UNKNOWN verdict model is a close cousin of the runtime-gate pattern seen across
+  this whole batch.
+
+- https://github.com/jacobthomasmichael/GatekeeperAI
+  type: tooling | relation: competitor(adjacent), complement | action: compare-in-docs
+  note: Resolves the Batch 2 speculation — the real repo is confirmed at this URL, but it is
+  **not** the CI-policy-as-code linter guessed at (the `ai-governance`/`eu-ai-act`/
+  `nist-ai-rmf`/`iso-42001` topic tags are not present). Actual project: a self-hosted platform
+  for scanning, approving, and deploying internal AI *applications* — five-stage pipeline
+  (submit → concurrent scanners for secrets/vuln/egress/PII/LLM-code-review → human approval →
+  isolated Docker deploy → secret injection). MIT, FastAPI/Next.js/Celery, 2 stars, v0.2 as of
+  2026-06-16. Adjacent to AGF's gate concept (mandatory human approval before deploy) but scoped
+  to AI-application deployment, not coding-agent change review.
+
+- https://loadlore.dev/
+  type: tooling | relation: complement, competitor(practice-layer) | action: compare-in-docs
+  note: Registry/control-plane for capturing engineering practices into versioned "harnesses"
+  (skills, tools, hooks, configs) and distributing them across multiple coding agents (Claude
+  Code, Cursor, Copilot, custom); tracks which teams run which version and flags drift.
+  Tagline: "Capture once. Distribute everywhere. Govern continuously." This governs *which
+  standards/rules are installed and in sync*, not *whether a given change passed a gate* — a
+  distribution-layer complement to AGF's enforcement-layer, not a competitor. Directly relevant
+  to AGF's own "adopters copy `.claude/rules/` into their tool's directory" distribution
+  problem — worth watching as a potential distribution mechanism for AGF's own rule sets.
+
+- https://www.aicounciltoolkit.com/
+  type: practice | relation: prior-art, complement | action: compare-in-docs
+  note: Open-source, implementation-focused toolkit for standing up an org-level AI governance
+  *council* — six-stage cycle (intake, triage, review, approval, monitoring, refresh) with
+  templates for executive sponsors, legal/compliance, product/engineering, security, and
+  program-management roles. Operates at the org-committee level (which AI use cases get
+  approved to exist at all), not the per-commit/per-change level AGF gates. Same "upstream
+  org-governance vs. AGF's per-change gate" distinction already drawn for the Harvard Corporate
+  Governance Forum entry in Batch 3 — complementary layer above AGF, cite as the org-level
+  counterpart when positioning AGF as the change-level layer.
+
+- https://trust.aos-1.com/whitepapers/aos-1-governance
+  type: practice | relation: demand-driver | action: verify further
+  note: Vendor whitepaper, title confirmed as "AOS-1 — Is your AI ready for the EU AI Act?"
+  (product: AOS-1). WebFetch could retrieve only the title/framing, not the body — the page
+  likely gates full content behind a form or renders it client-side. Confirmed as EU AI Act
+  compliance-readiness content, directly relevant to the same demand-driver cluster as the
+  AI Act Art. 26 and MCC-AI entries in Batch 3, but no specific claims can be verified yet.
+  Needs a direct PDF fetch or human-supplied copy before citing.
+
+- https://pypi.org/project/sentience-governor/
+  type: tooling | relation: competitor(runtime layer) | action: compare-in-docs
+  note: Local governance wrapper for AI agents (Crescere Labs, Inc.) — intercepts execution at
+  system/tool-call boundaries, evaluates against 5 default policy rules (POL-001–005), tracks
+  intent-declared-vs-actual scope and token usage, produces local audit traces, optional Claude
+  Code MCP integration, LangChain support. Apache-2.0, actively developed (13 releases,
+  2026-04 to 2026-07, latest 0.3.0). Framing — "hold each agent to the intent and scope it
+  declares, keep a verifiable record of what it did, and flag anything out of bounds" — is
+  close in spirit to AGF's audit trail, but again at the tool-call layer, not the
+  review/approval layer.
+
+- https://github.com/AIObuilt/TaG
+  type: tooling | relation: competitor(runtime layer) | action: compare-in-docs
+  note: "Trust and governance framework" for AI coding agents — 21 pre-execution governance
+  hooks blocking dangerous actions (payment API calls, credential leaks, unvalidated
+  deployments), cost-aware local-first model routing, local audit logging with no external
+  dependencies, platform-agnostic (Claude/GPT/Ollama). Business Source License 1.1 (converts
+  to Apache-2.0 after a change date) — an eventual-open-source model worth noting as a
+  business-model reference point alongside the enforra entry in Batch 3. 11 stars, v0.1.0
+  (2026-04-29).
+
+- https://github.com/humancoreai/Gategraph
+  type: tooling | relation: competitor(runtime layer) | action: compare-in-docs
+  note: The most substantial find in this batch — 2,627 commits, v0.28.2_STABLE, and a
+  dedicated governance-documentation set (GOVERNANCE.md, SECURITY_MODEL.md, ARCHITECTURE.md,
+  INVARIANTS.md, OWASP_AGENTIC_AI_MAPPING.md). "Fail closed" deterministic governance layer:
+  evaluates whether an agent action may proceed *before* execution, issues capability tokens
+  from policy evaluation, records evidence-first for audit, supports deterministic replay and
+  explanation of past decisions. Local, single-node. The explicit OWASP Agentic AI mapping and
+  the evidence-first/replay design make this the closest runtime-layer analog to AGF's own
+  audit-trail philosophy found across all six batches — recommend a dedicated compare-in-docs
+  section (alongside CORE and boshu2/agentops as the "closest competitors" cluster), specifically
+  contrasting "deterministic replay of a single agent's actions" (Gategraph) against "a
+  human-reviewed, multi-agent coordination trail" (AGF).
+
+- https://github.com/simonhansedasi/ai_glue
+  type: tooling | relation: competitor(runtime layer, narrow) | action: watch
+  note: Observability/governance proxy sitting between applications and OpenAI/Anthropic APIs —
+  call logging (provider, model, tokens, cost, latency), spend visibility by project/team, PII
+  detection with review workflow, hard rules (model allowlists, cost caps, rate limits),
+  multi-instance aggregation, MIT. Governs LLM-API cost/spend and PII exposure, not
+  coding-agent workflow or code review — narrower and more tangential to AGF than the other
+  entries in this batch; watch only.
