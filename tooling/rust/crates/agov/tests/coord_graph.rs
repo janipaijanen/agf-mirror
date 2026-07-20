@@ -61,9 +61,7 @@ fn coord_graph_dot_emits_expected_edges() {
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("\"planner-architect\" -> \"coder-tester\" [label=\"note (2)\"]"));
-    assert!(stdout.contains(
-        "\"coder-tester\" -> \"governor-reviewer\" [label=\"review (1)\"]"
-    ));
+    assert!(stdout.contains("\"coder-tester\" -> \"governor-reviewer\" [label=\"review (1)\"]"));
     // governor-reviewer gets filled style
     assert!(stdout.contains("\"governor-reviewer\" [shape=box, style=filled"));
     // regular role gets box

@@ -72,8 +72,9 @@ fn check_stat(
     let re = Regex::new(pattern).unwrap();
     match re.captures(readme).and_then(|c| c[1].parse::<usize>().ok()) {
         None => {
-            let mut f =
-                Finding::advisory(format!("{label}: claim not found in README.md (actual: {actual})"));
+            let mut f = Finding::advisory(format!(
+                "{label}: claim not found in README.md (actual: {actual})"
+            ));
             f.location = Some("README.md".to_string());
             findings.push(f);
         }
@@ -117,9 +118,7 @@ fn count_skills(skills_dir: &Path) -> usize {
     };
     entries
         .flatten()
-        .filter(|e| {
-            e.path().is_dir() && e.path().join("SKILL.md").exists()
-        })
+        .filter(|e| e.path().is_dir() && e.path().join("SKILL.md").exists())
         .count()
 }
 
@@ -188,7 +187,11 @@ mod tests {
         .unwrap();
         let result = validate(tmp.path());
         assert!(result.readme_found);
-        assert!(result.findings.is_empty(), "expected no findings, got: {:?}", result.findings);
+        assert!(
+            result.findings.is_empty(),
+            "expected no findings, got: {:?}",
+            result.findings
+        );
     }
 
     #[test]
@@ -203,7 +206,10 @@ mod tests {
         let result = validate(tmp.path());
         assert!(result.readme_found);
         assert!(
-            result.findings.iter().any(|f| f.message.contains("governance rules")),
+            result
+                .findings
+                .iter()
+                .any(|f| f.message.contains("governance rules")),
             "expected rules mismatch finding"
         );
     }
@@ -215,7 +221,11 @@ mod tests {
         fs::write(tmp.path().join("README.md"), "No stats here.").unwrap();
         let result = validate(tmp.path());
         assert!(result.readme_found);
-        assert_eq!(result.findings.len(), 3, "expected three 'not found' findings");
+        assert_eq!(
+            result.findings.len(),
+            3,
+            "expected three 'not found' findings"
+        );
     }
 
     #[test]
@@ -237,6 +247,9 @@ mod tests {
         )
         .unwrap();
         let result = validate(tmp.path());
-        assert!(result.findings.is_empty(), "MANIFEST.yaml must not be counted");
+        assert!(
+            result.findings.is_empty(),
+            "MANIFEST.yaml must not be counted"
+        );
     }
 }

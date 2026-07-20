@@ -87,6 +87,9 @@ enum CoordCommand {
         kind: String,
         #[arg(long)]
         topic: Option<String>,
+        /// LLM/runtime provenance for the coordination record. Defaults to AGOV_MODEL when set.
+        #[arg(long)]
+        model: Option<String>,
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
     },
@@ -146,6 +149,8 @@ enum PlanCommand {
 enum ValidateCommand {
     /// Validate the adoption structure.
     Adoption,
+    /// Validate adopter-facing documentation coverage for release-relevant changes.
+    AdopterDocs,
     /// Validate all agent YAML files.
     Agents,
     /// Validate learning records.
@@ -284,9 +289,21 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     to,
                     kind,
                     topic,
+                    model,
                     dir,
                 },
-        } => coord_brief(id_format, from, to, kind, topic, dir, &args),
+        } => coord_brief(
+            CoordBriefOptions {
+                id_format,
+                from,
+                to,
+                kind,
+                topic,
+                model,
+                dir,
+            },
+            &args,
+        ),
         Command::Coord {
             sub: CoordCommand::Status { dir, recent, roles },
         } => coord_status(dir, recent, roles, &args),
@@ -680,16 +697,27 @@ fn load_agent_statuses(path: &Path) -> Result<BTreeMap<String, String>, std::io:
     Ok(agents)
 }
 
-fn coord_brief(
+struct CoordBriefOptions {
     id_format: String,
     from: Option<String>,
     to: Option<String>,
     kind: String,
     topic: Option<String>,
+    model: Option<String>,
     dir: PathBuf,
-    args: &[String],
-) -> i32 {
+}
+
+fn coord_brief(options: CoordBriefOptions, args: &[String]) -> i32 {
     let mut output = OutputCounter::default();
+    let CoordBriefOptions {
+        id_format,
+        from,
+        to,
+        kind,
+        topic,
+        model,
+        dir,
+    } = options;
 
     if !matches!(
         kind.as_str(),
@@ -721,6 +749,10 @@ fn coord_brief(
     let from = from.unwrap_or_else(|| "<from>".to_string());
     let to = to.unwrap_or_else(|| "<to>".to_string());
     let topic = topic.unwrap_or_else(|| "<topic>".to_string());
+    let model = model
+        .or_else(|| std::env::var("AGOV_MODEL").ok())
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty());
     let coord_dir = repo_relative_path(dir);
     let channel = channel_summary(&coord_dir);
 
@@ -740,6 +772,9 @@ fn coord_brief(
     output.stdout(format!("to: {to}"));
     output.stdout(format!("id: {next_id}"));
     output.stdout(format!("timestamp: {timestamp}"));
+    if let Some(model) = model {
+        output.stdout(format!("model: {model}"));
+    }
     output.stdout("immutable: true");
     render_kind_front_matter(&mut output, &kind, &to, &topic);
     output.stdout("---");
@@ -1414,11 +1449,7 @@ fn coord_graph_index(dir: PathBuf, output_path: Option<PathBuf>, args: &[String]
             Ok(msg) => {
                 let path = dir.join(file);
                 let refs = all_refs(&path, msg);
-                let sort_key = format!(
-                    "{}_{}",
-                    msg.timestamp().unwrap_or(""),
-                    file
-                );
+                let sort_key = format!("{}_{}", msg.timestamp().unwrap_or(""), file);
                 descriptors.push(MessageDescriptor {
                     file: file.clone(),
                     sort_key,
@@ -2939,6 +2970,14 @@ fn run_validate(sub: Option<ValidateCommand>, args: &[String]) -> i32 {
             ),
             "validate:adoption",
         ),
+        ValidateCommand::AdopterDocs => (
+            render_collection(
+                &mut output,
+                "agov.validate.adopter_docs",
+                agov_validators::adopter_docs::validate_all(&agov_core::repo_root()),
+            ),
+            "validate:adopter-docs",
+        ),
         ValidateCommand::Agents => (
             render_collection(
                 &mut output,
@@ -3024,6 +3063,11 @@ fn run_all_validators(args: &[String]) -> i32 {
             &mut output,
             "agov.validate.adoption",
             agov_validators::adoption::validate_all(&agov_core::repo_root().join("agf")),
+        ),
+        render_collection(
+            &mut output,
+            "agov.validate.adopter_docs",
+            agov_validators::adopter_docs::validate_all(&agov_core::repo_root()),
         ),
         render_collection(
             &mut output,

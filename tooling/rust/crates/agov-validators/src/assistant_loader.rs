@@ -96,9 +96,7 @@ pub(crate) fn extract_agf_version_comment(content: &str) -> Option<String> {
             let rest = line[pos + "<!-- AGF:".len()..].trim_start();
             let token = rest.split_whitespace().next()?;
             // Strip comment-close characters that may be attached when there is no space before -->
-            let version = token
-                .trim_end_matches('>')
-                .trim_end_matches('-');
+            let version = token.trim_end_matches('>').trim_end_matches('-');
             if !version.is_empty() {
                 return Some(version.to_string());
             }
@@ -134,7 +132,10 @@ mod tests {
     fn ok_when_agents_md_exists_with_no_version_comment() {
         let temp = tempfile::tempdir().unwrap();
         write(temp.path().join("agf/VERSION"), "2.2.0");
-        write(temp.path().join("AGENTS.md"), "# My Project\nno version comment");
+        write(
+            temp.path().join("AGENTS.md"),
+            "# My Project\nno version comment",
+        );
 
         let result = validate_all(temp.path());
 
@@ -204,7 +205,10 @@ mod tests {
     #[test]
     fn no_warning_when_no_agf_version_file() {
         let temp = tempfile::tempdir().unwrap();
-        write(temp.path().join("AGENTS.md"), "<!-- AGF: 2.1.6 -->\n# My Project");
+        write(
+            temp.path().join("AGENTS.md"),
+            "<!-- AGF: 2.1.6 -->\n# My Project",
+        );
 
         let result = validate_all(temp.path());
 
@@ -238,6 +242,9 @@ mod tests {
 
     #[test]
     fn returns_none_when_no_comment() {
-        assert_eq!(extract_agf_version_comment("# Just a heading\nsome content"), None);
+        assert_eq!(
+            extract_agf_version_comment("# Just a heading\nsome content"),
+            None
+        );
     }
 }

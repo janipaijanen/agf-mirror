@@ -1193,6 +1193,63 @@ learnings:
         - "Fallback structural validation used a separate YAML parser"
         - "agov validate learnings validated agf/learnings/ but not external-review learning records"
 
+  - id: "20260703T095527Z-fadv"
+    date: "2026-07-03"
+    category: adaptation
+    scope: framework
+    title: formal-agentic-review-roles-improve-advisory-consultation
+    description: >
+      During an external-review claim assessment, Codex produced an informal
+      multi-role consultation using fact-checker, academic-peer-reviewer,
+      contribution-auditor, infosec, and coder-tester lenses. The governor then
+      noted that these could be treated as formal review roles rather than
+      ephemeral chat perspectives. The useful distinction is that formal
+      agentic review roles do not receive binding approval authority, but they
+      can produce named, auditable advisory evidence that Gate 1 and Gate 2
+      decisions may cite.
+
+      This turns "the assistant thinks" into role-scoped review output:
+      fact-checker verifies factual and version claims; academic-peer-reviewer
+      evaluates evidence strength and overclaiming; contribution-auditor
+      inspects proposal hygiene and downstream risk; infosec-sentinel checks
+      security or disclosure boundaries; coder-tester verifies live tooling
+      behavior. The governor-reviewer remains the only role that accepts risk,
+      approves gates, or makes binding merge decisions.
+    agents_involved:
+      - governor-reviewer
+      - fact-checker
+      - academic-peer-reviewer
+      - contribution-auditor
+      - infosec-sentinel
+      - coder-tester
+    framework_section: "advisory consultation; roles and gates; coordination channel"
+    business_impact:
+      type: positive
+      description: >
+        Formal advisory roles improve cold-start reconstruction, reduce
+        authority confusion, make cross-check coverage visible, and create
+        evidence that can be audited or improved over time without weakening
+        human governor accountability.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Document formal agentic review roles as advisory evidence producers. When
+      activated, they should file role-scoped findings or consultation notes
+      through the coordination channel, and Gate 1 plans or Gate 2 handoffs
+      should cite those records where relevant. Keep the authority boundary
+      explicit: AI-played review roles may classify evidence, identify gaps,
+      verify source claims, and recommend action, but they must not approve
+      gates, accept risk, or substitute for governor-reviewer decisions. Add a
+      short example consultation pattern showing how a single assistant can
+      clearly separate multiple formal advisory lenses in one review.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "Codex external-review claim assessment session on 2026-07-03"
+        - "docs/reviews/agf-external-review-claim-triage.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

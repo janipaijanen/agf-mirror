@@ -65,6 +65,11 @@ trail is not good enough.
 
 - You need multi-project or multi-governor federation — that is a
   [hypothesis](../../future/evolution.md), not a shipped capability.
+- You need org-wide, centrally enforced policy across many repositories
+  before a local pilot. The validated core is one repository with one
+  accountable governor. Larger enterprise use should begin with project-local
+  governors, explicit branch protection, and a documented escalation path
+  rather than assuming AGF already supplies federation.
 - You need every rule and extension point to be backed by multi-project
   evidence today. Some evidence-limited rules are marked in their rule text.
 - Your team has no capacity for the governor role right now. Gates without

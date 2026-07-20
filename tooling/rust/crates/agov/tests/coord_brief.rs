@@ -63,6 +63,91 @@ fn coord_brief_keeps_ulid_compatibility_option() {
     assert!(stdout.contains("timestamp: <TIMESTAMP>"));
 }
 
+#[test]
+fn coord_brief_accepts_explicit_model() {
+    let fixture = tempfile::tempdir().unwrap();
+
+    let output = agov(&[
+        "coord",
+        "brief",
+        "--from",
+        "coder-tester",
+        "--to",
+        "governor-reviewer",
+        "--kind",
+        "note",
+        "--topic",
+        "explicit-model-test",
+        "--model",
+        "codex-gpt-5",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("model: codex-gpt-5"));
+}
+
+#[test]
+fn coord_brief_uses_agov_model_environment_fallback() {
+    let fixture = tempfile::tempdir().unwrap();
+
+    let output = agov_command()
+        .env("AGOV_MODEL", "claude-sonnet-4-6")
+        .args([
+            "coord",
+            "brief",
+            "--from",
+            "planner-architect",
+            "--to",
+            "governor-reviewer",
+            "--kind",
+            "note",
+            "--topic",
+            "env-model-test",
+            "--dir",
+            fixture.path().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("model: claude-sonnet-4-6"));
+}
+
+#[test]
+fn coord_brief_explicit_model_overrides_environment() {
+    let fixture = tempfile::tempdir().unwrap();
+
+    let output = agov_command()
+        .env("AGOV_MODEL", "claude-sonnet-4-6")
+        .args([
+            "coord",
+            "brief",
+            "--from",
+            "coder-tester",
+            "--to",
+            "governor-reviewer",
+            "--kind",
+            "note",
+            "--topic",
+            "model-override-test",
+            "--model",
+            "codex-gpt-5",
+            "--dir",
+            fixture.path().to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("model: codex-gpt-5"));
+    assert!(!stdout.contains("model: claude-sonnet-4-6"));
+}
+
 fn frontmatter_value(output: &str, key: &str) -> Option<String> {
     output.lines().find_map(|line| {
         let (line_key, value) = line.split_once(": ")?;
@@ -87,8 +172,9 @@ fn assert_readable_id(id: &str) {
 }
 
 fn agov(args: &[&str]) -> std::process::Output {
+    agov_command().args(args).output().unwrap()
+}
+
+fn agov_command() -> Command {
     Command::new(env!("CARGO_BIN_EXE_agov"))
-        .args(args)
-        .output()
-        .unwrap()
 }

@@ -71,3 +71,9 @@ carry maturity levels. The single-project, single-governor workflow is the
 validated core. Several rules are explicitly **Provisional** (single-adopter
 evidence) and say so in their text. If a page on this site does not state a
 maturity level for a claim, treat that as a documentation bug and report it.
+
+For enterprise evaluators, this boundary is deliberate: AGF can be piloted in
+one repository at a time with local branch protection, local CI, and a named
+governor. Central policy distribution, cross-repository gate state, and
+multi-governor federation remain roadmap or local-integration work until they
+are implemented and validated.

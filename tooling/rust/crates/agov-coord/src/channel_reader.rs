@@ -41,11 +41,9 @@ pub fn body_refs(path: &Path) -> Vec<String> {
     };
     let body = content.splitn(3, "---").nth(2).unwrap_or(&content);
 
-    body.split(|ch: char| {
-        ch.is_whitespace() || matches!(ch, '`' | '"' | '\'' | '(' | ')' | ',')
-    })
-    .filter_map(clean_coord_filename)
-    .collect()
+    body.split(|ch: char| ch.is_whitespace() || matches!(ch, '`' | '"' | '\'' | '(' | ')' | ','))
+        .filter_map(clean_coord_filename)
+        .collect()
 }
 
 fn clean_coord_filename(token: &str) -> Option<String> {

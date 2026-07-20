@@ -30,10 +30,8 @@ pub struct MessageDescriptor {
 /// `descriptors` must be sorted by filename (chronological order).
 pub fn find_pending(descriptors: &[MessageDescriptor]) -> Vec<PendingHandoff> {
     let descendants = build_descendants(descriptors);
-    let by_file: BTreeMap<&str, &MessageDescriptor> = descriptors
-        .iter()
-        .map(|d| (d.file.as_str(), d))
-        .collect();
+    let by_file: BTreeMap<&str, &MessageDescriptor> =
+        descriptors.iter().map(|d| (d.file.as_str(), d)).collect();
 
     descriptors
         .iter()
@@ -67,10 +65,7 @@ fn is_resolved(
                 continue;
             };
             if d.sort_key > handoff.sort_key
-                && matches!(
-                    d.msg.kind(),
-                    Some("ack" | "completion" | "decision-record")
-                )
+                && matches!(d.msg.kind(), Some("ack" | "completion" | "decision-record"))
             {
                 return true;
             }
@@ -83,10 +78,8 @@ fn is_resolved(
 
 /// Build a map from each file to the files that reference it (descendants).
 fn build_descendants(descriptors: &[MessageDescriptor]) -> BTreeMap<String, Vec<String>> {
-    let by_file: BTreeMap<&str, &MessageDescriptor> = descriptors
-        .iter()
-        .map(|d| (d.file.as_str(), d))
-        .collect();
+    let by_file: BTreeMap<&str, &MessageDescriptor> =
+        descriptors.iter().map(|d| (d.file.as_str(), d)).collect();
     let mut descendants: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
     for d in descriptors {
