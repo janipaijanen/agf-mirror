@@ -1,11 +1,10 @@
+<!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Upgrading from v1 (agents-govern) to AGF v2
 
-*Status: Released (v2.1 documentation). Audience: adopters migrating from a
-v1-style `agents-govern/` layout to the AGF v2 `agf/` layout. This page works
-equally well whether you are a human doing the migration, a team where an AI
-assistant carries out the steps under human direction, or a mix of both. After
-this page you have a step-by-step checklist that covers every instruction
-surface that must be updated, not just the file copy.*
+*Status: Released (v2.1 documentation). Audience: AI assistants carrying out
+the v1-to-v2 migration under adopter review, plus humans supervising the
+migration. After this page you have a step-by-step checklist that covers every
+instruction surface that must be updated, not just the file copy.*
 
 !!! note "What changed structurally"
     v1 placed framework files in `agents-govern/` (or a local copy) with numeric

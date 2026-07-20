@@ -1,9 +1,9 @@
+<!-- audience: A/R (ai-operator/reference); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Contracts and validators
 
-*Status: Released (v2.1 documentation). Audience: administrators and
-developers integrating the framework into CI. After this page you know
-which artifacts are schema-bound, which guarantees the contracts make,
-and how to wire validation into your pipeline.*
+*Status: Released (v2.1 documentation). Audience: AI assistants wiring AGF
+validators into CI, with administrators and developers reviewing the
+contracts, guarantees, and blocking-policy choices.*
 
 ## What is under contract
 

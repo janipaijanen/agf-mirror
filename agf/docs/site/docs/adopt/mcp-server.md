@@ -1,8 +1,9 @@
+<!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # agov MCP server
 
-*Status: Deployable adapter. Audience: adopters who run an MCP-capable
-assistant and want direct access to AGF tooling without teaching the assistant
-shell commands.*
+*Status: Deployable adapter. Audience: AI assistants and adopters wiring an
+MCP-capable assistant to AGF tooling without relying on shell-command
+prompting alone.*
 
 `agov-mcp` is a local stdio Model Context Protocol server for `agov`. It is a
 transport adapter only: every tool it exposes maps to an existing `agov`

@@ -1,9 +1,10 @@
+<!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Assistant loader configuration
 
-*Status: Released (v2.1 documentation). Audience: developers and
-administrators preparing the first governed change. After this page you can
-make the active assistant see AGF, verify that it did, and avoid copying the
-framework rules into tool-specific directories.*
+*Status: Released (v2.1 documentation). Audience: AI assistants preparing AGF
+rule loading, with developers and administrators supervising the setup. After
+this page you can make the active assistant see AGF, verify that it did, and
+avoid copying the framework rules into tool-specific directories.*
 
 ## Why this matters
 
