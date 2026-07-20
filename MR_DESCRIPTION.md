@@ -29,4 +29,6 @@ one so it's read as unconditional guidance instead of a trigger condition.
 
 - [ ] Rewording doesn't contradict or duplicate the existing "Supported
       commands" / token-ROI telemetry sections below it
+- [ ] Rebased after the July 20 plan-cluster merges and `agov validate` still
+      passes with only pre-existing warnings
 - [ ] No `Co-authored-by` trailers in commit
