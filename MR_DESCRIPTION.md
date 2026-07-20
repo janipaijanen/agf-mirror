@@ -1,36 +1,42 @@
-# docs: make the twenty-minute path's install step mechanically concrete
+# coord: reconcile seven parallel Gate 1 plan clusters (issues #17-#49)
 
-Branch: `docs/readme-twenty-minute-path-clarity`
+Branch: `coord/plan-cluster-reconciliation-2026-07-20`
 
 ## Summary
 
-The "Twenty-minute path" section's install step pointed only to
-`install-and-layouts.md`, leaving a first-time reader to click through
-before discovering the actual mechanics are "download an archive, paste
-one prompt." States that inline instead.
-
-## Why
-
-A reviewer flagged that a human reading README top-to-bottom had no
-plain statement of how to actually start: which files to download, from
-where, and what to tell the AI assistant. The mechanics already existed
-in `install-and-layouts.md`'s tip block; README just didn't surface them.
+23 open issues (#17-#49) were split into seven independent clusters, each
+Gate-1-planned by a separate isolated agent instance. This MR adds the
+cross-cluster reconciliation note: consistency findings against each
+other, against existing implementation, and against the framework's own
+core principles.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `README.md` | Step 3 of "Twenty-minute path" now states inline: download `agf-<version>.tar.gz`/`.zip` (and matching `agov-<version>-<platform>` archive) from the Releases page, put it in `tmp/`, and the exact one-line prompt to give the coding assistant — quoted verbatim from `install-and-layouts.md` rather than paraphrased |
-| `tooling/rust/Cargo.lock` | Rebased branch also updates `crossbeam-epoch` from `0.9.18` to `0.9.20` to clear `cargo deny` advisory `RUSTSEC-2026-0204` raised by the MR pipeline |
+| `docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md` | New `kind: review` coordination message — five findings across the seven plan-cluster branches, a recommended merge order, and two open questions flagged for governor decision |
 
-## Deliberate omission
+## Findings summary
 
-Not linking to specific version-numbered asset files — those go stale
-every release. The Releases page link always shows the current release.
+- **Finding 1** (resolved in a follow-up commit on each affected branch):
+  naming conflict between `accountable_human`, `owner`, and
+  `proposed_by`/`approved_by` across three clusters — collapsed to one
+  canonical field name.
+- **Finding 2** (open, needs governor decision): the `provisional →
+  recommended → MUST` ladder vs. the actual two-field
+  `rule.schema.json` shape; SPDX vs. CycloneDX vocabulary for
+  input-provenance.
+- **Finding 3**: several cross-cluster assumptions confirmed compatible,
+  no action needed.
+- **Finding 4**: issue #30's root cause found and fixed by the
+  misc-small-fixes cluster — unblocks the `build-engineer` workaround
+  every other cluster used.
+- **Finding 5**: branch-basis divergence across clusters, diffed and
+  confirmed low-risk (version bump only, no schema/code substance).
 
 ## Review checklist
 
-- [ ] Quoted prompt matches `install-and-layouts.md`'s tip block verbatim
-- [ ] No version-specific asset URL hardcoded
-- [ ] `cargo deny check` passes after the lockfile advisory update
+- [ ] `agov coord validate` passes (already run: OK, one advisory
+      warning for the optional `model` field)
+- [ ] Recommended merge order is sound given the stated dependencies
 - [ ] No `Co-authored-by` trailers in commit
