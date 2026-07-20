@@ -1,36 +1,34 @@
-# docs: state append-only audit trail policy vs GDPR erasure
+# docs: make the twenty-minute path's install step mechanically concrete
 
-Branch: `docs/append-only-audit-trail-policy`
+Branch: `docs/readme-twenty-minute-path-clarity`
 
 ## Summary
 
-States, for the first time, an explicit policy that this repository's git
-history and coordination channel are append-only by design — closer to a
-ledger than a working document — and names the GDPR Art. 17 tension that
-creates for any project storing author identities in that trail.
+The "Twenty-minute path" section's install step pointed only to
+`install-and-layouts.md`, leaving a first-time reader to click through
+before discovering the actual mechanics are "download an archive, paste
+one prompt." States that inline instead.
 
 ## Why
 
-`docs/sources.md` (Batch 3, filed this session) flagged this as an
-unresolved amendment: "resolve GDPR erasure vs append-only tension before
-publishing the exit guarantee." This MR resolves it with a policy
-statement rather than leaving it implicit.
+A reviewer flagged that a human reading README top-to-bottom had no
+plain statement of how to actually start: which files to download, from
+where, and what to tell the AI assistant. The mechanics already existed
+in `install-and-layouts.md`'s tip block; README just didn't surface them.
 
 ## Files changed
 
 | File | Change |
 |---|---|
-| `README.md` | New "Git history is a ledger, not a scratchpad" section — developer-facing, states this repo's own policy |
-| `agf/docs/site/contribute.md` | New "Audit trail policy: append-only, not erasable" section — adopter/contributor-facing, states the framework-level design stance; points to identity minimisation + documented lawful basis as the upstream fix, not history rewriting |
+| `README.md` | Step 3 of "Twenty-minute path" now states inline: download `agf-<version>.tar.gz`/`.zip` (and matching `agov-<version>-<platform>` archive) from the Releases page, put it in `tmp/`, and the exact one-line prompt to give the coding assistant — quoted verbatim from `install-and-layouts.md` rather than paraphrased |
 
-## Evidence status
+## Deliberate omission
 
-Policy statement, not a capability claim — no maturity level applies.
-Both sections defer to `disclaimer.md` for the "not legal advice" boundary.
+Not linking to specific version-numbered asset files — those go stale
+every release. The Releases page link always shows the current release.
 
 ## Review checklist
 
-- [ ] Both sections read correctly in isolation
-- [ ] No duplicate/contradictory claim vs. existing `disclaimer.md` /
-      `governance.md` append-only language
+- [ ] Quoted prompt matches `install-and-layouts.md`'s tip block verbatim
+- [ ] No version-specific asset URL hardcoded
 - [ ] No `Co-authored-by` trailers in commit
