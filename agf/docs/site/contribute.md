@@ -91,7 +91,7 @@ role-based attribution rather than personal identifiers in the trail) and a
 documented lawful basis for retaining what is recorded. This framework does
 not resolve that tension for you, and following it is not a substitute for
 qualified legal advice; see the
-[disclaimer](../governance/disclaimer.md) for the fuller statement of what
+[disclaimer](reference/disclaimer.md) for the fuller statement of what
 the framework does and does not guarantee.
 
 ## Anonymization requirement
