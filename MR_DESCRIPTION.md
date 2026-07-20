@@ -1,40 +1,56 @@
-# plan: Gate 1 plans for misc small-fixes cluster (issues #17, #19, #30, #31, #38)
+# plan: identity, accountability, and gate enforcement (issues #35, #45, #34, #47)
 
-Branch: `plan/misc-small-fixes-batch`
+Branch: `plan/identity-accountability-gate-enforcement`
 
 ## Summary
 
-Five independent, small-to-medium issues planned together as one batch
-rather than five separate heavyweight plans, per the simplicity rule's
-task-size calibration. Two turned out to already be resolved on `main`.
+Four issues planned as one cluster because they all touch the same
+artifact: the Gate 1/Gate 2 approval record. Defines one coherent
+approval-artifact shape rather than four independently-invented ones.
 
 ## What's in this branch
 
-| Issue | Plan file | Outcome |
-|---|---|---|
-| #30 (bug) | `plan-validator-advisory-role-allowlist.md` | **Root cause found and reproduced**: `allowed_roles()` in `tooling/rust/crates/agov-coord/src/plan_validator.rs` only admits `status: active` roles from `agf/agents/MANIFEST.yaml`; `build-engineer` is real but marked `status: suspended`. Fix widens the filter to `active`/`suspended`. This unblocks the `build-engineer` workaround every other cluster planned this session had to use. |
-| #31 (templates) | `gitlab-issue-templates-improvement-bug.md` | Short fast-track note; confirmed no collision with the four existing `.gitlab/issue_templates/` files |
-| #19 (learning) | `learning-validator-external-review-status.md` | **Already resolved** on `main` (commits `98e9fcf`, `22e9e24`, 2026-06-25) — recommends closing the issue with a reference, no new work needed |
-| #17 (docs review) | `external-reviewer-fit-assessment-proposals.md` | 7 of 8 proposals already implemented on `main` (verified by reading each target section); only proposal 8 (config-drift review step) remains, planned as a small addition |
-| #38 (experiment) | `multi-agent-coordination-experiment.md` | Full Gate 1 weight: pre-registered protocol, task decomposition, Condition A/B definitions, metrics table |
+`docs/plans/identity-accountability-gate-enforcement.md` covers:
 
-## Why this grouping
+- **#45** (human accountability): new `kind: gate-approval` coordination
+  message with a `gate_approval` object carrying `accountable_human` —
+  named human who owns the decision, distinct from the acting role/session.
+- **#35** (sender identity): git-native attribution — role identity
+  mapped in `agov-config.yaml`, verified against commit authorship;
+  explicitly rejects any external key registry or attestation service
+  (would violate the removability principle).
+- **#34** (enforceable gates): `agov coord gate-check` subcommand design
+  + an opt-in GitLab CI job (`gate2:enforce`) that exact-SHA-matches a
+  valid approval artifact before allowing merge. States explicitly what
+  this does and doesn't cover (presence-of-artifact only, not
+  authorship-fraud — that's #35's layer).
+- **#47** (verification independence): `independence` sub-object on
+  `gate_approval` recording session/model/vendor independence honestly,
+  including the valid low-independence case.
 
-None of these five are coupled to each other — they were batched because
-they're each too small to warrant a dedicated cluster, not because they
-share a design surface.
+## Reconciliation applied (see second commit)
 
-## Cross-cluster impact
+Cross-cluster review
+(`docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md`,
+Finding 1) found this plan's `owner` field (on `rule.schema.json`) and
+the incident-amendment cluster's `approved_by`/`proposed_by` described
+the same concept with different names. Resolved to one canonical name,
+`accountable_human`, reused verbatim across both artifact families —
+applied in the second commit on this branch.
 
-#30's fix removes the need for every other cluster planned this session
-to avoid `build-engineer` in `advisory_consultation` — see
-`docs/coordination/20260720T080808Z-governor-reviewer-mrp3.md` Finding 4.
+## Ground truth used
+
+Extended existing mechanisms rather than inventing new ones:
+`coordination-message.schema.json` (`from`/`session`/`model` already
+exist), `docs/coordination/agov-config.yaml` (already tooling-consumed,
+extended with `role_identities`), `deputy-governor-rule.md`'s
+Delegation Artifact (generalized its named-human concept).
 
 ## Review checklist
 
-- [x] All plan files pass `agov plan validate`
-- [ ] #30's root-cause diagnosis confirmed by an independent read of
-      `plan_validator.rs`
-- [ ] #19 and #17(7/8) closure-by-reference recommendation reviewed
-      against the cited commits
+- [x] Plan validates against `agf/schemas/gate1-plan.schema.json`
+- [ ] `gate_approval` schema shape reviewed against #46/#43's actual
+      accountability-field usage (see reconciliation note)
+- [ ] CI reference job's stated non-goals (no authorship-fraud
+      detection, no rebase-invalidation handling) are acceptable scope
 - [ ] No `Co-authored-by` trailers in commit
