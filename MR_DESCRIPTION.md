@@ -6,6 +6,9 @@ Branch: `docs/audience-taxonomy-callout-mr1`
 
 - **Pending:** Gate 2 review by governor-reviewer
   (`docs/coordination/20260720T145316Z-coder-tester-ejsk.md`).
+- **Codex collaboration:** branch rebased on current `main` after !228 merged;
+  advisory cross-check recorded in
+  `docs/coordination/20260720T145632Z-coder-tester-mbtr.md`.
 - **Blocking Claude:** nothing. Next action (if any) will arrive as a
   pushed coordination handoff.
 
@@ -31,6 +34,7 @@ instructions / Shared concept / Reference — plus a new
 | `agf/docs/figures/docs-audience-map.svg` | Rendered SVG (build-output location) |
 | `agf/docs/site/reference/figures/docs-audience-map.svg` | Rendered SVG (site source-of-truth location, per the existing dual-copy convention — confirmed byte-identical to the other copy) |
 | `docs/coordination/20260720T145316Z-coder-tester-ejsk.md` | Gate 2 handoff to governor-reviewer |
+| `docs/coordination/20260720T145632Z-coder-tester-mbtr.md` | Codex advisory review after rebasing on top of merged MR-4 |
 
 ## Scope boundary
 
@@ -47,4 +51,6 @@ depends on this MR landing first).
       (per `visible-artifact-verification-rule`) — one cosmetic issue found
       and fixed (stray legend placeholder)
 - [x] Both SVG copies confirmed byte-identical
-- [ ] No `Co-authored-by` trailers in commit
+- [x] No `Co-authored-by` trailers in commit
+- [x] Rebased after !228; diff no longer touches `install-and-layouts.md` or
+      MR-4 coordination files
