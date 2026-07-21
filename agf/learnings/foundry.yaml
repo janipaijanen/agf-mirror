@@ -1658,6 +1658,85 @@ learnings:
       evidence_refs:
         - "MR !289: push 64019a7..2a54e8e skipped CI entirely; docs/coordination/20260721T072153Z-coder-tester-p3nj.md's pipeline claim corrected by docs/coordination/20260721T072945Z-coder-tester-ms3h.md"
 
+  - id: "20260721T094956Z-k9p2"
+    date: "2026-07-21"
+    category: gap
+    scope: framework
+    title: release-critical-ci-behaviour-needs-host-preflight-from-the-consumer-view
+    description: >
+      During the v2.3.0 release review, both Rust binary checksum files
+      produced by the green MR pipeline contained build-layout paths such as
+      `../../dist/agov-2.3.0-<target>.tar.gz`. The digest values were correct,
+      but a consumer who downloaded an archive and its checksum into one
+      directory could not run the conventional `sha256sum -c` verification.
+      The defect was detected only after downloading the CI preview artifacts.
+
+      This failure did not intrinsically require GitLab, cross-compilation, or
+      a release binary to reproduce. The path was introduced by inline shell
+      in `.gitlab-ci.yml`: `sha256sum` recorded the relative input path it was
+      given. A dummy local archive and a clean download-directory simulation
+      would have exposed the same blocker before consuming CI capacity. The
+      framework archive path already avoided the defect by explicitly writing
+      checksum entries using archive basenames, but the separately implemented
+      Rust packaging path did not share that behavior or its validation.
+
+      The broader gap is treating a green producer-side build as sufficient
+      evidence for release artifacts. Release-critical CI scripts can carry
+      assumptions about working directories, runner variables, paths, file
+      permissions, archive layout, and publication staging that are visible
+      through host-side critical review and cheap simulations. CI remains
+      necessary for runner integration, target builds, credentials, and
+      publication, but it should confirm behavior that cannot be established
+      locally rather than be the first place portable packaging contracts are
+      exercised.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: "release preparation; CI scripts; artifact packaging and verification"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Detecting portable packaging defects only after CI spends runner time
+        increases iteration cost and delays releases. If missed through tag
+        publication, the same defect also shifts verification failure to
+        adopters even though the artifact bytes themselves are intact.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Establish a host-preflight target for every release-critical CI path.
+      Move portable packaging logic out of inline CI YAML into versioned,
+      locally executable scripts or tooling functions, and make CI invoke the
+      same entry points. Before starting expensive or platform-specific jobs,
+      critically review those scripts for runner-only assumptions and execute
+      cheap contract tests with dummy inputs where real builds are unnecessary.
+
+      The target state is evidence from both producer and consumer views. A
+      release preflight should create artifacts in an isolated staging tree,
+      copy only the files a user would download into a fresh directory, and
+      exercise documented operations there: checksum verification, archive
+      listing and extraction, forbidden-path checks, executable/version smoke
+      tests when host-compatible, and provenance-field inspection. Checksums
+      must contain portable basenames rather than build-tree paths. The same
+      consumer-layout assertions should run as fast unit or script tests on the
+      host and again against CI preview artifacts for integration assurance.
+
+      Classify each release check explicitly as host-portable, host-conditional,
+      or CI-only. Run host-portable checks before pipeline creation; run
+      host-conditional checks when the required toolchain is available; reserve
+      CI-only status for real constraints such as protected credentials,
+      registry publication, unavailable architectures, or runner integration.
+      A Gate 2 release handoff should report this classification and explain any
+      check first exercised in CI. Prefer one shared packaging implementation
+      across framework and Rust artifacts so basename, checksum, provenance,
+      and archive-layout guarantees cannot drift between duplicated paths.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "MR !306 preview job 15448242127: Rust checksum files recorded ../../dist paths and failed consumer-layout sha256sum -c verification"
+        - "tooling/rust/crates/agov/src/dist.rs writes basename-only framework checksums, while .gitlab-ci.yml lines 557 and 576 duplicated path-preserving Rust checksum generation"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
