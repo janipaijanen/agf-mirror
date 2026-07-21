@@ -179,7 +179,10 @@ Review the assistant's diff against the layout decision above:
    for generated files.
 3. Delete rules that do not apply (a project with no UI does not need the
    accessibility rule). Deleting is better than ignoring — an inapplicable
-   rule trains agents that rules are optional.
+   rule trains agents that rules are optional. See the
+   [adopter applicability catalog](applicability-catalog.md) for a
+   per-rule activation condition and removal consequence, for the first
+   slice of rules it classifies.
 
 For tool-specific loader patterns and a verification prompt, use
 [assistant loader configuration](assistant-loader-configuration.md). A loader

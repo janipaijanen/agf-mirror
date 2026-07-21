@@ -7,6 +7,23 @@ distribution.
 
 ### Added
 
+- Added an adopter applicability catalog (`agf/docs/site/docs/adopt/applicability-catalog.md`),
+  classifying a first representative slice of 8 governed artifacts (of 57
+  total) with a per-artifact activation condition and removal consequence.
+  New optional schema fields: `activation_condition`, `safe_to_remove_when`,
+  `removal_forfeits`, `depends_on` on rules (`agf/schemas/rule.schema.json`);
+  `activation_condition`, `deactivation.local_deactivation`,
+  `deactivation.definition_removal` on agents (`agf/schemas/agent.schema.json`).
+  All new fields are optional; no existing rule or agent file becomes
+  invalid. Also corrects an internal inconsistency in `framework.md` §7 and
+  `ADOPTING.md`'s "signals to grow" table, which had described Build
+  Engineer, Contribution Auditor, and InfoSec Sentinel as unconditionally
+  "always active" in one place while stating a specific activation
+  condition elsewhere in the same documents — both properties (library-core
+  status and activation condition) are now stated explicitly rather than
+  conflated. The remaining 49 governed artifacts are not yet classified;
+  tracked as an explicit follow-up, not silently deferred (see
+  `docs/coordination/20260721T063606Z-coder-tester-pjms.md`).
 - Added `deprecation-policy-rule`, defining a two-phase deprecation policy:
   Phase 0 (pre-customer, current state) permits disclosed breaking changes
   with no deprecation cycle; Phase 1 (real external adopters) requires a

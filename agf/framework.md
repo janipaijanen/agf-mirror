@@ -1396,21 +1396,28 @@ Do not build 20 agents on day one. Start with the minimum viable system and grow
 
 **Start here.**
 
-**Core agents (always active):**
+**Core agents, always active from the first governed change:**
 
 | Agent                     | Combines                | Purpose                                     |
 |---------------------------|-------------------------|---------------------------------------------|
 | **Planner-Architect**     | Planner + Architect     | Plans work and makes design decisions        |
 | **Coder-Tester**          | Coder + Tester          | Implements and verifies                      |
 | **Governor-Reviewer**     | Governor + Reviewer     | Enforces boundaries and approves transitions |
-| **Build Engineer**        | *(standalone)*          | Owns CI pipeline, build automation, container definitions |
 
-**Phase 1 cross-cutting agents (always active):**
+**Build Engineer** is a fourth Phase 1 core-tier agent — library-core from
+Phase 1, same as the three above — but it is not *always active*: its
+activation is conditional on the project having a CI pipeline (see "Activate
+Build Engineer when" below). Library-core status (which tier/phase a role
+belongs to) and activation status (whether a project currently needs its
+function) are two separate questions; the tables above and below answer the
+first, the "Activate ... when" sentences answer the second.
+
+**Phase 1 cross-cutting agents, library-core from Phase 1, each activated by its own trigger:**
 
 | Agent                     | Tier                    | Activate when                                |
 |---------------------------|-------------------------|----------------------------------------------|
-| **Contribution Auditor**  | Cross-cutting           | Always — mandatory from first contribution (upstream or downstream) |
-| **InfoSec Sentinel**      | Cross-cutting           | Always — mandatory from first learning record submission |
+| **Contribution Auditor**  | Cross-cutting           | Mandatory from first contribution to the framework or an adopter project |
+| **InfoSec Sentinel**      | Cross-cutting           | Mandatory from first learning record submission |
 
 **Phase 1 cross-cutting agents (activate when needed):**
 

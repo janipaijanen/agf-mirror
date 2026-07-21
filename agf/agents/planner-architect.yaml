@@ -19,6 +19,19 @@ agent:
   combines:
     - "planner"
     - "architect"
+  activation_condition: "always"
+  deactivation:
+    local_deactivation: >
+      Not meaningfully deactivatable while still using AGF's gate model —
+      Gate 1 authorship (Planner-Architect), Gate 2 implementation
+      (Coder-Tester), and gate approval authority (Governor-Reviewer)
+      each have no other owner in the minimum system; removing any of
+      them removes a load-bearing piece of the governed-change pipeline
+      itself, not an optional add-on.
+    definition_removal: >
+      Deletes the reusable role definition; the project would need to
+      re-author the role's authority and boundaries from scratch to keep
+      using a gated process at all.
 
 identity:
   # foundry customization: purpose and design_principles adapted for framework development

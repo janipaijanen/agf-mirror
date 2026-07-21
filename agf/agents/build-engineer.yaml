@@ -37,6 +37,17 @@ agent:
   provenance: adapted-from-v1x
   tier: "production"
   phase: 1
+  activation_condition: "project has a CI pipeline"
+  deactivation:
+    local_deactivation: >
+      Remove from the project's active-roles manifest; Coder-Tester
+      resumes owning CI/build config, the default before Build Engineer
+      is introduced.
+    definition_removal: >
+      Deletes the reusable agf/agents/build-engineer.yaml definition;
+      any other project sharing this framework checkout loses the
+      reference definition and must restore it from the framework's own
+      release archive to reintroduce the role.
 
 identity:
   purpose: >

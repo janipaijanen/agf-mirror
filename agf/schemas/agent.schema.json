@@ -57,6 +57,23 @@
             "foundry-native"
           ],
           "description": "Origin and verification status of this agent definition relative to AGF v2. inherited-v1x-unverified: carried from v1.x with no v2 review; adapted-from-v1x: touched during v2 development but not fully reviewed; verified-agf-v2: explicitly reviewed against AGF v2 operating model; foundry-native: created natively for AGF v2."
+        },
+        "activation_condition": {
+          "type": "string",
+          "description": "The concrete adopter-specific trigger for this role's function being needed, independent of tier/phase library membership. 'always' for roles needed from the first governed change."
+        },
+        "deactivation": {
+          "type": "object",
+          "properties": {
+            "local_deactivation": {
+              "type": "string",
+              "description": "How to stop using this role in a project's own manifest/config without touching agf/. Reversible, no forfeited guarantee beyond this role's own function."
+            },
+            "definition_removal": {
+              "type": "string",
+              "description": "What deleting agf/agents/<name>.yaml itself forfeits — normally worse than local deactivation, since it removes the reusable definition, not just this project's use of it."
+            }
+          }
         }
       }
     },

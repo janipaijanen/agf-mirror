@@ -4,7 +4,8 @@
 # Agent Definition: Contribution Auditor (Phase 1 cross-cutting agent)
 # =============================================================================
 # Primary verb: audit
-# Activates: Phase 1 -- mandatory from first external contribution
+# Activates: Phase 1 -- mandatory from first contribution to the framework
+#   or an adopter project
 # Purpose: Detect adversarial, misleading, or unsound governance guidance
 #   in contributions before they enter the framework corpus or adopter
 #   projects.
@@ -29,6 +30,25 @@ agent:
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 1
+  # activation_condition: settled by governor-reviewer decision-record
+  # 20260721T071957Z-governor-reviewer-rts3, superseding both this file's
+  # former "first external contribution" (collided with
+  # always/external-anonymization-rule.md's own, different, defined
+  # meaning of "external") and an interim "upstream or downstream"
+  # wording (this framework's own internal shorthand, unexplained if the
+  # bare field value is read out of context). Settled on a terse,
+  # self-explanatory value requiring no glossary knowledge.
+  activation_condition: "first contribution to the framework or an adopter project"
+  deactivation:
+    local_deactivation: >
+      Remove from the project's active-roles manifest; contribution
+      review reverts to whatever ad hoc process existed before this role
+      was introduced — no structural check remains against adversarial
+      or unsound incoming contributions.
+    definition_removal: >
+      Deletes the reusable agf/agents/contribution-auditor.yaml
+      definition; loses the framework's own reference implementation of
+      adversarial-contribution screening.
 
 identity:
   purpose: >

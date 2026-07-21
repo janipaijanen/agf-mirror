@@ -1583,6 +1583,81 @@ learnings:
         - "MR !282 (deprecation-policy-rule metadata fix): missing authority record rejected in docs/coordination/20260721T001149Z-coder-tester-gqdt.md; corrected by docs/coordination/20260721T002557Z-governor-reviewer-66gd.md"
         - "Prior-art citation errors (Kubernetes GA, GitHub API) found via live fetch during the gqdt fix, corrected in the same commit as the authority-record fix"
 
+  - id: "20260721T073035Z-bt1s"
+    date: "2026-07-21"
+    category: gap
+    scope: framework
+    title: ci-workflow-rule-checks-push-head-title-not-full-commit-range
+    description: >
+      `.gitlab-ci.yml`'s `workflow.rules` skips pipeline creation when
+      `$CI_COMMIT_TITLE =~ /^coordination:/`, intended to avoid
+      re-running CI for coordination-record-only pushes that don't
+      touch content. The rule's own comment explicitly names the
+      precondition: "Use this only when the commit changes coordination
+      records ... mixed commits must run normal CI." `$CI_COMMIT_TITLE`
+      for a push-triggered pipeline reflects only the push's HEAD
+      commit, not every commit in the push.
+
+      In this session, a real content-fix commit
+      (`5264a7a`, "fix: settle Contribution Auditor trigger wording per
+      rts3") was pushed together with a coordination-only commit
+      (`p3nj`) on top, in a single `git push`, with the coordination
+      commit last. GitLab evaluated `$CI_COMMIT_TITLE` against `p3nj`'s
+      title, matched the skip pattern, and skipped the entire push's
+      pipeline — including the real content change, which received zero
+      CI evidence despite `p3nj` itself explicitly (and, it turned out,
+      incorrectly) claiming that push would trigger a normal pipeline.
+      The human governor caught the missing pipeline directly on the
+      MR; the agent had not verified pipeline existence before making
+      the claim.
+
+      This is the precise "mixed commits" failure mode the rule's own
+      comment warns against, self-inflicted by commit-batching order
+      rather than by mixing coordination and content changes within a
+      single commit.
+    agents_involved:
+      - coder-tester
+    framework_section: ".gitlab-ci.yml workflow.rules; gate-self-test-rule.md"
+    business_impact:
+      type: neutral
+      description: >
+        No merge occurred on unvalidated content — the human governor
+        caught the missing pipeline before merge, not after. Impact is
+        one avoidable round-trip and a false claim in the coordination
+        trail that had to be corrected
+        (docs/coordination/20260721T072945Z-coder-tester-ms3h.md).
+    framework_impact: medium
+    status: implemented
+    recommendation: >
+      Immediate mitigation (implemented): documented the correct
+      discipline in
+      docs/coordination/20260721T072945Z-coder-tester-ms3h.md — when a
+      push must include both a content commit and a coordination-record
+      commit, order them so the coordination-only commit is not the
+      final one, or push the content commit separately with it last.
+      Also: verify pipeline existence for the actual pushed head via
+      the GitLab API before claiming CI evidence exists — do not infer
+      it from the workflow rule's intended behavior.
+
+      Deferred, not silently: hardening `.gitlab-ci.yml`'s
+      `workflow.rules` itself to check every commit title in the pushed
+      range (not just the HEAD commit) is the structural fix that would
+      make this class of mistake impossible rather than merely
+      documented against. Not attempted in this session — CI workflow
+      rules are high-blast-radius (a wrong change risks breaking
+      pipeline creation repo-wide) and per
+      `always/gate-self-test-rule.md` any change to a gate needs a
+      deliberate negative test demonstrating it still fires on a
+      known-bad (mixed-commit) push before shipping. That is a properly
+      scoped follow-up task, not a fix to make in the middle of
+      resolving an unrelated MR's review blockers.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !289: push 64019a7..2a54e8e skipped CI entirely; docs/coordination/20260721T072153Z-coder-tester-p3nj.md's pipeline claim corrected by docs/coordination/20260721T072945Z-coder-tester-ms3h.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
