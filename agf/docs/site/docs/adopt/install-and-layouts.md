@@ -20,7 +20,10 @@ and reviewed the evidence.*
   contains `agf/` without packaged tooling; use the optional Rust tooling
   archive from the
   [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-  for your platform when you want `agov` without a full checkout.
+  for your platform when you want `agov` without a full checkout. Every
+  archive's individual `.sha256` checksum and `-provenance.json` file are
+  linked directly on the Releases page alongside it — verify with
+  `sha256sum -c` after downloading both into the same directory.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
