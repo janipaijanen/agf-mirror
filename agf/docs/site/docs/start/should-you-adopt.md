@@ -65,7 +65,7 @@ than teaching assistants to ignore loaded instructions.
 For a first, still-incomplete answer to *which specific rules and roles you
 can safely remove and what each removal costs*, see the
 [adopter applicability catalog](../adopt/applicability-catalog.md) — it
-classifies a first slice of 8 governed artifacts (of 57 total) with an
+classifies a first slice of 8 governed artifacts (of 58 total) with an
 activation condition and a removal consequence for each.
 
 The current coordination schema still exposes the full message-kind vocabulary,

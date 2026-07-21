@@ -138,7 +138,7 @@ Default POC layout:
 | Coordination updates | `agov coord list --since <id-or-timestamp>` |
 | Tool provenance | `agov --version` / `agov version --format json` |
 
-The `agf/` distribution ships **44 governance rules**, **12 agent definitions**,
+The `agf/` distribution ships **46 governance rules**, **12 agent definitions**,
 and **7 skills**.
 
 The framework source archive is usable on its own. Adopters who want the
@@ -152,7 +152,7 @@ tools without changing the file-based coordination protocol. See
 `agf/docs/site/docs/adopt/mcp-server.md`.
 
 Container-based CI can use the pinned OCI image, for example
-`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.2.6`; pin an
+`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.3.0`; pin an
 exact version or digest, never a floating tag.
 
 ## Local learning and upstream proposals
