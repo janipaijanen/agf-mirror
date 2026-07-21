@@ -62,8 +62,9 @@ Claude Code is the reference integration. The typical setup:
 - `agf/skills/` installs as `.claude/commands/` for slash-command access.
 - `agov` validators run in pre-commit hooks and CI.
 
-The framework's own development (codename *foundry*) runs on Claude Code.
-This is the most evidence-backed integration path.
+The framework's own development environment, codenamed *foundry*, uses both
+Claude Code and OpenAI Codex. They are therefore AGF's most evidence-backed
+assistant integrations today.
 
 ### Codex CLI (OpenAI)
 
