@@ -42,10 +42,16 @@ flowchart LR
 
 ![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](reference/figures/agf-nutshell-flyer.png)
 
-Typical cost: an afternoon to install, plus about 5-15 minutes of governor
-attention for a non-trivial change. Exit is documented: pause the gates, keep
-only the rules you still want, or remove the AGF files in an ordinary cleanup
-commit for a repository-local install.
+Typical cost: mechanical installation has taken no more than ten minutes in
+the maintainer's own deployments — empirically informed maintainer evidence,
+not yet independent-adopter validation. Initial commissioning (reviewing
+applicable rules and completing your first governed change) is separate,
+variable work with no numeric estimate. Governor attention is often 5-15
+minutes for a non-trivial change, a maintainer-informed planning estimate,
+not a benchmark. Exit is documented: pause the gates, keep only the rules you
+still want, or remove the AGF files in one atomic cleanup commit for a
+repository-local install — exit duration is unmeasured and varies with your
+CI, hooks, and retained evidence.
 
 Next step: read [Should you adopt?](docs/start/should-you-adopt.md), the
 five-minute filter for deciding whether AGF is useful for your project now.
@@ -63,9 +69,10 @@ five-minute filter for deciding whether AGF is useful for your project now.
 
 ## How to adopt
 
-Use this as the twenty-minute path after the first scan. Adoption is an
-afternoon for a developer who has read the linked pages below and already has a
-git repository with an AI assistant.
+Four steps from a first scan to your first governed change, for a developer
+who has read the linked pages below and already has a git repository with an
+AI assistant. Steps 1-2 are evaluation and mechanical installation; step 3 is
+initial commissioning, which the plan below deliberately leaves unestimated.
 
 **Step 1 — Make the decision once.**
 Read [Should you adopt?](docs/start/should-you-adopt.md). It is a single page
@@ -76,18 +83,22 @@ leave without rewriting history is part of the decision.
 
 **Step 2 — Let the assistant prepare the files; you review the rules.**
 Follow [Install the `agf/` directory](docs/adopt/install-and-layouts.md) to
-commission the framework in the single supported v2.0 layout. The guide gives
-you a pasteable assistant prompt for the clerical setup. Your job is to review
-the diff, resolve `CUSTOMIZE` markers, and delete rules that do not apply; an
-inapplicable rule trains assistants that rules are optional.
+set it up in the single supported v2.0 layout. The guide gives you a
+pasteable assistant prompt for the clerical setup — unpacking and wiring the
+files is the mechanical step covered by the ten-minute figure above.
+Reviewing the diff, resolving `CUSTOMIZE` markers, and deleting rules that do
+not apply is the start of initial commissioning, and its duration varies by
+project; an inapplicable rule trains assistants that rules are optional.
 
 **Step 3 — Run one real change through both gates.**
-Work through [Your first governed change](docs/start/first-governed-change.md).
-Gate 1 is plan approval before implementation; Gate 2 is review before merge.
-One small change teaches you the loop without committing the whole project.
+Work through [Your first governed change](docs/start/first-governed-change.md),
+the rest of initial commissioning. Gate 1 is plan approval before
+implementation; Gate 2 is review before merge. One small change teaches you
+the loop without committing the whole project.
 
-That is the full install. Everything else — validators, token savings, advanced
-configuration — layers on top once the basics work.
+That covers installation and your first commissioning pass. Everything else —
+validators, token savings, advanced configuration — layers on top once the
+basics work.
 
 ## How it works
 

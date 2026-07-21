@@ -71,9 +71,11 @@ per change.
 
 For planning, expect a non-trivial first-trial change to need roughly
 5-15 minutes of governor attention across Gate 1 and Gate 2 after the agent
-has prepared the plan, evidence, and test results. A fast-track waiver may take
-only a minute or two to confirm. High-risk changes do not have a useful fixed
-estimate: the governor should spend whatever the risk review needs.
+has prepared the plan, evidence, and test results. This range is a
+maintainer-informed planning estimate, not an independently validated
+benchmark. A fast-track waiver may take only a minute or two to confirm.
+High-risk changes do not have a useful fixed estimate: the governor should
+spend whatever the risk review needs.
 
 ## Ongoing obligations
 

@@ -136,7 +136,8 @@ For a small first trial, a useful planning range is:
 | Non-trivial governed change | 5-15 minutes across Gate 1 and Gate 2 |
 | High-risk change | As long as the risk review needs; do not optimize this to a fixed number |
 
-These are planning estimates, not service-level promises. The governor is not
+These are maintainer-informed planning estimates, not independently validated
+benchmarks or service-level promises. The governor is not
 reading every file in every session. They are checking the plan before work
 starts, deciding whether the evidence is enough before merge, and pulling work
 into deeper review when something feels wrong.

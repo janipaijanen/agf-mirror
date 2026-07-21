@@ -28,10 +28,16 @@ AI writes a plan -> Governor approves -> AI implements + CI validates -> Merge
        Gate 1                                      Gate 2
 ```
 
-Typical cost: an afternoon to install, plus about 5-15 minutes of governor
-attention for a non-trivial change. Exit is documented: pause the gates, keep
-only the rules you still want, or remove the AGF files in an ordinary cleanup
-commit for a small default install.
+Typical cost: mechanical installation has taken no more than ten minutes in
+the maintainer's own deployments — empirically informed maintainer evidence,
+not yet independent-adopter validation. Initial commissioning (reviewing
+applicable rules and completing your first governed change) is separate,
+variable work with no numeric estimate. Governor attention is often 5-15
+minutes for a non-trivial change, a maintainer-informed planning estimate,
+not a benchmark. Exit is documented: pause the gates, keep only the rules you
+still want, or remove the AGF files in one atomic cleanup commit — exit
+duration is unmeasured and varies with your CI, hooks, and retained
+evidence.
 
 Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
 
@@ -92,13 +98,15 @@ Empirically informed, or Theoretical. Use both labels when a claim could
 otherwise sound stronger than the evidence supports. See
 [Maturity vocabulary](agf/docs/site/reference/maturity-vocabulary.md).
 
-## Twenty-minute path
+## Adoption steps
 
 1. Read [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
 2. Check cost and reversibility:
    [Downstream impact](agf/docs/site/docs/adopt/downstream-impact.md) and
    [Exit and decommission](agf/docs/site/docs/adopt/exit-and-decommission.md).
-3. Install it — let your AI coding assistant do the work:
+3. Install it — mechanical installation has taken no more than ten minutes in
+   the maintainer's deployments (not yet independently validated). Let your
+   AI coding assistant do the work:
    1. Download `agf-<version>.tar.gz` (or `.zip`) from the
       [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
       into a `tmp/` directory in your project. Add the matching
@@ -114,7 +122,8 @@ otherwise sound stronger than the evidence supports. See
    Full mechanics, and the longer commissioning prompt if you want more
    control over the first pass:
    [Install the `agf/` directory](agf/docs/site/docs/adopt/install-and-layouts.md).
-4. Run one valid example:
+4. Run one valid example — this is initial commissioning, not part of the
+   installation figure above, and its duration varies by project:
    [Your first governed change](agf/docs/site/docs/start/first-governed-change.md).
 
 The first-run templates live in [agf/templates](agf/templates/).
