@@ -1,17 +1,29 @@
 //! Unified release-provenance contract (v2.4.0 Workstream B).
 //!
-//! One JSON Schema (`agf/schemas/release-provenance.schema.json`, embedded
-//! into this binary at compile time) governs every published release
-//! artifact: framework source archives, Rust tooling archives, and OCI
-//! images. The schema is a closed discriminated union keyed by
-//! `artifact_kind`; this module builds and validates records against it, and
-//! carries the cross-record checks (artifact/sha256 agreement, duplicate
-//! filenames, checksum-sidecar agreement, OCI label agreement) that a JSON
-//! Schema alone cannot express.
+//! One JSON Schema governs every published release artifact: framework
+//! source archives, Rust tooling archives, and OCI images. The schema is a
+//! closed discriminated union keyed by `artifact_kind`; this module builds
+//! and validates records against it, and carries the cross-record checks
+//! (artifact/sha256 agreement, duplicate filenames, checksum-sidecar
+//! agreement, OCI label agreement) that a JSON Schema alone cannot express.
 //!
 //! Pre-v2.4 records (no `schema_version` field) are never upgraded
 //! implicitly: `validate_record` reports them as `AssuranceLevel::Legacy`
 //! and does not run schema validation against them.
+//!
+//! ## Two copies, one canonical direction
+//!
+//! The schema is embedded from a copy inside this crate
+//! (`schemas/release-provenance.schema.json`), not from
+//! `agf/schemas/release-provenance.schema.json` directly. `cross build`
+//! copies only the `tooling/rust` workspace into an isolated build context
+//! for cross-compilation; a path reaching outside `tooling/rust` fails
+//! there even though it compiles from a full repository checkout. The
+//! adopter-facing `agf/schemas/` copy is canonical; the crate-local copy is
+//! generated from it and verified byte-for-byte equal by
+//! `crate_schema_matches_agf_schema` in this module's test suite. Any
+//! future schema edit must update both files in the same commit — the test
+//! fails otherwise.
 
 use agov_core::schema::{compile_str, validate as schema_validate, CompiledSchema};
 use serde_json::Value;
@@ -22,7 +34,7 @@ use std::io::Read;
 use std::path::Path;
 use std::sync::OnceLock;
 
-const SCHEMA_JSON: &str = include_str!("../../../../../agf/schemas/release-provenance.schema.json");
+const SCHEMA_JSON: &str = include_str!("../schemas/release-provenance.schema.json");
 
 pub const SCHEMA_VERSION: &str = "2.4";
 
@@ -527,5 +539,31 @@ mod tests {
         .unwrap();
         let record = valid_file_record();
         assert!(check_sha256_sidecar_agreement(&record, &sidecar).is_empty());
+    }
+
+    /// The crate-local embedded schema and the adopter-facing
+    /// `agf/schemas/` copy must never drift. This test needs a full
+    /// repository checkout (via `agov_core::repo_root()`), unlike the
+    /// embedded `SCHEMA_JSON` constant itself, which compiles fine inside
+    /// the isolated `cross build` context that only has `tooling/rust`.
+    #[test]
+    fn crate_schema_matches_agf_schema() {
+        let agf_schema_path = agov_core::repo_root()
+            .join("agf")
+            .join("schemas")
+            .join("release-provenance.schema.json");
+        let agf_schema_text = std::fs::read_to_string(&agf_schema_path)
+            .unwrap_or_else(|err| panic!("could not read {}: {err}", agf_schema_path.display()));
+
+        let embedded: Value =
+            serde_json::from_str(SCHEMA_JSON).expect("embedded schema is valid JSON");
+        let canonical: Value =
+            serde_json::from_str(&agf_schema_text).expect("agf/schemas copy is valid JSON");
+
+        assert_eq!(
+            embedded, canonical,
+            "tooling/rust/crates/agov/schemas/release-provenance.schema.json has drifted from \
+             agf/schemas/release-provenance.schema.json -- update both files in the same commit"
+        );
     }
 }
