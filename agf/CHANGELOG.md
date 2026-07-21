@@ -3,6 +3,32 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.3.1] — 2026-07-21
+
+This patch recovers the public release truth after v2.3.0 was published with
+an outdated repository-root changelog. The immutable v2.3.0 tag and OCI tag
+remain unchanged; the corrected source history is published under v2.3.1.
+
+### Added
+
+- Added two proposed, single-adopter learning records from the v2.3.0 release:
+  release-critical CI needs host preflight from the consumer layout, and
+  release completion needs an enumerated public-truth surface. Their
+  recommendations remain proposed target states; this patch does not claim
+  the generalized validators are implemented.
+
+### Fixed
+
+- GitLab Release creation now links every framework and tooling archive,
+  individual checksum, and provenance sidecar directly from the Release page.
+  It verifies the exact mandatory 14-file set before upload, with a CI
+  self-test proving that a missing provenance sidecar blocks publication and
+  names the omitted file.
+- Reconciled adopter-facing release history with the repaired repository-level
+  v2.3.0 history. Earlier terminal completion records are preserved as
+  immutable historical evidence and explicitly superseded by the v2.3.1
+  recovery trail.
+
 ## [2.3.0] — 2026-07-21
 
 **2.2.6 was prepared and merged on 2026-06-26 but was not published as a
