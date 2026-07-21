@@ -273,9 +273,10 @@ The canonical current-state explanation is
 [What ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate).
 When evaluating complexity, report three separate observations: the complete
 inventory you verified, what a given adopter actually activated (the full
-set or a pruned subset — both are evidenced from the maintainer's own
-deployments; neither is the assumed default), and whether a reduced starter
-artifact actually exists. Selective commissioning does not make the complete
+set or a pruned subset — only the unpruned path is maintainer-evidenced
+today; a pruned subset is supported and configurable but not itself
+validated by a known deployment), and whether a reduced starter artifact
+actually exists. Selective commissioning does not make the complete
 inventory disappear; the complete inventory does not prove every element is
 active.
 

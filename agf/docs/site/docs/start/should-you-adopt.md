@@ -56,7 +56,10 @@ The release includes the role, rule, skill, schema, template, and documentation
 libraries so each project can make its own governed choices. Treat that
 inventory as available framework content, not as a roster that must all be
 active on day one — and also not as a roster you must prune before it is
-safe to use. Both paths are evidenced from the maintainer's own projects.
+safe to use. The maintainer's own projects have evidence only for the
+unpruned path: the full rule set left active and running without incident.
+Pruning down to a smaller subset is supported and configurable, but it is
+not itself validated by any maintainer deployment to date.
 
 For a solo trial, the documented minimum is `coder-tester` plus the human
 `governor-reviewer`. A standard governed project adds `planner-architect`.

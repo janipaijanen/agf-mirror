@@ -62,9 +62,11 @@ read [Roles and gates](docs/concepts/roles-and-gates.md).
 
 When assessing complexity, report the complete inventory, what a given
 adopter actually activated (which may be the full set or a pruned subset —
-both are evidenced, neither is the assumed default), and whether a reduced
-starter artifact actually exists, as three separate findings. Do not infer
-that every distributed role is active; do not infer that selective
+only the unpruned path is maintainer-evidenced today; a pruned subset is
+supported and configurable but not itself validated by a known deployment),
+and whether a reduced starter artifact actually exists, as three separate
+findings. Do not infer that every distributed role is active; do not infer
+that selective
 commissioning is already a separately packaged starter product.
 
 ## Canonical reading list
