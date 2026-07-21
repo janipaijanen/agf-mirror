@@ -554,7 +554,7 @@ rust:tooling:clippy:
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing the agov and agov-mcp executables on PATH.\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
         tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${target}"
-        sha256sum "../../dist/${archive}" > "../../dist/${archive}.sha256"
+        (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         printf '{"version":"%s","source_commit":"%s","tag":"%s","build_timestamp":"%s","pipeline_identity":{"pipeline_id":"%s","job_id":"%s"},"target_platform":"%s","implementation":"rust","packaging":"tar.gz"}\n' \
           "$VERSION" "${CI_COMMIT_SHA}" "${CI_COMMIT_TAG:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${CI_PIPELINE_ID:-}" "${CI_JOB_ID:-}" "$target" \
           > "../../dist/agov-${VERSION}-${target}-provenance.json"
@@ -573,7 +573,7 @@ rust:tooling:clippy:
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing agov.exe and agov-mcp.exe on PATH.\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${target}")
-        sha256sum "../../dist/${archive}" > "../../dist/${archive}.sha256"
+        (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         printf '{"version":"%s","source_commit":"%s","tag":"%s","build_timestamp":"%s","pipeline_identity":{"pipeline_id":"%s","job_id":"%s"},"target_platform":"%s","implementation":"rust","packaging":"zip"}\n' \
           "$VERSION" "${CI_COMMIT_SHA}" "${CI_COMMIT_TAG:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${CI_PIPELINE_ID:-}" "${CI_JOB_ID:-}" "$target" \
           > "../../dist/agov-${VERSION}-${target}-provenance.json"
