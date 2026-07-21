@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block htmltitle %}
+  {% set title = page.meta.title if page.meta and page.meta.title else page.title %}
+  {% if title and not page.is_homepage %}
+    <title>AGF — {{ title | striptags }}</title>
+  {% else %}
+    <title>AGF — Agent Governance Framework</title>
+  {% endif %}
+{% endblock %}
