@@ -36,6 +36,8 @@ include:
 exclude:
   - agf/site-html/**
   - agf/docs/site/reference/release-info.md
+  - "**/__pycache__/**"
+  - "**/*.pyc"
 
 forbidden:
   - .git/**
@@ -48,3 +50,5 @@ forbidden:
   - .env.*
   - agf/site-html/**
   - agf/docs/site/reference/release-info.md
+  - "**/__pycache__/**"
+  - "**/*.pyc"
