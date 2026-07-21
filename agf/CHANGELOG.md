@@ -41,6 +41,11 @@ distribution.
 
 ### Changed
 
+- The **Learning loop and evidence** concept page now identifies its
+  double-loop learning, PDSA, CAST, and ISO/IEC 42001 foundations, explicitly
+  labels them as conceptual prior art rather than empirical validation, and
+  shows causal analysis and governed approval before implementation in the
+  learning-loop figure.
 - Public landing, adoption, evaluation, dossier, and installation guidance now
   distinguishes the complete shipped governance library from the smaller role
   and rule subset a project activates. The proposed reduced starter product is

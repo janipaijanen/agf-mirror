@@ -319,6 +319,41 @@ Source: deep-research pass. Verification status per entry; regulatory dates move
 
 ## Frameworks & concepts from other disciplines
 
+- https://books.google.com/books?vid=ISBN0201001748
+  type: research | relation: prior-art | action: cite
+  note: Chris Argyris and Donald A. Schön, *Organizational Learning: A Theory
+  of Action Perspective* (Addison-Wesley, 1978, ISBN 0201001748). Establishes
+  the single-loop/double-loop distinction: correcting action within existing
+  governing assumptions versus questioning policies, objectives, and norms.
+  AGF's rule and authority amendments are a double-loop analogue; this is a
+  conceptual relationship, not empirical validation. Verified 2026-07-21 via
+  publisher bibliographic metadata indexed by Google Books.
+
+- https://deming.org/explore/pdsa/
+  type: framework | relation: prior-art | action: cite
+  note: W. Edwards Deming Institute description of Plan–Do–Study–Act as a
+  repeated learning and improvement process in which predictions are tested
+  against observed results and the theory or method is adjusted. Supports
+  AGF's explicit implementation-to-observed-use feedback step. Verified
+  2026-07-21 from the Deming Institute.
+
+- https://sunnyday.mit.edu/CAST-Handbook.pdf
+  type: framework | relation: prior-art, threat-model | action: cite, integrate
+  note: Nancy Leveson's CAST Handbook describes system-theoretic causal
+  analysis of adverse events, focusing on why designed controls did not prevent
+  loss and what control changes prevent recurrence rather than reducing the
+  event to one root cause. Supports an explicit causal/control-analysis stage
+  between AGF learning records and governance proposals. Verified 2026-07-21
+  from MIT PSASS materials.
+
+- https://www.iso.org/standard/42001
+  type: standard | relation: prior-art, demand-driver | action: cite
+  note: ISO/IEC 42001:2023 specifies establishing, implementing, maintaining,
+  and continually improving an AI management system. ISO's public explanation
+  describes its continual-improvement cycle; AGF artifacts may supply evidence
+  to such a process but do not establish conformity or certification. Verified
+  2026-07-21 from ISO.
+
 - maker-checker / four-eyes principle (banking)
   type: framework | relation: prior-art | action: integrate
   note: AGF's implementer/reviewer split IS maker-checker: no self-approval, atomic pending
