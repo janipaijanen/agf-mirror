@@ -297,6 +297,11 @@ enum DistCommand {
         /// runs, since there is nothing to compare against.
         #[arg(long)]
         oci_image: Option<String>,
+        /// Output format: human-readable text (default) or a stable
+        /// machine-readable JSON array, one object per validated file:
+        /// {"file", "assurance_level", "findings"}.
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
     },
     /// Extract a packaged executable from its release archive, run its own
     /// `version --format json` self-report, and cross-check it against a
@@ -668,10 +673,12 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
             files,
             artifact_dir,
             oci_image,
+            format,
         } => validate_provenance_command(
             &files,
             artifact_dir.as_deref(),
             oci_image.as_deref(),
+            &format,
             &mut output,
         ),
         DistCommand::SelfReportCheck {
@@ -698,13 +705,19 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
 /// checksum-sidecar agreement and dangling-reference checks. When
 /// `oci_image` is given, `podman inspect`s that real image and cross-checks
 /// its actual labels/digest against any oci-image records among `files`.
+/// `format` is `"text"` (default, human-readable) or `"json"` (a stable
+/// machine-readable array: `{"file", "assurance_level", "findings"}` per
+/// entry, plus a synthetic `file: null` entry for cross-record findings).
 fn validate_provenance_command(
     files: &[PathBuf],
     artifact_dir: Option<&Path>,
     oci_image: Option<&str>,
+    format: &str,
     output: &mut OutputCounter,
 ) -> i32 {
+    let json_mode = format == "json";
     let mut parsed = Vec::new();
+    let mut json_results = Vec::new();
     let mut exit_code = 0;
 
     let oci_evidence = match oci_image {
@@ -739,6 +752,7 @@ fn validate_provenance_command(
             serde_json::from_str(&content).expect("validate_json_text already parsed this JSON");
 
         let schema_valid = outcome.is_valid();
+        let assurance_level = outcome.assurance_level;
         let mut findings = outcome.findings;
 
         if schema_valid && outcome.assurance_level == provenance::AssuranceLevel::V24 {
@@ -765,14 +779,22 @@ fn validate_provenance_command(
             }
         }
 
-        if findings.is_empty() {
+        if !findings.is_empty() {
+            exit_code = 1;
+        }
+        if json_mode {
+            json_results.push(serde_json::json!({
+                "file": file.display().to_string(),
+                "assurance_level": assurance_level.as_str(),
+                "findings": findings,
+            }));
+        } else if findings.is_empty() {
             output.stdout(format!(
                 "OK  {} ({})",
                 file.display(),
-                outcome.assurance_level.as_str()
+                assurance_level.as_str()
             ));
         } else {
-            exit_code = 1;
             for finding in &findings {
                 output.stderr(format!("ERR  {}: {finding}", file.display()));
             }
@@ -781,17 +803,33 @@ fn validate_provenance_command(
         parsed.push(data);
     }
 
-    for finding in provenance::check_no_duplicate_filenames(&parsed) {
-        exit_code = 1;
-        output.stderr(format!("ERR  {finding}"));
-    }
-    for finding in provenance::check_no_duplicate_oci_identity(&parsed) {
-        exit_code = 1;
-        output.stderr(format!("ERR  {finding}"));
-    }
+    let mut cross_record_findings = Vec::new();
+    cross_record_findings.extend(provenance::check_no_duplicate_filenames(&parsed));
+    cross_record_findings.extend(provenance::check_no_duplicate_oci_identity(&parsed));
     if let Some(dir) = artifact_dir {
-        for finding in provenance::check_primary_artifact_coverage(&parsed, dir) {
-            exit_code = 1;
+        cross_record_findings.extend(provenance::check_primary_artifact_coverage(&parsed, dir));
+    }
+    if !cross_record_findings.is_empty() {
+        exit_code = 1;
+    }
+
+    if json_mode {
+        if !cross_record_findings.is_empty() {
+            json_results.push(serde_json::json!({
+                "file": null,
+                "assurance_level": null,
+                "findings": cross_record_findings,
+            }));
+        }
+        match serde_json::to_string_pretty(&json_results) {
+            Ok(json) => output.stdout(json),
+            Err(err) => {
+                output.stderr(format!("ERR  could not encode JSON output: {err}"));
+                return 1;
+            }
+        }
+    } else {
+        for finding in &cross_record_findings {
             output.stderr(format!("ERR  {finding}"));
         }
     }
@@ -1011,7 +1049,7 @@ fn post_publication_check_command(
         return 1;
     }
 
-    validate_provenance_command(&provenance_files, Some(download_dir), None, output)
+    validate_provenance_command(&provenance_files, Some(download_dir), None, "text", output)
 }
 
 fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {
@@ -1053,7 +1091,13 @@ fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCo
                     return 1;
                 }
             };
-            let pipeline_identity = pipeline_identity_from(&pipeline_id, &job_id);
+            let pipeline_identity = match pipeline_identity_from(&pipeline_id, &job_id) {
+                Ok(pipeline_identity) => pipeline_identity,
+                Err(err) => {
+                    output.stderr(format!("ERR  {err}"));
+                    return 1;
+                }
+            };
             let record = provenance::build_file_record(&provenance::FileRecordInput {
                 product: &product,
                 version: &version,
@@ -1087,7 +1131,13 @@ fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCo
             label_revision,
             output: output_path,
         } => {
-            let pipeline_identity = pipeline_identity_from(&pipeline_id, &job_id);
+            let pipeline_identity = match pipeline_identity_from(&pipeline_id, &job_id) {
+                Ok(pipeline_identity) => pipeline_identity,
+                Err(err) => {
+                    output.stderr(format!("ERR  {err}"));
+                    return 1;
+                }
+            };
             let record = provenance::build_oci_record(&provenance::OciRecordInput {
                 product: &product,
                 version: &version,
@@ -1107,16 +1157,25 @@ fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCo
     }
 }
 
+/// `--pipeline-id`/`--job-id` are both-or-neither: supplying only one
+/// silently dropped both under the old `match` (a real usage mistake
+/// would produce a record with no pipeline_identity at all, no error).
 fn pipeline_identity_from<'a>(
     pipeline_id: &'a Option<String>,
     job_id: &'a Option<String>,
-) -> Option<provenance::PipelineIdentity<'a>> {
+) -> Result<Option<provenance::PipelineIdentity<'a>>, String> {
     match (pipeline_id, job_id) {
-        (Some(pipeline_id), Some(job_id)) => Some(provenance::PipelineIdentity {
+        (Some(pipeline_id), Some(job_id)) => Ok(Some(provenance::PipelineIdentity {
             pipeline_id,
             job_id,
-        }),
-        _ => None,
+        })),
+        (None, None) => Ok(None),
+        (Some(_), None) => Err(
+            "--pipeline-id was given without --job-id; both or neither are required".to_string(),
+        ),
+        (None, Some(_)) => Err(
+            "--job-id was given without --pipeline-id; both or neither are required".to_string(),
+        ),
     }
 }
 
@@ -4589,6 +4648,34 @@ impl OutputCounter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pipeline_identity_from_both_present_succeeds() {
+        let pipeline_id = Some("123".to_string());
+        let job_id = Some("456".to_string());
+        let identity = pipeline_identity_from(&pipeline_id, &job_id).unwrap();
+        assert!(identity.is_some());
+    }
+
+    #[test]
+    fn pipeline_identity_from_neither_present_succeeds_with_none() {
+        let identity = pipeline_identity_from(&None, &None).unwrap();
+        assert!(identity.is_none());
+    }
+
+    #[test]
+    fn negative_pipeline_identity_from_pipeline_id_without_job_id_is_rejected() {
+        let pipeline_id = Some("123".to_string());
+        let result = pipeline_identity_from(&pipeline_id, &None);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn negative_pipeline_identity_from_job_id_without_pipeline_id_is_rejected() {
+        let job_id = Some("456".to_string());
+        let result = pipeline_identity_from(&None, &job_id);
+        assert!(result.is_err());
+    }
 
     fn message(file: &str, kind: &str, timestamp: &str, refs: &[&str]) -> HandoffMessage {
         HandoffMessage {

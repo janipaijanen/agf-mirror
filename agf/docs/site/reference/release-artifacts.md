@@ -111,9 +111,28 @@ have would individually pass.
 
 ```bash
 # Validate one or more provenance records against the schema (or classify
-# them as legacy). --artifact-dir also cross-checks artifact_bytes/sha256
-# against the real files, and rejects dangling references.
+# them as legacy). --artifact-dir also cross-checks artifact_bytes/sha256/
+# checksum-sidecar agreement, rejects dangling references, and enforces
+# cardinality (every artifact exactly one record, no stale/extra records).
+# --oci-image inspects a real image via `podman inspect` for label/digest
+# evidence. --format json prints a stable machine-readable array instead
+# of text.
 agov dist validate-provenance dist/*-provenance.json --artifact-dir dist
+
+# Anonymously discover and download every asset linked from a real
+# published GitLab Release, then validate the downloaded records against
+# the downloaded bytes -- not a CI workspace copy.
+agov dist post-publication-check \
+  --releases-url "https://gitlab.com/api/v4/projects/<id>/releases/v2.4.0" \
+  --download-dir /tmp/release-check
+
+# Extract a packaged executable from its archive, run its own
+# `version --format json` self-report, and cross-check it against a
+# file-kind record.
+agov dist self-report-check \
+  --archive dist/agov-2.4.0-x86_64-unknown-linux-musl.tar.gz \
+  --binary-name agov \
+  --record dist/agov-2.4.0-x86_64-unknown-linux-musl.tar.gz-provenance.json
 
 # Build a file-kind record from an archive already on disk.
 agov dist provenance-record file \
