@@ -46,7 +46,7 @@ equivalent, not in framework metadata that's identical across every adopter.
 | Role | Tier / Phase | Activation condition | If you stop using it locally | If you delete the definition |
 |---|---|---|---|---|
 | **Build Engineer** | Production, Phase 1 | Project has a CI pipeline | Coder-Tester resumes owning CI/build config — the default before Build Engineer is introduced | Any other project sharing this framework checkout loses the reference definition and must restore it from the framework's own release archive |
-| **Contribution Auditor** | Cross-cutting, Phase 1 | First contribution (upstream or downstream) | Contribution review reverts to whatever ad hoc process existed before — no structural check remains against adversarial or unsound incoming contributions | Loses the framework's own reference implementation of adversarial-contribution screening |
+| **Contribution Auditor** | Cross-cutting, Phase 1 | First contribution to the framework or an adopter project | Contribution review reverts to whatever ad hoc process existed before — no structural check remains against adversarial or unsound incoming contributions | Loses the framework's own reference implementation of adversarial-contribution screening |
 | **InfoSec Sentinel** | Cross-cutting, Phase 1 | Project submits learning records | Externally-bound artifacts (learning records, upstream contributions) are no longer screened for information leaks before publication | Loses the framework's own reference implementation of the anonymization/leak-screening boundary |
 | **Planner-Architect** | Production, Phase 1 | Always | Not meaningfully deactivatable while still using AGF's gate model — Gate 1 authorship has no other owner in the minimum system | Removes a load-bearing piece of the governed-change pipeline itself |
 | **Coder-Tester** | Production, Phase 1 | Always | Not meaningfully deactivatable while still using AGF's gate model — Gate 2 implementation has no other owner in the minimum system | Removes a load-bearing piece of the governed-change pipeline itself |
@@ -61,19 +61,15 @@ equivalent, not in framework metadata that's identical across every adopter.
 
 ## A wording discrepancy, now resolved
 
-Contribution Auditor's own definition (`contribution-auditor.yaml`)
-previously said its trigger was "mandatory from first **external**
-contribution," while `framework.md` said "mandatory from first
-contribution, **upstream or downstream**." These were not obviously the
-same condition — a downstream adopter's own first-ever contribution to
-their own project is not necessarily "external" in the same sense an
-upstream contribution to the framework itself is, and "external" already
-has a distinct, different defined meaning elsewhere in this framework's own
-vocabulary (`always/external-anonymization-rule.md`'s codebase-publication
-boundary). Resolved by standardizing on `framework.md`'s "upstream or
-downstream" wording, matching Contribution Auditor's own stated purpose of
-screening contributions "before they enter the framework corpus or adopter
-projects" — the two directions that phrase already names.
+Contribution Auditor's own definition (`contribution-auditor.yaml`) and
+`framework.md` briefly disagreed on this trigger's exact wording — first
+"external" versus "upstream or downstream," then "upstream or downstream"
+itself was flagged as unexplained shorthand for a bare field value read
+out of context. Settled by governor-reviewer decision-record
+`20260721T071957Z-governor-reviewer-rts3`: **"first contribution to the
+framework or an adopter project"** — terse, matching this schema's other
+`activation_condition` values, and self-explanatory without requiring
+prior knowledge of this framework's "upstream/downstream" vocabulary.
 
 ## Tracked completion
 

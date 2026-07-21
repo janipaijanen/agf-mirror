@@ -1416,7 +1416,7 @@ first, the "Activate ... when" sentences answer the second.
 
 | Agent                     | Tier                    | Activate when                                |
 |---------------------------|-------------------------|----------------------------------------------|
-| **Contribution Auditor**  | Cross-cutting           | Mandatory from first contribution (upstream or downstream) |
+| **Contribution Auditor**  | Cross-cutting           | Mandatory from first contribution to the framework or an adopter project |
 | **InfoSec Sentinel**      | Cross-cutting           | Mandatory from first learning record submission |
 
 **Phase 1 cross-cutting agents (activate when needed):**
