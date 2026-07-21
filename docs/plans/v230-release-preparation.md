@@ -41,11 +41,10 @@ tag before the release MR is merged.
 
 1. MR !289 has a green pipeline on its final content, receives Gate 2 approval,
    merges to `main`, and the resulting `main` pipeline is green.
-2. The governor records one public-truth disposition for v2.2.6:
-   - publish v2.2.6 from its correct historical release commit before v2.3.0;
-     or
-   - explicitly mark v2.2.6 as prepared but unpublished and folded into
-     v2.3.0.
+2. Apply governor decision `20260721T075136Z-governor-reviewer-dpm8`: v2.2.6
+   was prepared and merged but never tagged or published. Do not create the
+   historical tag. Annotate it as prepared/unpublished and fold its changes
+   into v2.3.0.
 3. The exact `main` commit used to cut the release branch is recorded.
 
 ### Explicitly outside v2.3.0
@@ -79,8 +78,14 @@ release rule. The release MR must remain a release-only diff. Permitted changes:
    whose literal current-version value must become `2.3.0`.
 6. README inventory counts derived from the frozen release tree rather than
    copied from an earlier review.
-7. Public-truth corrections required by the chosen v2.2.6 disposition and the
-   approved MCP limitation language.
+7. Public-truth corrections required by the binding v2.2.6 disposition and the
+   approved MCP limitation language. Use this exact public wording:
+
+   > **2.2.6 was prepared and merged on 2026-06-26 but was not published as a
+   > tagged release. Its changes are incorporated into 2.3.0.**
+
+   Annotate the 2.2.6 changelog heading as prepared/unpublished and state in
+   the 2.3.0 entry that it incorporates the unpublished 2.2.6 content.
 
 No product feature implementation belongs on the release branch. A discovered
 product defect blocks the release and is repaired through its own governed MR;
@@ -171,6 +176,16 @@ run the configured infosec/credential-leak validation.
 
 ## Gate 2 and publication sequence
 
+Track the release through distinct observable states:
+
+```text
+prepared → reviewed → merged → tagged → tag pipeline passed
+→ assets published → public artifacts verified → completed
+```
+
+A merged release MR is authorization to publish, not evidence that publication
+occurred. Only the final state is a completed release.
+
 1. Prepare `tmp/MR_DESCRIPTION.md` and synchronize it to the release MR.
 2. Publish a Gate 2 handoff naming the exact head, validation commands,
    pipelines, artifacts, v2.2.6 disposition, and residual risks.
@@ -219,7 +234,8 @@ From the public release surfaces rather than the CI workspace:
 Gate 2 may be approved only when:
 
 - all frozen-scope prerequisites are satisfied;
-- the v2.2.6 history discrepancy has a durable public-truth disposition;
+- the binding v2.2.6 prepared/unpublished disposition is reflected consistently
+  in changelog and release notes;
 - the release-only diff is complete and version-consistent;
 - repository, documentation, distribution, provenance, negative-gate, OCI,
   vulnerability, and GitLab validations pass on the exact release head;
@@ -232,7 +248,8 @@ pipeline or the existence of `v2.3.0`.
 
 ## Review questions
 
-1. Is the v2.2.6 history decision correctly blocking release-branch creation?
+1. Is the binding v2.2.6 prepared/unpublished disposition applied completely
+   without accidentally presenting it as a prerelease or completed release?
 2. Is the release-only branch boundary narrow enough while still allowing all
    required version/public-truth corrections?
 3. Does the validation matrix prove the repaired tag-only package and OCI paths
@@ -240,3 +257,17 @@ pipeline or the existence of `v2.3.0`.
 4. Are any required v2.3.0 features missing from the changelog minimum?
 5. Is any acceptance criterion impossible to demonstrate before tagging and
    therefore better classified as a post-publication completion check?
+
+## Post-v2.3 follow-ups
+
+Do not implement these in the v2.3.0 release branch. Route them through a later
+Gate 1 plan only after v2.3.0 completes:
+
+- require a release completion record containing tag, tag pipeline, GitLab
+  Release, and publicly verified artifact links;
+- add a release-truth validator comparing framework version, reachable tags,
+  and—when explicitly configured—the public GitLab Release surface;
+- prevent Pages wording from equating an untagged content version with a
+  published release; and
+- expose prepared, merged-unpublished, published, and completed release states
+  without collapsing them into a single “released” label.
