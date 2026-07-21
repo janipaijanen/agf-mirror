@@ -52,6 +52,8 @@ tag before the release MR is merged.
 - MR !293, the site-wide terminology audit follow-up.
 - MR !294, typed coordination relationships and scoped supersession.
 - MR !117 and unrelated academic-paper work.
+- `philosophical-lenses-learning-additions`, which is Gate 1-approved but has
+  no Gate 2 implementation and must not be rushed into the release.
 - New feature, rule, schema, or documentation initiatives not already merged
   into the frozen `main` commit.
 - SBOM generation, release signing, installer scripts, third-party notices,
@@ -79,7 +81,10 @@ release rule. The release MR must remain a release-only diff. Permitted changes:
 6. README inventory counts derived from the frozen release tree rather than
    copied from an earlier review.
 7. Public-truth corrections required by the binding v2.2.6 disposition and the
-   approved MCP limitation language. Use this exact public wording:
+   already-authorized Level 4 MCP limitation status. The remediation text may
+   link the pending `mcp-coordination-dir-contract-fix` plan but must not
+   describe that plan's hard-rename design as approved until it receives Gate
+   1 approval. Use this exact v2.2.6 public wording:
 
    > **2.2.6 was prepared and merged on 2026-06-26 but was not published as a
    > tagged release. Its changes are incorporated into 2.3.0.**
@@ -172,7 +177,9 @@ run the configured infosec/credential-leak validation.
   only on local outputs.
 - A coordination-only tip must not conceal untested content. If workflow rules
   skip a mixed push, create or manually run a pipeline that covers the final
-  content commit and exact review head.
+  content commit and exact review head. This exact failure occurred on required
+  dependency !289; see learning `20260721T073035Z-bt1s` and correction record
+  `20260721T072945Z-coder-tester-ms3h`.
 
 ## Gate 2 and publication sequence
 
@@ -193,7 +200,11 @@ occurred. Only the final state is a completed release.
 4. Resolve the resulting `main` merge commit and verify it contains the exact
    approved release diff.
 5. Create annotated tag `v2.3.0` on that merge commit and push it immediately
-   in the same controlled action. Never tag the release branch.
+   in the same controlled action. Never tag the release branch. After the push,
+   verify the remote tag and target with `git ls-remote --tags origin` or the
+   GitLab API before proceeding. On timeout or apparent push failure, first
+   check whether the remote received the tag; if not, retry the identical push
+   of the same local tag object. Never delete, recreate, or move the tag.
 6. Monitor all tag jobs: tag/version guard, source archives, Rust target
    archives, OCI build/smoke/scan/push, package uploads, and GitLab Release
    creation.
