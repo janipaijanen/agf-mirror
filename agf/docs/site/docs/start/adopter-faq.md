@@ -92,7 +92,10 @@ discipline part of the governed loop:
 
 The useful split is simple: ADRs explain why the architecture is the way it is;
 coordination records explain how a specific governed change moved from proposal
-to merge.
+to merge. If your team also tracks *when* work happens in a roadmap or
+ticketing tool (Jira, Asana, Trello, GitHub Projects, GitLab Boards), see
+[AGF, ADRs, and roadmap/ticketing tools](../concepts/roadmap-and-tracker-coexistence.md)
+for how that third axis fits alongside these two.
 
 ## Who is the governor?
 
