@@ -34,36 +34,53 @@ advisory_consultation:
 
 ## Intent
 
-Fix `agov coord status` and `agov handoff next` so explicit
-`references-to:` links using bare coordination IDs resolve the referenced
-handoff the same way links using `<id>.md` filenames do.
+Finish the compatibility fix for `agov coord status`, `agov handoff next`, and
+the coordination graph so exact references to historical malformed
+20-character ULID-like filenames resolve the same way as sequence, valid
+26-character ULID, and readable-ID references.
 
-The immediate bug is in the Rust `agov` scanner path: `frontmatter_refs`
-returns bare IDs unchanged, while descendant lookup keys are stored as
-filenames with `.md`. The reference edge is dropped, so already-resolved
-handoffs still appear pending.
+The original bare-ID normalization bug described by this plan was fixed in
+June 2026. Current `normalize_coord_reference()` correctly handles sequence
+filenames, valid 26-character ULIDs, and readable timestamp IDs. A narrower
+legacy gap remains: the project briefly generated 20-character Crockford-
+alphabet IDs such as `01KVK7J9N2AW8DJZQAG2`. Their files are immutable and
+schema-valid historical records, but `looks_like_coord_filename()` rejects
+references to them. The reference edge is discarded before descendant lookup,
+so two already-resolved readable-ID handoffs still appear pending.
+
+The defect and exact mechanism were already recorded in
+`20260625T090052Z-coder-tester-s8np`. The 2026-07-21 coordination cleanup added
+new exact acknowledgements and confirmed that no coordination-only workaround
+can close the displayed entries while the normalizer drops those references.
 
 ## Scope
 
 ### In scope
 
-- Normalize front matter `references-to:` values in
-  `tooling/rust/crates/agov/src/main.rs` so readable IDs, ULIDs, and legacy IDs
-  without `.md` are converted to `<id>.md` before descendant lookup.
-- Preserve existing behavior for references that already include `.md`.
-- Add or update Rust tests proving:
-  - a later `decision-record` with a bare ID in `references-to:` resolves a
-    handoff;
-  - an existing `<id>.md` reference still resolves;
-  - non-resolution `note` messages may act as transitive links but do not
-    resolve by themselves.
-- Scan and document the two existing `todo!()` stubs in
-  `agov-coord/src/handoff_tracker.rs` and `agov-coord/src/channel_reader.rs`
-  as out of scope for this fix unless the implementation must touch them.
+- Extend `tooling/rust/crates/agov-coord/src/coord_validator.rs` reference-
+  filename recognition with a **legacy compatibility-only** 20-character
+  Crockford-alphabet form.
+- Preserve all current sequence, 26-character ULID, readable-ID, `.md`-suffixed,
+  bare-ID, and path-qualified reference behavior.
+- Never generate a 20-character ID and never present it as a valid current
+  ULID. Generation remains readable-ID by default, with valid 26-character
+  ULID only on the legacy recovery option.
+- Add unit and integration regression tests proving:
+  - an exact historical 20-character filename reference is retained;
+  - a later `ack`, `completion`, or `decision-record` resolves a handoff with
+    that filename;
+  - the known cleanup acknowledgements clear the two false-positive entries on
+    a current repository scan;
+  - current 26-character ULID, readable-ID, sequence, bare-ID, `.md`, and
+    path-qualified cases remain accepted;
+  - malformed non-Crockford and near-length strings remain rejected.
 
 ### Out of scope
 
 - Schema changes.
+- Accepting arbitrary 20-character strings or weakening readable/ULID ID
+  generation rules.
+- Renaming, editing, or replacing the historical coordination files.
 - A `reopen:` field or reopen semantics.
 - Git-log or merge-history inference.
 - Date cutoffs or silent aging-out of old handoffs.
@@ -92,16 +109,17 @@ semantics beyond the minimal bug fix and deserves its own evidence.
 
 | File | Change |
 |---|---|
-| `tooling/rust/crates/agov/src/main.rs` | Normalize `frontmatter_refs` outputs and add/update tests |
+| `tooling/rust/crates/agov-coord/src/coord_validator.rs` | Recognize the historical 20-character Crockford filename form for reference normalization only; add focused unit tests |
+| `tooling/rust/crates/agov/tests/` or existing coordination integration-test module | Prove legacy handoff resolution and current-format non-regression |
 | `docs/coordination/<gate2-handoff>.md` | Gate 2 handoff after implementation |
 
 ## Test strategy
 
-- `cargo test --manifest-path tooling/rust/Cargo.toml -p agov`
-- `cargo test --manifest-path tooling/rust/Cargo.toml`
-- `./tooling/agov coord status --recent 10 --roles` on the repository after
-  implementation should no longer list the stale handoffs that are explicitly
-  referenced by `20260622T202034Z-governor-reviewer-8ma3.md`.
+- `cargo test --manifest-path tooling/rust/Cargo.toml -p agov-coord`
+- `cargo test --manifest-path tooling/rust/Cargo.toml --workspace`
+- `cargo clippy --manifest-path tooling/rust/Cargo.toml --workspace -- -D warnings`
+- A locally built release `agov coord status --roles` on current main must no
+  longer list `01KVK7J9N2AW8DJZQAG2` or `01KVK7DYM21GGQ7ZZ5RR` as pending.
 - `./tooling/agov plan validate docs/plans/coord-scanner-resolution-fix.md`
 - `./tooling/agov coord validate docs/coordination/<handoff>.md`
 - `git diff --check`
@@ -110,11 +128,11 @@ semantics beyond the minimal bug fix and deserves its own evidence.
 
 | Risk | Mitigation |
 |---|---|
-| False resolution of unrelated text | Only normalize values already in structured `references-to:` front matter |
-| Expanding governance semantics silently | Keep resolution-capable kinds unchanged: `ack`, `completion`, `decision-record` |
-| Breaking existing `.md` references | Preserve names that already end with `.md` |
-| Leaving `agov-coord` stubs confusing | Document scan results; defer stubs unless implementation requires them |
-| Queue still noisy due other scanner bugs | Validate against the current cleanup decision record and report any remaining entries |
+| Treating the malformed historical format as a current supported generator format | Name the predicate as legacy compatibility, document that generation is forbidden, and test generators remain unchanged |
+| False resolution of unrelated text | Require exactly 20 Crockford characters before the role suffix and keep resolution kinds unchanged |
+| Weakening current reference formats | Preserve and regression-test sequence, 26-character ULID, readable, bare, `.md`, and path-qualified cases |
+| Hiding genuinely pending work | Only a later explicit `ack`, `completion`, or `decision-record` remains resolution-capable |
+| Queue still noisy due another scanner bug | Validate against current main and report every remaining entry rather than adding an age cutoff |
 
 ## Rollback
 
