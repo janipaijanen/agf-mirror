@@ -45,26 +45,34 @@ trail is not good enough.
 
 ## What ships and what you activate
 
-> AGF releases ship the complete governance library. The documented first-trial
-> path activates a selected subset rather than every role and task-specific
-> rule; a reduced starter package does not currently ship.
+> AGF releases ship the complete governance library — every role, rule,
+> skill, schema, and template. In the maintainer's own deployments, the full
+> rule set has run unpruned from day one, without a manual curation step,
+> and has worked well as shipped; curating the rule set down is optional,
+> not a documented prerequisite. A reduced starter package does not
+> currently ship.
 
 The release includes the role, rule, skill, schema, template, and documentation
 libraries so each project can make its own governed choices. Treat that
 inventory as available framework content, not as a roster that must all be
-active on day one.
+active on day one — and also not as a roster you must prune before it is
+safe to use. Both paths are evidenced from the maintainer's own projects.
 
 For a solo trial, the documented minimum is `coder-tester` plus the human
 `governor-reviewer`. A standard governed project adds `planner-architect`.
 Activate advisory and specialist roles when the work creates the need they
-address. Core rules remain binding; workflow, documentation, UI, and other
-task-specific rules apply when their subject is present. During commissioning,
-review the rule set and remove rules that cannot apply to the project rather
-than teaching assistants to ignore loaded instructions.
+address — this incremental, roles-added-as-needed pattern is what the
+maintainer's own projects have followed. Core rules remain binding;
+workflow, documentation, UI, and other task-specific rules apply when their
+subject is present. If a rule clearly does not and will not apply to the
+project, removing it during commissioning avoids teaching assistants that
+loaded instructions are optional — but doing so is a choice, not a required
+step; leaving the full rule set active has also worked without incident in
+the maintainer's own deployments.
 
 For a first, still-incomplete answer to *which specific rules and roles you
-can safely remove and what each removal costs*, see the
-[adopter applicability catalog](../adopt/applicability-catalog.md) — it
+can safely remove and what each removal costs, if you choose to prune*, see
+the [adopter applicability catalog](../adopt/applicability-catalog.md) — it
 classifies a first slice of 8 governed artifacts (of 58 total) with an
 activation condition and a removal consequence for each.
 
@@ -78,9 +86,11 @@ decisions. See
 [Where v2 could evolve](../../future/evolution.md#reduced-first-adoption-product).
 
 The [installation guide](../adopt/install-and-layouts.md#step-4-review-rule-loading-and-customization)
-shows how to select applicable rules and roles. Evaluators should judge both
-the complete distributed surface and the smaller configuration an adopter
-would actually activate; neither measurement substitutes for the other.
+shows how to select applicable rules and roles, for adopters who choose to
+prune. Evaluators should judge both the complete distributed surface and
+whatever smaller configuration a given adopter actually runs; neither
+measurement substitutes for the other, and the smaller configuration is not
+guaranteed to exist.
 
 ## Adopt now if…
 

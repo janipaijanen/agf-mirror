@@ -9,9 +9,12 @@ most common failure modes observed in past reviews: identity confusion
 not read from the actual files), and capability conflation (treating
 planned features as shipped ones).*
 
-> AGF releases ship the complete governance library. The documented first-trial
-> path activates a selected subset rather than every role and task-specific
-> rule; a reduced starter package does not currently ship.
+> AGF releases ship the complete governance library — every role, rule,
+> skill, schema, and template. In the maintainer's own deployments, the full
+> rule set has run unpruned from day one, without a manual curation step,
+> and has worked well as shipped; curating the rule set down is optional,
+> not a documented prerequisite. A reduced starter package does not
+> currently ship.
 
 The canonical explanation is
 [What ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate).
@@ -57,11 +60,12 @@ and files that support your claims. For adoption costs, read
 [Downstream impact](docs/adopt/downstream-impact.md). For the mental model,
 read [Roles and gates](docs/concepts/roles-and-gates.md).
 
-When assessing complexity, report the complete inventory, the subset described
-for the adopter's trial shape, and whether a reduced starter artifact actually
-exists as three separate findings. Do not infer that every distributed role is
-active; do not infer that selective commissioning is already a separately
-packaged starter product.
+When assessing complexity, report the complete inventory, what a given
+adopter actually activated (which may be the full set or a pruned subset —
+both are evidenced, neither is the assumed default), and whether a reduced
+starter artifact actually exists, as three separate findings. Do not infer
+that every distributed role is active; do not infer that selective
+commissioning is already a separately packaged starter product.
 
 ## Canonical reading list
 
