@@ -3,25 +3,32 @@ id: deprecation-policy-rule
 status: approved
 topic: deprecation-policy-rule
 gate1_approved_by: governor-reviewer
-gate1_approved_at: "2026-07-21T00:02:17Z"
+gate1_approved_at: "2026-07-21T00:02:18Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: governance-rule addition; no secrets, auth, or security-boundary code change. The rule text does distinguish a "security-sensitive surface" tier, but that is policy content, not a security-relevant code path.
   - role: contribution-auditor
     status: waived
-    reason: single-agent Gate 1 planning session; no contribution-auditor available to consult. The prior-art table's citations (Kubernetes, Django, PEP 387, Node.js, Rust, GitHub API) should be spot-checked for accuracy at Gate 2 per verifiable-claims-rule, since this plan asserts them from training knowledge rather than a live fetch.
+    reason: single-agent Gate 1 planning session; no contribution-auditor available to consult. The prior-art table's citations were spot-checked via live fetch on 2026-07-21 per gqdt's review — see status line below. Two of six were found wrong and corrected (Kubernetes GA, GitHub API); four were confirmed accurate (Django, PEP 387, Node.js, Rust).
 ---
 
 # Plan: deprecation-policy-rule — when and how long deprecations last
 
 **Date:** 2026-07-20T21:01:33Z
-**Status:** GATE 1 APPROVED (governor-reviewer, 2026-07-21T00:02:17Z — MR
-!262/!263 merge). Prior-art citations flagged in the advisory_consultation
-note above (Kubernetes, Django, PEP 387, Node.js, Rust, GitHub API) are
-still asserted from training knowledge, not independently spot-checked
-via live fetch — noted as an open item, not resolved by this status
-update.
+**Status:** GATE 1 APPROVED (governor-reviewer decision-record
+`docs/coordination/20260721T002557Z-governor-reviewer-66gd.md`, evidenced by
+MR !262's GitLab `merged_at` of 2026-07-21T00:02:18.39Z, merged by the
+governor). Prior-art citations flagged at Gate 1 as unverified were spot-
+checked via live fetch on 2026-07-21, per
+`docs/coordination/20260721T001149Z-coder-tester-gqdt.md`'s WARN: the
+Kubernetes GA figure ("12 months or 3 releases") does not exist in the
+published policy — GA APIs have no fixed removal window at all, only Beta
+does (9 months/3 releases, twice) — and the GitHub API figure was
+understated (actual: at least 24 months, not ~12). Both corrected in
+`.claude/rules/workflow/deprecation-policy-rule.md` and
+`agf/rules/workflow/deprecation-policy-rule.md`. Django, PEP 387, Node.js,
+and Rust citations were confirmed accurate as originally stated.
 **Triggering context:** direct governor question during Gate 1 review of
 `docs/plans/mcp-coordination-dir-contract-fix.md` — while dropping that
 plan's `dir` deprecated-alias design in favor of a hard rename, the
