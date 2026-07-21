@@ -1736,6 +1736,89 @@ learnings:
       evidence_refs:
         - "MR !306 preview job 15448242127: Rust checksum files recorded ../../dist paths and failed consumer-layout sha256sum -c verification"
         - "tooling/rust/crates/agov/src/dist.rs writes basename-only framework checksums, while .gitlab-ci.yml lines 557 and 576 duplicated path-preserving Rust checksum generation"
+  - id: "20260721T121047Z-r4m7"
+    date: "2026-07-21"
+    category: gap
+    scope: framework
+    title: release-completion-requires-enumerating-every-public-truth-surface
+    description: >
+      The v2.3.0 release updated the canonical adopter-facing
+      `agf/CHANGELOG.md`, passed its release pipelines, published its archives
+      and OCI image, and was initially declared completed after public package,
+      provenance, checksum, binary, OCI, and Pages checks. After publication,
+      the governor noticed that the separate repository-root `CHANGELOG.md`
+      still ended at 2.2.5 with an empty `[Unreleased]` section. The immutable
+      v2.3.0 tag and its source archive therefore contain inconsistent release
+      history even though the designated canonical changelog is correct.
+
+      The review mistake was not failure to verify the edited file; it was
+      failure to enumerate all release-relevant truth surfaces before defining
+      the verification set. Calling one changelog canonical was incorrectly
+      treated as making the repository-level changelog irrelevant, despite the
+      latter explicitly claiming to record all notable repository-level
+      changes. The post-publication check likewise verified versioned Pages,
+      GitLab release notes, package contents, and the canonical changelog link,
+      but did not inspect every changelog contained in the exact tagged source
+      tree. This allowed individually correct checks to support a false global
+      completion claim.
+
+      The incident also demonstrates why post-tag recovery rules matter. The
+      v2.3.0 tag and immutable OCI version tag must not be moved, deleted, or
+      recreated merely to repair release metadata. The completion declaration
+      was retracted, and the correction must land through governed work and a
+      new patch release so the repaired public truth has a new immutable
+      identity.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: "release preparation; public-truth inventory; post-publication verification"
+    business_impact:
+      type: cost_overhead
+      description: >
+        A missed release surface requires an additional governed correction
+        and patch release, consumes release and review time, and leaves the
+        already-published immutable v2.3.0 source archive with internally
+        inconsistent release history. The error was found immediately by the
+        governor rather than by an adopter, limiting external impact.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Make release truth-surface enumeration an explicit preparation artifact,
+      not an informal review assumption. Before release, generate or maintain a
+      manifest of every version, changelog, release-note, documentation header,
+      package metadata, template marker, download page, and generated public
+      surface that makes a current-version or release-history claim. For each
+      surface, record whether it must change, must remain unchanged, or is
+      derived, plus the command or public URL that verifies it.
+
+      Add a release validator that discovers all tracked `CHANGELOG.md` and
+      version-bearing files and fails when an unexplained surface lacks the
+      release version or an explicit waiver. Canonical status may determine
+      which file supplies adopter-facing detail, but it must not silently
+      exempt another file that independently promises repository-level
+      history. Prefer deriving secondary changelogs or reducing them to stable
+      pointers when maintaining duplicate narratives adds no value.
+
+      Run the final pre-tag check against an archive of the exact prospective
+      merge tree, and run the post-publication check against the exact tagged
+      source archive. Completion evidence should be a claim-to-evidence matrix:
+      every asserted public truth names the checked path or URL and result.
+      A green pipeline, correct canonical file, or versioned header is partial
+      evidence and must not be generalized into release completion.
+
+      If a release-truth defect is discovered after tag publication, preserve
+      the immutable tag and OCI version tag, retract any premature completion
+      record through a new immutable coordination record, document the defect,
+      and publish the correction under a new patch version. Never rewrite the
+      published release identity to make the historical evidence appear clean.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "MR !306 / tag v2.3.0: agf/CHANGELOG.md correctly contains 2.3.0 while root CHANGELOG.md ends at 2.2.5"
+        - "MR !312: completion record was filed after checking packages, provenance, checksums, binaries, OCI, and Pages but before root changelog inspection; completion claim retracted in MR notes"
+        - "Immutable published source tag v2.3.0 peels to c3219b199b1534bc4f3fce0dc42be53c7ce93498 and must be repaired through a new patch release rather than moved"
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
