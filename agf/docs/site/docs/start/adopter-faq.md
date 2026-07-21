@@ -206,7 +206,7 @@ private paths, secrets, domain-revealing identifiers, or chat transcripts that
 contain sensitive context.
 
 For the model behind learnings, see
-[Evidence and learnings](../concepts/evidence-and-learnings.md).
+[Learning loop and evidence](../concepts/evidence-and-learnings.md).
 
 ## Do downstream adopters get a learning template?
 

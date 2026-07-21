@@ -181,7 +181,7 @@ auditable, add AGF on top.
 ## Next
 
 - How roles and gates work: [Roles and gates](roles-and-gates.md)
-- How evidence accumulates from tool use: [Evidence and learnings](evidence-and-learnings.md)
+- How evidence accumulates from tool use: [Learning loop and evidence](evidence-and-learnings.md)
 - Consultative questions for challenging any governance design's scope
   and guarantee claims, including this one:
   [Philosophical lenses on AI governance](philosophical-lenses.md)
