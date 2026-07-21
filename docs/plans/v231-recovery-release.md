@@ -1,28 +1,29 @@
 ---
 id: v231-recovery-release
-status: pending-gate1
+status: approved
 topic: v2-3-1-recovery-release
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-21T12:52:26Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: waived
     reason: the recovery changes release metadata and artifact discovery without introducing secret-handling behavior; existing infosec validation remains mandatory on every changed learning and the final release candidate
   - role: contribution-auditor
     status: consulted
-    reason: critical scope review is routed to the Contribution Auditor through the coordination channel and MR discussion; its response is required before governor Gate 1 disposition
+    reason: critical scope review was routed through coordination record 20260721T123806Z-planner-architect-7grh and MR discussion; no response had arrived when the human governor exercised binding authority to approve revised head 00cff1a, so any later advisory response is follow-up evidence and cannot silently broaden the approved scope
 ---
 
 # Plan: v2.3.1 recovery release
 
-## Status and decision requested
+## Status and decision
 
-**Pending Gate 1. Do not implement the release-sidecar change, bump versions,
-cut a release branch, merge a release MR, or create `v2.3.1` until the human
-governor approves this plan through a durable coordination decision.**
+**Gate 1 approved by the human governor in
+`20260721T125226Z-governor-reviewer-jpbb` against revised plan head
+`00cff1a`. Merge this approved plan before implementation begins.**
 
-The governor is asked to approve a focused patch-release recovery for the
-post-publication v2.3.0 public-truth defect. Approval fixes the inclusion and
-exclusion matrix below. It does not authorize moving or replacing v2.3.0, and
-it does not pull all currently open MRs into the patch.
+The approval fixes the focused patch-release recovery, inclusion/exclusion
+matrix, and evidence requirements below. It does not authorize moving or
+replacing v2.3.0, and it does not pull all currently open MRs into the patch.
 
 ## Incident and binding disposition
 
