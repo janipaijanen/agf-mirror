@@ -132,11 +132,12 @@ Table 1 summarizes the commitments you accept when you adopt the framework.
 
 | Commitment | Size |
 |---|---|
-| Initial install | Assistant-prepared file setup, human-reviewed rule choices — an afternoon |
+| Mechanical installation | Assistant-prepared file setup — no more than ten minutes in the maintainer's own deployments; empirically informed maintainer evidence, not yet independent-adopter validation |
+| Initial commissioning | Human-reviewed rule choices and your first governed change — separate, variable work with no numeric estimate |
 | Per-change overhead | Plan + two gates for non-trivial changes; fast track for small ones when no agent holds an active claim (an exclusive reservation in the coordination channel) |
-| Governor attention | Often 5-15 minutes for a non-trivial first-trial change; more for high-risk work |
+| Governor attention | Often 5-15 minutes for a non-trivial first-trial change, more for high-risk work — a maintainer-informed planning estimate, not an independently validated benchmark |
 | Ongoing | Learning records when incidents or reusable patterns happen; upgrade hygiene per release |
-| Reversibility | Full removal is documented and verifiable — see [exit](../adopt/exit-and-decommission.md) |
+| Reversibility | Full removal is one atomic cleanup commit — see [exit](../adopt/exit-and-decommission.md); its duration is unmeasured and varies with your CI, hooks, and retained evidence |
 
 The complete itemisation is on the [downstream impact](../adopt/downstream-impact.md)
 page. If you read only one more page before deciding, read that one.

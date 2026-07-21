@@ -27,6 +27,12 @@ artifacts completely.
 | **Downgrade** | Drop from full governance to rules-only (keep `agf/rules/`, drop gates and coordination) | Keep the selected `agf/rules/` files and remove gate obligations |
 | **Remove** | Delete every framework artifact | One atomic removal commit |
 
+Removal effort is one atomic cleanup commit. Its duration has not yet been
+measured; it varies with your CI, hooks, and how much project-owned evidence
+(`docs/plans/`, `docs/coordination/`, learning records) you choose to keep or
+prune first. No numeric exit-time claim is made until a real decommission is
+measured from a defined start to a verified clean end state.
+
 ## What you keep after full removal
 
 - **Your git history** — the coordination channel and plan files remain in
