@@ -1,7 +1,9 @@
 ---
 id: v230-release-preparation
-status: pending-gate1
+status: approved
 topic: v2-3-0-release-preparation
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-21T08:02:33Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: waived
@@ -15,8 +17,10 @@ advisory_consultation:
 
 ## Status and decision requested
 
-**Pending Gate 1. Do not start the release implementation, bump versions, or
-create a tag until the governor approves this plan.**
+**Gate 1 approved by the human governor in
+`20260721T080233Z-governor-reviewer-qnbt`. Do not start the release
+implementation, bump versions, or create a tag until this approved plan MR is
+merged.**
 
 The governor is asked to approve one executable path from the current NO-GO
 state to a verified v2.3.0 release. Approval fixes the target version and the
