@@ -442,35 +442,96 @@ pub fn check_no_duplicate_filenames(records: &[Value]) -> Vec<String> {
         .collect()
 }
 
-/// Cross-check that an `oci-image` record's `labels.version`/`labels.revision`
-/// agree with its own `version`/`source_commit` fields — i.e. the provenance
-/// JSON agrees with the OCI image labels it describes.
-pub fn check_label_agreement(record: &Value) -> Vec<String> {
+/// Real evidence read from an actual OCI image — via `podman inspect` at
+/// the CLI layer, never fabricated from the record's own fields. Passing
+/// evidence gathered this way is what distinguishes `check_oci_image_evidence`
+/// from a self-comparison: the record's `labels` object is self-reported by
+/// the same generator call that wrote `version`/`source_commit`, so
+/// comparing a record to itself can never fail and proves nothing about
+/// the actual published image.
+#[derive(Debug, Clone, Default)]
+pub struct OciImageEvidence {
+    /// The image's real `Config.Labels`, as reported by `podman inspect`
+    /// (or `docker inspect` / registry manifest introspection).
+    pub labels: BTreeMap<String, String>,
+    /// The image's real manifest digest (`sha256:...`), if known.
+    pub digest: Option<String>,
+}
+
+/// Cross-check an `oci-image` record against REAL evidence read from the
+/// actual image, not against the record's own self-reported `labels`
+/// field. Compares `record.version`/`record.source_commit` to the image's
+/// actual `org.opencontainers.image.{version,revision}` labels, and, when
+/// `evidence.digest` is known, compares it to `record.manifest_digest`.
+pub fn check_oci_image_evidence(record: &Value, evidence: &OciImageEvidence) -> Vec<String> {
     let mut findings = Vec::new();
     let version = record.get("version").and_then(Value::as_str);
     let source_commit = record.get("source_commit").and_then(Value::as_str);
-    let label_version = record
-        .get("labels")
-        .and_then(|labels| labels.get("version"))
-        .and_then(Value::as_str);
-    let label_revision = record
-        .get("labels")
-        .and_then(|labels| labels.get("revision"))
-        .and_then(Value::as_str);
+    let real_version = evidence
+        .labels
+        .get("org.opencontainers.image.version")
+        .map(String::as_str);
+    let real_revision = evidence
+        .labels
+        .get("org.opencontainers.image.revision")
+        .map(String::as_str);
 
-    if version.is_some() && version != label_version {
+    if version != real_version {
         findings.push(format!(
-            "OCI label disagreement: record version {:?} != labels.version {:?}",
-            version, label_version
+            "OCI image evidence disagreement: record version {version:?} != actual image label org.opencontainers.image.version {real_version:?}"
         ));
     }
-    if source_commit.is_some() && source_commit != label_revision {
+    if source_commit != real_revision {
         findings.push(format!(
-            "OCI label disagreement: record source_commit {:?} != labels.revision {:?}",
-            source_commit, label_revision
+            "OCI image evidence disagreement: record source_commit {source_commit:?} != actual image label org.opencontainers.image.revision {real_revision:?}"
         ));
     }
+
+    if let Some(actual_digest) = &evidence.digest {
+        let record_digest = record.get("manifest_digest").and_then(Value::as_str);
+        if record_digest != Some(actual_digest.as_str()) {
+            findings.push(format!(
+                "OCI image evidence disagreement: record manifest_digest {record_digest:?} != actual image digest {actual_digest:?}"
+            ));
+        }
+    }
+
     findings
+}
+
+/// Parse `podman inspect <image>` (or `docker inspect`) JSON output — a
+/// one-element array, `Config.Labels` an object of string→string — into
+/// `OciImageEvidence`. The digest is read from `Digest` if present
+/// (registry-side digest), else left `None` (a purely local image build
+/// has no registry digest yet).
+pub fn parse_podman_inspect(inspect_json: &str) -> Result<OciImageEvidence, String> {
+    let parsed: Value = serde_json::from_str(inspect_json)
+        .map_err(|err| format!("malformed podman inspect JSON: {err}"))?;
+    let entry = parsed
+        .as_array()
+        .and_then(|array| array.first())
+        .ok_or_else(|| "podman inspect JSON is not a non-empty array".to_string())?;
+
+    let labels = entry
+        .get("Config")
+        .and_then(|config| config.get("Labels"))
+        .and_then(Value::as_object)
+        .map(|labels| {
+            labels
+                .iter()
+                .filter_map(|(key, value)| {
+                    value.as_str().map(|value| (key.clone(), value.to_string()))
+                })
+                .collect::<BTreeMap<_, _>>()
+        })
+        .unwrap_or_default();
+
+    let digest = entry
+        .get("Digest")
+        .and_then(Value::as_str)
+        .map(str::to_string);
+
+    Ok(OciImageEvidence { labels, digest })
 }
 
 #[cfg(test)]
@@ -594,9 +655,114 @@ mod tests {
         assert_ne!(outcome.assurance_level, AssuranceLevel::V24);
     }
 
+    // ── OCI image evidence (finding #4: real evidence, not self-compare) ─
+
+    fn matching_evidence() -> OciImageEvidence {
+        let mut labels = BTreeMap::new();
+        labels.insert(
+            "org.opencontainers.image.version".to_string(),
+            "2.4.0".to_string(),
+        );
+        labels.insert(
+            "org.opencontainers.image.revision".to_string(),
+            "abc123".to_string(),
+        );
+        OciImageEvidence {
+            labels,
+            digest: Some(
+                "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                    .to_string(),
+            ),
+        }
+    }
+
     #[test]
-    fn oci_label_agreement_passes_when_labels_match() {
-        assert!(check_label_agreement(&valid_oci_record()).is_empty());
+    fn oci_image_evidence_passes_when_real_labels_and_digest_match() {
+        let findings = check_oci_image_evidence(&valid_oci_record(), &matching_evidence());
+        assert!(findings.is_empty(), "findings: {findings:?}");
+    }
+
+    #[test]
+    fn negative_oci_image_evidence_wrong_real_version_label_is_rejected() {
+        let mut evidence = matching_evidence();
+        evidence.labels.insert(
+            "org.opencontainers.image.version".to_string(),
+            "9.9.9".to_string(),
+        );
+        let findings = check_oci_image_evidence(&valid_oci_record(), &evidence);
+        assert!(findings.iter().any(|f| f.contains("record version")));
+    }
+
+    #[test]
+    fn negative_oci_image_evidence_wrong_real_revision_label_is_rejected() {
+        let mut evidence = matching_evidence();
+        evidence.labels.insert(
+            "org.opencontainers.image.revision".to_string(),
+            "deadbeef".to_string(),
+        );
+        let findings = check_oci_image_evidence(&valid_oci_record(), &evidence);
+        assert!(findings.iter().any(|f| f.contains("source_commit")));
+    }
+
+    #[test]
+    fn negative_oci_image_evidence_wrong_real_digest_is_rejected() {
+        let mut evidence = matching_evidence();
+        evidence.digest = Some(
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111".to_string(),
+        );
+        let findings = check_oci_image_evidence(&valid_oci_record(), &evidence);
+        assert!(findings.iter().any(|f| f.contains("manifest_digest")));
+    }
+
+    #[test]
+    fn negative_oci_image_evidence_missing_real_labels_is_rejected() {
+        // A record claiming labels the actual image does not carry.
+        let findings = check_oci_image_evidence(&valid_oci_record(), &OciImageEvidence::default());
+        assert_eq!(findings.len(), 2);
+    }
+
+    #[test]
+    fn self_reported_labels_alone_can_never_fail_which_is_why_evidence_is_required() {
+        // Documents the exact tautology finding #4 flagged: comparing a
+        // record's own `labels` object to its own `version`/`source_commit`
+        // (both written by the same generator call) can never disagree.
+        // check_oci_image_evidence requires independently-obtained evidence
+        // instead, which real tampering or a real build defect CAN fail.
+        let record = valid_oci_record();
+        assert_eq!(record["labels"]["version"], record["version"]);
+        assert_eq!(record["labels"]["revision"], record["source_commit"]);
+    }
+
+    #[test]
+    fn parse_podman_inspect_extracts_labels_and_digest() {
+        let inspect_json = r#"[{
+            "Digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Config": {
+                "Labels": {
+                    "org.opencontainers.image.version": "2.4.0",
+                    "org.opencontainers.image.revision": "abc123"
+                }
+            }
+        }]"#;
+        let evidence = parse_podman_inspect(inspect_json).unwrap();
+        assert_eq!(
+            evidence.labels.get("org.opencontainers.image.version"),
+            Some(&"2.4.0".to_string())
+        );
+        assert_eq!(
+            evidence.digest.as_deref(),
+            Some("sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+        );
+    }
+
+    #[test]
+    fn parse_podman_inspect_rejects_malformed_json() {
+        assert!(parse_podman_inspect("not json").is_err());
+    }
+
+    #[test]
+    fn parse_podman_inspect_rejects_non_array_json() {
+        assert!(parse_podman_inspect(r#"{"Config": {}}"#).is_err());
     }
 
     // ── Negative cases for legacy/version classification (finding #1) ───

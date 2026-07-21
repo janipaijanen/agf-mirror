@@ -290,6 +290,13 @@ enum DistCommand {
         /// schema validation.
         #[arg(long)]
         artifact_dir: Option<PathBuf>,
+        /// An OCI image reference or ID to inspect (via `podman inspect`)
+        /// for real label/digest evidence, cross-checked against any
+        /// oci-image records among `files`. Without this, oci-image
+        /// records are only schema-validated -- no image evidence check
+        /// runs, since there is nothing to compare against.
+        #[arg(long)]
+        oci_image: Option<String>,
     },
     /// Build a single release-provenance JSON record from real artifact
     /// evidence (file bytes/sha256, or OCI image/label identifiers).
@@ -632,7 +639,13 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
         DistCommand::ValidateProvenance {
             files,
             artifact_dir,
-        } => validate_provenance_command(&files, artifact_dir.as_deref(), &mut output),
+            oci_image,
+        } => validate_provenance_command(
+            &files,
+            artifact_dir.as_deref(),
+            oci_image.as_deref(),
+            &mut output,
+        ),
         DistCommand::ProvenanceRecord { sub } => provenance_record_command(*sub, &mut output),
     };
 
@@ -645,14 +658,28 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
 /// Validate one or more release-provenance JSON records: schema validation
 /// (or legacy classification) for each file, plus cross-record duplicate-
 /// filename checks and, when `artifact_dir` is given, artifact/sha256/
-/// checksum-sidecar agreement and dangling-reference checks.
+/// checksum-sidecar agreement and dangling-reference checks. When
+/// `oci_image` is given, `podman inspect`s that real image and cross-checks
+/// its actual labels/digest against any oci-image records among `files`.
 fn validate_provenance_command(
     files: &[PathBuf],
     artifact_dir: Option<&Path>,
+    oci_image: Option<&str>,
     output: &mut OutputCounter,
 ) -> i32 {
     let mut parsed = Vec::new();
     let mut exit_code = 0;
+
+    let oci_evidence = match oci_image {
+        Some(image) => match inspect_oci_image(image) {
+            Ok(evidence) => Some(evidence),
+            Err(err) => {
+                output.stderr(format!("ERR  could not inspect OCI image {image}: {err}"));
+                return 1;
+            }
+        },
+        None => None,
+    };
 
     for file in files {
         let content = match std::fs::read_to_string(file) {
@@ -683,7 +710,9 @@ fn validate_provenance_command(
                 .and_then(serde_json::Value::as_str)
                 == Some("oci-image")
             {
-                findings.extend(provenance::check_label_agreement(&data));
+                if let Some(evidence) = &oci_evidence {
+                    findings.extend(provenance::check_oci_image_evidence(&data, evidence));
+                }
             }
             if let Some(dir) = artifact_dir {
                 findings.extend(provenance::check_artifact_agreement(&data, dir));
@@ -721,6 +750,26 @@ fn validate_provenance_command(
     }
 
     exit_code
+}
+
+/// Shell out to `podman inspect <image>` and parse real label/digest
+/// evidence from its output. This project's OCI tooling (`agov-oci-
+/// image.sh`) already shells out to `podman` for every image operation
+/// rather than embedding an OCI client library in Rust; this follows the
+/// same convention.
+fn inspect_oci_image(image: &str) -> Result<provenance::OciImageEvidence, String> {
+    let output = std::process::Command::new("podman")
+        .args(["inspect", image])
+        .output()
+        .map_err(|err| format!("could not run podman: {err}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "podman inspect {image} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    provenance::parse_podman_inspect(&stdout)
 }
 
 fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {
