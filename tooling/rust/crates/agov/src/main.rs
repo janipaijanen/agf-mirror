@@ -1125,6 +1125,19 @@ fn emit_provenance_record(
     output_path: Option<&Path>,
     output: &mut OutputCounter,
 ) -> i32 {
+    // Validate atomically before writing: a generator refactor that
+    // accidentally produces a schema-invalid record must fail here, not
+    // silently reach publication.
+    let outcome = provenance::validate_record(record);
+    if !outcome.is_valid() {
+        for finding in &outcome.findings {
+            output.stderr(format!(
+                "ERR  generated provenance record is invalid: {finding}"
+            ));
+        }
+        return 1;
+    }
+
     let json = match serde_json::to_string_pretty(record) {
         Ok(json) => json,
         Err(err) => {

@@ -354,6 +354,19 @@ release:create:
     # uploaded or a Release entry is created, so a missing archive or
     # sidecar blocks the pipeline instead of shipping an incomplete release.
     - tooling/rust/scripts/release-assets.sh verify dist "$VERSION"
+    # Validate the complete assembled release set -- schema, cross-record
+    # cardinality bijection (every primary artifact exactly one record, no
+    # stale/extra records), and artifact/sha256/checksum-sidecar agreement
+    # -- before anything is uploaded. This image has no agov of its own;
+    # extract it from the already-built musl tooling archive, matching the
+    # pattern agov-oci-image.sh already uses for the same reason.
+    - apk add --no-cache tar gzip
+    - |
+      staging="$(mktemp -d)"
+      tar -xzf "dist/agov-${VERSION}-x86_64-unknown-linux-musl.tar.gz" -C "$staging"
+      AGOV_BIN="$staging/agov-${VERSION}-x86_64-unknown-linux-musl/agov"
+      "$AGOV_BIN" dist validate-provenance dist/*-provenance.json --artifact-dir dist
+      rm -rf "$staging"
     # Upload every release artifact to the generic package registry.
     # The glob covers framework archives, Rust tooling archives, checksums, and provenance.
     - |

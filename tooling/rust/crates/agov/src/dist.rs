@@ -602,6 +602,19 @@ fn write_provenance(
             target_platform: None,
         });
 
+        let outcome = provenance::validate_record(&record);
+        if !outcome.is_valid() {
+            return Err(outcome
+                .findings
+                .into_iter()
+                .map(|finding| {
+                    format!(
+                        "generated provenance record for {artifact_filename} is invalid: {finding}"
+                    )
+                })
+                .collect());
+        }
+
         let provenance_path = output.with_file_name(format!("{artifact_filename}-provenance.json"));
         let json = serde_json::to_string_pretty(&record)
             .map_err(|err| vec![format!("could not encode provenance JSON: {err}")])?;
