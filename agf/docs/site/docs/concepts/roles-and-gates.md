@@ -233,6 +233,6 @@ message shape and some repository contracts, but the governor still has to ask:
 ## Next
 
 - How evidence accumulates and becomes rules:
-  [evidence and learnings](evidence-and-learnings.md)
+  [learning loop and evidence](evidence-and-learnings.md)
 - Wiring validators as CI blockers: [contracts and validators](../advanced/contracts-and-validators.md)
 - The gates in daily practice: [day-to-day operation](../operate/day-to-day.md)

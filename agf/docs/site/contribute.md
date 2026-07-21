@@ -102,7 +102,7 @@ mapping; the public corpus contains only codenames.
 
 When drafting external content (issue bodies, MR descriptions, learning
 records), treat the prompt itself as external: anonymize before writing,
-not after. See [Evidence and learnings](docs/concepts/evidence-and-learnings.md)
+not after. See [Learning loop and evidence](docs/concepts/evidence-and-learnings.md)
 for the full anonymization policy.
 
 The framework maintainer screens every submission for leaks (paths,
@@ -134,6 +134,6 @@ valuable thing you can contribute.
 
 ## Next
 
-- How evidence is structured: [Evidence and learnings](docs/concepts/evidence-and-learnings.md)
+- How evidence is structured: [Learning loop and evidence](docs/concepts/evidence-and-learnings.md)
 - Install the framework: [Install the `agf/` directory](docs/adopt/install-and-layouts.md)
 - Framework issue tracker: [gitlab.com/janipaijanen/agents-govern-framework](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues)

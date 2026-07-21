@@ -75,7 +75,7 @@ Generalizable rules, learning records, and gap reports flow upstream
 under the anonymization rule: codename only, domain-neutral generics for
 anything revealing. The contribution path is the same learning-record
 mechanism the framework uses internally — see
-[evidence and learnings](../concepts/evidence-and-learnings.md).
+[learning loop and evidence](../concepts/evidence-and-learnings.md).
 
 ## Next
 

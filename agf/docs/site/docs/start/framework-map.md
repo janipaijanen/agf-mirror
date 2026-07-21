@@ -141,7 +141,7 @@ to see the framework.
 | agov tooling | Deterministic helpers for validation, resume, status, and graphing. | [Tooling and token savings](../adopt/tooling-and-tokens.md) |
 | Adoption | The path from decision to first governed change, CI, and exit. | [Install the agf directory](../adopt/install-and-layouts.md) |
 | Boundaries | What AGF is not: runtime, compliance certification, model governance, or AI self-approval. | [AGF and agent runtimes](../concepts/position.md) |
-| Evidence loop | Incidents and repeated patterns become learnings, then rules, docs, tooling, or retirements. | [Evidence and learnings](../concepts/evidence-and-learnings.md) |
+| Evidence loop | Incidents and repeated patterns become learnings, then rules, docs, tooling, or retirements. | [Learning loop and evidence](../concepts/evidence-and-learnings.md) |
 
 ## Edge guide
 

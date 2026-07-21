@@ -1,4 +1,4 @@
-# Evidence and learnings
+# Learning loop and evidence
 
 *Status: Released (v2.1 documentation). Audience: developers and
 governors. After this page you know how operational incidents become

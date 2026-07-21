@@ -114,7 +114,7 @@ For a thorough assessment, read these in order.
 | [Roles and gates](docs/concepts/roles-and-gates.md) | 10 min | Role definitions, Gate 1 and Gate 2 |
 | [Downstream impact](docs/adopt/downstream-impact.md) | 5 min | Costs itemised, blast radius |
 | [Exit and decommission](docs/adopt/exit-and-decommission.md) | 3 min | Reversibility |
-| [Evidence and learnings](docs/concepts/evidence-and-learnings.md) | 5 min | Evidence base and provisional rule status |
+| [Learning loop and evidence](docs/concepts/evidence-and-learnings.md) | 5 min | Evidence base and provisional rule status |
 | [Maturity vocabulary](reference/maturity-vocabulary.md) | 3 min | Capability maturity, evidence status, compliance profile |
 | [Tooling conformance](reference/tooling-conformance.md) | 4 min | Command surface and maturity levels |
 
@@ -200,7 +200,7 @@ this dossier page</p>
 | 04.02a | [Adoption surface and calibration](#402a-adoption-surface-and-calibration) | `docs/start/should-you-adopt.md`, `docs/adopt/install-and-layouts.md`, `future/evolution.md` | Distributed library, activated subset, and unshipped starter proposal |
 | 04.03 | [Roles and gates](#403-roles-and-gates) | `docs/concepts/roles-and-gates.md` | Authority model |
 | 04.04 | [Coordination protocol](#404-coordination-protocol) | `docs/concepts/coordination-protocol.md` | Message channel and IDs |
-| 04.05 | [Evidence and learnings](#405-evidence-and-learnings) | `docs/concepts/evidence-and-learnings.md` | Evidence loop |
+| 04.05 | [Learning loop and evidence](#405-learning-loop-and-evidence) | `docs/concepts/evidence-and-learnings.md` | Evidence loop |
 | 04.06 | [Downstream impact](#406-downstream-impact) | `docs/adopt/downstream-impact.md` | Adoption cost and exit |
 | 04.07 | [Tooling and CI](#407-tooling-and-ci) | `docs/adopt/tooling-and-tokens.md`, `docs/advanced/contracts-and-validators.md` | Validator/tooling surface |
 | 04.08 | [Release and provenance](#408-release-and-provenance) | `reference/release-info.md`, `reference/release-artifacts.md` | Version and artifact evidence |
@@ -315,7 +315,7 @@ schema in `agf/schemas/coordination-message.schema.json`.
 
 ![Coordination channel](reference/figures/coordination-channel.svg)
 
-### 4.05 Evidence and Learnings
+### 4.05 Learning Loop and Evidence
 
 <p class="agf-dossier-marker"><strong>Flow 04.05</strong> / source page:
 <code>docs/concepts/evidence-and-learnings.md</code></p>
@@ -327,7 +327,7 @@ retirement of weak constraints.
 
 Rules shipped on single-adopter evidence carry visible provisional status.
 Capability maturity answers "what exists?" Evidence status answers "how strong
-is the proof?" See [Evidence and learnings](docs/concepts/evidence-and-learnings.md)
+is the proof?" See [Learning loop and evidence](docs/concepts/evidence-and-learnings.md)
 and [Maturity vocabulary](reference/maturity-vocabulary.md).
 
 ![Learning loop](reference/figures/learning-loop.svg)
@@ -408,7 +408,7 @@ source-backed AI review</p>
 | Runtime positioning | [AGF and agent runtimes](docs/concepts/position.md) |
 | Roles and gates | [Roles and gates](docs/concepts/roles-and-gates.md) |
 | Coordination | [Coordination protocol](docs/concepts/coordination-protocol.md) |
-| Evidence model | [Evidence and learnings](docs/concepts/evidence-and-learnings.md) |
+| Evidence model | [Learning loop and evidence](docs/concepts/evidence-and-learnings.md) |
 | Downstream cost | [Downstream impact](docs/adopt/downstream-impact.md) |
 | Exit path | [Exit and decommission](docs/adopt/exit-and-decommission.md) |
 | Tooling | [Tooling and token savings](docs/adopt/tooling-and-tokens.md) |

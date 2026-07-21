@@ -54,7 +54,7 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 - [Coordination protocol](concepts/coordination-protocol.md) — message kinds,
   handoffs, acknowledgements, and the communication map that keeps roles
   reconstructible across sessions.
-- [Evidence and learnings](concepts/evidence-and-learnings.md) — the
+- [Learning loop and evidence](concepts/evidence-and-learnings.md) — the
   learning system; upstream-owned vs adopter-owned records; anonymization.
 
 ### 3. Adopt — install with eyes open

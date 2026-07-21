@@ -187,4 +187,4 @@ asked, and to be able to say what the answer was.
 - How AGF scopes what it claims to guarantee and what it leaves to human
   judgment: [AGF and agent runtimes](position.md)
 - How evidence accumulates and what evidence-status labels mean:
-  [Evidence and learnings](evidence-and-learnings.md)
+  [Learning loop and evidence](evidence-and-learnings.md)
