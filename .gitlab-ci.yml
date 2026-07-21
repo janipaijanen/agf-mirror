@@ -348,6 +348,11 @@ release:create:
     - apk add --no-cache curl
     - VERSION="${CI_COMMIT_TAG#v}"
     - PKG_BASE="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/agf/$CI_COMMIT_TAG"
+    # Fail fast on a partial build/publish -- a real assembled `dist/` is
+    # checked against the exact mandatory asset set before anything is
+    # uploaded or a Release entry is created, so a missing archive or
+    # sidecar blocks the pipeline instead of shipping an incomplete release.
+    - tooling/rust/scripts/release-assets.sh verify dist "$VERSION"
     # Upload every release artifact to the generic package registry.
     # The glob covers framework archives, Rust tooling archives, checksums, and provenance.
     - |
