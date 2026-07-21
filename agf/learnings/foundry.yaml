@@ -1490,6 +1490,99 @@ learnings:
         - "MR !255/!266 dir-rename Gate 1 BLOCK chain (supports the finding-specificity claim): docs/coordination/20260720T212711Z-coder-tester-16p7.md; fixed by commits af14f6d, f7b7df2"
         - "MR !268/!269 Gate 1 routing misfire (supports the three-layer delivery claim): docs/coordination/20260720T214439Z-coder-tester-r2sr.md misrouted to planner-architect; corrected by docs/coordination/20260720T215132Z-coder-tester-gmrh.md"
 
+  - id: "20260721T003902Z-4j3j"
+    date: "2026-07-21"
+    category: process
+    scope: framework
+    title: merged-plan-metadata-drift-and-self-ack-is-not-governor-authority
+    description: >
+      Two compounding gaps in the same session (2026-07-21), the second
+      discovered while fixing the first. Not independent — the second is
+      what happens when a real process gap is corrected under time pressure
+      without re-checking the correction itself against the same rule that
+      the original gap violated.
+
+      Gap 1 (metadata drift): three Gate 1 plans in this project
+      (`public-governance-philosophies-page`,
+      `philosophical-lenses-learning-additions`, `deprecation-policy-rule`)
+      each had their content MR merged to `main` while the plan file's own
+      `status`/`gate1_approved_by`/`gate1_approved_at` front matter stayed
+      `pending-gate1` with empty approval fields. In each case the actual
+      approval happened — the governor merged the MR — but nothing updated
+      the plan's own record of that fact. This recurred three times in one
+      session because updating a plan's metadata was treated as a separate,
+      easily-deferred follow-up task rather than part of the approval
+      action itself.
+
+      Gap 2 (self-ack is not governor authority): fixing gap 1 for two of
+      the three plans initially used a `coder-tester` self-acknowledgement
+      (`kqkh`, for `philosophical-lenses-learning-additions`) or no
+      coordination record at all (for `deprecation-policy-rule`) as the
+      basis for setting `status: approved`. Codex's review caught both
+      (`docs/coordination/20260721T001100Z-coder-tester-jmd1.md` and
+      `docs/coordination/20260721T001149Z-coder-tester-gqdt.md`): per
+      `AGENTS.md`'s existing Gate 1 rule ("Gate 1 approval comes from a
+      governor-reviewer coordination message"), a same-role self-ack or a
+      bare citation of a merge event does not supply governor authority,
+      even when the underlying governor decision was real (both MRs had in
+      fact been merged by the governor). The fix required both an explicit
+      governor decision-record and correcting the approval timestamp from
+      the local merge-commit time to GitLab's actual `merged_at` platform
+      event, which had drifted by about a second in one case — small, but
+      it showed the original value was copied from `git log`, not looked
+      up from the platform event it claimed to represent.
+
+      A related, separately-caught gap in the same cleanup: the
+      `deprecation-policy-rule` plan's prior-art citation table (six
+      external projects' deprecation policies) had never been spot-checked
+      against a live source, only asserted from training-knowledge recall
+      at drafting time. Live verification found two of six wrong: Kubernetes
+      GA APIs have no fixed removal window at all (the table claimed "12
+      months or 3 releases" — that figure exists only for Kubernetes Beta
+      APIs, and even then it is applied twice, not once), and GitHub's REST/
+      GraphQL API support window is at least 24 months, not the "about 12
+      months" the table stated. Both corrected after live fetch.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: "AGENTS.md Gate discipline section; workflow/deprecation-policy-rule.md prior-art table; always/verifiable-claims-rule.md"
+    business_impact:
+      type: neutral
+      description: >
+        No external or financial loss — caught within the same session by
+        an active independent review pass (Codex) before either plan's
+        Gate 1 status was relied on for further downstream implementation
+        work. Impact is two extra correction cycles and, had the citation
+        error gone uncaught, a governance rule template shipped to future
+        adopters with two factually wrong deprecation-window claims in its
+        own worked example.
+    framework_impact: medium
+    status: implemented
+    recommendation: >
+      Two fixes, both applied in this session rather than left proposed:
+      (1) `AGENTS.md`'s Gate discipline section now states explicitly that
+      a same-role self-ack or a bare merge-event citation does not satisfy
+      the Gate 1 governor-reviewer coordination message requirement, and
+      that post-hoc plan-metadata corrections must be accompanied by an
+      actual governor-reviewer coordination record — see the paragraph
+      added after "Gate 1 approval comes from a governor-reviewer
+      coordination message." (2) The corrected prior-art citations are
+      live in both `.claude/rules/workflow/deprecation-policy-rule.md` and
+      `agf/rules/workflow/deprecation-policy-rule.md`. Not yet built: tool
+      enforcement — `agov plan validate` could flag a plan with
+      `status: approved` whose `gate1_approved_by` has no matching
+      governor-reviewer coordination record in the channel, closing this
+      gap structurally rather than relying on review discipline alone.
+      Named here as a concrete follow-up, not silently deferred.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "MR !281 (philosophical-lenses-learning-additions metadata fix): self-ack rejected in docs/coordination/20260721T001100Z-coder-tester-jmd1.md; corrected by docs/coordination/20260721T002215Z-governor-reviewer-7mg5.md"
+        - "MR !282 (deprecation-policy-rule metadata fix): missing authority record rejected in docs/coordination/20260721T001149Z-coder-tester-gqdt.md; corrected by docs/coordination/20260721T002557Z-governor-reviewer-66gd.md"
+        - "Prior-art citation errors (Kubernetes GA, GitHub API) found via live fetch during the gqdt fix, corrected in the same commit as the authority-record fix"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
