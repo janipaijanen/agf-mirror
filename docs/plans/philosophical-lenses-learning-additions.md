@@ -3,7 +3,7 @@ id: philosophical-lenses-learning-additions
 status: approved
 topic: philosophical-lenses-learning-additions
 gate1_approved_by: governor-reviewer
-gate1_approved_at: "2026-07-21T00:00:05Z"
+gate1_approved_at: "2026-07-21T00:00:06Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -20,10 +20,12 @@ advisory_consultation:
 # Plan: add six learning/knowledge-focused lenses to the Philosophical lenses page
 
 **Date:** 2026-07-20T23:56:00Z
-**Status:** GATE 1 APPROVED (governor-reviewer, 2026-07-21T00:00:05Z — MR
-!279 merge). Gate 2 implementation (the six new lens sections, with the
-five content fixes named above already applied at draft time) is open
-work, not yet started.
+**Status:** GATE 1 APPROVED (governor-reviewer decision-record
+`docs/coordination/20260721T002215Z-governor-reviewer-7mg5.md`, evidenced by
+MR !279's GitLab `merged_at` of 2026-07-21T00:00:06.181Z, merged by the
+governor). Gate 2 implementation (the six new lens sections, with the five
+content fixes named above already applied at draft time) is open work, not
+yet started.
 **Triggering context:** user-requested addition, drafted through several
 rounds of question-then-verify-then-draft in the same session that
 produced `docs/plans/public-governance-philosophies-page.md` (the
