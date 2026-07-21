@@ -96,19 +96,20 @@ Surveyed for precedent before choosing a hybrid time-or-release model:
 
 | Project | Threshold shape | Approximate window |
 |---|---|---|
-| Kubernetes | Calendar time **or** release count, whichever longer | GA: 12 months or 3 releases; Beta: 9 months or 3 releases (published policy, kubernetes.io/docs/reference/using-api/deprecation-policy/) |
-| Django | Release-count based | Deprecated in release N, removed 2 feature releases later (~16 months at Django's release cadence; docs/internals/deprecation) |
-| Python / CPython | Release-count based, PEP 387 | Minimum 2 releases with a warning before removal |
-| Node.js | Documented per-deprecation (DEP0XXX list), typically major-version-gated | No fixed universal number; removal generally waits for the next major, often a year or more given LTS branch lengths |
-| Rust (standard library) | Near-permanent stability | `#[deprecated]` triggers a compiler lint, not a scheduled removal; most deprecated stdlib items are never actually removed |
-| GitHub REST/GraphQL API | Fixed calendar sunset date, announced in advance | Typically about 12 months notice per API version |
+| Kubernetes | Calendar time **or** release count, whichever longer, for Beta; GA has no fixed removal window at all | GA API versions may be deprecated but **must not be removed within a major version** (effectively indefinite); Beta API versions are deprecated no sooner than 9 months or 3 minor releases after introduction, and remain served for a further 9 months or 3 minor releases after deprecation (whichever is longer each time) (published policy, kubernetes.io/docs/reference/using-api/deprecation-policy/, verified via live fetch 2026-07-21) |
+| Django | Release-count based | Deprecated in release N, removed no sooner than 2 feature releases later (docs.djangoproject.com/en/5.2/internals/release-process/#deprecation-policy, verified via live fetch 2026-07-21) |
+| Python / CPython | Release-count based, PEP 387 | Minimum 2 minor releases of the same major version (or 1 minor release of an older major version) with a warning before removal; PEP 387 additionally notes a 5-year deprecation period is now the preferred practice (peps.python.org/pep-0387/, verified via live fetch 2026-07-21) |
+| Node.js | Documented per-deprecation (DEP0XXX list), typically major-version-gated | No fixed universal number; removal timing is decided case by case, ranging from a couple of major versions to over a decade for the same API (nodejs.org/api/deprecations.html, verified via live fetch 2026-07-21) |
+| Rust (standard library) | Near-permanent stability | `#[deprecated]` triggers a compiler lint, not a scheduled removal; consistent with Rust's general stability guarantees, though no single official policy document states stdlib items are never removed — treat as informed inference, not a cited number |
+| GitHub REST/GraphQL API | Fixed calendar sunset date, announced in advance | Previous API version supported for **at least 24 months** after a new version's release (docs.github.com/rest/overview/api-versions, verified via live fetch 2026-07-21) |
 
 Kubernetes' model is the most rigorous and the most precisely documented
 of the group, which is why its shape — not necessarily its exact numbers
 — is the basis for the table above. The exact numbers are scaled down
-from Kubernetes' because most adopting projects have a faster release
-cadence and a smaller blast radius than Kubernetes; adjust for your own
-project's cadence and risk profile.
+from Kubernetes' Beta-tier figures (not GA, which has no fixed window)
+because most adopting projects have a faster release cadence and a
+smaller blast radius than Kubernetes; adjust for your own project's
+cadence and risk profile.
 
 ## Related rules
 
