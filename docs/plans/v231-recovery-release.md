@@ -40,8 +40,10 @@ Binding recovery posture for this plan:
 - never delete, move, or recreate tag `v2.3.0` or OCI tag `2.3.0`;
 - repair public truth on `main` and publish a new immutable patch release,
   v2.3.1;
-- preserve the premature completion records as historical evidence only when
-  accompanied by a later immutable retraction/supersession record.
+- premature completion records !311 and !312, and superseded v2.3.0 NO-GO
+  record !273, were merged to `main` before this plan received Gate 1 review;
+  preserve them as historical evidence and make their non-current status
+  unambiguous through later immutable retraction/supersession records.
 
 ## Frozen open-MR scope matrix
 
@@ -53,21 +55,22 @@ Gate 2 decision.
 
 | MR / work | Disposition for v2.3.1 |
 |---|---|
-| !314, root `CHANGELOG.md` 2.3.0 entry | Required after its governance trail stops describing v2.3.0 as completed and its entry is checked against the actual v2.3.0 repository diff. |
+| !314, root `CHANGELOG.md` 2.3.0 entry | Merged as `d05a359`; required recovery input now present on `main`. Recheck its entry against the actual v2.3.0 repository diff and do not treat its references to completion records as making those records current truth. |
 | !310, host-side release preflight learning | Required if approved; records the checksum-path incident and host/consumer target state. |
 | !313, release public-truth surface learning | Required if approved; includes the exact-tag asset audit and sidecar-discoverability follow-up. |
-| !307 and !309 | Required audit trail: independent Gate 2 findings/clearance and checksum-block acknowledgment. |
-| !301, !302, and !304 | Resolve before freeze as historical v2.3.0 implementation/defect audit records. They add no v2.3.1 product feature. |
+| !307 and !309 | Merged; required audit trail now present: independent Gate 2 findings/clearance and checksum-block acknowledgment. |
+| !301, !302, and !304 | Merged as historical v2.3.0 implementation/defect audit records. They add no v2.3.1 product feature. |
+| !316 | Required timing-conflict record: documents that !273/!311/!312 merged before this plan landed and routes the need for immutable supersession. |
 | v2.3.0 failure/recovery record | Required new immutable record that supersedes the false terminal-state claims without editing history. |
 | checksum/provenance Release-page discovery | Required small implementation under this plan: expose every published individual checksum and provenance sidecar through direct GitLab Release links, or expose one durable indexed manifest whose entries link to every sidecar. The chosen path must be consumer-testable. |
 
-### Must not merge as valid completion evidence
+### Already merged records that must not stand as current truth
 
 | MR | Disposition |
 |---|---|
-| !311 | Close or supersede; its v2.3.0 completion claim became false when the root changelog defect was discovered. |
-| !312 | Close; do not merge the premature completion record `8ag3` as the terminal release truth. Preserve the branch/MR as historical evidence. |
-| !273 | Close as superseded historical v2.3.0 NO-GO review; do not treat it as current v2.3.1 status. |
+| !311 | Already merged. Its v2.3.0 completion claim became false when the root changelog defect was discovered; a later immutable record must explicitly supersede it. |
+| !312 | Already merged. Record `8ag3` is historical premature-completion evidence, not terminal release truth; a later immutable record must explicitly supersede it. |
+| !273 | Already merged. Preserve it as historical v2.3.0 NO-GO evidence while an immutable current-state record makes clear that its blockers were later cleared and it is not v2.3.1 status. |
 
 ### Explicitly outside v2.3.1 product scope
 
@@ -102,8 +105,10 @@ base commit.
 3. Add a consumer-layout test for the selected Release-page link/index
    mechanism. It must enumerate every expected archive, checksum, and
    provenance record and fail on a missing or non-resolving entry.
-4. Publish the immutable failure/recovery record and merge approved learning
-   and audit-trail MRs from the matrix above.
+4. Publish the immutable failure/recovery record that explicitly supersedes
+   both merged completion records !311/!312, and a current-state record that
+   prevents merged !273 from appearing to govern v2.3.1. Merge approved
+   learning and remaining audit-trail MRs from the matrix above.
 5. Record the exact frozen `main` commit and enumerate every delta between
    `v2.3.0` and that commit. Anything not explained by the matrix blocks branch
    creation until classified.
@@ -262,7 +267,8 @@ prepared → reviewed → merged → tagged → tag pipeline passed
 Gate 2 is eligible only when:
 
 - all required recovery inputs are merged and excluded MRs remain excluded;
-- !311/!312 completion claims are closed or durably superseded;
+- merged !311/!312 completion claims are durably superseded, and merged !273
+  is explicitly classified as historical rather than current v2.3.1 status;
 - both changelogs accurately distinguish v2.3.0 history and v2.3.1 recovery;
 - every truth-surface matrix row has exact-head evidence;
 - every expected archive, checksum, and provenance item is discoverable and
