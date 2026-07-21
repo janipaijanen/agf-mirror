@@ -442,6 +442,114 @@ pub fn check_no_duplicate_filenames(records: &[Value]) -> Vec<String> {
         .collect()
 }
 
+/// Cross-check that no two `oci-image` records share the same
+/// `image_reference` or the same `manifest_digest`.
+pub fn check_no_duplicate_oci_identity(records: &[Value]) -> Vec<String> {
+    let mut findings = Vec::new();
+    let mut seen_refs: BTreeMap<String, usize> = BTreeMap::new();
+    let mut seen_digests: BTreeMap<String, usize> = BTreeMap::new();
+
+    for record in records {
+        if record.get("artifact_kind").and_then(Value::as_str) != Some("oci-image") {
+            continue;
+        }
+        if let Some(reference) = record.get("image_reference").and_then(Value::as_str) {
+            *seen_refs.entry(reference.to_string()).or_insert(0) += 1;
+        }
+        if let Some(digest) = record.get("manifest_digest").and_then(Value::as_str) {
+            *seen_digests.entry(digest.to_string()).or_insert(0) += 1;
+        }
+    }
+
+    findings.extend(seen_refs.into_iter().filter(|(_, count)| *count > 1).map(
+        |(reference, count)| {
+            format!("duplicate OCI image_reference across records: {reference} ({count} records)")
+        },
+    ));
+    findings.extend(
+        seen_digests
+            .into_iter()
+            .filter(|(_, count)| *count > 1)
+            .map(|(digest, count)| {
+                format!("duplicate OCI manifest_digest across records: {digest} ({count} records)")
+            }),
+    );
+    findings
+}
+
+/// List the primary release artifacts actually present in `artifact_dir`:
+/// real files, excluding `.sha256` checksum sidecars and
+/// `*-provenance.json` records themselves (which describe artifacts, and
+/// are not artifacts).
+pub fn list_primary_artifacts(artifact_dir: &Path) -> Result<Vec<String>, String> {
+    let entries = std::fs::read_dir(artifact_dir).map_err(|err| {
+        format!(
+            "could not read artifact directory {}: {err}",
+            artifact_dir.display()
+        )
+    })?;
+    let mut artifacts = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|err| format!("could not read a directory entry: {err}"))?;
+        if !entry.path().is_file() {
+            continue;
+        }
+        let Some(name) = entry.file_name().to_str().map(str::to_string) else {
+            continue;
+        };
+        if name.ends_with(".sha256") || name.ends_with("-provenance.json") {
+            continue;
+        }
+        artifacts.push(name);
+    }
+    artifacts.sort();
+    Ok(artifacts)
+}
+
+/// Cross-check that `records` (the full set passed to the validator) form
+/// an exact bijection with the primary artifacts actually present in
+/// `artifact_dir`: every primary artifact has exactly one `file`-kind
+/// record, and every `file`-kind record's `artifact_filename` names a
+/// primary artifact that actually exists. Catches a primary artifact with
+/// no record, a record omitted from validation, and stale/extra
+/// provenance records left over from a previous artifact set (e.g. the
+/// old aggregate shape, or a record for a since-removed file).
+pub fn check_primary_artifact_coverage(records: &[Value], artifact_dir: &Path) -> Vec<String> {
+    let primary_artifacts = match list_primary_artifacts(artifact_dir) {
+        Ok(artifacts) => artifacts,
+        Err(err) => return vec![err],
+    };
+
+    let record_filenames: std::collections::BTreeSet<&str> = records
+        .iter()
+        .filter(|record| record.get("artifact_kind").and_then(Value::as_str) == Some("file"))
+        .filter_map(|record| record.get("artifact_filename").and_then(Value::as_str))
+        .collect();
+
+    let mut findings = Vec::new();
+    for artifact in &primary_artifacts {
+        if !record_filenames.contains(artifact.as_str()) {
+            findings.push(format!(
+                "primary artifact {artifact} in {} has no provenance record among the validated files",
+                artifact_dir.display()
+            ));
+        }
+    }
+    for filename in &record_filenames {
+        if !primary_artifacts
+            .iter()
+            .any(|artifact| artifact == filename)
+        {
+            findings.push(format!(
+                "provenance record names {filename:?}, which is not a primary artifact present in {} \
+                 (stale, extra, or renamed artifact)",
+                artifact_dir.display()
+            ));
+        }
+    }
+    findings
+}
+
 /// Real evidence read from an actual OCI image — via `podman inspect` at
 /// the CLI layer, never fabricated from the record's own fields. Passing
 /// evidence gathered this way is what distinguishes `check_oci_image_evidence`
@@ -1460,5 +1568,94 @@ mod tests {
     #[test]
     fn parse_self_report_rejects_malformed_json() {
         assert!(parse_self_report("not json").is_err());
+    }
+
+    // ── Cardinality bijection (finding #6) ───────────────────────────────
+
+    #[test]
+    fn positive_coverage_passes_when_every_artifact_has_exactly_one_record() {
+        let dir = TempDir::new().unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz"), b"x").unwrap();
+        std::fs::write(
+            dir.path().join("agf-2.4.0.tar.gz.sha256"),
+            b"x  agf-2.4.0.tar.gz\n",
+        )
+        .unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz-provenance.json"), b"{}").unwrap();
+
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("agf-2.4.0.tar.gz");
+        let findings = check_primary_artifact_coverage(&[record], dir.path());
+        assert!(findings.is_empty(), "findings: {findings:?}");
+    }
+
+    #[test]
+    fn list_primary_artifacts_excludes_sidecars_and_provenance_files() {
+        let dir = TempDir::new().unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz"), b"x").unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz.sha256"), b"x").unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz-provenance.json"), b"x").unwrap();
+        let artifacts = list_primary_artifacts(dir.path()).unwrap();
+        assert_eq!(artifacts, vec!["agf-2.4.0.tar.gz".to_string()]);
+    }
+
+    #[test]
+    fn negative_primary_artifact_with_no_record_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz"), b"x").unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.zip"), b"x").unwrap();
+
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("agf-2.4.0.tar.gz");
+        // agf-2.4.0.zip is on disk but has no record among the validated set.
+        let findings = check_primary_artifact_coverage(&[record], dir.path());
+        assert!(findings.iter().any(|f| f.contains("agf-2.4.0.zip")));
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("has no provenance record")));
+    }
+
+    #[test]
+    fn negative_stale_or_extra_record_with_no_matching_artifact_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        std::fs::write(dir.path().join("agf-2.4.0.tar.gz"), b"x").unwrap();
+
+        let mut real_record = valid_file_record();
+        real_record["artifact_filename"] = serde_json::json!("agf-2.4.0.tar.gz");
+        let mut stale_record = valid_file_record();
+        stale_record["artifact_filename"] = serde_json::json!("agf-2.3.9-removed.tar.gz");
+
+        let findings = check_primary_artifact_coverage(&[real_record, stale_record], dir.path());
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("agf-2.3.9-removed.tar.gz") && f.contains("stale, extra")));
+    }
+
+    #[test]
+    fn negative_duplicate_oci_image_reference_is_rejected() {
+        let mut second = valid_oci_record();
+        second["manifest_digest"] = serde_json::json!(
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        );
+        let findings = check_no_duplicate_oci_identity(&[valid_oci_record(), second]);
+        assert!(findings.iter().any(|f| f.contains("image_reference")));
+    }
+
+    #[test]
+    fn negative_duplicate_oci_manifest_digest_is_rejected() {
+        let mut second = valid_oci_record();
+        second["image_reference"] = serde_json::json!("registry.example.com/agov:other-tag");
+        let findings = check_no_duplicate_oci_identity(&[valid_oci_record(), second]);
+        assert!(findings.iter().any(|f| f.contains("manifest_digest")));
+    }
+
+    #[test]
+    fn positive_distinct_oci_records_produce_no_duplicate_finding() {
+        let mut second = valid_oci_record();
+        second["image_reference"] = serde_json::json!("registry.example.com/agov:other-tag");
+        second["manifest_digest"] = serde_json::json!(
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        );
+        assert!(check_no_duplicate_oci_identity(&[valid_oci_record(), second]).is_empty());
     }
 }

@@ -767,6 +767,16 @@ fn validate_provenance_command(
         exit_code = 1;
         output.stderr(format!("ERR  {finding}"));
     }
+    for finding in provenance::check_no_duplicate_oci_identity(&parsed) {
+        exit_code = 1;
+        output.stderr(format!("ERR  {finding}"));
+    }
+    if let Some(dir) = artifact_dir {
+        for finding in provenance::check_primary_artifact_coverage(&parsed, dir) {
+            exit_code = 1;
+            output.stderr(format!("ERR  {finding}"));
+        }
+    }
 
     exit_code
 }
