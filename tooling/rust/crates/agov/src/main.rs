@@ -298,6 +298,20 @@ enum DistCommand {
         #[arg(long)]
         oci_image: Option<String>,
     },
+    /// Extract a packaged executable from its release archive, run its own
+    /// `version --format json` self-report, and cross-check it against a
+    /// file-kind provenance record.
+    SelfReportCheck {
+        /// Path to the .tar.gz or .zip archive containing the executable.
+        #[arg(long)]
+        archive: PathBuf,
+        /// The executable's filename inside the archive (e.g. "agov").
+        #[arg(long)]
+        binary_name: String,
+        /// The provenance record for this archive.
+        #[arg(long)]
+        record: PathBuf,
+    },
     /// Build a single release-provenance JSON record from real artifact
     /// evidence (file bytes/sha256, or OCI image/label identifiers).
     ProvenanceRecord {
@@ -646,6 +660,11 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
             oci_image.as_deref(),
             &mut output,
         ),
+        DistCommand::SelfReportCheck {
+            archive,
+            binary_name,
+            record,
+        } => self_report_check_command(&archive, &binary_name, &record, &mut output),
         DistCommand::ProvenanceRecord { sub } => provenance_record_command(*sub, &mut output),
     };
 
@@ -770,6 +789,79 @@ fn inspect_oci_image(image: &str) -> Result<provenance::OciImageEvidence, String
     }
     let stdout = String::from_utf8_lossy(&output.stdout);
     provenance::parse_podman_inspect(&stdout)
+}
+
+/// Extract `binary_name` from `archive` (`.tar.gz` or `.zip`, by
+/// extension), run its own `version --format json` self-report, and
+/// cross-check it against `record`.
+fn self_report_check_command(
+    archive: &Path,
+    binary_name: &str,
+    record: &Path,
+    output: &mut OutputCounter,
+) -> i32 {
+    let content = match std::fs::read_to_string(record) {
+        Ok(content) => content,
+        Err(err) => {
+            output.stderr(format!("ERR  could not read {}: {err}", record.display()));
+            return 1;
+        }
+    };
+    let data: serde_json::Value = match serde_json::from_str(&content) {
+        Ok(data) => data,
+        Err(err) => {
+            output.stderr(format!("ERR  {}: malformed JSON: {err}", record.display()));
+            return 1;
+        }
+    };
+
+    let staging =
+        std::env::temp_dir().join(format!("agov-self-report-check-{}", std::process::id()));
+    if let Err(err) = std::fs::create_dir_all(&staging) {
+        output.stderr(format!(
+            "ERR  could not create staging directory {}: {err}",
+            staging.display()
+        ));
+        return 1;
+    }
+    let extracted_path = staging.join(binary_name);
+
+    let archive_str = archive.to_string_lossy();
+    let extraction = if archive_str.ends_with(".zip") {
+        provenance::extract_from_zip(archive, binary_name, &extracted_path)
+    } else {
+        provenance::extract_from_tar_gz(archive, binary_name, &extracted_path)
+    };
+    if let Err(err) = extraction {
+        let _ = std::fs::remove_dir_all(&staging);
+        output.stderr(format!("ERR  {err}"));
+        return 1;
+    }
+
+    let self_report = match provenance::run_self_report(&extracted_path) {
+        Ok(report) => report,
+        Err(err) => {
+            let _ = std::fs::remove_dir_all(&staging);
+            output.stderr(format!("ERR  {err}"));
+            return 1;
+        }
+    };
+    let _ = std::fs::remove_dir_all(&staging);
+
+    let findings = provenance::check_self_report_agreement(&data, &self_report);
+    if findings.is_empty() {
+        output.stdout(format!(
+            "OK  {} self-report agrees with {}",
+            binary_name,
+            record.display()
+        ));
+        0
+    } else {
+        for finding in &findings {
+            output.stderr(format!("ERR  {}: {finding}", record.display()));
+        }
+        1
+    }
 }
 
 fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {

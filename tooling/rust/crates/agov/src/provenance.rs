@@ -534,6 +534,192 @@ pub fn parse_podman_inspect(inspect_json: &str) -> Result<OciImageEvidence, Stri
     Ok(OciImageEvidence { labels, digest })
 }
 
+// ── Executable self-report agreement ───────────────────────────────────
+
+/// The packaged binary's own `agov version --format json` output.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SelfReport {
+    pub version: String,
+    pub commit: String,
+    pub dirty: bool,
+}
+
+/// Parse `agov version --format json` output (`{"version":...,
+/// "commit":...,"dirty":...}`).
+pub fn parse_self_report(json: &str) -> Result<SelfReport, String> {
+    let parsed: Value =
+        serde_json::from_str(json).map_err(|err| format!("malformed self-report JSON: {err}"))?;
+    let version = parsed
+        .get("version")
+        .and_then(Value::as_str)
+        .ok_or("self-report JSON missing string field \"version\"")?
+        .to_string();
+    let commit = parsed
+        .get("commit")
+        .and_then(Value::as_str)
+        .ok_or("self-report JSON missing string field \"commit\"")?
+        .to_string();
+    let dirty = parsed
+        .get("dirty")
+        .and_then(Value::as_bool)
+        .ok_or("self-report JSON missing boolean field \"dirty\"")?;
+    Ok(SelfReport {
+        version,
+        commit,
+        dirty,
+    })
+}
+
+/// Run `<binary_path> version --format json` and parse its self-report.
+pub fn run_self_report(binary_path: &Path) -> Result<SelfReport, String> {
+    let output = std::process::Command::new(binary_path)
+        .args(["version", "--format", "json"])
+        .output()
+        .map_err(|err| format!("could not run {}: {err}", binary_path.display()))?;
+    if !output.status.success() {
+        return Err(format!(
+            "{} version --format json failed: {}",
+            binary_path.display(),
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    parse_self_report(&String::from_utf8_lossy(&output.stdout))
+}
+
+/// Cross-check a `file`-kind record against the packaged executable's own
+/// self-report: `record.version` must equal `self_report.version` exactly;
+/// `record.source_commit` must agree with `self_report.commit` (prefix-
+/// tolerant in either direction, since a full CI-set `AGOV_BUILD_COMMIT`
+/// SHA and a local dev build's `git rev-parse --short=12` fallback are
+/// both legitimate, differently-lengthed forms of the same commit); and
+/// the packaged binary must never report a dirty build
+/// (`self_report.dirty` must be `false`) — a real release artifact is
+/// never built from an unclean working tree.
+pub fn check_self_report_agreement(record: &Value, self_report: &SelfReport) -> Vec<String> {
+    let mut findings = Vec::new();
+    let record_version = record.get("version").and_then(Value::as_str);
+    if record_version != Some(self_report.version.as_str()) {
+        findings.push(format!(
+            "self-report disagreement: record version {record_version:?} != packaged binary's own version {:?}",
+            self_report.version
+        ));
+    }
+
+    let record_commit = record.get("source_commit").and_then(Value::as_str);
+    let commits_agree = match record_commit {
+        Some(record_commit) => {
+            record_commit == self_report.commit
+                || record_commit.starts_with(&self_report.commit)
+                || self_report.commit.starts_with(record_commit)
+        }
+        None => false,
+    };
+    if !commits_agree {
+        findings.push(format!(
+            "self-report disagreement: record source_commit {record_commit:?} != packaged binary's own commit {:?}",
+            self_report.commit
+        ));
+    }
+
+    if self_report.dirty {
+        findings.push(
+            "self-report disagreement: packaged binary reports a dirty build \
+             (a published release artifact must never be built from an unclean working tree)"
+                .to_string(),
+        );
+    }
+
+    findings
+}
+
+/// Extract a single named entry from a `.tar.gz` archive to `dest_path`,
+/// setting the executable bit on Unix. Used to run a packaged binary's
+/// own self-report without needing the whole archive extracted.
+pub fn extract_from_tar_gz(
+    archive_path: &Path,
+    entry_name: &str,
+    dest_path: &Path,
+) -> Result<(), String> {
+    let file = File::open(archive_path)
+        .map_err(|err| format!("could not open {}: {err}", archive_path.display()))?;
+    let decoder = flate2::read::GzDecoder::new(file);
+    let mut archive = tar::Archive::new(decoder);
+    let entries = archive.entries().map_err(|err| {
+        format!(
+            "could not read tar entries in {}: {err}",
+            archive_path.display()
+        )
+    })?;
+    for entry in entries {
+        let mut entry = entry.map_err(|err| format!("could not read a tar entry: {err}"))?;
+        let path = entry
+            .path()
+            .map_err(|err| format!("could not read a tar entry path: {err}"))?
+            .into_owned();
+        if path.file_name().and_then(|name| name.to_str()) == Some(entry_name) {
+            entry
+                .unpack(dest_path)
+                .map_err(|err| format!("could not extract {entry_name}: {err}"))?;
+            set_executable(dest_path)?;
+            return Ok(());
+        }
+    }
+    Err(format!(
+        "{entry_name} not found in {}",
+        archive_path.display()
+    ))
+}
+
+/// Extract a single named entry from a `.zip` archive to `dest_path`,
+/// setting the executable bit on Unix.
+pub fn extract_from_zip(
+    archive_path: &Path,
+    entry_name: &str,
+    dest_path: &Path,
+) -> Result<(), String> {
+    let file = File::open(archive_path)
+        .map_err(|err| format!("could not open {}: {err}", archive_path.display()))?;
+    let mut archive = zip::ZipArchive::new(file)
+        .map_err(|err| format!("could not read zip {}: {err}", archive_path.display()))?;
+    for index in 0..archive.len() {
+        let mut entry = archive
+            .by_index(index)
+            .map_err(|err| format!("could not read a zip entry: {err}"))?;
+        let matches = Path::new(entry.name())
+            .file_name()
+            .and_then(|name| name.to_str())
+            == Some(entry_name);
+        if matches {
+            let mut out = File::create(dest_path)
+                .map_err(|err| format!("could not create {}: {err}", dest_path.display()))?;
+            std::io::copy(&mut entry, &mut out)
+                .map_err(|err| format!("could not extract {entry_name}: {err}"))?;
+            set_executable(dest_path)?;
+            return Ok(());
+        }
+    }
+    Err(format!(
+        "{entry_name} not found in {}",
+        archive_path.display()
+    ))
+}
+
+#[cfg(unix)]
+fn set_executable(path: &Path) -> Result<(), String> {
+    use std::os::unix::fs::PermissionsExt;
+    let mut perms = std::fs::metadata(path)
+        .map_err(|err| format!("could not stat {}: {err}", path.display()))?
+        .permissions();
+    perms.set_mode(0o755);
+    std::fs::set_permissions(path, perms)
+        .map_err(|err| format!("could not chmod {}: {err}", path.display()))
+}
+
+#[cfg(not(unix))]
+fn set_executable(_path: &Path) -> Result<(), String> {
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1115,5 +1301,164 @@ mod tests {
             "tooling/rust/crates/agov/schemas/release-provenance.schema.json has drifted from \
              agf/schemas/release-provenance.schema.json -- update both files in the same commit"
         );
+    }
+
+    // ── Executable self-report agreement (finding #3) ───────────────────
+
+    fn write_fake_agov_script(path: &Path, version: &str, commit: &str, dirty: bool) {
+        std::fs::write(
+            path,
+            format!(
+                "#!/bin/sh\necho '{{\"version\":\"{version}\",\"commit\":\"{commit}\",\"dirty\":{dirty}}}'\n"
+            ),
+        )
+        .unwrap();
+        set_executable(path).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn self_report_round_trip_through_tar_gz_extraction() {
+        let dir = TempDir::new().unwrap();
+        let script_path = dir.path().join("fake-agov");
+        write_fake_agov_script(&script_path, "2.4.0", "abc123", false);
+
+        let archive_path = dir.path().join("fixture.tar.gz");
+        {
+            let file = File::create(&archive_path).unwrap();
+            let encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+            let mut builder = tar::Builder::new(encoder);
+            builder
+                .append_path_with_name(&script_path, "fake-agov")
+                .unwrap();
+            builder.finish().unwrap();
+        }
+
+        let extracted_path = dir.path().join("extracted-agov");
+        extract_from_tar_gz(&archive_path, "fake-agov", &extracted_path).unwrap();
+
+        let self_report = run_self_report(&extracted_path).unwrap();
+        assert_eq!(self_report.version, "2.4.0");
+        assert_eq!(self_report.commit, "abc123");
+        assert!(!self_report.dirty);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn self_report_round_trip_through_zip_extraction() {
+        let dir = TempDir::new().unwrap();
+        let script_path = dir.path().join("fake-agov");
+        write_fake_agov_script(&script_path, "2.4.0", "abc123", false);
+
+        let archive_path = dir.path().join("fixture.zip");
+        {
+            let file = File::create(&archive_path).unwrap();
+            let mut zip = zip::ZipWriter::new(file);
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            zip.start_file("fake-agov", options).unwrap();
+            let script_bytes = std::fs::read(&script_path).unwrap();
+            std::io::Write::write_all(&mut zip, &script_bytes).unwrap();
+            zip.finish().unwrap();
+        }
+
+        let extracted_path = dir.path().join("extracted-agov");
+        extract_from_zip(&archive_path, "fake-agov", &extracted_path).unwrap();
+
+        let self_report = run_self_report(&extracted_path).unwrap();
+        assert_eq!(self_report.version, "2.4.0");
+    }
+
+    #[test]
+    fn extract_from_tar_gz_reports_missing_entry() {
+        let dir = TempDir::new().unwrap();
+        let archive_path = dir.path().join("empty.tar.gz");
+        {
+            let file = File::create(&archive_path).unwrap();
+            let encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+            let mut builder = tar::Builder::new(encoder);
+            builder.finish().unwrap();
+        }
+        let dest = dir.path().join("out");
+        assert!(extract_from_tar_gz(&archive_path, "nonexistent", &dest).is_err());
+    }
+
+    #[test]
+    fn positive_self_report_matches_record() {
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("abc123def456");
+        let self_report = SelfReport {
+            version: "2.4.0".to_string(),
+            commit: "abc123def456".to_string(),
+            dirty: false,
+        };
+        assert!(check_self_report_agreement(&record, &self_report).is_empty());
+    }
+
+    #[test]
+    fn positive_self_report_short_commit_prefix_of_full_record_commit_matches() {
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("abc123def456abc123def456abc123def456abcd");
+        let self_report = SelfReport {
+            version: "2.4.0".to_string(),
+            // 12-char local dev short hash, prefix of the full record commit above.
+            commit: "abc123def456".to_string(),
+            dirty: false,
+        };
+        assert!(check_self_report_agreement(&record, &self_report).is_empty());
+    }
+
+    #[test]
+    fn negative_self_report_version_mismatch_is_rejected() {
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("abc123");
+        let self_report = SelfReport {
+            version: "9.9.9".to_string(),
+            commit: "abc123".to_string(),
+            dirty: false,
+        };
+        let findings = check_self_report_agreement(&record, &self_report);
+        assert!(findings.iter().any(|f| f.contains("record version")));
+    }
+
+    #[test]
+    fn negative_self_report_commit_mismatch_is_rejected() {
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("abc123");
+        let self_report = SelfReport {
+            version: "2.4.0".to_string(),
+            commit: "deadbeef".to_string(),
+            dirty: false,
+        };
+        let findings = check_self_report_agreement(&record, &self_report);
+        assert!(findings.iter().any(|f| f.contains("source_commit")));
+    }
+
+    #[test]
+    fn negative_self_report_dirty_build_is_rejected() {
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("abc123");
+        let self_report = SelfReport {
+            version: "2.4.0".to_string(),
+            commit: "abc123".to_string(),
+            dirty: true,
+        };
+        let findings = check_self_report_agreement(&record, &self_report);
+        assert!(findings.iter().any(|f| f.contains("dirty build")));
+    }
+
+    #[test]
+    fn parse_self_report_rejects_missing_fields() {
+        assert!(parse_self_report(r#"{"version":"1.0.0"}"#).is_err());
+    }
+
+    #[test]
+    fn parse_self_report_rejects_malformed_json() {
+        assert!(parse_self_report("not json").is_err());
     }
 }
