@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Paijanen
+#
+# `cross build` runs the actual compilation inside a Docker/Podman container
+# and does not pass host environment variables through by default. Without
+# this file, agov/build.rs's AGOV_BUILD_COMMIT / AGOV_BUILD_DIRTY reads
+# always miss (the container has no .git checkout at the expected path
+# either), silently falling back to "unknown" / dirty=true even on a clean,
+# correctly-tagged release build. See docs/coordination — v2.3.0
+# release-readiness review, BLOCK 1.
+
+[build.env]
+passthrough = [
+    "AGOV_BUILD_COMMIT",
+    "AGOV_BUILD_DIRTY",
+]

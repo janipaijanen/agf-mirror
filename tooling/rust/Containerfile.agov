@@ -1,7 +1,13 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
 # Copyright (c) 2026 Jani Paijanen
 
-FROM alpine:3.22.1
+# Digest-pinned to the current Alpine 3.22 patch (3.22.5, verified
+# 2026-07-21) after v2.3.0 release-readiness review found 19 fixed
+# HIGH/CRITICAL CVEs in the previously pinned 3.22.1. Re-pin the digest
+# (not just the tag) on future bumps: `podman manifest inspect
+# alpine:3.22 --format ...` and take the multi-arch list digest, not a
+# single-platform manifest digest.
+FROM alpine:3.22.5@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
 
 ARG AGOV_VERSION
 ARG AGOV_REVISION

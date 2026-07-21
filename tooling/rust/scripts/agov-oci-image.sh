@@ -76,15 +76,22 @@ scan_image() {
   require_env AGOV_VERSION
   image_archive=$(mktemp)
   trap 'rm -f "$image_archive"' EXIT INT TERM
-  "$(podman_bin)" save --format oci-archive --output "$image_archive" "$(image_ref)"
+  # docker-archive, not oci-archive: Trivy 0.66's --input path cannot open
+  # an oci-archive tar as either a Docker image or an OCI directory.
+  "$(podman_bin)" save --format docker-archive --output "$image_archive" "$(image_ref)"
+  # Fully qualified + digest-pinned: an unqualified "aquasec/trivy:0.66.0"
+  # is rejected by Podman in this environment, and a tag alone is mutable.
+  # No trailing image-ref argument: with --input, Trivy scans the archive
+  # directly; a second positional image name is redundant and was the
+  # third bug in the original invocation.
   "$(podman_bin)" run --rm \
     -v "$image_archive:/image.tar:ro" \
-    aquasec/trivy:0.66.0 image \
+    docker.io/aquasec/trivy@sha256:086971aaf400beebd94e8300fd8ea623774419597169156cec56eec5b00dfb1e \
+    image \
     --input /image.tar \
     --severity HIGH,CRITICAL \
     --ignore-unfixed \
-    --exit-code 1 \
-    "$(image_ref)"
+    --exit-code 1
 }
 
 push_image() {
