@@ -100,9 +100,10 @@ Figure 6 shows the evidence-driven feedback loop as a recurring cycle.
 ![Learning loop](figures/learning-loop.svg)
 
 The evidence-driven feedback loop. Governed work produces incidents,
-friction, or validation results; learning records turn that evidence
-into rule, documentation, or tooling proposals; project use confirms,
-revises, or retires the change and feeds the next cycle.
+friction, or validation results; learning records preserve the evidence;
+system-level analysis asks which control should change; governed approval
+precedes implementation; and observed project use confirms, challenges,
+revises, or retires the change before feeding the next cycle.
 
 **Source:** `docs/figures/src/learning-loop.dot`
 

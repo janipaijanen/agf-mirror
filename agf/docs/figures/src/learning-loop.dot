@@ -8,8 +8,8 @@ digraph learning_loop {
             <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
             <TR>
                 <TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">evidence source (oval shape)</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">learning or proposal</TD>
-                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">accepted disposition</TD>
+                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">learning, analysis, or proposal</TD>
+                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">governed decision</TD>
             </TR>
             <TR>
                 <TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">lifecycle progression</TD>
@@ -26,14 +26,21 @@ digraph learning_loop {
           shape=ellipse, fillcolor=white, color="#888888",
           fontcolor="#888888"]
     record [label="Learning record\nschema-validated"]
+    analysis [label="System / causal analysis\nwhat control should change?"]
     proposal [label="Proposal\nrule / docs / tool\nProvisional"]
-    use [label="Project use\nconfirm / refine"]
+    approval [label="Governed approval\nGate 1 / authority decision",
+              fillcolor="#009944", fontcolor=white, color="#009944"]
+    implementation [label="Implementation\nrule / docs / tool"]
+    use [label="Observed project use\nconfirm / challenge"]
     disposition [label="Disposition\nrecommend / revise /\nretire",
                  fillcolor="#009944", fontcolor=white, color="#009944"]
 
     work -> record [label="capture\nevidence"]
-    record -> proposal [label="extract"]
-    proposal -> use [label="try"]
+    record -> analysis [label="explain"]
+    analysis -> proposal [label="propose"]
+    proposal -> approval [label="review"]
+    approval -> implementation [label="authorize"]
+    implementation -> use [label="observe"]
     use -> disposition [label="review\noutcome"]
     disposition -> work [label="feeds next\ncycle", color="#888888",
                          fontcolor="#888888"]

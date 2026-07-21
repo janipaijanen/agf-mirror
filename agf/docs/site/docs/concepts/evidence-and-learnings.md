@@ -13,10 +13,45 @@ project.*
 
 The framework grows from evidence, not opinion. Figure 1 shows the
 learning loop: governed work creates evidence, evidence becomes a
-learning record, learning records propose changes, and project use feeds
-the next cycle.
+learning record, system-level analysis informs a proposal, governed approval
+precedes implementation, and observed project use feeds the next cycle.
 
 ![Learning loop](../../reference/figures/learning-loop.svg)
+
+## Established foundations
+
+AGF's loop adapts established learning and safety traditions. These sources
+help explain the design; their existence does **not** empirically validate AGF
+or prove that an adopter's process is effective.
+
+- **Double-loop learning.** Argyris and Schön distinguish correcting an action
+  within existing assumptions from questioning the governing assumptions,
+  policies, or objectives themselves. Routine implementation correction is the
+  first kind. A learning that proposes changing an AGF rule, authority
+  boundary, or gate is the second. See
+  [*Organizational Learning: A Theory of Action Perspective*](https://books.google.com/books?vid=ISBN0201001748)
+  (1978).
+- **PDSA.** The Deming Institute describes Plan–Do–Study–Act as an iterative
+  method for generating knowledge: predict, act, study observed results, then
+  adjust the theory or method. In AGF, governed implementation supplies the
+  action and project-use evidence supplies the study; a completion record alone
+  does not close the learning cycle. See the
+  [PDSA Cycle](https://deming.org/explore/pdsa/).
+- **System-level causal analysis.** Leveson's CAST method asks how a control
+  structure allowed an undesired loss and what controls should change, rather
+  than stopping at an individual “root cause.” AGF's analysis step likewise
+  asks whether a failure belongs in implementation, role boundaries, a gate,
+  tooling, or the rule set. See the MIT
+  [CAST Handbook](https://sunnyday.mit.edu/CAST-Handbook.pdf).
+- **Continual AI-management improvement.** ISO/IEC 42001 specifies continual
+  improvement of an AI management system and uses a Plan–Do–Check–Act model.
+  AGF's records can contribute evidence to such a management process, but AGF
+  does not by itself implement ISO/IEC 42001 or confer conformity. See
+  [ISO/IEC 42001:2023](https://www.iso.org/standard/42001).
+
+These relationships are **theoretical and prior-art informed**. Evidence that
+AGF's particular loop improves outcomes must come from observed adopter use,
+independent evaluation, and learning records—not analogy alone.
 
 Rules shipped on single-adopter evidence carry a **Provisional** header
 naming the evidence and asking adopters who hit the rule to file a
