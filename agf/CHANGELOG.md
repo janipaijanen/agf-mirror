@@ -3,12 +3,40 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## [Unreleased]
+## [2.3.0] — 2026-07-21
+
+**2.2.6 was prepared and merged on 2026-06-26 but was not published as a
+tagged release. Its changes are incorporated into 2.3.0** (see the annotated
+`[2.2.6]` entry below). The last published tag before this release is
+`v2.2.5`; this entry covers the full diff from `v2.2.5` to `v2.3.0`,
+including the 2.2.6 content.
 
 ### Added
 
+- Added coordination write primitives to `agov`: `agov coord post` writes and
+  validates a coordination message in one step (`--from`, `--to`, `--kind`,
+  `--topic`, `--ref`, `--artifact`, `--task`, `--model`), and `agov coord
+  brief`/`agov coord list`/`agov coord status` generate skeletons, list
+  messages since an id/timestamp, and summarize channel/role activity. Agents
+  no longer need to hand-construct coordination front matter.
+- Added an `agov` OCI image release job: `.gitlab-ci.yml` builds and publishes
+  a container image on tag pipelines from `tooling/rust/Containerfile.agov`
+  via `tooling/rust/scripts/agov-oci-image.sh`, with a version/runtime smoke
+  test and a Trivy vulnerability scan gating on fixed HIGH/CRITICAL findings.
+  Cross-compiled release binaries now carry correct embedded build
+  provenance (`tooling/rust/Cross.toml` passes `AGOV_BUILD_COMMIT` /
+  `AGOV_BUILD_DIRTY` through the cross-build container, which previously
+  silently fell back to `unknown`/`dirty: true`); the scan path's
+  image-reference and format bugs are fixed and the container base is
+  digest-pinned to a patched Alpine base.
+- Added `agov-mcp`, a local stdio Model Context Protocol server exposing
+  `agov` workflow commands as MCP tools. Built into the release archive by
+  CI. Documented at `agf/docs/site/docs/adopt/mcp-server.md`, status
+  **Level 4 Validated** (not yet Level 5 Deployable — see the known
+  path-contract limitation on that page and the tracking plan at
+  `docs/plans/mcp-coordination-dir-contract-fix.md`).
 - Added an adopter applicability catalog (`agf/docs/site/docs/adopt/applicability-catalog.md`),
-  classifying a first representative slice of 8 governed artifacts (of 57
+  classifying a first representative slice of 8 governed artifacts (of 58
   total) with a per-artifact activation condition and removal consequence.
   New optional schema fields: `activation_condition`, `safe_to_remove_when`,
   `removal_forfeits`, `depends_on` on rules (`agf/schemas/rule.schema.json`);
@@ -21,9 +49,12 @@ distribution.
   "always active" in one place while stating a specific activation
   condition elsewhere in the same documents — both properties (library-core
   status and activation condition) are now stated explicitly rather than
-  conflated. The remaining 49 governed artifacts are not yet classified;
+  conflated. The remaining 50 governed artifacts are not yet classified;
   tracked as an explicit follow-up, not silently deferred (see
-  `docs/coordination/20260721T063606Z-coder-tester-pjms.md`).
+  `docs/coordination/20260721T063606Z-coder-tester-pjms.md`). Contribution
+  Auditor's `activation_condition` reads "first contribution to the
+  framework or an adopter project" (settled wording; see
+  `docs/coordination/20260721T071957Z-governor-reviewer-rts3.md`).
 - Added `deprecation-policy-rule`, defining a two-phase deprecation policy:
   Phase 0 (pre-customer, current state) permits disclosed breaking changes
   with no deprecation cycle; Phase 1 (real external adopters) requires a
@@ -33,12 +64,6 @@ distribution.
   (`docs/plans/mcp-coordination-dir-contract-fix.md`), which is a Phase 0
   hard rename under this rule rather than a repeat of the coordination
   schema's never-actually-sunset `seq` field pattern.
-- Added `agov-mcp`, a local stdio Model Context Protocol server exposing
-  `agov` workflow commands as MCP tools. Built into the release archive by
-  CI. Documented at `agf/docs/site/docs/adopt/mcp-server.md`, status
-  **Level 4 Validated** (not yet Level 5 Deployable — see the known
-  path-contract limitation on that page and the tracking plan at
-  `docs/plans/mcp-coordination-dir-contract-fix.md`).
 - Added `agent-improvement-proposal-rule`, a SHOULD-strength norm that lets
   agents surface workflow friction and improvement ideas without expanding the
   active MR or taking approval authority.
@@ -54,7 +79,11 @@ distribution.
   sinks, automation bias, Goodhart's law, psychological safety vs.
   surveillance, proceduralism vs. outcome-based regulation) as review
   prompts applicable to any governance design, explicitly not new AGF
-  rules or guarantees.
+  rules or guarantees. A second set of six learning-focused lenses (OODA,
+  PDCA/PDSA, single- vs. double-loop learning, espoused theory vs.
+  theory-in-use, Cynefin, SECI/*ba*) is Gate 1 approved
+  (`docs/plans/philosophical-lenses-learning-additions.md`) but explicitly
+  **not** implemented in this release; scheduled as a post-2.3.0 follow-up.
 
 ### Changed
 
@@ -75,18 +104,35 @@ distribution.
 - External-review triage records now label the OpenAI web-based AI assessment
   accurately and route fact-checking / advisory claims through durable
   coordination notes.
+- Homepage and public documentation now consistently use "AI assistant" (with
+  bare "assistant" as shorthand within a section) for the tool a person runs,
+  reserving "agent" for a governed role under this framework.
 
 ### Learning
 
 - Added a proposed learning record for using formal advisory roles as
   auditable evidence producers during external-review claim assessment.
+- Added `20260721T073035Z-bt1s`: a mixed push whose HEAD commit is
+  `coordination:`-titled can skip CI for the whole push under
+  `.gitlab-ci.yml`'s title-only workflow rule, silently including an
+  untested content commit. Structural fix (checking the full commit range)
+  is deferred pending a `gate-self-test-rule` negative test; the immediate
+  discipline is committing coordination-only changes separately from content
+  changes.
+- Added `20260721T003902Z-4j3j`: merged-plan Gate 1 metadata drift and a
+  same-role self-ack are not governor-reviewer authority; corrections need an
+  actual `governor-reviewer` coordination record.
 
 Adopter docs: updated
 
-## [2.2.6] — 2026-06-26
+## [2.2.6] — 2026-06-26 (prepared and merged; not tagged or published)
 
-This patch release publishes the external-review hardening work that followed
-the v2.2.5 AI evaluation dossier rollout.
+This patch content was prepared and merged to `main` at commit
+`320405f38457f4890ba16fc25f952b4a8c6d1307` but was never tagged or
+published as a release. It is not a SemVer prerelease. Its changes are
+incorporated into [2.3.0](#230--2026-07-21) above; do not look for a
+`v2.2.6` tag. This patch content publishes the external-review hardening
+work that followed the v2.2.5 AI evaluation dossier rollout.
 
 ### Changed
 
