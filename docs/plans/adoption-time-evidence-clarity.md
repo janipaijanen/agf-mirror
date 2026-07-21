@@ -43,6 +43,10 @@ Documentation will distinguish three different quantities:
 3. **Per-change governor attention:** existing ranges are planning estimates
    informed by maintainer-operated use, not service-level promises or
    independently validated benchmarks.
+4. **Exit effort:** removal is one atomic cleanup commit. Duration has not yet
+   been measured and varies with CI, hooks, and project-owned evidence. No
+   numerical exit-time claim is made until a real decommission is measured
+   from a defined start to a verified clean state.
 
 “Twenty-minute path” becomes “short evaluation-and-install path.” “An
 afternoon to install” is removed rather than softened or relocated.
@@ -54,6 +58,7 @@ afternoon to install” is removed rather than softened or relocated.
 - `agf/docs/site/docs/start/should-you-adopt.md`
 - `agf/docs/site/docs/start/adopter-faq.md`
 - `agf/docs/site/docs/adopt/downstream-impact.md`
+- `agf/docs/site/docs/adopt/exit-and-decommission.md`
 - `agf/CHANGELOG.md`
 - coordination records for review and Gate 2 handoff
 
@@ -72,10 +77,12 @@ that boundary unless the governor-reviewer separately amends v2.3.1 scope.
 1. Search current public documentation for `afternoon`, `twenty-minute`,
    `5-15 minutes`, and equivalent time claims; every retained claim must carry
    the correct evidence boundary.
-2. Confirm README and site home use the same canonical distinction.
-3. Run `mkdocs build --strict --config-file agf/docs/build/mkdocs.yml`.
-4. Run `agov validate adopter-docs` and `agov dist validate`.
-5. Run `git diff --check`.
+2. Confirm the exit page states the unmeasured-duration boundary and does not
+   imply that “one atomic removal commit” is a time estimate.
+3. Confirm README and site home use the same canonical distinction.
+4. Run `mkdocs build --strict --config-file agf/docs/build/mkdocs.yml`.
+5. Run `agov validate adopter-docs` and `agov dist validate`.
+6. Run `git diff --check`.
 
 ## Risks and controls
 
@@ -84,6 +91,7 @@ that boundary unless the governor-reviewer separately amends v2.3.1 scope.
 | Maintainer deployments are presented as independent evidence | State the population explicitly and say independent validation is pending. |
 | Ten minutes is misread as full commissioning | Name mechanical installation and commissioning separately wherever the number appears. |
 | Existing governor-time estimates imply benchmark precision | Label them maintainer-informed planning estimates and retain the high-risk exception. |
+| A one-commit exit is misread as a ten-minute exit | State that duration is unmeasured and name the sources of variability. |
 | Copy drifts across entry pages | Use one canonical message and verify all current time-claim surfaces. |
 
 ## Rollback
