@@ -4608,12 +4608,21 @@ fn clean_coord_filename(token: &str) -> Option<String> {
     }
 }
 
+/// Legacy-compatibility note: the 20-char branch below recognizes the
+/// Crockford-alphabet ID form briefly produced by a broken generator in
+/// June 2026 (e.g. `01KVK7J9N2AW8DJZQAG2`), so references to those
+/// immutable historical files resolve correctly. That form is never
+/// generated and must never be treated as a currently valid ID format.
 fn looks_like_coord_filename(filename: &str) -> bool {
     let stem = filename.strip_suffix(".md").unwrap_or(filename);
     let first = stem.split('-').next().unwrap_or("");
 
     first.len() == 5 && first.chars().all(|ch| ch.is_ascii_digit())
         || first.len() == 26
+            && first
+                .chars()
+                .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
+        || first.len() == 20
             && first
                 .chars()
                 .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))

@@ -88,6 +88,20 @@ fn handoff(id: &str, from: &str, to: &str) -> String {
     format!("{header}{block}---\n\n# Test handoff\n")
 }
 
+/// Like `handoff()`, but for a legacy 20-char Crockford ID that is not a
+/// readable-timestamp ID, so `readable_timestamp(id)` cannot derive a
+/// timestamp from it — the timestamp is fixed instead.
+fn legacy_handoff(id: &str, from: &str, to: &str) -> String {
+    let header = format!(
+        "---\nid: {id}\nkind: handoff\nfrom: {from}\nto: {to}\ntimestamp: 2026-06-20T18:39:14Z\n\
+         immutable: true\nreferences-to: []\ntopic: legacy id test\nrequires-ack: false\n"
+    );
+    let block = format!(
+        "handoff:\n  next_agent: {to}\n  status: ready\n  task:\n    - do the thing\n  must_read: []\n  do_not_touch: []\n"
+    );
+    format!("{header}{block}---\n\n# Legacy handoff test\n")
+}
+
 fn ack(id: &str, from: &str, to: &str, references: &[&str]) -> String {
     let ts = readable_timestamp(id);
     let refs = references
@@ -250,6 +264,56 @@ fn coord_graph_index_pending_handoff_in_pending_list() {
     assert_eq!(
         pending[0]["file"].as_str(),
         Some("20260621T000000Z-planner-architect-h002.md")
+    );
+}
+
+#[test]
+fn coord_graph_index_legacy_20_char_id_reference_resolves() {
+    // Regression test for the June 2026 broken-generator window: a handoff
+    // filed under a 20-char Crockford ID (not a readable timestamp ID, not a
+    // valid 26-char ULID) must still resolve when a later ack references it.
+    let fixture = Fixture::new();
+    fixture.write_coord(
+        "01KVK7J9N2AW8DJZQAG2-planner-architect.md",
+        &legacy_handoff(
+            "01KVK7J9N2AW8DJZQAG2",
+            "planner-architect",
+            "coder-tester",
+        ),
+    );
+    fixture.write_coord(
+        "20260621T000300Z-coder-tester-a010.md",
+        &ack(
+            "20260621T000300Z-coder-tester-a010",
+            "coder-tester",
+            "planner-architect",
+            &["01KVK7J9N2AW8DJZQAG2-planner-architect"],
+        ),
+    );
+
+    let output = agov(&[
+        "coord",
+        "graph-index",
+        "--dir",
+        fixture.coord_dir().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let v: serde_json::Value =
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).unwrap();
+    let nodes = v["nodes"].as_array().unwrap();
+    let handoff_node = nodes
+        .iter()
+        .find(|n| n["kind"].as_str() == Some("handoff"))
+        .expect("handoff node present");
+    assert_eq!(
+        handoff_node["resolved"].as_bool(),
+        Some(true),
+        "legacy 20-char ID handoff resolved by ack should be true"
+    );
+    assert!(
+        v["pending"].as_array().unwrap().is_empty(),
+        "legacy handoff must not remain in the pending list once acked"
     );
 }
 

@@ -82,6 +82,13 @@ pub fn normalize_coord_reference(reference: &str) -> Option<String> {
 }
 
 /// Returns true when a filename looks like a coordination message file.
+///
+/// Includes a legacy-compatibility branch for the 20-character
+/// Crockford-alphabet ID form briefly produced by a broken generator in
+/// June 2026 (e.g. `01KVK7J9N2AW8DJZQAG2`). That form is recognized here
+/// **only** so references to those immutable historical files resolve
+/// correctly — it is never generated and must never be treated as a
+/// currently valid ID format elsewhere.
 pub fn looks_like_coord_filename(filename: &str) -> bool {
     let stem = filename.strip_suffix(".md").unwrap_or(filename);
     let first = stem.split('-').next().unwrap_or("");
@@ -90,6 +97,11 @@ pub fn looks_like_coord_filename(filename: &str) -> bool {
     first.len() == 5 && first.chars().all(|ch| ch.is_ascii_digit())
         // ULID-prefixed: 26-char Crockford base32
         || first.len() == 26
+            && first.chars().all(|ch| {
+                matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z')
+            })
+        // Legacy 20-char Crockford form: reference compatibility only
+        || first.len() == 20
             && first.chars().all(|ch| {
                 matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z')
             })
@@ -350,5 +362,63 @@ mod tests {
         assert!(!findings
             .iter()
             .any(|finding| finding.contains("manual coordination id")));
+    }
+
+    #[test]
+    fn legacy_20_char_crockford_filename_is_recognized() {
+        // Real historical filename from the June 2026 broken-generator window.
+        assert!(looks_like_coord_filename(
+            "01KVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
+        assert!(looks_like_coord_filename(
+            "01KVK7DYM21GGQ7ZZ5RR-planner-architect.md"
+        ));
+    }
+
+    #[test]
+    fn legacy_20_char_reference_normalizes_with_and_without_md_suffix() {
+        assert_eq!(
+            normalize_coord_reference("01KVK7J9N2AW8DJZQAG2-planner-architect"),
+            Some("01KVK7J9N2AW8DJZQAG2-planner-architect.md".to_string())
+        );
+        assert_eq!(
+            normalize_coord_reference("01KVK7J9N2AW8DJZQAG2-planner-architect.md"),
+            Some("01KVK7J9N2AW8DJZQAG2-planner-architect.md".to_string())
+        );
+        assert_eq!(
+            normalize_coord_reference("docs/coordination/01KVK7J9N2AW8DJZQAG2-planner-architect.md"),
+            Some("01KVK7J9N2AW8DJZQAG2-planner-architect.md".to_string())
+        );
+    }
+
+    #[test]
+    fn near_length_20_char_variants_are_rejected() {
+        // 19 chars — one short.
+        assert!(!looks_like_coord_filename("1KVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        // 21 chars — one long.
+        assert!(!looks_like_coord_filename("001KVK7J9N2AW8DJZQAG2-planner-architect.md"));
+    }
+
+    #[test]
+    fn non_crockford_20_char_first_segment_is_rejected() {
+        // 'I', 'L', 'O', 'U' are excluded from the Crockford base32 alphabet.
+        assert!(!looks_like_coord_filename("0IKVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        assert!(!looks_like_coord_filename("0LKVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        assert!(!looks_like_coord_filename("0OKVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        assert!(!looks_like_coord_filename("0UKVK7J9N2AW8DJZQAG2-planner-architect.md"));
+    }
+
+    #[test]
+    fn current_formats_remain_accepted_after_legacy_addition() {
+        // Sequence-numbered.
+        assert!(looks_like_coord_filename("00001-coder-tester.md"));
+        // Valid 26-char ULID.
+        assert!(looks_like_coord_filename(
+            "01ARZ3NDEKTSV4RRFFQ69G5FAV-coder-tester.md"
+        ));
+        // Readable timestamp ID.
+        assert!(looks_like_coord_filename(
+            "20260623T181212Z-coder-tester-r7k2.md"
+        ));
     }
 }
