@@ -691,11 +691,10 @@ fn validate_provenance_command(
                     .get("artifact_filename")
                     .and_then(serde_json::Value::as_str)
                 {
+                    // Mandatory: check_sha256_sidecar_agreement itself reports
+                    // a missing sidecar as a finding rather than being skipped.
                     let sidecar = dir.join(format!("{filename}.sha256"));
-                    if sidecar.is_file() {
-                        findings
-                            .extend(provenance::check_sha256_sidecar_agreement(&data, &sidecar));
-                    }
+                    findings.extend(provenance::check_sha256_sidecar_agreement(&data, &sidecar));
                 }
             }
         }

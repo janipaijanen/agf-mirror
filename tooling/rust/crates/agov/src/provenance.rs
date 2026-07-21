@@ -8,22 +8,27 @@
 //! agreement, OCI label agreement) that a JSON Schema alone cannot express.
 //!
 //! Pre-v2.4 records (no `schema_version` field) are never upgraded
-//! implicitly: `validate_record` reports them as `AssuranceLevel::Legacy`
-//! and does not run schema validation against them.
+//! implicitly: `validate_record` classifies them against a *separate*
+//! schema of recognized historical shapes
+//! (`release-provenance-legacy.schema.json`, verified against the actual
+//! published v2.3.1 records) and reports `AssuranceLevel::Legacy` only when
+//! one matches. Arbitrary JSON, an explicit but unsupported
+//! `schema_version`, or a near-miss malformed legacy shape are rejected,
+//! not silently accepted as legacy.
 //!
 //! ## Two copies, one canonical direction
 //!
-//! The schema is embedded from a copy inside this crate
-//! (`schemas/release-provenance.schema.json`), not from
-//! `agf/schemas/release-provenance.schema.json` directly. `cross build`
-//! copies only the `tooling/rust` workspace into an isolated build context
-//! for cross-compilation; a path reaching outside `tooling/rust` fails
-//! there even though it compiles from a full repository checkout. The
-//! adopter-facing `agf/schemas/` copy is canonical; the crate-local copy is
-//! generated from it and verified byte-for-byte equal by
-//! `crate_schema_matches_agf_schema` in this module's test suite. Any
-//! future schema edit must update both files in the same commit — the test
-//! fails otherwise.
+//! Both schemas are embedded from copies inside this crate
+//! (`schemas/*.schema.json`), not from `agf/schemas/` directly. `cross
+//! build` copies only the `tooling/rust` workspace into an isolated build
+//! context for cross-compilation; a path reaching outside `tooling/rust`
+//! fails there even though it compiles from a full repository checkout.
+//! The adopter-facing `agf/schemas/` copies are canonical; the crate-local
+//! copies are plain file copies of them, kept in sync by hand today and
+//! verified as parsed-JSON-equal (not byte-identical -- whitespace is not
+//! significant) by `crate_schema_matches_agf_schema` in this module's test
+//! suite. Any future schema edit must update both files in the same
+//! commit -- the test fails otherwise.
 
 use agov_core::schema::{compile_str, validate as schema_validate, CompiledSchema};
 use serde_json::Value;
@@ -35,6 +40,7 @@ use std::path::Path;
 use std::sync::OnceLock;
 
 const SCHEMA_JSON: &str = include_str!("../schemas/release-provenance.schema.json");
+const LEGACY_SCHEMA_JSON: &str = include_str!("../schemas/release-provenance-legacy.schema.json");
 
 pub const SCHEMA_VERSION: &str = "2.4";
 
@@ -45,10 +51,22 @@ fn compiled_schema() -> &'static CompiledSchema {
     })
 }
 
+fn compiled_legacy_schema() -> &'static CompiledSchema {
+    static SCHEMA: OnceLock<CompiledSchema> = OnceLock::new();
+    SCHEMA.get_or_init(|| {
+        compile_str(LEGACY_SCHEMA_JSON)
+            .expect("embedded legacy release-provenance schema must compile")
+    })
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AssuranceLevel {
     V24,
     Legacy,
+    /// Neither a valid v2.4 record nor a recognized legacy shape: arbitrary
+    /// JSON, an explicit but unsupported `schema_version`, or a near-miss
+    /// malformed legacy shape. Always has non-empty `findings`.
+    Invalid,
 }
 
 impl AssuranceLevel {
@@ -56,6 +74,7 @@ impl AssuranceLevel {
         match self {
             AssuranceLevel::V24 => "v2.4",
             AssuranceLevel::Legacy => "legacy",
+            AssuranceLevel::Invalid => "invalid",
         }
     }
 }
@@ -83,29 +102,59 @@ pub fn validate_json_text(content: &str) -> Result<ValidationOutcome, String> {
     Ok(validate_record(&data))
 }
 
-/// Classify and, for v2.4-shaped records, schema-validate a parsed record.
+/// Classify and schema-validate a parsed record.
 ///
-/// A record without a `schema_version: "2.4"` field is always reported as
-/// `Legacy` — it MUST NOT be scored against the v2.4 schema even if every
-/// field it happens to have would individually pass.
+/// - `schema_version: "2.4"` present → scored against the v2.4 schema
+///   (`AssuranceLevel::V24`).
+/// - `schema_version` present but not `"2.4"` → `AssuranceLevel::Invalid`
+///   with a finding naming the unsupported version. Never silently treated
+///   as legacy: an explicit version claim that isn't 2.4 is a contract
+///   violation, not an old record.
+/// - `schema_version` absent → scored against the legacy schema
+///   (recognized pre-v2.4 shapes only). A match is
+///   `AssuranceLevel::Legacy`; anything else (empty object, array, scalar,
+///   unrelated JSON, malformed near-miss legacy shape) is
+///   `AssuranceLevel::Invalid`. A legacy-shaped record is NEVER also
+///   reported as satisfying the v2.4 contract, even if every field it
+///   happens to have would individually pass.
 pub fn validate_record(data: &Value) -> ValidationOutcome {
-    let is_v24 = data.get("schema_version").and_then(Value::as_str) == Some(SCHEMA_VERSION);
-
-    if !is_v24 {
-        return ValidationOutcome {
-            assurance_level: AssuranceLevel::Legacy,
-            findings: Vec::new(),
-        };
-    }
-
-    let findings = schema_validate(compiled_schema(), data)
-        .into_iter()
-        .map(|finding| format!("{}: {}", finding.pointer, finding.message))
-        .collect();
-
-    ValidationOutcome {
-        assurance_level: AssuranceLevel::V24,
-        findings,
+    match data.get("schema_version") {
+        Some(Value::String(version)) if version == SCHEMA_VERSION => {
+            let findings = schema_validate(compiled_schema(), data)
+                .into_iter()
+                .map(|finding| format!("{}: {}", finding.pointer, finding.message))
+                .collect();
+            ValidationOutcome {
+                assurance_level: AssuranceLevel::V24,
+                findings,
+            }
+        }
+        Some(other) => ValidationOutcome {
+            assurance_level: AssuranceLevel::Invalid,
+            findings: vec![format!(
+                "unsupported schema_version (expected \"{SCHEMA_VERSION}\"): {other}"
+            )],
+        },
+        None => {
+            let findings: Vec<String> = schema_validate(compiled_legacy_schema(), data)
+                .into_iter()
+                .map(|finding| format!("{}: {}", finding.pointer, finding.message))
+                .collect();
+            if findings.is_empty() {
+                ValidationOutcome {
+                    assurance_level: AssuranceLevel::Legacy,
+                    findings,
+                }
+            } else {
+                let mut all_findings =
+                    vec!["not a recognized legacy or v2.4 provenance shape".to_string()];
+                all_findings.extend(findings);
+                ValidationOutcome {
+                    assurance_level: AssuranceLevel::Invalid,
+                    findings: all_findings,
+                }
+            }
+        }
     }
 }
 
@@ -229,6 +278,20 @@ pub fn sha256_file(path: &Path) -> Result<String, String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+/// A safe `artifact_filename` is a plain basename: no path separators (`/`
+/// or `\`, so this is enforced the same way on Windows and Unix), and not
+/// exactly `.` or `..`. The schema's `pattern` on `artifact_filename`
+/// already requires an alphanumeric first character (which excludes `.`
+/// and `..` structurally), but this check runs independently of schema
+/// validation so callers cannot bypass it by skipping `validate_record`.
+fn is_safe_artifact_filename(filename: &str) -> bool {
+    !filename.is_empty()
+        && !filename.contains('/')
+        && !filename.contains('\\')
+        && filename != "."
+        && filename != ".."
+}
+
 /// Cross-check a `file`-kind record's `artifact_filename`/`artifact_bytes`/
 /// `sha256` against the actual artifact on disk.
 ///
@@ -241,6 +304,15 @@ pub fn check_artifact_agreement(record: &Value, artifact_dir: &Path) -> Vec<Stri
     let Some(filename) = record.get("artifact_filename").and_then(Value::as_str) else {
         return findings;
     };
+
+    if !is_safe_artifact_filename(filename) {
+        findings.push(format!(
+            "unsafe artifact_filename (must be a plain basename with no path \
+             separators and not '.' or '..'): {filename:?}"
+        ));
+        return findings;
+    }
+
     let artifact_path = artifact_dir.join(filename);
 
     if !artifact_path.is_file() {
@@ -275,27 +347,82 @@ pub fn check_artifact_agreement(record: &Value, artifact_dir: &Path) -> Vec<Stri
     findings
 }
 
-/// Cross-check a record's `sha256` against a BSD-style `.sha256` sidecar
-/// file (the `<hex>  <filename>` shape written by `sha256sum` / this
-/// crate's own `dist::write_checksums`).
+/// Cross-check a record's `sha256`/`artifact_filename` against a
+/// GNU-coreutils-style `.sha256` sidecar file: exactly one line shaped
+/// `<64-char-lowercase-hex><space><mode><filename>`, where `mode` is `' '`
+/// (text) or `'*'` (binary) — the shape written by `sha256sum` and by this
+/// crate's own `dist::write_checksums`. The sidecar is mandatory: a
+/// missing or unreadable file is a finding, not a silent pass. Both the
+/// digest and the filename inside the sidecar must agree with the record —
+/// a correct hash paired with the wrong filename is rejected.
 pub fn check_sha256_sidecar_agreement(record: &Value, sidecar_path: &Path) -> Vec<String> {
     let Some(expected_sha256) = record.get("sha256").and_then(Value::as_str) else {
         return Vec::new();
     };
-    let Ok(content) = std::fs::read_to_string(sidecar_path) else {
-        return vec![format!(
-            "could not read checksum sidecar {}",
-            sidecar_path.display()
-        )];
+    let expected_filename = record.get("artifact_filename").and_then(Value::as_str);
+
+    let content = match std::fs::read_to_string(sidecar_path) {
+        Ok(content) => content,
+        Err(err) => {
+            return vec![format!(
+                "missing or unreadable checksum sidecar {}: {err}",
+                sidecar_path.display()
+            )]
+        }
     };
-    let sidecar_hex = content.split_whitespace().next().unwrap_or("");
-    if sidecar_hex != expected_sha256 {
+
+    let lines: Vec<&str> = content
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .collect();
+    if lines.len() != 1 {
         return vec![format!(
-            "checksum format inconsistency: sidecar {} says {sidecar_hex}, record says {expected_sha256}",
+            "checksum sidecar {} must contain exactly one entry, found {}",
+            sidecar_path.display(),
+            lines.len()
+        )];
+    }
+    let line = lines[0];
+
+    if line.len() < 66 {
+        return vec![format!(
+            "checksum sidecar {} entry is too short to be \"<sha256>  <filename>\"",
             sidecar_path.display()
         )];
     }
-    Vec::new()
+    let hex = &line[0..64];
+    let separator = &line[64..66];
+    let sidecar_filename = &line[66..];
+
+    if separator != "  " && separator != " *" {
+        return vec![format!(
+            "checksum sidecar {} entry has a malformed delimiter {separator:?} (expected \"  \" or \" *\")",
+            sidecar_path.display()
+        )];
+    }
+
+    let mut findings = Vec::new();
+    if !hex.chars().all(|c| c.is_ascii_hexdigit()) {
+        findings.push(format!(
+            "checksum sidecar {} entry does not start with a valid hex digest",
+            sidecar_path.display()
+        ));
+    }
+    if hex != expected_sha256 {
+        findings.push(format!(
+            "checksum format inconsistency: sidecar {} says {hex}, record says {expected_sha256}",
+            sidecar_path.display()
+        ));
+    }
+    if let Some(expected_filename) = expected_filename {
+        if sidecar_filename != expected_filename {
+            findings.push(format!(
+                "checksum sidecar {} names {sidecar_filename:?}, record artifact_filename is {expected_filename:?}",
+                sidecar_path.display()
+            ));
+        }
+    }
+    findings
 }
 
 /// Cross-check that no two `file`-kind records in a release publish the
@@ -406,26 +533,125 @@ mod tests {
         assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
     }
 
-    #[test]
-    fn record_without_schema_version_is_legacy_and_never_scored_as_v24() {
-        let legacy = serde_json::json!({
-            "version": "2.3.1",
-            "source_commit": "abc123",
-            "tag": "v2.3.1",
-            "build_timestamp": "2026-06-01T00:00:00Z",
+    /// The exact JSON published at
+    /// https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.3.1/agf-2.3.1-provenance.json
+    /// (fetched 2026-07-21) -- the real historical shape, not a synthetic
+    /// approximation of it.
+    fn real_v231_framework_record() -> Value {
+        serde_json::json!({
             "archive_filenames": ["agf-2.3.1.tar.gz", "agf-2.3.1.zip"],
-            "checksums": {"agf-2.3.1.tar.gz": "aaaa"},
+            "build_timestamp": "2026-07-21T15:56:48.252871887Z",
+            "checksums": {
+                "agf-2.3.1.tar.gz": "cf79ad8bb5a5e7378ea704c56675eabc32c6d3268910a701abf8231893eb0fda",
+                "agf-2.3.1.zip": "c079a64c9cff468b075f44849323d9b4ec4c1e240b0b9bc63c10c70ed8c1993f"
+            },
             "implementation": "rust",
+            "manifest_path": "agf/dist/release-manifest.yaml",
             "packaging": "manifest-source-archive",
-        });
-        let outcome = validate_record(&legacy);
+            "pipeline_identity": {"job_id": "15457824866", "pipeline_id": "2694360644"},
+            "source_commit": "1f7359896e81edcc7f092f55d156c6be9b2eecdc",
+            "tag": "v2.3.1",
+            "version": "2.3.1"
+        })
+    }
+
+    /// The exact JSON published at
+    /// https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.3.1/agov-2.3.1-x86_64-unknown-linux-musl-provenance.json
+    /// (fetched 2026-07-21).
+    fn real_v231_tooling_record() -> Value {
+        serde_json::json!({
+            "version": "2.3.1",
+            "source_commit": "1f7359896e81edcc7f092f55d156c6be9b2eecdc",
+            "tag": "v2.3.1",
+            "build_timestamp": "2026-07-21T15:39:25Z",
+            "pipeline_identity": {"pipeline_id": "2694360644", "job_id": "15457824857"},
+            "target_platform": "x86_64-unknown-linux-musl",
+            "implementation": "rust",
+            "packaging": "tar.gz"
+        })
+    }
+
+    #[test]
+    fn real_v231_framework_record_is_recognized_as_legacy() {
+        let outcome = validate_record(&real_v231_framework_record());
         assert_eq!(outcome.assurance_level, AssuranceLevel::Legacy);
-        assert!(outcome.is_valid());
+        assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
+    }
+
+    #[test]
+    fn real_v231_tooling_record_is_recognized_as_legacy() {
+        let outcome = validate_record(&real_v231_tooling_record());
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Legacy);
+        assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
+    }
+
+    #[test]
+    fn legacy_record_is_never_scored_as_satisfying_v24() {
+        // Every field individually would pass a lenient reading, but this
+        // shape (no schema_version, no artifact_kind) must never be
+        // reported as V24 -- it is Legacy or nothing.
+        let outcome = validate_record(&real_v231_framework_record());
+        assert_ne!(outcome.assurance_level, AssuranceLevel::V24);
     }
 
     #[test]
     fn oci_label_agreement_passes_when_labels_match() {
         assert!(check_label_agreement(&valid_oci_record()).is_empty());
+    }
+
+    // ── Negative cases for legacy/version classification (finding #1) ───
+
+    #[test]
+    fn negative_empty_object_is_invalid_not_legacy() {
+        let outcome = validate_record(&serde_json::json!({}));
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
+        assert!(!outcome.is_valid());
+    }
+
+    #[test]
+    fn negative_json_array_is_invalid() {
+        let outcome = validate_record(&serde_json::json!([1, 2, 3]));
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
+    }
+
+    #[test]
+    fn negative_json_scalar_is_invalid() {
+        let outcome = validate_record(&serde_json::json!("just a string"));
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
+    }
+
+    #[test]
+    fn negative_unsupported_schema_version_is_invalid_not_legacy_or_v24() {
+        let mut record = real_v231_framework_record();
+        record["schema_version"] = serde_json::json!("2.5");
+        let outcome = validate_record(&record);
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
+        assert!(outcome
+            .findings
+            .iter()
+            .any(|f| f.contains("unsupported schema_version")));
+    }
+
+    #[test]
+    fn negative_misspelled_v24_version_is_invalid() {
+        let mut record = valid_file_record();
+        record["schema_version"] = serde_json::json!("2.4.0");
+        let outcome = validate_record(&record);
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
+    }
+
+    #[test]
+    fn negative_near_legacy_shape_missing_field_is_invalid() {
+        let mut record = real_v231_framework_record();
+        record.as_object_mut().unwrap().remove("checksums");
+        let outcome = validate_record(&record);
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
+    }
+
+    #[test]
+    fn negative_unrelated_json_with_no_recognized_fields_is_invalid() {
+        let outcome = validate_record(&serde_json::json!({"hello": "world", "n": 1}));
+        assert_eq!(outcome.assurance_level, AssuranceLevel::Invalid);
     }
 
     // ── Negative case 1: missing required core field ───────────────────
@@ -438,6 +664,109 @@ mod tests {
         assert_eq!(outcome.assurance_level, AssuranceLevel::V24);
         assert!(!outcome.is_valid());
         assert!(outcome.findings.iter().any(|f| f.contains("version")));
+    }
+
+    // ── Negative cases for target_platform / product-kind closed subtype
+    // (finding #7) ────────────────────────────────────────────────────
+
+    #[test]
+    fn positive_framework_record_without_target_platform_passes() {
+        // valid_file_record() is product agf / packaging manifest-source-archive
+        // / no target_platform -- exactly the required framework shape.
+        let outcome = validate_record(&valid_file_record());
+        assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
+    }
+
+    #[test]
+    fn negative_tooling_record_without_target_platform_is_rejected() {
+        let record = build_file_record(&FileRecordInput {
+            product: "agov",
+            version: "2.4.0",
+            source_commit: "abc123",
+            tag: "v2.4.0",
+            build_timestamp: "2026-07-21T00:00:00Z",
+            pipeline_identity: None,
+            manifest_path: None,
+            implementation: "rust",
+            packaging: "tar.gz",
+            artifact_filename: "agov-2.4.0-x86_64-unknown-linux-musl.tar.gz",
+            artifact_bytes: 4,
+            sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            target_platform: None,
+        });
+        let outcome = validate_record(&record);
+        assert!(!outcome.is_valid());
+    }
+
+    #[test]
+    fn negative_framework_record_with_target_platform_is_rejected() {
+        let mut record = valid_file_record();
+        record["target_platform"] = serde_json::json!("x86_64-unknown-linux-musl");
+        let outcome = validate_record(&record);
+        assert!(!outcome.is_valid());
+    }
+
+    #[test]
+    fn negative_wrong_product_for_packaging_is_rejected() {
+        // packaging manifest-source-archive requires product "agf", not "agov".
+        let mut record = valid_file_record();
+        record["product"] = serde_json::json!("agov");
+        let outcome = validate_record(&record);
+        assert!(!outcome.is_valid());
+    }
+
+    // ── Negative cases for artifact_filename path traversal (finding #8) ─
+
+    #[test]
+    fn negative_absolute_path_artifact_filename_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("/etc/passwd");
+        let findings = check_artifact_agreement(&record, dir.path());
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("unsafe artifact_filename")));
+    }
+
+    #[test]
+    fn negative_parent_traversal_artifact_filename_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("../../etc/passwd");
+        let findings = check_artifact_agreement(&record, dir.path());
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("unsafe artifact_filename")));
+    }
+
+    #[test]
+    fn negative_nested_subdir_artifact_filename_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("sub/dir/agf-2.4.0.tar.gz");
+        let findings = check_artifact_agreement(&record, dir.path());
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("unsafe artifact_filename")));
+    }
+
+    #[test]
+    fn negative_windows_backslash_artifact_filename_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("..\\..\\evil.tar.gz");
+        let findings = check_artifact_agreement(&record, dir.path());
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("unsafe artifact_filename")));
+    }
+
+    #[test]
+    fn negative_artifact_filename_with_unsafe_chars_is_rejected_by_schema() {
+        let mut record = valid_file_record();
+        record["artifact_filename"] = serde_json::json!("../evil");
+        let outcome = validate_record(&record);
+        assert!(!outcome.is_valid());
     }
 
     // ── Negative case 2: mismatched sha256 vs real artifact ────────────
@@ -539,6 +868,61 @@ mod tests {
         .unwrap();
         let record = valid_file_record();
         assert!(check_sha256_sidecar_agreement(&record, &sidecar).is_empty());
+    }
+
+    #[test]
+    fn negative_missing_sidecar_is_mandatory_not_silently_skipped() {
+        let dir = TempDir::new().unwrap();
+        let sidecar = dir.path().join("does-not-exist.sha256");
+        let record = valid_file_record();
+        let findings = check_sha256_sidecar_agreement(&record, &sidecar);
+        assert!(findings
+            .iter()
+            .any(|f| f.contains("missing or unreadable checksum sidecar")));
+    }
+
+    #[test]
+    fn negative_sidecar_correct_hash_wrong_filename_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let sidecar = dir.path().join("agf-2.4.0.tar.gz.sha256");
+        std::fs::write(
+            &sidecar,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  wrong-name.tar.gz\n",
+        )
+        .unwrap();
+        let record = valid_file_record();
+        let findings = check_sha256_sidecar_agreement(&record, &sidecar);
+        assert!(findings.iter().any(|f| f.contains("names")));
+    }
+
+    #[test]
+    fn negative_sidecar_malformed_delimiter_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let sidecar = dir.path().join("agf-2.4.0.tar.gz.sha256");
+        // Single space instead of the required two-char separator.
+        std::fs::write(
+            &sidecar,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 agf-2.4.0.tar.gz\n",
+        )
+        .unwrap();
+        let record = valid_file_record();
+        let findings = check_sha256_sidecar_agreement(&record, &sidecar);
+        assert!(findings.iter().any(|f| f.contains("malformed delimiter")));
+    }
+
+    #[test]
+    fn negative_sidecar_multiple_entries_is_rejected() {
+        let dir = TempDir::new().unwrap();
+        let sidecar = dir.path().join("agf-2.4.0.tar.gz.sha256");
+        std::fs::write(
+            &sidecar,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  agf-2.4.0.tar.gz\n\
+             e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  agf-2.4.0.zip\n",
+        )
+        .unwrap();
+        let record = valid_file_record();
+        let findings = check_sha256_sidecar_agreement(&record, &sidecar);
+        assert!(findings.iter().any(|f| f.contains("exactly one entry")));
     }
 
     /// The crate-local embedded schema and the adopter-facing

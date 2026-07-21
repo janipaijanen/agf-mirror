@@ -18,39 +18,70 @@
       }
     },
     "fileRecord": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema_version",
-        "product",
-        "artifact_kind",
-        "version",
-        "source_commit",
-        "tag",
-        "build_timestamp",
-        "implementation",
-        "packaging",
-        "artifact_filename",
-        "artifact_bytes",
-        "sha256"
-      ],
-      "properties": {
-        "schema_version": { "const": "2.4" },
-        "product": { "type": "string", "minLength": 1 },
-        "artifact_kind": { "const": "file" },
-        "version": { "type": "string", "minLength": 1 },
-        "source_commit": { "type": "string", "minLength": 1 },
-        "tag": { "type": "string" },
-        "build_timestamp": { "type": "string", "minLength": 1 },
-        "pipeline_identity": { "$ref": "#/definitions/pipelineIdentity" },
-        "manifest_path": { "type": "string" },
-        "implementation": { "type": "string", "minLength": 1 },
-        "packaging": { "type": "string", "minLength": 1 },
-        "artifact_filename": { "type": "string", "minLength": 1 },
-        "artifact_bytes": { "type": "integer", "minimum": 0 },
-        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "target_platform": { "type": "string", "minLength": 1 }
-      }
+      "allOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_version",
+            "product",
+            "artifact_kind",
+            "version",
+            "source_commit",
+            "tag",
+            "build_timestamp",
+            "implementation",
+            "packaging",
+            "artifact_filename",
+            "artifact_bytes",
+            "sha256"
+          ],
+          "properties": {
+            "schema_version": { "const": "2.4" },
+            "product": { "enum": ["agf", "agov"] },
+            "artifact_kind": { "const": "file" },
+            "version": { "type": "string", "minLength": 1 },
+            "source_commit": { "type": "string", "minLength": 1 },
+            "tag": { "type": "string" },
+            "build_timestamp": { "type": "string", "minLength": 1 },
+            "pipeline_identity": { "$ref": "#/definitions/pipelineIdentity" },
+            "manifest_path": { "type": "string" },
+            "implementation": { "type": "string", "minLength": 1 },
+            "packaging": {
+              "enum": ["manifest-source-archive", "tar.gz", "zip"]
+            },
+            "artifact_filename": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "artifact_bytes": { "type": "integer", "minimum": 0 },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "target_platform": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "description": "Framework source archives (packaging: manifest-source-archive) are product agf and carry no target_platform -- they are not platform-specific binaries.",
+          "if": {
+            "properties": { "packaging": { "const": "manifest-source-archive" } },
+            "required": ["packaging"]
+          },
+          "then": {
+            "properties": { "product": { "const": "agf" } },
+            "not": { "required": ["target_platform"] }
+          }
+        },
+        {
+          "description": "Rust tooling archives (packaging: tar.gz or zip) are product agov and require target_platform.",
+          "if": {
+            "properties": { "packaging": { "enum": ["tar.gz", "zip"] } },
+            "required": ["packaging"]
+          },
+          "then": {
+            "properties": { "product": { "const": "agov" } },
+            "required": ["target_platform"]
+          }
+        }
+      ]
     },
     "ociImageRecord": {
       "type": "object",
