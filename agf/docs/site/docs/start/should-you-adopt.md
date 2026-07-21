@@ -62,6 +62,12 @@ task-specific rules apply when their subject is present. During commissioning,
 review the rule set and remove rules that cannot apply to the project rather
 than teaching assistants to ignore loaded instructions.
 
+For a first, still-incomplete answer to *which specific rules and roles you
+can safely remove and what each removal costs*, see the
+[adopter applicability catalog](../adopt/applicability-catalog.md) — it
+classifies a first slice of 8 governed artifacts (of 57 total) with an
+activation condition and a removal consequence for each.
+
 The current coordination schema still exposes the full message-kind vocabulary,
 and the release provides the general validator and CI surfaces. A smaller
 starter product — three roles, two gates, four message kinds, one validator,

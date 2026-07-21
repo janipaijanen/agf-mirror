@@ -1086,8 +1086,8 @@ the specific pain that the split addresses.
 | Cross-cutting checklists are routinely skipped or rushed | Checklists need enforcement, not goodwill | Extract into standalone cross-cutting agents (Phase 3-4) |
 | Bugs escape one test level that should have caught them | Single Tester cannot cover unit + integration + e2e + system | Split testing hierarchy (Phase 5) |
 | CI/build changes conflict with code changes or waste resources | Build pipeline needs its own jurisdiction | Activate Build Engineer (Phase 1) or merge with Deployer (Phase 3) |
-| You cannot debug who decided what | Accountability gap | Add Auditor agent (Phase 4) |
-| Locally correct agent actions produce wrong system outcomes | Local optimization problem | Add Sentinel agent (Phase 4) |
+| The project has its first contribution, upstream or downstream | Contributions need adversarial/soundness screening before entering the corpus | Activate Contribution Auditor (Phase 1 — library-core from Phase 1, but not always active; see `framework.md` §7) |
+| The project has its first learning record submission | Learning records need information-leak screening before publication | Activate InfoSec Sentinel (Phase 1 — library-core from Phase 1, but not always active; see `framework.md` §7) |
 | Multiple learnings point to the same agent capability gap | Agent definitions need systematic evolution | Activate Capability Developer (Phase 4) |
 
 ### How to split

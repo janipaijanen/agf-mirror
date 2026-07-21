@@ -29,6 +29,23 @@ agent:
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 1
+  # activation_condition: framework.md says "first contribution, upstream
+  # or downstream"; this definition's own header comment says "mandatory
+  # from first external contribution". Not obviously the same condition —
+  # proposed value below matches this file's own wording pending governor
+  # reconciliation of the discrepancy (see
+  # docs/plans/adopter-applicability-catalog.md, WARN from j3mr review).
+  activation_condition: "first external contribution"
+  deactivation:
+    local_deactivation: >
+      Remove from the project's active-roles manifest; contribution
+      review reverts to whatever ad hoc process existed before this role
+      was introduced — no structural check remains against adversarial
+      or unsound incoming contributions.
+    definition_removal: >
+      Deletes the reusable agf/agents/contribution-auditor.yaml
+      definition; loses the framework's own reference implementation of
+      adversarial-contribution screening.
 
 identity:
   purpose: >

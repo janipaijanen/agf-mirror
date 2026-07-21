@@ -27,6 +27,17 @@ agent:
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 1
+  activation_condition: "project submits learning records"
+  deactivation:
+    local_deactivation: >
+      Remove from the project's active-roles manifest;
+      externally-bound artifacts (learning records, upstream
+      contributions) are no longer screened for information leaks
+      before publication.
+    definition_removal: >
+      Deletes the reusable agf/agents/infosec-sentinel.yaml definition;
+      loses the framework's own reference implementation of the
+      anonymization/leak-screening boundary.
 
 identity:
   purpose: >

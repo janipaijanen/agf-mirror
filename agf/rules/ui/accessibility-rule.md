@@ -1,5 +1,14 @@
 ---
+id: accessibility-rule
+scope: ui
+applies_to: [llm-agent, human-agent]
+evidence: foundry-native
+strength: MUST
+status: active
 provenance: verified-agf-v2
+activation_condition: "project has a UI"
+safe_to_remove_when: "the project has and will have no user-facing interface"
+removal_forfeits: "WCAG AA conformance checking for any UI added later without re-adding this rule"
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->

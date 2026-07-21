@@ -1,5 +1,21 @@
 ---
+id: security-hardening-rule
+scope: always
+applies_to: [llm-agent, human-agent, ci]
+evidence: foundry-native
+strength: MUST
+status: active
 provenance: verified-agf-v2
+activation_condition: "always"
+safe_to_remove_when: >
+  the project has no exposure to secrets, credentials, network-facing
+  code, containers, or third-party dependencies — in practice, close to
+  never for any real deployed project
+removal_forfeits: >
+  the framework's structural guard against unpinned dependencies,
+  unpinned image tags, unprotected CSRF/SSRF surfaces, and unlogged
+  security-relevant changes; removing this rule does not remove the
+  underlying risk, only the check against it
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
