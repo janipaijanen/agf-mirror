@@ -4,7 +4,7 @@
 # Agent Definition: Contribution Auditor (Phase 1 cross-cutting agent)
 # =============================================================================
 # Primary verb: audit
-# Activates: Phase 1 -- mandatory from first external contribution
+# Activates: Phase 1 -- mandatory from first contribution (upstream or downstream)
 # Purpose: Detect adversarial, misleading, or unsound governance guidance
 #   in contributions before they enter the framework corpus or adopter
 #   projects.
@@ -29,13 +29,17 @@ agent:
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 1
-  # activation_condition: framework.md says "first contribution, upstream
-  # or downstream"; this definition's own header comment says "mandatory
-  # from first external contribution". Not obviously the same condition —
-  # proposed value below matches this file's own wording pending governor
-  # reconciliation of the discrepancy (see
-  # docs/plans/adopter-applicability-catalog.md, WARN from j3mr review).
-  activation_condition: "first external contribution"
+  # activation_condition: this header comment previously said "mandatory
+  # from first external contribution", disagreeing with framework.md's
+  # "first contribution, upstream or downstream" (flagged by j3mr's
+  # review of docs/plans/adopter-applicability-catalog.md). Resolved:
+  # "external" collided with always/external-anonymization-rule.md's own,
+  # different, defined meaning of "external" (the codebase-publication
+  # boundary), and didn't specify direction the way this agent's own
+  # stated purpose does ("before they enter the framework corpus or
+  # adopter projects" -- two directions). Standardized on framework.md's
+  # "upstream or downstream" wording below.
+  activation_condition: "first contribution (upstream or downstream)"
   deactivation:
     local_deactivation: >
       Remove from the project's active-roles manifest; contribution
