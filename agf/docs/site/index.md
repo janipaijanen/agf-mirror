@@ -4,7 +4,7 @@
 
 *The framework that cannot govern itself has no business governing anything else.*
 
-AI coding agents can produce changes you cannot reconstruct later.
+AI assistants can produce changes you cannot reconstruct later.
 agents-govern makes AI-assisted software work auditable without adding a hosted
 service or runtime.
 
@@ -79,7 +79,7 @@ Follow [Install the `agf/` directory](docs/adopt/install-and-layouts.md) to
 commission the framework in the single supported v2.0 layout. The guide gives
 you a pasteable assistant prompt for the clerical setup. Your job is to review
 the diff, resolve `CUSTOMIZE` markers, and delete rules that do not apply; an
-inapplicable rule trains agents that rules are optional.
+inapplicable rule trains assistants that rules are optional.
 
 **Step 3 — Run one real change through both gates.**
 Work through [Your first governed change](docs/start/first-governed-change.md).
@@ -101,12 +101,12 @@ merge. Validators and CI provide evidence, but human governor decisions remain
 binding.
 
 **Git-native operation.** There is no hosted service, shared runtime, or message
-API. Assistants coordinate by reading and writing files in git, so the framework
-can work with different coding tools across separate sessions.
+API. AI assistants coordinate by reading and writing files in git, so the framework
+can work with different assistants across separate sessions.
 
 ## Token savings with the Rust tooling (optional)
 
-Every time an AI agent reads coordination files to reconstruct channel state, it
+Every time an AI assistant reads coordination files to reconstruct channel state, it
 uses context tokens. The AGF tooling replaces many of those reads with
 deterministic command output: the tool answers the question in milliseconds and
 returns a compact summary the agent reads instead of scanning dozens of files
@@ -153,7 +153,7 @@ implement. The separation is structural, not aspirational.
 merge decision is a file in the coordination channel — the append-only decision
 log. Six months later, you can answer "why was this merged?" by reading the
 chain, not by archaeology on commit messages. Because the channel is just files
-in a repository, it works whether one assistant fills all roles across sessions
+in a repository, it works whether one AI assistant fills all roles across sessions
 or several assistants collaborate in parallel.
 
 **Quality gates that bind assistants too.** The rule library expresses your
@@ -182,7 +182,7 @@ documents the way out. Read both before adopting.
 
 - **Solo maintainers** get a repeatable review structure around AI-generated
   work, even when one human owns the final decision.
-- **Small teams** get shared conventions that assistants can follow across
+- **Small teams** get shared conventions that AI assistants can follow across
   sessions and tools.
 - **Engineering leads** get review gates that hold even when changes are
   machine-generated at machine speed.
