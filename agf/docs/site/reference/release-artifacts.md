@@ -69,12 +69,13 @@ For version `X.Y.Z`, a full release build produces:
 
 ### The unified release-provenance contract
 
-As of v2.4.0, every provenance record above — framework archive, tooling
-archive, and container image — is one instance of a single JSON Schema:
-`agf/schemas/release-provenance.schema.json`. Earlier releases used three
-different, undeclared shapes (an aggregate framework record covering both
-archive formats at once, a tooling record with no embedded filename or
-checksum, and container-image metadata carried only in OCI labels with no
+Every provenance record above — framework archive, tooling archive, and
+container image — is one instance of a single JSON Schema
+(`schema_version: "2.4"`): `agf/schemas/release-provenance.schema.json`.
+Earlier releases used three different, undeclared shapes (an aggregate
+framework record covering both archive formats at once, a tooling record
+with no embedded filename or checksum, and container-image metadata
+carried only in OCI labels with no
 JSON record at all). The schema replaces all three with one closed,
 discriminated union keyed by `artifact_kind`, and the schema itself is
 embedded into the `agov` binary at compile time, so a downloaded release
