@@ -82,7 +82,6 @@ nav:
           - AGF and agent runtimes: docs/concepts/position.md
           - Roles and gates: docs/concepts/roles-and-gates.md
           - Coordination protocol: docs/concepts/coordination-protocol.md
-          - AGF, ADRs, and roadmap/ticketing tools: docs/concepts/roadmap-and-tracker-coexistence.md
           - Learning loop and evidence: docs/concepts/evidence-and-learnings.md
           - Philosophical lenses on AI governance: docs/concepts/philosophical-lenses.md
       - 'Adopt':

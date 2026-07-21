@@ -59,6 +59,19 @@ it, per the message-integrity requirement in `marketing-tone-rule`.
 - **When / in what order** (roadmap or ticketing tool) — new content this
   page adds.
 
+The tracker axis is conditional. A Gate 1 plan does not need a ticket unless
+the adopter's own prioritization process requires one. Absence of a ticket is
+therefore not evidence that an AGF plan is ungoverned.
+
+An active coordination claim records ownership and prevents conflicting work;
+it is not itself a work-in-progress limit or a capacity policy. The page may
+explain how claims and tracker state can be kept consistent, but must preserve
+that distinction.
+
+Any automation from git or merge-request events into a tracker must be labelled
+as an optional adopter convention. This change ships no tracker integration,
+state synchronizer, or reliability guarantee.
+
 ## Affected files
 
 - `agf/docs/site/docs/concepts/roadmap-and-tracker-coexistence.md` (new)
@@ -83,6 +96,8 @@ named as a cause of any team's pain; only situations/outcomes are described.
    (vendor name near "cost"/"complexity"/"bloat"/"lock-in"/"failure";
    negative comparisons; unearned superlatives).
 5. Confirm the new page is reachable from `mkdocs.yml` nav (no orphan page).
+6. Confirm the page does not require a ticket, equate claims with WIP limits,
+   or imply that tracker synchronization ships with AGF.
 
 ## Risks and controls
 
@@ -91,6 +106,8 @@ named as a cause of any team's pain; only situations/outcomes are described.
 | Reads as "AGF has a Jira integration" when it does not | Explicit "what this page is not" statement near the top; no schema/code changes bundled in |
 | Duplicates the ADR-vs-coordination claim with different wording | Link to `adopter-faq.md`, do not restate |
 | Implies AGF requires or prefers one tracker over another | List all five tools with parallel, equal treatment; no ranking |
+| Conflates collision prevention with capacity control | State that claims record ownership; WIP limits remain a separate team policy |
+| Makes optional tracker automation sound implemented | Label synchronization as an adopter convention and state that no integration ships |
 
 ## Rollback
 
