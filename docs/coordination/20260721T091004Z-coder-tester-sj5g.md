@@ -15,6 +15,18 @@ artifacts_owned:
   - agf/docs/site/reference/release-artifacts.md
   - tooling/rust/crates/agov/src/dist.rs
   - .gitlab-ci.yml
+handoff:
+  next_agent: planner-architect
+  status: ready
+  task:
+    - prepare a post-v2.3 Gate 1 plan for a unified release-provenance contract and validator
+  must_read:
+    - agf/docs/site/reference/release-artifacts.md
+    - docs/plans/release-pages-artifacts-policy.md
+  do_not_touch:
+    - agf/VERSION
+    - tooling/rust/Cargo.toml
+    - tooling/rust/Cargo.lock
 ---
 
 # Future TODO: unified release-provenance contract and validation
