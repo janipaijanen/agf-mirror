@@ -1031,7 +1031,7 @@ Governor-Reviewer produces findings list
   → normal per-change pipeline for each fix
 ```
 
-**Feature documentation lifecycle:** Commits that add, modify, or remove user-visible features should trigger a documentation update as part of the per-change pipeline. The Coder-Tester self-checks whether documentation reflects the current state; the Governor-Reviewer verifies at Gate 2. For pre-customer products, documentation should show current state only — no deprecation notices or migration timelines, which signal instability to evaluating organisations. Deprecation governance is introduced when the product has production customers.
+**Feature documentation lifecycle:** Commits that add, modify, or remove user-visible features should trigger a documentation update as part of the per-change pipeline. The Coder-Tester self-checks whether documentation reflects the current state; the Governor-Reviewer verifies at Gate 2. For pre-customer products, documentation should show current state only — no deprecation notices or migration timelines, which signal instability to evaluating organisations. Deprecation governance is introduced when the product has production customers — see `rules-template/workflow/deprecation-policy-rule.md` for the concrete two-phase policy and minimum support-window guidance once that point is reached.
 
 **Split signal for cross-cutting agents:** If tone violations or localization errors repeatedly escape Gate 2 review, that is the signal to introduce the Localizer as the first cross-cutting agent (see Phase 3). Until then, the Governor-Reviewer absorbs documentation review into its existing per-change and per-milestone cadences.
 
