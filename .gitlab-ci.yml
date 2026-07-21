@@ -348,6 +348,11 @@ release:create:
     - apk add --no-cache curl
     - VERSION="${CI_COMMIT_TAG#v}"
     - PKG_BASE="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/agf/$CI_COMMIT_TAG"
+    # Fail fast on a partial build/publish -- a real assembled `dist/` is
+    # checked against the exact mandatory asset set before anything is
+    # uploaded or a Release entry is created, so a missing archive or
+    # sidecar blocks the pipeline instead of shipping an incomplete release.
+    - tooling/rust/scripts/release-assets.sh verify dist "$VERSION"
     # Upload every release artifact to the generic package registry.
     # The glob covers framework archives, Rust tooling archives, checksums, and provenance.
     - |
@@ -362,21 +367,42 @@ release:create:
              --upload-file "$f" \
              "$PKG_BASE/$fname"
       done
-    # Create the GitLab release entry with links to the uploaded packages.
+    # Create the GitLab release entry, linking every archive AND its checksum/
+    # provenance sidecars directly -- consumers must not have to guess generic-
+    # package URLs. tooling/rust/scripts/release-assets.sh enumerates exactly
+    # the files release:create just uploaded above (same glob); its `selftest`
+    # subcommand is exercised in CI on every change (job release:assets-selftest).
     - |
       set -- \
         --name "agents-govern $CI_COMMIT_TAG" \
         --tag-name "$CI_COMMIT_TAG" \
-        --description "See [CHANGELOG](https://gitlab.com/$CI_PROJECT_PATH/-/blob/$CI_COMMIT_TAG/agf/CHANGELOG.md) for release notes." \
-        --assets-link "{\"name\":\"agf-${VERSION}.tar.gz\",\"url\":\"${PKG_BASE}/agf-${VERSION}.tar.gz\",\"link_type\":\"package\"}" \
-        --assets-link "{\"name\":\"agf-${VERSION}.zip\",\"url\":\"${PKG_BASE}/agf-${VERSION}.zip\",\"link_type\":\"package\"}"
-      for f in dist/agov-${VERSION}-*.tar.gz dist/agov-${VERSION}-*.zip; do
-        [ -f "$f" ] || continue
-        fname=$(basename "$f")
+        --description "See [CHANGELOG](https://gitlab.com/$CI_PROJECT_PATH/-/blob/$CI_COMMIT_TAG/agf/CHANGELOG.md) for release notes."
+      for fname in $(tooling/rust/scripts/release-assets.sh list dist); do
         set -- "$@" --assets-link "{\"name\":\"${fname}\",\"url\":\"${PKG_BASE}/${fname}\",\"link_type\":\"package\"}"
       done
       release-cli create \
         "$@"
+
+# Host-preflight self-test for tooling/rust/scripts/release-assets.sh: exercises
+# its file-enumeration logic against dummy artifacts so a missing sidecar-link
+# pattern is caught before a tag pipeline runs, not discovered post-publication.
+# Cheap and dependency-free -- runs on every branch/MR change to the script or
+# this file, and always on tag pipelines as a real pre-flight gate.
+release:assets-selftest:
+  image: alpine:3.22
+  stage: test
+  script:
+    - tooling/rust/scripts/release-assets.sh selftest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/scripts/release-assets.sh
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - tooling/rust/scripts/release-assets.sh
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_TAG
 
 # ── Rust tooling ───────────────────────────────────────────────────────────────
 # Path-scoped per ci-trigger-scoping-rule.md: only fire when relevant inputs change.
