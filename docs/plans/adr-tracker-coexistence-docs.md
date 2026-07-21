@@ -9,11 +9,11 @@ advisory_consultation:
       Docs-only concept page. No security boundaries, authentication,
       authorization, secrets handling, or schema changes.
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >
-      No separate pre-Gate-1 audit pass requested; contribution-auditor
-      review, if any, happens as part of the governor-reviewer's Gate 1
-      pass on this docs-only change.
+      Critical pre-Gate-1 review is recorded in
+      20260721T173317Z-contribution-auditor-qd8r; its content boundaries are
+      incorporated into this plan.
 ---
 
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
