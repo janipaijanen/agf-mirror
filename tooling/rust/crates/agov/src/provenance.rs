@@ -514,7 +514,22 @@ pub fn list_primary_artifacts(artifact_dir: &Path) -> Result<Vec<String>, String
 /// no record, a record omitted from validation, and stale/extra
 /// provenance records left over from a previous artifact set (e.g. the
 /// old aggregate shape, or a record for a since-removed file).
+///
+/// Bijection is a v2.4 contract guarantee, not retroactively imposed on
+/// pre-v2.4 releases: legacy shapes (framework aggregate, tooling) have no
+/// queryable per-artifact `artifact_filename` field to check against, so a
+/// batch containing no `schema_version: "2.4"` record at all (e.g.
+/// validating a real historical release like v2.3.1 in backward-compat
+/// mode) returns no findings here rather than false-flagging every
+/// legacy-described artifact as "no record".
 pub fn check_primary_artifact_coverage(records: &[Value], artifact_dir: &Path) -> Vec<String> {
+    let has_v24_record = records
+        .iter()
+        .any(|record| record.get("schema_version").and_then(Value::as_str) == Some(SCHEMA_VERSION));
+    if !has_v24_record {
+        return Vec::new();
+    }
+
     let primary_artifacts = match list_primary_artifacts(artifact_dir) {
         Ok(artifacts) => artifacts,
         Err(err) => return vec![err],
@@ -1571,6 +1586,27 @@ mod tests {
     }
 
     // ── Cardinality bijection (finding #6) ───────────────────────────────
+
+    #[test]
+    fn positive_legacy_only_batch_skips_coverage_bijection() {
+        // The real published v2.3.1 release: framework and tooling archives
+        // described only by legacy records, which have no queryable
+        // artifact_filename field. Must NOT false-flag every artifact as
+        // "no provenance record" -- bijection is a v2.4 contract guarantee,
+        // not retroactive.
+        let dir = TempDir::new().unwrap();
+        std::fs::write(dir.path().join("agf-2.3.1.tar.gz"), b"x").unwrap();
+        std::fs::write(dir.path().join("agf-2.3.1.zip"), b"x").unwrap();
+        std::fs::write(
+            dir.path()
+                .join("agov-2.3.1-x86_64-unknown-linux-musl.tar.gz"),
+            b"x",
+        )
+        .unwrap();
+
+        let findings = check_primary_artifact_coverage(&[real_v231_framework_record()], dir.path());
+        assert!(findings.is_empty(), "findings: {findings:?}");
+    }
 
     #[test]
     fn positive_coverage_passes_when_every_artifact_has_exactly_one_record() {

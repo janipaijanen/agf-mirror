@@ -312,6 +312,20 @@ enum DistCommand {
         #[arg(long)]
         record: PathBuf,
     },
+    /// Anonymously discover and download every asset linked from a real
+    /// published GitLab Release, then validate the downloaded provenance
+    /// records against the downloaded bytes -- not the CI workspace copy.
+    /// This is the check that catches "provenance says X, published
+    /// artifact is actually Y".
+    PostPublicationCheck {
+        /// GitLab Release API URL, e.g.
+        /// https://gitlab.com/api/v4/projects/<id>/releases/<tag>
+        #[arg(long)]
+        releases_url: String,
+        /// Local directory to download assets into (created if missing).
+        #[arg(long)]
+        download_dir: PathBuf,
+    },
     /// Build a single release-provenance JSON record from real artifact
     /// evidence (file bytes/sha256, or OCI image/label identifiers).
     ProvenanceRecord {
@@ -665,6 +679,10 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
             binary_name,
             record,
         } => self_report_check_command(&archive, &binary_name, &record, &mut output),
+        DistCommand::PostPublicationCheck {
+            releases_url,
+            download_dir,
+        } => post_publication_check_command(&releases_url, &download_dir, &mut output),
         DistCommand::ProvenanceRecord { sub } => provenance_record_command(*sub, &mut output),
     };
 
@@ -872,6 +890,128 @@ fn self_report_check_command(
         }
         1
     }
+}
+
+/// Fetch a URL's body via `curl`. This project's release tooling already
+/// shells out to `curl` for HTTP (see the `release:create` CI job); this
+/// follows the same convention rather than embedding an HTTP client
+/// library for one read-only discovery step.
+fn curl_get(url: &str) -> Result<String, String> {
+    let output = std::process::Command::new("curl")
+        .args(["--silent", "--fail", "--show-error", "--location", url])
+        .output()
+        .map_err(|err| format!("could not run curl: {err}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "curl {url} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+}
+
+fn curl_download(url: &str, dest: &Path) -> Result<(), String> {
+    let status = std::process::Command::new("curl")
+        .args([
+            "--silent",
+            "--fail",
+            "--show-error",
+            "--location",
+            "--output",
+        ])
+        .arg(dest)
+        .arg(url)
+        .status()
+        .map_err(|err| format!("could not run curl: {err}"))?;
+    if !status.success() {
+        return Err(format!("curl download of {url} failed"));
+    }
+    Ok(())
+}
+
+/// Parse a GitLab Release API response's `assets.links[]` into
+/// `(name, direct_asset_url)` pairs.
+fn discover_release_assets(release_json: &str) -> Result<Vec<(String, String)>, String> {
+    let parsed: serde_json::Value = serde_json::from_str(release_json)
+        .map_err(|err| format!("malformed release JSON: {err}"))?;
+    let links = parsed
+        .get("assets")
+        .and_then(|assets| assets.get("links"))
+        .and_then(serde_json::Value::as_array)
+        .ok_or("release JSON has no assets.links array")?;
+
+    let mut assets = Vec::new();
+    for link in links {
+        let name = link.get("name").and_then(serde_json::Value::as_str);
+        let url = link
+            .get("direct_asset_url")
+            .and_then(serde_json::Value::as_str);
+        if let (Some(name), Some(url)) = (name, url) {
+            assets.push((name.to_string(), url.to_string()));
+        }
+    }
+    Ok(assets)
+}
+
+/// Anonymously discover every asset linked from a real published GitLab
+/// Release, download all of them into `download_dir`, then run the exact
+/// same `validate-provenance` logic (schema, cross-checks, and cardinality
+/// bijection) against the downloaded provenance records and downloaded
+/// artifact bytes -- not a CI workspace copy.
+fn post_publication_check_command(
+    releases_url: &str,
+    download_dir: &Path,
+    output: &mut OutputCounter,
+) -> i32 {
+    let release_json = match curl_get(releases_url) {
+        Ok(body) => body,
+        Err(err) => {
+            output.stderr(format!("ERR  could not fetch {releases_url}: {err}"));
+            return 1;
+        }
+    };
+    let assets = match discover_release_assets(&release_json) {
+        Ok(assets) => assets,
+        Err(err) => {
+            output.stderr(format!("ERR  {err}"));
+            return 1;
+        }
+    };
+    if assets.is_empty() {
+        output.stderr(format!("ERR  no assets discovered at {releases_url}"));
+        return 1;
+    }
+
+    if let Err(err) = std::fs::create_dir_all(download_dir) {
+        output.stderr(format!(
+            "ERR  could not create {}: {err}",
+            download_dir.display()
+        ));
+        return 1;
+    }
+
+    let mut provenance_files = Vec::new();
+    for (name, url) in &assets {
+        let dest = download_dir.join(name);
+        if let Err(err) = curl_download(url, &dest) {
+            output.stderr(format!("ERR  {err}"));
+            return 1;
+        }
+        output.stdout(format!("OK  downloaded {name}"));
+        if name.ends_with("-provenance.json") {
+            provenance_files.push(dest);
+        }
+    }
+
+    if provenance_files.is_empty() {
+        output.stderr(format!(
+            "ERR  discovered {} assets at {releases_url} but none were *-provenance.json records",
+            assets.len()
+        ));
+        return 1;
+    }
+
+    validate_provenance_command(&provenance_files, Some(download_dir), None, output)
 }
 
 fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {
