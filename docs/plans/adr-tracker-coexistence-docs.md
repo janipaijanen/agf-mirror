@@ -1,7 +1,9 @@
 ---
 id: adr-tracker-coexistence-docs
-status: pending-gate1
+status: approved
 topic: public-docs
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-21T18:13:37Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
