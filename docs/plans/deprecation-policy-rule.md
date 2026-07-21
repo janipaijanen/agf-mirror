@@ -1,9 +1,9 @@
 ---
 id: deprecation-policy-rule
-status: pending-gate1
+status: approved
 topic: deprecation-policy-rule
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-21T00:02:17Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -16,7 +16,12 @@ advisory_consultation:
 # Plan: deprecation-policy-rule — when and how long deprecations last
 
 **Date:** 2026-07-20T21:01:33Z
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** GATE 1 APPROVED (governor-reviewer, 2026-07-21T00:02:17Z — MR
+!262/!263 merge). Prior-art citations flagged in the advisory_consultation
+note above (Kubernetes, Django, PEP 387, Node.js, Rust, GitHub API) are
+still asserted from training knowledge, not independently spot-checked
+via live fetch — noted as an open item, not resolved by this status
+update.
 **Triggering context:** direct governor question during Gate 1 review of
 `docs/plans/mcp-coordination-dir-contract-fix.md` — while dropping that
 plan's `dir` deprecated-alias design in favor of a hard rename, the
