@@ -8,6 +8,34 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-07-21
+
+Repository-level changes accompanying the v2.3.0 framework release
+(see [`agf/CHANGELOG.md`](agf/CHANGELOG.md) `[2.3.0]` for the
+adopter-facing feature changelog). Found and recorded during this
+release's own public-truth verification pass — this repository-level
+changelog had not been updated since 2.2.5.
+
+### Fixed
+
+- `agf/dist/release-manifest.yaml`: excluded `__pycache__/` and `.pyc`
+  paths from the release package `exclude`/`forbidden` lists, closing a
+  leak of stale Python bytecode into the framework release archives
+  (MR !303).
+- `.gitlab-ci.yml`: the `rust:tooling:preview`/`rust:tooling:release`
+  checksum-generation step recorded a build-tree path
+  (`../../dist/<archive>`) in each `.sha256` file instead of the archive
+  basename, breaking the standard `sha256sum -c` consumer-verification
+  flow. Fixed to match the basename-only convention `agov dist build`
+  already used for framework archives (MR !308).
+
+### Changed
+
+- Enabled the project's GitLab Container Registry (previously disabled),
+  required for the `agov:oci:release` tag-pipeline job to publish the
+  `agov` OCI image. This had not been exercised end-to-end against a real
+  tag before v2.3.0.
+
 ## [2.2.5] - 2026-06-25
 
 This patch release completes AGF-NG's transition away from historical
