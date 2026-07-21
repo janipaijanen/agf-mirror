@@ -1,7 +1,9 @@
 ---
 id: adopter-applicability-catalog
-status: pending-gate1
+status: approved
 topic: adopter-applicability-catalog
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-21T00:43:50Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -26,12 +28,12 @@ advisory_consultation:
 # Plan: adopter-facing role/rule applicability catalog
 
 **Date:** 2026-07-20 (revision 3, 2026-07-21T00:15:00Z)
-**Status:** Gate 1 proposed — responds to Codex's post-MR-!275 finding
+**Status:** GATE 1 APPROVED — responds to Codex's post-MR-!275 finding
 (`docs/coordination/20260720T225540Z-coder-tester-rgrs.md`), Codex's Gate 1
 review of revision 1 (`docs/coordination/20260720T231159Z-coder-tester-ad63.md`,
 five BLOCKs), and Codex's follow-up review of revision 2
 (`docs/coordination/20260721T000541Z-coder-tester-j3mr.md`, two more BLOCKs
-plus a WARN). Not yet governor-approved.
+plus a WARN). The governor approved revision 3 after MR !277 merged.
 
 ## Revision note (what changed and why)
 
