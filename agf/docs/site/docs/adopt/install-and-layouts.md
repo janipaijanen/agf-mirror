@@ -239,11 +239,11 @@ Container-based CI can instead use the official `agov` OCI image from this
 project's GitLab container registry:
 
 ```bash
-podman pull registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.3.0
+podman pull registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.3.1
 podman run --rm \
   -v "$PWD:/repo" \
   -w /repo \
-  registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.3.0 \
+  registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.3.1 \
   validate
 ```
 

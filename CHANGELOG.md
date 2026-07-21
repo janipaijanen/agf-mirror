@@ -8,6 +8,27 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-07-21
+
+Patch release recovering the repository's public release truth after v2.3.0
+was published with this changelog still ending at 2.2.5. Tag `v2.3.0` remains
+immutable; its historical entry was added on `main`, and v2.3.1 publishes that
+correction under a new release identity.
+
+### Added
+
+- Proposed learnings from the v2.3.0 release now record consumer-layout host
+  preflight and complete release truth-surface enumeration as future target
+  states. Their generalized recommendations are not implemented by this patch.
+
+### Fixed
+
+- GitLab Release creation now exposes direct links for all individual checksum
+  and provenance sidecars, verifies the mandatory archive/sidecar set before
+  upload, and carries a negative self-test for a missing provenance record.
+- Added the immutable recovery trail that supersedes premature v2.3.0 terminal
+  completion claims without moving the published v2.3.0 source or OCI tags.
+
 ## [2.3.0] - 2026-07-21
 
 Repository-level changes accompanying the v2.3.0 framework release
