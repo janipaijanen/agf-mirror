@@ -181,4 +181,7 @@ auditable, add AGF on top.
 
 - How roles and gates work: [Roles and gates](roles-and-gates.md)
 - How evidence accumulates from tool use: [Evidence and learnings](evidence-and-learnings.md)
+- Consultative questions for challenging any governance design's scope
+  and guarantee claims, including this one:
+  [Philosophical lenses on AI governance](philosophical-lenses.md)
 - Install for your tool: [Install the `agf/` directory](../adopt/install-and-layouts.md)

@@ -168,6 +168,10 @@ AGF can make these questions visible; it does not answer them for your
 jurisdiction or employment context. Treat this checklist as risk spotting, not
 legal, labor, privacy, or compliance advice.
 
+For a broader set of review questions — not specific to privacy or labor,
+and applicable to any governance design, not only AGF — see
+[Philosophical lenses on AI governance](../concepts/philosophical-lenses.md).
+
 ## Next
 
 Decided to try it → [Install the `agf/` directory](../adopt/install-and-layouts.md).
