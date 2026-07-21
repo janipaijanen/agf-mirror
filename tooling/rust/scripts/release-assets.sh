@@ -48,23 +48,33 @@ list() {
 # `SHA256SUMS` -- the documented contract promises individual checksum
 # files, not an aggregate one (see docs/coordination/20260721T123209Z-
 # coder-tester-rggs.md); `list` still opportunistically links it if present.
+#
+# Provenance filenames follow one rule (v2.4.0 Workstream B, the unified
+# release-provenance contract, agf/schemas/release-provenance.schema.json):
+# <artifact_filename>-provenance.json for every file-kind artifact -- one
+# record per published file, never an aggregate covering multiple formats
+# or targets -- plus agov-oci-<version>-provenance.json for the published
+# OCI image (an oci-image-kind record; it has no artifact_filename of its
+# own since it is not a file in the generic package registry).
 expected() {
   version="$1"
   cat <<EXPECTED | sort
 agf-${version}.tar.gz
 agf-${version}.tar.gz.sha256
+agf-${version}.tar.gz-provenance.json
 agf-${version}.zip
 agf-${version}.zip.sha256
-agf-${version}-provenance.json
+agf-${version}.zip-provenance.json
 agov-${version}-x86_64-unknown-linux-musl.tar.gz
 agov-${version}-x86_64-unknown-linux-musl.tar.gz.sha256
-agov-${version}-x86_64-unknown-linux-musl-provenance.json
+agov-${version}-x86_64-unknown-linux-musl.tar.gz-provenance.json
 agov-${version}-aarch64-unknown-linux-musl.tar.gz
 agov-${version}-aarch64-unknown-linux-musl.tar.gz.sha256
-agov-${version}-aarch64-unknown-linux-musl-provenance.json
+agov-${version}-aarch64-unknown-linux-musl.tar.gz-provenance.json
 agov-${version}-x86_64-pc-windows-gnu.zip
 agov-${version}-x86_64-pc-windows-gnu.zip.sha256
-agov-${version}-x86_64-pc-windows-gnu-provenance.json
+agov-${version}-x86_64-pc-windows-gnu.zip-provenance.json
+agov-oci-${version}-provenance.json
 EXPECTED
 }
 
@@ -125,7 +135,7 @@ SHA256SUMS"
   # --- `verify`, negative case: one mandatory sidecar deliberately missing ---
   # This is the negative test per gate-self-test-rule -- it proves `verify`
   # actually fires on a known-bad input, not just that it passes on good ones.
-  missing_target="agov-${test_version}-aarch64-unknown-linux-musl-provenance.json"
+  missing_target="agov-${test_version}-aarch64-unknown-linux-musl.tar.gz-provenance.json"
   for f in $(expected "$test_version"); do
     [ "$f" = "$missing_target" ] && continue
     : > "$neg_tmp/$f"

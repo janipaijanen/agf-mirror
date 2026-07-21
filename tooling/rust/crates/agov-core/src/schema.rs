@@ -37,8 +37,18 @@ impl std::fmt::Display for SchemaError {
 /// Does NOT enable remote reference fetching or network access.
 pub fn load_and_compile(path: &Path) -> Result<CompiledSchema, SchemaError> {
     let content = std::fs::read_to_string(path).map_err(|err| SchemaError::Io(err.to_string()))?;
+    compile_str(&content)
+}
+
+/// Compile a JSON schema from an in-memory string (e.g. `include_str!`'d at
+/// compile time) for Draft-07 validation, without any filesystem access.
+///
+/// This is the path a released `agov` binary uses: schemas embedded via
+/// `include_str!` at compile time validate with no source checkout and no
+/// `AGOV_SCHEMA_DIR` present at runtime.
+pub fn compile_str(content: &str) -> Result<CompiledSchema, SchemaError> {
     let mut schema: serde_json::Value =
-        serde_json::from_str(&content).map_err(|err| SchemaError::Json(err.to_string()))?;
+        serde_json::from_str(content).map_err(|err| SchemaError::Json(err.to_string()))?;
     normalize_relative_id(&mut schema);
 
     jsonschema::JSONSchema::options()
@@ -151,4 +161,31 @@ fn required_property_name(message: &str) -> Option<String> {
         .strip_prefix('"')
         .and_then(|rest| rest.strip_suffix("\" is a required property"))
         .map(ToOwned::to_owned)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compile_str_accepts_a_minimal_schema_with_no_filesystem_access() {
+        let schema = compile_str(r#"{"type":"object","required":["a"]}"#).unwrap();
+        let findings = validate(&schema, &serde_json::json!({}));
+        assert_eq!(findings.len(), 1);
+        assert!(findings[0].message.contains('a'));
+
+        let findings = validate(&schema, &serde_json::json!({"a": 1}));
+        assert!(findings.is_empty());
+    }
+
+    #[test]
+    fn compile_str_rejects_malformed_json() {
+        let result = compile_str("{not json");
+        assert!(result.is_err());
+        match result {
+            Err(SchemaError::Json(_)) => {}
+            Err(other) => panic!("expected SchemaError::Json, got {other}"),
+            Ok(_) => panic!("expected an error, got Ok"),
+        }
+    }
 }

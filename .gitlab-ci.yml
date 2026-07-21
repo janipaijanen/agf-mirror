@@ -344,6 +344,7 @@ release:create:
     - job: rust:tooling:release
       artifacts: true
     - job: agov:oci:release
+      artifacts: true
   script:
     - apk add --no-cache curl
     - VERSION="${CI_COMMIT_TAG#v}"
@@ -567,6 +568,13 @@ rust:tooling:clippy:
         fi
       fi
     - mkdir -p ../../dist
+    # Host-native (non-cross) agov binary, used only to generate
+    # schema-valid provenance records for the cross-compiled archives
+    # below -- it never needs to execute target-platform code, only read
+    # each archive's bytes and write JSON per the unified release-
+    # provenance contract (agf/schemas/release-provenance.schema.json).
+    - cargo build --quiet --release -p agov
+    - AGOV_BIN="$PWD/target/release/agov"
     - |
       for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
         cross build --release --target "$target" -p agov -p agov-mcp
@@ -581,9 +589,14 @@ rust:tooling:clippy:
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
         tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${target}"
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
-        printf '{"version":"%s","source_commit":"%s","tag":"%s","build_timestamp":"%s","pipeline_identity":{"pipeline_id":"%s","job_id":"%s"},"target_platform":"%s","implementation":"rust","packaging":"tar.gz"}\n' \
-          "$VERSION" "${CI_COMMIT_SHA}" "${CI_COMMIT_TAG:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${CI_PIPELINE_ID:-}" "${CI_JOB_ID:-}" "$target" \
-          > "../../dist/agov-${VERSION}-${target}-provenance.json"
+        "$AGOV_BIN" dist provenance-record file \
+          --product agov --version "$VERSION" --source-commit "${CI_COMMIT_SHA:-unknown}" \
+          --tag "${CI_COMMIT_TAG:-untagged}" \
+          --build-timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          --pipeline-id "${CI_PIPELINE_ID:-unknown}" --job-id "${CI_JOB_ID:-unknown}" \
+          --implementation rust --packaging tar.gz --target-platform "$target" \
+          --artifact "../../dist/${archive}" \
+          --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
       done
     - |
@@ -600,9 +613,14 @@ rust:tooling:clippy:
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${target}")
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
-        printf '{"version":"%s","source_commit":"%s","tag":"%s","build_timestamp":"%s","pipeline_identity":{"pipeline_id":"%s","job_id":"%s"},"target_platform":"%s","implementation":"rust","packaging":"zip"}\n' \
-          "$VERSION" "${CI_COMMIT_SHA}" "${CI_COMMIT_TAG:-}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${CI_PIPELINE_ID:-}" "${CI_JOB_ID:-}" "$target" \
-          > "../../dist/agov-${VERSION}-${target}-provenance.json"
+        "$AGOV_BIN" dist provenance-record file \
+          --product agov --version "$VERSION" --source-commit "${CI_COMMIT_SHA:-unknown}" \
+          --tag "${CI_COMMIT_TAG:-untagged}" \
+          --build-timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          --pipeline-id "${CI_PIPELINE_ID:-unknown}" --job-id "${CI_JOB_ID:-unknown}" \
+          --implementation rust --packaging zip --target-platform "$target" \
+          --artifact "../../dist/${archive}" \
+          --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
       fi
   artifacts:
@@ -654,6 +672,11 @@ agov:oci:release:
     - tooling/rust/scripts/agov-oci-image.sh build
     - tooling/rust/scripts/agov-oci-image.sh scan
     - tooling/rust/scripts/agov-oci-image.sh push
+    - tooling/rust/scripts/agov-oci-image.sh provenance
+  artifacts:
+    paths:
+      - dist/agov-oci-*-provenance.json
+    expire_in: 1 week
   rules:
     - if: $CI_COMMIT_TAG
 

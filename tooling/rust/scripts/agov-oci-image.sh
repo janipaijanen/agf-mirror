@@ -8,14 +8,23 @@ Usage:
   agov-oci-image.sh build
   agov-oci-image.sh scan
   agov-oci-image.sh push
+  agov-oci-image.sh provenance
 
 Environment:
   AGOV_VERSION        Required. Version from agf/VERSION.
   CI_COMMIT_TAG       Required for check-tag/build/push. Must be v$AGOV_VERSION.
-  CI_COMMIT_SHA       Required for build labels.
-  CI_REGISTRY_IMAGE   Required for build/push. Base registry image path.
+  CI_COMMIT_SHA       Required for build/provenance labels.
+  CI_REGISTRY_IMAGE   Required for build/push/provenance. Base registry image path.
   CI_REGISTRY_USER    Required for push.
   CI_REGISTRY_PASSWORD Required for push.
+
+`provenance` builds an artifact_kind: oci-image release-provenance record
+(agf/schemas/release-provenance.schema.json) for the image `push` just
+published, using the digest `push` wrote to
+dist/agov-oci-digest-$AGOV_VERSION.txt. Run push before provenance. The
+agov binary used to build the record is extracted from the already-built
+dist/agov-$AGOV_VERSION-x86_64-unknown-linux-musl.tar.gz tooling archive
+(a static musl binary, runnable in this image) -- it is never rebuilt here.
 EOF
 }
 
@@ -94,6 +103,10 @@ scan_image() {
     --exit-code 1
 }
 
+digest_file() {
+  printf 'dist/agov-oci-digest-%s.txt' "$AGOV_VERSION"
+}
+
 push_image() {
   check_tag
   require_env CI_REGISTRY_IMAGE
@@ -103,7 +116,49 @@ push_image() {
 
   printf '%s' "$CI_REGISTRY_PASSWORD" |
     "$(podman_bin)" login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
-  "$(podman_bin)" push "$(image_ref)"
+  mkdir -p dist
+  "$(podman_bin)" push --digestfile "$(digest_file)" "$(image_ref)"
+}
+
+provenance_record() {
+  require_env AGOV_VERSION
+  require_env CI_COMMIT_SHA
+  require_env CI_REGISTRY_IMAGE
+
+  digestfile="$(digest_file)"
+  if [ ! -f "$digestfile" ]; then
+    echo "missing digest file: $digestfile (run push first)" >&2
+    exit 1
+  fi
+  digest="$(cat "$digestfile")"
+
+  target=${AGOV_TARGET:-x86_64-unknown-linux-musl}
+  archive="dist/agov-${AGOV_VERSION}-${target}.tar.gz"
+  if [ ! -f "$archive" ]; then
+    echo "missing release archive: $archive" >&2
+    exit 1
+  fi
+
+  staging=$(mktemp -d)
+  trap 'rm -rf "$staging"' EXIT INT TERM
+  tar -xzf "$archive" -C "$staging"
+  agov_bin="$staging/agov-${AGOV_VERSION}-${target}/agov"
+
+  "$agov_bin" dist provenance-record oci \
+    --product agov \
+    --version "$AGOV_VERSION" \
+    --source-commit "$CI_COMMIT_SHA" \
+    --tag "${CI_COMMIT_TAG:-untagged}" \
+    --build-timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --pipeline-id "${CI_PIPELINE_ID:-unknown}" \
+    --job-id "${CI_JOB_ID:-unknown}" \
+    --implementation rust \
+    --packaging oci-image \
+    --image-reference "$(image_ref)" \
+    --manifest-digest "$digest" \
+    --label-version "$AGOV_VERSION" \
+    --label-revision "$CI_COMMIT_SHA" \
+    --output "dist/agov-oci-${AGOV_VERSION}-provenance.json"
 }
 
 case "${1:-}" in
@@ -118,6 +173,9 @@ case "${1:-}" in
     ;;
   push)
     push_image
+    ;;
+  provenance)
+    provenance_record
     ;;
   -h|--help|help)
     usage

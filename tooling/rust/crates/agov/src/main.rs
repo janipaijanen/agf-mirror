@@ -1,4 +1,5 @@
 mod dist;
+mod provenance;
 
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
@@ -273,6 +274,99 @@ enum DistCommand {
     Build,
     /// Check CI_COMMIT_TAG against agf/VERSION.
     CheckTag,
+    /// Validate one or more release-provenance JSON records against the
+    /// unified v2.4 schema (embedded at compile time; no source checkout
+    /// required), classifying pre-v2.4 records as legacy rather than
+    /// scoring them against the v2.4 contract.
+    ValidateProvenance {
+        /// Provenance JSON record files to validate.
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+        /// Directory containing the published artifacts the records
+        /// describe: a local dist/ during build-time validation, or a
+        /// directory of freshly-downloaded files during post-publication
+        /// validation. When given, artifact_bytes/sha256/checksum-sidecar
+        /// agreement and dangling-reference checks run in addition to
+        /// schema validation.
+        #[arg(long)]
+        artifact_dir: Option<PathBuf>,
+    },
+    /// Build a single release-provenance JSON record from real artifact
+    /// evidence (file bytes/sha256, or OCI image/label identifiers).
+    ProvenanceRecord {
+        #[command(subcommand)]
+        sub: Box<ProvenanceRecordCommand>,
+    },
+}
+
+#[derive(Subcommand)]
+enum ProvenanceRecordCommand {
+    /// Build an `artifact_kind: file` record for an archive already on disk
+    /// (framework source archives and Rust tooling archives share this
+    /// shape).
+    File {
+        #[arg(long)]
+        product: String,
+        #[arg(long)]
+        version: String,
+        #[arg(long)]
+        source_commit: String,
+        #[arg(long)]
+        tag: String,
+        #[arg(long)]
+        build_timestamp: String,
+        #[arg(long)]
+        pipeline_id: Option<String>,
+        #[arg(long)]
+        job_id: Option<String>,
+        #[arg(long)]
+        manifest_path: Option<String>,
+        #[arg(long)]
+        implementation: String,
+        #[arg(long)]
+        packaging: String,
+        /// Path to the already-built artifact file; its filename, byte
+        /// count, and sha256 are read directly rather than passed by hand.
+        #[arg(long)]
+        artifact: PathBuf,
+        #[arg(long)]
+        target_platform: Option<String>,
+        /// Write the record here instead of printing it to stdout.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
+    /// Build an `artifact_kind: oci-image` record.
+    Oci {
+        #[arg(long)]
+        product: String,
+        #[arg(long)]
+        version: String,
+        #[arg(long)]
+        source_commit: String,
+        #[arg(long)]
+        tag: String,
+        #[arg(long)]
+        build_timestamp: String,
+        #[arg(long)]
+        pipeline_id: Option<String>,
+        #[arg(long)]
+        job_id: Option<String>,
+        #[arg(long)]
+        implementation: String,
+        #[arg(long)]
+        packaging: String,
+        #[arg(long)]
+        image_reference: String,
+        #[arg(long)]
+        manifest_digest: String,
+        #[arg(long)]
+        label_version: String,
+        #[arg(long)]
+        label_revision: String,
+        /// Write the record here instead of printing it to stdout.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -535,12 +629,235 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
                 1
             }
         },
+        DistCommand::ValidateProvenance {
+            files,
+            artifact_dir,
+        } => validate_provenance_command(&files, artifact_dir.as_deref(), &mut output),
+        DistCommand::ProvenanceRecord { sub } => provenance_record_command(*sub, &mut output),
     };
 
     if exit_code == 0 {
         agov_core::roi::record_tool_output("agov", args, "dist", output.chars);
     }
     exit_code
+}
+
+/// Validate one or more release-provenance JSON records: schema validation
+/// (or legacy classification) for each file, plus cross-record duplicate-
+/// filename checks and, when `artifact_dir` is given, artifact/sha256/
+/// checksum-sidecar agreement and dangling-reference checks.
+fn validate_provenance_command(
+    files: &[PathBuf],
+    artifact_dir: Option<&Path>,
+    output: &mut OutputCounter,
+) -> i32 {
+    let mut parsed = Vec::new();
+    let mut exit_code = 0;
+
+    for file in files {
+        let content = match std::fs::read_to_string(file) {
+            Ok(content) => content,
+            Err(err) => {
+                output.stderr(format!("ERR  could not read {}: {err}", file.display()));
+                exit_code = 1;
+                continue;
+            }
+        };
+        let outcome = match provenance::validate_json_text(&content) {
+            Ok(outcome) => outcome,
+            Err(err) => {
+                output.stderr(format!("ERR  {}: {err}", file.display()));
+                exit_code = 1;
+                continue;
+            }
+        };
+        let data: serde_json::Value =
+            serde_json::from_str(&content).expect("validate_json_text already parsed this JSON");
+
+        let schema_valid = outcome.is_valid();
+        let mut findings = outcome.findings;
+
+        if schema_valid && outcome.assurance_level == provenance::AssuranceLevel::V24 {
+            if data
+                .get("artifact_kind")
+                .and_then(serde_json::Value::as_str)
+                == Some("oci-image")
+            {
+                findings.extend(provenance::check_label_agreement(&data));
+            }
+            if let Some(dir) = artifact_dir {
+                findings.extend(provenance::check_artifact_agreement(&data, dir));
+                if let Some(filename) = data
+                    .get("artifact_filename")
+                    .and_then(serde_json::Value::as_str)
+                {
+                    let sidecar = dir.join(format!("{filename}.sha256"));
+                    if sidecar.is_file() {
+                        findings
+                            .extend(provenance::check_sha256_sidecar_agreement(&data, &sidecar));
+                    }
+                }
+            }
+        }
+
+        if findings.is_empty() {
+            output.stdout(format!(
+                "OK  {} ({})",
+                file.display(),
+                outcome.assurance_level.as_str()
+            ));
+        } else {
+            exit_code = 1;
+            for finding in &findings {
+                output.stderr(format!("ERR  {}: {finding}", file.display()));
+            }
+        }
+
+        parsed.push(data);
+    }
+
+    for finding in provenance::check_no_duplicate_filenames(&parsed) {
+        exit_code = 1;
+        output.stderr(format!("ERR  {finding}"));
+    }
+
+    exit_code
+}
+
+fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {
+    match sub {
+        ProvenanceRecordCommand::File {
+            product,
+            version,
+            source_commit,
+            tag,
+            build_timestamp,
+            pipeline_id,
+            job_id,
+            manifest_path,
+            implementation,
+            packaging,
+            artifact,
+            target_platform,
+            output: output_path,
+        } => {
+            let Some(artifact_filename) = artifact.file_name().and_then(|name| name.to_str())
+            else {
+                output.stderr(format!(
+                    "ERR  artifact path has no filename: {}",
+                    artifact.display()
+                ));
+                return 1;
+            };
+            let artifact_bytes = match std::fs::metadata(&artifact) {
+                Ok(metadata) => metadata.len(),
+                Err(err) => {
+                    output.stderr(format!("ERR  could not stat {}: {err}", artifact.display()));
+                    return 1;
+                }
+            };
+            let sha256 = match provenance::sha256_file(&artifact) {
+                Ok(hash) => hash,
+                Err(err) => {
+                    output.stderr(format!("ERR  {err}"));
+                    return 1;
+                }
+            };
+            let pipeline_identity = pipeline_identity_from(&pipeline_id, &job_id);
+            let record = provenance::build_file_record(&provenance::FileRecordInput {
+                product: &product,
+                version: &version,
+                source_commit: &source_commit,
+                tag: &tag,
+                build_timestamp: &build_timestamp,
+                pipeline_identity,
+                manifest_path: manifest_path.as_deref(),
+                implementation: &implementation,
+                packaging: &packaging,
+                artifact_filename,
+                artifact_bytes,
+                sha256: &sha256,
+                target_platform: target_platform.as_deref(),
+            });
+            emit_provenance_record(&record, output_path.as_deref(), output)
+        }
+        ProvenanceRecordCommand::Oci {
+            product,
+            version,
+            source_commit,
+            tag,
+            build_timestamp,
+            pipeline_id,
+            job_id,
+            implementation,
+            packaging,
+            image_reference,
+            manifest_digest,
+            label_version,
+            label_revision,
+            output: output_path,
+        } => {
+            let pipeline_identity = pipeline_identity_from(&pipeline_id, &job_id);
+            let record = provenance::build_oci_record(&provenance::OciRecordInput {
+                product: &product,
+                version: &version,
+                source_commit: &source_commit,
+                tag: &tag,
+                build_timestamp: &build_timestamp,
+                pipeline_identity,
+                implementation: &implementation,
+                packaging: &packaging,
+                image_reference: &image_reference,
+                manifest_digest: &manifest_digest,
+                label_version: &label_version,
+                label_revision: &label_revision,
+            });
+            emit_provenance_record(&record, output_path.as_deref(), output)
+        }
+    }
+}
+
+fn pipeline_identity_from<'a>(
+    pipeline_id: &'a Option<String>,
+    job_id: &'a Option<String>,
+) -> Option<provenance::PipelineIdentity<'a>> {
+    match (pipeline_id, job_id) {
+        (Some(pipeline_id), Some(job_id)) => Some(provenance::PipelineIdentity {
+            pipeline_id,
+            job_id,
+        }),
+        _ => None,
+    }
+}
+
+fn emit_provenance_record(
+    record: &serde_json::Value,
+    output_path: Option<&Path>,
+    output: &mut OutputCounter,
+) -> i32 {
+    let json = match serde_json::to_string_pretty(record) {
+        Ok(json) => json,
+        Err(err) => {
+            output.stderr(format!("ERR  could not encode provenance JSON: {err}"));
+            return 1;
+        }
+    };
+    match output_path {
+        Some(path) => match std::fs::write(path, format!("{json}\n")) {
+            Ok(()) => {
+                output.stdout(format!("OK  wrote {}", path.display()));
+                0
+            }
+            Err(err) => {
+                output.stderr(format!("ERR  could not write {}: {err}", path.display()));
+                1
+            }
+        },
+        None => {
+            output.stdout(json);
+            0
+        }
+    }
 }
 
 fn token_roi_report(log: Option<PathBuf>) -> i32 {
