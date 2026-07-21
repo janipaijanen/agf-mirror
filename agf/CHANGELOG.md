@@ -7,6 +7,15 @@ distribution.
 
 ### Added
 
+- Added `deprecation-policy-rule`, defining a two-phase deprecation policy:
+  Phase 0 (pre-customer, current state) permits disclosed breaking changes
+  with no deprecation cycle; Phase 1 (real external adopters) requires a
+  minimum support window (2 minor releases or 60 calendar days by default,
+  whichever is longer, modeled on Kubernetes' published API deprecation
+  policy). Motivated by the `agov-mcp` `dir` field rename
+  (`docs/plans/mcp-coordination-dir-contract-fix.md`), which is a Phase 0
+  hard rename under this rule rather than a repeat of the coordination
+  schema's never-actually-sunset `seq` field pattern.
 - Added `agov-mcp`, a local stdio Model Context Protocol server exposing
   `agov` workflow commands as MCP tools. Built into the release archive by
   CI. Documented at `agf/docs/site/docs/adopt/mcp-server.md`, status
@@ -22,9 +31,20 @@ distribution.
 - `agov validate adopter-docs` now checks release-range diffs for
   adopter-relevant framework/tooling changes and requires downstream-facing
   docs/templates or an explicit changelog waiver.
+- Added a new Concepts page, "Philosophical lenses on AI governance"
+  (`agf/docs/site/docs/concepts/philosophical-lenses.md`), presenting six
+  consultative governance-critique lenses (legibility, accountability
+  sinks, automation bias, Goodhart's law, psychological safety vs.
+  surveillance, proceduralism vs. outcome-based regulation) as review
+  prompts applicable to any governance design, explicitly not new AGF
+  rules or guarantees.
 
 ### Changed
 
+- Public landing, adoption, evaluation, dossier, and installation guidance now
+  distinguishes the complete shipped governance library from the smaller role
+  and rule subset a project activates. The proposed reduced starter product is
+  labelled Level 1 Planned rather than implied to ship.
 - Downstream-impact and release rules now require an `Adopter docs parity`
   note for adopter-relevant work before feature-ready or release-ready claims.
 - Adopter-facing documentation now explains the docs parity gate, the

@@ -9,6 +9,13 @@ most common failure modes observed in past reviews: identity confusion
 not read from the actual files), and capability conflation (treating
 planned features as shipped ones).*
 
+> AGF releases ship the complete governance library. The documented first-trial
+> path activates a selected subset rather than every role and task-specific
+> rule; a reduced starter package does not currently ship.
+
+The canonical explanation is
+[What ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate).
+
 ## Identity check
 
 Confirm you are reviewing the right project before proceeding.
@@ -49,6 +56,12 @@ Then use this page to avoid common review errors and cite the specific pages
 and files that support your claims. For adoption costs, read
 [Downstream impact](docs/adopt/downstream-impact.md). For the mental model,
 read [Roles and gates](docs/concepts/roles-and-gates.md).
+
+When assessing complexity, report the complete inventory, the subset described
+for the adopter's trial shape, and whether a reduced starter artifact actually
+exists as three separate findings. Do not infer that every distributed role is
+active; do not infer that selective commissioning is already a separately
+packaged starter product.
 
 ## Canonical reading list
 
@@ -99,6 +112,11 @@ schema structures you inferred without reading the file.
 framework" is ambiguous; "I read `index.md`, `should-you-adopt.md`, and
 `roles-and-gates.md`" is auditable.
 
+**Adoption surface.** Distinguish the complete distributed library from the
+roles and task-specific rules selected for a particular adopter. Verify any
+claim that a reduced starter package ships; selective commissioning guidance
+alone is not such a package.
+
 **Capability level.** When describing what the framework includes, use
 the five-level maturity model:
 
@@ -144,6 +162,7 @@ Use this table when turning a review claim into an auditable finding.
 | Tooling maturity | [Tooling conformance](reference/tooling-conformance.md), plus live `agov --help` / `agov validate --help` when reviewing a checkout | A documented target is not automatically a shipped command. |
 | Contracts, validators, and release gates | [Contracts and validators](docs/advanced/contracts-and-validators.md) and [Review and release](docs/operate/review-and-release.md) | Current tooling validates shapes and selected release-range evidence; semantic review remains human. |
 | Adoption cost and downstream impact | [Downstream impact](docs/adopt/downstream-impact.md) and [Exit and decommission](docs/adopt/exit-and-decommission.md) | Use these for adopter burden, reversibility, and upgrade-risk claims. |
+| Distributed versus activated adoption surface | [What ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate) and [Install the `agf/` directory](docs/adopt/install-and-layouts.md) | Report full inventory, activated subset, and unshipped starter proposal separately. |
 
 ## Schema claim checklist
 

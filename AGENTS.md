@@ -171,6 +171,19 @@ Gate 1 approval comes from a governor-reviewer coordination message. Gate 2
 merge target and remote must be confirmed with the governor-reviewer before
 merging — the repository may be local-only or the target branch name may differ.
 
+**A same-role self-ack does not supply governor authority.** A `coder-tester`
+(or any non-governor role) acknowledging its own prior work, or citing a merge
+event alone, does not satisfy the Gate 1 approval requirement above — only a
+`governor-reviewer` coordination message (`ack`, `decision-record`, or
+`handoff`) does. This applies equally to post-hoc corrections: if a plan's
+`status`/`gate1_approved_by`/`gate1_approved_at` fields are updated after the
+fact (e.g. because the original approving commit merged before the fields
+were set), the correcting commit must be accompanied by an actual
+governor-reviewer coordination record, not merely a plan-file edit. Prefer
+updating a plan's own metadata in the same review cycle as its approval, so
+this correction is not needed at all — it recurred three times in one session
+(2026-07-21) precisely because it was deferred.
+
 ---
 
 ## Tooling quick reference

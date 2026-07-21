@@ -62,8 +62,9 @@ Claude Code is the reference integration. The typical setup:
 - `agf/skills/` installs as `.claude/commands/` for slash-command access.
 - `agov` validators run in pre-commit hooks and CI.
 
-The framework's own development (codename *foundry*) runs on Claude Code.
-This is the most evidence-backed integration path.
+The framework's own development environment, codenamed *foundry*, uses both
+Claude Code and OpenAI Codex. They are therefore AGF's most evidence-backed
+assistant integrations today.
 
 ### Codex CLI (OpenAI)
 
@@ -181,4 +182,7 @@ auditable, add AGF on top.
 
 - How roles and gates work: [Roles and gates](roles-and-gates.md)
 - How evidence accumulates from tool use: [Evidence and learnings](evidence-and-learnings.md)
+- Consultative questions for challenging any governance design's scope
+  and guarantee claims, including this one:
+  [Philosophical lenses on AI governance](philosophical-lenses.md)
 - Install for your tool: [Install the `agf/` directory](../adopt/install-and-layouts.md)

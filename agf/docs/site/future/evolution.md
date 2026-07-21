@@ -15,6 +15,20 @@ as such, each with the evidence that would justify building it.
 
 ## Hypotheses under consideration
 
+### Reduced first-adoption product
+
+Current releases provide the complete library and document how a project
+selects applicable roles and rules; see
+[What ships and what you activate](../docs/start/should-you-adopt.md#what-ships-and-what-you-activate).
+A separately packaged starter could present three roles, two gates, four
+coordination message kinds, one validator, and one CI example as the primary
+trial surface while leaving the complete framework available as optional
+expansion. This is **Level 1 Planned**, not a shipped profile or compatibility
+contract. *Evidence that would promote it:* independent pilots showing which
+elements create onboarding friction, which are needed to preserve meaningful
+human gate decisions, and whether adopters continue using the reduced shape
+without founder assistance.
+
 **Coordination-channel semantic validator.** The channel is the audit trail.
 Rust `agov` already validates coordination-message schema, reports channel
 status, finds stale claims, checks branch visibility, discovers handoffs, and

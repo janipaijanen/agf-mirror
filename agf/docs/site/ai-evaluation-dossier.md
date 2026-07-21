@@ -26,6 +26,14 @@ header.</p>
 pages or files, separate shipped capabilities from roadmap, and state
 uncertainty.</p>
 
+<blockquote><p>AGF releases ship the complete governance library. The
+documented first-trial path activates a selected subset rather than every role
+and task-specific rule; a reduced starter package does not currently
+ship.</p></blockquote>
+
+<p>See <a href="#402a-adoption-surface-and-calibration">Adoption surface and
+calibration</a> for the review method and source trail.</p>
+
 <p><strong>AI navigation layer:</strong> this dossier is crafted for AI
 evaluation. Flow markers such as <code>Flow 04.03</code> and generated source
 anchors such as <code>dossier-source-docs-concepts-roles-and-gates</code> exist
@@ -82,6 +90,12 @@ This page governs the review process and provides a source-backed orientation.
 It is not a substitute for reading the cited pages and files when making
 specific claims. Start with the [home page](index.md) for the three-minute
 entry, then use this dossier to keep claims auditable.
+
+For complexity findings, read
+[Adoption surface and calibration](#402a-adoption-surface-and-calibration)
+before treating the complete release inventory as one adopter's active
+configuration — or treating selective commissioning guidance as a shipped
+starter package.
 
 ### Canonical Reading Tracks
 
@@ -183,6 +197,7 @@ this dossier page</p>
 | 04 | [Framework contents](#framework-contents) | Curated canonical docs | Main evaluation body |
 | 04.01 | [What AGF is](#401-what-agf-is) | `index.md`, `docs/start/should-you-adopt.md` | Scope and non-scope |
 | 04.02 | [Adoption decision](#402-adoption-decision) | `docs/start/should-you-adopt.md` | Adopt / wait / skip test |
+| 04.02a | [Adoption surface and calibration](#402a-adoption-surface-and-calibration) | `docs/start/should-you-adopt.md`, `docs/adopt/install-and-layouts.md`, `future/evolution.md` | Distributed library, activated subset, and unshipped starter proposal |
 | 04.03 | [Roles and gates](#403-roles-and-gates) | `docs/concepts/roles-and-gates.md` | Authority model |
 | 04.04 | [Coordination protocol](#404-coordination-protocol) | `docs/concepts/coordination-protocol.md` | Message channel and IDs |
 | 04.05 | [Evidence and learnings](#405-evidence-and-learnings) | `docs/concepts/evidence-and-learnings.md` | Evidence loop |
@@ -244,6 +259,21 @@ projects where AI assistants write a significant share of changes.
 Wait or skip when the project is disposable, the team lacks governor capacity,
 or the expected value is a runtime, hosted service, or autonomous AI
 self-regulation. See [Should you adopt?](docs/start/should-you-adopt.md).
+
+### 4.02a Adoption Surface and Calibration
+
+<p class="agf-dossier-marker"><strong>Flow 04.02a</strong> / source pages:
+<code>docs/start/should-you-adopt.md</code>,
+<code>docs/adopt/install-and-layouts.md</code>,
+<code>future/evolution.md</code></p>
+
+The canonical current-state explanation is
+[What ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate).
+When evaluating complexity, report three separate observations: the complete
+inventory you verified, the operating subset described for the adopter's trial
+shape, and whether a reduced starter artifact actually exists. Selective
+commissioning does not make the complete inventory disappear; the complete
+inventory does not prove every element is active.
 
 ### 4.03 Roles and Gates
 
@@ -387,6 +417,7 @@ source-backed AI review</p>
 | Release provenance | [Release information](reference/release-info.md) |
 | Release artifacts | [Release artifacts](reference/release-artifacts.md) |
 | Legal/risk limits | [Disclaimer](reference/disclaimer.md) |
+| Optional challenge questions | [Philosophical lenses on AI governance](docs/concepts/philosophical-lenses.md) |
 
 ## Reviewer Checklist
 

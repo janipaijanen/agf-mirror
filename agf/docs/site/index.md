@@ -25,6 +25,13 @@ No new accounts. No hosted service. No runtime. The framework is files in your
 repo, instructions your AI assistant reads, and optional validators your CI can
 run.
 
+> AGF releases ship the complete governance library. The documented first-trial
+> path activates a selected subset rather than every role and task-specific
+> rule; a reduced starter package does not currently ship.
+
+See [what ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate)
+before treating the complete distribution as a mandatory day-one configuration.
+
 ```mermaid
 flowchart LR
     plan[AI writes a plan] --> gate1{Governor approves?}
@@ -38,7 +45,7 @@ flowchart LR
 Typical cost: an afternoon to install, plus about 5-15 minutes of governor
 attention for a non-trivial change. Exit is documented: pause the gates, keep
 only the rules you still want, or remove the AGF files in an ordinary cleanup
-commit for a small default install.
+commit for a repository-local install.
 
 Next step: read [Should you adopt?](docs/start/should-you-adopt.md), the
 five-minute filter for deciding whether AGF is useful for your project now.
