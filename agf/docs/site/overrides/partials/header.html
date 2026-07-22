@@ -21,16 +21,20 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            {{ config.site_name }}
+            <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" class="agf-header-brand" aria-label="AGF home">AGF</a>
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
-          <span class="md-ellipsis">
+          <span class="md-ellipsis agf-header-page-identity">
+            <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" class="agf-header-brand" aria-label="AGF home">AGF</a>
+            <span class="agf-header-separator" aria-hidden="true">/</span>
+            <span class="agf-header-page-title">
             {% if page.meta and page.meta.title %}
               {{ page.meta.title }}
             {% else %}
               {{ page.title }}
             {% endif %}
+            </span>
           </span>
         </div>
       </div>
