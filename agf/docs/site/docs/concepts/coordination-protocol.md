@@ -92,6 +92,25 @@ sequenceDiagram
     deactivate CT
 ```
 
+*Palette note: this diagram intentionally keeps the site's default Mermaid
+sequence-diagram theme rather than the shared responsibility palette. Two
+things were verified by rendering the page in a real browser and
+pixel-sampling the resulting participant-box fill (not assumed from
+documentation): first, a per-participant `classDef`/`class` assignment —
+the mechanism `flowchart` nodes use — has no equivalent for `sequenceDiagram`
+participants; second, an attempted diagram-level override via a
+`%%{init: {"themeVariables": {"actorBkg": ...}}}%%` directive (tried with
+both single- and double-quoted JSON) produced a byte-identical render to no
+override at all, so this site's rendering pipeline does not honour it.
+Rather than ship a directive with no visible effect, it was removed. The
+practical consequence is acceptable: Mermaid's own default theme here
+already tracks the site's light/dark toggle automatically, which a
+hardcoded palette fill would not do without a separate dark-mode variant
+(the same gap `palette.md`'s "Light/dark behaviour" section already
+documents as unresolved for fixed-fill figures) — see the governor's
+`ksdg` decision for the precedent of deferring this class of limitation
+rather than blocking release on it.*
+
 One agent writes a `handoff`; another reads it via `agov session resume`,
 implements, then files a Gate 2 `handoff` to `governor-reviewer`. The
 governor files a `decision-record`. The original agent closes with a
