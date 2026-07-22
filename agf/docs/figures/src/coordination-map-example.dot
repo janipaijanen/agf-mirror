@@ -6,13 +6,29 @@
 // ("Semantic responsibility palette" section). This figure previously
 // used an unrelated Atlassian-style colour set (#42526e, #3367d6,
 // #6554c0, #ff8b00, #00875a) -- exactly the "three unrelated palette
-// families" defect the workstream inventory identified. Role nodes now
-// use the same AI-action / Human-decision hues as coordination-
-// channel.dot's agent treatment (ellipse shape, coloured by role type);
-// the "all" broadcast target is the neutral trigger/destination ellipse
-// used throughout this figure set. Edge colours map onto the existing
-// message-kind convention: handoff = AI action blue, decision-record /
-// ack = approved-outcome green, note = advisory grey (dashed).
+// families" defect the workstream inventory identified.
+//
+// Gate 2 review `20260722T211822Z-contribution-auditor-ghng` (BLOCK 1)
+// found two further defects in an earlier converted version of this
+// figure: (1) the legend called ellipse participant nodes "AI action"
+// and "human decision" -- the palette contract's responsibility-
+// category names, which are reserved for its own diamond/rounded-box
+// shapes; using them on ellipses contradicts the shape/category
+// correspondence the contract requires. (2) aggregate decision-record
+// and ack edges were coloured green as an "approved outcome," but these
+// message kinds and their counts do not prove every underlying record
+// was approved -- coordination-message.schema.json does not bind kind
+// to outcome.
+//
+// Fix: participant nodes use the role-category vocabulary ("AI-primary
+// role" / "human-primary role"), the same axis and wording used in
+// coordination-channel.dot and docs/academic/figures/src/role-
+// communication-topology.dot -- not the responsibility-category names.
+// All coordination edges use one neutral, uniform treatment (solid
+// blue-mid), varying only by penwidth (message volume, an observed
+// count) and label text (kind + count) -- no colour or line-style
+// implies approval, automation, or deferred status for any message
+// kind.
 digraph agf_coordination_example {
   graph [
     rankdir=TB,
@@ -41,23 +57,24 @@ digraph agf_coordination_example {
     penwidth=1.4
   ];
 
-  // Shape key: same responsibility categories used across this figure
-  // set, applied here to coordination-channel participants.
+  // Shape key: role-category axis (who the participant is), not the
+  // responsibility-category axis (which node shapes this figure does
+  // not use at all -- every node here is a participant, not an event).
   subgraph cluster_shapekey {
-    label = "Legend (responsibility / shape)";
+    label = "Legend (role category / fill)";
     fontname = "Helvetica";
     fontsize = 12;
     color = "#888888";
     margin = 12;
 
-    sk_ai      [label="AI action\n(agent role)", shape=ellipse,
-                fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"];
-    sk_human   [label="human decision\n(governor approval role)", shape=ellipse,
-                fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"];
-    sk_neutral [label="broadcast\ntarget", shape=ellipse,
-                fillcolor=white, color="#888888", fontcolor="#1A1A1A"];
+    sk_ai_role    [label="AI-primary role\n(participant)", shape=ellipse,
+                   fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"];
+    sk_human_role [label="human-primary role\n(participant)", shape=ellipse,
+                   fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"];
+    sk_neutral    [label="broadcast\ntarget", shape=ellipse,
+                   fillcolor=white, color="#888888", fontcolor="#1A1A1A"];
 
-    sk_ai -> sk_human -> sk_neutral [style=invis];
+    sk_ai_role -> sk_human_role -> sk_neutral [style=invis];
   }
 
   "all" [
@@ -86,38 +103,30 @@ digraph agf_coordination_example {
 
   "coder-tester" -> "governor-reviewer" [
     label="handoff (22)",
-    color="#0077BB",
     penwidth=2.2
   ];
   "coder-tester" -> "planner-architect" [
     label="handoff (16)",
-    color="#0077BB",
     penwidth=1.9
   ];
   "governor-reviewer" -> "all" [
     label="decision-record (9)",
-    color="#009944",
     penwidth=1.7
   ];
   "governor-reviewer" -> "coder-tester" [
     label="ack (9)",
-    color="#009944",
     penwidth=1.7
   ];
   "planner-architect" -> "all" [
     label="note (14)",
-    style=dashed,
-    color="#888888",
     penwidth=1.8
   ];
   "planner-architect" -> "coder-tester" [
     label="handoff (11)",
-    color="#0077BB",
     penwidth=1.7
   ];
   "planner-architect" -> "governor-reviewer" [
     label="handoff (8)",
-    color="#0077BB",
     penwidth=1.6
   ];
 }
