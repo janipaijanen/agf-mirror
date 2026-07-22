@@ -139,39 +139,117 @@ def parse_responsibility_table(
     return rows
 
 
-def parse_dot_attribute_blocks(dot_text: str) -> list[dict[str, str]]:
-    """Every `[...]` attribute block in a DOT source, as a dict. Multi-line
-    blocks are supported (Graphviz attribute lists may span lines)."""
-    blocks = []
-    for raw_block in ATTR_BLOCK_RE.findall(dot_text):
-        attrs = {}
-        for key, value in ATTR_RE.findall(raw_block):
-            attrs[key] = value.strip().strip('"')
-        if attrs:
-            blocks.append(attrs)
-    return blocks
+def _iter_bracket_statements(dot_text: str) -> list[tuple[str, str]]:
+    """(head, attrs_text) for every top-level `[...]` block in document
+    order. `head` is the raw text since the previous block's `]` (or start
+    of file) -- the caller classifies it to learn what kind of statement
+    this bracket belongs to (node default, edge default, a named node, or
+    an edge)."""
+    statements = []
+    stmt_start = 0
+    depth = 0
+    bracket_open_idx = None
+    for i, ch in enumerate(dot_text):
+        if ch == "[":
+            if depth == 0:
+                bracket_open_idx = i
+            depth += 1
+        elif ch == "]":
+            depth -= 1
+            if depth == 0 and bracket_open_idx is not None:
+                head = dot_text[stmt_start:bracket_open_idx]
+                attrs_text = dot_text[bracket_open_idx + 1 : i]
+                statements.append((head, attrs_text))
+                stmt_start = i + 1
+    return statements
+
+
+_HEAD_EDGE_RE = re.compile(r"^(\w+)\s*->\s*(\w+)$")
+_HEAD_NODE_RE = re.compile(r"^(\w+)$")
+
+
+def _classify_head(head: str) -> tuple[str, str | None, str | None]:
+    """Classify the statement immediately preceding a `[...]` block, using
+    the last non-blank source line before the bracket (this project's DOT
+    files always keep an identifier/arrow and its opening bracket on one
+    line, even when the attribute list itself continues on later lines)."""
+    lines = [ln for ln in head.splitlines() if ln.strip()]
+    if not lines:
+        return ("unknown", None, None)
+    last = re.sub(r"//.*$", "", lines[-1]).strip()
+    if last == "node":
+        return ("node_default", None, None)
+    if last == "edge":
+        return ("edge_default", None, None)
+    m = _HEAD_EDGE_RE.match(last)
+    if m:
+        return ("edge", m.group(1), m.group(2))
+    m = _HEAD_NODE_RE.match(last)
+    if m:
+        return ("node", m.group(1), None)
+    return ("unknown", None, None)
+
+
+def _parse_attrs(attrs_text: str) -> dict[str, str]:
+    attrs = {}
+    for key, value in ATTR_RE.findall(attrs_text):
+        attrs[key] = value.strip().strip('"')
+    return attrs
+
 
 Pairing = tuple[str, str, str]
 
 
 def parse_dot_text_pairings(dot_text: str) -> list[Pairing]:
     """(label, background_hex, fontcolor_hex) for every node/edge statement
-    that sets an explicit `fontcolor`."""
+    that renders a label, resolving `fontcolor` (and `fillcolor`/`style`)
+    against the nearest preceding `node [...]`/`edge [...]` default block
+    when the statement itself doesn't set them explicitly -- Graphviz
+    renders text in the *inherited* colour when `fontcolor` is omitted
+    (true default: black), not in some neutral/no-text state. A checker
+    that only looks at explicit `fontcolor=` misses exactly the case where
+    someone deletes a conforming override and silently falls back to a
+    default that fails contrast (Gate 2 review `h1s8` BLOCK 1, reproduced
+    live by deleting `fontcolor=white` from a red rejected node)."""
+    node_default: dict[str, str] = {}
+    edge_default: dict[str, str] = {}
     pairings: list[Pairing] = []
-    for attrs in parse_dot_attribute_blocks(dot_text):
-        if "fontcolor" not in attrs:
+
+    for head, attrs_text in _iter_bracket_statements(dot_text):
+        kind, _a, _b = _classify_head(head)
+        attrs = _parse_attrs(attrs_text)
+
+        if kind == "node_default":
+            node_default = attrs
             continue
-        fontcolor_hex = normalize_hex(attrs["fontcolor"])
-        if fontcolor_hex is None:
+        if kind == "edge_default":
+            edge_default = attrs
             continue
-        style = attrs.get("style", "")
-        if "filled" in style or "fillcolor" in attrs:
-            bg_hex = normalize_hex(attrs.get("fillcolor", "white")) or "#FFFFFF"
+        if kind not in ("node", "edge"):
+            continue
+
+        label = attrs.get("label")
+        if label is None:
+            # No explicit label on this statement. Edges render no text
+            # without one; a label-less node would render its own id, which
+            # none of this project's figures rely on for meaningful content
+            # (every node that matters sets an explicit label) -- skip.
+            continue
+
+        defaults = node_default if kind == "node" else edge_default
+        fontcolor_raw = attrs.get("fontcolor", defaults.get("fontcolor", "black"))
+        fontcolor_hex = normalize_hex(fontcolor_raw) or "#000000"
+
+        style = attrs.get("style", defaults.get("style", ""))
+        has_explicit_fill = "fillcolor" in attrs or "fillcolor" in defaults
+        if kind == "node" and ("filled" in style or has_explicit_fill):
+            fill_raw = attrs.get("fillcolor", defaults.get("fillcolor", "white"))
+            bg_hex = normalize_hex(fill_raw) or "#FFFFFF"
         else:
-            # Unfilled node or an edge label: rendered on the page background.
+            # Unfilled node, or an edge label: rendered on the page background.
             bg_hex = "#FFFFFF"
-        label = attrs.get("label", "(no label)").replace("\\n", " ")
-        pairings.append((label, bg_hex, fontcolor_hex))
+
+        pairings.append((label.replace("\\n", " "), bg_hex, fontcolor_hex))
     return pairings
 
 
@@ -314,7 +392,59 @@ def _self_test() -> int:
     bad_dot_failures = check_pairings(bad_dot_pairings, "self-test/dot-bad")
     assert bad_dot_failures, "mutated white-on-amber DOT pairing was NOT detected"
 
-    print("\nSelf-test passed: the parser detects both a conforming and a mutated-invalid pairing.")
+    # Deletion/inheritance mutation (Gate 2 review `h1s8` BLOCK 1): deleting
+    # an explicit fontcolor must not make the statement invisible to the
+    # checker -- it must fall back to the inherited default (node/edge
+    # default block, else Graphviz's true default of black) and be checked
+    # against that. h1s8 reproduced this live by deleting `fontcolor=white`
+    # from a red rejected node: default black-on-red is ~3.36:1, below
+    # 4.5:1, and the pre-fix parser (which only looked at explicit
+    # `fontcolor=`) silently skipped it and reported zero failures.
+    rejected_dot_conforming = """
+    digraph g {
+        rejected1 [label="Rejected /\\nstop", fillcolor="#CC3311",
+                   fontcolor=white, style="filled,dashed"]
+    }
+    """
+    conforming_pairings = parse_dot_text_pairings(rejected_dot_conforming)
+    assert conforming_pairings == [("Rejected / stop", "#CC3311", "#FFFFFF")], conforming_pairings
+    assert not check_pairings(conforming_pairings, "self-test/inherit-good")
+
+    rejected_dot_deleted_fontcolor = """
+    digraph g {
+        rejected1 [label="Rejected /\\nstop", fillcolor="#CC3311",
+                   style="filled,dashed"]
+    }
+    """
+    deleted_pairings = parse_dot_text_pairings(rejected_dot_deleted_fontcolor)
+    assert deleted_pairings == [("Rejected / stop", "#CC3311", "#000000")], (
+        f"deleting fontcolor must resolve to the true Graphviz default "
+        f"(black), not silently vanish from the checked set: {deleted_pairings}"
+    )
+    deleted_failures = check_pairings(deleted_pairings, "self-test/inherit-bad")
+    assert deleted_failures, (
+        "deleting fontcolor=white from a red-filled node must be caught "
+        "(inherited black-on-red is ~3.36:1) -- it was NOT detected"
+    )
+
+    # A node/edge default block that itself sets a conforming fontcolor
+    # must be honoured too (not just the true Graphviz black default).
+    default_block_dot = """
+    digraph g {
+        node [fontcolor="#1A1A1A"]
+        gate1 [label="Gate 1", shape=diamond, fillcolor="#EE7700"]
+    }
+    """
+    default_block_pairings = parse_dot_text_pairings(default_block_dot)
+    assert default_block_pairings == [("Gate 1", "#EE7700", "#1A1A1A")], default_block_pairings
+    assert not check_pairings(default_block_pairings, "self-test/default-block")
+
+    print(
+        "\nSelf-test passed: the parser detects a conforming pairing, a "
+        "mutated-invalid explicit pairing, a deleted-fontcolor pairing that "
+        "falls back to an invalid inherited default, and honours a "
+        "conforming node/edge default block."
+    )
     return 0
 
 

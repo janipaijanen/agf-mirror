@@ -13,22 +13,21 @@
 // plain rectangle when the real node is rounded or double-bordered (the
 // prior "(oval shape)"/"(diamond shape)" legend text, and the later flat
 // colour-only legend rectangles, were both defects this revision fixes).
+//
+// No separate edge/arrow legend: every edge in the pipeline already
+// carries its own plain-text label ("approved", "changes requested",
+// "rejected") directly on the arrow -- the label is the primary,
+// colour-independent meaning-carrier, with colour and solid/dashed style
+// as reinforcing signals, not the sole signal (accessibility-rule). A
+// separate decoder table for arrow colour/style would itself need to
+// reproduce real solid/dashed line swatches to satisfy the plan's legend-
+// fidelity acceptance test, which Graphviz's HTML-like table labels
+// cannot render (no per-cell border-style control) -- the pipeline's own
+// labelled edges already satisfy that test by being the real thing, not
+// a proxy for it.
 digraph gate_pipeline {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.4, ranksep=0.55,
-           bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="3"><B>Legend (edge / arrow meaning)</B></TD></TR>
-            <TR>
-                <TD BGCOLOR="#009944" WIDTH="18"></TD><TD ALIGN="LEFT">solid</TD><TD ALIGN="LEFT">approved</TD>
-            </TR>
-            <TR>
-                <TD BGCOLOR="#EE7700" WIDTH="18"></TD><TD ALIGN="LEFT">dashed</TD><TD ALIGN="LEFT">changes requested</TD>
-            </TR>
-            <TR>
-                <TD BGCOLOR="#CC3311" WIDTH="18"></TD><TD ALIGN="LEFT">dashed</TD><TD ALIGN="LEFT">rejected / stopped</TD>
-            </TR>
-        </TABLE>
-    >]
+           bgcolor=white, fontname="Helvetica", fontsize=12]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
@@ -36,8 +35,7 @@ digraph gate_pipeline {
     // Shape key: real shapes, self-labeled (same convention as the
     // pipeline nodes below), matching every node treatment actually used
     // in the pipeline below -- not a separate flat-colour legend that
-    // could drift from the real shapes. Not part of the pipeline flow --
-    // no edges connect it to the pipeline nodes below.
+    // could drift from the real shapes.
     subgraph cluster_shapekey {
         label = "Legend (responsibility / shape)"
         fontname = "Helvetica"
@@ -59,10 +57,8 @@ digraph gate_pipeline {
                       style="filled,dashed", fillcolor="#CC3311",
                       color="#CC3311", fontcolor=white]
 
-        // Vertical stack, not a single wide row: keeps the figure's aspect
-        // ratio close to the pre-fidelity-fix original so it stays legible
-        // when scaled down under the site's responsive max-width:100% image
-        // treatment (mobile viewport). Invisible edges, not rank=same.
+        // Vertical stack, not a single wide row: keeps the cluster's own
+        // aspect ratio narrow. Invisible edges, not rank=same.
         sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_rejected
             [style=invis]
     }
@@ -84,6 +80,14 @@ digraph gate_pipeline {
                color="#CC3311", style="filled,dashed"]
     rejected2 [label="Rejected /\nstop", fillcolor="#CC3311", fontcolor=white,
                color="#CC3311", style="filled,dashed"]
+
+    // Stack the shape key above the pipeline (single narrow column) rather
+    // than beside it: a side-by-side layout roughly doubles the figure's
+    // width, which is exactly what makes text unreadable once the site's
+    // responsive max-width:100% image treatment scales the whole SVG down
+    // to a mobile viewport. Invisible edge, not rank=same -- same working
+    // technique as the shape-key's own internal stack above.
+    sk_rejected -> idea [style=invis]
 
     idea  -> plan
     plan  -> gate1  [label="handoff"]
