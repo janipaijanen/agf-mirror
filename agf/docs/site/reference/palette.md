@@ -75,9 +75,9 @@ system.
 
 | Responsibility | Token (fill) | Border/line | Text colour | Shape (colour-independence) |
 |---|---|---|---|---|
-| Human decision | `amber` `#EE7700` | `amber` | white | diamond |
+| Human decision | `amber` `#EE7700` | `amber` | `#1A1A1A` | diamond |
 | AI action | `blue-light` `#99CCEE` | `blue-mid` | `#1A1A1A` | box (rounded) |
-| Automated check / validated outcome | `green-mid` `#009944` | `green-mid` | white | box (double border) |
+| Automated check / validated outcome | `green-mid` `#009944` | `green-mid` | `#1A1A1A` | box (double border) |
 | Shared concept | white (no fill) | `blue-mid` | `blue-mid` | box (plain border) |
 | Reference / deferred content | `grey-light` `#CCCCCC` | `grey-mid` | `#1A1A1A` | box (dashed border) |
 
@@ -99,8 +99,12 @@ used in `gate-pipeline`) — it is not a sixth responsibility category.
 - Default text colour on an unfilled or light-fill node: `#1A1A1A`
   (near-black; higher contrast than pure grey text at every fill in this
   table).
-- Default text colour on a saturated fill (`amber`, `green-mid`,
-  `red-mid`, `blue-mid`-as-fill): white.
+- Default text colour on a saturated fill: `#1A1A1A` for `amber`
+  (~6.03:1) and `green-mid` (~4.67:1) — white on either fails the
+  4.5:1 normal-text AA threshold (2.89:1 and 3.72:1 respectively) at
+  the node label sizes these figures actually render. White remains
+  correct for `red-mid` (~5.19:1, meets AA normal text) and for
+  `blue-mid`-as-fill.
 
 ### Light/dark behaviour
 
@@ -130,11 +134,16 @@ check (double-border box) by shape even where the fill values are close.
 
 WCAG AA: 4.5:1 for normal text, 3:1 for large text (≥18px or ≥14px
 bold) or fill-only usage — the same target this page's existing
-"Palette" table already documents per-token above. No responsibility
-token is used for body text at normal size; all text-on-fill pairings
-in the responsibility table meet at least the large-text/fill threshold,
-and `blue-mid`-on-white and `red-mid`-on-white (both used for text
-labels, e.g. edge labels) meet the full 4.5:1 normal-text threshold.
+"Palette" table already documents per-token above. Figure node labels
+(e.g. `gate-pipeline`'s 11pt node text) are normal text, not large
+text, so every text-on-fill pairing in the responsibility table must
+clear the full 4.5:1 threshold — not just the weaker 3:1 fill/large-text
+one. All five do: `#1A1A1A`-on-`amber` (~6.03:1), `#1A1A1A`-on-`green-mid`
+(~4.67:1), `#1A1A1A`-on-`blue-light` and `#1A1A1A`-on-`grey-light`
+(>15:1, per "Neutral foreground/background tokens" above), and
+`blue-mid`-on-white (the Shared concept text colour, ~4.82:1). White
+text is reserved for `red-mid` fills (~5.19:1), which also clears
+4.5:1.
 
 ### Mermaid usage
 
@@ -142,9 +151,9 @@ Mermaid diagrams must define one `classDef` per responsibility, reusing
 these exact hex values, e.g.:
 
 ```
-classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#ffffff
+classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
 classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
-classDef automatedCheck fill:#009944,stroke:#009944,color:#ffffff
+classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A
 classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
 classDef referenceContent fill:#CCCCCC,stroke:#888888,color:#1A1A1A
 ```
