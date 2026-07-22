@@ -397,6 +397,41 @@ release:create:
       release-cli create \
         "$@"
 
+# Composed post-publication verification: re-fetches the just-created
+# GitLab Release from its public API (not this pipeline's `dist/` copy),
+# downloads every linked asset fresh, and runs the full composed check --
+# schema/hash/sidecar agreement, cardinality bijection, real OCI-registry
+# pull-by-digest evidence, and real packaged-binary self-report execution
+# -- against those downloaded bytes. `release:create`'s own
+# `validate-provenance` call is a build-time pre-upload gate; this job is
+# the public-lifecycle counterpart per !351 Gate 2 acceptance matrix row D
+# ("the tag/release path must exercise this composed check"). Runs on the
+# podman image so the OCI pull-by-digest evidence check has a real
+# `podman` to shell out to, matching `agov:oci:release`'s own image choice.
+release:verify:
+  image: quay.io/podman/stable:v5.6.0
+  stage: deploy
+  variables:
+    STORAGE_DRIVER: vfs
+  rules:
+    - if: $CI_COMMIT_TAG
+  needs:
+    - job: release:create
+    - job: rust:tooling:release
+      artifacts: true
+  script:
+    - command -v curl >/dev/null || dnf install -y curl
+    - command -v tar >/dev/null || dnf install -y tar gzip
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - |
+      staging="$(mktemp -d)"
+      tar -xzf "dist/agov-${VERSION}-x86_64-unknown-linux-musl.tar.gz" -C "$staging"
+      AGOV_BIN="$staging/agov-${VERSION}-x86_64-unknown-linux-musl/agov"
+      "$AGOV_BIN" dist post-publication-check \
+        --releases-url "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$CI_COMMIT_TAG" \
+        --download-dir "$(mktemp -d)"
+      rm -rf "$staging"
+
 # Host-preflight self-test for tooling/rust/scripts/release-assets.sh: exercises
 # its file-enumeration logic against dummy artifacts so a missing sidecar-link
 # pattern is caught before a tag pipeline runs, not discovered post-publication.

@@ -278,18 +278,79 @@ pub fn sha256_file(path: &Path) -> Result<String, String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
-/// A safe `artifact_filename` is a plain basename: no path separators (`/`
-/// or `\`, so this is enforced the same way on Windows and Unix), and not
-/// exactly `.` or `..`. The schema's `pattern` on `artifact_filename`
-/// already requires an alphanumeric first character (which excludes `.`
-/// and `..` structurally), but this check runs independently of schema
-/// validation so callers cannot bypass it by skipping `validate_record`.
-fn is_safe_artifact_filename(filename: &str) -> bool {
+/// A safe basename: no path separators (`/` or `\`, so this is enforced
+/// the same way on Windows and Unix), and not exactly `.` or `..`. Used
+/// both for a record's own `artifact_filename` (the schema's `pattern`
+/// already requires an alphanumeric first character, which excludes `.`
+/// and `..` structurally, but this check runs independently of schema
+/// validation so callers cannot bypass it by skipping `validate_record`)
+/// and for externally-discovered release-asset names (GitLab Release API
+/// `assets.links[].name`), which carry no schema guarantee at all.
+pub fn is_safe_basename(filename: &str) -> bool {
     !filename.is_empty()
         && !filename.contains('/')
         && !filename.contains('\\')
         && filename != "."
         && filename != ".."
+}
+
+/// Extract the scheme and host from a URL without a full RFC 3986 parser.
+/// Deliberately narrow: this project only needs to (a) require `https`
+/// and (b) compare the host against a trusted host derived from the
+/// GitLab Releases API URL that was already fetched. Handles the
+/// userinfo trick (`https://trusted.example@evil.example/path`, where a
+/// naive parser stops at the first `/` or `@` and reports the wrong
+/// host) by taking the host as whatever follows the *last* `@` in the
+/// authority component, per URL authority syntax (`user:pass@host:port`).
+pub fn parse_https_host(url: &str) -> Result<String, String> {
+    let rest = url
+        .strip_prefix("https://")
+        .ok_or_else(|| format!("URL is not https: {url}"))?;
+    let authority_end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let authority = &rest[..authority_end];
+    let host_and_port = match authority.rfind('@') {
+        Some(at) => &authority[at + 1..],
+        None => authority,
+    };
+    let host = match host_and_port.rfind(':') {
+        Some(colon) => &host_and_port[..colon],
+        None => host_and_port,
+    };
+    if host.is_empty() {
+        return Err(format!("URL has no host: {url}"));
+    }
+    Ok(host.to_string())
+}
+
+/// Validate a batch of externally-discovered release assets
+/// (`(name, direct_asset_url)` pairs from the GitLab Release API) before
+/// anything is downloaded. Fails closed: any single unsafe name,
+/// duplicate name, non-https URL, or wrong-host URL rejects the whole
+/// batch rather than silently dropping the bad entry and downloading the
+/// rest.
+pub fn validate_discovered_assets(
+    assets: &[(String, String)],
+    trusted_host: &str,
+) -> Result<(), String> {
+    let mut seen = std::collections::BTreeSet::new();
+    for (name, url) in assets {
+        if !is_safe_basename(name) {
+            return Err(format!("unsafe asset name in release metadata: {name:?}"));
+        }
+        if !seen.insert(name.as_str()) {
+            return Err(format!(
+                "duplicate asset name in release metadata: {name:?}"
+            ));
+        }
+        let host = parse_https_host(url)
+            .map_err(|err| format!("asset {name:?} has an untrusted URL: {err}"))?;
+        if host != trusted_host {
+            return Err(format!(
+                "asset {name:?} URL host {host:?} does not match trusted host {trusted_host:?}: {url}"
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Cross-check a `file`-kind record's `artifact_filename`/`artifact_bytes`/
@@ -305,7 +366,7 @@ pub fn check_artifact_agreement(record: &Value, artifact_dir: &Path) -> Vec<Stri
         return findings;
     };
 
-    if !is_safe_artifact_filename(filename) {
+    if !is_safe_basename(filename) {
         findings.push(format!(
             "unsafe artifact_filename (must be a plain basename with no path \
              separators and not '.' or '..'): {filename:?}"
@@ -583,13 +644,27 @@ pub struct OciImageEvidence {
 
 /// Cross-check an `oci-image` record against REAL evidence read from the
 /// actual image, not against the record's own self-reported `labels`
-/// field. Compares `record.version`/`record.source_commit` to the image's
-/// actual `org.opencontainers.image.{version,revision}` labels, and, when
-/// `evidence.digest` is known, compares it to `record.manifest_digest`.
+/// field. Compares `record.version`/`record.source_commit` *and*
+/// `record.labels.version`/`record.labels.revision` (a record can
+/// disagree with itself between the top-level fields and its own
+/// `labels` sub-object; both must independently agree with reality) to
+/// the image's actual `org.opencontainers.image.{version,revision}`
+/// labels, and requires `evidence.digest` to be present and equal to
+/// `record.manifest_digest` — a missing digest is a finding, not a
+/// silently-skipped check, because "no digest evidence" is exactly the
+/// gap that lets a record claim an immutable pin with nothing behind it.
 pub fn check_oci_image_evidence(record: &Value, evidence: &OciImageEvidence) -> Vec<String> {
     let mut findings = Vec::new();
     let version = record.get("version").and_then(Value::as_str);
     let source_commit = record.get("source_commit").and_then(Value::as_str);
+    let labels_version = record
+        .get("labels")
+        .and_then(|labels| labels.get("version"))
+        .and_then(Value::as_str);
+    let labels_revision = record
+        .get("labels")
+        .and_then(|labels| labels.get("revision"))
+        .and_then(Value::as_str);
     let real_version = evidence
         .labels
         .get("org.opencontainers.image.version")
@@ -609,17 +684,53 @@ pub fn check_oci_image_evidence(record: &Value, evidence: &OciImageEvidence) -> 
             "OCI image evidence disagreement: record source_commit {source_commit:?} != actual image label org.opencontainers.image.revision {real_revision:?}"
         ));
     }
+    if labels_version != real_version {
+        findings.push(format!(
+            "OCI image evidence disagreement: record labels.version {labels_version:?} != actual image label org.opencontainers.image.version {real_version:?}"
+        ));
+    }
+    if labels_revision != real_revision {
+        findings.push(format!(
+            "OCI image evidence disagreement: record labels.revision {labels_revision:?} != actual image label org.opencontainers.image.revision {real_revision:?}"
+        ));
+    }
 
-    if let Some(actual_digest) = &evidence.digest {
-        let record_digest = record.get("manifest_digest").and_then(Value::as_str);
-        if record_digest != Some(actual_digest.as_str()) {
-            findings.push(format!(
-                "OCI image evidence disagreement: record manifest_digest {record_digest:?} != actual image digest {actual_digest:?}"
-            ));
+    let record_digest = record.get("manifest_digest").and_then(Value::as_str);
+    match &evidence.digest {
+        Some(actual_digest) => {
+            if record_digest != Some(actual_digest.as_str()) {
+                findings.push(format!(
+                    "OCI image evidence disagreement: record manifest_digest {record_digest:?} != actual image digest {actual_digest:?}"
+                ));
+            }
+        }
+        None => {
+            findings.push(
+                "OCI image evidence missing: no real registry digest available to compare \
+                 against record manifest_digest (a record cannot be accepted on label \
+                 agreement alone without digest evidence)"
+                    .to_string(),
+            );
         }
     }
 
     findings
+}
+
+/// Build the immutable pull reference for an `oci-image` record: strip any
+/// `:tag` suffix from `image_reference` (a reference cannot carry both a
+/// tag and a digest in the pinned form this project uses) and pin to
+/// `manifest_digest` instead, so the composed post-publication check
+/// always pulls the exact published image, never "whatever the mutable
+/// tag currently points to."
+pub fn oci_pull_ref(image_reference: &str, manifest_digest: &str) -> String {
+    let last_slash = image_reference.rfind('/').map(|i| i + 1).unwrap_or(0);
+    let (host_and_path, name) = image_reference.split_at(last_slash);
+    let base = match name.rfind(':') {
+        Some(colon) => &name[..colon],
+        None => name,
+    };
+    format!("{host_and_path}{base}@{manifest_digest}")
 }
 
 /// Parse `podman inspect <image>` (or `docker inspect`) JSON output — a
@@ -709,15 +820,31 @@ pub fn run_self_report(binary_path: &Path) -> Result<SelfReport, String> {
     parse_self_report(&String::from_utf8_lossy(&output.stdout))
 }
 
+/// Minimum length (in hex characters) either commit string must have
+/// before a prefix relationship is trusted as agreement. Chosen to match
+/// `git`'s own default abbreviation floor (`git rev-parse --short`
+/// guarantees at least 7; this project's local dev fallback uses 12) —
+/// short enough to accept both a full 40-char CI SHA and a local
+/// 12-char short SHA, long enough that an accidental collision is not a
+/// realistic concern. An exact match is always accepted regardless of
+/// length (covers short==short comparisons of any length).
+const MIN_COMMIT_PREFIX_LEN: usize = 7;
+
+fn is_hex(s: &str) -> bool {
+    !s.is_empty() && s.chars().all(|c| c.is_ascii_hexdigit())
+}
+
 /// Cross-check a `file`-kind record against the packaged executable's own
 /// self-report: `record.version` must equal `self_report.version` exactly;
-/// `record.source_commit` must agree with `self_report.commit` (prefix-
-/// tolerant in either direction, since a full CI-set `AGOV_BUILD_COMMIT`
-/// SHA and a local dev build's `git rev-parse --short=12` fallback are
-/// both legitimate, differently-lengthed forms of the same commit); and
-/// the packaged binary must never report a dirty build
-/// (`self_report.dirty` must be `false`) — a real release artifact is
-/// never built from an unclean working tree.
+/// `record.source_commit` must agree with `self_report.commit` — either
+/// exactly equal, or one a true prefix of the other with both strings
+/// hex and the shorter one at least `MIN_COMMIT_PREFIX_LEN` characters
+/// (a full CI-set `AGOV_BUILD_COMMIT` SHA and a local dev build's
+/// `git rev-parse --short=12` fallback are both legitimate, differently
+/// lengthed forms of the same commit; an arbitrary short/ambiguous
+/// prefix is not); and the packaged binary must never report a dirty
+/// build (`self_report.dirty` must be `false`) — a real release artifact
+/// is never built from an unclean working tree.
 pub fn check_self_report_agreement(record: &Value, self_report: &SelfReport) -> Vec<String> {
     let mut findings = Vec::new();
     let record_version = record.get("version").and_then(Value::as_str);
@@ -732,14 +859,18 @@ pub fn check_self_report_agreement(record: &Value, self_report: &SelfReport) -> 
     let commits_agree = match record_commit {
         Some(record_commit) => {
             record_commit == self_report.commit
-                || record_commit.starts_with(&self_report.commit)
-                || self_report.commit.starts_with(record_commit)
+                || (is_hex(record_commit)
+                    && is_hex(&self_report.commit)
+                    && record_commit.len().min(self_report.commit.len()) >= MIN_COMMIT_PREFIX_LEN
+                    && (record_commit.starts_with(&self_report.commit)
+                        || self_report.commit.starts_with(record_commit)))
         }
         None => false,
     };
     if !commits_agree {
         findings.push(format!(
-            "self-report disagreement: record source_commit {record_commit:?} != packaged binary's own commit {:?}",
+            "self-report disagreement: record source_commit {record_commit:?} != packaged binary's own commit {:?} \
+             (exact match, or hex prefix of at least {MIN_COMMIT_PREFIX_LEN} characters, required)",
             self_report.commit
         ));
     }
@@ -1025,9 +1156,58 @@ mod tests {
 
     #[test]
     fn negative_oci_image_evidence_missing_real_labels_is_rejected() {
-        // A record claiming labels the actual image does not carry.
+        // A record claiming labels the actual image does not carry: version
+        // and source_commit disagree, labels.version and labels.revision
+        // disagree (checked independently of the top-level fields), and no
+        // digest evidence is present at all -- five findings.
         let findings = check_oci_image_evidence(&valid_oci_record(), &OciImageEvidence::default());
-        assert_eq!(findings.len(), 2);
+        assert_eq!(findings.len(), 5, "findings: {findings:?}");
+    }
+
+    #[test]
+    fn negative_oci_image_evidence_missing_digest_is_rejected() {
+        // A record with correct labels but no independently-obtained
+        // digest evidence must not pass on label agreement alone.
+        let mut evidence = matching_evidence();
+        evidence.digest = None;
+        let findings = check_oci_image_evidence(&valid_oci_record(), &evidence);
+        assert!(
+            findings.iter().any(|f| f.contains("digest evidence")),
+            "findings: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn negative_oci_image_evidence_labels_disagree_with_top_level_fields() {
+        // A record whose own labels.version disagrees with its own
+        // top-level version (internally inconsistent) must be caught even
+        // when the top-level fields happen to match real evidence.
+        let mut record = valid_oci_record();
+        record["labels"]["version"] = serde_json::json!("9.9.9");
+        let findings = check_oci_image_evidence(&record, &matching_evidence());
+        assert!(
+            findings.iter().any(|f| f.contains("labels.version")),
+            "findings: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn oci_pull_ref_strips_tag_and_pins_digest() {
+        assert_eq!(
+            oci_pull_ref(
+                "registry.example.com/agov:2.4.0",
+                "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            ),
+            "registry.example.com/agov@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+    }
+
+    #[test]
+    fn oci_pull_ref_without_tag_still_pins_digest() {
+        assert_eq!(
+            oci_pull_ref("registry.example.com/agov", "sha256:abc"),
+            "registry.example.com/agov@sha256:abc"
+        );
     }
 
     #[test]
@@ -1573,6 +1753,164 @@ mod tests {
         };
         let findings = check_self_report_agreement(&record, &self_report);
         assert!(findings.iter().any(|f| f.contains("dirty build")));
+    }
+
+    #[test]
+    fn negative_self_report_commit_prefix_shorter_than_minimum_is_rejected() {
+        // "abc12" is a true prefix of the record commit and both are hex,
+        // but at 5 characters it is below MIN_COMMIT_PREFIX_LEN (7) and
+        // must not be trusted as agreement -- an arbitrary short prefix is
+        // exactly what hmpr's acceptance matrix (row C) forbids.
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("abc123def456abc123def456");
+        let self_report = SelfReport {
+            version: "2.4.0".to_string(),
+            commit: "abc12".to_string(),
+            dirty: false,
+        };
+        let findings = check_self_report_agreement(&record, &self_report);
+        assert!(
+            findings.iter().any(|f| f.contains("source_commit")),
+            "findings: {findings:?}"
+        );
+    }
+
+    #[test]
+    fn negative_self_report_commit_non_hex_prefix_is_rejected() {
+        // A prefix relationship on non-hex strings is not a commit-identity
+        // guarantee (git SHAs are always hex); reject even if long enough.
+        let mut record = valid_file_record();
+        record["version"] = serde_json::json!("2.4.0");
+        record["source_commit"] = serde_json::json!("not-a-real-sha-but-long-enough");
+        let self_report = SelfReport {
+            version: "2.4.0".to_string(),
+            commit: "not-a-r".to_string(),
+            dirty: false,
+        };
+        let findings = check_self_report_agreement(&record, &self_report);
+        assert!(
+            findings.iter().any(|f| f.contains("source_commit")),
+            "findings: {findings:?}"
+        );
+    }
+
+    // ── External release-asset boundary (post-publication discovery) ────
+
+    #[test]
+    fn parse_https_host_extracts_plain_host() {
+        assert_eq!(
+            parse_https_host("https://gitlab.com/api/v4/projects/1/releases/v1").unwrap(),
+            "gitlab.com"
+        );
+    }
+
+    #[test]
+    fn parse_https_host_extracts_host_with_port() {
+        assert_eq!(
+            parse_https_host("https://gitlab.com:8443/path").unwrap(),
+            "gitlab.com"
+        );
+    }
+
+    #[test]
+    fn negative_parse_https_host_rejects_non_https() {
+        assert!(parse_https_host("http://gitlab.com/path").is_err());
+    }
+
+    #[test]
+    fn negative_parse_https_host_userinfo_trick_reports_real_host() {
+        // A URL of the form https://trusted@evil.example/path must report
+        // "evil.example" as the host, not "trusted" -- the part before the
+        // last '@' in the authority is userinfo, not the host.
+        assert_eq!(
+            parse_https_host("https://gitlab.com@evil.example/path").unwrap(),
+            "evil.example"
+        );
+    }
+
+    #[test]
+    fn validate_discovered_assets_accepts_safe_matching_batch() {
+        let assets = vec![
+            (
+                "agf-2.4.0.tar.gz".to_string(),
+                "https://gitlab.com/asset1".to_string(),
+            ),
+            (
+                "agf-2.4.0.tar.gz-provenance.json".to_string(),
+                "https://gitlab.com/asset2".to_string(),
+            ),
+        ];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_ok());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_absolute_name() {
+        let assets = vec![(
+            "/etc/passwd".to_string(),
+            "https://gitlab.com/asset".to_string(),
+        )];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_parent_traversal_name() {
+        let assets = vec![(
+            "../../etc/passwd".to_string(),
+            "https://gitlab.com/asset".to_string(),
+        )];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_separator_name() {
+        let assets = vec![(
+            "sub/dir/file.tar.gz".to_string(),
+            "https://gitlab.com/asset".to_string(),
+        )];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_duplicate_names() {
+        let assets = vec![
+            (
+                "agf-2.4.0.tar.gz".to_string(),
+                "https://gitlab.com/a".to_string(),
+            ),
+            (
+                "agf-2.4.0.tar.gz".to_string(),
+                "https://gitlab.com/b".to_string(),
+            ),
+        ];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_non_https_url() {
+        let assets = vec![(
+            "agf-2.4.0.tar.gz".to_string(),
+            "http://gitlab.com/asset".to_string(),
+        )];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_wrong_host_url() {
+        let assets = vec![(
+            "agf-2.4.0.tar.gz".to_string(),
+            "https://attacker.example/asset".to_string(),
+        )];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
+    }
+
+    #[test]
+    fn negative_validate_discovered_assets_rejects_userinfo_trick_url() {
+        let assets = vec![(
+            "agf-2.4.0.tar.gz".to_string(),
+            "https://gitlab.com@attacker.example/asset".to_string(),
+        )];
+        assert!(validate_discovered_assets(&assets, "gitlab.com").is_err());
     }
 
     #[test]

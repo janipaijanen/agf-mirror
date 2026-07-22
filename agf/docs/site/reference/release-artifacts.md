@@ -52,8 +52,8 @@ For version `X.Y.Z`, a full release build produces:
 |---|---|
 | `dist/agf-X.Y.Z.tar.gz` | Source archive |
 | `dist/agf-X.Y.Z.zip` | Source archive |
-| `dist/agf-X.Y.Z.tar.gz.sha256` | SHA-256 checksum (BSD format) |
-| `dist/agf-X.Y.Z.zip.sha256` | SHA-256 checksum (BSD format) |
+| `dist/agf-X.Y.Z.tar.gz.sha256` | SHA-256 checksum (GNU coreutils format, `<hex>  <filename>`) |
+| `dist/agf-X.Y.Z.zip.sha256` | SHA-256 checksum (GNU coreutils format, `<hex>  <filename>`) |
 | `dist/agf-X.Y.Z.tar.gz-provenance.json` | Machine-readable build provenance for this archive |
 | `dist/agf-X.Y.Z.zip-provenance.json` | Machine-readable build provenance for this archive |
 | `dist/agov-X.Y.Z-x86_64-unknown-linux-musl.tar.gz` | Optional Rust `agov` tooling archive for Linux x86_64 |
@@ -120,15 +120,23 @@ have would individually pass.
 agov dist validate-provenance dist/*-provenance.json --artifact-dir dist
 
 # Anonymously discover and download every asset linked from a real
-# published GitLab Release, then validate the downloaded records against
-# the downloaded bytes -- not a CI workspace copy.
+# published GitLab Release, then run the composed public-lifecycle check
+# against the downloaded bytes -- not a CI workspace copy. This is more
+# than validate-provenance: it also pulls the published OCI image by its
+# immutable digest from the real registry and cross-checks real evidence
+# (no --oci-image flag needed -- the record's own image_reference and
+# manifest_digest are used), and extracts + executes the packaged agov
+# binary from every downloaded tooling archive whose target_platform this
+# host can run, cross-checking its own `version --format json` self-report.
+# A cross-target archive (e.g. aarch64 or Windows, on an x86_64 Linux
+# verifier) is not silently skipped -- an explicit SKIP line names the gap.
 agov dist post-publication-check \
   --releases-url "https://gitlab.com/api/v4/projects/<id>/releases/v2.4.0" \
   --download-dir /tmp/release-check
 
-# Extract a packaged executable from its archive, run its own
-# `version --format json` self-report, and cross-check it against a
-# file-kind record.
+# The self-report extraction/execution/comparison primitive that
+# post-publication-check runs automatically for each eligible downloaded
+# archive; also available standalone for a single already-local archive.
 agov dist self-report-check \
   --archive dist/agov-2.4.0-x86_64-unknown-linux-musl.tar.gz \
   --binary-name agov \
@@ -231,6 +239,17 @@ succeeds, an `agov-oci-X.Y.Z-provenance.json` record carrying the pushed
 image's digest — `release:create` links it alongside the archive records. No
 Elixir/ERTS `agov` package is published to the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+
+After `release:create` publishes the release, `release:verify` runs the
+composed public-lifecycle check (`agov dist post-publication-check`)
+against the just-published release: real OCI-registry pull-by-digest
+evidence for the container image, and real packaged-binary self-report
+execution for every tooling archive this runner can execute, alongside the
+schema/hash/sidecar/cardinality checks `release:create` already ran
+build-time against the local `dist/` copy. `release:create`'s check is a
+pre-upload gate; `release:verify` is the public-lifecycle counterpart —
+it re-fetches from the GitLab Release API and downloads fresh bytes,
+never reusing the pipeline's own `dist/` copy.
 
 Installer scripts, release signing, Software Bill of Materials (SBOM)
 generation, and third-party notices are deferred follow-on work.

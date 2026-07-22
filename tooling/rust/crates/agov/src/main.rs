@@ -948,22 +948,55 @@ fn curl_get(url: &str) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-fn curl_download(url: &str, dest: &Path) -> Result<(), String> {
-    let status = std::process::Command::new("curl")
+/// Fetch `url`'s body to memory via `curl --output -`, never letting curl
+/// itself open `dest`. Used by `download_asset_safely` so the only path
+/// component ever opened on disk is the one this process creates with
+/// `create_new`, eliminating the TOCTOU window a `curl --output <path>`
+/// call would otherwise have between curl's own `fopen` and any check this
+/// process could perform beforehand.
+fn curl_get_bytes(url: &str) -> Result<Vec<u8>, String> {
+    let output = std::process::Command::new("curl")
         .args([
             "--silent",
             "--fail",
             "--show-error",
             "--location",
             "--output",
+            "-",
+            url,
         ])
-        .arg(dest)
-        .arg(url)
-        .status()
+        .output()
         .map_err(|err| format!("could not run curl: {err}"))?;
-    if !status.success() {
-        return Err(format!("curl download of {url} failed"));
+    if !output.status.success() {
+        return Err(format!(
+            "curl {url} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
     }
+    Ok(output.stdout)
+}
+
+/// Download `url` to `dest`, refusing to write through a pre-positioned
+/// symlink or over an existing file: `dest` is opened with `create_new`,
+/// which fails if anything (including a symlink, even a dangling one)
+/// already occupies that path. Bytes are fetched to memory first via
+/// `curl_get_bytes` so curl itself never touches the destination path.
+fn download_asset_safely(url: &str, dest: &Path) -> Result<(), String> {
+    let bytes = curl_get_bytes(url)?;
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(dest)
+        .map_err(|err| {
+            format!(
+                "could not create {} (must not already exist -- refusing to follow a \
+                 pre-positioned symlink or overwrite an existing file): {err}",
+                dest.display()
+            )
+        })?;
+    use std::io::Write as _;
+    file.write_all(&bytes)
+        .map_err(|err| format!("could not write {}: {err}", dest.display()))?;
     Ok(())
 }
 
@@ -979,28 +1012,254 @@ fn discover_release_assets(release_json: &str) -> Result<Vec<(String, String)>, 
         .ok_or("release JSON has no assets.links array")?;
 
     let mut assets = Vec::new();
-    for link in links {
+    for (index, link) in links.iter().enumerate() {
         let name = link.get("name").and_then(serde_json::Value::as_str);
         let url = link
             .get("direct_asset_url")
             .and_then(serde_json::Value::as_str);
-        if let (Some(name), Some(url)) = (name, url) {
-            assets.push((name.to_string(), url.to_string()));
+        match (name, url) {
+            (Some(name), Some(url)) => assets.push((name.to_string(), url.to_string())),
+            _ => {
+                // A malformed link entry fails discovery outright rather
+                // than silently shrinking the allegedly complete release
+                // set -- a missing name/URL on one link is exactly the
+                // kind of gap the cardinality bijection check exists to
+                // catch, and it cannot catch what discovery already
+                // dropped.
+                return Err(format!(
+                    "assets.links[{index}] is missing a string \"name\" or \"direct_asset_url\": {link}"
+                ));
+            }
         }
     }
     Ok(assets)
+}
+
+/// The Rust target triple this binary can actually execute a self-report
+/// check against. Only the exact triple matching the verifier host's own
+/// architecture and OS is executable here -- an `aarch64-unknown-linux-musl`
+/// or `x86_64-pc-windows-gnu` archive cannot run its packaged binary on an
+/// `x86_64` Linux CI runner. Cross-target archives are not silently
+/// skipped: `composed_self_report_check` emits an explicit line naming the
+/// gap instead of omitting it.
+fn executable_target_platform() -> Option<&'static str> {
+    match (std::env::consts::ARCH, std::env::consts::OS) {
+        ("x86_64", "linux") => Some("x86_64-unknown-linux-musl"),
+        ("aarch64", "linux") => Some("aarch64-unknown-linux-musl"),
+        _ => None,
+    }
+}
+
+/// Pull `record`'s published `image_reference@manifest_digest` from the
+/// real registry and inspect it -- the composed public-lifecycle
+/// counterpart to `--oci-image` (which only inspects an already-local
+/// image by whatever name/tag is passed). Real evidence never comes from
+/// a locally-built or locally-tagged image in this path.
+fn pull_and_inspect_published_oci_image(
+    record: &serde_json::Value,
+) -> Result<provenance::OciImageEvidence, String> {
+    let image_reference = record
+        .get("image_reference")
+        .and_then(serde_json::Value::as_str)
+        .ok_or("oci-image record missing image_reference")?;
+    let manifest_digest = record
+        .get("manifest_digest")
+        .and_then(serde_json::Value::as_str)
+        .ok_or("oci-image record missing manifest_digest")?;
+    let pull_ref = provenance::oci_pull_ref(image_reference, manifest_digest);
+
+    let status = std::process::Command::new("podman")
+        .args(["pull", &pull_ref])
+        .status()
+        .map_err(|err| format!("could not run podman pull: {err}"))?;
+    if !status.success() {
+        return Err(format!("podman pull {pull_ref} failed"));
+    }
+    inspect_oci_image(&pull_ref)
+}
+
+/// Composed public OCI chain check: for every downloaded provenance record
+/// that is an `oci-image` record, pull the real published image by its
+/// immutable digest and cross-check it with `check_oci_image_evidence`.
+/// Distinct from `validate_provenance_command`'s `--oci-image` flag, which
+/// only inspects an already-local image the caller names manually.
+fn composed_oci_chain_check(provenance_files: &[PathBuf], output: &mut OutputCounter) -> i32 {
+    let mut exit_code = 0;
+    for file in provenance_files {
+        let Ok(content) = std::fs::read_to_string(file) else {
+            continue;
+        };
+        let Ok(record) = serde_json::from_str::<serde_json::Value>(&content) else {
+            continue;
+        };
+        if record
+            .get("artifact_kind")
+            .and_then(serde_json::Value::as_str)
+            != Some("oci-image")
+        {
+            continue;
+        }
+        match pull_and_inspect_published_oci_image(&record) {
+            Ok(evidence) => {
+                let findings = provenance::check_oci_image_evidence(&record, &evidence);
+                if findings.is_empty() {
+                    output.stdout(format!(
+                        "OK  {} matches real published OCI image evidence",
+                        file.display()
+                    ));
+                } else {
+                    exit_code = 1;
+                    for finding in &findings {
+                        output.stderr(format!("ERR  {}: {finding}", file.display()));
+                    }
+                }
+            }
+            Err(err) => {
+                exit_code = 1;
+                output.stderr(format!(
+                    "ERR  {}: could not pull/inspect published OCI image: {err}",
+                    file.display()
+                ));
+            }
+        }
+    }
+    exit_code
+}
+
+/// Composed self-report check: for every downloaded provenance record that
+/// is a `product: "agov"` file-kind record packaged as `tar.gz`/`zip`,
+/// extract the packaged `agov` binary from its downloaded archive and run
+/// `check_self_report_agreement` against it -- but only when the record's
+/// `target_platform` matches what this verifier host can actually execute
+/// (see `executable_target_platform`). A cross-target archive is not
+/// silently skipped: an explicit line names it and states why.
+fn composed_self_report_check(
+    download_dir: &Path,
+    provenance_files: &[PathBuf],
+    output: &mut OutputCounter,
+) -> i32 {
+    let mut exit_code = 0;
+    let executable_target = executable_target_platform();
+    for file in provenance_files {
+        let Ok(content) = std::fs::read_to_string(file) else {
+            continue;
+        };
+        let Ok(record) = serde_json::from_str::<serde_json::Value>(&content) else {
+            continue;
+        };
+        if record.get("product").and_then(serde_json::Value::as_str) != Some("agov") {
+            continue;
+        }
+        let Some(packaging) = record.get("packaging").and_then(serde_json::Value::as_str) else {
+            continue;
+        };
+        if packaging != "tar.gz" && packaging != "zip" {
+            continue;
+        }
+        let Some(artifact_filename) = record
+            .get("artifact_filename")
+            .and_then(serde_json::Value::as_str)
+        else {
+            continue;
+        };
+        let target_platform = record
+            .get("target_platform")
+            .and_then(serde_json::Value::as_str);
+
+        if target_platform != executable_target {
+            output.stdout(format!(
+                "SKIP {}: target_platform {target_platform:?} is not executable on this \
+                 verifier host ({:?}) -- self-report check not evidenced here, only \
+                 schema/hash/sidecar agreement was checked for this archive",
+                file.display(),
+                executable_target
+            ));
+            continue;
+        }
+
+        let archive = download_dir.join(artifact_filename);
+        let staging = std::env::temp_dir().join(format!(
+            "agov-post-pub-self-report-{}-{}",
+            std::process::id(),
+            artifact_filename
+        ));
+        let extraction_result = (|| -> Result<provenance::SelfReport, String> {
+            std::fs::create_dir_all(&staging)
+                .map_err(|err| format!("could not create staging dir: {err}"))?;
+            let extracted_path = staging.join("agov");
+            if packaging == "zip" {
+                provenance::extract_from_zip(&archive, "agov", &extracted_path)?;
+            } else {
+                provenance::extract_from_tar_gz(&archive, "agov", &extracted_path)?;
+            }
+            provenance::run_self_report(&extracted_path)
+        })();
+        let _ = std::fs::remove_dir_all(&staging);
+
+        match extraction_result {
+            Ok(self_report) => {
+                let findings = provenance::check_self_report_agreement(&record, &self_report);
+                if findings.is_empty() {
+                    output.stdout(format!(
+                        "OK  {}: packaged agov self-report agrees",
+                        file.display()
+                    ));
+                } else {
+                    exit_code = 1;
+                    for finding in &findings {
+                        output.stderr(format!("ERR  {}: {finding}", file.display()));
+                    }
+                }
+            }
+            Err(err) => {
+                exit_code = 1;
+                output.stderr(format!(
+                    "ERR  {}: could not run composed self-report check: {err}",
+                    file.display()
+                ));
+            }
+        }
+    }
+    exit_code
 }
 
 /// Anonymously discover every asset linked from a real published GitLab
 /// Release, download all of them into `download_dir`, then run the exact
 /// same `validate-provenance` logic (schema, cross-checks, and cardinality
 /// bijection) against the downloaded provenance records and downloaded
-/// artifact bytes -- not a CI workspace copy.
+/// artifact bytes -- not a CI workspace copy -- followed by the composed
+/// OCI-chain check (real registry pull by digest) and composed self-report
+/// check (real extracted-binary execution) for every record that applies.
+///
+/// `download_dir` must not already exist, or must exist and be empty: this
+/// command creates and owns it, so a caller cannot point it at a directory
+/// with a pre-positioned symlink and have this command silently write
+/// through it.
 fn post_publication_check_command(
     releases_url: &str,
     download_dir: &Path,
     output: &mut OutputCounter,
 ) -> i32 {
+    if let Ok(mut entries) = std::fs::read_dir(download_dir) {
+        if entries.next().is_some() {
+            output.stderr(format!(
+                "ERR  {} already exists and is not empty -- this command must own a fresh, \
+                 internally-created download directory (refusing a pre-positioned entry, \
+                 including a symlink, at that path)",
+                download_dir.display()
+            ));
+            return 1;
+        }
+    }
+
+    let trusted_host = match provenance::parse_https_host(releases_url) {
+        Ok(host) => host,
+        Err(err) => {
+            output.stderr(format!("ERR  --releases-url must be https: {err}"));
+            return 1;
+        }
+    };
+
     let release_json = match curl_get(releases_url) {
         Ok(body) => body,
         Err(err) => {
@@ -1020,6 +1279,11 @@ fn post_publication_check_command(
         return 1;
     }
 
+    if let Err(err) = provenance::validate_discovered_assets(&assets, &trusted_host) {
+        output.stderr(format!("ERR  {err}"));
+        return 1;
+    }
+
     if let Err(err) = std::fs::create_dir_all(download_dir) {
         output.stderr(format!(
             "ERR  could not create {}: {err}",
@@ -1031,7 +1295,7 @@ fn post_publication_check_command(
     let mut provenance_files = Vec::new();
     for (name, url) in &assets {
         let dest = download_dir.join(name);
-        if let Err(err) = curl_download(url, &dest) {
+        if let Err(err) = download_asset_safely(url, &dest) {
             output.stderr(format!("ERR  {err}"));
             return 1;
         }
@@ -1049,7 +1313,16 @@ fn post_publication_check_command(
         return 1;
     }
 
-    validate_provenance_command(&provenance_files, Some(download_dir), None, "text", output)
+    let base_exit =
+        validate_provenance_command(&provenance_files, Some(download_dir), None, "text", output);
+    let oci_exit = composed_oci_chain_check(&provenance_files, output);
+    let self_report_exit = composed_self_report_check(download_dir, &provenance_files, output);
+
+    if base_exit != 0 || oci_exit != 0 || self_report_exit != 0 {
+        1
+    } else {
+        0
+    }
 }
 
 fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {
@@ -4675,6 +4948,116 @@ mod tests {
         let job_id = Some("456".to_string());
         let result = pipeline_identity_from(&None, &job_id);
         assert!(result.is_err());
+    }
+
+    // ── download_asset_safely: real curl via file:// URLs, no network ───
+
+    fn temp_test_dir(label: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "agov-download-safely-test-{label}-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn positive_download_asset_safely_writes_fresh_destination() {
+        let dir = temp_test_dir("positive");
+        let source = dir.join("source.txt");
+        std::fs::write(&source, b"real content").unwrap();
+        let dest = dir.join("dest.txt");
+
+        let result = download_asset_safely(&format!("file://{}", source.display()), &dest);
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(std::fs::read(&dest).unwrap(), b"real content");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn negative_download_asset_safely_refuses_preexisting_symlink_destination() {
+        let dir = temp_test_dir("symlink");
+        let source = dir.join("source.txt");
+        std::fs::write(&source, b"real content").unwrap();
+        let escape_target = dir.join("outside-the-download-dir.txt");
+        let dest = dir.join("dest.txt");
+
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&escape_target, &dest).unwrap();
+
+        let result = download_asset_safely(&format!("file://{}", source.display()), &dest);
+        assert!(
+            result.is_err(),
+            "must refuse to write through a pre-positioned symlink"
+        );
+        assert!(
+            !escape_target.exists(),
+            "the symlink target must never have been written to"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn negative_download_asset_safely_refuses_preexisting_regular_file_destination() {
+        let dir = temp_test_dir("existing-file");
+        let source = dir.join("source.txt");
+        std::fs::write(&source, b"new content").unwrap();
+        let dest = dir.join("dest.txt");
+        std::fs::write(&dest, b"original content").unwrap();
+
+        let result = download_asset_safely(&format!("file://{}", source.display()), &dest);
+        assert!(result.is_err(), "must refuse to overwrite an existing file");
+        assert_eq!(
+            std::fs::read(&dest).unwrap(),
+            b"original content",
+            "the pre-existing file must not have been truncated or overwritten"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn executable_target_platform_returns_a_known_triple_or_none() {
+        // Whatever this host is, the result (if any) must be one of the
+        // triples the release pipeline actually produces archives for.
+        if let Some(target) = executable_target_platform() {
+            assert!(
+                target == "x86_64-unknown-linux-musl" || target == "aarch64-unknown-linux-musl",
+                "unexpected target: {target}"
+            );
+        }
+    }
+
+    #[test]
+    fn discover_release_assets_parses_well_formed_links() {
+        let json = serde_json::json!({
+            "assets": {
+                "links": [
+                    {"name": "agf-2.4.0.tar.gz", "direct_asset_url": "https://gitlab.com/a"},
+                    {"name": "agf-2.4.0.zip", "direct_asset_url": "https://gitlab.com/b"}
+                ]
+            }
+        })
+        .to_string();
+        let assets = discover_release_assets(&json).unwrap();
+        assert_eq!(assets.len(), 2);
+    }
+
+    #[test]
+    fn negative_discover_release_assets_fails_closed_on_malformed_link() {
+        // A link missing "name" must fail discovery outright, not silently
+        // shrink the release set to just the well-formed entries.
+        let json = serde_json::json!({
+            "assets": {
+                "links": [
+                    {"name": "agf-2.4.0.tar.gz", "direct_asset_url": "https://gitlab.com/a"},
+                    {"direct_asset_url": "https://gitlab.com/b"}
+                ]
+            }
+        })
+        .to_string();
+        let result = discover_release_assets(&json);
+        assert!(result.is_err(), "{result:?}");
     }
 
     fn message(file: &str, kind: &str, timestamp: &str, refs: &[&str]) -> HandoffMessage {
