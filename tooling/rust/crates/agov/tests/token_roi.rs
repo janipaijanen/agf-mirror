@@ -60,6 +60,7 @@ fn committed_codex_snapshot_reports_realistic_roi() {
 
 fn agov(args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI", "0")
         .args(args)
         .current_dir(repo_root())
         .output()

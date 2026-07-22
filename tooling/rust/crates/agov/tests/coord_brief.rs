@@ -176,5 +176,7 @@ fn agov(args: &[&str]) -> std::process::Output {
 }
 
 fn agov_command() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_agov"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_agov"));
+    command.env("AGOV_TOKEN_ROI", "0");
+    command
 }
