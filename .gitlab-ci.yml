@@ -26,6 +26,14 @@ workflow:
     # validated with agov coord validate; mixed commits must run normal CI.
     - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
       when: never
+    # Suppress a redundant branch-push pipeline when this branch already has
+    # an open MR (the MR pipeline covers the same commit). Never matches the
+    # default branch (no MR sources from it), a tag push (CI_COMMIT_BRANCH is
+    # unset), or the MR pipeline itself (CI_PIPELINE_SOURCE != "push" there).
+    # See docs/plans/ci-pipeline-deduplication.md for the full acceptance
+    # matrix and rationale.
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
+      when: never
     - when: always
 
 # ── Shared templates ──────────────────────────────────────────────────────────
