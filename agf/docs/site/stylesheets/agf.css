@@ -8,11 +8,20 @@
   --agf-grey-mid:   #888888;
 }
 
-/* Mobile figure scroll — ready for future use; no existing pages require
-   wrapping in this slice */
+/* Mobile figure scroll. Used by wide (rankdir=LR) DOT figures whose
+   shrink-to-fit rendering becomes unreadable at narrow/mobile viewport
+   widths (Gate 2 review 20260722T220009Z-contribution-auditor-kkhr,
+   BLOCK 1): the theme's default `img{max-width:100%}` silently shrinks
+   text instead of failing loudly, so these figures opt out of that
+   shrink and scroll horizontally at native resolution instead, keeping
+   labels legible. Figures whose narrow-viewport render was independently
+   confirmed still legible when shrunk keep the default treatment. */
 .figure-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+.figure-scroll img {
+  max-width: none;
 }
 
 /* Admonition colour accents using AGF palette */

@@ -247,7 +247,9 @@ captured during the v2.0 documentation work. It is not a required topology:
 adopting projects may define more specialized agent roles and may show
 different communication patterns as their governance model matures.
 
+<div class="figure-scroll" markdown>
 ![Example AGF Foundry coordination map](../../reference/figures/coordination-map-example.svg)
+</div>
 
 The matching dot output shows the representative subset of the busier edges:
 
