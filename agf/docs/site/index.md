@@ -40,7 +40,10 @@ flowchart LR
     gate2 --> merge[Merge]
 ```
 
-![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](reference/figures/agf-nutshell-flyer.png)
+!!! info "AGF in a Nutshell — one-page orientation flyer"
+    A single-page overview of the roles, the two gates, and the
+    coordination channel, suitable for printing or sharing:
+    [view the full-size flyer (PNG)](reference/figures/agf-nutshell-flyer.png).
 
 Typical cost: mechanical installation has taken no more than ten minutes in
 the maintainer's own deployments — empirically informed maintainer evidence,
