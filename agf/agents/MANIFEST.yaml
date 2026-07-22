@@ -38,9 +38,15 @@ agents:
     played_by: "ci (agov validate infosec, on commit)"
 
   build-engineer:
-    status: suspended
-    reason: "no CI pipeline yet; agov validators run manually"
-    resume_when: "CI pipeline established for automated validation"
+    status: active
+    played_by: "claude (AI, CI/build and release-build work)"
+    notes: >
+      Activated by governor-reviewer on 2026-07-22 after duplicate branch and
+      merge-request pipelines consumed avoidable runner resources. Owns CI
+      configuration, build automation, build artifacts, caching, trigger
+      rules, pipeline efficiency, and release-build stages. Release approval,
+      tag authority, deployment, and rollback remain outside this role;
+      deployment-engineer remains skipped.
 
   fact-checker:
     status: active
