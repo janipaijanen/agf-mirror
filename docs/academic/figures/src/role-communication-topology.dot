@@ -31,6 +31,18 @@
 // large gaps, confirmed via `dot -Tpng` visual inspection per
 // visible-artifact-verification-rule). Reusing the one proven column
 // avoids that failure mode.
+//
+// Gate 2 review 20260722T223540Z-contribution-auditor-r1gq (BLOCK 1)
+// found the role-category fill combined "tooling" with "active-but-
+// no-separate-record" evidence status into one category. fact-checker
+// is a mixed human+AI advisory role (same category as contribution-
+// auditor / academic-peer-reviewer) that happens to lack a distinct
+// authored record -- an evidence-status fact the edge style already
+// carries, not a different actor type. Only infosec-sentinel is
+// genuinely a tooling/CI role. Fixed: fact moved to the mixed-role
+// treatment; the grey role key renamed to describe actor type only
+// ("tooling / CI role"), with its dashed node border removed (dashed
+// is edge-only now, not doubled onto node fill).
 digraph role_communication_topology {
   graph [
     rankdir=LR,
@@ -73,9 +85,8 @@ digraph role_communication_topology {
               color="#0077BB", fontcolor="#1A1A1A", fontsize=9]
   rk_mixed   [label="mixed human + AI\nadvisory role", fillcolor=white,
               color="#0077BB", fontcolor="#0077BB", fontsize=9]
-  rk_tooling [label="tooling / active-but-\nno-separate-record role",
-              style="filled,dashed", fillcolor="#CCCCCC", color="#888888",
-              fontcolor="#1A1A1A", fontsize=9]
+  rk_tooling [label="tooling / CI role", fillcolor="#CCCCCC",
+              color="#888888", fontcolor="#1A1A1A", fontsize=9]
 
   human    [label="human\nJani", fillcolor="#EE7700", color="#EE7700",
             fontcolor="#1A1A1A"];
@@ -89,9 +100,9 @@ digraph role_communication_topology {
             fontcolor="#0077BB"];
   academic [label="academic-peer-\nreviewer", fillcolor=white, color="#0077BB",
             fontcolor="#0077BB"];
-  fact     [label="fact-\nchecker", style="filled,dashed", fillcolor="#CCCCCC",
-            color="#888888", fontcolor="#1A1A1A"];
-  infosec  [label="infosec-\nsentinel", style="filled,dashed", fillcolor="#CCCCCC",
+  fact     [label="fact-\nchecker", fillcolor=white, color="#0077BB",
+            fontcolor="#0077BB"];
+  infosec  [label="infosec-\nsentinel", fillcolor="#CCCCCC",
             color="#888888", fontcolor="#1A1A1A"];
 
   human -> governor [label="decisions /\napprovals", dir=both,

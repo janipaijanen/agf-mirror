@@ -176,14 +176,17 @@ This matters when an actor is replaced. If the AI system currently performing \t
 
 Strict role boundaries and artifact ownership are central. Agent definitions declare jurisdiction through responsibilities, owned artifacts, read-only context, \texttt{cannot\_touch} paths, boundary conditions, and escalation routes. This is the framework's answer to authority conflicts and capability drift: a capable model may be able to edit many files, but a governed role should act only inside its declared mandate unless that boundary is changed through an approved governance artifact.
 
-The same distinction applies to communication. Roles do not merely talk to whichever actor is available; they communicate through declared handoff, review, advisory, and decision channels. Figure~\ref{fig:role-communication-topology} summarizes the observed and declared topology in the self-application case. The central pattern is intentionally narrow: planning and implementation traffic routes through \texttt{planner-architect}, \texttt{coder-tester}, and \texttt{governor-reviewer}; specialist roles provide findings or checks; and human authority remains explicit at the decision boundary.
+The same distinction applies to communication. Roles do not merely talk to whichever actor is available; they communicate through declared handoff, review, advisory, and decision channels. The role communication topology in the self-application case follows the same solid/dashed distinction as the other figures in this paper: solid edges indicate observed durable coordination or review traffic, and dashed edges indicate declared, required, or tool-mediated channels without a distinct authored coordination record in the analyzed channel; human final authority is marked separately. The central pattern is intentionally narrow: planning and implementation traffic routes through \texttt{planner-architect}, \texttt{coder-tester}, and \texttt{governor-reviewer}; specialist roles provide findings or checks; and human authority remains explicit at the decision boundary.
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.86\textwidth]{figures/role-communication-topology.pdf}
-  \caption{Role communication topology in the self-application case. Solid edges indicate observed durable coordination or review traffic; dashed edges indicate declared, required, or tool-mediated channels without a distinct authored coordination record in the analyzed channel; amber marks the human final-authority path.}
-  \label{fig:role-communication-topology}
-\end{figure*}
+% Role communication topology figure intentionally omitted from this
+% draft. Governor decision 20260722T223540Z-governor-reviewer-mdnp
+% (v2.4.0 release: academic TeX embedding is low priority) removes this
+% figure* block rather than spend release time on LaTeX toolchain/
+% pagination work. The underlying artifact
+% (figures/role-communication-topology.{dot,svg,pdf}) remains maintained
+% and palette-compliant under Workstream D Class 3; restore this block
+% (image + \caption + \label{fig:role-communication-topology}) when this
+% paper is next prepared for actual compilation/submission.
 
 Participation can therefore be assessed from artifacts, but only with careful semantics. In the analyzed record, \texttt{planner-architect}, \texttt{coder-tester}, \texttt{governor-reviewer}, \texttt{contribution-auditor}, and \texttt{academic-peer-reviewer} have durable participation evidence through coordination records or review artifacts. \texttt{fact-checker} is active in the manifest for documentation and factual-claim review, but has no distinct authored coordination record in the analyzed channel. \texttt{infosec-sentinel} is active as a CI/tooling role rather than a conversational author. Early \texttt{claude} or \texttt{human} senders are pre-normalization identifiers and should be treated as alias/provenance evidence, not separate governance roles.
 

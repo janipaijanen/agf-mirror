@@ -6,19 +6,33 @@
 // Semantic responsibility palette: agf/docs/site/reference/palette.md
 // ("Semantic responsibility palette" section). This figure carries two
 // independent axes, both real (not decorative): (1) phase nodes use the
-// five-category responsibility palette, shown in `cluster_shapekey`,
-// same convention as every other Workstream D figure; (2) role nodes
-// use a role-category colour axis, shown in `cluster_rolekey`, the same
-// pattern established for coordination-channel.dot's "participating
-// agent" nodes -- an orthogonal axis (who the role is, not what kind of
-// action a node represents), kept as ellipses with real colour swatches
-// rather than words. Edge line style (solid/dashed/dotted) is a third,
-// pre-existing and accurate axis -- evidence durability -- documented by
-// the three `legend*` notes already in this figure; unchanged here.
-// Previously this figure had a legend for edge style only; the node
-// fill-colour meaning (for both axes) was undocumented and used an
-// unrelated slate/teal/rust/gold palette -- both defects this revision
-// fixes.
+// five-category responsibility palette (now including Shared concept
+// for genuinely mixed-participation phases), shown in
+// `cluster_shapekey`; (2) role nodes use a role-category colour axis
+// (who the role is, not what kind of action a node represents), shown
+// in `cluster_rolekey`, ellipses with real colour swatches. Edge line
+// style (solid/dashed/dotted) is a third, independent axis -- evidence
+// durability (whether the role has a distinct authored coordination
+// record) -- documented by the three `legend*` notes.
+//
+// Gate 2 review 20260722T223540Z-contribution-auditor-r1gq (BLOCK 1,
+// BLOCK 2) found this revision's first pass still conflated axes that
+// should stay independent:
+// - BLOCK 1: the role-category fill combined "tooling" with "active-
+//   but-no-separate-record" evidence status into one category.
+//   fact-checker is a mixed human+AI advisory role (same category as
+//   contribution-auditor / academic-peer-reviewer) that happens to lack
+//   a distinct authored record -- an evidence-status fact the edge
+//   style already carries, not a different actor type. Only
+//   infosec-sentinel is genuinely a tooling/CI role. Fixed: fact moved
+//   to the mixed-role treatment; the grey role key renamed to describe
+//   actor type only ("tooling / CI role"), with its dashed node border
+//   removed (dashed is now edge-only, not doubled onto node fill).
+// - BLOCK 2: `Advisory review` and `Academic paper review` were AI
+//   action even though both phases show mixed human+AI+CI
+//   participation in the diagram itself (auditor/fact/infosec feed
+//   Advisory review; academic/governor/coder feed Academic paper
+//   review). Fixed: both now use the Shared concept treatment.
 digraph agent_participation_by_phase {
   graph [
     rankdir=LR,
@@ -65,14 +79,17 @@ digraph agent_participation_by_phase {
     sk_diamond   [label="human decision\n(Gate 1 / Gate 2)", shape=diamond,
                   fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A",
                   fontsize=9]
-    sk_ai        [label="AI action\n(setup / advise / implement)",
+    sk_ai        [label="AI action\n(setup / implement)",
                   style="filled,rounded", fillcolor="#99CCEE",
                   color="#0077BB", fontcolor="#1A1A1A", fontsize=9]
+    sk_shared    [label="shared concept\n(mixed human + AI + CI)",
+                  fillcolor=white, color="#0077BB", fontcolor="#0077BB",
+                  fontsize=9]
     sk_automated [label="automated check\n(CI / tooling)",
                   style="filled,bold", peripheries=2, fillcolor="#009944",
                   color="#009944", fontcolor="#1A1A1A", fontsize=9]
 
-    sk_diamond -> sk_ai -> sk_automated [style=invis]
+    sk_diamond -> sk_ai -> sk_shared -> sk_automated [style=invis]
   }
 
   subgraph cluster_rolekey {
@@ -90,9 +107,9 @@ digraph agent_participation_by_phase {
     rk_mixed    [label="mixed human + AI\nadvisory role", shape=ellipse,
                  fillcolor=white, color="#0077BB", fontcolor="#0077BB",
                  fontsize=9]
-    rk_tooling  [label="tooling / active-but-\nno-separate-record role",
-                 shape=ellipse, style="filled,dashed", fillcolor="#CCCCCC",
-                 color="#888888", fontcolor="#1A1A1A", fontsize=9]
+    rk_tooling  [label="tooling / CI role", shape=ellipse,
+                 fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A",
+                 fontsize=9]
     rk_alias    [label="pre-normalization\nalias / provenance", shape=ellipse,
                  style="filled,dotted", fillcolor=white, color="#888888",
                  fontcolor="#1A1A1A", fontsize=9]
@@ -118,9 +135,9 @@ digraph agent_participation_by_phase {
               color="#0077BB", fontcolor="#0077BB"];
     academic [label="academic-peer-\nreviewer", shape=ellipse, fillcolor=white,
               color="#0077BB", fontcolor="#0077BB"];
-    fact     [label="fact-\nchecker", shape=ellipse, style="filled,dashed",
-              fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"];
-    infosec  [label="infosec-\nsentinel", shape=ellipse, style="filled,dashed",
+    fact     [label="fact-\nchecker", shape=ellipse, fillcolor=white,
+              color="#0077BB", fontcolor="#0077BB"];
+    infosec  [label="infosec-\nsentinel", shape=ellipse,
               fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"];
     alias    [label="pre-normalized\nclaude / human", shape=ellipse,
               style="filled,dotted", fillcolor=white, color="#888888",
@@ -139,14 +156,14 @@ digraph agent_participation_by_phase {
                     fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"];
     gate1          [label="Gate 1\nplanning", shape=diamond,
                     fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"];
-    advisory       [label="Advisory\nreview", style="filled,rounded",
-                    fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"];
+    advisory       [label="Advisory\nreview", fillcolor=white,
+                    color="#0077BB", fontcolor="#0077BB"];
     implementation [label="Implementation\nand validation", style="filled,rounded",
                     fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"];
     gate2          [label="Gate 2\ndecision", shape=diamond,
                     fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"];
-    academic_phase [label="Academic\npaper review", style="filled,rounded",
-                    fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"];
+    academic_phase [label="Academic\npaper review", fillcolor=white,
+                    color="#0077BB", fontcolor="#0077BB"];
     ci             [label="CI / tooling\nchecks", style="filled,bold",
                     peripheries=2, fillcolor="#009944", color="#009944",
                     fontcolor="#1A1A1A"];

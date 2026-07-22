@@ -11,6 +11,23 @@
 // agent roles" and "Foundry framework" are the figure's two genuinely
 // mixed-responsibility nodes (an actor set and a shared artifact, not a
 // single-actor action) and map to Shared concept.
+//
+// Gate 2 review 20260722T223540Z-contribution-auditor-r1gq (BLOCK 2)
+// found three further nodes claiming the wrong actor class:
+// - "Append-only coordination records" was Automated check/validated
+//   outcome, but the very next edge in the diagram (records ->
+//   validators, "check") shows it has not been validated yet at that
+//   point -- an authored-but-unchecked record is not already a
+//   validated outcome. Fixed: Shared concept.
+// - "Rules, docs, and CI checks" combined an authored artifact (rule,
+//   doc) with an automated mechanism (CI check) but was rendered as a
+//   single AI action. Fixed: Shared concept, so the composite does not
+//   claim one actor class.
+// - "Learning records" was Automated check/validated outcome, but
+//   (like "records" above) the diagram shows no validation step before
+//   it -- friction flows into it directly. Fixed: Shared concept.
+// "Schemas and validators" keeps the Automated check treatment; it is
+// the actual automated-check step both other nodes flow into.
 digraph self_applied_governance_loop {
   graph [
     rankdir=LR,
@@ -71,18 +88,17 @@ digraph self_applied_governance_loop {
               color="#0077BB", fontcolor="#0077BB"]
   plans      [label="Gate 1\nplans", style="filled,rounded",
               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
-  records    [label="Append-only\ncoordination records", style="filled,bold",
-              peripheries=2, fillcolor="#009944", color="#009944",
-              fontcolor="#1A1A1A"]
+  records    [label="Append-only\ncoordination records", fillcolor=white,
+              color="#0077BB", fontcolor="#0077BB"]
   validators [label="Schemas and\nvalidators", style="filled,bold",
               peripheries=2, fillcolor="#009944", color="#009944",
               fontcolor="#1A1A1A"]
   decisions  [label="Gate decisions\nand merges", shape=diamond,
               fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
-  learnings  [label="Learning\nrecords", style="filled,bold", peripheries=2,
-              fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
-  rules      [label="Rules, docs,\nand CI checks", style="filled,rounded",
-              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+  learnings  [label="Learning\nrecords", fillcolor=white, color="#0077BB",
+              fontcolor="#0077BB"]
+  rules      [label="Rules, docs,\nand CI checks", fillcolor=white,
+              color="#0077BB", fontcolor="#0077BB"]
   product    [label="Foundry\nframework", fillcolor=white, color="#0077BB",
               fontcolor="#0077BB"]
 
