@@ -4991,6 +4991,115 @@ impl OutputCounter {
 mod tests {
     use super::*;
 
+    /// Gate 2 review `d8h5` BLOCK 4: walks the live `clap::Command` tree
+    /// (not `--help` text, not a hand-maintained list) and cross-checks it
+    /// exactly against `agov_core::roi::COMMAND_PATH_TOKENS` and
+    /// `KNOWN_FLAG_NAMES`. Fails on either direction of drift: a new
+    /// command/flag added to the CLI without an explicit redact_args
+    /// classification, or a stale/dead allowlist entry that no longer
+    /// corresponds to anything real (both classes of bug `d8h5` found).
+    #[test]
+    fn roi_redaction_audit_matches_real_clap_surface() {
+        use clap::CommandFactory;
+
+        // `--help` is auto-added by clap at every level and excluded
+        // unconditionally. `--version` is auto-added by clap only at the
+        // *root* command (from `#[command(... version)]` on `Cli`); a
+        // `version` flag on any subcommand (e.g. `dist provenance-record
+        // file --version`, the artifact's product version) is real and
+        // must NOT be excluded, so root and subcommands are walked
+        // differently.
+        // Collects the primary long flag AND every long alias (visible or
+        // hidden) -- `d8h5`'s narrowed BLOCK 4 found `--base_branch`, a
+        // hidden-by-default alias for `--base-branch` on `coord
+        // visibility`/`session resume`, missing from an earlier revision
+        // of this audit that only walked `get_long()`.
+        fn walk_flags(command: &clap::Command, flags: &mut BTreeSet<String>) {
+            for arg in command.get_arguments() {
+                if let Some(long) = arg.get_long() {
+                    if long != "help" {
+                        flags.insert(format!("--{long}"));
+                    }
+                }
+                if let Some(aliases) = arg.get_all_aliases() {
+                    for alias in aliases {
+                        flags.insert(format!("--{alias}"));
+                    }
+                }
+            }
+        }
+
+        fn walk(
+            command: &clap::Command,
+            subcommands: &mut BTreeSet<String>,
+            flags: &mut BTreeSet<String>,
+        ) {
+            walk_flags(command, flags);
+            for sub in command.get_subcommands() {
+                if sub.get_name() == "help" {
+                    continue;
+                }
+                subcommands.insert(sub.get_name().to_string());
+                walk(sub, subcommands, flags);
+            }
+        }
+
+        let mut subcommands = BTreeSet::new();
+        let mut flags = BTreeSet::new();
+        let root = Cli::command();
+        for arg in root.get_arguments() {
+            if let Some(long) = arg.get_long() {
+                if long != "help" && long != "version" {
+                    flags.insert(format!("--{long}"));
+                }
+            }
+        }
+        for sub in root.get_subcommands() {
+            if sub.get_name() == "help" {
+                continue;
+            }
+            subcommands.insert(sub.get_name().to_string());
+            walk(sub, &mut subcommands, &mut flags);
+        }
+
+        let expected_subcommands: BTreeSet<String> = agov_core::roi::COMMAND_PATH_TOKENS
+            .iter()
+            .map(|token| token.to_string())
+            .collect();
+        let expected_flags: BTreeSet<String> = agov_core::roi::KNOWN_FLAG_NAMES
+            .iter()
+            .map(|flag| flag.to_string())
+            .collect();
+
+        let missing_subcommands: Vec<_> = subcommands.difference(&expected_subcommands).collect();
+        let stale_subcommands: Vec<_> = expected_subcommands.difference(&subcommands).collect();
+        assert!(
+            missing_subcommands.is_empty() && stale_subcommands.is_empty(),
+            "COMMAND_PATH_TOKENS drift from the real clap surface — \
+             missing (real, not classified): {missing_subcommands:?}; \
+             stale (classified, not real): {stale_subcommands:?}"
+        );
+
+        let missing_flags: Vec<_> = flags.difference(&expected_flags).collect();
+        let stale_flags: Vec<_> = expected_flags.difference(&flags).collect();
+        assert!(
+            missing_flags.is_empty() && stale_flags.is_empty(),
+            "KNOWN_FLAG_NAMES drift from the real clap surface — \
+             missing (real, not classified): {missing_flags:?}; \
+             stale (classified, not real): {stale_flags:?}"
+        );
+
+        // Every CLOSED_VALUE_FLAGS entry must also be a recognized flag
+        // name -- a closed-value flag that isn't even in KNOWN_FLAG_NAMES
+        // would never reach the value-retention branch in redact_args.
+        for closed in agov_core::roi::CLOSED_VALUE_FLAGS {
+            assert!(
+                expected_flags.contains(*closed),
+                "{closed} is in CLOSED_VALUE_FLAGS but not in KNOWN_FLAG_NAMES"
+            );
+        }
+    }
+
     #[test]
     fn pipeline_identity_from_both_present_succeeds() {
         let pipeline_id = Some("123".to_string());

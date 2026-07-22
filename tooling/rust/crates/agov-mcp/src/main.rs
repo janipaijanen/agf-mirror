@@ -100,12 +100,26 @@ fn call_tool(params: Value) -> Result<Value, String> {
         .get("name")
         .and_then(Value::as_str)
         .ok_or_else(|| "tools/call requires params.name".to_string())?;
+    // Gate 2 review `32qd` (narrowed BLOCK 3): the allowlist must be the
+    // real acceptance gate, checked BEFORE `tool_cli_args`, not an
+    // optional lookup performed after. Resolving to the canonical
+    // `&'static str` here and using that canonical value for both
+    // `tool_cli_args` and `run_agov` means a hypothetical future
+    // `tool_cli_args` match arm added without a matching
+    // `MCP_TOOL_ALLOWLIST` entry is unreachable: this line rejects the
+    // request before any such arm could run, so there is exactly one
+    // source of truth for "which tools exist," not three that can drift.
+    let canonical_tool = agov_core::roi::MCP_TOOL_ALLOWLIST
+        .iter()
+        .find(|allowed| **allowed == name)
+        .copied()
+        .ok_or_else(|| format!("unknown tool: {name}"))?;
     let args = params
         .get("arguments")
         .cloned()
         .unwrap_or_else(|| json!({}));
-    let cli_args = tool_cli_args(name, &args)?;
-    let execution = run_agov(&cli_args);
+    let cli_args = tool_cli_args(canonical_tool, &args)?;
+    let execution = run_agov(&cli_args, Some(canonical_tool));
 
     Ok(json!({
         "content": [
@@ -127,13 +141,28 @@ fn tool_text(execution: &ToolExecution) -> String {
     }
 }
 
-fn run_agov(args: &[String]) -> ToolExecution {
+/// Spawn the child `agov` process. When `tool_name` is `Some`, set the
+/// fixed transport-attribution markers (v2.4.0 Workstream C) on the
+/// child environment. `tool_name` must already be a canonical
+/// `&'static str` resolved from `agov_core::roi::MCP_TOOL_ALLOWLIST`
+/// (see `call_tool`) — never a borrowed slice of the incoming MCP
+/// request string — so the marker value set here is always this
+/// adapter's own constant. The child validates the tuple again
+/// independently before persisting anything.
+fn run_agov(args: &[String], tool_name: Option<&'static str>) -> ToolExecution {
     let command = agov_command();
-    let output = Command::new(command.program)
+    let mut child = Command::new(command.program);
+    child
         .args(&command.prefix)
         .args(args)
-        .current_dir(command.cwd)
-        .output();
+        .current_dir(command.cwd);
+    if let Some(name) = tool_name {
+        child
+            .env(agov_core::roi::MCP_TRANSPORT_MARKER, "mcp")
+            .env(agov_core::roi::MCP_ADAPTER_MARKER, "agov-mcp")
+            .env(agov_core::roi::MCP_TOOL_MARKER, name);
+    }
+    let output = child.output();
 
     match output {
         Ok(output) => ToolExecution {
@@ -580,6 +609,80 @@ mod tests {
                 "agov_coord_post",
                 "agov_coord_list",
             ]
+        );
+    }
+
+    /// Parity guard for the Workstream C transport-attribution boundary:
+    /// the tool names this adapter publishes (and therefore may set as the
+    /// AGOV_MCP_TOOL marker after tool_cli_args validation) must exactly
+    /// match the closed allowlist `resolve_transport` accepts on the child
+    /// side. A drift in either direction would silently drop `tool`
+    /// attribution for the drifted name.
+    #[test]
+    fn published_tools_match_core_mcp_tool_allowlist() {
+        let published: Vec<String> = tools()
+            .into_iter()
+            .map(|tool| tool["name"].as_str().unwrap().to_string())
+            .collect();
+        assert_eq!(published, agov_core::roi::MCP_TOOL_ALLOWLIST.to_vec());
+    }
+
+    /// Gate 2 review `d8h5` BLOCK 3, third leg: `published_tools_match_
+    /// core_mcp_tool_allowlist` only proves `tools()` (the published MCP
+    /// tool list) matches `MCP_TOOL_ALLOWLIST`. It says nothing about
+    /// `tool_cli_args`'s own `match name { ... }` arms -- a third,
+    /// independent source of truth for "which tool names exist." This
+    /// test proves `tool_cli_args` accepts every allowlisted name with
+    /// minimally-valid arguments (so the match has a real arm for each,
+    /// not just a coincidentally-overlapping subset) and rejects any name
+    /// outside the allowlist.
+    #[test]
+    fn tool_cli_args_accepts_exactly_the_allowlisted_names() {
+        let minimal_args: &[(&str, Value)] = &[
+            ("agov_validate", json!({})),
+            ("agov_coord_validate", json!({ "files": ["a.md"] })),
+            ("agov_plan_validate", json!({ "files": ["a.md"] })),
+            ("agov_session_resume", json!({})),
+            ("agov_handoff_next", json!({ "role": "coder-tester" })),
+            (
+                "agov_handoff_take",
+                json!({ "id": "x", "from": "coder-tester" }),
+            ),
+            (
+                "agov_handoff_complete",
+                json!({ "id": "x", "from": "coder-tester" }),
+            ),
+            (
+                "agov_coord_post",
+                json!({
+                    "from": "coder-tester",
+                    "to": "governor-reviewer",
+                    "kind": "note",
+                    "topic": "t"
+                }),
+            ),
+            ("agov_coord_list", json!({})),
+        ];
+
+        assert_eq!(
+            minimal_args.len(),
+            agov_core::roi::MCP_TOOL_ALLOWLIST.len(),
+            "this test's fixture must cover every allowlisted name exactly once"
+        );
+        for (name, args) in minimal_args {
+            assert!(
+                agov_core::roi::MCP_TOOL_ALLOWLIST.contains(name),
+                "{name} is not in MCP_TOOL_ALLOWLIST -- fixture/allowlist drift"
+            );
+            assert!(
+                tool_cli_args(name, args).is_ok(),
+                "tool_cli_args should accept allowlisted name {name}"
+            );
+        }
+
+        assert!(
+            tool_cli_args("agov_totally_unrecognized_tool", &json!({})).is_err(),
+            "tool_cli_args must reject a name outside the allowlist"
         );
     }
 

@@ -89,6 +89,62 @@ approximate saved-token range when the workflow has a documented baseline. The
 log intentionally does not capture prompts, model responses, secrets, billing
 data, or external API metadata.
 
+### Transport attribution (`transport`, `adapter`, `tool`)
+
+v2.4.0 Workstream C adds three optional fields distinguishing an
+MCP-mediated invocation from a direct CLI invocation:
+
+- `transport`: `"cli"` (explicit, so a new direct-CLI record is
+  distinguishable from a historical record predating these fields) or
+  `"mcp"`.
+- `adapter`: `"agov-mcp"`, present only when `transport` is `"mcp"`.
+- `tool`: the MCP tool name (e.g. `agov_coord_validate`), present only
+  when `transport` is `"mcp"`, drawn from `agov-mcp`'s own compiled tool
+  list (the same list backing `tools/list`).
+
+**These fields are self-reported workflow measurement, not verified or
+authenticated identity.** `agov-mcp` sets fixed environment markers
+(`AGOV_MCP_TRANSPORT`, `AGOV_MCP_ADAPTER`, `AGOV_MCP_TOOL`) on the `agov`
+child process it spawns; `agov` parses those markers and emits fixed
+constants, never the raw environment strings. A local process could set
+the same environment variables directly and produce a record indistinguishable
+from a real MCP-mediated call — this is not prevented, and no
+pseudo-authentication (signing, PID-tree verification) is attempted, per
+`simplicity-rule`. Treat `transport`/`adapter`/`tool` as a trusted-adapter
+self-report for usage measurement, never as security or audit evidence.
+
+If the environment markers are absent, all three fields resolve to the
+`"cli"` case. If the markers are present but partial, malformed, or name
+an unrecognized tool, **all three fields are omitted** from the record —
+a third, distinct shape from both the clean-CLI and clean-MCP cases — and
+the raw marker values are never persisted.
+
+Old JSONL records written before this change simply lack these three
+keys; readers (`agov token roi report`, `summarize()`) already ignore
+unknown/absent keys, so no migration or schema-version bump was needed.
+
+### Argument redaction (default-deny)
+
+The `args` field is **redacted by default**, uniformly for both
+transports — this is not an MCP-specific policy. Only closed-vocabulary
+tokens survive:
+
+- subcommand/sub-subcommand path tokens (e.g. `coord`, `validate`,
+  `dist`);
+- flag *names* that are part of the CLI's own compiled surface;
+- flag *values* for a small allowlist of genuinely closed-vocabulary
+  flags (currently `--kind`, `--id-format`, `--format`,
+  `--implementation`).
+
+Every other token — free-form flag values (`--topic`, `--task`, `--dir`,
+`--ref`, …), positional values (file paths, coordination IDs), and any
+unrecognized flag (name **and** value, since an unrecognized flag name is
+caller-controlled and could smuggle identifying content) — is replaced
+with the literal string `[redacted]`, preserving record shape and
+argument-count diagnostics without preserving content. This closes a
+gap that predated Workstream C: the ROI log previously wrote the
+complete raw argument vector for every invocation, direct CLI included.
+
 This is enough to answer local questions such as:
 
 - how often the deterministic resume and handoff tools are used;
