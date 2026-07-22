@@ -911,9 +911,24 @@ pub fn extract_from_tar_gz(
             .map_err(|err| format!("could not read a tar entry path: {err}"))?
             .into_owned();
         if path.file_name().and_then(|name| name.to_str()) == Some(entry_name) {
-            entry
-                .unpack(dest_path)
+            // Explicit create + copy + drop, parallel to the ZIP path below,
+            // rather than `tar::Entry::unpack(dest_path)`. `unpack` does not
+            // document when its internal destination file handle closes
+            // relative to its return, and a caller that executes dest_path
+            // immediately after this function returns (as
+            // `run_self_report` does, back-to-back in the same process) hit
+            // an intermittent `ETXTBSY` -- Gate 2 review `rsam` reproduced
+            // it on the post-merge `main` pipeline. Owning the `File`
+            // ourselves and dropping it before returning makes the
+            // writer-close boundary explicit and reviewable, instead of
+            // relying on an opaque library call's internal timing.
+            let mut out = File::create(dest_path)
+                .map_err(|err| format!("could not create {}: {err}", dest_path.display()))?;
+            std::io::copy(&mut entry, &mut out)
                 .map_err(|err| format!("could not extract {entry_name}: {err}"))?;
+            out.sync_all()
+                .map_err(|err| format!("could not flush {}: {err}", dest_path.display()))?;
+            drop(out);
             set_executable(dest_path)?;
             return Ok(());
         }
@@ -948,6 +963,9 @@ pub fn extract_from_zip(
                 .map_err(|err| format!("could not create {}: {err}", dest_path.display()))?;
             std::io::copy(&mut entry, &mut out)
                 .map_err(|err| format!("could not extract {entry_name}: {err}"))?;
+            out.sync_all()
+                .map_err(|err| format!("could not flush {}: {err}", dest_path.display()))?;
+            drop(out);
             set_executable(dest_path)?;
             return Ok(());
         }
