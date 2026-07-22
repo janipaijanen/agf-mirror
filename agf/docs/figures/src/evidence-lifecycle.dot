@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: evidence lifecycle (incident → learning → improvement)
 // Generate: dot -Tsvg evidence-lifecycle.dot -o ../evidence-lifecycle.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). Same contract and shape
+// key as gate-pipeline.dot / governance-loop.dot / learning-loop.dot:
+// fill colour encodes who is responsible for a node; shape is a second,
+// colour-independent signal for the same category. Fixes the same
+// "amber used for the wrong purpose" defect already fixed in
+// governance-loop: "Incident / Observation" was previously amber-filled
+// (also failing contrast: white text on amber is 2.89:1, below the
+// 4.5:1 AA threshold). Amber is now reserved exclusively for Human
+// decision (the "Promoted to Recommended" governance judgment);
+// "Incident / Observation" becomes the same neutral start-type ellipse
+// used by every other figure in this set.
 digraph evidence_lifecycle {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.6,
            bgcolor=white, fontname="Helvetica", fontsize=12]
@@ -8,33 +21,54 @@ digraph evidence_lifecycle {
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
+    // Shape key: identical treatment to the other converted figures.
+    subgraph cluster_shapekey {
+        label = "Legend (responsibility / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+
+        sk_oval      [label="incident /\nobservation\n(trigger)", shape=ellipse,
+                      fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+        sk_diamond   [label="human\ndecision\n(promotion)", shape=diamond,
+                      fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        sk_ai        [label="AI action\n(draft rule / tool / doc)",
+                      style="filled,rounded", fillcolor="#99CCEE",
+                      color="#0077BB", fontcolor="#1A1A1A"]
+        sk_automated [label="automated check /\nvalidated outcome",
+                      style="filled,bold", peripheries=2, fillcolor="#009944",
+                      color="#009944", fontcolor="#1A1A1A"]
+
+        sk_oval -> sk_diamond -> sk_ai -> sk_automated [style=invis]
+    }
+
     incident  [label="Incident /\nObservation", shape=ellipse,
-               fillcolor="#EE7700", fontcolor=white, color="#EE7700"]
-    learning  [label="Learning record\n(learnings/)", fillcolor="#99CCEE"]
-    rule      [label="Rule change\n(rules/)", fillcolor="#99CCEE"]
-    tool      [label="Validator /\nCI check", fillcolor="#99CCEE"]
-    doc       [label="Documentation\nupdate", fillcolor="#99CCEE"]
-    promoted  [label="Promoted to\nRecommended", fillcolor="#009944",
-               fontcolor=white, color="#009944"]
+               fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+    learning  [label="Learning record\n(learnings/)", style="filled,bold",
+               peripheries=2, fillcolor="#009944", color="#009944",
+               fontcolor="#1A1A1A"]
+    rule      [label="Rule change\n(rules/)", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    tool      [label="Validator /\nCI check", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    doc       [label="Documentation\nupdate", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    promoted  [label="Promoted to\nRecommended", shape=diamond,
+               fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+
+    // Stack the shape key above the diagram, same technique as the
+    // other converted figures.
+    sk_automated -> incident [style=invis]
 
     incident -> learning [label="documented\nas learning"]
     learning -> rule     [label="single-adopter\nevidence"]
     learning -> tool     [label="automatable\nconstraint"]
     learning -> doc      [label="documentation\ngap"]
-    rule     -> promoted [label="2+ adopter\ncorroboration"]
-    tool     -> promoted [style=dashed, label="validated\nin CI"]
+    rule     -> promoted [label="2+ adopter\ncorroboration", color="#EE7700",
+                          fontcolor="#1A1A1A"]
+    tool     -> promoted [style=dashed, label="validated\nin CI",
+                          color="#009944", fontcolor="#1A1A1A"]
 
     {rank=same; rule tool doc}
-
-    legend [shape=plain, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
-            <TR><TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">incident / observation (oval shape)</TD></TR>
-            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">record or candidate change</TD></TR>
-            <TR><TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">promoted / recommended</TD></TR>
-            <TR><TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">evidence-derived change</TD></TR>
-            <TR><TD><FONT COLOR="#0077BB">- - -&gt;</FONT></TD><TD ALIGN="LEFT">optional validation path</TD></TR>
-        </TABLE>
-    >]
-    {rank=same; legend; incident}
 }

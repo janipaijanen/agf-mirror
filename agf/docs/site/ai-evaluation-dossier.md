@@ -318,7 +318,9 @@ The preferred AI-authored filename format is
 See [Coordination protocol](docs/concepts/coordination-protocol.md) and the
 schema in `agf/schemas/coordination-message.schema.json`.
 
+<div class="figure-scroll" markdown>
 ![Coordination channel](reference/figures/coordination-channel.svg)
+</div>
 
 ### 4.05 Learning Loop and Evidence
 

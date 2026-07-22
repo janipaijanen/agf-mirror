@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: day-to-day responsibility modes
 // Generate: dot -Tsvg operating-responsibility-map.dot -o ../operating-responsibility-map.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). This figure's original
+// "Mixed / AI-executed / Human-only" legend already maps almost exactly
+// onto the palette contract's five categories -- this is the closest
+// existing analogue to the palette, as the workstream inventory noted.
+// "Mixed" = Shared concept (white fill, blue-mid border/text, plain
+// box); "AI-executed" = AI action (blue-light, rounded); "Human-only" =
+// Human decision (amber diamond, already the correct shape). Fixes a
+// contrast defect: the prior white-on-amber text on "3. Approve, reject,
+// or accept risk" was 2.89:1, below the 4.5:1 AA threshold; text is
+// now #1A1A1A (6.03:1), matching the fix already applied to every other
+// Human decision node in this figure set.
 digraph operating_responsibility_map {
     graph [rankdir=TB, splines=spline, pad=0.35, nodesep=0.45, ranksep=0.65,
            bgcolor=white, fontname="Helvetica", fontsize=12, compound=true]
@@ -8,36 +21,48 @@ digraph operating_responsibility_map {
            fillcolor=white, color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
-    legend [shape=plain, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
-            <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">mixed human + AI</TD></TR>
-            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">AI-executed delegated work</TD></TR>
-            <TR><TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">human-only authority (diamond shape)</TD></TR>
-            <TR><TD><FONT COLOR="#009944">-----&gt;</FONT></TD><TD ALIGN="LEFT">approved decision</TD></TR>
-            <TR><TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD></TR>
-            <TR><TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">next-cycle feedback</TD></TR>
-        </TABLE>
-    >]
+    // Shape key: matches the other converted figures' shape-key
+    // treatment, using this figure's own Shared-concept / AI-action /
+    // Human-decision categories.
+    subgraph cluster_shapekey {
+        label = "Legend (responsibility / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
 
-    read    [label="1. Read, claim,\nand size\n(Mixed)", fillcolor=white]
+        sk_shared  [label="shared concept\n(mixed human + AI)",
+                    fillcolor=white, color="#0077BB", fontcolor="#0077BB"]
+        sk_ai      [label="AI action\n(AI-executed\ndelegated work)",
+                    style="filled,rounded", fillcolor="#99CCEE",
+                    color="#0077BB", fontcolor="#1A1A1A"]
+        sk_diamond [label="human decision\n(human-only\nauthority)", shape=diamond,
+                    fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+
+        sk_shared -> sk_ai -> sk_diamond [style=invis]
+    }
+
+    read    [label="1. Read, claim,\nand size\n(Mixed)", fillcolor=white,
+             color="#0077BB", fontcolor="#0077BB"]
     execute [label="2. Draft, implement,\ntest, validate\n(AI-executed)",
-             fillcolor="#99CCEE"]
+             style="filled,rounded", fillcolor="#99CCEE", color="#0077BB",
+             fontcolor="#1A1A1A"]
     decide  [label="3. Approve,\nreject, or accept risk\n(Human-only)",
-             shape=diamond, fillcolor="#EE7700", fontcolor=white,
+             shape=diamond, fillcolor="#EE7700", fontcolor="#1A1A1A",
              color="#EE7700"]
     record  [label="4. Record decision,\ncompletion, or learning\n(Mixed)",
-             fillcolor=white]
+             fillcolor=white, color="#0077BB", fontcolor="#0077BB"]
+
+    // Stack the shape key above the diagram, same technique as the
+    // other converted figures.
+    sk_diamond -> read [style=invis]
 
     read -> execute [label="delegation"]
     execute -> decide [label="handoff\nwith evidence"]
     decide -> execute [label="changes\nrequested", style=dashed,
-                       color="#EE7700", fontcolor="#EE7700"]
+                       color="#EE7700", fontcolor="#1A1A1A"]
     decide -> record [label="decision", color="#009944",
-                      fontcolor="#009944"]
-    record -> read [label="next cycle", color="#888888",
-                    fontcolor="#888888"]
-
-    {rank=same; legend; read}
-    legend -> read [style=invis]
+                      fontcolor="#1A1A1A"]
+    record -> read [label="next cycle", style=dashed, color="#888888",
+                    fontcolor="#1A1A1A"]
 }

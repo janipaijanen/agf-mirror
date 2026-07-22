@@ -52,7 +52,9 @@ Both gates can return for changes or reject outright.
 Figure 3 shows how append-only coordination entries route attention and
 record outcomes between agents.
 
+<div class="figure-scroll" markdown>
 ![Coordination channel](figures/coordination-channel.svg)
+</div>
 
 The append-only coordination channel. Handoffs direct attention to the
 next agent; decision records gate or block; completions close tasks;
@@ -129,7 +131,9 @@ the coordination record history.
 Figure 8 shows a dated example communication map from the AGF foundry
 coordination channel.
 
+<div class="figure-scroll" markdown>
 ![Example AGF Foundry coordination map](figures/coordination-map-example.svg)
+</div>
 
 Parenthesized numbers on edges (e.g. `handoff (22)`, `decision-record (9)`)
 are message counts in this captured coordination channel sample; they reflect

@@ -1,45 +1,89 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: self-applied governance loop
 // Generate: dot -Tsvg governance-loop.dot -o ../governance-loop.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). Same contract and shape
+// key as gate-pipeline.dot: fill colour encodes who is responsible for a
+// node (Human decision / AI action / Automated check-validated outcome /
+// Reference-deferred content); shape is a second, colour-independent
+// signal for the same category. This conversion also resolves the
+// cross-figure "one colour, incompatible meanings" defect the visual-
+// semantics audit flagged: amber previously meant both "changes
+// requested" (an edge) and "incident/observation" (a node) in this
+// figure alone; amber is now reserved exclusively for Human decision
+// (the Plan/Gate 1 and Review/Gate 2 nodes), matching gate-pipeline.
+// "Incident / Observation" becomes a neutral start-type ellipse, the
+// same treatment gate-pipeline gives its own "Idea / Request" node --
+// neither is one of the five responsibility categories, both are the
+// loop's external trigger. The prior "(oval shape)" legend-text defect
+// is fixed the same way gate-pipeline's was: the shape key renders real
+// shapes, not words.
 digraph governance_loop {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.35, ranksep=0.55,
-           bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
-            <TR>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">governed workflow step</TD>
-                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">merged outcome</TD>
-                <TD BGCOLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">learning feedback</TD>
-            </TR>
-            <TR>
-                <TD BGCOLOR="#EE7700" WIDTH="28"></TD><TD ALIGN="LEFT">incident / observation (oval shape)</TD>
-                <TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">feeds next plan</TD>
-                <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rework or trigger</TD>
-            </TR>
-        </TABLE>
-    >]
+           bgcolor=white, fontname="Helvetica", fontsize=12]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
-    plan     [label="Plan\nGate 1", fillcolor="#99CCEE"]
-    implement [label="Implement"]
-    review   [label="Review\nGate 2", fillcolor="#99CCEE"]
-    merge    [label="Merge\n(to main)", fillcolor="#009944", fontcolor=white]
-    learn    [label="Learn\nrecord evidence", fillcolor="#888888", fontcolor=white]
-    incident [label="Incident /\nObservation", shape=ellipse, fillcolor="#EE7700",
-              fontcolor=white, color="#EE7700"]
+    // Shape key: identical treatment to gate-pipeline.dot's shape key --
+    // real shapes, self-labeled, matching every node treatment this
+    // figure actually uses.
+    subgraph cluster_shapekey {
+        label = "Legend (responsibility / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
 
-    plan     -> implement [label="approved"]
+        sk_oval      [label="incident /\nobservation\n(trigger)", shape=ellipse,
+                      fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+        sk_diamond   [label="human\ndecision\n(Gate review)", shape=diamond,
+                      fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        sk_ai        [label="AI action\n(plan / implement)",
+                      style="filled,rounded", fillcolor="#99CCEE",
+                      color="#0077BB", fontcolor="#1A1A1A"]
+        sk_automated [label="automated check /\nvalidated outcome",
+                      style="filled,bold", peripheries=2, fillcolor="#009944",
+                      color="#009944", fontcolor="#1A1A1A"]
+        sk_reference [label="reference /\ndeferred content",
+                      style="filled,dashed", fillcolor="#CCCCCC",
+                      color="#888888", fontcolor="#1A1A1A"]
+
+        sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_reference
+            [style=invis]
+    }
+
+    // ── Loop ─────────────────────────────────────────────────────────────
+    plan      [label="Plan\nGate 1", shape=diamond, fillcolor="#EE7700",
+               color="#EE7700", fontcolor="#1A1A1A"]
+    implement [label="Implement", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    review    [label="Review\nGate 2", shape=diamond, fillcolor="#EE7700",
+               color="#EE7700", fontcolor="#1A1A1A"]
+    merge     [label="Merge\n(to main)", style="filled,bold", peripheries=2,
+               fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+    learn     [label="Learn\nrecord evidence", style="filled,dashed",
+               fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+    incident  [label="Incident /\nObservation", shape=ellipse, fillcolor=white,
+               color="#888888", fontcolor="#1A1A1A"]
+
+    // Stack the shape key above the loop (single narrow column), same
+    // technique as gate-pipeline.dot.
+    sk_reference -> plan [style=invis]
+
+    plan     -> implement [label="approved", color="#009944",
+                           fontcolor="#1A1A1A"]
     implement -> review   [label="Gate 2\nhandoff"]
-    review   -> merge     [label="approved"]
+    review   -> merge     [label="approved", color="#009944",
+                           fontcolor="#1A1A1A"]
     review   -> implement [label="changes\nrequested", style=dashed,
-                           color="#EE7700", fontcolor="#EE7700",
+                           color="#EE7700", fontcolor="#1A1A1A",
                            constraint=false]
     merge    -> learn     [label="finding\nor incident"]
-    incident -> learn     [style=dashed, color="#EE7700", constraint=false]
+    incident -> learn     [style=dashed, color="#888888", constraint=false]
     learn    -> plan      [label="feeds next\nplan", color="#888888",
-                           fontcolor="#888888", constraint=false]
+                           fontcolor="#1A1A1A", constraint=false]
 
     { rank=same; incident; learn }
 }

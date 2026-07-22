@@ -1,12 +1,60 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: coordination channel and handoff resolution
 // Generate: dot -Tsvg coordination-channel.dot -o ../coordination-channel.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section).
+//
+// Gate 2 review `20260722T211822Z-contribution-auditor-ghng` (BLOCK 1)
+// found that an earlier version of this figure mapped coordination
+// *message kinds* onto the five responsibility categories (handoff =
+// AI action, decision-record = Human decision, completion = Automated
+// check/validated outcome, note/review = Reference/deferred content).
+// That is not the coordination protocol's contract:
+// coordination-message.schema.json permits any applicable role to
+// author any kind; a review can carry a current BLOCK; a completion is
+// a durable authored record, not an automated check. Message kind does
+// not determine actor, automation status, or approval outcome, and the
+// figure must not imply that it does.
+//
+// Fix: message-kind nodes (handoff / decision-record / completion /
+// note-review) all use one neutral, uniform treatment -- the "Shared
+// concept" token (white fill, blue-mid border/text, plain box) -- and
+// are distinguished from each other by label text only, exactly like
+// any other shared artifact whose responsibility is not fixed by its
+// kind. The five-category responsibility palette is reserved for the
+// two participant nodes, where responsibility genuinely is known and
+// fixed (Coder-Tester is the AI-primary role; Governor-Reviewer is the
+// human-primary role) -- a role-category axis, not a message-kind axis,
+// using the same "AI-primary role" / "human-primary role" vocabulary as
+// docs/academic/figures/src/role-communication-topology.dot.
 digraph coord_channel {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.55,
            bgcolor=white, fontname="Helvetica", fontsize=12]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor=white, color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
+
+    // Shape key: the message-kind axis (uniform -- kind does not imply
+    // responsibility) and the participant role-category axis (genuine
+    // responsibility, ellipse shape, matching role-communication-
+    // topology.dot's vocabulary).
+    subgraph cluster_shapekey {
+        label = "Legend (message kind is not a responsibility signal)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+
+        sk_kind      [label="message kind\n(handoff / decision-record /\ncompletion / note / review)\nresponsibility not implied",
+                      fillcolor=white, color="#0077BB", fontcolor="#0077BB"]
+        sk_ai_role   [label="AI-primary role\n(participant)", shape=ellipse,
+                      fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+        sk_human_role [label="human-primary role\n(participant)", shape=ellipse,
+                      fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+
+        sk_kind -> sk_ai_role -> sk_human_role [style=invis]
+    }
 
     subgraph cluster_channel {
         label="docs/coordination/  (append-only)"
@@ -16,18 +64,24 @@ digraph coord_channel {
         fontname="Helvetica"
         fontsize=12
 
-        handoff   [label="handoff\n(requires-ack: true)", fillcolor=white]
-        decision  [label="decision-record\n(gate decision)", fillcolor=white]
-        completion [label="completion\n(task closed)", fillcolor="#009944",
-                   fontcolor=white, color="#009944"]
-        note      [label="note / review\n(advisory)", fillcolor=white,
-                   color="#888888"]
+        handoff    [label="handoff\n(requires-ack: true)", fillcolor=white,
+                    color="#0077BB", fontcolor="#0077BB"]
+        decision   [label="decision-record\n(gate decision)", fillcolor=white,
+                    color="#0077BB", fontcolor="#0077BB"]
+        completion [label="completion\n(task closed)", fillcolor=white,
+                    color="#0077BB", fontcolor="#0077BB"]
+        note       [label="note / review\n(advisory)", fillcolor=white,
+                    color="#0077BB", fontcolor="#0077BB"]
     }
 
     agent_a  [label="Coder-Tester\n(implementation)", shape=ellipse,
-              fillcolor="#99CCEE"]
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
     agent_b  [label="Governor-Reviewer\n(gate authority)", shape=ellipse,
-              fillcolor="#99CCEE"]
+              fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+
+    // Stack the shape key above the diagram, same technique as the
+    // other converted figures.
+    sk_human_role -> agent_a [style=invis]
 
     agent_a  -> handoff   [label="files"]
     handoff  -> agent_b   [label="directs\nattention"]
@@ -36,16 +90,4 @@ digraph coord_channel {
     agent_a  -> completion [label="files\n(after merge)"]
     agent_a  -> note      [label="files\n(advisory / status)"]
     agent_b  -> note      [label="files\n(advisory / status)"]
-
-    legend [shape=plain, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
-            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">participating agent (oval shape)</TD></TR>
-            <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">coordination entry</TD></TR>
-            <TR><TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">completed work</TD></TR>
-            <TR><TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">advisory / status entry</TD></TR>
-            <TR><TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">authored entry / attention flow</TD></TR>
-        </TABLE>
-    >]
-    {rank=same; legend; agent_a}
 }

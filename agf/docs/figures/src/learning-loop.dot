@@ -1,48 +1,85 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: evidence-driven learning loop
 // Generate: dot -Tsvg learning-loop.dot -o ../learning-loop.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). Same contract and shape
+// key as gate-pipeline.dot / governance-loop.dot: fill colour encodes
+// who is responsible for a node (Human decision / AI action / Automated
+// check-validated outcome / Reference-deferred content); shape is a
+// second, colour-independent signal for the same category. Fixes the
+// "(oval shape)" literal legend-text defect (same class as gate-pipeline
+// and governance-loop): the shape key renders real shapes, not words.
+// "Governed work" and "Observed project use" are neutral trigger/
+// observation nodes, same treatment as gate-pipeline's "Idea / Request"
+// and governance-loop's "Incident / Observation" -- neither is one of
+// the five responsibility categories.
 digraph learning_loop {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.35, ranksep=0.55,
-           bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
-            <TR>
-                <TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">evidence source (oval shape)</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">learning, analysis, or proposal</TD>
-                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">governed decision</TD>
-            </TR>
-            <TR>
-                <TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">lifecycle progression</TD>
-                <TD><FONT COLOR="#888888">-----&gt;</FONT></TD><TD ALIGN="LEFT">feedback into next cycle</TD>
-                <TD></TD><TD></TD>
-            </TR>
-        </TABLE>
-    >]
+           bgcolor=white, fontname="Helvetica", fontsize=12]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
+    // Shape key: identical treatment to gate-pipeline.dot / governance-loop.dot.
+    subgraph cluster_shapekey {
+        label = "Legend (responsibility / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+
+        sk_oval      [label="evidence source /\nobserved use\n(trigger)", shape=ellipse,
+                      fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+        sk_diamond   [label="human\ndecision\n(Gate 1 / disposition)", shape=diamond,
+                      fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        sk_ai        [label="AI action\n(analyze / propose / implement)",
+                      style="filled,rounded", fillcolor="#99CCEE",
+                      color="#0077BB", fontcolor="#1A1A1A"]
+        sk_automated [label="automated check /\nvalidated outcome",
+                      style="filled,bold", peripheries=2, fillcolor="#009944",
+                      color="#009944", fontcolor="#1A1A1A"]
+
+        sk_oval -> sk_diamond -> sk_ai -> sk_automated [style=invis]
+    }
+
+    // ── Loop ─────────────────────────────────────────────────────────────
     work [label="Governed work\nincidents / friction\nvalidation results",
-          shape=ellipse, fillcolor=white, color="#888888",
-          fontcolor="#888888"]
-    record [label="Learning record\nschema-validated"]
-    analysis [label="System / causal analysis\nwhat control should change?"]
-    proposal [label="Proposal\nrule / docs / tool\nProvisional"]
+          shape=ellipse, fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+    record [label="Learning record\nschema-validated", style="filled,bold",
+            peripheries=2, fillcolor="#009944", color="#009944",
+            fontcolor="#1A1A1A"]
+    analysis [label="System / causal analysis\nwhat control should change?",
+              style="filled,rounded", fillcolor="#99CCEE", color="#0077BB",
+              fontcolor="#1A1A1A"]
+    proposal [label="Proposal\nrule / docs / tool\nProvisional",
+              style="filled,rounded", fillcolor="#99CCEE", color="#0077BB",
+              fontcolor="#1A1A1A"]
     approval [label="Governed approval\nGate 1 / authority decision",
-              fillcolor="#009944", fontcolor=white, color="#009944"]
-    implementation [label="Implementation\nrule / docs / tool"]
-    use [label="Observed project use\nconfirm / challenge"]
+              shape=diamond, fillcolor="#EE7700", color="#EE7700",
+              fontcolor="#1A1A1A"]
+    implementation [label="Implementation\nrule / docs / tool",
+                    style="filled,rounded", fillcolor="#99CCEE",
+                    color="#0077BB", fontcolor="#1A1A1A"]
+    use [label="Observed project use\nconfirm / challenge", shape=ellipse,
+         fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
     disposition [label="Disposition\nrecommend / revise /\nretire",
-                 fillcolor="#009944", fontcolor=white, color="#009944"]
+                 shape=diamond, fillcolor="#EE7700", color="#EE7700",
+                 fontcolor="#1A1A1A"]
+
+    // Stack the shape key above the loop (single narrow column), same
+    // technique as gate-pipeline.dot / governance-loop.dot.
+    sk_automated -> work [style=invis]
 
     work -> record [label="capture\nevidence"]
     record -> analysis [label="explain"]
     analysis -> proposal [label="propose"]
     proposal -> approval [label="review"]
-    approval -> implementation [label="authorize"]
+    approval -> implementation [label="authorize", color="#009944",
+                                fontcolor="#1A1A1A"]
     implementation -> use [label="observe"]
     use -> disposition [label="review\noutcome"]
-    disposition -> work [label="feeds next\ncycle", color="#888888",
-                         fontcolor="#888888"]
-
+    disposition -> work [label="feeds next\ncycle", style=dashed,
+                         color="#888888", fontcolor="#1A1A1A",
+                         constraint=false]
 }

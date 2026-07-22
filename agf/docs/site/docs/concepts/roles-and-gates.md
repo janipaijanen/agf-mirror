@@ -88,7 +88,9 @@ Figure 2 shows the coordination channel as an append-only chain of claims,
 handoffs, reviews, decisions, and completions. Each file points to earlier
 files so the decision remains reconstructible.
 
+<div class="figure-scroll" markdown>
 ![Coordination channel](../../reference/figures/coordination-channel.svg)
+</div>
 
 Every handoff, decision, and completion is a file:
 `docs/coordination/<YYYYMMDDThhmmssZ-role-slug-suffix>.md`, YAML frontmatter
