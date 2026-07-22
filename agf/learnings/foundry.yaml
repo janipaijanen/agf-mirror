@@ -1986,34 +1986,43 @@ learnings:
       `--test-threads=1` and declared closed. Gate 2 review `hqdj` then
       reproduced the *ZIP* sibling of the same race on a full-workspace CI
       pipeline (`rust:tooling:test`, job 15482226971), even though the ZIP
-      path had received the identical `sync_all()`/`drop()` treatment. The
-      root cause was misdiagnosed both times: the first fix assumed the
-      opaque library call's internal write-close timing was the problem: a
-      second fix (atomic create-temp-file + `rename()` onto the destination,
-      to remove any window where an in-place-written destination could
-      still be "settling" on the filesystem) was structurally sound and
-      correctly reasoned, but *also* did not close the race — it still
-      failed once in 10 full-workspace `cargo test --workspace` iterations,
-      reproduced on plain ext4 (not overlayfs, ruling out the filesystem-
-      settling hypothesis entirely). The actual root cause was a
-      kernel-level, load-dependent exec-teardown timing artifact under
-      heavy concurrent fork/exec (many parallel test threads each spawning
-      child processes), which no amount of controlling how the writing
-      process itself writes and closes the file can eliminate. The eventual
-      fix was a narrow, bounded retry (5 attempts, 20ms apart) scoped to
-      exactly the `ETXTBSY` errno at the `exec()` call site in
-      `run_self_report`, verified against 20/20 clean
-      `cargo test --workspace` iterations after the retry was added.
+      path had received the identical `sync_all()`/`drop()` treatment. A
+      follow-up fix added atomic create-temp-file + `rename()` onto the
+      destination, on the hypothesis that an overlay filesystem's copy-up
+      could leave an in-place-written destination transiently unready to
+      execute; that fix also failed to close the race in local testing (1
+      failure in 10 `cargo test --workspace` iterations, reproduced on plain
+      ext4, which is at minimum evidence against the specific overlay-fs
+      hypothesis as the sole cause). Gate 2 review `qapj` then required two
+      corrections neither prior round had applied: (1) do not assert an
+      unproved causal mechanism — passing after a retry proves the failure
+      is transient, not which process or kernel subsystem holds the
+      busy state; and (2) prove or remove each independent piece of the fix
+      rather than assuming a combination worked because it passed. A direct
+      A/B test — the same bounded, `ExecutableFileBusy`-scoped retry at the
+      `exec()` call site, with vs. without the atomic-rename extraction
+      change — found retry-only sufficient (30/30 clean
+      `cargo test --workspace` iterations) and the earlier rename-only
+      variant insufficient (failed 1/10, cited above); the rename change was
+      therefore removed as unproven and unnecessary, leaving the bounded
+      exec-time retry as the only structural change, verified 40/40 clean
+      after removal.
 
-      The generalizable gap: both prior fixes were verified under
-      concurrency conditions that did not match the failure's actual
-      trigger. `--test-threads=1` and a handful of sequential
-      whole-workspace runs both under-sample a load-dependent kernel race;
-      "200/200 passed" was true and still insufficient evidence, because it
-      never exercised the condition (many parallel fork/execs contending
-      for the same kernel subsystem) that actually produces the failure.
-      Each fix was declared closed after passing tests that could not have
-      caught the specific failure mode being fixed.
+      The generalizable gap this record keeps: two consecutive fixes were
+      verified under concurrency conditions that did not match the
+      failure's actual trigger. `--test-threads=1` and a handful of
+      sequential whole-workspace runs both under-sample a load-dependent
+      race; "200/200 passed" was true and still insufficient evidence,
+      because it never exercised the condition (many parallel fork/execs
+      contending for the same kernel subsystem) that actually produces the
+      failure. A second, independent gap surfaced in review of this
+      record's own first draft: an "actual root cause" claim (kernel-
+      deferred process-exit teardown) was stated without evidence that
+      isolates which process or lifecycle holds the busy state — passing
+      after a retry demonstrates transience, not mechanism. Both gaps are
+      recorded together because they compound: a fix declared closed on
+      insufficient concurrency evidence is exactly the condition under
+      which an unproved causal story is most likely to go unchallenged.
     agents_involved:
       - coder-tester
       - contribution-auditor
@@ -2047,12 +2056,25 @@ learnings:
       not evidence the fix needs a larger N of the same (already
       insufficient) test shape. Widen the test's concurrency to match the
       original failure's conditions before attempting a second diagnosis.
+
+      Separately: do not describe a fix's causal mechanism more precisely
+      than the evidence supports. A retry that succeeds proves the failure
+      condition was transient; it does not, by itself, identify which
+      process, thread, or OS subsystem held the busy/contended state. Prefer
+      "observed transient X, mitigated by Y" over "X's actual root cause is
+      Z" unless a trace or instrumentation actually isolates Z. When a fix
+      has more than one independently-motivated piece (e.g. both a write-
+      path change and a retry), test each piece in isolation under the same
+      concurrency-matched evidence bar before claiming both are necessary —
+      an A/B removal test is cheap and was decisive here: retry-only closed
+      the race that rename-plus-retry also closed, so the rename half was
+      dropped rather than kept on the strength of the combined pass alone.
     severity: significant
     confidence:
       level: single-adopter
       evidence_count: 1
       evidence_refs:
-        - "MR !398 (tar fix, 200/200 at --test-threads=1, insufficient); MR !405 Gate 2 review hqdj (ZIP race survived on push pipeline job 15482226971 despite identical sync_all/drop treatment); local reproduction of the same failure under cargo test --workspace at iteration 9/10 after an atomic-rename fix that was still insufficient; closed only after a bounded ETXTBSY-scoped retry at the exec() boundary, verified 20/20 under cargo test --workspace"
+        - "MR !398 (tar fix, 200/200 at --test-threads=1, insufficient); MR !405 Gate 2 review hqdj (ZIP race survived on push pipeline job 15482226971 despite identical sync_all/drop treatment); local reproduction under cargo test --workspace at iteration 9/10 after an atomic-rename-only fix that was still insufficient; MR !408 Gate 2 review qapj (required removing the unproved kernel-teardown causal claim and an A/B test of the rename vs. retry pieces); A/B result: retry-only 30/30 clean, rename-only 1/10 failed; final combined-code verification 40/40 clean with the rename removed"
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
