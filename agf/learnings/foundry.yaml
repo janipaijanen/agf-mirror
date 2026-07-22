@@ -1887,6 +1887,92 @@ learnings:
       evidence_refs:
         - "MR !398 commit dd2e5e6: GitLab branch pipeline 2697575704 and merge-request pipeline 2697576236; .gitlab-ci.yml workflow and Rust job rules; agf/agents/MANIFEST.yaml build-engineer suspension; agf/agents/build-engineer.yaml jurisdiction"
 
+  - id: "20260722T200244Z-n4q7"
+    date: "2026-07-22"
+    category: process
+    scope: framework
+    title: polling-is-a-fetched-cross-surface-action-loop-not-a-local-status-check
+    description: >
+      During release-blocking work on MR !408, Claude described `poll` as a
+      scan of the current checkout's `docs/coordination/*.md`, open GitLab MRs,
+      Issues, and known pipeline waits, followed by reporting rather than
+      necessarily acting. That definition omitted a prerequisite fetch,
+      cross-branch coordination visibility, and the governor's standing
+      instruction that new coordination, MR notes, and pipeline changes must
+      trigger action without another dispatch prompt.
+
+      The gap caused a concrete miss. Coordination records `bmtq` and `8mag`
+      were published before the corrected !408 push, and `8mag` was bridged
+      into MR !408 note `3590664220` and MR !411 note `3590664209`. The
+      pre-push check looked only at local coordination files and did not fetch,
+      so it saw neither record and pushed commit `8c164977` without the
+      available branch-pipeline cost-containment instruction. GitLab created
+      redundant branch pipeline `2698261349` beside the required MR pipeline
+      `2698261382`. Cancellation was proactive after discovery, but all six
+      branch jobs had already started and accumulated approximately 1,007.6
+      runner-seconds before cancellation.
+
+      The causal boundary is process, not assistant identity: Git-backed
+      coordination is only current after fetch, published obligations can live
+      on other shared branches or arrive through MR-note bridges, and an MR's
+      state is distributed across description, discussions, head SHA,
+      approvals, pipelines, and jobs. A poll covering only one surface can
+      truthfully report “nothing new” about that surface while missing the
+      instruction that would have prevented external cost. A report-only poll
+      also leaves the governor as manual dispatcher after the work is already
+      visible and authorized.
+    agents_involved:
+      - coder-tester
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: "AI cold start; coordination visibility; GitLab polling; autonomous action boundary; CI cost control"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Six redundant CI jobs ran for roughly 1,007.6 accumulated
+        runner-seconds before cancellation. The incident also delayed the
+        release-critical Gate 2 path and required the governor and reviewer to
+        rediscover and reroute an obligation that had already been published.
+        Runner-seconds are reported as observed job-duration evidence, not as a
+        monetary amount or wall-clock duration.
+    framework_impact: high
+    status: implemented
+    recommendation: >
+      Define `poll` as a complete action loop. Fetch and prune remote refs
+      before comparison; scan recent coordination plus cross-branch visibility;
+      scan every open MR's notes, approvals, state, head SHA, and exact-head
+      pipelines/jobs; scan Issues; and recheck every SHA, branch, pipeline, tag,
+      or release dependency already being awaited. Maintain last-seen IDs,
+      timestamps, and SHAs so “nothing new” is evidence-backed and scoped.
+
+      After intake, choose the highest-priority obligation and act without
+      another human prompt when it is already inside the active role, an
+      approved plan or handoff, and the current gate. This includes
+      acknowledgement/claim, diagnostics and local tests, in-scope review
+      corrections, owned MR metadata updates, required coordination, batched
+      pushes, already-authorized handoffs, and prompt cancellation of a
+      demonstrably redundant paid pipeline while preserving the canonical
+      evidence path. End only when work is complete, actively running and
+      monitored, or blocked with the reason recorded.
+
+      Preserve the authority boundary: polling does not authorize Gate 1 or
+      Gate 2 decisions, merge, release/tag/deploy, scope expansion, destructive
+      action, new role authority, or a choice between materially conflicting
+      instructions. Those still require the governor or other named authority.
+      Before every cost-bearing push, fetch again, read new bridges, batch the
+      accepted changes, predict pipeline sources, and never retry paid CI merely
+      to seek green status.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 5
+      evidence_refs:
+        - "Coordination 20260722T194644Z-contribution-auditor-bmtq and 20260722T195032Z-contribution-auditor-8mag were published before MR !408 head 8c164977"
+        - "MR !408 note 3590664220 and MR !411 note 3590664209 bridged 8mag before the push"
+        - "Coordination 20260722T195619Z-coder-tester-jggg acknowledges the pre-push check did not fetch and records cancellation"
+        - "GitLab pipelines 2698261349 (push, cancelled) and 2698261382 (merge_request_event) share SHA 8c164977"
+        - "Pipeline 2698261349 jobs 15484928860 through 15484928865 accumulated approximately 1,007.6 job-seconds before cancellation"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

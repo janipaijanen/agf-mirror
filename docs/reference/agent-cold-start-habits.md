@@ -43,9 +43,22 @@ A timer is useful only if it drives action. AGF timer notation such as
 
 For framework development, a poll scans at least:
 
-- git-backed coordination messages on the watched branch;
-- merge-request state through the available hosting tool, such as `glab`;
-- branch-watch context, so "nothing new" names the branch and MR scope checked.
+- fetched Git refs (`git fetch --prune origin` comes before comparison), recent
+  coordination, and `agov coord visibility --base-branch main`; a checked-out
+  `docs/coordination/` directory alone is not the shared inbox;
+- every open merge request, regardless of author: new discussions and notes,
+  approval/draft state, source and target SHAs, merge/close state, and
+  exact-head pipeline and job changes;
+- GitLab Issues: new notes, assignment/label changes, and open/close state;
+- every exact SHA, branch, pipeline, job, tag, or release state the active role
+  is already waiting on; and
+- branch-watch context and last-seen IDs, timestamps, and SHAs, so “nothing
+  new” names the fetched refs and GitLab scope actually checked.
+
+MR-note bridges are intake, not noise. They may point to coordination published
+on another branch. Follow the bridge, validate the referenced record, and use
+the coordination record as the durable instruction. A poll that checks only
+local files can miss both the record and a cost-sensitive pre-push instruction.
 
 Use the assistant surface's internal reminder or wake-up mechanism when it
 exists. Do not replace an internal timer with an external shell timer, cron job,
@@ -53,14 +66,40 @@ background `sleep`, or detached process: the assistant will not reliably notice
 that process. If no internal timer exists, say so and scan when active or after
 resume.
 
-After each poll, read new messages addressed to your role and classify them:
+After each poll, read new messages addressed to your role or `all`, classify
+them, and choose the highest-priority obligation. `Poll` is an action loop: do
+not leave the human as the dispatcher for work your role can already see.
 
-- act under gate discipline;
-- acknowledge;
-- write a coordination response explaining a blocker;
-- record that no action is available yet.
+Act without another human prompt when all three conditions hold: the action is
+inside the active role, it is already authorized by an approved plan or
+handoff, and it stays inside the current gate. Typical actions are:
 
-Do not leave the human as the dispatcher for messages your role can see.
+- acknowledge or claim the obligation and publish the causal coordination
+  record;
+- inspect fetched state, run diagnostics, validators, or local tests;
+- continue an approved implementation or answer review findings within its
+  accepted scope;
+- correct an owned MR description, note, or handoff without creating an
+  unnecessary code push;
+- batch and push an owned correction after checking for newer instructions and
+  predicting which CI sources the push will create;
+- advance the next already-authorized handoff when its stated dependency
+  clears; and
+- cancel a demonstrably redundant paid pipeline for the same SHA while
+  preserving the canonical acceptance pipeline, then record pipeline/job IDs
+  and runner time already spent.
+
+End the cycle only when the obligation is complete, actively running and being
+monitored, or blocked with the concrete blocker recorded. Reporting an
+actionable item while doing nothing is not completion.
+
+Ask the governor only when a new binding decision is actually required: Gate 1
+approval, Gate 2 approval or merge, release/tag/deployment, scope expansion,
+destructive or irreversible action, new authority, a secrets/security
+ambiguity, or materially conflicting instructions. Polling never grants these
+powers. Do not retry failed paid CI merely to obtain green status; diagnose the
+failure and fold the correction into the next required acceptance run unless a
+governing test policy explicitly requires retry evidence.
 
 ## Keep The Audit Trail Honest
 

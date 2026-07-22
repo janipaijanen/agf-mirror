@@ -320,17 +320,53 @@ a template or pointer separately if their project needs one.
 When the governor asks for a polling timer such as `15mins/180min`, interpret
 it as an internal attention schedule, not an external shell timer:
 
-- scan every 15 minutes for new coordination messages and merge-request
-  activity;
+- run the complete poll cycle below every 15 minutes;
 - keep scanning until 180 minutes have passed with no new incoming activity;
 - reset the 180-minute idle window whenever a new relevant coordination message
-  or merge-request event appears;
+  or GitLab event appears;
 - do not start background shell, cron, sleep, or detached process timers unless
   the governor explicitly asks for an external process.
 
 If the current assistant surface cannot schedule internal wake-ups, say so
 plainly and perform the scan when active or resumed. Do not claim that an
 external process will be noticed by the assistant.
+
+`Poll` means an action loop, not a local-file check or status-only report. On
+each cycle, unless the governor explicitly narrows the scope:
+
+1. Run `git fetch --prune origin` before comparing state. Then scan recent
+   coordination and `agov coord visibility --base-branch main`; the current
+   checkout's `docs/coordination/` directory is not a complete remote inbox.
+2. Scan **all open merge requests**, not only MRs opened by the current model.
+   Check new discussions/notes, approval and draft state, head and target SHA,
+   merge/close state, and exact-head pipeline and job changes.
+3. Scan GitLab Issues for new notes, assignments, labels, and state changes.
+4. Recheck every exact SHA, pipeline, job, branch, tag, or release state on
+   which the active role is waiting. Keep a cursor of last-seen IDs,
+   timestamps, and SHAs so “nothing new” is an evidence-backed statement.
+5. Read and classify new obligations addressed to the active role or `all`,
+   choose the highest-priority authorized obligation, and act immediately.
+   End the cycle only when that obligation is completed, actively running and
+   monitored, or blocked with the concrete blocker recorded.
+
+Do not ask the governor to redispatch work that is already visible and within
+the active role, an approved plan or handoff, and the current gate. Without a
+new prompt, an assistant is expected to acknowledge or claim work, run
+read-only inspection and diagnostics, continue approved implementation, answer
+review findings within scope, update owned MR descriptions or notes, publish
+and bridge required coordination, batch and push corrections on its owned
+branch, and advance the next already-authorized handoff. If duplicate paid CI
+starts for the same SHA, preserve the canonical acceptance path and cancel a
+demonstrably redundant path promptly; record exact pipeline/job IDs and any
+runner time already consumed.
+
+The action loop does **not** enlarge authority. Stop and request the binding
+decision for Gate 1 approval, Gate 2 approval or merge, a release/tag/deploy,
+scope expansion, destructive or irreversible action, new role authority,
+secrets/security ambiguity, or materially conflicting instructions. Do not
+retry a failed paid job merely to seek green status: inspect the failure,
+diagnose it, and use the next already-required corrected acceptance run unless
+the governing test policy specifically requires a retry.
 
 Legacy Elixir sources remain in `tooling/elixir/` as reference material. Do
 not use them for routine agent work, cold start, validation, release-page
