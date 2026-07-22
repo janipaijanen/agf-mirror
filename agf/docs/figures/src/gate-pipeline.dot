@@ -1,19 +1,31 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: Gate 1 / Gate 2 pipeline
 // Generate: dot -Tsvg gate-pipeline.dot -o ../gate-pipeline.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). Fill colour encodes who is
+// responsible for a node (Human decision / AI action / Automated
+// check-validated outcome); shape is a second, colour-independent signal
+// for the same category. `red-mid` is the separate rejected/blocked
+// outcome accent, not a sixth responsibility category. The shape-key
+// below renders real shapes as swatches -- never described in words
+// (the prior "(oval shape)"/"(diamond shape)" legend text is the defect
+// this revision fixes).
 digraph gate_pipeline {
-    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.4, ranksep=0.7,
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.4, ranksep=0.55,
            bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
         <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
+            <TR><TD COLSPAN="4"><B>Legend (colour)</B></TD></TR>
             <TR>
-                <TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">request / start (oval shape)</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">human gate review (diamond shape)</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">planned or implemented work</TD>
+                <TD BGCOLOR="#99CCEE" WIDTH="24"></TD><TD ALIGN="LEFT">AI action (planned / implemented work)</TD>
+                <TD BGCOLOR="#009944" WIDTH="24"></TD><TD ALIGN="LEFT">automated check / validated outcome</TD>
             </TR>
             <TR>
-                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">approved / merged</TD>
+                <TD><FONT COLOR="#009944">──&gt;</FONT></TD><TD ALIGN="LEFT">approved</TD>
                 <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD>
+            </TR>
+            <TR>
+                <TD BGCOLOR="#CC3311" WIDTH="24"></TD><TD ALIGN="LEFT">rejected / blocked outcome</TD>
                 <TD><FONT COLOR="#CC3311">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rejected / stopped</TD>
             </TR>
         </TABLE>
@@ -22,16 +34,36 @@ digraph gate_pipeline {
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
+    // Shape key: real shapes, self-labeled (same convention as the
+    // pipeline nodes below), not described in words. Not part of the
+    // pipeline flow -- no edges connect it to the pipeline nodes below.
+    subgraph cluster_shapekey {
+        label = "Legend (shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+        rank = same
+
+        sk_oval    [label="request /\nstart", shape=ellipse, fillcolor=white,
+                    color="#888888", fontcolor="#888888"]
+        sk_diamond [label="human\ndecision\n(Gate review)", shape=diamond,
+                    fillcolor="#EE7700", color="#EE7700", fontcolor=white]
+    }
+
+    // ── Pipeline ────────────────────────────────────────────────────────
     idea     [label="Idea /\nRequest", shape=ellipse, fillcolor=white,
               color="#888888", fontcolor="#888888"]
-    plan     [label="Plan file\n(plan/ branch)"]
-    gate1    [label="Gate 1\nReview", shape=diamond, fillcolor="#99CCEE",
-              color="#0077BB"]
-    impl     [label="Implement\n(feat/ branch)"]
-    gate2    [label="Gate 2\nReview", shape=diamond, fillcolor="#99CCEE",
-              color="#0077BB"]
-    merged   [label="Merged\nto main", fillcolor="#009944", fontcolor=white,
-              color="#009944"]
+    plan     [label="Plan file\n(plan/ branch)", style="filled,rounded",
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    gate1    [label="Gate 1\nReview", shape=diamond, fillcolor="#EE7700",
+              color="#EE7700", fontcolor=white]
+    impl     [label="Implement\n(feat/ branch)", style="filled,rounded",
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    gate2    [label="Gate 2\nReview", shape=diamond, fillcolor="#EE7700",
+              color="#EE7700", fontcolor=white]
+    merged   [label="Merged\nto main", style="filled,bold", peripheries=2,
+              fillcolor="#009944", fontcolor=white, color="#009944"]
     rejected1 [label="Rejected /\nstop", fillcolor="#CC3311", fontcolor=white,
                color="#CC3311", style="filled,dashed"]
     rejected2 [label="Rejected /\nstop", fillcolor="#CC3311", fontcolor=white,
