@@ -234,15 +234,3 @@ Once the implementation branch's MR exists and carries the new rule,
 `ci.skip` is no longer used on that branch — the acceptance evidence
 requires an ordinary, non-skipped push so the new rule itself is what's
 observed suppressing the branch pipeline (see "Test strategy" above).
-
-## Gate 2 evidence log
-
-- Implementation head `99a124a`: initial branch push used `ci.skip`
-  (confirmed zero jobs generated on that push record); MR !410's own
-  pipeline `2698133314` then ran as the sole evidence path and passed.
-- This commit is the required non-skipped follow-up push (Gate 2
-  evidence item 2): it is an ordinary push on a branch that already has
-  an open MR (!410) and the new workflow rule already present. Its
-  resulting pipeline set is the live positive-path reproduction — the
-  rule itself, not `ci.skip`, must be what suppresses the branch-push
-  pipeline while the MR pipeline runs normally.
