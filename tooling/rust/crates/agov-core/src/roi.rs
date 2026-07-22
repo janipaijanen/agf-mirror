@@ -41,20 +41,46 @@ pub fn log_path() -> Option<PathBuf> {
     )
 }
 
+/// Write one pre-joined record line with exactly one `Write::write` call.
+///
+/// Deliberately NOT `write_all`: `write_all` retries in a loop until the
+/// buffer is exhausted, so under a short write one logical record could
+/// span multiple append operations and interleave with another appender.
+/// One `write` call with the full buffer is one attempted append. A short
+/// write (`n < line.len()`) is reported as an error, never retried — the
+/// already-written partial bytes cannot be recalled, but the condition is
+/// detected and surfaced instead of silently split across appends.
+///
+/// Scope of the guarantee: one attempted OS-level write per record. POSIX
+/// `O_APPEND` makes each individual `write` atomic with respect to the
+/// file offset, and local filesystems in practice accept a buffer of this
+/// size (a few hundred bytes) in full; this is a documented
+/// platform/filesystem expectation, not a universal atomicity claim.
+fn write_line_once(writer: &mut impl std::io::Write, line: &[u8]) -> std::io::Result<()> {
+    let written = writer.write(line)?;
+    if written != line.len() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::WriteZero,
+            format!(
+                "short append: wrote {written} of {} bytes; record may be truncated on disk",
+                line.len()
+            ),
+        ));
+    }
+    Ok(())
+}
+
 /// Append `record` to the ROI log as a JSONL line.
 ///
 /// Failures are silently swallowed — logging must not affect stdout, stderr,
 /// output ordering, or exit codes (plan §8.4).
 ///
-/// Writes the JSON content and its trailing newline as a **single**
-/// `write_all` call, not `writeln!`. `writeln!` on a `File` performs two
-/// separate `write()` syscalls (the formatted content, then the literal
-/// `"\n"` from the macro), and `O_APPEND` only guarantees each individual
-/// `write()` is atomic against other appenders -- the pair is not. Two
-/// processes racing between those two writes can interleave, dropping the
-/// separating newline and concatenating two records onto one physical
-/// line. A single `write_all` of the pre-joined `"{json}\n"` string is one
-/// `write()` call for a line this size, restoring `O_APPEND` atomicity.
+/// Writes the JSON content and its trailing newline via [`write_line_once`]:
+/// one attempted `write()` per record, never `writeln!` (two calls that can
+/// interleave between content and newline) and never `write_all` (a retry
+/// loop that can split one record across multiple appends on a short
+/// write). See [`write_line_once`] for the exact guarantee and its
+/// platform-expectation boundary.
 pub fn try_append(record: &RoiRecord) {
     let Some(path) = log_path() else {
         return;
@@ -69,9 +95,8 @@ pub fn try_append(record: &RoiRecord) {
             .create(true)
             .append(true)
             .open(path)?;
-        use std::io::Write as _;
         let line = format!("{}\n", serde_json::to_string(record)?);
-        file.write_all(line.as_bytes())?;
+        write_line_once(&mut file, line.as_bytes())?;
         Ok(())
     })();
 
@@ -465,7 +490,12 @@ mod tests {
     /// threads (not just async tasks) hammering `try_append` on the same
     /// file concurrently, then asserts every physical line parses as
     /// exactly one JSON object -- this reliably reproduced the
-    /// corruption before the `write_all`-of-one-joined-string fix.
+    /// corruption before the single-`write`-of-one-joined-line fix.
+    ///
+    /// This is observed-behaviour evidence on this host/filesystem, not
+    /// proof of a syscall count -- the write-call contract itself is
+    /// pinned by `write_line_once_makes_exactly_one_write_call` and
+    /// `write_line_once_short_write_is_an_error_not_a_retry` below.
     #[test]
     fn concurrent_appends_never_corrupt_a_line() {
         let path = std::env::temp_dir().join(format!(
@@ -530,6 +560,69 @@ mod tests {
                 "line does not parse as exactly one JSON object (corruption): {line:?}"
             );
         }
+    }
+
+    /// Test writer that records every `write` call it receives and can
+    /// simulate a short write on the first call.
+    struct CountingWriter {
+        calls: Vec<usize>,
+        short_first_write: Option<usize>,
+    }
+
+    impl std::io::Write for CountingWriter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            let n = match (self.calls.is_empty(), self.short_first_write) {
+                (true, Some(short)) => short,
+                _ => buf.len(),
+            };
+            self.calls.push(n);
+            Ok(n)
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    /// Pins the write-call contract: one logical record line is exactly one
+    /// `write` call, never a `write_all`-style retry loop.
+    #[test]
+    fn write_line_once_makes_exactly_one_write_call() {
+        let mut writer = CountingWriter {
+            calls: Vec::new(),
+            short_first_write: None,
+        };
+        let line = b"{\"event\":\"tool_output\"}\n";
+        write_line_once(&mut writer, line).unwrap();
+        assert_eq!(
+            writer.calls,
+            vec![line.len()],
+            "expected exactly one write call covering the full line"
+        );
+    }
+
+    /// Pins the short-write behaviour: a partial `write` is surfaced as an
+    /// error and is NOT retried with the remaining bytes -- retrying is
+    /// exactly the `write_all` interleaving hazard issue #50's fix exists
+    /// to avoid.
+    #[test]
+    fn write_line_once_short_write_is_an_error_not_a_retry() {
+        let mut writer = CountingWriter {
+            calls: Vec::new(),
+            short_first_write: Some(5),
+        };
+        let line = b"{\"event\":\"tool_output\"}\n";
+        let err = write_line_once(&mut writer, line).unwrap_err();
+        assert_eq!(err.kind(), std::io::ErrorKind::WriteZero);
+        assert!(
+            err.to_string().contains("short append"),
+            "error should name the short-append condition: {err}"
+        );
+        assert_eq!(
+            writer.calls.len(),
+            1,
+            "short write must not be retried with the remaining bytes"
+        );
     }
 
     #[test]
