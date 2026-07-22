@@ -28,10 +28,20 @@ When a coordination message requires action, the acting agent MUST:
 
 ## What does NOT require a coordination entry
 
-- Reading a message without acting (passive polling)
+- Reading state when a complete poll finds no new actionable obligation
 - An ack that requires no substantive response (`requires-ack: false`
   and no action triggered)
 - Internal reasoning steps that produce no external artifact
+
+“Passive polling” ends as soon as the cycle finds an actionable obligation.
+Reporting that obligation and waiting for the governor to repeat or redispatch
+it is not an acceptable substitute for action. After fetching remote refs, the
+agent must scan cross-branch coordination visibility, all open MR notes and
+exact-head pipelines/jobs, and GitLab Issues. It then acts on the
+highest-priority obligation already inside its role, approved scope, and
+current gate, or records the concrete blocker. See
+`docs/reference/agent-cold-start-habits.md` for the complete poll contract and
+the decisions that still require governor authority.
 
 ## Entry format
 
