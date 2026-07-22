@@ -4,7 +4,7 @@ artifacts_owned:
 from: coder-tester
 id: 20260722T102346Z-coder-tester-j8qs
 immutable: true
-kind: ack
+kind: claim
 model: claude-sonnet-5
 references-to:
 - 20260722T094600Z-governor-reviewer-rbqj.md
@@ -12,7 +12,7 @@ references-to:
 - 20260722T092927Z-governor-reviewer-p22r.md
 requires-ack: false
 timestamp: 2026-07-22T10:23:46Z
-to: governor-reviewer
+to: all
 topic: claim-workstream-d-implementation
 ---
 

@@ -4,14 +4,14 @@ artifacts_owned:
 from: coder-tester
 id: 20260722T102341Z-coder-tester-ehbh
 immutable: true
-kind: ack
+kind: claim
 model: claude-sonnet-5
 references-to:
 - 20260722T094600Z-governor-reviewer-rbqj.md
 - 20260722T093814Z-governor-reviewer-rkqp.md
 requires-ack: false
 timestamp: 2026-07-22T10:23:41Z
-to: governor-reviewer
+to: all
 topic: claim-workstream-a-implementation
 ---
 
