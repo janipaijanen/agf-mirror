@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "release-provenance-legacy.schema.json",
+  "title": "Legacy Release Provenance Record (pre-v2.4)",
+  "description": "Recognized pre-v2.4 provenance shapes (no schema_version field), verified against the actual published v2.3.1 records. Used only to classify a record as assurance_level: legacy; a record matching this schema is NEVER also reported as satisfying the v2.4 contract in agf/schemas/release-provenance.schema.json.",
+  "oneOf": [
+    { "$ref": "#/definitions/legacyFrameworkRecord" },
+    { "$ref": "#/definitions/legacyToolingRecord" }
+  ],
+  "definitions": {
+    "legacyPipelineIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pipeline_id": { "type": "string" },
+        "job_id": { "type": "string" }
+      }
+    },
+    "legacyFrameworkRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "source_commit",
+        "tag",
+        "build_timestamp",
+        "implementation",
+        "packaging",
+        "archive_filenames",
+        "checksums"
+      ],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "source_commit": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string" },
+        "build_timestamp": { "type": "string", "minLength": 1 },
+        "pipeline_identity": { "$ref": "#/definitions/legacyPipelineIdentity" },
+        "manifest_path": { "type": "string" },
+        "archive_filenames": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "checksums": { "type": "object" },
+        "implementation": { "type": "string", "minLength": 1 },
+        "packaging": { "const": "manifest-source-archive" }
+      }
+    },
+    "legacyToolingRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "source_commit",
+        "tag",
+        "build_timestamp",
+        "target_platform",
+        "implementation",
+        "packaging"
+      ],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "source_commit": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string" },
+        "build_timestamp": { "type": "string", "minLength": 1 },
+        "pipeline_identity": { "$ref": "#/definitions/legacyPipelineIdentity" },
+        "target_platform": { "type": "string", "minLength": 1 },
+        "implementation": { "type": "string", "minLength": 1 },
+        "packaging": { "enum": ["tar.gz", "zip"] }
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+use crate::provenance::{self, FileRecordInput, PipelineIdentity};
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use serde::Deserialize;
@@ -60,7 +61,10 @@ pub struct DistSpec {
 pub struct BuildResult {
     spec: DistSpec,
     checksums: BTreeMap<String, String>,
-    provenance_path: PathBuf,
+    /// One provenance record path per output format — the unified
+    /// release-provenance contract requires exactly one record per
+    /// published artifact, not one aggregate record covering every format.
+    provenance_paths: BTreeMap<String, PathBuf>,
 }
 
 pub fn validate_default() -> Result<DistSpec, Vec<String>> {
@@ -184,11 +188,11 @@ pub fn build(manifest_path: &Path, root: &Path) -> Result<BuildResult, Vec<Strin
     }
 
     let checksums = write_checksums(&spec)?;
-    let provenance_path = write_provenance(&spec, &checksums)?;
+    let provenance_paths = write_provenance(&spec, &checksums)?;
     Ok(BuildResult {
         spec,
         checksums,
-        provenance_path,
+        provenance_paths,
     })
 }
 
@@ -225,15 +229,21 @@ pub fn format_build_summary(result: &BuildResult) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n");
+    let provenance = result
+        .provenance_paths
+        .values()
+        .map(|path| format!("  - {}", relative_to(&result.spec.root, path)))
+        .collect::<Vec<_>>()
+        .join("\n");
 
     format!(
-        "OK  release manifest valid\nManifest: {}\nPackage:  {} {}\nFiles:    {}\nOutputs:\n{}\nProvenance: {}",
+        "OK  release manifest valid\nManifest: {}\nPackage:  {} {}\nFiles:    {}\nOutputs:\n{}\nProvenance:\n{}",
         relative_to(&result.spec.root, &result.spec.manifest_path),
         result.spec.package_name,
         result.spec.version,
         result.spec.files.len(),
         outputs,
-        relative_to(&result.spec.root, &result.provenance_path)
+        provenance
     )
 }
 
@@ -543,66 +553,77 @@ fn sha256_file(path: &Path) -> Result<String, std::io::Error> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+/// Write one `artifact_kind: file` provenance record per published output
+/// (tar.gz, zip, ...), per the unified release-provenance contract's
+/// cardinality rule: exactly one record per published artifact, never an
+/// aggregate record covering multiple files.
 fn write_provenance(
     spec: &DistSpec,
     checksums: &BTreeMap<String, String>,
-) -> Result<PathBuf, Vec<String>> {
-    let output_dir = spec
-        .outputs
-        .values()
-        .next()
-        .and_then(|path| path.parent())
-        .ok_or_else(|| vec!["package.formats must contain at least one output".to_string()])?;
-    let base = spec
-        .outputs
-        .values()
-        .next()
-        .and_then(|path| path.file_name())
-        .and_then(|name| name.to_str())
-        .map(|name| {
-            name.trim_end_matches(".tar.gz")
-                .trim_end_matches(".zip")
-                .to_string()
-        })
-        .unwrap_or_else(|| format!("agf-{}", spec.version));
-    let provenance_path = output_dir.join(format!("{base}-provenance.json"));
+) -> Result<BTreeMap<String, PathBuf>, Vec<String>> {
+    let source_commit = std::env::var("CI_COMMIT_SHA").unwrap_or_else(|_| "unknown".to_string());
+    let tag = std::env::var("CI_COMMIT_TAG").unwrap_or_else(|_| "untagged".to_string());
+    let build_timestamp = time::OffsetDateTime::now_utc()
+        .format(&Rfc3339)
+        .unwrap_or_else(|_| "unknown".to_string());
+    let pipeline_id = std::env::var("CI_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
+    let job_id = std::env::var("CI_JOB_ID").unwrap_or_else(|_| "unknown".to_string());
+    let manifest_path = relative_to(&spec.root, &spec.manifest_path);
 
-    let checksums_by_basename: BTreeMap<String, String> = spec
-        .outputs
-        .iter()
-        .filter_map(|(format, path)| {
-            Some((
-                path.file_name()?.to_str()?.to_string(),
-                checksums.get(format)?.to_string(),
-            ))
-        })
-        .collect();
-    let archive_filenames = spec
-        .outputs
-        .values()
-        .filter_map(|path| path.file_name()?.to_str().map(str::to_string))
-        .collect::<Vec<_>>();
+    let mut provenance_paths = BTreeMap::new();
+    for (format, output) in &spec.outputs {
+        let artifact_filename = output
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or_else(|| vec![format!("output path has no filename: {}", output.display())])?;
+        let artifact_bytes = fs::metadata(output)
+            .map_err(|err| vec![format!("could not stat {}: {err}", output.display())])?
+            .len();
+        let sha256 = checksums
+            .get(format)
+            .ok_or_else(|| vec![format!("no checksum recorded for format {format}")])?;
 
-    let provenance = serde_json::json!({
-        "version": spec.version,
-        "source_commit": std::env::var("CI_COMMIT_SHA").unwrap_or_else(|_| "unknown".to_string()),
-        "tag": std::env::var("CI_COMMIT_TAG").unwrap_or_else(|_| "untagged".to_string()),
-        "build_timestamp": time::OffsetDateTime::now_utc().format(&Rfc3339).unwrap_or_else(|_| "unknown".to_string()),
-        "pipeline_identity": {
-            "pipeline_id": std::env::var("CI_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string()),
-            "job_id": std::env::var("CI_JOB_ID").unwrap_or_else(|_| "unknown".to_string()),
-        },
-        "manifest_path": relative_to(&spec.root, &spec.manifest_path),
-        "archive_filenames": archive_filenames,
-        "checksums": checksums_by_basename,
-        "implementation": "rust",
-        "packaging": "manifest-source-archive",
-    });
-    let json = serde_json::to_string_pretty(&provenance)
-        .map_err(|err| vec![format!("could not encode provenance JSON: {err}")])?;
-    fs::write(&provenance_path, format!("{json}\n"))
-        .map_err(|err| vec![format!("could not write provenance: {err}")])?;
-    Ok(provenance_path)
+        let record = provenance::build_file_record(&FileRecordInput {
+            product: &spec.package_name,
+            version: &spec.version,
+            source_commit: &source_commit,
+            tag: &tag,
+            build_timestamp: &build_timestamp,
+            pipeline_identity: Some(PipelineIdentity {
+                pipeline_id: &pipeline_id,
+                job_id: &job_id,
+            }),
+            manifest_path: Some(&manifest_path),
+            implementation: "rust",
+            packaging: "manifest-source-archive",
+            artifact_filename,
+            artifact_bytes,
+            sha256,
+            target_platform: None,
+        });
+
+        let outcome = provenance::validate_record(&record);
+        if !outcome.is_valid() {
+            return Err(outcome
+                .findings
+                .into_iter()
+                .map(|finding| {
+                    format!(
+                        "generated provenance record for {artifact_filename} is invalid: {finding}"
+                    )
+                })
+                .collect());
+        }
+
+        let provenance_path = output.with_file_name(format!("{artifact_filename}-provenance.json"));
+        let json = serde_json::to_string_pretty(&record)
+            .map_err(|err| vec![format!("could not encode provenance JSON: {err}")])?;
+        fs::write(&provenance_path, format!("{json}\n"))
+            .map_err(|err| vec![format!("could not write provenance: {err}")])?;
+        provenance_paths.insert(format.clone(), provenance_path);
+    }
+
+    Ok(provenance_paths)
 }
 
 fn safe_join(root: &Path, path: &str) -> Option<PathBuf> {
@@ -704,12 +725,30 @@ forbidden:
         assert!(zip_path.is_file());
         assert!(tar_path.with_file_name("agf-2.0.0.tar.gz.sha256").is_file());
         assert!(zip_path.with_file_name("agf-2.0.0.zip.sha256").is_file());
-        assert!(result.provenance_path.is_file());
 
-        let provenance: serde_json::Value =
-            serde_json::from_str(&fs::read_to_string(result.provenance_path).unwrap()).unwrap();
-        assert_eq!(provenance["version"], "2.0.0");
-        assert_eq!(provenance["implementation"], "rust");
+        // Cardinality: exactly one provenance record per published
+        // artifact, not one aggregate record covering both formats.
+        assert_eq!(result.provenance_paths.len(), 2);
+        let tar_provenance_path = result.provenance_paths.get("tar.gz").unwrap();
+        let zip_provenance_path = result.provenance_paths.get("zip").unwrap();
+        assert!(tar_provenance_path.is_file());
+        assert!(zip_provenance_path.is_file());
+        assert_ne!(tar_provenance_path, zip_provenance_path);
+
+        let tar_provenance: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(tar_provenance_path).unwrap()).unwrap();
+        assert_eq!(tar_provenance["schema_version"], "2.4");
+        assert_eq!(tar_provenance["artifact_kind"], "file");
+        assert_eq!(tar_provenance["version"], "2.0.0");
+        assert_eq!(tar_provenance["implementation"], "rust");
+        assert_eq!(tar_provenance["artifact_filename"], "agf-2.0.0.tar.gz");
+        assert_eq!(
+            tar_provenance["sha256"],
+            *result.checksums.get("tar.gz").unwrap()
+        );
+
+        let outcome = crate::provenance::validate_record(&tar_provenance);
+        assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
     }
 
     fn fixture_root() -> TempDir {

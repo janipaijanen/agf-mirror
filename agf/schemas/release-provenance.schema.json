@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "release-provenance.schema.json",
+  "title": "Release Provenance Record",
+  "description": "Front matter schema for a single AGF release-provenance JSON record (agf/CHANGELOG.md v2.4.0, Workstream B). A closed discriminated union keyed by artifact_kind: exactly one record per published artifact. file-kind records cover framework source archives and Rust tooling archives; oci-image-kind records cover published container images. Pre-v2.4 records (missing schema_version) are out of scope for this schema and are handled by the validator's legacy code path, never upgraded implicitly.",
+  "oneOf": [
+    { "$ref": "#/definitions/fileRecord" },
+    { "$ref": "#/definitions/ociImageRecord" }
+  ],
+  "definitions": {
+    "pipelineIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pipeline_id", "job_id"],
+      "properties": {
+        "pipeline_id": { "type": "string", "minLength": 1 },
+        "job_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fileRecord": {
+      "allOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema_version",
+            "product",
+            "artifact_kind",
+            "version",
+            "source_commit",
+            "tag",
+            "build_timestamp",
+            "implementation",
+            "packaging",
+            "artifact_filename",
+            "artifact_bytes",
+            "sha256"
+          ],
+          "properties": {
+            "schema_version": { "const": "2.4" },
+            "product": { "enum": ["agf", "agov"] },
+            "artifact_kind": { "const": "file" },
+            "version": { "type": "string", "minLength": 1 },
+            "source_commit": { "type": "string", "minLength": 1 },
+            "tag": { "type": "string" },
+            "build_timestamp": { "type": "string", "minLength": 1 },
+            "pipeline_identity": { "$ref": "#/definitions/pipelineIdentity" },
+            "manifest_path": { "type": "string" },
+            "implementation": { "type": "string", "minLength": 1 },
+            "packaging": {
+              "enum": ["manifest-source-archive", "tar.gz", "zip"]
+            },
+            "artifact_filename": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "artifact_bytes": { "type": "integer", "minimum": 0 },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            "target_platform": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "description": "Framework source archives (packaging: manifest-source-archive) are product agf and carry no target_platform -- they are not platform-specific binaries.",
+          "if": {
+            "properties": { "packaging": { "const": "manifest-source-archive" } },
+            "required": ["packaging"]
+          },
+          "then": {
+            "properties": { "product": { "const": "agf" } },
+            "not": { "required": ["target_platform"] }
+          }
+        },
+        {
+          "description": "Rust tooling archives (packaging: tar.gz or zip) are product agov and require target_platform.",
+          "if": {
+            "properties": { "packaging": { "enum": ["tar.gz", "zip"] } },
+            "required": ["packaging"]
+          },
+          "then": {
+            "properties": { "product": { "const": "agov" } },
+            "required": ["target_platform"]
+          }
+        }
+      ]
+    },
+    "ociImageRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "product",
+        "artifact_kind",
+        "version",
+        "source_commit",
+        "tag",
+        "build_timestamp",
+        "implementation",
+        "packaging",
+        "image_reference",
+        "manifest_digest",
+        "labels"
+      ],
+      "properties": {
+        "schema_version": { "const": "2.4" },
+        "product": { "type": "string", "minLength": 1 },
+        "artifact_kind": { "const": "oci-image" },
+        "version": { "type": "string", "minLength": 1 },
+        "source_commit": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string" },
+        "build_timestamp": { "type": "string", "minLength": 1 },
+        "pipeline_identity": { "$ref": "#/definitions/pipelineIdentity" },
+        "implementation": { "type": "string", "minLength": 1 },
+        "packaging": { "type": "string", "minLength": 1 },
+        "image_reference": { "type": "string", "minLength": 1 },
+        "manifest_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "revision"],
+          "properties": {
+            "version": { "type": "string", "minLength": 1 },
+            "revision": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}

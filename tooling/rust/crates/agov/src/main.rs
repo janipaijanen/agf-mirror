@@ -1,4 +1,5 @@
 mod dist;
+mod provenance;
 
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
@@ -273,6 +274,139 @@ enum DistCommand {
     Build,
     /// Check CI_COMMIT_TAG against agf/VERSION.
     CheckTag,
+    /// Validate one or more release-provenance JSON records against the
+    /// unified v2.4 schema (embedded at compile time; no source checkout
+    /// required), classifying pre-v2.4 records as legacy rather than
+    /// scoring them against the v2.4 contract.
+    ValidateProvenance {
+        /// Provenance JSON record files to validate.
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+        /// Directory containing the published artifacts the records
+        /// describe: a local dist/ during build-time validation, or a
+        /// directory of freshly-downloaded files during post-publication
+        /// validation. When given, artifact_bytes/sha256/checksum-sidecar
+        /// agreement and dangling-reference checks run in addition to
+        /// schema validation.
+        #[arg(long)]
+        artifact_dir: Option<PathBuf>,
+        /// An OCI image reference or ID to inspect (via `podman inspect`)
+        /// for real label/digest evidence, cross-checked against any
+        /// oci-image records among `files`. Without this, oci-image
+        /// records are only schema-validated -- no image evidence check
+        /// runs, since there is nothing to compare against.
+        #[arg(long)]
+        oci_image: Option<String>,
+        /// Output format: human-readable text (default) or a stable
+        /// machine-readable JSON array, one object per validated file:
+        /// {"file", "assurance_level", "findings"}.
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
+    /// Extract a packaged executable from its release archive, run its own
+    /// `version --format json` self-report, and cross-check it against a
+    /// file-kind provenance record.
+    SelfReportCheck {
+        /// Path to the .tar.gz or .zip archive containing the executable.
+        #[arg(long)]
+        archive: PathBuf,
+        /// The executable's filename inside the archive (e.g. "agov").
+        #[arg(long)]
+        binary_name: String,
+        /// The provenance record for this archive.
+        #[arg(long)]
+        record: PathBuf,
+    },
+    /// Anonymously discover and download every asset linked from a real
+    /// published GitLab Release, then validate the downloaded provenance
+    /// records against the downloaded bytes -- not the CI workspace copy.
+    /// This is the check that catches "provenance says X, published
+    /// artifact is actually Y".
+    PostPublicationCheck {
+        /// GitLab Release API URL, e.g.
+        /// https://gitlab.com/api/v4/projects/<id>/releases/<tag>
+        #[arg(long)]
+        releases_url: String,
+        /// Local directory to download assets into (created if missing).
+        #[arg(long)]
+        download_dir: PathBuf,
+    },
+    /// Build a single release-provenance JSON record from real artifact
+    /// evidence (file bytes/sha256, or OCI image/label identifiers).
+    ProvenanceRecord {
+        #[command(subcommand)]
+        sub: Box<ProvenanceRecordCommand>,
+    },
+}
+
+#[derive(Subcommand)]
+enum ProvenanceRecordCommand {
+    /// Build an `artifact_kind: file` record for an archive already on disk
+    /// (framework source archives and Rust tooling archives share this
+    /// shape).
+    File {
+        #[arg(long)]
+        product: String,
+        #[arg(long)]
+        version: String,
+        #[arg(long)]
+        source_commit: String,
+        #[arg(long)]
+        tag: String,
+        #[arg(long)]
+        build_timestamp: String,
+        #[arg(long)]
+        pipeline_id: Option<String>,
+        #[arg(long)]
+        job_id: Option<String>,
+        #[arg(long)]
+        manifest_path: Option<String>,
+        #[arg(long)]
+        implementation: String,
+        #[arg(long)]
+        packaging: String,
+        /// Path to the already-built artifact file; its filename, byte
+        /// count, and sha256 are read directly rather than passed by hand.
+        #[arg(long)]
+        artifact: PathBuf,
+        #[arg(long)]
+        target_platform: Option<String>,
+        /// Write the record here instead of printing it to stdout.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
+    /// Build an `artifact_kind: oci-image` record.
+    Oci {
+        #[arg(long)]
+        product: String,
+        #[arg(long)]
+        version: String,
+        #[arg(long)]
+        source_commit: String,
+        #[arg(long)]
+        tag: String,
+        #[arg(long)]
+        build_timestamp: String,
+        #[arg(long)]
+        pipeline_id: Option<String>,
+        #[arg(long)]
+        job_id: Option<String>,
+        #[arg(long)]
+        implementation: String,
+        #[arg(long)]
+        packaging: String,
+        #[arg(long)]
+        image_reference: String,
+        #[arg(long)]
+        manifest_digest: String,
+        #[arg(long)]
+        label_version: String,
+        #[arg(long)]
+        label_revision: String,
+        /// Write the record here instead of printing it to stdout.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -535,12 +669,899 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
                 1
             }
         },
+        DistCommand::ValidateProvenance {
+            files,
+            artifact_dir,
+            oci_image,
+            format,
+        } => validate_provenance_command(
+            &files,
+            artifact_dir.as_deref(),
+            oci_image.as_deref(),
+            &format,
+            &mut output,
+        ),
+        DistCommand::SelfReportCheck {
+            archive,
+            binary_name,
+            record,
+        } => self_report_check_command(&archive, &binary_name, &record, &mut output),
+        DistCommand::PostPublicationCheck {
+            releases_url,
+            download_dir,
+        } => post_publication_check_command(&releases_url, &download_dir, &mut output),
+        DistCommand::ProvenanceRecord { sub } => provenance_record_command(*sub, &mut output),
     };
 
     if exit_code == 0 {
         agov_core::roi::record_tool_output("agov", args, "dist", output.chars);
     }
     exit_code
+}
+
+/// Validate one or more release-provenance JSON records: schema validation
+/// (or legacy classification) for each file, plus cross-record duplicate-
+/// filename checks and, when `artifact_dir` is given, artifact/sha256/
+/// checksum-sidecar agreement and dangling-reference checks. When
+/// `oci_image` is given, `podman inspect`s that real image and cross-checks
+/// its actual labels/digest against any oci-image records among `files`.
+/// `format` is `"text"` (default, human-readable) or `"json"` (a stable
+/// machine-readable array: `{"file", "assurance_level", "findings"}` per
+/// entry, plus a synthetic `file: null` entry for cross-record findings).
+fn validate_provenance_command(
+    files: &[PathBuf],
+    artifact_dir: Option<&Path>,
+    oci_image: Option<&str>,
+    format: &str,
+    output: &mut OutputCounter,
+) -> i32 {
+    let json_mode = format == "json";
+    let mut parsed = Vec::new();
+    let mut json_results = Vec::new();
+    let mut exit_code = 0;
+
+    let oci_evidence = match oci_image {
+        Some(image) => match inspect_oci_image(image) {
+            Ok(evidence) => Some(evidence),
+            Err(err) => {
+                output.stderr(format!("ERR  could not inspect OCI image {image}: {err}"));
+                return 1;
+            }
+        },
+        None => None,
+    };
+
+    for file in files {
+        let content = match std::fs::read_to_string(file) {
+            Ok(content) => content,
+            Err(err) => {
+                output.stderr(format!("ERR  could not read {}: {err}", file.display()));
+                exit_code = 1;
+                continue;
+            }
+        };
+        let outcome = match provenance::validate_json_text(&content) {
+            Ok(outcome) => outcome,
+            Err(err) => {
+                output.stderr(format!("ERR  {}: {err}", file.display()));
+                exit_code = 1;
+                continue;
+            }
+        };
+        let data: serde_json::Value =
+            serde_json::from_str(&content).expect("validate_json_text already parsed this JSON");
+
+        let schema_valid = outcome.is_valid();
+        let assurance_level = outcome.assurance_level;
+        let mut findings = outcome.findings;
+
+        if schema_valid && outcome.assurance_level == provenance::AssuranceLevel::V24 {
+            if data
+                .get("artifact_kind")
+                .and_then(serde_json::Value::as_str)
+                == Some("oci-image")
+            {
+                if let Some(evidence) = &oci_evidence {
+                    findings.extend(provenance::check_oci_image_evidence(&data, evidence));
+                }
+            }
+            if let Some(dir) = artifact_dir {
+                findings.extend(provenance::check_artifact_agreement(&data, dir));
+                if let Some(filename) = data
+                    .get("artifact_filename")
+                    .and_then(serde_json::Value::as_str)
+                {
+                    // Mandatory: check_sha256_sidecar_agreement itself reports
+                    // a missing sidecar as a finding rather than being skipped.
+                    let sidecar = dir.join(format!("{filename}.sha256"));
+                    findings.extend(provenance::check_sha256_sidecar_agreement(&data, &sidecar));
+                }
+            }
+        }
+
+        if !findings.is_empty() {
+            exit_code = 1;
+        }
+        if json_mode {
+            json_results.push(serde_json::json!({
+                "file": file.display().to_string(),
+                "assurance_level": assurance_level.as_str(),
+                "findings": findings,
+            }));
+        } else if findings.is_empty() {
+            output.stdout(format!(
+                "OK  {} ({})",
+                file.display(),
+                assurance_level.as_str()
+            ));
+        } else {
+            for finding in &findings {
+                output.stderr(format!("ERR  {}: {finding}", file.display()));
+            }
+        }
+
+        parsed.push(data);
+    }
+
+    let mut cross_record_findings = Vec::new();
+    cross_record_findings.extend(provenance::check_no_duplicate_filenames(&parsed));
+    cross_record_findings.extend(provenance::check_no_duplicate_oci_identity(&parsed));
+    if let Some(dir) = artifact_dir {
+        cross_record_findings.extend(provenance::check_primary_artifact_coverage(&parsed, dir));
+    }
+    if !cross_record_findings.is_empty() {
+        exit_code = 1;
+    }
+
+    if json_mode {
+        if !cross_record_findings.is_empty() {
+            json_results.push(serde_json::json!({
+                "file": null,
+                "assurance_level": null,
+                "findings": cross_record_findings,
+            }));
+        }
+        match serde_json::to_string_pretty(&json_results) {
+            Ok(json) => output.stdout(json),
+            Err(err) => {
+                output.stderr(format!("ERR  could not encode JSON output: {err}"));
+                return 1;
+            }
+        }
+    } else {
+        for finding in &cross_record_findings {
+            output.stderr(format!("ERR  {finding}"));
+        }
+    }
+
+    exit_code
+}
+
+/// Shell out to `podman inspect <image>` and parse real label/digest
+/// evidence from its output. This project's OCI tooling (`agov-oci-
+/// image.sh`) already shells out to `podman` for every image operation
+/// rather than embedding an OCI client library in Rust; this follows the
+/// same convention.
+fn inspect_oci_image(image: &str) -> Result<provenance::OciImageEvidence, String> {
+    let output = std::process::Command::new("podman")
+        .args(["inspect", image])
+        .output()
+        .map_err(|err| format!("could not run podman: {err}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "podman inspect {image} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    provenance::parse_podman_inspect(&stdout)
+}
+
+/// Extract `binary_name` from `archive` (`.tar.gz` or `.zip`, by
+/// extension), run its own `version --format json` self-report, and
+/// cross-check it against `record`.
+fn self_report_check_command(
+    archive: &Path,
+    binary_name: &str,
+    record: &Path,
+    output: &mut OutputCounter,
+) -> i32 {
+    let content = match std::fs::read_to_string(record) {
+        Ok(content) => content,
+        Err(err) => {
+            output.stderr(format!("ERR  could not read {}: {err}", record.display()));
+            return 1;
+        }
+    };
+    let data: serde_json::Value = match serde_json::from_str(&content) {
+        Ok(data) => data,
+        Err(err) => {
+            output.stderr(format!("ERR  {}: malformed JSON: {err}", record.display()));
+            return 1;
+        }
+    };
+
+    let staging =
+        std::env::temp_dir().join(format!("agov-self-report-check-{}", std::process::id()));
+    if let Err(err) = std::fs::create_dir_all(&staging) {
+        output.stderr(format!(
+            "ERR  could not create staging directory {}: {err}",
+            staging.display()
+        ));
+        return 1;
+    }
+    let extracted_path = staging.join(binary_name);
+
+    let archive_str = archive.to_string_lossy();
+    let extraction = if archive_str.ends_with(".zip") {
+        provenance::extract_from_zip(archive, binary_name, &extracted_path)
+    } else {
+        provenance::extract_from_tar_gz(archive, binary_name, &extracted_path)
+    };
+    if let Err(err) = extraction {
+        let _ = std::fs::remove_dir_all(&staging);
+        output.stderr(format!("ERR  {err}"));
+        return 1;
+    }
+
+    let self_report = match provenance::run_self_report(&extracted_path) {
+        Ok(report) => report,
+        Err(err) => {
+            let _ = std::fs::remove_dir_all(&staging);
+            output.stderr(format!("ERR  {err}"));
+            return 1;
+        }
+    };
+    let _ = std::fs::remove_dir_all(&staging);
+
+    let findings = provenance::check_self_report_agreement(&data, &self_report);
+    if findings.is_empty() {
+        output.stdout(format!(
+            "OK  {} self-report agrees with {}",
+            binary_name,
+            record.display()
+        ));
+        0
+    } else {
+        for finding in &findings {
+            output.stderr(format!("ERR  {}: {finding}", record.display()));
+        }
+        1
+    }
+}
+
+/// Fetch a URL's body via `curl`. This project's release tooling already
+/// shells out to `curl` for HTTP (see the `release:create` CI job); this
+/// follows the same convention rather than embedding an HTTP client
+/// library for one read-only discovery step.
+fn curl_get(url: &str) -> Result<String, String> {
+    let output = std::process::Command::new("curl")
+        .args(["--silent", "--fail", "--show-error", "--location", url])
+        .output()
+        .map_err(|err| format!("could not run curl: {err}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "curl {url} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+}
+
+/// Maximum redirect hops `curl_get_bytes_validated` will follow before
+/// giving up. Bounded so a redirect loop cannot hang the command.
+const MAX_REDIRECTS: u8 = 5;
+
+/// Parse the combined stdout of a `curl --output - --write-out
+/// "\n%{http_code} %{redirect_url}"` invocation into `(body, http_code,
+/// redirect_url)`. Pure and dependency-free so the parsing logic is fully
+/// unit-testable without a real network call: the interesting bugs in a
+/// hand-rolled redirect loop live in this parsing step, not in the loop
+/// itself. Splits on the *last* `\n` in the buffer, since curl writes the
+/// body first and the `--write-out` trailer last, and nothing this
+/// project fetches legitimately ends its own final line with a bare
+/// `\n<digits> ` sequence that would be ambiguous with the trailer.
+fn parse_curl_write_out_response(stdout: &[u8]) -> Result<(Vec<u8>, u16, Option<String>), String> {
+    let newline_pos = stdout
+        .iter()
+        .rposition(|&b| b == b'\n')
+        .ok_or("curl output missing the expected trailing status line")?;
+    let body = stdout[..newline_pos].to_vec();
+    let trailer = String::from_utf8_lossy(&stdout[newline_pos + 1..]);
+    let mut parts = trailer.trim().splitn(2, ' ');
+    let code: u16 = parts
+        .next()
+        .and_then(|s| s.parse().ok())
+        .ok_or_else(|| format!("could not parse HTTP status code from {trailer:?}"))?;
+    let redirect_url = parts.next().filter(|s| !s.is_empty()).map(str::to_string);
+    Ok((body, code, redirect_url))
+}
+
+/// Fetch `url`'s body to memory, validating the host of *every* hop
+/// (the initial URL and every redirect target) against `trusted_host`
+/// before it is ever requested -- `curl --location` alone follows a
+/// redirect to any HTTPS host with no restriction, which would let an
+/// initially-trusted URL hand control to an arbitrary host. Curl is
+/// invoked once per hop with no automatic redirect-following
+/// (`--location` is deliberately absent); this function decides whether
+/// to follow each `Location` itself.
+fn curl_get_bytes_validated(url: &str, trusted_host: &str) -> Result<Vec<u8>, String> {
+    let mut current = url.to_string();
+    for _ in 0..MAX_REDIRECTS {
+        let host = provenance::parse_https_host(&current)?;
+        if host != trusted_host {
+            return Err(format!(
+                "refusing to fetch from untrusted host {host:?} (trusted host is \
+                 {trusted_host:?}): {current}"
+            ));
+        }
+
+        let output = std::process::Command::new("curl")
+            .args([
+                "--silent",
+                "--show-error",
+                "--write-out",
+                "\n%{http_code} %{redirect_url}",
+                "--output",
+                "-",
+            ])
+            .arg(&current)
+            .output()
+            .map_err(|err| format!("could not run curl: {err}"))?;
+        if !output.status.success() {
+            return Err(format!(
+                "curl {current} failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ));
+        }
+
+        let (body, code, redirect_url) = parse_curl_write_out_response(&output.stdout)
+            .map_err(|err| format!("curl {current}: {err}"))?;
+
+        if (300..400).contains(&code) {
+            let Some(next) = redirect_url else {
+                return Err(format!(
+                    "curl {current}: HTTP {code} redirect with no Location header"
+                ));
+            };
+            current = next;
+            continue;
+        }
+        if !(200..300).contains(&code) {
+            return Err(format!("curl {current}: HTTP {code}"));
+        }
+        return Ok(body);
+    }
+    Err(format!(
+        "too many redirects fetching {url} (limit {MAX_REDIRECTS})"
+    ))
+}
+
+/// Write `bytes` to `dest`, refusing to write through a pre-positioned
+/// symlink or over an existing file: `dest` is opened with `create_new`,
+/// which fails if anything (including a symlink, even a dangling one)
+/// already occupies that path.
+fn write_bytes_safely(bytes: &[u8], dest: &Path) -> Result<(), String> {
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(dest)
+        .map_err(|err| {
+            format!(
+                "could not create {} (must not already exist -- refusing to follow a \
+                 pre-positioned symlink or overwrite an existing file): {err}",
+                dest.display()
+            )
+        })?;
+    use std::io::Write as _;
+    file.write_all(bytes)
+        .map_err(|err| format!("could not write {}: {err}", dest.display()))?;
+    Ok(())
+}
+
+/// Download `url` to `dest`: every hop's host is validated against
+/// `trusted_host` before being fetched (`curl_get_bytes_validated`), and
+/// the destination is written via `write_bytes_safely` so curl itself
+/// never touches the destination path and a pre-positioned symlink or
+/// existing file is refused rather than followed/overwritten.
+fn download_asset_safely(url: &str, trusted_host: &str, dest: &Path) -> Result<(), String> {
+    let bytes = curl_get_bytes_validated(url, trusted_host)?;
+    write_bytes_safely(&bytes, dest)
+}
+
+/// Parse a GitLab Release API response's `assets.links[]` into
+/// `(name, direct_asset_url)` pairs.
+fn discover_release_assets(release_json: &str) -> Result<Vec<(String, String)>, String> {
+    let parsed: serde_json::Value = serde_json::from_str(release_json)
+        .map_err(|err| format!("malformed release JSON: {err}"))?;
+    let links = parsed
+        .get("assets")
+        .and_then(|assets| assets.get("links"))
+        .and_then(serde_json::Value::as_array)
+        .ok_or("release JSON has no assets.links array")?;
+
+    let mut assets = Vec::new();
+    for (index, link) in links.iter().enumerate() {
+        let name = link.get("name").and_then(serde_json::Value::as_str);
+        let url = link
+            .get("direct_asset_url")
+            .and_then(serde_json::Value::as_str);
+        match (name, url) {
+            (Some(name), Some(url)) => assets.push((name.to_string(), url.to_string())),
+            _ => {
+                // A malformed link entry fails discovery outright rather
+                // than silently shrinking the allegedly complete release
+                // set -- a missing name/URL on one link is exactly the
+                // kind of gap the cardinality bijection check exists to
+                // catch, and it cannot catch what discovery already
+                // dropped.
+                return Err(format!(
+                    "assets.links[{index}] is missing a string \"name\" or \"direct_asset_url\": {link}"
+                ));
+            }
+        }
+    }
+    Ok(assets)
+}
+
+/// The Rust target triple this binary can actually execute a self-report
+/// check against. Only the exact triple matching the verifier host's own
+/// architecture and OS is executable here -- an `aarch64-unknown-linux-musl`
+/// or `x86_64-pc-windows-gnu` archive cannot run its packaged binary on an
+/// `x86_64` Linux CI runner. Cross-target archives are not silently
+/// skipped: `composed_self_report_check` emits an explicit line naming the
+/// gap instead of omitting it.
+fn executable_target_platform() -> Option<&'static str> {
+    match (std::env::consts::ARCH, std::env::consts::OS) {
+        ("x86_64", "linux") => Some("x86_64-unknown-linux-musl"),
+        ("aarch64", "linux") => Some("aarch64-unknown-linux-musl"),
+        _ => None,
+    }
+}
+
+/// Pull `record`'s published `image_reference@manifest_digest` from the
+/// real registry and inspect it -- the composed public-lifecycle
+/// counterpart to `--oci-image` (which only inspects an already-local
+/// image by whatever name/tag is passed). Real evidence never comes from
+/// a locally-built or locally-tagged image in this path.
+fn pull_and_inspect_published_oci_image(
+    record: &serde_json::Value,
+) -> Result<provenance::OciImageEvidence, String> {
+    let image_reference = record
+        .get("image_reference")
+        .and_then(serde_json::Value::as_str)
+        .ok_or("oci-image record missing image_reference")?;
+    let manifest_digest = record
+        .get("manifest_digest")
+        .and_then(serde_json::Value::as_str)
+        .ok_or("oci-image record missing manifest_digest")?;
+    let pull_ref = provenance::oci_pull_ref(image_reference, manifest_digest);
+
+    let status = std::process::Command::new("podman")
+        .args(["pull", &pull_ref])
+        .status()
+        .map_err(|err| format!("could not run podman pull: {err}"))?;
+    if !status.success() {
+        return Err(format!("podman pull {pull_ref} failed"));
+    }
+    inspect_oci_image(&pull_ref)
+}
+
+/// Composed public OCI chain check: for every downloaded provenance record
+/// that is an `oci-image` record, pull the real published image by its
+/// immutable digest and cross-check it with `check_oci_image_evidence`.
+/// Distinct from `validate_provenance_command`'s `--oci-image` flag, which
+/// only inspects an already-local image the caller names manually.
+fn composed_oci_chain_check(provenance_files: &[PathBuf], output: &mut OutputCounter) -> i32 {
+    let mut exit_code = 0;
+    for file in provenance_files {
+        let Ok(content) = std::fs::read_to_string(file) else {
+            continue;
+        };
+        let Ok(record) = serde_json::from_str::<serde_json::Value>(&content) else {
+            continue;
+        };
+        if record
+            .get("artifact_kind")
+            .and_then(serde_json::Value::as_str)
+            != Some("oci-image")
+        {
+            continue;
+        }
+        match pull_and_inspect_published_oci_image(&record) {
+            Ok(evidence) => {
+                let findings = provenance::check_oci_image_evidence(&record, &evidence);
+                if findings.is_empty() {
+                    output.stdout(format!(
+                        "OK  {} matches real published OCI image evidence",
+                        file.display()
+                    ));
+                } else {
+                    exit_code = 1;
+                    for finding in &findings {
+                        output.stderr(format!("ERR  {}: {finding}", file.display()));
+                    }
+                }
+            }
+            Err(err) => {
+                exit_code = 1;
+                output.stderr(format!(
+                    "ERR  {}: could not pull/inspect published OCI image: {err}",
+                    file.display()
+                ));
+            }
+        }
+    }
+    exit_code
+}
+
+/// Composed self-report check: for every downloaded provenance record that
+/// is a `product: "agov"` file-kind record packaged as `tar.gz`/`zip`,
+/// extract the packaged `agov` binary from its downloaded archive and run
+/// `check_self_report_agreement` against it -- but only when the record's
+/// `target_platform` matches what this verifier host can actually execute
+/// (see `executable_target_platform`). A cross-target archive is not
+/// silently skipped: an explicit line names it and states why.
+fn composed_self_report_check(
+    download_dir: &Path,
+    provenance_files: &[PathBuf],
+    output: &mut OutputCounter,
+) -> i32 {
+    let mut exit_code = 0;
+    let executable_target = executable_target_platform();
+    for file in provenance_files {
+        let Ok(content) = std::fs::read_to_string(file) else {
+            continue;
+        };
+        let Ok(record) = serde_json::from_str::<serde_json::Value>(&content) else {
+            continue;
+        };
+        if record.get("product").and_then(serde_json::Value::as_str) != Some("agov") {
+            continue;
+        }
+        let Some(packaging) = record.get("packaging").and_then(serde_json::Value::as_str) else {
+            continue;
+        };
+        if packaging != "tar.gz" && packaging != "zip" {
+            continue;
+        }
+        let Some(artifact_filename) = record
+            .get("artifact_filename")
+            .and_then(serde_json::Value::as_str)
+        else {
+            continue;
+        };
+        let target_platform = record
+            .get("target_platform")
+            .and_then(serde_json::Value::as_str);
+
+        if target_platform != executable_target {
+            output.stdout(format!(
+                "SKIP {}: target_platform {target_platform:?} is not executable on this \
+                 verifier host ({:?}) -- self-report check not evidenced here, only \
+                 schema/hash/sidecar agreement was checked for this archive",
+                file.display(),
+                executable_target
+            ));
+            continue;
+        }
+
+        let archive = download_dir.join(artifact_filename);
+        let staging = std::env::temp_dir().join(format!(
+            "agov-post-pub-self-report-{}-{}",
+            std::process::id(),
+            artifact_filename
+        ));
+        let extraction_result = (|| -> Result<provenance::SelfReport, String> {
+            std::fs::create_dir_all(&staging)
+                .map_err(|err| format!("could not create staging dir: {err}"))?;
+            let extracted_path = staging.join("agov");
+            if packaging == "zip" {
+                provenance::extract_from_zip(&archive, "agov", &extracted_path)?;
+            } else {
+                provenance::extract_from_tar_gz(&archive, "agov", &extracted_path)?;
+            }
+            provenance::run_self_report(&extracted_path)
+        })();
+        let _ = std::fs::remove_dir_all(&staging);
+
+        match extraction_result {
+            Ok(self_report) => {
+                let findings = provenance::check_self_report_agreement(&record, &self_report);
+                if findings.is_empty() {
+                    output.stdout(format!(
+                        "OK  {}: packaged agov self-report agrees",
+                        file.display()
+                    ));
+                } else {
+                    exit_code = 1;
+                    for finding in &findings {
+                        output.stderr(format!("ERR  {}: {finding}", file.display()));
+                    }
+                }
+            }
+            Err(err) => {
+                exit_code = 1;
+                output.stderr(format!(
+                    "ERR  {}: could not run composed self-report check: {err}",
+                    file.display()
+                ));
+            }
+        }
+    }
+    exit_code
+}
+
+/// Anonymously discover every asset linked from a real published GitLab
+/// Release, download all of them into `download_dir`, then run the exact
+/// same `validate-provenance` logic (schema, cross-checks, and cardinality
+/// bijection) against the downloaded provenance records and downloaded
+/// artifact bytes -- not a CI workspace copy -- followed by the composed
+/// OCI-chain check (real registry pull by digest) and composed self-report
+/// check (real extracted-binary execution) for every record that applies.
+///
+/// `download_dir` must not already exist, or must exist and be empty: this
+/// command creates and owns it, so a caller cannot point it at a directory
+/// with a pre-positioned symlink and have this command silently write
+/// through it.
+fn post_publication_check_command(
+    releases_url: &str,
+    download_dir: &Path,
+    output: &mut OutputCounter,
+) -> i32 {
+    if let Ok(mut entries) = std::fs::read_dir(download_dir) {
+        if entries.next().is_some() {
+            output.stderr(format!(
+                "ERR  {} already exists and is not empty -- this command must own a fresh, \
+                 internally-created download directory (refusing a pre-positioned entry, \
+                 including a symlink, at that path)",
+                download_dir.display()
+            ));
+            return 1;
+        }
+    }
+
+    let trusted_host = match provenance::parse_https_host(releases_url) {
+        Ok(host) => host,
+        Err(err) => {
+            output.stderr(format!("ERR  --releases-url must be https: {err}"));
+            return 1;
+        }
+    };
+
+    let release_json = match curl_get(releases_url) {
+        Ok(body) => body,
+        Err(err) => {
+            output.stderr(format!("ERR  could not fetch {releases_url}: {err}"));
+            return 1;
+        }
+    };
+    let assets = match discover_release_assets(&release_json) {
+        Ok(assets) => assets,
+        Err(err) => {
+            output.stderr(format!("ERR  {err}"));
+            return 1;
+        }
+    };
+    if assets.is_empty() {
+        output.stderr(format!("ERR  no assets discovered at {releases_url}"));
+        return 1;
+    }
+
+    if let Err(err) = provenance::validate_discovered_assets(&assets, &trusted_host) {
+        output.stderr(format!("ERR  {err}"));
+        return 1;
+    }
+
+    if let Err(err) = std::fs::create_dir_all(download_dir) {
+        output.stderr(format!(
+            "ERR  could not create {}: {err}",
+            download_dir.display()
+        ));
+        return 1;
+    }
+
+    let mut provenance_files = Vec::new();
+    for (name, url) in &assets {
+        let dest = download_dir.join(name);
+        if let Err(err) = download_asset_safely(url, &trusted_host, &dest) {
+            output.stderr(format!("ERR  {err}"));
+            return 1;
+        }
+        output.stdout(format!("OK  downloaded {name}"));
+        if name.ends_with("-provenance.json") {
+            provenance_files.push(dest);
+        }
+    }
+
+    if provenance_files.is_empty() {
+        output.stderr(format!(
+            "ERR  discovered {} assets at {releases_url} but none were *-provenance.json records",
+            assets.len()
+        ));
+        return 1;
+    }
+
+    let base_exit =
+        validate_provenance_command(&provenance_files, Some(download_dir), None, "text", output);
+    let oci_exit = composed_oci_chain_check(&provenance_files, output);
+    let self_report_exit = composed_self_report_check(download_dir, &provenance_files, output);
+
+    if base_exit != 0 || oci_exit != 0 || self_report_exit != 0 {
+        1
+    } else {
+        0
+    }
+}
+
+fn provenance_record_command(sub: ProvenanceRecordCommand, output: &mut OutputCounter) -> i32 {
+    match sub {
+        ProvenanceRecordCommand::File {
+            product,
+            version,
+            source_commit,
+            tag,
+            build_timestamp,
+            pipeline_id,
+            job_id,
+            manifest_path,
+            implementation,
+            packaging,
+            artifact,
+            target_platform,
+            output: output_path,
+        } => {
+            let Some(artifact_filename) = artifact.file_name().and_then(|name| name.to_str())
+            else {
+                output.stderr(format!(
+                    "ERR  artifact path has no filename: {}",
+                    artifact.display()
+                ));
+                return 1;
+            };
+            let artifact_bytes = match std::fs::metadata(&artifact) {
+                Ok(metadata) => metadata.len(),
+                Err(err) => {
+                    output.stderr(format!("ERR  could not stat {}: {err}", artifact.display()));
+                    return 1;
+                }
+            };
+            let sha256 = match provenance::sha256_file(&artifact) {
+                Ok(hash) => hash,
+                Err(err) => {
+                    output.stderr(format!("ERR  {err}"));
+                    return 1;
+                }
+            };
+            let pipeline_identity = match pipeline_identity_from(&pipeline_id, &job_id) {
+                Ok(pipeline_identity) => pipeline_identity,
+                Err(err) => {
+                    output.stderr(format!("ERR  {err}"));
+                    return 1;
+                }
+            };
+            let record = provenance::build_file_record(&provenance::FileRecordInput {
+                product: &product,
+                version: &version,
+                source_commit: &source_commit,
+                tag: &tag,
+                build_timestamp: &build_timestamp,
+                pipeline_identity,
+                manifest_path: manifest_path.as_deref(),
+                implementation: &implementation,
+                packaging: &packaging,
+                artifact_filename,
+                artifact_bytes,
+                sha256: &sha256,
+                target_platform: target_platform.as_deref(),
+            });
+            emit_provenance_record(&record, output_path.as_deref(), output)
+        }
+        ProvenanceRecordCommand::Oci {
+            product,
+            version,
+            source_commit,
+            tag,
+            build_timestamp,
+            pipeline_id,
+            job_id,
+            implementation,
+            packaging,
+            image_reference,
+            manifest_digest,
+            label_version,
+            label_revision,
+            output: output_path,
+        } => {
+            let pipeline_identity = match pipeline_identity_from(&pipeline_id, &job_id) {
+                Ok(pipeline_identity) => pipeline_identity,
+                Err(err) => {
+                    output.stderr(format!("ERR  {err}"));
+                    return 1;
+                }
+            };
+            let record = provenance::build_oci_record(&provenance::OciRecordInput {
+                product: &product,
+                version: &version,
+                source_commit: &source_commit,
+                tag: &tag,
+                build_timestamp: &build_timestamp,
+                pipeline_identity,
+                implementation: &implementation,
+                packaging: &packaging,
+                image_reference: &image_reference,
+                manifest_digest: &manifest_digest,
+                label_version: &label_version,
+                label_revision: &label_revision,
+            });
+            emit_provenance_record(&record, output_path.as_deref(), output)
+        }
+    }
+}
+
+/// `--pipeline-id`/`--job-id` are both-or-neither: supplying only one
+/// silently dropped both under the old `match` (a real usage mistake
+/// would produce a record with no pipeline_identity at all, no error).
+fn pipeline_identity_from<'a>(
+    pipeline_id: &'a Option<String>,
+    job_id: &'a Option<String>,
+) -> Result<Option<provenance::PipelineIdentity<'a>>, String> {
+    match (pipeline_id, job_id) {
+        (Some(pipeline_id), Some(job_id)) => Ok(Some(provenance::PipelineIdentity {
+            pipeline_id,
+            job_id,
+        })),
+        (None, None) => Ok(None),
+        (Some(_), None) => Err(
+            "--pipeline-id was given without --job-id; both or neither are required".to_string(),
+        ),
+        (None, Some(_)) => Err(
+            "--job-id was given without --pipeline-id; both or neither are required".to_string(),
+        ),
+    }
+}
+
+fn emit_provenance_record(
+    record: &serde_json::Value,
+    output_path: Option<&Path>,
+    output: &mut OutputCounter,
+) -> i32 {
+    // Validate atomically before writing: a generator refactor that
+    // accidentally produces a schema-invalid record must fail here, not
+    // silently reach publication.
+    let outcome = provenance::validate_record(record);
+    if !outcome.is_valid() {
+        for finding in &outcome.findings {
+            output.stderr(format!(
+                "ERR  generated provenance record is invalid: {finding}"
+            ));
+        }
+        return 1;
+    }
+
+    let json = match serde_json::to_string_pretty(record) {
+        Ok(json) => json,
+        Err(err) => {
+            output.stderr(format!("ERR  could not encode provenance JSON: {err}"));
+            return 1;
+        }
+    };
+    match output_path {
+        Some(path) => match std::fs::write(path, format!("{json}\n")) {
+            Ok(()) => {
+                output.stdout(format!("OK  wrote {}", path.display()));
+                0
+            }
+            Err(err) => {
+                output.stderr(format!("ERR  could not write {}: {err}", path.display()));
+                1
+            }
+        },
+        None => {
+            output.stdout(json);
+            0
+        }
+    }
 }
 
 fn token_roi_report(log: Option<PathBuf>) -> i32 {
@@ -3969,6 +4990,343 @@ impl OutputCounter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pipeline_identity_from_both_present_succeeds() {
+        let pipeline_id = Some("123".to_string());
+        let job_id = Some("456".to_string());
+        let identity = pipeline_identity_from(&pipeline_id, &job_id).unwrap();
+        assert!(identity.is_some());
+    }
+
+    #[test]
+    fn pipeline_identity_from_neither_present_succeeds_with_none() {
+        let identity = pipeline_identity_from(&None, &None).unwrap();
+        assert!(identity.is_none());
+    }
+
+    #[test]
+    fn negative_pipeline_identity_from_pipeline_id_without_job_id_is_rejected() {
+        let pipeline_id = Some("123".to_string());
+        let result = pipeline_identity_from(&pipeline_id, &None);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn negative_pipeline_identity_from_job_id_without_pipeline_id_is_rejected() {
+        let job_id = Some("456".to_string());
+        let result = pipeline_identity_from(&None, &job_id);
+        assert!(result.is_err());
+    }
+
+    // ── write_bytes_safely: pure filesystem safety, no network needed ───
+
+    fn temp_test_dir(label: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "agov-download-safely-test-{label}-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn positive_write_bytes_safely_writes_fresh_destination() {
+        let dir = temp_test_dir("positive");
+        let dest = dir.join("dest.txt");
+
+        let result = write_bytes_safely(b"real content", &dest);
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(std::fs::read(&dest).unwrap(), b"real content");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn negative_write_bytes_safely_refuses_preexisting_symlink_destination() {
+        let dir = temp_test_dir("symlink");
+        let escape_target = dir.join("outside-the-download-dir.txt");
+        let dest = dir.join("dest.txt");
+
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&escape_target, &dest).unwrap();
+
+        let result = write_bytes_safely(b"real content", &dest);
+        assert!(
+            result.is_err(),
+            "must refuse to write through a pre-positioned symlink"
+        );
+        assert!(
+            !escape_target.exists(),
+            "the symlink target must never have been written to"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn negative_write_bytes_safely_refuses_preexisting_regular_file_destination() {
+        let dir = temp_test_dir("existing-file");
+        let dest = dir.join("dest.txt");
+        std::fs::write(&dest, b"original content").unwrap();
+
+        let result = write_bytes_safely(b"new content", &dest);
+        assert!(result.is_err(), "must refuse to overwrite an existing file");
+        assert_eq!(
+            std::fs::read(&dest).unwrap(),
+            b"original content",
+            "the pre-existing file must not have been truncated or overwritten"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    // ── curl_get_bytes_validated / parse_curl_write_out_response ────────
+
+    #[test]
+    fn parse_curl_write_out_response_parses_success() {
+        let stdout = b"body bytes here\n200 ".to_vec();
+        let (body, code, redirect) = parse_curl_write_out_response(&stdout).unwrap();
+        assert_eq!(body, b"body bytes here");
+        assert_eq!(code, 200);
+        assert_eq!(redirect, None);
+    }
+
+    #[test]
+    fn parse_curl_write_out_response_parses_redirect_with_location() {
+        let stdout = b"\n302 https://gitlab.com/next-hop".to_vec();
+        let (body, code, redirect) = parse_curl_write_out_response(&stdout).unwrap();
+        assert_eq!(body, b"");
+        assert_eq!(code, 302);
+        assert_eq!(redirect.as_deref(), Some("https://gitlab.com/next-hop"));
+    }
+
+    #[test]
+    fn parse_curl_write_out_response_preserves_body_containing_newlines() {
+        let stdout = b"line one\nline two\nline three\n200 ".to_vec();
+        let (body, code, _) = parse_curl_write_out_response(&stdout).unwrap();
+        assert_eq!(body, b"line one\nline two\nline three");
+        assert_eq!(code, 200);
+    }
+
+    #[test]
+    fn negative_parse_curl_write_out_response_rejects_missing_trailer() {
+        assert!(parse_curl_write_out_response(b"no trailing newline at all").is_err());
+    }
+
+    #[test]
+    fn negative_parse_curl_write_out_response_rejects_non_numeric_status() {
+        let stdout = b"body\nnot-a-code ".to_vec();
+        assert!(parse_curl_write_out_response(&stdout).is_err());
+    }
+
+    #[test]
+    fn negative_curl_get_bytes_validated_rejects_wrong_initial_host() {
+        let result = curl_get_bytes_validated("https://attacker.example/asset", "gitlab.com");
+        assert!(result.is_err(), "{result:?}");
+        assert!(result.unwrap_err().contains("untrusted host"));
+    }
+
+    #[test]
+    fn executable_target_platform_returns_a_known_triple_or_none() {
+        // Whatever this host is, the result (if any) must be one of the
+        // triples the release pipeline actually produces archives for.
+        if let Some(target) = executable_target_platform() {
+            assert!(
+                target == "x86_64-unknown-linux-musl" || target == "aarch64-unknown-linux-musl",
+                "unexpected target: {target}"
+            );
+        }
+    }
+
+    #[test]
+    fn discover_release_assets_parses_well_formed_links() {
+        let json = serde_json::json!({
+            "assets": {
+                "links": [
+                    {"name": "agf-2.4.0.tar.gz", "direct_asset_url": "https://gitlab.com/a"},
+                    {"name": "agf-2.4.0.zip", "direct_asset_url": "https://gitlab.com/b"}
+                ]
+            }
+        })
+        .to_string();
+        let assets = discover_release_assets(&json).unwrap();
+        assert_eq!(assets.len(), 2);
+    }
+
+    #[test]
+    fn negative_discover_release_assets_fails_closed_on_malformed_link() {
+        // A link missing "name" must fail discovery outright, not silently
+        // shrink the release set to just the well-formed entries.
+        let json = serde_json::json!({
+            "assets": {
+                "links": [
+                    {"name": "agf-2.4.0.tar.gz", "direct_asset_url": "https://gitlab.com/a"},
+                    {"direct_asset_url": "https://gitlab.com/b"}
+                ]
+            }
+        })
+        .to_string();
+        let result = discover_release_assets(&json);
+        assert!(result.is_err(), "{result:?}");
+    }
+
+    // ── Composed post-publication checks: the exact functions
+    // post_publication_check_command calls, exercised directly against
+    // real registry data / a real packaged binary, not just their
+    // standalone CLI-flag counterparts (`--oci-image`,
+    // `self-report-check`). `#[ignore]`d for the same reason as
+    // `tests/oci_pull.rs`: missing podman/network is an infrastructure
+    // failure for these tests, not something they should silently pass
+    // through.
+
+    #[test]
+    #[ignore = "requires a real podman binary and real network access; run explicitly via \
+                `cargo test -p agov --bin agov -- --ignored composed_oci_chain_check`, as the \
+                dedicated rust:tooling:oci-pull-test CI job does"]
+    fn composed_oci_chain_check_rejects_real_busybox_image_with_wrong_labels() {
+        // Exercises the exact function post_publication_check_command
+        // calls -- discover the oci-image record on disk, build the
+        // digest-pinned pull ref, podman pull it for real, inspect it,
+        // and compare -- not the adjacent `--oci-image` CLI flag path.
+        const DIGEST: &str =
+            "sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d";
+        const REF: &str = "docker.io/library/busybox";
+
+        let dir = std::env::temp_dir().join(format!(
+            "agov-composed-oci-check-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let record_path = dir.join("busybox-provenance.json");
+        let record = serde_json::json!({
+            "schema_version": "2.4",
+            "product": "agov",
+            "artifact_kind": "oci-image",
+            "version": "2.4.0",
+            "source_commit": "abc123def456",
+            "tag": "v2.4.0",
+            "build_timestamp": "2026-07-22T00:00:00Z",
+            "implementation": "rust",
+            "packaging": "oci-image",
+            "image_reference": REF,
+            "manifest_digest": DIGEST,
+            "labels": {
+                "version": "2.4.0",
+                "revision": "abc123def456"
+            }
+        });
+        std::fs::write(&record_path, serde_json::to_string_pretty(&record).unwrap()).unwrap();
+
+        let mut output = OutputCounter::default();
+        let exit_code = composed_oci_chain_check(&[record_path], &mut output);
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert_ne!(
+            exit_code, 0,
+            "expected rejection: busybox carries no matching org.opencontainers.image labels"
+        );
+    }
+
+    #[test]
+    #[ignore = "requires this host to be able to execute the real compiled agov binary under \
+                its own reported target_platform; run explicitly via \
+                `cargo test -p agov --bin agov -- --ignored composed_self_report_check`"]
+    fn composed_self_report_check_runs_real_binary_end_to_end() {
+        // Exercises the exact function post_publication_check_command
+        // calls, against a real archive containing the *actual compiled
+        // agov binary* (not a fake fixture script) -- download-dir layout,
+        // extraction, execution, and comparison against real self-report
+        // ground truth all in one composed call.
+        let Some(target) = executable_target_platform() else {
+            panic!("this host has no known executable target_platform to test against");
+        };
+
+        // CARGO_BIN_EXE_agov is only set for integration test binaries
+        // under tests/, not for #[cfg(test)] unit tests compiled as part
+        // of this same bin crate -- locate the real built binary
+        // ourselves, relative to the workspace target directory `cargo
+        // test` already populated (debug preferred; release as fallback
+        // for a release-profile-only CI run).
+        let target_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../target")
+            .canonicalize()
+            .expect("workspace target directory must exist after `cargo build`/`cargo test`");
+        let real_binary = [
+            target_dir.join("debug/agov"),
+            target_dir.join("release/agov"),
+        ]
+        .into_iter()
+        .find(|path| path.is_file())
+        .expect(
+            "no built agov binary found under target/debug or target/release -- run \
+                 `cargo build -p agov` first",
+        );
+        let self_report_output = std::process::Command::new(&real_binary)
+            .args(["version", "--format", "json"])
+            .output()
+            .expect("run the real agov binary for ground truth");
+        let ground_truth: serde_json::Value =
+            serde_json::from_slice(&self_report_output.stdout).expect("parse real version JSON");
+        let real_version = ground_truth["version"].as_str().unwrap().to_string();
+        let real_commit = ground_truth["commit"].as_str().unwrap().to_string();
+        // This binary may legitimately have been built from a dirty tree
+        // (e.g. mid-development locally) -- the composed check must agree
+        // with whatever ground truth actually is, not assume a clean
+        // build. A dirty build is a real, correct rejection, not a test
+        // failure.
+        let real_dirty = ground_truth["dirty"].as_bool().unwrap();
+
+        let dir = std::env::temp_dir().join(format!(
+            "agov-composed-self-report-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let artifact_filename = "agov-test-2.4.0-composed.tar.gz";
+        let archive_path = dir.join(artifact_filename);
+        {
+            let file = std::fs::File::create(&archive_path).unwrap();
+            let encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+            let mut builder = tar::Builder::new(encoder);
+            builder.append_path_with_name(&real_binary, "agov").unwrap();
+            builder.finish().unwrap();
+        }
+
+        let record_path = dir.join(format!("{artifact_filename}-provenance.json"));
+        let record = serde_json::json!({
+            "schema_version": "2.4",
+            "product": "agov",
+            "artifact_kind": "file",
+            "version": real_version,
+            "source_commit": real_commit,
+            "tag": "v2.4.0",
+            "build_timestamp": "2026-07-22T00:00:00Z",
+            "implementation": "rust",
+            "packaging": "tar.gz",
+            "target_platform": target,
+            "artifact_filename": artifact_filename,
+            "artifact_bytes": std::fs::metadata(&archive_path).unwrap().len(),
+            "sha256": "0".repeat(64)
+        });
+        std::fs::write(&record_path, serde_json::to_string_pretty(&record).unwrap()).unwrap();
+
+        let mut output = OutputCounter::default();
+        let exit_code = composed_self_report_check(&dir, &[record_path], &mut output);
+        let _ = std::fs::remove_dir_all(&dir);
+
+        if real_dirty {
+            assert_ne!(
+                exit_code, 0,
+                "the real binary reports a dirty build -- the composed check must reject it, \
+                 not silently accept it"
+            );
+        } else {
+            assert_eq!(
+                exit_code, 0,
+                "composed self-report check must pass a record matching the real binary's own \
+                 clean version/commit (sha256 field is irrelevant to this check)"
+            );
+        }
+    }
 
     fn message(file: &str, kind: &str, timestamp: &str, refs: &[&str]) -> HandoffMessage {
         HandoffMessage {
