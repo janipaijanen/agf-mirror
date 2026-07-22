@@ -28,8 +28,6 @@ not a personal to-do list:
 - **Reference** — command, schema, and environment-variable precision, read
   after the concept is already clear.
 
-![Documentation map by audience and use](../reference/figures/docs-audience-map.svg)
-
 ## The path
 
 ```
