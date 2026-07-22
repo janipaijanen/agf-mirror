@@ -10,24 +10,42 @@ use serde_json::{json, Value};
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-/// Locate the real compiled `agov` binary. `CARGO_BIN_EXE_<name>` is only
-/// guaranteed for binaries in the *same* package as the test; it is not
-/// set for a cross-crate path dev-dependency's binary. The `agov-mcp`
-/// path dev-dependency on `agov` (in `Cargo.toml`) still makes Cargo build
-/// `agov` into the same `target/<profile>/` directory this test binary's
-/// own executable lives two levels below
-/// (`target/<profile>/deps/<this-test-binary>`), so we find it there.
+/// Locate the real compiled `agov` binary, building it first so this test
+/// is hermetic from a clean target directory (Gate 2 review `d8h5` BLOCK
+/// 2: `agov` is bin-only with no lib target, so a path dev-dependency on
+/// it is invalid and Cargo silently ignores it — it does NOT build the
+/// binary as a side effect of building this crate's tests, contrary to
+/// what an earlier revision of this file assumed).
+///
+/// `CARGO_BIN_EXE_<name>` is only guaranteed for binaries in the *same*
+/// package as the test, so it is not usable here either.
 fn agov_bin_path() -> std::path::PathBuf {
     let test_exe = std::env::current_exe().expect("current_exe");
     let profile_dir = test_exe
         .parent() // .../target/<profile>/deps
         .and_then(|p| p.parent()) // .../target/<profile>
-        .expect("test binary should be two levels under target/<profile>");
+        .expect("test binary should be two levels under target/<profile>")
+        .to_path_buf();
+    let is_release = profile_dir
+        .file_name()
+        .is_some_and(|name| name == "release");
+
+    let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let mut build = std::process::Command::new(env!("CARGO"));
+    build.args(["build", "--quiet", "-p", "agov"]);
+    if is_release {
+        build.arg("--release");
+    }
+    let status = build
+        .current_dir(&workspace_root)
+        .status()
+        .expect("failed to invoke `cargo build -p agov`");
+    assert!(status.success(), "cargo build -p agov failed");
+
     let candidate = profile_dir.join("agov");
     assert!(
         candidate.is_file(),
-        "expected a real agov binary at {candidate:?} (built via agov-mcp's \
-         path dev-dependency on the agov crate); found none"
+        "expected a real agov binary at {candidate:?} after `cargo build -p agov`; found none"
     );
     candidate
 }

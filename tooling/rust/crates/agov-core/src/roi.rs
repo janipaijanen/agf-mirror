@@ -105,69 +105,146 @@ fn resolve_transport() -> (
 pub const REDACTED: &str = "[redacted]";
 
 /// Command-path tokens (subcommand / sub-subcommand names) retained by
-/// `redact_args`. Closed vocabulary: the CLI's own compiled surface.
-const COMMAND_PATH_TOKENS: &[&str] = &[
-    "agov",
+/// `redact_args`. Closed vocabulary: the CLI's own compiled clap surface.
+///
+/// This is the **exhaustive** set of every subcommand name at every level
+/// of `agov`'s command tree, per Gate 2 review `d8h5` BLOCK 4 (the earlier
+/// list omitted `token`/`roi`/`report`/`adoption`/`check-tag` and others,
+/// and wrongly included a fabricated `usage-report` token — the real path
+/// is two separate tokens, `usage` then `report`). Does **not** include
+/// `agov` itself: callers pass only the post-`argv[0]` slice, so the
+/// program name never appears in this stream (verified in
+/// `agov/src/main.rs`'s `main()`, which calls `args.into_iter().skip(1)`
+/// before dispatch).
+///
+/// `agov/src/main.rs`'s `roi_redaction_audit_matches_real_clap_surface`
+/// test walks the live `clap::Command` tree via `CommandFactory` and
+/// fails if this list and the real compiled surface ever diverge in
+/// either direction (missing token or stale/dead token) — this comment
+/// describes intent; that test is the enforcement.
+pub const COMMAND_PATH_TOKENS: &[&str] = &[
+    // Top-level commands.
+    "version",
     "coord",
     "plan",
-    "dist",
-    "session",
-    "handoff",
     "validate",
+    "handoff",
+    "session",
+    "token",
+    "dist",
+    "usage",
+    // coord subcommands.
+    "brief",
     "post",
     "list",
-    "brief",
     "status",
     "stale",
+    "visibility",
     "graph",
     "graph-index",
-    "visibility",
-    "resume",
+    // validate subcommands.
+    "adoption",
+    "adopter-docs",
+    "agents",
+    "learnings",
+    "infosec",
+    "contributions",
+    "framework-config",
+    "readme-stats",
+    // handoff subcommands.
     "next",
     "take",
     "complete",
-    "version",
-    "usage-report",
+    // session subcommands.
+    "resume",
+    // token subcommands.
+    "roi",
+    // token roi / usage subcommands.
+    "report",
+    // dist subcommands.
     "build",
-    "provenance-record",
+    "check-tag",
     "validate-provenance",
     "self-report-check",
     "post-publication-check",
+    "provenance-record",
+    // dist provenance-record subcommands.
     "file",
     "oci",
 ];
 
 /// Flags whose *values* are closed vocabulary and may be retained.
-/// Everything else's value is redacted. Starter set per the approved plan;
-/// extending it is an additive follow-up once real usage shows a flag is
-/// both safe and useful.
-const CLOSED_VALUE_FLAGS: &[&str] = &["--kind", "--id-format", "--format", "--implementation"];
+/// Everything else's value is redacted.
+///
+/// The bar for membership (per Gate 2 review `d8h5` BLOCK 1): the value
+/// must be constrained **at the clap argument-parsing boundary** via
+/// `value_parser = [...]`, so an out-of-set value makes the whole process
+/// fail argument parsing before `main`'s command dispatch ever runs —
+/// never reaching `record_tool_output`. `--id-format` (`readable`/`ulid`)
+/// and `--format` (a small closed set, e.g. `text`/`json`/`dot`, varying
+/// by subcommand but always clap-enforced) both satisfy this everywhere
+/// they appear in `agov/src/main.rs`.
+///
+/// Deliberately excludes flags whose safety would depend on
+/// application-level gating instead of the CLI boundary — even when that
+/// gating happens to hold today. Two examples found and removed during
+/// `d8h5`'s review: `--implementation` on `dist provenance-record
+/// file`/`oci` is an unconstrained `String` (BLOCK 1 confirmed this by
+/// persisting an arbitrary marker end-to-end); `--kind` on `coord
+/// post`/`coord brief` is also an unconstrained `String` at the clap
+/// level — it is only safe today because `valid_coord_kind()` rejects an
+/// unrecognized value and returns before either call site's
+/// `record_tool_output` call, an invariant that lives in ordinary
+/// application code and could be silently broken by a future refactor.
+/// A flag whose value is added here must have its `value_parser` cited in
+/// the accompanying test, not merely observed to behave safely.
+pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 
 /// Recognized flag names (long form). A flag name in this list is retained
 /// (names are the CLI's compiled surface); its value is retained only if
 /// the flag is also in [`CLOSED_VALUE_FLAGS`]. An argument token starting
 /// with `-` that is NOT in this list is caller-controlled and redacted in
 /// its entirety — name and value — under default-deny.
-const KNOWN_FLAG_NAMES: &[&str] = &[
-    "--kind",
-    "--id-format",
+///
+/// This is the exhaustive set of every long flag on every leaf command in
+/// `agov`'s clap tree (per `d8h5` BLOCK 4 — the earlier list both omitted
+/// real flags, e.g. `--branch`, `--recent`, `--roles`, `--manifest`,
+/// `--log`, `--manifest-path`, `--last`, and included flags that do not
+/// actually exist on the CLI at all: `--check`, `--paths`, `--files`, and
+/// `--id` are `agov-mcp` JSON tool-parameter names that get pushed as
+/// **positional** tokens, never as `--check`/`--paths`/`--files`/`--id`
+/// flags — confirmed against `agov coord validate <FILES>...`'s and
+/// `agov handoff take <ID>`'s real `--help` output, both positional).
+/// Enforced against the live clap surface by the parity test in
+/// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
+pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--format",
-    "--implementation",
+    "--id-format",
     "--from",
     "--to",
+    "--kind",
     "--topic",
+    "--model",
+    "--dir",
     "--ref",
     "--artifact",
     "--task",
-    "--model",
-    "--dir",
-    "--role",
-    "--base-branch",
-    "--check",
-    "--paths",
-    "--files",
     "--since",
-    "--id",
+    "--recent",
+    "--roles",
+    "--base-branch",
+    "--branch",
+    "--output",
+    "--role",
+    "--manifest",
+    "--log",
+    "--artifact-dir",
+    "--oci-image",
+    "--archive",
+    "--binary-name",
+    "--record",
+    "--releases-url",
+    "--download-dir",
     "--product",
     "--version",
     "--source-commit",
@@ -175,20 +252,15 @@ const KNOWN_FLAG_NAMES: &[&str] = &[
     "--build-timestamp",
     "--pipeline-id",
     "--job-id",
+    "--manifest-path",
+    "--implementation",
     "--packaging",
     "--target-platform",
     "--image-reference",
     "--manifest-digest",
     "--label-version",
     "--label-revision",
-    "--output",
-    "--archive",
-    "--binary-name",
-    "--record",
-    "--artifact-dir",
-    "--oci-image",
-    "--releases-url",
-    "--download-dir",
+    "--last",
 ];
 
 /// Default-deny redaction over the exact token stream received (v2.4.0
@@ -1019,12 +1091,50 @@ mod tests {
     }
 
     /// Acceptance test 6 (positive): closed-vocabulary command path and
-    /// closed-value flags survive unredacted.
+    /// closed-value flags survive unredacted. `--format`'s value set is
+    /// enforced by clap's `value_parser` at `validate`'s argument-parsing
+    /// boundary (`agov/src/main.rs`), so it qualifies for
+    /// [`CLOSED_VALUE_FLAGS`] under the `d8h5`-tightened rule.
     #[test]
     fn redact_args_retains_closed_vocabulary() {
         assert_eq!(
-            redact_args(&strings(&["coord", "validate", "--kind", "review"])),
-            strings(&["coord", "validate", "--kind", "review"])
+            redact_args(&strings(&["validate", "--format", "json"])),
+            strings(&["validate", "--format", "json"])
+        );
+    }
+
+    /// Gate 2 review `d8h5` BLOCK 1 regression: `--kind` and
+    /// `--implementation` are recognized flag *names* (retained), but
+    /// neither has a clap `value_parser` restricting its value, so both
+    /// values must redact like any other free-form flag — even though
+    /// `--kind`'s value happens to be gated by `valid_coord_kind()` at the
+    /// application level before any successful `coord post`/`coord brief`
+    /// call reaches `record_tool_output`, and `--implementation` has no
+    /// gating at all (confirmed by `d8h5`'s live reproduction: a
+    /// `dist provenance-record file` command with
+    /// `--implementation sensitive-marker-should-redact` succeeded and
+    /// persisted that string verbatim before this fix).
+    #[test]
+    fn redact_args_redacts_kind_and_implementation_values() {
+        assert_eq!(
+            redact_args(&strings(&["coord", "post", "--kind", "review"])),
+            strings(&["coord", "post", "--kind", REDACTED])
+        );
+        assert_eq!(
+            redact_args(&strings(&[
+                "dist",
+                "provenance-record",
+                "file",
+                "--implementation",
+                "sensitive-marker-should-redact",
+            ])),
+            strings(&[
+                "dist",
+                "provenance-record",
+                "file",
+                "--implementation",
+                REDACTED
+            ])
         );
     }
 
@@ -1064,8 +1174,12 @@ mod tests {
     #[test]
     fn redact_args_handles_equals_form() {
         assert_eq!(
+            redact_args(&strings(&["validate", "--format=json"])),
+            strings(&["validate", "--format=json"])
+        );
+        assert_eq!(
             redact_args(&strings(&["coord", "post", "--kind=review"])),
-            strings(&["coord", "post", "--kind=review"])
+            strings(&["coord", "post", &format!("--kind={REDACTED}")])
         );
         assert_eq!(
             redact_args(&strings(&["coord", "post", "--topic=secret stuff"])),

@@ -58,6 +58,73 @@ fn committed_codex_snapshot_reports_realistic_roi() {
     assert!(stdout.contains("coord-validate"));
 }
 
+/// Gate 2 review `d8h5` BLOCK 1 end-to-end regression: `dist
+/// provenance-record file` succeeds with an arbitrary `--implementation`
+/// value (no clap `value_parser` constrains it) and must not persist that
+/// value verbatim in the ROI log. `d8h5` reproduced the leak live against
+/// the pre-fix binary using this exact marker string.
+#[test]
+fn hostile_implementation_flag_value_is_redacted_after_successful_command() {
+    let log = temp_log_path();
+    let artifact = std::env::temp_dir().join(format!(
+        "agov-roi-redaction-fixture-{}-{}.bin",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    fs::write(&artifact, b"fixture artifact bytes").unwrap();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI_LOG", &log)
+        .env_remove("AGOV_TOKEN_ROI")
+        .args([
+            "dist",
+            "provenance-record",
+            "file",
+            "--product",
+            "agov",
+            "--version",
+            "9.9.9",
+            "--source-commit",
+            "abc123",
+            "--tag",
+            "untagged",
+            "--build-timestamp",
+            "2026-07-22T00:00:00Z",
+            "--implementation",
+            "sensitive-marker-should-redact",
+            "--packaging",
+            "tar.gz",
+            "--target-platform",
+            "x86_64-unknown-linux-musl",
+            "--artifact",
+        ])
+        .arg(&artifact)
+        .current_dir(repo_root())
+        .output()
+        .expect("run agov");
+
+    assert!(
+        output.status.success(),
+        "dist provenance-record file should succeed: {output:?}"
+    );
+
+    let content = fs::read_to_string(&log).unwrap_or_default();
+    assert!(
+        !content.contains("sensitive-marker-should-redact"),
+        "hostile --implementation value leaked into the ROI log: {content}"
+    );
+    assert!(
+        content.contains("\"--implementation\""),
+        "expected the flag name to survive redaction: {content}"
+    );
+
+    let _ = fs::remove_file(&artifact);
+    let _ = fs::remove_file(&log);
+}
+
 fn agov(args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_agov"))
         .env("AGOV_TOKEN_ROI", "0")

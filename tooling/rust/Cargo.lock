@@ -59,7 +59,6 @@ dependencies = [
 name = "agov-mcp"
 version = "2.3.1"
 dependencies = [
- "agov",
  "agov-core",
  "serde",
  "serde_json",
