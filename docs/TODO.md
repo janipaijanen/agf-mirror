@@ -156,3 +156,68 @@ Candidate output:
 2. A proposed baseline policy for routine coordination commands.
 3. Tests that protect the intended zero-savings behavior or the corrected
    savings behavior.
+
+## Deterministic Academic Figure Source Generation
+
+Status: open post-v2.4.0 TODO (Level 1: Planned). Owner: planner-architect for
+the Gate 1 design; coder-tester and build-engineer for implementation and
+reproducible-build evidence; governor-reviewer for scope and merge authority.
+Academic-peer-reviewer should review any claim that generated topology
+represents observed project evidence.
+
+Teach Rust `agov` to generate the DOT source for these currently hand-authored
+academic figures:
+
+- `docs/academic/figures/src/agent-participation-by-phase.dot`
+- `docs/academic/figures/src/role-communication-topology.dot`
+
+This is source generation, not merely rendering existing DOT with Graphviz.
+The existing `agov coord graph --format dot` command is only a partial
+precursor: it counts valid coordination messages by `(from, to, kind)` and
+emits a basic live graph. It does not currently reproduce either academic
+figure, declared-but-unobserved communication channels, governed role-to-phase
+mappings, human/governor authority relationships, evidence-window semantics,
+or the academic visual contract.
+
+Minimum design boundary:
+
+- derive observed communication edges from validated coordination records;
+- derive role identity and current status from `agf/agents/MANIFEST.yaml`;
+- represent declared-but-unobserved channels through an explicit governed
+  configuration rather than inventing them from absence or model inference;
+- represent participation by phase through an explicit governed role-to-phase
+  mapping, because message counts alone cannot prove phase participation;
+- require an explicit evidence window or snapshot identifier for any figure
+  presented as an observed case study;
+- distinguish observed durable traffic, declared/required channels, historical
+  aliases, human authority, AI-operated roles, and automated checks without
+  inferring actor or outcome from coordination message kind;
+- reuse the approved semantic palette and colour-independent shape/label
+  contract, while keeping participant, message-kind, responsibility, and
+  outcome axes distinct; and
+- emit deterministic DOT with stable node/edge ordering, escaping, labels, and
+  no ambient timestamps or machine-specific paths.
+
+Candidate command surface should be decided at Gate 1 rather than fixed here.
+It may extend `agov coord graph` or introduce a focused academic/figure
+subcommand, but it must keep the generic coordination graph useful and avoid
+hard-coding foundry-only role names into adopter-facing behavior.
+
+Minimum acceptance evidence:
+
+1. Fixture-driven exact-output tests for both figure types, including empty,
+   observed-only, declared-only, mixed, inactive-role, alias, and unknown-role
+   cases.
+2. Negative tests proving message kind is not treated as actor identity,
+   automation status, or approval outcome.
+3. Regeneration checks proving identical inputs produce byte-identical DOT.
+4. Graphviz SVG/PDF rendering checks with source/output synchronization and
+   desktop, narrow, light, dark/fixed-background, print/greyscale, and
+   screen-reader evidence.
+5. A documented migration that replaces the hand-authored academic DOT files
+   only after semantic review; until then, those files remain the authoritative
+   manually maintained sources.
+
+This TODO does not expand or block v2.4.0. Workstream D should correct and
+regenerate the existing sources under its approved release plan; generator
+implementation requires its own Gate 1 plan after the release priority clears.
