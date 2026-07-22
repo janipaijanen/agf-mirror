@@ -1,12 +1,56 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: coordination channel and handoff resolution
 // Generate: dot -Tsvg coordination-channel.dot -o ../coordination-channel.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). Same contract and shape
+// key as the other converted figures. Message-kind nodes inside the
+// channel cluster map onto the five responsibility categories (who is
+// responsible for that kind of entry): handoff = AI action, decision-
+// record = Human decision, completion = Automated check/validated
+// outcome, note/review = Reference/deferred content (advisory, not
+// binding). The two agent nodes are a separate, self-labelled axis
+// ("participating agent," already the original figure's own legend
+// entry) -- ellipse shape, coloured to match the responsibility hue of
+// that agent's typical role (AI action blue for Coder-Tester, Human
+// decision amber for Governor-Reviewer) so the two axes stay visually
+// consistent without conflating "kind of coordination entry" with
+// "kind of participant."
 digraph coord_channel {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.55,
            bgcolor=white, fontname="Helvetica", fontsize=12]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor=white, color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
+
+    // Shape key: four responsibility categories plus the figure-local
+    // "participating agent" axis, matching the other converted figures'
+    // shape-key treatment.
+    subgraph cluster_shapekey {
+        label = "Legend (responsibility / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+
+        sk_diamond   [label="human decision\n(decision-record)", shape=diamond,
+                      fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        sk_ai        [label="AI action\n(handoff)",
+                      style="filled,rounded", fillcolor="#99CCEE",
+                      color="#0077BB", fontcolor="#1A1A1A"]
+        sk_automated [label="automated check /\nvalidated outcome\n(completion)",
+                      style="filled,bold", peripheries=2, fillcolor="#009944",
+                      color="#009944", fontcolor="#1A1A1A"]
+        sk_reference [label="reference /\ndeferred content\n(note / review)",
+                      style="filled,dashed", fillcolor="#CCCCCC",
+                      color="#888888", fontcolor="#1A1A1A"]
+        sk_agent     [label="participating agent\n(AI or human role)",
+                      shape=ellipse, fillcolor="#99CCEE", color="#0077BB",
+                      fontcolor="#1A1A1A"]
+
+        sk_diamond -> sk_ai -> sk_automated -> sk_reference -> sk_agent
+            [style=invis]
+    }
 
     subgraph cluster_channel {
         label="docs/coordination/  (append-only)"
@@ -16,36 +60,34 @@ digraph coord_channel {
         fontname="Helvetica"
         fontsize=12
 
-        handoff   [label="handoff\n(requires-ack: true)", fillcolor=white]
-        decision  [label="decision-record\n(gate decision)", fillcolor=white]
-        completion [label="completion\n(task closed)", fillcolor="#009944",
-                   fontcolor=white, color="#009944"]
-        note      [label="note / review\n(advisory)", fillcolor=white,
-                   color="#888888"]
+        handoff   [label="handoff\n(requires-ack: true)", style="filled,rounded",
+                   fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+        decision  [label="decision-record\n(gate decision)", shape=diamond,
+                   fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        completion [label="completion\n(task closed)", style="filled,bold",
+                   peripheries=2, fillcolor="#009944", color="#009944",
+                   fontcolor="#1A1A1A"]
+        note      [label="note / review\n(advisory)", style="filled,dashed",
+                   fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
     }
 
     agent_a  [label="Coder-Tester\n(implementation)", shape=ellipse,
-              fillcolor="#99CCEE"]
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
     agent_b  [label="Governor-Reviewer\n(gate authority)", shape=ellipse,
-              fillcolor="#99CCEE"]
+              fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+
+    // Stack the shape key above the diagram, same technique as the
+    // other converted figures.
+    sk_agent -> agent_a [style=invis]
 
     agent_a  -> handoff   [label="files"]
     handoff  -> agent_b   [label="directs\nattention"]
     agent_b  -> decision  [label="files"]
-    decision -> agent_a   [label="authorizes\nor blocks"]
-    agent_a  -> completion [label="files\n(after merge)"]
+    decision -> agent_a   [label="authorizes\nor blocks", color="#EE7700",
+                           fontcolor="#1A1A1A"]
+    agent_a  -> completion [label="files\n(after merge)", color="#009944",
+                            fontcolor="#1A1A1A"]
     agent_a  -> note      [label="files\n(advisory / status)"]
-    agent_b  -> note      [label="files\n(advisory / status)"]
-
-    legend [shape=plain, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
-            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">participating agent (oval shape)</TD></TR>
-            <TR><TD BORDER="1" COLOR="#0077BB" WIDTH="28"></TD><TD ALIGN="LEFT">coordination entry</TD></TR>
-            <TR><TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">completed work</TD></TR>
-            <TR><TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">advisory / status entry</TD></TR>
-            <TR><TD><FONT COLOR="#0077BB">-----&gt;</FONT></TD><TD ALIGN="LEFT">authored entry / attention flow</TD></TR>
-        </TABLE>
-    >]
-    {rank=same; legend; agent_a}
+    agent_b  -> note      [label="files\n(advisory / status)", color="#EE7700",
+                           fontcolor="#1A1A1A"]
 }

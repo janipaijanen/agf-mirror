@@ -1,6 +1,22 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: adoption impact and exit/decommission flow
 // Generate: dot -Tsvg adoption-exit-flow.dot -o ../adoption-exit-flow.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). This figure's own axis
+// (adoption progress vs. reversible exit vs. terminal decommission
+// state) is not literally "who is responsible for this node," but it
+// reuses the same token set and the same colour-independence discipline
+// (shape differs per meaning, never colour alone) so the whole figure
+// set reads as one palette. "Freeze" and "Replace on update" are
+// deferred/optional paths -- Reference/deferred content treatment
+// (grey-light, dashed). "Decommission" is the terminal neutral state --
+// grey-mid (the base palette's own "Neutral / deferred" token, per
+// palette.md's Palette table), solid double border to distinguish it by
+// shape from the dashed deferred-path boxes. Fixes a contrast defect:
+// the prior white-on-grey-mid (#888888) text on "Decommission" was
+// approximately 3.54:1, below the 4.5:1 AA normal-text threshold this
+// script enforces; text is now #1A1A1A.
 digraph adoption_exit {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.5, ranksep=0.55,
            bgcolor=white, fontname="Helvetica", fontsize=12]
@@ -8,11 +24,40 @@ digraph adoption_exit {
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
+    // Shape key: matches the other converted figures' AI action /
+    // reference-deferred treatment, plus this figure's own neutral
+    // trigger and terminal-state shapes.
+    subgraph cluster_shapekey {
+        label = "Legend (meaning / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+
+        sk_oval      [label="assessment\n(trigger)", shape=ellipse,
+                      fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+        sk_ai        [label="AI-assisted\nadoption step",
+                      style="filled,rounded", fillcolor="#99CCEE",
+                      color="#0077BB", fontcolor="#1A1A1A"]
+        sk_reference [label="reversible /\ndeferred exit option",
+                      style="filled,dashed", fillcolor="#CCCCCC",
+                      color="#888888", fontcolor="#1A1A1A"]
+        sk_terminal  [label="terminal\ndecommissioned state",
+                      style="filled,bold", peripheries=2, fillcolor="#888888",
+                      color="#888888", fontcolor="#1A1A1A"]
+
+        sk_oval -> sk_ai -> sk_reference -> sk_terminal [style=invis]
+    }
+
     assess   [label="Step 0: Assess\n(risk profile, team size)", shape=ellipse,
-              fillcolor=white, color="#888888"]
-    install  [label="Install\n(assistant setup,\nreview rules)"]
-    first    [label="First governed\nchange"]
-    operate  [label="Operate\n(ongoing gate discipline)"]
+              fillcolor=white, color="#888888", fontcolor="#1A1A1A"]
+    install  [label="Install\n(assistant setup,\nreview rules)",
+              style="filled,rounded", fillcolor="#99CCEE", color="#0077BB",
+              fontcolor="#1A1A1A"]
+    first    [label="First governed\nchange", style="filled,rounded",
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    operate  [label="Operate\n(ongoing gate discipline)", style="filled,rounded",
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
 
     subgraph cluster_exit {
         label="Exit options"
@@ -22,32 +67,28 @@ digraph adoption_exit {
         fontname="Helvetica"
         fontsize=12
 
-        freeze   [label="Freeze\n(stop new governed\nchanges)", fillcolor=white,
-                  color="#888888"]
+        freeze   [label="Freeze\n(stop new governed\nchanges)", style="filled,dashed",
+                  fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
         replace  [label="Replace on update\n(migrate to new\ngovernance system)",
-                  fillcolor=white, color="#888888"]
+                  style="filled,dashed", fillcolor="#CCCCCC", color="#888888",
+                  fontcolor="#1A1A1A"]
         decomm   [label="Decommission\n(remove tooling,\nretain records)",
-                  fillcolor="#888888", fontcolor=white]
+                  style="filled,bold", peripheries=2, fillcolor="#888888",
+                  color="#888888", fontcolor="#1A1A1A"]
     }
+
+    // Stack the shape key above the diagram, same technique as the
+    // other converted figures.
+    sk_terminal -> assess [style=invis]
 
     assess   -> install  [label="risk accepted"]
     install  -> first    [label="Gate 1 / Gate 2\nfor initial change"]
     first    -> operate
-    operate  -> freeze   [label="project ends", style=dashed, color="#888888"]
+    operate  -> freeze   [label="project ends", style=dashed, color="#888888",
+                          fontcolor="#1A1A1A"]
     operate  -> replace  [label="governance\nevolution", style=dashed,
-                          color="#888888"]
+                          color="#888888", fontcolor="#1A1A1A"]
     freeze   -> decomm   [style=dashed, color="#888888"]
     replace  -> decomm   [style=dashed, color="#888888",
-                          label="after migration"]
-
-    legend [shape=plain, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend</B></TD></TR>
-            <TR><TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">adoption / operation step</TD></TR>
-            <TR><TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">reversible exit option</TD></TR>
-            <TR><TD BGCOLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">decommissioned state</TD></TR>
-            <TR><TD><FONT COLOR="#888888">- - -</FONT></TD><TD ALIGN="LEFT">exit path</TD></TR>
-        </TABLE>
-    >]
-    {rank=same; legend; assess}
+                          label="after migration", fontcolor="#1A1A1A"]
 }
