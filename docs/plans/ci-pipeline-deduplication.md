@@ -74,29 +74,30 @@ workflow:
   rules:
     - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
       when: never
-    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
       when: never
     - when: always
 ```
 
-All three conditions must hold simultaneously for suppression:
+All four conditions must hold simultaneously for suppression:
 
 1. **`$CI_COMMIT_BRANCH`** — the pipeline is for a branch (this excludes
    tag pipelines, which set `$CI_COMMIT_TAG` instead and leave
    `$CI_COMMIT_BRANCH` unset).
-2. **`$CI_OPEN_MERGE_REQUESTS`** — GitLab populates this predefined
+2. **`$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`** — default-branch
+   preservation is enforced structurally by this comparison, not inferred
+   from the project convention that `main` is never an MR source branch.
+   Gate 1 review `r2hr` BLOCK 1 correctly found the earlier three-condition
+   form relied on that convention holding rather than the predicate itself
+   guaranteeing it; this condition makes it a property of the rule.
+3. **`$CI_OPEN_MERGE_REQUESTS`** — GitLab populates this predefined
    variable, in branch-push pipeline context only, with a comma-separated
    list of up to four open MRs sourced from this branch. Empty/unset when
    no MR exists yet.
-3. **`$CI_PIPELINE_SOURCE == "push"`** — restricts the rule to a plain
+4. **`$CI_PIPELINE_SOURCE == "push"`** — restricts the rule to a plain
    git push event. Excludes `merge_request_event` (the MR pipeline itself,
    which must always run), `schedule`, `api`, `trigger`, `pipeline`
    (downstream/multi-project), and `web` (manual UI-triggered runs).
-
-The default `main` branch is a source branch for no MR (an MR's source is
-always a feature branch), so `$CI_OPEN_MERGE_REQUESTS` is always
-unset/empty for pushes/merges to `main` — the rule structurally cannot
-match there regardless of `$CI_COMMIT_BRANCH` being set.
 
 ## Pipeline-source acceptance matrix
 
@@ -105,7 +106,7 @@ match there regardless of `$CI_COMMIT_BRANCH` being set.
 | Feature-branch push | yes | Branch pipeline runs (duplicate of the MR pipeline) | **No branch pipeline; MR pipeline is the sole evidence path** |
 | Feature-branch push | no | Branch pipeline runs | Unchanged — branch pipeline runs |
 | Merge-request event | yes | MR pipeline runs | Unchanged — MR pipeline runs |
-| Default-branch (`main`) push/merge | n/a | Pipeline runs | Unchanged |
+| Default-branch (`main`) push/merge | n/a | Pipeline runs | Unchanged — structurally guaranteed by `$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`, not inferred from branch-naming convention |
 | Tag push | n/a | Tag pipeline runs (`agf:dist:release` etc.) | Unchanged |
 | Scheduled pipeline | n/a | Runs | Unchanged |
 | API-triggered pipeline | n/a | Runs | Unchanged |
@@ -115,38 +116,76 @@ match there regardless of `$CI_COMMIT_BRANCH` being set.
 
 ## Test strategy / acceptance evidence
 
+**Publication sequence (Gate 1 review `r2hr` BLOCK 2 correction):** `ci.skip`
+must not be used once the implementation MR exists and the new rule is
+present in that branch's `.gitlab-ci.yml`. Exact evidence that `ci.skip`
+after an MR exists skips *both* the push and MR pipeline records (not just
+the push): MR !401 head `3a9fd1b` (push pipeline `2697834986` skipped, MR
+pipeline `2697835033` skipped) and MR !397 head `5b7c66f` (push pipeline
+`2697802812` skipped, MR pipeline `2697802875` skipped). A `ci.skip`-based
+"zero pipelines" result would look identical to a working guard and
+identical to a broken one — it cannot be used as acceptance evidence. The
+corrected sequence:
+
+1. The initial implementation-branch push may use `ci.skip` (opening the
+   MR then supplies its first ordinary MR pipeline — MR !404 itself
+   demonstrated this exact pattern).
+2. Once the MR exists and the new workflow guard is present on that
+   branch, every subsequent acceptance push must **not** use `ci.skip`.
+   The new rule — not a push option — must be what suppresses the branch
+   pipeline while one ordinary MR pipeline runs for that exact SHA.
+
+### Gate 2 (pre-merge) evidence
+
 1. **GitLab CI Lint** (`glab ci lint .gitlab-ci.yml` or the project's CI
    Lint page) confirms the modified `workflow.rules` block parses and the
    rule ordering is syntactically and semantically valid (rules evaluate
    top-to-bottom, first match wins — the coordination-skip rule must stay
    first since it is a `when: never` independent of MR state).
-2. **Live reproduction on the implementation branch itself**, which is
-   the natural acceptance test: once this plan's own implementation
-   branch has an open MR, every subsequent push to that branch must
-   produce **zero** new branch pipelines and **one** MR pipeline per
-   push — the exact condition this plan exists to fix, observed on the
-   fix's own branch.
-3. **Negative-path check, per `gate-self-test-rule`**: before this rule
-   existed, MR !398's `dd2e5e6` is the on-record negative case (duplicate
-   pipelines `2697575704` + `2697576236`). After merge, the next commit
-   pushed to an MR-attached branch must show only one pipeline in
-   `glab api projects/:id/merge_requests/<N>/pipelines` — a passing
-   negative-path reproduction is required Gate 2 evidence, not merely a
-   green pipeline.
+2. **Live reproduction on the implementation branch itself, without
+   `ci.skip`** (per the corrected sequence above): once this plan's own
+   implementation branch has an open MR, a subsequent ordinary push to
+   that branch must produce **zero** new branch pipelines and **one**
+   ordinary (non-skipped) MR pipeline — the exact condition this plan
+   exists to fix, observed on the fix's own branch, with the rule itself
+   (not a push option) doing the suppressing.
+3. **Negative-path check, per `gate-self-test-rule`**: MR !398's `dd2e5e6`
+   is the on-record negative case predating this fix (duplicate pipelines
+   `2697575704` + `2697576236`). Item 2 above is the positive-path
+   reproduction of the same scenario post-fix; both must be cited
+   together as Gate 2 evidence, not a green pipeline alone.
 4. **No MR left un-evaluated**: confirm via the GitLab MR "pipeline"
    widget (or `glab api`) that the MR pipeline itself always still runs
    and is picked up as the MR's status check — i.e. suppressing the
    branch pipeline does not leave the MR at "checking pipeline status"
    with nothing to check.
-5. **Default-branch and tag regression check**: the next ordinary push to
-   `main` (post-merge of this change) and the next tag push (next
-   release) must each still produce exactly the pipeline they produce
-   today — confirmed by inspecting those pipelines' `source` field via
-   `glab api`.
+5. **Static source-boundary check**: confirm via `grep` over
+   `.gitlab-ci.yml` that no job's own `rules:` references
+   `$CI_OPEN_MERGE_REQUESTS`, and that no job relies on
+   `$CI_PIPELINE_SOURCE == "push"` in a way the new top-level suppression
+   would break (already checked for the current file as part of this
+   plan's risk analysis below).
+
+### Post-merge / post-release monitoring (not Gate 2 evidence)
+
+6. **Default-branch regression**: the next ordinary push/merge to `main`
+   after this change merges must still produce exactly the pipeline it
+   produces today (confirmed via `glab api`'s `source` field). This can
+   only be observed after merge, not before.
+7. **Tag regression**: the next *independently authorized* tag push (the
+   next actual release) must still produce a tag pipeline unchanged. This
+   is release-monitoring evidence, observed whenever the next real release
+   happens — it is not something this plan's own Gate 2 can produce, since
+   fabricating a tag push purely for this plan's evidence would require
+   its own release authorization this plan does not have and should not
+   request.
 
 No new CI jobs, no removed jobs, no changed job conditions — the
 acceptance evidence is entirely about *which pipeline instance* runs the
-existing jobs, never about the jobs' own pass/fail behavior.
+existing jobs, never about the jobs' own pass/fail behavior. Per
+`downstream-impact-rule`, this is classified **PREVENTIVE/behavioral**, not
+editorial: it intentionally changes which pipeline instances exist for a
+given commit, even though no job body changes.
 
 ## Risks
 
@@ -189,8 +228,9 @@ not begin before this plan's Gate 1 approval, per `r8tg`/`1611`/`ek13`.
 
 ## Cost containment while this plan is under review
 
-Per `r5mm`'s interim instruction, this plan's own coordination and
-implementation pushes use GitLab's `ci.skip` push option so only the
-plan/implementation MR's own pipeline (opened once, not on every push)
-provides CI evidence until this fix itself lands — the fix's own review
-cycle should not add to the cost problem it exists to solve.
+Per `r5mm`'s interim instruction and `r2hr`'s BLOCK 2 correction: plan-only
+and coordination-only pushes (no `.gitlab-ci.yml` change) use `ci.skip`.
+Once the implementation branch's MR exists and carries the new rule,
+`ci.skip` is no longer used on that branch — the acceptance evidence
+requires an ordinary, non-skipped push so the new rule itself is what's
+observed suppressing the branch pipeline (see "Test strategy" above).
