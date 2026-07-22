@@ -25,9 +25,12 @@ No new accounts. No hosted service. No runtime. The framework is files in your
 repo, instructions your AI assistant reads, and optional validators your CI can
 run.
 
-> AGF releases ship the complete governance library. The documented first-trial
-> path activates a selected subset rather than every role and task-specific
-> rule; a reduced starter package does not currently ship.
+> AGF releases ship the complete governance library — every role, rule,
+> skill, schema, and template. In the maintainer's own deployments, the full
+> rule set has run unpruned from day one, without a manual curation step,
+> and has worked well as shipped; curating the rule set down is optional,
+> not a documented prerequisite. A reduced starter package does not
+> currently ship.
 
 See [what ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate)
 before treating the complete distribution as a mandatory day-one configuration.

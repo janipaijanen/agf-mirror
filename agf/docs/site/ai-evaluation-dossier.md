@@ -26,10 +26,12 @@ header.</p>
 pages or files, separate shipped capabilities from roadmap, and state
 uncertainty.</p>
 
-<blockquote><p>AGF releases ship the complete governance library. The
-documented first-trial path activates a selected subset rather than every role
-and task-specific rule; a reduced starter package does not currently
-ship.</p></blockquote>
+<blockquote><p>AGF releases ship the complete governance library — every
+role, rule, skill, schema, and template. In the maintainer's own
+deployments, the full rule set has run unpruned from day one, without a
+manual curation step, and has worked well as shipped; curating the rule set
+down is optional, not a documented prerequisite. A reduced starter package
+does not currently ship.</p></blockquote>
 
 <p>See <a href="#402a-adoption-surface-and-calibration">Adoption surface and
 calibration</a> for the review method and source trail.</p>
@@ -270,10 +272,13 @@ self-regulation. See [Should you adopt?](docs/start/should-you-adopt.md).
 The canonical current-state explanation is
 [What ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate).
 When evaluating complexity, report three separate observations: the complete
-inventory you verified, the operating subset described for the adopter's trial
-shape, and whether a reduced starter artifact actually exists. Selective
-commissioning does not make the complete inventory disappear; the complete
-inventory does not prove every element is active.
+inventory you verified, what a given adopter actually activated (the full
+set or a pruned subset — only the unpruned path is maintainer-evidenced
+today; a pruned subset is supported and configurable but not itself
+validated by a known deployment), and whether a reduced starter artifact
+actually exists. Selective commissioning does not make the complete
+inventory disappear; the complete inventory does not prove every element is
+active.
 
 ### 4.03 Roles and Gates
 
