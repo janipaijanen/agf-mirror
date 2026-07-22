@@ -195,6 +195,14 @@ Minimum design boundary:
 - reuse the approved semantic palette and colour-independent shape/label
   contract, while keeping participant, message-kind, responsibility, and
   outcome axes distinct; and
+- include versioned, closed-allowlist provenance metadata so a future reader
+  can trace each generated figure back to the generator version, repository
+  source commit, explicit evidence window/snapshot, governed configuration,
+  and repository-relative input files (with stable content hashes where
+  applicable); carry the DOT-to-SVG/PDF subject and SHA-256 linkage in an
+  embedded record or adjacent provenance sidecar chosen at Gate 1; prohibit
+  absolute paths, host/user/session identifiers, raw environment maps, and
+  ambient timestamps that would leak local state or break reproducibility; and
 - emit deterministic DOT with stable node/edge ordering, escaping, labels, and
   no ambient timestamps or machine-specific paths.
 
@@ -217,6 +225,13 @@ Minimum acceptance evidence:
 5. A documented migration that replaces the hand-authored academic DOT files
    only after semantic review; until then, those files remain the authoritative
    manually maintained sources.
+6. Provenance validation proving a reader can resolve the generator and input
+   revision from the published artifact set, with negative cases for missing,
+   mismatched, dangling, duplicated, unknown-key, and checksum-inconsistent
+   metadata.
+7. Privacy fixtures proving provenance cannot persist absolute/home paths,
+   host, user, assistant, model-session, conversation, request, or raw
+   environment identifiers.
 
 This TODO does not expand or block v2.4.0. Workstream D should correct and
 regenerate the existing sources under its approved release plan; generator
