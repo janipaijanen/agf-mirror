@@ -1,53 +1,56 @@
 # SPDX-License-Identifier: MIT
 """Mechanical WCAG AA contrast regression for the semantic responsibility
 palette (agf/docs/site/reference/palette.md, "Semantic responsibility
-palette" section).
+palette" section) and every DOT figure that applies it.
 
 Gate 2 review `20260722T125000Z-contribution-auditor-r4js` (BLOCK 1) found
 that the palette contract's original text-colour assignments for Human
 decision (amber) and Automated check (green-mid) rendered below the 4.5:1
-WCAG AA normal-text threshold at the node label sizes figures actually use
-(2.89:1 and 3.72:1 respectively -- both fail; the contract had wrongly
-compared them against the weaker 3:1 large-text/fill threshold instead).
-This script encodes the corrected pairings as an executable check so a
-future edit to palette.md or a figure cannot silently reintroduce an
-invalid text/fill pairing without the docs build noticing.
+WCAG AA normal-text threshold. The first version of this script fixed the
+values but hard-coded them as duplicated Python constants -- Gate 2
+re-review `20260722T130424Z-contribution-auditor-h1s8` (BLOCK 1) correctly
+found that a duplicated check does not guard the governed sources: changing
+`palette.md`'s text-colour column, or a figure's `fontcolor=`, back to an
+invalid value left this check green because it never read those files.
+
+This version reads the actual sources of truth instead of a private copy:
+
+- `agf/docs/site/reference/palette.md`'s base "Palette" table supplies the
+  token -> hex map (single source for hex values).
+- `agf/docs/site/reference/palette.md`'s "Semantic responsibility palette"
+  table supplies the fill/text pairings the contract requires.
+- Every `agf/docs/figures/src/*.dot` file is scanned for explicit
+  `fontcolor=` assignments (the only places a figure renders text on a
+  fill) and each is checked against its node's `fillcolor` (or white, for
+  unfilled nodes/edge labels on the page background).
 
 Run directly: `python3 agf/docs/build/hooks/check_palette_contrast.py`
-Exits non-zero (and prints every failing pairing) if any responsibility
-pairing regresses below its documented WCAG target.
+Self-test (parser correctness, not just the current sources):
+`python3 agf/docs/build/hooks/check_palette_contrast.py --self-test`
 """
 
 from __future__ import annotations
 
+import re
 import sys
+from pathlib import Path
 
-# Hex tokens from the "Palette" table in palette.md.
-TOKENS = {
-    "blue-mid": "#0077BB",
-    "blue-light": "#99CCEE",
-    "green-mid": "#009944",
-    "amber": "#EE7700",
-    "red-mid": "#CC3311",
-    "grey-mid": "#888888",
-    "grey-light": "#CCCCCC",
-    "white": "#FFFFFF",
-    "near-black": "#1A1A1A",
-}
+REPO_ROOT = Path(__file__).resolve().parents[4]
+PALETTE_MD = REPO_ROOT / "agf/docs/site/reference/palette.md"
+DOT_SOURCE_DIR = REPO_ROOT / "agf/docs/figures/src"
 
-# (responsibility, fill token, text token, minimum ratio, why)
-# Every figure node in the inventory renders labels at normal text size
-# (e.g. gate-pipeline's 11pt), never WCAG "large text" -- so every
-# text-on-fill pairing here must clear the full 4.5:1 threshold, not the
-# weaker 3:1 large-text/fill one.
-RESPONSIBILITY_PAIRINGS = [
-    ("Human decision", "amber", "near-black", 4.5),
-    ("AI action", "blue-light", "near-black", 4.5),
-    ("Automated check / validated outcome", "green-mid", "near-black", 4.5),
-    ("Shared concept", "white", "blue-mid", 4.5),
-    ("Reference / deferred content", "grey-light", "near-black", 4.5),
-    ("Rejected / blocked outcome", "red-mid", "white", 4.5),
-]
+MIN_CONTRAST_NORMAL_TEXT = 4.5
+
+NAMED_COLOURS = {"white": "#FFFFFF", "black": "#000000"}
+
+HEX_RE = re.compile(r"#([0-9A-Fa-f]{6})")
+TOKEN_ROW_RE = re.compile(r"^\|\s*`([\w-]+)`\s*\|\s*`(#[0-9A-Fa-f]{6})`\s*\|")
+ATTR_BLOCK_RE = re.compile(r"\[([^\[\]]*)\]", re.DOTALL)
+ATTR_RE = re.compile(r'(\w+)\s*=\s*("(?:[^"\\]|\\.)*"|[^,\]\s]+)', re.DOTALL)
+
+
+class ContrastCheckError(ValueError):
+    pass
 
 
 def _linearize(channel: float) -> float:
@@ -70,25 +73,265 @@ def contrast_ratio(hex_a: str, hex_b: str) -> float:
     return (lighter + 0.05) / (darker + 0.05)
 
 
-def main() -> int:
-    failures = []
-    for responsibility, fill_token, text_token, minimum in RESPONSIBILITY_PAIRINGS:
-        ratio = contrast_ratio(TOKENS[fill_token], TOKENS[text_token])
-        status = "OK" if ratio >= minimum else "FAIL"
-        print(
-            f"[{status}] {responsibility}: {text_token} on {fill_token} "
-            f"= {ratio:.2f}:1 (need >= {minimum}:1)"
-        )
-        if ratio < minimum:
-            failures.append((responsibility, fill_token, text_token, ratio, minimum))
+def normalize_hex(value: str) -> str | None:
+    value = value.strip().strip('"')
+    m = HEX_RE.search(value)
+    if m:
+        return "#" + m.group(1).upper()
+    return NAMED_COLOURS.get(value.lower())
 
-    if failures:
-        print(f"\n{len(failures)} palette pairing(s) fail their WCAG target.")
+
+def parse_base_palette_table(md_text: str) -> dict[str, str]:
+    """Token name -> hex, read from palette.md's "Palette" table."""
+    tokens: dict[str, str] = {}
+    for line in md_text.splitlines():
+        m = TOKEN_ROW_RE.match(line)
+        if m:
+            tokens[m.group(1)] = m.group(2).upper()
+    return tokens
+
+
+def resolve_colour_ref(ref: str, tokens: dict[str, str]) -> str:
+    """Resolve a responsibility-table cell (hex literal, `token` backtick
+    reference, or a bare colour word like "white") to a hex string."""
+    hex_hit = normalize_hex(ref)
+    if hex_hit:
+        return hex_hit
+    m = re.search(r"`([\w-]+)`", ref)
+    if m and m.group(1) in tokens:
+        return tokens[m.group(1)]
+    for name, hex_value in NAMED_COLOURS.items():
+        if name in ref.lower():
+            return hex_value
+    raise ContrastCheckError(f"cannot resolve colour reference: {ref!r}")
+
+
+def parse_responsibility_table(
+    md_text: str, tokens: dict[str, str]
+) -> list[tuple[str, str, str]]:
+    """(responsibility, fill_hex, text_hex) rows from the "Semantic
+    responsibility palette" table."""
+    rows: list[tuple[str, str, str]] = []
+    in_section = False
+    seen_header = False
+    for line in md_text.splitlines():
+        if line.startswith("## Semantic responsibility palette"):
+            in_section = True
+            continue
+        if in_section and line.startswith("## "):
+            break
+        if not in_section:
+            continue
+        if not line.startswith("|"):
+            continue
+        cols = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cols) < 4:
+            continue
+        if cols[0] == "Responsibility":
+            seen_header = True
+            continue
+        if set(cols[0]) <= {"-"}:
+            continue
+        if not seen_header:
+            continue
+        name, fill_ref, _border_ref, text_ref = cols[0], cols[1], cols[2], cols[3]
+        rows.append((name, resolve_colour_ref(fill_ref, tokens), resolve_colour_ref(text_ref, tokens)))
+    return rows
+
+
+def parse_dot_attribute_blocks(dot_text: str) -> list[dict[str, str]]:
+    """Every `[...]` attribute block in a DOT source, as a dict. Multi-line
+    blocks are supported (Graphviz attribute lists may span lines)."""
+    blocks = []
+    for raw_block in ATTR_BLOCK_RE.findall(dot_text):
+        attrs = {}
+        for key, value in ATTR_RE.findall(raw_block):
+            attrs[key] = value.strip().strip('"')
+        if attrs:
+            blocks.append(attrs)
+    return blocks
+
+Pairing = tuple[str, str, str]
+
+
+def parse_dot_text_pairings(dot_text: str) -> list[Pairing]:
+    """(label, background_hex, fontcolor_hex) for every node/edge statement
+    that sets an explicit `fontcolor`."""
+    pairings: list[Pairing] = []
+    for attrs in parse_dot_attribute_blocks(dot_text):
+        if "fontcolor" not in attrs:
+            continue
+        fontcolor_hex = normalize_hex(attrs["fontcolor"])
+        if fontcolor_hex is None:
+            continue
+        style = attrs.get("style", "")
+        if "filled" in style or "fillcolor" in attrs:
+            bg_hex = normalize_hex(attrs.get("fillcolor", "white")) or "#FFFFFF"
+        else:
+            # Unfilled node or an edge label: rendered on the page background.
+            bg_hex = "#FFFFFF"
+        label = attrs.get("label", "(no label)").replace("\\n", " ")
+        pairings.append((label, bg_hex, fontcolor_hex))
+    return pairings
+
+
+CONTRACT_MARKER = "Semantic responsibility palette:"
+
+
+def iter_dot_sources() -> list[Path]:
+    """DOT sources that have opted into the responsibility-palette contract.
+
+    Most figures under agf/docs/figures/src/ still use the pre-contract,
+    per-figure palette from before Workstream D and have not been converted
+    yet (that conversion is deliberately incremental, one figure at a time
+    -- see the plan's Class 1/3/4 inventory). Scanning every *.dot file
+    unconditionally would fail this check on unrelated, unconverted figures
+    the instant it merges, well before their own conversion MRs land.
+    Instead, a figure opts in by carrying the same header-comment reference
+    to palette.md's contract section that gate-pipeline.dot already uses
+    ("Semantic responsibility palette: agf/docs/site/reference/palette.md")
+    -- exactly the marker each conversion MR adds. No separate registry to
+    keep in sync; the figure's own source states whether it is governed.
+    """
+    sources = sorted(DOT_SOURCE_DIR.glob("*.dot"))
+    return [p for p in sources if CONTRACT_MARKER in p.read_text(encoding="utf-8")]
+
+
+def check_pairings(
+    pairings: list[Pairing], source: str, minimum: float = MIN_CONTRAST_NORMAL_TEXT
+) -> list[tuple[str, str, float, float]]:
+    """Print each pairing's result; return the list of failures."""
+    failures = []
+    for label, bg_hex, fg_hex in pairings:
+        ratio = contrast_ratio(bg_hex, fg_hex)
+        status = "OK" if ratio >= minimum else "FAIL"
+        print(f"[{status}] {source}: {fg_hex} on {bg_hex} ({label}) = {ratio:.2f}:1 (need >= {minimum}:1)")
+        if ratio < minimum:
+            failures.append((source, label, ratio, minimum))
+    return failures
+
+
+def run_real_checks() -> int:
+    if not PALETTE_MD.exists():
+        raise ContrastCheckError(f"palette contract not found: {PALETTE_MD}")
+
+    md_text = PALETTE_MD.read_text(encoding="utf-8")
+    tokens = parse_base_palette_table(md_text)
+    if not tokens:
+        raise ContrastCheckError(
+            f"parsed zero tokens from {PALETTE_MD} -- parser is broken or the "
+            "table format changed"
+        )
+
+    responsibility_rows = parse_responsibility_table(md_text, tokens)
+    if not responsibility_rows:
+        raise ContrastCheckError(
+            f"parsed zero responsibility-table rows from {PALETTE_MD} -- "
+            "parser is broken or the section was renamed/removed"
+        )
+
+    all_failures: list[tuple[str, str, float, float]] = []
+    all_failures += check_pairings(
+        [(name, fill, text) for name, fill, text in responsibility_rows],
+        "palette.md#semantic-responsibility-palette",
+    )
+
+    dot_sources = iter_dot_sources()
+    if not dot_sources:
+        raise ContrastCheckError(f"no *.dot files found under {DOT_SOURCE_DIR}")
+
+    checked_any_dot_pairing = False
+    for dot_path in dot_sources:
+        pairings = parse_dot_text_pairings(dot_path.read_text(encoding="utf-8"))
+        if pairings:
+            checked_any_dot_pairing = True
+        all_failures += check_pairings(pairings, dot_path.relative_to(REPO_ROOT).as_posix())
+
+    if not checked_any_dot_pairing:
+        raise ContrastCheckError(
+            "parsed zero fontcolor-bearing node/edge blocks across all *.dot "
+            "sources -- parser is broken (every figure has at least one "
+            "explicit fontcolor today)"
+        )
+
+    if all_failures:
+        print(f"\n{len(all_failures)} pairing(s) fail their WCAG target.")
         return 1
 
-    print(f"\nAll {len(RESPONSIBILITY_PAIRINGS)} palette pairings meet their WCAG target.")
+    print(
+        f"\nAll {len(responsibility_rows)} responsibility pairing(s) and all DOT "
+        f"figure text/fill pairings meet their WCAG target."
+    )
     return 0
 
 
+# ── Self-test: prove the parser actually detects a bad pairing ──────────────
+
+
+def _self_test() -> int:
+    good_md = """
+## Palette
+
+| Token | Hex | Contrast on white | Role | Usage |
+|---|---|---|---|---|
+| `amber` | `#EE7700` | 2.89:1 — fill only | Caution / pending | Pending gate |
+
+## Semantic responsibility palette (who acts, not what happened)
+
+| Responsibility | Token (fill) | Border/line | Text colour | Shape (colour-independence) |
+|---|---|---|---|---|
+| Human decision | `amber` `#EE7700` | `amber` | `#1A1A1A` | diamond |
+
+## Next section
+"""
+    tokens = parse_base_palette_table(good_md)
+    assert tokens == {"amber": "#EE7700"}, tokens
+
+    good_rows = parse_responsibility_table(good_md, tokens)
+    assert good_rows == [("Human decision", "#EE7700", "#1A1A1A")], good_rows
+    good_failures = check_pairings(good_rows, "self-test/good")
+    assert not good_failures, "conforming pairing was wrongly flagged as a failure"
+
+    bad_md = good_md.replace("`#1A1A1A`", "white")
+    bad_tokens = parse_base_palette_table(bad_md)
+    bad_rows = parse_responsibility_table(bad_md, bad_tokens)
+    assert bad_rows == [("Human decision", "#EE7700", "#FFFFFF")], bad_rows
+    bad_failures = check_pairings(bad_rows, "self-test/bad")
+    assert bad_failures, "mutated white-on-amber pairing was NOT detected as a failure"
+
+    good_dot = """
+    digraph g {
+        gate1 [label="Gate 1", shape=diamond, fillcolor="#EE7700",
+               fontcolor="#1A1A1A"]
+    }
+    """
+    good_dot_failures = check_pairings(parse_dot_text_pairings(good_dot), "self-test/dot-good")
+    assert not good_dot_failures, "conforming DOT pairing was wrongly flagged"
+
+    bad_dot = good_dot.replace('fontcolor="#1A1A1A"', "fontcolor=white")
+    bad_dot_pairings = parse_dot_text_pairings(bad_dot)
+    assert bad_dot_pairings == [("Gate 1", "#EE7700", "#FFFFFF")], bad_dot_pairings
+    bad_dot_failures = check_pairings(bad_dot_pairings, "self-test/dot-bad")
+    assert bad_dot_failures, "mutated white-on-amber DOT pairing was NOT detected"
+
+    print("\nSelf-test passed: the parser detects both a conforming and a mutated-invalid pairing.")
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if "--self-test" in argv:
+        try:
+            return _self_test()
+        except AssertionError as exc:
+            print(f"SELF-TEST FAILURE: {exc}")
+            return 1
+
+    try:
+        return run_real_checks()
+    except ContrastCheckError as exc:
+        print(f"ERROR: {exc}")
+        return 1
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

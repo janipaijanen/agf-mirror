@@ -37,8 +37,8 @@ reference tokens by name rather than hex literal.
 text on white. `green-mid` and `grey-mid` meet the large-text threshold
 (3:1). `blue-light`, `amber`, and `grey-light` do not meet either
 threshold for text — use them for fills and strokes only, always paired
-with a dark label (`#1A1A1A` or `black`, both >15:1 on `grey-light` and
-`blue-light`).
+with a dark label (`#1A1A1A`, ~10.1:1 on `blue-light` and ~10.8:1 on
+`grey-light` — both well clear of the 4.5:1 AA normal-text threshold).
 
 ## Usage rules
 
@@ -139,11 +139,10 @@ bold) or fill-only usage — the same target this page's existing
 text, so every text-on-fill pairing in the responsibility table must
 clear the full 4.5:1 threshold — not just the weaker 3:1 fill/large-text
 one. All five do: `#1A1A1A`-on-`amber` (~6.03:1), `#1A1A1A`-on-`green-mid`
-(~4.67:1), `#1A1A1A`-on-`blue-light` and `#1A1A1A`-on-`grey-light`
-(>15:1, per "Neutral foreground/background tokens" above), and
-`blue-mid`-on-white (the Shared concept text colour, ~4.82:1). White
-text is reserved for `red-mid` fills (~5.19:1), which also clears
-4.5:1.
+(~4.67:1), `#1A1A1A`-on-`blue-light` (~10.1:1) and `#1A1A1A`-on-`grey-light`
+(~10.8:1), and `blue-mid`-on-white (the Shared concept text colour,
+~4.82:1). White text is reserved for `red-mid` fills (~5.19:1), which
+also clears 4.5:1.
 
 ### Mermaid usage
 

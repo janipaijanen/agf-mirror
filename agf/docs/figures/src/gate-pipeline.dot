@@ -17,15 +17,15 @@ digraph gate_pipeline {
     graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.4, ranksep=0.55,
            bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
         <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="2"><B>Legend (edge / arrow meaning)</B></TD></TR>
+            <TR><TD COLSPAN="3"><B>Legend (edge / arrow meaning)</B></TD></TR>
             <TR>
-                <TD><FONT COLOR="#009944">──&gt;</FONT></TD><TD ALIGN="LEFT">approved</TD>
+                <TD BGCOLOR="#009944" WIDTH="18"></TD><TD ALIGN="LEFT">solid</TD><TD ALIGN="LEFT">approved</TD>
             </TR>
             <TR>
-                <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD>
+                <TD BGCOLOR="#EE7700" WIDTH="18"></TD><TD ALIGN="LEFT">dashed</TD><TD ALIGN="LEFT">changes requested</TD>
             </TR>
             <TR>
-                <TD><FONT COLOR="#CC3311">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rejected / stopped</TD>
+                <TD BGCOLOR="#CC3311" WIDTH="18"></TD><TD ALIGN="LEFT">dashed</TD><TD ALIGN="LEFT">rejected / stopped</TD>
             </TR>
         </TABLE>
     >]
@@ -44,10 +44,9 @@ digraph gate_pipeline {
         fontsize = 12
         color = "#888888"
         margin = 12
-        rank = same
 
         sk_oval      [label="request /\nstart", shape=ellipse, fillcolor=white,
-                      color="#888888", fontcolor="#888888"]
+                      color="#888888", fontcolor="#1A1A1A"]
         sk_diamond   [label="human\ndecision\n(Gate review)", shape=diamond,
                       fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
         sk_ai        [label="AI action\n(plan / implement)",
@@ -59,11 +58,18 @@ digraph gate_pipeline {
         sk_rejected  [label="rejected /\nblocked outcome",
                       style="filled,dashed", fillcolor="#CC3311",
                       color="#CC3311", fontcolor=white]
+
+        // Vertical stack, not a single wide row: keeps the figure's aspect
+        // ratio close to the pre-fidelity-fix original so it stays legible
+        // when scaled down under the site's responsive max-width:100% image
+        // treatment (mobile viewport). Invisible edges, not rank=same.
+        sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_rejected
+            [style=invis]
     }
 
     // ── Pipeline ────────────────────────────────────────────────────────
     idea     [label="Idea /\nRequest", shape=ellipse, fillcolor=white,
-              color="#888888", fontcolor="#888888"]
+              color="#888888", fontcolor="#1A1A1A"]
     plan     [label="Plan file\n(plan/ branch)", style="filled,rounded",
               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
     gate1    [label="Gate 1\nReview", shape=diamond, fillcolor="#EE7700",
@@ -81,15 +87,15 @@ digraph gate_pipeline {
 
     idea  -> plan
     plan  -> gate1  [label="handoff"]
-    gate1 -> impl   [label="approved", color="#009944", fontcolor="#009944"]
+    gate1 -> impl   [label="approved", color="#009944", fontcolor="#1A1A1A"]
     gate1 -> plan   [label="changes\nrequested", style=dashed, color="#EE7700",
-                     fontcolor="#EE7700"]
+                     fontcolor="#1A1A1A"]
     gate1 -> rejected1 [label="rejected", style=dashed, color="#CC3311",
                         fontcolor="#CC3311", constraint=false]
     impl  -> gate2  [label="handoff"]
-    gate2 -> merged [label="approved", color="#009944", fontcolor="#009944"]
+    gate2 -> merged [label="approved", color="#009944", fontcolor="#1A1A1A"]
     gate2 -> impl   [label="changes\nrequested", style=dashed, color="#EE7700",
-                     fontcolor="#EE7700"]
+                     fontcolor="#1A1A1A"]
     gate2 -> rejected2 [label="rejected", style=dashed, color="#CC3311",
                         fontcolor="#CC3311", constraint=false]
 
