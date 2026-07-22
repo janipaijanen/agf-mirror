@@ -1820,6 +1820,73 @@ learnings:
         - "MR !312: completion record was filed after checking packages, provenance, checksums, binaries, OCI, and Pages but before root changelog inspection; completion claim retracted in MR notes"
         - "Immutable published source tag v2.3.0 peels to c3219b199b1534bc4f3fce0dc42be53c7ce93498 and must be repaired through a new patch release rather than moved"
 
+  - id: "20260722T150853Z-0e14"
+    date: "2026-07-22"
+    category: validation
+    scope: framework
+    title: duplicate-pipeline-source-waste-is-a-positive-build-engineer-activation-signal
+    description: >
+      A push to the source branch of MR !398 created two GitLab pipeline
+      graphs for the same implementation commit `dd2e5e6`: branch pipeline
+      `2697575704` from the `push` event and merge-request pipeline
+      `2697576236` from the `merge_request_event`. The repository-level
+      `workflow: rules` admitted both event types through a final unconditional
+      `when: always`, while the Rust test, lint, dependency-policy, and
+      governance jobs separately accepted both merge-request and branch
+      pipelines. Consequently, substantive Rust jobs were scheduled twice and
+      the MR-only preview build delayed the second copy behind an additional
+      build stage.
+
+      The incident was detected during contribution review rather than by an
+      actor owning pipeline efficiency. That ownership gap is itself useful
+      evidence: the build-engineer definition asks whether a test should have
+      run at all and explicitly owns pipeline trigger rules, runner efficiency,
+      and build costs. The project manifest nevertheless still suspends that
+      role with the reason "no CI pipeline yet" and a resume condition of "CI
+      pipeline established for automated validation". CI is now established,
+      and the duplicate-pipeline incident exercises the role's stated
+      jurisdiction directly.
+    agents_involved:
+      - contribution-auditor
+      - coder-tester
+      - governor-reviewer
+    framework_section: "build-engineer role; role activation; CI trigger scoping; pipeline efficiency"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Duplicate pipeline graphs consume runner compute, registry and cache
+        traffic, and review time without adding independent commit coverage.
+        They also lengthen the Gate 2 feedback loop because reviewers wait for
+        two representations of the same SHA. The exact monetary impact was not
+        measured in this incident, so this record claims observed duplicate
+        execution and avoidable overhead rather than a quantified saving.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Treat established CI plus evidence of duplicate pipeline sources,
+      irrelevant long-running jobs, escalating runner usage, or recurring
+      uncertainty over trigger ownership as a positive signal for the governor
+      to review activation of `build-engineer` or the adopter's equivalently
+      scoped CI/build role. The signal is advisory evidence, not an automatic
+      status transition: role activation remains a governor decision and must
+      be recorded in the authoritative manifest and coordination trail.
+
+      For foundry, review the now-satisfied `resume_when` condition before the
+      next CI-configuration change. If activated, give the role ownership of a
+      small deduplication plan that suppresses branch-push pipelines when the
+      branch already has an open merge request, while preserving merge-request,
+      default-branch, tag, scheduled, API, and triggered coverage. In GitLab,
+      the narrow mechanism is a top-level `workflow: rules` guard using
+      `CI_OPEN_MERGE_REQUESTS` together with `CI_PIPELINE_SOURCE == "push"`.
+      Validate the resulting pipeline-source matrix rather than assuming one
+      green path proves every event type remains covered.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !398 commit dd2e5e6: GitLab branch pipeline 2697575704 and merge-request pipeline 2697576236; .gitlab-ci.yml workflow and Rust job rules; agf/agents/MANIFEST.yaml build-engineer suspension; agf/agents/build-engineer.yaml jurisdiction"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
