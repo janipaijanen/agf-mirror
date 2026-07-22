@@ -33,11 +33,21 @@ EOF
 # Public archive filename slug for a Rust target triple. Only the archive
 # *filename* uses the slug (Workstream A naming decision, er5h); AGOV_TARGET
 # itself keeps the real triple for build/binary selection.
+#
+# Deliberately maps ONLY the Linux tar.gz targets this OCI path can consume:
+# both callers construct a .tar.gz path, extract with tar, and run an
+# extensionless `agov` ELF binary inside this Linux image. The Windows
+# release artifact (agov-...-windows-x86_64.zip, containing agov.exe) can
+# never satisfy that, so x86_64-pc-windows-gnu is rejected as unsupported
+# here rather than translated into a nonexistent .tar.gz path.
 target_slug() {
   case "$1" in
     x86_64-unknown-linux-musl) printf 'linux-x86_64' ;;
     aarch64-unknown-linux-musl) printf 'linux-aarch64' ;;
-    x86_64-pc-windows-gnu) printf 'windows-x86_64' ;;
+    x86_64-pc-windows-gnu)
+      echo "target $1 is not supported by this Linux OCI-image path (its release artifact is a Windows .zip with agov.exe, not a .tar.gz with a runnable agov binary)" >&2
+      exit 1
+      ;;
     *)
       echo "no public filename slug mapped for target $1" >&2
       exit 1
