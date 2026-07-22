@@ -65,15 +65,15 @@ agf-${version}.tar.gz-provenance.json
 agf-${version}.zip
 agf-${version}.zip.sha256
 agf-${version}.zip-provenance.json
-agov-${version}-x86_64-unknown-linux-musl.tar.gz
-agov-${version}-x86_64-unknown-linux-musl.tar.gz.sha256
-agov-${version}-x86_64-unknown-linux-musl.tar.gz-provenance.json
-agov-${version}-aarch64-unknown-linux-musl.tar.gz
-agov-${version}-aarch64-unknown-linux-musl.tar.gz.sha256
-agov-${version}-aarch64-unknown-linux-musl.tar.gz-provenance.json
-agov-${version}-x86_64-pc-windows-gnu.zip
-agov-${version}-x86_64-pc-windows-gnu.zip.sha256
-agov-${version}-x86_64-pc-windows-gnu.zip-provenance.json
+agov-${version}-linux-x86_64.tar.gz
+agov-${version}-linux-x86_64.tar.gz.sha256
+agov-${version}-linux-x86_64.tar.gz-provenance.json
+agov-${version}-linux-aarch64.tar.gz
+agov-${version}-linux-aarch64.tar.gz.sha256
+agov-${version}-linux-aarch64.tar.gz-provenance.json
+agov-${version}-windows-x86_64.zip
+agov-${version}-windows-x86_64.zip.sha256
+agov-${version}-windows-x86_64.zip-provenance.json
 agov-oci-${version}-provenance.json
 EXPECTED
 }
@@ -135,7 +135,7 @@ SHA256SUMS"
   # --- `verify`, negative case: one mandatory sidecar deliberately missing ---
   # This is the negative test per gate-self-test-rule -- it proves `verify`
   # actually fires on a known-bad input, not just that it passes on good ones.
-  missing_target="agov-${test_version}-aarch64-unknown-linux-musl.tar.gz-provenance.json"
+  missing_target="agov-${test_version}-linux-aarch64.tar.gz-provenance.json"
   for f in $(expected "$test_version"); do
     [ "$f" = "$missing_target" ] && continue
     : > "$neg_tmp/$f"

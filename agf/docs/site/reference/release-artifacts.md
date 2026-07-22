@@ -56,16 +56,24 @@ For version `X.Y.Z`, a full release build produces:
 | `dist/agf-X.Y.Z.zip.sha256` | SHA-256 checksum (GNU coreutils format, `<hex>  <filename>`) |
 | `dist/agf-X.Y.Z.tar.gz-provenance.json` | Machine-readable build provenance for this archive |
 | `dist/agf-X.Y.Z.zip-provenance.json` | Machine-readable build provenance for this archive |
-| `dist/agov-X.Y.Z-x86_64-unknown-linux-musl.tar.gz` | Optional Rust `agov` tooling archive for Linux x86_64 |
-| `dist/agov-X.Y.Z-x86_64-unknown-linux-musl.tar.gz.sha256` | Tooling archive SHA-256 checksum |
-| `dist/agov-X.Y.Z-x86_64-unknown-linux-musl.tar.gz-provenance.json` | Tooling archive provenance |
-| `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz` | Optional Rust `agov` tooling archive for Linux arm64 |
-| `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz.sha256` | Tooling archive SHA-256 checksum |
-| `dist/agov-X.Y.Z-aarch64-unknown-linux-musl.tar.gz-provenance.json` | Tooling archive provenance |
-| `dist/agov-X.Y.Z-x86_64-pc-windows-gnu.zip` | Optional Rust `agov` tooling archive for Windows x64 |
-| `dist/agov-X.Y.Z-x86_64-pc-windows-gnu.zip.sha256` | Tooling archive SHA-256 checksum |
-| `dist/agov-X.Y.Z-x86_64-pc-windows-gnu.zip-provenance.json` | Tooling archive provenance |
+| `dist/agov-X.Y.Z-linux-x86_64.tar.gz` | Optional Rust `agov` tooling archive for Linux x86_64 |
+| `dist/agov-X.Y.Z-linux-x86_64.tar.gz.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-linux-x86_64.tar.gz-provenance.json` | Tooling archive provenance |
+| `dist/agov-X.Y.Z-linux-aarch64.tar.gz` | Optional Rust `agov` tooling archive for Linux arm64 |
+| `dist/agov-X.Y.Z-linux-aarch64.tar.gz.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-linux-aarch64.tar.gz-provenance.json` | Tooling archive provenance |
+| `dist/agov-X.Y.Z-windows-x86_64.zip` | Optional Rust `agov` tooling archive for Windows x64 |
+| `dist/agov-X.Y.Z-windows-x86_64.zip.sha256` | Tooling archive SHA-256 checksum |
+| `dist/agov-X.Y.Z-windows-x86_64.zip-provenance.json` | Tooling archive provenance |
 | `dist/agov-oci-X.Y.Z-provenance.json` | Provenance for the published `agov` container image |
+
+Tooling archive filenames use a short public platform slug
+(`linux-x86_64`, `linux-aarch64`, `windows-x86_64`). The provenance
+record's `target_platform` field keeps the full Rust target triple
+(`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`,
+`x86_64-pc-windows-gnu`) — the filename identifies the platform for a
+person downloading; the record identifies the exact build target for a
+verifier.
 
 ### The unified release-provenance contract
 
@@ -138,9 +146,9 @@ agov dist post-publication-check \
 # post-publication-check runs automatically for each eligible downloaded
 # archive; also available standalone for a single already-local archive.
 agov dist self-report-check \
-  --archive dist/agov-2.4.0-x86_64-unknown-linux-musl.tar.gz \
+  --archive dist/agov-2.4.0-linux-x86_64.tar.gz \
   --binary-name agov \
-  --record dist/agov-2.4.0-x86_64-unknown-linux-musl.tar.gz-provenance.json
+  --record dist/agov-2.4.0-linux-x86_64.tar.gz-provenance.json
 
 # Build a file-kind record from an archive already on disk.
 agov dist provenance-record file \
