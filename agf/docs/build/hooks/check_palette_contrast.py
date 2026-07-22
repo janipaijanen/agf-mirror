@@ -19,10 +19,13 @@ This version reads the actual sources of truth instead of a private copy:
   token -> hex map (single source for hex values).
 - `agf/docs/site/reference/palette.md`'s "Semantic responsibility palette"
   table supplies the fill/text pairings the contract requires.
-- Every `agf/docs/figures/src/*.dot` file is scanned for explicit
-  `fontcolor=` assignments (the only places a figure renders text on a
-  fill) and each is checked against its node's `fillcolor` (or white, for
-  unfilled nodes/edge labels on the page background).
+- Every `agf/docs/figures/src/*.dot` and `docs/academic/figures/src/*.dot`
+  file is scanned for explicit `fontcolor=` assignments (the only places a
+  figure renders text on a fill) and each is checked against its node's
+  `fillcolor` (or white, for unfilled nodes/edge labels on the page
+  background). Workstream D's Class 3 (academic SVG/PDF figures) opts
+  into this same contract and check the same way Class 1 does -- see
+  `iter_dot_sources()`.
 
 Run directly: `python3 agf/docs/build/hooks/check_palette_contrast.py`
 Self-test (parser correctness, not just the current sources):
@@ -37,7 +40,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 PALETTE_MD = REPO_ROOT / "agf/docs/site/reference/palette.md"
-DOT_SOURCE_DIR = REPO_ROOT / "agf/docs/figures/src"
+DOT_SOURCE_DIRS = [
+    REPO_ROOT / "agf/docs/figures/src",
+    REPO_ROOT / "docs/academic/figures/src",
+]
 
 MIN_CONTRAST_NORMAL_TEXT = 4.5
 
@@ -259,19 +265,22 @@ CONTRACT_MARKER = "Semantic responsibility palette:"
 def iter_dot_sources() -> list[Path]:
     """DOT sources that have opted into the responsibility-palette contract.
 
-    Most figures under agf/docs/figures/src/ still use the pre-contract,
-    per-figure palette from before Workstream D and have not been converted
-    yet (that conversion is deliberately incremental, one figure at a time
-    -- see the plan's Class 1/3/4 inventory). Scanning every *.dot file
-    unconditionally would fail this check on unrelated, unconverted figures
-    the instant it merges, well before their own conversion MRs land.
-    Instead, a figure opts in by carrying the same header-comment reference
-    to palette.md's contract section that gate-pipeline.dot already uses
-    ("Semantic responsibility palette: agf/docs/site/reference/palette.md")
-    -- exactly the marker each conversion MR adds. No separate registry to
-    keep in sync; the figure's own source states whether it is governed.
+    Most figures under agf/docs/figures/src/ and docs/academic/figures/src/
+    still use the pre-contract, per-figure palette from before Workstream D
+    and have not been converted yet (that conversion is deliberately
+    incremental, one class/figure at a time -- see the plan's Class 1/3/4
+    inventory). Scanning every *.dot file unconditionally would fail this
+    check on unrelated, unconverted figures the instant it merges, well
+    before their own conversion MRs land. Instead, a figure opts in by
+    carrying the same header-comment reference to palette.md's contract
+    section that gate-pipeline.dot already uses ("Semantic responsibility
+    palette: agf/docs/site/reference/palette.md") -- exactly the marker
+    each conversion MR adds. No separate registry to keep in sync; the
+    figure's own source states whether it is governed.
     """
-    sources = sorted(DOT_SOURCE_DIR.glob("*.dot"))
+    sources: list[Path] = []
+    for source_dir in DOT_SOURCE_DIRS:
+        sources.extend(sorted(source_dir.glob("*.dot")))
     return [p for p in sources if CONTRACT_MARKER in p.read_text(encoding="utf-8")]
 
 
@@ -316,7 +325,7 @@ def run_real_checks() -> int:
 
     dot_sources = iter_dot_sources()
     if not dot_sources:
-        raise ContrastCheckError(f"no *.dot files found under {DOT_SOURCE_DIR}")
+        raise ContrastCheckError(f"no *.dot files found under {DOT_SOURCE_DIRS}")
 
     checked_any_dot_pairing = False
     for dot_path in dot_sources:
