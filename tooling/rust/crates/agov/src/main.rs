@@ -948,41 +948,100 @@ fn curl_get(url: &str) -> Result<String, String> {
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
-/// Fetch `url`'s body to memory via `curl --output -`, never letting curl
-/// itself open `dest`. Used by `download_asset_safely` so the only path
-/// component ever opened on disk is the one this process creates with
-/// `create_new`, eliminating the TOCTOU window a `curl --output <path>`
-/// call would otherwise have between curl's own `fopen` and any check this
-/// process could perform beforehand.
-fn curl_get_bytes(url: &str) -> Result<Vec<u8>, String> {
-    let output = std::process::Command::new("curl")
-        .args([
-            "--silent",
-            "--fail",
-            "--show-error",
-            "--location",
-            "--output",
-            "-",
-            url,
-        ])
-        .output()
-        .map_err(|err| format!("could not run curl: {err}"))?;
-    if !output.status.success() {
-        return Err(format!(
-            "curl {url} failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-    Ok(output.stdout)
+/// Maximum redirect hops `curl_get_bytes_validated` will follow before
+/// giving up. Bounded so a redirect loop cannot hang the command.
+const MAX_REDIRECTS: u8 = 5;
+
+/// Parse the combined stdout of a `curl --output - --write-out
+/// "\n%{http_code} %{redirect_url}"` invocation into `(body, http_code,
+/// redirect_url)`. Pure and dependency-free so the parsing logic is fully
+/// unit-testable without a real network call: the interesting bugs in a
+/// hand-rolled redirect loop live in this parsing step, not in the loop
+/// itself. Splits on the *last* `\n` in the buffer, since curl writes the
+/// body first and the `--write-out` trailer last, and nothing this
+/// project fetches legitimately ends its own final line with a bare
+/// `\n<digits> ` sequence that would be ambiguous with the trailer.
+fn parse_curl_write_out_response(stdout: &[u8]) -> Result<(Vec<u8>, u16, Option<String>), String> {
+    let newline_pos = stdout
+        .iter()
+        .rposition(|&b| b == b'\n')
+        .ok_or("curl output missing the expected trailing status line")?;
+    let body = stdout[..newline_pos].to_vec();
+    let trailer = String::from_utf8_lossy(&stdout[newline_pos + 1..]);
+    let mut parts = trailer.trim().splitn(2, ' ');
+    let code: u16 = parts
+        .next()
+        .and_then(|s| s.parse().ok())
+        .ok_or_else(|| format!("could not parse HTTP status code from {trailer:?}"))?;
+    let redirect_url = parts.next().filter(|s| !s.is_empty()).map(str::to_string);
+    Ok((body, code, redirect_url))
 }
 
-/// Download `url` to `dest`, refusing to write through a pre-positioned
+/// Fetch `url`'s body to memory, validating the host of *every* hop
+/// (the initial URL and every redirect target) against `trusted_host`
+/// before it is ever requested -- `curl --location` alone follows a
+/// redirect to any HTTPS host with no restriction, which would let an
+/// initially-trusted URL hand control to an arbitrary host. Curl is
+/// invoked once per hop with no automatic redirect-following
+/// (`--location` is deliberately absent); this function decides whether
+/// to follow each `Location` itself.
+fn curl_get_bytes_validated(url: &str, trusted_host: &str) -> Result<Vec<u8>, String> {
+    let mut current = url.to_string();
+    for _ in 0..MAX_REDIRECTS {
+        let host = provenance::parse_https_host(&current)?;
+        if host != trusted_host {
+            return Err(format!(
+                "refusing to fetch from untrusted host {host:?} (trusted host is \
+                 {trusted_host:?}): {current}"
+            ));
+        }
+
+        let output = std::process::Command::new("curl")
+            .args([
+                "--silent",
+                "--show-error",
+                "--write-out",
+                "\n%{http_code} %{redirect_url}",
+                "--output",
+                "-",
+            ])
+            .arg(&current)
+            .output()
+            .map_err(|err| format!("could not run curl: {err}"))?;
+        if !output.status.success() {
+            return Err(format!(
+                "curl {current} failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ));
+        }
+
+        let (body, code, redirect_url) = parse_curl_write_out_response(&output.stdout)
+            .map_err(|err| format!("curl {current}: {err}"))?;
+
+        if (300..400).contains(&code) {
+            let Some(next) = redirect_url else {
+                return Err(format!(
+                    "curl {current}: HTTP {code} redirect with no Location header"
+                ));
+            };
+            current = next;
+            continue;
+        }
+        if !(200..300).contains(&code) {
+            return Err(format!("curl {current}: HTTP {code}"));
+        }
+        return Ok(body);
+    }
+    Err(format!(
+        "too many redirects fetching {url} (limit {MAX_REDIRECTS})"
+    ))
+}
+
+/// Write `bytes` to `dest`, refusing to write through a pre-positioned
 /// symlink or over an existing file: `dest` is opened with `create_new`,
 /// which fails if anything (including a symlink, even a dangling one)
-/// already occupies that path. Bytes are fetched to memory first via
-/// `curl_get_bytes` so curl itself never touches the destination path.
-fn download_asset_safely(url: &str, dest: &Path) -> Result<(), String> {
-    let bytes = curl_get_bytes(url)?;
+/// already occupies that path.
+fn write_bytes_safely(bytes: &[u8], dest: &Path) -> Result<(), String> {
     let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -995,9 +1054,19 @@ fn download_asset_safely(url: &str, dest: &Path) -> Result<(), String> {
             )
         })?;
     use std::io::Write as _;
-    file.write_all(&bytes)
+    file.write_all(bytes)
         .map_err(|err| format!("could not write {}: {err}", dest.display()))?;
     Ok(())
+}
+
+/// Download `url` to `dest`: every hop's host is validated against
+/// `trusted_host` before being fetched (`curl_get_bytes_validated`), and
+/// the destination is written via `write_bytes_safely` so curl itself
+/// never touches the destination path and a pre-positioned symlink or
+/// existing file is refused rather than followed/overwritten.
+fn download_asset_safely(url: &str, trusted_host: &str, dest: &Path) -> Result<(), String> {
+    let bytes = curl_get_bytes_validated(url, trusted_host)?;
+    write_bytes_safely(&bytes, dest)
 }
 
 /// Parse a GitLab Release API response's `assets.links[]` into
@@ -1295,7 +1364,7 @@ fn post_publication_check_command(
     let mut provenance_files = Vec::new();
     for (name, url) in &assets {
         let dest = download_dir.join(name);
-        if let Err(err) = download_asset_safely(url, &dest) {
+        if let Err(err) = download_asset_safely(url, &trusted_host, &dest) {
             output.stderr(format!("ERR  {err}"));
             return 1;
         }
@@ -4950,7 +5019,7 @@ mod tests {
         assert!(result.is_err());
     }
 
-    // ── download_asset_safely: real curl via file:// URLs, no network ───
+    // ── write_bytes_safely: pure filesystem safety, no network needed ───
 
     fn temp_test_dir(label: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
@@ -4963,30 +5032,26 @@ mod tests {
     }
 
     #[test]
-    fn positive_download_asset_safely_writes_fresh_destination() {
+    fn positive_write_bytes_safely_writes_fresh_destination() {
         let dir = temp_test_dir("positive");
-        let source = dir.join("source.txt");
-        std::fs::write(&source, b"real content").unwrap();
         let dest = dir.join("dest.txt");
 
-        let result = download_asset_safely(&format!("file://{}", source.display()), &dest);
+        let result = write_bytes_safely(b"real content", &dest);
         assert!(result.is_ok(), "{result:?}");
         assert_eq!(std::fs::read(&dest).unwrap(), b"real content");
         let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
-    fn negative_download_asset_safely_refuses_preexisting_symlink_destination() {
+    fn negative_write_bytes_safely_refuses_preexisting_symlink_destination() {
         let dir = temp_test_dir("symlink");
-        let source = dir.join("source.txt");
-        std::fs::write(&source, b"real content").unwrap();
         let escape_target = dir.join("outside-the-download-dir.txt");
         let dest = dir.join("dest.txt");
 
         #[cfg(unix)]
         std::os::unix::fs::symlink(&escape_target, &dest).unwrap();
 
-        let result = download_asset_safely(&format!("file://{}", source.display()), &dest);
+        let result = write_bytes_safely(b"real content", &dest);
         assert!(
             result.is_err(),
             "must refuse to write through a pre-positioned symlink"
@@ -4999,14 +5064,12 @@ mod tests {
     }
 
     #[test]
-    fn negative_download_asset_safely_refuses_preexisting_regular_file_destination() {
+    fn negative_write_bytes_safely_refuses_preexisting_regular_file_destination() {
         let dir = temp_test_dir("existing-file");
-        let source = dir.join("source.txt");
-        std::fs::write(&source, b"new content").unwrap();
         let dest = dir.join("dest.txt");
         std::fs::write(&dest, b"original content").unwrap();
 
-        let result = download_asset_safely(&format!("file://{}", source.display()), &dest);
+        let result = write_bytes_safely(b"new content", &dest);
         assert!(result.is_err(), "must refuse to overwrite an existing file");
         assert_eq!(
             std::fs::read(&dest).unwrap(),
@@ -5014,6 +5077,52 @@ mod tests {
             "the pre-existing file must not have been truncated or overwritten"
         );
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    // ── curl_get_bytes_validated / parse_curl_write_out_response ────────
+
+    #[test]
+    fn parse_curl_write_out_response_parses_success() {
+        let stdout = b"body bytes here\n200 ".to_vec();
+        let (body, code, redirect) = parse_curl_write_out_response(&stdout).unwrap();
+        assert_eq!(body, b"body bytes here");
+        assert_eq!(code, 200);
+        assert_eq!(redirect, None);
+    }
+
+    #[test]
+    fn parse_curl_write_out_response_parses_redirect_with_location() {
+        let stdout = b"\n302 https://gitlab.com/next-hop".to_vec();
+        let (body, code, redirect) = parse_curl_write_out_response(&stdout).unwrap();
+        assert_eq!(body, b"");
+        assert_eq!(code, 302);
+        assert_eq!(redirect.as_deref(), Some("https://gitlab.com/next-hop"));
+    }
+
+    #[test]
+    fn parse_curl_write_out_response_preserves_body_containing_newlines() {
+        let stdout = b"line one\nline two\nline three\n200 ".to_vec();
+        let (body, code, _) = parse_curl_write_out_response(&stdout).unwrap();
+        assert_eq!(body, b"line one\nline two\nline three");
+        assert_eq!(code, 200);
+    }
+
+    #[test]
+    fn negative_parse_curl_write_out_response_rejects_missing_trailer() {
+        assert!(parse_curl_write_out_response(b"no trailing newline at all").is_err());
+    }
+
+    #[test]
+    fn negative_parse_curl_write_out_response_rejects_non_numeric_status() {
+        let stdout = b"body\nnot-a-code ".to_vec();
+        assert!(parse_curl_write_out_response(&stdout).is_err());
+    }
+
+    #[test]
+    fn negative_curl_get_bytes_validated_rejects_wrong_initial_host() {
+        let result = curl_get_bytes_validated("https://attacker.example/asset", "gitlab.com");
+        assert!(result.is_err(), "{result:?}");
+        assert!(result.unwrap_err().contains("untrusted host"));
     }
 
     #[test]
@@ -5058,6 +5167,165 @@ mod tests {
         .to_string();
         let result = discover_release_assets(&json);
         assert!(result.is_err(), "{result:?}");
+    }
+
+    // ── Composed post-publication checks: the exact functions
+    // post_publication_check_command calls, exercised directly against
+    // real registry data / a real packaged binary, not just their
+    // standalone CLI-flag counterparts (`--oci-image`,
+    // `self-report-check`). `#[ignore]`d for the same reason as
+    // `tests/oci_pull.rs`: missing podman/network is an infrastructure
+    // failure for these tests, not something they should silently pass
+    // through.
+
+    #[test]
+    #[ignore = "requires a real podman binary and real network access; run explicitly via \
+                `cargo test -p agov --bin agov -- --ignored composed_oci_chain_check`, as the \
+                dedicated rust:tooling:oci-pull-test CI job does"]
+    fn composed_oci_chain_check_rejects_real_busybox_image_with_wrong_labels() {
+        // Exercises the exact function post_publication_check_command
+        // calls -- discover the oci-image record on disk, build the
+        // digest-pinned pull ref, podman pull it for real, inspect it,
+        // and compare -- not the adjacent `--oci-image` CLI flag path.
+        const DIGEST: &str =
+            "sha256:fd8d9aa63ba2f0982b5304e1ee8d3b90a210bc1ffb5314d980eb6962f1a9715d";
+        const REF: &str = "docker.io/library/busybox";
+
+        let dir = std::env::temp_dir().join(format!(
+            "agov-composed-oci-check-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let record_path = dir.join("busybox-provenance.json");
+        let record = serde_json::json!({
+            "schema_version": "2.4",
+            "product": "agov",
+            "artifact_kind": "oci-image",
+            "version": "2.4.0",
+            "source_commit": "abc123def456",
+            "tag": "v2.4.0",
+            "build_timestamp": "2026-07-22T00:00:00Z",
+            "implementation": "rust",
+            "packaging": "oci-image",
+            "image_reference": REF,
+            "manifest_digest": DIGEST,
+            "labels": {
+                "version": "2.4.0",
+                "revision": "abc123def456"
+            }
+        });
+        std::fs::write(&record_path, serde_json::to_string_pretty(&record).unwrap()).unwrap();
+
+        let mut output = OutputCounter::default();
+        let exit_code = composed_oci_chain_check(&[record_path], &mut output);
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert_ne!(
+            exit_code, 0,
+            "expected rejection: busybox carries no matching org.opencontainers.image labels"
+        );
+    }
+
+    #[test]
+    #[ignore = "requires this host to be able to execute the real compiled agov binary under \
+                its own reported target_platform; run explicitly via \
+                `cargo test -p agov --bin agov -- --ignored composed_self_report_check`"]
+    fn composed_self_report_check_runs_real_binary_end_to_end() {
+        // Exercises the exact function post_publication_check_command
+        // calls, against a real archive containing the *actual compiled
+        // agov binary* (not a fake fixture script) -- download-dir layout,
+        // extraction, execution, and comparison against real self-report
+        // ground truth all in one composed call.
+        let Some(target) = executable_target_platform() else {
+            panic!("this host has no known executable target_platform to test against");
+        };
+
+        // CARGO_BIN_EXE_agov is only set for integration test binaries
+        // under tests/, not for #[cfg(test)] unit tests compiled as part
+        // of this same bin crate -- locate the real built binary
+        // ourselves, relative to the workspace target directory `cargo
+        // test` already populated (debug preferred; release as fallback
+        // for a release-profile-only CI run).
+        let target_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../target")
+            .canonicalize()
+            .expect("workspace target directory must exist after `cargo build`/`cargo test`");
+        let real_binary = [
+            target_dir.join("debug/agov"),
+            target_dir.join("release/agov"),
+        ]
+        .into_iter()
+        .find(|path| path.is_file())
+        .expect(
+            "no built agov binary found under target/debug or target/release -- run \
+                 `cargo build -p agov` first",
+        );
+        let self_report_output = std::process::Command::new(&real_binary)
+            .args(["version", "--format", "json"])
+            .output()
+            .expect("run the real agov binary for ground truth");
+        let ground_truth: serde_json::Value =
+            serde_json::from_slice(&self_report_output.stdout).expect("parse real version JSON");
+        let real_version = ground_truth["version"].as_str().unwrap().to_string();
+        let real_commit = ground_truth["commit"].as_str().unwrap().to_string();
+        // This binary may legitimately have been built from a dirty tree
+        // (e.g. mid-development locally) -- the composed check must agree
+        // with whatever ground truth actually is, not assume a clean
+        // build. A dirty build is a real, correct rejection, not a test
+        // failure.
+        let real_dirty = ground_truth["dirty"].as_bool().unwrap();
+
+        let dir = std::env::temp_dir().join(format!(
+            "agov-composed-self-report-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let artifact_filename = "agov-test-2.4.0-composed.tar.gz";
+        let archive_path = dir.join(artifact_filename);
+        {
+            let file = std::fs::File::create(&archive_path).unwrap();
+            let encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+            let mut builder = tar::Builder::new(encoder);
+            builder.append_path_with_name(&real_binary, "agov").unwrap();
+            builder.finish().unwrap();
+        }
+
+        let record_path = dir.join(format!("{artifact_filename}-provenance.json"));
+        let record = serde_json::json!({
+            "schema_version": "2.4",
+            "product": "agov",
+            "artifact_kind": "file",
+            "version": real_version,
+            "source_commit": real_commit,
+            "tag": "v2.4.0",
+            "build_timestamp": "2026-07-22T00:00:00Z",
+            "implementation": "rust",
+            "packaging": "tar.gz",
+            "target_platform": target,
+            "artifact_filename": artifact_filename,
+            "artifact_bytes": std::fs::metadata(&archive_path).unwrap().len(),
+            "sha256": "0".repeat(64)
+        });
+        std::fs::write(&record_path, serde_json::to_string_pretty(&record).unwrap()).unwrap();
+
+        let mut output = OutputCounter::default();
+        let exit_code = composed_self_report_check(&dir, &[record_path], &mut output);
+        let _ = std::fs::remove_dir_all(&dir);
+
+        if real_dirty {
+            assert_ne!(
+                exit_code, 0,
+                "the real binary reports a dirty build -- the composed check must reject it, \
+                 not silently accept it"
+            );
+        } else {
+            assert_eq!(
+                exit_code, 0,
+                "composed self-report check must pass a record matching the real binary's own \
+                 clean version/commit (sha256 field is irrelevant to this check)"
+            );
+        }
     }
 
     fn message(file: &str, kind: &str, timestamp: &str, refs: &[&str]) -> HandoffMessage {

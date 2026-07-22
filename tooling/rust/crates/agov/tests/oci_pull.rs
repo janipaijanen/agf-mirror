@@ -9,6 +9,16 @@
 //! `hmpr`'s !351 Gate 2 acceptance matrix (row B): proof that the
 //! pull-by-digest -> inspect -> compare mechanics work end-to-end against
 //! a real registry, decoupled from this project's own OCI credentials.
+//!
+//! `#[ignore]`d deliberately: a missing `podman` or missing network is an
+//! *infrastructure* failure for this test, not a passing test (per
+//! `kaka`'s BLOCK B finding against an earlier version of this file that
+//! silently returned success when podman/network were unavailable). The
+//! generic `rust:tooling:test` CI job (plain `rust:1`, no podman) must
+//! not attempt this test at all; the dedicated `rust:tooling:oci-pull-test`
+//! CI job (`quay.io/podman/stable`, real network) runs it with `--ignored`
+//! where podman and network are guaranteed, so failure here always means
+//! a real defect, never a missing dependency.
 
 use std::process::Command;
 
@@ -23,29 +33,24 @@ fn agov(args: &[&str]) -> std::process::Output {
         .expect("run agov")
 }
 
-fn podman_available() -> bool {
-    Command::new("podman")
-        .arg("--version")
-        .output()
-        .is_ok_and(|o| o.status.success())
-}
-
 #[test]
+#[ignore = "requires a real podman binary and real network access; run explicitly via \
+            `cargo test -p agov --test oci_pull -- --ignored`, as the dedicated \
+            rust:tooling:oci-pull-test CI job does"]
 fn real_disposable_registry_pull_rejects_record_with_wrong_labels() {
-    if !podman_available() {
-        eprintln!("SKIP: podman not available in this environment");
-        return;
-    }
-
     let pinned = format!("{BUSYBOX_REF}@{BUSYBOX_DIGEST}");
     let pull_status = Command::new("podman")
         .args(["pull", &pinned])
         .status()
-        .expect("run podman pull");
-    if !pull_status.success() {
-        eprintln!("SKIP: could not pull {pinned} (no network in this environment?)");
-        return;
-    }
+        .expect(
+            "podman must be installed and runnable in this test's environment -- a missing \
+             podman is an infrastructure failure for this ignored test, not a reason to skip it",
+        );
+    assert!(
+        pull_status.success(),
+        "podman pull {pinned} must succeed -- a failed pull (e.g. no network) is an \
+         infrastructure failure for this ignored test, not a reason to skip it"
+    );
 
     let dir = std::env::temp_dir().join(format!("agov-oci-pull-test-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();

@@ -569,6 +569,50 @@ rust:tooling:test:
         - .gitlab-ci.yml
     - if: $CI_COMMIT_TAG
 
+# Composed real-registry/real-binary evidence tests: requires a real
+# `podman` and real network access, so these tests are `#[ignore]`d in the
+# ordinary rust:tooling:test job (plain rust:1, no podman) and run here
+# instead, on the same podman image agov:oci:release/release:verify
+# already use. A missing podman or failed pull is a hard failure in this
+# job -- there is no silent-pass fallback, per !351 Gate 2 finding kaka
+# BLOCK B (a green generic pipeline must not be able to claim OCI evidence
+# it never actually gathered).
+rust:tooling:oci-pull-test:
+  image: quay.io/podman/stable:v5.6.0
+  stage: test
+  variables:
+    STORAGE_DRIVER: vfs
+    CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  cache:
+    key: rust-oci-pull-test
+    paths:
+      - .cargo/registry
+      - .cargo/bin
+      - tooling/rust/target
+  before_script:
+    - dnf install -y gcc || true
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+    - source "$HOME/.cargo/env"
+    - cd tooling/rust
+  script:
+    - cargo build --release -p agov
+    - cargo test -p agov --test oci_pull -- --ignored --nocapture
+    - cargo test -p agov --bin agov -- --ignored --nocapture composed_
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/crates/agov/tests/oci_pull.rs
+        - tooling/rust/crates/agov/src/provenance.rs
+        - tooling/rust/crates/agov/src/main.rs
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - tooling/rust/crates/agov/tests/oci_pull.rs
+        - tooling/rust/crates/agov/src/provenance.rs
+        - tooling/rust/crates/agov/src/main.rs
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_TAG
+
 # Lint the Rust workspace on tooling changes and release tags. Warnings are
 # treated as errors.
 rust:tooling:clippy:
