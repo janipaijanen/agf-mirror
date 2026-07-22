@@ -1,53 +1,105 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // agents-govern: Gate 1 / Gate 2 pipeline
 // Generate: dot -Tsvg gate-pipeline.dot -o ../gate-pipeline.svg
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section). Fill colour encodes who is
+// responsible for a node (Human decision / AI action / Automated
+// check-validated outcome); shape is a second, colour-independent signal
+// for the same category. `red-mid` is the separate rejected/blocked
+// outcome accent, not a sixth responsibility category. The shape key
+// below renders the actual node treatments used in this figure as
+// swatches -- never described in words, and never approximated with a
+// plain rectangle when the real node is rounded or double-bordered (the
+// prior "(oval shape)"/"(diamond shape)" legend text, and the later flat
+// colour-only legend rectangles, were both defects this revision fixes).
+//
+// No separate edge/arrow legend: every edge in the pipeline already
+// carries its own plain-text label ("approved", "changes requested",
+// "rejected") directly on the arrow -- the label is the primary,
+// colour-independent meaning-carrier, with colour and solid/dashed style
+// as reinforcing signals, not the sole signal (accessibility-rule). A
+// separate decoder table for arrow colour/style would itself need to
+// reproduce real solid/dashed line swatches to satisfy the plan's legend-
+// fidelity acceptance test, which Graphviz's HTML-like table labels
+// cannot render (no per-cell border-style control) -- the pipeline's own
+// labelled edges already satisfy that test by being the real thing, not
+// a proxy for it.
 digraph gate_pipeline {
-    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.4, ranksep=0.7,
-           bgcolor=white, fontname="Helvetica", fontsize=12, labelloc=b, label=<
-        <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="4" CELLPADDING="3" COLOR="#888888" BGCOLOR="white">
-            <TR><TD COLSPAN="6"><B>Legend</B></TD></TR>
-            <TR>
-                <TD BORDER="1" COLOR="#888888" WIDTH="28"></TD><TD ALIGN="LEFT">request / start (oval shape)</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">human gate review (diamond shape)</TD>
-                <TD BGCOLOR="#99CCEE" WIDTH="28"></TD><TD ALIGN="LEFT">planned or implemented work</TD>
-            </TR>
-            <TR>
-                <TD BGCOLOR="#009944" WIDTH="28"></TD><TD ALIGN="LEFT">approved / merged</TD>
-                <TD><FONT COLOR="#EE7700">- - -&gt;</FONT></TD><TD ALIGN="LEFT">changes requested</TD>
-                <TD><FONT COLOR="#CC3311">- - -&gt;</FONT></TD><TD ALIGN="LEFT">rejected / stopped</TD>
-            </TR>
-        </TABLE>
-    >]
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.4, ranksep=0.55,
+           bgcolor=white, fontname="Helvetica", fontsize=12]
     node  [fontname="Helvetica", fontsize=11, style=filled, shape=box,
            fillcolor="#99CCEE", color="#0077BB", penwidth=1.4]
     edge  [fontname="Helvetica", fontsize=10, color="#0077BB", penwidth=1.4]
 
+    // Shape key: real shapes, self-labeled (same convention as the
+    // pipeline nodes below), matching every node treatment actually used
+    // in the pipeline below -- not a separate flat-colour legend that
+    // could drift from the real shapes.
+    subgraph cluster_shapekey {
+        label = "Legend (responsibility / shape)"
+        fontname = "Helvetica"
+        fontsize = 12
+        color = "#888888"
+        margin = 12
+
+        sk_oval      [label="request /\nstart", shape=ellipse, fillcolor=white,
+                      color="#888888", fontcolor="#1A1A1A"]
+        sk_diamond   [label="human\ndecision\n(Gate review)", shape=diamond,
+                      fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        sk_ai        [label="AI action\n(plan / implement)",
+                      style="filled,rounded", fillcolor="#99CCEE",
+                      color="#0077BB", fontcolor="#1A1A1A"]
+        sk_automated [label="automated check /\nvalidated outcome",
+                      style="filled,bold", peripheries=2, fillcolor="#009944",
+                      color="#009944", fontcolor="#1A1A1A"]
+        sk_rejected  [label="rejected /\nblocked outcome",
+                      style="filled,dashed", fillcolor="#CC3311",
+                      color="#CC3311", fontcolor=white]
+
+        // Vertical stack, not a single wide row: keeps the cluster's own
+        // aspect ratio narrow. Invisible edges, not rank=same.
+        sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_rejected
+            [style=invis]
+    }
+
+    // ── Pipeline ────────────────────────────────────────────────────────
     idea     [label="Idea /\nRequest", shape=ellipse, fillcolor=white,
-              color="#888888", fontcolor="#888888"]
-    plan     [label="Plan file\n(plan/ branch)"]
-    gate1    [label="Gate 1\nReview", shape=diamond, fillcolor="#99CCEE",
-              color="#0077BB"]
-    impl     [label="Implement\n(feat/ branch)"]
-    gate2    [label="Gate 2\nReview", shape=diamond, fillcolor="#99CCEE",
-              color="#0077BB"]
-    merged   [label="Merged\nto main", fillcolor="#009944", fontcolor=white,
-              color="#009944"]
+              color="#888888", fontcolor="#1A1A1A"]
+    plan     [label="Plan file\n(plan/ branch)", style="filled,rounded",
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    gate1    [label="Gate 1\nReview", shape=diamond, fillcolor="#EE7700",
+              color="#EE7700", fontcolor="#1A1A1A"]
+    impl     [label="Implement\n(feat/ branch)", style="filled,rounded",
+              fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+    gate2    [label="Gate 2\nReview", shape=diamond, fillcolor="#EE7700",
+              color="#EE7700", fontcolor="#1A1A1A"]
+    merged   [label="Merged\nto main", style="filled,bold", peripheries=2,
+              fillcolor="#009944", fontcolor="#1A1A1A", color="#009944"]
     rejected1 [label="Rejected /\nstop", fillcolor="#CC3311", fontcolor=white,
                color="#CC3311", style="filled,dashed"]
     rejected2 [label="Rejected /\nstop", fillcolor="#CC3311", fontcolor=white,
                color="#CC3311", style="filled,dashed"]
 
+    // Stack the shape key above the pipeline (single narrow column) rather
+    // than beside it: a side-by-side layout roughly doubles the figure's
+    // width, which is exactly what makes text unreadable once the site's
+    // responsive max-width:100% image treatment scales the whole SVG down
+    // to a mobile viewport. Invisible edge, not rank=same -- same working
+    // technique as the shape-key's own internal stack above.
+    sk_rejected -> idea [style=invis]
+
     idea  -> plan
     plan  -> gate1  [label="handoff"]
-    gate1 -> impl   [label="approved", color="#009944", fontcolor="#009944"]
+    gate1 -> impl   [label="approved", color="#009944", fontcolor="#1A1A1A"]
     gate1 -> plan   [label="changes\nrequested", style=dashed, color="#EE7700",
-                     fontcolor="#EE7700"]
+                     fontcolor="#1A1A1A"]
     gate1 -> rejected1 [label="rejected", style=dashed, color="#CC3311",
                         fontcolor="#CC3311", constraint=false]
     impl  -> gate2  [label="handoff"]
-    gate2 -> merged [label="approved", color="#009944", fontcolor="#009944"]
+    gate2 -> merged [label="approved", color="#009944", fontcolor="#1A1A1A"]
     gate2 -> impl   [label="changes\nrequested", style=dashed, color="#EE7700",
-                     fontcolor="#EE7700"]
+                     fontcolor="#1A1A1A"]
     gate2 -> rejected2 [label="rejected", style=dashed, color="#CC3311",
                         fontcolor="#CC3311", constraint=false]
 
