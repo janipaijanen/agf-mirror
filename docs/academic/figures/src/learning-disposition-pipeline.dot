@@ -1,55 +1,107 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// agents-govern: academic paper -- learning disposition pipeline
+// Generate: dot -Tsvg learning-disposition-pipeline.dot -o ../learning-disposition-pipeline.svg
+//           dot -Tpdf learning-disposition-pipeline.dot -o ../learning-disposition-pipeline.pdf
+//
+// Semantic responsibility palette: agf/docs/site/reference/palette.md
+// ("Semantic responsibility palette" section) -- same contract and
+// shape-key convention as the site's learning-loop.dot (Class 1), which
+// models the same underlying process. This figure previously had no
+// legend at all and used an unrelated slate/teal/rust palette family --
+// both defects this revision fixes. "Operational friction" is a neutral
+// trigger node, the same treatment learning-loop.dot gives "Governed
+// work" -- not one of the five responsibility categories.
 digraph learning_disposition_pipeline {
   graph [
     rankdir=LR,
-    bgcolor="transparent",
-    pad=0.22,
+    bgcolor=white,
+    pad=0.25,
     nodesep=0.48,
     ranksep=0.65,
     fontname="Helvetica",
     label="Learning disposition pipeline",
     labelloc=t,
     fontsize=18,
-    fontcolor="#1F2933"
+    fontcolor="#1A1A1A"
   ];
 
   node [
-    shape=box,
-    style="rounded,filled",
     fontname="Helvetica",
     fontsize=10.5,
-    color="#536471",
+    style=filled,
+    shape=box,
+    fillcolor="#99CCEE",
+    color="#0077BB",
+    fontcolor="#1A1A1A",
     penwidth=1.3,
-    fillcolor="#EEF2F4",
-    fontcolor="#1F2933",
     margin="0.10,0.07"
   ];
 
   edge [
     fontname="Helvetica",
     fontsize=9,
-    color="#536471",
-    fontcolor="#536471",
+    color="#0077BB",
+    fontcolor="#1A1A1A",
     arrowsize=0.72,
     penwidth=1.25
   ];
 
-  friction [label="Operational\nfriction"];
-  review [label="Learning\nreview"];
-  disposition [label="Disposition\nchoice", shape=diamond, margin="0.05,0.04", fillcolor="#FFF5DE", color="#C89B3C"];
-  no_action [label="No action", fillcolor="#EEF2F4"];
-  docs [label="Docs or\nexamples", fillcolor="#E7F3F3", color="#2A7F7F"];
-  learning [label="Learning\nrecord", fillcolor="#FFF5DE", color="#C89B3C"];
-  rule [label="Rule or schema\nproposal", fillcolor="#F6ECE6", color="#B66A3C"];
-  warn [label="Warn-only\nvalidator"];
-  block [label="Blocking\nCI check", fillcolor="#FDECEC", color="#B42318"];
+  subgraph cluster_shapekey {
+    label = "Legend (responsibility / shape)"
+    fontname = "Helvetica"
+    fontsize = 11
+    color = "#888888"
+    margin = 10
+
+    sk_oval      [label="friction / trigger", shape=ellipse, fillcolor=white,
+                  color="#888888", fontcolor="#1A1A1A"]
+    sk_diamond   [label="human decision\n(disposition choice)", shape=diamond,
+                  fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+    sk_ai        [label="AI action\n(review / propose)",
+                  style="filled,rounded", fillcolor="#99CCEE",
+                  color="#0077BB", fontcolor="#1A1A1A"]
+    sk_automated [label="automated check /\nvalidated outcome",
+                  style="filled,bold", peripheries=2, fillcolor="#009944",
+                  color="#009944", fontcolor="#1A1A1A"]
+    sk_reference [label="reference /\ndeferred content",
+                  style="filled,dashed", fillcolor="#CCCCCC",
+                  color="#888888", fontcolor="#1A1A1A"]
+
+    sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_reference
+        [style=invis]
+  }
+
+  friction    [label="Operational\nfriction", shape=ellipse, fillcolor=white,
+               color="#888888", fontcolor="#1A1A1A"]
+  review      [label="Learning\nreview", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+  disposition [label="Disposition\nchoice", shape=diamond, margin="0.05,0.04",
+               fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+  no_action   [label="No action", style="filled,dashed", fillcolor="#CCCCCC",
+               color="#888888", fontcolor="#1A1A1A"]
+  docs        [label="Docs or\nexamples", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+  learning    [label="Learning\nrecord", style="filled,bold", peripheries=2,
+               fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+  rule        [label="Rule or schema\nproposal", style="filled,rounded",
+               fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+  warn        [label="Warn-only\nvalidator", style="filled,bold",
+               peripheries=2, fillcolor="#009944", color="#009944",
+               fontcolor="#1A1A1A"]
+  block       [label="Blocking\nCI check", style="filled,bold", peripheries=2,
+               fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+
+  sk_reference -> friction [style=invis]
 
   friction -> review;
   review -> disposition;
-  disposition -> no_action [label="not reusable"];
+  disposition -> no_action [label="not reusable", style=dashed,
+                            color="#888888"];
   disposition -> docs [label="explain"];
-  disposition -> learning [label="capture"];
+  disposition -> learning [label="capture", color="#009944"];
   learning -> rule [label="promote"];
   rule -> warn [label="soft enforce"];
   warn -> block [label="deterministic"];
-  block -> friction [label="new evidence", style=dashed];
+  block -> friction [label="new evidence", style=dashed, color="#888888",
+                     constraint=false];
 }
