@@ -592,7 +592,7 @@ rust:tooling:oci-pull-test:
   before_script:
     - dnf install -y gcc || true
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-    - source "$HOME/.cargo/env"
+    - source "$CARGO_HOME/env"
     - cd tooling/rust
   script:
     - cargo build --release -p agov
