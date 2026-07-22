@@ -17,3 +17,9 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
+# Path dev-dependency only to make Cargo build the real `agov` binary
+# alongside this crate's tests (see tests/roi_transport_attribution.rs,
+# which locates it in the shared target/<profile>/ directory) -- proves
+# Workstream C's transport attribution against the real spawned binary,
+# not a mock.
+agov = { path = "../agov" }

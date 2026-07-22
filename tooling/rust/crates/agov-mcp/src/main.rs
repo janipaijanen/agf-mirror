@@ -105,7 +105,9 @@ fn call_tool(params: Value) -> Result<Value, String> {
         .cloned()
         .unwrap_or_else(|| json!({}));
     let cli_args = tool_cli_args(name, &args)?;
-    let execution = run_agov(&cli_args);
+    // `name` has been validated by tool_cli_args at this point — only a
+    // real, compiled tool name reaches the transport marker below.
+    let execution = run_agov(&cli_args, Some(name));
 
     Ok(json!({
         "content": [
@@ -127,13 +129,26 @@ fn tool_text(execution: &ToolExecution) -> String {
     }
 }
 
-fn run_agov(args: &[String]) -> ToolExecution {
+/// Spawn the child `agov` process. When `tool_name` is a validated MCP
+/// tool name, set the fixed transport-attribution markers (v2.4.0
+/// Workstream C) on the child environment. Marker values are constants
+/// controlled by this adapter — never copied from the incoming MCP
+/// request — and the child validates them again against
+/// `agov_core::roi::MCP_TOOL_ALLOWLIST` before persisting anything.
+fn run_agov(args: &[String], tool_name: Option<&str>) -> ToolExecution {
     let command = agov_command();
-    let output = Command::new(command.program)
+    let mut child = Command::new(command.program);
+    child
         .args(&command.prefix)
         .args(args)
-        .current_dir(command.cwd)
-        .output();
+        .current_dir(command.cwd);
+    if let Some(name) = tool_name {
+        child
+            .env(agov_core::roi::MCP_TRANSPORT_MARKER, "mcp")
+            .env(agov_core::roi::MCP_ADAPTER_MARKER, "agov-mcp")
+            .env(agov_core::roi::MCP_TOOL_MARKER, name);
+    }
+    let output = child.output();
 
     match output {
         Ok(output) => ToolExecution {
@@ -581,6 +596,21 @@ mod tests {
                 "agov_coord_list",
             ]
         );
+    }
+
+    /// Parity guard for the Workstream C transport-attribution boundary:
+    /// the tool names this adapter publishes (and therefore may set as the
+    /// AGOV_MCP_TOOL marker after tool_cli_args validation) must exactly
+    /// match the closed allowlist `resolve_transport` accepts on the child
+    /// side. A drift in either direction would silently drop `tool`
+    /// attribution for the drifted name.
+    #[test]
+    fn published_tools_match_core_mcp_tool_allowlist() {
+        let published: Vec<String> = tools()
+            .into_iter()
+            .map(|tool| tool["name"].as_str().unwrap().to_string())
+            .collect();
+        assert_eq!(published, agov_core::roi::MCP_TOOL_ALLOWLIST.to_vec());
     }
 
     #[test]

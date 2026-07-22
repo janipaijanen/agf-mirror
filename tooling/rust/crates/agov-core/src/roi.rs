@@ -4,7 +4,10 @@ use std::path::{Path, PathBuf};
 /// A saved-token ROI record appended to `tmp/agov-token-roi.jsonl`.
 ///
 /// Fields mirror the Elixir `Agov.TokenRoi` JSONL format (§8.2 of the plan).
-/// Unknown workflows may omit the `saved_*` fields.
+/// Unknown workflows may omit the `saved_*` fields. The optional
+/// `transport`/`adapter`/`tool` attribution fields (v2.4.0 Workstream C)
+/// are self-reported workflow measurement, never authenticated identity —
+/// see `docs/reference/tooling-token-roi.md`.
 #[derive(Debug, serde::Serialize)]
 pub struct RoiRecord {
     pub event: &'static str,
@@ -22,6 +25,266 @@ pub struct RoiRecord {
     pub approx_saved_min_tokens: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approx_saved_max_tokens: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transport: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub adapter: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tool: Option<&'static str>,
+}
+
+/// The closed vocabulary of `agov-mcp` tool names that may appear in the
+/// `tool` attribution field. One source of truth for both sides of the
+/// boundary: `agov-mcp` sets the tool marker only for names it has already
+/// validated in `tool_cli_args`, and `resolve_transport` below refuses any
+/// marker value not in this list. A parity test in `agov-mcp` asserts its
+/// published tool definitions match this list exactly.
+pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
+    "agov_validate",
+    "agov_coord_validate",
+    "agov_plan_validate",
+    "agov_session_resume",
+    "agov_handoff_next",
+    "agov_handoff_take",
+    "agov_handoff_complete",
+    "agov_coord_post",
+    "agov_coord_list",
+];
+
+/// Environment marker names the trusted local `agov-mcp` adapter sets on
+/// the child `agov` process. Documented in
+/// `docs/reference/tooling-token-roi.md`; self-reported, not verified.
+pub const MCP_TRANSPORT_MARKER: &str = "AGOV_MCP_TRANSPORT";
+pub const MCP_ADAPTER_MARKER: &str = "AGOV_MCP_ADAPTER";
+pub const MCP_TOOL_MARKER: &str = "AGOV_MCP_TOOL";
+
+/// Resolve transport attribution as one coherent tuple decision — never
+/// three independently-parsed fields. Exactly three outcomes:
+///
+/// 1. **No markers present** → direct CLI: `(Some("cli"), None, None)`.
+///    `transport: "cli"` is explicit so a new direct-CLI record is
+///    distinguishable from a historical record predating these fields.
+/// 2. **Exact allowlisted MCP tuple** (`AGOV_MCP_TRANSPORT=mcp`,
+///    `AGOV_MCP_ADAPTER=agov-mcp`, `AGOV_MCP_TOOL` in
+///    [`MCP_TOOL_ALLOWLIST`]) → `(Some("mcp"), Some("agov-mcp"),
+///    Some(<allowlisted name>))`. Emitted values are these fixed
+///    constants/allowlist entries — never the raw environment strings.
+/// 3. **Any partial, malformed, or contradictory tuple** → `(None, None,
+///    None)`: all three fields absent from the serialized record. This is
+///    a third, distinct shape — a rejected self-report is not silently
+///    reclassified as a clean `"cli"` record — and the source values that
+///    produced the rejection are never persisted.
+///
+/// A local caller can still spoof a *valid* tuple; this is self-reported
+/// workflow measurement by design, with no pseudo-authentication.
+fn resolve_transport() -> (
+    Option<&'static str>,
+    Option<&'static str>,
+    Option<&'static str>,
+) {
+    let transport = std::env::var(MCP_TRANSPORT_MARKER).ok();
+    let adapter = std::env::var(MCP_ADAPTER_MARKER).ok();
+    let tool = std::env::var(MCP_TOOL_MARKER).ok();
+
+    match (transport.as_deref(), adapter.as_deref(), tool.as_deref()) {
+        (None, None, None) => (Some("cli"), None, None),
+        (Some("mcp"), Some("agov-mcp"), Some(tool_name)) => {
+            match MCP_TOOL_ALLOWLIST
+                .iter()
+                .find(|allowed| **allowed == tool_name)
+            {
+                Some(allowed) => (Some("mcp"), Some("agov-mcp"), Some(allowed)),
+                None => (None, None, None),
+            }
+        }
+        _ => (None, None, None),
+    }
+}
+
+/// Fixed replacement for redacted argument values.
+pub const REDACTED: &str = "[redacted]";
+
+/// Command-path tokens (subcommand / sub-subcommand names) retained by
+/// `redact_args`. Closed vocabulary: the CLI's own compiled surface.
+const COMMAND_PATH_TOKENS: &[&str] = &[
+    "agov",
+    "coord",
+    "plan",
+    "dist",
+    "session",
+    "handoff",
+    "validate",
+    "post",
+    "list",
+    "brief",
+    "status",
+    "stale",
+    "graph",
+    "graph-index",
+    "visibility",
+    "resume",
+    "next",
+    "take",
+    "complete",
+    "version",
+    "usage-report",
+    "build",
+    "provenance-record",
+    "validate-provenance",
+    "self-report-check",
+    "post-publication-check",
+    "file",
+    "oci",
+];
+
+/// Flags whose *values* are closed vocabulary and may be retained.
+/// Everything else's value is redacted. Starter set per the approved plan;
+/// extending it is an additive follow-up once real usage shows a flag is
+/// both safe and useful.
+const CLOSED_VALUE_FLAGS: &[&str] = &["--kind", "--id-format", "--format", "--implementation"];
+
+/// Recognized flag names (long form). A flag name in this list is retained
+/// (names are the CLI's compiled surface); its value is retained only if
+/// the flag is also in [`CLOSED_VALUE_FLAGS`]. An argument token starting
+/// with `-` that is NOT in this list is caller-controlled and redacted in
+/// its entirety — name and value — under default-deny.
+const KNOWN_FLAG_NAMES: &[&str] = &[
+    "--kind",
+    "--id-format",
+    "--format",
+    "--implementation",
+    "--from",
+    "--to",
+    "--topic",
+    "--ref",
+    "--artifact",
+    "--task",
+    "--model",
+    "--dir",
+    "--role",
+    "--base-branch",
+    "--check",
+    "--paths",
+    "--files",
+    "--since",
+    "--id",
+    "--product",
+    "--version",
+    "--source-commit",
+    "--tag",
+    "--build-timestamp",
+    "--pipeline-id",
+    "--job-id",
+    "--packaging",
+    "--target-platform",
+    "--image-reference",
+    "--manifest-digest",
+    "--label-version",
+    "--label-revision",
+    "--output",
+    "--archive",
+    "--binary-name",
+    "--record",
+    "--artifact-dir",
+    "--oci-image",
+    "--releases-url",
+    "--download-dir",
+];
+
+/// Default-deny redaction over the exact token stream received (v2.4.0
+/// Workstream C, boundary 2). The caller passes the subcommand-and-flags
+/// slice only — `argv[0]` never reaches this function.
+///
+/// Binding edge-case rules (from the approved plan):
+/// - `--flag=value` is split; the name is matched as if space-separated,
+///   the value follows the same retain/redact rule. No separate
+///   equals-form allowlist.
+/// - Everything after a bare `--` is positional values: redacted, never
+///   matched against the flag-name allowlist.
+/// - Positional non-flag tokens are redacted unless they are exact
+///   allowlisted command-path tokens.
+/// - Repeated flags: each occurrence evaluated independently.
+/// - Short aliases: none exist in this CLI today, so any short-form token
+///   has no allowlist mapping and is treated as unrecognized (redacted
+///   whole).
+/// - A flag with a missing value: the name is retained per the ordinary
+///   rule; nothing panics, no token shift.
+/// - Unknown/unrecognized flags: redacted **in their entirety** — an
+///   unknown token is caller-controlled and can smuggle identifying
+///   content in the name itself (`--customer-acme`), so neither name nor
+///   value survives.
+///
+/// Values are replaced with [`REDACTED`] rather than dropped, so record
+/// shape and argument-count diagnostics stay stable.
+fn redact_args(args: &[String]) -> Vec<String> {
+    let mut out = Vec::with_capacity(args.len());
+    let mut after_double_dash = false;
+    // Whether the previous token was a retained flag name whose value is
+    // NOT closed-vocabulary (so this token, if positional, is its value
+    // and must be redacted) or a closed-value flag (value retained).
+    let mut pending_value: Option<bool> = None; // Some(retain_value)
+
+    for token in args {
+        if after_double_dash {
+            out.push(REDACTED.to_string());
+            continue;
+        }
+        if token == "--" {
+            after_double_dash = true;
+            out.push(token.clone());
+            pending_value = None;
+            continue;
+        }
+
+        if let Some(retain) = pending_value.take() {
+            if !token.starts_with('-') {
+                out.push(if retain {
+                    token.clone()
+                } else {
+                    REDACTED.to_string()
+                });
+                continue;
+            }
+            // Previous flag had a missing value; fall through and treat
+            // this token on its own merits.
+        }
+
+        if let Some(eq_pos) = token.find('=').filter(|_| token.starts_with("--")) {
+            let (name, value) = token.split_at(eq_pos);
+            let value = &value[1..];
+            if KNOWN_FLAG_NAMES.contains(&name) {
+                if CLOSED_VALUE_FLAGS.contains(&name) {
+                    out.push(format!("{name}={value}"));
+                } else {
+                    out.push(format!("{name}={REDACTED}"));
+                }
+            } else {
+                out.push(REDACTED.to_string());
+            }
+            continue;
+        }
+
+        if token.starts_with('-') {
+            if KNOWN_FLAG_NAMES.contains(&token.as_str()) {
+                out.push(token.clone());
+                pending_value = Some(CLOSED_VALUE_FLAGS.contains(&token.as_str()));
+            } else {
+                // Unknown flag: redact the token itself; its value (next
+                // positional token) is redacted by the pending rule.
+                out.push(REDACTED.to_string());
+                pending_value = Some(false);
+            }
+            continue;
+        }
+
+        if COMMAND_PATH_TOKENS.contains(&token.as_str()) {
+            out.push(token.clone());
+        } else {
+            out.push(REDACTED.to_string());
+        }
+    }
+
+    out
 }
 
 /// Resolve the ROI log path from environment or default.
@@ -109,7 +372,10 @@ pub fn try_append(record: &RoiRecord) {
 
 pub fn record_tool_output(command: &str, args: &[String], workflow: &str, chars: u64) {
     let approx_tokens = estimate_tokens(chars);
+    // Prompt-overhead estimation may use the in-memory raw invocation
+    // locally (n8s6: allowed); only the redacted form is persisted below.
     let prompt_overhead_tokens = estimate_tokens(command_prompt_chars(command, args));
+    let (transport, adapter, tool) = resolve_transport();
     let baseline = workflow_baseline(workflow);
     let (baseline_source, approx_saved_min_tokens, approx_saved_max_tokens) =
         if let Some(baseline) = baseline {
@@ -135,7 +401,7 @@ pub fn record_tool_output(command: &str, args: &[String], workflow: &str, chars:
         timestamp: timestamp(),
         implementation: "rust-agov",
         command: command.to_string(),
-        args: args.to_vec(),
+        args: redact_args(args),
         workflow: workflow.to_string(),
         chars,
         approx_tokens,
@@ -143,6 +409,9 @@ pub fn record_tool_output(command: &str, args: &[String], workflow: &str, chars:
         baseline_source,
         approx_saved_min_tokens,
         approx_saved_max_tokens,
+        transport,
+        adapter,
+        tool,
     };
 
     try_append(&record);
@@ -529,6 +798,9 @@ mod tests {
                             baseline_source: None,
                             approx_saved_min_tokens: None,
                             approx_saved_max_tokens: None,
+                            transport: Some("cli"),
+                            adapter: None,
+                            tool: None,
                         };
                         try_append(&record);
                     }
@@ -625,6 +897,274 @@ mod tests {
         );
     }
 
+    // ── Workstream C: transport attribution (one coherent tuple) ──────────
+
+    fn clear_mcp_markers() {
+        std::env::remove_var(MCP_TRANSPORT_MARKER);
+        std::env::remove_var(MCP_ADAPTER_MARKER);
+        std::env::remove_var(MCP_TOOL_MARKER);
+    }
+
+    /// Acceptance test 7: no markers → explicit `transport: "cli"`.
+    #[test]
+    fn no_markers_resolves_to_explicit_cli() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        clear_mcp_markers();
+        assert_eq!(resolve_transport(), (Some("cli"), None, None));
+    }
+
+    /// Exact allowlisted tuple → all three MCP fields, from constants.
+    #[test]
+    fn exact_mcp_tuple_resolves_all_three_fields() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        std::env::set_var(MCP_TRANSPORT_MARKER, "mcp");
+        std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+        std::env::set_var(MCP_TOOL_MARKER, "agov_coord_validate");
+        let resolved = resolve_transport();
+        clear_mcp_markers();
+        assert_eq!(
+            resolved,
+            (Some("mcp"), Some("agov-mcp"), Some("agov_coord_validate"))
+        );
+    }
+
+    /// Acceptance test 3: partial, malformed, or contradictory tuples emit
+    /// none of the three fields — a third shape, distinct from the
+    /// explicit-"cli" no-markers case, never the raw string.
+    #[test]
+    fn invalid_tuples_emit_no_attribution_fields() {
+        let _guard = ENV_LOCK.lock().unwrap();
+
+        // Partial: transport says mcp, tool marker missing.
+        clear_mcp_markers();
+        std::env::set_var(MCP_TRANSPORT_MARKER, "mcp");
+        std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+        assert_eq!(resolve_transport(), (None, None, None));
+
+        // Malformed: unrecognized transport value.
+        clear_mcp_markers();
+        std::env::set_var(MCP_TRANSPORT_MARKER, "MCP-ish");
+        std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+        std::env::set_var(MCP_TOOL_MARKER, "agov_coord_validate");
+        assert_eq!(resolve_transport(), (None, None, None));
+
+        // Contradictory: tool name not in the compiled allowlist.
+        clear_mcp_markers();
+        std::env::set_var(MCP_TRANSPORT_MARKER, "mcp");
+        std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+        std::env::set_var(MCP_TOOL_MARKER, "agov_totally_new_tool");
+        assert_eq!(resolve_transport(), (None, None, None));
+
+        // Stray marker alone (adapter set, nothing else).
+        clear_mcp_markers();
+        std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+        assert_eq!(resolve_transport(), (None, None, None));
+
+        clear_mcp_markers();
+    }
+
+    /// Acceptance test 4: identifying / envelope / prompt / path / secret
+    /// shaped marker values never reach the serialized record — the closed
+    /// parse rejects the tuple and the raw strings are not persisted.
+    #[test]
+    fn hostile_marker_values_never_reach_serialized_record() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let hostile = [
+            "session-0193fd2a-request-77",
+            r#"{"jsonrpc":"2.0","method":"tools/call","id":9}"#,
+            "user prompt: please summarize the private notes",
+            "/home/someone/.ssh/id_ed25519",
+            "sk-live-abcdef0123456789",
+        ];
+        for value in hostile {
+            clear_mcp_markers();
+            std::env::set_var(MCP_TRANSPORT_MARKER, "mcp");
+            std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+            std::env::set_var(MCP_TOOL_MARKER, value);
+            let (transport, adapter, tool) = resolve_transport();
+            let record = RoiRecord {
+                event: "tool_output",
+                timestamp: "2026-07-22T00:00:00Z".to_string(),
+                implementation: "rust-agov",
+                command: "agov".to_string(),
+                args: redact_args(&["coord".to_string(), "validate".to_string()]),
+                workflow: "coord-validate".to_string(),
+                chars: 10,
+                approx_tokens: 3,
+                prompt_overhead_tokens: 2,
+                baseline_source: None,
+                approx_saved_min_tokens: None,
+                approx_saved_max_tokens: None,
+                transport,
+                adapter,
+                tool,
+            };
+            let json = serde_json::to_string(&record).unwrap();
+            assert!(
+                !json.contains(value),
+                "hostile marker value leaked into serialized record: {value}"
+            );
+            assert!(
+                !json.contains("\"transport\"") && !json.contains("\"tool\""),
+                "invalid tuple must serialize with no attribution fields: {json}"
+            );
+        }
+        clear_mcp_markers();
+    }
+
+    // ── Workstream C: default-deny argument redaction ─────────────────────
+
+    fn strings(tokens: &[&str]) -> Vec<String> {
+        tokens.iter().map(|token| token.to_string()).collect()
+    }
+
+    /// Acceptance test 6 (positive): closed-vocabulary command path and
+    /// closed-value flags survive unredacted.
+    #[test]
+    fn redact_args_retains_closed_vocabulary() {
+        assert_eq!(
+            redact_args(&strings(&["coord", "validate", "--kind", "review"])),
+            strings(&["coord", "validate", "--kind", "review"])
+        );
+    }
+
+    /// Acceptance test 5 (negative): free-form flag values are redacted.
+    #[test]
+    fn redact_args_redacts_free_form_flag_values() {
+        assert_eq!(
+            redact_args(&strings(&[
+                "coord",
+                "post",
+                "--topic",
+                "some sensitive-looking text",
+                "--from",
+                "coder-tester",
+            ])),
+            strings(&["coord", "post", "--topic", REDACTED, "--from", REDACTED])
+        );
+    }
+
+    /// kheg BLOCK 1 negative tests: an unknown flag token is caller-
+    /// controlled and is redacted in its entirety — both space-separated
+    /// and equals forms — along with its value.
+    #[test]
+    fn redact_args_redacts_unknown_flags_entirely() {
+        assert_eq!(
+            redact_args(&strings(&["coord", "--customer-acme", "secret"])),
+            strings(&["coord", REDACTED, REDACTED])
+        );
+        assert_eq!(
+            redact_args(&strings(&["coord", "--unknown=secret"])),
+            strings(&["coord", REDACTED])
+        );
+    }
+
+    /// Equals-form known flags: name matched as if space-separated; value
+    /// follows the same retain/redact rule.
+    #[test]
+    fn redact_args_handles_equals_form() {
+        assert_eq!(
+            redact_args(&strings(&["coord", "post", "--kind=review"])),
+            strings(&["coord", "post", "--kind=review"])
+        );
+        assert_eq!(
+            redact_args(&strings(&["coord", "post", "--topic=secret stuff"])),
+            strings(&["coord", "post", &format!("--topic={REDACTED}")])
+        );
+    }
+
+    /// After a bare `--`, everything is a positional value: redacted, never
+    /// flag-matched — even if it looks like an allowlisted flag.
+    #[test]
+    fn redact_args_redacts_everything_after_double_dash() {
+        assert_eq!(
+            redact_args(&strings(&["coord", "--", "--kind", "review", "validate"])),
+            strings(&["coord", "--", REDACTED, REDACTED, REDACTED])
+        );
+    }
+
+    /// Positional free-text (paths, ids) is redacted; repeated flags are
+    /// evaluated independently; a trailing flag with a missing value does
+    /// not panic or shift tokens.
+    #[test]
+    fn redact_args_positionals_repeats_and_missing_values() {
+        assert_eq!(
+            redact_args(&strings(&[
+                "coord",
+                "validate",
+                "docs/coordination/20260722T000000Z-role-abcd.md",
+            ])),
+            strings(&["coord", "validate", REDACTED])
+        );
+        assert_eq!(
+            redact_args(&strings(&["post", "--ref", "a.md", "--ref", "b.md"])),
+            strings(&["post", "--ref", REDACTED, "--ref", REDACTED])
+        );
+        assert_eq!(
+            redact_args(&strings(&["coord", "post", "--kind"])),
+            strings(&["coord", "post", "--kind"])
+        );
+    }
+
+    /// Short-form tokens have no allowlist mapping in this CLI and are
+    /// treated as unrecognized: redacted whole.
+    #[test]
+    fn redact_args_redacts_short_form_tokens() {
+        assert_eq!(
+            redact_args(&strings(&["coord", "-k", "review"])),
+            strings(&["coord", REDACTED, REDACTED])
+        );
+    }
+
+    /// Acceptance test 2: a historical JSONL line without the new fields
+    /// still loads and summarizes correctly (feature-regression-guard).
+    #[test]
+    fn summarize_accepts_records_without_attribution_fields() {
+        let records = vec![serde_json::json!({
+            "event": "tool_output",
+            "implementation": "rust-agov",
+            "command": "agov",
+            "args": ["coord", "validate"],
+            "workflow": "coord-validate",
+            "chars": 40,
+            "approx_tokens": 10,
+            "prompt_overhead_tokens": 5
+        })];
+        let summary = summarize(&records);
+        assert_eq!(summary.total_records, 1);
+        assert_eq!(summary.total_approx_tokens, 10);
+        assert_eq!(summary.commands.len(), 1);
+        assert_eq!(summary.commands[0].command, "agov");
+    }
+
+    /// Acceptance test 1: a record with all three attribution fields `None`
+    /// serializes with no `transport`/`adapter`/`tool` keys at all —
+    /// byte-shape compatible with the pre-Workstream-C record.
+    #[test]
+    fn none_attribution_fields_are_absent_from_json() {
+        let record = RoiRecord {
+            event: "tool_output",
+            timestamp: "2026-07-22T00:00:00Z".to_string(),
+            implementation: "rust-agov",
+            command: "agov".to_string(),
+            args: vec!["coord".to_string(), "validate".to_string()],
+            workflow: "coord-validate".to_string(),
+            chars: 40,
+            approx_tokens: 10,
+            prompt_overhead_tokens: 5,
+            baseline_source: None,
+            approx_saved_min_tokens: None,
+            approx_saved_max_tokens: None,
+            transport: None,
+            adapter: None,
+            tool: None,
+        };
+        let json = serde_json::to_string(&record).unwrap();
+        assert!(!json.contains("\"transport\":"));
+        assert!(!json.contains("\"adapter\":"));
+        assert!(!json.contains("\"tool\":"));
+    }
+
     #[test]
     fn serializes_rust_tool_output_record_shape() {
         let record = RoiRecord {
@@ -642,6 +1182,9 @@ mod tests {
             ),
             approx_saved_min_tokens: Some(485),
             approx_saved_max_tokens: Some(1_485),
+            transport: None,
+            adapter: None,
+            tool: None,
         };
 
         let json = serde_json::to_value(record).unwrap();
