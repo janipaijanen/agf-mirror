@@ -177,6 +177,7 @@ impl GitFixture {
 
     fn agov(&self, args: &[&str]) -> std::process::Output {
         Command::new(env!("CARGO_BIN_EXE_agov"))
+            .env("AGOV_TOKEN_ROI", "0")
             .args(args)
             .current_dir(&self.root)
             .output()

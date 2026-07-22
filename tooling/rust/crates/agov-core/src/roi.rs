@@ -45,6 +45,16 @@ pub fn log_path() -> Option<PathBuf> {
 ///
 /// Failures are silently swallowed — logging must not affect stdout, stderr,
 /// output ordering, or exit codes (plan §8.4).
+///
+/// Writes the JSON content and its trailing newline as a **single**
+/// `write_all` call, not `writeln!`. `writeln!` on a `File` performs two
+/// separate `write()` syscalls (the formatted content, then the literal
+/// `"\n"` from the macro), and `O_APPEND` only guarantees each individual
+/// `write()` is atomic against other appenders -- the pair is not. Two
+/// processes racing between those two writes can interleave, dropping the
+/// separating newline and concatenating two records onto one physical
+/// line. A single `write_all` of the pre-joined `"{json}\n"` string is one
+/// `write()` call for a line this size, restoring `O_APPEND` atomicity.
 pub fn try_append(record: &RoiRecord) {
     let Some(path) = log_path() else {
         return;
@@ -60,7 +70,8 @@ pub fn try_append(record: &RoiRecord) {
             .append(true)
             .open(path)?;
         use std::io::Write as _;
-        writeln!(file, "{}", serde_json::to_string(record)?)?;
+        let line = format!("{}\n", serde_json::to_string(record)?);
+        file.write_all(line.as_bytes())?;
         Ok(())
     })();
 
@@ -445,6 +456,80 @@ mod tests {
             log_path(),
             Some(crate::repo_root().join("tmp").join("agov-token-roi.jsonl"))
         );
+    }
+
+    /// Regression test for issue #50: concurrent writers used to corrupt
+    /// the log by interleaving between `writeln!`'s two separate `write()`
+    /// calls (content, then newline), producing lines with two or more
+    /// JSON objects concatenated with no separator. Spawns real OS
+    /// threads (not just async tasks) hammering `try_append` on the same
+    /// file concurrently, then asserts every physical line parses as
+    /// exactly one JSON object -- this reliably reproduced the
+    /// corruption before the `write_all`-of-one-joined-string fix.
+    #[test]
+    fn concurrent_appends_never_corrupt_a_line() {
+        let path = std::env::temp_dir().join(format!(
+            "agov-roi-concurrency-test-{}-{}.jsonl",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _guard = ENV_LOCK.lock().unwrap();
+        std::env::remove_var("AGOV_TOKEN_ROI");
+        std::env::set_var("AGOV_TOKEN_ROI_LOG", &path);
+
+        const THREADS: usize = 16;
+        const RECORDS_PER_THREAD: usize = 50;
+        let handles: Vec<_> = (0..THREADS)
+            .map(|thread_id| {
+                std::thread::spawn(move || {
+                    for i in 0..RECORDS_PER_THREAD {
+                        let record = RoiRecord {
+                            event: "tool_output",
+                            timestamp: "2026-07-22T00:00:00Z".to_string(),
+                            implementation: "rust-agov",
+                            command: "agov".to_string(),
+                            args: vec![format!("thread-{thread_id}"), format!("record-{i}")],
+                            workflow: "coord-validate".to_string(),
+                            chars: 40,
+                            approx_tokens: 10,
+                            prompt_overhead_tokens: 5,
+                            baseline_source: None,
+                            approx_saved_min_tokens: None,
+                            approx_saved_max_tokens: None,
+                        };
+                        try_append(&record);
+                    }
+                })
+            })
+            .collect();
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        std::env::remove_var("AGOV_TOKEN_ROI_LOG");
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+
+        let lines: Vec<&str> = content
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .collect();
+        assert_eq!(
+            lines.len(),
+            THREADS * RECORDS_PER_THREAD,
+            "expected exactly one physical line per record -- a corrupted \
+             (concatenated) line would reduce this count"
+        );
+        for line in &lines {
+            assert!(
+                serde_json::from_str::<serde_json::Value>(line).is_ok(),
+                "line does not parse as exactly one JSON object (corruption): {line:?}"
+            );
+        }
     }
 
     #[test]

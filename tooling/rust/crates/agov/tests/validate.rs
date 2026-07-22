@@ -106,6 +106,7 @@ fn agov(args: &[&str]) -> std::process::Output {
 
 fn agov_in(cwd: &std::path::Path, args: &[&str]) -> std::process::Output {
     Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI", "0")
         .args(args)
         .current_dir(cwd)
         .output()
