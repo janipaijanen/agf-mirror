@@ -1,6 +1,6 @@
 ---
 id: ci-pipeline-deduplication
-status: pending-gate1
+status: approved
 topic: ci-pipeline-deduplication
 advisory_consultation:
   - role: contribution-auditor
@@ -15,13 +15,6 @@ advisory_consultation:
       implements that request; the candidate mechanism below matches
       `r5mm`'s recommendation, independently re-derived by build-engineer
       from the live `.gitlab-ci.yml` state before comparison.
-  - role: build-engineer
-    status: consulted
-    reason: >
-      Pipeline-source acceptance matrix and candidate mechanism supplied
-      in `20260722T163041Z-build-engineer-gbbm`, per `r5mm`'s required
-      routing (build-engineer consults; planner-architect drafts the
-      plan; governor-reviewer approves Gate 1 before implementation).
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -33,6 +26,13 @@ advisory_consultation:
 ---
 
 # Plan: deduplicate GitLab branch-push and merge-request pipelines
+
+Build-engineer consultation evidence is recorded in
+`20260722T163041Z-build-engineer-gbbm`: that role supplied the pipeline-source
+acceptance matrix and candidate mechanism required by `r5mm`. It is recorded
+here as implementation input rather than as an `advisory_consultation` entry,
+because that governed front-matter field is reserved for the framework's
+advisory roles.
 
 ## Intent
 
