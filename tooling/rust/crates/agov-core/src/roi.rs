@@ -206,15 +206,21 @@ pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 /// with `-` that is NOT in this list is caller-controlled and redacted in
 /// its entirety — name and value — under default-deny.
 ///
-/// This is the exhaustive set of every long flag on every leaf command in
-/// `agov`'s clap tree (per `d8h5` BLOCK 4 — the earlier list both omitted
-/// real flags, e.g. `--branch`, `--recent`, `--roles`, `--manifest`,
-/// `--log`, `--manifest-path`, `--last`, and included flags that do not
-/// actually exist on the CLI at all: `--check`, `--paths`, `--files`, and
-/// `--id` are `agov-mcp` JSON tool-parameter names that get pushed as
+/// This is the exhaustive set of every long flag (including every
+/// visible/hidden clap alias) on every leaf command in `agov`'s clap
+/// tree (per `d8h5` BLOCK 4 — the earlier list both omitted real flags,
+/// e.g. `--branch`, `--recent`, `--roles`, `--manifest`, `--log`,
+/// `--manifest-path`, `--last`, and included flags that do not actually
+/// exist on the CLI at all: `--check`, `--paths`, `--files`, and `--id`
+/// are `agov-mcp` JSON tool-parameter names that get pushed as
 /// **positional** tokens, never as `--check`/`--paths`/`--files`/`--id`
 /// flags — confirmed against `agov coord validate <FILES>...`'s and
-/// `agov handoff take <ID>`'s real `--help` output, both positional).
+/// `agov handoff take <ID>`'s real `--help` output, both positional). A
+/// narrowed re-review (`32qd`) found the first revision's audit walked
+/// only `Arg::get_long()`, missing the hidden `--base_branch` alias for
+/// `--base-branch` on `coord visibility`/`session resume` — the audit in
+/// `agov/src/main.rs` now walks `Arg::get_all_aliases()` too, and
+/// `--base_branch` is listed explicitly below.
 /// Enforced against the live clap surface by the parity test in
 /// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
 pub const KNOWN_FLAG_NAMES: &[&str] = &[
@@ -233,6 +239,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--recent",
     "--roles",
     "--base-branch",
+    "--base_branch",
     "--branch",
     "--output",
     "--role",
@@ -1217,6 +1224,22 @@ mod tests {
         assert_eq!(
             redact_args(&strings(&["coord", "post", "--kind"])),
             strings(&["coord", "post", "--kind"])
+        );
+    }
+
+    /// Gate 2 review `32qd` (narrowed BLOCK 4) regression: `--base_branch`
+    /// is a real clap alias for `--base-branch` on `coord
+    /// visibility`/`session resume`, previously missing from
+    /// `KNOWN_FLAG_NAMES` because the audit only walked `get_long()`, not
+    /// aliases. `32qd` reproduced this over-redacting the flag *name*
+    /// itself (not just its value) to `[redacted]`. The name must survive
+    /// like any other recognized flag; the value still redacts, same as
+    /// the primary `--base-branch` spelling (neither is closed-vocabulary).
+    #[test]
+    fn redact_args_retains_base_branch_alias_name() {
+        assert_eq!(
+            redact_args(&strings(&["session", "resume", "--base_branch", "main"])),
+            strings(&["session", "resume", "--base_branch", REDACTED])
         );
     }
 

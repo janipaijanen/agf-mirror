@@ -5009,11 +5009,21 @@ mod tests {
         // file --version`, the artifact's product version) is real and
         // must NOT be excluded, so root and subcommands are walked
         // differently.
+        // Collects the primary long flag AND every long alias (visible or
+        // hidden) -- `d8h5`'s narrowed BLOCK 4 found `--base_branch`, a
+        // hidden-by-default alias for `--base-branch` on `coord
+        // visibility`/`session resume`, missing from an earlier revision
+        // of this audit that only walked `get_long()`.
         fn walk_flags(command: &clap::Command, flags: &mut BTreeSet<String>) {
             for arg in command.get_arguments() {
                 if let Some(long) = arg.get_long() {
                     if long != "help" {
                         flags.insert(format!("--{long}"));
+                    }
+                }
+                if let Some(aliases) = arg.get_all_aliases() {
+                    for alias in aliases {
+                        flags.insert(format!("--{alias}"));
                     }
                 }
             }

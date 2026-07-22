@@ -1,3 +1,4 @@
+use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -123,6 +124,53 @@ fn hostile_implementation_flag_value_is_redacted_after_successful_command() {
 
     let _ = fs::remove_file(&artifact);
     let _ = fs::remove_file(&log);
+}
+
+/// Gate 2 review `32qd` (narrowed BLOCK 4) end-to-end regression: the
+/// real compiled binary accepts the clap alias `--base_branch` (for
+/// `--base-branch`) on `session resume`. `32qd` reproduced this over-
+/// redacting the flag *name* itself in the persisted ROI record because
+/// `KNOWN_FLAG_NAMES` only listed the primary spelling. The flag name
+/// must survive; its value still redacts (free-form branch name, not
+/// closed vocabulary).
+#[test]
+fn session_resume_base_branch_alias_name_survives_redaction() {
+    let log = temp_log_path();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI_LOG", &log)
+        .env_remove("AGOV_TOKEN_ROI")
+        .args([
+            "session",
+            "resume",
+            "--base_branch",
+            "main",
+            "--dir",
+            "docs/coordination",
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("run agov");
+
+    assert!(
+        output.status.success(),
+        "session resume should succeed: {output:?}"
+    );
+
+    let content = std::fs::read_to_string(&log).unwrap_or_default();
+    let record: Value = serde_json::from_str(content.lines().next().unwrap()).unwrap();
+    let args = record["args"].as_array().unwrap();
+    let args_str: Vec<&str> = args.iter().map(|v| v.as_str().unwrap()).collect();
+    assert!(
+        args_str.contains(&"--base_branch"),
+        "the --base_branch flag NAME must survive redaction: {args_str:?}"
+    );
+    assert!(
+        !args_str.contains(&"main"),
+        "the --base_branch flag VALUE must still redact: {args_str:?}"
+    );
+
+    let _ = std::fs::remove_file(&log);
 }
 
 fn agov(args: &[&str]) -> std::process::Output {

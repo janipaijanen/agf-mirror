@@ -100,22 +100,26 @@ fn call_tool(params: Value) -> Result<Value, String> {
         .get("name")
         .and_then(Value::as_str)
         .ok_or_else(|| "tools/call requires params.name".to_string())?;
+    // Gate 2 review `32qd` (narrowed BLOCK 3): the allowlist must be the
+    // real acceptance gate, checked BEFORE `tool_cli_args`, not an
+    // optional lookup performed after. Resolving to the canonical
+    // `&'static str` here and using that canonical value for both
+    // `tool_cli_args` and `run_agov` means a hypothetical future
+    // `tool_cli_args` match arm added without a matching
+    // `MCP_TOOL_ALLOWLIST` entry is unreachable: this line rejects the
+    // request before any such arm could run, so there is exactly one
+    // source of truth for "which tools exist," not three that can drift.
+    let canonical_tool = agov_core::roi::MCP_TOOL_ALLOWLIST
+        .iter()
+        .find(|allowed| **allowed == name)
+        .copied()
+        .ok_or_else(|| format!("unknown tool: {name}"))?;
     let args = params
         .get("arguments")
         .cloned()
         .unwrap_or_else(|| json!({}));
-    let cli_args = tool_cli_args(name, &args)?;
-    // Gate 2 review `d8h5` BLOCK 3: do not pass the borrowed request
-    // string `name` through to the child environment, even though
-    // `tool_cli_args` above has already validated it. Resolve it to the
-    // matching canonical `&'static str` from `MCP_TOOL_ALLOWLIST` --
-    // the marker value set below is then always a fixed adapter
-    // constant, never bytes copied from the incoming MCP request.
-    let canonical_tool = agov_core::roi::MCP_TOOL_ALLOWLIST
-        .iter()
-        .find(|allowed| **allowed == name)
-        .copied();
-    let execution = run_agov(&cli_args, canonical_tool);
+    let cli_args = tool_cli_args(canonical_tool, &args)?;
+    let execution = run_agov(&cli_args, Some(canonical_tool));
 
     Ok(json!({
         "content": [
