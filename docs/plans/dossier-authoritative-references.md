@@ -1,6 +1,6 @@
 ---
 id: dossier-authoritative-references
-status: pending-gate1
+status: approved
 topic: evaluation-dossier-authoritative-repository-reference-layer
 advisory_consultation:
   - role: infosec-sentinel
@@ -22,7 +22,7 @@ advisory_consultation:
 # Plan: add authoritative repository references to the evaluation dossier
 
 **Date:** 2026-07-22
-**Status:** Pending Gate 1
+**Status:** Approved at Gate 1
 **Trigger:** Direct governor instruction to update the dossier while keeping
 repository artifact contents out of it; coordination handoff
 `20260722T151954Z-contribution-auditor-angh` in MR !400.
@@ -41,6 +41,13 @@ copy of the repository:
 The current Flow 07 appendix remains the full public Markdown corpus. This plan
 does not remove or reduce that existing feature. The new boundary applies to
 artifacts outside `agf/docs/site/`.
+
+## Release boundary
+
+The governor approved this plan outside the v2.4.0 release scope. Its
+implementation may proceed after MR !328 is integrated, but it must not be
+included in, delay, version, tag, or otherwise change the v2.4.0 release. Any
+later release association requires a separate governor decision.
 
 ## Why this needs Gate 1
 
