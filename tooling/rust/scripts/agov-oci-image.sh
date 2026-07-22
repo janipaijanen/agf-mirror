@@ -23,9 +23,26 @@ Environment:
 published, using the digest `push` wrote to
 dist/agov-oci-digest-$AGOV_VERSION.txt. Run push before provenance. The
 agov binary used to build the record is extracted from the already-built
-dist/agov-$AGOV_VERSION-x86_64-unknown-linux-musl.tar.gz tooling archive
+dist/agov-$AGOV_VERSION-linux-x86_64.tar.gz tooling archive
 (a static musl binary, runnable in this image) -- it is never rebuilt here.
+Archive filenames use the public platform slug (linux-x86_64 etc.);
+AGOV_TARGET still carries the real Rust triple for the staged binary.
 EOF
+}
+
+# Public archive filename slug for a Rust target triple. Only the archive
+# *filename* uses the slug (Workstream A naming decision, er5h); AGOV_TARGET
+# itself keeps the real triple for build/binary selection.
+target_slug() {
+  case "$1" in
+    x86_64-unknown-linux-musl) printf 'linux-x86_64' ;;
+    aarch64-unknown-linux-musl) printf 'linux-aarch64' ;;
+    x86_64-pc-windows-gnu) printf 'windows-x86_64' ;;
+    *)
+      echo "no public filename slug mapped for target $1" >&2
+      exit 1
+      ;;
+  esac
 }
 
 require_env() {
@@ -61,7 +78,8 @@ build_image() {
   require_env CI_REGISTRY_IMAGE
 
   target=${AGOV_TARGET:-x86_64-unknown-linux-musl}
-  archive="dist/agov-${AGOV_VERSION}-${target}.tar.gz"
+  slug=$(target_slug "$target")
+  archive="dist/agov-${AGOV_VERSION}-${slug}.tar.gz"
   if [ ! -f "$archive" ]; then
     echo "missing release archive: $archive" >&2
     exit 1
@@ -70,7 +88,7 @@ build_image() {
   staging=$(mktemp -d)
   trap 'rm -rf "$staging"' EXIT INT TERM
   tar -xzf "$archive" -C "$staging"
-  cp "$staging/agov-${AGOV_VERSION}-${target}/agov" "$staging/agov"
+  cp "$staging/agov-${AGOV_VERSION}-${slug}/agov" "$staging/agov"
 
   "$(podman_bin)" build \
     --file tooling/rust/Containerfile.agov \
@@ -133,7 +151,8 @@ provenance_record() {
   digest="$(cat "$digestfile")"
 
   target=${AGOV_TARGET:-x86_64-unknown-linux-musl}
-  archive="dist/agov-${AGOV_VERSION}-${target}.tar.gz"
+  slug=$(target_slug "$target")
+  archive="dist/agov-${AGOV_VERSION}-${slug}.tar.gz"
   if [ ! -f "$archive" ]; then
     echo "missing release archive: $archive" >&2
     exit 1
@@ -142,7 +161,7 @@ provenance_record() {
   staging=$(mktemp -d)
   trap 'rm -rf "$staging"' EXIT INT TERM
   tar -xzf "$archive" -C "$staging"
-  agov_bin="$staging/agov-${AGOV_VERSION}-${target}/agov"
+  agov_bin="$staging/agov-${AGOV_VERSION}-${slug}/agov"
 
   "$agov_bin" dist provenance-record oci \
     --product agov \

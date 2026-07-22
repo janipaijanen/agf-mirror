@@ -363,8 +363,8 @@ release:create:
     - apk add --no-cache tar gzip
     - |
       staging="$(mktemp -d)"
-      tar -xzf "dist/agov-${VERSION}-x86_64-unknown-linux-musl.tar.gz" -C "$staging"
-      AGOV_BIN="$staging/agov-${VERSION}-x86_64-unknown-linux-musl/agov"
+      tar -xzf "dist/agov-${VERSION}-linux-x86_64.tar.gz" -C "$staging"
+      AGOV_BIN="$staging/agov-${VERSION}-linux-x86_64/agov"
       "$AGOV_BIN" dist validate-provenance dist/*-provenance.json --artifact-dir dist
       rm -rf "$staging"
     # Upload every release artifact to the generic package registry.
@@ -425,8 +425,8 @@ release:verify:
     - VERSION="${CI_COMMIT_TAG#v}"
     - |
       staging="$(mktemp -d)"
-      tar -xzf "dist/agov-${VERSION}-x86_64-unknown-linux-musl.tar.gz" -C "$staging"
-      AGOV_BIN="$staging/agov-${VERSION}-x86_64-unknown-linux-musl/agov"
+      tar -xzf "dist/agov-${VERSION}-linux-x86_64.tar.gz" -C "$staging"
+      AGOV_BIN="$staging/agov-${VERSION}-linux-x86_64/agov"
       "$AGOV_BIN" dist post-publication-check \
         --releases-url "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases/$CI_COMMIT_TAG" \
         --download-dir "$(mktemp -d)"
@@ -669,17 +669,25 @@ rust:tooling:clippy:
     - AGOV_BIN="$PWD/target/release/agov"
     - |
       for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
+        # Public filename slug per the Workstream A naming decision (er5h):
+        # archives are named by platform slug; the real Rust triple stays in
+        # cross --target and the provenance record's target_platform field.
+        case "$target" in
+          x86_64-unknown-linux-musl) slug="linux-x86_64" ;;
+          aarch64-unknown-linux-musl) slug="linux-aarch64" ;;
+          *) echo "no public filename slug mapped for target $target" >&2; exit 1 ;;
+        esac
         cross build --release --target "$target" -p agov -p agov-mcp
-        archive="agov-${VERSION}-${target}.tar.gz"
+        archive="agov-${VERSION}-${slug}.tar.gz"
         staging="$(mktemp -d)"
-        mkdir -p "$staging/agov-${VERSION}-${target}"
-        cp "target/${target}/release/agov" "$staging/agov-${VERSION}-${target}/agov"
-        cp "target/${target}/release/agov-mcp" "$staging/agov-${VERSION}-${target}/agov-mcp"
-        chmod 0755 "$staging/agov-${VERSION}-${target}/agov"
-        chmod 0755 "$staging/agov-${VERSION}-${target}/agov-mcp"
+        mkdir -p "$staging/agov-${VERSION}-${slug}"
+        cp "target/${target}/release/agov" "$staging/agov-${VERSION}-${slug}/agov"
+        cp "target/${target}/release/agov-mcp" "$staging/agov-${VERSION}-${slug}/agov-mcp"
+        chmod 0755 "$staging/agov-${VERSION}-${slug}/agov"
+        chmod 0755 "$staging/agov-${VERSION}-${slug}/agov-mcp"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing the agov and agov-mcp executables on PATH.\n" \
-          "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
-        tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${target}"
+          "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
+        tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${slug}"
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         "$AGOV_BIN" dist provenance-record file \
           --product agov --version "$VERSION" --source-commit "${CI_COMMIT_SHA:-unknown}" \
@@ -694,16 +702,17 @@ rust:tooling:clippy:
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
         target="x86_64-pc-windows-gnu"
+        slug="windows-x86_64"
         cross build --release --target "$target" -p agov -p agov-mcp
-        archive="agov-${VERSION}-${target}.zip"
+        archive="agov-${VERSION}-${slug}.zip"
         staging="$(mktemp -d)"
         dist_dir="$(cd ../../dist && pwd)"
-        mkdir -p "$staging/agov-${VERSION}-${target}"
-        cp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${target}/agov.exe"
-        cp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${target}/agov-mcp.exe"
+        mkdir -p "$staging/agov-${VERSION}-${slug}"
+        cp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
+        cp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing agov.exe and agov-mcp.exe on PATH.\n" \
-          "$VERSION" "$target" > "$staging/agov-${VERSION}-${target}/README.txt"
-        (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${target}")
+          "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
+        (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         "$AGOV_BIN" dist provenance-record file \
           --product agov --version "$VERSION" --source-commit "${CI_COMMIT_SHA:-unknown}" \
