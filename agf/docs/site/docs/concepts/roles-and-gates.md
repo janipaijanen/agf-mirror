@@ -64,8 +64,15 @@ and binding risk acceptance.
 
 ## The two gates
 
-Figure 1 shows the two review gates as a pipeline: planning is reviewed before
-implementation starts, and implementation is reviewed again before merge.
+The two gates sit at opposite ends of the same unit of work, not side by
+side: Gate 1 reviews the plan before any code exists, and Gate 2 reviews
+the diff after implementation but before merge. Figure 1 traces that
+single path — plan in, implementation in the middle, merge at the end —
+so the cost claim above (redirection at Gate 1 costs minutes; the same
+redirection after implementation costs the implementation) is visible as
+a shape, not just an assertion. The point to retain: there is exactly one
+plan-review checkpoint and exactly one merge-review checkpoint per
+change, and nothing skips between them.
 
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
@@ -84,9 +91,15 @@ may carry conditions, and the merge must honour them.
 
 ## The coordination channel
 
-Figure 2 shows the coordination channel as an append-only chain of claims,
-handoffs, reviews, decisions, and completions. Each file points to earlier
-files so the decision remains reconstructible.
+Where Figure 1 showed the two checkpoints a change passes through, Figure
+2 shows what accumulates between them: every claim, handoff, review,
+decision, and completion is its own file, and each new file references
+the ones it responds to rather than replacing them. Figure 2 draws that
+referencing structure as a chain, not a list, because the order and the
+pointers are what let a reviewer walk backward from a decision to the
+evidence that justified it. The point to retain: nothing in the channel
+is edited in place — corrections are new links added to the chain, which
+is why the chain, not any single file, is the audit trail.
 
 <div class="figure-scroll" markdown>
 ![Coordination channel](../../reference/figures/coordination-channel.svg)
