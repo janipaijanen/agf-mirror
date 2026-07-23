@@ -59,6 +59,16 @@ new maturity level; it is a local review aid for spotting weak approvals later.
 | Weak | Approval relies partly on assertion, incomplete evidence, or missing review detail. Use only with an explicit residual-risk note. |
 | Failed | Evidence chain is missing or unverifiable; do not merge until repaired or rejected. |
 
+The labels above apply at one specific point in the pipeline Figure 1
+shows: the Gate 2 review that sits after implementation and before
+merge. A "Weak" or "Failed" label is a claim about the state of the
+evidence chain at that single point, not about the plan reviewed
+earlier at Gate 1 or the release step that follows merge — those are
+separate stages in the same figure, with their own review discipline.
+The point to retain: evidence quality is scoped per gate, so a strong
+Gate 1 does not offset a weak Gate 2, and neither substitutes for the
+release discipline covered next.
+
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 
 ## Releases: the immutability discipline
