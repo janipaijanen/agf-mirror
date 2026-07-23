@@ -82,7 +82,7 @@ unpack it, and place the `agov` executable on PATH.
 ```yaml
 validate-governance:
   image:
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.3.1
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.0
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
