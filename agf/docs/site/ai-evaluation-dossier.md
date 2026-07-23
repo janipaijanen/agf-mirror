@@ -298,6 +298,13 @@ and evidence before merge. Validators and CI provide evidence; the human
 governor makes binding gate decisions. See
 [Roles and gates](docs/concepts/roles-and-gates.md).
 
+The gate pipeline is included here so an evaluator can test the ordering and
+authority claims as one sequence: planning reaches a human Gate 1 decision
+before implementation, while implementation and its evidence reach a separate
+human Gate 2 decision before merge. The point to retain is that validation can
+support either decision, but it neither replaces the governor nor allows an
+implementer to approve their own work.
+
 ![Gate pipeline](reference/figures/gate-pipeline.svg)
 
 ### 4.04 Coordination Protocol
@@ -318,6 +325,12 @@ The preferred AI-authored filename format is
 See [Coordination protocol](docs/concepts/coordination-protocol.md) and the
 schema in `agf/schemas/coordination-message.schema.json`.
 
+The coordination-channel figure gives an evaluator the relationship that the
+file list alone does not: claims and handoffs move work between roles, reviews
+and decisions establish authority, and completion closes the traceable chain.
+Its essential takeaway is that later records reference and extend earlier
+ones; a correction is another visible event rather than a rewritten history.
+
 <div class="figure-scroll" markdown>
 ![Coordination channel](reference/figures/coordination-channel.svg)
 </div>
@@ -336,6 +349,13 @@ Rules shipped on single-adopter evidence carry visible provisional status.
 Capability maturity answers "what exists?" Evidence status answers "how strong
 is the proof?" See [Learning loop and evidence](docs/concepts/evidence-and-learnings.md)
 and [Maturity vocabulary](reference/maturity-vocabulary.md).
+
+The learning-loop figure connects the evidence vocabulary to framework
+change: observations are recorded, assessed, and promoted into a rule,
+validator, documentation change, or retirement only through governed review.
+An evaluator should retain that the loop does not turn one observation into a
+universal rule automatically; evidence strength remains visible while the
+result feeds the next cycle of work.
 
 ![Learning loop](reference/figures/learning-loop.svg)
 
@@ -356,6 +376,13 @@ content on upgrade, or remove AGF artifacts in an ordinary cleanup commit while
 preserving historical coordination evidence. See
 [Downstream impact](docs/adopt/downstream-impact.md) and
 [Exit and decommission](docs/adopt/exit-and-decommission.md).
+
+The adoption-and-exit figure is present here to keep an evaluation from
+treating installation as an irreversible commitment. It relates the initial
+adoption choice to governed operation, later reassessment, and explicit paths
+to freeze, replace, or remove framework artifacts while retaining required
+history. The key conclusion is that responsible adoption includes a reviewable
+exit path from the outset.
 
 ![Adoption and exit flow](reference/figures/adoption-exit-flow.svg)
 
