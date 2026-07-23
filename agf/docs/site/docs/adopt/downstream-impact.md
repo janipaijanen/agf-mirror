@@ -9,9 +9,15 @@ files in your repository, jobs in your CI, and discipline in your workflow.
 This page lists the full price. The way back out is documented on the
 [exit and decommission](exit-and-decommission.md) page.
 
-Figure 1 shows the adoption and exit flow at a high level: evaluate the cost,
-install deliberately, operate with gates, and leave by removing the framework
-artifacts and hooks if the trade no longer pays.
+This page enumerates the cost side of the trade; Figure 1 places that
+cost inside the full lifecycle it belongs to — evaluate, install
+deliberately, operate with gates, and leave if the trade stops paying —
+so the itemised list below reads as one stage of a longer, reversible
+path rather than an open-ended commitment. The point to retain: every
+cost this page names (files, CI jobs, workflow discipline) belongs to
+the "operate with gates" stage specifically, and the same figure shows
+the exit stage that removes them again, detailed on the linked
+exit-and-decommission page.
 
 ![Adoption and exit flow](../../reference/figures/adoption-exit-flow.svg)
 

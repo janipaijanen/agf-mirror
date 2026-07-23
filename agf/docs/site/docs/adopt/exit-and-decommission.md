@@ -9,9 +9,16 @@ conventions; it has no runtime, no service registration, and no data it
 holds hostage. This page summarises the three exit modes and is the canonical
 public reference for leaving cleanly.
 
-Figure 1 shows the exit paths before the table defines them: pause, downgrade,
-or remove. The important point is that exit is a normal governed decision, not
-a failure mode.
+Figure 1 places the three exit paths — pause, downgrade, remove — as
+branches off the same adoption timeline this page is about to walk
+backward through, rather than as three unrelated procedures. Reading the
+branch point first, before the table below defines each mode in detail,
+shows that all three start from the same decision ("stop using some or
+all of AGF") and differ only in how much of the governed history and
+tooling stays behind afterward. The point to retain: exit is a branch on
+the same timeline as adoption, evaluated with the same governed-decision
+discipline — not an emergency procedure reached only after something has
+gone wrong.
 
 ![Adoption and exit flow](../../reference/figures/adoption-exit-flow.svg)
 
