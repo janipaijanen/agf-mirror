@@ -36,7 +36,29 @@
 }
 .md-typeset .mermaid svg,
 .md-typeset pre.mermaid svg {
-  max-width: none;
+  /* mermaid sets an inline style="max-width: NNNpx" on its own generated
+     <svg>. An inline style attribute wins over any external stylesheet rule
+     regardless of selector specificity unless that rule uses !important --
+     confirmed via live-rendered-diagram measurement at 390px: without
+     !important, getComputedStyle(svg).maxWidth still reported mermaid's own
+     inline pixel value.
+     KNOWN RESIDUAL GAP (see MR !458 Gate 2 evidence): removing max-width is
+     not sufficient on its own. Mermaid's SVG also carries width="100%" as an
+     SVG presentation attribute, and per the CSS2.1 replaced-element sizing
+     algorithm, a block-level replaced element with only an intrinsic aspect
+     ratio (viewBox) and no intrinsic absolute width still resolves width:auto
+     to "fill the containing block" -- confirmed empirically: width:auto,
+     width:max-content, and display:inline-block were each tried against a
+     live-rendered diagram at a 390px viewport and every variant still
+     shrank the SVG to the container width instead of scrolling at native
+     size. This differs from the DOT-generated figures above, whose SVG files
+     carry absolute pixel width/height attributes (not "100%"), so max-width:
+     none alone is sufficient for those. A real fix for mermaid needs either
+     mermaid's own `useMaxWidth: false` config (would require a custom
+     extra_javascript re-init hook -- out of this MR's CSS-only scope) or an
+     equivalent JS-level fix; this is reported to the governor rather than
+     silently left unfixed or falsely marked resolved. */
+  max-width: none !important;
 }
 
 /* Admonition colour accents using AGF palette */
