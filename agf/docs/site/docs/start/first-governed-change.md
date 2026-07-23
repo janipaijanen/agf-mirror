@@ -21,12 +21,14 @@ responsibility vocabulary as the rest of this site (see
 decision** step has no AI substitute; an **AI action** step is procedure
 your assistant runs while you review the result; an **Automated check**
 step is a deterministic tool result, not a judgment call; **Shared
-concept** means both of you have a part.
+concept** means both of you have a part. A step that genuinely splits
+across two of these names both, rather than being forced into one.
 
 ## 1. Know where the files will go
 
-**Who does this: your choice — run it yourself, or let step 2's assistant
-prompt create the directories too.**
+**Who does this: Human decision — you choose whether to run this yourself
+or let step 2's assistant create the directories too; the execution may be
+delegated, but the choice is not.**
 
 AGF itself lives in `agf/`. The POC default keeps project-owned gate evidence
 in root `docs/`:
@@ -84,9 +86,10 @@ files using readable IDs from `agov coord brief`.
 
 ## 3. Validate the plan and first handoff
 
-**Who does this: Automated check — your assistant runs these commands, but
-the pass/fail result is the validator's deterministic output, not the
-assistant's judgment; you read that result, not the raw files.**
+**Who does this: AI action to run the commands; Automated check for the
+result — your assistant invokes the validator, but the pass/fail output is
+the validator's deterministic result, not the assistant's judgment; you
+read that result, not the raw files.**
 
 Use the `agov` command for core validation. In this repository it points at
 `tooling/agov`; in another checkout, symlink that executable into
@@ -182,8 +185,9 @@ by files, not memory.
 
 ## 8. Record what you learned
 
-**Who does this: Shared concept — the assistant can draft the entry, but you
-decide what's worth recording and check it before it's shared upstream.**
+**Who does this: AI action to draft the entry; Human decision on what's
+worth recording — the assistant can draft the entry, but you decide what's
+worth recording and check it before it's shared upstream.**
 
 If the first run exposed friction, record it in
 `agf/learnings/sample-project.yaml` under your codename. Do not include real
