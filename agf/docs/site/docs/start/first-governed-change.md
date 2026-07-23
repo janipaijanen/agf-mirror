@@ -21,8 +21,9 @@ responsibility vocabulary as the rest of this site (see
 decision** step has no AI substitute; an **AI action** step is procedure
 your assistant runs while you review the result; an **Automated check**
 step is a deterministic tool result, not a judgment call; **Shared
-concept** means both of you have a part. A step that genuinely splits
-across two of these names both, rather than being forced into one.
+concept** is a mental model both of you need, so you can coordinate using
+the same vocabulary. A step that genuinely splits across two of these
+names both, rather than being forced into one.
 
 ## 1. Know where the files will go
 
