@@ -43,14 +43,14 @@ flowchart LR
     classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A
 
     plan(AI writes a plan) --> gate1{Governor approves?}
-    gate1 --> implement[AI implements + CI validates]
-    implement --> gate2{Governor approves merge?}
-    gate2 --> merge{{Merge}}
+    gate1 --> implement(AI implements)
+    implement --> civalidate[[CI validates]]
+    civalidate --> gate2{Governor approves merge?}
+    gate2 --> merge[[Merge]]
 
-    class plan aiAction
+    class plan,implement aiAction
     class gate1,gate2 humanDecision
-    class implement sharedConcept
-    class merge automatedCheck
+    class civalidate,merge automatedCheck
 ```
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"

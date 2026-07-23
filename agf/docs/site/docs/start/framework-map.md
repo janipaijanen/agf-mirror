@@ -117,8 +117,9 @@ flowchart LR
 *Palette rationale: `governor-reviewer` and both gates are explicit human
 approval points (this page's own body text names Gate 1 "plan approval"
 and Gate 2 "review before merge"), so they use the Human decision
-treatment. `planner-architect`/`coder-tester` are AI agent roles, so AI
-action. `agov` tooling commands (`validate`, `session resume`, `coord
+treatment. `planner-architect`/`coder-tester` are named, single-actor-type
+AI agent roles — each is played by exactly one actor class — so AI action.
+`agov` tooling commands (`validate`, `session resume`, `coord
 graph/index`) and `CI integration` are deterministic automated steps, so
 Automated check. The "Boundaries" section and its four "not a ..."
 statements are explicitly reference/scope-limiting statements, not
@@ -126,7 +127,22 @@ actions, so Reference/deferred content. Everything else — category
 headers, artifacts (plans, coordination messages, decision records,
 learning records, rules, schemas), adoption steps, and evidence-loop
 stages — mixes human and AI participation with no single responsible
-actor type, so Shared concept.*
+actor type, so Shared concept.
+
+The map mixes actors (Human decision), actions (AI action), mechanisms
+(Automated check), and concepts (Shared concept) by design — this map is
+an orientation layer over the framework's concept vocabulary, not a
+single-axis diagram, so nodes are classified by what each one most
+concretely represents. `advisory roles` specifically stays Shared concept
+rather than AI action: unlike `planner-architect`/`coder-tester`, it is a
+plural umbrella label covering multiple distinct roles with different
+actor types (`contribution-auditor`, `academic-peer-reviewer`,
+`fact-checker`, `infosec-sentinel` — themselves a mix of AI, mixed
+human+AI advisory, and tooling/CI roles per the role-category axis
+established in `role-communication-topology.dot` and
+`agent-participation-by-phase.dot`). Collapsing that mix into a single
+AI-action fill would misrepresent it the same way BLOCK 1/2 in `r1gq`
+flagged for the Class 3 figures.*
 
 ## What is included
 
