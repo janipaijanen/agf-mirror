@@ -35,8 +35,19 @@ run.
 See [what ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate)
 before treating the complete distribution as a mandatory day-one configuration.
 
+Figure 1 compresses the whole page above into the five-step shape it
+keeps returning to: a plan is written, a human governor decides whether
+it proceeds, an AI implements only after that decision, CI validates the
+result, and a human governor decides again before merge. The point to
+retain: the two decision points (Gate 1, Gate 2) are marked distinctly
+from the AI-executed steps around them, because that separation —
+never both authoring and approving the same step — is the one property
+every other page on this site assumes you already understand.
+
 ```mermaid
 flowchart LR
+    accTitle: Governed change flow
+    accDescr: AI writes a plan, the governor approves it at Gate 1, AI implements, CI validates the result, and the governor approves the merge at Gate 2.
     classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
     classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
     classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
