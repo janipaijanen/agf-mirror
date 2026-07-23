@@ -70,11 +70,22 @@ or any other project file, use a normal commit title and let CI run.
 
 ## How agents communicate
 
-Figure 1 traces the lifecycle of a governed change through the coordination
-channel.
+Figure 1 is the same three-role handoff chain the rest of this page
+describes in prose, drawn as a sequence rather than a list so the
+timing is explicit: `coder-tester` does not start implementing until
+`planner-architect`'s handoff and the corresponding ack have both
+happened, and `coder-tester` cannot close with a `completion` until
+`governor-reviewer`'s `decision-record` has come back. The point to
+retain: every arrow in the diagram is a coordination-channel file, in
+the same left-to-right order those files would appear if read from
+`docs/coordination/` — the diagram does not add any relationship the
+prose after it doesn't also state; it makes the ordering visually
+immediate.
 
 ```mermaid
 sequenceDiagram
+    accTitle: Gate 1 to Gate 2 coordination handoff sequence
+    accDescr: planner-architect hands off an approved Gate 1 plan to coder-tester, who acknowledges, implements, then hands off to governor-reviewer for Gate 2. governor-reviewer returns a decision-record, and coder-tester closes with a completion back to planner-architect.
     participant PA as planner-architect
     participant CT as coder-tester
     participant GR as governor-reviewer
@@ -109,7 +120,10 @@ hardcoded palette fill would not do without a separate dark-mode variant
 (the same gap `palette.md`'s "Light/dark behaviour" section already
 documents as unresolved for fixed-fill figures) — see the governor's
 `ksdg` decision for the precedent of deferring this class of limitation
-rather than blocking release on it.*
+rather than blocking release on it. This note is about colour only; the
+diagram's accessible name and description are a separate axis (see
+"Mermaid accessibility evidence" below) and are not affected by keeping
+the default palette.*
 
 One agent writes a `handoff`; another reads it via `agov session resume`,
 implements, then files a Gate 2 `handoff` to `governor-reviewer`. The
@@ -264,7 +278,14 @@ approval authority; `all` (the broadcast target) renders as an ellipse.
 The following rendered map is a dated example from the AGF foundry channel
 captured during the v2.0 documentation work. It is not a required topology:
 adopting projects may define more specialized agent roles and may show
-different communication patterns as their governance model matures.
+different communication patterns as their governance model matures. Read
+edge thickness and count as evidence of *this project's* history, not as
+a target shape to reproduce — the filled `governor-reviewer` node and the
+directed edges are the same `(from, to, kind)` structure the `agov coord
+graph` command above just described in the abstract, now shown populated
+with real messages. The point to retain: a thin or missing edge between
+two roles in your own generated map is not a defect to fix, it just means
+those two roles haven't exchanged that kind of message yet.
 
 <div class="figure-scroll" markdown>
 ![Example AGF Foundry coordination map](../../reference/figures/coordination-map-example.svg)
