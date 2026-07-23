@@ -12,17 +12,23 @@ reading the exact contracts.
 
 ```mermaid
 flowchart LR
+    classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
+    classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
+    classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A
+    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
+    classDef referenceContent fill:#CCCCCC,stroke:#888888,color:#1A1A1A,stroke-dasharray:5 5
+
     AGF["AGF<br/>repo-local governance"]
 
     ROLES["Roles"]
     PA["planner-architect"]
     CT["coder-tester"]
-    GR["governor-reviewer"]
+    GR{"governor-reviewer"}
     ADV["advisory roles"]
 
     GATES["Gates"]
-    G1["Gate 1<br/>plan approval"]
-    G2["Gate 2<br/>review before merge"]
+    G1{"Gate 1<br/>plan approval"}
+    G2{"Gate 2<br/>review before merge"}
     FAST["fast-track waiver"]
 
     ART["Artifacts"]
@@ -34,14 +40,14 @@ flowchart LR
     SCHEMAS["schemas"]
 
     TOOL["agov tooling"]
-    VALIDATE["validate"]
-    RESUME["session resume"]
-    GRAPH["coord graph/index"]
+    VALIDATE{{"validate"}}
+    RESUME{{"session resume"}}
+    GRAPH{{"coord graph/index"}}
 
     ADOPT["Adoption"]
     INSTALL["install agf/"]
     FIRST["first governed change"]
-    CI["CI integration"]
+    CI{{"CI integration"}}
     EXIT["exit/decommission"]
 
     BOUND["Boundaries"]
@@ -99,7 +105,44 @@ flowchart LR
     REC --> CHANGE
     CHANGE --> RELEASE
     RELEASE --> EVID
+
+    class PA,CT aiAction
+    class GR humanDecision
+    class G1,G2 humanDecision
+    class VALIDATE,RESUME,GRAPH,CI automatedCheck
+    class AGF,ROLES,ADV,GATES,FAST,ART,PLANS,COORD,DEC,LEARN,RULES,SCHEMAS,TOOL,ADOPT,INSTALL,FIRST,EXIT,EVID,INCIDENT,REC,CHANGE,RELEASE sharedConcept
+    class BOUND,NORUNTIME,NOCOMP,NOMODEL,NOSELF referenceContent
 ```
+
+*Palette rationale: `governor-reviewer` and both gates are explicit human
+approval points (this page's own body text names Gate 1 "plan approval"
+and Gate 2 "review before merge"), so they use the Human decision
+treatment. `planner-architect`/`coder-tester` are named, single-actor-type
+AI agent roles — each is played by exactly one actor class — so AI action.
+`agov` tooling commands (`validate`, `session resume`, `coord
+graph/index`) and `CI integration` are deterministic automated steps, so
+Automated check. The "Boundaries" section and its four "not a ..."
+statements are explicitly reference/scope-limiting statements, not
+actions, so Reference/deferred content. Everything else — category
+headers, artifacts (plans, coordination messages, decision records,
+learning records, rules, schemas), adoption steps, and evidence-loop
+stages — mixes human and AI participation with no single responsible
+actor type, so Shared concept.
+
+The map mixes actors (Human decision), actions (AI action), mechanisms
+(Automated check), and concepts (Shared concept) by design — this map is
+an orientation layer over the framework's concept vocabulary, not a
+single-axis diagram, so nodes are classified by what each one most
+concretely represents. `advisory roles` specifically stays Shared concept
+rather than AI action: unlike `planner-architect`/`coder-tester`, it is a
+plural umbrella label covering multiple distinct roles with different
+actor types (`contribution-auditor`, `academic-peer-reviewer`,
+`fact-checker`, `infosec-sentinel` — themselves a mix of AI, mixed
+human+AI advisory, and tooling/CI roles per the role-category axis
+established in `role-communication-topology.dot` and
+`agent-participation-by-phase.dot`). Collapsing that mix into a single
+AI-action fill would misrepresent it the same way BLOCK 1/2 in `r1gq`
+flagged for the Class 3 figures.*
 
 ## What is included
 

@@ -20,11 +20,14 @@ agents under those boundaries.
 
 ```mermaid
 flowchart TB
+    classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
+    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
+
     subgraph "Orchestrator (runtime)"
-        OR[LangGraph / CrewAI / AutoGen / Claude Code / Cursor]
-        OR --> A1[Agent invocation]
-        OR --> A2[Tool call]
-        OR --> A3[Memory / state]
+        OR(LangGraph / CrewAI / AutoGen / Claude Code / Cursor)
+        OR --> A1(Agent invocation)
+        OR --> A2(Tool call)
+        OR --> A3(Memory / state)
     end
 
     subgraph "agents-govern (governance)"
@@ -39,7 +42,18 @@ flowchart TB
     AG -.constrains.-> A2
     A2 -.feeds.-> J4
     A3 -.feeds.-> J4
+
+    class OR,A1,A2,A3 aiAction
+    class AG,J1,J2,J3,J4 sharedConcept
 ```
+
+*Palette: runtime/orchestrator nodes (right) use the AI action treatment
+(rounded, blue-light fill) — this diagram's own body text calls the
+runtime side "executes agents." Governance nodes (left) use the Shared
+concept treatment (white fill, blue-mid border) — jurisdictions,
+forbidden actions, communication topology, and learning records are
+framework concepts and artifacts, not actions performed by a single
+actor type.*
 
 The orchestrator runs agents. agents-govern says **which agents exist,
 what they may do, and which gates they pass through.**
@@ -112,6 +126,8 @@ adoption delivers.
 
 ```mermaid
 flowchart LR
+    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
+
     AGF["agents-govern\nRoles · Gates · Coordination · Learning"]
 
     AGF -."governs agents running on".-> ORC["Agent runtimes\nClaude Code · Codex CLI · Cursor\nLangGraph · CrewAI · AutoGen"]
@@ -119,7 +135,16 @@ flowchart LR
     AGF -."narrower scope within".-> SDLC["SDLC governance\nChange management · Release policy"]
     AGF -."different axis from".-> ML["ML governance\nModel cards · Dataset provenance\nBias audits"]
     AGF -."implemented within".-> AIP["AI policy & ethics\nResponsible AI principles\nRegulatory compliance"]
+
+    class AGF,ORC,CI,SDLC,ML,AIP sharedConcept
 ```
+
+*Palette: every node here is a governance domain or tooling category being
+compared, not an actor performing an action — the Shared concept treatment
+applies uniformly (matching the established precedent in
+`coordination-map-example.dot`, where uniform treatment replaced a prior
+false per-node responsibility mapping). No node in this comparison is
+"who is responsible" in the sense the other four categories describe.*
 
 **vs SDLC governance.** SDLC governance covers the full software delivery
 lifecycle. AGF covers the agent-specific slice: which AI agents exist,
