@@ -8,6 +8,28 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-07-24
+
+Patch release closing the accessibility and prose-hardening work governed by
+issues #51, #55, and #56 (MR !458). See [`agf/CHANGELOG.md`](agf/CHANGELOG.md)
+for the adopter-facing details.
+
+### Fixed
+
+- Public documentation now precedes every figure with page-specific prose
+  carrying its essential meaning, so the argument does not depend on perceiving
+  the image alone.
+- Mermaid diagrams now use a narrow-width horizontal-scroll presentation and
+  expose a shared accessible name and description derived from their source;
+  this closes the mobile and assistive-technology remediation deferred from
+  v2.4.0.
+
+### Changed
+
+- The accessibility evidence records the exact browser, operating system, and
+  assistive-technology test boundary. The result is Level 4 Validated and does
+  not claim formal WCAG conformance or universal assistive-technology support.
+
 ## [2.4.0] - 2026-07-23
 
 Minor release (see [`agf/CHANGELOG.md`](agf/CHANGELOG.md) `[2.4.0]` for the
