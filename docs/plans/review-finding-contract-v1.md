@@ -1,7 +1,9 @@
 ---
 id: review-finding-contract-v1
-status: pending-gate1
+status: approved
 topic: review-finding-contract-v1
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-07-24T07:46:30Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -332,9 +334,7 @@ no data migration or restoration is needed.
 
 ## Gate and role boundary
 
-This plan is `pending-gate1`. Contribution-auditor must challenge this draft
-before it is submitted to governor-reviewer. No listed documentation, template,
-tooling, schema, or rule change begins until governor-reviewer records Gate 1
-approval. After approval, implementation routes to coder-tester; the exact diff
-returns to contribution-auditor for independent Gate 2 review before the
-governor's binding Gate 2 decision.
+This plan was approved at Gate 1 by governor-reviewer decision
+`20260724T074630Z-governor-reviewer-1ege`. Implementation routes to
+coder-tester; the exact diff returns to contribution-auditor for independent
+Gate 2 review before the governor's binding Gate 2 decision.
