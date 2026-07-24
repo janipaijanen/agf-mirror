@@ -15,7 +15,7 @@ artifacts_owned:
   - agf/docs/site/**
 handoff:
   next_agent: contribution-auditor
-  status: in-progress
+  status: blocked
   task:
     - "Continue v2.4.1 #51/#55 implementation on branch feat/v241-accessibility-prose-hardening (MR !458, draft), off Gate 1-approved plan c2bf39b / decision rekk"
   must_read:
