@@ -3,6 +3,35 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.1] — 2026-07-24
+
+Patch release correcting the accessibility and narrow-width presentation of
+the public documentation's existing figures and Mermaid diagrams. This closes
+the Mermaid remediation deferred from v2.4.0; it adds no schema, role, tool,
+API, or adopter-contract surface.
+
+### Fixed
+
+- Added page-specific explanatory prose before all 22 public figure embeds so
+  each page communicates the figure's purpose, relationships, and essential
+  takeaway without requiring the image to be perceived.
+- Added responsive horizontal scrolling for all five public Mermaid diagrams
+  at narrow widths while preserving normal desktop presentation and keyboard
+  reachability.
+- Added accessible names and descriptions to rendered Mermaid SVGs from their
+  source definitions, with equivalent surrounding prose retained as the
+  primary explanation.
+
+### Validation boundary
+
+- The shared rendering pattern and all five diagrams were reviewed at desktop
+  and 390px widths, including zoom/reflow, keyboard reachability, DOM and
+  accessibility-tree inspection, and an Orca 46.1/Chromium 150.0.7871.124
+  smoke test on Linux Mint 22.3. This is Level 4 Validated evidence, not a claim of formal
+  WCAG conformance or universal assistive-technology compatibility.
+
+Adopter docs: updated
+
 ## [2.4.0] — 2026-07-23
 
 Minor release covering four independently governed workstreams: a breaking
