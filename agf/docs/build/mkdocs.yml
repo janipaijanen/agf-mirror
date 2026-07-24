@@ -60,6 +60,9 @@ markdown_extensions:
 extra_css:
   - stylesheets/agf.css
 
+extra_javascript:
+  - javascripts/mermaid.mjs
+
 hooks:
   - hooks/release_info.py
   - hooks/ai_evaluation_dossier.py

@@ -11,10 +11,15 @@ project.*
 
 ## The learning loop
 
-The framework grows from evidence, not opinion. Figure 1 shows the
-learning loop: governed work creates evidence, evidence becomes a
-learning record, system-level analysis informs a proposal, governed approval
-precedes implementation, and observed project use feeds the next cycle.
+The framework grows from evidence, not opinion, and Figure 1 exists to
+make that claim checkable: it draws the loop as a closed cycle rather
+than a one-way pipeline — governed work creates evidence, evidence
+becomes a learning record, system-level analysis turns a pattern across
+records into a proposal, governed approval precedes implementation, and
+observed project use feeds the next cycle rather than ending the process.
+The point to retain: because the loop closes, a rule that stops matching
+observed practice is itself evidence for the next cycle, not a fixed
+requirement exempt from the process that produced it.
 
 ![Learning loop](../../reference/figures/learning-loop.svg)
 

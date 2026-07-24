@@ -17,6 +17,15 @@ trail. **AI-executed** means an agent may do the task after delegation;
 it does not mean the agent can approve its own gate, accept project
 risk, or decide exit.
 
+Figure 1 places those three modes side by side rather than on a
+spectrum, because the boundary between them is not "how much the AI can
+be trusted with" but "which mode this specific action belongs to" —
+drafting a plan and approving it are different actions in different
+modes even when the same person or agent is involved in both. The point
+to retain before reading Table 1: the figure's three columns are the
+answer key for "who does this," and the table below is that same answer
+key applied to specific artifacts.
+
 ![Day-to-day responsibility modes](../../reference/figures/operating-responsibility-map.svg)
 
 Table 1 separates the work by authority mode so teams can see what remains
@@ -37,9 +46,14 @@ routing table and the boundary against self-authorization.
 
 A governed working session, in order:
 
-Figure 2 shows the daily loop as a cycle: read the channel, claim or size the
-work, pass the appropriate gate, implement, review, and close the loop with a
-completion or learning.
+Where Figure 1 answered "who does this," Figure 2 answers "in what
+order": it draws the same six steps enumerated below — read, claim, gate,
+implement, review, close — as a cycle that returns to its own start,
+not a checklist that ends at completion. The point to retain: "close the
+loop" in step 6 means the completion or learning record feeds back into
+what the next reader finds in step 1, which is why skipping the
+completion step (common under time pressure) breaks the cycle for
+whoever reads the channel next, not just for the current task.
 
 ![Governance loop](../../reference/figures/governance-loop.svg)
 

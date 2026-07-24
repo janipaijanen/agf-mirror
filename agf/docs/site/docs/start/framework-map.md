@@ -10,8 +10,18 @@ schemas, coordination records, and gate decisions remain the controlling
 artifacts. Use this page when you need the shape of the framework before
 reading the exact contracts.
 
+The diagram groups every AGF concept under one of five headings — AGF
+itself, roles, gates, artifacts, and the categories this site organizes
+around — and connects each concept to the heading that owns it, not to
+every other concept it happens to relate to. The point to retain: this
+map answers "which category does this term belong to," not "what is the
+full relationship between these terms" — for the latter, follow the link
+each concept eventually points to in the pages below.
+
 ```mermaid
 flowchart LR
+    accTitle: AGF concept map
+    accDescr: Groups AGF's core vocabulary under five headings -- AGF itself, roles (planner-architect, coder-tester, governor-reviewer, advisory roles), gates (Gate 1 plan approval, Gate 2 review before merge, fast-track waiver), artifacts (plans, coordination messages, decision records, learning records, rules, schemas), and the site's documentation categories.
     classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
     classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
     classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A

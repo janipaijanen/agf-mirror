@@ -21,13 +21,16 @@ Requires Graphviz (`dot` version 2.x or later).
 
 ## Governance loop
 
-Figure 1 shows the framework's self-applied governance cycle.
+The framework's own development runs the same cycle it prescribes for
+adopters: plan, implement, review, merge, learn, and back to plan.
+Figure 1 draws that as a closed loop rather than a line specifically
+because the "learn" step is not optional cleanup — incidents and
+observations from one cycle feed the learning record, and the learning
+record feeds new rules, tools, and documentation updates that the next
+cycle's plan step is bound by. The point to retain: skipping "learn"
+does not shorten the cycle, it breaks the loop's only feedback path.
 
 ![Governance loop](figures/governance-loop.svg)
-
-The self-applied cycle: plan → implement → review → merge → learn →
-plan. Incidents and observations feed the learning record; the learning
-record feeds new rules, tools, and documentation updates.
 
 **Source:** `docs/figures/src/governance-loop.dot`
 
@@ -35,13 +38,17 @@ record feeds new rules, tools, and documentation updates.
 
 ## Gate 1 / Gate 2 pipeline
 
-Figure 2 shows the two-gate quality pipeline from request to merge.
+This is the canonical rendering of the two-gate pipeline referenced by
+name from every other page that discusses Gate 1 or Gate 2 — the
+reference copy other pages' own page-specific figure prose points back
+to. Figure 2 places both gates on one request-to-merge path: Gate 1
+approves the plan before implementation starts, Gate 2 approves the
+implementation before merge, and either gate can return the work for
+changes or reject it outright rather than only ever advancing forward.
+The point to retain: a rejection at either gate is a normal path shown
+in the figure, not an exception to it.
 
 ![Gate pipeline](figures/gate-pipeline.svg)
-
-The two-gate quality pipeline. Gate 1 approves the plan before
-implementation starts. Gate 2 approves the implementation before merge.
-Both gates can return for changes or reject outright.
 
 **Source:** `docs/figures/src/gate-pipeline.dot`
 
@@ -49,16 +56,19 @@ Both gates can return for changes or reject outright.
 
 ## Coordination channel
 
-Figure 3 shows how append-only coordination entries route attention and
-record outcomes between agents.
+This is the reference rendering of the coordination channel's message
+kinds, which the narrower per-page uses of this figure elsewhere on the
+site assume you have already seen. Figure 3 groups messages by what they
+do rather than by who sends them: handoffs direct attention to the next
+agent, decision records gate or block, completions close tasks, and
+notes carry advisory or status information that does not itself gate
+anything. The point to retain: only decision records carry gating
+authority — a handoff, note, or completion cannot substitute for one,
+regardless of how much detail it contains.
 
 <div class="figure-scroll" markdown>
 ![Coordination channel](figures/coordination-channel.svg)
 </div>
-
-The append-only coordination channel. Handoffs direct attention to the
-next agent; decision records gate or block; completions close tasks;
-notes carry advisory or status information.
 
 **Source:** `docs/figures/src/coordination-channel.dot`
 
@@ -66,14 +76,16 @@ notes carry advisory or status information.
 
 ## Operating responsibility map
 
-Figure 4 separates human-only authority, AI-executed work, and mixed
-work in the day-to-day audit trail.
+Figure 4 is the reference version of the three-mode split used
+day-to-day: human-only authority, AI-executed work, and mixed work in
+the audit trail. It separates the three modes by what kind of action
+they are, not by how much oversight happens to be applied to a given
+instance of the action. The point to retain: "AI-executed" means
+delegated execution of a task, never autonomous approval authority — an
+AI agent that executes a task in this mode still cannot move that same
+task into the human-only mode by approving it itself.
 
 ![Day-to-day responsibility modes](figures/operating-responsibility-map.svg)
-
-The day-to-day split between human-only authority, AI-executed work, and
-mixed work in the audit trail. "AI-executed" means delegated execution,
-not autonomous approval authority.
 
 **Source:** `docs/figures/src/operating-responsibility-map.dot`
 
@@ -81,15 +93,18 @@ not autonomous approval authority.
 
 ## Evidence lifecycle
 
-Figure 5 shows how incidents and observations become learning records,
-then rules, validators, or documentation updates.
+Figure 5 is the only figure on this site that tracks a single piece of
+evidence through its full promotion path rather than a recurring cycle:
+an observation becomes a learning record; learning records promote to
+rules, validators, or documentation updates; and sufficient
+corroboration — two or more independent adopters reporting the same
+pattern — promotes a rule from Provisional to Recommended. The point to
+retain: promotion is gated on independent corroboration, not on the
+rule's author restating conviction, which is why a single-adopter rule
+stays labeled Provisional no matter how strongly its own adopter argues
+for it.
 
 ![Evidence lifecycle](figures/evidence-lifecycle.svg)
-
-From incident to improvement. An observation becomes a learning record;
-learning records promote to rules, validators, or documentation updates;
-sufficient corroboration (2+ adopters) promotes a rule from Provisional
-to Recommended.
 
 **Source:** `docs/figures/src/evidence-lifecycle.dot`
 
@@ -97,15 +112,18 @@ to Recommended.
 
 ## Learning loop
 
-Figure 6 shows the evidence-driven feedback loop as a recurring cycle.
+Where Figure 5 traced one piece of evidence through a single promotion
+path, Figure 6 is the reference view of the recurring cycle that
+generates it: governed work produces incidents, friction, or validation
+results; learning records preserve the evidence; system-level analysis
+asks which control should change; governed approval precedes
+implementation; and observed project use confirms, challenges, revises,
+or retires the change before feeding the next cycle. The point to
+retain: "observed project use" is itself a cycle input, not an end
+state — a shipped rule remains subject to the same evidence discipline
+that produced it.
 
 ![Learning loop](figures/learning-loop.svg)
-
-The evidence-driven feedback loop. Governed work produces incidents,
-friction, or validation results; learning records preserve the evidence;
-system-level analysis asks which control should change; governed approval
-precedes implementation; and observed project use confirms, challenges,
-revises, or retires the change before feeding the next cycle.
 
 **Source:** `docs/figures/src/learning-loop.dot`
 
@@ -113,14 +131,16 @@ revises, or retires the change before feeding the next cycle.
 
 ## Adoption and exit flow
 
-Figure 7 shows the adoption path and the documented exit paths.
+Figure 7 is the reference rendering of the full adoption-to-exit
+timeline: Step 0 assesses risk profile, install and a first governed
+change establish the governance habit, and from there the timeline
+branches into the exit paths — freeze, replace-on-update, and full
+decommission — detailed on the per-page uses of this figure elsewhere on
+the site. The point to retain: all three exit paths preserve the
+coordination record history: choosing an exit path changes what keeps
+running, not what remains auditable.
 
 ![Adoption and exit flow](figures/adoption-exit-flow.svg)
-
-From assessment to decommission. Step 0 assesses risk profile; install
-and first governed change establish the governance habit. Exit paths
-include freeze, replace-on-update, and full decommission — all preserve
-the coordination record history.
 
 **Source:** `docs/figures/src/adoption-exit-flow.dot`
 
@@ -128,22 +148,22 @@ the coordination record history.
 
 ## Coordination map example
 
-Figure 8 shows a dated example communication map from the AGF foundry
-coordination channel.
+Unlike the other seven figures on this page, Figure 8 is not a
+normative diagram of how AGF works — it is a dated snapshot of one real
+channel, the AGF foundry's own, generated from actual coordination
+messages rather than drawn to illustrate a concept. Parenthesized
+numbers on edges (e.g. `handoff (22)`, `decision-record (9)`) are
+message counts from that captured sample, labeled in the embedded legend
+as "Edge label = kind (message count)"; they reflect this one project's
+history at generation time, not a universal ratio any adopting project
+should expect to reproduce. The point to retain: adopting projects may
+define more specialized roles and show entirely different communication
+patterns as their own governance model matures — a thin or absent edge
+here is evidence about the foundry's history, not a target topology.
 
 <div class="figure-scroll" markdown>
 ![Example AGF Foundry coordination map](figures/coordination-map-example.svg)
 </div>
-
-Parenthesized numbers on edges (e.g. `handoff (22)`, `decision-record (9)`)
-are message counts in this captured coordination channel sample; they reflect
-the state of the foundry channel at the time the figure was generated, not
-universal ratios for all projects. The embedded legend reads
-"Edge label = kind (message count)".
-
-This is an example, not a required topology. Adopting projects may define
-more specialized agent roles and may show different communication patterns
-as their governance model matures.
 
 **Source:** `docs/figures/src/coordination-map-example.dot`
 

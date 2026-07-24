@@ -10,8 +10,15 @@ need review, but small enough that the mechanics stay visible. The example
 below uses a safer login error message. Replace the file names with your own
 project's files.
 
-Figure 1 shows the path you are about to walk: plan, Gate 1, implementation,
-Gate 2, merge, and completion.
+The eight numbered steps below are one walk through the same six-stage
+path shown in Figure 1: plan, Gate 1, implementation, Gate 2, merge, and
+completion. Keep the figure in view while you work through the numbered
+steps — each step maps onto exactly one stage, so if you find yourself
+implementing before step 4's Gate 1 decision, or merging before step 6's
+Gate 2 review, you have skipped a stage the figure shows as required, not
+optional. The point to retain for this first run: the order in the
+figure is the order you are about to follow, with no stage collapsed or
+reordered for a first attempt.
 
 ![Gate pipeline](../../reference/figures/gate-pipeline.svg)
 

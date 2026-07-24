@@ -20,6 +20,8 @@ agents under those boundaries.
 
 ```mermaid
 flowchart TB
+    accTitle: AGF and an agent runtime side by side
+    accDescr: The orchestrator (LangGraph, CrewAI, AutoGen, Claude Code, Cursor) executes agent invocations, tool calls, and memory or state. agents-govern defines roles, gates, and artifacts, which constrain the orchestrator's agent invocations and tool calls, and which are fed by tool-call and memory data into learning records.
     classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
     classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
 
@@ -126,6 +128,8 @@ adoption delivers.
 
 ```mermaid
 flowchart LR
+    accTitle: AGF relative to five adjacent governance categories
+    accDescr: agents-govern governs agents running on agent runtimes such as Claude Code, Codex CLI, and Cursor. Its audit artifacts are consumed by CI/CD pipelines. It is a narrower scope within SDLC governance. It operates on a different axis from ML governance (model cards, dataset provenance, bias audits). It is implemented within AI policy and ethics (responsible AI principles, regulatory compliance).
     classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
 
     AGF["agents-govern\nRoles · Gates · Coordination · Learning"]
