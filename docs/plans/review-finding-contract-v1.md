@@ -25,16 +25,17 @@ advisory_consultation:
 
 Replace the ambiguous prose-only use of `BLOCK | WARN | INFO | CLEAR` for new
 reviews with a small, explicit evidence envelope. Keep the familiar `CLEAR |
-BLOCK` reader recommendation, add an abstention path for incomplete review,
-and separate requirement strength, evaluation outcome, impact, enforcement,
-lifecycle, recommendation, and binding authority.
+BLOCK` reader recommendation, add an abstention path when evidence is
+incomplete and no blocker is yet known, and separate requirement strength,
+check coverage, evaluation outcome, impact, enforcement, remediation state,
+risk disposition, recommendation, and binding authority.
 
 This is a documentation-and-authoring-aid slice. It is not a new gate, metric,
 schema, standards interchange format, or grant of authority to tooling.
 
 ## Affected files
 
-- Add `agf/docs/site/reference/review-findings.md`: normative reader contract,
+- Add `agf/docs/site/reference/review-findings.md`: advisory reader convention,
   aggregation rules, examples, migration guidance, standards boundary, and
   Goodhart guard.
 - Update `agf/docs/site/docs/operate/review-and-release.md`: link to the
@@ -55,50 +56,88 @@ coordination validation, decision authority, or historical coordination files.
 
 ### Review envelope
 
-Every new review identifies an exact artifact/revision and one coverage state:
+A review using this convention identifies an exact artifact/revision and one
+coverage state:
 
 ```text
 Scope: <artifact and exact revision>
 Coverage: COMPLETE | INCOMPLETE
 ```
 
-Complete coverage also includes:
+Whenever a recommendation is issued, include:
 
 ```text
 Recommendation: CLEAR | BLOCK
 Blocking findings: <count>
 Advisory findings: <count>
+Open accepted-risk findings: <count>
 Authority: recommendation only; the authorized decision-maker decides the gate
 ```
 
-Incomplete coverage omits `Recommendation`, names missing evidence or pending
-judgment, and cannot be represented as `CLEAR` or `BLOCK`.
+`Blocking findings` counts open blocking findings without an applicable risk
+acceptance. Accepted open blockers are counted separately rather than hidden.
+
+Incomplete coverage omits `Recommendation` only when no open, unaccepted
+blocking finding is already known. A known blocker remains enough to recommend
+`BLOCK` while coverage stays honestly `INCOMPLETE`. Complete coverage is
+required for `CLEAR`, not for `BLOCK`.
 
 ### Separate axes
 
-- Requirement strength: BCP 14 `MUST | SHOULD | MAY` only where intentionally
-  normative and properly declared.
-- Evaluation outcome: `pass | fail | needs-review | not-applicable |
-  not-reviewed`.
-- Finding impact: `critical | material | minor | informational`.
+- Requirement strength: optional neutral reader labels `mandatory |
+  recommended | optional | not-stated`. Map BCP 14 `MUST | SHOULD | MAY` only
+  where the cited source intentionally invokes BCP 14; otherwise preserve the
+  source's own wording and named basis without inventing a BCP 14 class.
+- Check status: `reviewed | not-reviewed`.
+- Evaluation outcome, present only for a reviewed check: `pass | fail |
+  needs-review | not-applicable`.
+- Finding impact: `critical | material | minor | unknown`. Information-only
+  annotations are not findings and have no impact value.
 - Enforcement: `blocking | advisory`, with an explicit basis.
-- Finding state: `open | resolved | accepted-risk | superseded`.
-- Review recommendation: `CLEAR | BLOCK`, derived only for complete coverage.
+- Finding state: `open | resolved | superseded`.
+- Risk disposition: `none | accepted`. `accepted` requires a referenced
+  authorized decision, exact scope/revision, and revisit condition; it never
+  changes an open finding to resolved.
+- Review recommendation: `CLEAR | BLOCK`, where `CLEAR` requires complete
+  coverage but a known unaccepted blocker yields `BLOCK` under either coverage
+  state.
 - Binding gate decision: separate authorized coordination decision.
 
 Ordinary reviews may summarize passing checks rather than printing one record
-per pass. Every non-pass finding must preserve enough information to reconstruct
-the outcome, impact, enforcement basis, state, and resolution condition.
+per pass. A `fail` or `needs-review` outcome creates a finding when an issue or
+unresolved judgment requires tracking. `pass` and `not-applicable` do not create
+findings. A `not-reviewed` check has no evaluation outcome: it names the missing
+evidence or work that keeps coverage incomplete. Every finding preserves the
+outcome, impact, enforcement basis, remediation state, risk disposition, and
+resolution condition. Information-only observations use a separate annotation
+and do not masquerade as impact severity.
 
 ### Aggregation
 
-1. Relevant `not-reviewed`, unresolved `needs-review`, or missing evidence =>
-   `INCOMPLETE`; omit recommendation.
-2. Complete coverage plus any `open + blocking` finding => `BLOCK`.
-3. Complete coverage with no `open + blocking` finding => `CLEAR`, while all
-   advisory and accepted-risk findings remain visible.
-4. `accepted-risk` requires a referenced decision from the authorized role;
-   reviewers and tools cannot create it by relabeling severity.
+1. Any `open + blocking` finding without an applicable authorized risk
+   acceptance => `BLOCK`, whether coverage is `COMPLETE` or `INCOMPLETE`.
+2. With no such blocker, any relevant `not-reviewed` check, unresolved
+   `needs-review`, or missing evidence => `INCOMPLETE`; omit recommendation.
+3. Complete coverage with no unaccepted open blocking finding => `CLEAR`, while
+   advisory findings and open findings with bounded risk acceptance remain
+   visible.
+4. Risk disposition `accepted` is applicable only when a referenced authorized
+   decision covers the exact review scope/revision and records a revisit
+   condition. Reviewers and tools cannot create it by relabeling impact or
+   finding state.
+
+The closed field-presence truth table is:
+
+| Check status | Evaluation outcome | Finding? | Review consequence |
+|---|---|---|---|
+| `not-reviewed` | omitted | no | Coverage is `INCOMPLETE`; BLOCK still wins if another known blocker exists |
+| `reviewed` | `pass` | no | contributes to complete coverage |
+| `reviewed` | `not-applicable` | no | record basis; contributes to complete coverage |
+| `reviewed` | `needs-review` | yes | coverage remains incomplete until judgment resolves; known blocking enforcement still yields BLOCK |
+| `reviewed` | `fail` | yes | apply finding state, enforcement, and risk-disposition rules |
+
+Information-only annotations sit outside this table: they are neither a check
+outcome nor a finding and do not affect aggregation.
 
 ### Standards and evidence claims
 
@@ -123,17 +162,43 @@ It must not calculate a recommendation, validate prose-body semantics, or
 present itself as an approving or blocking tool.
 
 The skeleton should be short enough that a reviewer can delete unused finding
-blocks. Help output for other coordination kinds is unchanged.
+blocks. Help output for other coordination kinds is unchanged. It is an
+advisory authoring aid: neither the template nor failure to use it grants a
+finding blocking authority.
+
+The generated finding block uses only the closed vocabulary:
+
+```text
+Check: <identifier>
+Check status: reviewed | not-reviewed
+Outcome: pass | fail | needs-review | not-applicable
+Requirement strength: mandatory | recommended | optional | not-stated
+
+Finding: <identifier; only for fail or needs-review>
+Impact: critical | material | minor | unknown
+Enforcement: blocking | advisory
+Basis: <named rule/requirement, or explicitly advisory judgment>
+Finding state: open | resolved | superseded
+Risk disposition: none | accepted
+Risk decision: <required only when accepted: decision ID, scope/revision, revisit condition>
+Resolution condition: <observable condition>
+```
+
+For `not-reviewed`, omit `Outcome` and name the missing evidence. For `pass` or
+`not-applicable`, omit the finding block. Information-only text uses an
+`Annotation` label outside the finding block.
 
 ## Compatibility and migration
 
 - Do not edit or reinterpret immutable historical coordination records.
-- New reviews use the contract after the implementation merge.
+- New reviews may use the convention after the implementation merge; it becomes
+  mandatory only through a separately approved authority-bearing rule.
 - Historical `BLOCK` remains understandable but does not prove which rule
   granted enforcement; new reviews must name the basis.
 - Historical `WARN` is treated as non-binding prose. Migration to a new finding
-  may use `advisory`, but impact is `unknown` in migration notes unless the
-  source establishes it; no automatic `warning` mapping is claimed.
+  may use `advisory`, and uses the declared impact value `unknown` unless the
+  source establishes another declared value; no automatic `warning` mapping is
+  claimed.
 - Historical `INFO` remains an annotation and must not be inferred to mean
   either pass or minor failure.
 - Historical `CLEAR` remains a non-binding recommendation; it is not
@@ -144,6 +209,12 @@ blocks. Help output for other coordination kinds is unchanged.
 Any future body schema, structured front-matter extension, SARIF exporter, or
 enforcement validator requires a separate Gate 1 plan with a demonstrated
 consumer and migration design.
+
+This first slice is an advisory authoring convention. Failure to use it is not
+automatically a blocking finding. The acceptance tests below govern only the
+implementation MR for this slice. Making the convention mandatory for future
+reviews requires a separate Gate 1 plan naming the rule, enforcement authority,
+compatibility impact, and validator behavior.
 
 ## Acceptance tests
 
@@ -157,13 +228,19 @@ Document and test these examples:
    visible; impact alone does not grant blocking authority.
 4. Complete scope, minor open finding backed by a named blocking rule =>
    `BLOCK`; low impact does not cancel rule authority.
-5. Missing required evidence => `INCOMPLETE` and no recommendation line.
-6. Unresolved human judgment => `INCOMPLETE`, not `BLOCK`, until the outcome
-   and enforcement basis are known.
-7. Resolved or superseded blocking finding with no other open blocker =>
+5. Missing required evidence and no known blocker => `INCOMPLETE` and no
+   recommendation line.
+6. One known open blocking finding plus one not-reviewed area =>
+   `Coverage: INCOMPLETE` and `Recommendation: BLOCK`.
+7. Unresolved human judgment with no known blocking enforcement =>
+   `INCOMPLETE` and no recommendation until the outcome and basis are known.
+8. Resolved or superseded blocking finding with no other open blocker =>
    `CLEAR`, with history retained.
-8. Accepted-risk finding => `CLEAR` only when a referenced authorized decision
-   exists; deleting that reference makes the example invalid.
+9. Open finding with risk disposition `accepted` => `CLEAR` only when a
+   referenced authorized decision covers the exact scope/revision and includes
+   a revisit condition; deleting or mismatching any of those makes it BLOCK.
+10. Every example and generated placeholder uses only values declared by the
+    closed vocabulary and field-presence truth table.
 
 ### Historical reconstruction
 
@@ -234,13 +311,18 @@ bounded comprehension check, not an ongoing score or personnel metric.
   print the authority reminder adjacent to it.
 - **Impact can leak into enforcement.** Negative examples cover critical
   advisory and minor blocking cases.
-- **Incomplete can be abused to avoid BLOCK.** Coverage must name missing
-  evidence/judgment; once a known rule violation has blocking authority it is
-  an open blocking finding, not merely incomplete coverage.
+- **Incomplete can be abused to avoid BLOCK.** Aggregation gives a known open,
+  unaccepted blocking finding precedence over incomplete coverage; the output
+  retains both `Coverage: INCOMPLETE` and `Recommendation: BLOCK`.
+- **Risk acceptance can erase remediation state.** Finding state and risk
+  disposition are separate; an accepted finding remains open until its
+  resolution condition is met, and acceptance is bounded to a cited decision,
+  exact scope/revision, and revisit condition.
 - **Standards references can imply conformance.** The explicit non-conformance
   statement and absence of wire-format claims are acceptance requirements.
 - **Template structure can become de facto schema.** This slice labels the
-  skeleton an authoring aid and leaves validation unchanged.
+  skeleton and documentation convention advisory, says non-use is not
+  automatically blocking, and leaves validation unchanged.
 
 ## Rollback
 
