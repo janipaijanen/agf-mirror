@@ -31,6 +31,12 @@ Findings are filed as a review entry; blocking findings return the work;
 approval is a decision record, possibly with conditions the merge must
 honour, and the merge commit references it.
 
+For a compact way to record scope, coverage, recommendation, impact,
+enforcement, remediation state, and bounded risk acceptance without confusing
+review advice with approval, see [Review findings](../../reference/review-findings.md).
+The convention is advisory: named rules and authorized roles remain the source
+of blocking and gate authority.
+
 Figure 1 places Gate 2 in the full governed pipeline. The reviewer is checking
 the implemented branch against the approved plan before the merge, not after
 the fact.

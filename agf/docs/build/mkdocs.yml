@@ -107,6 +107,7 @@ nav:
       - Release artifacts: reference/release-artifacts.md
       - Maturity vocabulary: reference/maturity-vocabulary.md
       - Coordination graph index: reference/coord-graph-index.md
+      - Review findings: reference/review-findings.md
       - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
       - Disclaimer: reference/disclaimer.md
