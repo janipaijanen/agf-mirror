@@ -8,6 +8,32 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-07-23
+
+Minor release (see [`agf/CHANGELOG.md`](agf/CHANGELOG.md) `[2.4.0]` for the
+adopter-facing feature changelog covering the four v2.4.0 workstreams).
+Repository-level changes not already covered there:
+
+### Fixed
+
+- Documentation: kept the persistent `AGF / <page>` header and `AGF —
+  <page>` browser-title identity visible on every page (MR !330).
+- Documentation: corrected the "what ships and what you activate" page to
+  match maintainer evidence rather than an earlier inaccurate framing
+  (MR !328).
+- Closed a tar-extraction ETXTBSY race by explicitly closing the writer
+  handle before execution (MR !398).
+- Closed a remaining ZIP/TAR extraction ETXTBSY race with a bounded
+  executable-file-busy exec retry, on top of the MR !398 fix (MR !408).
+- Fixed token-ROI log write-atomicity and a test-suite pollution issue
+  (issue #50, MR !363).
+
+### Changed
+
+- CI: suppressed duplicate branch-push pipelines when an open MR already
+  exists for the branch, cutting CI cost on routine coordination and seed
+  commits (MR !410).
+
 ## [2.3.1] - 2026-07-21
 
 Patch release recovering the repository's public release truth after v2.3.0

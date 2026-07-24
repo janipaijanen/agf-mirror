@@ -3,6 +3,56 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.0] — 2026-07-23
+
+Minor release covering four independently governed workstreams: a breaking
+consumer-facing release-asset rename, a unified release-provenance
+contract, MCP-vs-direct-CLI telemetry transport attribution, and a
+documentation figure/responsibility-label system. See
+`docs/plans/v2.4.0-release.md` for the full umbrella plan and per-workstream
+child plans.
+
+### Changed (breaking)
+
+- Release archive and checksum/provenance sidecar filenames now use public
+  platform slugs instead of raw Rust target triples:
+  `x86_64-unknown-linux-musl` → `linux-x86_64`,
+  `aarch64-unknown-linux-musl` → `linux-aarch64`,
+  `x86_64-pc-windows-gnu` → `windows-x86_64`. No old-name aliases are
+  published. Rust target triples are retained in build configuration and
+  provenance metadata; only the public-facing filename changed. Historical
+  release assets, tags, changelog entries, and coordination records keep
+  their original names. **Phase 0 breaking change** (no deprecation
+  cycle): zero known external production dependents on the release-asset
+  filename surface as of this release.
+
+### Added
+
+- Unified release-provenance contract: `agf/schemas/release-provenance.schema.json`
+  covers framework source archives, platform tooling archives, and OCI
+  image evidence with one schema version, closed field allowlist, and
+  SHA-256/byte-size linkage to the public artifact. Pre-v2.4 provenance
+  records are classified against a separate
+  `release-provenance-legacy.schema.json` rather than silently treated as
+  v2.4-shaped.
+- MCP-vs-direct-CLI telemetry transport attribution: token-ROI and usage
+  records now carry a `transport: cli` / `transport: mcp` field
+  identifying the trusted local `agov-mcp` adapter as the invocation path,
+  without persisting any MCP client, session, or request identifier.
+  Existing JSONL readers remain compatible; the field is optional.
+- Documentation figure and responsibility-label system: one semantic
+  palette (orange for human decisions, blue for AI-executed work, green
+  for automated checks/validated outcomes, outlined neutral for shared
+  concepts, grey for reference/deferred content) applied across public
+  documentation figures, inline Mermaid diagrams, and academic SVG/PDF
+  figures. Added restrained responsibility-labelled text blocks (Human
+  decision / AI action / Automated check / Shared concept) to the
+  first-governed-change walkthrough, used only where responsibility
+  changes or ambiguity is likely.
+- Removed the full-size "AGF in a Nutshell" flyer from the documentation
+  overview reading flow; it remains available as a labelled standalone
+  downloadable orientation artifact.
+
 ## [2.3.1] — 2026-07-21
 
 This patch recovers the public release truth after v2.3.0 was published with

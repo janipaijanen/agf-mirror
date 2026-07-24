@@ -21,7 +21,7 @@ not a personal to-do list:
 
 - **Human decision** — pages that ask a human to decide something: adopt or
   not, approve or reject, accept a risk. No AI substitute exists for these.
-- **AI-operator instructions** — pages that are majority procedure for an AI
+- **AI action** — pages that are majority procedure for an AI
   agent to execute, with the human supervising and reviewing the result.
 - **Shared concept** — the mental model both a human and an AI agent need,
   so they can coordinate using the same vocabulary.

@@ -37,10 +37,20 @@ before treating the complete distribution as a mandatory day-one configuration.
 
 ```mermaid
 flowchart LR
-    plan[AI writes a plan] --> gate1{Governor approves?}
-    gate1 --> implement[AI implements + CI validates]
-    implement --> gate2{Governor approves merge?}
-    gate2 --> merge[Merge]
+    classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
+    classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
+    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
+    classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A
+
+    plan(AI writes a plan) --> gate1{Governor approves?}
+    gate1 --> implement(AI implements)
+    implement --> civalidate[[CI validates]]
+    civalidate --> gate2{Governor approves merge?}
+    gate2 --> merge[[Merge]]
+
+    class plan,implement aiAction
+    class gate1,gate2 humanDecision
+    class civalidate,merge automatedCheck
 ```
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"
