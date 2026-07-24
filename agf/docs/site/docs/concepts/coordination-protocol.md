@@ -214,6 +214,16 @@ Each `references-to:` field links backward; `agov session resume` and
 | `ack` | agent → agent | Acknowledge receipt of a `requires-ack` handoff |
 | `claim` | agent → all | Reserve ownership of an artifact |
 
+### Review bodies
+
+A review can use the advisory [review findings](../../reference/review-findings.md)
+convention to keep scope, coverage, evaluation outcome, impact, enforcement,
+remediation state, risk acceptance, recommendation, and binding authority
+separate. `agov coord brief --kind review` prints a fill-in skeleton, but it
+does not validate or aggregate the Markdown body and cannot approve or block a
+gate. A known open blocker remains BLOCK even when another part of the review
+is incomplete; CLEAR requires complete coverage.
+
 Polling-cycle notes should be concrete. Name the branch or MR scope checked and
 the timer convention in use. If you use shorthand such as `15mins/180min`, make
 clear that it means "scan every 15 minutes, stop after 180 idle minutes, reset

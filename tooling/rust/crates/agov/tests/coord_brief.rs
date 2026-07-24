@@ -148,6 +148,56 @@ fn coord_brief_explicit_model_overrides_environment() {
     assert!(!stdout.contains("model: claude-sonnet-4-6"));
 }
 
+#[test]
+fn coord_brief_review_uses_advisory_evidence_envelope() {
+    let fixture = tempfile::tempdir().unwrap();
+
+    let output = agov(&[
+        "coord",
+        "brief",
+        "--from",
+        "contribution-auditor",
+        "--to",
+        "governor-reviewer",
+        "--kind",
+        "review",
+        "--topic",
+        "review-envelope-test",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    for expected in [
+        "Review evidence envelope (advisory authoring aid; not a gate decision)",
+        "Scope: <artifact and exact revision>",
+        "Coverage: <COMPLETE | INCOMPLETE>",
+        "Recommendation: <CLEAR | BLOCK; omit when incomplete and no blocker is known>",
+        "Blocking findings: <open unaccepted count>",
+        "Open findings with accepted risk: <count>",
+        "Authority: recommendation only; the authorized decision-maker decides the gate",
+        "Check status: <reviewed | not-reviewed>",
+        "Outcome: <pass | fail | needs-review | not-applicable; omit when not-reviewed>",
+        "Requirement strength: <mandatory | recommended | optional | not-stated>",
+        "Impact: <critical | material | minor | unknown>",
+        "Enforcement: <blocking | advisory>",
+        "Finding state: <open | resolved | superseded>",
+        "Risk disposition: <none | accepted>",
+        "Risk decision: <required when accepted: decision ID, scope/revision, revisit condition>",
+    ] {
+        assert!(
+            stdout.contains(expected),
+            "missing review field: {expected}"
+        );
+    }
+
+    assert!(!stdout.contains("severity: BLOCK | WARN | INFO"));
+    assert!(!stdout.contains("informational"));
+    assert!(!stdout.contains("accepted-risk"));
+}
+
 fn frontmatter_value(output: &str, key: &str) -> Option<String> {
     output.lines().find_map(|line| {
         let (line_key, value) = line.split_once(": ")?;

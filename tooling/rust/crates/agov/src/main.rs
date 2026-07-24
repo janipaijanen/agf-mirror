@@ -1918,7 +1918,34 @@ fn coord_brief(options: CoordBriefOptions, args: &[String]) -> i32 {
 
     if kind == "review" {
         output.stdout("");
-        output.stdout("# <findings — severity: BLOCK | WARN | INFO>");
+        output.stdout("# Review evidence envelope (advisory authoring aid; not a gate decision)");
+        output.stdout("Scope: <artifact and exact revision>");
+        output.stdout("Coverage: <COMPLETE | INCOMPLETE>");
+        output.stdout(
+            "Recommendation: <CLEAR | BLOCK; omit when incomplete and no blocker is known>",
+        );
+        output.stdout("Blocking findings: <open unaccepted count>");
+        output.stdout("Advisory findings: <count>");
+        output.stdout("Open findings with accepted risk: <count>");
+        output.stdout(
+            "Authority: recommendation only; the authorized decision-maker decides the gate",
+        );
+        output.stdout("");
+        output.stdout("# Repeat for a tracked fail or needs-review outcome; delete when unused");
+        output.stdout("Check: <identifier>");
+        output.stdout("Check status: <reviewed | not-reviewed>");
+        output.stdout(
+            "Outcome: <pass | fail | needs-review | not-applicable; omit when not-reviewed>",
+        );
+        output.stdout("Requirement strength: <mandatory | recommended | optional | not-stated>");
+        output.stdout("Finding: <identifier; only for fail or needs-review>");
+        output.stdout("Impact: <critical | material | minor | unknown>");
+        output.stdout("Enforcement: <blocking | advisory>");
+        output.stdout("Basis: <named rule/requirement, or explicitly advisory judgment>");
+        output.stdout("Finding state: <open | resolved | superseded>");
+        output.stdout("Risk disposition: <none | accepted>");
+        output.stdout("Risk decision: <required when accepted: decision ID, scope/revision, revisit condition>");
+        output.stdout("Resolution condition: <observable condition>");
     } else {
         output.stdout("");
         output.stdout("# <message body>");
