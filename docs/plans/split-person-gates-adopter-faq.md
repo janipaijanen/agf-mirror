@@ -1,6 +1,6 @@
 ---
 id: split-person-gates-adopter-faq
-status: pending-gate1
+status: approved
 topic: split-person-gates-adopter-faq
 advisory_consultation:
   - role: contribution-auditor
