@@ -110,7 +110,7 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 
 ## Reference
 
-- [Quick reference](https://gitlab.com/janipaijanen/agent-governance) —
+- [Quick reference](https://gitlab.com/janipaijanen/agents-govern-framework) —
   one-page roles/pipeline/rules summary ships in the distribution at
   `docs/reference/quick-reference.md`.
 

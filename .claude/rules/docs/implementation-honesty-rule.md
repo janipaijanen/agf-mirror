@@ -26,14 +26,14 @@ use this five-level classification:
 | 5 | **Deployable** | Full operational support | Schema + scenarios/instances + validation + deployment/generation |
 | 4 | **Validated** | Verified but not deployable | Schema + scenarios/instances + validation (no deployment) |
 | 3 | **Instantiated** | Used but incompletely verified | Schema + scenarios/instances (incomplete validation) |
-| 2 | **Schema-defined** | Types exist only | Schema types defined but not used in scenarios, or orphaned |
+| 2 | **Surface-defined** | Types exist only | Schema types defined but not used in scenarios, or orphaned |
 | 1 | **Planned** | Identified only | Named in roadmap or design docs but not yet in schema |
 
 ## Rules
 
 - **Never claim a capability without stating its maturity level.** "The
   framework models physical security" must be qualified: "physical security
-  is Schema-defined (Level 2)."
+  is Surface-defined (Level 2)."
 
 - **Binary yes/no capability tables are forbidden.** Replace "Yes" / "No"
   columns with the maturity level. A reader can then distinguish between
@@ -63,7 +63,7 @@ language) but the levels apply to any project with layered capabilities:
 | Level 5: Deployable | Schema + scenario + validation + deployment | Feature complete, tested, documented, deployed | Command implemented, tested, documented, in release |
 | Level 4: Validated | Schema + scenario + validation | Feature complete and tested, not yet deployed | Command implemented and tested, not yet released |
 | Level 3: Instantiated | Schema + scenario instances | Feature partially implemented, some tests | Command partially implemented |
-| Level 2: Schema-defined | Types defined only | API route or model exists, no logic | Flag/subcommand defined, not yet wired |
+| Level 2: Surface-defined | Types defined only | API route or model exists, no logic | Flag/subcommand defined, not yet wired |
 | Level 1: Planned | In roadmap | In backlog or design doc | In README "planned features" |
 
 Adapt the level names and definitions to your domain, but preserve the

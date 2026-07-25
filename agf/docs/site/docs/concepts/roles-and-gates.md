@@ -32,7 +32,7 @@ planning, implementation, and approval are deliberately separated.
 
 Around the core pipeline sit supporting roles — build engineering,
 security sentinel, contribution auditing, and others. The shipped
-[quick reference](https://gitlab.com/janipaijanen/agent-governance)
+[quick reference](https://gitlab.com/janipaijanen/agents-govern-framework)
 (`docs/reference/quick-reference.md` in the distribution) lists all
 twelve with one-line responsibilities. The **human governor** sits above
 all of them: every agent authority is delegated, revocable, and bounded

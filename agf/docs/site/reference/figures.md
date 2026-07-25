@@ -30,7 +30,10 @@ record feeds new rules, tools, and documentation updates that the next
 cycle's plan step is bound by. The point to retain: skipping "learn"
 does not shorten the cycle, it breaks the loop's only feedback path.
 
-![Governance loop](figures/governance-loop.svg)
+<figure markdown>
+![Closed governance cycle from planning through learning and back to planning](figures/governance-loop.svg)
+<figcaption>Figure 1. Governance work forms a closed evidence-feedback loop.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/governance-loop.dot`
 
@@ -48,7 +51,10 @@ changes or reject it outright rather than only ever advancing forward.
 The point to retain: a rejection at either gate is a normal path shown
 in the figure, not an exception to it.
 
-![Gate pipeline](figures/gate-pipeline.svg)
+<figure markdown>
+![Request path through plan approval, implementation review, and merge](figures/gate-pipeline.svg)
+<figcaption>Figure 2. Gate 1 governs the plan and Gate 2 governs the implementation.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/gate-pipeline.dot`
 
@@ -66,9 +72,12 @@ anything. The point to retain: only decision records carry gating
 authority — a handoff, note, or completion cannot substitute for one,
 regardless of how much detail it contains.
 
+<figure markdown>
 <div class="figure-scroll" markdown>
-![Coordination channel](figures/coordination-channel.svg)
+![Coordination message kinds grouped by their routing and authority effects](figures/coordination-channel.svg)
 </div>
+<figcaption>Figure 3. Message kinds route work, record decisions, or preserve status.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/coordination-channel.dot`
 
@@ -85,7 +94,10 @@ delegated execution of a task, never autonomous approval authority — an
 AI agent that executes a task in this mode still cannot move that same
 task into the human-only mode by approving it itself.
 
-![Day-to-day responsibility modes](figures/operating-responsibility-map.svg)
+<figure markdown>
+![Human-only, AI-executed, and mixed responsibility modes separated by authority](figures/operating-responsibility-map.svg)
+<figcaption>Figure 4. Responsibility mode does not transfer human approval authority.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/operating-responsibility-map.dot`
 
@@ -104,7 +116,10 @@ rule's author restating conviction, which is why a single-adopter rule
 stays labeled Provisional no matter how strongly its own adopter argues
 for it.
 
-![Evidence lifecycle](figures/evidence-lifecycle.svg)
+<figure markdown>
+![Evidence progressing from observation through learning and governed promotion](figures/evidence-lifecycle.svg)
+<figcaption>Figure 5. Independent corroboration governs evidence promotion.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/evidence-lifecycle.dot`
 
@@ -123,7 +138,10 @@ retain: "observed project use" is itself a cycle input, not an end
 state — a shipped rule remains subject to the same evidence discipline
 that produced it.
 
-![Learning loop](figures/learning-loop.svg)
+<figure markdown>
+![Recurring learning cycle from governed work through system change and observed use](figures/learning-loop.svg)
+<figcaption>Figure 6. Observed use feeds the next learning cycle.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/learning-loop.dot`
 
@@ -140,7 +158,10 @@ the site. The point to retain: all three exit paths preserve the
 coordination record history: choosing an exit path changes what keeps
 running, not what remains auditable.
 
-![Adoption and exit flow](figures/adoption-exit-flow.svg)
+<figure markdown>
+![Adoption timeline branching into freeze, replacement, and decommission exit paths](figures/adoption-exit-flow.svg)
+<figcaption>Figure 7. Every exit path preserves the coordination history.</figcaption>
+</figure>
 
 **Source:** `docs/figures/src/adoption-exit-flow.dot`
 

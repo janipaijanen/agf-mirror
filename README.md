@@ -180,7 +180,8 @@ For MCP-capable assistant runtimes, the Rust tooling archive also includes
 tools without changing the file-based coordination protocol. See
 `agf/docs/site/docs/adopt/mcp-server.md`.
 
-Container-based CI can use the pinned OCI image, for example
+Container-based CI can use the pinned OCI image (whose canonical version is
+recorded in `agf/VERSION`), for example
 `registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.2`; pin an
 exact version or digest, never a floating tag.
 
