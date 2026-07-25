@@ -117,6 +117,33 @@ to relax or tighten governance.
 If nobody is willing to be governor, do not adopt AGF yet. Gates without a
 governor become ceremony.
 
+## Can different people approve Gate 1 and Gate 2?
+
+Yes, when the arrangement is explicit, authorized, and sequential. Person A
+may approve the plan at Gate 1 and Person B may review the implementation at
+Gate 2. This can add an independent implementation review, but AGF does not
+require two people.
+
+Use this minimum checklist:
+
+- record who owns each gate, including the repository, change, and time period
+  covered by that authority;
+- give the Gate 2 reviewer the exact approved plan, Gate 1 decision, conditions,
+  and accepted risks;
+- at Gate 2, compare the diff and evidence with that exact plan;
+- send scope changes back to Gate 1 instead of silently rewriting the plan at
+  Gate 2;
+- name one primary governor or project authority who resolves disagreement;
+- do not let either approver approve implementation they personally performed
+  while acting as coder-tester.
+
+This is a handoff of one decision role between people, not two simultaneous
+governors with unclear precedence. AGF v2's validated minimum remains one
+governor at a time. Treat split-person gates as a team operating pattern or
+pilot, not as a universally validated design, and write a learning record when
+you try it. See [roles and gates](../concepts/roles-and-gates.md) for the
+canonical rotation, delegation, and conflict-of-interest guidance.
+
 ## Can AI act as a governor?
 
 Not as the validated AGF core today.
