@@ -1,6 +1,6 @@
 # Adopter applicability catalog
 
-*Status: Released (v2.3 documentation, incomplete pilot). Audience: adopters
+*Status: Released (incomplete pilot). Current framework version: see [Release information](../../reference/release-info.md). Audience: adopters
 deciding what to activate, deactivate, or remove.*
 
 !!! warning "Incomplete classification pilot"

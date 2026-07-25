@@ -1,6 +1,6 @@
 # Install the `agf/` directory
 
-*Status: Released (v2.1 documentation). Audience: administrators and
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: administrators and
 developers commissioning the framework with an AI assistant. After this page
 you have chosen the supported layout, asked the assistant to prepare the files,
 and reviewed the evidence.*

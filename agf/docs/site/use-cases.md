@@ -1,6 +1,6 @@
 # Use cases and non-use cases
 
-*Status: Released (v2.1 documentation). Use cases below trace to
+*Status: Released. Current framework version: see [Release information](reference/release-info.md). Use cases below trace to
 learning records in the framework's evidence base; codenames refer to
 anonymized adopter projects.*
 

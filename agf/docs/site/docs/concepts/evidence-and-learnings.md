@@ -1,6 +1,6 @@
 # Learning loop and evidence
 
-*Status: Released (v2.1 documentation). Audience: developers and
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: developers and
 governors. After this page you know how operational incidents become
 rules, who owns which records, and how anonymization protects your
 project.*

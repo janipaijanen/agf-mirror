@@ -1,7 +1,7 @@
 <!-- audience: A/R (ai-operator/reference); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Contracts and validators
 
-*Status: Released (v2.1 documentation). Audience: AI assistants wiring AGF
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: AI assistants wiring AGF
 validators into CI, with administrators and developers reviewing the
 contracts, guarantees, and blocking-policy choices.*
 

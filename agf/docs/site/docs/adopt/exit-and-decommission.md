@@ -1,6 +1,6 @@
 # Exit and decommission
 
-*Status: Released (v2.1 documentation). Audience: evaluators and
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: evaluators and
 administrators. Read this page **before** adopting — knowing the way out
 is part of deciding to come in.*
 

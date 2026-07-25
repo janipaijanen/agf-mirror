@@ -1,6 +1,6 @@
 # Customizing the framework
 
-*Status: Released (v2.1 documentation). Audience: administrators and
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: administrators and
 governors adapting the framework to a project. After this page you know
 the three customization zones — free, marked, and contracted — and the
 costs of crossing them.*
