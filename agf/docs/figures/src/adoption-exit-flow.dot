@@ -8,13 +8,13 @@
 // state) is not literally "who is responsible for this node," but it
 // reuses the same token set and the same colour-independence discipline
 // (shape differs per meaning, never colour alone) so the whole figure
-// set reads as one palette. "Freeze" and "Replace on update" are
+// set reads as one palette. "Pause" and "Downgrade" are
 // deferred/optional paths -- Reference/deferred content treatment
-// (grey-light, dashed). "Decommission" is the terminal neutral state --
+// (grey-light, dashed). "Remove" is the terminal neutral state --
 // grey-mid (the base palette's own "Neutral / deferred" token, per
 // palette.md's Palette table), solid double border to distinguish it by
 // shape from the dashed deferred-path boxes. Fixes a contrast defect:
-// the prior white-on-grey-mid (#888888) text on "Decommission" was
+// the prior white-on-grey-mid (#888888) text on the terminal node was
 // approximately 3.54:1, below the 4.5:1 AA normal-text threshold this
 // script enforces; text is now #1A1A1A.
 digraph adoption_exit {
@@ -67,12 +67,12 @@ digraph adoption_exit {
         fontname="Helvetica"
         fontsize=12
 
-        freeze   [label="Freeze\n(stop new governed\nchanges)", style="filled,dashed",
+        freeze   [label="Pause\n(stop enforcing gates;\nkeep files)", style="filled,dashed",
                   fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
-        replace  [label="Replace on update\n(migrate to new\ngovernance system)",
+        replace  [label="Downgrade\n(keep selected rules;\ndrop gate obligations)",
                   style="filled,dashed", fillcolor="#CCCCCC", color="#888888",
                   fontcolor="#1A1A1A"]
-        decomm   [label="Decommission\n(remove tooling,\nretain records)",
+        decomm   [label="Remove\n(delete framework\nartifacts)",
                   style="filled,bold", peripheries=2, fillcolor="#888888",
                   color="#888888", fontcolor="#1A1A1A"]
     }

@@ -15,6 +15,12 @@ the person who approves gates and owns project risk — can reconstruct what was
 decided and stop unsafe work before it lands. Adopt when that audit trail is
 worth more than the overhead.
 
+The simplest test is practical: picture the next risky change your assistant
+might make. Would you benefit from approving its written plan before work
+starts, approving the result before merge, and keeping both decisions in the
+repository? AGF calls those checkpoints Gate 1 and Gate 2, and the durable
+decision log the coordination channel.
+
 ## The practical test
 
 Use AGF when the cost of an unreviewable AI-generated change is higher than
@@ -195,3 +201,6 @@ and applicable to any governance design, not only AGF — see
 ## Next
 
 Decided to try it → [Install the `agf/` directory](../adopt/install-and-layouts.md).
+Still unsure about overhead → [Downstream impact](../adopt/downstream-impact.md).
+Recognized a non-fit → stop here; AGF is not a prerequisite for responsible AI
+use.

@@ -2,13 +2,17 @@
 
 *Status: Released (v2.1 documentation).*
 
-This documentation is a learning path, not a pile of pages. Each stage
-assumes the previous one. Pick your entry point from the table, then follow
-the path forward.
+AGF adds human-approved checkpoints and a durable decision trail around
+AI-assisted changes; it does not run the assistant. This documentation is a
+learning path, not a pile of pages. If you are deciding whether that trade is
+worth it, start at **1. Start**. If AGF is already installed, jump to the stage
+that matches the work in front of you, then follow the path forward.
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"
-    A single-page overview of the roles, the two gates, and the
-    coordination channel, suitable for printing or sharing:
+    The short version: an assistant proposes work, a human decides whether it
+    starts and merges, and repository files preserve why. AGF calls those
+    responsibilities roles, those checkpoints Gate 1 and Gate 2, and the
+    durable decision log the coordination channel. For a printable overview:
     [view the full-size flyer (PNG)](../reference/figures/agf-nutshell-flyer.png).
 
 ## How to read this site
@@ -109,3 +113,9 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 - [Quick reference](https://gitlab.com/janipaijanen/agent-governance) —
   one-page roles/pipeline/rules summary ships in the distribution at
   `docs/reference/quick-reference.md`.
+
+## Choose your next page
+
+Still deciding → [Should you adopt?](start/should-you-adopt.md). Already using
+AGF → [Day-to-day operation](operate/day-to-day.md). Ready to install →
+[Install the `agf/` directory](adopt/install-and-layouts.md).

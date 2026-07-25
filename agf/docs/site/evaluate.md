@@ -60,6 +60,11 @@ and files that support your claims. For adoption costs, read
 [Downstream impact](docs/adopt/downstream-impact.md). For the mental model,
 read [Roles and gates](docs/concepts/roles-and-gates.md).
 
+For a single-URL review, open the
+[AI evaluation dossier](ai-evaluation-dossier.md). It embeds the complete
+public documentation corpus. Authoritative repository artifacts are linked
+separately; open the relevant artifacts before making file-level claims.
+
 When assessing complexity, report the complete inventory, what a given
 adopter actually activated (which may be the full set or a pruned subset —
 only the unpruned path is maintainer-evidenced today; a pruned subset is

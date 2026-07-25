@@ -109,8 +109,11 @@ spend whatever the risk review needs.
 ## What adoption does *not* change
 
 - Your build system, test framework, and deployment pipeline remain yours.
-- Your data and code never leave your infrastructure; the anonymization
-  rule governs the one outbound path (learnings shared upstream).
+- You choose the systems that receive your data and code. Content sent to an
+  AI-assistant provider, external analysis service, or upstream project crosses
+  your infrastructure boundary and must follow the external anonymization
+  rule. Learning records shared upstream are one such outbound path, not the
+  only possible one.
 - No runtime, no daemon, no service dependency. Removing the framework is
   removal of `agf/`, any small assistant loader you added, and any CI hooks —
   see [exit](exit-and-decommission.md).

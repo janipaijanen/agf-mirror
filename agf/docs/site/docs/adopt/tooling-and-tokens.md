@@ -32,6 +32,11 @@ deployable and in active use; Level 1 is planned.
 
 ### Level 5 — Deployable (in production use)
 
+This is the canonical command inventory. Each command below is implemented,
+tested, documented, and present in the supported v2.4.1 operator path. A future
+command that exists only in a branch or design must be listed separately at its
+actual maturity level rather than added to this table by analogy.
+
 | Command | What it replaces |
 |---|---|
 | `agov --version` / `agov version --format json` | Inferring build provenance from file paths, timestamps, or `git log`. |

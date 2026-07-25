@@ -14,9 +14,10 @@ roles, say what each gate decides, and read a coordination chain.*
 No agent both implements and approves its own work. Authority is split
 across role definitions, each a YAML contract stating jurisdiction (what
 the role owns), authority (what it may decide), and escalation (what it
-must hand upward). The separation is structural: an implementing agent
-that "approves" its own merge has acted outside its definition, and the
-audit trail shows it.
+must hand upward). An implementing agent that "approves" its own merge has
+acted outside its definition, and the audit trail shows it. Some checks are
+structurally enforced by tooling; others, including reviewer approval, rely on
+the participants following the recorded authority boundary.
 
 ## The pipeline roles
 
