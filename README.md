@@ -182,7 +182,7 @@ tools without changing the file-based coordination protocol. See
 
 Container-based CI can use the pinned OCI image (whose canonical version is
 recorded in `agf/VERSION`), for example
-`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.2`; pin an
+`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.3`; pin an
 exact version or digest, never a floating tag.
 
 ## Local learning and upstream proposals

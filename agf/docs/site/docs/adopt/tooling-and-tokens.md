@@ -88,7 +88,7 @@ unpack it, and place the `agov` executable on PATH.
 validate-governance:
   image:
     # Canonical version: agf/VERSION
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.2
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.3
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
