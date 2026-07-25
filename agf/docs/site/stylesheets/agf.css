@@ -24,24 +24,6 @@
   max-width: none;
 }
 
-/* Mermaid diagrams: same narrow-viewport problem as the DOT figures above
-   (5stq, deferred v2.4.0 obligation, closed here under #55) -- Material's
-   theme otherwise shrinks the rendered SVG to fit the viewport, which
-   makes flowchart/sequence-diagram labels illegible at 390px. Scroll the
-   diagram horizontally at native resolution instead of shrinking it. */
-.md-typeset .mermaid,
-.md-typeset pre.mermaid {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.md-typeset .mermaid svg,
-.md-typeset pre.mermaid svg {
-  /* Mermaid's exact-pinned configuration emits intrinsic dimensions. Its
-     inline max-width still outranks ordinary stylesheet rules, so preserve
-     the verified override and let the containing block provide local scroll. */
-  max-width: none !important;
-}
-
 /* Admonition colour accents using AGF palette */
 .md-typeset .admonition.note,
 .md-typeset details.note {
