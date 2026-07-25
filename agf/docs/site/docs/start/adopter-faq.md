@@ -5,6 +5,13 @@ to commission AGF in a real repository. This page answers the questions that
 usually appear after the idea makes sense, but before the first governed
 change feels safe.*
 
+Start with the question closest to your situation. Common entry points are
+[better prompts](#do-we-need-agf-or-just-better-prompts),
+[human ownership](#who-is-the-governor),
+[tooling](#should-we-commission-the-tooling-too),
+[several assistants](#can-several-ai-assistants-work-at-once), and
+[the first week](#what-should-our-first-week-look-like).
+
 ## Do we need AGF, or just better prompts?
 
 Use better prompts first. If that is enough, stop there.
@@ -398,3 +405,9 @@ Then add structure where the project actually feels pain.
 
 AGF works best when it makes accountability lighter to practice, not heavier to
 perform.
+
+Next action: if the answers fit your project, return to
+[Should you adopt?](should-you-adopt.md) for an adopt / wait / skip decision.
+If you have decided to proceed, use
+[Your first governed change](first-governed-change.md) rather than designing a
+custom process first.

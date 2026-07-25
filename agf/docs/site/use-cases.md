@@ -4,6 +4,11 @@
 learning records in the framework's evidence base; codenames refer to
 anonymized adopter projects.*
 
+Match your situation against both lists below. A credible use case means AGF
+is reasonable to pilot, not that results are guaranteed. If a non-use case
+describes you more closely, use a lighter review process or the runtime product
+you actually need.
+
 ## Credible use cases
 
 **Solo maintainer with AI assistants doing most implementation.**
@@ -66,9 +71,11 @@ Be skeptical of adopting if any of these describe you:
 
 ## Maturity, honestly
 
-Per the framework's implementation-honesty discipline, capability claims
-carry maturity levels. The single-project, single-governor workflow is the
-validated core. Several rules are explicitly **Provisional** (single-adopter
+Some capabilities exist only as ideas; others are implemented, tested, or
+available through a supported release. AGF records that difference with
+**maturity levels** instead of presenting every claim as equally complete. The
+single-project, single-governor workflow is the validated core. Several rules
+are explicitly **Provisional** (single-adopter
 evidence) and say so in their text. If a page on this site does not state a
 maturity level for a claim, treat that as a documentation bug and report it.
 
@@ -77,3 +84,9 @@ one repository at a time with local branch protection, local CI, and a named
 governor. Central policy distribution, cross-repository gate state, and
 multi-governor federation remain roadmap or local-integration work until they
 are implemented and validated.
+
+## Next
+
+Found a credible match → use [Should you adopt?](docs/start/should-you-adopt.md)
+to decide whether to adopt now, wait, or skip. Found a non-use case → do not
+force AGF into it; follow the lighter or runtime-specific path named above.

@@ -13,6 +13,11 @@ often cannot answer why a change was requested, who accepted the risk, or what
 the AI was supposed to do. agents-govern adds three file-based controls on top
 of your existing repository:
 
+For example, before an assistant changes a database migration, it writes down
+the intended change and risks. A human decides whether work may start, the
+assistant implements and tests it, and a human decides whether it may merge.
+AGF gives those two decisions names and keeps their evidence:
+
 - **Roles:** AI agents operate under named responsibilities. An agent cannot
   approve its own work, and a human governor holds gate authority.
 - **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
@@ -160,9 +165,10 @@ The shipped Rust binary (`agov`) is optional. It can, for example:
 - report local token-ROI telemetry without turning an estimate into a measured
   claim.
 
-Those outcomes are Level 5 — Deployable in the supported operator path used by
-this project. That label describes availability, not equal complexity or equal
-organizational value. See the [canonical command inventory and evidence
+Those outcomes are available in the supported operator path used by this
+project — the maturity vocabulary calls that **Level 5 — Deployable**. The
+label describes availability, not equal complexity or equal organizational
+value. See the [canonical command inventory and evidence
 notes](docs/adopt/tooling-and-tokens.md) for the complete command-by-command
 surface and the [maturity vocabulary](reference/maturity-vocabulary.md) for
 what lower levels mean.
@@ -256,3 +262,5 @@ Version, source commit, copyright, and license details are listed in
 [Release information](reference/release-info.md). Framework content:
 CC BY-SA 4.0, with separate commercial licensing available for alternative
 terms. Tooling code: MIT.
+
+Ready to decide? Continue with [Should you adopt?](docs/start/should-you-adopt.md).
