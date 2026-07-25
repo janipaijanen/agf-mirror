@@ -13,6 +13,11 @@ often cannot answer why a change was requested, who accepted the risk, or what
 the AI was supposed to do. agents-govern adds three file-based controls on top
 of your existing repository:
 
+For example, before an assistant changes a database migration, it writes down
+the intended change and risks. A human decides whether work may start, the
+assistant implements and tests it, and a human decides whether it may merge.
+AGF gives those two decisions names and keeps their evidence:
+
 - **Roles:** AI agents operate under named responsibilities. An agent cannot
   approve its own work, and a human governor holds gate authority.
 - **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
@@ -44,25 +49,9 @@ from the AI-executed steps around them, because that separation —
 never both authoring and approving the same step — is the one property
 every other page on this site assumes you already understand.
 
-```mermaid
-flowchart LR
-    accTitle: Governed change flow
-    accDescr: AI writes a plan, the governor approves it at Gate 1, AI implements, CI validates the result, and the governor approves the merge at Gate 2.
-    classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
-    classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
-    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
-    classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A
+[![Governed change flow from plan through two human gates to merge](reference/figures/governed-change-flow.svg)](reference/figures/governed-change-flow.svg)
 
-    plan(AI writes a plan) --> gate1{Governor approves?}
-    gate1 --> implement(AI implements)
-    implement --> civalidate[[CI validates]]
-    civalidate --> gate2{Governor approves merge?}
-    gate2 --> merge[[Merge]]
-
-    class plan,implement aiAction
-    class gate1,gate2 humanDecision
-    class civalidate,merge automatedCheck
-```
+[Open the full-size governed change flow (SVG)](reference/figures/governed-change-flow.svg)
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"
     A single-page overview of the roles, the two gates, and the
@@ -150,42 +139,38 @@ deterministic command output: the tool answers the question in milliseconds and
 returns a compact summary the agent reads instead of scanning dozens of files
 itself.
 
-The shipped Rust binary (`agov`) is the adopter-facing tooling surface. The
-table below shows current maturity — commands at Level 5 are in production use
-on this project:
+The shipped Rust binary (`agov`) is optional. It can, for example:
 
-| Command | Replaces | Maturity |
-|---|---|---|
-| `agov --version` / `agov version --format json` | Human or CI guesses which binary/source revision is running | Level 5 — Deployable |
-| `agov coord validate <file>...` | AI reads a coordination file to check schema compliance | Level 5 — Deployable |
-| `agov plan validate <file>...` | AI reads a Gate 1 plan file to check front-matter | Level 5 — Deployable |
-| `agov validate` | AI reads adoption, agent, and learning files to spot problems | Level 5 — Deployable |
-| `agov coord brief ...` | AI asks a human or guesses a coordination ID and filename | Level 5 — Deployable |
-| `agov handoff next <role>` | Agent scans handoff files and mentally subtracts resolved items | Level 5 — Deployable |
-| `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 5 — Deployable |
-| `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 5 — Deployable |
-| `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 5 — Deployable |
-| `agov coord visibility` | Agent scans branches for hidden coordination obligations | Level 5 — Deployable |
-| `agov coord graph` | Agent reads all coordination files to map which roles communicated, when, and in what sequence — outputs Graphviz dot | Level 5 — Deployable |
-| `agov coord graph-index` | Agent scans all coordination files to produce a structured JSON index of handoffs, references, and pending obligations | Level 5 — Deployable |
-| `agov token roi report` | Agent summarizes deterministic-tool token savings from local telemetry | Level 5 — Deployable |
-| `agov usage report` | Agent counts active roles, senders, message kinds, and unknown senders | Level 5 — Deployable |
+- validate plans, coordination records, agent definitions, and adopter docs
+  deterministically;
+- resume a session from a compact project summary instead of rereading the
+  full coordination channel;
+- find pending handoffs and coordination records hidden on other branches;
+- report local token-ROI telemetry without turning an estimate into a measured
+  claim.
 
-*Maturity levels follow the [maturity vocabulary](reference/maturity-vocabulary.md):
-Level 5 is deployable and in active use; Level 1 is planned. Do not conflate
-the two.*
+Those outcomes are available in the supported operator path used by this
+project — the maturity vocabulary calls that **Level 5 — Deployable**. The
+label describes availability, not equal complexity or equal organizational
+value. See the [canonical command inventory and evidence
+notes](docs/adopt/tooling-and-tokens.md) for the complete command-by-command
+surface and the [maturity vocabulary](reference/maturity-vocabulary.md) for
+what lower levels mean.
 
 Release archives ship platform-specific Rust tooling. Source-checkout users
 should use the same `agov` command surface as release-archive adopters. See
-[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup,
-estimates, and the evidence base behind the savings claims.
+[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup, the
+canonical inventory, estimates, and the evidence base behind the savings
+claims.
 
 ## What you get
 
 **Accountability structure for AI agents.** Each agent operates under a
 written definition: what it owns, what it may change, what it must escalate.
-An implementing agent cannot approve its own work; a reviewing agent cannot
-implement. The separation is structural, not aspirational.
+Those definitions do not authorize an implementing agent to approve its own
+work, or a reviewing agent to implement the change it approves. The audit trail
+makes violations reviewable; whether a particular check is structurally
+blocked or relies on reviewer discipline is stated by the applicable rule.
 
 **Decisions you can reconstruct.** Every plan approval, review finding, and
 merge decision is a file in the coordination channel — the append-only decision
@@ -261,3 +246,5 @@ Version, source commit, copyright, and license details are listed in
 [Release information](reference/release-info.md). Framework content:
 CC BY-SA 4.0, with separate commercial licensing available for alternative
 terms. Tooling code: MIT.
+
+Ready to decide? Continue with [Should you adopt?](docs/start/should-you-adopt.md).

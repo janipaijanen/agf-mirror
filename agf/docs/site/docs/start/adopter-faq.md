@@ -5,6 +5,13 @@ to commission AGF in a real repository. This page answers the questions that
 usually appear after the idea makes sense, but before the first governed
 change feels safe.*
 
+Start with the question closest to your situation. Common entry points are
+[better prompts](#do-we-need-agf-or-just-better-prompts),
+[human ownership](#who-is-the-governor),
+[tooling](#should-we-commission-the-tooling-too),
+[several assistants](#can-several-ai-assistants-work-at-once), and
+[the first week](#what-should-our-first-week-look-like).
+
 ## Do we need AGF, or just better prompts?
 
 Use better prompts first. If that is enough, stop there.
@@ -38,22 +45,26 @@ happened.
 
 ## Should we commission the tooling too?
 
-Usually yes, but not on day one.
+Usually yes—use it from day one when the supported binary can run.
 
-Start with the framework files and one governed change. Once the loop is real,
-add the `agov` tooling so agents and CI stop re-reading the same governance
-files by hand. The tooling is not the framework's authority; it is the
-mechanical helper that validates plans, coordination entries, learning records,
-and handoffs.
+AGF remains usable as files without `agov`, and the framework files and human
+gate decisions remain authoritative. But manual evaluation can be slow and
+token-intensive: at cold start and session boundaries, assistants may otherwise
+need to re-read plans, coordination records, role manifests, and schemas.
+`agov` returns compact deterministic summaries and validates those records. It
+does not make governance decisions or replace human review. The actual time and
+token difference varies by model, repository, task, and context-window state.
 
 The practical path is:
 
-1. Ask your assistant to commission `agf/` and the first local evidence files.
-2. Review the diff and remaining `CUSTOMIZE` markers.
-3. Run one small governed change.
-4. Add `agov coord validate` and `agov plan validate` to CI.
-5. Add more checks only when the team understands what each one is allowed to
-   block.
+1. Ask your assistant to commission `agf/`, the supported `agov` binary, and
+   the first local evidence files.
+2. Run `agov session resume`, then review the commissioned diff and remaining
+   `CUSTOMIZE` markers.
+3. Validate the first plan and coordination records with `agov`.
+4. Run one small governed change.
+5. Add only understood checks to CI, with an explicit rule for anything that
+   may block work.
 
 For setup details, see [Tooling and token savings](../adopt/tooling-and-tokens.md)
 and [Contracts and validators](../advanced/contracts-and-validators.md).
@@ -105,6 +116,33 @@ to relax or tighten governance.
 
 If nobody is willing to be governor, do not adopt AGF yet. Gates without a
 governor become ceremony.
+
+## Can different people approve Gate 1 and Gate 2?
+
+Yes, when the arrangement is explicit, authorized, and sequential. Person A
+may approve the plan at Gate 1 and Person B may review the implementation at
+Gate 2. This can add an independent implementation review, but AGF does not
+require two people.
+
+Use this minimum checklist:
+
+- record who owns each gate, including the repository, change, and time period
+  covered by that authority;
+- give the Gate 2 reviewer the exact approved plan, Gate 1 decision, conditions,
+  and accepted risks;
+- at Gate 2, compare the diff and evidence with that exact plan;
+- send scope changes back to Gate 1 instead of silently rewriting the plan at
+  Gate 2;
+- name one primary governor or project authority who resolves disagreement;
+- do not let either approver approve implementation they personally performed
+  while acting as coder-tester.
+
+This is a handoff of one decision role between people, not two simultaneous
+governors with unclear precedence. AGF v2's validated minimum remains one
+governor at a time. Treat split-person gates as a team operating pattern or
+pilot, not as a universally validated design, and write a learning record when
+you try it. See [roles and gates](../concepts/roles-and-gates.md) for the
+canonical rotation, delegation, and conflict-of-interest guidance.
 
 ## Can AI act as a governor?
 
@@ -366,9 +404,10 @@ Keep it small.
 Day 1: read [Should you adopt?](should-you-adopt.md), [Downstream impact](../adopt/downstream-impact.md),
 and [Exit and decommission](../adopt/exit-and-decommission.md).
 
-Day 2: ask your assistant to commission `agf/`, pick a codename, and customize
-only the rules that plainly need local values. Review the diff instead of doing
-the copying by hand.
+Day 2: ask your assistant to commission `agf/` and the supported `agov` binary,
+pick a codename, and customize only the rules that plainly need local values.
+Run `agov session resume`, validate the initial records, and review the diff
+instead of doing the copying by hand.
 
 Day 3: run [Your first governed change](first-governed-change.md) on a small,
 real task.
@@ -381,7 +420,8 @@ empty ceremony.
 **First-week checklist:**
 
 - [ ] Read decision, cost, and exit pages (Days 1 and 5 are the honest-cost moments)
-- [ ] Install `agf/` and configure the assistant loader
+- [ ] Install `agf/` and `agov`, then configure the assistant loader
+- [ ] Run `agov session resume` and validate the initial plan and coordination records
 - [ ] Verify your assistant actually loaded AGF: ask it to name the current framework version and an active rule
 - [ ] Run one complete governed change — plan, implement, Gate 2, merge
 - [ ] Add at minimum one CI validator job (coordination or plan schema)
@@ -398,3 +438,9 @@ Then add structure where the project actually feels pain.
 
 AGF works best when it makes accountability lighter to practice, not heavier to
 perform.
+
+Next action: if the answers fit your project, return to
+[Should you adopt?](should-you-adopt.md) for an adopt / wait / skip decision.
+If you have decided to proceed, use
+[Your first governed change](first-governed-change.md) rather than designing a
+custom process first.

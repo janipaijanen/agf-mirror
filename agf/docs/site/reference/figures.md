@@ -169,6 +169,79 @@ here is evidence about the foundry's history, not a target topology.
 
 ---
 
+## Governed change flow
+
+Figure 9 is the compact landing-page orientation: AI writes a plan, the human
+governor decides Gate 1, AI implements, CI validates, and the governor decides
+Gate 2 before merge. Shape and border treatment distinguish AI action, human
+decision, and automated validation without relying on colour alone.
+
+[![Governed change flow from plan through two human gates to merge](figures/governed-change-flow.svg)](figures/governed-change-flow.svg)
+
+[Open the full-size governed change flow (SVG)](figures/governed-change-flow.svg)
+
+**Source:** `docs/figures/src/governed-change-flow.dot`
+
+---
+
+## Runtime and governance boundary
+
+Figure 10 separates runtime execution from AGF governance. The runtime invokes
+agents, tools, and memory or state; AGF defines roles, gates, artifacts, and
+the boundaries and learning records around that execution.
+
+[![Runtime execution alongside AGF governance boundaries](figures/runtime-governance-boundary.svg)](figures/runtime-governance-boundary.svg)
+
+[Open the full-size runtime and governance boundary figure (SVG)](figures/runtime-governance-boundary.svg)
+
+**Source:** `docs/figures/src/runtime-governance-boundary.dot`
+
+---
+
+## AGF governance position
+
+Figure 11 names AGF's relationship to five adjacent categories: it governs
+agents on runtimes, emits evidence used by CI/CD, occupies a narrower scope
+within SDLC governance, differs from ML governance, and operates within wider
+AI policy and ethics.
+
+[![AGF positioned relative to runtimes, CI/CD, SDLC, ML governance, and AI policy](figures/governance-scope-position.svg)](figures/governance-scope-position.svg)
+
+[Open the full-size AGF governance-position figure (SVG)](figures/governance-scope-position.svg)
+
+**Source:** `docs/figures/src/governance-scope-position.dot`
+
+---
+
+## Gate handoff sequence
+
+Figure 12 reads from top to bottom. It preserves the ordered coordination
+chain from the approved Gate 1 handoff through acknowledgement,
+implementation, Gate 2 handoff and decision, and final completion.
+
+[![Ordered coordination handoff from Gate 1 through Gate 2 to completion](figures/gate-handoff-sequence.svg)](figures/gate-handoff-sequence.svg)
+
+[Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](figures/gate-handoff-sequence.svg)
+
+**Source:** `docs/figures/src/gate-handoff-sequence.dot`
+
+---
+
+## Framework concept map
+
+Figure 13 groups the orientation vocabulary under roles, gates, artifacts,
+tooling, adoption, boundaries, and the evidence loop. It is a category map,
+not an exhaustive relationship graph; the surrounding framework-map page
+routes each category to its detailed contract.
+
+[![AGF concept map grouping roles, gates, artifacts, tooling, adoption, boundaries, and evidence](figures/framework-map.svg)](figures/framework-map.svg)
+
+[Open the full-size AGF concept map (SVG)](figures/framework-map.svg)
+
+**Source:** `docs/figures/src/framework-map.dot`
+
+---
+
 ## Usage rules
 
 - Embed SVG in Markdown with `![Alt text](figures/name.svg)` from this page,

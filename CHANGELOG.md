@@ -8,6 +8,25 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-07-25
+
+Patch release for the public-experience and evidence-presentation work in MR
+!488. See [`agf/CHANGELOG.md`](agf/CHANGELOG.md) for adopter-facing details.
+
+### Fixed
+
+- Corrected public governance-enforcement, provider-boundary, command-maturity,
+  and adoption-exit claims.
+- Aligned the adoption-exit figure's labels with its surrounding guidance.
+
+### Changed
+
+- Condensed the homepage tooling inventory and retained one canonical command
+  reference.
+- Added exact-build repository references to the AI evaluation dossier.
+- Documented assistant/role bylines and improved progressive disclosure and
+  next-action guidance across six evaluator-facing pages.
+
 ## [2.4.1] - 2026-07-24
 
 Patch release closing the accessibility and prose-hardening work governed by

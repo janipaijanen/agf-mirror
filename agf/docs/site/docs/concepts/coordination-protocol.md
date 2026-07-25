@@ -82,48 +82,14 @@ the same left-to-right order those files would appear if read from
 prose after it doesn't also state; it makes the ordering visually
 immediate.
 
-```mermaid
-sequenceDiagram
-    accTitle: Gate 1 to Gate 2 coordination handoff sequence
-    accDescr: planner-architect hands off an approved Gate 1 plan to coder-tester, who acknowledges, implements, then hands off to governor-reviewer for Gate 2. governor-reviewer returns a decision-record, and coder-tester closes with a completion back to planner-architect.
-    participant PA as planner-architect
-    participant CT as coder-tester
-    participant GR as governor-reviewer
+[![Ordered coordination handoff from Gate 1 through Gate 2 to completion](../../reference/figures/gate-handoff-sequence.svg)](../../reference/figures/gate-handoff-sequence.svg)
 
-    PA->>CT: handoff (Gate 1 plan approved)
-    CT-->>PA: ack
-    activate CT
-    Note over CT: implement
-    CT->>GR: handoff (Gate 2)
-    activate GR
-    Note over GR: review
-    GR-->>CT: decision-record
-    deactivate GR
-    CT-->>PA: completion
-    deactivate CT
-```
+[Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](../../reference/figures/gate-handoff-sequence.svg)
 
-*Palette note: this diagram intentionally keeps the site's default Mermaid
-sequence-diagram theme rather than the shared responsibility palette. Two
-things were verified by rendering the page in a real browser and
-pixel-sampling the resulting participant-box fill (not assumed from
-documentation): first, a per-participant `classDef`/`class` assignment —
-the mechanism `flowchart` nodes use — has no equivalent for `sequenceDiagram`
-participants; second, an attempted diagram-level override via a
-`%%{init: {"themeVariables": {"actorBkg": ...}}}%%` directive (tried with
-both single- and double-quoted JSON) produced a byte-identical render to no
-override at all, so this site's rendering pipeline does not honour it.
-Rather than ship a directive with no visible effect, it was removed. The
-practical consequence is acceptable: Mermaid's own default theme here
-already tracks the site's light/dark toggle automatically, which a
-hardcoded palette fill would not do without a separate dark-mode variant
-(the same gap `palette.md`'s "Light/dark behaviour" section already
-documents as unresolved for fixed-fill figures) — see the governor's
-`ksdg` decision for the precedent of deferring this class of limitation
-rather than blocking release on it. This note is about colour only; the
-diagram's accessible name and description are a separate axis (see
-"Mermaid accessibility evidence" below) and are not affected by keeping
-the default palette.*
+*Palette note: AI actions and handoffs use rounded blue nodes, human Gate
+review and the decision record use amber diamonds, and acknowledgement and
+completion records use dashed grey nodes. The same meanings are carried by
+shape and labels, not colour alone.*
 
 One agent writes a `handoff`; another reads it via `agov session resume`,
 implements, then files a Gate 2 `handoff` to `governor-reviewer`. The

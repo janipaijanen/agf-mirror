@@ -32,6 +32,11 @@ deployable and in active use; Level 1 is planned.
 
 ### Level 5 — Deployable (in production use)
 
+This is the canonical command inventory. Each command below is implemented,
+tested, documented, and present in the supported v2.4.2 operator path. A future
+command that exists only in a branch or design must be listed separately at its
+actual maturity level rather than added to this table by analogy.
+
 | Command | What it replaces |
 |---|---|
 | `agov --version` / `agov version --format json` | Inferring build provenance from file paths, timestamps, or `git log`. |
@@ -82,7 +87,7 @@ unpack it, and place the `agov` executable on PATH.
 ```yaml
 validate-governance:
   image:
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.1
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.2
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |

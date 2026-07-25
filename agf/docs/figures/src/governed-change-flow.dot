@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Governed change flow
+// svg-desc: AI writes a plan, a human governor approves Gate 1, AI implements, CI validates, a human governor approves Gate 2, and the change merges.
+digraph governed_change_flow {
+    graph [rankdir=LR, splines=ortho, pad=0.3, nodesep=0.35, ranksep=0.5,
+           bgcolor=white, fontname="Helvetica", fontsize=12]
+    node [fontname="Helvetica", fontsize=11, style=filled, shape=box,
+          color="#0077BB", fillcolor="#99CCEE", fontcolor="#1A1A1A", penwidth=1.4]
+    edge [fontname="Helvetica", fontsize=10, color="#0077BB", fontcolor="#1A1A1A", penwidth=1.4]
+
+    plan [label="AI writes\na plan", style="filled,rounded"]
+    gate1 [label="Governor\napproves?\nGate 1", shape=diamond,
+           fillcolor="#EE7700", color="#EE7700"]
+    implement [label="AI\nimplements", style="filled,rounded"]
+    validate [label="CI validates", peripheries=2, style="filled,bold",
+              fillcolor="#009944", color="#009944"]
+    gate2 [label="Governor approves\nmerge?\nGate 2", shape=diamond,
+           fillcolor="#EE7700", color="#EE7700"]
+    merge [label="Merge", peripheries=2, style="filled,bold",
+           fillcolor="#009944", color="#009944"]
+
+    plan -> gate1 -> implement -> validate -> gate2 -> merge
+
+    subgraph cluster_legend {
+        label="Legend (responsibility / shape)"; color="#888888"; margin=10
+        human [label="human decision", shape=diamond, fillcolor="#EE7700", color="#EE7700"]
+        ai [label="AI action", style="filled,rounded", fillcolor="#99CCEE", color="#0077BB"]
+        automated [label="automated check /\nvalidated outcome", peripheries=2,
+                   style="filled,bold", fillcolor="#009944", color="#009944"]
+        human -> ai -> automated [style=invis]
+    }
+}

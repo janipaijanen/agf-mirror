@@ -11,6 +11,11 @@ often cannot answer why a change was requested, who accepted the risk, or what
 the AI was supposed to do. agents-govern adds three file-based controls on top
 of your existing repository:
 
+For example, an assistant first records what it intends to change. A human
+decides whether implementation may start, the assistant makes and tests the
+change, and a human decides whether it may merge. AGF names and records that
+repeatable loop:
+
 - **Roles:** AI agents operate under named responsibilities; an agent cannot
   approve its own work, and a human governor holds gate authority.
 - **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
@@ -81,6 +86,21 @@ governance authority. The normative files live in `agf/` and the binding
 decisions come from the roles and gates recorded in the coordination channel.
 Tool output is evidence; it becomes blocking only when a named AGF rule or
 governor decision makes that check blocking.
+
+### Start development in this checkout
+
+Build the supported Rust helper, put the repository wrapper on your path, and
+ask it for the current project state before reading coordination files by hand:
+
+```bash
+cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+export PATH="$PWD/tooling:$PATH"
+agov session resume --base-branch main
+```
+
+Then read [`AGENTS.md`](AGENTS.md) for the branch, gate, and contribution
+rules that apply to changes in this repository. The `agov` helper is optional
+for adopters, but it is the supported operator path for developing AGF itself.
 
 ## Maturity and evidence labels
 
@@ -161,7 +181,7 @@ tools without changing the file-based coordination protocol. See
 `agf/docs/site/docs/adopt/mcp-server.md`.
 
 Container-based CI can use the pinned OCI image, for example
-`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.1`; pin an
+`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.2`; pin an
 exact version or digest, never a floating tag.
 
 ## Local learning and upstream proposals
@@ -232,3 +252,9 @@ AGF-NG is developed independently. The project has not received external
 funding from, and has no dependency or endorsement relationship with, the
 companies or brands whose tools, models, or runtimes may be discussed in the
 documentation.
+
+## Next
+
+Contributing here → read [`AGENTS.md`](AGENTS.md), then run the development
+start commands above. Evaluating adoption → read
+[Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
