@@ -150,35 +150,28 @@ deterministic command output: the tool answers the question in milliseconds and
 returns a compact summary the agent reads instead of scanning dozens of files
 itself.
 
-The shipped Rust binary (`agov`) is the adopter-facing tooling surface. The
-table below shows current maturity — commands at Level 5 are in production use
-on this project:
+The shipped Rust binary (`agov`) is optional. It can, for example:
 
-| Command | Replaces | Maturity |
-|---|---|---|
-| `agov --version` / `agov version --format json` | Human or CI guesses which binary/source revision is running | Level 5 — Deployable |
-| `agov coord validate <file>...` | AI reads a coordination file to check schema compliance | Level 5 — Deployable |
-| `agov plan validate <file>...` | AI reads a Gate 1 plan file to check front-matter | Level 5 — Deployable |
-| `agov validate` | AI reads adoption, agent, and learning files to spot problems | Level 5 — Deployable |
-| `agov coord brief ...` | AI asks a human or guesses a coordination ID and filename | Level 5 — Deployable |
-| `agov handoff next <role>` | Agent scans handoff files and mentally subtracts resolved items | Level 5 — Deployable |
-| `agov coord status` | Agent counts pending handoffs and active claims by reading the channel | Level 5 — Deployable |
-| `agov session resume --role <role>` | Agent reads recent coordination files to reconstruct its starting state | Level 5 — Deployable |
-| `agov coord stale` | Agent identifies expired artifact claims by reading all claim messages | Level 5 — Deployable |
-| `agov coord visibility` | Agent scans branches for hidden coordination obligations | Level 5 — Deployable |
-| `agov coord graph` | Agent reads all coordination files to map which roles communicated, when, and in what sequence — outputs Graphviz dot | Level 5 — Deployable |
-| `agov coord graph-index` | Agent scans all coordination files to produce a structured JSON index of handoffs, references, and pending obligations | Level 5 — Deployable |
-| `agov token roi report` | Agent summarizes deterministic-tool token savings from local telemetry | Level 5 — Deployable |
-| `agov usage report` | Agent counts active roles, senders, message kinds, and unknown senders | Level 5 — Deployable |
+- validate plans, coordination records, agent definitions, and adopter docs
+  deterministically;
+- resume a session from a compact project summary instead of rereading the
+  full coordination channel;
+- find pending handoffs and coordination records hidden on other branches;
+- report local token-ROI telemetry without turning an estimate into a measured
+  claim.
 
-*Maturity levels follow the [maturity vocabulary](reference/maturity-vocabulary.md):
-Level 5 is deployable and in active use; Level 1 is planned. Do not conflate
-the two.*
+Those outcomes are Level 5 — Deployable in the supported operator path used by
+this project. That label describes availability, not equal complexity or equal
+organizational value. See the [canonical command inventory and evidence
+notes](docs/adopt/tooling-and-tokens.md) for the complete command-by-command
+surface and the [maturity vocabulary](reference/maturity-vocabulary.md) for
+what lower levels mean.
 
 Release archives ship platform-specific Rust tooling. Source-checkout users
 should use the same `agov` command surface as release-archive adopters. See
-[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup,
-estimates, and the evidence base behind the savings claims.
+[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup, the
+canonical inventory, estimates, and the evidence base behind the savings
+claims.
 
 ## What you get
 
