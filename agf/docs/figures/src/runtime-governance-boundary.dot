@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: AGF and an agent runtime side by side
+// svg-desc: The runtime executes agent invocations, tool calls, and memory or state. AGF defines roles, gates, artifacts, jurisdictions, forbidden actions, communication topology, and learning records.
+digraph runtime_governance_boundary {
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.3, ranksep=0.45,
+           bgcolor=white, fontname="Helvetica", fontsize=12]
+    node [fontname="Helvetica", fontsize=11, shape=box, style=filled,
+          fillcolor=white, color="#0077BB", fontcolor="#0077BB", penwidth=1.4]
+    edge [fontname="Helvetica", fontsize=10, color="#0077BB", fontcolor="#1A1A1A", penwidth=1.4]
+
+    subgraph cluster_runtime {
+        label="Orchestrator (runtime)"; color="#0077BB"; margin=12
+        runtime [label="LangGraph / CrewAI / AutoGen\nClaude Code / Cursor",
+                 style="filled,rounded", fillcolor="#99CCEE", fontcolor="#1A1A1A"]
+        invocation [label="Agent invocation", style="filled,rounded", fillcolor="#99CCEE", fontcolor="#1A1A1A"]
+        tool [label="Tool call", style="filled,rounded", fillcolor="#99CCEE", fontcolor="#1A1A1A"]
+        memory [label="Memory / state", style="filled,rounded", fillcolor="#99CCEE", fontcolor="#1A1A1A"]
+        runtime -> invocation
+        runtime -> tool
+        runtime -> memory
+    }
+
+    subgraph cluster_governance {
+        label="agents-govern (governance)"; color="#0077BB"; margin=12
+        agf [label="Roles · Gates · Artifacts"]
+        jurisdiction [label="Jurisdictions"]
+        forbidden [label="Forbidden actions"]
+        topology [label="Communication topology"]
+        learning [label="Learning records"]
+        agf -> jurisdiction
+        agf -> forbidden
+        agf -> topology
+        agf -> learning
+    }
+
+    { rank=same; runtime; agf }
+    agf -> invocation [label="constrains", style=dashed, constraint=false]
+    agf -> tool [label="constrains", style=dashed, constraint=false]
+    tool -> learning [label="feeds", style=dashed, constraint=false]
+    memory -> learning [label="feeds", style=dashed, constraint=false]
+
+    subgraph cluster_legend {
+        label="Legend"; color="#888888"; margin=10
+        ai [label="runtime execution\n(AI action)", style="filled,rounded",
+            fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+        shared [label="governance concept / artifact", fillcolor=white,
+                color="#0077BB", fontcolor="#0077BB"]
+        ai -> shared [label="dashed = boundary relationship", style=dashed]
+    }
+}

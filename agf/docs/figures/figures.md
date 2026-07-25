@@ -19,6 +19,12 @@ docs/figures/
     learning-loop.dot
     adoption-exit-flow.dot
     coordination-map-example.dot
+    governed-change-flow.dot
+    runtime-governance-boundary.dot
+    governance-scope-position.dot
+    gate-handoff-sequence.dot
+    framework-map.dot
+  render_svg.py           Deterministic title/description renderer
   *.svg                   Generated SVGs (committed as source-of-truth)
   figures.md              This file
 ```
@@ -67,6 +73,22 @@ done
 ```
 
 Requires Graphviz (`dot` version 2.x or later).
+
+Figures carrying `// svg-title:` and `// svg-desc:` source metadata use the
+deterministic renderer so their direct SVG has a useful title and description:
+
+```bash
+cd agf/docs/figures
+python3 render_svg.py src/governed-change-flow.dot \
+  src/runtime-governance-boundary.dot \
+  src/governance-scope-position.dot \
+  src/gate-handoff-sequence.dot \
+  src/framework-map.dot
+```
+
+The renderer writes identical copies to this directory and the site-facing
+`docs/site/reference/figures/` directory. Edit the DOT metadata and source,
+not the generated SVG.
 
 ## See also
 
