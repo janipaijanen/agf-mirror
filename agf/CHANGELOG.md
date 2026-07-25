@@ -3,6 +3,41 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.2] — 2026-07-25
+
+Patch release improving the existing public documentation's first-contact
+clarity, factual boundaries, and evidence navigation. It adds no schema, role,
+tool, API, CI, or adopter-contract surface.
+
+### Fixed
+
+- Corrected public wording about structural versus participant-enforced
+  governance, external AI-provider data boundaries, supported command
+  maturity, and adoption exit terminology.
+- Aligned the adoption-exit figure with the page's Pause, Downgrade, and Remove
+  vocabulary.
+
+### Changed
+
+- Replaced the homepage's drifting command inventory with a compact,
+  outcome-led summary linked to the canonical tooling reference.
+- Added exact-source repository links to the AI evaluation dossier while
+  preserving the public Flow 07 corpus and copied Evaluate self-link.
+- Added concise identity-and-role byline guidance for assistant-authored GitLab
+  activity without presenting shared-account bylines as authentication.
+- Revised six evaluator-facing entry pages to lead with ordinary language,
+  preserve maturity and evidence limits, and give readers a concrete next
+  action.
+
+### Validation boundary
+
+- The implementation passed strict site generation, adopter-documentation and
+  release-stat validation, rendered desktop/narrow checks, link verification,
+  and exact-text fact-checking. The fact-check disposition was ADOPT for all
+  five implementation commits with zero ADAPT or REJECT findings.
+
+Adopter docs: updated
+
 ## [2.4.1] — 2026-07-24
 
 Patch release correcting the accessibility and narrow-width presentation of
