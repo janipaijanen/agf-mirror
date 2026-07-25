@@ -97,6 +97,29 @@ For AI agents specifically: run `agov session resume` before any manual reads or
   If tooling is unavailable, create a valid manual ID and say why in the
   record.
 
+### Show the assistant and role on GitLab
+
+For assistant-authored GitLab issue or merge-request descriptions and notes,
+put this byline first:
+
+```markdown
+### <Execution identity> · <AGF role>
+```
+
+For example, `### Claude · planner-architect` tells a reader both which
+assistant produced the text and which governed role it was performing. When
+the GitLab text bridges a durable coordination record, name that record near
+the byline so a reader can follow the decision trail.
+
+This convention improves attribution and readability. It is not
+authentication or non-repudiation: GitLab's native author field still shows
+the shared account. Separate native identities require separate GitLab
+accounts and credentials, which this convention does not provide.
+
+Apply the convention prospectively after it is documented; do not edit old
+GitLab notes to add it. The merge-request description and Gate 2 handoff for
+the change that introduces this convention are its first pilot examples.
+
 ## Context hygiene
 
 Long AI sessions become expensive and less reliable as context grows. AGF
