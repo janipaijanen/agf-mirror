@@ -453,6 +453,23 @@ source-backed AI review</p>
 | Legal/risk limits | [Disclaimer](reference/disclaimer.md) |
 | Optional challenge questions | [Philosophical lenses on AI governance](docs/concepts/philosophical-lenses.md) |
 
+## Authoritative Repository References
+
+<p class="agf-dossier-marker"><strong>Flow 05.01</strong> / link-only routes
+to repository evidence</p>
+
+The public-page corpus in this dossier explains AGF. Repository artifacts are
+the authority for file-level claims about roles, rules, schemas, project
+decisions, tooling, CI, and distribution contents. The build generates the
+routes below from the exact source commit shown in
+[Release information](reference/release-info.md); it does not copy the target
+files into the dossier.
+
+A link is a route to evidence, not proof that an evaluator inspected or
+validated it. In a review, list which artifacts you actually opened.
+
+<!-- AGF_DOSSIER_REPOSITORY_REFERENCES -->
+
 ## Reviewer Checklist
 
 <p class="agf-dossier-marker"><strong>Flow 06</strong> / source basis:

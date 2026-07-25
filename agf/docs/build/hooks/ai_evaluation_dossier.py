@@ -10,6 +10,22 @@ from urllib.parse import urlsplit
 
 DOSSIER_PAGE = "ai-evaluation-dossier.md"
 APPENDIX_MARKER = "<!-- AGF_DOSSIER_APPENDIX -->"
+REPOSITORY_REFERENCES_MARKER = "<!-- AGF_DOSSIER_REPOSITORY_REFERENCES -->"
+REPOSITORY_URL = "https://gitlab.com/janipaijanen/agents-govern-framework"
+DOSSIER_TOP_ANCHOR = "#ai-evaluation-dossier"
+
+REPOSITORY_REFERENCES = [
+    ("Active role authority", "agf/agents/MANIFEST.yaml", False, "Which foundry roles are active, suspended, or skipped"),
+    ("Role contracts", "agf/agents/", True, "Role jurisdiction and restrictions"),
+    ("Binding rule library", "agf/rules/", True, "Named behavioral obligations and tool authority"),
+    ("Schemas", "agf/schemas/", True, "Machine-readable artifact shapes only"),
+    ("Gate 1 plans", "docs/plans/", True, "Approved intent and implementation boundaries"),
+    ("Coordination trail", "docs/coordination/", True, "Claims, reviews, handoffs, and binding decisions"),
+    ("Active learning register", "agf/learnings/foundry.yaml", False, "Project learning evidence and recommendations"),
+    ("Supported tooling source", "tooling/rust/", True, "Implemented CLI and MCP behavior, subject to tests"),
+    ("CI configuration", ".gitlab-ci.yml", False, "Checks and event sources configured for this repository"),
+    ("Release manifest", "agf/dist/release-manifest.yaml", False, "Files included in the framework distribution"),
+]
 
 PAGE_ORDER = [
     "index.md",
@@ -149,6 +165,9 @@ def _rewrite_target(
         return target
 
     normalized_path = _normalize_relative_path(path_part, source_path)
+    if normalized_path == DOSSIER_PAGE:
+        return anchor or DOSSIER_TOP_ANCHOR
+
     suffix = PurePosixPath(normalized_path).suffix.lower()
     if is_image or suffix in IMAGE_EXTENSIONS:
         return normalized_path + query + anchor
@@ -161,6 +180,52 @@ def _rewrite_target(
         return f"#{page_anchor}"
 
     return normalized_path + query + anchor
+
+
+def _repository_reference_table(config) -> str:
+    """Build link-only repository references for the exact docs source commit."""
+    release = (config.get("extra") or {}).get("agf_release") or {}
+    commit = str(release.get("commit") or "unknown")
+    pinned = re.fullmatch(r"[0-9a-fA-F]{40}", commit) is not None
+
+    if pinned:
+        status = (
+            f"Repository links below are pinned to this documentation build's "
+            f"exact source commit `{commit}`."
+        )
+    else:
+        status = (
+            "The exact source commit is unresolved/unpinned. Repository paths "
+            "fall back to the canonical repository root; do not treat them as "
+            "exact-build evidence."
+        )
+
+    rows = []
+    for category, path, is_directory, claim_boundary in REPOSITORY_REFERENCES:
+        if pinned:
+            route = "tree" if is_directory else "blob"
+            url = f"{REPOSITORY_URL}/-/{route}/{commit}/{path.rstrip('/')}"
+        else:
+            url = REPOSITORY_URL
+        rows.append(
+            f"| {category} | [`{path}`]({url}) | {claim_boundary} | Record whether opened |"
+        )
+
+    rows.append(
+        "| Published releases | "
+        f"[GitLab Releases]({REPOSITORY_URL}/-/releases) | "
+        "Currently downloadable release artifacts | Record release and files opened |"
+    )
+
+    return "\n".join(
+        [
+            status,
+            "",
+            "| Evidence category | Authoritative route | Claim boundary | Review record |",
+            "|---|---|---|---|",
+            *rows,
+        ]
+    )
 
 
 def _rewrite_links(
@@ -307,6 +372,15 @@ full source page / original source: <code>{src_path}</code></p>
 def on_page_markdown(markdown, page, config, files):
     if page.file.src_path != DOSSIER_PAGE:
         return markdown
+
+    if REPOSITORY_REFERENCES_MARKER not in markdown:
+        raise ValueError(
+            f"{DOSSIER_PAGE} is missing {REPOSITORY_REFERENCES_MARKER}"
+        )
+    markdown = markdown.replace(
+        REPOSITORY_REFERENCES_MARKER,
+        _repository_reference_table(config),
+    )
 
     docs_dir = Path(config.docs_dir).resolve()
     pages = _all_markdown_pages(docs_dir)
