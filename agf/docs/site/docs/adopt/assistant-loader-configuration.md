@@ -1,7 +1,7 @@
 <!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Assistant loader configuration
 
-*Status: Released (v2.1 documentation). Audience: AI assistants preparing AGF
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: AI assistants preparing AGF
 rule loading, with developers and administrators supervising the setup. After
 this page you can make the active assistant see AGF, verify that it did, and
 avoid copying the framework rules into tool-specific directories.*

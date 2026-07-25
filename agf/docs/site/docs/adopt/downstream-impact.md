@@ -1,6 +1,6 @@
 # Downstream impact: what adoption changes in your project
 
-*Status: Released (v2.1 documentation). Audience: evaluators and
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: evaluators and
 administrators. Read this page **before** adopting. After it you can
 itemise every artifact, obligation, and cost adoption introduces.*
 

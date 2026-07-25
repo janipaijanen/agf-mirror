@@ -1,6 +1,6 @@
 # Framework map
 
-*Status: Released (v2.2 documentation). Audience: evaluators, adopters, and
+*Status: Released. Last verified against agents-govern v2.2; current framework version: see [Release information](../../reference/release-info.md). Audience: evaluators, adopters, and
 AI assistants that need a quick orientation before reading the detailed pages.
 After this page you can name the main AGF concepts and know where to read
 next.*

@@ -1,7 +1,7 @@
 <!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Upgrading from v1 (agents-govern) to AGF v2
 
-*Status: Released (v2.1 documentation). Audience: AI assistants carrying out
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: AI assistants carrying out
 the v1-to-v2 migration under adopter review, plus humans supervising the
 migration. After this page you have a step-by-step checklist that covers every
 instruction surface that must be updated, not just the file copy.*

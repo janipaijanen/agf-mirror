@@ -1,6 +1,6 @@
 # Roles and gates
 
-*Status: Released (v2.1 documentation). Audience: developers and
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: developers and
 governors building the mental model. After this page you can name the
 roles, say what each gate decides, and read a coordination chain.*
 

@@ -1,6 +1,6 @@
 # Day-to-day operation
 
-*Status: Released (v2.1 documentation). Audience: developers and
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: developers and
 governors running a governed project. After this page you know the
 rhythm: claims, fast track vs full gates, coordination hygiene, and the
 failure modes to watch for.*

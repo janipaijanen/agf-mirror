@@ -1,6 +1,6 @@
 # Documentation
 
-*Status: Released (v2.1 documentation).*
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../reference/release-info.md).*
 
 AGF adds human-approved checkpoints and a durable decision trail around
 AI-assisted changes; it does not run the assistant. This documentation is a

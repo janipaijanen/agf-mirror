@@ -1,6 +1,6 @@
 # Review and release
 
-*Status: Released (v2.1 documentation). Audience: governors and
+*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: governors and
 developers operating gates and releases. After this page you can run a
 Gate 2 review that earns its keep, and a release that cannot ship broken
 twice the same way.*
