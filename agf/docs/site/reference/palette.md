@@ -17,7 +17,12 @@ reference tokens by name rather than hex literal.
 - **Print-legible.** Sufficient contrast against white when printed
   in greyscale; shape and label carry meaning, colour reinforces it.
 - **Light backgrounds.** Fills work on white (docs site) and
-  light-cream (PDF).
+  light-cream (PDF). The white diagram canvas (`bgcolor=white`) is the same
+  accepted light-background assumption in `adoption-exit-flow.dot`,
+  `coordination-channel.dot`, `evidence-lifecycle.dot`, `gate-pipeline.dot`,
+  `governance-loop.dot`, `learning-loop.dot`, and
+  `operating-responsibility-map.dot`; these figures are not claimed to be
+  background-agnostic.
 - **Restrained.** The palette has six named roles. Diagrams use at most
   four in a single figure.
 
