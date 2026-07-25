@@ -87,6 +87,7 @@ unpack it, and place the `agov` executable on PATH.
 ```yaml
 validate-governance:
   image:
+    # Canonical version: agf/VERSION
     name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.2
     entrypoint: [""]
   script:
