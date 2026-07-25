@@ -5,29 +5,29 @@ distribution.
 
 ## [2.4.3] — 2026-07-25
 
-Patch release improving existing public documentation figures, adoption
-guidance, and documentation consistency. It adds no schema, role, tool, API,
-CI, or adopter-contract surface.
+Patch release fixing three adopter-facing documentation defects and closing
+an 11-item documentation-quality and information-architecture backlog. It
+adds no schema, role, tool, API, CI, or adopter-contract surface.
 
 ### Fixed
 
-- Replaced all five page-scale Mermaid diagrams with governed, openable SVG
-  artifacts and removed the unused Mermaid runtime and CDN dependency.
-- Corrected two legacy project links and aligned the internal Level 2 maturity
-  label with the canonical “Surface-defined” vocabulary.
-- Reclassified the governance-loop learning step as a shared human/AI concept
-  and extended its legend with the existing palette treatment.
-
-### Changed
-
-- Updated the Adopter FAQ to recommend `agov` from the first evaluation or
-  commissioning session while keeping framework files authoritative.
-- Added bounded guidance for using different authorized people at Gate 1 and
-  Gate 2 without creating simultaneous final decision-makers.
-- Identified `agf/VERSION` beside all six OCI image pins and documented the
-  accepted white/light figure-canvas assumption.
-- Added descriptive alternative text and numbered captions to the seven
-  existing reference figures.
+- Public Mermaid diagrams are now openable, full-size SVG figures; the
+  unused client-side Mermaid runtime is removed.
+- The Adopter FAQ now recommends installing and using `agov` from day one,
+  instead of deferring it until after the first governed change.
+- The Adopter FAQ now explains that different authorized people may hold
+  Gate 1 and Gate 2 sequentially on the same change.
+- Six hardcoded `agov:<version>` OCI-tag literals now carry an editor
+  comment naming `agf/VERSION` as the canonical source.
+- Two misdirected metadata links now point to their canonical page.
+- The governance-loop figure's `learn` node now uses the "Shared concept"
+  palette category, correcting a prior "AI action" mislabel.
+- Capability-maturity Level 2 naming ("Surface-defined") is now consistent
+  across public pages and the internal rule file.
+- `palette.md` documents its light-background assumption for seven named
+  figure canvases explicitly, without a universal renderer/theme claim.
+- The seven existing reference-figure embeds now carry
+  `<figure>`/`<figcaption>` semantics.
 
 ### Validation boundary
 

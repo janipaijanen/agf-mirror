@@ -10,22 +10,32 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [2.4.3] - 2026-07-25
 
-Patch release improving public figure inspection, first-session tooling
-guidance, split-person gate guidance, and documentation consistency.
+Patch release combining three small adopter-facing fixes (issues #64, #65,
+#66) with the v2.4.3 documentation-quality and information-architecture
+backlog (MR !483/!527). See [`agf/CHANGELOG.md`](agf/CHANGELOG.md) for
+adopter-facing details.
 
 ### Fixed
 
-- Replaced five unreadable page-scale Mermaid diagrams with openable SVG
-  figures and removed the unused Mermaid runtime.
-- Corrected legacy project links, Level 2 maturity naming, and the governance
-  loop's learning-node responsibility treatment.
-
-### Changed
-
-- Recommended `agov` from the first evaluation or commissioning session.
-- Explained safe split-person Gate 1 and Gate 2 operation.
-- Documented canonical OCI version pins and the light figure-canvas boundary.
-- Added descriptive alt text and captions to seven reference figures.
+- Replaced all public Mermaid diagrams with openable, full-size SVG figures
+  and removed the now-unused client-side Mermaid runtime.
+- Corrected the Adopter FAQ's tooling-commissioning guidance to recommend
+  installing and using `agov` from day one instead of after the first
+  governed change.
+- Explained that different authorized people may hold Gate 1 and Gate 2 on
+  the same change, sequentially.
+- Named `agf/VERSION` as the canonical source at all six hardcoded
+  `agov:<version>` OCI-tag literals, for editor discoverability.
+- Repointed two misdirected metadata links to their canonical slug.
+- Reassigned the governance-loop figure's `learn` node from the "Reference /
+  deferred content" palette category to "Shared concept," since learning
+  records are authored by AI and by humans, not exclusively either.
+- Aligned "Level 2" capability-maturity naming to "Surface-defined" across
+  the internal rule file, matching the public site's existing usage.
+- Documented `palette.md`'s bounded light-background assumption for seven
+  named figure canvases, making no universal renderer/theme claim.
+- Added `<figure>`/`<figcaption>` semantics to the seven existing reference
+  figure embeds.
 
 ## [2.4.2] - 2026-07-25
 
