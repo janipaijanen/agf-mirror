@@ -1,6 +1,6 @@
 ---
 id: public-mermaid-full-size-figures
-status: pending-gate1
+status: approved
 topic: public-mermaid-full-size-figures
 advisory_consultation:
   - role: contribution-auditor
