@@ -18,36 +18,9 @@ The diagram below is the load-bearing answer. Governance (left) defines
 authority boundaries and collects learning; the runtime (right) executes
 agents under those boundaries.
 
-```mermaid
-flowchart TB
-    accTitle: AGF and an agent runtime side by side
-    accDescr: The orchestrator (LangGraph, CrewAI, AutoGen, Claude Code, Cursor) executes agent invocations, tool calls, and memory or state. agents-govern defines roles, gates, and artifacts, which constrain the orchestrator's agent invocations and tool calls, and which are fed by tool-call and memory data into learning records.
-    classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
-    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
+[![Runtime execution alongside AGF governance boundaries](../../reference/figures/runtime-governance-boundary.svg)](../../reference/figures/runtime-governance-boundary.svg)
 
-    subgraph "Orchestrator (runtime)"
-        OR(LangGraph / CrewAI / AutoGen / Claude Code / Cursor)
-        OR --> A1(Agent invocation)
-        OR --> A2(Tool call)
-        OR --> A3(Memory / state)
-    end
-
-    subgraph "agents-govern (governance)"
-        AG[Roles, Gates, Artifacts]
-        AG --> J1[Jurisdictions]
-        AG --> J2[Forbidden actions]
-        AG --> J3[Communication topology]
-        AG --> J4[Learning records]
-    end
-
-    AG -.constrains.-> A1
-    AG -.constrains.-> A2
-    A2 -.feeds.-> J4
-    A3 -.feeds.-> J4
-
-    class OR,A1,A2,A3 aiAction
-    class AG,J1,J2,J3,J4 sharedConcept
-```
+[Open the full-size runtime and governance boundary figure (SVG)](../../reference/figures/runtime-governance-boundary.svg)
 
 *Palette: runtime/orchestrator nodes (right) use the AI action treatment
 (rounded, blue-light fill) — this diagram's own body text calls the
@@ -126,22 +99,9 @@ AGF occupies a specific niche. Understanding where it sits relative to
 adjacent categories prevents both over-scoping and under-scoping what
 adoption delivers.
 
-```mermaid
-flowchart LR
-    accTitle: AGF relative to five adjacent governance categories
-    accDescr: agents-govern governs agents running on agent runtimes such as Claude Code, Codex CLI, and Cursor. Its audit artifacts are consumed by CI/CD pipelines. It is a narrower scope within SDLC governance. It operates on a different axis from ML governance (model cards, dataset provenance, bias audits). It is implemented within AI policy and ethics (responsible AI principles, regulatory compliance).
-    classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
+[![AGF positioned relative to runtimes, CI/CD, SDLC, ML governance, and AI policy](../../reference/figures/governance-scope-position.svg)](../../reference/figures/governance-scope-position.svg)
 
-    AGF["agents-govern\nRoles · Gates · Coordination · Learning"]
-
-    AGF -."governs agents running on".-> ORC["Agent runtimes\nClaude Code · Codex CLI · Cursor\nLangGraph · CrewAI · AutoGen"]
-    AGF -."audit artifacts consumed by".-> CI["CI/CD pipelines\nBuild · Test · Deploy"]
-    AGF -."narrower scope within".-> SDLC["SDLC governance\nChange management · Release policy"]
-    AGF -."different axis from".-> ML["ML governance\nModel cards · Dataset provenance\nBias audits"]
-    AGF -."implemented within".-> AIP["AI policy & ethics\nResponsible AI principles\nRegulatory compliance"]
-
-    class AGF,ORC,CI,SDLC,ML,AIP sharedConcept
-```
+[Open the full-size AGF governance-position figure (SVG)](../../reference/figures/governance-scope-position.svg)
 
 *Palette: every node here is a governance domain or tooling category being
 compared, not an actor performing an action — the Shared concept treatment

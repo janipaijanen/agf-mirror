@@ -47,6 +47,24 @@ class RepositoryReferencesTest(unittest.TestCase):
 
         self.assertEqual("#ai-evaluation-dossier", rewritten)
 
+    def test_linked_image_rewrites_image_and_click_target(self) -> None:
+        markdown = (
+            "[![Framework map](../../reference/figures/framework-map.svg)]"
+            "(../../reference/figures/framework-map.svg)"
+        )
+
+        rewritten = HOOK._rewrite_links(
+            markdown,
+            PurePosixPath("docs/start/framework-map.md"),
+            {"docs/start/framework-map.md": "dossier-source-framework-map"},
+        )
+
+        expected = (
+            "[![Framework map](reference/figures/framework-map.svg)]"
+            "(reference/figures/framework-map.svg)"
+        )
+        self.assertEqual(expected, rewritten)
+
 
 if __name__ == "__main__":
     unittest.main()
