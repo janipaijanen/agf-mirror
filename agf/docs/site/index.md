@@ -184,8 +184,10 @@ estimates, and the evidence base behind the savings claims.
 
 **Accountability structure for AI agents.** Each agent operates under a
 written definition: what it owns, what it may change, what it must escalate.
-An implementing agent cannot approve its own work; a reviewing agent cannot
-implement. The separation is structural, not aspirational.
+Those definitions do not authorize an implementing agent to approve its own
+work, or a reviewing agent to implement the change it approves. The audit trail
+makes violations reviewable; whether a particular check is structurally
+blocked or relies on reviewer discipline is stated by the applicable rule.
 
 **Decisions you can reconstruct.** Every plan approval, review finding, and
 merge decision is a file in the coordination channel — the append-only decision
