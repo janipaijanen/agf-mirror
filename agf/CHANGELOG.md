@@ -3,6 +3,45 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.3] — 2026-07-25
+
+Patch release improving existing public documentation figures, adoption
+guidance, and documentation consistency. It adds no schema, role, tool, API,
+CI, or adopter-contract surface.
+
+### Fixed
+
+- Replaced all five page-scale Mermaid diagrams with governed, openable SVG
+  artifacts and removed the unused Mermaid runtime and CDN dependency.
+- Corrected two legacy project links and aligned the internal Level 2 maturity
+  label with the canonical “Surface-defined” vocabulary.
+- Reclassified the governance-loop learning step as a shared human/AI concept
+  and extended its legend with the existing palette treatment.
+
+### Changed
+
+- Updated the Adopter FAQ to recommend `agov` from the first evaluation or
+  commissioning session while keeping framework files authoritative.
+- Added bounded guidance for using different authorized people at Gate 1 and
+  Gate 2 without creating simultaneous final decision-makers.
+- Identified `agf/VERSION` beside all six OCI image pins and documented the
+  accepted white/light figure-canvas assumption.
+- Added descriptive alternative text and numbered captions to the seven
+  existing reference figures.
+
+### Validation boundary
+
+- Exact-head CI, strict site generation, palette/contrast validation,
+  desktop and 390px rendered inspection, Chromium accessibility-tree
+  inspection, and bounded fact-checking passed. The fact-check disposition was
+  ADOPT for all four reviewed claim groups with zero ADAPT or REJECT findings.
+- The project had no access to macOS/Safari/VoiceOver or
+  Windows/Firefox/NVDA. The human governor explicitly accepted this residual
+  assistive-technology coverage gap for Gate 2; those combinations are not
+  represented as tested or passing.
+
+Adopter docs: updated
+
 ## [2.4.2] — 2026-07-25
 
 Patch release improving the existing public documentation's first-contact

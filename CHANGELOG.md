@@ -8,6 +8,25 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-07-25
+
+Patch release improving public figure inspection, first-session tooling
+guidance, split-person gate guidance, and documentation consistency.
+
+### Fixed
+
+- Replaced five unreadable page-scale Mermaid diagrams with openable SVG
+  figures and removed the unused Mermaid runtime.
+- Corrected legacy project links, Level 2 maturity naming, and the governance
+  loop's learning-node responsibility treatment.
+
+### Changed
+
+- Recommended `agov` from the first evaluation or commissioning session.
+- Explained safe split-person Gate 1 and Gate 2 operation.
+- Documented canonical OCI version pins and the light figure-canvas boundary.
+- Added descriptive alt text and captions to seven reference figures.
+
 ## [2.4.2] - 2026-07-25
 
 Patch release for the public-experience and evidence-presentation work in MR
