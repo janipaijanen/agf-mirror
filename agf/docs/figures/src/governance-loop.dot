@@ -49,8 +49,11 @@ digraph governance_loop {
         sk_reference [label="reference /\ndeferred content",
                       style="filled,dashed", fillcolor="#CCCCCC",
                       color="#888888", fontcolor="#1A1A1A"]
+        sk_shared    [label="shared concept\n(human + AI, e.g. learn)",
+                      shape=box, style=filled, fillcolor=white,
+                      color="#0077BB", fontcolor="#0077BB"]
 
-        sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_reference
+        sk_oval -> sk_diamond -> sk_ai -> sk_automated -> sk_reference -> sk_shared
             [style=invis]
     }
 
@@ -63,14 +66,14 @@ digraph governance_loop {
                color="#EE7700", fontcolor="#1A1A1A"]
     merge     [label="Merge\n(to main)", style="filled,bold", peripheries=2,
                fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
-    learn     [label="Learn\nrecord evidence", style="filled,dashed",
-               fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+    learn     [label="Learn\nrecord evidence", style=filled,
+               fillcolor=white, color="#0077BB", fontcolor="#0077BB"]
     incident  [label="Incident /\nObservation", shape=ellipse, fillcolor=white,
                color="#888888", fontcolor="#1A1A1A"]
 
     // Stack the shape key above the loop (single narrow column), same
     // technique as gate-pipeline.dot.
-    sk_reference -> plan [style=invis]
+    sk_shared -> plan [style=invis]
 
     plan     -> implement [label="approved", color="#009944",
                            fontcolor="#1A1A1A"]
