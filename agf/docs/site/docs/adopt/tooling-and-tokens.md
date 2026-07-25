@@ -1,7 +1,7 @@
 <!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Tooling and token savings
 
-*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: AI assistants adding
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: AI assistants adding
 deterministic tooling to the inner agent loop, with developers and
 administrators supervising setup and reviewing the evidence.*
 

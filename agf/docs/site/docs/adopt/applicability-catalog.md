@@ -1,6 +1,6 @@
 # Adopter applicability catalog
 
-*Status: Released. Last verified against agents-govern v2.3 (incomplete pilot); current framework version: see [Release information](../../reference/release-info.md). Audience: adopters
+*Status: Released (incomplete pilot). Current framework version: see [Release information](../../reference/release-info.md). Audience: adopters
 deciding what to activate, deactivate, or remove.*
 
 !!! warning "Incomplete classification pilot"

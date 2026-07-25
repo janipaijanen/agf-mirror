@@ -3,7 +3,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 # AGF and agent runtimes
 
-*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: developers evaluating
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: developers evaluating
 how AGF fits alongside their existing tooling. After this page you can
 explain the relationship between AGF and an orchestrator, and know which
 per-tool notes apply to your stack.*

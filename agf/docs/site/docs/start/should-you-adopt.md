@@ -1,6 +1,6 @@
 # Should you adopt?
 
-*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: evaluators. After
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: evaluators. After
 this page you can make an informed adopt / wait / skip decision.*
 
 ## What you are deciding

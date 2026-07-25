@@ -1,6 +1,6 @@
 # Adopter FAQ
 
-*Status: Released. Last verified against agents-govern v2.1; current framework version: see [Release information](../../reference/release-info.md). Audience: people deciding whether
+*Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: people deciding whether
 to commission AGF in a real repository. This page answers the questions that
 usually appear after the idea makes sense, but before the first governed
 change feels safe.*
