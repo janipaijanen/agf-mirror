@@ -1,6 +1,6 @@
 ---
 id: agov-day-one-adopter-faq
-status: pending-gate1
+status: approved
 topic: agov-day-one-adopter-faq
 advisory_consultation:
   - role: contribution-auditor
