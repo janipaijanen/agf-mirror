@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: AGF relative to adjacent governance categories
+// svg-desc: AGF governs agents on agent runtimes, produces audit artifacts consumed by CI and CD, sits within SDLC governance, differs from ML governance, and operates within AI policy and ethics.
+digraph governance_scope_position {
+    graph [rankdir=TB, splines=spline, pad=0.3, nodesep=0.32, ranksep=0.5,
+           bgcolor=white, fontname="Helvetica", fontsize=12]
+    node [fontname="Helvetica", fontsize=11, shape=box, style=filled,
+          fillcolor=white, color="#0077BB", fontcolor="#0077BB", penwidth=1.4]
+    edge [fontname="Helvetica", fontsize=10, color="#0077BB", fontcolor="#1A1A1A",
+          style=dashed, penwidth=1.4]
+
+    agf [label="agents-govern\nRoles · Gates · Coordination · Learning", penwidth=2.0]
+    runtimes [label="Agent runtimes\nClaude Code · Codex CLI · Cursor\nLangGraph · CrewAI · AutoGen"]
+    cicd [label="CI/CD pipelines\nBuild · Test · Deploy"]
+    sdlc [label="SDLC governance\nChange management · Release policy"]
+    ml [label="ML governance\nModel cards · Dataset provenance\nBias audits"]
+    policy [label="AI policy & ethics\nResponsible AI principles\nRegulatory compliance"]
+
+    agf -> runtimes [label="governs agents\nrunning on"]
+    agf -> cicd [label="audit artifacts\nconsumed by"]
+    agf -> sdlc [label="narrower scope\nwithin"]
+    agf -> ml [label="different axis\nfrom"]
+    agf -> policy [label="implemented\nwithin"]
+
+    { rank=same; runtimes; cicd; sdlc }
+    { rank=same; ml; policy }
+
+    subgraph cluster_legend {
+        label="Legend"; color="#888888"; margin=10
+        category [label="governance domain / tooling category"]
+        relation [label="dashed arrow = named scope relationship", shape=plaintext,
+                  fontcolor="#1A1A1A"]
+        category -> relation [style=invis]
+    }
+}

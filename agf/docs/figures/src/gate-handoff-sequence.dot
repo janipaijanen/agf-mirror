@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Gate 1 to Gate 2 coordination handoff sequence
+// svg-desc: Planner-architect hands an approved Gate 1 plan to coder-tester, who acknowledges, implements, hands off for Gate 2, receives the governor decision, and completes back to planner-architect.
+digraph gate_handoff_sequence {
+    graph [rankdir=TB, splines=ortho, pad=0.3, nodesep=0.35, ranksep=0.48,
+           bgcolor=white, fontname="Helvetica", fontsize=12]
+    node [fontname="Helvetica", fontsize=11, shape=box, style="filled,rounded",
+          fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A", penwidth=1.4]
+    edge [fontname="Helvetica", fontsize=10, color="#0077BB", fontcolor="#1A1A1A", penwidth=1.4]
+
+    start [label="planner-architect\nhandoff\n(Gate 1 plan approved)"]
+    ack [label="coder-tester → planner-architect\nack", style="filled,dashed",
+         fillcolor="#CCCCCC", color="#888888"]
+    implement [label="coder-tester\nimplements"]
+    handoff [label="coder-tester → governor-reviewer\nhandoff (Gate 2)"]
+    review [label="governor-reviewer\nreviews", shape=diamond,
+            fillcolor="#EE7700", color="#EE7700", style=filled]
+    decision [label="governor-reviewer → coder-tester\ndecision-record", shape=diamond,
+              fillcolor="#EE7700", color="#EE7700", style=filled]
+    completion [label="coder-tester → planner-architect\ncompletion", style="filled,dashed",
+                fillcolor="#CCCCCC", color="#888888"]
+
+    start -> ack -> implement -> handoff -> review -> decision -> completion
+
+    subgraph cluster_legend {
+        label="Legend (message order runs top to bottom)"; color="#888888"; margin=10
+        ai [label="AI action / handoff", style="filled,rounded", fillcolor="#99CCEE", color="#0077BB"]
+        human [label="human Gate review / decision", shape=diamond, style=filled,
+               fillcolor="#EE7700", color="#EE7700"]
+        record [label="ack / completion record", style="filled,dashed",
+                fillcolor="#CCCCCC", color="#888888"]
+        ai -> human -> record [style=invis]
+    }
+}

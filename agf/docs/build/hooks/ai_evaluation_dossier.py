@@ -68,6 +68,7 @@ EXCLUDE = {
     "content-plan.md",
 }
 
+LINKED_IMAGE_RE = re.compile(r"(\[!\[[^\]]*\]\([^)]+\)\]\()([^)\s]+)(\))")
 MARKDOWN_LINK_RE = re.compile(r"(!?\[[^\]]*\]\()([^)\s]+)(\))")
 HTML_HREF_RE = re.compile(r'(<a\s+[^>]*href=")([^"]+)(")')
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
@@ -237,6 +238,7 @@ def _rewrite_links(
         prefix, target, suffix = match.groups()
         return f"{prefix}{_rewrite_target(target, source_path, page_anchor_by_path, is_image=prefix.startswith('!'))}{suffix}"
 
+    markdown = LINKED_IMAGE_RE.sub(replace, markdown)
     return MARKDOWN_LINK_RE.sub(replace, markdown)
 
 
@@ -316,7 +318,7 @@ def _section_anchor_map(
             continue
         source = PurePosixPath(src_path)
         text = path.read_text(encoding="utf-8")
-        for pattern in (MARKDOWN_LINK_RE, HTML_HREF_RE):
+        for pattern in (LINKED_IMAGE_RE, MARKDOWN_LINK_RE, HTML_HREF_RE):
             for match in pattern.finditer(text):
                 target = match.group(2)
                 if _is_external_target(target):

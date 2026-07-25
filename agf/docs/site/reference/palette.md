@@ -56,7 +56,7 @@ with a dark label (`#1A1A1A`, ~10.1:1 on `blue-light` and ~10.8:1 on
 ## Semantic responsibility palette (who acts, not what happened)
 
 v2.4.0 Workstream D's closed figure inventory found three unrelated
-palette families in use across the site, academic, and Mermaid figures,
+palette families in use across the site and academic figures,
 plus figures that used colour as the *only* signal for who is
 responsible for a node (violating colour-independence). This section is
 the single agreed contract required before any figure conversion: it
@@ -113,12 +113,9 @@ regardless of the hosting page's light/dark theme — this matches the
 existing behaviour of every figure in the inventory today and is an
 explicit decision, not a silent gap: building a dark-theme-adaptive SVG
 variant is out of scope for this contract and would need its own
-plan if pursued later. Mermaid diagrams (rendered client-side by the
-docs site's Mermaid integration) MUST use explicit `classDef`/style
-definitions setting these same fill/border/text values, rather than
-relying on Mermaid's theme-dependent default palette, specifically so
-they do not silently invert or reflow under the site's dark theme
-toggle — see "Mermaid usage" below.
+plan if pursued later. Public documentation figures use the governed
+DOT-to-SVG workflow, with explicit fill, border, text, and shape values in
+their committed DOT sources rather than a theme-dependent runtime palette.
 
 ### Print / greyscale behaviour
 
@@ -144,22 +141,12 @@ one. All five do: `#1A1A1A`-on-`amber` (~6.03:1), `#1A1A1A`-on-`green-mid`
 ~4.82:1). White text is reserved for `red-mid` fills (~5.19:1), which
 also clears 4.5:1.
 
-### Mermaid usage
+### DOT-to-SVG usage
 
-Mermaid diagrams must define one `classDef` per responsibility, reusing
-these exact hex values, e.g.:
-
-```
-classDef humanDecision fill:#EE7700,stroke:#EE7700,color:#1A1A1A
-classDef aiAction fill:#99CCEE,stroke:#0077BB,color:#1A1A1A
-classDef automatedCheck fill:#009944,stroke:#009944,color:#1A1A1A
-classDef sharedConcept fill:#ffffff,stroke:#0077BB,color:#0077BB
-classDef referenceContent fill:#CCCCCC,stroke:#888888,color:#1A1A1A
-```
-
-Apply the matching `class` to every node; do not leave a node on
-Mermaid's default theme fill, since that reintroduces the "three
-unrelated palette families" problem this contract exists to close.
+DOT figures must set the exact palette hex values in source, pair responsibility
+colours with the matching shape or border treatment, and render with the
+governed figure workflow. Do not rely on renderer defaults: a direct SVG must
+retain the same meaning without site CSS, JavaScript, or a theme runtime.
 
 ## Greyscale rendering
 

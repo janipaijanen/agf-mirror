@@ -2076,6 +2076,50 @@ learnings:
       evidence_refs:
         - "MR !398 (tar fix, 200/200 at --test-threads=1, insufficient); MR !405 Gate 2 review hqdj (ZIP race survived on push pipeline job 15482226971 despite identical sync_all/drop treatment); local reproduction under cargo test --workspace at iteration 9/10 after an atomic-rename-only fix that was still insufficient; MR !408 Gate 2 review qapj (required removing the unproved kernel-teardown causal claim and an A/B test of the rename vs. retry pieces); A/B result: retry-only 30/30 clean, rename-only 1/10 failed; final combined-code verification 40/40 clean with the rename removed"
 
+  - id: "20260725T081517Z-k8w2"
+    date: "2026-07-25"
+    category: improvement
+    scope: framework
+    title: dense-public-figures-need-a-discoverable-standalone-vector-path
+    description: >
+      Direct foundry user feedback identified the framework map and the two
+      diagrams on the AGF-position page as unreadable inside the available
+      article viewport. A complete inventory then found five public Mermaid
+      diagrams with the same structural limitation: responsive shrinking or
+      local horizontal scrolling kept the diagram inside the page, but did not
+      provide a discoverable way to inspect a dense relationship figure at
+      full size. Widening the global article column would also lengthen prose
+      lines without solving mobile or native-vector zoom.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - governor-reviewer
+    framework_section: "public documentation figures; responsive presentation; progressive disclosure"
+    business_impact:
+      type: usability
+      description: >
+        Evaluators could not comfortably read orientation and relationship
+        diagrams at page scale, increasing the chance that they skipped the
+        visual explanation or misread a governance boundary. The evidence is
+        direct feedback on two pages plus a five-diagram foundry inventory; it
+        is not multi-adopter validation or a universal accessibility result.
+    framework_impact: medium
+    status: implemented
+    recommendation: >
+      When a public diagram carries dense orientation or relationship
+      information, retain useful page-scale context but also make both the
+      image and an explicit, clearly named text link open the standalone SVG.
+      Keep essential relationships in surrounding prose. Treat responsive
+      shrinking, horizontal scrolling, and a wider article column as layout
+      techniques, not substitutes for a discoverable full-size vector path.
+    severity: moderate
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "Governor feedback on the published framework map and AGF-position page, 2026-07-25"
+        - "Issue #64 closed inventory of five public Mermaid diagrams"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

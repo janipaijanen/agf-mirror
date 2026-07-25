@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: AGF concept map
+// svg-desc: AGF defines roles, gates, artifacts, deterministic tooling, adoption steps, boundaries, and an evidence loop. Each category expands to its core concepts.
+digraph framework_map {
+    graph [rankdir=TB, splines=spline, pad=0.35, nodesep=0.22, ranksep=0.46,
+           bgcolor=white, fontname="Helvetica", fontsize=12, compound=true]
+    node [fontname="Helvetica", fontsize=11, shape=box, style=filled,
+          fillcolor=white, color="#0077BB", fontcolor="#0077BB", penwidth=1.4]
+    edge [fontname="Helvetica", fontsize=10, color="#0077BB", fontcolor="#1A1A1A", penwidth=1.4]
+
+    agf [label="AGF\nrepo-local governance", penwidth=2.2]
+
+    roles [label="Roles"]
+    pa [label="planner-architect", style="filled,rounded", fillcolor="#99CCEE", fontcolor="#1A1A1A"]
+    ct [label="coder-tester", style="filled,rounded", fillcolor="#99CCEE", fontcolor="#1A1A1A"]
+    gr [label="governor-reviewer", shape=diamond, fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+    advisory [label="advisory roles"]
+
+    gates [label="Gates"]
+    g1 [label="Gate 1\nplan approval", shape=diamond, fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+    g2 [label="Gate 2\nreview before merge", shape=diamond, fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+    fast [label="fast-track waiver"]
+
+    artifacts [label="Artifacts"]
+    plans [label="plans"]
+    coordination [label="coordination messages"]
+    decisions [label="decision records"]
+    learnings [label="learning records"]
+    rules [label="rules"]
+    schemas [label="schemas"]
+
+    tooling [label="agov tooling"]
+    validate [label="validate", peripheries=2, fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+    resume [label="session resume", peripheries=2, fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+    graphcmd [label="coord graph / index", peripheries=2, fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+
+    adoption [label="Adoption"]
+    install [label="install agf/"]
+    first [label="first governed change"]
+    ci [label="CI integration", peripheries=2, fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+    exit [label="exit / decommission"]
+
+    boundaries [label="Boundaries", style="filled,dashed", fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+    noruntime [label="not a runtime", style="filled,dashed", fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+    nocompliance [label="not compliance certification", style="filled,dashed", fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+    nomodel [label="not model governance", style="filled,dashed", fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+    noself [label="not AI self-approval", style="filled,dashed", fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+
+    evidence [label="Evidence loop"]
+    incident [label="incident or friction"]
+    learning [label="learning"]
+    change [label="rule / docs / tooling change"]
+    release [label="release"]
+
+    s1 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+    s2 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+    s3 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+    s4 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+    s5 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+    s6 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+    s7 [shape=point, width=0.08, label="", style=filled, fillcolor="#0077BB"]
+
+    agf -> s1 [arrowhead=none]
+    s1 -> s2 -> s3 -> s4 -> s5 -> s6 -> s7 [arrowhead=none, weight=100]
+    s1 -> roles [label="defines authority"]
+    s2 -> gates [label="requires review"]
+    s3 -> artifacts [label="records evidence"]
+    s4 -> tooling [label="uses deterministic helpers"]
+    s5 -> adoption [label="is adopted through"]
+    s6 -> boundaries [label="stays inside"]
+    s7 -> evidence [label="evolves by"]
+
+    roles -> pa; roles -> ct; roles -> gr; roles -> advisory
+    gates -> g1 [label="before implementation"]; gates -> g2 [label="before merge"]; gates -> fast [label="criteria only"]
+    artifacts -> plans; artifacts -> coordination; artifacts -> decisions; artifacts -> learnings; artifacts -> rules; artifacts -> schemas
+    tooling -> validate; tooling -> resume; tooling -> graphcmd
+    adoption -> install; adoption -> first; adoption -> ci; adoption -> exit
+    boundaries -> noruntime; boundaries -> nocompliance; boundaries -> nomodel; boundaries -> noself
+    evidence -> incident -> learning -> change -> release
+    release -> evidence [constraint=false]
+
+    { rank=same; s1; roles; pa; ct; gr; advisory }
+    { rank=same; s2; gates; g1; g2; fast }
+    { rank=same; s3; artifacts; plans; coordination; decisions; learnings; rules; schemas }
+    { rank=same; s4; tooling; validate; resume; graphcmd }
+    { rank=same; s5; adoption; install; first; ci; exit }
+    { rank=same; s6; boundaries; noruntime; nocompliance; nomodel; noself }
+    { rank=same; s7; evidence; incident; learning; change; release }
+
+    subgraph cluster_legend {
+        label="Legend (responsibility / shape)"; color="#888888"; margin=10
+        lhuman [label="human decision", shape=diamond, fillcolor="#EE7700", color="#EE7700", fontcolor="#1A1A1A"]
+        lai [label="AI action", style="filled,rounded", fillcolor="#99CCEE", color="#0077BB", fontcolor="#1A1A1A"]
+        lauto [label="automated check /\nvalidated outcome", peripheries=2, fillcolor="#009944", color="#009944", fontcolor="#1A1A1A"]
+        lshared [label="shared concept", fillcolor=white, color="#0077BB", fontcolor="#0077BB"]
+        lreference [label="reference / boundary", style="filled,dashed", fillcolor="#CCCCCC", color="#888888", fontcolor="#1A1A1A"]
+        lhuman -> lai -> lauto -> lshared -> lreference [style=invis]
+    }
+}
