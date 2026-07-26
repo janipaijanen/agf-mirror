@@ -2192,7 +2192,7 @@ learnings:
     scope: framework
     title: documented-tool-sync-relationships-drift-silently-without-mechanical-enforcement
     description: >
-      During a long standing-poll session, two independent instances of the
+      During a long standing-poll session, three independent instances of the
       same failure pattern surfaced: a designed one-way sync relationship
       between a canonical source and a locally-materialized copy exists only
       as documentation or convention, nothing mechanically checks the copy
@@ -2219,7 +2219,16 @@ learnings:
       now-abandoned `agents-govern/.venv/`; the other six commands were not
       individually executed and are inferred, not confirmed, to fail on the
       same first step, since they follow the identical
-      `uv run agov-<name>` pattern against the same abandoned `.venv/`. Both
+      `uv run agov-<name>` pattern against the same abandoned `.venv/`.
+      Instance 3: this Codex shell's repo-local `tooling/agov` wrapper selected
+      an existing release binary built from commit `7dd69050fb1f`, reporting
+      `agov 2.2.6`, while the checkout's current release line was 2.4.4. The
+      wrapper preferred an existing binary by path and build profile without
+      checking its embedded version, source commit, or dirty state against the
+      checkout, so the stale CLI silently supplied governance summaries until
+      the human governor explicitly requested a provenance check. There is no
+      evidence that those stale bytes were distributed, but the same unchecked
+      selection boundary also existed on the release-packaging path. All three
       instances share the identical root cause: a real, intentional sync
       relationship exists on paper, but nothing enforces it, so it holds
       only until the source changes and nobody remembers to propagate the
@@ -2239,7 +2248,10 @@ learnings:
         AGF-mirrored slash command in this checkout (/health, /upgrade,
         /release, /infosec-screen, /learning, /capability-review,
         /contribution-audit) currently hands the operator a dead command on
-        first step. Both were found only through manual, on-demand
+        first step. Instance 3 caused a live governed shell to consume
+        summaries from an outdated CLI whose command and validation surface
+        predated the checkout; distribution was a credible exposure, not an
+        observed outcome. All three were found only through manual, on-demand
         investigation prompted by the human governor, not by any structural
         check.
     framework_impact: medium
@@ -2257,19 +2269,24 @@ learnings:
       target file is renamed or moved), but the procedural steps themselves
       have no second copy to fall out of sync. Where duplication is
       unavoidable (e.g. a compiled
-      binary that cannot "point at" its own source), add a cheap freshness
-      check: compare the binary's build timestamp or embedded commit hash
-      (already exposed by `agov version --format json`) against current HEAD
-      and warn instead of silently proceeding. Consider adding both as
-      `agov health`/`agov validate` checks so the gap is caught mechanically
-      per-milestone rather than only when a human happens to ask.
+      binary that cannot "point at" its own source), embed source provenance
+      and add a cheap freshness gate: compare the binary's version, source
+      commit, and relevant dirty state against the current checkout and reject
+      stale or unverifiable bytes by default. Any local-development override
+      must be explicit, visible, and prohibited in CI. Release packaging must
+      verify the provenance of the exact staged bytes for every supported
+      target rather than trusting the build command that preceded staging.
+      Consider adding these checks to `agov health`/`agov validate` too, so the
+      gap is caught mechanically per milestone rather than only when a human
+      happens to ask.
     severity: significant
     confidence:
       level: single-adopter
-      evidence_count: 2
+      evidence_count: 3
       evidence_refs:
         - "20260726T115544Z-build-engineer-kb1p (agov-mcp build-freshness finding; docs/coordination/20260726T115544Z-build-engineer-kb1p.md, MR !586, immutable evidence SHA 6389407838ec39d83fb728150d7076a68ed2d64c8, not yet on main)"
         - "20260726T121131Z-build-engineer-njsk (reconciled assessment, both instances)"
+        - "MR !638 at 453964a7116573ebf6921a74c845c5b9552fadb0 (repo-local agov 2.2.6 / 7dd69050fb1f selected during a 2.4.4 session; freshness and release-integrity correction)"
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
