@@ -24,9 +24,56 @@ use std::process::Command;
 const PROTOCOL_VERSION: &str = "2025-06-18";
 
 fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if matches!(args.as_slice(), [arg] if arg == "--version" || arg == "-V") {
+        println!(
+            "agov-mcp {} ({} {})",
+            env!("CARGO_PKG_VERSION"),
+            build_commit(),
+            if build_dirty() { "dirty" } else { "clean" }
+        );
+        return;
+    }
+    if matches!(args.as_slice(), [command, flag, format] if command == "version" && flag == "--format" && format == "json")
+    {
+        println!(
+            "{}",
+            serde_json::to_string(&version_info()).expect("serialize version info")
+        );
+        return;
+    }
+    if !args.is_empty() {
+        eprintln!("agov-mcp: unsupported arguments");
+        std::process::exit(2);
+    }
     if let Err(err) = run_stdio() {
         eprintln!("agov-mcp: {err}");
         std::process::exit(1);
+    }
+}
+
+#[derive(Serialize)]
+struct VersionInfo {
+    version: &'static str,
+    commit: &'static str,
+    dirty: bool,
+    source_dirty: bool,
+}
+
+fn build_commit() -> &'static str {
+    option_env!("AGOV_GIT_SHA").unwrap_or("unknown")
+}
+
+fn build_dirty() -> bool {
+    option_env!("AGOV_GIT_DIRTY").unwrap_or("false") == "true"
+}
+
+fn version_info() -> VersionInfo {
+    VersionInfo {
+        version: env!("CARGO_PKG_VERSION"),
+        commit: build_commit(),
+        dirty: build_dirty(),
+        source_dirty: option_env!("AGOV_SOURCE_DIRTY").unwrap_or("false") == "true",
     }
 }
 

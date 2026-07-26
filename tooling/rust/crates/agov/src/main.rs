@@ -596,6 +596,7 @@ struct VersionInfo {
     version: &'static str,
     commit: &'static str,
     dirty: bool,
+    source_dirty: bool,
 }
 
 fn build_version_info() -> VersionInfo {
@@ -603,6 +604,7 @@ fn build_version_info() -> VersionInfo {
         version: env!("CARGO_PKG_VERSION"),
         commit: option_env!("AGOV_GIT_SHA").unwrap_or("unknown"),
         dirty: option_env!("AGOV_GIT_DIRTY").unwrap_or("false") == "true",
+        source_dirty: option_env!("AGOV_SOURCE_DIRTY").unwrap_or("false") == "true",
     }
 }
 

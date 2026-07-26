@@ -6,6 +6,21 @@ use std::os::unix::fs::PermissionsExt;
 use std::process::{Command, Stdio};
 
 #[test]
+fn version_json_reports_structured_provenance() {
+    let output = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .args(["version", "--format", "json"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
+    assert!(value["dirty"].is_boolean());
+    assert!(value["source_dirty"].is_boolean());
+    let commit = value["commit"].as_str().unwrap();
+    assert!(commit == "unknown" || commit.len() == 40);
+}
+
+#[test]
 fn stdio_server_lists_tools_and_calls_agov() {
     let fixture = tempfile::tempdir().unwrap();
     let mock = fixture.path().join("agov-mock");

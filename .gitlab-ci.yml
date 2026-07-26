@@ -54,6 +54,7 @@ workflow:
     - cd tooling/rust
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
+    - export AGOV_BUILD_SOURCE_DIRTY=false
 
 .mkdocs-base:
   image: python:3.14-slim
@@ -602,6 +603,8 @@ rust:tooling:test:
   extends: .rust-base
   stage: test
   script:
+    - sh tests/agov-wrapper-freshness.sh
+    - sh tests/tooling-provenance-verifier.sh
     - cargo test --workspace
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -688,7 +691,7 @@ rust:tooling:clippy:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq docker.io zip
+    - apt-get update -qq && apt-get install -y -qq docker.io jq zip
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
@@ -696,6 +699,7 @@ rust:tooling:clippy:
     - VERSION="$(cat ../../agf/VERSION)"
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
+    - export AGOV_BUILD_SOURCE_DIRTY=false
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
         TAG_VERSION="${CI_COMMIT_TAG#v}"
@@ -722,12 +726,18 @@ rust:tooling:clippy:
           aarch64-unknown-linux-musl) slug="linux-aarch64" ;;
           *) echo "no public filename slug mapped for target $target" >&2; exit 1 ;;
         esac
+        rm -f "target/${target}/release/agov" "target/${target}/release/agov-mcp"
         cross build --release --target "$target" -p agov -p agov-mcp
+        agov_json=$(cross run --quiet --release --target "$target" -p agov -- version --format json)
+        mcp_json=$(cross run --quiet --release --target "$target" -p agov-mcp -- version --format json)
+        sh scripts/verify-tooling-provenance.sh "$VERSION" "$CI_COMMIT_SHA" "$agov_json" "$mcp_json"
         archive="agov-${VERSION}-${slug}.tar.gz"
         staging="$(mktemp -d)"
         mkdir -p "$staging/agov-${VERSION}-${slug}"
         cp "target/${target}/release/agov" "$staging/agov-${VERSION}-${slug}/agov"
         cp "target/${target}/release/agov-mcp" "$staging/agov-${VERSION}-${slug}/agov-mcp"
+        cmp "target/${target}/release/agov" "$staging/agov-${VERSION}-${slug}/agov"
+        cmp "target/${target}/release/agov-mcp" "$staging/agov-${VERSION}-${slug}/agov-mcp"
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov"
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov-mcp"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing the agov and agov-mcp executables on PATH.\n" \
@@ -752,13 +762,19 @@ rust:tooling:clippy:
       if [ -n "$CI_COMMIT_TAG" ] || [ "${AGOV_PACKAGE_WINDOWS_PREVIEW:-}" = "1" ]; then
         target="x86_64-pc-windows-gnu"
         slug="windows-x86_64"
+        rm -f "target/${target}/release/agov.exe" "target/${target}/release/agov-mcp.exe"
         cross build --release --target "$target" -p agov -p agov-mcp
+        agov_json=$(cross run --quiet --release --target "$target" -p agov -- version --format json)
+        mcp_json=$(cross run --quiet --release --target "$target" -p agov-mcp -- version --format json)
+        sh scripts/verify-tooling-provenance.sh "$VERSION" "$CI_COMMIT_SHA" "$agov_json" "$mcp_json"
         archive="agov-${VERSION}-${slug}.zip"
         staging="$(mktemp -d)"
         dist_dir="$(cd ../../dist && pwd)"
         mkdir -p "$staging/agov-${VERSION}-${slug}"
         cp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
         cp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
+        cmp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
+        cmp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing agov.exe and agov-mcp.exe on PATH.\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")

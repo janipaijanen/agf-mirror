@@ -229,7 +229,8 @@ cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
 cargo build --manifest-path tooling/rust/Cargo.toml -p agov
 
 # Prepend tooling/ to PATH for this shell session.
-# tooling/agov is a wrapper that auto-selects the local release build first.
+# tooling/agov prefers the local release build only after its embedded commit
+# and build-relevant source state pass the freshness gate.
 export PATH="$PWD/tooling:$PATH"
 
 # Verify the local build is in use
@@ -268,9 +269,14 @@ AI-specific filenames as the durable continuation points on future machines;
 do not rename them back to the shared default.
 
 The `tooling/agov` wrapper prefers (in order):
-1. `tooling/rust/target/release/agov` — if a release build exists
-2. `tooling/rust/target/debug/agov` — if a debug build exists
-3. `cargo run -p agov` — if Cargo is available but no binary is built yet
+1. `tooling/rust/target/release/agov` — when provenance-compatible
+2. `tooling/rust/target/debug/agov` — when provenance-compatible
+
+The wrapper fails closed instead of silently running or rebuilding when neither
+binary matches the checkout and, for `session resume`, the requested base
+branch. Rebuild from the intended checkout. `AGOV_ALLOW_STALE_LOCAL_BINARY=1`
+is an explicit local-debugging bypass, is forbidden in CI, and must never be
+used for packaging or release evidence.
 
 If a command is not available in the local Rust build, stop and report the gap;
 do not fall back to Elixir/Mix.

@@ -56,4 +56,14 @@ fn version_json_reports_structured_provenance() {
         value["dirty"].is_boolean(),
         "dirty should be boolean, got: {value}"
     );
+    assert!(
+        value["source_dirty"].is_boolean(),
+        "source_dirty should be boolean, got: {value}"
+    );
+    let commit = value["commit"].as_str().unwrap();
+    assert!(
+        commit == "unknown"
+            || (commit.len() == 40 && commit.chars().all(|c| c.is_ascii_hexdigit())),
+        "commit should be a full git object id or unknown, got: {value}"
+    );
 }
