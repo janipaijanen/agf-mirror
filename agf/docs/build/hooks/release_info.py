@@ -137,6 +137,28 @@ def _resolve_release(repo_root_path: Path, build_commit: str, version: str) -> d
     }
 
 
+def _resolve_branch(repo_root_path: Path) -> str:
+    """Resolve the live docs-build branch name for the build provenance row.
+
+    `git branch --show-current` is empty on any detached-HEAD checkout, which
+    includes both tag pipelines *and* GitLab merge-request pipelines (an MR
+    pipeline checks out a detached merge commit, not the source branch).
+    Falls back to GitLab CI predefined variables in that order: a branch
+    pipeline sets `CI_COMMIT_BRANCH`; a merge-request pipeline sets
+    `CI_MERGE_REQUEST_SOURCE_BRANCH_NAME` (not `CI_COMMIT_BRANCH`); a tag
+    pipeline sets `CI_COMMIT_TAG`. Never fabricates a branch name.
+    """
+    branch = _run(repo_root_path, "branch", "--show-current")
+    if branch and branch != "unknown":
+        return branch
+    return (
+        os.environ.get("CI_COMMIT_BRANCH")
+        or os.environ.get("CI_MERGE_REQUEST_SOURCE_BRANCH_NAME")
+        or os.environ.get("CI_COMMIT_TAG")
+        or "unknown"
+    )
+
+
 def on_pre_build(config, **kwargs) -> None:
     config_path = Path(config.config_file_path).resolve()
     docs_build_dir = config_path.parent
@@ -156,14 +178,7 @@ def on_pre_build(config, **kwargs) -> None:
     if short_commit == "unknown":
         short_commit = os.environ.get("CI_COMMIT_SHORT_SHA", "unknown")
 
-    branch = _run(repo_root_path, "branch", "--show-current")
-    if not branch or branch == "unknown":
-        # Empty = detached HEAD (tag pipeline); "unknown" = git unavailable.
-        branch = (
-            os.environ.get("CI_COMMIT_BRANCH")
-            or os.environ.get("CI_COMMIT_TAG")
-            or "unknown"
-        )
+    branch = _resolve_branch(repo_root_path)
 
     timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 

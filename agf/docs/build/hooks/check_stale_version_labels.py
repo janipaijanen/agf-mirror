@@ -13,9 +13,14 @@ maturity words themselves (Deployable, Validated, Instantiated,
 Surface-defined, Planned -- see
 `.claude/rules/docs/implementation-honesty-rule.md`) are fine on their own;
 only pairing one with a parenthetical version number is flagged, and only
-when a historical marker explicitly qualifies that *same* version number
-(e.g. "introduced in v2.1", "v2.1, historical") -- a marker naming a
-different version elsewhere on the line does not exempt the match.
+when the *same parenthetical* explicitly marks the version historical (e.g.
+"Deployable (v2.1, historical)"). Earlier revisions tried to recognize a
+historical marker anywhere in the same clause or within some proximity of
+the version number; three rounds of fact-check (8ka5, de5k, rjbm) each
+found a same-line phrasing where that let an unrelated -- or contradicted --
+"historical" exempt a current-looking label. Scoping the marker to the
+matched parenthetical itself removes that entire bug class: the marker is
+syntactically part of the label it qualifies, not merely nearby text.
 
 Run directly: `python3 agf/docs/build/hooks/check_stale_version_labels.py`
 Self-test: `python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test`
@@ -47,44 +52,13 @@ MATURITY_WORDS = (
 
 STALE_LABEL_RE = re.compile(
     r"\b(?:" + "|".join(re.escape(word) for word in MATURITY_WORDS) + r")"
-    r"\s*\(\s*v(?P<version>\d[\d.]*)[^)]*\)",
+    r"\s*\(\s*v\d[\d.]*[^)]*\)",
     re.IGNORECASE,
 )
-
-# How far past a "vX.Y" mention a bare "historical" may appear and still
-# count as qualifying that specific version (covers "v2.0, historical)" and
-# "v2.0 -- historical" without also matching a "historical" that describes
-# an unrelated, differently-numbered version elsewhere on the line).
-_HISTORICAL_PROXIMITY_WINDOW = 40
 
 
 class StaleVersionLabelError(ValueError):
     pass
-
-
-def _is_exempted(line: str, match: re.Match[str]) -> bool:
-    """True if the historical marker actually qualifies *this* match's version.
-
-    A marker must name the exact same version number as the matched label --
-    "Historical v1. Deployable (v2.0)", "As of v1, Deployable (v2.0)", and
-    "Historical v1 -- Deployable (v2.0)" all describe v1, not v2.0, and must
-    NOT exempt the v2.0 label. Matching on marker-word-presence anywhere in
-    the line or clause conflates the two versions; matching relative to the
-    version number itself does not.
-    """
-    version = match.group("version")
-    if "historical" in match.group(0).lower():
-        return True  # marker is inside the matched parenthetical itself
-
-    v_token = re.escape(f"v{version}")
-    if re.search(rf"\b(?:introduced in|as of)\s+{v_token}\b", line, re.IGNORECASE):
-        return True
-
-    for v_match in re.finditer(rf"{v_token}\b", line, re.IGNORECASE):
-        window = line[v_match.end() : v_match.end() + _HISTORICAL_PROXIMITY_WINDOW]
-        if "historical" in window.lower():
-            return True
-    return False
 
 
 def find_stale_labels(text: str) -> list[tuple[int, str]]:
@@ -92,8 +66,8 @@ def find_stale_labels(text: str) -> list[tuple[int, str]]:
     findings: list[tuple[int, str]] = []
     for lineno, line in enumerate(text.splitlines(), start=1):
         for match in STALE_LABEL_RE.finditer(line):
-            if _is_exempted(line, match):
-                continue
+            if "historical" in match.group(0).lower():
+                continue  # e.g. "Deployable (v2.0, historical)"
             findings.append((lineno, match.group(0)))
     return findings
 
@@ -120,7 +94,8 @@ def main() -> int:
             print(f"{path}:{lineno}: stale versioned label {matched!r}", file=sys.stderr)
     print(
         "Use a non-versioned lifecycle status (e.g. 'Released documentation') "
-        "or explicitly mark the version as historical (e.g. 'introduced in v2.1').",
+        "or mark the version historical inside the same parenthetical "
+        "(e.g. 'Deployable (v2.1, historical)').",
         file=sys.stderr,
     )
     return 1
@@ -163,6 +138,34 @@ class SelfTest(unittest.TestCase):
 
     def test_rejects_historical_word_qualifying_a_different_version_dash(self) -> None:
         findings = find_stale_labels("Historical v1 — Deployable (v2.0)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_as_of_prefix_naming_the_same_version(self) -> None:
+        # "as of" commonly introduces a current-state claim, not a
+        # historical one -- must not exempt the match.
+        findings = find_stale_labels("As of v2.0, Deployable (v2.0)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_prose_before_a_contradicting_current_label(self) -> None:
+        findings = find_stale_labels(
+            "v2.0 feature is historical but current status: Deployable (v2.0)"
+        )
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_prose_after_the_label_same_version(self) -> None:
+        findings = find_stale_labels(
+            "v2.0 is a historical release discussed elsewhere. Deployable (v2.0)"
+        )
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_prose_following_the_label_same_version(self) -> None:
+        findings = find_stale_labels(
+            "Deployable (v2.0) — v2.0 historical migration notes follow."
+        )
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_prose_after_semicolon_same_version(self) -> None:
+        findings = find_stale_labels("Deployable (v2.0); unrelated v2.0 is historical.")
         self.assertEqual(len(findings), 1)
 
 

@@ -9,10 +9,12 @@ exact-tag build, later-`main` build, and unavailable-tag build.
 from __future__ import annotations
 
 import importlib.util
+import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 HOOK_PATH = Path(__file__).with_name("release_info.py")
@@ -192,6 +194,57 @@ class ShallowCheckoutAncestryTest(unittest.TestCase):
         self.assertEqual(_git(self.clone, "rev-parse", "--is-shallow-repository"), "false")
         relation = HOOK._is_ancestor(self.clone, self.release_commit, self.later_commit)
         self.assertTrue(relation)
+
+
+class ResolveBranchTest(unittest.TestCase):
+    """Reproduces the CI branch-unknown blocker from fact-check
+    docs/coordination/20260726T132413Z-fact-checker-rjbm.md: GitLab
+    merge-request pipelines check out a detached merge commit, so `git
+    branch --show-current` is empty and the old fallback (CI_COMMIT_BRANCH,
+    CI_COMMIT_TAG only) never fires for MR pipelines specifically, since
+    CI_COMMIT_BRANCH is unset there too.
+    """
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name)
+        _git(self.repo, "init", "-q")
+        _git(self.repo, "config", "user.email", "test@example.invalid")
+        _git(self.repo, "config", "user.name", "Test")
+        (self.repo / "f").write_text("1\n", encoding="utf-8")
+        _git(self.repo, "add", "f")
+        _git(self.repo, "commit", "-q", "-m", "commit")
+        # Detach HEAD, matching both tag and merge-request pipeline checkouts.
+        _git(self.repo, "checkout", "-q", "--detach", "HEAD")
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_detached_head_with_no_ci_vars_reports_unknown(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(HOOK._resolve_branch(self.repo), "unknown")
+
+    def test_merge_request_pipeline_uses_source_branch_var(self) -> None:
+        # MR pipelines set CI_MERGE_REQUEST_SOURCE_BRANCH_NAME, not
+        # CI_COMMIT_BRANCH -- this is the case that previously fell through
+        # to "unknown".
+        with patch.dict(
+            os.environ,
+            {"CI_MERGE_REQUEST_SOURCE_BRANCH_NAME": "feat/public-version-docs-provenance"},
+            clear=True,
+        ):
+            self.assertEqual(
+                HOOK._resolve_branch(self.repo), "feat/public-version-docs-provenance"
+            )
+
+    def test_tag_pipeline_uses_commit_tag_var(self) -> None:
+        with patch.dict(os.environ, {"CI_COMMIT_TAG": "v2.4.3"}, clear=True):
+            self.assertEqual(HOOK._resolve_branch(self.repo), "v2.4.3")
+
+    def test_checked_out_branch_takes_priority_over_ci_vars(self) -> None:
+        _git(self.repo, "checkout", "-q", "-b", "main")
+        with patch.dict(os.environ, {"CI_COMMIT_TAG": "v9.9.9"}, clear=True):
+            self.assertEqual(HOOK._resolve_branch(self.repo), "main")
 
 
 if __name__ == "__main__":
