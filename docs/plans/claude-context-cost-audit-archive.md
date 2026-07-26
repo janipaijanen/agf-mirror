@@ -55,7 +55,10 @@ always-loaded prompt cost or a normative rule accidentally.
 1. Purpose, date, scope, evidence-status legend, and anonymization statement.
 2. The common prompt sent to Perplexity, Mistral, Grok, Gemini, and Lumo.
 3. Each submitted first answer and follow-up answer, attributed by model and
-   preserved verbatim except for mandatory anonymization.
+   preserved verbatim except for mandatory anonymization. This includes the
+   later Codex-specific question and the Lumo, Gemini, Mistral, and Perplexity
+   answers; Grok's reported inability to answer is recorded as an absence, not
+   reconstructed as model output.
 4. Both empirical-audit prompts sent to Claude and both returned answers,
    likewise preserved verbatim except for mandatory anonymization.
 5. The live `/context` and `/usage` figures needed to interpret the answers,
@@ -65,23 +68,33 @@ always-loaded prompt cost or a normative rule accidentally.
    ranked interventions, instruction taxonomy, controlled experiment, rollback
    thresholds, and remaining unknown measurements.
 7. A source manifest containing stable labels, byte counts, and SHA-256 hashes
-   for the eight supplied attachment payloads. It must not store absolute local
+   for the nine supplied attachment payloads. It must not store absolute local
    attachment paths.
 8. A prominent statement that cached or prior AI review is not independent
    evidence and that no recommendation weakens human authority, security,
    auditability, immutable coordination, or Gate discipline.
+9. A Codex-specific empirical addendum grounded in the current official Codex
+   manual and privacy-minimized local session counters. It must distinguish
+   interactive `/status` and `/usage`, local token-count events, optional OTel,
+   API-key billing, and ChatGPT subscription limits; it must also record that
+   Codex does not natively auto-load Claude's `.claude/rules/` corpus.
 
 ## Acceptance checks
 
 - The common and Claude-specific prompts match the submitted text.
-- All eight attachment payloads are accounted for by label, byte count, and
+- All nine attachment payloads are accounted for by label, byte count, and
   SHA-256 hash.
 - Chat-inline follow-up answers are present and attributed correctly.
+- The Codex-specific question and all four received answers are present; Grok's
+  non-answer is identified without inventing content.
 - Codex's synthesis includes the exact active-context reconciliation:
   `9.7 + 20.2 + 0.603 + 58.6 + 2.3 + 287.9 = 379.303k`, proving deferred
   definitions were excluded from the reported 379.3k active total.
 - No email address, absolute local attachment path, credential, or non-anonymized
   project name appears.
+- Codex counters are reported only as aggregate token/cache/rate-limit figures;
+  raw prompts, tool outputs, and session payloads are not copied into the
+  archive.
 - The file is clearly non-normative and is not linked from an always-loaded
   instruction surface.
 - `git diff --check` passes.
