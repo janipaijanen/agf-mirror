@@ -1,13 +1,13 @@
 ---
 id: agov-binary-freshness-and-release-integrity
-status: pending-gate1
+status: approved
 topic: agov-binary-freshness-and-release-integrity
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-26T18:40:11Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: waived
-    reason: No independent infosec response is available in this planning session; require an infosec review before Gate 1 approval because release-binary provenance is a supply-chain boundary.
+    reason: Governor-reviewer explicitly approved Gate 1 on 2026-07-26T18:40:11Z without waiting for the pending infosec response; independent infosec review remains required Gate 2 evidence.
   - role: contribution-auditor
     status: consulted
     reason: Review 20260726T182333Z-contribution-auditor-jght returned ADAPT; this revision resolves its local dirty-signal blocker and adds its latency-measurement advisory.
@@ -16,7 +16,7 @@ advisory_consultation:
 # Plan: fail closed on stale agov binaries and verify release artifacts
 
 **Date:** 2026-07-26T18:13:00Z  
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** GATE 1 APPROVED — 2026-07-26T18:40:11Z by governor-reviewer
 
 ## Incident and intent
 
