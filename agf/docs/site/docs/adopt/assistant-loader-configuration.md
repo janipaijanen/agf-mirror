@@ -36,6 +36,35 @@ Keep the loader short. The canonical rules stay in `agf/` so upgrades replace
 one framework directory instead of chasing copied fragments across tool
 configuration paths.
 
+## Authority and supported interfaces
+
+Tool-specific surfaces are lower in governance authority, but not necessarily
+lower in operational importance. When a project ships and supports them, treat
+them as first-class supported interfaces whose semantics are inherited from
+canonical AGF definitions.
+
+The distinction is:
+
+- human governor decisions, adopted role definitions, and named rules define
+  authority; schemas, approved plans, and coordination records define governed
+  contracts, state, and evidence;
+- canonical workflows under `agf/skills/` operationalize that meaning without
+  superseding it; and
+- assistant-specific loaders, slash commands, skill wrappers, subagent
+  configurations, hooks, Model Context Protocol (MCP) integrations, and command
+  aliases expose those definitions through a particular tool.
+
+An adapter may translate invocation syntax, discovery metadata, or platform
+constraints. It must not redefine a role's authority, weaken a gate, or keep a
+second copy of an AGF workflow that can drift. A model or subagent receives no
+governance authority merely because a tool can invoke it: the adopted AGF role
+and explicit human delegation remain the authority sources.
+
+If an adapter conflicts with its canonical AGF source, the canonical source
+wins and the adapter is defective. Intentional project-specific extensions
+must remain visibly local, preserve the authority boundary, and follow the
+project's normal governance process.
+
 ## Common loader patterns
 
 | Assistant surface | Loader pattern | Verification |
