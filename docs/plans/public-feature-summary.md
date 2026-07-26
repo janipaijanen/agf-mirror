@@ -10,7 +10,7 @@ advisory_consultation:
     reason: public documentation content and placement only; no credentials, access control, schema, runtime, or security-boundary change
   - role: contribution-auditor
     status: consulted
-    reason: this plan sets canonical public-facing claims about the framework's own governance mechanics; contribution-auditor review of claim accuracy, message-integrity (single canonical source), and scope-versus-evidence before Gate 2 is warranted per the existing coordination trail (aqjp, g4gs)
+    reason: this plan sets canonical public-facing claims about the framework's own governance mechanics; contribution-auditor review of claim accuracy, message-integrity (single canonical source), and scope-versus-evidence is required BEFORE the governor's Gate 1 decision (not after — the exact-SHA audit has not yet been performed; per rdak F1, "consulted" here declares the requirement, it does not assert the review already exists)
 ---
 
 # Plan: public feature-summary content and placement
@@ -43,20 +43,44 @@ placement contract (S2), and a bullet six that duplicated bullet one's
 human-authority point instead of restoring the omitted removability/adoption
 value (S3).
 
-This plan supersedes `mgsm` as the Gate 1 artifact and resolves S1-S3.
+This plan supersedes `mgsm` as the Gate 1 artifact and resolves S1-S3. A
+subsequent fact-checker Gate 1 advisory review of this plan
+(`20260726T072057Z-fact-checker-rdak`) found S1-S3 correctly resolved but
+raised three further blocking findings (F1-F3), which this revision
+resolves: reversed contribution-auditor sequencing (F1), an inaccurate
+"both passes converge" claim (F2), and an overbroad independence-disclosure
+scope (F3).
 
 ## Independence status disclosure
 
 This plan is built from one **non-blind** Pedagogist pass (`r5mm` —
 independence condition waived by governor decision `trra`, not a genuinely
-blind pass) and one **blind** Marketing pass (`hqq2`). Any published artifact
-derived from this plan, and any future audit of it, must state this plainly
-rather than describe both inputs as blind-independent.
+blind pass) and one **blind** Marketing pass (`hqq2`). This must be stated
+plainly in: this plan file, the coordination trail, any review-package
+artifact, and any future claim about this review's reviewer independence.
+
+**Scope limit (resolves `rdak` F3):** this disclosure requirement applies to
+internal review-process artifacts, not to the public six-bullet block itself.
+The README and docs-landing-page placements are the tight public feature
+list, not a review-methodology page; adding review-independence disclosure
+there would add process copy the public block was explicitly designed to
+avoid and conflicts with the six-bullet-maximum objective. Do not add
+independence-disclosure text inside the public block or its entry-page
+placements unless the governor explicitly chooses that additional public-copy
+scope in a future decision.
 
 ## Content: six bullets, outcome before mechanism
 
-Both passes converge on this set (per `aqjp`'s content-synthesis guidance and
-`hqq2`'s six-message hierarchy):
+**This is a governed synthesis disposition, not a claim that both first
+passes reached the same conclusion (resolves `rdak` F2).** The two passes
+disagreed on two points: `r5mm` (Pedagogist) proposed **five** bullets and
+explicitly dropped optional tooling and adoption/removal from the
+top-level list; `hqq2` (Marketing) retained **six**, including
+tooling/adoption/removal. This plan adopts the six-bullet count and retains
+tooling/adoption/removal, following `hqq2`'s recommendation as corrected by
+`aqjp`'s and `g4gs`'s subsequent findings (P3's explicit two-stage wording
+for bullet five; S3/F-series' restoration of genuine removability content
+in bullet six) — it is not a point both passes already agreed on:
 
 1. **Human plan and merge decisions** — planning and merge decisions stay
    with a named human governor (gate numbers follow parenthetically, not
@@ -158,7 +182,10 @@ or page edits begin until Gate 1 clears. `README.md`, `agf/docs/site/`, and
 
 ## Next owner
 
-Per `g4gs`'s "release advancement" instruction: after Gate 1 clears, route
-the exact plan SHA to contribution-auditor (per this plan's advisory
-consultation) and infosec-sentinel (already not-applicable, no further
-action needed) before implementation begins.
+**Sequencing corrected per `rdak` F1:** contribution-auditor exact-SHA
+review of this plan is required **before** the governor's Gate 1 decision,
+not after. A handoff requesting that review at this revision's exact SHA
+accompanies this commit. infosec-sentinel remains not-applicable per the
+advisory-consultation table; no further action needed there. Only once
+contribution-auditor's review is durably recorded does this plan proceed to
+governor-reviewer for Gate 1.
