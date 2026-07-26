@@ -1,6 +1,6 @@
 # Coordination protocol
 
-*Status: Deployable (v2.0). Audience: developers and governors who want
+*Status: Deployable. Audience: developers and governors who want
 to understand how agents communicate. After this page you can read a
 coordination thread, run the graph command, and explain the message kinds.*
 

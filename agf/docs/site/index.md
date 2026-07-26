@@ -79,9 +79,8 @@ five-minute filter for deciding whether AGF is useful for your project now.
 > platform-specific Rust binaries are published on the
 > [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 > When evaluating or citing AGF, use the framework content version on the
-> Release information page. Page-level "Released (v2.x documentation)" labels
-> mark the documentation line in which a page was published; they are not the
-> current release identifier.
+> Release information page, which also states whether this build is exact
+> release documentation or later development documentation.
 
 ## How to adopt
 

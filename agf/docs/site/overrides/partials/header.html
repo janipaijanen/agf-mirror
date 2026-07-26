@@ -41,7 +41,7 @@
     </div>
     {% set release = config.extra.agf_release | d(None) %}
     {% if release %}
-      <a href="{{ 'reference/release-info/' | url }}" class="agf-header-version" aria-label="agents-govern version {{ release.version }} commit {{ release.short_commit }}">
+      <a href="{{ 'reference/release-info/' | url }}" class="agf-header-version" aria-label="agents-govern version {{ release.version }}, docs build commit {{ release.short_commit }}, {{ release.release_status | d('release status unknown', true) }}">
         <span class="agf-header-version__version">v{{ release.version }}</span>
         <span class="agf-header-version__commit">{{ release.short_commit }}</span>
       </a>

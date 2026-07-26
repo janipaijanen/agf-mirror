@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 DOSSIER_PAGE = "ai-evaluation-dossier.md"
 APPENDIX_MARKER = "<!-- AGF_DOSSIER_APPENDIX -->"
 REPOSITORY_REFERENCES_MARKER = "<!-- AGF_DOSSIER_REPOSITORY_REFERENCES -->"
+RELEASE_TUPLE_MARKER = "<!-- AGF_DOSSIER_RELEASE_TUPLE -->"
 REPOSITORY_URL = "https://gitlab.com/janipaijanen/agents-govern-framework"
 DOSSIER_TOP_ANCHOR = "#ai-evaluation-dossier"
 
@@ -229,6 +230,33 @@ def _repository_reference_table(config) -> str:
     )
 
 
+def _release_tuple_table(config) -> str:
+    """Embed the release/docs-build provenance tuple directly in the dossier.
+
+    `docs/plans/public-version-and-docs-provenance.md` requires the dossier
+    to embed this tuple rather than only link to `reference/release-info.md`.
+    """
+    release = (config.get("extra") or {}).get("agf_release") or {}
+    version = str(release.get("version") or "unknown")
+    release_tag = str(release.get("release_tag") or "unknown")
+    release_commit = str(release.get("release_commit") or "unknown")
+    build_branch = str(release.get("branch") or "unknown")
+    build_commit = str(release.get("commit") or "unknown")
+    status = str(release.get("release_status") or "unknown")
+
+    return "\n".join(
+        [
+            "| Field | Value |",
+            "|---|---|",
+            f"| Framework content version (`agf/VERSION`) | `{version}` |",
+            f"| Latest release tag | `{release_tag}` |",
+            f"| Release source commit | `{release_commit}` |",
+            f"| Live docs build | branch `{build_branch}`, commit `{build_commit}` |",
+            f"| Documentation status | {status} |",
+        ]
+    )
+
+
 def _rewrite_links(
     markdown: str,
     source_path: PurePosixPath,
@@ -382,6 +410,13 @@ def on_page_markdown(markdown, page, config, files):
     markdown = markdown.replace(
         REPOSITORY_REFERENCES_MARKER,
         _repository_reference_table(config),
+    )
+
+    if RELEASE_TUPLE_MARKER not in markdown:
+        raise ValueError(f"{DOSSIER_PAGE} is missing {RELEASE_TUPLE_MARKER}")
+    markdown = markdown.replace(
+        RELEASE_TUPLE_MARKER,
+        _release_tuple_table(config),
     )
 
     docs_dir = Path(config.docs_dir).resolve()
