@@ -9,6 +9,17 @@ withheld, not guessed. Verify before relying on them.
 
 ## Classified
 
+- https://apsquared.co/posts/marketing-automation-claude-codex
+  type: practice, discussion | relation: prior-art, complement, demand-driver | action: watch,
+  compare-in-docs
+  note: Self-reported portfolio-marketing architecture: each repository carries its own
+  `AGENT.md`, activity logs, and human task queue; each run performs one activity; Claude and
+  Codex are treated as replaceable engines. The potentially fresh AGF question is whether a
+  portable repo-contained *agent package* should sit above governance, deliberately replace
+  part of it in a major version, or incubate separately. Treat the claimed economics and
+  quality as unverified: the article excludes the unspecified Post Bridge fee and human review
+  time from its headline, and supplies no comparative outcome data. (accessed 2026-07-26)
+
 - https://www.thoughtworks.com/insights/blog/open-source/zero-cost-fallacy-open-source-agentic-era
   type: practice | relation: demand-driver, evidence | action: cite
   note: OSS maintainers drowning in AI slop PRs; trust signals (stars, commit history) degraded.
