@@ -156,11 +156,11 @@ binary_is_fresh() {
     echo "WARN rejected $binary: build-relevant tracked sources were dirty" >&2
     return 1
   fi
-  if ! git -C "$repo_root" cat-file -e "$commit^{commit}" 2>/dev/null; then
-    echo "WARN rejected $binary: embedded commit $commit is unavailable locally" >&2
+  if ! head=$(git -C "$repo_root" rev-parse --verify "HEAD^{commit}" 2>/dev/null); then
+    echo "WARN rejected $binary: cannot resolve worktree HEAD" >&2
     return 1
   fi
-  if ! worktree_matches_binary "$commit" HEAD; then
+  if ! worktree_matches_binary "$commit" "$head"; then
     echo "WARN rejected $binary: stale relative to worktree HEAD" >&2
     return 1
   fi
@@ -168,8 +168,7 @@ binary_is_fresh() {
     echo "WARN rejected $binary: stale relative to requested base $base_ref" >&2
     return 1
   fi
-  if ! git -C "$repo_root" diff --quiet -- $freshness_paths \
-    || ! git -C "$repo_root" diff --cached --quiet -- $freshness_paths; then
+  if ! git -C "$repo_root" diff-index --quiet HEAD -- $freshness_paths; then
     echo "WARN rejected $binary: tracked freshness-sensitive files are modified" >&2
     return 1
   fi
@@ -178,10 +177,9 @@ binary_is_fresh() {
 
 worktree_matches_binary() {
   commit=$1
-  target_ref=$2
-  if ! target=$(git -C "$repo_root" rev-parse --verify "$target_ref^{commit}" 2>/dev/null); then
-    echo "WARN cannot resolve freshness target $target_ref" >&2
-    return 1
+  target=$2
+  if [ "$commit" = "$target" ]; then
+    return 0
   fi
   git -C "$repo_root" merge-base --is-ancestor "$commit" "$target" 2>/dev/null \
     && git -C "$repo_root" diff --quiet "$commit" "$target" -- $freshness_paths
@@ -193,6 +191,9 @@ base_matches_binary() {
   if ! base=$(git -C "$repo_root" rev-parse --verify "$base_ref^{commit}" 2>/dev/null); then
     echo "WARN cannot resolve freshness target $base_ref" >&2
     return 1
+  fi
+  if [ "$base" = "$commit" ]; then
+    return 0
   fi
   if git -C "$repo_root" merge-base --is-ancestor "$base" "$commit" 2>/dev/null; then
     return 0
