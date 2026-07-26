@@ -64,6 +64,15 @@ Next review: 2026-10.
   principle (observation-only variant conceivable). Kept on radar because industry pressure
   toward runtime interposition keeps growing (ACS, Enforra, Tenure). review-by: 2027-01
 
+- **Repo-contained, model-replaceable agent package / deliberate self-cannibalization** —
+  APSquared describes one self-contained marketing agent per repository: local instructions,
+  activity logs, a human task queue, one activity per run, and Claude or Codex as a replaceable
+  engine. Most mechanics converge with AGF, but making portable agent operation rather than
+  governance the product could absorb the current framework and warrant a major version or a
+  separately incubated repository. Controversial: useful generalisation versus scope dilution;
+  the source is a self-reported marketing case, not independent evidence. source: APSquared in
+  `docs/sources.md` | status: joint Claude/Codex assessment requested | review-by: 2026-10
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
