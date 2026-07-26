@@ -1,7 +1,9 @@
 ---
 id: public-version-and-docs-provenance
-status: pending-gate1
+status: approved
 topic: public-version-and-docs-provenance
+gate1_approved_by: 20260726T113959Z-governor-reviewer-bjng
+gate1_approved_at: 2026-07-26T11:39:59Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -184,8 +186,9 @@ scope.
 - Fact-checker is activated for the exact implementation SHA before Gate 2 and
   verifies public claims against Git refs, release metadata, and rendered
   output.
-- Coder-tester may implement only after a validated governor-reviewer Gate 1
-  approval record changes this plan to `approved`.
+- Coder-tester may implement under the bounded scope authorized by
+  `20260726T113959Z-governor-reviewer-bjng`; implementation still requires
+  exact-SHA review and Gate 2 before merge.
 
 ## Rollback
 
