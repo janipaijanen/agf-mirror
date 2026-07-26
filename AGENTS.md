@@ -282,6 +282,14 @@ repository's `tooling/agov` executable. The Rust implementation is the
 supported operator path. If a needed command is not available in Rust, stop and
 report the Rust tooling gap instead of falling back to legacy tooling.
 
+If an `agov-mcp` server is configured in the current assistant session
+(check for `mcp__agov__*` tools), prefer its structured tools
+(`agov_coord_list`, `agov_handoff_next`, `agov_session_resume`, etc.) over
+shelling out to the `agov` binary via a generic shell tool — they mirror the
+CLI subcommands 1:1 and avoid the binary-path/PATH resolution step. Fall back
+to the CLI when no MCP server is configured, or for a command the MCP server
+does not expose.
+
 Rust is the default operator path for supported commands:
 
 - `agov --version`
@@ -291,6 +299,9 @@ Rust is the default operator path for supported commands:
 - `agov coord status`
 - `agov coord stale`
 - `agov coord visibility`
+- `agov coord list` — one line per coordination message after a given id,
+  filename, or RFC3339 timestamp; the designed answer to "what changed since
+  I last checked," not a full re-read of the channel
 - `agov coord graph`
 - `agov coord graph-index`
 - `agov handoff next`
@@ -344,6 +355,14 @@ each cycle, unless the governor explicitly narrows the scope:
 4. Recheck every exact SHA, pipeline, job, branch, tag, or release state on
    which the active role is waiting. Keep a cursor of last-seen IDs,
    timestamps, and SHAs so “nothing new” is an evidence-backed statement.
+   Use `agov coord list --since <cursor>` (or the `agov_coord_list` MCP tool)
+   as the first check each cycle — it returns only messages newer than the
+   cursor, one line each, instead of re-reading whole files or re-fetching
+   full `glab mr view --comments` / `glab issue list` output that is mostly
+   unchanged from the prior cycle. Fall through to full `glab` reads only for
+   the specific new item found, or for GitLab-side state `agov` cannot see
+   (MR comment threads outside `docs/coordination/`, CI/pipeline status,
+   merge/close state).
 5. Read and classify new obligations addressed to the active role or `all`,
    choose the highest-priority authorized obligation, and act immediately.
    End the cycle only when that obligation is completed, actively running and
