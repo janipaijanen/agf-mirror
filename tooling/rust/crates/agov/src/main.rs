@@ -437,6 +437,11 @@ enum UsageCommand {
 }
 
 fn main() {
+    // `#[used]` retains the marker in compiler output, but a cross-linker may
+    // still garbage-collect its section when no reachable code references it.
+    // Keep the exact bytes reachable without changing version output.
+    std::hint::black_box(BUILD_PROVENANCE_MARKER);
+
     let args = normalized_args();
     if matches!(args.get(1).map(String::as_str), Some("--version" | "-V")) {
         println!("{}", version_text());

@@ -38,6 +38,11 @@ static BUILD_PROVENANCE_MARKER: &str = concat!(
 );
 
 fn main() {
+    // `#[used]` retains the marker in compiler output, but a cross-linker may
+    // still garbage-collect its section when no reachable code references it.
+    // Keep the exact bytes reachable without changing version output.
+    std::hint::black_box(BUILD_PROVENANCE_MARKER);
+
     let args: Vec<String> = std::env::args().skip(1).collect();
     if matches!(args.as_slice(), [arg] if arg == "--version" || arg == "-V") {
         println!(
