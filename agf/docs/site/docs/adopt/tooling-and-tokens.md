@@ -71,17 +71,28 @@ Download the `agov` tooling archive — not the `agf-<version>.tar.gz`/`.zip`
 framework source archive, which is a different asset on the same release page
 — matching your OS, architecture, and adopted AGF version from the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
-Published platforms as of v2.4.3: `linux-x86_64`, `linux-aarch64`, and
+Published platforms as of v2.4.4: `linux-x86_64`, `linux-aarch64`, and
 `windows-x86_64`; no macOS archive is published yet.
 
 Verify the adjacent `.sha256` checksum and `-provenance.json` file (both
-linked next to the archive on the Releases page) before trusting the binary —
-a checksum confirms the archive was not corrupted or substituted after
-publication, not that a specific party signed it:
+linked next to the archive on the Releases page) before trusting the binary.
+A checksum fetched from the same publication channel confirms the archive
+matches that published value — it does not independently prove that neither
+the archive nor the checksum was substituted, and it is not a signature:
 
 ```bash
-sha256sum -c agov-<version>-<platform>.tar.gz.sha256
+# Linux (.tar.gz)
+sha256sum -c agov-<version>-linux-x86_64.tar.gz.sha256
+
+# Windows (.zip) — from PowerShell
+Get-FileHash agov-<version>-windows-x86_64.zip -Algorithm SHA256
+# then compare the hash against the contents of the adjacent .sha256 file
 ```
+
+Then open the adjacent `-provenance.json` file and confirm it names the
+version, tag, source commit, artifact filename, and checksum you expect —
+this establishes consistency with the published record, not an independent
+attestation or cryptographic signature.
 
 Unpack the archive, place the `agov` (and, if you use MCP, `agov-mcp`)
 executable on PATH, and confirm the reported version matches what you
@@ -130,9 +141,14 @@ build the locked release profile — do not treat an ordinary full checkout as
 the recommended adopter path:
 
 ```bash
-git checkout v2.4.3   # pin an exact release tag
-cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+git checkout <adopted-version>   # pin an exact release tag, e.g. v2.4.4
+cargo build --release --locked --manifest-path tooling/rust/Cargo.toml -p agov
 ```
+
+Add `-p agov-mcp` to the same command if you also need the MCP server binary.
+`--locked` requires `Cargo.lock` to be present and unmodified — this is the
+case on any tagged release ref — and fails rather than silently resolving
+different dependency versions than the ones that shipped in that release.
 
 Then add it to your PATH:
 
@@ -235,9 +251,9 @@ for the full list of telemetry controls.
 
 ## What is not in scope
 
-- Package-registry publishing (e.g. crates.io) or code signing (a separate
-  future decision) — the GitLab generic-package archives and the GitLab
-  container registry OCI image described above are already published.
+- Language/ecosystem registry publishing, such as crates.io, or code signing
+  (a separate future decision) — the GitLab generic-package archives and the
+  GitLab container registry OCI image described above are already published.
 - macOS tooling archive (not yet built or published; a Windows x64 archive
   has been published since v2.1.5 — see Option A above).
 
