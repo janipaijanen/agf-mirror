@@ -3,6 +3,7 @@ set -eu
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 verify="$script_dir/../scripts/verify-tooling-provenance.sh"
+cross_config="$script_dir/../Cross.toml"
 version=9.8.7
 commit=0123456789abcdef0123456789abcdef01234567
 good=$(printf '{"version":"%s","commit":"%s","dirty":false,"source_dirty":false}' "$version" "$commit")
@@ -10,6 +11,13 @@ tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 
 sh "$verify" "$version" "$commit" "$good" "$good" >/dev/null
+
+for required_env in AGOV_BUILD_COMMIT AGOV_BUILD_DIRTY AGOV_BUILD_SOURCE_DIRTY; do
+  grep -Fq "\"$required_env\"" "$cross_config" || {
+    echo "Cross.toml does not pass through $required_env" >&2
+    exit 1
+  }
+done
 
 for bad in \
   "$(printf '{"version":"0.0.0","commit":"%s","dirty":false,"source_dirty":false}' "$commit")" \

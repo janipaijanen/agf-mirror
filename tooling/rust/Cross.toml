@@ -13,4 +13,5 @@
 passthrough = [
     "AGOV_BUILD_COMMIT",
     "AGOV_BUILD_DIRTY",
+    "AGOV_BUILD_SOURCE_DIRTY",
 ]
