@@ -123,24 +123,18 @@ requested_base_ref() {
   done
 }
 
-json_string() {
-  key=$1
-  value=$2
-  printf '%s\n' "$value" | sed -n "s/.*\"$key\":\"\([^\"]*\)\".*/\1/p"
-}
-
-json_bool() {
-  key=$1
-  value=$2
-  printf '%s\n' "$value" | sed -n "s/.*\"$key\":\(true\|false\).*/\1/p"
-}
-
 binary_is_fresh() {
   binary=$1
   base_ref=$2
   provenance=$($binary version --format json 2>/dev/null || true)
-  commit=$(json_string commit "$provenance")
-  source_dirty=$(json_bool source_dirty "$provenance")
+  case "$provenance" in
+    *'"commit":"'*'"source_dirty":'*) ;;
+    *) provenance='' ;;
+  esac
+  commit=${provenance#*'"commit":"'}
+  commit=${commit%%\"*}
+  source_dirty=${provenance#*'"source_dirty":'}
+  source_dirty=${source_dirty%%[},]*}
 
   case "$commit" in
     ''|*[!0-9a-fA-F]*)
