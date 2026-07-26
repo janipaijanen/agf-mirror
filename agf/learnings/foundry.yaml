@@ -2288,6 +2288,79 @@ learnings:
         - "20260726T121131Z-build-engineer-njsk (reconciled assessment, both instances)"
         - "MR !638 at 453964a7116573ebf6921a74c845c5b9552fadb0 (repo-local agov 2.2.6 / 7dd69050fb1f selected during a 2.4.4 session; freshness and release-integrity correction)"
 
+  - id: "20260726T232934Z-pnxo"
+    date: "2026-07-26"
+    category: process
+    scope: framework
+    title: same-session-gate1-block-response-fixes-findings-not-premises
+    description: >
+      MR !654 (`.claude/rules/` and `agf/rules/` canonicalization) was blocked
+      at Gate 1 three consecutive times in the same session, and each response
+      repeated the same shape of mistake: it fixed exactly the findings named
+      in the block, without asking whether those findings were symptoms of a
+      wrong design premise. Pass one to two fixed arithmetic (shared-file and
+      divergent-file counts were undercounted). Pass two to three answered a
+      previously-punted adopter-impact question with real evidence
+      (`agf/dist/release-manifest.yaml` confirms `agf/rules/` ships verbatim
+      to every adopter) — a genuine improvement, but that same evidence is
+      exactly what exposed a deeper problem nobody had asked about yet: the
+      plan's core mechanism (symlink every `.claude/rules/` file to
+      `agf/rules/`) is architecturally incompatible with `agf/rules/` also
+      being a generic, `<!-- CUSTOMIZE -->`-templated distribution artifact,
+      because a symlink cannot serve both "adopter-neutral shipped template"
+      and "this project's own working instantiated rule" simultaneously for
+      the same file. An independent fourth review (Codex,
+      `20260726T232326Z-coder-tester-kgkh`) caught this; three prior
+      same-session passes did not, because each treated the block's named
+      findings as the complete scope of what needed fixing rather than as
+      evidence that the design itself needed re-examination. A related
+      pattern in the same session: a "contribution-auditor self-critique"
+      section in a different plan (MR !661) was presented as satisfying an
+      independent-review requirement while being performed by the same model
+      in the same session — the weakest tier on this project's own
+      verification-independence scale (`docs/radar.md`: "different-session <
+      different-model < different-vendor"), not a substitute for it.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - governor-reviewer
+    framework_section: "framework.md — Gate 1 review response discipline; docs/radar.md — verification independence tiers"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Three Gate 1 cycles (each involving a fresh diff/grep/code-inspection
+        pass, a plan rewrite, and a new coordination handoff) were spent
+        before the architectural question was even identified, let alone
+        resolved. No irreversible harm — Gate 1 discipline correctly refused
+        to let any of the three passes proceed to implementation — but the
+        cost was avoidable iteration, not caught earlier because each pass
+        treated the review as a checklist to satisfy rather than a signal to
+        re-examine the design.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      When a plan is blocked at Gate 1 a second time in the same session (not
+      the first — a single block is normal review, not a pattern), the
+      response should explicitly ask, before touching any specific finding:
+      "do these findings share a common root cause in the design itself, not
+      just in this artifact's execution of it?" If yes, address the root
+      cause directly and say so, rather than patching findings one at a time
+      across further passes. Separately: a same-session, same-model
+      "self-critique" or "contribution-auditor self-consult" does not satisfy
+      an independent-review requirement and should be labeled `waived`, not
+      `consulted`, in `advisory_consultation` — reserve `consulted` for
+      review that is actually independent by this project's own tiering.
+      Consider adding a Gate 1 review-response checklist item: "if this is
+      the second or later block on the same artifact this session, has the
+      root design premise been re-examined, not just the cited findings?"
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !654 three-pass block sequence: docs/coordination/20260726T225814Z-coder-tester-hmh4.md, docs/coordination/20260726T231147Z-governor-reviewer-mqej.md, docs/coordination/20260726T232326Z-coder-tester-kgkh.md"
+        - "MR !661 same-session self-critique: docs/plans/v2.5.0-portfolio-discovery.md (\"Self-critique, honestly labeled\" section) and docs/coordination/20260726T231147Z-governor-reviewer-3ess.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
