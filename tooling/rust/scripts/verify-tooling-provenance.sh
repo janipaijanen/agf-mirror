@@ -14,6 +14,12 @@ if [ "${1:-}" = "--binary" ]; then
       END { exit !found }
     ' || {
       echo "$name binary provenance marker mismatch: expected $expected_marker" >&2
+      observed=$(strings -a "$binary" | awk '
+        match($0, /AGOV_BUILD_PROVENANCE_V1\|[^[:space:]]+/) {
+          print substr($0, RSTART, RLENGTH)
+        }
+      ' | head -n 1)
+      echo "$name binary provenance marker observed: ${observed:-not found}" >&2
       return 1
     }
   }

@@ -727,7 +727,7 @@ rust:tooling:clippy:
           aarch64-unknown-linux-musl) slug="linux-aarch64" ;;
           *) echo "no public filename slug mapped for target $target" >&2; exit 1 ;;
         esac
-        rm -f "target/${target}/release/agov" "target/${target}/release/agov-mcp"
+        cargo clean --release --target "$target" -p agov -p agov-mcp
         cross build --release --target "$target" -p agov -p agov-mcp
         sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
           "target/${target}/release/agov" "target/${target}/release/agov-mcp"
@@ -762,7 +762,7 @@ rust:tooling:clippy:
       if [ -n "$CI_COMMIT_TAG" ] || [ "${AGOV_PACKAGE_WINDOWS_PREVIEW:-}" = "1" ]; then
         target="x86_64-pc-windows-gnu"
         slug="windows-x86_64"
-        rm -f "target/${target}/release/agov.exe" "target/${target}/release/agov-mcp.exe"
+        cargo clean --release --target "$target" -p agov -p agov-mcp
         cross build --release --target "$target" -p agov -p agov-mcp
         sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
           "target/${target}/release/agov.exe" "target/${target}/release/agov-mcp.exe"
