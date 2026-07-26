@@ -420,6 +420,8 @@ commit, branch, build timestamp, citation text, copyright, and license
 information. Use [Release artifacts](reference/release-artifacts.md) for archive
 policy and CI release job behavior.
 
+<!-- AGF_DOSSIER_RELEASE_TUPLE -->
+
 ### 4.09 Limits and Responsibility
 
 <p class="agf-dossier-marker"><strong>Flow 04.09</strong> / source page:

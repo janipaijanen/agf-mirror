@@ -1,12 +1,30 @@
 # SPDX-License-Identifier: MIT
-"""Generate build provenance for the public MkDocs site."""
+"""Generate build provenance for the public MkDocs site.
+
+Two identities are derived and kept separately labeled (plan:
+docs/plans/public-version-and-docs-provenance.md):
+
+- **release provenance** — the latest immutable Git release tag (expected
+  `v${agf/VERSION}`) and the exact commit that tag points at. Resolved from
+  local Git tag refs only; CI jobs that publish documentation must make tag
+  data explicit first (see `.gitlab-ci.yml`'s `pages`/`site-html-build` jobs)
+  because a shallow checkout does not fetch tags by default.
+- **docs build provenance** — the exact commit/branch this documentation was
+  built from, which may be later than (or diverge from) the release commit.
+
+`agf/VERSION` remains the only authored semantic-version scalar; the release
+tag/commit are read from Git, never duplicated by hand.
+"""
 
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+
+_VERSION_TAG_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 
 
 def _run(root: Path, *args: str) -> str:
@@ -19,6 +37,60 @@ def _run(root: Path, *args: str) -> str:
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
+
+
+def _resolve_release(repo_root_path: Path, build_commit: str) -> dict[str, object]:
+    """Resolve the latest `vX.Y.Z` release tag and its peeled commit.
+
+    Returns `{"tag": "unknown", "commit": "unknown", "exact": False,
+    "status": "unknown"}` when no version tag can be resolved (e.g. tags were
+    never fetched into a shallow checkout) — this function never fabricates a
+    release identity.
+    """
+    raw_tags = _run(repo_root_path, "tag", "--list", "v*")
+    candidates = []
+    for line in raw_tags.splitlines():
+        line = line.strip()
+        match = _VERSION_TAG_RE.match(line)
+        if match:
+            candidates.append((tuple(int(part) for part in match.groups()), line))
+
+    if not candidates:
+        return {
+            "tag": "unknown",
+            "commit": "unknown",
+            "short_commit": "unknown",
+            "exact": False,
+            "status": "unknown",
+        }
+
+    candidates.sort(reverse=True)
+    tag = candidates[0][1]
+
+    release_commit = _run(repo_root_path, "rev-parse", f"{tag}^{{commit}}")
+    if release_commit == "unknown":
+        return {
+            "tag": tag,
+            "commit": "unknown",
+            "short_commit": "unknown",
+            "exact": False,
+            "status": "unknown",
+        }
+
+    release_short_commit = _run(repo_root_path, "rev-parse", "--short=12", release_commit)
+    exact = build_commit != "unknown" and build_commit == release_commit
+    status = (
+        "release documentation"
+        if exact
+        else f"development documentation after {tag}"
+    )
+    return {
+        "tag": tag,
+        "commit": release_commit,
+        "short_commit": release_short_commit,
+        "exact": exact,
+        "status": status,
+    }
 
 
 def on_pre_build(config, **kwargs) -> None:
@@ -51,6 +123,8 @@ def on_pre_build(config, **kwargs) -> None:
 
     timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
+    release = _resolve_release(repo_root_path, commit)
+
     extra = dict(config.get("extra") or {})
     extra["agf_release"] = {
         "version": version,
@@ -58,6 +132,11 @@ def on_pre_build(config, **kwargs) -> None:
         "short_commit": short_commit,
         "branch": branch,
         "timestamp": timestamp,
+        "release_tag": release["tag"],
+        "release_commit": release["commit"],
+        "release_short_commit": release["short_commit"],
+        "release_exact": release["exact"],
+        "release_status": release["status"],
     }
     config["extra"] = extra
 
@@ -74,6 +153,16 @@ def on_pre_build(config, **kwargs) -> None:
         "  license = {CC-BY-SA-4.0 and MIT},\n"
         "}"
     )
+    release_tag = release["tag"]
+    release_commit = release["commit"]
+    release_short_commit = release["short_commit"]
+    release_status = release["status"]
+    release_source_line = (
+        f"tag `{release_tag}`, commit `{release_short_commit}`"
+        if release_commit != "unknown"
+        else "unresolved (release tag data was not available at build time)"
+    )
+
     target.write_text(
         f"""# Release information
 
@@ -85,21 +174,24 @@ def on_pre_build(config, **kwargs) -> None:
 |---|---|
 | Framework content version | `{version}` |
 | Published docs | <https://janipaijanen.gitlab.io/agents-govern-framework/> |
-| Source commit | `{commit}` |
+| Latest release | `{release_tag}` |
+| Release source | {release_source_line} |
+| Live docs build | branch `{branch}`, commit `{commit}` |
+| Documentation status | {release_status} |
 | Short commit | `{short_commit}` |
-| Source branch | `{branch}` |
 | Build timestamp | `{timestamp}` |
 
 ## Versioning note
 
-Two version concepts appear in the documentation:
-
-- **Framework content version** — the precise `MAJOR.MINOR.PATCH` release number
-  shown in the table above. This is the authoritative version.
-- **Documentation line** — content pages marked *"Released (v2.x documentation)"*
-  indicate the documentation generation series in which those pages were first
-  published. It is an authoring marker, not the current framework content version.
-  When citing or comparing, use the framework content version above.
+`agf/VERSION` is the single authored semantic-version scalar. The **latest
+release** row above is the immutable Git release tag and the exact commit it
+points at — the release source of truth. The **live docs build** row is the
+exact commit and branch this documentation page was generated from, which may
+be later than (or diverge from) the release commit; the **documentation
+status** row states which case applies. Pages do not carry their own
+version-numbered lifecycle labels; where a page cites a version, it is an
+explicit historical statement (for example, *"introduced in v2.1"*), not a
+claim about the current release.
 
 ## Downloads
 

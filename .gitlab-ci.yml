@@ -137,6 +137,14 @@ site-html-build:
   script:
     - python3 agf/docs/build/hooks/check_palette_contrast.py --self-test
     - python3 agf/docs/build/hooks/check_palette_contrast.py
+    - python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test
+    - python3 agf/docs/build/hooks/check_stale_version_labels.py
+    - python3 -m unittest discover -s agf/docs/build/hooks -p 'test_*.py' -v
+    # Shallow checkouts do not fetch tags by default; make release-tag data
+    # explicit before the build so release_info.py can resolve the latest
+    # `vX.Y.Z` tag. Feasibility confirmed:
+    # docs/coordination/20260726T122556Z-planner-architect-smh3.md
+    - git fetch --force --tags --depth=1 origin
     - mkdocs build -f agf/docs/build/mkdocs.yml --strict
   artifacts:
     name: "docs-$CI_COMMIT_SHORT_SHA"
@@ -170,6 +178,11 @@ pages:
   extends: .mkdocs-base
   stage: deploy
   script:
+    # Shallow checkouts do not fetch tags by default; make release-tag data
+    # explicit before the build so release_info.py can resolve the latest
+    # `vX.Y.Z` tag. Feasibility confirmed:
+    # docs/coordination/20260726T122556Z-planner-architect-smh3.md
+    - git fetch --force --tags --depth=1 origin
     - mkdocs build -f agf/docs/build/mkdocs.yml --strict --site-dir ../../../public
   artifacts:
     paths:

@@ -38,6 +38,35 @@ class RepositoryReferencesTest(unittest.TestCase):
         self.assertNotIn("/-/tree/unknown/", table)
         self.assertIn(HOOK.REPOSITORY_URL, table)
 
+    def test_release_tuple_embeds_release_and_build_provenance_separately(self) -> None:
+        config = {
+            "extra": {
+                "agf_release": {
+                    "version": "2.4.3",
+                    "release_tag": "v2.4.3",
+                    "release_commit": "7a43ad687e45ae2a36f6c8c157f08d2127faaae7",
+                    "branch": "main",
+                    "commit": "ba2f29c2da760cf2d2ca8e4c23c65389a2d699e0",
+                    "release_status": "development documentation after v2.4.3",
+                }
+            }
+        }
+
+        table = HOOK._release_tuple_table(config)
+
+        self.assertIn("`2.4.3`", table)
+        self.assertIn("`v2.4.3`", table)
+        self.assertIn("`7a43ad687e45ae2a36f6c8c157f08d2127faaae7`", table)
+        self.assertIn("`ba2f29c2da760cf2d2ca8e4c23c65389a2d699e0`", table)
+        self.assertIn("development documentation after v2.4.3", table)
+
+    def test_release_tuple_unknown_release_does_not_fabricate_a_commit(self) -> None:
+        table = HOOK._release_tuple_table({"extra": {}})
+
+        self.assertIn("| Latest release tag | `unknown` |", table)
+        self.assertIn("| Release source commit | `unknown` |", table)
+        self.assertIn("| Documentation status | unknown |", table)
+
     def test_copied_evaluate_link_targets_dossier_top(self) -> None:
         rewritten = HOOK._rewrite_target(
             "ai-evaluation-dossier.md",
