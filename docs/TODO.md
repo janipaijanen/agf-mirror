@@ -157,6 +157,49 @@ Candidate output:
 3. Tests that protect the intended zero-savings behavior or the corrected
    savings behavior.
 
+## First-Class AGF Skills and Commands: Usage and Ordering
+
+Status: open any-agent TODO. Owner: planner-architect for the information
+architecture; coder-tester for command/skill inventory and executable evidence;
+governor-reviewer for authority and release treatment.
+
+Treat AGF-related skills and commands as first-class operator interfaces, not
+incidental shortcuts. Document their purpose, prerequisites, authority
+boundary, side effects, and order of use. This includes `compact-agf` and the
+other project skills, the `agov` CLI/MCP command surfaces, and any human-facing
+aliases that invoke the same governed workflow.
+
+Minimum documentation scope:
+
+- inventory each supported skill and command, including whether it is a skill,
+  slash command, CLI command, MCP tool, or compatibility alias;
+- state when to invoke it, when not to invoke it, which role normally owns the
+  action, and whether it is read-only, advisory, blocking, or authority-bearing;
+- document prerequisites, expected artifacts, validation requirements,
+  downstream obligations, safe stopping conditions, and recovery behavior;
+- define canonical lifecycle ordering, including cold start, role-specific
+  resume, task execution, validation/review, durable closeout,
+  `compact-agf`, and `/compact` or session replacement;
+- distinguish first-class supported paths from legacy/reference surfaces and
+  prevent documentation from silently recommending fallback implementations;
+- keep human manuals, AI cold-start/manual guidance, skill descriptions, MCP
+  schemas, and machine-readable command contracts synchronized;
+- document cost-aware use: targeted output, single-owner polling, bounded
+  subagents, and when a cheaper model is safe for routine skill execution;
+- add validation or contract tests where ordering, prerequisites, or output can
+  be checked mechanically instead of relying only on prompt memory.
+
+Candidate output:
+
+1. A concise operator journey showing the normal order of first-class skills
+   and commands from cold start through closeout and compaction.
+2. A reference table for every supported surface with triggers, authority,
+   inputs, outputs, side effects, and next step.
+3. Cross-surface conformance checks that detect missing, contradictory, stale,
+   or differently ordered instructions.
+4. Usage telemetry guidance that measures quality-adjusted cost without
+   treating context occupancy as billing-grade evidence.
+
 ## Deterministic Academic Figure Source Generation
 
 Status: open post-v2.4.0 TODO (Level 1: Planned). Owner: planner-architect for
