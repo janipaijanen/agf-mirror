@@ -8,6 +8,35 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.4] - 2026-07-26
+
+Patch release making the public documentation's mutable build identity
+unambiguous relative to the latest immutable release. See
+[`agf/CHANGELOG.md`](agf/CHANGELOG.md) for adopter-facing details.
+
+### Fixed
+
+- Public release information now separates the framework version, latest
+  release tag and source commit, live documentation branch and commit, and
+  whether the site is release or later development documentation.
+- The AI evaluation dossier embeds the same full provenance tuple in visible,
+  extractable text. The accessible page header visibly shows the framework
+  version and docs-build commit; its accessible label also reports release
+  status.
+- Removed stale version-numbered lifecycle labels and added a strict source
+  scanner that prevents their reintroduction except for an explicitly bounded
+  historical qualifier.
+
+### Changed
+
+- Public status banners no longer couple page maturity to a historical release
+  number.
+- Added one governed public feature summary to the README and documentation
+  homepage, and clarified that contributor setup belongs at the end of the
+  adopter-facing README.
+- Polling guidance now names incremental coordination listing and the optional
+  structured MCP transport while retaining the Rust CLI fallback.
+
 ## [2.4.3] - 2026-07-25
 
 Patch release combining three small adopter-facing fixes (issues #64, #65,
