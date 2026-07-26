@@ -13,6 +13,7 @@ fn main() {
         .unwrap_or_else(|| Path::new("."));
     rerun_if_git_path_changes(repo_root, "HEAD");
     rerun_if_git_path_changes(repo_root, "index");
+    rerun_if_tracked_sources_change(repo_root);
     let commit = env_or("AGOV_BUILD_COMMIT").unwrap_or_else(|| {
         git_output(repo_root, &["rev-parse", "HEAD"]).unwrap_or_else(|| "unknown".into())
     });
@@ -36,6 +37,22 @@ fn rerun_if_git_path_changes(repo_root: &Path, name: &str) {
             repo_root.join(path)
         };
         println!("cargo:rerun-if-changed={}", absolute.display());
+    }
+}
+
+fn rerun_if_tracked_sources_change(repo_root: &Path) {
+    const PATHS: &[&str] = &[
+        "tooling/agov",
+        "tooling/rust",
+        "agf/schemas",
+        "agf/agents/MANIFEST.yaml",
+    ];
+    let mut args = vec!["ls-files", "--"];
+    args.extend(PATHS);
+    if let Some(files) = git_output(repo_root, &args) {
+        for file in files.lines().filter(|line| !line.is_empty()) {
+            println!("cargo:rerun-if-changed={}", repo_root.join(file).display());
+        }
     }
 }
 
