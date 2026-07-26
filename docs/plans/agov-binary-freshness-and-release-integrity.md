@@ -9,8 +9,8 @@ advisory_consultation:
     status: waived
     reason: No independent infosec response is available in this planning session; require an infosec review before Gate 1 approval because release-binary provenance is a supply-chain boundary.
   - role: contribution-auditor
-    status: waived
-    reason: No independent contribution-auditor response is available in this planning session; require an independent plan audit before Gate 1 approval because the safeguards must cover both local execution and public artifacts.
+    status: consulted
+    reason: Review 20260726T182333Z-contribution-auditor-jght returned ADAPT; this revision resolves its local dirty-signal blocker and adds its latency-measurement advisory.
 ---
 
 # Plan: fail closed on stale agov binaries and verify release artifacts
@@ -56,6 +56,10 @@ The gate must:
 - reject the binary when freshness-sensitive files differ between the embedded
   commit and `HEAD` (`tooling/agov`, `tooling/rust/**`, `agf/schemas/**`, and
   `agf/agents/MANIFEST.yaml` at minimum);
+- base the local dirty/freshness decision only on tracked modifications in
+  those freshness-sensitive paths. Untracked or tracked changes elsewhere in
+  the worktree (including a local `.mcp.json`) must not reject an otherwise
+  compatible binary;
 - when `session resume --base-branch <ref>` is requested, apply the same
   ancestry and freshness-sensitive-diff checks against that resolved base ref,
   so an old branch cannot silently validate a newer fetched base;
@@ -67,6 +71,17 @@ The gate must:
 
 No mtime-only decision is acceptable: copied files, caches, rebases, and
 worktrees make timestamps insufficient evidence.
+
+The existing whole-tree `dirty` provenance has broader semantics than the
+local compatibility decision and must not be silently redefined. If the
+wrapper cannot derive scoped build-relevant cleanliness from existing
+metadata, add a distinct machine-readable field for freshness-sensitive
+tracked-source state. The wrapper uses that scoped signal; the release path
+continues to require the existing whole-tree `dirty:false` assertion. A local
+binary with only unrelated/untracked dirt may warn, but must not fail solely
+for that reason. A binary built with tracked modifications in a
+freshness-sensitive path must fail closed unless an explicit development
+override was invoked.
 
 ### 2. Binary provenance parity
 
@@ -132,7 +147,9 @@ Gate 1.
    an old branch but stale relative to the fetched base—the exact incident
    reproduced here.
 4. Unknown, missing, malformed, non-ancestor, and dirty provenance each have
-   explicit tested behavior.
+   explicit tested behavior. Tests distinguish tracked build-relevant dirt
+   (local reject) from unrelated or untracked worktree state (local accept or
+   warn) and whole-tree release dirt (release reject).
 5. Release and debug selection follow the same freshness policy; release
    remains preferred only when it passes.
 6. `agov` and `agov-mcp` report matching version, full commit, and dirty state
@@ -148,6 +165,10 @@ Gate 1.
 11. Rust workspace tests, shell tests, `agov validate`, distribution preview,
     and the relevant GitLab pipeline are green at the exact implementation
     head.
+12. Record a before/after latency sample for repeated wrapper invocations and
+    `session resume`; disclose the environment and iteration count. A material
+    regression must be optimized or explicitly accepted at Gate 2 rather than
+    hidden in the freshness guarantee.
 
 ## Security and operational boundaries
 
