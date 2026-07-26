@@ -15,6 +15,31 @@ that matches the work in front of you, then follow the path forward.
     durable decision log the coordination channel. For a printable overview:
     [view the full-size flyer (PNG)](../reference/figures/agf-nutshell-flyer.png).
 
+<!-- public-feature-summary:start -->
+## What AGF gives you
+
+- **Human plan and merge decisions.** A named human governor decides whether
+  implementation may start (Gate 1) and whether the tested change may merge
+  (Gate 2); validators provide evidence but never approve a gate.
+- **Named roles, explicit authority.** Proposing, implementing, reviewing, and
+  approving are separate, named responsibilities, so each participant's remit
+  is visible.
+- **Durable, reconstructible records.** Plans, handoffs, reviews, and decisions
+  stay as repository files tied to exact revisions, preserving the reasoning
+  alongside the work.
+- **Evidence and maturity labels.** Public capability claims distinguish what
+  is planned, implemented, validated, or deployable and whether the supporting
+  evidence is theoretical, empirically informed, or empirically validated.
+- **Reviewed learning, separately governed improvement.** Operational evidence
+  can become a reviewed learning record, and a learning may motivate an
+  improvement proposal; neither step changes rules, roles, or scope
+  automatically, because improvement begins behind a fresh plan-approval gate.
+- **Repository-native ownership, bounded exit.** AGF ships as files, rules, and
+  conventions, with no runtime or service holding adopter data. You can pause,
+  downgrade, or remove it; optional validation tooling supports consistency but
+  is required neither to adopt nor to leave.
+<!-- public-feature-summary:end -->
+
 ## How to read this site
 
 Every page below falls into one of four kinds. Knowing which kind you're
