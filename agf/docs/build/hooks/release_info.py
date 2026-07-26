@@ -39,14 +39,45 @@ def _run(root: Path, *args: str) -> str:
         return "unknown"
 
 
-def _resolve_release(repo_root_path: Path, build_commit: str) -> dict[str, object]:
+def _is_ancestor(root: Path, ancestor: str, descendant: str) -> bool | None:
+    """Return True if `ancestor` is an ancestor of `descendant`, False if
+    definitively not, or None if the relationship cannot be determined (e.g.
+    a shallow checkout without enough history). Never guess.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+            cwd=root,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    return None
+
+
+def _resolve_release(repo_root_path: Path, build_commit: str, version: str) -> dict[str, object]:
     """Resolve the latest `vX.Y.Z` release tag and its peeled commit.
 
     Returns `{"tag": "unknown", "commit": "unknown", "exact": False,
     "status": "unknown"}` when no version tag can be resolved (e.g. tags were
     never fetched into a shallow checkout) — this function never fabricates a
-    release identity.
+    release identity. If the highest resolvable tag does not match
+    `v{agf/VERSION}`, the status explicitly flags the mismatch instead of
+    silently presenting a possibly-contradictory release identity.
     """
+    unresolved = {
+        "tag": "unknown",
+        "commit": "unknown",
+        "short_commit": "unknown",
+        "exact": False,
+        "status": "unknown",
+    }
+
     raw_tags = _run(repo_root_path, "tag", "--list", "v*")
     candidates = []
     for line in raw_tags.splitlines():
@@ -56,34 +87,47 @@ def _resolve_release(repo_root_path: Path, build_commit: str) -> dict[str, objec
             candidates.append((tuple(int(part) for part in match.groups()), line))
 
     if not candidates:
-        return {
-            "tag": "unknown",
-            "commit": "unknown",
-            "short_commit": "unknown",
-            "exact": False,
-            "status": "unknown",
-        }
+        return unresolved
 
     candidates.sort(reverse=True)
     tag = candidates[0][1]
+    expected_tag = f"v{version}"
 
     release_commit = _run(repo_root_path, "rev-parse", f"{tag}^{{commit}}")
     if release_commit == "unknown":
-        return {
-            "tag": tag,
-            "commit": "unknown",
-            "short_commit": "unknown",
-            "exact": False,
-            "status": "unknown",
-        }
+        return {**unresolved, "tag": tag}
 
     release_short_commit = _run(repo_root_path, "rev-parse", "--short=12", release_commit)
+
+    if tag != expected_tag:
+        return {
+            "tag": tag,
+            "commit": release_commit,
+            "short_commit": release_short_commit,
+            "exact": False,
+            "status": (
+                f"release identity unconfirmed: latest resolvable tag {tag} "
+                f"does not match agf/VERSION ({expected_tag})"
+            ),
+        }
+
     exact = build_commit != "unknown" and build_commit == release_commit
-    status = (
-        "release documentation"
-        if exact
-        else f"development documentation after {tag}"
-    )
+    if exact:
+        status = "release documentation"
+    else:
+        relation = (
+            _is_ancestor(repo_root_path, release_commit, build_commit)
+            if build_commit != "unknown"
+            else None
+        )
+        if relation is True:
+            status = f"development documentation after {tag}"
+        else:
+            status = (
+                f"documentation not confirmed to be after release {tag} "
+                "(diverged history or ancestry unavailable)"
+            )
+
     return {
         "tag": tag,
         "commit": release_commit,
@@ -123,7 +167,7 @@ def on_pre_build(config, **kwargs) -> None:
 
     timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
-    release = _resolve_release(repo_root_path, commit)
+    release = _resolve_release(repo_root_path, commit, version)
 
     extra = dict(config.get("extra") or {})
     extra["agf_release"] = {

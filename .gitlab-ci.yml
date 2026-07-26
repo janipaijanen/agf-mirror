@@ -58,6 +58,10 @@ workflow:
 .mkdocs-base:
   image: python:3.14-slim
   before_script:
+    # python:3.14-slim has no git; release_info.py's unit tests build a real
+    # git repo, and both docs jobs run `git fetch --tags` for release-tag
+    # resolution. Both need a working `git` on PATH before the build step.
+    - apt-get update -qq && apt-get install -y --no-install-recommends git >/dev/null
     - >-
       pip install --quiet
       'mkdocs>=1.6,<2'

@@ -45,7 +45,7 @@ class ResolveReleaseTest(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_exact_tag_build_reports_release_documentation(self) -> None:
-        release = HOOK._resolve_release(self.repo, self.release_commit)
+        release = HOOK._resolve_release(self.repo, self.release_commit, "2.4.3")
 
         self.assertEqual(release["tag"], "v2.4.3")
         self.assertEqual(release["commit"], self.release_commit)
@@ -58,7 +58,7 @@ class ResolveReleaseTest(unittest.TestCase):
         _git(self.repo, "commit", "-q", "-m", "later commit")
         later_commit = _git(self.repo, "rev-parse", "HEAD")
 
-        release = HOOK._resolve_release(self.repo, later_commit)
+        release = HOOK._resolve_release(self.repo, later_commit, "2.4.3")
 
         self.assertEqual(release["tag"], "v2.4.3")
         self.assertEqual(release["commit"], self.release_commit)
@@ -66,7 +66,6 @@ class ResolveReleaseTest(unittest.TestCase):
         self.assertEqual(release["status"], "development documentation after v2.4.3")
 
     def test_no_tags_reports_unknown_without_fabricating_a_release(self) -> None:
-        release = HOOK._resolve_release(self.repo, self.release_commit)
         # Overwrite with a fresh repo that never received the tag.
         untagged = Path(tempfile.mkdtemp())
         try:
@@ -78,7 +77,7 @@ class ResolveReleaseTest(unittest.TestCase):
             _git(untagged, "commit", "-q", "-m", "no tags here")
             commit = _git(untagged, "rev-parse", "HEAD")
 
-            release = HOOK._resolve_release(untagged, commit)
+            release = HOOK._resolve_release(untagged, commit, "2.4.3")
         finally:
             subprocess.run(["rm", "-rf", str(untagged)], check=False)
 
@@ -86,6 +85,40 @@ class ResolveReleaseTest(unittest.TestCase):
         self.assertEqual(release["commit"], "unknown")
         self.assertFalse(release["exact"])
         self.assertEqual(release["status"], "unknown")
+
+    def test_tag_not_matching_version_reports_unconfirmed_identity(self) -> None:
+        # agf/VERSION on this checkout ("2.9.9") does not match the highest
+        # resolvable tag (v2.4.3) -- must not silently present v2.4.3 as if
+        # it were the current release.
+        release = HOOK._resolve_release(self.repo, self.release_commit, "2.9.9")
+
+        self.assertEqual(release["tag"], "v2.4.3")
+        self.assertFalse(release["exact"])
+        self.assertIn("release identity unconfirmed", release["status"])
+        self.assertIn("v2.4.3", release["status"])
+        self.assertIn("v2.9.9", release["status"])
+
+    def test_diverged_build_is_not_claimed_as_after_the_release(self) -> None:
+        # A build commit that is not a descendant of the release commit (e.g.
+        # a branch that diverged before the tag) must not be labeled "after".
+        _git(self.repo, "checkout", "-q", "-b", "diverged", self.release_commit)
+        _git(self.repo, "reset", "-q", "--hard", "HEAD~0")
+        # Create a divergent commit that shares no descent from the tag by
+        # amending on an orphan branch history point instead: simplest way is
+        # an unrelated orphan branch.
+        _git(self.repo, "checkout", "-q", "--orphan", "orphan-branch")
+        _git(self.repo, "rm", "-rq", "--cached", ".")
+        (self.repo / "OTHER").write_text("unrelated history\n", encoding="utf-8")
+        _git(self.repo, "add", "OTHER")
+        _git(self.repo, "commit", "-q", "-m", "unrelated root commit")
+        diverged_commit = _git(self.repo, "rev-parse", "HEAD")
+
+        release = HOOK._resolve_release(self.repo, diverged_commit, "2.4.3")
+
+        self.assertEqual(release["tag"], "v2.4.3")
+        self.assertFalse(release["exact"])
+        self.assertNotIn("after v2.4.3", release["status"])
+        self.assertIn("not confirmed to be after release v2.4.3", release["status"])
 
 
 if __name__ == "__main__":

@@ -57,13 +57,34 @@ class StaleVersionLabelError(ValueError):
     pass
 
 
+def _clause_containing(line: str, pos: int) -> str:
+    """Return the `;`-delimited clause of `line` that contains offset `pos`.
+
+    A historical marker earlier in the same line but in an unrelated clause
+    must not exempt a stale label later in the line -- e.g. "Introduced in
+    v1; Deployable (v2.0)" describes two different versions; the "introduced
+    in v1" marker does not qualify the "Deployable (v2.0)" label.
+    """
+    start = 0
+    end = len(line)
+    for idx, ch in enumerate(line):
+        if ch != ";":
+            continue
+        if idx < pos:
+            start = idx + 1
+        else:
+            end = idx + 1
+            break
+    return line[start:end]
+
+
 def find_stale_labels(text: str) -> list[tuple[int, str]]:
     """Return (1-based line number, matched text) for each flagged label."""
     findings: list[tuple[int, str]] = []
     for lineno, line in enumerate(text.splitlines(), start=1):
         for match in STALE_LABEL_RE.finditer(line):
-            lowered = line.lower()
-            if any(marker in lowered for marker in HISTORICAL_MARKERS):
+            clause = _clause_containing(line, match.start()).lower()
+            if any(marker in clause for marker in HISTORICAL_MARKERS):
                 continue
             findings.append((lineno, match.group(0)))
     return findings
@@ -117,6 +138,12 @@ class SelfTest(unittest.TestCase):
     def test_allows_labeled_historical_marker(self) -> None:
         findings = find_stale_labels("Deployable (v2.0, historical) — superseded by v2.4.")
         self.assertEqual(findings, [])
+
+    def test_rejects_unrelated_historical_marker_in_a_different_clause(self) -> None:
+        # The "introduced in v1" marker qualifies v1, not the v2.0 label in
+        # the second clause -- it must not exempt an unrelated stale label.
+        findings = find_stale_labels("Introduced in v1; Deployable (v2.0)")
+        self.assertEqual(len(findings), 1)
 
 
 if __name__ == "__main__":
