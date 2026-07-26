@@ -6,8 +6,8 @@ gate1_approved_by: ""
 gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
-    status: waived
-    reason: "review is being requested with this pending Gate 1 plan; the plan must be revised to consulted with the resulting disposition before governor approval"
+    status: consulted
+    reason: "review 20260726T122520Z-contribution-auditor-nr4g independently verified the evidence and cleared all six requested dimensions with advisories to split implementation into reviewable slices and cite the related tool-sync drift learning; both are incorporated below"
   - role: infosec-sentinel
     status: not-applicable
     reason: "the active CI-only sentinel mechanically checks configured credential and cross-record leakage in learnings; this plan changes no learning record and has no applicable plan-stage sentinel check. Security-boundary wording remains an explicit contribution/fact-check and governor review item"
@@ -82,6 +82,12 @@ called `build-engineer` suspended supplies an additional cold-start lesson:
 role claims must be checked against current fetched authority, not a stale
 checkout or session summary. The immutable incorrect record will be corrected
 by a new referenced coordination note, not edited.
+
+MR !590 and learning `20260726T121943Z-w5jj` supply directly related prior
+art: duplicated Claude command mirrors drifted from canonical AGF skills until
+they were replaced with thin pointer wrappers. Loader and rule guidance in this
+plan must follow that pointer convention and must not recreate an independently
+maintained assistant-specific copy.
 
 ## Canonical behavioral contract
 
@@ -264,12 +270,22 @@ Impact:
   loader and opt into authority-ref sender validation at their next AGF
   upgrade; existing CLI-only and non-enforcing setups remain valid.
 - **Evidence:** `20260726T121131Z-build-engineer-njsk`,
-  `20260726T120156Z-planner-architect-ahmj`, and the exact file inventory in
-  this plan.
+  `20260726T120156Z-planner-architect-ahmj`, contribution review
+  `20260726T122520Z-contribution-auditor-nr4g`, MR !590 / learning
+  `20260726T121943Z-w5jj`, and the exact file inventory in this plan.
 
 Adopter docs parity: updated in the same implementation.
 
 ## Implementation sequence
+
+The single Gate 1 authorization is implemented as three reviewable slices,
+each with its own exact-SHA Gate 2 evidence handoff. They may be developed in
+dependency order, but must not be collapsed into one mega-diff:
+
+- Rust core/CLI/MCP/config/CI authority-ref behavior and contract tests;
+- foundry/adopter executable guidance (`AGENTS.md`, minimal
+  `.claude/CLAUDE.md`, `.claude/rules/README.md`, and the adopter template);
+- public human-facing documentation projection and drift checks.
 
 1. Rebase from current `main`; establish current `agf/VERSION`, role manifest,
    CLI command tree, MCP registry, and loader-validator behavior.
