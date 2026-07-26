@@ -2186,6 +2186,83 @@ learnings:
         - "20260726T101903Z-governor-reviewer-hemp (BLOCK finding on MR !574)"
         - "20260726T102147Z-planner-architect-mhh1 (acceptance + disclosure of MR !567)"
 
+  - id: "20260726T121943Z-w5jj"
+    date: "2026-07-26"
+    category: gap
+    scope: framework
+    title: documented-tool-sync-relationships-drift-silently-without-mechanical-enforcement
+    description: >
+      During a long standing-poll session, two independent instances of the
+      same failure pattern surfaced: a designed one-way sync relationship
+      between a canonical source and a locally-materialized copy exists only
+      as documentation or convention, nothing mechanically checks the copy
+      against the source, and the copy silently rots into a broken or
+      superseded state. Instance 1: this checkout's `.mcp.json` pins the
+      `agov-mcp` MCP server to a fixed local binary path
+      (`tooling/rust/target/release/agov-mcp`); AGENTS.md's only documented
+      build command (`cargo build --release ... -p agov`) never rebuilds it
+      (verified empirically: touched agov-mcp's source, ran the documented
+      command, binary mtime unchanged); the running binary was found 3 days
+      and dozens of commits stale relative to HEAD, with no check anywhere
+      to surface that gap to a session. Instance 2: `agf/framework.md`'s own
+      "Tool mapping" table specifies Claude Code skills should be a
+      "Wrapper points at `agf/skills/*/SKILL.md`", but the actual
+      `.claude/commands/*.md` files (the ones Claude Code loads as project
+      skills, confirmed via `/context`) are full duplicated copies, last
+      touched 2026-06-21, two days before `agf/skills/*/SKILL.md` was
+      migrated off the legacy Python `uv run agov-*` tooling (2026-06-23).
+      All 7 mirrored command files still instruct `uv run agov-health`,
+      `uv run agov-validate-infosec`, `uv run agov-bump`, etc.; tested
+      directly, `uv run agov-health` fails immediately (`Failed to spawn:
+      agov-health — No such file or directory`) because that command only
+      ever existed in the now-abandoned `agents-govern/.venv/`. Both
+      instances share the identical root cause: a real, intentional sync
+      relationship exists on paper, but nothing enforces it, so it holds
+      only until the source changes and nobody remembers to propagate the
+      change to the copy.
+    agents_involved:
+      - build-engineer
+      - planner-architect
+      - governor-reviewer
+    framework_section: "framework.md — Enforcement Beyond Prompts / Tool mapping table"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Instance 1 had zero realized impact this time only because no
+        agov-mcp source changes happened to land in the stale window
+        (confirmed via git log) — the exposure was real, the damage was
+        coincidentally avoided. Instance 2 has live impact: every
+        AGF-mirrored slash command in this checkout (/health, /upgrade,
+        /release, /infosec-screen, /learning, /capability-review,
+        /contribution-audit) currently hands the operator a dead command on
+        first step. Both were found only through manual, on-demand
+        investigation prompted by the human governor, not by any structural
+        check.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      For any artifact the framework documents as a copy/wrapper/mirror of a
+      canonical source (MCP server binaries pinned by local session config,
+      Claude/Codex/Cursor/Windsurf command or rule mirrors of
+      `agf/rules/*.md` and `agf/skills/*/SKILL.md`), prefer a thin pointer
+      over a duplicated copy wherever the consuming tool supports it — a
+      `.claude/commands/<name>.md` that reads and follows
+      `agf/skills/<name>/SKILL.md` cannot drift, because there is no second
+      copy to drift. Where duplication is unavoidable (e.g. a compiled
+      binary that cannot "point at" its own source), add a cheap freshness
+      check: compare the binary's build timestamp or embedded commit hash
+      (already exposed by `agov version --format json`) against current HEAD
+      and warn instead of silently proceeding. Consider adding both as
+      `agov health`/`agov validate` checks so the gap is caught mechanically
+      per-milestone rather than only when a human happens to ask.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "20260726T115544Z-build-engineer-kb1p (agov-mcp build-freshness finding)"
+        - "20260726T121131Z-build-engineer-njsk (reconciled assessment, both instances)"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
