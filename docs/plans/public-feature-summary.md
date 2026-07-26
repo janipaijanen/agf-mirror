@@ -1,9 +1,9 @@
 ---
 id: public-feature-summary
-status: pending-gate1
+status: approved
 topic: public-feature-summary
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-26T08:05:40Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -16,7 +16,7 @@ advisory_consultation:
 # Plan: public feature-summary content and placement
 
 **Date:** 2026-07-26T07:12:00Z
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** GATE 1 APPROVED
 
 ## Trigger and problem
 
