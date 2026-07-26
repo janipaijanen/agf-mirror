@@ -13,8 +13,9 @@ maturity words themselves (Deployable, Validated, Instantiated,
 Surface-defined, Planned -- see
 `.claude/rules/docs/implementation-honesty-rule.md`) are fine on their own;
 only pairing one with a parenthetical version number is flagged, and only
-when the surrounding line does not explicitly mark the version as
-historical (e.g. "introduced in v2.1", "historical").
+when a historical marker explicitly qualifies that *same* version number
+(e.g. "introduced in v2.1", "v2.1, historical") -- a marker naming a
+different version elsewhere on the line does not exempt the match.
 
 Run directly: `python3 agf/docs/build/hooks/check_stale_version_labels.py`
 Self-test: `python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test`
@@ -46,36 +47,44 @@ MATURITY_WORDS = (
 
 STALE_LABEL_RE = re.compile(
     r"\b(?:" + "|".join(re.escape(word) for word in MATURITY_WORDS) + r")"
-    r"\s*\(\s*v\d[\d.]*[^)]*\)",
+    r"\s*\(\s*v(?P<version>\d[\d.]*)[^)]*\)",
     re.IGNORECASE,
 )
 
-HISTORICAL_MARKERS = ("historical", "introduced in v", "as of v")
+# How far past a "vX.Y" mention a bare "historical" may appear and still
+# count as qualifying that specific version (covers "v2.0, historical)" and
+# "v2.0 -- historical" without also matching a "historical" that describes
+# an unrelated, differently-numbered version elsewhere on the line).
+_HISTORICAL_PROXIMITY_WINDOW = 40
 
 
 class StaleVersionLabelError(ValueError):
     pass
 
 
-def _clause_containing(line: str, pos: int) -> str:
-    """Return the `;`-delimited clause of `line` that contains offset `pos`.
+def _is_exempted(line: str, match: re.Match[str]) -> bool:
+    """True if the historical marker actually qualifies *this* match's version.
 
-    A historical marker earlier in the same line but in an unrelated clause
-    must not exempt a stale label later in the line -- e.g. "Introduced in
-    v1; Deployable (v2.0)" describes two different versions; the "introduced
-    in v1" marker does not qualify the "Deployable (v2.0)" label.
+    A marker must name the exact same version number as the matched label --
+    "Historical v1. Deployable (v2.0)", "As of v1, Deployable (v2.0)", and
+    "Historical v1 -- Deployable (v2.0)" all describe v1, not v2.0, and must
+    NOT exempt the v2.0 label. Matching on marker-word-presence anywhere in
+    the line or clause conflates the two versions; matching relative to the
+    version number itself does not.
     """
-    start = 0
-    end = len(line)
-    for idx, ch in enumerate(line):
-        if ch != ";":
-            continue
-        if idx < pos:
-            start = idx + 1
-        else:
-            end = idx + 1
-            break
-    return line[start:end]
+    version = match.group("version")
+    if "historical" in match.group(0).lower():
+        return True  # marker is inside the matched parenthetical itself
+
+    v_token = re.escape(f"v{version}")
+    if re.search(rf"\b(?:introduced in|as of)\s+{v_token}\b", line, re.IGNORECASE):
+        return True
+
+    for v_match in re.finditer(rf"{v_token}\b", line, re.IGNORECASE):
+        window = line[v_match.end() : v_match.end() + _HISTORICAL_PROXIMITY_WINDOW]
+        if "historical" in window.lower():
+            return True
+    return False
 
 
 def find_stale_labels(text: str) -> list[tuple[int, str]]:
@@ -83,8 +92,7 @@ def find_stale_labels(text: str) -> list[tuple[int, str]]:
     findings: list[tuple[int, str]] = []
     for lineno, line in enumerate(text.splitlines(), start=1):
         for match in STALE_LABEL_RE.finditer(line):
-            clause = _clause_containing(line, match.start()).lower()
-            if any(marker in clause for marker in HISTORICAL_MARKERS):
+            if _is_exempted(line, match):
                 continue
             findings.append((lineno, match.group(0)))
     return findings
@@ -143,6 +151,18 @@ class SelfTest(unittest.TestCase):
         # The "introduced in v1" marker qualifies v1, not the v2.0 label in
         # the second clause -- it must not exempt an unrelated stale label.
         findings = find_stale_labels("Introduced in v1; Deployable (v2.0)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_word_qualifying_a_different_version_period(self) -> None:
+        findings = find_stale_labels("Historical v1. Deployable (v2.0)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_as_of_qualifying_a_different_version_comma(self) -> None:
+        findings = find_stale_labels("As of v1, Deployable (v2.0)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_word_qualifying_a_different_version_dash(self) -> None:
+        findings = find_stale_labels("Historical v1 — Deployable (v2.0)")
         self.assertEqual(len(findings), 1)
 
 
