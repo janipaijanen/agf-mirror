@@ -2,8 +2,6 @@ use std::path::Path;
 use std::process::Command;
 
 fn main() {
-    println!("cargo:rerun-if-changed=../../../../.git/HEAD");
-    println!("cargo:rerun-if-changed=../../../../.git/index");
     println!("cargo:rerun-if-env-changed=AGOV_BUILD_COMMIT");
     println!("cargo:rerun-if-env-changed=AGOV_BUILD_DIRTY");
     println!("cargo:rerun-if-env-changed=AGOV_BUILD_SOURCE_DIRTY");
@@ -13,6 +11,8 @@ fn main() {
         .ancestors()
         .nth(4)
         .unwrap_or_else(|| Path::new("."));
+    rerun_if_git_path_changes(repo_root, "HEAD");
+    rerun_if_git_path_changes(repo_root, "index");
 
     let commit = std::env::var("AGOV_BUILD_COMMIT")
         .ok()
@@ -36,6 +36,18 @@ fn main() {
         .filter(|value| value == "true" || value == "false")
         .unwrap_or_else(|| tracked_source_dirty(repo_root).to_string());
     println!("cargo:rustc-env=AGOV_SOURCE_DIRTY={source_dirty}");
+}
+
+fn rerun_if_git_path_changes(repo_root: &Path, name: &str) {
+    if let Some(path) = git_output(repo_root, &["rev-parse", "--git-path", name]) {
+        let path = Path::new(&path);
+        let absolute = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            repo_root.join(path)
+        };
+        println!("cargo:rerun-if-changed={}", absolute.display());
+    }
 }
 
 fn tracked_source_dirty(repo_root: &Path) -> bool {
