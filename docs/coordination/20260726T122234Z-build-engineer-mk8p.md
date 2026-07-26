@@ -24,7 +24,9 @@ fixed the concrete instance it documents. Published as MR !590
 
 `agf/learnings/foundry.yaml`, entry `20260726T121943Z-w5jj` (category: gap,
 scope: framework, severity: significant). Generalizes both instances found
-this session — `agov-mcp` build-freshness (already reported in `kb1p`) and
+this session — `agov-mcp` build-freshness (already reported in `kb1p`,
+`docs/coordination/20260726T115544Z-build-engineer-kb1p.md`, MR !586, not
+yet on main) and
 the Claude Code command-mirror drift found while answering the governor's
 follow-up question — into one pattern: a documented sync relationship with
 no mechanical enforcement drifts silently. Recommendation: prefer a thin
@@ -40,8 +42,9 @@ infosec-screen,learning,release,upgrade}.md` were full duplicated copies of
 canonical skills migrated off legacy `uv run agov-*` tooling on
 2026-06-23). All 7 instructed dead commands. Replaced each with a thin
 wrapper reading and following the canonical `agf/skills/<name>/SKILL.md`,
-matching `framework.md`'s own "Tool mapping" table spec — a pointer can't
-drift the way the duplicate did.
+matching `framework.md`'s own "Tool mapping" table spec — a pointer
+eliminates duplicated procedural-body drift, or at minimum materially
+reduces the drift surface, compared to the full duplicate it replaced.
 
 ## Validation
 

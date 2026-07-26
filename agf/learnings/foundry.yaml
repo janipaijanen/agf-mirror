@@ -2212,10 +2212,14 @@ learnings:
       touched 2026-06-21, two days before `agf/skills/*/SKILL.md` was
       migrated off the legacy Python `uv run agov-*` tooling (2026-06-23).
       All 7 mirrored command files still instruct `uv run agov-health`,
-      `uv run agov-validate-infosec`, `uv run agov-bump`, etc.; tested
-      directly, `uv run agov-health` fails immediately (`Failed to spawn:
-      agov-health — No such file or directory`) because that command only
-      ever existed in the now-abandoned `agents-govern/.venv/`. Both
+      `uv run agov-validate-infosec`, `uv run agov-bump`, etc. Only
+      `uv run agov-health` was directly executed and confirmed to fail
+      immediately (`Failed to spawn: agov-health — No such file or
+      directory`), because that command only ever existed in the
+      now-abandoned `agents-govern/.venv/`; the other six commands were not
+      individually executed and are inferred, not confirmed, to fail on the
+      same first step, since they follow the identical
+      `uv run agov-<name>` pattern against the same abandoned `.venv/`. Both
       instances share the identical root cause: a real, intentional sync
       relationship exists on paper, but nothing enforces it, so it holds
       only until the source changes and nobody remembers to propagate the
@@ -2247,8 +2251,12 @@ learnings:
       `agf/rules/*.md` and `agf/skills/*/SKILL.md`), prefer a thin pointer
       over a duplicated copy wherever the consuming tool supports it — a
       `.claude/commands/<name>.md` that reads and follows
-      `agf/skills/<name>/SKILL.md` cannot drift, because there is no second
-      copy to drift. Where duplication is unavoidable (e.g. a compiled
+      `agf/skills/<name>/SKILL.md` eliminates duplicated procedural-body
+      drift, or at minimum materially reduces the drift surface — the
+      pointer's own path and front matter can still drift (e.g. if the
+      target file is renamed or moved), but the procedural steps themselves
+      have no second copy to fall out of sync. Where duplication is
+      unavoidable (e.g. a compiled
       binary that cannot "point at" its own source), add a cheap freshness
       check: compare the binary's build timestamp or embedded commit hash
       (already exposed by `agov version --format json`) against current HEAD
@@ -2260,7 +2268,7 @@ learnings:
       level: single-adopter
       evidence_count: 2
       evidence_refs:
-        - "20260726T115544Z-build-engineer-kb1p (agov-mcp build-freshness finding)"
+        - "20260726T115544Z-build-engineer-kb1p (agov-mcp build-freshness finding; docs/coordination/20260726T115544Z-build-engineer-kb1p.md, MR !586, not yet on main)"
         - "20260726T121131Z-build-engineer-njsk (reconciled assessment, both instances)"
 
 sentinel_ack:
