@@ -134,7 +134,7 @@ binary_is_fresh() {
   commit=${provenance#*'"commit":"'}
   commit=${commit%%\"*}
   source_dirty=${provenance#*'"source_dirty":'}
-  source_dirty=${source_dirty%%[},]*}
+  source_dirty=${source_dirty%\}}
 
   case "$commit" in
     ''|*[!0-9a-fA-F]*)
