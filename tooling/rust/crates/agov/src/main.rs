@@ -12,6 +12,20 @@ type ValidationErrors = Vec<(String, String)>;
 type FileValidator<T> = fn(&std::path::Path) -> Result<T, ValidationErrors>;
 type AdvisoryFn<T> = fn(&T) -> Vec<String>;
 
+// Kept as one contiguous string so release CI can verify provenance in the
+// exact cross-compiled bytes without executing a foreign-platform binary.
+#[used]
+static BUILD_PROVENANCE_MARKER: &str = concat!(
+    "AGOV_BUILD_PROVENANCE_V1|",
+    env!("CARGO_PKG_VERSION"),
+    "|",
+    env!("AGOV_GIT_SHA"),
+    "|",
+    env!("AGOV_GIT_DIRTY"),
+    "|",
+    env!("AGOV_SOURCE_DIRTY")
+);
+
 #[derive(Parser)]
 #[command(name = "agov", about = "AGF governance tooling", version)]
 struct Cli {
@@ -423,6 +437,11 @@ enum UsageCommand {
 }
 
 fn main() {
+    // `#[used]` retains the marker in compiler output, but a cross-linker may
+    // still garbage-collect its section when no reachable code references it.
+    // Keep the exact bytes reachable without changing version output.
+    std::hint::black_box(BUILD_PROVENANCE_MARKER);
+
     let args = normalized_args();
     if matches!(args.get(1).map(String::as_str), Some("--version" | "-V")) {
         println!("{}", version_text());
@@ -596,6 +615,7 @@ struct VersionInfo {
     version: &'static str,
     commit: &'static str,
     dirty: bool,
+    source_dirty: bool,
 }
 
 fn build_version_info() -> VersionInfo {
@@ -603,6 +623,7 @@ fn build_version_info() -> VersionInfo {
         version: env!("CARGO_PKG_VERSION"),
         commit: option_env!("AGOV_GIT_SHA").unwrap_or("unknown"),
         dirty: option_env!("AGOV_GIT_DIRTY").unwrap_or("false") == "true",
+        source_dirty: option_env!("AGOV_SOURCE_DIRTY").unwrap_or("false") == "true",
     }
 }
 

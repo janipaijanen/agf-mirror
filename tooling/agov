@@ -12,6 +12,7 @@ fi
 repo_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
 rust_debug="$repo_root/tooling/rust/target/debug/agov"
 rust_release="$repo_root/tooling/rust/target/release/agov"
+freshness_paths="tooling/agov tooling/rust agf/schemas agf/agents/MANIFEST.yaml"
 
 export AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}"
 export AGOV_MANIFEST_PATH="${AGOV_MANIFEST_PATH:-$repo_root/agf/agents/MANIFEST.yaml}"
@@ -71,19 +72,128 @@ rust_supported() {
 }
 
 run_rust() {
-  if [ -x "$rust_release" ]; then
+  if [ "${AGOV_ALLOW_STALE_LOCAL_BINARY:-0}" = "1" ]; then
+    if [ "${CI:-}" = "true" ]; then
+      echo "agov: AGOV_ALLOW_STALE_LOCAL_BINARY is forbidden in CI" >&2
+      return 126
+    fi
+    echo "WARN agov freshness gate explicitly bypassed for local development" >&2
+    if [ -x "$rust_release" ]; then
+      exec "$rust_release" "$@"
+    fi
+    if [ -x "$rust_debug" ]; then
+      exec "$rust_debug" "$@"
+    fi
+  fi
+
+  base_ref=$(requested_base_ref "$@")
+  if [ -x "$rust_release" ] && binary_is_fresh "$rust_release" "$base_ref"; then
     exec "$rust_release" "$@"
   fi
 
-  if [ -x "$rust_debug" ]; then
+  if [ -x "$rust_debug" ] && binary_is_fresh "$rust_debug" "$base_ref"; then
     exec "$rust_debug" "$@"
   fi
 
-  if command -v cargo >/dev/null 2>&1; then
-    exec cargo run --quiet --manifest-path "$repo_root/tooling/rust/Cargo.toml" -p agov -- "$@"
-  fi
-
+  cat >&2 <<EOF
+agov: no provenance-compatible local binary is available.
+Rebuild from the intended checkout, then retry:
+  cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+EOF
   return 127
+}
+
+requested_base_ref() {
+  if [ "${1:-}" != "session" ] || [ "${2:-}" != "resume" ]; then
+    return 0
+  fi
+  shift 2
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --base-branch)
+        [ "$#" -ge 2 ] && printf '%s\n' "$2"
+        return 0
+        ;;
+      --base-branch=*)
+        printf '%s\n' "${1#--base-branch=}"
+        return 0
+        ;;
+    esac
+    shift
+  done
+}
+
+binary_is_fresh() {
+  binary=$1
+  base_ref=$2
+  provenance=$($binary version --format json 2>/dev/null || true)
+  case "$provenance" in
+    *'"commit":"'*'"source_dirty":'*) ;;
+    *) provenance='' ;;
+  esac
+  commit=${provenance#*'"commit":"'}
+  commit=${commit%%\"*}
+  source_dirty=${provenance#*'"source_dirty":'}
+  source_dirty=${source_dirty%\}}
+
+  case "$commit" in
+    ''|*[!0-9a-fA-F]*)
+      echo "WARN rejected $binary: missing or malformed full commit provenance" >&2
+      return 1
+      ;;
+  esac
+  if [ "${#commit}" -ne 40 ]; then
+    echo "WARN rejected $binary: missing or malformed full commit provenance" >&2
+    return 1
+  fi
+  if [ "$source_dirty" != "false" ]; then
+    echo "WARN rejected $binary: build-relevant tracked sources were dirty" >&2
+    return 1
+  fi
+  if ! head=$(git -C "$repo_root" rev-parse --verify "HEAD^{commit}" 2>/dev/null); then
+    echo "WARN rejected $binary: cannot resolve worktree HEAD" >&2
+    return 1
+  fi
+  if ! worktree_matches_binary "$commit" "$head"; then
+    echo "WARN rejected $binary: stale relative to worktree HEAD" >&2
+    return 1
+  fi
+  if [ -n "$base_ref" ] && ! base_matches_binary "$commit" "$base_ref"; then
+    echo "WARN rejected $binary: stale relative to requested base $base_ref" >&2
+    return 1
+  fi
+  if ! git -C "$repo_root" diff-index --quiet HEAD -- $freshness_paths; then
+    echo "WARN rejected $binary: tracked freshness-sensitive files are modified" >&2
+    return 1
+  fi
+  return 0
+}
+
+worktree_matches_binary() {
+  commit=$1
+  target=$2
+  if [ "$commit" = "$target" ]; then
+    return 0
+  fi
+  git -C "$repo_root" merge-base --is-ancestor "$commit" "$target" 2>/dev/null \
+    && git -C "$repo_root" diff --quiet "$commit" "$target" -- $freshness_paths
+}
+
+base_matches_binary() {
+  commit=$1
+  base_ref=$2
+  if ! base=$(git -C "$repo_root" rev-parse --verify "$base_ref^{commit}" 2>/dev/null); then
+    echo "WARN cannot resolve freshness target $base_ref" >&2
+    return 1
+  fi
+  if [ "$base" = "$commit" ]; then
+    return 0
+  fi
+  if git -C "$repo_root" merge-base --is-ancestor "$base" "$commit" 2>/dev/null; then
+    return 0
+  fi
+  git -C "$repo_root" merge-base --is-ancestor "$commit" "$base" 2>/dev/null \
+    && git -C "$repo_root" diff --quiet "$commit" "$base" -- $freshness_paths
 }
 
 case "${1:-}" in

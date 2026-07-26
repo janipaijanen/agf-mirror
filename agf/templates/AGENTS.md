@@ -144,6 +144,11 @@ agov coord brief --from <role>                 # generate a coordination ID
 agov usage report                              # recent coordination activity
 ```
 
+In a full source checkout, the repository wrapper must reject a local binary
+whose embedded commit or build-relevant tracked-source state is stale relative
+to the checkout or the requested resume base. Rebuild from the intended
+checkout; do not bypass the check for routine governed work.
+
 ---
 
 ## What NOT to do
