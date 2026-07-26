@@ -19,8 +19,14 @@ historical marker anywhere in the same clause or within some proximity of
 the version number; three rounds of fact-check (8ka5, de5k, rjbm) each
 found a same-line phrasing where that let an unrelated -- or contradicted --
 "historical" exempt a current-looking label. Scoping the marker to the
-matched parenthetical itself removes that entire bug class: the marker is
-syntactically part of the label it qualifies, not merely nearby text.
+matched parenthetical itself removes that class of bug, but a fourth round
+(s6es) found that plain substring matching on "historical" inside the
+parenthetical still accepts negation, contradiction, and compound words --
+"not historical", "ahistorical", "non-historical current status",
+"historically current", "historical claim is false" all incorrectly passed.
+The exemption is now a bounded exact-phrase grammar: the parenthetical must
+contain nothing but the version token followed by a literal ", historical"
+and nothing else.
 
 Run directly: `python3 agf/docs/build/hooks/check_stale_version_labels.py`
 Self-test: `python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test`
@@ -52,9 +58,17 @@ MATURITY_WORDS = (
 
 STALE_LABEL_RE = re.compile(
     r"\b(?:" + "|".join(re.escape(word) for word in MATURITY_WORDS) + r")"
-    r"\s*\(\s*v\d[\d.]*[^)]*\)",
+    r"\s*\(\s*(?P<paren>v\d[\d.]*[^)]*)\)",
     re.IGNORECASE,
 )
+
+# Bounded exact-phrase grammar for the historical exemption: the parenthetical
+# content must be nothing but the version token, then a literal ", historical",
+# then nothing else. This rejects negation ("not historical"), compound words
+# ("ahistorical", "historically current"), and trailing contradictions
+# ("historical claim is false") by construction -- none of them match the
+# fixed grammar, so none of them can be crafted to slip through it.
+_HISTORICAL_MARKER_RE = re.compile(r"^v\d[\d.]*\s*,\s*historical\s*$", re.IGNORECASE)
 
 
 class StaleVersionLabelError(ValueError):
@@ -66,7 +80,7 @@ def find_stale_labels(text: str) -> list[tuple[int, str]]:
     findings: list[tuple[int, str]] = []
     for lineno, line in enumerate(text.splitlines(), start=1):
         for match in STALE_LABEL_RE.finditer(line):
-            if "historical" in match.group(0).lower():
+            if _HISTORICAL_MARKER_RE.match(match.group("paren")):
                 continue  # e.g. "Deployable (v2.0, historical)"
             findings.append((lineno, match.group(0)))
     return findings
@@ -166,6 +180,26 @@ class SelfTest(unittest.TestCase):
 
     def test_rejects_historical_prose_after_semicolon_same_version(self) -> None:
         findings = find_stale_labels("Deployable (v2.0); unrelated v2.0 is historical.")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_negated_historical_marker(self) -> None:
+        findings = find_stale_labels("Deployable (v2.0, not historical)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_ahistorical_compound_word(self) -> None:
+        findings = find_stale_labels("Deployable (v2.0, ahistorical)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_non_historical_compound_prefix(self) -> None:
+        findings = find_stale_labels("Deployable (v2.0, non-historical current status)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historically_compound_word(self) -> None:
+        findings = find_stale_labels("Deployable (v2.0, historically current)")
+        self.assertEqual(len(findings), 1)
+
+    def test_rejects_historical_marker_with_trailing_contradiction(self) -> None:
+        findings = find_stale_labels("Deployable (v2.0, historical claim is false)")
         self.assertEqual(len(findings), 1)
 
 
