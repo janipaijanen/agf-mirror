@@ -7,8 +7,8 @@ advisory_consultation:
     status: consulted
     reason: "must review authority boundaries, scope, compatibility, and acceptance evidence before Gate 1"
   - role: infosec-sentinel
-    status: consulted
-    reason: "must review CI provenance inputs, external lookup avoidance, and disclosure of repository metadata before Gate 1"
+    status: not-applicable
+    reason: "the CI-driven sentinel's rule-granted mechanical credential/cross-record checks are not triggered by this plan-only documentation artifact; a separately labeled AI security-lens review covers design risks without impersonating or replacing CI"
   - role: fact-checker
     status: consulted
     reason: "must verify the exact release tag, release commit, live Pages commit, and all public version wording before Gate 2"
@@ -102,6 +102,12 @@ introduce a hand-edited release manifest merely to duplicate `VERSION` or tag
 state. If the preferred derivation is infeasible, return to Gate 1 with the
 evidence and a revised provenance design.
 
+GitLab currently has no protected-tag rule for `v*`. That pre-existing
+repository trust risk also affects the existing release pipeline and is not
+created or remediated by this documentation plan. The governor may track tag
+protection as a separate repository-configuration decision; implementation
+must not silently expand this plan to change project permissions.
+
 Tag pipelines must continue to fail when `CI_COMMIT_TAG` differs from
 `v$(cat agf/VERSION)`. A default-branch docs build may share the release's
 semantic version while clearly being later development content.
@@ -171,7 +177,9 @@ scope.
 
 - Contribution-auditor reviews the authority model, minimality, and testable
   scope before approval.
-- Infosec-sentinel reviews CI inputs and the public metadata boundary.
+- The CI-driven infosec-sentinel has no applicable plan-stage mechanical check;
+  Claude's separately labeled security-lens review is advisory evidence only
+  and does not impersonate or replace the sentinel.
 - Governor-reviewer alone approves Gate 1 and Gate 2.
 - Fact-checker is activated for the exact implementation SHA before Gate 2 and
   verifies public claims against Git refs, release metadata, and rendered
