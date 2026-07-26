@@ -37,9 +37,22 @@ cp "$tmp_dir/agov" "$tmp_dir/agov-mcp"
 sh "$verify" --binary "$version" "$commit" "$tmp_dir/agov" "$tmp_dir/agov-mcp" >/dev/null
 
 printf 'AGOV_BUILD_PROVENANCE_V1|%s|%s|false|true\n' "$version" "$commit" >"$tmp_dir/agov-mcp"
-if sh "$verify" --binary "$version" "$commit" "$tmp_dir/agov" "$tmp_dir/agov-mcp" >/dev/null 2>&1; then
+archive="$tmp_dir/should-not-exist.tar.gz"
+set +e
+(
+  set -e
+  sh "$verify" --binary "$version" "$commit" "$tmp_dir/agov" "$tmp_dir/agov-mcp"
+  : >"$archive"
+) >"$tmp_dir/rejection.log" 2>&1
+status=$?
+set -e
+if [ "$status" -eq 0 ]; then
   echo "expected mismatched binary provenance marker to fail" >&2
   exit 1
 fi
+if [ -e "$archive" ]; then
+  echo "mismatched binary reached archive creation" >&2
+  exit 1
+fi
 
-echo 'OK tooling provenance verifier negative fixtures'
+echo 'OK tooling provenance verifier negative fixtures; archive creation not reached'
