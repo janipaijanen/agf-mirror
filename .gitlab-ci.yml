@@ -603,6 +603,7 @@ rust:tooling:test:
   extends: .rust-base
   stage: test
   script:
+    - apt-get update -qq && apt-get install -y -qq jq
     - sh tests/agov-wrapper-freshness.sh
     - sh tests/tooling-provenance-verifier.sh
     - cargo test --workspace
@@ -691,7 +692,7 @@ rust:tooling:clippy:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq docker.io jq zip
+    - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
@@ -728,9 +729,8 @@ rust:tooling:clippy:
         esac
         rm -f "target/${target}/release/agov" "target/${target}/release/agov-mcp"
         cross build --release --target "$target" -p agov -p agov-mcp
-        agov_json=$(cross run --quiet --release --target "$target" -p agov -- version --format json)
-        mcp_json=$(cross run --quiet --release --target "$target" -p agov-mcp -- version --format json)
-        sh scripts/verify-tooling-provenance.sh "$VERSION" "$CI_COMMIT_SHA" "$agov_json" "$mcp_json"
+        sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
+          "target/${target}/release/agov" "target/${target}/release/agov-mcp"
         archive="agov-${VERSION}-${slug}.tar.gz"
         staging="$(mktemp -d)"
         mkdir -p "$staging/agov-${VERSION}-${slug}"
@@ -764,9 +764,8 @@ rust:tooling:clippy:
         slug="windows-x86_64"
         rm -f "target/${target}/release/agov.exe" "target/${target}/release/agov-mcp.exe"
         cross build --release --target "$target" -p agov -p agov-mcp
-        agov_json=$(cross run --quiet --release --target "$target" -p agov -- version --format json)
-        mcp_json=$(cross run --quiet --release --target "$target" -p agov-mcp -- version --format json)
-        sh scripts/verify-tooling-provenance.sh "$VERSION" "$CI_COMMIT_SHA" "$agov_json" "$mcp_json"
+        sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
+          "target/${target}/release/agov.exe" "target/${target}/release/agov-mcp.exe"
         archive="agov-${VERSION}-${slug}.zip"
         staging="$(mktemp -d)"
         dist_dir="$(cd ../../dist && pwd)"

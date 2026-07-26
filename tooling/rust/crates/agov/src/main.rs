@@ -12,6 +12,20 @@ type ValidationErrors = Vec<(String, String)>;
 type FileValidator<T> = fn(&std::path::Path) -> Result<T, ValidationErrors>;
 type AdvisoryFn<T> = fn(&T) -> Vec<String>;
 
+// Kept as one contiguous string so release CI can verify provenance in the
+// exact cross-compiled bytes without executing a foreign-platform binary.
+#[used]
+static BUILD_PROVENANCE_MARKER: &str = concat!(
+    "AGOV_BUILD_PROVENANCE_V1|",
+    env!("CARGO_PKG_VERSION"),
+    "|",
+    env!("AGOV_GIT_SHA"),
+    "|",
+    env!("AGOV_GIT_DIRTY"),
+    "|",
+    env!("AGOV_SOURCE_DIRTY")
+);
+
 #[derive(Parser)]
 #[command(name = "agov", about = "AGF governance tooling", version)]
 struct Cli {

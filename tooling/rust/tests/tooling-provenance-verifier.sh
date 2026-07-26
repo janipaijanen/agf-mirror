@@ -6,6 +6,8 @@ verify="$script_dir/../scripts/verify-tooling-provenance.sh"
 version=9.8.7
 commit=0123456789abcdef0123456789abcdef01234567
 good=$(printf '{"version":"%s","commit":"%s","dirty":false,"source_dirty":false}' "$version" "$commit")
+tmp_dir=$(mktemp -d)
+trap 'rm -rf "$tmp_dir"' EXIT
 
 sh "$verify" "$version" "$commit" "$good" "$good" >/dev/null
 
@@ -20,5 +22,16 @@ do
     exit 1
   fi
 done
+
+marker="AGOV_BUILD_PROVENANCE_V1|${version}|${commit}|false|false"
+printf 'prefix\n%s\nsuffix\n' "$marker" >"$tmp_dir/agov"
+cp "$tmp_dir/agov" "$tmp_dir/agov-mcp"
+sh "$verify" --binary "$version" "$commit" "$tmp_dir/agov" "$tmp_dir/agov-mcp" >/dev/null
+
+printf 'AGOV_BUILD_PROVENANCE_V1|%s|%s|false|true\n' "$version" "$commit" >"$tmp_dir/agov-mcp"
+if sh "$verify" --binary "$version" "$commit" "$tmp_dir/agov" "$tmp_dir/agov-mcp" >/dev/null 2>&1; then
+  echo "expected mismatched binary provenance marker to fail" >&2
+  exit 1
+fi
 
 echo 'OK tooling provenance verifier negative fixtures'

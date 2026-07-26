@@ -23,6 +23,20 @@ use std::process::Command;
 
 const PROTOCOL_VERSION: &str = "2025-06-18";
 
+// Kept as one contiguous string so release CI can verify provenance in the
+// exact cross-compiled bytes without executing a foreign-platform binary.
+#[used]
+static BUILD_PROVENANCE_MARKER: &str = concat!(
+    "AGOV_BUILD_PROVENANCE_V1|",
+    env!("CARGO_PKG_VERSION"),
+    "|",
+    env!("AGOV_GIT_SHA"),
+    "|",
+    env!("AGOV_GIT_DIRTY"),
+    "|",
+    env!("AGOV_SOURCE_DIRTY")
+);
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if matches!(args.as_slice(), [arg] if arg == "--version" || arg == "-V") {
