@@ -22,7 +22,8 @@ what the evidence base for the savings looks like.
 
 The optional `agov` command is the adopter-facing CLI for AGF validators and
 coordination helpers. It is a static binary (~5–12 MB) with no runtime
-dependency. Download the archive for your platform, unpack it, and run `agov`.
+dependency. See [How to set it up](#how-to-set-it-up) below for the
+recommended published-artifact install path.
 
 ## Current command maturity
 
@@ -60,29 +61,51 @@ For adoption work, `agov usage report --last 50` is the quickest answer to
 
 ## How to set it up
 
-### Option A — Full checkout (recommended)
+Choose a published artifact unless you are contributing to AGF or no artifact
+exists for your platform. Ordinary downstream adopters should not need an AGF
+source checkout to run `agov`.
 
-If you have a full checkout, build the binary once per machine. Prefer the
-release build for normal development, agent, and operator work; use the debug
-build only when actively debugging Rust internals.
+### Option A — Platform tooling release archive (recommended for local use)
+
+Download the `agov` tooling archive — not the `agf-<version>.tar.gz`/`.zip`
+framework source archive, which is a different asset on the same release page
+— matching your OS, architecture, and adopted AGF version from the
+[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+Published platforms as of v2.4.4: `linux-x86_64`, `linux-aarch64`, and
+`windows-x86_64`; no macOS archive is published yet.
+
+Verify the adjacent `.sha256` checksum and `-provenance.json` file (both
+linked next to the archive on the Releases page) before trusting the binary.
+A checksum fetched from the same publication channel confirms the archive
+matches that published value — it does not independently prove that neither
+the archive nor the checksum was substituted, and it is not a signature:
 
 ```bash
-cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+# Linux (.tar.gz)
+sha256sum -c agov-<version>-linux-x86_64.tar.gz.sha256
+
+# Windows (.zip) — from PowerShell
+Get-FileHash agov-<version>-windows-x86_64.zip -Algorithm SHA256
+# then compare the hash against the contents of the adjacent .sha256 file
 ```
 
-Then add it to your PATH:
+Then open the adjacent `-provenance.json` file and confirm it names the
+version, tag, source commit, artifact filename, and checksum you expect —
+this establishes consistency with the published record, not an independent
+attestation or cryptographic signature.
+
+Unpack the archive, place the `agov` (and, if you use MCP, `agov-mcp`)
+executable on PATH, and confirm the reported version matches what you
+downloaded:
 
 ```bash
-ln -sfn "$PWD/tooling/rust/target/release/agov" ~/.local/bin/agov
+agov --version
 ```
 
-### Option B — Release archive
+### Option B — Official OCI image (recommended for CI/container use)
 
-Download the `agov` archive for your platform from the
-[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases),
-unpack it, and place the `agov` executable on PATH.
-
-### Option C — CI integration
+Pin an exact release tag or digest — never `:latest` — and mount your
+repository into the container:
 
 ```yaml
 validate-governance:
@@ -99,12 +122,39 @@ validate-governance:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Pin the image to an exact version tag or digest. The release archive remains a
-supported alternative when your CI environment does not allow project registry
-images.
+This is a container execution path for CI or scripted validation, not a host
+installation recipe — it does not put `agov` on a developer's local `PATH`,
+and it is not an installation path for the local stdio `agov-mcp` server
+(see [agov MCP server](mcp-server.md)). The release archive (Option A) remains
+a supported alternative when your CI environment does not allow project
+registry images.
 
 See [Contracts and validators](../advanced/contracts-and-validators.md) for the
 full CI wiring guide, including how to declare checks as blocking vs advisory.
+
+### Option C — Build from source (not usually recommended downstream)
+
+Keep this for contributing to AGF, debugging Rust internals, an unsupported
+platform, or the absence of a suitable published artifact for your OS/
+architecture. Check out an exact release ref (a tag, not a moving branch) and
+build the locked release profile — do not treat an ordinary full checkout as
+the recommended adopter path:
+
+```bash
+git checkout <adopted-version>   # pin an exact release tag, e.g. v2.4.4
+cargo build --release --locked --manifest-path tooling/rust/Cargo.toml -p agov
+```
+
+Add `-p agov-mcp` to the same command if you also need the MCP server binary.
+`--locked` requires `Cargo.lock` to be present and unmodified — this is the
+case on any tagged release ref — and fails rather than silently resolving
+different dependency versions than the ones that shipped in that release.
+
+Then add it to your PATH:
+
+```bash
+ln -sfn "$PWD/tooling/rust/target/release/agov" ~/.local/bin/agov
+```
 
 `agov` is optional tooling. If you do not install it, keep the same governance
 obligations: manually review changed plan and coordination front matter,
@@ -112,6 +162,11 @@ confirm assistant loaders point at `agf/`, and record the manual checks in the
 MR. When `agov validate` is available, treat its output as framework coverage;
 for complete governance coverage also run `agov plan validate` and
 `agov coord validate` on the relevant files.
+
+A human or administrator selects, verifies, installs, and pins the artifact
+(Option A, B, or C); the AI assistant uses the CLI or MCP transport already
+configured for it and must not silently choose an unpinned download or build
+from source on its own.
 
 ## Why meter at the governance gate
 
@@ -196,9 +251,11 @@ for the full list of telemetry controls.
 
 ## What is not in scope
 
-- Registry publishing or code signing (a separate future decision)
-- Windows x64 packaged release (preview CI artifact exists; downloadable
-  release not yet available)
+- Language/ecosystem registry publishing, such as crates.io, or code signing
+  (a separate future decision) — the GitLab generic-package archives and the
+  GitLab container registry OCI image described above are already published.
+- macOS tooling archive (not yet built or published; a Windows x64 archive
+  has been published since v2.1.5 — see Option A above).
 
 ## See also
 
