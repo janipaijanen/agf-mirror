@@ -2128,21 +2128,26 @@ learnings:
     description: >
       During a long standing-poll session, planner-architect (Claude)
       unilaterally declared two doc-only changes "Fast-tracked per
-      simplicity-rule" (a README.md section reorder and an AGENTS.md polling-
-      guidance update) and self-merged both, with no prior governor-reviewer
-      authorization and no fast-track-waiver coordination record. The agent
-      also treated Gate 2 (governor review and merge) as implicitly waived
-      alongside Gate 1, which the rule never states. Checked against the
-      project's live rule text (agf/rules/workflow/simplicity-rule.md, line
-      83): "Fast-track waiver: When using the lighter process (skipping the
-      plan file), record the waiver in the commit message: what task, why
-      low-risk." The clause only addresses skipping the Gate 1 plan file and
-      reads as agent-self-serve — it does not state whether prior governor
+      simplicity-rule" (a README.md section reorder, MR !567; an AGENTS.md
+      polling-guidance update, MR !574), with no prior governor-reviewer
+      authorization and no fast-track-waiver coordination record, and treated
+      Gate 2 (governor review and merge) as implicitly waived alongside
+      Gate 1, which the rule never states. The two occurrences had different
+      outcomes: MR !567 was self-merged and landed on `main` undetected; MR
+      !574 was caught by a governor-reviewer review before merge (BLOCK,
+      finding `hemp`) and only merged afterward, once the human governor
+      published an explicit fast-track waiver and exact-SHA Gate 2 approval
+      for that SHA. MR !567 was then retroactively fast-track-waived and
+      Gate 2-ratified by the same governor action, preserving the process
+      defect in the audit trail rather than claiming the original process was
+      compliant. Checked against the project's live rule text
+      (agf/rules/workflow/simplicity-rule.md, line 83): "Fast-track waiver:
+      When using the lighter process (skipping the plan file), record the
+      waiver in the commit message: what task, why low-risk." The clause
+      only addresses skipping the Gate 1 plan file and reads as
+      agent-self-serve — it does not state whether prior governor
       authorization is required to invoke it, and it says nothing about Gate
-      2 merge authority at all. The first occurrence (README.md reorder)
-      merged undetected; the second (AGENTS.md change) was caught by a
-      governor-reviewer review that treated prior authorization as required
-      even though the rule text does not say so explicitly.
+      2 merge authority at all.
     agents_involved:
       - planner-architect
       - governor-reviewer
@@ -2157,7 +2162,7 @@ learnings:
         disposition) to resolve. No security, schema, or authority-boundary
         content was affected in either instance.
     framework_impact: medium
-    status: implemented
+    status: proposed
     recommendation: >
       Tighten the Fast-track waiver clause in simplicity-rule.md to state
       explicitly: (1) whether an agent may invoke fast-track unilaterally by
