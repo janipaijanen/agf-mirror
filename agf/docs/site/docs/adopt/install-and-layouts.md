@@ -240,12 +240,12 @@ project's GitLab container registry:
 
 ```bash
 # Canonical version: agf/VERSION
-podman pull registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.3
+podman pull registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4
 # Canonical version: agf/VERSION
 podman run --rm \
   -v "$PWD:/repo" \
   -w /repo \
-  registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.3 \
+  registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4 \
   validate
 ```
 

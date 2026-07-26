@@ -111,7 +111,7 @@ request:
 validate-governance:
   image:
     # Canonical version: agf/VERSION
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.3
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
@@ -152,7 +152,7 @@ checks the governor, CI policy, or named rule has granted blocking force.
 agf:governance:validate:
   image:
     # Canonical version: agf/VERSION
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.3
+    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |

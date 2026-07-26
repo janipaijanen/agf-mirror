@@ -3,6 +3,47 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.4] — 2026-07-26
+
+Documentation-provenance and release-hygiene patch. It adds no schema, role,
+Rust CLI/MCP implementation, governance authority, API, or adopter-contract
+surface.
+
+### Fixed
+
+- Generated release information now derives the latest immutable `vX.Y.Z`
+  tag and peeled source commit from Git while separately reporting the live
+  documentation branch and exact build commit.
+- Documentation status distinguishes an exact release build from later or
+  divergent development documentation without fabricating unavailable tag or
+  ancestry data.
+- The public release-information page, AI evaluation dossier, and accessible
+  header expose the same release/build provenance in visible, extractable text.
+- Removed the remaining current-looking versioned lifecycle labels and added a
+  strict documentation-source check that permits only the bounded form
+  `Status (vX.Y, historical)`.
+
+### Changed
+
+- Public page status banners use non-versioned lifecycle wording instead of
+  coupling maturity to the documentation version in which a page appeared.
+- Added a governed summary of AGF's human gates, named authority, durable
+  records, evidence labels, reviewed learning, and repository-native exit
+  boundary to the README and public homepage.
+- Contributor setup is identified as foundry-specific and placed after the
+  adopter-facing README material.
+
+### Validation boundary
+
+- Exact-SHA CI, strict MkDocs generation, real shallow-checkout ancestry
+  tests, stale-label adversarial tests, rendered HTML/plain-text extraction,
+  live Pages verification, and independent fact-checking passed before the
+  release branch was cut.
+- Mutable Pages remains development documentation; the tagged source and
+  release artifacts are the immutable release authority.
+
+Adopter docs: updated
+
 ## [2.4.3] — 2026-07-25
 
 Patch release fixing three adopter-facing documentation defects and closing
