@@ -1,9 +1,9 @@
 ---
 id: ai-tool-guidance-coherence
-status: pending-gate1
+status: approved
 topic: ai-tool-guidance-coherence
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-26T14:04:27Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
