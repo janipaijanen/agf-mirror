@@ -31,8 +31,10 @@ The current surfaces mix three different facts:
   `7a43ad687e45ae2a36f6c8c157f08d2127faaae7`;
 - the live Pages site was built from later `main` commit
   `ba2f29c2da760cf2d2ca8e4c23c65389a2d699e0`; and
-- many authored pages still contain `Released (v2.1 documentation)`, which a
-  human or extractor can misread as the current version.
+- current `main` has already replaced the former per-page `Released (v2.1
+  documentation)` convention with generated release-information links, but
+  one authored page still says `Deployable (v2.0)` and two meta-descriptions
+  still describe the obsolete versioned-label convention.
 
 The generated release-info hook reads `agf/VERSION` and the current build
 commit. That correctly reports content version and build provenance, but it
@@ -85,9 +87,10 @@ Never describe the mutable Pages URL itself as an immutable release artifact.
 
 ### 2. Derive provenance without a second version truth
 
-Implementation planning must first test whether the Pages job can reliably
-resolve the latest release tag and its peeled commit from the checkout. The
-preferred order is:
+Implementation must begin with a bounded probe that tests whether the Pages
+job's actual shallow branch checkout can reliably resolve the latest release
+tag and its peeled commit. No other implementation scope begins until that
+result is recorded. The preferred resolution order is:
 
 1. local Git tag data, after making tag availability explicit in CI;
 2. deterministic CI-provided values sourced from the same Git refs; then
@@ -107,9 +110,11 @@ semantic version while clearly being later development content.
 
 Inventory every current-looking static version label in source documentation,
 the dossier assembly, generated output checks, screenshots, and public landing
-copy. Replace `Released (v2.1 documentation)` with a non-versioned lifecycle
-status such as `Released documentation`, retaining a version only when it is an
-explicitly historical statement such as `Introduced in v2.1`.
+copy. Correct the remaining `Deployable (v2.0)` label and the two
+meta-descriptions of the obsolete `Released (vX documentation)` convention.
+Use a non-versioned lifecycle status such as `Released documentation`,
+retaining a version only when it is an explicitly historical statement such as
+`Introduced in v2.1`.
 
 Generated `agf/site-html` is not an authority. Either regenerate it through its
 documented workflow when required or ensure tests cannot mistake it for source
@@ -137,8 +142,9 @@ Tests and validation must prove:
 5. built HTML and plain-text extraction produce one unambiguous answer for
    latest release and a separately labeled live build;
 6. the dossier embeds the same tuple rather than only linking to it;
-7. source scanning rejects current-looking `Released (vX documentation)`
-   labels except allow-listed historical prose; and
+7. source scanning rejects current-looking versioned lifecycle or maturity
+   labels—including `Released (vX documentation)` and `Deployable (vX)`—except
+   allow-listed prose that explicitly labels the version as historical; and
 8. existing tag/VERSION release guards and strict MkDocs builds remain green.
 
 The implementation handoff must include the exact tested commit, representative
@@ -153,8 +159,9 @@ CI.
 - pages containing static versioned lifecycle labels
 - `.gitlab-ci.yml` only if tag availability or deterministic inputs must be
   made explicit
-- focused unit/build/extraction tests and documentation of the provenance
-  contract
+- a new focused hook test such as
+  `agf/docs/build/hooks/test_release_info.py`, plus build/extraction tests and
+  documentation of the provenance contract
 
 Exact files are to be confirmed during implementation. No release, tag,
 `agf/VERSION` bump, promotion publication, mirror, or external repository is in
