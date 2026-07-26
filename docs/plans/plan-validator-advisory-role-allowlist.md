@@ -1,6 +1,6 @@
 ---
 id: plan-validator-advisory-role-allowlist
-status: pending-gate1
+status: superseded
 topic: plan-validator-advisory-roles
 gate1_approved_by: ""
 gate1_approved_at: ""
@@ -16,7 +16,14 @@ advisory_consultation:
 # Plan: `agov plan validate` rejects `build-engineer` despite it being a real AGF role (issue #30)
 
 **Date:** 2026-07-20T07:55:03Z
-**Status:** PENDING GATE 1 APPROVAL
+**Status:** SUPERSEDED — never Gate 1 approved. Issue #30 was instead resolved
+under `docs/plans/issue30-plan-validator-role-status-diagnostics.md`
+(Gate 1 approved by governor-reviewer 2026-07-24T10:10:00Z), which keeps
+`suspended` roles rejected but reports their authoritative status instead of
+this plan's proposal to widen the allowlist to accept them. That plan is
+implemented on `fix/issue30-role-status-diagnostics` (MR !463), pending
+Gate 2. This document is retained for its root-cause analysis and reproduction
+steps only; do not implement the allowlist-widening fix described below.
 **Label note:** this issue should get the `~bug` label; currently unlabeled.
 
 **Meta-note:** this plan itself fixes the exact validator this front matter is
