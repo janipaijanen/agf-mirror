@@ -2268,7 +2268,7 @@ learnings:
       level: single-adopter
       evidence_count: 2
       evidence_refs:
-        - "20260726T115544Z-build-engineer-kb1p (agov-mcp build-freshness finding; docs/coordination/20260726T115544Z-build-engineer-kb1p.md, MR !586, not yet on main)"
+        - "20260726T115544Z-build-engineer-kb1p (agov-mcp build-freshness finding; docs/coordination/20260726T115544Z-build-engineer-kb1p.md, MR !586, immutable evidence SHA 6389407838ec39d83fb728150d7076a68ed2d64c8, not yet on main)"
         - "20260726T121131Z-build-engineer-njsk (reconciled assessment, both instances)"
 
 sentinel_ack:
