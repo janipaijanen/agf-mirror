@@ -112,21 +112,6 @@ decisions come from the roles and gates recorded in the coordination channel.
 Tool output is evidence; it becomes blocking only when a named AGF rule or
 governor decision makes that check blocking.
 
-### Start development in this checkout
-
-Build the supported Rust helper, put the repository wrapper on your path, and
-ask it for the current project state before reading coordination files by hand:
-
-```bash
-cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
-export PATH="$PWD/tooling:$PATH"
-agov session resume --base-branch main
-```
-
-Then read [`AGENTS.md`](AGENTS.md) for the branch, gate, and contribution
-rules that apply to changes in this repository. The `agov` helper is optional
-for adopters, but it is the supported operator path for developing AGF itself.
-
 ## Maturity and evidence labels
 
 AGF uses explicit labels so public claims do not overstate what exists or how
@@ -279,8 +264,26 @@ funding from, and has no dependency or endorsement relationship with, the
 companies or brands whose tools, models, or runtimes may be discussed in the
 documentation.
 
+## Start development in this checkout
+
+This section is for contributors to AGF's own codebase, not for adopters
+evaluating AGF for their project — the rest of this README is written for
+the latter. Build the supported Rust helper, put the repository wrapper on
+your path, and ask it for the current project state before reading
+coordination files by hand:
+
+```bash
+cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+export PATH="$PWD/tooling:$PATH"
+agov session resume --base-branch main
+```
+
+Then read [`AGENTS.md`](AGENTS.md) for the branch, gate, and contribution
+rules that apply to changes in this repository. The `agov` helper is optional
+for adopters, but it is the supported operator path for developing AGF itself.
+
 ## Next
 
 Contributing here → read [`AGENTS.md`](AGENTS.md), then run the development
-start commands above. Evaluating adoption → read
+start commands immediately above. Evaluating adoption → read
 [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
