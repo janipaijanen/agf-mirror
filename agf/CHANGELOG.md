@@ -17,8 +17,10 @@ surface.
 - Documentation status distinguishes an exact release build from later or
   divergent development documentation without fabricating unavailable tag or
   ancestry data.
-- The public release-information page, AI evaluation dossier, and accessible
-  header expose the same release/build provenance in visible, extractable text.
+- The public release-information page and AI evaluation dossier expose the same
+  full release/build provenance tuple; the accessible header provides a concise
+  framework-version, docs-build-commit, and status summary in visible,
+  extractable text.
 - Removed the remaining current-looking versioned lifecycle labels and added a
   strict documentation-source check that permits only the bounded form
   `Status (vX.Y, historical)`.
