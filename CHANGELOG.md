@@ -19,9 +19,10 @@ unambiguous relative to the latest immutable release. See
 - Public release information now separates the framework version, latest
   release tag and source commit, live documentation branch and commit, and
   whether the site is release or later development documentation.
-- The AI evaluation dossier embeds the same full provenance tuple, while the
-  accessible page header exposes the framework version, docs-build commit, and
-  release status in visible, extractable text.
+- The AI evaluation dossier embeds the same full provenance tuple in visible,
+  extractable text. The accessible page header visibly shows the framework
+  version and docs-build commit; its accessible label also reports release
+  status.
 - Removed stale version-numbered lifecycle labels and added a strict source
   scanner that prevents their reintroduction except for an explicitly bounded
   historical qualifier.
