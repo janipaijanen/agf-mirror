@@ -9,6 +9,9 @@ advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: "The plan changes publication workflow and repository-history validation, not credentials, learning data, or an external trust boundary; the new rule will explicitly bound mechanical blocking authority."
+  - role: fact-checker
+    status: consulted
+    reason: "A bounded factual review verifies the !692 incident, Git/GitLab mechanics, target-race handling, and Pages/runbook claim consistency before Gate 1 is settled."
 ---
 
 # Plan: independent coordination-record publication
@@ -20,17 +23,21 @@ record should become visible independently of the implementation artifact's
 Gate 2, while the fast path must be mechanically incapable of carrying product
 changes or imported implementation history.
 
-Issue #72 tracks the work. Release placement is deliberately unassigned; this
-plan does not add the work to v2.4.5 or another release without a separate
-governor decision.
+Issue #72 tracks the work. The governor-reviewer directed that, once this plan
+is settled through Gate 1, its implementation is release-blocking for the next
+release. The release identifier is intentionally not guessed here. This scope
+assignment does not authorize implementation before Gate 1 or authorize the
+release itself.
 
 ## Evidence and problem boundary
 
 MR !692 is the concrete regression. Its tip added only coordination, but the
-branch parent was issue #68 implementation head `efa2ec5`. Merging !692
-therefore merged seven implementation files before human Gate 2. A
-`coordination:` title skipped pipeline creation, and `[ci skip]` supplied no
-ancestry or cumulative-diff evidence.
+branch parent was issue #68 implementation head `efa2ec5`. Its complete range
+contained eight changed paths: one coordination record and seven
+implementation/product paths merged before human Gate 2. Both the
+`coordination:` workflow rule and `[ci skip]` were present and independently
+capable of suppressing validation; the observed skipped pipelines do not prove
+which mechanism was causal.
 
 The proposal's timing principle is sound: claim, note, review, and ready
 handoff records lose their operational value when publication waits for the
@@ -58,9 +65,9 @@ unreviewed, or semantically premature publication.
 - Resolve a valid merge base on target history, inspect every source commit in
   `merge-base..HEAD`, and inspect the aggregate diff for the same range.
 - Do not require the source head to descend from the latest target tip after
-  unrelated target advances. Fail closed when the target cannot be fetched,
-  was rewritten so no valid merge base exists, or the requested base is
-  ambiguous.
+  unrelated target advances. Compute the merge-base candidates, confirm the
+  selected base is on fetched target history, and fail closed when the target
+  cannot be fetched or the base is absent or ambiguous.
 - Reject merge commits or imported history; any path outside
   `docs/coordination/*.md`; and modifications, deletions, renames, or copies.
   Only newly added coordination records are eligible.
@@ -73,9 +80,10 @@ unreviewed, or semantically premature publication.
   do not use literal `[ci skip]` on the protected fast path.
 - Route eligible candidates to a lightweight publication-check job while
   excluding expensive implementation jobs.
-- Ensure the check runs against the current target state immediately before
-  merge through the forge's supported latest-pipeline, merge-train, or
-  equivalent current-target mechanism.
+- Record the exact source and target SHAs checked. Revalidate when the target
+  advances, using the forge's merged-results/merge-train support or an
+  equivalent immediate pre-merge current-target check; a successful
+  source-head pipeline alone is insufficient.
 - Treat GitLab routing as an adapter to the forge-neutral rule and command.
 
 ### 4. Define lifecycle and supersession semantics
@@ -100,6 +108,12 @@ unreviewed, or semantically premature publication.
   `agf/docs/site/docs/operate/poll-and-coordinate.md`.
 - Link from the overarching runbook rather than copying the rules into several
   Pages locations. The concepts page remains the canonical explanation.
+- Preserve the existing GitLab Pages navigation exposure for the concept,
+  operator guide, and overarching runbook; test navigation, search, and
+  internal links so both audiences can find the guidance.
+- Keep authority singular: the named rule is normative; the concepts page is
+  the canonical explanation; the poll guide is a checklist; and the
+  overarching runbook is a situation-map pointer.
 
 ## Required tests
 
@@ -116,6 +130,9 @@ unreviewed, or semantically premature publication.
    failure when a valid merge base remains on target history.
 7. CI self-tests prove a candidate receives the lightweight validation job
    and cannot suppress all validation with its title or commit message.
+8. A strict GitLab Pages build, navigation/search exposure, internal links,
+   and a duplication/authority-wording review for the concept page, operator
+   checklist, and overarching runbook pass.
 
 ## Acceptance criteria
 
@@ -133,14 +150,19 @@ unreviewed, or semantically premature publication.
    isolated to its adapter.
 7. Rust formatting, linting, focused tests, full workspace tests, governance
    validation, CI self-tests, and Pages build are green at exact Gate 2 head.
+8. Fact-checker review clears the incident account, Git/GitLab behavior,
+   target-race claims, and non-duplicating Pages/runbook presentation at the
+   exact documentation head.
 
 ## Exclusions and sequencing
 
 - No implementation begins until governor-reviewer Gate 1 approval changes
   this plan to `approved`.
+- The implementation must reach Gate 2 and merge before the next-release
+  candidate is locked; this plan does not itself name, bump, tag, or publish
+  that release.
 - This plan does not introduce coordination kinds or schema fields, auto-merge
   coordination, alter Gate authority, rewrite historical records, bump a
   version, create a tag, or publish a release.
 - Semantic verification automation beyond mechanically observable repository
   facts requires a separate plan and explicit authority grant.
-
