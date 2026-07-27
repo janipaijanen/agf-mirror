@@ -76,15 +76,23 @@ this minimal path gets you running. It assumes the release archive has been
 extracted as `agf/` in your existing project.
 
 0. **Make `agov` available** if you want to run the current core validators
-   locally. In a full checkout, symlink the repository-local executable:
+   locally. For a release installation, download the `agov` archive for your
+   platform from the current
+   [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases),
+   and verify its adjacent `.sha256` and `-provenance.json` files. Assistants
+   that cannot read the client-rendered Releases page can discover the same
+   assets through the unauthenticated
+   [GitLab Releases API](https://gitlab.com/api/v4/projects/83321848/releases).
+   See the canonical
+   [installation guide](docs/site/docs/adopt/install-and-layouts.md) for the
+   supported artifact-first procedure. In a full checkout, you may instead
+   symlink the repository-local executable:
    ```bash
    mkdir -p ~/.local/bin
    ln -sfn "$PWD/tooling/agov" ~/.local/bin/agov
    ```
-   A release archive containing only `agf/` does not yet include packaged
-   tooling. Use a full repository checkout when validating this POC.
 
-1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agent-governance/-/releases/permalink/latest)
+1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/permalink/latest)
    and extract it into your project as `agf/`.
 
 2. **Ask the assistant to wire rule loading** without copying the rules out of
@@ -617,8 +625,8 @@ Create a `docs/adr/` directory in your project. Copy the Architecture Decision R
 
 ```bash
 mkdir -p docs/adr
-cp docs/adr/_template.md docs/adr/
-cp docs/adr/README.md docs/adr/
+cp agf/docs/adr/_template.md docs/adr/
+cp agf/docs/adr/README.md docs/adr/
 ```
 
 Record significant architecture decisions as they arise — technology
