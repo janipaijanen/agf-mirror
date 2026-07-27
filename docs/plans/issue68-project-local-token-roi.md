@@ -1,9 +1,9 @@
 ---
 id: issue68-project-local-token-roi
-status: pending-gate1
+status: approved
 topic: issue68-project-local-token-roi
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-27T01:58:19Z"
 advisory_consultation:
   - role: contribution-auditor
     status: not-applicable
