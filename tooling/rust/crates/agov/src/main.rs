@@ -273,8 +273,9 @@ enum TokenCommand {
 
 #[derive(Subcommand)]
 enum TokenRoiCommand {
-    /// Report accumulated token ROI telemetry.
+    /// Report accumulated project-local token ROI telemetry.
     Report {
+        /// Log to read; overrides AGOV_TOKEN_ROI_LOG and the detected project default.
         #[arg(long)]
         log: Option<PathBuf>,
     },
@@ -1586,7 +1587,15 @@ fn emit_provenance_record(
 }
 
 fn token_roi_report(log: Option<PathBuf>) -> i32 {
-    let path = log.unwrap_or_else(agov_core::roi::default_report_path);
+    let resolution = match agov_core::roi::resolve_log_path(log.as_deref()) {
+        Ok(resolution) => resolution,
+        Err(reason) => {
+            eprintln!("ERR  token ROI log unavailable: {reason}");
+            return 1;
+        }
+    };
+    agov_core::roi::emit_path_warning(resolution.warning.as_deref());
+    let path = resolution.path;
     match agov_core::roi::load_records(&path) {
         Ok(records) => {
             let summary = agov_core::roi::summarize(&records);

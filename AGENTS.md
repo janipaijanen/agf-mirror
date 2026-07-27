@@ -257,6 +257,10 @@ tool savings. Codex sessions should use:
 export AGOV_TOKEN_ROI_LOG="$PWD/tmp/codex-agov-token-roi.jsonl"
 ```
 
+Set this per checkout/session (or through a per-directory environment), not as
+a shell-global `$PWD` expansion: a global expanded value stays pinned to the
+directory where that shell started and can mix telemetry from later projects.
+
 Claude sessions should use:
 
 ```bash

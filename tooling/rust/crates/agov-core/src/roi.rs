@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
+use std::path::Component;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 /// A saved-token ROI record appended to `tmp/agov-token-roi.jsonl`.
 ///
@@ -366,9 +368,92 @@ fn redact_args(args: &[String]) -> Vec<String> {
     out
 }
 
-/// Resolve the ROI log path from environment or default.
-///
-/// Returns `None` when logging is disabled via `AGOV_TOKEN_ROI=0/false/off`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RoiLogSource {
+    Cli,
+    Environment,
+    ProjectDefault,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RoiLogResolution {
+    pub path: PathBuf,
+    pub source: RoiLogSource,
+    pub project_root: Option<PathBuf>,
+    pub warning: Option<String>,
+}
+
+static ROI_PATH_WARNING_EMITTED: OnceLock<()> = OnceLock::new();
+
+/// Emit at most one ROI path warning during this process.
+pub fn emit_path_warning(warning: Option<&str>) {
+    if let Some(warning) = warning {
+        if ROI_PATH_WARNING_EMITTED.set(()).is_ok() {
+            eprintln!("WARN {warning}");
+        }
+    }
+}
+
+fn lexical_absolute(path: &Path, cwd: &Path) -> PathBuf {
+    let absolute = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        cwd.join(path)
+    };
+    let mut normalized = PathBuf::new();
+    for component in absolute.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                normalized.pop();
+            }
+            other => normalized.push(other.as_os_str()),
+        }
+    }
+    normalized
+}
+
+/// Resolve one ROI path for both automatic writers and reports.
+pub fn resolve_log_path(explicit: Option<&Path>) -> Result<RoiLogResolution, String> {
+    let cwd = std::env::current_dir()
+        .map_err(|err| format!("could not determine the invocation directory: {err}"))?;
+    let root = crate::find_repo_root_from(&cwd).map(|path| lexical_absolute(&path, &cwd));
+    let (raw_path, source) = if let Some(path) = explicit {
+        (path.to_path_buf(), RoiLogSource::Cli)
+    } else if let Some(path) = std::env::var_os("AGOV_TOKEN_ROI_LOG") {
+        (PathBuf::from(path), RoiLogSource::Environment)
+    } else if let Some(root) = &root {
+        (
+            root.join("tmp").join("agov-token-roi.jsonl"),
+            RoiLogSource::ProjectDefault,
+        )
+    } else {
+        return Err("no AGF project root found; supply --log or AGOV_TOKEN_ROI_LOG".to_string());
+    };
+    let path = lexical_absolute(&raw_path, &cwd);
+    let warning = match &root {
+        Some(root) if !path.starts_with(root) => Some(format!(
+            "token ROI log {} is outside project root {}; suggested project-local path: {}",
+            path.display(),
+            root.display(),
+            root.join("tmp").join("agov-token-roi.jsonl").display()
+        )),
+        None if source != RoiLogSource::ProjectDefault => Some(format!(
+            "token ROI project isolation cannot be verified for {} because no AGF project root was found",
+            path.display()
+        )),
+        _ => None,
+    };
+    Ok(RoiLogResolution {
+        path,
+        source,
+        project_root: root,
+        warning,
+    })
+}
+
+/// Resolve the automatic-writer path. Returns `None` when disabled or when
+/// there is no project root and no explicit environment override.
 pub fn log_path() -> Option<PathBuf> {
     if std::env::var("AGOV_TOKEN_ROI")
         .is_ok_and(|value| matches!(value.as_str(), "0" | "false" | "off"))
@@ -376,11 +461,9 @@ pub fn log_path() -> Option<PathBuf> {
         return None;
     }
 
-    Some(
-        std::env::var_os("AGOV_TOKEN_ROI_LOG")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| crate::repo_root().join("tmp").join("agov-token-roi.jsonl")),
-    )
+    resolve_log_path(None)
+        .ok()
+        .map(|resolution| resolution.path)
 }
 
 /// Write one pre-joined record line with exactly one `Write::write` call.
@@ -424,9 +507,16 @@ fn write_line_once(writer: &mut impl std::io::Write, line: &[u8]) -> std::io::Re
 /// write). See [`write_line_once`] for the exact guarantee and its
 /// platform-expectation boundary.
 pub fn try_append(record: &RoiRecord) {
-    let Some(path) = log_path() else {
+    if std::env::var("AGOV_TOKEN_ROI")
+        .is_ok_and(|value| matches!(value.as_str(), "0" | "false" | "off"))
+    {
+        return;
+    }
+    let Ok(resolution) = resolve_log_path(None) else {
         return;
     };
+    emit_path_warning(resolution.warning.as_deref());
+    let path = resolution.path;
 
     let result = (|| -> Result<(), Box<dyn std::error::Error>> {
         if let Some(parent) = path.parent() {
@@ -531,12 +621,6 @@ pub struct RoiWorkflowRow {
     pub approx_tokens: u64,
     pub approx_saved_min_tokens: u64,
     pub approx_saved_max_tokens: u64,
-}
-
-pub fn default_report_path() -> PathBuf {
-    std::env::var_os("AGOV_TOKEN_ROI_LOG")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| crate::repo_root().join("tmp").join("agov-token-roi.jsonl"))
 }
 
 pub fn load_records(path: &Path) -> Result<Vec<serde_json::Value>, std::io::Error> {
