@@ -6,6 +6,22 @@ use std::os::unix::fs::PermissionsExt;
 use std::process::{Command, Stdio};
 
 #[test]
+fn help_describes_mcp_server_and_installation() {
+    for flag in ["--help", "-h"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+            .arg(flag)
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        assert!(output.stderr.is_empty());
+        let stdout = String::from_utf8(output.stdout).unwrap();
+        assert!(stdout.contains("stdio MCP server for agov"));
+        assert!(stdout.contains("AGOV_MCP_AGOV_BIN"));
+        assert!(stdout.contains("agf/docs/site/docs/adopt/mcp-server.md"));
+    }
+}
+
+#[test]
 fn version_json_reports_structured_provenance() {
     let output = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
         .args(["version", "--format", "json"])

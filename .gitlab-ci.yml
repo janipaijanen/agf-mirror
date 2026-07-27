@@ -753,7 +753,7 @@ rust:tooling:clippy:
         cmp "target/${target}/release/agov-mcp" "$staging/agov-${VERSION}-${slug}/agov-mcp"
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov"
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov-mcp"
-        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing the agov and agov-mcp executables on PATH.\n" \
+        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp is the stdio MCP server for agov. Install by placing the agov and agov-mcp executables on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
         tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${slug}"
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
@@ -787,7 +787,7 @@ rust:tooling:clippy:
         cp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
         cmp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
         cmp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
-        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nInstall by placing agov.exe and agov-mcp.exe on PATH.\n" \
+        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp.exe is the stdio MCP server for agov.exe. Install by placing agov.exe and agov-mcp.exe on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
