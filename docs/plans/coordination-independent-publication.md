@@ -168,3 +168,39 @@ unreviewed, or semantically premature publication.
   version, create a tag, or publish a release.
 - Semantic verification automation beyond mechanically observable repository
   facts requires a separate plan and explicit authority grant.
+
+## Governed amendment: target-race enforcement, 2026-07-27
+
+Recorded per governor-reviewer decision
+(`docs/coordination/20260727T152325Z-coder-tester-rrtp.md` and a further
+decision on the same date responding to
+`docs/coordination/20260727T161502Z-contribution-auditor-j4qg.md`'s finding
+that the initial implementation did not close this requirement).
+
+This plan's step 3 ("Revalidate when the target advances, using the forge's
+merged-results/merge-train support or an equivalent immediate pre-merge
+current-target check; a successful source-head pipeline alone is
+insufficient") is amended for this project's GitLab hosting constraints:
+
+- `only_allow_merge_if_pipeline_succeeds` and
+  `allow_merge_on_skipped_pipeline: false` are enabled at the project level.
+  This is a **partial mitigation**: it blocks merge when the current head
+  has no pipeline result, a failed pipeline, or a skipped (zero-job)
+  pipeline. It does **not** force a re-check when the target branch
+  advances after the candidate's pipeline last passed.
+- Merge trains and merged-results pipelines, the mechanism this plan named
+  as the primary path to full closure, were investigated and confirmed
+  **unavailable on this project's GitLab plan tier** —
+  `merge_pipelines_enabled` and `merge_trains_enabled` are absent from the
+  GitLab project API response entirely, not merely disabled, meaning the
+  feature cannot be enabled here regardless of permissions.
+- Given that constraint, this plan's requirement is narrowed for this
+  project: full mechanical current-target revalidation immediately before
+  merge is accepted as **not implemented**, rather than approximated by a
+  weaker mechanism presented as equivalent. `agov coord publication-check`
+  remains available for any operator to invoke live, immediately before
+  merging, as a manual (not automatically enforced) mitigation.
+- This amendment does not retroactively change what already-merged
+  coordination-only fast-path merges are considered to have satisfied; it
+  documents, going forward, the actual enforcement ceiling on this specific
+  GitLab plan tier. Re-evaluate if the project's GitLab plan tier changes.

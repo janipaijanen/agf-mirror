@@ -132,13 +132,38 @@ this implementation:
   the per-occurrence reconciliation this issue tracked is complete above,
   not deferred.
 - **Explicitly out of scope for this reconciliation:** inserting new
-  cross-reference pointers into the 11 files whose classified lines have no
-  existing filename pointer (`Pointer in file? No` above — 39 of the 53
-  lines). Reconciliation establishes *which* rule owns each occurrence; it
-  does not itself edit each of those 11 Pages files to add a visible
-  pointer. That is a larger, separate Pages-editing task with its own
-  review surface (11 files, wording choices per page) and was not part of
-  the governor's "pull the reconciliation into this MR's scope" decision.
-  Flagging here rather than silently treating pointer-insertion as also
-  done: if the governor wants it folded in too, it needs its own scoping
-  pass, not a rider on this correction.
+  cross-reference pointers into Pages files that lack one. Precise counts
+  (corrected per fact-checker/contribution-auditor third exact-head
+  finding, 20260727T161502Z — the prior text conflated a line count with a
+  file count and mis-added the table's own `Yes`/`No` column):
+  - **38 of the 53 matching lines** (`Pointer in file? No` in the table
+    above) have no same-page pointer to their classified owning rule.
+  - **10 of the 53 matching lines** (`Yes` in the table) do — these lines
+    span **6 of the 17 files**: `install-and-layouts.md`,
+    `coordination-protocol.md`, `poll-and-coordinate.md`, `runbook.md`,
+    `adopter-faq.md`, and `first-governed-change.md`. Note
+    `coordination-protocol.md` is only partially pointered: 2 of its 7
+    matching lines are `Yes`, the other 5 are `No` — it is not excluded
+    from the "no pointer" line count above, only from the file list below.
+  - The remaining **10 of the 17 files** (`assistant-loader-configuration.md`,
+    `tooling-and-tokens.md`, `contracts-and-validators.md`,
+    `evidence-and-learnings.md`, `philosophical-lenses.md`,
+    `day-to-day.md`, `review-and-release.md`,
+    `run-agf-in-real-situations.md`, `session-continuity.md`,
+    `should-you-adopt.md`) contain no rule-filename pointer anywhere on the
+    page (verified: `grep -c '<rule-filename>' <page>` returns 0 for each
+    of the five candidate rule names, for each of these 10 files).
+  - `roles-and-gates.md` (5 lines) is self-owned and excluded from both
+    counts — it is the canonical page defining the authority it describes,
+    not a projection target for a pointer to itself.
+  - 38 + 10 + 5 = 53; 10 + 6 + 1(self) = 17. Both totals reconcile exactly
+    against the table above.
+
+  Reconciliation establishes *which* rule owns each occurrence; it does
+  not itself edit any Pages file to add a visible pointer. That is a
+  larger, separate Pages-editing task with its own review surface (up to
+  11 files needing a new or expanded pointer, wording choices per page)
+  and was not part of the governor's "pull the reconciliation into this
+  MR's scope" decision. Flagging here rather than silently treating
+  pointer-insertion as also done: if the governor wants it folded in too,
+  it needs its own scoping pass, not a rider on this correction.

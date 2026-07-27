@@ -111,21 +111,32 @@ surfaces:
       corrected-head completeness follow-up.
 
       Current-target race protection (contribution-auditor finding A5) is
-      now enforced, per governor-reviewer decision
-      (docs/coordination/20260727T152325Z-coder-tester-rrtp.md, 2026-07-27):
+      partially mitigated, not fully closed -- corrected per the third
+      exact-head contribution-audit finding
+      (docs/coordination/20260727T161502Z-contribution-auditor-j4qg.md),
+      which caught that the second-round claim of "enforced" overstated
+      what only_allow_merge_if_pipeline_succeeds actually does. Current
+      state, per governor-reviewer decision
+      (docs/coordination/20260727T152325Z-coder-tester-rrtp.md, plus a
+      further decision the same date responding to finding A5 above):
       only_allow_merge_if_pipeline_succeeds and
       allow_merge_on_skipped_pipeline=false are enabled at the project
-      level (verified via GitLab project API), so a merge request with no
-      pipeline result, a failed pipeline, or a skipped pipeline (zero jobs
-      matched -- the exact failure mode this MR's own corrected head hit
-      transiently) cannot be merged. agov coord publication-check always
-      evaluates the live fetched target tip at invocation time, so an
-      operator re-running it immediately before merge gets a current
-      answer, satisfying the plan's "equivalent immediate pre-merge
-      current-target check" in place of merge trains. Merge
-      trains/merged-results pipelines remain disabled -- a larger,
-      distinct-blast-radius decision left for the governor to take up
-      separately, not required to close this finding.
+      level, blocking merge when the current head has no pipeline result, a
+      failed pipeline, or a skipped pipeline (zero jobs matched -- the
+      exact failure mode this MR's own corrected head hit transiently).
+      This does NOT force a re-check when the target branch advances after
+      the candidate's pipeline last passed. Merge trains/merged-results
+      pipelines, the plan's named primary mechanism for full closure, were
+      investigated and confirmed unavailable on this project's GitLab plan
+      tier: merge_pipelines_enabled and merge_trains_enabled are absent
+      from the GitLab project API response entirely, not merely disabled.
+      Given that constraint, the governor accepted a governed amendment
+      narrowing this plan's requirement for this project
+      (docs/plans/coordination-independent-publication.md, "Governed
+      amendment: target-race enforcement, 2026-07-27" section): full
+      current-target revalidation is accepted as not implemented on this
+      hosting tier, rather than approximated by a weaker mechanism
+      presented as equivalent.
 
   distribution:
     disposition: confirmed
@@ -133,6 +144,8 @@ surfaces:
       - agf/rules/workflow/coordination-publication-rule.md
       - agf/rules/workflow/documentation-rule-projection-rule.md
       - agf/templates/AGENTS.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
     reason: >-
       agf/rules/workflow/coordination-publication-rule.md and
       documentation-rule-projection-rule.md ship in the agf release archive
@@ -140,6 +153,13 @@ surfaces:
       manifest change needed -- the glob already covers new files under that
       path). agf/templates/AGENTS.md ships via the existing
       `agf/project-specific-examples/**` / templates glob coverage already
-      present in the manifest. AGENTS.md and the two updated Pages files are
-      foundry-local and Pages-published respectively, not part of the
-      tooling/agov archive; no distribution gap for this change's surfaces.
+      present in the manifest. Correction (contribution-auditor finding,
+      third exact-head recheck, 20260727T161502Z-contribution-auditor-j4qg):
+      the two changed Pages files
+      (agf/docs/site/docs/concepts/coordination-protocol.md,
+      agf/docs/site/docs/operate/poll-and-coordinate.md) DO ship in the
+      release archive -- release-manifest.yaml line 29 includes
+      `agf/docs/site/**` -- the prior text's claim that they were "not part
+      of the tooling/agov archive" was false. Both are listed above. AGENTS.md
+      (foundry-local, not part of the shipped agf/ package under any glob)
+      remains the one surface in this change correctly outside distribution.

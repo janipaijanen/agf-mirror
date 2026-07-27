@@ -142,25 +142,34 @@ corrected by a superseding record — never by editing the false one.
   immediate pre-merge check against the current target tip.
 
   **Current enforcement state (this project, verified via GitLab project
-  API):** `only_allow_merge_if_pipeline_succeeds` is enabled at the project
-  level (governor-reviewer decision, 2026-07-27,
+  API) — a partial mitigation, not full closure of this requirement.**
+  `only_allow_merge_if_pipeline_succeeds` is enabled at the project level
+  (governor-reviewer decision, 2026-07-27,
   `docs/coordination/20260727T152325Z-coder-tester-rrtp.md`), together with
   `allow_merge_on_skipped_pipeline: false` — a merge request with no
   pipeline result, a failed pipeline, or a *skipped* pipeline (zero jobs
   matched, as happened transiently on this MR's own corrected head) cannot
-  be merged. This does not by itself force a re-run when the target branch
-  advances after the candidate's pipeline last passed; `agov coord
-  publication-check` closes that half by always evaluating the *current*
-  fetched target tip at the moment it runs, so any operator (human or CI)
-  who re-invokes it immediately before merge gets a live answer rather than
-  a cached one — this is the "equivalent immediate pre-merge current-target
-  check" the plan allows in place of merge trains. Merge
-  trains/merged-results pipelines remain disabled; enabling them would
-  close the pipeline-result-staleness gap even further (by running CI
-  against a synthetic merge of source+target rather than the raw source
-  branch) but changes CI execution for every job in the project, not only
-  the coordination fast path, and is left as a distinct, larger-blast-radius
-  decision the governor may take up separately.
+  be merged. **This does not force a re-check when the target branch
+  advances after the candidate's pipeline last passed** — the plan's
+  "successful source-head pipeline alone is insufficient" condition is not
+  met by this setting alone. `agov coord publication-check` always
+  evaluates the *current* fetched target tip when it runs, so a fresh
+  invocation gets a live answer, but nothing on this project *forces* that
+  fresh invocation immediately before merge.
+
+  Merge trains and merged-results pipelines — the mechanism the plan names
+  as the primary way to close this gap — were investigated and found
+  **unavailable on this project's GitLab plan tier**: `merge_pipelines_
+  enabled` and `merge_trains_enabled` are absent from the GitLab project
+  API response entirely (not merely `false`), confirming the feature
+  cannot be enabled here regardless of permissions, not merely that it is
+  currently off. A governor-reviewer decision (2026-07-27, same record)
+  accepted this as the reason full current-target enforcement is not
+  implemented: this is a **governed narrowing of the plan's requirement**
+  for this project's specific hosting constraints, not a silently dropped
+  claim and not a substitute implementation pretending to be equivalent. A
+  future adopter or plan tier upgrade with merge-train/merged-results
+  support available should revisit this and close the gap for real.
 - The named Rust command implementing this check (provisionally
   `agov coord publication-check`) is the forge-neutral canonical
   implementation. CI wiring (GitLab, GitHub Actions, etc.) is a removable

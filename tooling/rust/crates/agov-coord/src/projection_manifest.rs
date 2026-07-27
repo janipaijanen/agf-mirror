@@ -64,7 +64,11 @@ where
 {
     let manifest = validate_file(path, repo_root)?;
     let mut errors = validate_changed_files(&manifest.raw, changed_pages_or_runbooks);
-    errors.extend(validate_distribution(&manifest.raw, ships_in_distribution));
+    errors.extend(validate_distribution(&manifest.raw, &ships_in_distribution));
+    errors.extend(validate_distribution_completeness(
+        &manifest.raw,
+        ships_in_distribution,
+    ));
     if errors.is_empty() {
         Ok(manifest)
     } else {
@@ -113,6 +117,51 @@ where
             (
                 format!("declared shipped surface is absent from distribution input: {path}"),
                 format!("/surfaces/distribution/paths/{index}"),
+            )
+        })
+        .collect()
+}
+
+/// Every `changed_pages_or_runbooks` entry that actually ships via a
+/// distribution glob must be reflected in `surfaces.distribution` -- either
+/// listed in `paths` or covered by a `not_applicable` entry with a reason.
+/// `validate_distribution` only checks the opposite direction (every
+/// *declared* path really ships); this closes the completeness gap a
+/// manifest author could otherwise leave silently open by omitting a
+/// shipped changed file from `distribution.paths` altogether.
+fn validate_distribution_completeness<F>(raw: &serde_json::Value, ships: F) -> Vec<(String, String)>
+where
+    F: Fn(&str) -> bool,
+{
+    let declared: BTreeSet<&str> = raw
+        .pointer("/surfaces/distribution/paths")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .collect();
+
+    let not_applicable: BTreeSet<&str> = raw
+        .pointer("/surfaces/distribution/not_applicable")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| entry.get("path").and_then(|value| value.as_str()))
+        .collect();
+
+    raw.get("changed_pages_or_runbooks")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .filter(|path| ships(path))
+        .filter(|path| !declared.contains(path) && !not_applicable.contains(path))
+        .map(|path| {
+            (
+                format!(
+                    "changed file ships via a distribution glob but is absent from surfaces.distribution.paths and not_applicable: {path}"
+                ),
+                "/surfaces/distribution".to_string(),
             )
         })
         .collect()
@@ -489,5 +538,93 @@ surfaces:
         assert!(errors
             .iter()
             .any(|(message, _)| message.contains("absent from distribution")));
+    }
+
+    #[test]
+    fn shipped_changed_file_omitted_from_distribution_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = write_manifest(
+            dir.path(),
+            &format!(
+                r#"
+plan_id: test-plan
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+surfaces:
+  normative_owner:
+    {}
+  adopter_facing_explanation:
+    {}
+  runbook_situation_map:
+    {}
+  ai_landing_loaders:
+    {}
+  validation_drift_evidence:
+    {}
+  distribution:
+    disposition: confirmed
+    paths:
+      - AGENTS.md
+    reason: test reason
+"#,
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("implemented", "AGENTS.md"),
+            ),
+        );
+        let actual =
+            BTreeSet::from(["agf/docs/site/docs/concepts/coordination-protocol.md".to_string()]);
+        // Every path "ships" in this fixture -- simulates a real distribution
+        // glob (e.g. agf/docs/site/**) covering the changed Pages file, which
+        // the manifest above fails to declare or mark not_applicable.
+        let errors = validate_file_against(&manifest, &repo_root(), &actual, |_| true)
+            .expect_err("shipped changed file omitted from distribution must fail");
+        assert!(errors.iter().any(|(message, _)| message
+            .contains("ships via a distribution glob but is absent from surfaces.distribution")));
+    }
+
+    #[test]
+    fn shipped_changed_file_covered_by_not_applicable_passes() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = write_manifest(
+            dir.path(),
+            &format!(
+                r#"
+plan_id: test-plan
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+surfaces:
+  normative_owner:
+    {}
+  adopter_facing_explanation:
+    {}
+  runbook_situation_map:
+    {}
+  ai_landing_loaders:
+    {}
+  validation_drift_evidence:
+    {}
+  distribution:
+    disposition: confirmed
+    paths:
+      - AGENTS.md
+    reason: test reason
+    not_applicable:
+      - path: agf/docs/site/docs/concepts/coordination-protocol.md
+        reason: Pages-published, not part of the archived tooling/agov package
+"#,
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("implemented", "AGENTS.md"),
+            ),
+        );
+        let actual =
+            BTreeSet::from(["agf/docs/site/docs/concepts/coordination-protocol.md".to_string()]);
+        let result = validate_file_against(&manifest, &repo_root(), &actual, |_| true);
+        assert!(result.is_ok(), "expected pass, got: {:?}", result.err());
     }
 }
