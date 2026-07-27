@@ -44,11 +44,12 @@ validation results, open blockers, next concrete action, and must-read
 coordination or plan files. Session memory is never the authority for a
 governance decision or obligation.
 
-Claude Code users can run `/compact-agf` before `/compact`; Codex and other AI
-agents should treat the same phrase as an instruction to write the same durable
-closeout note before compaction. The project command definition lives at
-`.claude/commands/compact-agf.md`, but the AGF contract is tool-neutral:
-externalize the state to `docs/coordination/`, validate it, then compact.
+The canonical public procedure is
+`agf/docs/site/docs/operate/session-continuity.md`. Claude Code users may run
+the optional `/compact-agf` adapter before `/compact`; other assistants follow
+the same procedure directly. Externalize state to `docs/coordination/`,
+validate it, and publish it when another machine, person, or agent may resume.
+A validated local-only file is still draft state.
 
 ## Command
 

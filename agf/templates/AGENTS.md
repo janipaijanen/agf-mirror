@@ -12,6 +12,10 @@
 
 ## Cold start
 
+Canonical operating, interruption, recovery, and polling procedures are in
+`agf/docs/site/docs/operate/runbook.md`. This loader points there; it must not
+grow a competing copy of those procedures.
+
 Run these commands at the start of every session before acting or writing any
 durable files:
 
@@ -93,7 +97,7 @@ agov coord validate docs/coordination/<file>.md
 agov plan validate docs/plans/<file>.md
 
 # Pending item scan across the coordination channel
-agov coord graph-index docs/coordination/
+agov coord graph-index
 ```
 
 Write a coordination entry whenever your action creates an obligation for
@@ -139,7 +143,7 @@ agov session resume --base-branch main         # cold start — always run first
 agov handoff next <role>                       # your next pending task
 agov coord validate docs/coordination/<file>  # validate a coordination message
 agov plan validate docs/plans/<file>           # validate a Gate 1 plan
-agov coord graph-index docs/coordination/      # pending item scan
+agov coord graph-index                         # pending item scan
 agov coord brief --from <role>                 # generate a coordination ID
 agov usage report                              # recent coordination activity
 ```

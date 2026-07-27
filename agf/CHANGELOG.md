@@ -3,6 +3,16 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## Unreleased (target: v2.4.5)
+
+### Added
+
+- Added a canonical operations and continuity runbook to GitLab Pages, with
+  graceful-checkpoint, abrupt-loss recovery, and complete
+  poll-and-coordinate procedures. GitLab and Claude instructions remain
+  removable adapters, and `/compact-agf` no longer describes validated
+  local-only state as a durable cross-machine handoff.
+
 ## [2.4.4] — 2026-07-26
 
 Documentation-provenance and release-hygiene patch. It adds no schema, role,

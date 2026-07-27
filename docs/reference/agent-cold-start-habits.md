@@ -1,9 +1,11 @@
 # Agent Cold-Start Habits
 
-This page records durable habits for AI agents returning to AGF work after a
+This internal page records foundry habits for AI agents returning to AGF work after a
 fresh session, compaction, model handoff, or long pause. It complements
 `agov session resume`; it does not replace gate discipline or coordination
-records.
+records. The adopter-facing canonical procedures are the public
+`agf/docs/site/docs/operate/runbook.md`, `session-continuity.md`, and
+`poll-and-coordinate.md`; do not copy this foundry checklist downstream.
 
 ## Start From Governed Evidence
 

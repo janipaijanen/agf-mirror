@@ -17,6 +17,10 @@ Configure rule loading before the first governed change. Treat this as an
 adoption gate: if the active assistant cannot name the AGF files it loaded,
 stop and fix the loader before relying on any governance behavior.
 
+After loading succeeds, point returning assistants to the public
+[operations runbook](../operate/runbook.md). Keep tool-specific loaders and
+commands as removable adapters; do not copy the runbook into them.
+
 ## Loader contract
 
 Use a small tool-specific file that points the assistant at AGF. Do not copy

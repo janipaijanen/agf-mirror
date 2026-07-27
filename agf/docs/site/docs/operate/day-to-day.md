@@ -1,5 +1,9 @@
 # Day-to-day operation
 
+For session boundaries, polling, upgrades, release, and exit routes, begin at
+the [operations runbook](runbook.md). This page remains the detailed authority
+for the ordinary governed-change loop.
+
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: developers and
 governors running a governed project. After this page you know the
 rhythm: claims, fast track vs full gates, coordination hygiene, and the

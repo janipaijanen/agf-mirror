@@ -11,8 +11,10 @@ description: >
 # Compact AGF
 
 Preserve the current session state before context is compacted or abandoned.
-This command writes a durable coordination note that a cold-starting agent can
-read before continuing the work.
+This command writes and validates a coordination note. The canonical,
+tool-neutral contract is
+`agf/docs/site/docs/operate/session-continuity.md`. The note is draft state
+until it is published where the next operator can see it.
 
 Do not rely on background processes, timers, terminal sessions, or model memory
 to signal later. The saved file is the handoff surface.
@@ -170,12 +172,23 @@ cargo run -q -p agov -- coord validate ../../docs/coordination/<id>.md
 
 Fix validation failures before proceeding.
 
-## Step 5 - Report compact readiness
+## Step 5 - Publish when continuity leaves this checkout
+
+If another machine, person, or agent may resume, commit and push the validated
+record, or publish an approved visible bridge naming the branch or merge
+request that contains it. Verify the recipient can identify the record.
+
+Do not call an untracked file, local-only commit, stash, `tmp/` file, or unsaved
+editor buffer durable shared state. If publication is not possible, say that
+cross-machine/person recovery is incomplete and name the local-only state.
+
+## Step 6 - Report compact readiness
 
 Tell the user:
 
 - the path of the saved coordination note;
 - whether validation passed;
+- whether the note is published and where;
 - whether there is still uncommitted work;
 - that the session is ready for `/compact`.
 
