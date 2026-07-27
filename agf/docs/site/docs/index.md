@@ -105,6 +105,12 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 
 ### 4. Operate — the daily loop
 
+- [Operations runbook](operate/runbook.md) — choose the right procedure for
+  session continuity, polling, ordinary work, review, upgrades, and exit.
+- [Session continuity](operate/session-continuity.md) — checkpoint before
+  compaction or reboot and recover honestly after abrupt loss.
+- [Poll and coordinate](operate/poll-and-coordinate.md) — scan coordination,
+  changes and comments, issues and comments, then advance authorized work.
 - [Day-to-day operation](operate/day-to-day.md) — claims, handoffs, gates,
   completions in an active project.
 - [Run AGF in real situations](operate/run-agf-in-real-situations.md) —
@@ -142,5 +148,5 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 ## Choose your next page
 
 Still deciding → [Should you adopt?](start/should-you-adopt.md). Already using
-AGF → [Day-to-day operation](operate/day-to-day.md). Ready to install →
+AGF → [Operations runbook](operate/runbook.md). Ready to install →
 [Install the `agf/` directory](adopt/install-and-layouts.md).

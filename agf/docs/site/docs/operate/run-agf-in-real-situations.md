@@ -1,6 +1,10 @@
 <!-- audience: A (ai-operator); answers: "which docs are meant for AI assistants to execute while humans supervise" -->
 # Run AGF in real situations
 
+Use the [operations runbook](runbook.md) to choose the governing procedure.
+The prompts here are optional execution aids; they do not carry role authority
+or replace the linked procedure.
+
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: AI assistants operating an
 AGF-governed project, with governors and developers supervising decisions and
 reviewing evidence. After this page you can map common project moments to the

@@ -92,6 +92,9 @@ nav:
           - agov MCP server: docs/adopt/mcp-server.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
+          - Operations runbook: docs/operate/runbook.md
+          - Session continuity: docs/operate/session-continuity.md
+          - Poll and coordinate: docs/operate/poll-and-coordinate.md
           - Day-to-day operation: docs/operate/day-to-day.md
           - Run AGF in real situations: docs/operate/run-agf-in-real-situations.md
           - Review and release: docs/operate/review-and-release.md

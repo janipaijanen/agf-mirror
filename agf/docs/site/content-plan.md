@@ -34,6 +34,9 @@ topic — so no reader commits without seeing the cost and the way out.
 | 10 | `docs/concepts/roles-and-gates.md` | New adopter | Intermediate | Explain agents, authority, gates, coordination channel | 6 | agent-communication, gate-pipeline | Role list matches agents/MANIFEST.yaml |
 | 11 | `docs/concepts/evidence-and-learnings.md` | Operating | Intermediate | Write a learning record; distinguish upstream vs adopter-owned | 10 | evidence-lifecycle | foundry.yaml replace-on-upgrade behavior |
 | 12 | `docs/operate/day-to-day.md` | Operating | Intermediate | Run the daily loop: claims, handoffs, gates, completions | 10 | governance-loop | — |
+| 12a | `docs/operate/runbook.md` | Operating | Intermediate | Choose the authoritative operating procedure without knowing repository layout | 10 | — | Routes and authority match canonical pages and role manifest |
+| 12b | `docs/operate/session-continuity.md` | Operating | Intermediate | Checkpoint graceful interruption and recover abrupt loss without inventing state | 12a | — | Commands exist; publication and uncertainty boundaries match coordination rules |
+| 12c | `docs/operate/poll-and-coordinate.md` | Operating | Intermediate | Poll coordination, forge changes/comments, and issues/comments, then advance authorized work | 12a | — | Commands exist; no autonomous scheduling claim |
 | 13 | `docs/operate/review-and-release.md` | Operating | Intermediate | Conduct Gate 2, release via MR, upgrade, keep audit trail | 12 | gate-pipeline | Release steps match release-via-merge-request rule |
 | 14 | `docs/advanced/contracts-and-validators.md` | Advanced | Advanced | Wire schemas + `agov` checks into their CI | 10 | — | Validator names match current tooling |
 | 15 | `docs/advanced/customizing-the-framework.md` | Advanced | Advanced | Know what may be tuned vs what breaks contract semantics | 14 | — | Boundaries match contract-stability.md |

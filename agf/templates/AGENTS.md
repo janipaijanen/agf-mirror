@@ -12,6 +12,10 @@
 
 ## Cold start
 
+Canonical operating, interruption, recovery, and polling procedures are in
+`agf/docs/site/docs/operate/runbook.md`. This loader points there; it must not
+grow a competing copy of those procedures.
+
 Run these commands at the start of every session before acting or writing any
 durable files:
 
