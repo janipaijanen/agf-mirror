@@ -42,6 +42,128 @@ fn dotted_token_roi_alias_is_supported() {
 }
 
 #[test]
+fn project_defaults_are_isolated_and_nested_directories_share_the_root() {
+    let first = temp_project("first");
+    let second = temp_project("second");
+    let nested = first.join("nested/deeper");
+    fs::create_dir_all(&nested).unwrap();
+
+    for cwd in [&nested, &second] {
+        let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+            .env_remove("AGOV_TOKEN_ROI")
+            .env_remove("AGOV_TOKEN_ROI_LOG")
+            .arg("version")
+            .current_dir(cwd)
+            .output()
+            .expect("run agov");
+        assert!(output.status.success(), "{output:?}");
+    }
+
+    assert!(first.join("tmp/agov-token-roi.jsonl").is_file());
+    assert!(second.join("tmp/agov-token-roi.jsonl").is_file());
+    let _ = fs::remove_dir_all(first);
+    let _ = fs::remove_dir_all(second);
+}
+
+#[test]
+fn inherited_outside_log_is_honored_with_safe_boundary_warning() {
+    let project = temp_project("outside-warning");
+    let log = temp_log_path();
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env_remove("AGOV_TOKEN_ROI")
+        .env("AGOV_TOKEN_ROI_LOG", &log)
+        .arg("version")
+        .current_dir(&project)
+        .output()
+        .expect("run agov");
+
+    assert!(output.status.success(), "{output:?}");
+    assert!(log.is_file());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("outside project root"), "{stderr}");
+    assert!(stderr.contains("suggested project-local path"), "{stderr}");
+    assert!(
+        !stderr.contains("\"event\""),
+        "warning leaked JSONL content: {stderr}"
+    );
+    let _ = fs::remove_file(log);
+    let _ = fs::remove_dir_all(project);
+}
+
+#[test]
+fn explicit_report_log_overrides_environment_and_warns_at_the_boundary() {
+    let project = temp_project("cli-precedence");
+    let cli_log = temp_log_path();
+    let env_log = temp_log_path();
+    fs::write(&cli_log, "").unwrap();
+    fs::write(&env_log, "").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI", "0")
+        .env("AGOV_TOKEN_ROI_LOG", &env_log)
+        .args(["token", "roi", "report", "--log"])
+        .arg(&cli_log)
+        .current_dir(&project)
+        .output()
+        .expect("run agov");
+
+    assert!(output.status.success(), "{output:?}");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stdout.contains(&format!("Log: {}", cli_log.display())),
+        "{stdout}"
+    );
+    assert!(
+        !stdout.contains(&format!("Log: {}", env_log.display())),
+        "{stdout}"
+    );
+    assert!(stderr.contains("outside project root"), "{stderr}");
+    let _ = fs::remove_file(cli_log);
+    let _ = fs::remove_file(env_log);
+    let _ = fs::remove_dir_all(project);
+}
+
+#[test]
+fn report_without_project_or_explicit_path_fails_without_creating_a_log() {
+    let cwd = std::env::temp_dir().join(format!("agov-no-project-{}", unique_suffix()));
+    fs::create_dir_all(&cwd).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI", "0")
+        .env_remove("AGOV_TOKEN_ROI_LOG")
+        .args(["token", "roi", "report"])
+        .current_dir(&cwd)
+        .output()
+        .expect("run agov");
+
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("no AGF project root found"), "{stderr}");
+    assert!(!cwd.join("tmp/agov-token-roi.jsonl").exists());
+    let _ = fs::remove_dir_all(cwd);
+}
+
+#[test]
+fn explicit_report_outside_a_project_works_with_unverifiable_warning() {
+    let cwd = std::env::temp_dir().join(format!("agov-no-project-explicit-{}", unique_suffix()));
+    let log = temp_log_path();
+    fs::create_dir_all(&cwd).unwrap();
+    fs::write(&log, "").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI", "0")
+        .env_remove("AGOV_TOKEN_ROI_LOG")
+        .args(["token", "roi", "report", "--log"])
+        .arg(&log)
+        .current_dir(&cwd)
+        .output()
+        .expect("run agov");
+
+    assert!(output.status.success(), "{output:?}");
+    assert!(String::from_utf8_lossy(&output.stderr).contains("isolation cannot be verified"));
+    let _ = fs::remove_file(log);
+    let _ = fs::remove_dir_all(cwd);
+}
+
+#[test]
 fn committed_codex_snapshot_reports_realistic_roi() {
     let log = repo_root().join(
         "tooling/rust/crates/agov/tests/fixtures/token_roi/codex-agov-token-roi-20260623.jsonl",
@@ -199,4 +321,22 @@ fn temp_log_path() -> PathBuf {
             .unwrap()
             .as_nanos()
     ))
+}
+
+fn unique_suffix() -> String {
+    format!(
+        "{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    )
+}
+
+fn temp_project(label: &str) -> PathBuf {
+    let root = std::env::temp_dir().join(format!("agov-roi-{label}-{}", unique_suffix()));
+    fs::create_dir_all(root.join("agf/schemas")).unwrap();
+    fs::create_dir_all(root.join("tooling")).unwrap();
+    root
 }

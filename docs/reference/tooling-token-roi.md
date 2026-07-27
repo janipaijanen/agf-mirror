@@ -67,15 +67,22 @@ agov token roi record \
   --manual-chars 48000
 ```
 
-Default log path:
+Default log path, relative to the detected AGF project root:
 
 ```text
-../../tmp/agov-token-roi.jsonl
+tmp/agov-token-roi.jsonl
 ```
 
 The path is local and ignored by git through the repository's existing `tmp/`
 ignore rule. See the AGF environment variable reference for the canonical
 documentation of `AGOV_TOKEN_ROI_LOG` and `AGOV_TOKEN_ROI`.
+
+The writer and `agov token roi report` use the same resolution order: report
+`--log`, then `AGOV_TOKEN_ROI_LOG`, then the detected project's default. Do not
+configure `export AGOV_TOKEN_ROI_LOG="$PWD/..."` globally: the expanded value is
+tied to the directory where that shell started. Outside an AGF project there is
+no implicit current-directory fallback; supply an explicit path when that is
+intentional.
 
 Automatic POC collection currently records successful output sizes and
 workflow-baseline savings estimates for:

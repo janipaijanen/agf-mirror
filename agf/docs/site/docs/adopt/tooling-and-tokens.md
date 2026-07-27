@@ -234,6 +234,12 @@ export AGOV_TOKEN_ROI_LOG="$PWD/tmp/codex-agov-token-roi.jsonl"
 export AGOV_TOKEN_ROI_LOG="$PWD/tmp/claude-agov-token-roi.jsonl"
 ```
 
+Keep these exports project-local (for example in a per-directory environment),
+not in a shell-global profile. `$PWD` is expanded when exported and does not
+follow later directory changes. With no override, `agov` discovers the current
+AGF root and writes `tmp/agov-token-roi.jsonl` there. An override outside that
+root remains usable but produces an isolation warning.
+
 To print accumulated records:
 
 ```bash

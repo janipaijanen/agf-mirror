@@ -20,7 +20,7 @@ commands fail in surprising ways.
 | `AGOV_MODEL` | unset | `agov coord brief` | Optional model/runtime provenance to include in generated coordination front matter. Explicit `agov coord brief --model <name>` overrides this value. This field is audit metadata only; routing and authority still come from `from` and `to` roles. |
 | `AGOV_SCHEMA_DIR` | Tool-dependent | `agov coord validate`, `agov plan validate`, and related validators | Overrides the directory containing AGF JSON schemas. Release-archive adopters should set this explicitly when running the binary outside a repository layout that contains `agf/schemas`. |
 | `AGOV_TOKEN_ROI` | enabled when telemetry is supported | automatic token ROI telemetry | Set to `0`, `false`, or `off` to disable automatic token ROI log writes. |
-| `AGOV_TOKEN_ROI_LOG` | Tool-dependent | token ROI telemetry and `agov token roi report` | Overrides the token ROI JSONL log path. The parent directory is created automatically when logging succeeds. Choose an ignored project-local path unless your policy deliberately tracks telemetry. |
+| `AGOV_TOKEN_ROI_LOG` | `<detected-project-root>/tmp/agov-token-roi.jsonl` | token ROI telemetry and `agov token roi report` | Overrides the token ROI JSONL log path. Relative values resolve from the invocation directory. A path outside the detected project root is honored with a warning. The parent directory is created automatically when logging succeeds. Choose an ignored project-local path unless your policy deliberately tracks telemetry. |
 
 Example: point a release-binary invocation at an explicit schema directory:
 
@@ -49,3 +49,11 @@ paths rather than the shared default. In foundry, Codex continues at
 ```bash
 export AGOV_TOKEN_ROI_LOG="$PWD/tmp/codex-agov-token-roi.jsonl"
 ```
+
+Set that export in each project's shell or directory environment. Do not put a
+`$PWD`-expanded value in a shell-global profile: the value remains fixed after
+the shell starts and can silently direct later projects into the first
+project's log. Without an override, `agov` discovers the current AGF project
+root and uses its `tmp/agov-token-roi.jsonl`. Outside an AGF project, automatic
+logging is disabled unless an explicit environment path is supplied;
+`agov token roi report` similarly requires `--log` or the environment variable.
