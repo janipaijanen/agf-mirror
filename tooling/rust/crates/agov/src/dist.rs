@@ -692,6 +692,40 @@ forbidden:
     }
 
     #[test]
+    fn rejects_selected_mix_and_elixir_sources() {
+        let temp = fixture_root();
+        write(temp.path(), "agf/VERSION", "2.0.0\n");
+        write(temp.path(), "agf/legacy/mix.lock", "retired\n");
+        write(temp.path(), "agf/legacy/lib/sample.ex", "retired\n");
+        let manifest = write(
+            temp.path(),
+            "manifest.yaml",
+            r#"
+schema_version: 1
+package:
+  name: agf
+  version_file: agf/VERSION
+  output_dir: dist
+  basename: agf-{{version}}
+  formats: [tar.gz]
+include:
+  - glob: agf/legacy/**
+forbidden:
+  - "**/mix.lock"
+  - "**/*.ex"
+"#,
+        );
+
+        let errors = validate(&manifest, temp.path()).unwrap_err();
+        assert!(errors
+            .iter()
+            .any(|error| { error == "forbidden file selected for release: agf/legacy/mix.lock" }));
+        assert!(errors.iter().any(|error| {
+            error == "forbidden file selected for release: agf/legacy/lib/sample.ex"
+        }));
+    }
+
+    #[test]
     fn build_writes_archives_checksums_and_provenance() {
         let temp = fixture_root();
         write(temp.path(), "agf/VERSION", "2.0.0\n");
