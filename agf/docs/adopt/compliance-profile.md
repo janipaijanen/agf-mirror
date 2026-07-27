@@ -118,7 +118,7 @@ The reasoning:
   catches schema violations but not "did the gate even run on
   this MR?" — a high-frequency drift mode in the framework's own
   evidence corpus (see
-  [`learnings/iron-trellis.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/learnings/iron-trellis.yaml)
+  [`learnings/iron-trellis.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/learnings/iron-trellis.yaml)
   v0.58.0 entry on the missing pre-merge gate).
 - **Full is a future AGF v2 target.** The binding-contract concepts
   ([B1]–[B3]) remain the intended Layer 3 shape, but Rust `agov` does not yet
@@ -128,7 +128,7 @@ The reasoning:
 - **Process-aware is the cheaper baseline.** All the layers it
   enforces are mechanically achievable today using the shipped
   validators plus the framework's own
-  [`.gitlab-ci.yml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.gitlab-ci.yml)
+  [`.gitlab-ci.yml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/.gitlab-ci.yml)
   reference implementation, without the per-task correlation-ID
   generation overhead the Full tier requires.
 
@@ -154,7 +154,7 @@ compliance_target: process-aware  # one of: artefact-only | process-aware | full
 ```
 
 `agov validate framework-config` validates the file against
-[`schemas/framework.schema.json`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/schemas/framework.schema.json)
+[`schemas/framework.schema.json`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/schemas/framework.schema.json)
 (Draft 7, `additionalProperties: false`). The old v1.x
 `agov --capabilities` report is retired in AGF v2; use current docs and Rust
 `agov validate` output for the shipped validator surface.
@@ -163,7 +163,7 @@ compliance_target: process-aware  # one of: artefact-only | process-aware | full
 
 The `agents-govern` project declares
 **Process-aware** in its
-[`framework.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/framework.yaml)
+[`framework.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/framework.yaml)
 (`compliance_target: process-aware`, shipped v1.1.47 with [P1]).
 Layer 3 (binding) is mechanically supported as of v1.1.45 but the
 framework's current AGF v2 Rust tooling does not yet ship binding validation;
@@ -171,7 +171,7 @@ promotion to **Full** lands when AGF v2 starts emitting and validating binding
 evidence on its own agent-active branches.
 
 This is recorded explicitly per the
-[self-conformance rule](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.claude/rules/always/self-conformance-rule.md):
+[self-conformance rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/.claude/rules/always/self-conformance-rule.md):
 a framework that publishes a compliance vocabulary should declare
 its own tier in that vocabulary, and the declaration should live in
 the same machine-readable surface adopters consume.

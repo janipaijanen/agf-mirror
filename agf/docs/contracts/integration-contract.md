@@ -85,11 +85,11 @@ input, alternative validator stacks); the validators remain the
 behaviour, the validator wins by definition. The mitigation
 shipped in v1.1.46:
 
-- [`scripts/generate-schemas.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/scripts/generate-schemas.py)
+- [`scripts/generate-schemas.py`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/scripts/generate-schemas.py)
   cross-checks every `schemas/*.schema.json` against the Draft 7
   meta-schema and confirms `schemas/invariants.yaml` matches the
   C2 normalised shape.
-- [`tests/test_schemas.py`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/tests/test_schemas.py)
+- [`tests/test_schemas.py`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/tests/test_schemas.py)
   enforces *parity* — every `agents/*.yaml` and `learnings/*.yaml`
   validates against its schema, and the invariant manifest's
   parameter values are cross-checked against the validator
@@ -175,7 +175,7 @@ migration. Until they migrate, those checks are manual or v1.x/Python-era.
 
 **Pre-merge enforcement: required.** Non-zero exit blocks the merge
 via branch protection rules on `main`. The framework's own
-[GitLab CI configuration](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/.gitlab-ci.yml)
+[GitLab CI configuration](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/.gitlab-ci.yml)
 is the reference implementation.
 
 **Post-merge enforcement: recommended.** A second pass on `main`
@@ -331,7 +331,7 @@ The [Compliance profile](../adopt/compliance-profile.md) page carries
 the tier-to-layer mapping, the degraded-modes table (what each
 lower tier gives up), the *how to choose your tier* decision
 shortcut, and the framework's own tier — declared in
-[`framework.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/framework.yaml)
+[`framework.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/framework.yaml)
 as `compliance_target: process-aware` from v1.1.47 onward.
 
 ## Binding contract
@@ -380,13 +380,13 @@ for the framing.
 | Compliance profile (3 tiers) | **Shipped** (v1.1.38; canonical home at [`adopt/compliance-profile.md`](../adopt/compliance-profile.md)) | [D5] |
 | Binding contract — correlation identifier + trailer | **Specified; Rust validator deferred** ([Binding contract](binding-contract.md)) | [B1], [B2] |
 | Binding contract — sidecar metadata + filename fallback | **Specified; Rust validator deferred** | [B3] |
-| Per-artefact JSON Schema | **Shipped v1.1.46** ([`schemas/`](https://gitlab.com/janipaijanen/agent-governance/-/tree/main/schemas)) | [C1] |
-| Cross-artefact invariant manifest | **Shipped v1.1.46** ([`schemas/invariants.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/schemas/invariants.yaml)) | [C2] |
+| Per-artefact JSON Schema | **Shipped v1.1.46** ([`schemas/`](https://gitlab.com/janipaijanen/agents-govern-framework/-/tree/main/agents-govern/schemas)) | [C1] |
+| Cross-artefact invariant manifest | **Shipped v1.1.46** ([`schemas/invariants.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/schemas/invariants.yaml)) | [C2] |
 | `framework.yaml` (precedence + binding config) | **Validator migrated as `mix agov.validate.framework_config`** | [P1] |
 | Mandatory `category: tension` recording for cross-layer conflicts | **Shipped v1.1.47** (canonical home at [Concept — Tension recording](concept/principles.md#tension-recording); `learnings/_template.yaml` header naming the discipline) | [P2] |
 
 The 21 issues filed under
-[label `engagement-action-plan-2026-05-04`](https://gitlab.com/janipaijanen/agent-governance/-/issues?label_name%5B%5D=engagement-action-plan-2026-05-04)
+historical predecessor-tracker label `engagement-action-plan-2026-05-04`
 track the in-flight items.
 
 ## Out of scope
@@ -424,7 +424,7 @@ Things the framework explicitly will **not** do, and the reasons:
 - [Tool enforcement](tool-enforcement.md) — per-tool rule loading
   (Claude Code, Cursor, Windsurf, GitHub Copilot, OpenAI Codex
   CLI). Sibling page.
-- [external-ai-engagements/REVIEWER-BRIEF.md](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/external-ai-engagements/REVIEWER-BRIEF.md)
+- [external-ai-engagements/REVIEWER-BRIEF.md](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/external-ai-engagements/REVIEWER-BRIEF.md)
   — the brief that elicited the v1.1.21 engagement that produced
   the contract specification.
 - [`docs/plans/2026-05-04-chatgpt-engagement-action-plan.md`](plans/2026-05-04-chatgpt-engagement-action-plan.md)

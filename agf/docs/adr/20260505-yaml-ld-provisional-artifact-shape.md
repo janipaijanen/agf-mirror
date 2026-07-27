@@ -24,7 +24,7 @@ None.
 - [`20260505-lean-agile-test-fly.md`](20260505-lean-agile-test-fly.md)
 - `MANIFESTO.md`
 - [`docs/process/manifesto-self-test.md`](../process/manifesto-self-test.md)
-- [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/learnings/linked-data-probe.yaml)
+- [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/learnings/linked-data-probe.yaml)
 
 ## Context
 

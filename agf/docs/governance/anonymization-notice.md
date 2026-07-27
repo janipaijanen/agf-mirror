@@ -13,7 +13,7 @@ Starting with this notice, **all learning records must use codenames** instead
 of real project, product, or organisation names. This is a mandatory
 requirement for all submissions — new and existing.
 
-See the full policy in [LEARNINGS.md](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/LEARNINGS.md)
+See the full policy in [LEARNINGS.md](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/LEARNINGS.md)
 under "Submission Privacy Policy".
 
 ---

@@ -71,7 +71,7 @@ governance work, not a problem.
 | Closure | Governor-Reviewer | Records the ID in the merge approval (or escalation resolution) artefact. |
 
 The lifecycle responsibility is recorded in
-[`agents/governor-reviewer.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/agents/governor-reviewer.yaml)
+[`agents/governor-reviewer.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/agents/governor-reviewer.yaml)
 under `accountability:` (added v1.1.44 with this page).
 
 ### Concurrency

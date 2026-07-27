@@ -4,7 +4,7 @@
 # Architecture Decision Records
 
 Record significant architecture decisions using the template below.
-See [framework.md Section 5.2](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/framework.md)
+See [framework.md Section 5.2](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/framework.md)
 for the theory behind each required field.
 
 ## Quick start

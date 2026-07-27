@@ -24,12 +24,12 @@ The earlier inline draft titled *"ADR-001: Adopt JavaScript Object Notation (JSO
 agents-govern 1.1.46 is a mature, Yet Another Markup Language (YAML)-based, evidence-driven Software Development Lifecycle (SDLC)-governance framework:
 
 - 215 learnings across 15 (single-developer-correlated) projects.
-- Process-oriented, explicitly *not* runtime enforcement (see [README.md "What this is, what this is not"](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/README.md)).
+- Process-oriented, explicitly *not* runtime enforcement (see [README.md "What this is, what this is not"](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/README.md)).
 - Validators (`agov-validate-*`) consume YAML directly.
-- Audit trail = git history (see [GOVERNANCE.md "Audit Trail"](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/GOVERNANCE.md)).
+- Audit trail = git history (see [GOVERNANCE.md "Audit Trail"](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/GOVERNANCE.md)).
 - Adoption surface optimized for `cp -r` + grep `<!-- CUSTOMIZE -->`.
-- Explicit anti-pattern: theoretical additions without evidence (see [README.md "What does not belong in the framework"](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/README.md)).
-- Strongest stated need: **independent adopters**, not new framework features (see [README.md "Independent adopters wanted"](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/README.md)).
+- Explicit anti-pattern: theoretical additions without evidence (see [README.md "What does not belong in the framework"](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/README.md)).
+- Strongest stated need: **independent adopters**, not new framework features (see [README.md "Independent adopters wanted"](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/README.md)).
 
 An initial proposal sought:
 - (a) JavaScript Object Notation for Linked Data (JSON-LD) ontology rewrite with three-layer Core/Shared/Project composition,
@@ -48,7 +48,7 @@ Iterative review pruned (a), (b), and the Skunkworks element of (c). What remain
 
 4. **Accept a Lean-Agile mapping profile.** Descriptive cross-reference of existing framework mechanisms to Lean (Toyota Production System) and Agile-Manifesto vocabulary. No new prescriptions.
 
-5. **Accept Test-Fly as a named principle.** Elevate the existing implicit "we eat our own dog food" stance ([GOVERNANCE.md eats-our-own-dogfood line](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/GOVERNANCE.md)) into a citable, enforceable gate-criterion.
+5. **Accept Test-Fly as a named principle.** Elevate the existing implicit "we eat our own dog food" stance ([GOVERNANCE.md eats-our-own-dogfood line](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/GOVERNANCE.md)) into a citable, enforceable gate-criterion.
 
 6. **Process the addition through the framework's own evidence cycle.** Submit a learning record under a research codename. Sentinel review applies the standard promotion rules.
 
@@ -95,7 +95,7 @@ Tenet 1 of `MANIFESTO.md`. The principle is also referenced from the AI-Consumpt
 
 ### D3. Learning record
 
-Filed at [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/learnings/linked-data-probe.yaml).
+Filed at [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/learnings/linked-data-probe.yaml).
 
 ### D4. No tooling changes
 
@@ -119,7 +119,7 @@ Single line under the next minor version (when bumped): `Added: MANIFESTO.md (Pr
 
 This ADR's outputs leave **Provisional** status when:
 - At least one independent adopter project records a `validation` or `adaptation` learning citing the Lean-Agile profile, MANIFESTO, or Test-Fly principle, **and**
-- A Sentinel review confirms corroboration per the rules in [`LEARNINGS.md`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/LEARNINGS.md).
+- A Sentinel review confirms corroboration per the rules in [`LEARNINGS.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/LEARNINGS.md).
 
 Per the framework's 5-record-staleness rule, if neither D1 nor D2 is exercised by any independent adopter within five Sentinel review cycles, both are reviewed for removal.
 
@@ -127,4 +127,4 @@ Per the framework's 5-record-staleness rule, if neither D1 nor D2 is exercised b
 
 - [`20260505-yaml-ld-provisional-artifact-shape.md`](20260505-yaml-ld-provisional-artifact-shape.md) — companion ADR grounding Tenet 5.
 - `MANIFESTO.md` — Provisional manifesto produced by this ADR's deliverables.
-- [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/learnings/linked-data-probe.yaml) — research codename + evidence record.
+- [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/learnings/linked-data-probe.yaml) — research codename + evidence record.
