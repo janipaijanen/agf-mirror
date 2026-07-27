@@ -2198,7 +2198,6 @@ fn render_kind_front_matter(output: &mut OutputCounter, kind: &str, to: &str, to
             output.stdout("  must_read: []");
             output.stdout("  do_not_touch:");
             output.stdout("    - .claude/settings.local.json");
-            output.stdout("    - tooling/elixir/mix.lock");
         }
         "claim" => {
             output.stdout("references-to: []");
@@ -2406,8 +2405,7 @@ fn render_coord_draft_markdown(
                     "task": tasks,
                     "must_read": [],
                     "do_not_touch": [
-                        ".claude/settings.local.json",
-                        "tooling/elixir/mix.lock"
+                        ".claude/settings.local.json"
                     ]
                 }),
             );
