@@ -97,6 +97,7 @@ fn version_info() -> VersionInfo {
 }
 
 fn run_stdio() -> Result<(), String> {
+    validate_agov_startup()?;
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
 
@@ -216,7 +217,18 @@ fn tool_text(execution: &ToolExecution) -> String {
 /// adapter's own constant. The child validates the tuple again
 /// independently before persisting anything.
 fn run_agov(args: &[String], tool_name: Option<&'static str>) -> ToolExecution {
-    let command = agov_command();
+    let command = match agov_command() {
+        Ok(command) => command,
+        Err(err) => {
+            return ToolExecution {
+                ok: false,
+                status: 127,
+                command: args.to_vec(),
+                stdout: String::new(),
+                stderr: err,
+            }
+        }
+    };
     let mut child = Command::new(command.program);
     child
         .args(&command.prefix)
@@ -254,13 +266,46 @@ fn is_expected_non_error_status(args: &[String], status: Option<i32>) -> bool {
         && args.get(1).map(String::as_str) == Some("list")
 }
 
-fn agov_command() -> AgovCommand {
+fn validate_agov_startup() -> Result<(), String> {
+    let command = agov_command()?;
+    let output = Command::new(&command.program)
+        .args(&command.prefix)
+        .arg("--version")
+        .current_dir(&command.cwd)
+        .output()
+        .map_err(|err| {
+            format!(
+                "agov startup validation failed for {}: {err}",
+                command.program.display()
+            )
+        })?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "agov startup validation failed for {} with status {}: {}",
+            command.program.display(),
+            output.status,
+            String::from_utf8_lossy(&output.stderr).trim()
+        ))
+    }
+}
+
+fn executable_on_path(name: &str) -> Option<PathBuf> {
+    std::env::var_os("PATH").and_then(|paths| {
+        std::env::split_paths(&paths)
+            .map(|directory| directory.join(name))
+            .find(|candidate| candidate.is_file())
+    })
+}
+
+fn agov_command() -> Result<AgovCommand, String> {
     if let Some(bin) = std::env::var_os("AGOV_MCP_AGOV_BIN") {
-        return AgovCommand {
+        return Ok(AgovCommand {
             program: PathBuf::from(bin),
             prefix: Vec::new(),
             cwd: agov_core::repo_root(),
-        };
+        });
     }
 
     let root = agov_core::repo_root();
@@ -271,11 +316,11 @@ fn agov_command() -> AgovCommand {
         .join("release")
         .join("agov");
     if release.is_file() {
-        return AgovCommand {
+        return Ok(AgovCommand {
             program: release,
             prefix: Vec::new(),
             cwd: root,
-        };
+        });
     }
 
     let debug = root
@@ -285,15 +330,28 @@ fn agov_command() -> AgovCommand {
         .join("debug")
         .join("agov");
     if debug.is_file() {
-        return AgovCommand {
+        return Ok(AgovCommand {
             program: debug,
             prefix: Vec::new(),
             cwd: root,
-        };
+        });
     }
 
-    AgovCommand {
-        program: PathBuf::from("cargo"),
+    if let Some(agov) = executable_on_path(if cfg!(windows) { "agov.exe" } else { "agov" }) {
+        return Ok(AgovCommand {
+            program: agov,
+            prefix: Vec::new(),
+            cwd: root,
+        });
+    }
+
+    let cargo = executable_on_path(if cfg!(windows) { "cargo.exe" } else { "cargo" })
+        .ok_or_else(|| {
+            "could not resolve agov; tried AGOV_MCP_AGOV_BIN, repository release/debug builds, agov on PATH, and cargo on PATH"
+                .to_string()
+        })?;
+    Ok(AgovCommand {
+        program: cargo,
         prefix: vec![
             "run".to_string(),
             "--quiet".to_string(),
@@ -308,7 +366,7 @@ fn agov_command() -> AgovCommand {
             "--".to_string(),
         ],
         cwd: root,
-    }
+    })
 }
 
 fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
