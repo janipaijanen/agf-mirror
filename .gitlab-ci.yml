@@ -320,15 +320,22 @@ agf:dist:validate:
   stage: test
   script:
     - cargo run --quiet -p agov -- dist validate
+    - scripts/check-release-self-sufficiency.sh check ../..
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - agf/**/*
         - .gitlab-ci.yml
+        - docs/reviews/agf-framework-assessment-codex-sol-high.md
+        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
+        - tooling/rust/scripts/check-release-self-sufficiency.sh
     - if: $CI_COMMIT_BRANCH
       changes:
         - agf/**/*
         - .gitlab-ci.yml
+        - docs/reviews/agf-framework-assessment-codex-sol-high.md
+        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
+        - tooling/rust/scripts/check-release-self-sufficiency.sh
     - if: $CI_COMMIT_TAG
 
 # Build preview archives for reviewers. These artifacts are not releases.
@@ -339,6 +346,7 @@ agf:dist:preview:
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
     - scripts/check-no-elixir-artifacts.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
+    - scripts/check-release-self-sufficiency.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
   artifacts:
     name: "agf-preview-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -352,10 +360,16 @@ agf:dist:preview:
       changes:
         - agf/**/*
         - .gitlab-ci.yml
+        - docs/reviews/agf-framework-assessment-codex-sol-high.md
+        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
+        - tooling/rust/scripts/check-release-self-sufficiency.sh
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - agf/**/*
         - .gitlab-ci.yml
+        - docs/reviews/agf-framework-assessment-codex-sol-high.md
+        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
+        - tooling/rust/scripts/check-release-self-sufficiency.sh
 
 # Build release archives only on tag pipelines.
 # The tag must match agf/VERSION or this job fails before any archive is written.
@@ -367,6 +381,7 @@ agf:dist:release:
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
     - scripts/check-no-elixir-artifacts.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
+    - scripts/check-release-self-sufficiency.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
   artifacts:
     name: "agf-$CI_COMMIT_TAG"
     paths:
@@ -520,6 +535,33 @@ release:elixir-exclusion-selftest:
         - .gitlab-ci.yml
         - agf/dist/**/*
         - tooling/rust/scripts/check-no-elixir-artifacts.sh
+    - if: $CI_COMMIT_TAG
+
+release:self-sufficiency-selftest:
+  image: alpine:3.22
+  stage: test
+  before_script:
+    - apk add --no-cache tar gzip unzip
+  script:
+    - tooling/rust/scripts/check-release-self-sufficiency.sh selftest
+    - tooling/rust/scripts/check-release-self-sufficiency.sh check .
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - .gitlab-ci.yml
+        - agf/dist/**/*
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
+        - docs/reviews/agf-framework-assessment-codex-sol-high.md
+        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
+        - tooling/rust/scripts/check-release-self-sufficiency.sh
+    - if: $CI_COMMIT_BRANCH
+      changes:
+        - .gitlab-ci.yml
+        - agf/dist/**/*
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
+        - docs/reviews/agf-framework-assessment-codex-sol-high.md
+        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
+        - tooling/rust/scripts/check-release-self-sufficiency.sh
     - if: $CI_COMMIT_TAG
 
 release:paths-validate:
@@ -737,6 +779,8 @@ rust:tooling:clippy:
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
     - export AGOV_BUILD_SOURCE_DIRTY=false
+    - scripts/stage-tooling-runbook.sh selftest
+    - scripts/check-release-self-sufficiency.sh selftest
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
         TAG_VERSION="${CI_COMMIT_TAG#v}"
@@ -778,6 +822,7 @@ rust:tooling:clippy:
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov-mcp"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp is the stdio MCP server for agov. Install by placing the agov and agov-mcp executables on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
+        scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
         tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${slug}"
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         "$AGOV_BIN" dist provenance-record file \
@@ -812,6 +857,7 @@ rust:tooling:clippy:
         cmp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp.exe is the stdio MCP server for agov.exe. Install by placing agov.exe and agov-mcp.exe on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
+        scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         "$AGOV_BIN" dist provenance-record file \
@@ -825,9 +871,11 @@ rust:tooling:clippy:
         rm -rf "$staging"
       fi
     - ../../tooling/rust/scripts/check-no-elixir-artifacts.sh check ../../dist/agov-*.tar.gz
+    - scripts/check-release-self-sufficiency.sh check ../../dist/agov-*.tar.gz
     - |
       if find ../../dist -maxdepth 1 -name 'agov-*.zip' -print -quit | grep -q .; then
         ../../tooling/rust/scripts/check-no-elixir-artifacts.sh check ../../dist/agov-*.zip
+        scripts/check-release-self-sufficiency.sh check ../../dist/agov-*.zip
       fi
   artifacts:
     paths:
@@ -849,10 +897,12 @@ rust:tooling:preview:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
 
 # Manual evidence job: run the full .rust-tooling-package script including
 # the Windows packaging block (AGOV_PACKAGE_WINDOWS_PREVIEW=1) so the
@@ -871,12 +921,14 @@ rust:tooling:preview:windows-package:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
       when: manual
       allow_failure: true
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
       when: manual
       allow_failure: true
 
