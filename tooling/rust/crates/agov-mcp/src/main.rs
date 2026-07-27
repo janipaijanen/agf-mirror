@@ -103,7 +103,8 @@ fn version_info() -> VersionInfo {
 }
 
 fn run_stdio() -> Result<(), String> {
-    validate_agov_startup()?;
+    let agov = agov_command()?;
+    validate_agov_startup(&agov)?;
     let stdin = std::io::stdin();
     let mut stdout = std::io::stdout();
 
@@ -112,7 +113,7 @@ fn run_stdio() -> Result<(), String> {
         if line.trim().is_empty() {
             continue;
         }
-        let response = handle_message(&line);
+        let response = handle_message(&line, &agov);
         if let Some(response) = response {
             writeln!(
                 stdout,
@@ -127,7 +128,7 @@ fn run_stdio() -> Result<(), String> {
     Ok(())
 }
 
-fn handle_message(line: &str) -> Option<JsonRpcResponse> {
+fn handle_message(line: &str, agov: &AgovCommand) -> Option<JsonRpcResponse> {
     let request: JsonRpcRequest = match serde_json::from_str(line) {
         Ok(request) => request,
         Err(err) => {
@@ -156,7 +157,7 @@ fn handle_message(line: &str) -> Option<JsonRpcResponse> {
             }),
         )),
         "tools/list" => Some(JsonRpcResponse::result(id, json!({ "tools": tools() }))),
-        "tools/call" => match call_tool(request.params.unwrap_or(Value::Null)) {
+        "tools/call" => match call_tool(request.params.unwrap_or(Value::Null), agov) {
             Ok(result) => Some(JsonRpcResponse::result(id, result)),
             Err(message) => Some(JsonRpcResponse::error(id, -32602, message)),
         },
@@ -168,7 +169,7 @@ fn handle_message(line: &str) -> Option<JsonRpcResponse> {
     }
 }
 
-fn call_tool(params: Value) -> Result<Value, String> {
+fn call_tool(params: Value, agov: &AgovCommand) -> Result<Value, String> {
     let name = params
         .get("name")
         .and_then(Value::as_str)
@@ -192,7 +193,7 @@ fn call_tool(params: Value) -> Result<Value, String> {
         .cloned()
         .unwrap_or_else(|| json!({}));
     let cli_args = tool_cli_args(canonical_tool, &args)?;
-    let execution = run_agov(&cli_args, Some(canonical_tool));
+    let execution = run_agov(agov, &cli_args, Some(canonical_tool));
 
     Ok(json!({
         "content": [
@@ -222,24 +223,16 @@ fn tool_text(execution: &ToolExecution) -> String {
 /// request string — so the marker value set here is always this
 /// adapter's own constant. The child validates the tuple again
 /// independently before persisting anything.
-fn run_agov(args: &[String], tool_name: Option<&'static str>) -> ToolExecution {
-    let command = match agov_command() {
-        Ok(command) => command,
-        Err(err) => {
-            return ToolExecution {
-                ok: false,
-                status: 127,
-                command: args.to_vec(),
-                stdout: String::new(),
-                stderr: err,
-            }
-        }
-    };
-    let mut child = Command::new(command.program);
+fn run_agov(
+    command: &AgovCommand,
+    args: &[String],
+    tool_name: Option<&'static str>,
+) -> ToolExecution {
+    let mut child = Command::new(&command.program);
     child
         .args(&command.prefix)
         .args(args)
-        .current_dir(command.cwd);
+        .current_dir(&command.cwd);
     if let Some(name) = tool_name {
         child
             .env(agov_core::roi::MCP_TRANSPORT_MARKER, "mcp")
@@ -272,8 +265,7 @@ fn is_expected_non_error_status(args: &[String], status: Option<i32>) -> bool {
         && args.get(1).map(String::as_str) == Some("list")
 }
 
-fn validate_agov_startup() -> Result<(), String> {
-    let command = agov_command()?;
+fn validate_agov_startup(command: &AgovCommand) -> Result<(), String> {
     let output = Command::new(&command.program)
         .args(&command.prefix)
         .arg("--version")
@@ -857,8 +849,14 @@ mod tests {
 
     #[test]
     fn malformed_tool_arguments_return_json_rpc_error() {
+        let agov = AgovCommand {
+            program: PathBuf::from("unused"),
+            prefix: Vec::new(),
+            cwd: PathBuf::from("."),
+        };
         let response = handle_message(
             r#"{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"agov_handoff_next","arguments":{}}}"#,
+            &agov,
         )
         .unwrap();
 
