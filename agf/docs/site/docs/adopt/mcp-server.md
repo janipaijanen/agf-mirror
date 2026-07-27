@@ -37,9 +37,18 @@ agov --version
 agov-mcp
 ```
 
-`agov-mcp` launches `agov` from `AGOV_MCP_AGOV_BIN` when set. Otherwise it
-looks for the local release/debug `agov` binary in a full checkout, then falls
-back to `cargo run -p agov`.
+At startup, `agov-mcp` resolves `agov` once in this order:
+
+1. the explicit `AGOV_MCP_AGOV_BIN` override;
+2. the local release, then debug, `agov` binary in a full checkout;
+3. `agov` on `PATH` (the normal tooling-archive installation); and
+4. `cargo run -p agov` when Cargo is on `PATH`.
+
+Before accepting MCP requests, the server runs `agov --version` through the
+resolved command. If resolution or validation fails, `agov-mcp` exits non-zero
+with a diagnostic instead of registering a server whose tool calls cannot run.
+The resolved command remains bound for the lifetime of that server process;
+restart `agov-mcp` after changing the installation or override.
 
 ## Client configuration
 
