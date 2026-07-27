@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://gitlab.com/janipaijanen/agents-govern-framework/-/raw/main/agf/schemas/framework.schema.json",
+  "$id": "framework.schema.json",
   "title": "Framework Configuration",
   "description": "Schema for framework.yaml — the machine-readable companion to framework.md. The file itself ships with action-plan item P1 (issue #63); this schema is forward-looking so editor plugins and adopters can prepare. Per round-5 §7 of the engagement, additionalProperties is false at the top level: the validator rejects unknown sections deterministically.",
   "type": "object",
