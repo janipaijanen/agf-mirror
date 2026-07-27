@@ -1,7 +1,9 @@
 ---
 id: coordination-independent-publication
-status: pending-gate1
+status: approved
 topic: coordination-independent-publication
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-27T10:11:08Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
