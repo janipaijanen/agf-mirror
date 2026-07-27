@@ -139,6 +139,18 @@ a shared branch, published through an approved shared path, or paired with a
 visible bridge note that names the branch/MR containing the record. Local files,
 untracked files, and local-only commits are draft state for inter-agent work.
 
+**Publication independence:** A coordination-only commit (title prefix
+`coordination:`) is expected to publish promptly, independently of the Gate 2
+approval of the implementation it describes — see
+`agf/rules/workflow/coordination-publication-rule.md`. That fast path is
+mechanically verified, not merely title-claimed: `agov coord
+publication-check` inspects the full commit range against the target branch,
+not only the tip diff, and CI runs it automatically via
+`agov:governance:validate` whenever a `coordination:`-titled commit changes
+`docs/coordination/*.md`. Do not rely on a title or `[ci skip]` alone to make
+a branch coordination-only — branch it from the target branch, not from an
+implementation branch's tip.
+
 ---
 
 ## Learning record IDs

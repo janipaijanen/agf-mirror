@@ -51,22 +51,70 @@ error. Adapters such as a local MCP server may expose these commands to an
 assistant surface, but the durable coordination protocol remains append-only
 files plus validation.
 
-## Coordination-only bridge MRs
+## Publication is independent of Gate 2, but mechanically verified
 
-A branch or merge request that adds only coordination Markdown records may use a
-commit title beginning with `coordination:`. GitLab CI intentionally skips those
-commits because they publish communication and audit state, not code, docs,
-schemas, tooling, or release artifacts.
+A coordination record — a claim, note, review, or ready handoff — is expected
+to publish (merge to the protected branch) **independently of, and often
+ahead of**, the Gate 2 approval of the implementation artifact it describes.
+Gating a handoff's visibility behind its own artifact's review latency
+defeats the point of a coordination channel: another agent needs to see
+"there is a pending obligation here" while it is still pending, not only
+after it is resolved.
 
-Validate each new or changed coordination file locally before pushing:
+That independence is only safe because the fast path is **mechanically
+verified**, not merely title-claimed. A branch or merge request that adds
+only coordination Markdown records may use a commit title beginning with
+`coordination:`. CI does not skip validation for that title — it runs
+`agov coord publication-check`, which inspects the **full commit range**
+against the target branch (not only the tip diff) and confirms every commit
+in the range is a pure addition under `docs/coordination/`, with no merge or
+imported history. See `agf/rules/workflow/coordination-publication-rule.md`
+for the complete rule.
 
-```bash
-agov coord validate docs/coordination/<file>.md
-```
+This exists because a title or `[ci skip]` convention alone is an unverified
+claim about the branch. One incident (tracked as issue #72, MR !692) showed
+exactly how that goes wrong: a branch titled and described as
+coordination-only was rooted on an implementation branch's tip rather than
+the target branch, so merging it silently carried seven implementation files
+onto the protected branch even though its tip diff looked coordination-only.
 
-Use the `coordination:` CI skip only for coordination-only changes. If the same
-commit changes code, documentation, plans, schemas, tooling, CI configuration,
-or any other project file, use a normal commit title and let CI run.
+Practical implications:
+
+- **Branch coordination-only commits from the target branch**, not from an
+  implementation branch's tip. Branching from the wrong parent is exactly
+  what `agov coord publication-check` rejects.
+- Validate each new or changed coordination file locally before pushing:
+
+  ```bash
+  agov coord validate docs/coordination/<file>.md
+  ```
+
+- If the same branch changes code, documentation, plans, schemas, tooling,
+  CI configuration, or any other non-coordination file anywhere in its
+  commit range, `agov coord publication-check` fails closed — use a normal
+  commit title and let full CI run instead.
+
+### Lifecycle: what a record's kind promises
+
+Independent, fast publication is only trustworthy if every record is
+precise about what stage of the lifecycle it is claiming:
+
+- **Claims, notes, reviews, and ready handoffs** publish promptly when true.
+  A handoff means "ready for the named next action, addressed to the named
+  next agent" — it does not mean the action is approved or complete.
+- **Approval and completion records** may only be published *after* the
+  event they describe actually happened. Never pre-publish a Gate 1/Gate 2
+  approval or a completion record speculatively, even to take advantage of
+  the fast path.
+- **Only an authorized role or principal** may issue a binding decision for
+  that decision's gate.
+- **When readiness or an artifact's identity changes**, the correction is a
+  new, append-only record that references and supersedes the earlier one —
+  never a mutation of the original. A Gate 2 handoff or review naming an
+  exact commit SHA stops being current the moment that SHA changes.
+
+A false lifecycle claim is a blocking finding wherever it is caught,
+corrected by a superseding record, never by editing the false one.
 
 ## How agents communicate
 
@@ -300,3 +348,6 @@ handoffs passing approved plans to implementation.
   mechanics, and the coordination channel overview
 - [Day-to-day operation](../operate/day-to-day.md) — the daily rhythm
   of reading and writing coordination messages
+- [Poll and coordinate](../operate/poll-and-coordinate.md) — the operating
+  loop that puts this protocol into practice, including where
+  coordination-only publication fits in one cycle

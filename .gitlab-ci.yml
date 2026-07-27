@@ -20,12 +20,17 @@
 
 workflow:
   rules:
-    # Coordination-only commits update the durable governance trail. They should
-    # not invalidate the last green code pipeline for an MR. Use this only when
-    # the commit changes coordination records and each record was locally
-    # validated with agov coord validate; mixed commits must run normal CI.
-    - if: '$CI_COMMIT_TITLE =~ /^coordination:/'
-      when: never
+    # Coordination-only candidates are NOT suppressed at the workflow level.
+    # A commit title or [ci skip] convention is an unverified claim about the
+    # branch, not a safety mechanism -- MR !692 demonstrated a branch titled
+    # and described as coordination-only can still carry implementation
+    # history. Coordination candidates instead run a real, lightweight
+    # mechanical check (agov:governance:validate's `coord publication-check`
+    # call) while expensive implementation jobs skip themselves via their own
+    # path-scoped `rules:` (most already exclude docs/coordination/**-only
+    # changes by construction). See
+    # agf/rules/workflow/coordination-publication-rule.md and issue #72.
+    #
     # Suppress a redundant branch-push pipeline when this branch already has
     # an open MR (the MR pipeline covers the same commit). Never matches the
     # default branch (no MR sources from it), a tag push (CI_COMMIT_BRANCH is
@@ -620,6 +625,15 @@ agov:governance:validate:
         | xargs -0r "$agov_bin" coord validate
       git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
         | xargs -0r "$agov_bin" plan validate
+
+      # Per agf/rules/workflow/coordination-publication-rule.md: a candidate
+      # using the coordination fast-path commit convention gets its whole
+      # commit range mechanically verified as coordination-only, not merely
+      # its tip diff (MR !692). The commit title selects which candidates
+      # get this stricter check; the check itself does not trust the title.
+      if printf '%s' "$CI_COMMIT_TITLE" | grep -qE '^coordination:'; then
+        "$agov_bin" coord publication-check --base-ref "$base"
+      fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:

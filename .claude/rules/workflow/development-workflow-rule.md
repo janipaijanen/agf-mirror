@@ -41,6 +41,11 @@ For any change touching >1 module, write a plan file FIRST.
 
 - Get timestamp from OS (never invent it)
 - Include: intent, affected files list, migration needed (yes/no), test strategy, risks, rollback
+- If the plan introduces, changes, or removes normative operating guidance in
+  an adopter-facing Pages page or runbook, include the six-row projection
+  screen from `documentation-rule-projection-rule.md` (normative owner,
+  adopter explanation, runbook/situation map, AI landing/loaders,
+  validation/drift evidence, distribution).
 
 Do NOT begin implementation without a confirmed plan.
 

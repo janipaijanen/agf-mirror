@@ -1,0 +1,178 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
+<!-- Copyright (c) 2026 Jani Päijänen -->
+# Coordination Publication: Independent, Mechanically-Bounded Fast Path
+#
+# Framework principle: Audit-trail timeliness without weakening Gate 2
+# See: framework.md — Principle 2 (Artifact Ownership), Pattern 1 (Pipeline)
+# Evidence: MR !692 (2026-07-27) — a branch titled and described as
+#   coordination-only was rooted on an implementation commit; merging it
+#   carried 7 implementation/product files onto `main` under a CI path that
+#   both the `coordination:`-title `when: never` workflow rule and `[ci skip]`
+#   were independently capable of suppressing. Issue #72.
+
+> **Provisional status.** Single-project evidence (this repository,
+> 2026-07-27). Adopters hitting this rule: please file a learning record so
+> we can promote it from provisional to recommended.
+
+**Scope:** Every merge request whose commit title(s) claim to be
+coordination-only (matching the project's coordination fast-path
+convention, e.g. a `coordination:` title prefix) and any tooling that grants
+such a claim reduced CI validation.
+
+## The rule
+
+A coordination record MUST be able to publish (merge to the protected
+branch) **independently of, and often ahead of**, the Gate 2 approval of the
+implementation artifact it describes. Coordination visibility MUST NOT be
+gated behind that artifact's own review latency — see
+`agf/docs/site/docs/concepts/coordination-protocol.md` for why this is a
+correctness property, not a convenience.
+
+That independence is only safe if the fast path is **mechanically incapable
+of carrying non-coordination history**. A title or commit-message
+convention is not a safety mechanism — it is an unverified claim. This rule
+grants the fast path real, narrow, tool-enforced authority in place of that
+unverified claim.
+
+### What the fast path may mechanically verify (blocking authority)
+
+A coordination-publication check MAY block a merge request when, and only
+when, one of these objectively decidable conditions holds for the full
+commit range between the merge base and the candidate head (not merely the
+tip diff):
+
+1. **Base ancestry is unresolvable.** No valid merge-base exists on fetched
+   target history, or the target could not be fetched.
+2. **A commit outside `docs/coordination/*.md` is present anywhere in the
+   range.** This is the exact condition MR !692 violated: its tip diff was
+   coordination-only, but its range was not.
+3. **A change under `docs/coordination/` is not a pure addition.**
+   Modifications, deletions, renames, or copies of existing coordination
+   files are rejected; coordination records are append-only by design (see
+   `immutable-tags-rule.md`'s sibling principle for tags — this rule is the
+   append-only analogue for coordination records).
+4. **A merge commit or imported history is present in the range.**
+5. **A newly added coordination record fails `agov coord validate`.**
+6. **The commit range does not use the protected fast-path commit
+   convention** (the project's `coordination:` title prefix, or equivalent),
+   when the branch is being routed through the lightweight path.
+
+### What the fast path MUST NOT decide (stays human/role authority)
+
+- Whether prose is normative and needs a rule owner, or is merely
+  explanatory.
+- Whether a projection to an adopter page, runbook, or AI loader is
+  semantically adequate (see `documentation-rule-projection-rule.md`).
+- Whether a claimed "ready", "approved", or "complete" state in a
+  coordination record's body is actually true. See lifecycle semantics
+  below — that remains an authorized-role decision, not a tool inference.
+- Whether a Gate 2 decision itself is correct. This rule governs
+  **publication of records about work**, never the work's own approval.
+
+Mechanical blocking authority is exactly the six conditions above. Anything
+else that looks suspicious is a finding for a human or role reviewer to
+raise, not a block the tool issues on its own.
+
+## Lifecycle and supersession semantics
+
+Coordination records make time-sensitive claims. Precision here is what
+makes independent, fast publication safe rather than misleading:
+
+- **Claims, notes, reviews, and ready handoffs** publish promptly when true.
+  A handoff record means "ready for the named next action, addressed to the
+  named next agent" — it does not mean the action is approved or complete.
+- **Approval and completion records** (Gate 1 approval, Gate 2 approval,
+  task completion) may only be published **after** the event they describe
+  actually occurred. A tool or agent MUST NOT pre-publish an approval or
+  completion record speculatively, even under this rule's fast path.
+- **Only an authorized role or principal** may issue a binding decision
+  record for that decision's gate (e.g., only the human governor issues a
+  binding Gate 2 approval under this project's delegation model).
+- **When readiness, an artifact's identity, or a prior claim changes**, the
+  correction is a **new, append-only record** that references and
+  supersedes the earlier one for the same audience. Coordination records
+  are never mutated to fix a stale claim — see
+  `docs/coordination/20260727T080733Z-governor-reviewer-jgp5.md` for a
+  worked example of superseding an invalidated Gate 2 approval record
+  without rewriting it.
+- **A changed implementation head invalidates an earlier readiness claim**
+  for that exact head. A Gate 2 handoff or review naming an exact commit SHA
+  stops being current the moment that SHA changes; a new record naming the
+  new exact head is required before Gate 2 proceeds.
+
+A false lifecycle claim (e.g., a record asserting completion before the
+event happened) is a blocking finding at whatever review stage catches it,
+corrected by a superseding record — never by editing the false one.
+
+## CI implementation shape
+
+- Do not rely solely on commit-title pattern matching
+  (`$CI_COMMIT_TITLE =~ /^coordination:/`) or a literal `[ci skip]`
+  convention to skip validation for a candidate claiming to be
+  coordination-only. Both are unverified claims about the *branch*, and
+  neither inspects the *commit range*.
+- Route coordination-publication candidates to a real, lightweight pipeline
+  stage that runs the mechanical check above. Expensive implementation
+  jobs (full test suites, cross-platform builds, distribution packaging) MAY
+  still be skipped for a candidate that passes the check — that is the
+  legitimate performance benefit this rule preserves.
+- Revalidate when the target branch advances before merge. A pipeline that
+  passed against a stale target is not evidence the check would still pass;
+  use the forge's merge-train/merged-results support or an equivalent
+  immediate pre-merge check against the current target tip.
+- The named Rust command implementing this check (provisionally
+  `agov coord publication-check`) is the forge-neutral canonical
+  implementation. CI wiring (GitLab, GitHub Actions, etc.) is a removable
+  adapter that invokes it — do not duplicate the check's logic into
+  CI-vendor-specific script.
+
+## Required negative self-tests
+
+Per `always/gate-self-test-rule.md`, this gate does not ship without proving
+it fires on known-bad input:
+
+1. **The exact MR !692 shape** — an implementation commit followed by a
+   commit that only touches `docs/coordination/`, such that the tip diff
+   alone looks coordination-only but the range does not. Must fail.
+2. **Implementation-then-revert-then-coordination** — an implementation
+   commit, a revert of that commit, and a coordination commit. The tip
+   *aggregate* diff may look coordination-only, but the range still
+   contains non-coordination commits. Must fail (the rule inspects every
+   commit in the range, not only the net diff).
+3. **A clean, coordination-only range against current target history.**
+   Must pass.
+4. **A stale or unfetchable base ref.** Must fail closed, not pass open.
+
+## Why this exists
+
+See the evidence header. The concrete cost of the gap this rule closes was
+seven implementation/product files (`agov-core/src/roi.rs`,
+`agov/src/main.rs`, `agov/tests/token_roi.rs`, and four documentation files)
+entering `main` through a merge request titled and described as
+coordination-only, with a title-suppressed CI pipeline. No malicious intent
+was involved — the branch was simply built on top of the implementation
+branch rather than on `main`, and nothing checked the difference. The fix is
+not "write better MR descriptions" — it is removing the ability for a title
+or commit message to make an unverified safety claim that a mechanical
+check should be making instead.
+
+## Related rules
+
+- `always/coordination-message-rule.md` — establishes that coordination
+  entries must exist and reference the action they record; this rule
+  governs *how fast and how safely* those entries reach the protected
+  branch.
+- `always/coordination-sequence-guard-rule.md` — confirms before breaking
+  the coordination sequence; this rule is what makes the sequence
+  trustworthy to break-guard in the first place.
+- `workflow/merge-request-workflow-rule.md` — all changes go through an MR;
+  this rule narrows what "coordination-only" is allowed to mean within that
+  requirement.
+- `workflow/immutable-tags-rule.md` — the append-only principle for
+  coordination records mirrors the immutability principle for tags: fix
+  forward with a new record, never rewrite the old one.
+- `always/gate-self-test-rule.md` — the negative-test requirement above is
+  a direct application of this rule.
+- `documentation-rule-projection-rule.md` — sibling rule governing where
+  this rule itself (and any other normative rule) must be discoverable
+  from adopter-facing Pages, runbooks, and AI loaders.

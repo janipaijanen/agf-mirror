@@ -56,3 +56,11 @@ AI coding assistants SHOULD be instructed to:
 
 - Initial repository setup (first commit) before branch protection is configured.
 - Emergency hotfixes MAY be pushed directly if (a) the incident is actively causing harm, (b) the push is followed by a retroactive MR documenting the change, and (c) the exception is recorded as a learning.
+
+## Related rules
+
+- `coordination-publication-rule.md` — a coordination-only MR still goes
+  through this rule's MR requirement; that rule narrows what "coordination-
+  only" is mechanically allowed to mean before a reduced-validation fast
+  path applies, after MR !692 showed a title/commit-message claim alone is
+  not a safe basis for skipping validation.

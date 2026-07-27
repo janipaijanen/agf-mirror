@@ -144,6 +144,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "visibility",
     "graph",
     "graph-index",
+    "publication-check",
     // validate subcommands.
     "adoption",
     "adopter-docs",
@@ -234,6 +235,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--topic",
     "--model",
     "--dir",
+    "--base-ref",
     "--ref",
     "--artifact",
     "--task",

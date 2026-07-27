@@ -185,6 +185,18 @@ enum CoordCommand {
         #[arg(long)]
         output: Option<PathBuf>,
     },
+    /// Mechanically verify a coordination-only publication candidate against
+    /// its target ref, per coordination-publication-rule.md: every commit in
+    /// the range (not only the tip diff) must be a pure addition under the
+    /// coordination directory, with no merge/imported history.
+    PublicationCheck {
+        #[arg(long)]
+        base_ref: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -565,6 +577,14 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub: CoordCommand::GraphIndex { dir, output },
         } => coord_graph_index(dir, output, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::PublicationCheck {
+                    base_ref,
+                    dir,
+                    format,
+                },
+        } => coord_publication_check(base_ref, dir, format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -3134,6 +3154,99 @@ fn graph_index_summary(path: &std::path::Path, topic: Option<&str>) -> String {
         }
     }
     topic.unwrap_or("").to_string()
+}
+
+fn coord_publication_check(base_ref: String, dir: PathBuf, format: String, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let coord_dir = match git_coord_dir(&dir) {
+        Ok(path) => path,
+        Err(reason) => {
+            output.stderr(format!("ERR publication check failed: {reason}"));
+            return 2;
+        }
+    };
+
+    let repo_root = match git_output(&["rev-parse", "--show-toplevel"]) {
+        Ok(path) => PathBuf::from(path),
+        Err(reason) => {
+            output.stderr(format!("ERR publication check failed: {reason}"));
+            return 2;
+        }
+    };
+
+    let mut report =
+        agov_coord::publication_check::publication_check(&base_ref, &coord_dir, &repo_root);
+
+    // Mechanical containment passed; now validate every newly-added
+    // coordination record against the schema, per the rule's condition 5.
+    if report.ok {
+        for relative in &report.added_files {
+            let full_path = repo_root.join(relative);
+            match agov_coord::coord_validator::validate_file(&full_path) {
+                Ok(_) => {}
+                Err(errors) => {
+                    report.ok = false;
+                    for (field, message) in errors {
+                        report.reasons.push(format!(
+                            "{relative}: schema validation failed ({field}: {message})"
+                        ));
+                    }
+                }
+            }
+        }
+        report.reasons.sort();
+        report.reasons.dedup();
+    }
+
+    if format == "json" {
+        output.stdout(publication_check_json(&report));
+    } else {
+        render_publication_check_text(&mut output, &report);
+    }
+
+    if report.ok {
+        agov_core::roi::record_tool_output("agov", args, "coord-publication-check", output.chars);
+        0
+    } else {
+        1
+    }
+}
+
+fn render_publication_check_text(
+    output: &mut OutputCounter,
+    report: &agov_coord::publication_check::PublicationCheckReport,
+) {
+    output.stdout(format!(
+        "publication-check base_ref={} merge_base={} commits={}",
+        report.base_ref,
+        report.merge_base.as_deref().unwrap_or("none"),
+        report.commits_checked.len()
+    ));
+    for file in &report.added_files {
+        output.stdout(format!("  + {file}"));
+    }
+    for reason in &report.reasons {
+        output.stderr(format!("BLOCK {reason}"));
+    }
+    if report.ok {
+        output.stdout("OK  severity: blocking publication-check passed");
+    } else {
+        output.stdout("FAIL severity: blocking publication-check rejected candidate range");
+    }
+}
+
+fn publication_check_json(
+    report: &agov_coord::publication_check::PublicationCheckReport,
+) -> String {
+    serde_json::json!({
+        "ok": report.ok,
+        "base_ref": report.base_ref,
+        "merge_base": report.merge_base,
+        "commits_checked": report.commits_checked,
+        "added_files": report.added_files,
+        "reasons": report.reasons,
+    })
+    .to_string()
 }
 
 fn coord_visibility(

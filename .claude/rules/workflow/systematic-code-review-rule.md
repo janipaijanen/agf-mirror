@@ -83,6 +83,9 @@ visible to reviewers.
 - [ ] CHANGELOG updated if this is a user-visible change
 - [ ] Plan file exists if change touched >1 module
 - [ ] README updated if a build target, env var, or workflow changed
+- [ ] If this change touches normative guidance in a Pages page or runbook,
+      the `documentation-rule-projection-rule.md` six-row matrix is complete
+      (`docs/reviews/rule-projection/<plan-id>.yaml`) before Gate 2 approval
 
 ### 8. Commit hygiene
 - [ ] No `Co-authored-by`, `Signed-off-by`, or AI-tool trailers in commit message
