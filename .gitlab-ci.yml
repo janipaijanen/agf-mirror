@@ -648,7 +648,7 @@ agov:governance:validate:
       # judgment per the rule; only a changed, present manifest's own
       # internal shape is mechanically enforced here.
       git diff --name-only -z "$base"...HEAD -- 'docs/reviews/rule-projection/*.yaml' \
-        | xargs -0r "$agov_bin" plan projection-check
+        | xargs -0r "$agov_bin" plan projection-check --base-ref "$base"
 
       # Per agf/rules/workflow/coordination-publication-rule.md: a candidate
       # using the coordination fast-path commit convention gets its whole

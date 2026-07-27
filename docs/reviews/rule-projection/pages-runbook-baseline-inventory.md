@@ -44,7 +44,7 @@ its owner.
 | `start/first-governed-change.md` | 1 | `roles-and-gates.md` — "governor reviews and approves" |
 | `concepts/evidence-and-learnings.md` | 1 | `always/uncertainty-and-scope-rule.md`-adjacent — "required coordination entry" in a learning-category table |
 
-17 files, 57 occurrences (git-grep-verified, replacing the earlier
+17 files, 53 matching lines (git-grep-verified, replacing the earlier
 inconsistent 20-file/~79-occurrence estimate).
 
 ## Disposition
@@ -62,7 +62,7 @@ this implementation:
   occurrence describes or points at an existing authority (the role/gate
   split in `roles-and-gates.md`, or the advisory/blocking framework in
   `tool-authority-boundary-rule.md`).
-- **Routes forward:** a more rigorous per-occurrence classification (all 57
+- **Routes forward:** a more rigorous per-matching-line classification (all 53
   occurrences individually, with an explicit owner path added where one is
   currently only implied) is tracked as
   [issue #74](https://gitlab.com/janipaijanen/agents-govern-framework/-/work_items/74)

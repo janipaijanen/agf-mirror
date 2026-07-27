@@ -214,6 +214,10 @@ enum PlanCommand {
     /// (docs/reviews/rule-projection/<plan-id>.yaml), per
     /// documentation-rule-projection-rule.md.
     ProjectionCheck {
+        /// Comparison base used to verify that every changed Pages/runbook
+        /// file is declared by the manifest.
+        #[arg(long)]
+        base_ref: String,
         #[arg(required = true)]
         files: Vec<std::path::PathBuf>,
     },
@@ -607,8 +611,8 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             "plan-validate",
         ),
         Command::Plan {
-            sub: PlanCommand::ProjectionCheck { files },
-        } => plan_projection_check(files, &args),
+            sub: PlanCommand::ProjectionCheck { base_ref, files },
+        } => plan_projection_check(&base_ref, files, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
@@ -4852,7 +4856,7 @@ fn validate_files<T>(
     }
 }
 
-fn plan_projection_check(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
+fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
     let mut failed = false;
     let mut output = OutputCounter::default();
 
@@ -4864,9 +4868,45 @@ fn plan_projection_check(files: Vec<std::path::PathBuf>, args: &[String]) -> i32
         }
     };
 
+    let changed_output = match git_output(&[
+        "diff",
+        "--name-only",
+        &format!("{base_ref}...HEAD"),
+        "--",
+        "agf/docs/site/docs/**/*.md",
+    ]) {
+        Ok(output) => output,
+        Err(reason) => {
+            output.stderr(format!(
+                "ERR projection-check failed to resolve comparison base {base_ref}: {reason}"
+            ));
+            return 2;
+        }
+    };
+    let changed_pages_or_runbooks = changed_output
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect::<std::collections::BTreeSet<_>>();
+    let distribution = match dist::validate_default() {
+        Ok(spec) => spec,
+        Err(errors) => {
+            output.stderr(format!(
+                "ERR projection-check could not validate distribution manifest: {}",
+                errors.join("; ")
+            ));
+            return 2;
+        }
+    };
+
     for file in files {
         let label = file.to_string_lossy().to_string();
-        match agov_coord::projection_manifest::validate_file(&file, &repo_root) {
+        match agov_coord::projection_manifest::validate_file_against(
+            &file,
+            &repo_root,
+            &changed_pages_or_runbooks,
+            |path| distribution.contains(path),
+        ) {
             Ok(_) => output.coord_ok(&label),
             Err(errors) => {
                 failed = true;

@@ -99,14 +99,16 @@ surfaces:
       (tooling/rust/crates/agov-coord/src/projection_manifest.rs,
       agf/schemas/rule-projection-manifest.schema.json) mechanically
       validates this evidence file itself: schema shape (all six surfaces
-      present, disposition+reason required) and that every declared
-      path/paths and changed_pages_or_runbooks entry resolves to a real
-      repository file (not_applicable paths are exempt by design). Wired
+      present, disposition+reason required), every actual changed Pages or
+      runbook file is declared, every declared path resolves, and every path
+      claimed by the distribution row is present in the release manifest
+      inputs (not_applicable paths are exempt by design). Wired
       into agov:governance:validate for changed
-      docs/reviews/rule-projection/*.yaml files. 5 unit tests including 3
-      negative fixtures (missing row, unresolvable declared path,
-      unresolvable changed-file entry) -- correcting contribution-auditor
-      finding A3, which found this validator entirely absent.
+      docs/reviews/rule-projection/*.yaml files. 7 unit tests include negative
+      fixtures for a missing row, unresolvable declared path, unresolvable or
+      omitted changed-file entry, and a claimed surface absent from the
+      distribution -- correcting contribution-auditor finding A3 and its
+      corrected-head completeness follow-up.
 
       Current-target race protection (contribution-auditor finding A5)
       remains partial and is documented as such in
@@ -122,6 +124,10 @@ surfaces:
 
   distribution:
     disposition: confirmed
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+      - agf/templates/AGENTS.md
     reason: >-
       agf/rules/workflow/coordination-publication-rule.md and
       documentation-rule-projection-rule.md ship in the agf release archive

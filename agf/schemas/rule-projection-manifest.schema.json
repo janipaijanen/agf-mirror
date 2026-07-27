@@ -41,12 +41,21 @@
         "runbook_situation_map": { "$ref": "#/definitions/surfaceEntry" },
         "ai_landing_loaders": { "$ref": "#/definitions/surfaceEntry" },
         "validation_drift_evidence": { "$ref": "#/definitions/surfaceEntry" },
-        "distribution": { "$ref": "#/definitions/surfaceEntry" }
+        "distribution": { "$ref": "#/definitions/distributionEntry" }
       },
       "additionalProperties": false
     }
   },
   "definitions": {
+    "distributionEntry": {
+      "allOf": [
+        { "$ref": "#/definitions/surfaceEntry" },
+        {
+          "type": "object",
+          "required": ["paths"]
+        }
+      ]
+    },
     "surfaceEntry": {
       "type": "object",
       "required": [

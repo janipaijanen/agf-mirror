@@ -11,6 +11,7 @@
 //! rule.
 
 use agov_core::{schema, yaml};
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
@@ -48,6 +49,73 @@ pub fn validate_file(
     } else {
         Err(errors)
     }
+}
+
+/// Validate objective claims that require repository comparison context in
+/// addition to schema/path validation.
+pub fn validate_file_against<F>(
+    path: &Path,
+    repo_root: &Path,
+    changed_pages_or_runbooks: &BTreeSet<String>,
+    ships_in_distribution: F,
+) -> Result<ProjectionManifest, Vec<(String, String)>>
+where
+    F: Fn(&str) -> bool,
+{
+    let manifest = validate_file(path, repo_root)?;
+    let mut errors = validate_changed_files(&manifest.raw, changed_pages_or_runbooks);
+    errors.extend(validate_distribution(&manifest.raw, ships_in_distribution));
+    if errors.is_empty() {
+        Ok(manifest)
+    } else {
+        Err(errors)
+    }
+}
+
+fn validate_changed_files(
+    raw: &serde_json::Value,
+    actual: &BTreeSet<String>,
+) -> Vec<(String, String)> {
+    let declared = raw
+        .get("changed_pages_or_runbooks")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .collect::<BTreeSet<_>>();
+
+    actual
+        .iter()
+        .filter(|path| !declared.contains(path.as_str()))
+        .map(|path| {
+            (
+                format!(
+                    "changed Pages/runbook file is missing from changed_pages_or_runbooks: {path}"
+                ),
+                "/changed_pages_or_runbooks".to_string(),
+            )
+        })
+        .collect()
+}
+
+fn validate_distribution<F>(raw: &serde_json::Value, ships: F) -> Vec<(String, String)>
+where
+    F: Fn(&str) -> bool,
+{
+    raw.pointer("/surfaces/distribution/paths")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .enumerate()
+        .filter_map(|(index, value)| value.as_str().map(|path| (index, path)))
+        .filter(|(_, path)| !ships(path))
+        .map(|(index, path)| {
+            (
+                format!("declared shipped surface is absent from distribution input: {path}"),
+                format!("/surfaces/distribution/paths/{index}"),
+            )
+        })
+        .collect()
 }
 
 fn validate_paths_resolve(raw: &serde_json::Value, repo_root: &Path) -> Vec<(String, String)> {
@@ -165,6 +233,8 @@ surfaces:
     {}
   distribution:
     disposition: confirmed
+    paths:
+      - AGENTS.md
     reason: test reason
 "#,
                 surface("updated", "AGENTS.md"),
@@ -199,6 +269,8 @@ surfaces:
     reason: test reason
   distribution:
     disposition: confirmed
+    paths:
+      - AGENTS.md
     reason: test reason
 "#,
         );
@@ -230,6 +302,8 @@ surfaces:
     {}
   distribution:
     disposition: confirmed
+    paths:
+      - AGENTS.md
     reason: test reason
 "#,
                 surface("updated", "docs/does/not/exist.md"),
@@ -270,6 +344,8 @@ surfaces:
     {}
   distribution:
     disposition: confirmed
+    paths:
+      - AGENTS.md
     reason: test reason
 "#,
                 surface("updated", "AGENTS.md"),
@@ -322,11 +398,96 @@ surfaces:
     reason: test reason
   distribution:
     disposition: confirmed
+    paths:
+      - AGENTS.md
     reason: test reason
 "#,
         );
 
         let result = validate_file(&manifest, &repo_root());
         assert!(result.is_ok(), "expected pass, got: {:?}", result.err());
+    }
+
+    #[test]
+    fn omitted_changed_page_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = write_manifest(
+            dir.path(),
+            &format!(
+                r#"
+plan_id: test-plan
+changed_pages_or_runbooks:
+  - AGENTS.md
+surfaces:
+  normative_owner:
+    {}
+  adopter_facing_explanation:
+    {}
+  runbook_situation_map:
+    {}
+  ai_landing_loaders:
+    {}
+  validation_drift_evidence:
+    {}
+  distribution:
+    disposition: confirmed
+    paths:
+      - AGENTS.md
+    reason: test reason
+"#,
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("implemented", "AGENTS.md"),
+            ),
+        );
+        let actual = BTreeSet::from(["agf/docs/site/docs/omitted.md".to_string()]);
+        let errors = validate_file_against(&manifest, &repo_root(), &actual, |_| true)
+            .expect_err("omitted changed page must fail");
+        assert!(errors
+            .iter()
+            .any(|(message, _)| message.contains("omitted.md")));
+    }
+
+    #[test]
+    fn declared_surface_absent_from_distribution_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let manifest = write_manifest(
+            dir.path(),
+            &format!(
+                r#"
+plan_id: test-plan
+changed_pages_or_runbooks:
+  - AGENTS.md
+surfaces:
+  normative_owner:
+    {}
+  adopter_facing_explanation:
+    {}
+  runbook_situation_map:
+    {}
+  ai_landing_loaders:
+    {}
+  validation_drift_evidence:
+    {}
+  distribution:
+    disposition: confirmed
+    paths:
+      - AGENTS.md
+    reason: test reason
+"#,
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("updated", "AGENTS.md"),
+                surface("implemented", "AGENTS.md"),
+            ),
+        );
+        let errors = validate_file_against(&manifest, &repo_root(), &BTreeSet::new(), |_| false)
+            .expect_err("missing distribution member must fail");
+        assert!(errors
+            .iter()
+            .any(|(message, _)| message.contains("absent from distribution")));
     }
 }
