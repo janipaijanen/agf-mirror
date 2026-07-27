@@ -4,14 +4,14 @@ status: pending-gate1
 topic: rule-projection-screening
 advisory_consultation:
   - role: contribution-auditor
-    status: waived
-    reason: "The governor directed immediate planning so issue #72 implementation does not outrun the scope correction; contribution-auditor must review this cross-surface precedent before Gate 1 approval."
+    status: consulted
+    reason: "Review 20260727T104545Z-contribution-auditor-qs8r returned ADAPT; the plan now bounds automation, historical remediation, authority owners, and structured evidence accordingly."
   - role: infosec-sentinel
     status: not-applicable
     reason: "This is documentation authority and projection hygiene with no credential, learning-record, network, or trust-boundary change."
   - role: fact-checker
     status: consulted
-    reason: "Review 20260727T100546Z-fact-checker-2pqd verified the singular-authority split and existing Pages navigation surfaces that this plan generalizes."
+    reason: "Review 20260727T100546Z-fact-checker-2pqd supports the singular-authority model and existing Pages navigation surfaces; it did not verify the future baseline inventory, which requires a fresh exact-head fact-check at Gate 2."
 ---
 
 # Plan: rule projection screening across Pages, runbooks, adopters, and AI loaders
@@ -36,8 +36,8 @@ For every screened requirement, record exactly one normative owner:
 
 - a named file under `agf/rules/` when the statement governs agent or workflow
   behavior;
-- a schema or other existing governed contract when that is already the true
-  owner; or
+- a schema, manifest, authorized role decision, or other existing governed
+  contract when that is already the true owner; or
 - `not normative` when the text is explanatory or situational guidance.
 
 Pages explain the contract. Runbooks turn it into situation-oriented steps.
@@ -59,6 +59,13 @@ runbook or Pages page must include a matrix with these rows:
 | Validation/drift evidence | `implemented`, `advisory only`, or `not mechanically decidable`, with reason and named authority |
 | Distribution | confirm every referenced adopter/AI file ships in the relevant AGF or tooling artifact, or explain why it is project-local only |
 
+The canonical structured representation is one YAML evidence file per governed
+change under `docs/reviews/rule-projection/<plan-id>.yaml`. Its required fields
+mirror the six rows above, name every changed Pages/runbook file, identify the
+owner path/type, and record the human disposition and reason. The named rule
+defines this format; Rust validation and fixtures keep its parser contract
+deterministic without maintaining a second prose matrix.
+
 `Not applicable` is a reasoned result, not an omitted row. A pointer is
 sufficient when the target is loaded or discoverable in the relevant user or
 assistant workflow. Full normative prose must not be copied merely to make the
@@ -70,12 +77,17 @@ matrix appear complete.
 
 - Add `agf/rules/workflow/documentation-rule-projection-rule.md` defining the
   trigger, matrix, singular-authority requirement, and Gate evidence.
-- Link it from the existing downstream-impact and documentation-impact
-  guidance rather than restating either rule.
+- Link and reuse the existing downstream-impact/adopter-document parity
+  contract and documentation-impact guidance rather than creating a competing
+  parity mandate.
 - Explicitly grant validation tooling blocking authority only for objective
-  omissions: a triggered change with no matrix, missing required rows, a
-  pointer to a nonexistent path, or a declared shipped surface absent from
-  distribution input. Semantic adequacy remains human Gate review.
+  omissions in the structured artifact: a changed Pages/runbook file missing
+  from the manifest, missing required rows, an unresolvable declared path, or
+  a declared shipped surface absent from distribution input.
+- Treat path/keyword scanning as advisory candidate discovery. Humans decide
+  whether prose is normative, whether `not applicable` is justified, whether
+  a pointer is sufficient, who owns the requirement, and whether wording is
+  semantically duplicated.
 
 ### 2. Make planning and review templates carry the screen
 
@@ -83,8 +95,9 @@ matrix appear complete.
   2 review guidance.
 - Update the contributor/operator documentation so authors know when the
   trigger fires and how to distinguish normative rules from explanation.
-- Prefer one shared structured representation if automation is added; do not
-  create several hand-maintained copies of the matrix.
+- Require `docs/reviews/rule-projection/<plan-id>.yaml` as the one structured
+  representation used by planning, Gate 2, and any mechanical validation; do
+  not create several hand-maintained copies of the matrix.
 
 ### 3. Project issue #72 into AI landing surfaces
 
@@ -104,11 +117,14 @@ matrix appear complete.
   such as MUST, required, blocking, approve, or prohibited.
 - Group statements by their actual normative owner rather than treating every
   occurrence as a new rule.
-- Apply the projection matrix to each group. Fix bounded missing pointers and
-  broken links within this implementation; route any semantic conflict or
-  unplanned behavior change to a separate issue and release disposition.
+- Apply the projection matrix to each group. In this implementation, fix only
+  issue #72 projections, broken pointers, and objectively missing distribution
+  members. Route every other authority conflict, semantic rewrite, or behavior
+  change to a separately prioritized issue and release disposition.
 - Publish the inventory as auditable evidence. Do not rewrite historical plans
   or coordination records.
+- This audit is prospective evidence and does not retroactively invalidate or
+  rewrite historical plans, coordination, or already-published releases.
 
 ### 5. Validate Pages and distribution
 
@@ -126,12 +142,16 @@ matrix appear complete.
    evidence stage.
 3. Issue #72's rule, adopter guidance, runbook, AI landing/loaders, validation,
    and distribution rows are all explicitly disposed before its Gate 2.
-4. The existing Pages/runbook baseline inventory names each normative owner
-   and contains no unexplained omitted surface.
+4. The existing Pages/runbook baseline inventory names or classifies every
+   candidate and contains no unexplained omitted surface; only issue #72,
+   broken-pointer, and objective distribution corrections block this release.
+   All other semantic findings have separately prioritized issue dispositions.
 5. Normative text has one owner; projections use explanations or links and do
    not create competing rules.
-6. Missing matrices, rows, paths, or falsely declared distribution surfaces
-   fail the authorized mechanical check, including negative self-tests.
+6. Missing structured manifests, changed-file entries, required rows,
+   resolvable paths, or truthfully declared distribution surfaces fail the
+   authorized mechanical check, including negative self-tests; candidate
+   keyword detection and semantic judgments remain advisory/human-owned.
 7. Strict Pages build, navigation/search, internal links, loader/drift checks,
    distribution validation, and full relevant tests pass at exact Gate 2 head.
 8. Contribution-auditor reviews the generalized precedent and fact-checker
@@ -148,4 +168,3 @@ matrix appear complete.
   convert explanatory prose into normative policy.
 - It does not change schemas, role authority, versions, release branches,
   tags, or published releases.
-
