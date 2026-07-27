@@ -118,4 +118,4 @@ The three incidents (v0.25.0, v0.38.0, v0.41.0) all shipped a gate that didn't g
 ## Related rules
 
 - [`workflow/branch-and-worktree-rule.md`](../workflow/branch-and-worktree-rule.md) — branch and worktree discipline; the AI-assisted-branch-state subsection (v0.44.0) is itself a gate-discipline that should be self-tested by anyone implementing it.
-- [`always/external-anonymization-rule.md`](external-anonymization-rule.md) — the codename-only-at-the-codebase-boundary rule's tooling follow-up ([#46](https://gitlab.com/janipaijanen/agent-governance/-/issues/46)) is exactly the kind of gate this rule applies to: when the forbidden-term scanner ships, it ships with a negative test demonstrating it blocks a leak attempt.
+- [`always/external-anonymization-rule.md`](external-anonymization-rule.md) — the codename-only-at-the-codebase-boundary rule's tooling follow-up (historical predecessor-tracker issue 46) is exactly the kind of gate this rule applies to: when the forbidden-term scanner ships, it ships with a negative test demonstrating it blocks a leak attempt.

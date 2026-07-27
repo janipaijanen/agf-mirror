@@ -15,7 +15,7 @@ discipline* that surface follows release-to-release.
 > have not yet been implemented.
 
 This is the canonical home. Action plan item
-[A5](https://gitlab.com/janipaijanen/agent-governance/-/issues/54)
+[A5] (historical predecessor-tracker issue 54)
 from the
 [2026-05-04 ChatGPT engagement](plans/2026-05-04-chatgpt-engagement-action-plan.md).
 
@@ -141,7 +141,7 @@ The reasonably defensive consumer pattern:
    failures) read the
    [Exit codes section](integration-contract.md#exit-codes)
    and pin to a minor version that includes the codes they need.
-3. **Read the [CHANGELOG](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/CHANGELOG.md)
+3. **Read the [CHANGELOG](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/CHANGELOG.md)
    on minor and major bumps.** Patch releases never touch the
    contract; minor releases extend it; major releases change it.
 4. **Test the upgrade against a branch** before merging the
@@ -211,6 +211,6 @@ non-zero. Bare `agov` prints help.
   vocabulary an adopter uses to declare which verifiability
   layers they enforce; orthogonal to but consumes the contract
   stability promise.
-- [`CHANGELOG.md`](https://gitlab.com/janipaijanen/agent-governance/-/blob/main/CHANGELOG.md)
+- [`CHANGELOG.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/CHANGELOG.md)
   — full release history; the contract changelog is a filtered
   view of this file.

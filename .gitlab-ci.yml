@@ -488,6 +488,19 @@ release:assets-selftest:
   stage: test
   script:
     - tooling/rust/scripts/release-assets.sh selftest
+
+release:paths-validate:
+  stage: test
+  script:
+    - tooling/rust/scripts/check-release-paths.sh selftest
+    - tooling/rust/scripts/check-release-paths.sh check agf
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - .gitlab-ci.yml
+        - agf/**/*
+        - tooling/rust/scripts/check-release-paths.sh
+    - if: $CI_COMMIT_TAG
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
