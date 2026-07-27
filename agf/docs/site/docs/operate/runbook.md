@@ -35,8 +35,10 @@ command, Git forge, or automation does not grant authority.
 | Investigate possible credential exposure | infosec-sentinel | Blocks only where a named rule grants authority |
 | Approve gates, merge, release, resolve authority | governor-reviewer | Binding human decision |
 
-Read [roles and gates](../concepts/roles-and-gates.md) and the installed
-`agf/agents/MANIFEST.yaml` for the project's actual role set and status.
+Read [roles and gates](../concepts/roles-and-gates.md) and the adopter-designated
+local role authority for the project's actual role set and status. The shipped
+`agf/agents/MANIFEST.yaml` is a framework example/reference until the adopter
+explicitly designates or customizes it as local authority.
 
 ## Durable-state rule
 
@@ -66,4 +68,3 @@ checkpoint. It is not an `agov` command and may not exist downstream. Its
 output is draft state until validation **and publication** satisfy the
 durable-state rule above. Other assistants follow the same neutral checkpoint
 procedure directly.
-

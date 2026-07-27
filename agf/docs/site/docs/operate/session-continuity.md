@@ -75,14 +75,15 @@ or destructive recovery choices to the appropriate role.
 
 ## Recovery cases
 
-| Evidence found | Safe continuation |
-|---|---|
-| Dirty persistent checkout | Preserve it; identify changed/untracked paths and ownership before editing |
-| Local commit not pushed | Verify its parent and content; push only if already authorized and safe |
-| Pushed branch without handoff | Inspect exact head and tests; publish a validated handoff or recovery note rather than inferring completion |
-| Lost or unsaved IDE buffer | Mark the contents unknown; do not claim the missing work existed |
-| Base branch missing or network unavailable | Continue local read-only inspection; state that shared-state comparison is incomplete |
-| Fresh clone on another machine | Assume no local commits, stashes, worktrees, `tmp/`, overlays, terminal history, or unsaved buffers survived |
+| Recovery input | Classification | Expected action |
+|---|---|---|
+| No checkpoint exists | Unknown | Publish a recovery note that names the evidence gap; do not reconstruct completion or approval from memory |
+| Dirty persistent checkout | Local | Preserve it; identify changed/untracked paths and ownership before editing |
+| Local-only commit not pushed | Local | Verify its parent and content; push only if already authorized and safe |
+| Pushed branch without handoff | Shared branch, unknown completion | Inspect exact head and tests; publish a validated handoff or recovery note rather than inferring completion |
+| Lost or unsaved IDE buffer | Unknown | Mark the contents unknown; do not claim the missing work existed |
+| Base branch missing or network unavailable | Unknown shared state | Continue local read-only inspection; state that shared-state comparison is incomplete |
+| Fresh clone on another machine | Unknown local state | Assume no local commits, stashes, worktrees, `tmp/`, overlays, terminal history, or unsaved buffers survived |
 
 If a workstation incident may have exposed credentials, stop credential use
 and route the evidence to the local infosec-sentinel/security process. Do not
@@ -94,4 +95,3 @@ The optional Claude command can collect and validate the checkpoint. Before it
 declares readiness it must also report publication state and any remaining
 local-only work. The canonical contract is this page, so removing the Claude
 adapter does not remove continuity support.
-
