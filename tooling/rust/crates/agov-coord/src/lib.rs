@@ -6,4 +6,6 @@ pub mod coord_identity;
 pub mod coord_validator;
 pub mod handoff_tracker;
 pub mod plan_validator;
+pub mod projection_manifest;
+pub mod publication_check;
 pub mod readable_id;

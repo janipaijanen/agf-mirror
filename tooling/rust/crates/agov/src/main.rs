@@ -185,12 +185,39 @@ enum CoordCommand {
         #[arg(long)]
         output: Option<PathBuf>,
     },
+    /// Mechanically verify a coordination-only publication candidate against
+    /// its target ref, per coordination-publication-rule.md: every commit in
+    /// the range (not only the tip diff) must be a pure addition under the
+    /// coordination directory, with no merge/imported history.
+    PublicationCheck {
+        #[arg(long)]
+        base_ref: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        /// Required subject prefix every commit in the range must use
+        /// (condition 6 of coordination-publication-rule.md).
+        #[arg(long, default_value = "coordination:")]
+        subject_prefix: String,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
 }
 
 #[derive(Subcommand)]
 enum PlanCommand {
     /// Validate one or more Gate 1 plan files.
     Validate {
+        #[arg(required = true)]
+        files: Vec<std::path::PathBuf>,
+    },
+    /// Validate a structured six-surface rule-projection evidence manifest
+    /// (docs/reviews/rule-projection/<plan-id>.yaml), per
+    /// documentation-rule-projection-rule.md.
+    ProjectionCheck {
+        /// Comparison base used to verify that every changed Pages/runbook
+        /// file is declared by the manifest.
+        #[arg(long)]
+        base_ref: String,
         #[arg(required = true)]
         files: Vec<std::path::PathBuf>,
     },
@@ -565,6 +592,15 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub: CoordCommand::GraphIndex { dir, output },
         } => coord_graph_index(dir, output, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::PublicationCheck {
+                    base_ref,
+                    dir,
+                    subject_prefix,
+                    format,
+                },
+        } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -574,6 +610,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             &args,
             "plan-validate",
         ),
+        Command::Plan {
+            sub: PlanCommand::ProjectionCheck { base_ref, files },
+        } => plan_projection_check(&base_ref, files, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
@@ -3136,6 +3175,109 @@ fn graph_index_summary(path: &std::path::Path, topic: Option<&str>) -> String {
     topic.unwrap_or("").to_string()
 }
 
+fn coord_publication_check(
+    base_ref: String,
+    dir: PathBuf,
+    subject_prefix: String,
+    format: String,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let coord_dir = match git_coord_dir(&dir) {
+        Ok(path) => path,
+        Err(reason) => {
+            output.stderr(format!("ERR publication check failed: {reason}"));
+            return 2;
+        }
+    };
+
+    let repo_root = match git_output(&["rev-parse", "--show-toplevel"]) {
+        Ok(path) => PathBuf::from(path),
+        Err(reason) => {
+            output.stderr(format!("ERR publication check failed: {reason}"));
+            return 2;
+        }
+    };
+
+    let mut report = agov_coord::publication_check::publication_check(
+        &base_ref,
+        &coord_dir,
+        &subject_prefix,
+        &repo_root,
+    );
+
+    // Mechanical containment passed; now validate every newly-added
+    // coordination record against the schema, per the rule's condition 5.
+    if report.ok {
+        for relative in &report.added_files {
+            let full_path = repo_root.join(relative);
+            match agov_coord::coord_validator::validate_file(&full_path) {
+                Ok(_) => {}
+                Err(errors) => {
+                    report.ok = false;
+                    for (field, message) in errors {
+                        report.reasons.push(format!(
+                            "{relative}: schema validation failed ({field}: {message})"
+                        ));
+                    }
+                }
+            }
+        }
+        report.reasons.sort();
+        report.reasons.dedup();
+    }
+
+    if format == "json" {
+        output.stdout(publication_check_json(&report));
+    } else {
+        render_publication_check_text(&mut output, &report);
+    }
+
+    if report.ok {
+        agov_core::roi::record_tool_output("agov", args, "coord-publication-check", output.chars);
+        0
+    } else {
+        1
+    }
+}
+
+fn render_publication_check_text(
+    output: &mut OutputCounter,
+    report: &agov_coord::publication_check::PublicationCheckReport,
+) {
+    output.stdout(format!(
+        "publication-check base_ref={} merge_base={} commits={}",
+        report.base_ref,
+        report.merge_base.as_deref().unwrap_or("none"),
+        report.commits_checked.len()
+    ));
+    for file in &report.added_files {
+        output.stdout(format!("  + {file}"));
+    }
+    for reason in &report.reasons {
+        output.stderr(format!("BLOCK {reason}"));
+    }
+    if report.ok {
+        output.stdout("OK  severity: blocking publication-check passed");
+    } else {
+        output.stdout("FAIL severity: blocking publication-check rejected candidate range");
+    }
+}
+
+fn publication_check_json(
+    report: &agov_coord::publication_check::PublicationCheckReport,
+) -> String {
+    serde_json::json!({
+        "ok": report.ok,
+        "base_ref": report.base_ref,
+        "merge_base": report.merge_base,
+        "commits_checked": report.commits_checked,
+        "added_files": report.added_files,
+        "reasons": report.reasons,
+    })
+    .to_string()
+}
+
 fn coord_visibility(
     base_branch: String,
     branches: Vec<String>,
@@ -4710,6 +4852,73 @@ fn validate_files<T>(
         1
     } else {
         agov_core::roi::record_tool_output("agov", args, workflow, output.chars);
+        0
+    }
+}
+
+fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
+    let mut failed = false;
+    let mut output = OutputCounter::default();
+
+    let repo_root = match git_output(&["rev-parse", "--show-toplevel"]) {
+        Ok(path) => PathBuf::from(path),
+        Err(reason) => {
+            output.stderr(format!("ERR projection-check failed: {reason}"));
+            return 2;
+        }
+    };
+
+    let changed_output = match git_output(&[
+        "diff",
+        "--name-only",
+        &format!("{base_ref}...HEAD"),
+        "--",
+        "agf/docs/site/docs/**/*.md",
+    ]) {
+        Ok(output) => output,
+        Err(reason) => {
+            output.stderr(format!(
+                "ERR projection-check failed to resolve comparison base {base_ref}: {reason}"
+            ));
+            return 2;
+        }
+    };
+    let changed_pages_or_runbooks = changed_output
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect::<std::collections::BTreeSet<_>>();
+    let distribution = match dist::validate_default() {
+        Ok(spec) => spec,
+        Err(errors) => {
+            output.stderr(format!(
+                "ERR projection-check could not validate distribution manifest: {}",
+                errors.join("; ")
+            ));
+            return 2;
+        }
+    };
+
+    for file in files {
+        let label = file.to_string_lossy().to_string();
+        match agov_coord::projection_manifest::validate_file_against(
+            &file,
+            &repo_root,
+            &changed_pages_or_runbooks,
+            |path| distribution.contains(path),
+        ) {
+            Ok(_) => output.coord_ok(&label),
+            Err(errors) => {
+                failed = true;
+                render_coord_errors(&mut output, &label, &errors);
+            }
+        }
+    }
+
+    if failed {
+        1
+    } else {
+        agov_core::roi::record_tool_output("agov", args, "plan-projection-check", output.chars);
         0
     }
 }

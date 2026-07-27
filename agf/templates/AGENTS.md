@@ -108,6 +108,17 @@ A coordination message is not filed until it is both committed **and pushed**.
 A message that exists only in the local working tree or in an unpushed commit
 is invisible to other agents and the human governor.
 
+A coordination-only commit is expected to publish promptly and
+independently of the Gate 2 approval of the work it describes — see
+`agf/rules/workflow/coordination-publication-rule.md`. If this project has
+wired mechanical verification for that fast path (e.g. `agov coord
+publication-check` in CI), branch coordination-only commits from the target
+branch, not from an implementation branch's tip — a title alone is not what
+makes a candidate safe to fast-track. Never add `[ci skip]`/`[skip ci]` to a
+coordination-only commit message: that marker skips pipeline creation
+entirely at the platform level, before any CI configuration runs, so the
+mechanical check would never get a chance to run.
+
 ---
 
 ## Gate discipline

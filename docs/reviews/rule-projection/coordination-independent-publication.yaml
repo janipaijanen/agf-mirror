@@ -1,0 +1,165 @@
+# Six-surface projection evidence for issue #72 (coordination-independent
+# publication), per agf/rules/workflow/documentation-rule-projection-rule.md.
+# One evidence file per governed change; this is the structured record
+# validation tooling and reviewers read -- not a hand-maintained prose
+# matrix duplicated across the plan, MR description, and Gate 2 review.
+
+plan_id: coordination-independent-publication
+issue: 72
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      New named rule created for this change. It defines the six mechanically
+      decidable blocking conditions and the lifecycle/supersession semantics;
+      agov coord publication-check is its Rust implementation. Linked from
+      merge-request-workflow-rule.md's new "Related rules" section.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      Replaced the stale "Coordination-only bridge MRs" section (which
+      described the now-removed blind CI skip) with "Publication is
+      independent of Gate 2, but mechanically verified", covering why
+      publication independence is safe, the MR !692 incident, practical
+      branching guidance, and the lifecycle/supersession model. This is the
+      canonical explanatory page; other surfaces point here rather than
+      restating the content.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      Added a short "Publishing a coordination-only handoff" checklist note
+      under the poll/coordinate cycle summary, linking to the concepts page
+      and the rule rather than duplicating their content.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      Added a concise "Publication independence" paragraph to the foundry's
+      own AGENTS.md (Coordination channel section) and an adapted, project-
+      neutral version to the shipped adopter template
+      agf/templates/AGENTS.md, both pointing to
+      coordination-publication-rule.md and (where applicable) agov coord
+      publication-check rather than restating the rule body.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          This file does not exist in this repository. Foundry's own
+          assistant-loading path is AGENTS.md plus .claude/rules/ (loaded
+          directly by the tool, not via a CLAUDE.md pointer file); the
+          adopter-facing loader surface this project ships is
+          agf/templates/AGENTS.md. No CLAUDE.md-shaped loader is shipped or
+          used, so there is nothing to project into.
+
+  validation_drift_evidence:
+    disposition: implemented
+    path: tooling/rust/crates/agov-coord/src/publication_check.rs
+    reason: >-
+      agov coord publication-check mechanically enforces conditions 1-6 of
+      coordination-publication-rule.md: merge-base resolution (fails closed
+      when unresolvable -- and the surrounding CI script now resolves the
+      target deterministically via explicit fetch rather than trusting
+      possibly-empty CI predefined SHA variables, and fails the job outright
+      for a coordination candidate when no base resolves, correcting the
+      fail-open gap fact-checker finding F1 / contribution-auditor finding
+      A1 identified), per-commit AND aggregate-diff containment under
+      docs/coordination/ with addition-only status, merge-commit rejection,
+      per-commit subject-prefix enforcement across the full range (not only
+      HEAD -- correcting finding A2), and rejection of any commit whose
+      message contains a ci-skip marker ([ci skip]/[skip ci]), since that
+      marker bypasses pipeline creation at the platform level and no
+      .gitlab-ci.yml rule can override it (also finding A2; this is
+      documented as a hard prohibition, not merely "insufficient", in the
+      rule text). Schema validation of every newly-added record via
+      agov_coord::coord_validator::validate_file. Wired into
+      .gitlab-ci.yml's agov:governance:validate job, which now runs for
+      every coordination:-titled candidate that changes docs/coordination
+      (the previous blanket workflow-level `when: never` suppression for
+      `coordination:`-titled commits was removed). 9 unit tests in
+      publication_check.rs plus 3 CLI integration tests in
+      tooling/rust/crates/agov/tests/coord_publication_check.rs, including
+      the required negative fixtures: the exact MR !692 shape, an
+      implementation-then-revert-then-coordination shape, a
+      modification-of-existing-record shape, an unresolvable-base shape, a
+      wrong-subject-prefix shape, and a ci-skip-marker shape. All pass; all
+      fail correctly on the negative inputs per always/gate-self-test-rule.md.
+
+      Separately, a new agov plan projection-check command
+      (tooling/rust/crates/agov-coord/src/projection_manifest.rs,
+      agf/schemas/rule-projection-manifest.schema.json) mechanically
+      validates this evidence file itself: schema shape (all six surfaces
+      present, disposition+reason required), every actual changed Pages or
+      runbook file is declared, every declared path resolves, and every path
+      claimed by the distribution row is present in the release manifest
+      inputs (not_applicable paths are exempt by design). Wired
+      into agov:governance:validate for changed
+      docs/reviews/rule-projection/*.yaml files. 7 unit tests include negative
+      fixtures for a missing row, unresolvable declared path, unresolvable or
+      omitted changed-file entry, and a claimed surface absent from the
+      distribution -- correcting contribution-auditor finding A3 and its
+      corrected-head completeness follow-up.
+
+      Current-target race protection (contribution-auditor finding A5) is
+      partially mitigated, not fully closed -- corrected per the third
+      exact-head contribution-audit finding
+      (docs/coordination/20260727T161502Z-contribution-auditor-j4qg.md),
+      which caught that the second-round claim of "enforced" overstated
+      what only_allow_merge_if_pipeline_succeeds actually does. Current
+      state, per governor-reviewer decision
+      (docs/coordination/20260727T152325Z-coder-tester-rrtp.md, plus a
+      further decision the same date responding to finding A5 above):
+      only_allow_merge_if_pipeline_succeeds and
+      allow_merge_on_skipped_pipeline=false are enabled at the project
+      level, blocking merge when the current head has no pipeline result, a
+      failed pipeline, or a skipped pipeline (zero jobs matched -- the
+      exact failure mode this MR's own corrected head hit transiently).
+      This does NOT force a re-check when the target branch advances after
+      the candidate's pipeline last passed. Merge trains/merged-results
+      pipelines, the plan's named primary mechanism for full closure, were
+      investigated and confirmed unavailable on this project's GitLab plan
+      tier: merge_pipelines_enabled and merge_trains_enabled are absent
+      from the GitLab project API response entirely, not merely disabled.
+      Given that constraint, the governor accepted a governed amendment
+      narrowing this plan's requirement for this project
+      (docs/plans/coordination-independent-publication.md, "Governed
+      amendment: target-race enforcement, 2026-07-27" section): full
+      current-target revalidation is accepted as not implemented on this
+      hosting tier, rather than approximated by a weaker mechanism
+      presented as equivalent.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+      - agf/templates/AGENTS.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      agf/rules/workflow/coordination-publication-rule.md and
+      documentation-rule-projection-rule.md ship in the agf release archive
+      via agf/dist/release-manifest.yaml's existing `agf/rules/**` glob (no
+      manifest change needed -- the glob already covers new files under that
+      path). agf/templates/AGENTS.md ships via the existing
+      `agf/project-specific-examples/**` / templates glob coverage already
+      present in the manifest. Correction (contribution-auditor finding,
+      third exact-head recheck, 20260727T161502Z-contribution-auditor-j4qg):
+      the two changed Pages files
+      (agf/docs/site/docs/concepts/coordination-protocol.md,
+      agf/docs/site/docs/operate/poll-and-coordinate.md) DO ship in the
+      release archive -- release-manifest.yaml line 29 includes
+      `agf/docs/site/**` -- the prior text's claim that they were "not part
+      of the tooling/agov archive" was false. Both are listed above. AGENTS.md
+      (foundry-local, not part of the shipped agf/ package under any glob)
+      remains the one surface in this change correctly outside distribution.

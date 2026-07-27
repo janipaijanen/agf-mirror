@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "rule-projection-manifest.schema.json",
+  "title": "Rule Projection Evidence Manifest",
+  "description": "Schema for docs/reviews/rule-projection/<plan-id>.yaml, the structured six-surface evidence file required by agf/rules/workflow/documentation-rule-projection-rule.md for any plan or Gate 2 review that adds or changes normative guidance in a Pages page or runbook.",
+  "type": "object",
+  "required": [
+    "plan_id",
+    "changed_pages_or_runbooks",
+    "surfaces"
+  ],
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issue": {
+      "type": "integer"
+    },
+    "changed_pages_or_runbooks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "surfaces": {
+      "type": "object",
+      "required": [
+        "normative_owner",
+        "adopter_facing_explanation",
+        "runbook_situation_map",
+        "ai_landing_loaders",
+        "validation_drift_evidence",
+        "distribution"
+      ],
+      "properties": {
+        "normative_owner": { "$ref": "#/definitions/surfaceEntry" },
+        "adopter_facing_explanation": { "$ref": "#/definitions/surfaceEntry" },
+        "runbook_situation_map": { "$ref": "#/definitions/surfaceEntry" },
+        "ai_landing_loaders": { "$ref": "#/definitions/surfaceEntry" },
+        "validation_drift_evidence": { "$ref": "#/definitions/surfaceEntry" },
+        "distribution": { "$ref": "#/definitions/distributionEntry" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "distributionEntry": {
+      "allOf": [
+        { "$ref": "#/definitions/surfaceEntry" },
+        {
+          "type": "object",
+          "required": ["paths"]
+        }
+      ]
+    },
+    "surfaceEntry": {
+      "type": "object",
+      "required": [
+        "disposition",
+        "reason"
+      ],
+      "properties": {
+        "disposition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "not_applicable": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "reason"],
+            "properties": {
+              "path": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

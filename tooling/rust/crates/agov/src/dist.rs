@@ -57,6 +57,14 @@ pub struct DistSpec {
     outputs: BTreeMap<String, PathBuf>,
 }
 
+impl DistSpec {
+    pub fn contains(&self, path: &str) -> bool {
+        self.files
+            .binary_search_by(|item| item.as_str().cmp(path))
+            .is_ok()
+    }
+}
+
 #[derive(Debug)]
 pub struct BuildResult {
     spec: DistSpec,

@@ -38,6 +38,15 @@
 result visible. **Approve, merge, and release** remain reserved decisions;
 polling never grants them.
 
+**Publishing a coordination-only handoff:** publish it promptly — do not wait
+for the implementation artifact's Gate 2 to merge first. Branch it from the
+target branch, not from an implementation branch's tip, and use the
+`coordination:` commit title only when the branch's entire commit range is
+additions under `docs/coordination/`. See
+[Coordination protocol § Publication is independent of Gate 2](../concepts/coordination-protocol.md#publication-is-independent-of-gate-2-but-mechanically-verified)
+for why, and `agf/rules/workflow/coordination-publication-rule.md` for the
+mechanically-enforced conditions.
+
 ## Splitting work safely
 
 Before delegating, identify the approved plan, role, owned files or artifacts,
