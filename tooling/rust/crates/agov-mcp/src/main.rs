@@ -53,6 +53,12 @@ fn main() {
         );
         return;
     }
+    if matches!(args.as_slice(), [arg] if arg == "--help" || arg == "-h") {
+        println!(
+            "agov-mcp — stdio MCP server for agov\n\nUsage: agov-mcp [--help | --version]\n\nPlace agov and agov-mcp on PATH, or set AGOV_MCP_AGOV_BIN to the agov executable.\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md"
+        );
+        return;
+    }
     if matches!(args.as_slice(), [command, flag, format] if command == "version" && flag == "--format" && format == "json")
     {
         println!(
