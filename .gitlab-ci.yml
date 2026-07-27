@@ -338,7 +338,7 @@ agf:dist:preview:
   script:
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
-    - tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agf-*.tar.gz dist/agf-*.zip
+    - scripts/check-no-elixir-artifacts.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
   artifacts:
     name: "agf-preview-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -366,7 +366,7 @@ agf:dist:release:
     - cargo run --quiet -p agov -- dist check-tag
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
-    - tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agf-*.tar.gz dist/agf-*.zip
+    - scripts/check-no-elixir-artifacts.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
   artifacts:
     name: "agf-$CI_COMMIT_TAG"
     paths:
