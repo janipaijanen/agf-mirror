@@ -71,18 +71,26 @@ in the range is a pure addition under `docs/coordination/`, with no merge or
 imported history. See `agf/rules/workflow/coordination-publication-rule.md`
 for the complete rule.
 
-This exists because a title or `[ci skip]` convention alone is an unverified
-claim about the branch. One incident (tracked as issue #72, MR !692) showed
-exactly how that goes wrong: a branch titled and described as
-coordination-only was rooted on an implementation branch's tip rather than
-the target branch, so merging it silently carried seven implementation files
-onto the protected branch even though its tip diff looked coordination-only.
+This exists because a commit title alone is an unverified claim about the
+branch. One incident (tracked as issue #72, MR !692) showed exactly how that
+goes wrong: a branch titled and described as coordination-only was rooted on
+an implementation branch's tip rather than the target branch, so merging it
+silently carried seven non-coordination files (three Rust implementation
+files and four documentation/configuration files) onto the protected branch
+even though its tip diff looked coordination-only.
 
 Practical implications:
 
 - **Branch coordination-only commits from the target branch**, not from an
   implementation branch's tip. Branching from the wrong parent is exactly
   what `agov coord publication-check` rejects.
+- **Never put `[ci skip]`/`[skip ci]` in a coordination-only commit
+  message.** These markers skip pipeline *creation* at the platform level,
+  before any CI configuration is even evaluated — no workflow rule can
+  override that. Run `agov coord publication-check --base-ref
+  origin/<target>` locally before pushing instead; that is the actual
+  safety net when a marker like this would otherwise prevent CI from ever
+  running the check.
 - Validate each new or changed coordination file locally before pushing:
 
   ```bash

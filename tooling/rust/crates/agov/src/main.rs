@@ -194,6 +194,10 @@ enum CoordCommand {
         base_ref: String,
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
+        /// Required subject prefix every commit in the range must use
+        /// (condition 6 of coordination-publication-rule.md).
+        #[arg(long, default_value = "coordination:")]
+        subject_prefix: String,
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
     },
@@ -203,6 +207,13 @@ enum CoordCommand {
 enum PlanCommand {
     /// Validate one or more Gate 1 plan files.
     Validate {
+        #[arg(required = true)]
+        files: Vec<std::path::PathBuf>,
+    },
+    /// Validate a structured six-surface rule-projection evidence manifest
+    /// (docs/reviews/rule-projection/<plan-id>.yaml), per
+    /// documentation-rule-projection-rule.md.
+    ProjectionCheck {
         #[arg(required = true)]
         files: Vec<std::path::PathBuf>,
     },
@@ -582,9 +593,10 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 CoordCommand::PublicationCheck {
                     base_ref,
                     dir,
+                    subject_prefix,
                     format,
                 },
-        } => coord_publication_check(base_ref, dir, format, &args),
+        } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -594,6 +606,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             &args,
             "plan-validate",
         ),
+        Command::Plan {
+            sub: PlanCommand::ProjectionCheck { files },
+        } => plan_projection_check(files, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
@@ -3156,7 +3171,13 @@ fn graph_index_summary(path: &std::path::Path, topic: Option<&str>) -> String {
     topic.unwrap_or("").to_string()
 }
 
-fn coord_publication_check(base_ref: String, dir: PathBuf, format: String, args: &[String]) -> i32 {
+fn coord_publication_check(
+    base_ref: String,
+    dir: PathBuf,
+    subject_prefix: String,
+    format: String,
+    args: &[String],
+) -> i32 {
     let mut output = OutputCounter::default();
     let coord_dir = match git_coord_dir(&dir) {
         Ok(path) => path,
@@ -3174,8 +3195,12 @@ fn coord_publication_check(base_ref: String, dir: PathBuf, format: String, args:
         }
     };
 
-    let mut report =
-        agov_coord::publication_check::publication_check(&base_ref, &coord_dir, &repo_root);
+    let mut report = agov_coord::publication_check::publication_check(
+        &base_ref,
+        &coord_dir,
+        &subject_prefix,
+        &repo_root,
+    );
 
     // Mechanical containment passed; now validate every newly-added
     // coordination record against the schema, per the rule's condition 5.
@@ -4823,6 +4848,37 @@ fn validate_files<T>(
         1
     } else {
         agov_core::roi::record_tool_output("agov", args, workflow, output.chars);
+        0
+    }
+}
+
+fn plan_projection_check(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
+    let mut failed = false;
+    let mut output = OutputCounter::default();
+
+    let repo_root = match git_output(&["rev-parse", "--show-toplevel"]) {
+        Ok(path) => PathBuf::from(path),
+        Err(reason) => {
+            output.stderr(format!("ERR projection-check failed: {reason}"));
+            return 2;
+        }
+    };
+
+    for file in files {
+        let label = file.to_string_lossy().to_string();
+        match agov_coord::projection_manifest::validate_file(&file, &repo_root) {
+            Ok(_) => output.coord_ok(&label),
+            Err(errors) => {
+                failed = true;
+                render_coord_errors(&mut output, &label, &errors);
+            }
+        }
+    }
+
+    if failed {
+        1
+    } else {
+        agov_core::roi::record_tool_output("agov", args, "plan-projection-check", output.chars);
         0
     }
 }

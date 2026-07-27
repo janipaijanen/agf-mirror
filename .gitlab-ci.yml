@@ -603,42 +603,69 @@ agov:governance:validate:
       # Return to repo root for git operations.
       cd "$CI_PROJECT_DIR"
 
-      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ] && [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_SHA:-}" ]; then
-        base="$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"
+      # A coordination-titled candidate is the security-sensitive path (per
+      # coordination-publication-rule.md, condition 1: an unresolvable base
+      # must fail closed, not skip open). Resolve the base deterministically
+      # by fetching the real target ref, rather than trusting possibly-empty
+      # CI predefined SHA variables -- CI_MERGE_REQUEST_TARGET_BRANCH_SHA and
+      # CI_COMMIT_BEFORE_SHA are both empty/unset in real, common pipeline
+      # shapes (first pipeline on a branch, force-push, shallow clone).
+      is_coordination_candidate=0
+      if printf '%s' "$CI_COMMIT_TITLE" | grep -qE '^coordination:'; then
+        is_coordination_candidate=1
+      fi
+
+      if [ "$CI_PIPELINE_SOURCE" = "merge_request_event" ]; then
+        target_ref="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
       else
-        base="${CI_COMMIT_BEFORE_SHA:-}"
+        target_ref="$CI_DEFAULT_BRANCH"
       fi
 
-      case "$base" in
-        ""|0000000000000000000000000000000000000000)
-          echo "No comparison base available; skipping changed-file governance validation."
-          exit 0
-          ;;
-      esac
-
-      if ! git rev-parse --verify "$base^{commit}" >/dev/null 2>&1; then
-        git fetch --no-tags origin "$CI_DEFAULT_BRANCH"
+      base=""
+      if git fetch --no-tags origin "$target_ref" 2>/dev/null; then
+        base="$(git rev-parse "origin/$target_ref" 2>/dev/null || true)"
       fi
-      git rev-parse --verify "$base^{commit}" >/dev/null
+
+      if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+        if [ "$is_coordination_candidate" -eq 1 ]; then
+          echo "ERR: could not resolve comparison base against '$target_ref' for a coordination-titled candidate; failing closed (coordination-publication-rule.md condition 1)." >&2
+          exit 1
+        fi
+        echo "No comparison base available; skipping changed-file governance validation for this non-coordination commit."
+        exit 0
+      fi
 
       git diff --name-only -z "$base"...HEAD -- 'docs/coordination/*.md' \
         | xargs -0r "$agov_bin" coord validate
       git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
         | xargs -0r "$agov_bin" plan validate
 
+      # Per agf/rules/workflow/documentation-rule-projection-rule.md: every
+      # changed structured six-surface evidence manifest is mechanically
+      # checked for schema shape and resolvable declared paths. This does
+      # NOT detect a Pages/runbook normative change with no manifest at all
+      # -- classifying whether a Pages diff is normative stays human/role
+      # judgment per the rule; only a changed, present manifest's own
+      # internal shape is mechanically enforced here.
+      git diff --name-only -z "$base"...HEAD -- 'docs/reviews/rule-projection/*.yaml' \
+        | xargs -0r "$agov_bin" plan projection-check
+
       # Per agf/rules/workflow/coordination-publication-rule.md: a candidate
       # using the coordination fast-path commit convention gets its whole
       # commit range mechanically verified as coordination-only, not merely
       # its tip diff (MR !692). The commit title selects which candidates
-      # get this stricter check; the check itself does not trust the title.
-      if printf '%s' "$CI_COMMIT_TITLE" | grep -qE '^coordination:'; then
-        "$agov_bin" coord publication-check --base-ref "$base"
+      # get this stricter check; the check itself does not trust the title
+      # (publication-check independently inspects every commit's subject
+      # and diff, not just HEAD's).
+      if [ "$is_coordination_candidate" -eq 1 ]; then
+        "$agov_bin" coord publication-check --base-ref "$base" --subject-prefix "coordination:"
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - docs/coordination/*.md
         - docs/plans/*.md
+        - docs/reviews/rule-projection/*.yaml
         - .gitlab-ci.yml
         - tooling/agov
         - tooling/rust/**/*
@@ -648,6 +675,7 @@ agov:governance:validate:
       changes:
         - docs/coordination/*.md
         - docs/plans/*.md
+        - docs/reviews/rule-projection/*.yaml
         - .gitlab-ci.yml
         - tooling/agov
         - tooling/rust/**/*

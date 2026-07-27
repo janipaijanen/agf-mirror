@@ -68,21 +68,57 @@ surfaces:
     reason: >-
       agov coord publication-check mechanically enforces conditions 1-6 of
       coordination-publication-rule.md: merge-base resolution (fails closed
-      when unresolvable), per-commit AND aggregate-diff containment under
+      when unresolvable -- and the surrounding CI script now resolves the
+      target deterministically via explicit fetch rather than trusting
+      possibly-empty CI predefined SHA variables, and fails the job outright
+      for a coordination candidate when no base resolves, correcting the
+      fail-open gap fact-checker finding F1 / contribution-auditor finding
+      A1 identified), per-commit AND aggregate-diff containment under
       docs/coordination/ with addition-only status, merge-commit rejection,
-      and schema validation of every newly-added record via
+      per-commit subject-prefix enforcement across the full range (not only
+      HEAD -- correcting finding A2), and rejection of any commit whose
+      message contains a ci-skip marker ([ci skip]/[skip ci]), since that
+      marker bypasses pipeline creation at the platform level and no
+      .gitlab-ci.yml rule can override it (also finding A2; this is
+      documented as a hard prohibition, not merely "insufficient", in the
+      rule text). Schema validation of every newly-added record via
       agov_coord::coord_validator::validate_file. Wired into
       .gitlab-ci.yml's agov:governance:validate job, which now runs for
       every coordination:-titled candidate that changes docs/coordination
       (the previous blanket workflow-level `when: never` suppression for
-      `coordination:`-titled commits was removed). 5 unit tests in
+      `coordination:`-titled commits was removed). 9 unit tests in
       publication_check.rs plus 3 CLI integration tests in
       tooling/rust/crates/agov/tests/coord_publication_check.rs, including
-      the required negative fixtures: the exact MR !692 shape (implementation
-      commit + coordination-only tip), an implementation-then-revert-then-
-      coordination shape, a modification-of-existing-record shape, and an
-      unresolvable-base shape. All pass; all fail correctly on the negative
-      inputs per always/gate-self-test-rule.md.
+      the required negative fixtures: the exact MR !692 shape, an
+      implementation-then-revert-then-coordination shape, a
+      modification-of-existing-record shape, an unresolvable-base shape, a
+      wrong-subject-prefix shape, and a ci-skip-marker shape. All pass; all
+      fail correctly on the negative inputs per always/gate-self-test-rule.md.
+
+      Separately, a new agov plan projection-check command
+      (tooling/rust/crates/agov-coord/src/projection_manifest.rs,
+      agf/schemas/rule-projection-manifest.schema.json) mechanically
+      validates this evidence file itself: schema shape (all six surfaces
+      present, disposition+reason required) and that every declared
+      path/paths and changed_pages_or_runbooks entry resolves to a real
+      repository file (not_applicable paths are exempt by design). Wired
+      into agov:governance:validate for changed
+      docs/reviews/rule-projection/*.yaml files. 5 unit tests including 3
+      negative fixtures (missing row, unresolvable declared path,
+      unresolvable changed-file entry) -- correcting contribution-auditor
+      finding A3, which found this validator entirely absent.
+
+      Current-target race protection (contribution-auditor finding A5)
+      remains partial and is documented as such in
+      coordination-publication-rule.md rather than overclaimed: this
+      project does not currently enable
+      only_allow_merge_if_pipeline_succeeds or merge trains at the project
+      level (verified via GitLab project API), so nothing today forces
+      re-validation if the target advances between a candidate's last green
+      pipeline and its merge. Enabling either is a project-wide
+      merge-blocking setting change, not a .gitlab-ci.yml change, and is
+      flagged as an open governor-reviewer decision rather than silently
+      implemented or silently dropped from the claim.
 
   distribution:
     disposition: confirmed

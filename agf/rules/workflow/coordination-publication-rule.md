@@ -110,10 +110,27 @@ corrected by a superseding record — never by editing the false one.
 ## CI implementation shape
 
 - Do not rely solely on commit-title pattern matching
-  (`$CI_COMMIT_TITLE =~ /^coordination:/`) or a literal `[ci skip]`
-  convention to skip validation for a candidate claiming to be
-  coordination-only. Both are unverified claims about the *branch*, and
-  neither inspects the *commit range*.
+  (`$CI_COMMIT_TITLE =~ /^coordination:/`) to skip validation for a
+  candidate claiming to be coordination-only. A title is an unverified
+  claim about the *branch*, and does not by itself inspect the *commit
+  range*. The title MAY still be used to *select* which candidates run the
+  stricter check (routing, not trust) — `agov coord publication-check`
+  independently re-verifies the range regardless of title.
+- **`[ci skip]` / `[skip ci]` is forbidden in coordination-only commit
+  messages, full stop — not merely "insufficient."** These are platform-
+  level markers (GitLab, GitHub, and others): when present, the forge skips
+  pipeline *creation* entirely, before `.gitlab-ci.yml` or any equivalent
+  CI configuration is evaluated. No workflow/job `rules:` can override this
+  — the check literally never runs. A coordination-only commit carrying
+  this marker is unverifiable by construction, not merely unverified.
+  `agov coord publication-check` rejects any commit in the range whose
+  message contains one, so the check still catches it whenever it *does*
+  run (a later non-skipped commit in the same range, a manual pipeline
+  trigger, or a local pre-flight run) — but the marker's main effect,
+  silently preventing CI from running at all, cannot be caught after the
+  fact by CI itself. Run `agov coord publication-check --base-ref
+  origin/<target>` **locally, before pushing**, as the actual safety net
+  for this case.
 - Route coordination-publication candidates to a real, lightweight pipeline
   stage that runs the mechanical check above. Expensive implementation
   jobs (full test suites, cross-platform builds, distribution packaging) MAY
@@ -123,6 +140,22 @@ corrected by a superseding record — never by editing the false one.
   passed against a stale target is not evidence the check would still pass;
   use the forge's merge-train/merged-results support or an equivalent
   immediate pre-merge check against the current target tip.
+
+  **Current enforcement state (this project, verified via GitLab project
+  API):** neither `only_allow_merge_if_pipeline_succeeds` nor merge
+  trains/merged-results pipelines are currently enabled at the project
+  level. `agov coord publication-check` itself always evaluates the
+  *current* fetched target tip at the moment it runs — the race is not in
+  the check's own logic, it is that nothing today re-runs the check
+  automatically if the target advances *after* a candidate's pipeline last
+  passed and *before* it merges. Enabling
+  `only_allow_merge_if_pipeline_succeeds` (a project-wide merge-request
+  setting, not a `.gitlab-ci.yml` change) and, tier permitting, merge
+  trains, would close this gap, but changing project-wide merge-blocking
+  settings is a governance decision outside a single implementation's
+  scope — it affects every merge request, not only coordination
+  candidates. Track as a governor-reviewer decision, not a default this
+  rule silently assumes.
 - The named Rust command implementing this check (provisionally
   `agov coord publication-check`) is the forge-neutral canonical
   implementation. CI wiring (GitLab, GitHub Actions, etc.) is a removable

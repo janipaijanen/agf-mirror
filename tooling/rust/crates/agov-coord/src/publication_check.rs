@@ -29,8 +29,17 @@ pub struct PublicationCheckReport {
 
 /// Run the publication check for `HEAD` against `base_ref`, treating
 /// `coord_dir` (relative to `cwd`, e.g. `docs/coordination`) as the only
-/// path new commits in the range may touch.
-pub fn publication_check(base_ref: &str, coord_dir: &str, cwd: &Path) -> PublicationCheckReport {
+/// path new commits in the range may touch. Every commit's subject line in
+/// the range must start with `subject_prefix` (e.g. `"coordination:"`) --
+/// this is condition 6 of `coordination-publication-rule.md`: the range
+/// must use the protected fast-path commit convention throughout, not only
+/// at the tip.
+pub fn publication_check(
+    base_ref: &str,
+    coord_dir: &str,
+    subject_prefix: &str,
+    cwd: &Path,
+) -> PublicationCheckReport {
     let mut reasons = Vec::new();
     let coord_prefix = format!("{}/", coord_dir.trim_end_matches('/'));
 
@@ -69,6 +78,36 @@ pub fn publication_check(base_ref: &str, coord_dir: &str, cwd: &Path) -> Publica
 
     if commits.is_empty() {
         reasons.push("no commits in range; nothing to publish".to_string());
+    }
+
+    for commit in &commits {
+        let subject = git(cwd, &["log", "-1", "--format=%s", commit])
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        if !subject.starts_with(subject_prefix) {
+            reasons.push(format!(
+                "commit {commit} subject does not use the protected fast-path convention \
+                 (expected to start with '{subject_prefix}'): {subject:?}"
+            ));
+        }
+
+        // GitLab (and GitHub) skip pipeline *creation* entirely when a
+        // commit message contains one of these markers -- a platform-level
+        // behavior no .gitlab-ci.yml rule can override. A coordination-only
+        // commit that carries one can silently never be mechanically
+        // checked at all. Reject it here so the check is at least a
+        // reliable local pre-flight (`agov coord publication-check` run
+        // before push) even when CI itself would never run.
+        let full_message = git(cwd, &["log", "-1", "--format=%B", commit]).unwrap_or_default();
+        let lower = full_message.to_lowercase();
+        if lower.contains("[ci skip]") || lower.contains("[skip ci]") {
+            reasons.push(format!(
+                "commit {commit} message contains a ci-skip marker ([ci skip]/[skip ci]); \
+                 this bypasses pipeline creation at the platform level and is forbidden on \
+                 the coordination-publication fast path -- see coordination-publication-rule.md"
+            ));
+        }
     }
 
     let mut added_files = Vec::new();
@@ -230,7 +269,7 @@ mod tests {
         );
         repo.commit("coordination: add a");
 
-        let report = publication_check("target", "docs/coordination", repo.path());
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
         assert!(
             report.ok,
             "expected pass, got reasons: {:?}",
@@ -263,7 +302,7 @@ mod tests {
         );
         repo.commit("coordination: hand off for gate 2");
 
-        let report = publication_check("target", "docs/coordination", repo.path());
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
         assert!(!report.ok);
         assert!(
             report.reasons.iter().any(|r| r.contains("src/roi.rs")),
@@ -294,7 +333,7 @@ mod tests {
         );
         repo.commit("coordination: hand off for gate 2");
 
-        let report = publication_check("target", "docs/coordination", repo.path());
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
         assert!(!report.ok);
         assert!(
             report.reasons.iter().any(|r| r.contains("src/roi.rs")),
@@ -314,9 +353,61 @@ mod tests {
         repo.write("docs/coordination/base.md", &coord_message("base-edited"));
         repo.commit("coordination: edit base");
 
-        let report = publication_check("target", "docs/coordination", repo.path());
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
         assert!(!report.ok);
         assert!(report.reasons.iter().any(|r| r.contains("non-addition")));
+    }
+
+    #[test]
+    fn ci_skip_marker_in_commit_message_fails() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/base.md", "# base\n");
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        repo.write(
+            "docs/coordination/20260727T000500Z-f.md",
+            &coord_message("20260727T000500Z-f"),
+        );
+        repo.commit("coordination: add f [ci skip]");
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(
+            report.reasons.iter().any(|r| r.contains("ci-skip marker")),
+            "expected a ci-skip-marker reason, got: {:?}",
+            report.reasons
+        );
+    }
+
+    #[test]
+    fn wrong_subject_prefix_fails_even_with_coordination_only_paths() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/base.md", "# base\n");
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        // Path/status containment is satisfied (pure addition under
+        // docs/coordination/), but the commit subject does not use the
+        // protected fast-path convention.
+        repo.write(
+            "docs/coordination/20260727T000400Z-e.md",
+            &coord_message("20260727T000400Z-e"),
+        );
+        repo.commit("chore: add e");
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(
+            report
+                .reasons
+                .iter()
+                .any(|r| r.contains("protected fast-path convention")),
+            "expected a subject-prefix reason, got: {:?}",
+            report.reasons
+        );
     }
 
     #[test]
@@ -325,7 +416,12 @@ mod tests {
         repo.write("docs/coordination/a.md", &coord_message("a"));
         repo.commit("coordination: add a");
 
-        let report = publication_check("does-not-exist", "docs/coordination", repo.path());
+        let report = publication_check(
+            "does-not-exist",
+            "docs/coordination",
+            "coordination:",
+            repo.path(),
+        );
         assert!(!report.ok);
         assert!(report.merge_base.is_none());
     }

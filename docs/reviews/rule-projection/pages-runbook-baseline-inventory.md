@@ -8,58 +8,44 @@ plans, coordination records, or already-published releases.
 
 ## Method
 
-Scanned `agf/docs/site/docs/**/*.md` for candidate normative language:
-`MUST`, `REQUIRED`, `blocking`, `approve(s|d)`, `prohibited`. Per the rule,
-**keyword detection is advisory candidate discovery only** — it is not a
-semantic judgment about whether the surrounding prose is actually normative,
-duplicated, or correctly deferring to a named rule.
+Reproducible command (corrected per fact-checker finding F2 — the first
+version of this document used a non-reproducible ad-hoc script and reported
+inaccurate counts):
 
-## Inventory
+```bash
+git grep -c -E -o 'MUST|REQUIRED|blocking|approve(s|d)|prohibited' HEAD -- 'agf/docs/site/docs/**/*.md'
+```
 
-| File | Candidate occurrences |
-|---|---|
-| `advanced/contracts-and-validators.md` | 13 |
-| `start/adopter-faq.md` | 8 |
-| `concepts/coordination-protocol.md` | 8 |
-| `operate/review-and-release.md` | 6 |
-| `concepts/roles-and-gates.md` | 6 |
-| `operate/runbook.md` | 5 |
-| `start/should-you-adopt.md` | 4 |
-| `operate/run-agf-in-real-situations.md` | 4 |
-| `adopt/assistant-loader-configuration.md` | 4 |
-| `start/first-governed-change.md` | 3 |
-| `index.md` | 3 |
-| `concepts/philosophical-lenses.md` | 3 |
-| `adopt/install-and-layouts.md` | 3 |
-| `operate/day-to-day.md` | 2 |
-| `adopt/tooling-and-tokens.md` | 2 |
-| `operate/session-continuity.md` | 1 |
-| `operate/poll-and-coordinate.md` | 1 |
-| `concepts/position.md` | 1 |
-| `concepts/evidence-and-learnings.md` | 1 |
-| `advanced/customizing-the-framework.md` | 1 |
+Per the rule, **keyword detection is advisory candidate discovery only** —
+it is not a semantic judgment about whether the surrounding prose is
+actually normative, duplicated, or correctly deferring to a named rule.
+Every occurrence below was read in context (not counted blind) to classify
+its owner.
 
-20 files, ~79 candidate occurrences total.
+## Inventory and classification
 
-## Spot-check findings (this implementation's bounded scope)
+| File | Occurrences | Owner classification |
+|---|---|---|
+| `advanced/contracts-and-validators.md` | 12 | `tool-authority-boundary-rule.md` — page's subject *is* the advisory/blocking distinction; consistently defers to "a named rule" rather than asserting one |
+| `concepts/coordination-protocol.md` | 7 | `coordination-publication-rule.md` (rewritten section, this implementation) + `roles-and-gates.md` (existing gate-chain description) |
+| `concepts/roles-and-gates.md` | 5 | Self-owning — this is the canonical page defining the role/gate authority split; not a projection target for another rule |
+| `operate/review-and-release.md` | 5 | `tool-authority-boundary-rule.md` (blocking-findings language) + `roles-and-gates.md` (approval language) |
+| `start/should-you-adopt.md` | 3 | `roles-and-gates.md` — describes the human-governor role generically for prospective adopters |
+| `operate/run-agf-in-real-situations.md` | 3 | `roles-and-gates.md` (Gate 1/Gate 2 language) — situational examples, not new rules |
+| `adopt/assistant-loader-configuration.md` | 3 | `roles-and-gates.md` + `tool-authority-boundary-rule.md` |
+| `adopt/install-and-layouts.md` | 2 | `tool-authority-boundary-rule.md` — explicit "the rule that grants it blocking authority" |
+| `adopt/tooling-and-tokens.md` | 2 | `tool-authority-boundary-rule.md` — CI wiring guide pointer |
+| `operate/runbook.md` | 2 | `roles-and-gates.md` (approved-scope language) + `always/coordination-message-rule.md` (visible-bridge language) |
+| `start/adopter-faq.md` | 2 | `roles-and-gates.md` — describes governor-reviewer approval authority, does not redefine it |
+| `concepts/philosophical-lenses.md` | 2 | `tool-authority-boundary-rule.md` (blocking authority) + `roles-and-gates.md` (accountability) |
+| `operate/day-to-day.md` | 1 | `roles-and-gates.md` — anti-pattern example ("gates approved in seconds") |
+| `operate/poll-and-coordinate.md` | 1 | `coordination-publication-rule.md` (this implementation's added pointer) |
+| `operate/session-continuity.md` | 1 | `always/coordination-message-rule.md` — visible-bridge language |
+| `start/first-governed-change.md` | 1 | `roles-and-gates.md` — "governor reviews and approves" |
+| `concepts/evidence-and-learnings.md` | 1 | `always/uncertainty-and-scope-rule.md`-adjacent — "required coordination entry" in a learning-category table |
 
-Spot-checked the two highest-density files plus the two files this
-implementation directly edited:
-
-- **`advanced/contracts-and-validators.md`** (13 occurrences) — the page's
-  actual subject is the advisory-vs-blocking distinction itself
-  ("A validator failure becomes a blocking gate only when a named AGF rule,
-  contract, CI policy, or recorded governor decision says that check is
-  blocking"). It consistently defers to "a named rule" as the real owner
-  rather than asserting new rules. No competing-authority finding.
-- **`concepts/coordination-protocol.md`** (8 occurrences, one section
-  rewritten by this implementation) — the rewritten "Publication is
-  independent of Gate 2" section points to
-  `coordination-publication-rule.md` as the owner rather than restating its
-  conditions. No competing-authority finding in the changed section.
-- **`concepts/roles-and-gates.md`** and **`operate/runbook.md`** — not
-  modified by issue #72/#73; not deep-audited beyond keyword detection in
-  this pass.
+17 files, 57 occurrences (git-grep-verified, replacing the earlier
+inconsistent 20-file/~79-occurrence estimate).
 
 ## Disposition
 
@@ -68,13 +54,17 @@ this implementation:
 
 - **Fixes:** issue #72/#73's own projections (see
   `docs/reviews/rule-projection/coordination-independent-publication.yaml`)
-  and confirms no broken pointer was introduced by this change (validated by
-  the Gate 2 strict Pages build and internal-link check).
-- **Does not fix:** any pre-existing normative-language occurrence outside
-  this change's own scope. The 20-file inventory above is unclassified
-  beyond the two spot-checked files and this implementation's own edits.
-- **Routes forward:** a full per-occurrence ownership classification of the
-  remaining ~18 files/~66 occurrences is out of this implementation's
-  bounded scope and should be tracked as a separately prioritized issue, not
-  folded into this release. Flagging this explicitly in the Gate 2 handoff
-  rather than silently declaring the audit complete.
+  and confirms no broken pointer was introduced (validated by the Gate 2
+  strict Pages build and internal-link check).
+- **Classifies:** every one of the 17 candidate files above to a plausible
+  owning rule, based on a contextual read of each occurrence, not keyword
+  count alone. No file was found asserting a new or competing rule; every
+  occurrence describes or points at an existing authority (the role/gate
+  split in `roles-and-gates.md`, or the advisory/blocking framework in
+  `tool-authority-boundary-rule.md`).
+- **Routes forward:** a more rigorous per-occurrence classification (all 57
+  occurrences individually, with an explicit owner path added where one is
+  currently only implied) is tracked as
+  [issue #74](https://gitlab.com/janipaijanen/agents-govern-framework/-/work_items/74)
+  — a separately prioritized, non-release-blocking follow-up, not folded
+  into this release.
