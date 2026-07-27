@@ -171,11 +171,16 @@ unreviewed, or semantically premature publication.
 
 ## Governed amendment: target-race enforcement, 2026-07-27
 
-Recorded per governor-reviewer decision
-(`docs/coordination/20260727T152325Z-coder-tester-rrtp.md` and a further
-decision on the same date responding to
-`docs/coordination/20260727T161502Z-contribution-auditor-j4qg.md`'s finding
-that the initial implementation did not close this requirement).
+The initial decision recorded in
+`docs/coordination/20260727T152325Z-coder-tester-rrtp.md` ("implement
+enforcement") did not close this requirement --
+`docs/coordination/20260727T161502Z-contribution-auditor-j4qg.md` found the
+mechanism built for it insufficient. That decision is superseded by the
+binding governor-reviewer record
+`docs/coordination/20260727T163722Z-governor-reviewer-pe3j.md` (published
+via MR !730), which explicitly accepts the platform evidence (merged-results
+and merge-train pipelines are unavailable on this project's GitLab plan
+tier) and directs this amendment.
 
 This plan's step 3 ("Revalidate when the target advances, using the forge's
 merged-results/merge-train support or an equivalent immediate pre-merge

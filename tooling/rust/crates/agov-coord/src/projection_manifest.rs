@@ -613,7 +613,7 @@ surfaces:
     reason: test reason
     not_applicable:
       - path: agf/docs/site/docs/concepts/coordination-protocol.md
-        reason: Pages-published, not part of the archived tooling/agov package
+        reason: reviewed and confirmed redundant with the already-declared AGENTS.md distribution entry; not independently listed to avoid a duplicate row
 "#,
                 surface("updated", "AGENTS.md"),
                 surface("updated", "AGENTS.md"),
