@@ -125,6 +125,10 @@ fn stdio_server_returns_structured_error_for_failed_agov_call() {
     std::fs::write(
         &mock,
         r#"#!/usr/bin/env sh
+if [ "$1" = "--version" ]; then
+  printf 'agov mock\n'
+  exit 0
+fi
 printf 'schema failed\n' >&2
 exit 1
 "#,
@@ -169,4 +173,77 @@ exit 1
         response["result"]["structuredContent"]["stderr"],
         "schema failed\n"
     );
+}
+
+#[test]
+fn stdio_server_resolves_agov_from_path() {
+    let fixture = tempfile::tempdir().unwrap();
+    let mock = fixture.path().join("agov");
+    std::fs::write(
+        &mock,
+        r#"#!/bin/sh
+if [ "$1" = "--version" ]; then
+  printf 'agov mock\n'
+  exit 0
+fi
+printf 'path agov:'
+for arg in "$@"; do
+  printf ' [%s]' "$arg"
+done
+printf '\n'
+"#,
+    )
+    .unwrap();
+    let mut permissions = std::fs::metadata(&mock).unwrap().permissions();
+    permissions.set_mode(0o755);
+    std::fs::set_permissions(&mock, permissions).unwrap();
+
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env_remove("AGOV_MCP_AGOV_BIN")
+        .env("PATH", fixture.path())
+        .current_dir(fixture.path())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    writeln!(
+        child.stdin.as_mut().unwrap(),
+        "{}",
+        json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": { "name": "agov_session_resume", "arguments": {} }
+        })
+    )
+    .unwrap();
+    drop(child.stdin.take());
+
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let response: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(response["result"]["isError"], false);
+    assert_eq!(
+        response["result"]["structuredContent"]["stdout"],
+        "path agov: [session] [resume]\n"
+    );
+}
+
+#[test]
+fn stdio_server_fails_at_startup_when_agov_is_unresolvable() {
+    let fixture = tempfile::tempdir().unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env_remove("AGOV_MCP_AGOV_BIN")
+        .env("PATH", "")
+        .current_dir(fixture.path())
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    assert!(output.stdout.is_empty());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("could not resolve agov"));
+    assert!(stderr.contains("AGOV_MCP_AGOV_BIN"));
+    assert!(stderr.contains("agov on PATH"));
+    assert!(stderr.contains("cargo on PATH"));
 }
