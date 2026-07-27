@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://gitlab.com/janipaijanen/agents-govern-framework/-/raw/main/agf/schemas/learning.schema.json",
+  "$id": "learning.schema.json",
   "title": "Project Learning Record",
   "description": "Schema for learnings/<codename>.yaml files. Rust agov is the current AGF v2 operator validator surface; historical v1.x Python validators are legacy reference material. Cross-artefact invariants (append-only supersession, confidence corroboration thresholds) live in schemas/invariants.yaml.",
   "type": "object",

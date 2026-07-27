@@ -15,6 +15,8 @@ include:
   - path: agf/CHANGELOG.md
   - path: agf/ADOPTING.md
   - path: agf/framework.md
+  - path: docs/reviews/agf-framework-assessment-codex-sol-high.md
+  - path: docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
   - glob: agf/agents/**
   - glob: agf/dist/**
   - glob: agf/docs/adopt/**
