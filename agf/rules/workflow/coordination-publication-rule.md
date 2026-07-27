@@ -142,20 +142,25 @@ corrected by a superseding record — never by editing the false one.
   immediate pre-merge check against the current target tip.
 
   **Current enforcement state (this project, verified via GitLab project
-  API):** neither `only_allow_merge_if_pipeline_succeeds` nor merge
-  trains/merged-results pipelines are currently enabled at the project
-  level. `agov coord publication-check` itself always evaluates the
-  *current* fetched target tip at the moment it runs — the race is not in
-  the check's own logic, it is that nothing today re-runs the check
-  automatically if the target advances *after* a candidate's pipeline last
-  passed and *before* it merges. Enabling
-  `only_allow_merge_if_pipeline_succeeds` (a project-wide merge-request
-  setting, not a `.gitlab-ci.yml` change) and, tier permitting, merge
-  trains, would close this gap, but changing project-wide merge-blocking
-  settings is a governance decision outside a single implementation's
-  scope — it affects every merge request, not only coordination
-  candidates. Track as a governor-reviewer decision, not a default this
-  rule silently assumes.
+  API):** `only_allow_merge_if_pipeline_succeeds` is enabled at the project
+  level (governor-reviewer decision, 2026-07-27,
+  `docs/coordination/20260727T152325Z-coder-tester-rrtp.md`), together with
+  `allow_merge_on_skipped_pipeline: false` — a merge request with no
+  pipeline result, a failed pipeline, or a *skipped* pipeline (zero jobs
+  matched, as happened transiently on this MR's own corrected head) cannot
+  be merged. This does not by itself force a re-run when the target branch
+  advances after the candidate's pipeline last passed; `agov coord
+  publication-check` closes that half by always evaluating the *current*
+  fetched target tip at the moment it runs, so any operator (human or CI)
+  who re-invokes it immediately before merge gets a live answer rather than
+  a cached one — this is the "equivalent immediate pre-merge current-target
+  check" the plan allows in place of merge trains. Merge
+  trains/merged-results pipelines remain disabled; enabling them would
+  close the pipeline-result-staleness gap even further (by running CI
+  against a synthetic merge of source+target rather than the raw source
+  branch) but changes CI execution for every job in the project, not only
+  the coordination fast path, and is left as a distinct, larger-blast-radius
+  decision the governor may take up separately.
 - The named Rust command implementing this check (provisionally
   `agov coord publication-check`) is the forge-neutral canonical
   implementation. CI wiring (GitLab, GitHub Actions, etc.) is a removable

@@ -110,17 +110,22 @@ surfaces:
       distribution -- correcting contribution-auditor finding A3 and its
       corrected-head completeness follow-up.
 
-      Current-target race protection (contribution-auditor finding A5)
-      remains partial and is documented as such in
-      coordination-publication-rule.md rather than overclaimed: this
-      project does not currently enable
-      only_allow_merge_if_pipeline_succeeds or merge trains at the project
-      level (verified via GitLab project API), so nothing today forces
-      re-validation if the target advances between a candidate's last green
-      pipeline and its merge. Enabling either is a project-wide
-      merge-blocking setting change, not a .gitlab-ci.yml change, and is
-      flagged as an open governor-reviewer decision rather than silently
-      implemented or silently dropped from the claim.
+      Current-target race protection (contribution-auditor finding A5) is
+      now enforced, per governor-reviewer decision
+      (docs/coordination/20260727T152325Z-coder-tester-rrtp.md, 2026-07-27):
+      only_allow_merge_if_pipeline_succeeds and
+      allow_merge_on_skipped_pipeline=false are enabled at the project
+      level (verified via GitLab project API), so a merge request with no
+      pipeline result, a failed pipeline, or a skipped pipeline (zero jobs
+      matched -- the exact failure mode this MR's own corrected head hit
+      transiently) cannot be merged. agov coord publication-check always
+      evaluates the live fetched target tip at invocation time, so an
+      operator re-running it immediately before merge gets a current
+      answer, satisfying the plan's "equivalent immediate pre-merge
+      current-target check" in place of merge trains. Merge
+      trains/merged-results pipelines remain disabled -- a larger,
+      distinct-blast-radius decision left for the governor to take up
+      separately, not required to close this finding.
 
   distribution:
     disposition: confirmed
