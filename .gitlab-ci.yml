@@ -737,6 +737,7 @@ rust:tooling:clippy:
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
     - export AGOV_BUILD_SOURCE_DIRTY=false
+    - scripts/stage-tooling-runbook.sh selftest
     - |
       if [ -n "$CI_COMMIT_TAG" ]; then
         TAG_VERSION="${CI_COMMIT_TAG#v}"
@@ -778,6 +779,7 @@ rust:tooling:clippy:
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov-mcp"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp is the stdio MCP server for agov. Install by placing the agov and agov-mcp executables on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
+        scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
         tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${slug}"
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         "$AGOV_BIN" dist provenance-record file \
@@ -812,6 +814,7 @@ rust:tooling:clippy:
         cmp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
         printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp.exe is the stdio MCP server for agov.exe. Install by placing agov.exe and agov-mcp.exe on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
+        scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")
         (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
         "$AGOV_BIN" dist provenance-record file \
@@ -849,10 +852,12 @@ rust:tooling:preview:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
 
 # Manual evidence job: run the full .rust-tooling-package script including
 # the Windows packaging block (AGOV_PACKAGE_WINDOWS_PREVIEW=1) so the
@@ -871,12 +876,14 @@ rust:tooling:preview:windows-package:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
       when: manual
       allow_failure: true
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        - agf/docs/site/docs/operate/poll-and-coordinate.md
       when: manual
       allow_failure: true
 
