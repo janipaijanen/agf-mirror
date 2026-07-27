@@ -3,7 +3,7 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## Unreleased (target: v2.4.5)
+## [2.4.5] — 2026-07-27
 
 ### Added
 
@@ -12,6 +12,48 @@ distribution.
   poll-and-coordinate procedures. GitLab and Claude instructions remain
   removable adapters, and `/compact-agf` no longer describes validated
   local-only state as a durable cross-machine handoff.
+- Added `agov coord publication-check`, which mechanically verifies that a
+  coordination-only commit range is genuinely coordination-only: resolvable
+  base ancestry, append-only paths under `docs/coordination/*.md`, no merge
+  or imported commits, the protected fast-path commit-subject convention
+  enforced across the full range (not just the tip), and schema validation
+  of every newly added record. Wired into CI as a lightweight fast path so
+  expensive implementation jobs can still skip for genuinely
+  coordination-only changes, while the check itself no longer trusts a
+  commit title or `[ci skip]` marker. See the new
+  `agf/rules/workflow/coordination-publication-rule.md`.
+- Added `agov plan projection-check`, which validates the structured
+  six-surface rule-projection evidence manifests
+  (`docs/reviews/rule-projection/*.yaml`) required for any plan or Gate 2
+  review that adds or changes normative guidance in a Pages page or
+  runbook: schema shape, changed-file completeness, declared-path
+  resolvability, and distribution completeness (every changed file that
+  ships via a release-manifest glob must be declared or explicitly marked
+  not applicable). See the new
+  `agf/rules/workflow/documentation-rule-projection-rule.md`.
+
+### Fixed
+
+- `[ci skip]`/`[skip ci]` on coordination-titled commits is now documented
+  and enforced as forbidden, not merely insufficient. These are
+  platform-level pipeline-*creation* skips that no `.gitlab-ci.yml` rule
+  can override, and previously could silently defeat governance validation
+  of a "coordination-only" claim -- the root cause class behind a prior
+  incident where a branch titled and described as coordination-only
+  carried unreviewed implementation history onto `main`.
+
+### Changed
+
+- This project's GitLab merge settings now enable
+  `only_allow_merge_if_pipeline_succeeds` and
+  `allow_merge_on_skipped_pipeline: false`, so a merge request with no
+  pipeline result, a failed pipeline, or a skipped (zero-job) pipeline
+  cannot merge. This is a partial mitigation for revalidating a candidate
+  when its target branch advances after the last passing pipeline; full
+  mechanical enforcement (via merge-train/merged-results pipelines) is
+  confirmed unavailable on this project's current GitLab plan tier and is
+  tracked as a governed, documented limitation rather than claimed as
+  fully closed.
 
 ## [2.4.4] — 2026-07-26
 
