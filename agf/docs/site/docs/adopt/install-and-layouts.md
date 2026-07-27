@@ -20,7 +20,10 @@ and reviewed the evidence.*
   contains `agf/` without packaged tooling; use the optional Rust tooling
   archive from the
   [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-  for your platform when you want `agov` without a full checkout. Every
+  for your platform when you want `agov` without a full checkout. Assistants
+  that cannot read the client-rendered page can use the unauthenticated
+  [GitLab Releases API](https://gitlab.com/api/v4/projects/83321848/releases)
+  to discover the same direct asset links. Every
   archive's individual `.sha256` checksum and `-provenance.json` file are
   linked directly on the Releases page alongside it — verify with
   `sha256sum -c` after downloading both into the same directory.
@@ -30,6 +33,8 @@ and reviewed the evidence.*
 !!! tip "A quick way to hand the archive to your assistant"
     Download `agf-<version>.tar.gz` or `agf-<version>.zip` from the
     [Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
+    (or discover its direct asset URL through the
+    [Releases API](https://gitlab.com/api/v4/projects/83321848/releases))
     into a `tmp/` directory inside your project, then prompt your assistant:
     "There is a `.tar.gz` file in `tmp/`. Adopt it into the project."
     The assistant will unpack and wire everything; you review the diff.
