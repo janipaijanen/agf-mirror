@@ -1,7 +1,9 @@
 ---
 id: rule-projection-screening
-status: pending-gate1
+status: approved
 topic: rule-projection-screening
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-27T11:05:20Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -159,7 +161,8 @@ matrix appear complete.
 
 ## Exclusions and sequencing
 
-- No implementation begins before governor-reviewer Gate 1 approval.
+- Gate 1 is approved; implementation is authorized within this scope and still
+  requires exact-head Gate 2 approval before merge.
 - Issue #72 implementation may continue on its already-approved core scope but
   must not claim Gate 2 readiness until this amendment is resolved and its
   projection matrix is satisfied.
