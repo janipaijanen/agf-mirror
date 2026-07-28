@@ -1,6 +1,6 @@
 ---
 id: version-controlled-roadmap-page
-status: pending-gate1
+status: approved
 topic: version-controlled-roadmap-page
 advisory_consultation:
   - role: contribution-auditor
@@ -35,8 +35,11 @@ The page is an informational projection of governed repository artifacts. It
 does not replace Gate 1 plans, coordination decisions, GitLab issues/MRs,
 changelogs, tags, or releases as authority.
 
-Planning only. Do not edit documentation, navigation, or README content until
-the governor-reviewer approves this plan at Gate 1.
+Gate 1 approved by `20260728T200855Z-governor-reviewer-331n`. That decision
+also explicitly authorizes the earlier uncertainty snapshot allowed by this
+plan, so implementation may begin before the v2.5 SoW Gate 1 disposition. The
+page must state that no v2.5 train is approved unless a later controlling
+decision establishes otherwise.
 
 ## Problem and intended audience
 
