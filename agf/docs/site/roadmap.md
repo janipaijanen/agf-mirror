@@ -6,7 +6,7 @@ assistants locating the authoritative plan and evidence.*
 | Field | Value |
 |---|---|
 | Status | Released baseline confirmed; next release train **proposed**, pending Gate 1 |
-| Observed at | 2026-07-28T20:17:29Z |
+| Observed at | 2026-07-28T20:35:41Z |
 | Source revision | Authored against `main` at `4ed2e57c93428a32fb6d1159bfecc907ecc3dd64`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit -- do not treat the source-revision value above as this page's own commit. |
 | Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755) (`docs/plans/v250-statement-of-work.md`) is open and unapproved. No next-release plan is approved as of the observed-at timestamp above. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
@@ -29,16 +29,16 @@ proposes a `docs/plans/v250-statement-of-work.md` release train (a portfolio
 reset, a recovery patch, and a small number of release candidates) as v2.5.0's
 plan, and is currently under active, multi-role review that has not reached a
 Gate 1 decision. Read the plan and its coordination trail directly rather
-than relying on a summary here — the proposal has already changed shape once
-during review, and a paraphrase would go stale faster than this page is
-updated. This page will state the approved train, sourced from the governor's
-Gate 1 decision, once one exists.
+than relying on a summary here — the proposal is contested and under active
+review, and a paraphrase could go stale faster than this page is updated.
+This page will state the approved train, sourced from the governor's Gate 1
+decision, once one exists.
 
 ## In scope now
 
 - **This roadmap page.** [MR !758](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/758)
-  ([plan](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/plans/version-controlled-roadmap-page.md)),
-  Gate 1 approved; this file is that implementation.
+  (Gate 1 plan and decision; not yet on `main`, so linked by MR rather than by
+  file path), Gate 1 approved; this file is that implementation.
 - **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
   proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
   not yet approved.
