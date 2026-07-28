@@ -4,13 +4,14 @@ status: pending-gate1
 topic: version-controlled-roadmap-page
 advisory_consultation:
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >
-      Codex is drafting this plan immediately after serving as contribution-
-      auditor on the v2.5 SoW, so a same-session self-review would not be an
-      independent consultation. Publish the plan for a separately recorded
-      contribution-auditor or governor challenge before Gate 1; do not treat
-      this waiver as positive review evidence.
+      MR !759 and coordination record 20260728T191325Z-contribution-auditor-
+      ds61 are the first plan-specific contribution-auditor review. Planner
+      adjudication 20260728T192317Z-planner-architect-msds accepted the finding
+      as ADAPT, and 20260728T195306Z-contribution-auditor-kred accepted that
+      disposition. This sequential, cross-service consultation is useful
+      adversarial review, not independent corroboration.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -128,6 +129,13 @@ time rather than hard-code this plan's current session memory:
 If the v2.5 SoW remains pending or blocked when this page is implemented, the
 page must say so and present the train as a proposal. It must not turn a pending
 plan into apparent roadmap authority.
+
+Implementation must not start until the governor-reviewer has published the
+v2.5 SoW Gate 1 disposition. If the SoW is approved, the page projects that
+approved revision. If it is adapted, blocked, or rejected, the page states that
+no v2.5 train is approved and cites the disposition. A separate explicit
+governor decision may authorize an earlier uncertainty snapshot; absent that
+decision, the published SoW Gate 1 disposition is the implementation trigger.
 
 ## Update ownership and drift control
 
