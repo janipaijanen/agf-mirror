@@ -3,7 +3,7 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## [2.4.5] — 2026-07-27
+## [2.4.5] — 2026-07-28
 
 ### Added
 
@@ -54,6 +54,8 @@ distribution.
   confirmed unavailable on this project's current GitLab plan tier and is
   tracked as a governed, documented limitation rather than claimed as
   fully closed.
+
+Adopter docs: updated
 
 ## [2.4.4] — 2026-07-26
 
