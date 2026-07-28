@@ -11,7 +11,7 @@ members = [
 ]
 
 [workspace.package]
-version = "2.4.4"
+version = "2.4.5"
 edition = "2021"
 authors = ["Jani Päijänen"]
 license = "CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial"
