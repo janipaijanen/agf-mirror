@@ -118,7 +118,7 @@ enough; a terminal guard is required between them:
     paths: *job_paths
 - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
   when: never
-- if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+- if: '<job's own exact existing branch-push condition — see two variants below>'
   changes: *job_paths
 ```
 
@@ -128,23 +128,49 @@ condition with no `changes:` clause and `when: never` — since GitLab stops
 at the first matching rule, rule 2 can only be reached when rule 1's
 `changes:` predicate was false (a genuine path miss on first push), and it
 unconditionally excludes the job in that case, closing the fallthrough.
-Rule 3 (unmodified) is only reached when the `before_sha`-zero condition is
-false — i.e. every push after a branch's first — and keeps today's
-already-correct incremental diff behavior exactly as-is.
+Rule 3 is only reached when the `before_sha`-zero condition is false — i.e.
+every push after a branch's first — and must keep today's already-correct
+incremental diff behavior **exactly** as-is.
 
 `$CI_PIPELINE_SOURCE == "push"` is added to both new rules (`8n86` B2): the
 zero-`before_sha` condition alone is not source-specific — a scheduled,
 API, web, or trigger pipeline against a freshly-created ref could also
 present `before_sha` zero, and this plan's scope is the confirmed
 first-*push* defect only. Without this predicate the new rules would
-silently broaden scope to sources the assessment never measured. Rule 3's
-`if:` is intentionally left as its current, unmodified form — it is
-pre-existing behavior this plan does not change.
+silently broaden scope to sources the assessment never measured.
 
-`*job_paths` denotes a YAML anchor holding each job's existing path list,
-defined once per job and referenced by rules 1 and 3 (and by that job's
-`merge_request_event` rule) — see "Avoiding path-list duplication" below
-(`8n86` A3).
+**Rule 3's exact condition is not uniform across the 12 jobs (`8n86` R2,
+verified directly against current `.gitlab-ci.yml`) — two variants, not
+one:**
+
+- **`site-html-build`** (1 of 12): its existing condition is
+  `$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH` — it
+  already excludes `main`. Rule 3 for this job stays exactly
+  `$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`, unchanged.
+- **The other 11 jobs** (`dependency:cve-scan`, `agf:flyer:verify`,
+  `agf:dist:validate`, the three `release:*-selftest` jobs,
+  `agov:governance:validate`, `rust:agov:validate`, `rust:tooling:deny`,
+  `rust:tooling:test`, `rust:tooling:clippy`): their existing condition is
+  the bare `$CI_COMMIT_BRANCH`, which is truthy for **both** non-default
+  branch pushes and direct pushes/merges to `main`. Rule 3 for these 11
+  jobs stays exactly `$CI_COMMIT_BRANCH`, unchanged — it must **not** be
+  narrowed to `$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`. An earlier draft of
+  this plan used the narrowed form as a single generic example and labelled
+  it "unmodified" for all 12 jobs; applying that literally would have
+  silently removed those 11 jobs from running on default-branch pushes,
+  contradicting this plan's own "preserving exact-SHA Gate 2 and release/tag
+  coverage" claim. Corrected per `8n86` R2.
+
+Rules 1 and 2 (the new first-push logic) exclude the default branch
+deliberately and identically for all 12 jobs — `before_sha` is never zero
+on `main` (it always has prior pipeline history), so this exclusion has no
+observable effect on any of the 12 jobs' default-branch behavior; it exists
+only to keep the new rules' scope explicit and self-documenting.
+
+`*job_paths` denotes a YAML anchor holding each job's existing path list.
+Per `8n86` R1 and independent verification below, it is defined **inline on
+each job's first rule** (not as a separate top-level key) and aliased by
+rules 1 and 3 — see "Avoiding path-list duplication" below.
 
 ### Candidate B: blanket `compare_to` on every non-default push (no
 ### `before_sha` gate)
@@ -183,46 +209,70 @@ it's unavoidable (the first push has no incremental history to diff against
 — `compare_to: refs/heads/$CI_DEFAULT_BRANCH` is the only correct
 comparison available on that one pipeline, not a chosen tradeoff).
 
-## Avoiding path-list duplication (`8n86` A3)
+## Avoiding path-list duplication (`8n86` A3, anchor placement corrected
+## per `hj7h` R1)
 
 Each job's path list now appears in up to three rules (MR event, new
 first-push `compare_to` rule, existing incremental rule). Rather than rely
 on a `grep`-based byte-identical check (which cannot reliably verify nested
-YAML list equality), each job defines one YAML anchor for its path list and
-every rule referencing it uses the alias:
+YAML list equality), each job defines its path list as a YAML anchor once
+and every other rule referencing it uses the alias.
+
+`hj7h` R1 flagged the first draft's anchor location — a separate top-level
+dot-prefixed key holding a bare sequence — as not valid GitLab hidden-job
+syntax. Checked directly rather than accepting or rejecting on assertion:
+ran `glab ci lint <file> -R janipaijanen/agents-govern-framework --dry-run
+--include-jobs` against a minimal reproduction of exactly that shape (a
+top-level `.foo-paths: &foo_paths` holding a bare list, aliased from a real
+job's `changes:`) using this project's own GitLab CI Lint API. Result: `✓
+CI/CD YAML is valid!`, including under `--dry-run` pipeline simulation, not
+only static lint. The specific claim "not a valid GitLab hidden-job
+definition" does not hold — GitLab resolves YAML anchors before CI-specific
+schema validation, and a hidden key never referenced via `extends:` is not
+validated as a job body.
+
+Not disputing the resolution condition, though: `hj7h`'s suggested inline
+form (anchor the list on the job's first real rule, alias it from the
+others) is adopted anyway, empirical top-level validity notwithstanding — it
+is no more complex, avoids introducing a new top-level construct purely to
+hold an anchor, and removes any dependency on hidden-key-validation
+behavior for correctness, which is one less thing a future reader needs to
+know is safe:
 
 ```yaml
-.agov-governance-validate-paths: &agov_governance_validate_paths
-  - docs/coordination/*.md
-  - docs/plans/*.md
-  - docs/reviews/rule-projection/*.yaml
-  - .gitlab-ci.yml
-  - tooling/agov
-  - tooling/rust/**
-  - agf/schemas/**
-  - agf/agents/MANIFEST.yaml
-
 agov:governance:validate:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes: *agov_governance_validate_paths
+      changes: &agov_governance_validate_paths
+        - docs/coordination/*.md
+        - docs/plans/*.md
+        - docs/reviews/rule-projection/*.yaml
+        - .gitlab-ci.yml
+        - tooling/agov
+        - tooling/rust/**
+        - agf/schemas/**
+        - agf/agents/MANIFEST.yaml
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       changes:
         compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
         paths: *agov_governance_validate_paths
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       when: never
-    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH'
       changes: *agov_governance_validate_paths
 ```
 
-This eliminates the duplication risk structurally rather than checking for
-it after the fact: the anchor is defined once per job, so there is nothing
-for a manual edit to accidentally desynchronize between rules. Gate 2
-evidence item 6 (below) is revised from a `grep` check to `glab ci lint
---include-jobs` (or the CI Lint web UI's expanded-configuration view),
-which shows the fully-resolved rules after anchor expansion — that
-expanded output, not the anchor source, is what actually determines runtime
+(`agov:governance:validate` is one of the 11 jobs whose rule 3 stays the
+bare `$CI_COMMIT_BRANCH`, per the two-variant correction above —
+`site-html-build`'s rule 3 instead keeps `$CI_COMMIT_BRANCH &&
+$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`.)
+
+The anchor is defined once per job (on its first-occurring rule, the MR
+rule), so there is nothing for a manual edit to accidentally desynchronize
+across the other two rules. Gate 2 evidence item 6 (below) is `glab ci lint
+--include-jobs` (or the CI Lint web UI's expanded-configuration view)
+against the fully-resolved rules after anchor expansion — that expanded
+output, not the anchor source, is what actually determines runtime
 behavior, and is what must be verified.
 
 ## Branch-lifetime "hot job" tradeoff — measured, not assumed
@@ -329,8 +379,9 @@ after branch deletion).
 ## Rollback and observability
 
 **Rollback (`8n86` A2, corrected)**: the implementation adds a `compare_to`
-rule, a `when: never` terminal guard, and a YAML anchor per job — three new
-`rules:` entries and one new top-level anchor block per job, not a
+rule and a `when: never` terminal guard per job, and moves each job's
+existing MR-rule path list to an inline anchor aliased by the other two
+rules — two new `rules:` entries plus one converted anchor per job, not a
 single-line change. Rollback is **reverting the governed CI commit/MR as a
 whole** (`git revert <implementation-commit>` on a fresh branch, through a
 new MR, per `merge-request-workflow-rule.md` — never a direct revert on
@@ -385,30 +436,21 @@ distinct fixes' acceptance evidence — not assumed here.
 
 ## Role and gate boundary
 
-`8n86` A1 recommended assigning implementation to `coder-tester`, stating
-build-engineer is suspended per "the authoritative manifest and AGENTS.md."
-Checked directly: `agf/agents/MANIFEST.yaml` marks `build-engineer` `status:
-active`, with a note that it was explicitly "activated by governor-reviewer
-on 2026-07-22 after duplicate branch and merge-request pipelines consumed
-avoidable runner resources," naming CI configuration, trigger rules, and
-pipeline efficiency as its exact jurisdiction — the role this plan's
-implementation falls squarely under. `capability-developer`, not
-build-engineer, is the manifest's suspended role.
-
-This is not the first time this exact claim has surfaced: an earlier Codex
-record (`20260726T120156Z-planner-architect-ahmj`) made the same claim and
-was corrected in `20260726T121630Z-planner-architect-rkmm`, which states
-plainly: "Current `main` authority at `agf/agents/MANIFEST.yaml` marks it
-active." Declining A1 on that basis — per
-`uncertainty-and-scope-rule.md`'s "if a rule conflicts with what the code
-already does, point out the conflict explicitly rather than silently
-resolving it in either direction," this is stated as an open disagreement
-for contribution-auditor and the governor to resolve, not silently
-overridden in either direction. **Implementation assignment stands as
+`agf/agents/MANIFEST.yaml` marks `build-engineer` `status: active`,
+activated by governor-reviewer on 2026-07-22 specifically for "CI
+configuration... trigger rules, pipeline efficiency" — this plan's exact
+implementation surface. `capability-developer`, not build-engineer, is the
+manifest's suspended role. An initial review pass (`8n86` A1) suggested
+build-engineer was suspended and implementation should go to
+`coder-tester`; that finding was independently retracted in
+`20260729T172459Z-contribution-auditor-hj7h` after re-checking the current
+manifest and `AGENTS.md` (the same claim, and the same retraction, as an
+earlier occurrence: `20260726T120156Z-planner-architect-ahmj` →
+`20260726T121630Z-planner-architect-rkmm`). **Implementation assignment is
 build-engineer**, per `ci-pipeline-deduplication.md`'s own precedent (the
-sibling plan this one is modeled on), unless the governor or a corrected
-manifest state says otherwise. Planner-architect drafted this plan and does
-not implement it either way. Implementation does not begin before Gate 1
+sibling plan this one is modeled on) and the confirmed active manifest
+state. Planner-architect drafted this plan and does not implement it
+either way. Implementation does not begin before Gate 1
 approval.
 
 ## Out of scope
