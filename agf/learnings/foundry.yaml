@@ -2361,6 +2361,72 @@ learnings:
         - "MR !654 three-pass block sequence: docs/coordination/20260726T225814Z-coder-tester-hmh4.md, docs/coordination/20260726T231147Z-governor-reviewer-mqej.md, docs/coordination/20260726T232326Z-coder-tester-kgkh.md"
         - "MR !661 same-session self-critique: docs/plans/v2.5.0-portfolio-discovery.md (\"Self-critique, honestly labeled\" section) and docs/coordination/20260726T231147Z-governor-reviewer-3ess.md"
 
+  - id: "20260729T113947Z-dzy7"
+    date: "2026-07-29"
+    category: gap
+    scope: framework
+    title: plan-drafting-cited-retracted-issue-finding-from-description-only
+    description: >
+      Drafting the v2.4.6 recovery patch plan (MR !774), Claude/planner-
+      architect cited issue #78 finding 1 (a top-level `docs/` directory
+      shipping outside `agf/` in the v2.4.5 archive) as a verified
+      adopter-boundary regression and made its relocation mandatory scope.
+      The finding had already been explicitly retracted by its own reporter
+      in a comment on the issue, and a separate governor canonical-triage
+      record had independently confirmed the retraction and directed that
+      the declared paths not be relocated. Neither was consulted before
+      drafting.
+
+      The mechanism: `glab issue view <n>` prints only the issue's
+      description, not its comment thread. The command's own header output
+      shows a `comments: N` count, which was seen (`comments: 3`) but not
+      treated as a signal requiring a further fetch
+      (`glab api projects/:id/issues/<n>/notes`) before citing the issue's
+      content as current. The plan's own text additionally claimed
+      "re-reading #67 and #78 in full rather than trusting the SoW's
+      characterization" — that claim was false as written: only the
+      descriptions, not the comment threads, were read in full. This is a
+      specific, checkable overclaim, not merely an omission.
+
+      Caught by contribution-auditor and fact-checker review in MR !774
+      (`20260729T112856Z-contribution-auditor-h3hr`,
+      `20260729T112857Z-fact-checker-n2bq`), both independently reaching the
+      same DISSENT/BLOCK disposition before any implementation or release
+      action occurred.
+    agents_involved:
+      - planner-architect
+      - contribution-auditor
+      - fact-checker
+    framework_section: "Verification over Assumption; boundary-shape-testing-rule.md's sibling principle applied to issue-tracker evidence rather than API payloads"
+    business_impact:
+      type: cost_overhead
+      description: >
+        A Gate 1 plan drafting/review cycle was spent on scope that had to
+        be fully retracted before re-review. No implementation, version,
+        tag, or release action was taken on the incorrect scope — the gate
+        held — but the correction cost a full review round for both
+        contribution-auditor and fact-checker.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      When citing a GitLab (or equivalent) issue as evidence for a plan,
+      always fetch and read its full comment thread
+      (`glab api projects/:id/issues/<n>/notes` or equivalent), not only the
+      description returned by a summary view command, before citing any
+      finding from it as current or verified. Treat a nonzero comment count
+      in a summary view's header as a required-fetch signal, not an
+      informational aside. Separately: before drafting new disposition for
+      an issue, search the coordination channel for an existing canonical
+      triage or decision record for that exact issue and treat it as
+      controlling if found, rather than re-deriving disposition from
+      scratch.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !774: docs/coordination/20260729T112856Z-contribution-auditor-h3hr.md, docs/coordination/20260729T112857Z-fact-checker-n2bq.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

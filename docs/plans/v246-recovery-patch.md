@@ -6,25 +6,30 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >
-      Draft published for adversarial scope review per governor handoff
-      20260729T092304Z-governor-reviewer-sep2 ("Argue the scope with
-      Codex/contribution-auditor"). This entry records the request; the
-      disposition below will be updated to reflect the actual response
-      before Gate 1 is requested.
+      First draft reviewed in `20260729T112856Z-contribution-auditor-h3hr`:
+      DISSENT/BLOCK on citing a retracted issue #78 finding as verified
+      scope. Accepted without dispute; this revision removes that finding
+      and its consequences, adds the corrective #67 Slice B Pages-URL
+      item the first draft missed, and clarifies the authorization
+      boundary per the same review's advisory CA2. Fresh re-review
+      requested before Gate 1.
   - role: fact-checker
     status: consulted
     reason: >
-      Every reproduction claim below (issue #81's exact test failure,
-      issue #78 finding 1's archive layout, MR !340/!463's current diffs)
-      was independently checked against the live GitLab issue/MR content
-      during drafting, not copied from the SoW's summary. Routed for a
-      second, fact-checker-specific pass per sep2's instruction before
-      Gate 1.
+      First draft fact-checked in `20260729T112857Z-fact-checker-n2bq`:
+      BLOCK on the same retracted-finding claim, reached independently of
+      the contribution-auditor pass. Accepted without dispute. Every
+      reproduction claim in this revision (issue #81, the two remaining
+      Pages URLs, MR !340/!463's current diffs and reproduction against
+      current `main`) was independently checked against live GitLab
+      content and the governor's canonical triage record
+      (`20260728T154327Z-governor-reviewer-gkj5`), not copied from any
+      prior summary. Fresh re-review requested before Gate 1.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
-      Scope is a fixture-inclusion fix, a shipped-path relocation, and a
-      diagnostic-message clarification in already-trusted local plan
+      Scope is a fixture-inclusion fix, a documentation-URL correction, and
+      a diagnostic-message clarification in already-trusted local plan
       validation. No new credential handling, external trust boundary,
       network input, or authorization logic is touched. MR !463 does
       change Rust validator source (tooling/rust/crates/agov-coord); noting
@@ -42,12 +47,21 @@ approved v2.5.0 Statement of Work (`docs/plans/v250-statement-of-work.md`,
 Gate 1 approved in `20260729T092303Z-governor-reviewer-bn8g`): a patch-SemVer
 release that makes the published `v2.4.5` archive contract honest.
 
-Planning only. No implementation, version bump, release branch, tag, or
-release is authorized by this plan.
+**Authorization boundary, stated unambiguously.** This draft, while
+`status: pending-gate1`, authorizes nothing. If and when the governor-reviewer
+approves Gate 1, that approval authorizes exactly the four enumerated
+implementation items in "Scope" below — issue #81's fixture fix, the #67
+Slice B Pages-URL corrective completion, the clean-archive CI fixture, and
+whichever of MR !340/!463 reproduce at implementation time — and nothing
+else. Gate 1 approval of this plan does not itself authorize a version bump,
+release branch, tag, or GitLab Release; those require their own Gate 2
+decision and the release workflow's separate authorization step, per
+`release-via-merge-request-rule.md`.
 
 ## Problem: v2.4.5 is a currently published false-green baseline
 
-Verified directly, not accepted from the SoW's summary:
+Verified directly against primary sources, including comment threads (see
+"Correction" note below on where the previous draft fell short of that):
 
 - **Issue #81.** The shipped `agf-2.4.5.tar.gz` includes
   `agf/docs/build/hooks/test_operations_runbook.py`, which reads three
@@ -57,36 +71,63 @@ Verified directly, not accepted from the SoW's summary:
   manifest. Running the shipped test from a fresh extraction produces `Ran 7
   tests` / `FAILED (errors=4)`. An adopter who runs the archive's own test
   suite, as the archive itself instructs, gets a false failure signal about
-  their own environment rather than a true one about the release.
-- **Issue #78, finding 1.** The `v2.4.5` archive ships a top-level `docs/`
-  directory alongside `agf/` (`docs/reviews/agf-framework-assessment-codex-
-  sol-high.md` and `docs/reviews/todo-and-sol-high-synthesis-prioritized-
-  actions.md`), which was not present in `v2.4.4`. Extracting at an
-  adopter's project root writes framework-owned content into the
-  adopter-owned `docs/` tree that also holds `docs/coordination/` and
-  `docs/plans/` — the exact boundary `install-and-layouts.md` documents as
-  load-bearing ("Mixed layouts are the documented failure mode"). No
-  collision occurred in the reporting adopter's case only because their own
-  `docs/reviews/` happened not to exist; an adopter who has one would
-  collide silently, and the changelog does not mention the new top-level
-  path.
+  their own environment rather than a true one about the release. Confirmed
+  current and controlling by the governor's canonical triage record
+  (`20260728T154327Z-governor-reviewer-gkj5`, MR !749): "Shipped runbook test
+  lacks fixtures | **Confirmed separate bug**."
+- **Issue #67 Slice B, corrective completion.** Two adopter-facing legacy
+  Pages URLs (`https://janipaijanen.gitlab.io/agent-governance/evidence/` and
+  `.../evidence/projects/`) remain in the shipped tree at
+  `agf/docs/governance/retrospective.md:11` and
+  `agf/docs/governance/learning-system.md:13`, carrying the superseded
+  project name into adopter-facing governance documentation. This is not new
+  scope: issue #67's Gate 1 plan already authorized a complete shipped-`agf/`
+  sweep and negative gate against the old project-path token; the original
+  "34 occurrences to zero" close-out measured with a single URL-form pattern
+  and missed the Pages-host form, per the canonical triage
+  ("`agent-governance` path ... **Incorrect; corrective Slice B work**").
+  Closing the already-approved sweep, not opening a new one.
 
-Both are adopter-observable, already-shipped defects. Neither requires new
-command, validator, schema field, exit code, or obligation semantic to fix —
-they are corrections to what a patch is allowed to do under
-`agf/docs/contracts/contract-stability.md`'s promise ("Fix bugs, clarify
-documentation, improve error messages").
+### Correction: issue #78 finding 1 is retracted, not scope
+
+An earlier draft of this plan cited issue #78 finding 1 (a claimed top-level
+`docs/` directory shipping outside `agf/` as an adopter-boundary regression)
+as verified and made its relocation mandatory scope. That was wrong. The
+issue's own reporter retracted finding 1 in a 2026-07-28T13:09:53Z comment:
+`agf/dist/release-manifest.yaml` explicitly declares both files at those
+paths, and `documentation-rule-projection-rule.md` requires adopters to write
+their own projection manifests into that same `docs/reviews/` tree — the
+paths are intentionally shared, not an accidental leak. The governor's
+canonical triage confirms this and directs: "**Retracted:** top-level `docs/`
+is not an accidental regression; do not relocate declared projection/review
+paths."
+
+The earlier draft's stated verification ("re-reading #67 and #78 in full")
+read the issues' descriptions but not their comment threads, where both the
+retraction and the governor's controlling triage record live —
+`glab issue view` does not surface comments. Recorded as learning
+`20260729T113947Z-dzy7` in `agf/learnings/foundry.yaml`. Finding 1 and every
+dependent consequence (relocation, its changelog line, its stop condition)
+are removed below, not merely superseded.
+
+Both remaining problem items are adopter-observable, already-shipped defects.
+Neither requires new command, validator, schema field, exit code, or
+obligation semantic to fix — they are corrections to what a patch is allowed
+to do under `agf/docs/contracts/contract-stability.md`'s promise ("Fix bugs,
+clarify documentation, improve error messages").
 
 ## What is explicitly out of this patch (verified, not assumed)
 
-Re-reading #67 and #78 in full rather than trusting the SoW's characterization
-of "verified remainder":
+Re-reading #67 and #78's descriptions **and comment threads** (the step the
+earlier draft skipped) rather than trusting the SoW's characterization of
+"verified remainder":
 
-- **#67's schema-`$id` and Quickstart findings (1a, 1b, 3, 4, 5)** are
-  already fixed on `main` — confirmed via issue #78's own intake table
-  ("Superseded `agent-governance` path (#67 Slice B) | **Fixed**") and via
-  `assistant-22-claude`'s 2026-07-27 verification comment on #67 itself.
-  Nothing further to do here.
+- **#67's schema-`$id` and Quickstart findings (1a, 3, 4, 5)** are already
+  fixed on `main` — confirmed via `assistant-22-claude`'s 2026-07-27
+  verification comment on #67 itself. Nothing further to do here. (Finding
+  1b, the Pages-URL form, is corrective scope above, not "already fixed" —
+  the intake table's "34 → 0, Fixed" claim was itself corrected in the same
+  comment thread as finding 1's retraction.)
 - **#67 finding 2 / #78 finding 2 (adopter roster overwritten on upgrade,
   `agf/agents/MANIFEST.yaml`)** is issue #79's subject exactly. Deferred to
   v2.5.0-rc.1 per the approved SoW; a patch cannot safely change
@@ -139,10 +180,13 @@ not optional cleanup — see "Required validation" below.
    so the release-manifest-dependent assertions are foundry-only and the
    archive ships a fixture-complete self-test. Either resolution must leave
    the shipped test suite fully green when run from a clean extraction.
-2. Fix issue #78 finding 1: relocate `docs/reviews/*` to
-   `agf/docs/reviews/` in the release manifest, so nothing lands outside
-   `agf/` on extraction. Add a changelog line stating the path moved (the
-   omission that let the last one land silently must not repeat).
+2. Complete issue #67 Slice B's already-approved sweep: replace the two
+   remaining `janipaijanen.gitlab.io/agent-governance/...` Pages URLs in
+   `agf/docs/governance/retrospective.md` and `learning-system.md` with the
+   canonical path, and broaden the existing negative gate to match the bare
+   `agent-governance` token (catching both the repository-path and
+   Pages-host forms) while continuing to exclude documented historical
+   evidence records, per the canonical triage's guardrail.
 3. Add a clean-archive CI fixture that assembles the release tree and runs
    every shipped test from it, so development-checkout availability cannot
    produce a false green again (this is the structural fix issue #81 itself
@@ -150,6 +194,10 @@ not optional cleanup — see "Required validation" below.
 4. Conditionally: MR !340 and/or MR !463, per the reproduction checks above.
 
 **Out (explicitly, not by omission):**
+- Relocating `docs/reviews/*` or any other declared `agf/dist/release-
+  manifest.yaml` path — retracted, see above. Do not reopen without a new
+  governed problem statement that accounts for the current release-manifest
+  and projection-rule contract.
 - Any change to `agf/agents/MANIFEST.yaml`'s ownership model or path (#79).
 - Any change to `requires-ack` schema or pending-computation semantics (#80).
 - Any new CLI flag, validator, exit code, or schema field of any kind.
@@ -176,20 +224,22 @@ it moves to a v2.5.0-rc.1 candidate instead of expanding this patch.
   checkout-only or adopter-owned-path fixtures required.
 - The clean-archive CI fixture (item 3 above) exists and is wired into the
   release pipeline, so this defect class cannot recur silently.
-- `docs/reviews/*` no longer ships outside `agf/` in either archive format.
+- Zero occurrences of the bare `agent-governance` token remain in adopter-
+  facing shipped documentation, verified by the broadened negative gate, with
+  documented historical evidence records explicitly excluded rather than
+  rewritten.
 - No new command, validator, exit code, schema field, or obligation
   semantic exists in the diff.
+- No declared `agf/dist/release-manifest.yaml` path is relocated.
 - Any conditionally-included MR (!340, !463) has a fresh reproduction
   confirmed against the `main` tip at implementation time, recorded in the
   implementation MR, not assumed from this plan's draft-time check.
-- Changelog entries name every adopter-observable change, including the
-  `docs/reviews/` path relocation (the SoW's own "Why this matters" section
-  identifies changelog omission as part of what broke trust in `v2.4.5`).
+- Changelog entries name every adopter-observable change in this patch.
 
 ## Required validation
 
-- Reproduce issue #81 and issue #78 finding 1 against current `main` at
-  implementation time (this draft's checks are from 2026-07-29; `main` may
+- Reproduce issue #81 and the two remaining Pages URLs against current `main`
+  at implementation time (this draft's checks are from 2026-07-29; `main` may
   move before implementation starts).
 - Re-run `git diff` for !340 and !463 against current `main` to confirm they
   still apply and their defects still reproduce; do not merge either as a
