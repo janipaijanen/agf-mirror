@@ -122,12 +122,14 @@ Re-reading #67 and #78's descriptions **and comment threads** (the step the
 earlier draft skipped) rather than trusting the SoW's characterization of
 "verified remainder":
 
-- **#67's schema-`$id` and Quickstart findings (1a, 3, 4, 5)** are already
-  fixed on `main` — confirmed via `assistant-22-claude`'s 2026-07-27
-  verification comment on #67 itself. Nothing further to do here. (Finding
-  1b, the Pages-URL form, is corrective scope above, not "already fixed" —
-  the intake table's "34 → 0, Fixed" claim was itself corrected in the same
-  comment thread as finding 1's retraction.)
+- **#67's schema-`$id` (finding 1b) and Quickstart findings (1a, 3, 4, 5)**
+  are already fixed on `main` — confirmed via `assistant-22-claude`'s
+  2026-07-27 verification comment on #67 itself. Nothing further to do here.
+  (The two remaining Pages URLs in "Problem" above are a distinct,
+  later-discovered residual within the broader Slice B superseded-path
+  sweep — not finding 1b, and not "already fixed"; the intake table's
+  "34 → 0, Fixed" claim was itself corrected in the same comment thread as
+  finding 1's retraction.)
 - **#67 finding 2 / #78 finding 2 (adopter roster overwritten on upgrade,
   `agf/agents/MANIFEST.yaml`)** is issue #79's subject exactly. Deferred to
   v2.5.0-rc.1 per the approved SoW; a patch cannot safely change
@@ -147,23 +149,32 @@ earlier draft skipped) rather than trusting the SoW's characterization of
 ## Conditional inclusion: three open MRs, reproduction required before merge
 
 The SoW names !340, !463, and !739 as rebuild candidates "only if each defect
-still reproduces against current `main`." I read all three; none has been
-re-verified against the current `main` tip as of this draft, so none is
-committed scope yet:
+still reproduces against current `main`." I read all three and re-verified
+!340 and !463 directly against current `main` during plan revision (both
+defects reproduce — see evidence below); neither is committed scope yet,
+because the plan's own stop condition requires reproduction to be confirmed
+again at implementation time, not assumed from this draft's check, and
+`main` will keep advancing between now and implementation:
 
 - **MR !340** (recognize legacy 20-char Crockford IDs in coordination
   reference resolution) — already has recorded Gate 1 authority
   (`20260721T184921Z-governor-reviewer-mteh`, via the merged !338 plan). Pure
-  bug fix, patch-compatible on its face. Include if the two named historical
-  handoffs still show as falsely pending on current `main`; drop if not.
+  bug fix, patch-compatible on its face. Reproduced during revision: both
+  `01KVK7J9N2AW8DJZQAG2` and `01KVK7DYM21GGQ7ZZ5RR` show as pending in
+  `agov coord graph-index` on current `main` (an exact count is not cited
+  here, since the channel's total pending count changes with every new
+  coordination record and is not a stable acceptance value — only these two
+  specific IDs matter for !340's defect). Include if they still show pending
+  at implementation time; drop if not.
 - **MR !463** (distinguish inactive/suspended advisory roles from unknown
   ones in `agov plan validate`'s error message, issue #30) — diagnostic-
   message-only change per its own Gate 1 routing note
   (`20260724T100634Z-coder-tester-33tg`); patch-compatible under the
-  "improve error messages" clause. Include if a currently-`suspended`
-  manifest role (not `active`) still produces the generic "unknown advisory
-  role" message on current `main` rather than a status-aware one; drop if
-  already fixed.
+  "improve error messages" clause. Reproduced during revision: a currently-
+  `suspended` manifest role (`capability-developer`) still produces the
+  generic "unknown advisory role" message on current `main` rather than a
+  status-aware one. Include if that still holds at implementation time; drop
+  if already fixed.
 - **MR !739** (learning record: commit-message CI-skip-substring false
   positive) — this is a learning-record addition, not a shipped-artifact
   defect fix. It does not belong in a release patch regardless of
@@ -255,5 +266,6 @@ it moves to a v2.5.0-rc.1 candidate instead of expanding this patch.
 - No v2.5.0-rc.1 scope (adopter role authority, acknowledgement semantics,
   #67/#78 remainder beyond what's named above).
 - No board, archive, or backlog workflow implementation.
-- No version bump, release branch, tag, or GitLab Release — this plan
-  authorizes planning only.
+- No version bump, release branch, tag, or GitLab Release — per "Decision
+  requested" above, Gate 1 approval of this plan authorizes exactly the four
+  enumerated implementation items and nothing beyond them.
