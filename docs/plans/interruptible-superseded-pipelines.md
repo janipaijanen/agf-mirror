@@ -58,10 +58,10 @@ project level, but **no job in `.gitlab-ci.yml` declares `interruptible:
 true`**. GitLab's auto-cancel only forcibly stops a job mid-run if that job
 is marked interruptible; a non-interruptible running job is left to
 complete even after a newer pipeline for the same ref has started, and (per
-GitLab's documented conservative pipeline-level behavior — see "Open
-verification question" below) a single non-interruptible job anywhere in an
-older pipeline may prevent that pipeline from being auto-cancelled at all,
-regardless of how many other jobs in it are otherwise safe to kill.
+GitLab's documented conservative pipeline-level behavior — see "Cancellation
+semantics" below) a single non-interruptible job, once started, protects an
+older pipeline from automatic cancellation entirely, regardless of how many
+other jobs in it are otherwise safe to kill.
 
 Measured (`1m5r`): the latest 100-pipeline window contained 5 same-ref
 overlap events; job-timeline reconstruction found at least 89.3
@@ -123,17 +123,23 @@ job-level property, independent of which rule matched it into the pipeline.
 stage) can appear in the *same* pipeline as restart-safe jobs
 (`agf:dist:preview`, `rust:tooling:preview`, `rust:tooling:test`, etc. —
 several of which are gated `$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH` or bare
-`$CI_COMMIT_BRANCH`, matching `main` pushes). Per the open verification
-question below, GitLab's conservative pipeline-level cancellation policy may
-mean marking the restart-safe jobs interruptible has **no observable effect**
-on `main` pipelines specifically, because `pages` (never interruptible) is
-present and pending/running in the same pipeline. This plan does **not**
-assume MR-pipeline safety transfers to `main` — Gate 2 evidence item 6
-below requires an explicit empirical answer for this exact case before
-claiming any benefit on default-branch pipelines. If the conservative rule
-does block cancellation here, that is an accepted, documented limitation of
-this plan, not a defect to work around by making `pages` interruptible (it
-must not be — see stateful-job list below).
+`$CI_COMMIT_BRANCH`, matching `main` pushes). Per GitLab's documented
+`workflow:auto_cancel:on_new_commit` conservative state machine (see
+"Cancellation semantics" below), an older pipeline stays auto-cancellable for
+as long as every one of its currently running or pending jobs is
+interruptible; a job that has not yet started is always treated as
+interruptible regardless of its configured value. `pages` runs in a later
+deploy stage, so while it is still unstarted, the older pipeline's
+interruptible build/test jobs remain cancellable; only once `pages` itself
+starts does the whole older pipeline become protected from automatic
+cancellation — the selected publication-safety outcome, not a plan gap.
+Because the expensive build/test stages precede `pages`'s start, marking the
+18 restart-safe jobs interruptible is expected to produce a real,
+useful cancellation window on `main` pipelines. The "Default-branch
+mixed-pipeline observation" post-merge monitoring item below still requires
+a live production observation to confirm this documented behavior actually
+holds on this project's own GitLab.com pipelines, but Gate 1 approval does
+not treat the outcome as unknown, and this observation does not gate Gate 2.
 
 ### 4. Immutable tag/release pipeline
 
@@ -161,35 +167,60 @@ context — meaning they inherit the same interruptibility classification as
 situations 1–4 above by construction, with no separate `rules:` needed. The
 two manual jobs (`rust:tooling:preview:windows-package`,
 `rust:tooling:build:windows:preview`) are both preview/artifact-only and
-restart-safe; GitLab's conservative whole-pipeline rule is relevant here too
-(an un-triggered manual job sits `pending` indefinitely) — addressed in the
-mechanism section below, not assumed away.
+restart-safe and will carry `interruptible: true`. Per GitLab's documented
+job-status model, `manual` and `pending` are distinct states — an
+un-triggered manual job does not sit `pending` indefinitely; it displays as
+`manual`/`skipped` until someone triggers it, and (per "Cancellation
+semantics" below) an unstarted job is always treated as interruptible for
+cancellation purposes regardless of its configured value. So these two
+manual jobs cannot block cancellation of the rest of the pipeline while
+untriggered, and remain individually cancellable even after being triggered
+and started, since both carry `interruptible: true`.
 
-## Open verification question — GitLab's conservative pipeline-level rule
+## Cancellation semantics — GitLab's documented conservative state machine
 
-GitLab's documented auto-cancel behavior is per-pipeline, not purely
-per-job: informal understanding (not yet empirically confirmed on this
-project's own GitLab instance) is that a pipeline is only eligible for
-automatic cancellation when *every* of its currently running or pending
-jobs is interruptible — a single non-interruptible job anywhere in the
-pipeline may block cancellation of the whole pipeline, not just that one
-job. This directly affects:
+GitLab's auto-cancel behavior is per-pipeline, governed by
+`workflow:auto_cancel:on_new_commit`, which defaults to `conservative`. Per
+GitLab's own documentation (verified 2026-07-29):
 
-- **Default-branch pipelines** (situation 3): `pages` is present and
-  non-interruptible; whether its `pending` (not-yet-started) state during
-  earlier build/test stages blocks cancellation of already-running
-  interruptible jobs in the same pipeline is not yet confirmed for this
-  project's GitLab.com hosting.
-- **Manual jobs left un-triggered** (situation 5): whether a `pending`
-  manual job (which never auto-starts) counts toward the "every job must be
-  interruptible" evaluation, or is excluded from it, is not yet confirmed.
+- https://docs.gitlab.com/ci/yaml/#interruptible
+- https://docs.gitlab.com/ci/yaml/#workflowauto_cancelon_new_commit
 
-This plan does **not** proceed to Gate 1 recommending a mechanism on the
-unverified assumption that either resolves favorably. Gate 2 evidence item 6
-below is the empirical test; until it runs, situations 3 and 5's actual
-benefit is unproven and must be reported as such, separately from situation
-1/2's benefit (which has no such dependency, since MR/branch pipelines never
-contain a non-interruptible job at all).
+The documented state machine:
+
+- A job that has not yet started is always treated as interruptible for
+  cancellation purposes, regardless of its own configured `interruptible`
+  value.
+- An older pipeline for the same ref remains eligible for automatic
+  cancellation for as long as every one of its currently running or pending
+  jobs is interruptible (by the rule above, an unstarted job always counts
+  as interruptible).
+- The instant an `interruptible: false` job **starts**, the entire older
+  pipeline becomes protected from automatic cancellation — not just that one
+  job.
+
+This is documented platform behavior, not a hosting-specific inference, and
+this plan treats it as known going in rather than as something Gate 2 must
+discover. Applied to this project:
+
+- **Situations 1/2 (MR and pre-MR branch pipelines)**: no stateful job ever
+  appears, so the state machine's "started non-interruptible job" branch can
+  never trigger. Full pipeline cancellation is expected to work cleanly.
+- **Situation 3 (`main`)**: `pages` runs in a later deploy stage. While
+  `pages` is unstarted, the older pipeline's interruptible build/test jobs
+  remain cancellable under the state machine above; once `pages` starts, the
+  pipeline becomes protected — the selected publication-safety outcome for
+  this plan, not an unconfirmed risk.
+- **Situation 5 (manual jobs)**: an un-triggered manual job is unstarted, so
+  it always counts as interruptible under the state machine above and cannot
+  block cancellation of the rest of the pipeline while untriggered.
+
+The post-merge monitoring items below still require a live production
+observation confirming this documented behavior actually holds for this
+project's own GitLab.com pipelines — citing the documentation is not a
+substitute for watching it happen once, but this plan does not carry the
+outcome forward as an open question requiring discovery, and these
+observations are not Gate 2 evidence (see "Gate 2 evidence required" below).
 
 ## Job classification — pure/restart-safe vs. stateful/publication-sensitive
 
@@ -226,10 +257,10 @@ by name or stage alone.
 | Job | Why it must stay non-interruptible | Trigger context |
 |---|---|---|
 | `pages` | Publishes to GitLab Pages — a live, externally visible deployment; a killed mid-deploy job risks a partially-published site | Default-branch push/merge only |
-| `agf:dist:release` | Builds the immutable release archives that `release:create` uploads; a killed build could leave `release:create` uploading a partial/corrupt archive | Tag only |
+| `agf:dist:release` | Builds the immutable release archives; does not itself upload anything, but `release:create`'s `needs:` means a killed/failed build here prevents `release:create` from starting on a partial producer — release-critical, kept non-interruptible as policy | Tag only |
 | `release:create` | Uploads to the generic package registry and creates the GitLab Release entry — the actual publication step | Tag only |
-| `release:verify` | Re-fetches and validates the just-published release from the public API; conceptually read-only, but tied to the immutable one-shot release pipeline — see "Immutable tag/release pipeline" above for why partial-pipeline interruption is never worthwhile here regardless of an individual job's own read/write character | Tag only |
-| `rust:tooling:release` | Builds and uploads the release Rust tooling archives consumed by `release:create`/`agov:oci:release` | Tag only |
+| `release:verify` | Re-fetches and validates the just-published release from the public API; read-only in isolation, but tied to the immutable one-shot release pipeline as mandatory publication evidence — see "Immutable tag/release pipeline" above for why partial-pipeline interruption is never worthwhile here | Tag only |
+| `rust:tooling:release` | Builds and uploads the release Rust tooling archives consumed by `release:create`/`agov:oci:release`; same `needs:`-chain reasoning as `agf:dist:release` — release-critical, kept non-interruptible as policy | Tag only |
 | `agov:oci:release` | Builds, scans, and pushes a container image to the OCI registry — a real external publish; a killed push can leave a partial/corrupt image at a tag | Tag only |
 
 Every stateful job is tag-only except `pages`, which is default-branch-only
@@ -251,7 +282,9 @@ future stateful job whose author forgot to opt out.
 ### B — rule-level conditional interruptibility (`rules:interruptible`)
 
 GitLab supports `interruptible` as a per-rule override (not just a
-job-level default) since GitLab 18. This would let a job be interruptible
+job-level default) since GitLab 16.10
+(https://gitlab.com/gitlab-org/gitlab/-/issues/194023, verified 2026-07-29).
+This would let a job be interruptible
 only on MR/branch rules while staying non-interruptible on its
 default-branch or tag rule variant. **Not needed for this project**: since
 the 18 restart-safe jobs are restart-safe in *every* context they run in
@@ -278,21 +311,23 @@ reason, not a stylistic preference.
 ### D — `workflow:auto_cancel:on_new_commit` plus job flags
 
 GitLab's `workflow:auto_cancel:on_new_commit` (`interruptible` /
-`conservative` modes) is a newer, pipeline-level control over exactly the
-conservative-whole-pipeline behavior described above — `interruptible` mode
-cancels eligible jobs even when a non-interruptible job exists elsewhere in
-the same pipeline (a more aggressive mode than the project-level
-`auto_cancel_pending_pipelines` setting alone provides today). This directly
-targets the situation-3 (`main`, mixed `pages` + restart-safe jobs) and
-situation-5 (pending manual jobs) open verification question above — if
-`conservative` (today's implicit default) is confirmed to block
-cancellation in either case, `on_new_commit: interruptible` mode is the
-most likely fix, evaluated *after* Gate 2 evidence item 6 confirms whether
-the conservative default actually causes a problem here. **Not selected for
-this plan's initial scope**: adopting a more aggressive whole-project
-auto-cancel mode before confirming the conservative default's actual
-behavior on this project's own pipelines would be solving an unconfirmed
-problem. Named as the most likely follow-up, not adopted speculatively.
+`conservative` modes) is a pipeline-level control over the same documented
+conservative-whole-pipeline behavior described in "Cancellation semantics"
+above — `interruptible` mode cancels eligible jobs even when a
+non-interruptible job has already started elsewhere in the same pipeline (a
+more aggressive mode than the project-level `auto_cancel_pending_pipelines`
+setting alone provides today, and than this plan's default `conservative`
+mode). Per the documented state machine, the `conservative` default already
+produces a useful outcome for every situation this plan covers — situations
+1/2 have no stateful job to trigger the whole-pipeline protection branch at
+all, and situation 3's protection only engages after `pages` starts, past
+the expensive build/test stages. **Not selected for this plan's scope**:
+there is no documented gap for `on_new_commit: interruptible` to close here.
+Retained only as the fallback if the "Default-branch mixed-pipeline
+observation" post-merge monitoring item's live production observation
+contradicts the documented behavior on this project's own GitLab.com
+hosting — not adopted speculatively against a problem the documentation
+says will not occur.
 
 ### E — manual cancellation as an interim procedure only
 
@@ -329,7 +364,14 @@ plan is under review, not as this plan's outcome.
   not the case today, since v2.4.6 is already parked for independent
   reasons (`m5qp`).
 
-## Gate 2 evidence required (per `1m5r` items 5–9)
+## Gate 2 evidence required (per `1m5r` items 5–9, split per `eskm`'s B2)
+
+Gate 2 is the pre-merge decision. Evidence that can only exist after this
+plan's implementation MR merges cannot be a prerequisite or component of
+that decision — it is tracked separately as post-merge monitoring below,
+not folded into Gate 2 acceptance.
+
+### Pre-merge Gate 2 evidence (mandatory before the implementation MR merges)
 
 1. **Job-by-job classification table** (above) — already complete as part
    of this Gate 1 plan, re-verified against `.gitlab-ci.yml` at
@@ -347,7 +389,13 @@ plan is under review, not as this plan's outcome.
    `interruptible: true` — a static, not a runtime, proof, appropriate
    since fabricating a real tag pipeline purely for this evidence is itself
    forbidden by `immutable-tags-rule.md`'s scope.
-4. **Disposable same-ref MR/branch test — the primary measured case**: on a
+4. **Documented cancellation-semantics check**: at implementation time,
+   re-fetch `docs.gitlab.com/ci/yaml/#interruptible` and
+   `docs.gitlab.com/ci/yaml/#workflowauto_cancelon_new_commit` and confirm
+   the "Cancellation semantics" section above still matches GitLab's current
+   published documentation — a fresh check, not a re-citation of this plan's
+   own text.
+5. **Disposable same-ref MR/branch test — the primary measured case**: on a
    disposable branch, start a deliberately long-running safe pipeline (e.g.
    push a commit touching `tooling/rust/**`, which selects the ~5-6 minute
    Rust job group), then push a second commit to the same ref before the
@@ -356,33 +404,39 @@ plan is under review, not as this plan's outcome.
    running, while the newer exact-head pipeline runs to completion
    normally. This is the situation-1/2 proof and is expected to succeed
    cleanly (no stateful job present in this context).
-5. **Default-branch mixed-pipeline test — the open verification question**:
-   because `main` pipelines cannot be disposably tested without a real
-   push/merge to `main` (which this plan does not authorize outside the
-   normal governed merge process), this item is **observed on the next two
-   ordinary `main` pushes/merges that land close together after this plan's
-   own implementation MR merges** — genuine production evidence, not a
-   fabricated test, following the same post-merge-observation convention
-   `ci-pipeline-deduplication.md` and `first-push-ci-changes-fallback.md`
-   already use for default-branch regression evidence. Record whether the
-   older pipeline's restart-safe jobs were cancelled (situation 3 resolved
-   favorably) or the whole pipeline ran to completion regardless
-   (conservative rule confirmed; Candidate D becomes the next evaluation,
-   not assumed necessary preemptively).
-6. **Manual-job pending-state check**: static inspection (CI Lint expanded
-   config plus a read of GitLab's own pipeline-cancellation documentation,
-   cited by URL and fetch date, not recalled from training data) of whether
-   a `pending`, un-triggered manual job counts toward pipeline-level
-   cancellation eligibility. If inconclusive from documentation alone, defer
-   to the next `rust:tooling:preview:windows-package`/`rust:tooling:build:
-   windows:preview` manual invocation as incidental production evidence,
-   same convention as item 5.
-7. **Regression check**: after the implementation MR merges, the next
-   ordinary MR pipeline, default-branch pipeline, and (whenever the release
-   unparks) the next real tag pipeline must all complete with unchanged job
-   sets and unchanged pass/fail results relative to pre-change baselines —
-   confirming `interruptible: true` changes only cancellation eligibility,
-   never job selection or outcome.
+6. **Final green exact-head pipeline** on the implementation MR itself,
+   confirming the change parses and runs cleanly immediately before merge.
+
+### Post-merge monitoring (tracked separately — not Gate 2 evidence)
+
+A tracking coordination record — owner, the exact situations below, evidence
+fields for pipeline/job IDs, and an observable closure condition — MUST be
+created **before** the implementation MR merges, so the follow-up exists as
+a tracked artifact from the start rather than only in this plan's prose
+(same safeguard `eskm` required for MR !794's evidence disposition). None of
+the items below block Gate 2 or the implementation merge.
+
+- **Default-branch mixed-pipeline observation** (situation 3): observed on
+  the next two ordinary `main` pushes/merges that land close together after
+  the implementation MR merges — genuine production evidence, following the
+  same post-merge-observation convention `ci-pipeline-deduplication.md` and
+  `first-push-ci-changes-fallback.md` already use for default-branch
+  regression evidence. Record whether the older pipeline's restart-safe jobs
+  were cancelled while `pages` had not yet started (documented behavior
+  confirmed) or the whole pipeline ran to completion regardless (documented
+  behavior contradicted; Candidate D becomes the next evaluation). This item
+  is not manufactured by forcing artificial close-together merges — it
+  closes whenever two such events are next naturally observed.
+- **Manual-job trigger observation** (situation 5): the next incidental
+  `rust:tooling:preview:windows-package`/`rust:tooling:build:windows:preview`
+  manual invocation, confirming in practice that an un-triggered manual job
+  does not block cancellation, per "Cancellation semantics" above.
+- **Regression check**: after the implementation MR merges, the next
+  ordinary MR pipeline, default-branch pipeline, and (whenever the release
+  unparks) the next real tag pipeline must all complete with unchanged job
+  sets and unchanged pass/fail results relative to pre-change baselines —
+  confirming `interruptible: true` changes only cancellation eligibility,
+  never job selection or outcome.
 
 ## Rollback and observability
 
@@ -399,9 +453,9 @@ that ref was created. Compare against this plan's own pre-change baseline
 monthly rate) using the same method, not a raw pipeline-count comparison.
 Report post-supersession runner-seconds separately for situation 1/2
 (MR/branch, expected near-zero after this change) and situation 3
-(default-branch, dependent on item 5's outcome) — do not average them into
-one number that would hide a situation-3 shortfall behind situation-1/2's
-expected clean win.
+(default-branch, tracked via the post-merge monitoring item above) — do not
+average them into one number that would hide a situation-3 shortfall behind
+situation-1/2's expected clean win.
 
 ## Budget
 
@@ -417,11 +471,13 @@ monthly forecast.
 
 ## Risks
 
-- **Situation 3/5 benefit unconfirmed** (see "Open verification question").
-  Mitigated by treating it as separately measured, separately reported
-  evidence rather than assumed — this plan's Gate 1 approval does not
-  depend on situation 3/5 resolving favorably, only on situation 1/2 (the
-  measured primary case) being correctly and safely implemented.
+- **Situation 3/5 benefit relies on documented GitLab behavior, not yet
+  observed on this project's own pipelines** (see "Cancellation semantics").
+  Mitigated by tracking the confirming observation separately as post-merge
+  monitoring rather than folding it into Gate 2 — this plan's Gate 1
+  approval does not depend on that observation happening first, only on
+  situation 1/2 (the measured primary case, which has no such dependency)
+  being correctly and safely implemented.
 - **A future job added without `interruptible: true`**: correctly defaults
   to non-interruptible (GitLab's own default), the safe direction — this is
   Option A's explicit design property, not a gap.
