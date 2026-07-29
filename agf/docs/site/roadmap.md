@@ -5,10 +5,10 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | Released baseline confirmed; next release train **proposed**, pending Gate 1 |
-| Observed at | 2026-07-29T09:04:34Z |
+| Status | Released baseline confirmed; next release train **approved**, Gate 1 |
+| Observed at | 2026-07-29T09:54:56Z |
 | Source revision | Authored against `main` at `61d60f33e5507ab0015637dcdcdf10438d8f27fa`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit -- do not treat the source-revision value above as this page's own commit. |
-| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755) (`docs/plans/v250-statement-of-work.md`) is open and unapproved. No next-release plan is approved as of the observed-at timestamp above. |
+| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755) (`docs/plans/v250-statement-of-work.md`) — Gate 1 approved by the governor-reviewer; not yet merged to `main`. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
@@ -24,15 +24,13 @@ read "latest release" as "no defects are open against it."
 
 ## Active release train
 
-No next-release train is approved. [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755)
-proposes a `docs/plans/v250-statement-of-work.md` release train (a portfolio
-reset, a recovery patch, and a small number of release candidates) as v2.5.0's
-plan, and is currently under active, multi-role review that has not reached a
-Gate 1 decision. Read the plan and its coordination trail directly rather
-than relying on a summary here — the proposal is contested and under active
-review, and a paraphrase could go stale faster than this page is updated.
-This page will state the approved train, sourced from the governor's Gate 1
-decision, once one exists.
+The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755)
+(`docs/plans/v250-statement-of-work.md`) is the approved plan; not yet merged
+to `main`. Read the plan and its coordination trail directly rather than
+relying on a summary here — this page intentionally does not reproduce the
+release-train stages to avoid a second copy that can drift from the plan.
+v2.4.6 (a recovery patch centered on issue #81) is the first release
+deliverable in that approved train.
 
 ## In scope now
 
