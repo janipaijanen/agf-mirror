@@ -150,6 +150,7 @@ site-html-build:
     - python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test
     - python3 agf/docs/build/hooks/check_stale_version_labels.py
     - python3 -m unittest discover -s agf/docs/build/hooks -p 'test_*.py' -v
+    - python3 -m unittest discover -s tooling/tests -p 'test_*.py' -v
     # Shallow checkouts do not fetch tags by default, and a depth-limited tag
     # fetch alone is not enough: release_info.py's `git merge-base
     # --is-ancestor` check needs the full commit graph between the release
@@ -546,7 +547,7 @@ release:self-sufficiency-selftest:
   image: alpine:3.22
   stage: test
   before_script:
-    - apk add --no-cache tar gzip unzip
+    - apk add --no-cache python3 tar gzip unzip
   script:
     - tooling/rust/scripts/check-release-self-sufficiency.sh selftest
     - tooling/rust/scripts/check-release-self-sufficiency.sh check .

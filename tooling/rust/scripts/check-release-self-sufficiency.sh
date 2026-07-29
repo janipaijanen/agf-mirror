@@ -68,6 +68,31 @@ read_member() {
   fi
 }
 
+run_shipped_tests() {
+  archive_under_test=$1
+  archive_test_root=$(mktemp -d)
+  case "$archive_under_test" in
+    *.tar.gz|*.tgz) tar -xzf "$archive_under_test" -C "$archive_test_root" ;;
+    *.zip) unzip -q "$archive_under_test" -d "$archive_test_root" ;;
+    *) rm -rf "$archive_test_root"; fail "unsupported framework archive for test execution: $archive_under_test"; return 2 ;;
+  esac
+
+  if ! find "$archive_test_root" -type f -name 'test_*.py' -print -quit | grep -q .; then
+    rm -rf "$archive_test_root"
+    fail "framework archive contains no shipped tests"
+    return 1
+  fi
+
+  find "$archive_test_root" -type f -name 'test_*.py' -print | while IFS= read -r test_file; do
+    relative_test=${test_file#"$archive_test_root"/}
+    echo "running shipped test: $relative_test"
+    (cd "$archive_test_root" && python3 "$relative_test") || exit 1
+  done
+  status=$?
+  rm -rf "$archive_test_root"
+  return "$status"
+}
+
 require_member() {
   members=$1
   required=$2
@@ -94,6 +119,7 @@ check_payload() {
     require_member "$members" "$evidence_one" "framework release" || return 1
     require_member "$members" "$evidence_two" "framework release" || return 1
     require_member "$members" "$runbook" "framework release" || return 1
+    run_shipped_tests "$target" || return 1
   elif printf '%s\n' "$members" | awk '/(^|\/)agov(\.exe)?$/ { found = 1 } END { exit(found ? 0 : 1) }'; then
     require_member "$members" "$tooling_runbook" "tooling release" || return 1
     readme_member=$(printf '%s\n' "$members" | find_member 'README.txt')
@@ -125,11 +151,12 @@ selftest() {
   trap 'rm -rf "$fixture"' EXIT HUP INT TERM
 
   framework="$fixture/framework"
-  mkdir -p "$framework/agf/docs/site/docs/operate" "$framework/docs/reviews"
+  mkdir -p "$framework/agf/docs/site/docs/operate" "$framework/agf/docs/build/hooks" "$framework/docs/reviews"
   printf '2.4.5\n' > "$framework/agf/VERSION"
   printf 'runbook\n' > "$framework/$runbook"
   printf 'assessment\n' > "$framework/$evidence_one"
   printf 'priorities\n' > "$framework/$evidence_two"
+  printf '%s\n' 'def test_archive_fixture():' '    assert True' > "$framework/agf/docs/build/hooks/test_archive_fixture.py"
   tar -C "$framework" -czf "$fixture/framework-good.tar.gz" agf docs
   check_path "$fixture/framework-good.tar.gz" >/dev/null
 

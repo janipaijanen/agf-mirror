@@ -5,11 +5,11 @@ set -eu
 # MR-to-main checks blocking on failure. The negative self-test is required by
 # agf/rules/always/gate-self-test-rule.md.
 
-forbidden_repo='janipaijanen/agent-governance'
+forbidden_token='agent-governance'
 
 check_tree() {
   target=$1
-  if grep -R -n -F "$forbidden_repo" "$target"; then
+  if grep -R -n -F "$forbidden_token" "$target"; then
     echo "severity: blocking rule: ci-trigger-scoping-rule superseded repository path found under $target" >&2
     return 1
   fi
@@ -23,15 +23,22 @@ selftest() {
   printf '%s\n' 'current release content' > "$fixture/good.md"
   check_tree "$fixture" >/dev/null
 
-  printf '%s\n' "https://gitlab.com/$forbidden_repo/-/releases" > "$fixture/bad.md"
+  printf '%s\n' "https://janipaijanen.gitlab.io/$forbidden_token/evidence/" > "$fixture/bad-pages.md"
   if check_tree "$fixture" >/dev/null 2>&1; then
-    echo "selftest FAILED: known-bad predecessor path was not blocked" >&2
+    echo "selftest FAILED: known-bad predecessor Pages path was not blocked" >&2
     exit 1
   fi
 
-  rm "$fixture/bad.md"
+  rm "$fixture/bad-pages.md"
+  printf '%s\n' "https://gitlab.com/janipaijanen/$forbidden_token/-/releases" > "$fixture/bad-repository.md"
+  if check_tree "$fixture" >/dev/null 2>&1; then
+    echo "selftest FAILED: known-bad predecessor repository path was not blocked" >&2
+    exit 1
+  fi
+
+  rm "$fixture/bad-repository.md"
   check_tree "$fixture" >/dev/null
-  echo "selftest OK: clean input passes and a superseded repository path is blocked"
+  echo "selftest OK: clean input passes and superseded repository/Pages paths are blocked"
 }
 
 case "${1:-}" in

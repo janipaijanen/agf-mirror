@@ -3,6 +3,23 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## Unreleased
+
+### Fixed
+
+- Clean-archive validation now runs every Python test shipped in both the
+  `.tar.gz` and `.zip` distributions. Tests that depend on repository-only
+  fixtures remain in the foundry test suite instead of shipping as broken
+  adopter-facing tests.
+- Completed the remaining legacy GitLab Pages URL corrections in the
+  governance documentation.
+- Restored resolution of legacy 20-character Crockford coordination
+  references and deduplicated equivalent resolver results.
+- Plan validation now distinguishes known inactive advisory roles from
+  unknown role names and reports their current status.
+
+Adopter docs: updated
+
 ## [2.4.5] — 2026-07-28
 
 ### Added

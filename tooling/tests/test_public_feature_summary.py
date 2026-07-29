@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Regression tests for the governed public feature-summary placement."""
+"""Foundry-only regression tests for public feature-summary placement."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 START = "<!-- public-feature-summary:start -->"
 END = "<!-- public-feature-summary:end -->"
 OPENING = "**Human plan and merge decisions.**"
-REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 README = REPOSITORY_ROOT / "README.md"
 DOCS_LANDING = REPOSITORY_ROOT / "agf/docs/site/docs/index.md"
 PUBLIC_MARKDOWN_ROOT = REPOSITORY_ROOT / "agf/docs/site"

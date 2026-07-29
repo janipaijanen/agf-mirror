@@ -80,25 +80,6 @@ class OperationsRunbookTests(unittest.TestCase):
         self.assertIn("GitLab adapter", adapters)
         self.assertIn("Claude adapter", adapters)
 
-    def test_other_surfaces_point_to_canonical_pages_without_competing_contracts(self) -> None:
-        """Cross-surface invariant: adapters/references name the canonical source."""
-        root = Path(__file__).parents[4]
-        pointers = {
-            root / ".claude" / "commands" / "compact-agf.md": "session-continuity.md",
-            root / "docs" / "reference" / "session-resume.md": "session-continuity.md",
-            root / "docs" / "reference" / "agent-cold-start-habits.md": "runbook.md",
-            root / "agf" / "templates" / "AGENTS.md": "operate/runbook.md",
-        }
-        for path, canonical_target in pointers.items():
-            with self.subTest(path=path):
-                self.assertIn(canonical_target, path.read_text(encoding="utf-8"))
-
-        # The public map alone owns the complete nine-route decision table.
-        route_heading = "## Choose the situation"
-        self.assertIn(route_heading, (OPERATE / "runbook.md").read_text(encoding="utf-8"))
-        for path in pointers:
-            self.assertNotIn(route_heading, path.read_text(encoding="utf-8"))
-
     def test_shipped_template_uses_supported_graph_index_syntax(self) -> None:
         root = Path(__file__).parents[4]
         template = (root / "agf" / "templates" / "AGENTS.md").read_text(encoding="utf-8")

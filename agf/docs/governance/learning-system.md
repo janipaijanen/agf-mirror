@@ -10,7 +10,7 @@
 
 > 📖 **Looking for the actual learnings?** The docs site renders the
 > evidence corpus as browsable per-project pages at
-> [janipaijanen.gitlab.io/agent-governance/evidence/projects/](https://janipaijanen.gitlab.io/agent-governance/evidence/projects/).
+> [janipaijanen.gitlab.io/agents-govern-framework/evidence/projects/](https://janipaijanen.gitlab.io/agents-govern-framework/evidence/projects/).
 > This file describes the *system*; the site shows the *content*.
 
 How the governance framework evolves from field evidence.
