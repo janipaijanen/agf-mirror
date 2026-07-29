@@ -92,12 +92,19 @@ Three competing positions were argued (full detail in
 baseline before v2.4.6** (matching the final adjudication in
 `20260728T181701Z-contribution-auditor-p51g.md`):
 
-1. **T0 — portfolio and integration reset. No release.** Gate-1-approve this
-   plan; implement issue #75's lifecycle workflow; build one fresh-main,
-   content-hash-manifested coordination archive of unique completed evidence
-   (see "Portfolio disposition" below); close source MRs only after archive
-   publication; preserve issue #53's CI-latency measurement; produce child
-   plans for every adopted work package below.
+1. **T0 — portfolio and integration reset. No release.** The only output that
+   actually blocks v2.4.6 is this plan's own Gate 1 approval and the child
+   plan for v2.4.6 itself — an adopter-facing defect (#81) does not need a
+   coordination archive, MR closures, or a board workflow to be fixed.
+   Everything else historically bundled into T0 — issue #75's lifecycle
+   workflow, the fresh-main content-hash-manifested coordination archive,
+   closing source MRs after archive publication, and preserving issue #53's
+   CI-latency measurement — runs in **parallel with or after v2.4.6**, under
+   its own governed child plan(s), unless a specific work package below is
+   shown to require it first. (Adapted 2026-07-29 per contribution-auditor's
+   external-value review, `20260729T070455Z-contribution-auditor-72sb`: the
+   governor directed that internal hygiene must not sit on the critical path
+   ahead of the first external correction.)
 2. **v2.4.6 — recovery patch.** Resolve #81 (clean-archive false green);
    correct the verified remainder of #67/#78's documentation, changelog,
    contract, and source-lineage defects; rebuild !340/!463/!739 only if each
@@ -150,9 +157,20 @@ baseline before v2.4.6** (matching the final adjudication in
   Similarly, one RC before v2.5.0 final is justified (against Position C's
   "patch only on demonstrated urgency, one final release otherwise") because
   #79/#80 are additive **contract** changes (upgrade behavior, acknowledgment
-  semantics) that need real artifact-level upgrade feedback before being
-  finalized — exactly the kind of adopter-observable boundary Position C's
-  own reasoning says deserves a version marker.
+  semantics) that deserve their own version marker before being finalized —
+  exactly the kind of adopter-observable boundary Position C's own reasoning
+  points to. **Correction (2026-07-29):** this plan previously justified rc.1
+  partly by "real artifact-level upgrade feedback," without naming who
+  supplies it or what finding would trigger rc.2. No adopter-feedback cohort
+  or decision is named anywhere in this plan (the same absence Position A is
+  rejected for, above), so that framing was not honest. rc.1's actual
+  function is an **exact-artifact acceptance checkpoint**: it exists so the
+  clean-tar/zip and both-baseline upgrade tests run once against a candidate
+  before the immutable final tag, not so an external party can react to it.
+  rc.2 triggers only on a functional/schema/documentation/migration/test/
+  artifact-layout change discovered during that checkpoint, per the rc.2 rule
+  above — not on "feedback" in the outreach sense. (Per
+  `20260729T070455Z-contribution-auditor-72sb`'s EV3.)
 
 ## Why this matters: the SemVer/stability-promise conflict
 
@@ -177,8 +195,20 @@ pattern of violating it).
 This wording is deliberate: it claims traceability, integrity assumptions,
 and an accountable decision path — not that hashes, manifests, or review
 records themselves prove factual truth. Adopted verbatim from
-`20260728T180140Z-contribution-auditor-q4hn.md`; this plan found no reason to
-revise it.
+`20260728T180140Z-contribution-auditor-q4hn.md` as a description of the
+framework's own operating principle.
+
+That framework-level description does not by itself say what an *adopter*
+newly gets from upgrading to v2.5.0. The two contracted work packages this
+release actually ships are concrete and adopter-facing: **safe upgrades
+preserve adopter authority, and required acknowledgements become actionable
+instead of decorative.** Concretely: #79 stops a routine archive upgrade from
+silently overwriting an adopter's own governed role-activation decision, and
+#80 makes `requires-ack: true` actually create a visible, trackable
+obligation instead of a flag the tooling accepts and ignores. This sentence,
+not the framework-principle quote above, is the release character adopters
+should see. (Adapted 2026-07-29 per `20260729T070455Z-contribution-auditor-
+72sb`'s EV2.)
 
 ## Work packages
 
