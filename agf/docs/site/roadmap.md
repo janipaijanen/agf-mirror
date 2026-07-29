@@ -6,7 +6,7 @@ assistants locating the authoritative plan and evidence.*
 | Field | Value |
 |---|---|
 | Status | Released baseline confirmed; next release train **proposed**, pending Gate 1 |
-| Observed at | 2026-07-29T07:42:27Z |
+| Observed at | 2026-07-29T09:04:34Z |
 | Source revision | Authored against `main` at `61d60f33e5507ab0015637dcdcdf10438d8f27fa`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit -- do not treat the source-revision value above as this page's own commit. |
 | Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755) (`docs/plans/v250-statement-of-work.md`) is open and unapproved. No next-release plan is approved as of the observed-at timestamp above. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
@@ -36,10 +36,13 @@ decision, once one exists.
 
 ## In scope now
 
-- **This roadmap page.** Gate 1 and Gate 2 approved; plan merged on `main` at
+- **This roadmap page.** Gate 1 approved; plan merged on `main` at
   [`docs/plans/version-controlled-roadmap-page.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/plans/version-controlled-roadmap-page.md)
   ([MR !758](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/758)
-  for the review trail); this file is that implementation.
+  for the review trail). Corrected implementation
+  ([MR !762](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/762))
+  awaits Gate 2 reconfirmation at its current source head; this file is that
+  implementation.
 - **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
   proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
   not yet approved.
