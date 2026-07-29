@@ -124,17 +124,19 @@ dependency:cve-scan:
     when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &dependency_cve_scan_paths
         - .gitlab-ci.yml
         - mise.toml
         - tooling/rust/Cargo.lock
         - tooling/rust/**/*.toml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *dependency_cve_scan_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - .gitlab-ci.yml
-        - mise.toml
-        - tooling/rust/Cargo.lock
-        - tooling/rust/**/*.toml
+      changes: *dependency_cve_scan_paths
     - if: $CI_COMMIT_TAG
 
 # ── Documentation ─────────────────────────────────────────────────────────────
@@ -174,7 +176,7 @@ site-html-build:
     when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &site_html_build_paths
         - agf/docs/**/*
         - agf/VERSION
         - agf/CHANGELOG.md
@@ -182,15 +184,14 @@ site-html-build:
         - agf/framework.md
         - mkdocs.yml
         - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *site_html_build_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      changes:
-        - agf/docs/**/*
-        - agf/VERSION
-        - agf/CHANGELOG.md
-        - agf/ADOPTING.md
-        - agf/framework.md
-        - mkdocs.yml
-        - .gitlab-ci.yml
+      changes: *site_html_build_paths
 
 # Publish to GitLab Pages from the default branch.
 # The pages job must produce a public/ artifact.
@@ -304,17 +305,19 @@ agf:flyer:verify:
       PY
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &agf_flyer_verify_paths
         - agf/docs/figures/src/agf-nutshell-flyer/**/*
         - agf/docs/figures/agf-nutshell-flyer.png
         - agf/docs/site/reference/figures/agf-nutshell-flyer.png
         - agf/VERSION
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agf_flyer_verify_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - agf/docs/figures/src/agf-nutshell-flyer/**/*
-        - agf/docs/figures/agf-nutshell-flyer.png
-        - agf/docs/site/reference/figures/agf-nutshell-flyer.png
-        - agf/VERSION
+      changes: *agf_flyer_verify_paths
     - if: $CI_COMMIT_TAG
 
 # ── Framework package artifacts ───────────────────────────────────────────────
@@ -329,19 +332,20 @@ agf:dist:validate:
     - scripts/check-release-self-sufficiency.sh check ../..
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &agf_dist_validate_paths
         - agf/**/*
         - .gitlab-ci.yml
         - docs/reviews/agf-framework-assessment-codex-sol-high.md
         - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
         - tooling/rust/scripts/check-release-self-sufficiency.sh
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agf_dist_validate_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - agf/**/*
-        - .gitlab-ci.yml
-        - docs/reviews/agf-framework-assessment-codex-sol-high.md
-        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
-        - tooling/rust/scripts/check-release-self-sufficiency.sh
+      changes: *agf_dist_validate_paths
     - if: $CI_COMMIT_TAG
 
 # Build preview archives for reviewers. These artifacts are not releases.
@@ -514,13 +518,17 @@ release:assets-selftest:
     - tooling/rust/scripts/release-assets.sh selftest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &release_assets_selftest_paths
         - tooling/rust/scripts/release-assets.sh
         - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *release_assets_selftest_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - tooling/rust/scripts/release-assets.sh
-        - .gitlab-ci.yml
+      changes: *release_assets_selftest_paths
     - if: $CI_COMMIT_TAG
 
 release:elixir-exclusion-selftest:
@@ -532,15 +540,18 @@ release:elixir-exclusion-selftest:
     - tooling/rust/scripts/check-no-elixir-artifacts.sh selftest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &release_elixir_exclusion_selftest_paths
         - .gitlab-ci.yml
         - agf/dist/**/*
         - tooling/rust/scripts/check-no-elixir-artifacts.sh
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *release_elixir_exclusion_selftest_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - .gitlab-ci.yml
-        - agf/dist/**/*
-        - tooling/rust/scripts/check-no-elixir-artifacts.sh
+      changes: *release_elixir_exclusion_selftest_paths
     - if: $CI_COMMIT_TAG
 
 release:self-sufficiency-selftest:
@@ -553,21 +564,21 @@ release:self-sufficiency-selftest:
     - tooling/rust/scripts/check-release-self-sufficiency.sh check .
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &release_self_sufficiency_selftest_paths
         - .gitlab-ci.yml
         - agf/dist/**/*
         - agf/docs/site/docs/operate/poll-and-coordinate.md
         - docs/reviews/agf-framework-assessment-codex-sol-high.md
         - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
         - tooling/rust/scripts/check-release-self-sufficiency.sh
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *release_self_sufficiency_selftest_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - .gitlab-ci.yml
-        - agf/dist/**/*
-        - agf/docs/site/docs/operate/poll-and-coordinate.md
-        - docs/reviews/agf-framework-assessment-codex-sol-high.md
-        - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
-        - tooling/rust/scripts/check-release-self-sufficiency.sh
+      changes: *release_self_sufficiency_selftest_paths
     - if: $CI_COMMIT_TAG
 
 release:paths-validate:
@@ -663,7 +674,7 @@ agov:governance:validate:
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &agov_governance_validate_paths
         - docs/coordination/*.md
         - docs/plans/*.md
         - docs/reviews/rule-projection/*.yaml
@@ -672,16 +683,14 @@ agov:governance:validate:
         - tooling/rust/**/*
         - agf/schemas/**/*
         - agf/agents/MANIFEST.yaml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agov_governance_validate_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - docs/coordination/*.md
-        - docs/plans/*.md
-        - docs/reviews/rule-projection/*.yaml
-        - .gitlab-ci.yml
-        - tooling/agov
-        - tooling/rust/**/*
-        - agf/schemas/**/*
-        - agf/agents/MANIFEST.yaml
+      changes: *agov_governance_validate_paths
 
 # Validate AGF framework content with the Rust agov CLI.
 rust:agov:validate:
@@ -691,13 +700,17 @@ rust:agov:validate:
     - cargo run --quiet -p agov -- validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &rust_agov_validate_paths
         - agf/**/*
         - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_agov_validate_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - agf/**/*
-        - .gitlab-ci.yml
+      changes: *rust_agov_validate_paths
     - if: $CI_COMMIT_TAG
 
 # Scan dependency licenses and advisories. Blocks on GPL/AGPL/LGPL/SSPL and known
@@ -710,13 +723,17 @@ rust:tooling:deny:
     - cargo deny check
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &rust_tooling_deny_paths
         - tooling/rust/**/*
         - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_tooling_deny_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
+      changes: *rust_tooling_deny_paths
     - if: $CI_COMMIT_TAG
 
 # Compile and test the Rust workspace on tooling changes and release tags.
@@ -730,13 +747,17 @@ rust:tooling:test:
     - cargo test --workspace
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &rust_tooling_test_paths
         - tooling/rust/**/*
         - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_tooling_test_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
+      changes: *rust_tooling_test_paths
     - if: $CI_COMMIT_TAG
 
 # Composed real-registry/real-binary evidence tests: requires a real
@@ -793,13 +814,17 @@ rust:tooling:clippy:
     - cargo clippy --workspace -- -D warnings
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &rust_tooling_clippy_paths
         - tooling/rust/**/*
         - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_tooling_clippy_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
     - if: $CI_COMMIT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
+      changes: *rust_tooling_clippy_paths
     - if: $CI_COMMIT_TAG
 
 .rust-tooling-package:
