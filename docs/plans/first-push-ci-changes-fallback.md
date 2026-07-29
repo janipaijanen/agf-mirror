@@ -14,18 +14,18 @@ advisory_consultation:
       (`20260729T165348Z-contribution-auditor-268m`). Requested for a fresh
       pass on this draft before Gate 1.
   - role: infosec-sentinel
-    status: not-applicable
+    status: consulted
     reason: >
-      No secrets, permissions, or trust-boundary surface touched, matching
-      `ci-pipeline-deduplication.md`'s own infosec disposition for the same
-      reason: the change is a `changes:`/`compare_to` predicate over
-      existing job `rules:`, evaluated per-job rather than at the
-      top-level `workflow:` block this time, but it still does not add,
-      remove, or reorder any job, gate, or check — it only decides
-      whether a given first-push pipeline instance's existing job set
-      matches. Requesting an infosec-sentinel pass before Gate 1 anyway,
-      per `268m`'s explicit routing instruction, since this front-matter
-      disposition is a self-assessment, not a substitute for that review.
+      Per `agf/agents/MANIFEST.yaml`, this project's infosec-sentinel is
+      "ci (agov validate infosec, on commit)" — a mechanical check, not a
+      separate human/AI review step. Ran `agov validate infosec` at exact
+      head `945bfa25` (2026-07-29T17:39Z): `OK agov.validate.infosec`, no
+      findings. No secrets, permissions, or trust-boundary surface is
+      touched — the change is a `changes:`/`compare_to` predicate over
+      existing job `rules:`; it does not add, remove, or reorder any job,
+      gate, or check, only which first-push pipeline instance's existing
+      job set matches, matching `ci-pipeline-deduplication.md`'s own
+      infosec disposition for the same reason.
 ---
 
 # Plan: fix `rules:changes` first-push fallback on the 12 verified exposed jobs
