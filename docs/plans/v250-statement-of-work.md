@@ -1,6 +1,6 @@
 ---
 id: v250-statement-of-work
-status: pending-gate1
+status: approved
 topic: v250-statement-of-work
 advisory_consultation:
   - role: contribution-auditor
