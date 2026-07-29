@@ -1,0 +1,85 @@
+# Roadmap
+
+*Audience: evaluators, adopters, contributors, and maintainers or AI
+assistants locating the authoritative plan and evidence.*
+
+| Field | Value |
+|---|---|
+| Status | Released baseline confirmed; next release train **approved**, Gate 1 |
+| Observed at | 2026-07-29T09:54:56Z |
+| Source revision | Authored against `main` at `61d60f33e5507ab0015637dcdcdf10438d8f27fa`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit -- do not treat the source-revision value above as this page's own commit. |
+| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755) (`docs/plans/v250-statement-of-work.md`) — Gate 1 approved by the governor-reviewer; not yet merged to `main`. |
+| Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
+
+## Current released baseline
+
+**Latest release: `v2.4.5`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.5), tag `v2.4.5`.
+
+A known significant limitation is open against this release:
+[issue #81](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/81)
+documents that the shipped `v2.4.5` archive's operations-runbook test fails
+when run from a freshly extracted `agf-2.4.5.tar.gz` (`Ran 7 tests / FAILED
+(errors=4)`, all four from fixtures absent from the release manifest). Do not
+read "latest release" as "no defects are open against it."
+
+## Active release train
+
+The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755)
+(`docs/plans/v250-statement-of-work.md`) is the approved plan; not yet merged
+to `main`. Read the plan and its coordination trail directly rather than
+relying on a summary here — this page intentionally does not reproduce the
+release-train stages to avoid a second copy that can drift from the plan.
+v2.4.6 (a recovery patch centered on issue #81) is the first release
+deliverable in that approved train.
+
+## In scope now
+
+- **This roadmap page.** Gate 1 approved; plan merged on `main` at
+  [`docs/plans/version-controlled-roadmap-page.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/plans/version-controlled-roadmap-page.md)
+  ([MR !758](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/758)
+  for the review trail). Corrected implementation
+  ([MR !762](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/762))
+  awaits Gate 2 reconfirmation at its current source head; this file is that
+  implementation.
+- **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
+  proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
+  not yet approved.
+- **Coordination-visibility performance** ([issue #76](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/76)) —
+  proposed, Gate 1 plan open in [MR !746](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/746),
+  not yet approved.
+
+Stabilization and contract-repair work feeding a possible v2.5.0 (for example,
+issue #81 above) is release-blocking maintenance, not shipped adopter-facing
+product capability, until it lands in a released tag.
+
+## Parked, radar, and excluded
+
+- **v2.5.0 discovery portfolio** ([issue #57](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/57)) —
+  Level 1 Planned discovery surface. The issue states plainly that listing a
+  candidate there does not assign it to v2.5.0; each candidate theme is
+  explicitly adopted, split, deferred, or rejected by the planner before it
+  becomes scope. Not being in "In scope now" above does not mean rejected —
+  see the issue for the current disposition of each theme.
+- **Trust-chain and governance-tooling themes** (the open ideas referenced
+  from issue #57, roughly issues #32–#49) — under discussion; several have a
+  named revisit trigger (for example, a source-reviewed threat-model plan, or
+  confirmed adopter demand) recorded in the coordination trail rather than
+  here. Follow the issue links directly instead of trusting a copied summary.
+
+This page intentionally does not reproduce the full issue/MR disposition
+ledger. It exists in the coordination channel and stays current there; a
+second copy here would drift.
+
+## How status changes
+
+This page is manually maintained. It changes only when:
+
+- a published Gate 1 plan or governor decision changes what is proposed or
+  approved;
+- a merged change or released artifact changes what is delivered;
+- a coder-tester implementation or release MR updates it directly to match
+  shipped scope.
+
+Every update refreshes the `Observed at` field above and cites its source
+artifact. An inaccurate roadmap is documentation drift, not a cosmetic issue,
+and is handled through the project's normal adopter-documentation review.

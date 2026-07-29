@@ -1,6 +1,6 @@
 # Documentation
 
-*Status: Released. Current framework version: see [Release information](../reference/release-info.md).*
+*Status: Released. Current framework version: see [Release information](../reference/release-info.md). Looking for current release status and what's next instead of a learning path? See the [roadmap](../roadmap.md).*
 
 AGF adds human-approved checkpoints and a durable decision trail around
 AI-assisted changes; it does not run the assistant. This documentation is a

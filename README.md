@@ -70,6 +70,7 @@ duration is unmeasured and varies with your CI, hooks, and retained
 evidence.
 
 Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
+Current roadmap: <https://janipaijanen.gitlab.io/agents-govern-framework/roadmap/>
 
 ![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
 
