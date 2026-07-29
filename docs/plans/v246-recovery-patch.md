@@ -1,6 +1,6 @@
 ---
 id: v246-recovery-patch
-status: pending-gate1
+status: approved
 topic: v246-recovery-patch
 advisory_consultation:
   - role: contribution-auditor
