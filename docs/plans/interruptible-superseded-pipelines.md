@@ -260,7 +260,7 @@ by name or stage alone.
 | `agf:dist:release` | Builds the immutable release archives; does not itself upload anything, but `release:create`'s `needs:` means a killed/failed build here prevents `release:create` from starting on a partial producer — release-critical, kept non-interruptible as policy | Tag only |
 | `release:create` | Uploads to the generic package registry and creates the GitLab Release entry — the actual publication step | Tag only |
 | `release:verify` | Re-fetches and validates the just-published release from the public API; read-only in isolation, but tied to the immutable one-shot release pipeline as mandatory publication evidence — see "Immutable tag/release pipeline" above for why partial-pipeline interruption is never worthwhile here | Tag only |
-| `rust:tooling:release` | Builds and uploads the release Rust tooling archives consumed by `release:create`/`agov:oci:release`; same `needs:`-chain reasoning as `agf:dist:release` — release-critical, kept non-interruptible as policy | Tag only |
+| `rust:tooling:release` | Builds the release Rust tooling archives consumed by `release:create`/`agov:oci:release` as CI artifacts; `release:create` is the job that uploads them — same `needs:`-chain reasoning as `agf:dist:release` — release-critical, kept non-interruptible as policy | Tag only |
 | `agov:oci:release` | Builds, scans, and pushes a container image to the OCI registry — a real external publish; a killed push can leave a partial/corrupt image at a tag | Tag only |
 
 Every stateful job is tag-only except `pages`, which is default-branch-only
@@ -501,7 +501,8 @@ implement it. Implementation does not begin before both conditions hold.
 - Any change to MR !792's `rules:` or first-push mechanism.
 - The v2.4.6 release — remains parked per `m5qp` until a separate governor
   decision unparks it.
-- `workflow:auto_cancel:on_new_commit` (Candidate D) — named as the likely
-  follow-up if situation 3/5 evidence shows a real gap, not adopted here.
+- `workflow:auto_cancel:on_new_commit` (Candidate D) — a conditional
+  fallback only if post-merge monitoring contradicts GitLab's documented
+  cancellation behavior, not adopted here.
 - Any change to the 6 stateful jobs' `rules:`, `needs:`, or publication
   logic.
