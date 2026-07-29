@@ -8,7 +8,7 @@
 
 > 📖 **Looking for the structured corpus?** This is the *narrative*
 > summary; the *structured* per-project corpus is on the docs site at
-> [janipaijanen.gitlab.io/agent-governance/evidence/](https://janipaijanen.gitlab.io/agent-governance/evidence/).
+> [janipaijanen.gitlab.io/agents-govern-framework/evidence/](https://janipaijanen.gitlab.io/agents-govern-framework/evidence/).
 > Each adopter project has its own page; learnings are also indexed
 > by category (gap, validation, tension, adaptation, overkill).
 

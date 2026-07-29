@@ -15,7 +15,7 @@ pub struct PlanDocument {
 ///   - Validate semantics: required advisory roles present, no unknown roles,
 ///     no duplicate roles.
 ///
-/// Reads allowed roles from `agf/agents/MANIFEST.yaml` via `$AGOV_MANIFEST_PATH`.
+/// Reads role statuses from `agf/agents/MANIFEST.yaml` via `$AGOV_MANIFEST_PATH`.
 /// Falls back to the two required roles when the manifest is unreadable.
 pub fn validate_file(path: &Path) -> Result<PlanDocument, Vec<(String, String)>> {
     let content = match std::fs::read_to_string(path) {
@@ -61,6 +61,14 @@ pub fn required_roles() -> &'static [&'static str] {
 }
 
 pub fn validate_semantics(data: &serde_json::Value) -> Vec<(String, String)> {
+    let manifest = yaml::read_yaml_file_json(&agov_core::manifest_path()).ok();
+    validate_semantics_with_manifest(data, manifest.as_ref())
+}
+
+fn validate_semantics_with_manifest(
+    data: &serde_json::Value,
+    manifest: Option<&serde_json::Value>,
+) -> Vec<(String, String)> {
     let roles: Vec<String> = data
         .get("advisory_consultation")
         .and_then(serde_json::Value::as_array)
@@ -70,7 +78,7 @@ pub fn validate_semantics(data: &serde_json::Value) -> Vec<(String, String)> {
         .map(ToOwned::to_owned)
         .collect();
 
-    let allowed_roles = allowed_roles();
+    let role_statuses = role_statuses(manifest);
     let mut errors = Vec::new();
 
     for required in required_roles() {
@@ -82,19 +90,24 @@ pub fn validate_semantics(data: &serde_json::Value) -> Vec<(String, String)> {
         }
     }
 
-    let mut unknown: Vec<String> = roles
+    let mut unavailable: Vec<String> = roles
         .iter()
-        .filter(|role| !allowed_roles.contains(role.as_str()))
+        .filter(|role| {
+            role_statuses
+                .get(role.as_str())
+                .is_none_or(|status| status != "active")
+        })
         .cloned()
         .collect::<HashSet<_>>()
         .into_iter()
         .collect();
-    unknown.sort();
-    for role in unknown {
-        errors.push((
-            format!("unknown advisory role: {role}"),
-            "#/advisory_consultation".to_string(),
-        ));
+    unavailable.sort();
+    for role in unavailable {
+        let message = match role_statuses.get(role.as_str()) {
+            Some(status) => format!("advisory role is not active: {role} (status: {status})"),
+            None => format!("unknown advisory role: {role}"),
+        };
+        errors.push((message, "#/advisory_consultation".to_string()));
     }
 
     let mut frequencies = HashMap::<&str, usize>::new();
@@ -117,13 +130,13 @@ pub fn validate_semantics(data: &serde_json::Value) -> Vec<(String, String)> {
     errors
 }
 
-fn allowed_roles() -> HashSet<String> {
-    let mut roles: HashSet<String> = required_roles()
+fn role_statuses(manifest: Option<&serde_json::Value>) -> HashMap<String, String> {
+    let mut roles: HashMap<String, String> = required_roles()
         .iter()
-        .map(|role| role.to_string())
+        .map(|role| (role.to_string(), "active".to_string()))
         .collect();
 
-    let Ok(manifest) = yaml::read_yaml_file_json(&agov_core::manifest_path()) else {
+    let Some(manifest) = manifest else {
         return roles;
     };
 
@@ -135,10 +148,73 @@ fn allowed_roles() -> HashSet<String> {
     };
 
     for (role, attrs) in agents {
-        if attrs.get("status").and_then(serde_json::Value::as_str) == Some("active") {
-            roles.insert(role.clone());
+        if let Some(status) = attrs.get("status").and_then(serde_json::Value::as_str) {
+            roles.insert(role.clone(), status.to_string());
         }
     }
 
     roles
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_semantics_with_manifest;
+    use serde_json::json;
+
+    fn plan(role: &str) -> serde_json::Value {
+        json!({
+            "advisory_consultation": [
+                {"role": "infosec-sentinel", "status": "consulted"},
+                {"role": "contribution-auditor", "status": "consulted"},
+                {"role": role, "status": "consulted"}
+            ]
+        })
+    }
+
+    fn manifest() -> serde_json::Value {
+        json!({"agents": {
+            "fact-checker": {"status": "active"},
+            "build-engineer": {"status": "suspended"},
+            "documentation-writer": {"status": "skipped"}
+        }})
+    }
+
+    #[test]
+    fn accepts_active_manifest_role() {
+        assert!(
+            validate_semantics_with_manifest(&plan("fact-checker"), Some(&manifest())).is_empty()
+        );
+    }
+
+    #[test]
+    fn distinguishes_suspended_and_skipped_roles_from_unknown_roles() {
+        let manifest = manifest();
+        for (role, status) in [
+            ("build-engineer", "suspended"),
+            ("documentation-writer", "skipped"),
+        ] {
+            let errors = validate_semantics_with_manifest(&plan(role), Some(&manifest));
+            assert!(errors.iter().any(|(message, _)| message
+                == &format!("advisory role is not active: {role} (status: {status})")));
+        }
+
+        let errors = validate_semantics_with_manifest(&plan("not-a-role"), Some(&manifest));
+        assert!(errors
+            .iter()
+            .any(|(message, _)| message == "unknown advisory role: not-a-role"));
+    }
+
+    #[test]
+    fn missing_manifest_falls_back_to_required_roles_only() {
+        let required_only = json!({"advisory_consultation": [
+            {"role": "infosec-sentinel", "status": "consulted"},
+            {"role": "contribution-auditor", "status": "consulted"}
+        ]});
+        assert!(validate_semantics_with_manifest(&required_only, None).is_empty());
+
+        let errors = validate_semantics_with_manifest(&plan("fact-checker"), None);
+        assert!(errors
+            .iter()
+            .any(|(message, _)| message == "unknown advisory role: fact-checker"));
+    }
 }

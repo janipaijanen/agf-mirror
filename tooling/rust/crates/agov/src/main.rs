@@ -1,6 +1,7 @@
 mod dist;
 mod provenance;
 
+use agov_coord::coord_validator::{looks_like_coord_filename, normalize_coord_reference};
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
 use serde::Serialize;
@@ -4565,25 +4566,6 @@ fn frontmatter_refs(raw: &serde_json::Value) -> Vec<String> {
         .collect()
 }
 
-fn normalize_coord_reference(reference: &str) -> Option<String> {
-    let filename = Path::new(reference).file_name()?.to_str()?;
-
-    if filename.ends_with(".md") {
-        if looks_like_coord_filename(filename) {
-            Some(filename.to_string())
-        } else {
-            None
-        }
-    } else {
-        let candidate = format!("{filename}.md");
-        if looks_like_coord_filename(&candidate) {
-            Some(candidate)
-        } else {
-            None
-        }
-    }
-}
-
 fn body_refs(path: &Path) -> Vec<String> {
     let Ok(content) = std::fs::read_to_string(path) else {
         return Vec::new();
@@ -4606,20 +4588,6 @@ fn clean_coord_filename(token: &str) -> Option<String> {
     } else {
         None
     }
-}
-
-fn looks_like_coord_filename(filename: &str) -> bool {
-    let stem = filename.strip_suffix(".md").unwrap_or(filename);
-    let first = stem.split('-').next().unwrap_or("");
-
-    first.len() == 5 && first.chars().all(|ch| ch.is_ascii_digit())
-        || first.len() == 26
-            && first
-                .chars()
-                .all(|ch| matches!(ch, '0'..='9' | 'A'..='H' | 'J'..='K' | 'M'..='N' | 'P'..='T' | 'V'..='Z'))
-        || stem.len() >= 17
-            && stem.as_bytes().get(8) == Some(&b'T')
-            && stem.as_bytes().get(15) == Some(&b'Z')
 }
 
 fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) {

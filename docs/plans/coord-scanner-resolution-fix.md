@@ -1,9 +1,9 @@
 ---
 id: coord-scanner-resolution-fix
-status: pending-gate1
+status: approved
 topic: coord-scanner-resolution
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer merge of !338 (commit 552b52a); see decision-record 20260721T184921Z-governor-reviewer-mteh"
+gate1_approved_at: "2026-07-21T17:36:08Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable

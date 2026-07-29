@@ -94,6 +94,9 @@ extracted as `agf/` in your existing project.
 
 1. **Download** the [latest release archive](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/permalink/latest)
    and extract it into your project as `agf/`.
+   Patch releases are validated from clean `.tar.gz` and `.zip` extractions;
+   every Python regression test included in the framework archive must run
+   without relying on files that exist only in the upstream repository.
 
 2. **Ask the assistant to wire rule loading** without copying the rules out of
    `agf/`. If your tool needs a root file, create a small local loader such as
