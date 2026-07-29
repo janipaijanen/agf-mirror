@@ -1,7 +1,9 @@
 ---
 id: first-push-ci-changes-fallback
-status: pending-gate1
+status: approved
 topic: first-push-ci-changes-fallback
+gate1_approved_by: "governor-reviewer decision 20260729T175843Z-governor-reviewer-m15q at reviewed head 57e932b6627c382859cfbd008cbc038d84a5fe96"
+gate1_approved_at: "2026-07-29T17:58:43Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
