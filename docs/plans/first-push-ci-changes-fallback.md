@@ -98,30 +98,53 @@ default-branch-only, or tag-only already, and is unaffected by this defect
 
 ## Mechanism comparison
 
-### Candidate A: `rules:changes:compare_to`, applied only to the confirmed
-### first-push case
+### Candidate A (revised after `8n86` B1 BLOCK): `rules:changes:compare_to`
+### with an explicit terminal guard, not a two-rule fallthrough
 
-GitLab's `changes:compare_to` (GitLab 15.5+) lets a rule diff against an
-explicit ref instead of `before_sha`. Applied narrowly — gated on
-`$CI_COMMIT_BEFORE_SHA` being the all-zero SHA, not applied to every
-non-default push — this targets exactly the confirmed defect:
+The original two-rule draft was wrong: GitLab evaluates `rules:` in order,
+and a rule's `changes:` predicate being false makes the *whole rule*
+non-matching, not "matching with zero jobs." On a first-push pipeline where
+the branch's real diff against `main` does **not** touch a given job's
+paths, the first rule (with `compare_to`) correctly fails to match — but
+evaluation then falls through to the second, unmodified rule, whose
+`changes:` has no `compare_to` and therefore re-triggers the exact
+`before_sha`-zero fallback this plan exists to fix. Two rules are not
+enough; a terminal guard is required between them:
 
 ```yaml
-- if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+- if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
   changes:
-    compare_to: '$CI_DEFAULT_BRANCH'
-    paths:
-      - <job's existing path list, unchanged>
+    compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+    paths: *job_paths
+- if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+  when: never
 - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
-  changes:
-    - <job's existing path list, unchanged>
+  changes: *job_paths
 ```
 
-The first rule only fires on a branch's genuinely first pipeline (`before_sha`
-zero); every subsequent push on that branch falls through to the second,
-unmodified rule, which keeps today's incremental (previous-commit) diff
-behavior. This is deliberately narrower than gating every non-default push
-through `compare_to`.
+Rule 1 includes the job when the branch's real first-push diff against
+`$CI_DEFAULT_BRANCH` matches its paths. Rule 2 repeats rule 1's exact `if:`
+condition with no `changes:` clause and `when: never` — since GitLab stops
+at the first matching rule, rule 2 can only be reached when rule 1's
+`changes:` predicate was false (a genuine path miss on first push), and it
+unconditionally excludes the job in that case, closing the fallthrough.
+Rule 3 (unmodified) is only reached when the `before_sha`-zero condition is
+false — i.e. every push after a branch's first — and keeps today's
+already-correct incremental diff behavior exactly as-is.
+
+`$CI_PIPELINE_SOURCE == "push"` is added to both new rules (`8n86` B2): the
+zero-`before_sha` condition alone is not source-specific — a scheduled,
+API, web, or trigger pipeline against a freshly-created ref could also
+present `before_sha` zero, and this plan's scope is the confirmed
+first-*push* defect only. Without this predicate the new rules would
+silently broaden scope to sources the assessment never measured. Rule 3's
+`if:` is intentionally left as its current, unmodified form — it is
+pre-existing behavior this plan does not change.
+
+`*job_paths` denotes a YAML anchor holding each job's existing path list,
+defined once per job and referenced by rules 1 and 3 (and by that job's
+`merge_request_event` rule) — see "Avoiding path-list duplication" below
+(`8n86` A3).
 
 ### Candidate B: blanket `compare_to` on every non-default push (no
 ### `before_sha` gate)
@@ -134,8 +157,9 @@ every later push on the same branch for as long as the branch differs from
 This is the branch-lifetime hot-job tradeoff `268m` item 6 requires measuring
 (see below). Rejected as the primary mechanism because it changes more
 behavior than the confirmed defect requires; it remains eligible as a
-fallback if Candidate A's `before_sha`-gated form turns out not to be
-reviewable in CI Lint testing (see Gate 2 evidence below).
+fallback if Candidate A's corrected three-rule, `before_sha`-gated form
+turns out not to be reviewable in CI Lint testing (see Gate 2 evidence
+below).
 
 ### Candidate C: MR-pipelines-only design (branch pipelines suppressed
 ### entirely once an MR exists, no comprehensive branch evidence pre-MR)
@@ -150,40 +174,86 @@ child plan.
 
 ### Selected mechanism
 
-**Candidate A.** It is the narrowest change that closes the verified defect,
-preserves all existing incremental-diff behavior for every push after the
-first, and keeps the branch-lifetime hot-job tradeoff scoped to exactly the
-one pipeline where it's unavoidable (the first push has no incremental
-history to diff against — `compare_to: $CI_DEFAULT_BRANCH` is the only
-correct comparison available on that one pipeline, not a chosen tradeoff).
+**Candidate A, corrected (three-rule form with terminal guard).** It is the
+narrowest change that closes the verified defect without the fallthrough
+`8n86` B1 found in the original two-rule draft, preserves all existing
+incremental-diff behavior for every push after the first, and keeps the
+branch-lifetime hot-job tradeoff scoped to exactly the one pipeline where
+it's unavoidable (the first push has no incremental history to diff against
+— `compare_to: refs/heads/$CI_DEFAULT_BRANCH` is the only correct
+comparison available on that one pipeline, not a chosen tradeoff).
+
+## Avoiding path-list duplication (`8n86` A3)
+
+Each job's path list now appears in up to three rules (MR event, new
+first-push `compare_to` rule, existing incremental rule). Rather than rely
+on a `grep`-based byte-identical check (which cannot reliably verify nested
+YAML list equality), each job defines one YAML anchor for its path list and
+every rule referencing it uses the alias:
+
+```yaml
+.agov-governance-validate-paths: &agov_governance_validate_paths
+  - docs/coordination/*.md
+  - docs/plans/*.md
+  - docs/reviews/rule-projection/*.yaml
+  - .gitlab-ci.yml
+  - tooling/agov
+  - tooling/rust/**
+  - agf/schemas/**
+  - agf/agents/MANIFEST.yaml
+
+agov:governance:validate:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes: *agov_governance_validate_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agov_governance_validate_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+      changes: *agov_governance_validate_paths
+```
+
+This eliminates the duplication risk structurally rather than checking for
+it after the fact: the anchor is defined once per job, so there is nothing
+for a manual edit to accidentally desynchronize between rules. Gate 2
+evidence item 6 (below) is revised from a `grep` check to `glab ci lint
+--include-jobs` (or the CI Lint web UI's expanded-configuration view),
+which shows the fully-resolved rules after anchor expansion — that
+expanded output, not the anchor source, is what actually determines runtime
+behavior, and is what must be verified.
 
 ## Branch-lifetime "hot job" tradeoff — measured, not assumed
 
 Per `268m` item 6: Candidate A's `compare_to` only fires on the first
 pipeline of a branch. It does not keep any job hot beyond that one pipeline
-— the second and later pushes use the unmodified incremental rule. The
-tradeoff Candidate B would have introduced (a job staying hot for a branch's
-entire life once touched once) does **not** apply to Candidate A by
-construction. This is a design property, verifiable by reading the two-rule
-structure above (first rule matches `before_sha == 0` only; that condition
-cannot be true twice for the same ref). Gate 2 evidence must still
-empirically confirm this on a disposable branch (see below) — a design
-property is not the same as observed behavior.
+— the second and later pushes fall through (rule 1's `if:` is false once
+`before_sha` is non-zero) to the unmodified rule 3, using ordinary
+incremental diffing. The tradeoff Candidate B would have introduced (a job
+staying hot for a branch's entire life once touched once) does **not**
+apply to Candidate A by construction. This is a design property, verifiable
+by reading the three-rule structure above (rules 1 and 2 both require
+`before_sha == 0`, which cannot be true twice for the same ref). Gate 2
+evidence item 4 (below) empirically confirms this on a disposable branch —
+a design property is not the same as observed behavior.
 
 ## Full pipeline-source acceptance matrix
 
-| Event | `before_sha` | MR open? | Current behavior (12 jobs) | Behavior after this change |
-|---|---|---:|---|---|
-| Branch first push, coordination/plan-only commit | `0000...0` | no | All 12 jobs run (fallback) | Only path-matching jobs run (per `compare_to: main` diff) |
-| Branch first push, real code commit (e.g. touches `tooling/rust/**`) | `0000...0` | no | All 12 jobs run (fallback, but many legitimately match anyway) | Only path-matching jobs run — same jobs, correctly attributed rather than coincidentally correct |
-| Branch second-or-later push, before MR exists | real SHA | no | Incremental diff (already correct) | Unchanged — falls through to the unmodified second rule |
-| Branch push, MR already open | real SHA | yes | Suppressed by existing `ci-pipeline-deduplication.md` workflow rule | Unchanged — that rule is evaluated before job-level `rules:`, untouched by this plan |
-| MR pipeline (`merge_request_event`) | n/a | yes | Correct merge-base diff (already correct) | Unchanged — this plan does not touch MR-event rules |
-| Default-branch push/merge | real SHA (never zero — `main` always has pipeline history) | n/a | Correct incremental diff (already correct) | Unchanged — the new rule's `if:` requires `$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`, structurally excluding `main` |
-| Tag push | n/a (`$CI_COMMIT_BRANCH` unset) | n/a | Tag-only jobs run; the 12 jobs' branch-push rules don't apply | Unchanged |
-| Scheduled pipeline on a non-default ref | real SHA (schedules run against existing refs) | n/a | Falls through to the unmodified second rule (source is `schedule`, not `push`, and this project's 12 jobs' rules use `$CI_COMMIT_BRANCH`, not `$CI_PIPELINE_SOURCE == "push"` alone, for the branch case) — **verify at Gate 2**: confirm the new first rule's `$CI_COMMIT_BEFORE_SHA` check does not spuriously match a scheduled pipeline against a freshly-created ref | Same as current if verified; flagging as the one acceptance-matrix cell needing explicit Gate 2 confirmation since this project has no active scheduled pipelines to observe today |
-| API-triggered pipeline | real SHA (typically) | n/a | Falls through as above | Unchanged |
-| Fork MR (this project has zero forks today) | n/a | yes | No fork-specific rule exists; treated identically to any `merge_request_event` pipeline | Unchanged — not a present risk (`rksg`), no fork-specific behavior introduced by this plan |
+| Event | `before_sha` | Source | MR open? | Current behavior (12 jobs) | Behavior after this change |
+|---|---|---|---:|---|---|
+| Branch first push, coordination/plan-only commit | `0000...0` | push | no | All 12 jobs run (fallback) | Rule 1 matches only path-matching jobs; rule 2 (`when: never`) excludes the rest |
+| Branch first push, real code commit (e.g. touches `tooling/rust/**`) | `0000...0` | push | no | All 12 jobs run (fallback, but many legitimately match anyway) | Rule 1 matches the same jobs correctly, via a real diff instead of coincidence |
+| Branch second-or-later push, before MR exists | real SHA | push | no | Incremental diff (already correct) | Unchanged — rules 1/2's `if:` is false (non-zero `before_sha`); falls through to unmodified rule 3 |
+| Branch push, MR already open | real SHA | push | yes | Suppressed by existing `ci-pipeline-deduplication.md` workflow rule | Unchanged — that rule is evaluated before job-level `rules:`, untouched by this plan |
+| MR pipeline | n/a | merge_request_event | yes | Correct merge-base diff (already correct) | Unchanged — this plan does not touch MR-event rules |
+| Default-branch push/merge | real SHA (never zero — `main` always has pipeline history) | push | n/a | Correct incremental diff (already correct) | Unchanged — rules 1/2's `if:` requires `$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH`, structurally excluding `main` |
+| Tag push | n/a (`$CI_COMMIT_BRANCH` unset) | push (tag) | n/a | Tag-only jobs run; the 12 jobs' branch-push rules don't apply | Unchanged — rules 1/2 require `$CI_COMMIT_BRANCH` truthy, which is unset for a tag pipeline |
+| Scheduled pipeline on a non-default ref | may be `0000...0` on a freshly-created ref | schedule | n/a | Falls through to unmodified rule 3 (schedules never matched `$CI_PIPELINE_SOURCE == "push"`, which none of the 12 jobs' existing rules check today either) | Unchanged — rules 1/2 explicitly require `$CI_PIPELINE_SOURCE == "push"` (`8n86` B2), so a scheduled pipeline can never match them regardless of `before_sha`; **verify at Gate 2** since this project has no live scheduled pipeline to observe today |
+| API-triggered pipeline | real SHA (typically) | api | n/a | Falls through to unmodified rule 3 | Unchanged, same reasoning as scheduled pipelines — the push-source guard excludes it |
+| Web/manual-triggered pipeline | may vary | web | n/a | Falls through to unmodified rule 3 | Unchanged, same reasoning |
+| Fork MR (this project has zero forks today) | n/a | merge_request_event | yes | No fork-specific rule exists; treated identically to any `merge_request_event` pipeline | Unchanged — not a present risk (`rksg`), no fork-specific behavior introduced by this plan |
 
 ## Preserving exact-SHA Gate 2 and release/tag coverage
 
@@ -201,34 +271,55 @@ Per `gate-self-test-rule.md` and `268m` item 4, the implementation MR must
 include, not merely assert:
 
 1. **CI Lint / static validation**: `glab ci lint .gitlab-ci.yml` confirms
-   the new two-rule structure parses and rule ordering is correct (first
-   rule — `before_sha` zero — must be evaluated before the fallback
-   incremental rule for each of the 12 jobs).
+   the new three-rule structure (per job) parses, anchors expand correctly,
+   and rule ordering is correct (rules 1 and 2 — `before_sha` zero — must be
+   evaluated before rule 3, the unmodified incremental fallback) for each of
+   the 12 jobs.
 2. **Positive case (defect fixed)**: push a disposable branch's first commit
    touching only `docs/coordination/*.md` (mirroring the `b07870ac`/`beeee12c`
    pattern from the assessment). Confirm via `glab api .../pipelines/:id/jobs`
-   that only `agov:governance:validate` runs — not all 12 — reproducing the
-   exact positive case the assessment's counterfactual predicted.
-3. **Negative case (real changes still trigger)**: on a second disposable
-   branch, push a first commit that touches `tooling/rust/**` (e.g. a
-   trivial comment change). Confirm the relevant Rust jobs (`rust:tooling:test`,
-   `rust:tooling:clippy`, `rust:tooling:deny`, `rust:agov:validate`,
-   `agov:governance:validate`) still run on that first pipeline — proving the
-   fix narrows false positives without introducing false negatives.
+   that only `agov:governance:validate` runs — not all 12, and not zero —
+   reproducing the exact positive case the assessment's counterfactual
+   predicted, and confirming rule 2's `when: never` guard actually excludes
+   the non-matching jobs rather than falling through (the exact bug `8n86`
+   B1 found in the original draft).
+3. **Negative case (real changes still trigger), fixture-exact per `8n86`
+   B3**: on a second disposable branch, push a first commit that touches
+   only `tooling/rust/crates/agov/src/main.rs` (a trivial comment). Derived
+   directly from each job's current `rules:` path list, the expected result
+   is:
+   - **must run**: `agov:governance:validate` (path `tooling/rust/**`),
+     `rust:tooling:deny`, `rust:tooling:test`, `rust:tooling:clippy` (all
+     three: path `tooling/rust/**`).
+   - **must not run**: `rust:agov:validate` (paths are `agf/**` and
+     `.gitlab-ci.yml` only — does not include `tooling/rust/**`, corrected
+     from the first draft's incorrect inclusion), `dependency:cve-scan`
+     (paths are `.gitlab-ci.yml`/`mise.toml`/lockfile/`*.toml` only, and this
+     fixture touches none of them), `site-html-build`, `agf:flyer:verify`,
+     `agf:dist:validate`, and all three `release:*-selftest` jobs (none of
+     their paths match `tooling/rust/crates/**`).
+   Both assertions (must-run and must-not-run) are required evidence, not
+   only the must-run list.
 4. **Incremental-push regression check**: on either disposable branch, push
    a second commit. Confirm the second pipeline's `before_sha` is non-zero
-   and that it uses the unmodified incremental rule (only jobs whose paths
-   the second commit actually touched run) — proving Candidate A does not
-   alter today's already-correct multi-push behavior.
+   and that rules 1/2's `if:` no longer matches, so it falls through to the
+   unmodified rule 3 (only jobs whose paths the second commit actually
+   touched run) — proving Candidate A does not alter today's
+   already-correct multi-push behavior.
 5. **Default-branch and tag regression**: the next ordinary push/merge to
    `main` and the next real release tag must produce unchanged pipelines
    (per the acceptance matrix above) — release-monitoring evidence, observed
    post-merge/post-release, same convention as
    `ci-pipeline-deduplication.md`'s own Gate 2 evidence.
-6. **Static source-boundary check**: `grep` confirms no other job's `rules:`
-   was touched, and that the new first-rule's `changes:` path list for each
-   of the 12 jobs is byte-identical to that job's existing path list (only
-   `compare_to` and the `before_sha` guard are new).
+6. **Structural configuration check (`8n86` A3, revised from a `grep`
+   proposal)**: `glab ci lint --include-jobs .gitlab-ci.yml` (or the CI Lint
+   web UI's "View merged YAML" output) against the fully-expanded
+   configuration — not the anchor source — confirming: no job outside the 12
+   has any `rules:` change, and each of the 12 jobs' resolved rule 1 and
+   rule 3 path lists are identical to each other and to that job's resolved
+   `merge_request_event` path list post-anchor-expansion. A textual `grep`
+   over the anchor definitions is not accepted as this evidence, since it
+   cannot detect anchor-expansion or YAML-merge errors.
 
 Disposable test branches are deleted after evidence capture; their pipeline
 IDs and job results are recorded in the implementation MR description as
@@ -237,10 +328,16 @@ after branch deletion).
 
 ## Rollback and observability
 
-**Rollback**: revert the two-rule split back to the single unmodified rule
-per job — 12 single-line-per-job reverts, no schema, data, or artifact
-migration, independently revertible from this plan's own MR, same shape as
-`ci-pipeline-deduplication.md`'s rollback.
+**Rollback (`8n86` A2, corrected)**: the implementation adds a `compare_to`
+rule, a `when: never` terminal guard, and a YAML anchor per job — three new
+`rules:` entries and one new top-level anchor block per job, not a
+single-line change. Rollback is **reverting the governed CI commit/MR as a
+whole** (`git revert <implementation-commit>` on a fresh branch, through a
+new MR, per `merge-request-workflow-rule.md` — never a direct revert on
+`main`), not 12 independent manual single-line edits. Partial, job-by-job
+manual rollback across duplicated/anchored rule blocks is more error-prone
+than reverting the full commit and is not the recommended path. No schema,
+data, or artifact migration either way.
 
 **Observability** (runner-seconds and pipeline/job counts, no unsupported
 percentage claims): after merge, sample the next 100-pipeline window the
@@ -268,11 +365,15 @@ distinct fixes' acceptance evidence — not assumed here.
   hosted on GitLab.com (SaaS, always current), so this is not expected to be
   a real constraint, but `glab ci lint` (Gate 2 evidence #1) is the actual
   verification, not this assumption.
-- **Rule-ordering mistake**: the `before_sha`-zero rule must evaluate before
-  the fallback incremental rule for each job, or the fix does nothing.
-  Mitigated by CI Lint (evidence #1) and the positive-case disposable-branch
-  test (evidence #2), matching `ci-pipeline-deduplication.md`'s precedent for
-  catching exactly this class of mistake.
+- **Rule-ordering / fallthrough mistake**: rules 1 and 2 (the `compare_to`
+  match and its `when: never` terminal guard) must both evaluate before rule
+  3 (the unmodified incremental fallback) for each job, or the fix does
+  nothing — this is exactly the mistake `8n86` B1 caught in this plan's own
+  first draft, not a hypothetical risk. Mitigated by CI Lint (evidence #1)
+  and, critically, the positive-case disposable-branch test (evidence #2),
+  which is the only evidence that actually distinguishes "rule 2 correctly
+  excludes a non-matching job" from "job ran anyway via fallthrough" — CI
+  Lint alone proves syntax validity, not runtime rule selection.
 - **Scheduled-pipeline edge case**: flagged in the acceptance matrix as the
   one cell without a real pipeline to observe today. If this project adds a
   scheduled pipeline on a non-default ref before this plan's Gate 2, that
@@ -284,11 +385,31 @@ distinct fixes' acceptance evidence — not assumed here.
 
 ## Role and gate boundary
 
-Per `agf/agents/build-engineer.yaml`'s jurisdiction and
-`ci-pipeline-deduplication.md`'s precedent: build-engineer implements the
-`.gitlab-ci.yml` change once this plan is Gate 1 approved; planner-architect
-drafted this plan and does not implement it. Implementation does not begin
-before Gate 1 approval.
+`8n86` A1 recommended assigning implementation to `coder-tester`, stating
+build-engineer is suspended per "the authoritative manifest and AGENTS.md."
+Checked directly: `agf/agents/MANIFEST.yaml` marks `build-engineer` `status:
+active`, with a note that it was explicitly "activated by governor-reviewer
+on 2026-07-22 after duplicate branch and merge-request pipelines consumed
+avoidable runner resources," naming CI configuration, trigger rules, and
+pipeline efficiency as its exact jurisdiction — the role this plan's
+implementation falls squarely under. `capability-developer`, not
+build-engineer, is the manifest's suspended role.
+
+This is not the first time this exact claim has surfaced: an earlier Codex
+record (`20260726T120156Z-planner-architect-ahmj`) made the same claim and
+was corrected in `20260726T121630Z-planner-architect-rkmm`, which states
+plainly: "Current `main` authority at `agf/agents/MANIFEST.yaml` marks it
+active." Declining A1 on that basis — per
+`uncertainty-and-scope-rule.md`'s "if a rule conflicts with what the code
+already does, point out the conflict explicitly rather than silently
+resolving it in either direction," this is stated as an open disagreement
+for contribution-auditor and the governor to resolve, not silently
+overridden in either direction. **Implementation assignment stands as
+build-engineer**, per `ci-pipeline-deduplication.md`'s own precedent (the
+sibling plan this one is modeled on), unless the governor or a corrected
+manifest state says otherwise. Planner-architect drafted this plan and does
+not implement it either way. Implementation does not begin before Gate 1
+approval.
 
 ## Out of scope
 
