@@ -34,9 +34,9 @@ deployable and in active use; Level 1 is planned.
 ### Level 5 — Deployable (in production use)
 
 This is the canonical command inventory. Each command below is implemented,
-tested, documented, and present in the supported v2.4.4 operator path. A future
-command that exists only in a branch or design must be listed separately at its
-actual maturity level rather than added to this table by analogy.
+tested, documented, and present in the supported released operator path. A
+future command that exists only in a branch or design must be listed separately
+at its actual maturity level rather than added to this table by analogy.
 
 | Command | What it replaces |
 |---|---|
@@ -71,8 +71,8 @@ Download the `agov` tooling archive — not the `agf-<version>.tar.gz`/`.zip`
 framework source archive, which is a different asset on the same release page
 — matching your OS, architecture, and adopted AGF version from the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
-Published platforms as of v2.4.4: `linux-x86_64`, `linux-aarch64`, and
-`windows-x86_64`; no macOS archive is published yet.
+The archive assets attached to each release are the authoritative platform
+inventory; select the OS and architecture suffix that matches your system.
 
 Verify the adjacent `.sha256` checksum and `-provenance.json` file (both
 linked next to the archive on the Releases page) before trusting the binary.
@@ -110,8 +110,8 @@ repository into the container:
 ```yaml
 validate-governance:
   image:
-    # Canonical version: agf/VERSION
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4
+    # Replace the placeholder with an exact version from the Releases page.
+    name: "registry.gitlab.com/janipaijanen/agents-govern-framework/agov:<version-from-release-page>"
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
@@ -141,7 +141,7 @@ build the locked release profile — do not treat an ordinary full checkout as
 the recommended adopter path:
 
 ```bash
-git checkout <adopted-version>   # pin an exact release tag, e.g. v2.4.4
+git checkout <adopted-version>   # pin the exact release tag you adopted
 cargo build --release --locked --manifest-path tooling/rust/Cargo.toml -p agov
 ```
 

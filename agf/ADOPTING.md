@@ -325,16 +325,16 @@ section:
 ```yaml
 adoption:
   framework_id: "agents-govern"
-  framework_version: "0.4.0"        # check framework.md header for current version
+  framework_version: "2.4.6"        # check agf/VERSION for current version
   framework_commit: "<git-hash>"    # run: git rev-parse HEAD in the framework repo
   agent_definitions:
-    - id: "agents-govern:planner-architect:0.2.0"
+    - id: "agents-govern:planner-architect:0.4.0"
       local_path: "agf/agents/planner-architect.yaml"
       customized: false
-    - id: "agents-govern:coder-tester:0.2.0"
+    - id: "agents-govern:coder-tester:0.3.2"
       local_path: "agf/agents/coder-tester.yaml"
       customized: false
-    - id: "agents-govern:governor-reviewer:0.2.0"
+    - id: "agents-govern:governor-reviewer:0.4.0"
       local_path: "agf/agents/governor-reviewer.yaml"
       customized: false
 ```

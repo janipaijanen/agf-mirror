@@ -8,7 +8,7 @@
 # template. Adopters should create their own local role-status record before
 # relying on manifest-driven tooling.
 #
-# Framework version: 2.0.0  |  Layout: B
+# Framework version: 2.4.6  |  Layout: B
 # Governor-Reviewer approval required for all status changes.
 # Run: agov validate agents
 # =============================================================================

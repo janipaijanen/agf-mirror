@@ -8,15 +8,15 @@
 | Field | Value |
 |-------|-------|
 | Framework | agents-govern (AGF) |
-| Version | 2.0.0 (provisional — unreleased) |
+| Version | 2.4.6 |
 | Source | AGF-NG foundry |
 | Repository | https://gitlab.com/janipaijanen/agents-govern-framework |
 | License | CC-BY-SA-4.0 |
 | Layout | B (single `agf/` directory; adopter files stay in `docs/`) |
 
 This manifest describes the `agf/` directory as it stands in the foundry.
-AGF v2.0 is provisional and not yet independently packaged. Adopters who
-adopt from this repository adopt from the foundry directly.
+AGF v2.4.6 is published as an independently packaged release. Adopters may
+install it from the GitLab release artifacts or adopt from this repository.
 
 ## Contents
 
@@ -32,7 +32,7 @@ adopt from this repository adopt from the foundry directly.
 | `ADOPTING.md` | Step-by-step adoption guide | Follow step by step |
 | `framework.md` | Framework theory and reference | Read-only reference |
 | `CHANGELOG.md` | v2.0 change history | Reference |
-| `VERSION` | Current version string (`2.0.0`) | Reference |
+| `VERSION` | Current version string (`2.4.6`) | Reference |
 | `LICENSE` / `LICENSE-MIT` | CC-BY-SA-4.0 and MIT dual license | Include in project |
 | `docs/governance/` | Governance documents (this file, learning system, retrospective) | Read-only reference |
 | `docs/contracts/` | Agent-output binding contract, integration contract, stability promise | Read before enabling full compliance |
@@ -69,7 +69,7 @@ When upgrading from a previous version, record the upgrade in your learning reco
 upgrade_history:
   - date: "<date>"
     from_version: "<previous>"
-    to_version: "2.0.0"
+    to_version: "2.4.6"
     agent_changes: []
     notes: ""
 ```

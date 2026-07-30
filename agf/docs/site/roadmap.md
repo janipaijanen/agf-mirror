@@ -13,14 +13,14 @@ assistants locating the authoritative plan and evidence.*
 
 ## Current released baseline
 
-**Latest release: `v2.4.5`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.5), tag `v2.4.5`.
+**Latest release: `v2.4.6`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.6), tag `v2.4.6`.
 
-A known significant limitation is open against this release:
+A significant limitation in the prior release is fixed by v2.4.6:
 [issue #81](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/81)
-documents that the shipped `v2.4.5` archive's operations-runbook test fails
+documents that the shipped `v2.4.5` archive's operations-runbook test failed
 when run from a freshly extracted `agf-2.4.5.tar.gz` (`Ran 7 tests / FAILED
-(errors=4)`, all four from fixtures absent from the release manifest). Do not
-read "latest release" as "no defects are open against it."
+(errors=4)`, all four from fixtures absent from the release manifest). v2.4.6
+ships the missing fixtures and validates the complete clean-archive test suite.
 
 ## Active release train
 
