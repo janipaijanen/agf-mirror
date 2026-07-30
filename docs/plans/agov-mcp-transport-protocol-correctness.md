@@ -111,25 +111,37 @@ transport is stateless per-request today and adding uniqueness tracking
 would be new statefulness, not a request-shape validation fix: filed as
 a follow-up recommendation, not silently dropped.
 
-**Notification semantics, corrected (B4).** The first draft conflated
-"any request with `id` absent" with "a notification," and said a
-"malformed notification" gets no response. That is wrong under JSON-RPC
-2.0: a Notification is specifically a **structurally valid** Request
-object that happens to omit `id` — normatively, an ID-less object that
-is *otherwise invalid* (wrong/missing `jsonrpc`, missing `method`, wrong
-`method` type) is not a notification, it is an invalid Request object,
-and per the JSON-RPC 2.0 spec's own normative examples receives
-`-32600 Invalid Request` with `id: null`, exactly like an ID-bearing
-invalid request. MCP's own notification definition likewise requires
-`jsonrpc: "2.0"` and a string `method`. Corrected rule: a request
-receives no response if and only if it is a **fully valid** Request or
-Notification object with `id` absent; every other shape — valid or
-invalid, with or without `id` — receives the applicable JSON-RPC error
-response. Test both cases separately: (a) a valid notification (no
-response), and (b) an invalid, ID-less object such as malformed JSON or
-a missing/wrong `jsonrpc` value (an error response with `id: null`) —
-these are not the same test with two names. Normative references
-checked 2026-07-30: `https://www.jsonrpc.org/specification` and
+**Notification semantics, corrected (B4, then re-corrected per R2).** The
+first draft conflated "any request with `id` absent" with "a
+notification." The first correction fixed that but introduced a new,
+sharper error: its "every other shape — valid or invalid, with or
+without `id` — receives the applicable JSON-RPC error response" wording
+literally routes a fully valid, ID-*bearing* request to an error
+response too, which is wrong — a valid ID-bearing request must receive
+its normal success or method-level response, exactly as today.
+
+Frozen as three disjoint, exhaustive outcomes, replacing both prior
+attempts:
+
+| Request shape | Outcome |
+|---|---|
+| Structurally valid, `id` present (string or integer, per B3) | Normal response (success result or method-level error), echoing the same `id` |
+| Structurally valid, `id` absent — a Notification | No response sent, ever, regardless of what the method would have returned |
+| Structurally invalid for any reason (bad/missing `jsonrpc`, missing/wrong-type `method`, malformed JSON, or an `id` shape B3 rejects) — with or without `id` present | `-32600 Invalid Request` (or `-32700` for malformed JSON specifically) with `id: null` in the response |
+
+"Structurally valid" means: parses as JSON, `jsonrpc` is exactly `"2.0"`,
+`method` is present and a string, and if `id` is present it is a string
+or integer (B3). Per the JSON-RPC 2.0 spec's normative examples, an
+ID-less object that fails any of those checks is not a notification —
+it's an invalid Request object, evaluated by the same rules as an
+ID-bearing one, and returns row three's outcome with `id: null`, not "no
+response." MCP's own notification definition likewise requires
+`jsonrpc: "2.0"` and a string `method`. Test all three rows separately,
+plus the specific edge case R2 named: a **valid** ID-bearing request
+must not be misrouted to row three by an implementation that only checks
+"is `id` present" without also checking overall structural validity.
+Normative references checked 2026-07-30:
+`https://www.jsonrpc.org/specification` and
 `https://modelcontextprotocol.io/specification/2025-06-18/basic/index`.
 
 Must fail closed on malformed JSON itself (parse error, `-32700`)
@@ -193,21 +205,28 @@ reason, not just absent.
 
 Per `bhhh`'s minimum evidence list — exercise all of:
 
-1. Valid `"jsonrpc": "2.0"` requests (unchanged behavior).
-2. Missing `jsonrpc` field — rejected with `-32600`, `id: null`.
-3. Wrong `jsonrpc` value (e.g. `"1.0"`) — rejected with `-32600`, `id: null`.
-4. Malformed JSON — rejected with `-32700`, no panic, no hang.
-5. Invalid request-ID shapes (B3) — five separate cases: `null`,
-   boolean, array, object, fractional number — each rejected with
-   `-32600`.
-6. Valid notification (B4) — `id` absent, otherwise fully valid request
-   object — no response sent.
-7. Invalid ID-less object (B4) — `id` absent *and* another validity
-   failure (malformed JSON, missing/wrong `jsonrpc`, missing `method`) —
-   `-32600` (or `-32700` for the JSON case) with `id: null`, not silently
-   dropped. This is a distinct test from item 6, not a variant of it.
-8. Request IDs — echoed correctly in both success and error responses,
-   for both string and integer ID shapes.
+1. Valid `"jsonrpc": "2.0"`, ID-bearing requests — normal success/method
+   response, same `id` echoed back (row one of the outcome table; the
+   exact case R2 found misrouted by an earlier draft).
+2. Missing `jsonrpc` field, `id` present — `-32600`, `id: null` (row
+   three; response `id` is `null`, not the request's `id`, since the
+   request is structurally invalid).
+3. Wrong `jsonrpc` value (e.g. `"1.0"`), `id` present — `-32600`,
+   `id: null`.
+4. Malformed JSON — `-32700`, `id: null`, no panic, no hang.
+5. Invalid request-ID shapes (B3), otherwise-valid request — five
+   separate cases: `null`, boolean, array, object, fractional number —
+   each rejected with `-32600` and response `id: null`.
+6. Valid notification (row two) — `id` absent, otherwise fully valid
+   request object — no response sent, regardless of what the method
+   would have returned.
+7. Invalid ID-less object (row three, distinct from item 6) — `id`
+   absent *and* another validity failure (malformed JSON, missing/wrong
+   `jsonrpc`, missing `method`) — `-32600` (or `-32700` for the JSON
+   case) with `id: null`, not silently dropped.
+8. Request IDs — echoed correctly in row-one responses only, for both
+   string and integer ID shapes; rows two and three never echo the
+   request's own `id` (no response, or `id: null`, respectively).
 9. Tool discovery (`tools/list`) — includes all newly-added tools with
    correct schemas.
 10. Argument forwarding — each new tool's MCP arguments map to the
@@ -249,9 +268,12 @@ concern.
 ## Out of scope
 
 - #84, #85, #89 (coordination read-path) — separate plan.
-- #87, #90 (assistant discovery/archive) — separate plan; Slice C of that
-  plan consumes this plan's final supported MCP tool list per `bhhh`'s
-  sequencing note, so this plan's tool list should be finalized before
-  that plan's Gate 2.
+- #87, #90 (assistant discovery/archive) — separate plan. Sequencing
+  correction (A2, both plans now consistent): that plan's shipped
+  `.mcp.json` template contains no tool list, so there is no standing
+  dependency on this plan finalizing first. The only coupling is
+  conditional: if that plan's README or adopter docs ever name specific
+  tool names in prose, that text must be re-checked against this plan's
+  final tool list at that time.
 - `graph` (Graphviz/dot) MCP exposure — explicitly not added.
 - Any v2.4.6 release action.
