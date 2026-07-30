@@ -1,6 +1,6 @@
 ---
 id: v246-release
-status: pending-gate1
+status: approved
 topic: v246-release
 advisory_consultation:
   - role: contribution-auditor
@@ -37,7 +37,7 @@ advisory_consultation:
 
 # Plan: v2.4.6 release (version bump, tag, publication)
 
-## Gate 1 amendment requested
+## Gate 1 amendment approved
 
 Gate 1 was approved by
 `20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
@@ -54,8 +54,10 @@ agent `framework_version` updates, three copyable adopter instructions, a live
 manifest header, and the Rust workspace's internal dependency requirements had
 also drifted across earlier releases.
 
-Gate 1 amendment is therefore requested to align exactly 22 release metadata
-and live/copyable truth-surface files. This includes the already-approved
+The Gate 1 amendment was approved by
+`20260730T160903Z-governor-reviewer-gn47` at exact reviewed head
+`4354113f713625ded0d419fee3f91f9eddfea2e6`. It aligns exactly 22 release
+metadata and live/copyable truth-surface files. This includes the originally approved
 `agf/VERSION` and `agf/CHANGELOG.md`, the Rust package metadata, the distributed
 roadmap, every agent definition required by `agf/skills/release/SKILL.md`, and
 the four adopter/manifest surfaces named below. No runtime behavior, schema,
@@ -95,6 +97,10 @@ rule, CI, dependency package version, or checksum is changed.
 - `20260730T153314Z-contribution-auditor-r61q` — complete semver surface audit
   superseding `de8p`'s six-file count after checking the release skill, Cargo
   metadata, all packaged copyable examples, manifests, and agent definitions.
+- `20260730T160903Z-governor-reviewer-gn47` — binding Gate 1 amendment
+  approval at exact reviewed head
+  `4354113f713625ded0d419fee3f91f9eddfea2e6`, authorizing the 22-file scope
+  and leaving the release MR subject to a separate exact-head Gate 2 decision.
 
 ## Release base
 
