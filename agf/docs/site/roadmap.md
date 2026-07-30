@@ -6,26 +6,28 @@ assistants locating the authoritative plan and evidence.*
 | Field | Value |
 |---|---|
 | Status | Released baseline confirmed; next release train **approved**, Gate 1 |
-| Observed at | 2026-07-29T09:54:56Z |
-| Source revision | Authored against `main` at `61d60f33e5507ab0015637dcdcdf10438d8f27fa`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit -- do not treat the source-revision value above as this page's own commit. |
+| Observed at | 2026-07-30T19:36:11Z |
+| Source revision | Release preparation follows Gate 1-approved MR !848 at exact plan head `9c80039ed63872e6d9184e23dedc76180da1b085`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
 | Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755) (`docs/plans/v250-statement-of-work.md`) — Gate 1 approved by the governor-reviewer; not yet merged to `main`. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
 
-**Latest release: `v2.4.7`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.7), tag `v2.4.7`.
+**Latest release: `v2.4.8`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.8), tag `v2.4.8`.
 
-A significant limitation in v2.4.5 is fixed in the v2.4.7 published baseline:
+A significant limitation in v2.4.5 is fixed in the v2.4.8 published baseline:
 [issue #81](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/81)
 documents that the shipped `v2.4.5` archive's operations-runbook test failed
 when run from a freshly extracted `agf-2.4.5.tar.gz` (`Ran 7 tests / FAILED
-(errors=4)`, all four from fixtures absent from the release manifest). v2.4.7
+(errors=4)`, all four from fixtures absent from the release manifest). v2.4.8
 ships the missing fixtures and validates the complete clean-archive test suite.
 The immutable `v2.4.6` predecessor contains that correction but its tag
 pipeline exhausted runner disk during the mandatory Windows cross-build, so it
-never produced a GitLab Release, generic package, or OCI release. v2.4.7
-supersedes it for adoption with Windows retained only as optional manual
-preview evidence.
+never produced a GitLab Release, generic package, or OCI release. The immutable
+`v2.4.7` predecessor removed that cross-build and published its OCI image, but
+a downstream check still required the absent optional Windows ZIP; it produced
+no generic package or GitLab Release. v2.4.8 completes the publication recovery
+with Windows retained only as optional manual preview evidence.
 
 ## Active release train
 
@@ -34,8 +36,9 @@ The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/ja
 to `main`. Read the plan and its coordination trail directly rather than
 relying on a summary here — this page intentionally does not reproduce the
 release-train stages to avoid a second copy that can drift from the plan.
-v2.4.7 is the published recovery-patch deliverable in that approved train; it
-supersedes the immutable but unpublished v2.4.6 predecessor.
+v2.4.8 is the published recovery-patch deliverable in that approved train. It
+supersedes the immutable unpublished v2.4.6 tag and the immutable OCI-only
+v2.4.7 partial publication for adoption.
 
 ## In scope now
 

@@ -3,7 +3,26 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.8] — 2026-07-30
+
+### Fixed
+
+- Completed release publication after the immutable v2.4.7 tag published its
+  OCI image but failed before generic-package upload and GitLab Release
+  creation. The strict exclusion check now requires framework and Linux
+  tooling archives while checking an optional Windows ZIP only when present.
+- Added pre-tag evidence using the real assembled framework and Linux tooling
+  preview artifacts, covering both absence and presence of the optional ZIP.
+
+Adopter docs: updated
+
 ## [2.4.7] — 2026-07-30
+
+**Publication status:** tagged and partially published. The immutable tag
+published OCI image
+`registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.7`, but no
+generic package or GitLab Release was created. Adopt v2.4.8, which completes
+the publication recovery.
 
 ### Changed
 
@@ -22,7 +41,8 @@ Adopter docs: updated
 
 **Publication status:** tagged, but never published as a GitLab Release. The
 tag is immutable; no generic package or OCI release was published for this
-version. Adopt v2.4.7, which supersedes v2.4.6 for adoption.
+version. Adopt v2.4.8, which supersedes both incomplete recovery candidates for
+adoption.
 
 ### Added
 
