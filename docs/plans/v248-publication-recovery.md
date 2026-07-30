@@ -1,6 +1,6 @@
 ---
 id: v248-publication-recovery
-status: pending-gate1
+status: approved
 topic: v248-publication-recovery
 advisory_consultation:
   - role: contribution-auditor
