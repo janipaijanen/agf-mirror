@@ -9,10 +9,11 @@ advisory_consultation:
       Assigned by `20260729T152543Z-governor-reviewer-hapn` and reactivated
       by `20260730T123406Z-governor-reviewer-thnq`, both of which require
       routing this plan through contribution-auditor before Gate 1.
-      Requesting a fresh exact-head review of this draft — no prior
-      contribution-auditor pass exists on the release-only scope itself
-      (the recovery *implementation* was separately reviewed under
-      `docs/plans/v246-recovery-patch.md`, already approved and merged).
+      `20260730T131402Z-contribution-auditor-17qq` is the prior complete
+      release-plan pass; its B1-B5 findings are corrected at this source
+      head. `20260730T134315Z-contribution-auditor-gdrb` independently
+      confirmed B1-B5 resolved and requested only this consultation-history
+      correction before final exact-head confirmation.
   - role: infosec-sentinel
     status: consulted
     reason: >
