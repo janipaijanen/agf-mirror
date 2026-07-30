@@ -87,6 +87,7 @@ dependency:cve-scan:
     name: aquasec/trivy:0.66.0
     entrypoint: [""]
   stage: test
+  interruptible: true
   variables:
     TRIVY_CACHE_DIR: "$CI_PROJECT_DIR/.trivy-cache"
     TRIVY_NO_PROGRESS: "true"
@@ -146,6 +147,7 @@ dependency:cve-scan:
 site-html-build:
   extends: .mkdocs-base
   stage: build
+  interruptible: true
   script:
     - python3 agf/docs/build/hooks/check_palette_contrast.py --self-test
     - python3 agf/docs/build/hooks/check_palette_contrast.py
@@ -244,6 +246,7 @@ pages:
 agf:flyer:verify:
   image: python:3.14-slim
   stage: test
+  interruptible: true
   before_script:
     - apt-get update -qq
     - apt-get install -y --no-install-recommends chromium >/dev/null
@@ -327,6 +330,7 @@ agf:flyer:verify:
 agf:dist:validate:
   extends: .rust-base
   stage: test
+  interruptible: true
   script:
     - cargo run --quiet -p agov -- dist validate
     - scripts/check-release-self-sufficiency.sh check ../..
@@ -352,6 +356,7 @@ agf:dist:validate:
 agf:dist:preview:
   extends: .rust-base
   stage: build
+  interruptible: true
   script:
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
@@ -514,6 +519,7 @@ release:verify:
 release:assets-selftest:
   image: alpine:3.22
   stage: test
+  interruptible: true
   script:
     - tooling/rust/scripts/release-assets.sh selftest
   rules:
@@ -534,6 +540,7 @@ release:assets-selftest:
 release:elixir-exclusion-selftest:
   image: alpine:3.22
   stage: test
+  interruptible: true
   before_script:
     - apk add --no-cache tar gzip unzip
   script:
@@ -557,6 +564,7 @@ release:elixir-exclusion-selftest:
 release:self-sufficiency-selftest:
   image: alpine:3.22
   stage: test
+  interruptible: true
   before_script:
     - apk add --no-cache python3 tar gzip unzip
   script:
@@ -583,6 +591,7 @@ release:self-sufficiency-selftest:
 
 release:paths-validate:
   stage: test
+  interruptible: true
   script:
     - tooling/rust/scripts/check-release-paths.sh selftest
     - tooling/rust/scripts/check-release-paths.sh check agf
@@ -601,6 +610,7 @@ release:paths-validate:
 agov:governance:validate:
   extends: .rust-base
   stage: test
+  interruptible: true
   script:
     - |
       set -eu
@@ -696,6 +706,7 @@ agov:governance:validate:
 rust:agov:validate:
   extends: .rust-base
   stage: test
+  interruptible: true
   script:
     - cargo run --quiet -p agov -- validate
   rules:
@@ -718,6 +729,7 @@ rust:agov:validate:
 rust:tooling:deny:
   extends: .rust-base
   stage: test
+  interruptible: true
   script:
     - cargo install --list 2>/dev/null | grep -qE "^cargo-deny v0\.19\.[0-9]+:" || cargo install cargo-deny --locked --version "^0.19" --force
     - cargo deny check
@@ -740,6 +752,7 @@ rust:tooling:deny:
 rust:tooling:test:
   extends: .rust-base
   stage: test
+  interruptible: true
   script:
     - apt-get update -qq && apt-get install -y -qq jq
     - sh tests/agov-wrapper-freshness.sh
@@ -771,6 +784,7 @@ rust:tooling:test:
 rust:tooling:oci-pull-test:
   image: quay.io/podman/stable:v5.6.0
   stage: test
+  interruptible: true
   variables:
     STORAGE_DRIVER: vfs
     CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
@@ -809,6 +823,7 @@ rust:tooling:oci-pull-test:
 rust:tooling:clippy:
   extends: .rust-base
   stage: test
+  interruptible: true
   script:
     - rustup component add clippy
     - cargo clippy --workspace -- -D warnings
@@ -957,6 +972,7 @@ rust:tooling:clippy:
 # artifacts are not releases.
 rust:tooling:preview:
   extends: .rust-tooling-package
+  interruptible: true
   artifacts:
     name: "agov-rust-preview-$CI_COMMIT_SHORT_SHA"
     expire_in: 1 day
@@ -979,6 +995,7 @@ rust:tooling:preview:
 # without creating a release tag.
 rust:tooling:preview:windows-package:
   extends: .rust-tooling-package
+  interruptible: true
   variables:
     AGOV_PACKAGE_WINDOWS_PREVIEW: "1"
   artifacts:
@@ -1038,6 +1055,7 @@ agov:oci:release:
 rust:tooling:build:windows:preview:
   extends: .rust-base
   stage: build
+  interruptible: true
   services:
     - docker:dind
   variables:
