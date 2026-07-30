@@ -1,6 +1,6 @@
 ---
 id: v246-release
-status: approved
+status: pending-gate1
 topic: v246-release
 advisory_consultation:
   - role: contribution-auditor
@@ -13,7 +13,11 @@ advisory_consultation:
       release-plan pass; its B1-B5 findings are corrected at this source
       head. `20260730T134315Z-contribution-auditor-gdrb` independently
       confirmed B1-B5 resolved and requested only this consultation-history
-      correction before final exact-head confirmation.
+      correction before final exact-head confirmation. During release
+      execution, contribution-auditor reproduced a release-blocking metadata
+      omission: the prior v2.4.5 release changed five version surfaces, while
+      this plan authorized only two. This amendment corrects that scope before
+      publication.
   - role: infosec-sentinel
     status: consulted
     reason: >
@@ -29,16 +33,22 @@ advisory_consultation:
 
 # Plan: v2.4.6 release (version bump, tag, publication)
 
-## Gate 1 decision
+## Gate 1 amendment requested
 
 Gate 1 was approved by
 `20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
-`d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`. The approval authorizes
-exactly the release-branch creation, the version/changelog-only release
-MR, and (after that MR's separate Gate 2 approval) the tag and its push.
-It does not authorize any code change beyond `agf/VERSION` and
-`agf/CHANGELOG.md` — every substantive change this release publishes is
-already merged to `main` and separately governed.
+`d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`. Execution stopped before the
+release branch was committed or pushed because a fresh build after changing
+`agf/VERSION` still reported `agov 2.4.5`: the Rust workspace version and
+generated lockfile were outside the approved two-file scope. The v2.4.5 tag's
+own merge commit confirms that a coherent release changes five metadata
+surfaces, not two.
+
+Gate 1 amendment is therefore requested to add exactly three mandatory version
+metadata files — `tooling/rust/Cargo.toml`, `tooling/rust/Cargo.lock`, and
+`agf/templates/AGENTS.md` — while retaining the already-approved
+`agf/VERSION` and `agf/CHANGELOG.md` changes. No product behavior or release
+content is otherwise added.
 
 ## Authorization chain
 
@@ -63,30 +73,32 @@ already merged to `main` and separately governed.
   exact reviewed plan head `d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`.
   The subsequent metadata-only update marks that decision in this file;
   it does not expand the approved release scope.
+- `20260730T150606Z-contribution-auditor-tsgk` — release stop and amendment
+  request after a clean local build proved that the approved two-file scope
+  would package binaries self-reporting 2.4.5 under 2.4.6 filenames and
+  provenance expectations.
 
 ## Release base
 
-`origin/main` at `353e12427af40af3a45460efb6eca152aef654bd` (fetched and
-verified at plan-draft time, 2026-07-30T12:34–13:00Z window). `agf/VERSION`
-currently reads `2.4.5`; the last tag is `v2.4.5`. This base will be
-re-verified immediately before creating `release-2.4.6`, since `main`
-can advance between Gate 1 approval and implementation, per
-`release-via-merge-request-rule.md`'s workflow.
+`origin/main` at `b0623ecd3c7a259dcf7091f87d5178f15881cf6f` (fetched and
+verified immediately after the original Gate 1 plan and decision record
+merged, 2026-07-30T15:03Z). `agf/VERSION` reads `2.4.5`; the last tag is
+`v2.4.5`. The local `release-2.4.6` worktree was created from this exact base,
+but no release commit or push occurred before the metadata stop condition.
+Re-verify the base again after this amendment is approved and merged.
 
 ## Reconciliation: every commit since v2.4.5
 
-96 commits exist between `v2.4.5` and this release base. Classification
-unit: distinct commit OIDs on this range, each assigned exactly one
-disposition by which paths that commit's `git show --name-only` touches —
-not by counting merged-result file content, which would double-count
-files touched by multiple commits. 69 commits touch only
-`docs/coordination/*.md` and are coordination-channel audit trail, not
-release content; they require no per-commit disposition here. The
-remaining 27 non-coordination commits partition into exactly three
-non-overlapping groups, verified by exact OID set (union of the three
-groups' OIDs equals the 27-commit non-coordination set, with no OID in
-more than one group): Group A (8 commits), Group B (8 commits), Group C
-(11 commits) — 8 + 8 + 11 = 27.
+112 commits exist between `v2.4.5` and this release base. Classification unit:
+distinct commit OIDs on this range, classified from the unique path delta
+reported by `git diff-tree --no-commit-id --name-only -r <OID>`. This yields
+42 commits touching only `docs/coordination/*.md`, 39 pathless structural merge
+commits with no unique delta under that method, and 31 commits with another
+path. The 31 non-coordination OIDs partition into exactly four non-overlapping
+groups: Group A (8), Group B (8), Group C (11), and Group D (4) — 8 + 8 + 11
++ 4 = 31. The earlier 69 figure conflated 37 coordination-only commits with
+32 pathless merge commits at the old base; this amendment corrects that
+description without changing the already-verified A/B/C OID membership.
 
 ### Group A — in scope: the already-approved v2.4.6 recovery patch (8 commits)
 
@@ -155,24 +167,31 @@ while confirming no future/adjacent tooling work is pulled into its
 scope. No `agf/CHANGELOG.md` entry — this changelog covers the `agf/`
 distribution, and `.gitlab-ci.yml` is not part of it.
 
+### Group D — explicit exclusion: release-plan revisions (4 commits)
+
+The four commits after the original planning base that touch a
+non-coordination path modify only `docs/plans/v246-release.md`: the initial
+release plan and its three correction/approval revisions. They are governance
+metadata, are not included by `agf/dist/release-manifest.yaml`, and add no
+adopter-visible release content. No changelog entry is required.
+
 ## Scope
 
 **In (Gate 1 authorizes exactly these mechanical steps):**
 
 1. Confirm the release base is still current `main` at implementation
-   time; re-verify Group A/B/C reconciliation holds (no new
-   non-coordination commit has landed since this plan's draft).
+   time; re-verify Group A/B/C/D reconciliation and explicitly classify any
+   later non-coordination commit before proceeding.
 2. Create `release-2.4.6` from that base.
-3. On the release branch: bump `agf/VERSION` to `2.4.6`; rename
-   `agf/CHANGELOG.md`'s `## Unreleased` section to `## [2.4.6] —
-   <implementation date>`, adding the Group B roadmap-page entry under a
-   new `### Added` subsection (distinct from the existing `### Fixed`
-   subsection covering Group A) if confirmed by consultation; no other
-   file changes beyond strictly necessary release metadata (e.g.
-   `Adopter docs: updated` marker already present in the changelog
-   format).
+3. On the release branch, change exactly five version-metadata files:
+   `agf/VERSION` to `2.4.6`; `agf/CHANGELOG.md` from `## Unreleased` to
+   `## [2.4.6] — <implementation date>` with Group B under a new
+   `### Added`; `agf/templates/AGENTS.md`'s AGF version comment to `2.4.6`;
+   `tooling/rust/Cargo.toml`'s workspace package version to `2.4.6`; and the
+   generated `tooling/rust/Cargo.lock` package versions for the five workspace
+   crates to `2.4.6`. No dependency version or checksum may change.
 4. Open the release MR (`release-2.4.6` → `main`) with a diff limited to
-   exactly the above.
+   exactly those five files.
 5. Require Gate 2 on the release MR before merge.
 6. After merge, tag the resulting `main` merge commit `v2.4.6` and push
    the tag immediately — per `release-via-merge-request-rule.md`, this
@@ -180,8 +199,9 @@ distribution, and `.gitlab-ci.yml` is not part of it.
 
 **Out (explicitly, not by omission):**
 
-- Any code change beyond `agf/VERSION` and `agf/CHANGELOG.md` — every
-  substantive change is already on `main`, separately governed.
+- Any change beyond the five named version-metadata files. In particular, no
+  Rust source, dependency version/checksum, schema, rule, or CI change is in
+  scope; every substantive change is already on `main`, separately governed.
 - Issue #53 CI-latency work, the interruptibility post-merge monitoring
   tracker, and the parked MR !772 branch-scope rule — per
   `v246-recovery-patch.md`'s own exclusions, still controlling.
@@ -198,7 +218,9 @@ distribution, and `.gitlab-ci.yml` is not part of it.
 Per `hapn` item 4 and `release-via-merge-request-rule.md`'s MR checklist,
 at the exact release-MR head:
 
-1. `agf/VERSION` matches the intended release version exactly (`2.4.6`).
+1. `agf/VERSION`, the Rust workspace/package lock versions, the packaged
+   `agov`/`agov-mcp` self-reports, and the adopter template version comment all
+   match the intended release version exactly (`2.4.6`).
 2. `agf/CHANGELOG.md` contains a `[2.4.6]` entry with a real date, not
    backfilled later; every adopter-observable change named (Group A's
    four items, Group B's roadmap-page entry if confirmed).
