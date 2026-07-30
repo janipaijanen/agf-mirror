@@ -37,7 +37,15 @@ advisory_consultation:
 
 # Plan: v2.4.6 release (version bump, tag, publication)
 
-## Gate 1 amendment approved
+## Gate 1 amendment re-opened after release-MR validation
+
+The second amendment was approved by
+`20260730T163604Z-governor-reviewer-8j4p` after review of MR !837 at exact
+head `4a0b34a9328519f5271113a2eb782c3b71859478`. The plan-only publication
+split preserves the approved plan blob
+`042f616c31112d0c0f9cb184a7f8453fa4d2fcdc` byte-for-byte; this metadata-only
+status update records the decision and does not alter the approved 26-file
+scope.
 
 Gate 1 was approved by
 `20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
@@ -56,12 +64,24 @@ also drifted across earlier releases.
 
 The Gate 1 amendment was approved by
 `20260730T160903Z-governor-reviewer-gn47` at exact reviewed head
-`4354113f713625ded0d419fee3f91f9eddfea2e6`. It aligns exactly 22 release
+`4354113f713625ded0d419fee3f91f9eddfea2e6`. It aligned 22 release
 metadata and live/copyable truth-surface files. This includes the originally approved
 `agf/VERSION` and `agf/CHANGELOG.md`, the Rust package metadata, the distributed
 roadmap, every agent definition required by `agf/skills/release/SKILL.md`, and
-the four adopter/manifest surfaces named below. No runtime behavior, schema,
-rule, CI, dependency package version, or checksum is changed.
+the four adopter/manifest surfaces named below.
+
+During the approved release-MR validation, the mandatory complete semver sweep
+found four additional live current-version surfaces that the prior audit had
+incorrectly omitted: `README.md` and three shipped documentation pages still
+present copyable OCI/image or checkout commands pinned to v2.4.4, while
+labelling `agf/VERSION` as canonical or describing the supported current
+operator path. These are not historical evidence, compatibility versions, or
+synthetic fixtures. This second amendment expands the mechanical release scope
+from 22 to exactly 26 files. The evergreen instructions become version-neutral:
+they point to the Releases page for discovery and use an explicit `<version>`
+placeholder where an immutable OCI/tag pin is operationally required. This
+avoids replacing today's stale scalar with tomorrow's. No runtime behavior,
+schema, rule, CI, dependency package version, or checksum is changed.
 
 ## Authorization chain
 
@@ -101,6 +121,14 @@ rule, CI, dependency package version, or checksum is changed.
   approval at exact reviewed head
   `4354113f713625ded0d419fee3f91f9eddfea2e6`, authorizing the 22-file scope
   and leaving the release MR subject to a separate exact-head Gate 2 decision.
+- Release-MR implementation validation after `gn47` — a full-tree semver sweep
+  found four live v2.4.4 installation/current-operator pins outside the approved
+  scope. The release implementation remains uncommitted and unpushed pending
+  this narrowly bounded 26-file amendment.
+- `20260730T163604Z-governor-reviewer-8j4p` — binding Gate 1 approval for the
+  version-neutral 26-file amendment as reviewed at MR !837 head
+  `4a0b34a9328519f5271113a2eb782c3b71859478`; the clean plan-only replacement
+  preserves the approved plan blob exactly.
 
 ## Release base
 
@@ -207,7 +235,7 @@ adopter-visible release content. No changelog entry is required.
    time; re-verify Group A/B/C/D reconciliation and explicitly classify any
    later non-coordination commit before proceeding.
 2. Create `release-2.4.6` from that base.
-3. On the release branch, change exactly 22 release-metadata/truth-surface
+3. On the release branch, change exactly 26 release-metadata/truth-surface
    files:
    - Core/tooling metadata (5): `agf/VERSION` to `2.4.6`;
      `agf/CHANGELOG.md` from `## Unreleased` to
@@ -236,8 +264,18 @@ adopter-visible release content. No changelog entry is required.
      `2.4.6`; and `agf/docs/governance/manifest.md`'s live framework/version,
      publication-state, current-VERSION, and upgrade-example claims to 2.4.6.
      The separately parked Elixir-path cleanup in issue #93 remains untouched.
+   - Public installation/current-operator guidance (4): remove the exact OCI
+     image scalar from `README.md`; replace the two OCI command pins in
+     `agf/docs/site/docs/adopt/install-and-layouts.md`; the supported-operator
+     baseline, published-platform baseline, OCI pin, and checkout example in
+     `agf/docs/site/docs/adopt/tooling-and-tokens.md`; and the two OCI pins in
+     `agf/docs/site/docs/advanced/contracts-and-validators.md` with
+     version-neutral wording and explicit `<version>` placeholders linked to
+     release discovery. The examples must continue to require an exact version
+     or digest; no floating `latest` reference is introduced. These are current
+     copyable instructions, not historical examples.
 4. Open the release MR (`release-2.4.6` → `main`) with a diff limited to
-   exactly those 22 files.
+   exactly those 26 files.
 5. Require Gate 2 on the release MR before merge.
 6. After merge, tag the resulting `main` merge commit `v2.4.6` and push
    the tag immediately — per `release-via-merge-request-rule.md`, this
@@ -245,7 +283,7 @@ adopter-visible release content. No changelog entry is required.
 
 **Out (explicitly, not by omission):**
 
-- Any change beyond the 22 named release-metadata/truth-surface files. In
+- Any change beyond the 26 named release-metadata/truth-surface files. In
   particular, no Rust source, dependency version/checksum, schema, rule, or CI
   change is in scope; every substantive change is already on `main`, separately
   governed.
@@ -290,6 +328,9 @@ at the exact release-MR head:
    agent-definition version, an external dependency/tool version, or a
    deliberate synthetic example/fixture. No unclassified older value or live
    claim may remain.
+   In particular, the repository README and all three current installation/CI
+   documentation pages must contain no hard-coded live package-release scalar;
+   operational OCI examples must retain an explicit exact-version/digest pin.
 6. Version references are consistent across agent definitions and
    documentation (`agov validate` umbrella, which includes
    `agov.validate.readme_stats` and `agov.validate.assistant_loader`
