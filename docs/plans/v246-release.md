@@ -13,7 +13,15 @@ advisory_consultation:
       release-plan pass; its B1-B5 findings are corrected at this source
       head. `20260730T134315Z-contribution-auditor-gdrb` independently
       confirmed B1-B5 resolved and requested only this consultation-history
-      correction before final exact-head confirmation.
+      correction before final exact-head confirmation. During release
+      execution, contribution-auditor reproduced a release-blocking metadata
+      omission: the prior v2.4.5 release changed five version surfaces, while
+      this plan authorized only two. A subsequent exact-version sweep also
+      found that the distributed roadmap statically identifies v2.4.5 as the
+      latest release. A complete packaged-surface sweep then found additional
+      live/copyable stale values that the governed release skill explicitly
+      requires the release bump to align. This amendment corrects all three
+      omission classes before publication.
   - role: infosec-sentinel
     status: consulted
     reason: >
@@ -29,16 +37,31 @@ advisory_consultation:
 
 # Plan: v2.4.6 release (version bump, tag, publication)
 
-## Gate 1 decision
+## Gate 1 amendment approved
 
 Gate 1 was approved by
 `20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
-`d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`. The approval authorizes
-exactly the release-branch creation, the version/changelog-only release
-MR, and (after that MR's separate Gate 2 approval) the tag and its push.
-It does not authorize any code change beyond `agf/VERSION` and
-`agf/CHANGELOG.md` — every substantive change this release publishes is
-already merged to `main` and separately governed.
+`d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`. Execution stopped before the
+release branch was committed or pushed because a fresh build after changing
+`agf/VERSION` still reported `agov 2.4.5`: the Rust workspace version and
+generated lockfile were outside the approved two-file scope. The v2.4.5 tag's
+own merge commit confirms that the release must align five metadata surfaces.
+An exact-version sweep then found a sixth release truth surface:
+`agf/docs/site/roadmap.md` is shipped in the framework archive and statically
+identifies v2.4.5 as the latest release. A subsequent complete semver sweep of
+the packaged and tooling surfaces found that the release skill's mandatory
+agent `framework_version` updates, three copyable adopter instructions, a live
+manifest header, and the Rust workspace's internal dependency requirements had
+also drifted across earlier releases.
+
+The Gate 1 amendment was approved by
+`20260730T160903Z-governor-reviewer-gn47` at exact reviewed head
+`4354113f713625ded0d419fee3f91f9eddfea2e6`. It aligns exactly 22 release
+metadata and live/copyable truth-surface files. This includes the originally approved
+`agf/VERSION` and `agf/CHANGELOG.md`, the Rust package metadata, the distributed
+roadmap, every agent definition required by `agf/skills/release/SKILL.md`, and
+the four adopter/manifest surfaces named below. No runtime behavior, schema,
+rule, CI, dependency package version, or checksum is changed.
 
 ## Authorization chain
 
@@ -63,30 +86,43 @@ already merged to `main` and separately governed.
   exact reviewed plan head `d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`.
   The subsequent metadata-only update marks that decision in this file;
   it does not expand the approved release scope.
+- `20260730T150606Z-contribution-auditor-tsgk` — release stop and amendment
+  request after a clean local build proved that the approved two-file scope
+  would package binaries self-reporting 2.4.5 under 2.4.6 filenames and
+  provenance expectations.
+- `20260730T152746Z-contribution-auditor-de8p` — exact-version surface review
+  confirming that no tracked Claude loader carries a release scalar, while the
+  distributed roadmap would otherwise continue calling v2.4.5 the latest
+  release after v2.4.6 publication.
+- `20260730T153314Z-contribution-auditor-r61q` — complete semver surface audit
+  superseding `de8p`'s six-file count after checking the release skill, Cargo
+  metadata, all packaged copyable examples, manifests, and agent definitions.
+- `20260730T160903Z-governor-reviewer-gn47` — binding Gate 1 amendment
+  approval at exact reviewed head
+  `4354113f713625ded0d419fee3f91f9eddfea2e6`, authorizing the 22-file scope
+  and leaving the release MR subject to a separate exact-head Gate 2 decision.
 
 ## Release base
 
-`origin/main` at `353e12427af40af3a45460efb6eca152aef654bd` (fetched and
-verified at plan-draft time, 2026-07-30T12:34–13:00Z window). `agf/VERSION`
-currently reads `2.4.5`; the last tag is `v2.4.5`. This base will be
-re-verified immediately before creating `release-2.4.6`, since `main`
-can advance between Gate 1 approval and implementation, per
-`release-via-merge-request-rule.md`'s workflow.
+`origin/main` at `b0623ecd3c7a259dcf7091f87d5178f15881cf6f` (fetched and
+verified immediately after the original Gate 1 plan and decision record
+merged, 2026-07-30T15:03Z). `agf/VERSION` reads `2.4.5`; the last tag is
+`v2.4.5`. The local `release-2.4.6` worktree was created from this exact base,
+but no release commit or push occurred before the metadata stop condition.
+Re-verify the base again after this amendment is approved and merged.
 
 ## Reconciliation: every commit since v2.4.5
 
-96 commits exist between `v2.4.5` and this release base. Classification
-unit: distinct commit OIDs on this range, each assigned exactly one
-disposition by which paths that commit's `git show --name-only` touches —
-not by counting merged-result file content, which would double-count
-files touched by multiple commits. 69 commits touch only
-`docs/coordination/*.md` and are coordination-channel audit trail, not
-release content; they require no per-commit disposition here. The
-remaining 27 non-coordination commits partition into exactly three
-non-overlapping groups, verified by exact OID set (union of the three
-groups' OIDs equals the 27-commit non-coordination set, with no OID in
-more than one group): Group A (8 commits), Group B (8 commits), Group C
-(11 commits) — 8 + 8 + 11 = 27.
+112 commits exist between `v2.4.5` and this release base. Classification unit:
+distinct commit OIDs on this range, classified from the unique path delta
+reported by `git diff-tree --no-commit-id --name-only -r <OID>`. This yields
+42 commits touching only `docs/coordination/*.md`, 39 pathless structural merge
+commits with no unique delta under that method, and 31 commits with another
+path. The 31 non-coordination OIDs partition into exactly four non-overlapping
+groups: Group A (8), Group B (8), Group C (11), and Group D (4) — 8 + 8 + 11
++ 4 = 31. The earlier 69 figure conflated 37 coordination-only commits with
+32 pathless merge commits at the old base; this amendment corrects that
+description without changing the already-verified A/B/C OID membership.
 
 ### Group A — in scope: the already-approved v2.4.6 recovery patch (8 commits)
 
@@ -155,24 +191,53 @@ while confirming no future/adjacent tooling work is pulled into its
 scope. No `agf/CHANGELOG.md` entry — this changelog covers the `agf/`
 distribution, and `.gitlab-ci.yml` is not part of it.
 
+### Group D — explicit exclusion: release-plan revisions (4 commits)
+
+The four commits after the original planning base that touch a
+non-coordination path modify only `docs/plans/v246-release.md`: the initial
+release plan and its three correction/approval revisions. They are governance
+metadata, are not included by `agf/dist/release-manifest.yaml`, and add no
+adopter-visible release content. No changelog entry is required.
+
 ## Scope
 
 **In (Gate 1 authorizes exactly these mechanical steps):**
 
 1. Confirm the release base is still current `main` at implementation
-   time; re-verify Group A/B/C reconciliation holds (no new
-   non-coordination commit has landed since this plan's draft).
+   time; re-verify Group A/B/C/D reconciliation and explicitly classify any
+   later non-coordination commit before proceeding.
 2. Create `release-2.4.6` from that base.
-3. On the release branch: bump `agf/VERSION` to `2.4.6`; rename
-   `agf/CHANGELOG.md`'s `## Unreleased` section to `## [2.4.6] —
-   <implementation date>`, adding the Group B roadmap-page entry under a
-   new `### Added` subsection (distinct from the existing `### Fixed`
-   subsection covering Group A) if confirmed by consultation; no other
-   file changes beyond strictly necessary release metadata (e.g.
-   `Adopter docs: updated` marker already present in the changelog
-   format).
+3. On the release branch, change exactly 22 release-metadata/truth-surface
+   files:
+   - Core/tooling metadata (5): `agf/VERSION` to `2.4.6`;
+     `agf/CHANGELOG.md` from `## Unreleased` to
+     `## [2.4.6] — <implementation date>` with Group B under a new
+     `### Added` and one `### Fixed` item naming the stale version-surface
+     correction; `agf/templates/AGENTS.md`'s AGF version comment to `2.4.6`;
+     `tooling/rust/Cargo.toml`'s workspace package version and all three
+     internal `agov-*` path-dependency requirements to `2.4.6`; and the
+     generated `tooling/rust/Cargo.lock` package versions for the five
+     workspace crates to `2.4.6`. No external dependency version or checksum
+     may change.
+   - Released-baseline truth (1): `agf/docs/site/roadmap.md`'s current released
+     baseline to v2.4.6, including rewording the issue #81 paragraph so the
+     v2.4.5 archive defect remains recorded as historical and is explicitly
+     identified as fixed by v2.4.6. No other roadmap status may change.
+   - Agent metadata (13): all 12 `agf/agents/*.yaml` agent-definition
+     `framework_version` fields to `2.4.6`, as required by
+     `agf/skills/release/SKILL.md`, plus `agf/agents/MANIFEST.yaml`'s live
+     framework-version header to `2.4.6`. Agent definition `version`/`id`, role
+     status, assignments, and behavior remain unchanged.
+   - Adopter/manifest guidance (3): `agf/ADOPTING.md`'s copyable
+     `framework_version` to `2.4.6` and its three copied agent IDs to the actual
+     unchanged definition versions (`planner-architect:0.4.0`,
+     `coder-tester:0.3.2`, `governor-reviewer:0.4.0`);
+     `agf/templates/learning-record.yaml`'s copyable framework version to
+     `2.4.6`; and `agf/docs/governance/manifest.md`'s live framework/version,
+     publication-state, current-VERSION, and upgrade-example claims to 2.4.6.
+     The separately parked Elixir-path cleanup in issue #93 remains untouched.
 4. Open the release MR (`release-2.4.6` → `main`) with a diff limited to
-   exactly the above.
+   exactly those 22 files.
 5. Require Gate 2 on the release MR before merge.
 6. After merge, tag the resulting `main` merge commit `v2.4.6` and push
    the tag immediately — per `release-via-merge-request-rule.md`, this
@@ -180,8 +245,10 @@ distribution, and `.gitlab-ci.yml` is not part of it.
 
 **Out (explicitly, not by omission):**
 
-- Any code change beyond `agf/VERSION` and `agf/CHANGELOG.md` — every
-  substantive change is already on `main`, separately governed.
+- Any change beyond the 22 named release-metadata/truth-surface files. In
+  particular, no Rust source, dependency version/checksum, schema, rule, or CI
+  change is in scope; every substantive change is already on `main`, separately
+  governed.
 - Issue #53 CI-latency work, the interruptibility post-merge monitoring
   tracker, and the parked MR !772 branch-scope rule — per
   `v246-recovery-patch.md`'s own exclusions, still controlling.
@@ -198,27 +265,48 @@ distribution, and `.gitlab-ci.yml` is not part of it.
 Per `hapn` item 4 and `release-via-merge-request-rule.md`'s MR checklist,
 at the exact release-MR head:
 
-1. `agf/VERSION` matches the intended release version exactly (`2.4.6`).
+1. `agf/VERSION`, the Rust workspace/package lock versions, the packaged
+   `agov`/`agov-mcp` self-reports, and the adopter template version comment all
+   match the intended release version exactly (`2.4.6`).
+   `cargo metadata --no-deps` must additionally show all five workspace
+   packages at 2.4.6 and every internal `agov-*` dependency requirement as
+   `^2.4.6`.
 2. `agf/CHANGELOG.md` contains a `[2.4.6]` entry with a real date, not
    backfilled later; every adopter-observable change named (Group A's
    four items, Group B's roadmap-page entry if confirmed).
-3. Version references are consistent across agent definitions and
+3. `agf/docs/site/roadmap.md` calls v2.4.6 the latest release, links to the
+   v2.4.6 release/tag, and describes issue #81's v2.4.5 archive failure as a
+   historical defect fixed by v2.4.6 rather than an open limitation of the
+   latest release.
+4. All 12 agent-definition `framework_version` fields, the live manifest
+   header, the adopter guide's framework version and actual agent IDs, the
+   learning-record template, and the governance manifest's live/current
+   version claims are consistent with 2.4.6. This is checked directly; the
+   current `agov validate agents` implementation validates schema shape but
+   does not enforce the equality promised by `agent.schema.json`.
+5. A complete semver grep of the 2.4.6 release-MR tree is attached to Gate 2
+   evidence. Every remaining older value must be classified as historical
+   changelog/learning provenance, a compatibility/schema/contract version, an
+   agent-definition version, an external dependency/tool version, or a
+   deliberate synthetic example/fixture. No unclassified older value or live
+   claim may remain.
+6. Version references are consistent across agent definitions and
    documentation (`agov validate` umbrella, which includes
    `agov.validate.readme_stats` and `agov.validate.assistant_loader`
    freshness checks).
-4. `agov validate adopter-docs` — adopter-facing documentation coverage
+7. `agov validate adopter-docs` — adopter-facing documentation coverage
    for every release-relevant change.
-5. `agov dist validate` — release manifest structural validation.
-6. `agov dist build` (or the CI-equivalent `.rust-tooling-package` /
+8. `agov dist validate` — release manifest structural validation.
+9. `agov dist build` (or the CI-equivalent `.rust-tooling-package` /
    `agf:dist:release` jobs) produces both `.tar.gz` and `.zip` archives
    that extract cleanly and run every shipped test with zero failures —
    this is the exact clean-archive fixture Group A's recovery patch
    added, now exercised against the real release build, not only a CI
    simulation.
-7. SPDX headers and license consistency checks pass across all files.
-8. The full required CI matrix is green at the exact release-MR head —
+10. SPDX headers and license consistency checks pass across all files.
+11. The full required CI matrix is green at the exact release-MR head —
    not a stale pipeline from an earlier commit on the same branch.
-9. `agov plan validate docs/plans/v246-release.md` (this file) and
+12. `agov plan validate docs/plans/v246-release.md` (this file) and
    `agov validate infosec` both pass.
 
 ## Post-tag verification (after the tag is pushed)
