@@ -69,9 +69,11 @@ present copyable OCI/image or checkout commands pinned to v2.4.4, while
 labelling `agf/VERSION` as canonical or describing the supported current
 operator path. These are not historical evidence, compatibility versions, or
 synthetic fixtures. This second amendment expands the mechanical release scope
-from 22 to exactly 26 files so those current instructions name v2.4.6. No
-runtime behavior, schema, rule, CI, dependency package version, or checksum is
-changed.
+from 22 to exactly 26 files. The evergreen instructions become version-neutral:
+they point to the Releases page for discovery and use an explicit `<version>`
+placeholder where an immutable OCI/tag pin is operationally required. This
+avoids replacing today's stale scalar with tomorrow's. No runtime behavior,
+schema, rule, CI, dependency package version, or checksum is changed.
 
 ## Authorization chain
 
@@ -250,13 +252,16 @@ adopter-visible release content. No changelog entry is required.
      `2.4.6`; and `agf/docs/governance/manifest.md`'s live framework/version,
      publication-state, current-VERSION, and upgrade-example claims to 2.4.6.
      The separately parked Elixir-path cleanup in issue #93 remains untouched.
-   - Public installation/current-operator guidance (4): update the exact OCI
-     image pin in `README.md`; the two OCI command pins in
+   - Public installation/current-operator guidance (4): remove the exact OCI
+     image scalar from `README.md`; replace the two OCI command pins in
      `agf/docs/site/docs/adopt/install-and-layouts.md`; the supported-operator
      baseline, published-platform baseline, OCI pin, and checkout example in
      `agf/docs/site/docs/adopt/tooling-and-tokens.md`; and the two OCI pins in
-     `agf/docs/site/docs/advanced/contracts-and-validators.md` from v2.4.4 to
-     v2.4.6. These are current copyable instructions, not historical examples.
+     `agf/docs/site/docs/advanced/contracts-and-validators.md` with
+     version-neutral wording and explicit `<version>` placeholders linked to
+     release discovery. The examples must continue to require an exact version
+     or digest; no floating `latest` reference is introduced. These are current
+     copyable instructions, not historical examples.
 4. Open the release MR (`release-2.4.6` → `main`) with a diff limited to
    exactly those 26 files.
 5. Require Gate 2 on the release MR before merge.
@@ -312,7 +317,8 @@ at the exact release-MR head:
    deliberate synthetic example/fixture. No unclassified older value or live
    claim may remain.
    In particular, the repository README and all three current installation/CI
-   documentation pages must contain no live v2.4.4 OCI or operator-path pin.
+   documentation pages must contain no hard-coded live package-release scalar;
+   operational OCI examples must retain an explicit exact-version/digest pin.
 6. Version references are consistent across agent definitions and
    documentation (`agov validate` umbrella, which includes
    `agov.validate.readme_stats` and `agov.validate.assistant_loader`
