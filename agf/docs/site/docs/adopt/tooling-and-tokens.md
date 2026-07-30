@@ -84,7 +84,7 @@ the archive nor the checksum was substituted, and it is not a signature:
 # Linux (.tar.gz)
 sha256sum -c agov-<version>-linux-x86_64.tar.gz.sha256
 
-# Windows (.zip) — from PowerShell
+# Windows (.zip) — from PowerShell, only when the selected release provides it
 Get-FileHash agov-<version>-windows-x86_64.zip -Algorithm SHA256
 # then compare the hash against the contents of the adjacent .sha256 file
 ```
@@ -260,8 +260,10 @@ for the full list of telemetry controls.
 - Language/ecosystem registry publishing, such as crates.io, or code signing
   (a separate future decision) — the GitLab generic-package archives and the
   GitLab container registry OCI image described above are already published.
-- macOS tooling archive (not yet built or published; a Windows x64 archive
-  has been published since v2.1.5 — see Option A above).
+- macOS tooling archive (not yet built or published). Windows x64 packaging is
+  currently an optional manual preview/build-from-source path rather than a
+  mandatory release asset; consult the selected release page's actual assets
+  before using the conditional Windows checksum example in Option A.
 
 ## See also
 

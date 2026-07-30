@@ -3,7 +3,26 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.7] — 2026-07-30
+
+### Changed
+
+- Recovered release publication after the v2.4.6 tag pipeline exhausted
+  GitLab runner disk space during its mandatory Windows cross-build. Tag
+  releases now require framework archives, Linux x86_64/aarch64 Rust tooling,
+  checksum and provenance sidecars, and OCI publication without building a
+  Windows archive.
+- Retained Windows packaging as optional, non-blocking manual preview evidence.
+  The selected GitLab Release page's actual assets are the authoritative
+  platform inventory.
+
+Adopter docs: updated
+
 ## [2.4.6] — 2026-07-30
+
+**Publication status:** tagged, but never published as a GitLab Release. The
+tag is immutable; no generic package or OCI release was published for this
+version. Adopt v2.4.7, which supersedes v2.4.6 for adoption.
 
 ### Added
 

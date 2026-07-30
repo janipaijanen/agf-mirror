@@ -44,10 +44,11 @@ list() {
     \) -exec basename {} \; | sort
 }
 
-# The mandatory set a release MUST publish. Deliberately excludes
-# `SHA256SUMS` -- the documented contract promises individual checksum
-# files, not an aggregate one (see docs/coordination/20260721T123209Z-
-# coder-tester-rggs.md); `list` still opportunistically links it if present.
+# The mandatory set a release MUST publish. Deliberately excludes optional
+# Windows preview archives and `SHA256SUMS` -- the documented contract promises
+# individual checksum files, not an aggregate one (see docs/coordination/
+# 20260721T123209Z-coder-tester-rggs.md); `list` still opportunistically links
+# any recognized optional artifact if present.
 #
 # Provenance filenames follow one rule (v2.4.0 Workstream B, the unified
 # release-provenance contract, agf/schemas/release-provenance.schema.json):
@@ -71,9 +72,6 @@ agov-${version}-linux-x86_64.tar.gz-provenance.json
 agov-${version}-linux-aarch64.tar.gz
 agov-${version}-linux-aarch64.tar.gz.sha256
 agov-${version}-linux-aarch64.tar.gz-provenance.json
-agov-${version}-windows-x86_64.zip
-agov-${version}-windows-x86_64.zip.sha256
-agov-${version}-windows-x86_64.zip-provenance.json
 agov-oci-${version}-provenance.json
 EXPECTED
 }
@@ -98,11 +96,15 @@ verify() {
 selftest() {
   test_version="9.9.9"
   tmp="$(mktemp -d)"
+  mandatory_tmp="$(mktemp -d)"
   neg_tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp" "$neg_tmp"' EXIT
+  trap 'rm -rf "$tmp" "$mandatory_tmp" "$neg_tmp"' EXIT
   failed=0
 
   fixture_names="$(expected "$test_version")
+agov-${test_version}-windows-x86_64.zip
+agov-${test_version}-windows-x86_64.zip.sha256
+agov-${test_version}-windows-x86_64.zip-provenance.json
 SHA256SUMS"
   unrelated_name="README-not-a-release-asset.txt"
 
@@ -129,6 +131,16 @@ SHA256SUMS"
   # --- `verify`, positive case: complete dist dir passes ---
   if ! verify "$tmp" "$test_version" >/dev/null; then
     echo "verify unexpectedly FAILED against a complete fixture" >&2
+    failed=1
+  fi
+
+  # --- `verify`, optional-Windows case: the mandatory release is complete
+  # without any Windows archive, checksum, or provenance record. ---
+  for f in $(expected "$test_version"); do
+    : > "$mandatory_tmp/$f"
+  done
+  if ! verify "$mandatory_tmp" "$test_version" >/dev/null; then
+    echo "verify unexpectedly FAILED without optional Windows assets" >&2
     failed=1
   fi
 
