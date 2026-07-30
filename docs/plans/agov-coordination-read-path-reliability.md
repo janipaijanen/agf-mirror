@@ -141,36 +141,51 @@ Three sub-parts, all within #89's original contract:
    `refs/heads/*`. Explicit `--branch` selection continues to work
    unchanged; this only changes what the *default*, no-argument scan
    considers.
-2. **Deterministic deduplication (B2).** A ref is eligible for
-   enumeration if it is a `refs/heads/*` or `refs/remotes/<remote>/*`
-   ref and is not a symbolic ref (explicitly excludes
-   `refs/remotes/<remote>/HEAD`). Two eligible refs are the same branch
-   if and only if they resolve to the same commit OID *and* one is the
-   configured upstream of the other (matching Git's own local/remote
-   tracking relationship — this project's tooling already relies on
-   `git branch -vv`-style tracking metadata elsewhere, not a plain
-   name-string match, since a local branch and its remote-tracking ref
-   commonly share a name but a fork or renamed branch would not).
-   When a local branch and its tracked remote-tracking ref are the same
-   OID, report the local name (it's the one the caller can act on
-   directly); when only a remote-tracking ref exists (no local branch),
-   report the remote-tracking name as-is. Multiple remotes tracking the
-   same OID under different names are each reported once, keyed by OID,
-   not silently merged into one arbitrary name.
-3. **Base-ref freshness (B1).** `--base-branch main` (the default)
-   resolves to the local `main` ref today. Add resolution logic: when a
-   configured upstream for the base branch exists (e.g. `main` tracks
-   `origin/main`) and the upstream's OID differs from the local base
-   branch's OID, prefer the upstream's OID as the effective comparison
-   base and state which OID was actually used in both text and JSON
-   output. This makes the documented `git fetch` then `agov coord
-   visibility --base-branch main` workflow correct without requiring the
-   caller to separately fast-forward local `main` — the exact failure
-   mode `1dq4` named ("This checkout itself demonstrates why that
-   matters: a local `main` can be far behind `origin/main` after a
-   fetch"). When no upstream is configured, behavior is unchanged
-   (local ref only) — this plan does not require every repository to
-   have a remote.
+2. **Deterministic deduplication (B2, re-frozen per R1).** The earlier
+   fix stated two rules that contradicted each other: equivalence
+   required both a shared OID *and* a tracking relationship, but the
+   multi-remote handling then grouped "by OID" alone — R1 correctly
+   caught that these can't both be the grouping key. Single rule,
+   replacing both: a ref is eligible for enumeration if it is a
+   `refs/heads/*` or `refs/remotes/<remote>/*` ref and is not a symbolic
+   ref (`refs/remotes/<remote>/HEAD` is never enumerated, and neither is
+   any alias of the effective base ref — see item 3). All eligible refs
+   are grouped by their **peeled commit OID alone** — tracking
+   configuration is not part of the equivalence test, only used to break
+   ties in display-name preference. Preferred display name within a
+   group, in order: (a) a local `refs/heads/*` name if one exists in the
+   group; (b) otherwise, the remote-tracking name whose remote is
+   `origin` if present; (c) otherwise, the remote-tracking name that
+   sorts first alphabetically by remote name, for a fully deterministic
+   tie-break with no "arbitrary" case. Cardinality: **one entry per
+   distinct OID group**, regardless of how many refs (local or remote,
+   across however many remotes) share that OID — a group with a local
+   branch and three remote-tracking refs at the same OID is one entry,
+   not four; a group with only two different remotes' tracking refs at
+   the same OID (no local branch) is also one entry, under rule (b) or
+   (c).
+3. **Base-ref freshness and exclusion (B1, R1).** `--base-branch main`
+   (the default) resolves to the local `main` ref today. Two parts:
+   - **Freshness.** When a configured upstream for the base branch
+     exists (e.g. `main` tracks `origin/main`) and the upstream's OID
+     differs from the local base branch's OID, prefer the upstream's
+     OID as the effective comparison base and state which OID was
+     actually used in both text and JSON output. This makes the
+     documented `git fetch` then `agov coord visibility --base-branch
+     main` workflow correct without requiring the caller to separately
+     fast-forward local `main` — the exact failure mode `1dq4` named
+     ("This checkout itself demonstrates why that matters: a local
+     `main` can be far behind `origin/main` after a fetch"). When no
+     upstream is configured, behavior is unchanged (local ref only) —
+     this plan does not require every repository to have a remote.
+   - **Base exclusion (R1's second finding).** Every ref that peels to
+     the effective base OID — the local base branch itself and every
+     remote-tracking ref at that same OID (e.g. both `main` and
+     `origin/main` when they match) — is excluded from
+     `scanned_branches`/candidate enumeration entirely. The base is the
+     comparison point, not a candidate obligation source; a caller
+     should never see "hidden obligation on `main`" when `main` is the
+     branch they're already comparing against.
 
 ## Affected files
 
@@ -210,17 +225,24 @@ Per `bhhh`'s minimum evidence list:
    with no legacy files and only local branches produces byte-identical
    output to current behavior — this plan must not regress the common
    case while fixing the edge cases.
-5. **Deduplication (B2)**: local and remote-tracking refs at the same OID
-   report once, under the local name; a remote-only ref (no local
-   branch) reports under its remote-tracking name; multiple remotes at
-   the same OID under different names each report once, keyed by OID;
-   `refs/remotes/<remote>/HEAD` is never enumerated.
-6. **Base-ref freshness (B1)**: a fixture with local `main` behind its
-   configured upstream and a remote-only obligation that only resolves
-   correctly against the upstream OID — the default `--base-branch main`
-   workflow must find it, and output must state which OID was used. A
-   second fixture with no configured upstream confirms unchanged
-   local-only behavior.
+5. **Deduplication cardinality and naming (B2, re-tested per R1)**: one
+   entry per OID group, tested with (a) a local branch plus one
+   remote-tracking ref at the same OID — reports once, under the local
+   name; (b) a remote-only ref (no local branch) — reports once, under
+   its remote-tracking name; (c) two different remotes' tracking refs at
+   the same OID with no local branch — reports **once** (not twice),
+   under the `origin`-preferred or alphabetically-first name per the
+   frozen tie-break rule; (d) `refs/remotes/<remote>/HEAD` — never
+   enumerated.
+6. **Base-ref freshness and exclusion (B1/R1)**: a fixture with local
+   `main` behind its configured upstream and a remote-only obligation
+   that only resolves correctly against the upstream OID — the default
+   `--base-branch main` workflow must find it, and output must state
+   which OID was used. A second fixture with no configured upstream
+   confirms unchanged local-only behavior. A third fixture asserts that
+   neither the local base branch nor `origin/<base>` (when it matches
+   the effective base OID) ever appears in `scanned_branches` or as a
+   reported obligation candidate.
 
 All new tests are unit/integration tests in the existing
 `tooling/rust/crates/agov/tests/` suite; no live GitLab API calls needed
