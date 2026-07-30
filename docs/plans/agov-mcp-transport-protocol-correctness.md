@@ -82,15 +82,59 @@ of a transport that is already contract-correct.
 
 ### Slice 1 — JSON-RPC 2.0 request validity (#88)
 
-Add a `jsonrpc: String` field to `JsonRpcRequest` (or an equivalent
-pre-dispatch check) and reject any request where it is absent or not
-exactly `"2.0"`, returning a JSON-RPC error response (`-32600 Invalid
-Request` per the spec) rather than silently dispatching. Must handle
-notifications (`id` absent) per the spec — no response is sent for a
-malformed notification, since notifications never receive a response by
-definition. Must fail closed on malformed JSON itself (parse error,
-`-32700`) without panicking or hanging the stdio loop, per the
-infosec-sentinel note above.
+Exact-head review (`20260730T083948Z-contribution-auditor-1dq4`, findings
+B3/B4) found this slice's first draft addressed only half of #88's own
+stated contract and got one behavioral detail wrong. Both are corrected
+here, not treated as new scope — #88's own Recommendation section
+already required both.
+
+**`jsonrpc` validation (as originally scoped).** Add a `jsonrpc: String`
+field to `JsonRpcRequest` (or an equivalent pre-dispatch check) and
+reject any request where it is absent or not exactly `"2.0"`, returning
+`-32600 Invalid Request` with `id: null` (see below for why `id: null`
+specifically) rather than silently dispatching.
+
+**Request-ID type validity (B3, previously missing).** #88's
+Recommendation explicitly also requires "Validate `id` against the
+JSON-RPC 2.0 request-id types used by MCP" — the current
+`id: Option<Value>` accepts any JSON value, including `null`, booleans,
+arrays, objects, and fractional numbers. Per the MCP specification, a
+request ID must be a string or a non-null, non-fractional-seeming
+integer-valued number; `null` is reserved for error responses to
+requests that themselves lack a valid ID and is not itself a legal
+request ID. Add validation rejecting `id` shapes outside {string,
+integer} with `-32600`, and add explicit test coverage for null,
+boolean, array, object, and fractional-number IDs (five distinct
+negative cases, not one generic "invalid ID" test). MCP's within-session
+ID-uniqueness requirement is explicitly bounded out of this plan: the
+transport is stateless per-request today and adding uniqueness tracking
+would be new statefulness, not a request-shape validation fix: filed as
+a follow-up recommendation, not silently dropped.
+
+**Notification semantics, corrected (B4).** The first draft conflated
+"any request with `id` absent" with "a notification," and said a
+"malformed notification" gets no response. That is wrong under JSON-RPC
+2.0: a Notification is specifically a **structurally valid** Request
+object that happens to omit `id` — normatively, an ID-less object that
+is *otherwise invalid* (wrong/missing `jsonrpc`, missing `method`, wrong
+`method` type) is not a notification, it is an invalid Request object,
+and per the JSON-RPC 2.0 spec's own normative examples receives
+`-32600 Invalid Request` with `id: null`, exactly like an ID-bearing
+invalid request. MCP's own notification definition likewise requires
+`jsonrpc: "2.0"` and a string `method`. Corrected rule: a request
+receives no response if and only if it is a **fully valid** Request or
+Notification object with `id` absent; every other shape — valid or
+invalid, with or without `id` — receives the applicable JSON-RPC error
+response. Test both cases separately: (a) a valid notification (no
+response), and (b) an invalid, ID-less object such as malformed JSON or
+a missing/wrong `jsonrpc` value (an error response with `id: null`) —
+these are not the same test with two names. Normative references
+checked 2026-07-30: `https://www.jsonrpc.org/specification` and
+`https://modelcontextprotocol.io/specification/2025-06-18/basic/index`.
+
+Must fail closed on malformed JSON itself (parse error, `-32700`)
+without panicking or hanging the stdio loop, per the infosec-sentinel
+note above.
 
 ### Slice 2 — coordination subcommand parity (#86)
 
@@ -100,15 +144,35 @@ subcommands: `status`, `visibility`, `stale`, `graph-index`,
 `publication-check`, `brief`, prioritizing `visibility` and
 `graph-index` first since `AGENTS.md` explicitly names those two for AI
 cold-start and cross-branch discovery. `graph` (Graphviz/dot output)
-stays CLI-only per `bhhh`'s own scoping — a binary graph-rendering format
-is not a natural MCP tool result shape. Add the missing `--manifest`
-forwarding to `agov_session_resume`. Do not claim full parity from a
-hand-maintained count: add an executable test that enumerates the CLI's
-`agov coord --help` subcommands and the MCP registry's tool list and
-asserts the intended coverage set matches, so future CLI additions cannot
-silently drift out of sync with the MCP surface again. Any CLI command
-deliberately left MCP-unexposed (e.g. `graph`) must be named in that test
-with its reason, not just absent.
+stays CLI-only per `bhhh`'s own scoping. Correction from exact-head
+review (A1): the original rationale here — "a binary graph-rendering
+format" — is factually wrong; Graphviz DOT is a text format, not binary.
+The actual reason to keep it CLI-only is that `graph-index`, already in
+scope, is the compact machine/LLM-oriented result for the same
+underlying graph, and full DOT output is comparatively large/verbose for
+a tool-call result — not that DOT can't be represented as text.
+
+**`graph-index` authority boundary (B5, previously undecided).** The CLI
+supports `agov coord graph-index --output <file>`, which writes to a
+caller-chosen filesystem path. This plan's stated "every new MCP tool is
+read-only" claim did not decide whether that flag is exposed — if it
+were, the MCP surface would let a caller write to an arbitrary host
+path, which is a mutation, not a read. Frozen decision: the MCP
+`agov_graph_index` tool does **not** expose `--output`; it always
+requests stdout output and returns the JSON body as the tool result.
+This is an intentional, documented exclusion, not an oversight, and the
+CLI/MCP contract test below must assert it explicitly (a passing test
+that merely doesn't cover `--output` is not the same as a test proving
+it's absent).
+
+Add the missing `--manifest` forwarding to `agov_session_resume`. Do not
+claim full parity from a hand-maintained count: add an executable test
+that enumerates the CLI's `agov coord --help` subcommands and the MCP
+registry's tool list and asserts the intended coverage set matches, so
+future CLI additions cannot silently drift out of sync with the MCP
+surface again. Any CLI command or flag deliberately left MCP-unexposed
+(`graph`, `graph-index --output`) must be named in that test with its
+reason, not just absent.
 
 ## Affected files
 
@@ -130,22 +194,34 @@ with its reason, not just absent.
 Per `bhhh`'s minimum evidence list — exercise all of:
 
 1. Valid `"jsonrpc": "2.0"` requests (unchanged behavior).
-2. Missing `jsonrpc` field — rejected with `-32600`.
-3. Wrong `jsonrpc` value (e.g. `"1.0"`) — rejected with `-32600`.
+2. Missing `jsonrpc` field — rejected with `-32600`, `id: null`.
+3. Wrong `jsonrpc` value (e.g. `"1.0"`) — rejected with `-32600`, `id: null`.
 4. Malformed JSON — rejected with `-32700`, no panic, no hang.
-5. Notifications (`id` absent) — no response sent, per spec, for both
-   valid and invalid notification requests.
-6. Request IDs — echoed correctly in both success and error responses.
-7. Tool discovery (`tools/list`) — includes all newly-added tools with
+5. Invalid request-ID shapes (B3) — five separate cases: `null`,
+   boolean, array, object, fractional number — each rejected with
+   `-32600`.
+6. Valid notification (B4) — `id` absent, otherwise fully valid request
+   object — no response sent.
+7. Invalid ID-less object (B4) — `id` absent *and* another validity
+   failure (malformed JSON, missing/wrong `jsonrpc`, missing `method`) —
+   `-32600` (or `-32700` for the JSON case) with `id: null`, not silently
+   dropped. This is a distinct test from item 6, not a variant of it.
+8. Request IDs — echoed correctly in both success and error responses,
+   for both string and integer ID shapes.
+9. Tool discovery (`tools/list`) — includes all newly-added tools with
    correct schemas.
-8. Argument forwarding — each new tool's MCP arguments map to the correct
-   CLI flags (mirroring the existing `push_optional_flag`/
-   `push_required_flag` pattern).
-9. CLI/MCP result equivalence — same input via CLI and via MCP tool call
-   produces the same output for each newly-added tool.
-10. Authority preservation for mutating operations — `coord post` and any
-    other mutating tool's authority/validation behavior is unchanged by
-    this plan; this plan only adds read-path tools plus the JSON-RPC
+10. Argument forwarding — each new tool's MCP arguments map to the
+    correct CLI flags (mirroring the existing `push_optional_flag`/
+    `push_required_flag` pattern).
+11. `graph-index` authority boundary (B5) — the MCP tool's schema and
+    dispatch path contain no `output`/file-path argument; a test
+    attempting to pass one is rejected or ignored, proving exclusion
+    rather than merely not exercising it.
+12. CLI/MCP result equivalence — same input via CLI and via MCP tool
+    call produces the same output for each newly-added tool.
+13. Authority preservation for mutating operations — `coord post` and
+    any other mutating tool's authority/validation behavior is unchanged
+    by this plan; this plan only adds read-path tools plus the JSON-RPC
     validity gate, it does not touch mutation authority.
 
 ## Risks
@@ -158,6 +234,11 @@ Per `bhhh`'s minimum evidence list — exercise all of:
   the contract test in Slice 2 is required specifically to prevent this
   plan's own fix from drifting out of sync again after the next CLI
   change.
+- MCP's within-session request-ID uniqueness requirement is explicitly
+  not implemented by this plan (see Slice 1) — a client reusing an ID
+  within a session is not detected. This is a known, named gap, not a
+  silent omission; tracked as a follow-up recommendation since it would
+  require new session-scoped state the transport doesn't have today.
 
 ## Rollback
 
