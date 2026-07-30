@@ -83,6 +83,26 @@ unless the caller already knows to pass `--branch origin/<name>`
 explicitly — which defeats the command's purpose as a *discovery* tool
 for branches the caller doesn't yet know to name.
 
+Exact-head review (`20260730T083948Z-contribution-auditor-1dq4`, findings
+B1/B2) identified two gaps this plan's first draft left unaddressed, both
+within #89's own accepted contract, not new scope:
+
+- **B1 — stale base-ref resolution.** #89's contract requires the
+  documented `git fetch` then `--base-branch main` workflow to compare
+  against current state, not a possibly-stale local `main`. Enumerating
+  remote branches is necessary but not sufficient if the *comparison
+  base* itself is stale — a local `main` that hasn't been fast-forwarded
+  after a fetch would make even a correctly-enumerated remote branch's
+  obligations look resolved when they aren't, or vice versa.
+- **B2 — remote enumeration/deduplication contract underspecified.** The
+  first draft said "deduplicated against local branches tracking the
+  same ref" without defining ref eligibility, symbolic-ref handling
+  (`refs/remotes/<remote>/HEAD`), or how equivalence is determined when
+  local and remote branch names differ.
+
+Both are folded into Slice 3 below as explicit, testable acceptance
+criteria rather than left as implementation-time judgment calls.
+
 ## Gate 1 decomposition
 
 One plan, three independently testable acceptance criteria, because all
@@ -112,13 +132,45 @@ involve the branch under inspection (a real conflict a caller needs to
 know about) keeps blocking behavior — this slice narrows the blast radius
 of legacy noise, it does not silence genuine collisions.
 
-### Slice 3 — remote-only branch discovery (#89)
+### Slice 3 — remote-only branch discovery and base-ref freshness (#89)
 
-Extend default `coord visibility` branch enumeration to include
-`refs/remotes/<remote>/*` (deduplicated against local branches tracking
-the same ref) after a fetch, not only `refs/heads/*`. Explicit `--branch`
-selection continues to work unchanged; this slice only changes what the
-*default*, no-argument scan considers.
+Three sub-parts, all within #89's original contract:
+
+1. **Branch enumeration.** Extend default `coord visibility` branch
+   enumeration to include `refs/remotes/<remote>/*`, not only
+   `refs/heads/*`. Explicit `--branch` selection continues to work
+   unchanged; this only changes what the *default*, no-argument scan
+   considers.
+2. **Deterministic deduplication (B2).** A ref is eligible for
+   enumeration if it is a `refs/heads/*` or `refs/remotes/<remote>/*`
+   ref and is not a symbolic ref (explicitly excludes
+   `refs/remotes/<remote>/HEAD`). Two eligible refs are the same branch
+   if and only if they resolve to the same commit OID *and* one is the
+   configured upstream of the other (matching Git's own local/remote
+   tracking relationship — this project's tooling already relies on
+   `git branch -vv`-style tracking metadata elsewhere, not a plain
+   name-string match, since a local branch and its remote-tracking ref
+   commonly share a name but a fork or renamed branch would not).
+   When a local branch and its tracked remote-tracking ref are the same
+   OID, report the local name (it's the one the caller can act on
+   directly); when only a remote-tracking ref exists (no local branch),
+   report the remote-tracking name as-is. Multiple remotes tracking the
+   same OID under different names are each reported once, keyed by OID,
+   not silently merged into one arbitrary name.
+3. **Base-ref freshness (B1).** `--base-branch main` (the default)
+   resolves to the local `main` ref today. Add resolution logic: when a
+   configured upstream for the base branch exists (e.g. `main` tracks
+   `origin/main`) and the upstream's OID differs from the local base
+   branch's OID, prefer the upstream's OID as the effective comparison
+   base and state which OID was actually used in both text and JSON
+   output. This makes the documented `git fetch` then `agov coord
+   visibility --base-branch main` workflow correct without requiring the
+   caller to separately fast-forward local `main` — the exact failure
+   mode `1dq4` named ("This checkout itself demonstrates why that
+   matters: a local `main` can be far behind `origin/main` after a
+   fetch"). When no upstream is configured, behavior is unchanged
+   (local ref only) — this plan does not require every repository to
+   have a remote.
 
 ## Affected files
 
@@ -158,6 +210,17 @@ Per `bhhh`'s minimum evidence list:
    with no legacy files and only local branches produces byte-identical
    output to current behavior — this plan must not regress the common
    case while fixing the edge cases.
+5. **Deduplication (B2)**: local and remote-tracking refs at the same OID
+   report once, under the local name; a remote-only ref (no local
+   branch) reports under its remote-tracking name; multiple remotes at
+   the same OID under different names each report once, keyed by OID;
+   `refs/remotes/<remote>/HEAD` is never enumerated.
+6. **Base-ref freshness (B1)**: a fixture with local `main` behind its
+   configured upstream and a remote-only obligation that only resolves
+   correctly against the upstream OID — the default `--base-branch main`
+   workflow must find it, and output must state which OID was used. A
+   second fixture with no configured upstream confirms unchanged
+   local-only behavior.
 
 All new tests are unit/integration tests in the existing
 `tooling/rust/crates/agov/tests/` suite; no live GitLab API calls needed
@@ -174,6 +237,11 @@ All new tests are unit/integration tests in the existing
 - The compact-timestamp parser must not silently accept malformed input
   (e.g. a 13-digit string) as a valid cursor. Mitigated by requiring an
   exact fixed-width match before attempting the parse.
+- Preferring the upstream OID over local `main` when they diverge changes
+  default output for anyone relying on today's local-only comparison.
+  Mitigated by stating the effective base OID explicitly in output (both
+  text and JSON) so the change is visible, not silent, and by the
+  no-upstream-configured fallback preserving current behavior exactly.
 
 ## Rollback
 
