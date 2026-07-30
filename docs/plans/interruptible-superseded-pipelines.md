@@ -1,6 +1,6 @@
 ---
 id: interruptible-superseded-pipelines
-status: pending-gate1
+status: approved
 topic: interruptible-superseded-pipelines
 advisory_consultation:
   - role: contribution-auditor
@@ -42,6 +42,13 @@ authorized. Implementation is not.** This plan does not implement, and does
 not stack on, MR !792 — it targets current `main` plus MR !792's anticipated
 rule structure, and implementation waits for MR !792's final Gate 2
 disposition since both touch `.gitlab-ci.yml`.
+
+**Gate 1: APPROVED** at exact source head `c1f95749993a2f52c12739e848f4381b2ae00ccb`
+per `20260730T061322Z-governor-reviewer-gsgs`, following final contribution-auditor
+CLEAR review `20260729T200957Z-contribution-auditor-j5pk`. Gate 1 approval
+covers the plan-only scope in this document; it does not authorize
+implementation, which remains gated on MR !792's final Gate 2 disposition
+per `m5qp` and this plan's own "Role and gate boundary" section.
 
 ## Governance trail
 
