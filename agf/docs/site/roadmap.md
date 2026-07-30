@@ -13,14 +13,19 @@ assistants locating the authoritative plan and evidence.*
 
 ## Current released baseline
 
-**Latest release: `v2.4.6`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.6), tag `v2.4.6`.
+**Latest release: `v2.4.7`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.7), tag `v2.4.7`.
 
-A significant limitation in the prior release is fixed by v2.4.6:
+A significant limitation in v2.4.5 is fixed in the v2.4.7 published baseline:
 [issue #81](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/81)
 documents that the shipped `v2.4.5` archive's operations-runbook test failed
 when run from a freshly extracted `agf-2.4.5.tar.gz` (`Ran 7 tests / FAILED
-(errors=4)`, all four from fixtures absent from the release manifest). v2.4.6
+(errors=4)`, all four from fixtures absent from the release manifest). v2.4.7
 ships the missing fixtures and validates the complete clean-archive test suite.
+The immutable `v2.4.6` predecessor contains that correction but its tag
+pipeline exhausted runner disk during the mandatory Windows cross-build, so it
+never produced a GitLab Release, generic package, or OCI release. v2.4.7
+supersedes it for adoption with Windows retained only as optional manual
+preview evidence.
 
 ## Active release train
 
@@ -29,8 +34,8 @@ The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/ja
 to `main`. Read the plan and its coordination trail directly rather than
 relying on a summary here — this page intentionally does not reproduce the
 release-train stages to avoid a second copy that can drift from the plan.
-v2.4.6 (a recovery patch centered on issue #81) is the first release
-deliverable in that approved train.
+v2.4.7 is the published recovery-patch deliverable in that approved train; it
+supersedes the immutable but unpublished v2.4.6 predecessor.
 
 ## In scope now
 

@@ -8,6 +8,23 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.7] - 2026-07-30
+
+Publication-recovery patch superseding the tagged but unpublished v2.4.6
+candidate. The v2.4.6 tag pipeline exhausted GitLab runner disk space twice
+while cross-building the mandatory Windows tooling archive, so no GitLab
+Release, generic package, or OCI release was published for v2.4.6.
+
+### Changed
+
+- Tag pipelines now publish framework archives, Linux x86_64/aarch64 Rust
+  tooling, their checksum and provenance sidecars, and OCI provenance without
+  performing the Windows cross-build.
+- Windows packaging remains available as optional, non-blocking manual preview
+  evidence and is no longer part of the mandatory release-asset contract.
+- Release documentation treats each GitLab Release page's actual asset links
+  as the authoritative platform inventory.
+
 ## [2.4.4] - 2026-07-26
 
 Patch release making the public documentation's mutable build identity

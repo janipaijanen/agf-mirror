@@ -918,12 +918,12 @@ rust:tooling:clippy:
           --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
       done
-    # The Windows packaging block runs on tag pipelines, or on demand via
-    # AGOV_PACKAGE_WINDOWS_PREVIEW=1 (the rust:tooling:preview:windows-package
-    # manual job) so the packaged .zip path is testable without creating a
-    # release tag.
+    # Windows packaging is optional preview evidence. It runs only on demand
+    # via AGOV_PACKAGE_WINDOWS_PREVIEW=1 (the
+    # rust:tooling:preview:windows-package manual job), never as part of a tag
+    # release. Tag releases publish the mandatory Linux tooling archives.
     - |
-      if [ -n "$CI_COMMIT_TAG" ] || [ "${AGOV_PACKAGE_WINDOWS_PREVIEW:-}" = "1" ]; then
+      if [ "${AGOV_PACKAGE_WINDOWS_PREVIEW:-}" = "1" ]; then
         target="x86_64-pc-windows-gnu"
         slug="windows-x86_64"
         cargo clean --release --target "$target" -p agov -p agov-mcp
@@ -1017,7 +1017,8 @@ rust:tooling:preview:windows-package:
       when: manual
       allow_failure: true
 
-# Build release Rust tooling archives only on tag pipelines.
+# Build mandatory Linux Rust tooling archives only on tag pipelines. Windows
+# packaging remains available through the optional manual preview job above.
 rust:tooling:release:
   extends: .rust-tooling-package
   artifacts:
