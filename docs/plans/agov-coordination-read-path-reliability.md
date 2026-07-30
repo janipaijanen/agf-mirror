@@ -152,18 +152,37 @@ Three sub-parts, all within #89's original contract:
    any alias of the effective base ref — see item 3). All eligible refs
    are grouped by their **peeled commit OID alone** — tracking
    configuration is not part of the equivalence test, only used to break
-   ties in display-name preference. Preferred display name within a
-   group, in order: (a) a local `refs/heads/*` name if one exists in the
-   group; (b) otherwise, the remote-tracking name whose remote is
-   `origin` if present; (c) otherwise, the remote-tracking name that
-   sorts first alphabetically by remote name, for a fully deterministic
-   tie-break with no "arbitrary" case. Cardinality: **one entry per
-   distinct OID group**, regardless of how many refs (local or remote,
-   across however many remotes) share that OID — a group with a local
-   branch and three remote-tracking refs at the same OID is one entry,
-   not four; a group with only two different remotes' tracking refs at
-   the same OID (no local branch) is also one entry, under rule (b) or
-   (c).
+   ties in display-name preference.
+
+   **Display-name selection (re-frozen per R4): class priority, then a
+   total order within the class.** Every eligible ref in a group falls
+   into exactly one of three classes, tested in this order:
+
+   - **Class 1 — local.** Any `refs/heads/*` ref in the group.
+   - **Class 2 — origin-tracking.** Any `refs/remotes/origin/*` ref in
+     the group (only reached if Class 1 is empty).
+   - **Class 3 — other-remote-tracking.** Any other
+     `refs/remotes/<remote>/*` ref in the group (only reached if Classes
+     1 and 2 are both empty).
+
+   The group's display name is the **lexicographically smallest
+   fully-qualified ref name** (a plain string comparison of the complete
+   `refs/heads/<name>` or `refs/remotes/<remote>/<name>` string, not
+   just the branch's short name) among refs in the *first non-empty
+   class* — this is R4's fix: the earlier "a local name" / "the origin
+   name" phrasing named a class but never a member within it, so two
+   local branches or two `origin/*` branches at the same OID had no
+   defined winner. Lexicographic comparison on the full ref string is a
+   total order (no two distinct ref strings compare equal), so this
+   always selects exactly one name, including when two local aliases,
+   two `origin/*` aliases, or several non-origin remotes tie within
+   their class. Cardinality: **one entry per distinct OID group**,
+   regardless of how many refs (local or remote, across however many
+   remotes) share that OID — a group with a local branch and three
+   remote-tracking refs at the same OID is one entry, not four; a group
+   with only two different remotes' tracking refs at the same OID (no
+   local branch) is also one entry, named by the lexicographic rule
+   above.
 3. **Base-ref freshness and exclusion (B1, R1).** `--base-branch main`
    (the default) resolves to the local `main` ref today. Two parts:
    - **Freshness.** When a configured upstream for the base branch
@@ -225,15 +244,20 @@ Per `bhhh`'s minimum evidence list:
    with no legacy files and only local branches produces byte-identical
    output to current behavior — this plan must not regress the common
    case while fixing the edge cases.
-5. **Deduplication cardinality and naming (B2, re-tested per R1)**: one
+5. **Deduplication cardinality and naming (B2/R4, re-tested)**: one
    entry per OID group, tested with (a) a local branch plus one
    remote-tracking ref at the same OID — reports once, under the local
    name; (b) a remote-only ref (no local branch) — reports once, under
    its remote-tracking name; (c) two different remotes' tracking refs at
    the same OID with no local branch — reports **once** (not twice),
-   under the `origin`-preferred or alphabetically-first name per the
-   frozen tie-break rule; (d) `refs/remotes/<remote>/HEAD` — never
-   enumerated.
+   under the lexicographically-smallest fully-qualified name; (d)
+   `refs/remotes/<remote>/HEAD` — never enumerated; (e) **two local
+   branches** at the same OID (R4) — reports once, under the
+   lexicographically-smallest `refs/heads/*` name; (f) **two
+   `origin/*` refs** at the same OID with no local branch (R4) — reports
+   once, under the lexicographically-smallest `refs/remotes/origin/*`
+   name. Cases (e) and (f) are the exact two shapes R4 found undefined
+   in the prior draft.
 6. **Base-ref freshness and exclusion (B1/R1)**: a fixture with local
    `main` behind its configured upstream and a remote-only obligation
    that only resolves correctly against the upstream OID — the default
