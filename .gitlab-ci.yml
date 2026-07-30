@@ -432,7 +432,11 @@ release:create:
     # uploaded or a Release entry is created, so a missing archive or
     # sidecar blocks the pipeline instead of shipping an incomplete release.
     - tooling/rust/scripts/release-assets.sh verify dist "$VERSION"
-    - tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz dist/agov-*.zip
+    - tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz
+    - |
+      if find dist -maxdepth 1 -name 'agov-*.zip' -print -quit | grep -q .; then
+        tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agov-*.zip
+      fi
     # Validate the complete assembled release set -- schema, cross-record
     # cardinality bijection (every primary artifact exactly one record, no
     # stale/extra records), and artifact/sha256/checksum-sidecar agreement

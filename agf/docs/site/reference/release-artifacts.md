@@ -47,9 +47,14 @@ release policy.
 ## Artifacts produced by a release build
 
 For version `X.Y.Z`, the release artifact vocabulary is below. Framework,
-Linux tooling, and OCI rows are mandatory for v2.4.7 tag releases; Windows
+Linux tooling, and OCI rows are mandatory for current tag releases; Windows
 rows describe optional manual-preview output and appear on a Release page only
 if that release deliberately publishes them.
+
+The immutable v2.4.7 tag is a partial-publication exception: its OCI image was
+published before a downstream release-creation check failed on the absent
+optional Windows ZIP, so it has no generic package or GitLab Release. Use
+v2.4.8 or later for a complete release surface.
 
 | File | Content |
 |---|---|

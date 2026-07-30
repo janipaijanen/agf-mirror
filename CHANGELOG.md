@@ -8,12 +8,31 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.8] - 2026-07-30
+
+Publication-completion recovery after the immutable v2.4.7 tag published its
+OCI image but failed before creating the generic package and GitLab Release.
+
+### Fixed
+
+- `release:create` no longer passes the absent optional Windows `agov` ZIP to
+  the strict Elixir-artifact exclusion checker. Framework archives and Linux
+  tooling archives remain mandatory and are still checked unconditionally.
+- The pre-tag release evidence now assembles the real framework and Linux
+  tooling preview artifacts and exercises the exact downstream exclusion path
+  both without an optional ZIP and with a temporary valid optional ZIP.
+
+### Changed
+
+- Release documentation records v2.4.7 as an immutable OCI-only partial
+  publication and directs adopters to the complete v2.4.8 release.
+
 ## [2.4.7] - 2026-07-30
 
-Publication-recovery patch superseding the tagged but unpublished v2.4.6
-candidate. The v2.4.6 tag pipeline exhausted GitLab runner disk space twice
-while cross-building the mandatory Windows tooling archive, so no GitLab
-Release, generic package, or OCI release was published for v2.4.6.
+Tagged publication-recovery candidate superseding the unpublished v2.4.6
+candidate. The v2.4.7 pipeline published the OCI image, but a downstream
+release-creation check still required the optional Windows ZIP; consequently
+no generic package or GitLab Release was created. Adopt v2.4.8 instead.
 
 ### Changed
 
