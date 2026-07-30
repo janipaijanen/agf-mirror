@@ -1,6 +1,6 @@
 ---
 id: v247-publication-recovery
-status: pending-gate1
+status: approved
 topic: v247-publication-recovery
 advisory_consultation:
   - role: contribution-auditor
@@ -46,8 +46,10 @@ skipped. Read-only verification confirmed:
 
 The governor then directed that Windows may be dropped from the release build
 or retained only as optional because there are no current Windows consumers or
-customers. This authorizes planning, not implementation. Gate 1 remains
-required before changing CI or preparing v2.4.7.
+customers. Gate 1 was approved at exact plan head
+`a7e2f3da6923c26d9c652f8187fa1a00d4dfe542` and recorded in
+`20260730T174626Z-governor-reviewer-q4ad`; implementation may now proceed
+within this plan's exact boundary.
 
 ## Decision and rationale
 
