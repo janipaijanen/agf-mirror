@@ -1,6 +1,6 @@
 ---
 id: v246-release
-status: pending-gate1
+status: approved
 topic: v246-release
 advisory_consultation:
   - role: contribution-auditor
@@ -29,14 +29,14 @@ advisory_consultation:
 
 # Plan: v2.4.6 release (version bump, tag, publication)
 
-## Decision requested
+## Gate 1 decision
 
-Gate 1 approval for the release-only workflow that cuts, tags, and
-publishes v2.4.6 from current `main`. This plan authorizes nothing by
-itself while `status: pending-gate1`; Gate 1 approval authorizes exactly
-the release-branch creation, the version/changelog-only release MR, and
-(after that MR's separate Gate 2 approval) the tag and its push. It does
-not authorize any code change beyond `agf/VERSION` and
+Gate 1 was approved by
+`20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
+`d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`. The approval authorizes
+exactly the release-branch creation, the version/changelog-only release
+MR, and (after that MR's separate Gate 2 approval) the tag and its push.
+It does not authorize any code change beyond `agf/VERSION` and
 `agf/CHANGELOG.md` — every substantive change this release publishes is
 already merged to `main` and separately governed.
 
@@ -59,6 +59,10 @@ already merged to `main` and separately governed.
   infosec-sentinel, and states the future tooling plans (MRs !805–!807)
   and the CI longitudinal assessment (MR !810) are outside v2.4.6 and not
   blockers for this drafting assignment.
+- `20260730T145733Z-governor-reviewer-3g7k` — binding Gate 1 approval at
+  exact reviewed plan head `d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`.
+  The subsequent metadata-only update marks that decision in this file;
+  it does not expand the approved release scope.
 
 ## Release base
 
