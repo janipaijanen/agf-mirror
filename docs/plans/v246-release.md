@@ -16,7 +16,9 @@ advisory_consultation:
       correction before final exact-head confirmation. During release
       execution, contribution-auditor reproduced a release-blocking metadata
       omission: the prior v2.4.5 release changed five version surfaces, while
-      this plan authorized only two. This amendment corrects that scope before
+      this plan authorized only two. A subsequent exact-version sweep also
+      found that the distributed roadmap statically identifies v2.4.5 as the
+      latest release. This amendment corrects both omissions before
       publication.
   - role: infosec-sentinel
     status: consulted
@@ -41,14 +43,16 @@ Gate 1 was approved by
 release branch was committed or pushed because a fresh build after changing
 `agf/VERSION` still reported `agov 2.4.5`: the Rust workspace version and
 generated lockfile were outside the approved two-file scope. The v2.4.5 tag's
-own merge commit confirms that a coherent release changes five metadata
-surfaces, not two.
+own merge commit confirms that the release must align five metadata surfaces.
+An exact-version sweep then found a sixth release truth surface:
+`agf/docs/site/roadmap.md` is shipped in the framework archive and statically
+identifies v2.4.5 as the latest release.
 
 Gate 1 amendment is therefore requested to add exactly three mandatory version
 metadata files — `tooling/rust/Cargo.toml`, `tooling/rust/Cargo.lock`, and
-`agf/templates/AGENTS.md` — while retaining the already-approved
-`agf/VERSION` and `agf/CHANGELOG.md` changes. No product behavior or release
-content is otherwise added.
+`agf/templates/AGENTS.md` — plus the distributed roadmap truth surface, while
+retaining the already-approved `agf/VERSION` and `agf/CHANGELOG.md` changes.
+No product behavior or release content is otherwise added.
 
 ## Authorization chain
 
@@ -77,6 +81,10 @@ content is otherwise added.
   request after a clean local build proved that the approved two-file scope
   would package binaries self-reporting 2.4.5 under 2.4.6 filenames and
   provenance expectations.
+- `20260730T152746Z-contribution-auditor-de8p` — exact-version surface review
+  confirming that no tracked Claude loader carries a release scalar, while the
+  distributed roadmap would otherwise continue calling v2.4.5 the latest
+  release after v2.4.6 publication.
 
 ## Release base
 
@@ -183,15 +191,20 @@ adopter-visible release content. No changelog entry is required.
    time; re-verify Group A/B/C/D reconciliation and explicitly classify any
    later non-coordination commit before proceeding.
 2. Create `release-2.4.6` from that base.
-3. On the release branch, change exactly five version-metadata files:
+3. On the release branch, change exactly six release-metadata/truth-surface
+   files:
    `agf/VERSION` to `2.4.6`; `agf/CHANGELOG.md` from `## Unreleased` to
    `## [2.4.6] — <implementation date>` with Group B under a new
    `### Added`; `agf/templates/AGENTS.md`'s AGF version comment to `2.4.6`;
    `tooling/rust/Cargo.toml`'s workspace package version to `2.4.6`; and the
    generated `tooling/rust/Cargo.lock` package versions for the five workspace
-   crates to `2.4.6`. No dependency version or checksum may change.
+   crates to `2.4.6`; and `agf/docs/site/roadmap.md`'s current released
+   baseline to v2.4.6, including rewording the issue #81 paragraph so the
+   v2.4.5 archive defect remains recorded as historical and is explicitly
+   identified as fixed by v2.4.6. No other roadmap status, dependency version,
+   or checksum may change.
 4. Open the release MR (`release-2.4.6` → `main`) with a diff limited to
-   exactly those five files.
+   exactly those six files.
 5. Require Gate 2 on the release MR before merge.
 6. After merge, tag the resulting `main` merge commit `v2.4.6` and push
    the tag immediately — per `release-via-merge-request-rule.md`, this
@@ -199,9 +212,10 @@ adopter-visible release content. No changelog entry is required.
 
 **Out (explicitly, not by omission):**
 
-- Any change beyond the five named version-metadata files. In particular, no
-  Rust source, dependency version/checksum, schema, rule, or CI change is in
-  scope; every substantive change is already on `main`, separately governed.
+- Any change beyond the six named release-metadata/truth-surface files. In
+  particular, no Rust source, dependency version/checksum, schema, rule, or CI
+  change is in scope; every substantive change is already on `main`, separately
+  governed.
 - Issue #53 CI-latency work, the interruptibility post-merge monitoring
   tracker, and the parked MR !772 branch-scope rule — per
   `v246-recovery-patch.md`'s own exclusions, still controlling.
@@ -224,23 +238,27 @@ at the exact release-MR head:
 2. `agf/CHANGELOG.md` contains a `[2.4.6]` entry with a real date, not
    backfilled later; every adopter-observable change named (Group A's
    four items, Group B's roadmap-page entry if confirmed).
-3. Version references are consistent across agent definitions and
+3. `agf/docs/site/roadmap.md` calls v2.4.6 the latest release, links to the
+   v2.4.6 release/tag, and describes issue #81's v2.4.5 archive failure as a
+   historical defect fixed by v2.4.6 rather than an open limitation of the
+   latest release.
+4. Version references are consistent across agent definitions and
    documentation (`agov validate` umbrella, which includes
    `agov.validate.readme_stats` and `agov.validate.assistant_loader`
    freshness checks).
-4. `agov validate adopter-docs` — adopter-facing documentation coverage
+5. `agov validate adopter-docs` — adopter-facing documentation coverage
    for every release-relevant change.
-5. `agov dist validate` — release manifest structural validation.
-6. `agov dist build` (or the CI-equivalent `.rust-tooling-package` /
+6. `agov dist validate` — release manifest structural validation.
+7. `agov dist build` (or the CI-equivalent `.rust-tooling-package` /
    `agf:dist:release` jobs) produces both `.tar.gz` and `.zip` archives
    that extract cleanly and run every shipped test with zero failures —
    this is the exact clean-archive fixture Group A's recovery patch
    added, now exercised against the real release build, not only a CI
    simulation.
-7. SPDX headers and license consistency checks pass across all files.
-8. The full required CI matrix is green at the exact release-MR head —
+8. SPDX headers and license consistency checks pass across all files.
+9. The full required CI matrix is green at the exact release-MR head —
    not a stale pipeline from an earlier commit on the same branch.
-9. `agov plan validate docs/plans/v246-release.md` (this file) and
+10. `agov plan validate docs/plans/v246-release.md` (this file) and
    `agov validate infosec` both pass.
 
 ## Post-tag verification (after the tag is pushed)
