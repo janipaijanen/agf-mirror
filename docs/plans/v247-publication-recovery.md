@@ -123,8 +123,11 @@ Implementation changes exactly 27 files.
 
 6. `agf/VERSION` to `2.4.7`.
 7. `agf/CHANGELOG.md`: finalize a dated v2.4.7 patch entry documenting the
-   publication recovery and optional Windows release policy; preserve the
-   historical v2.4.6 entry.
+   publication recovery and optional Windows release policy; retain the
+   historical v2.4.6 change list but add a conspicuous publication-status note
+   that v2.4.6 was tagged, never published as a GitLab Release, and is
+   superseded for adoption by v2.4.7. Do not describe v2.4.6 as withdrawn or
+   alter its immutable tag.
 8. `agf/templates/AGENTS.md`: release comment to 2.4.7.
 9. `tooling/rust/Cargo.toml`: workspace version and the three internal path
    dependency requirements to 2.4.7.
