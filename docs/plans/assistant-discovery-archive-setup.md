@@ -125,24 +125,56 @@ citation.
    the file's text is not sufficient evidence that the import resolves,
    since a typo in the import syntax would look identical to a correct
    pointer in a code review.
-2. **Assistant-surface declaration: exact schema, frozen now (B6).** The
-   first draft offered two undecided options (a `MANIFEST.yaml` field or
-   a separate config). Frozen decision: add an optional
-   `supported_assistant_loaders` array field to
-   `agf/agents/MANIFEST.yaml` (the project's existing manifest of record
-   for agent/role configuration — reusing it avoids introducing a second
-   configuration file for one small piece of data), accepting values
-   drawn from `assistant_loader.rs`'s existing `LOADER_CANDIDATES` labels
-   (e.g. `["codex", "claude-code"]`). Behavior: when the field is
+2. **Assistant-surface declaration: exact schema, frozen now (B6, tightened per R3).**
+   The first draft offered two undecided options (a `MANIFEST.yaml`
+   field or a separate config), then froze the field/location/default/
+   error behavior but left the accepted token vocabulary and the
+   freshness-check target ambiguous — R3 caught both gaps.
+
+   **Accepted tokens (exact, not "labels").** `LOADER_CANDIDATES` has
+   exactly two entries — `("AGENTS.md", "Codex / GitHub Copilot")` and
+   `(".claude/CLAUDE.md", "Claude Code")` — a 1:1 mapping from candidate
+   *file* to token, not from individual downstream tool to token, because
+   the detection mechanism only observes which *file* exists, and cannot
+   distinguish which specific tool is reading `AGENTS.md`. The accepted
+   `supported_assistant_loaders` tokens are exactly `codex` and
+   `claude-code`, one per candidate file. `github-copilot` is an accepted
+   **alias of `codex`** (both map to the `AGENTS.md` candidate) — not a
+   separate token and not unsupported, since Copilot's own instructions
+   file convention (`.github/copilot-instructions.md`) is out of this
+   validator's scope entirely; declaring `codex` or `github-copilot`
+   requires the same file and is checked identically. Any other value is
+   the "unknown value" validation error already specified.
+
+   **Freshness-check target (previously omitted).** Current
+   `check_version_freshness` reads the version comment from the loader
+   *file itself* and silently skips the check when no comment is present
+   ("No comment present: no warning" in the existing source). The new
+   `.claude/CLAUDE.md` bridge from item 1 below is deliberately a single
+   `@../AGENTS.md` import line with no comment of its own — under
+   unmodified current logic, it would never be freshness-checked, which
+   defeats the purpose of adding it as a declared, required surface.
+   Fix: when a loader candidate file's entire content (after whitespace
+   trim) is a single `@<relative-path>` import line, freshness checking
+   follows the import and checks the version comment of the **imported
+   file** instead of the (comment-less) loader file. `AGENTS.md` already
+   carries `<!-- AGF: ... -->`, so this makes the Claude bridge's
+   freshness check exact: stale when `AGENTS.md`'s own comment is stale,
+   current when it's current — freshness of the bridge is freshness of
+   what it actually loads, not of the one-line pointer file. Add matching
+   and stale-version test cases for both declared surfaces:
+   `AGENTS.md` checked directly (unchanged existing behavior) and
+   `.claude/CLAUDE.md` checked via import-following (new behavior).
+
+   Behavior otherwise unchanged from the first draft: when the field is
    present, `found_any` requires every declared surface's candidate file
-   to exist (an unknown value in the array is a validation error, not a
-   silently ignored one); when the field is absent, preserve today's
-   OR-based "any candidate" behavior exactly, so undeclared projects are
-   never newly broken by this change (the `rk2k`-corrected shape). Name
-   the changed schema explicitly: `agf/schemas/*.json` gets no change
-   (`MANIFEST.yaml` is not currently schema-validated against a JSON
-   Schema in this repository per a check of `agf/schemas/`; if that
-   changes before implementation, this field must be added there too).
+   to exist; when the field is absent, preserve today's OR-based "any
+   candidate" behavior exactly, so undeclared projects are never newly
+   broken by this change (the `rk2k`-corrected shape). Name the changed
+   schema explicitly: `agf/schemas/*.json` gets no change (`MANIFEST.yaml`
+   is not currently schema-validated against a JSON Schema in this
+   repository per a check of `agf/schemas/`; if that changes before
+   implementation, this field must be added there too).
 3. Verify `agf/templates/AGENTS.md` (the adopter-facing template) and any
    "set up your AI loaders" adopter instructions actually mention
    creating `.claude/CLAUDE.md` with the `@../AGENTS.md` import as a
@@ -236,17 +268,26 @@ full acceptance contract directly, not a paraphrase of it:
 
 ## Test strategy (Gate 2 evidence)
 
-Per `bhhh`'s minimum evidence list, tightened per `1dq4`'s B6/B7/B8:
+Per `bhhh`'s minimum evidence list, tightened per `1dq4`'s B6/B7/B8 and
+`ppt8`'s R3:
 
 1. `agov.validate.assistant_loader` unit tests: a repo declaring
    `supported_assistant_loaders: [claude-code]` with only `AGENTS.md`
    (no `.claude/CLAUDE.md`) now fails (where it currently passes); a repo
    declaring `[codex]` only, with only `AGENTS.md`, passes (single-surface
    adopter not falsely rejected — the case `bhhh` names); a repo
-   declaring both surfaces requires both files; a repo with an unknown
-   value in the array fails as a validation error; a repo with no
-   `supported_assistant_loaders` field at all preserves current OR-based
-   behavior exactly.
+   declaring `[github-copilot]` behaves identically to `[codex]` (alias,
+   same required file); a repo declaring both surfaces requires both
+   files; a repo with an unknown value (e.g. `[cursor]`) fails as a
+   validation error; a repo with no `supported_assistant_loaders` field
+   at all preserves current OR-based behavior exactly.
+1a. Freshness-per-surface (R3): a repo declaring `[codex]` with a stale
+    `<!-- AGF: ... -->` comment directly in `AGENTS.md` fails, matching
+    unchanged existing behavior; a repo declaring `[claude-code]` with a
+    current `.claude/CLAUDE.md` (single `@../AGENTS.md` line, no comment
+    of its own) but a *stale* comment in the imported `AGENTS.md` fails —
+    proving freshness follows the import rather than silently passing
+    because the loader file itself has no comment to check.
 2. Inspect built Linux tar and Windows zip archive contents in CI:
    `examples/claude/.mcp.json` present with the complete `mcpServers.agov`
    object, README.txt mentions it and the project-scoped-server approval
@@ -284,8 +325,10 @@ Per `bhhh`'s minimum evidence list, tightened per `1dq4`'s B6/B7/B8:
 - Shipping a template credential/config file in a public archive is a
   standing risk if it ever accidentally captures a real value during
   maintenance. Mitigated by the explicit infosec-sentinel content check
-  in Gate 2 evidence item 5, repeated on every future edit to the
-  template per normal review discipline.
+  in Gate 2 evidence item 7 (advisory cross-reference corrected — an
+  earlier revision pointed to item 5 after item numbers shifted),
+  repeated on every future edit to the template per normal review
+  discipline.
 
 ## Rollback
 
