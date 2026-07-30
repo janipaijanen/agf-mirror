@@ -78,66 +78,157 @@ found for the `AGOV_MCP_AGOV_BIN` requirement generally).
 ## Gate 1 decomposition
 
 One plan, two distinct deliverables that share an adoption/setup framing
-but ship independently — per `bhhh`, prepare together, but this plan's
-Gate 2 should consume the final supported MCP tool list from
-`agov-mcp-transport-protocol-correctness.md` (Slice 2) before closing,
-since the shipped template's correctness depends on which tools actually
-exist.
+but ship independently. Sequencing correction from exact-head review
+(A2): `bhhh`'s original note that this plan's Gate 2 should "consume the
+final supported MCP tool list" from
+`agov-mcp-transport-protocol-correctness.md` overstated the actual
+dependency — the shipped `.mcp.json` template (Slice 2) contains no tool
+list at all (that's the server's own `tools/list` response at runtime,
+not template content), so there is no concrete content dependency
+forcing this plan to wait. This plan may prepare and reach its own Gate 1
+and Gate 2 independently. The only real coupling: **if** a future
+revision of this plan's README text or adopter docs names specific tool
+names, that text must be re-checked against
+`agov-mcp-transport-protocol-correctness.md`'s final tool list before
+merge — a conditional, text-level check at that time, not a standing
+plan-level gate today.
 
 ### Slice 1 — Foundry Claude loader bridge (#87)
 
-1. Add a minimal `.claude/CLAUDE.md` to this repository — a thin pointer
-   to `AGENTS.md`, not a duplicate of its content (per
-   `documentation-rule-projection-rule.md`'s "point at it... do not
-   become a second, competing rule").
-2. Change `assistant_loader`'s `found_any` check from "any candidate
-   exists" to configuration-aware: default to requiring the candidate(s)
-   matching the assistant surfaces the project actually declares support
-   for (new optional config, e.g. a field in `agf/agents/MANIFEST.yaml`
-   or a small dedicated config listing supported assistant loaders);
-   absent that config, preserve current OR-based behavior so projects
-   that haven't opted in aren't broken by this change. This is the
-   `rk2k`-corrected shape — not a global "require both."
+Exact-head review (`20260730T083948Z-contribution-auditor-1dq4`,
+findings B6/B7) found this slice's first draft left two decisions
+unfrozen that a Gate 1 plan must settle before implementation. Both
+resolved below, verified against Claude Code's own documentation
+(fetched live 2026-07-30,
+`https://code.claude.com/docs/en/memory`), not just the reviewer's
+citation.
+
+1. **The bridge must be a real import, not prose (B7).** A pointer
+   sentence like "see AGENTS.md" does not cause Claude Code to load
+   `AGENTS.md`'s content — Claude Code has no general-purpose
+   cross-reference resolution for arbitrary prose. Claude Code's own
+   documentation names this exact scenario: "If your repository already
+   uses AGENTS.md for other coding agents, create a CLAUDE.md that
+   imports it... using `@path/to/import` syntax." Frozen implementation:
+   `.claude/CLAUDE.md` (matching `assistant_loader.rs`'s existing
+   `LOADER_CANDIDATES` entry for this exact path) containing exactly
+   `@../AGENTS.md` as its first line — the relative path is correct
+   because Claude Code resolves import paths "relative to the file
+   containing the import, not the working directory," and
+   `.claude/CLAUDE.md`'s directory is one level below the repository
+   root where `AGENTS.md` lives. Claude-Code-specific instructions, if
+   ever needed, may follow the import line in the same file (Claude Code
+   loads the import, then appends the rest) — none are added by this
+   plan. Gate 2 evidence must include an actual Claude Code session
+   confirming `.claude/CLAUDE.md` (and, transitively, `AGENTS.md`'s
+   content) appears under `/context`'s **Memory files** list — inspecting
+   the file's text is not sufficient evidence that the import resolves,
+   since a typo in the import syntax would look identical to a correct
+   pointer in a code review.
+2. **Assistant-surface declaration: exact schema, frozen now (B6).** The
+   first draft offered two undecided options (a `MANIFEST.yaml` field or
+   a separate config). Frozen decision: add an optional
+   `supported_assistant_loaders` array field to
+   `agf/agents/MANIFEST.yaml` (the project's existing manifest of record
+   for agent/role configuration — reusing it avoids introducing a second
+   configuration file for one small piece of data), accepting values
+   drawn from `assistant_loader.rs`'s existing `LOADER_CANDIDATES` labels
+   (e.g. `["codex", "claude-code"]`). Behavior: when the field is
+   present, `found_any` requires every declared surface's candidate file
+   to exist (an unknown value in the array is a validation error, not a
+   silently ignored one); when the field is absent, preserve today's
+   OR-based "any candidate" behavior exactly, so undeclared projects are
+   never newly broken by this change (the `rk2k`-corrected shape). Name
+   the changed schema explicitly: `agf/schemas/*.json` gets no change
+   (`MANIFEST.yaml` is not currently schema-validated against a JSON
+   Schema in this repository per a check of `agf/schemas/`; if that
+   changes before implementation, this field must be added there too).
 3. Verify `agf/templates/AGENTS.md` (the adopter-facing template) and any
    "set up your AI loaders" adopter instructions actually mention
-   creating `.claude/CLAUDE.md` as a distinct, required-for-Claude-Code
-   step, not implied by copying `AGENTS.md` alone.
+   creating `.claude/CLAUDE.md` with the `@../AGENTS.md` import as a
+   distinct, required-for-Claude-Code step, not implied by copying
+   `AGENTS.md` alone.
 
 ### Slice 2 — Shipped Claude MCP configuration template (#90)
+
+Exact-head review (`1dq4`, finding B8) found this slice's first draft
+under-specified issue #90's own frozen acceptance criteria — the issue
+already fixes the logical JSON shape and requires specific negative and
+platform tests this draft only partially named. Corrected to adopt #90's
+full acceptance contract directly, not a paraphrase of it:
 
 1. Add `examples/claude/.mcp.json` to the `agov-*` platform tooling
    archive staging (both the Linux tar and Windows zip packaging blocks
    in `.gitlab-ci.yml`'s `.rust-tooling-package` template, per issue #69's
-   precedent of both archive variants needing the same fix). Content:
-   `"command": "agov-mcp"` with no `AGOV_MCP_AGOV_BIN`, no absolute paths,
-   no secrets, no environment values, no endpoints — relying on
-   `agov-mcp` being on `PATH` (consistent with whatever #69's PATH-lookup
-   fallback resolves to, if that issue's fix has landed by this plan's
-   implementation time; otherwise document the `AGOV_MCP_AGOV_BIN`
-   requirement explicitly instead of shipping a template that silently
-   fails the way #69 described).
-2. Extend the archive `README.txt` generation to name `agov-mcp` as an
-   MCP server, explain copying `examples/claude/.mcp.json` into the
-   adopter project root, and link
-   `agf/docs/site/docs/adopt/mcp-server.md`.
-3. Confirm the template's tool list matches whatever `agov-mcp` actually
-   exposes at ship time — this is the dependency on
-   `agov-mcp-transport-protocol-correctness.md` Slice 2 `bhhh` names;
-   the template itself declares no tool list (that's the server's own
-   `tools/list` response), so this is a documentation-accuracy check on
-   the README text, not a template-content dependency.
+   precedent of both archive variants needing the same fix). Content —
+   the complete object from #90, not only the inner `command` field:
+   ```json
+   {
+     "mcpServers": {
+       "agov": {
+         "command": "agov-mcp"
+       }
+     }
+   }
+   ```
+   No `AGOV_MCP_AGOV_BIN`, no absolute paths, no secrets, no environment
+   values, no endpoints, and no `args`/`env` keys unless a concrete
+   reason requires them (if omitted, that's an intentional choice to
+   record, not an oversight) — relying on `agov-mcp` being on `PATH`
+   (consistent with whatever #69's PATH-lookup fallback resolves to, if
+   that issue's fix has landed by this plan's implementation time;
+   otherwise document the `AGOV_MCP_AGOV_BIN` requirement explicitly
+   instead of shipping a template that silently fails the way #69
+   described).
+2. Extend the archive `README.txt` generation to: name `agov-mcp` as an
+   MCP server; explain installing both binaries on `PATH`; explain
+   copying `examples/claude/.mcp.json` into the adopter project root as
+   `.mcp.json`; instruct reviewing it; instruct approving the
+   project-scoped server when Claude Code prompts (#90's acceptance
+   criteria require this exact approval-instruction step, not just
+   "copy the file"); and link `agf/docs/site/docs/adopt/mcp-server.md`.
+3. **Packaging negative tests (previously missing).** Per #90's own
+   acceptance criteria: packaging/self-sufficiency tests must fail when
+   the template is absent from the archive, stale (content drifted from
+   the checked-in source), or present but not referenced by the local
+   README text. Add all three as explicit CI-level negative tests, not
+   only a positive "the file exists" check.
+4. **Windows behavior tested, not inferred (previously implicit).**
+   Exercise the Windows `.zip` archive's `examples/claude/.mcp.json`
+   content and the `agov-mcp.exe`/`agov.exe` command contract
+   specifically — do not assume Linux packaging test coverage implies
+   Windows correctness, since the two staging blocks are separate
+   `.gitlab-ci.yml` sections that can drift independently (the same
+   failure shape issue #69 found for the base binaries).
+5. Validate the shipped JSON as structurally correct Claude project
+   configuration (not merely valid JSON) — i.e. it parses under the same
+   shape Claude Code expects for `.mcp.json`, per
+   `agf/docs/site/docs/adopt/mcp-server.md`'s existing documented
+   example.
+6. Documentation-accuracy check, not a content dependency (A2): if a
+   future revision of the README or adopter docs names specific tool
+   names, re-check that text against
+   `agov-mcp-transport-protocol-correctness.md`'s final tool list at that
+   time — the template's JSON itself carries no tool list and needs no
+   such check.
 
 ## Affected files
 
-- `.claude/CLAUDE.md` — new file (Slice 1).
+- `.claude/CLAUDE.md` — new file, containing exactly `@../AGENTS.md`
+  (Slice 1, B7).
+- `agf/agents/MANIFEST.yaml` — new optional
+  `supported_assistant_loaders` field (Slice 1, B6).
 - `tooling/rust/crates/agov-validators/src/assistant_loader.rs` —
-  `found_any`/`LOADER_CANDIDATES` logic (Slice 1).
+  `found_any`/`LOADER_CANDIDATES` logic, now reading the manifest field
+  when present (Slice 1).
 - `agf/templates/AGENTS.md` and any adopter-facing loader setup docs —
-  verify/update (Slice 1).
+  verify/update to show the `@../AGENTS.md` import form, not a prose
+  pointer (Slice 1).
 - `.gitlab-ci.yml` — `.rust-tooling-package` template, both Linux and
   Windows staging blocks, `README.txt` generation (Slice 2).
 - New: `examples/claude/.mcp.json` template, staged into the archive
-  build, not the framework source archive (Slice 2, per `jpje`).
+  build, not the framework source archive (Slice 2, per `jpje`), using
+  the complete `mcpServers.agov` object from #90 (Slice 2, B8).
 - `agf/docs/site/docs/adopt/mcp-server.md` — cross-check against the new
   archive README text for consistency (`marketing-tone-rule.md`'s
   message-integrity principle: the same claim stated once, referenced
@@ -145,25 +236,42 @@ exist.
 
 ## Test strategy (Gate 2 evidence)
 
-Per `bhhh`'s minimum evidence list:
+Per `bhhh`'s minimum evidence list, tightened per `1dq4`'s B6/B7/B8:
 
-1. `agov.validate.assistant_loader` unit tests: a repo with only
-   `AGENTS.md` and a Claude-surface declaration now fails (where it
-   currently passes); a repo with no assistant-surface declaration at all
-   preserves current OR-based behavior (no false rejection for adopters
-   who haven't opted in — the explicit "single-surface adopter is not
-   falsely rejected" case `bhhh` names).
+1. `agov.validate.assistant_loader` unit tests: a repo declaring
+   `supported_assistant_loaders: [claude-code]` with only `AGENTS.md`
+   (no `.claude/CLAUDE.md`) now fails (where it currently passes); a repo
+   declaring `[codex]` only, with only `AGENTS.md`, passes (single-surface
+   adopter not falsely rejected — the case `bhhh` names); a repo
+   declaring both surfaces requires both files; a repo with an unknown
+   value in the array fails as a validation error; a repo with no
+   `supported_assistant_loaders` field at all preserves current OR-based
+   behavior exactly.
 2. Inspect built Linux tar and Windows zip archive contents in CI:
-   `examples/claude/.mcp.json` present, README.txt mentions it.
-3. Exercise archive-only setup: following only the shipped README and
+   `examples/claude/.mcp.json` present with the complete `mcpServers.agov`
+   object, README.txt mentions it and the project-scoped-server approval
+   step.
+3. **Negative packaging tests (B8)**: a CI-level test fails when the
+   template is absent from an otherwise-complete archive; fails when the
+   template's content has drifted from its checked-in source (stale);
+   fails when the template is present but unreferenced by README.txt.
+   All three are separate assertions.
+4. **Windows-specific test (B8)**: exercise the Windows `.zip` archive's
+   template and `.exe` command contract directly, not inferred from the
+   Linux test passing.
+5. Exercise archive-only setup: following only the shipped README and
    template (no access to the framework source repo or its docs site)
    must be sufficient to get a working `agov-mcp` registration — mirrors
    issue #69's "the archive gives no route to the MCP documentation"
    finding; this plan closes that specific gap for the Claude case.
-4. Validate the Claude bridge end-to-end: with `.claude/CLAUDE.md`
-   present, confirm (by inspection, since this can't be automated against
-   a live Claude Code session) that it correctly points to `AGENTS.md`.
-5. Content check: `examples/claude/.mcp.json` contains no absolute
+6. **Validate the Claude bridge end-to-end, live (B7)**: with
+   `.claude/CLAUDE.md` present, a real Claude Code session's `/context`
+   output must list it (and, transitively, `AGENTS.md`'s content) under
+   **Memory files** — not merely an inspection that the import line's
+   text looks correct. If a live-session check isn't available in the
+   Gate 2 environment, this must be recorded as explicit post-merge
+   monitoring, not silently downgraded to a text-only check.
+7. Content check: `examples/claude/.mcp.json` contains no absolute
    machine paths, no secrets, no environment-specific values — a
    dedicated infosec-sentinel check before Gate 2, not a general read.
 
