@@ -1,6 +1,6 @@
 ---
 id: v246-release
-status: pending-gate1
+status: approved
 topic: v246-release
 advisory_consultation:
   - role: contribution-auditor
@@ -9,10 +9,11 @@ advisory_consultation:
       Assigned by `20260729T152543Z-governor-reviewer-hapn` and reactivated
       by `20260730T123406Z-governor-reviewer-thnq`, both of which require
       routing this plan through contribution-auditor before Gate 1.
-      Requesting a fresh exact-head review of this draft — no prior
-      contribution-auditor pass exists on the release-only scope itself
-      (the recovery *implementation* was separately reviewed under
-      `docs/plans/v246-recovery-patch.md`, already approved and merged).
+      `20260730T131402Z-contribution-auditor-17qq` is the prior complete
+      release-plan pass; its B1-B5 findings are corrected at this source
+      head. `20260730T134315Z-contribution-auditor-gdrb` independently
+      confirmed B1-B5 resolved and requested only this consultation-history
+      correction before final exact-head confirmation.
   - role: infosec-sentinel
     status: consulted
     reason: >
@@ -28,14 +29,14 @@ advisory_consultation:
 
 # Plan: v2.4.6 release (version bump, tag, publication)
 
-## Decision requested
+## Gate 1 decision
 
-Gate 1 approval for the release-only workflow that cuts, tags, and
-publishes v2.4.6 from current `main`. This plan authorizes nothing by
-itself while `status: pending-gate1`; Gate 1 approval authorizes exactly
-the release-branch creation, the version/changelog-only release MR, and
-(after that MR's separate Gate 2 approval) the tag and its push. It does
-not authorize any code change beyond `agf/VERSION` and
+Gate 1 was approved by
+`20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
+`d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`. The approval authorizes
+exactly the release-branch creation, the version/changelog-only release
+MR, and (after that MR's separate Gate 2 approval) the tag and its push.
+It does not authorize any code change beyond `agf/VERSION` and
 `agf/CHANGELOG.md` — every substantive change this release publishes is
 already merged to `main` and separately governed.
 
@@ -58,10 +59,14 @@ already merged to `main` and separately governed.
   infosec-sentinel, and states the future tooling plans (MRs !805–!807)
   and the CI longitudinal assessment (MR !810) are outside v2.4.6 and not
   blockers for this drafting assignment.
+- `20260730T145733Z-governor-reviewer-3g7k` — binding Gate 1 approval at
+  exact reviewed plan head `d489ed77d479b26ab67b9880d5dcbb20dcad8d3a`.
+  The subsequent metadata-only update marks that decision in this file;
+  it does not expand the approved release scope.
 
 ## Release base
 
-`origin/main` at `353e1242427af40af3a45460efb6eca152aef654bd` (fetched and
+`origin/main` at `353e12427af40af3a45460efb6eca152aef654bd` (fetched and
 verified at plan-draft time, 2026-07-30T12:34–13:00Z window). `agf/VERSION`
 currently reads `2.4.5`; the last tag is `v2.4.5`. This base will be
 re-verified immediately before creating `release-2.4.6`, since `main`
@@ -70,12 +75,20 @@ can advance between Gate 1 approval and implementation, per
 
 ## Reconciliation: every commit since v2.4.5
 
-96 commits exist between `v2.4.5` and this release base; 69 are
-coordination-channel records under `docs/coordination/*.md`, which are
-audit trail, not release content, and require no per-commit disposition
-here. The remaining 27 non-coordination commits fall into three groups.
+96 commits exist between `v2.4.5` and this release base. Classification
+unit: distinct commit OIDs on this range, each assigned exactly one
+disposition by which paths that commit's `git show --name-only` touches —
+not by counting merged-result file content, which would double-count
+files touched by multiple commits. 69 commits touch only
+`docs/coordination/*.md` and are coordination-channel audit trail, not
+release content; they require no per-commit disposition here. The
+remaining 27 non-coordination commits partition into exactly three
+non-overlapping groups, verified by exact OID set (union of the three
+groups' OIDs equals the 27-commit non-coordination set, with no OID in
+more than one group): Group A (8 commits), Group B (8 commits), Group C
+(11 commits) — 8 + 8 + 11 = 27.
 
-### Group A — in scope: the already-approved v2.4.6 recovery patch (10 commits)
+### Group A — in scope: the already-approved v2.4.6 recovery patch (8 commits)
 
 Implements `docs/plans/v246-recovery-patch.md` (Gate 1 approved, Gate 2
 approved via MR !785, merged via MR !784 at `7146101e`). Already fully
@@ -95,7 +108,7 @@ Unreleased` to `## [2.4.6] — <release date>` at implementation time, per
 hapn item 3. `MR !739`'s learning-record addition was explicitly excluded
 by the recovery-patch plan itself and stays excluded here.
 
-### Group B — reconciliation finding: version-controlled roadmap page (9 commits)
+### Group B — reconciliation finding: version-controlled roadmap page (8 commits)
 
 `docs/plans/version-controlled-roadmap-page.md` (Gate 1 approved
 `20260728T200855Z-governor-reviewer-331n`, implemented via MR !758/!762,
@@ -108,7 +121,11 @@ Classification: patch-compatible under `contract-stability.md`'s promise
 ("Fix bugs, clarify documentation, improve error messages" — a new
 documentation page with navigation entries adds no validator, exit code,
 CLI flag, or schema field). Recommendation: add one `agf/CHANGELOG.md`
-entry for it under the finalized v2.4.6 section
+entry for it under a new `### Added` subsection of the finalized v2.4.6
+section — the current `## Unreleased` section contains only `### Fixed`,
+and "added a roadmap page" is an addition, not a fix; it must not be
+folded into `### Fixed` merely because that is the only subsection
+already present
 ("Added a version-controlled release roadmap page to the documentation
 site, discoverable from the top-level navigation, the documentation
 overview, and the repository README.").
@@ -148,10 +165,12 @@ distribution, and `.gitlab-ci.yml` is not part of it.
 2. Create `release-2.4.6` from that base.
 3. On the release branch: bump `agf/VERSION` to `2.4.6`; rename
    `agf/CHANGELOG.md`'s `## Unreleased` section to `## [2.4.6] —
-   <implementation date>`, adding the Group B roadmap-page entry if
-   confirmed by consultation; no other file changes beyond strictly
-   necessary release metadata (e.g. `Adopter docs: updated` marker
-   already present in the changelog format).
+   <implementation date>`, adding the Group B roadmap-page entry under a
+   new `### Added` subsection (distinct from the existing `### Fixed`
+   subsection covering Group A) if confirmed by consultation; no other
+   file changes beyond strictly necessary release metadata (e.g.
+   `Adopter docs: updated` marker already present in the changelog
+   format).
 4. Open the release MR (`release-2.4.6` → `main`) with a diff limited to
    exactly the above.
 5. Require Gate 2 on the release MR before merge.
@@ -209,19 +228,32 @@ checks catch a bad release without ever moving or deleting the tag:
 
 1. `agov dist check-tag` — confirms `CI_COMMIT_TAG` matches
    `agf/VERSION` on the tag pipeline.
-2. `agov dist self-report-check` — extracts the packaged `agov`/`agov-mcp`
-   executables from the published release archive and cross-checks their
-   own `version --format json` self-report against the file-kind
-   provenance record.
-3. `agov dist post-publication-check` — anonymously discovers and
-   downloads every asset linked from the real published GitLab Release,
-   independent of the CI workspace copy, and validates downloaded
-   provenance records against the downloaded bytes. This is the
-   authoritative check that the publicly reachable artifact matches what
-   provenance claims, not merely what CI built.
-4. Manual spot-check: the GitLab Release page lists the expected archive
-   set (framework source `.tar.gz`, platform `agov` tooling archives,
-   OCI image reference) with no missing or extra asset.
+2. Automatic, not manual: the tag pipeline's `release:verify` CI job
+   extracts the packaged `agov` binary from the just-built release
+   archive and invokes that binary's own `dist post-publication-check`
+   directly against the live GitLab Release API — independent of the CI
+   workspace's `dist/` copy. This composed check anonymously discovers
+   and downloads every asset linked from the real published Release,
+   validates downloaded provenance records against the downloaded bytes,
+   and performs the eligible packaged-binary self-report verification
+   internally as part of the same composed check. This is the
+   authoritative evidence that the publicly reachable artifact matches
+   what provenance claims, not merely what CI built.
+3. The repository-local `tooling/agov` wrapper's manual allowlist
+   currently accepts only `dist validate|build|check-tag` and rejects
+   both `dist self-report-check` and `dist post-publication-check` with
+   exit 127 (filed separately as issue #92). This release does not
+   promise or depend on that wrapper as a manual post-tag path — the
+   tag pipeline's `release:verify` job bypasses the wrapper entirely by
+   invoking the packaged binary directly, and #92 stays explicitly
+   outside v2.4.6 scope.
+4. Manual spot-check: the GitLab Release page lists the expected asset
+   set — framework source `.tar.gz`, platform `agov` tooling archives,
+   their checksum/provenance sidecars, and the
+   `agov-oci-<version>-provenance.json` asset — with no missing or extra
+   entry. The Release page does not itself list a downloadable OCI image
+   asset; the OCI provenance JSON's contents name the immutable image
+   reference/digest that the composed check verifies.
 
 ## Rollback and stop conditions
 
