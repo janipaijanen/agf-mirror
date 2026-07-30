@@ -3,9 +3,18 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## Unreleased
+## [2.4.6] — 2026-07-30
+
+### Added
+
+- Added a version-controlled release roadmap page to the documentation site,
+  discoverable from the top-level navigation, the documentation overview, and
+  the repository README.
 
 ### Fixed
+
+- Corrected stale release-version metadata across packaged agent definitions,
+  adopter examples, manifests, roadmap guidance, and Rust package metadata.
 
 - Clean-archive validation now runs every Python test shipped in both the
   `.tar.gz` and `.zip` distributions. Tests that depend on repository-only

@@ -244,13 +244,13 @@ Container-based CI can instead use the official `agov` OCI image from this
 project's GitLab container registry:
 
 ```bash
-# Canonical version: agf/VERSION
-podman pull registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4
-# Canonical version: agf/VERSION
+# Choose an exact published version from the GitLab Releases page.
+AGF_VERSION="<version-from-release-page>"
+podman pull "registry.gitlab.com/janipaijanen/agents-govern-framework/agov:${AGF_VERSION}"
 podman run --rm \
   -v "$PWD:/repo" \
   -w /repo \
-  registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4 \
+  "registry.gitlab.com/janipaijanen/agents-govern-framework/agov:${AGF_VERSION}" \
   validate
 ```
 
