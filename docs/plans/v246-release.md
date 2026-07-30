@@ -1,6 +1,6 @@
 ---
 id: v246-release
-status: pending-gate1
+status: approved
 topic: v246-release
 advisory_consultation:
   - role: contribution-auditor
@@ -38,6 +38,14 @@ advisory_consultation:
 # Plan: v2.4.6 release (version bump, tag, publication)
 
 ## Gate 1 amendment re-opened after release-MR validation
+
+The second amendment was approved by
+`20260730T163604Z-governor-reviewer-8j4p` after review of MR !837 at exact
+head `4a0b34a9328519f5271113a2eb782c3b71859478`. The plan-only publication
+split preserves the approved plan blob
+`042f616c31112d0c0f9cb184a7f8453fa4d2fcdc` byte-for-byte; this metadata-only
+status update records the decision and does not alter the approved 26-file
+scope.
 
 Gate 1 was approved by
 `20260730T145733Z-governor-reviewer-3g7k` at exact reviewed head
@@ -117,6 +125,10 @@ schema, rule, CI, dependency package version, or checksum is changed.
   found four live v2.4.4 installation/current-operator pins outside the approved
   scope. The release implementation remains uncommitted and unpushed pending
   this narrowly bounded 26-file amendment.
+- `20260730T163604Z-governor-reviewer-8j4p` — binding Gate 1 approval for the
+  version-neutral 26-file amendment as reviewed at MR !837 head
+  `4a0b34a9328519f5271113a2eb782c3b71859478`; the clean plan-only replacement
+  preserves the approved plan blob exactly.
 
 ## Release base
 
