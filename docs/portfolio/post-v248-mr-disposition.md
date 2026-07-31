@@ -1,8 +1,8 @@
 # Post-v2.4.8 merge-request disposition ledger
 
 Observed: 2026-07-31. Baseline snapshot: 93 open MRs before plan MR !858.
-The ledger also includes !858 and the two execution MRs !859/!860, for 96
-individually tracked rows; merged items remain as closeout evidence.
+The ledger also includes !858-!861, for 97 individually tracked rows; merged
+items remain as closeout evidence.
 
 Disposition meanings:
 
@@ -112,11 +112,11 @@ Disposition meanings:
 | !854 | Corrected-learning clear | Archive → close after !829 chain is preserved. |
 | !858 | Approved reconciliation plan | **Merged** at `20fc8925`; retain closed/merged as controlling execution authority. |
 | !859 | Portfolio ledgers and roadmap | Current implementation MR; merge only after exact-head Gate 2 and passing normal pipeline. |
-| !860 | Coordination preservation archive | Current archive MR; merge only after exact-head Gate 2 and a fresh current-target publication check, then close its 68 source MRs. |
+| !860 | Coordination preservation archive | **Merged** at `3bfb389d` after exact-head Gate 2 and a fresh current-target publication check; its 68 source MRs were then closed with retained branches. |
+| !861 | Gate 2 decision publication | **Merged** at `e163cbd3`; preserves the governor-reviewer approval for exact !860 head `c0e03456`. |
 
 ## Completeness check
 
-This table has one row for each of the 93 pre-!858 open MRs plus !858-!860. A
-final live query must add any later MR before Gate 2. No “Archive → close” operation
-may occur until the archive is content-hash manifested, validated, merged, and
-linked from the source MR.
+This table has one row for each of the 93 pre-!858 open MRs plus !858-!861.
+The archive precondition was satisfied before the 68 archive-source MRs were
+closed. A final live query must add any later MR before Gate 2.

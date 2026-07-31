@@ -57,9 +57,11 @@ claim. Items remain open until the closure condition is evidenced.
 | #92 | v2.7.0 candidate | Reproduced wrapper/Rust registry drift; require one authoritative command inventory and parity tests. |
 | #93 | v2.4.9 patch | **Still reproduces on post-v2.4.8 `main`:** `bin/agf` exists and MR templates invoke Mix. Plan a bounded patch-compatible live-surface cleanup. |
 | #94 | Later minor candidate | Post-recovery release-truth/compatibility work; child-plan and compatibility classification required. |
+| #96 | T0 learning intake | Preserve the single-adopter three-way upgrade-comparison evidence as a canonical learning or explicitly reject it; its recommendation informs #79 without silently expanding v2.5.0 scope. |
 
 ## Completeness check
 
-The table contains 49 distinct issue IIDs, matching the live open-issue set at
-the snapshot. A final API query is required before Gate 2 because the tracker
-may change during execution.
+The table contains 50 distinct issue IIDs: the 49 live open issues at the
+snapshot plus #81, which was closed with v2.4.8 release evidence during this
+reconciliation. A final API query is required before Gate 2 because the
+tracker may change during execution.
