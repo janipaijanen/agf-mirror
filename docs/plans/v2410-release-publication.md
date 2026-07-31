@@ -7,7 +7,7 @@ gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
-    reason: "Renewed exact-head review 20260731T171313Z-contribution-auditor-pqrs independently verified the rebased issue #92 implementation, its v2.4.9 baseline, unchanged standalone-artifact behavior, full regression evidence, and release-boundary discipline. This release plan retains the proven v2.4.9 publication sequence and requests exact-text review before Gate 2."
+    reason: "Renewed implementation review 20260731T171313Z-contribution-auditor-pqrs verified issue #92, and release-plan review 20260731T175742Z-contribution-auditor-p7rj returned CLEAR with three advisories. This revision incorporates the plan-self-update, structural closes_issues API check, and tag-checkout wording clarifications; contract-stability documentation remains a separate follow-up."
   - role: infosec-sentinel
     status: not-applicable
     reason: "The release consumes the reviewed issue #92 implementation and changes version, changelog, and release-truth metadata only. It adds no credential handling, dependency, network trust boundary, learning payload, authorization semantic, or security-control implementation; existing provenance and artifact checks remain mandatory."
@@ -39,8 +39,11 @@ Issue #92 remains open and assigned to the v2.4.10 milestone.
 Create the release commit on `release-v2.4.10`, based on the then-current
 `main`, with only these release-truth changes:
 
-1. Set `agf/VERSION` to `2.4.10`.
-2. Add dated v2.4.10 entries to `CHANGELOG.md` and `agf/CHANGELOG.md` that:
+1. After Gate 1 approval, update this plan's frontmatter with the exact
+   approval identity and UTC timestamp before release implementation is
+   presented for Gate 2.
+2. Set `agf/VERSION` to `2.4.10`.
+3. Add dated v2.4.10 entries to `CHANGELOG.md` and `agf/CHANGELOG.md` that:
    - identify the release as the issue #92 repository-local `agov`
      reliability correction;
    - record transparent forwarding to the authoritative Rust parser;
@@ -54,17 +57,17 @@ Create the release commit on `release-v2.4.10`, based on the then-current
    - report the final release-branch test count and state `Adopter docs:
      updated`; and
    - reference issue #92 without auto-closing it before publication.
-3. Update the five Rust workspace package versions, three internal path
+4. Update the five Rust workspace package versions, three internal path
    requirements, and the corresponding five `Cargo.lock` package entries from
    2.4.9 to 2.4.10. No dependency or checksum may change.
-4. Update current framework-version surfaces only: adopter-facing agent
+5. Update current framework-version surfaces only: adopter-facing agent
    definitions, `agf/agents/MANIFEST.yaml`, `agf/ADOPTING.md`,
    `agf/templates/AGENTS.md`, `agf/templates/learning-record.yaml`, and current
    version statements/examples in `agf/docs/governance/manifest.md`.
-5. Update `agf/docs/site/roadmap.md` to identify v2.4.10 as the latest release
+6. Update `agf/docs/site/roadmap.md` to identify v2.4.10 as the latest release
    and mark issue #92 deployable only after publication verification. Preserve
    historical release evidence and later batch commitments.
-6. Leave the README major/minor citation unchanged because 2.4 remains the
+7. Leave the README major/minor citation unchanged because 2.4 remains the
    current release line. Leave historical coordination, plans, changelog
    entries, and valid earlier-or-later compatibility statements unchanged.
 
@@ -111,6 +114,9 @@ The release MR must provide exact-head evidence for:
 - built `agov` and `agov-mcp` self-reporting 2.4.10, the release MR exact head,
   and clean source;
 - tag/version guard evidence with `CI_COMMIT_TAG=v2.4.10`;
+- a GitLab API check immediately before merge showing the release MR's
+  `closes_issues` response is empty, rather than relying on visible description
+  text to prevent premature issue #92 closure;
 - release-path, provenance, artifact-exclusion, SPDX/license, strict MkDocs,
   links, and `git diff --check` checks; and
 - a green exact-head GitLab MR pipeline.
@@ -136,8 +142,9 @@ change set, retain its source branch, and receive exact-head Gate 2 approval.
    contents, and real OCI evidence.
 6. Verify the GitLab Release, generic package `agf/v2.4.10`, and OCI tag
    `agov:2.4.10` correspond to the immutable tag pipeline.
-7. From a fresh source checkout of the published framework, demonstrate that
-   `tooling/agov` reaches `coord publication-check` and `dist
+7. From a fresh git clone of the repository checked out at the exact immutable
+   `v2.4.10` tag—not from the framework release archive, which intentionally
+   excludes `tooling/`—demonstrate that `tooling/agov` reaches `coord publication-check` and `dist
    self-report-check`, detects source incompatibility, and follows the
    documented one-shot rebuild/fail-closed contract without legacy fallback.
 8. Only after all public checks pass, close issue #92 with links to the tag,
@@ -164,3 +171,6 @@ CI change, a dependency/checksum change, a command-semantic change, weakening
 a release or fingerprint check, changing an existing tag, including issue #97
 or mdBook/Ayu work, deleting a source branch, closing issue #92 before public
 verification, or publishing a platform claim unsupported by actual assets.
+Also stop if the release MR has any structural `closes_issues` association
+before publication verification, even when its visible description contains
+no closing keyword.
