@@ -25,6 +25,22 @@ coordination helpers. It is a static binary (~5–12 MB) with no runtime
 dependency. See [How to set it up](#how-to-set-it-up) below for the
 recommended published-artifact install path.
 
+### Source-checkout wrapper for contributors
+
+Contributors working in an AGF source checkout should invoke that checkout's
+`tooling/agov` wrapper, usually by prepending `$PWD/tooling` to `PATH`. The
+wrapper delegates command parsing to the Rust binary, verifies a deterministic
+fingerprint of behavior-affecting tooling inputs, and performs one local
+release rebuild when no matching binary exists and Cargo is available. It
+fails closed if rebuilding is unavailable or does not produce matching
+provenance.
+
+Linked worktrees must use their own `tooling/agov` path. Invoking a wrapper
+owned by a different worktree exits with a diagnostic naming the correct path;
+this prevents a binary, schema directory, and agent manifest from being bound
+silently across checkouts. These repository-local checks do not alter the
+standalone published binary described below.
+
 ## Current command maturity
 
 Maturity levels follow the
