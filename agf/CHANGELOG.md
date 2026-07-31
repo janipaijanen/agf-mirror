@@ -3,6 +3,25 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.9] — 2026-07-31
+
+### Fixed
+
+- Removed the broken `bin/agf` Mix wrapper and dead Elixir parity harness;
+  `tooling/agov` remains the single supported repository entry point.
+- Updated current contributor and adopter instructions, contracts, governance
+  descriptions, and decommission guidance to executable Rust `agov` commands
+  without rewriting historical or generic ecosystem evidence.
+- Added a fail-closed live-surface scanner and negative self-test covering
+  removed Mix, Elixir, legacy Python, and `bin/agf` paths.
+
+Validation: Rust workspace 299 passed, 3 ignored; clean tar and zip framework
+archive acceptance suites passed.
+
+Issue: #93. Closure follows successful verification of the published assets.
+
+Adopter docs: updated
+
 ## [2.4.8] — 2026-07-30
 
 ### Fixed

@@ -8,6 +8,32 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.9] - 2026-07-31
+
+Patch release removing stale live tooling surfaces after the Rust `agov`
+migration.
+
+### Fixed
+
+- Removed the broken `bin/agf` wrapper, which delegated every command to a
+  nonexistent Elixir/Mix project, and removed the dead Elixir parity harness.
+- Converted current contributor, adopter, contract, governance, and
+  decommission guidance to the supported Rust `agov` commands while preserving
+  historical, generic ecosystem, and release-exclusion evidence.
+- Added a fail-closed live-surface regression check with a negative self-test
+  so supported entry points and current instructions cannot silently return to
+  removed Mix, Elixir, legacy Python, or `bin/agf` paths.
+
+### Validation
+
+- Rust workspace: 299 passed, 3 ignored; clean tar and zip framework archive
+  acceptance suites passed.
+
+Addresses issue #93. The issue closes only after the published v2.4.9 assets
+pass anonymous post-publication verification.
+
+Adopter docs: updated
+
 ## [2.4.8] - 2026-07-30
 
 Publication-completion recovery after the immutable v2.4.7 tag published its

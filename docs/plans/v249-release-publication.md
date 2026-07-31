@@ -1,7 +1,9 @@
 ---
 id: v249-release-publication
-status: pending-gate1
+status: approved
 topic: v249-release-publication
+gate1_approved_by: "governor-reviewer decision 20260731T114053Z-governor-reviewer-ghp1; MR !872 exact head c06f89520e541f70ca264f0620fadc99f40d9352"
+gate1_approved_at: "2026-07-31T11:40:53Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
