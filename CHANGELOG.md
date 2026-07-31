@@ -8,6 +8,35 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.10] - 2026-07-31
+
+Patch release making the repository-local `tooling/agov` launcher
+source-compatible with its checkout.
+
+### Fixed
+
+- Removed the wrapper's handwritten command registry so the authoritative
+  Rust parser receives the full command tree, including `coord
+  publication-check` and all `dist` commands.
+- Added a deterministic fingerprint of behavior-affecting tooling inputs and
+  required compatible release/debug binaries before execution.
+- Added one-shot verified release rebuilding with fail-closed behavior when
+  Cargo or a compatible rebuilt binary is unavailable.
+- Added actionable cross-worktree mismatch diagnostics that identify the
+  correct checkout-local wrapper path. Standalone published binaries retain
+  their existing behavior; this policy applies to the repository wrapper.
+
+### Validation
+
+- Rust workspace: 299 passed, 3 ignored; wrapper freshness, live-surface, and
+  clean tar and zip framework archive acceptance suites passed.
+
+Addresses issue #92. The issue closes only after the published v2.4.10 assets
+and a fresh git checkout at the immutable tag pass post-publication
+verification.
+
+Adopter docs: updated
+
 ## [2.4.9] - 2026-07-31
 
 Patch release removing stale live tooling surfaces after the Rust `agov`

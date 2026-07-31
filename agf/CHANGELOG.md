@@ -3,6 +3,26 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.4.10] — 2026-07-31
+
+### Fixed
+
+- Made repository-local `tooling/agov` forward the full authoritative Rust
+  command tree instead of maintaining a handwritten command registry.
+- Added deterministic source fingerprinting, compatible-binary selection, one
+  verified release rebuild, and fail-closed recovery for behavior-affecting
+  tooling changes.
+- Added correct cross-worktree diagnostics while leaving standalone published
+  binary behavior unchanged.
+
+Validation: Rust workspace 299 passed, 3 ignored; wrapper freshness,
+live-surface, and clean tar and zip framework archive acceptance suites passed.
+
+Issue: #92. Closure follows successful verification of the published assets
+and a fresh git checkout at the immutable tag.
+
+Adopter docs: updated
+
 ## [2.4.9] — 2026-07-31
 
 ### Fixed

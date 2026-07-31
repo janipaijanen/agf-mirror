@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2026 <!-- CUSTOMIZE: your name --> -->
-<!-- AGF: 2.4.9 — update this comment after each framework upgrade to match agf/VERSION -->
+<!-- AGF: 2.4.10 — update this comment after each framework upgrade to match agf/VERSION -->
 # <!-- CUSTOMIZE: Project Name --> — Agent and Contributor Orientation
 
 <!-- CUSTOMIZE: brief description of the project -->

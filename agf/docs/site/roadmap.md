@@ -5,20 +5,23 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | Released baseline confirmed; next release train **approved**, Gate 1 |
-| Observed at | 2026-07-31T11:43:24Z |
-| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.9 release follows approved publication-plan MR !872 at `c06f8952`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
+| Status | v2.4.10 release publication approved; later release train **approved**, Gate 1 |
+| Observed at | 2026-07-31T20:06:24Z |
+| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.10 release follows approved publication-plan MR !883 at `a8f46743` (merged as `0ba16cbe`). This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
 | Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
 
-**Latest release: `v2.4.9`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.9), tag `v2.4.9`.
+**Latest release: `v2.4.10`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.10), tag `v2.4.10`.
 
-v2.4.9 retains the complete v2.4.8 recovery baseline and resolves issue #93 by
-removing obsolete legacy launch and parity entry points and converting current
-instructions to the supported Rust tooling. A fail-closed regression check now
-keeps supported entry points and current guidance on the Rust `agov` path.
+v2.4.10 retains the complete v2.4.9 baseline and resolves issue #92 by making
+the repository-local `tooling/agov` wrapper source-compatible with its
+checkout. It forwards the authoritative Rust command tree, verifies a
+deterministic tooling-source fingerprint, performs at most one verified
+release rebuild, fails closed when recovery is unavailable, and reports the
+correct wrapper for cross-worktree invocation. Standalone release binaries
+retain their existing behavior.
 
 A significant limitation in v2.4.5 was fixed in the v2.4.8 baseline:
 [issue #81](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/81)
@@ -41,7 +44,7 @@ The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/ja
 merged to `main` at `27716f20`. Read the plan and its coordination trail directly rather than
 relying on a summary here — this page intentionally does not reproduce the
 release-train stages to avoid a second copy that can drift from the plan.
-v2.4.9 is the published patch deliverable in that approved train. It includes
+v2.4.10 is the latest published patch deliverable in that approved train. It includes
 the complete v2.4.8 recovery baseline, which superseded the immutable
 unpublished v2.4.6 tag and the immutable OCI-only v2.4.7 partial publication
 for adoption.
@@ -52,6 +55,7 @@ large release:
 | Release | Character | Candidate scope |
 |---|---|---|
 | v2.4.9 | Published patch-only live-surface correction | #93; no new contracted surface |
+| v2.4.10 | Published repository-local tooling reliability correction | #92; no command-semantic change |
 | v2.5.0 | Authority and acknowledgement contracts | #79, #80, and only necessary #33/#67/#78 slices |
 | v2.6.0 | Coordination reliability | #84, #85, #89, and bounded #76 work |
 | v2.7.0 | MCP and assistant integration | #86-#88, #90, and #92 if still reproduced |
@@ -65,7 +69,7 @@ large release:
   ([#80](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/80)),
   plus only the minimum #33/#67/#78 compatibility slices those contracts need.
 - **Reliability and integration candidates, not yet release promises:**
-  #84/#85/#89 route to v2.6.0; #86-#88/#90/#92 route to v2.7.0; #91/#94
+  #84/#85/#89 route to v2.6.0; #86-#88/#90 route to v2.7.0; #91/#94
   remain later-minor candidates.
   Each requires current-main reproduction, compatibility classification, an
   approved child plan, and Gate 2 evidence. A `v2.5.0` milestone is routing
@@ -80,8 +84,10 @@ large release:
 Issue #81 remains fixed in the v2.4.8 recovery baseline. Issue #93 is fixed in
 the v2.4.9 release: the broken legacy wrapper and dead parity harness are
 removed, current tooling instructions use Rust `agov`, and the published
-archives are checked for regressions. Issue closure follows the release's
-anonymous downloaded-asset verification so the durable record can cite exact
+archives are checked for regressions. Issue #92 is fixed in v2.4.10: the
+repository wrapper is bound to compatible tooling-source content and forwards
+the full Rust parser surface. Issue closure follows anonymous downloaded-asset
+and exact-tag source-checkout verification so the durable record can cite
 Level 5 evidence.
 
 The complete evidence-backed routing is maintained in the
