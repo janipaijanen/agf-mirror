@@ -58,18 +58,20 @@ The ledger records MR IID, exact source head, target head observed, artifact
 class, related issue/plan/coordination chain, unique-content result, current
 pipeline/review evidence, destination, and closure condition.
 
-The initial mechanical cohorts are not final dispositions:
+The exact 93-MR snapshot observed before this plan's own MR was opened is:
 
-- Product/plan/learning candidates requiring content comparison: !340, !341,
-  !349, !407, !430, !459, !461, !463, !465, !654, !658, !661, !739, !745,
-  !746, !755, !776, !800, !805-!807, !810, !827, !829, !850.
-- Coordination/review/approval records: !671-!676, !693, !723, !725-!736,
-  !738, !740-!744, !747-!754, !756-!757, !759-!761, !770-!773, !775,
-  !777-!783, !786-!789, !791, !793-!794, !796, !824, !826, !828,
-  !830-!832, !851, !853-!854.
+!340, !341, !349, !407, !430, !459, !461, !463, !465, !654, !658, !661,
+!671, !672, !673, !674, !675, !676, !693, !723, !725, !726, !727, !728,
+!729, !730, !731, !732, !733, !734, !735, !736, !738, !739, !740, !741,
+!742, !743, !744, !745, !746, !747, !748, !749, !750, !751, !752, !753,
+!754, !755, !756, !757, !759, !760, !761, !770, !771, !772, !773, !775,
+!776, !777, !778, !779, !780, !781, !782, !783, !786, !787, !788, !789,
+!791, !793, !794, !796, !800, !805, !806, !807, !810, !824, !826, !827,
+!828, !829, !830, !831, !832, !850, !851, !853, and !854.
 
-These cohorts enumerate all 93 open MRs observed on 2026-07-31. A cohort never
-substitutes for the per-MR ledger decision.
+This exact list is only the snapshot boundary, not a disposition. The
+per-MR ledger must classify these items and any subsequently opened MR,
+including this plan's own MR !858 if it remains open at execution time.
 
 ## Execution sequence
 
