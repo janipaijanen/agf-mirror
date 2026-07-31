@@ -118,7 +118,8 @@ claim that says "AGF v2 supports". Low-risk background material can carry
 adoption path without verification.
 
 The cleanest long-term mechanism is probably a small audit manifest generated or
-validated by Elixir tooling, with optional inline labels for human-facing pages.
+validated by Rust `agov` tooling, with optional inline labels for human-facing
+pages.
 
 ## Token ROI Zero-Savings Workflow Assessment
 

@@ -1,7 +1,9 @@
 ---
 id: v249-live-tooling-surface-cleanup
-status: pending-gate1
+status: approved
 topic: v249-live-tooling-surface-cleanup
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-31T08:40:25Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted

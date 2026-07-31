@@ -25,7 +25,7 @@ install it from the GitLab release artifacts or adopt from this repository.
 | `agents/` | Agent role definitions (one YAML per role) | Install under `agf/agents/` or use in place |
 | `agents/MANIFEST.yaml` | Example active-role status file (foundry dogfood) | Replace with your own project's role-status file |
 | `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Keep under `agf/rules/`; point your assistant at this canonical copy |
-| `schemas/` | JSON schemas and invariants for validation | Use with Elixir tooling (`tooling/elixir/`) |
+| `schemas/` | JSON schemas and invariants for validation | Use through the shipped Rust `agov` validators |
 | `templates/` | First-run starter files (coordination, plans, learning) | Ask your assistant to prepare first-run evidence from these templates |
 | `skills/` | AI assistant workflow scripts | Keep under `agf/skills/`; use local wrappers only when your tool requires them |
 | `project-specific-examples/` | Stack-specific rule examples | Use only when the stack matches |
