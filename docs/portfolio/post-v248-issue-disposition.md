@@ -54,7 +54,7 @@ claim. Items remain open until the closure condition is evidenced.
 | #89 | v2.6.0 candidate | Child plan !805; include fetched remote-tracking branches without correctness loss. |
 | #90 | v2.7.0 candidate | Child plan !807; package and test a ready-to-copy Claude MCP template. |
 | #91 | Later minor candidate | Bound to observable source-omission controls; do not claim omission elimination without evidence. |
-| #92 | v2.7.0 candidate | Reproduced wrapper/Rust registry drift; require one authoritative command inventory and parity tests. |
+| #92 | v2.4.10 patch | Reproduced wrapper/Rust registry drift plus silent stale-binary selection; user approved a separate bounded reliability patch after v2.4.9. Require one command authority, deterministic source compatibility, fail-closed recovery, and exact-head gates. |
 | #93 | v2.4.9 patch | **Still reproduces on post-v2.4.8 `main`:** `bin/agf` exists and MR templates invoke Mix. Plan a bounded patch-compatible live-surface cleanup. |
 | #94 | Later minor candidate | Post-recovery release-truth/compatibility work; child-plan and compatibility classification required. |
 | #96 | T0 learning intake | Preserve the single-adopter three-way upgrade-comparison evidence as a canonical learning or explicitly reject it; its recommendation informs #79 without silently expanding v2.5.0 scope. |
