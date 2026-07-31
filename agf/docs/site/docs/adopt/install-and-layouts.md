@@ -9,10 +9,11 @@ and reviewed the evidence.*
 
 - A git repository for the project you want to govern.
 - An AI coding assistant that loads natural-language instructions
-  (the reference implementation targets Claude Code; the rule content is
-  tool-agnostic and has been tested with Cursor, Codex CLI, Copilot, and
-  Windsurf). Before the first governed change, configure the assistant to
-  see the AGF files and verify that it can name the rules it loaded; see
+  (the rule content is tool-agnostic; the author-operated evidence covers the
+  Claude and Codex integrations in Visual Studio Code, while independent
+  corroboration for other assistants is still wanted). Before the first
+  governed change, configure the assistant to see the AGF files and verify
+  that it can name the rules it loaded; see
   [assistant loader configuration](assistant-loader-configuration.md).
 - The `agov` command available if you want to run the current core validators
   locally and in CI. In a full checkout, symlink `tooling/agov` into
@@ -118,9 +119,11 @@ Paste this into your coding assistant:
 ```text
 Commission AGF in this repository.
 
-Use the AGF v2.0 distribution I have provided. Prepare the repository for a
-first governed change, but do not invent approvals or claim the framework is
-adopted until I review the diff.
+Use the pinned AGF distribution I have made available in this repository,
+either as a release archive or an extracted `agf/` directory. Do not fetch
+or substitute a different version. Prepare the repository for a first
+governed change, but do not invent approvals or claim the framework is adopted
+until I review the diff.
 
 Create or update:
 - agf/ as the single framework directory
