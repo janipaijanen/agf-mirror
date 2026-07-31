@@ -1,7 +1,9 @@
 ---
 id: v2410-local-agov-freshness
-status: pending-gate1
+status: approved
 topic: v2410-local-agov-freshness
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-07-31T10:15:37Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
