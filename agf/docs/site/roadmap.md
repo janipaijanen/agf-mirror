@@ -71,10 +71,10 @@ large release:
   proposed, Gate 1 plan open in [MR !746](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/746),
   not yet approved.
 
-Issue #81 is fixed in the v2.4.8 released baseline. Issue #93 is not: live Mix
-instructions and the broken `bin/agf` entry point still reproduce on current
-`main`, so its patch-compatible cleanup is routed to v2.4.9 rather than being
-falsely closed as v2.4.7/v2.4.8 work.
+Issue #81 is fixed in the v2.4.8 released baseline. The v2.4.9 implementation
+removes issue #93's broken legacy wrapper and corrects current tooling
+instructions, but #93 remains open until the v2.4.9 published artifacts prove
+the patch is deployable. The current public release therefore remains v2.4.8.
 
 The complete evidence-backed routing is maintained in the
 [issue disposition ledger](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/portfolio/post-v248-issue-disposition.md)

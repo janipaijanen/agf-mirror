@@ -1382,7 +1382,7 @@ Key mappings:
 | Pattern 6: Fast Track | `simplicity-rule.md` — task-size calibration |
 | Pattern 7: Documentation Review | `documentation-audience-rule.md`, `marketing-tone-rule.md`, `feature-flagged-docs-rule.md` |
 | Appendix: Validation Status | `implementation-honesty-rule.md` — five-level domain maturity model, `verifiable-claims-rule.md` — no unverifiable factual claims |
-| Cross-Cutting: InfoSec Sentinel | `mix agov.validate.infosec` — screens learning records for information leaks; `agents/infosec-sentinel.yaml` — agent definition |
+| Cross-Cutting: InfoSec Sentinel | `agov validate infosec` — screens learning records for information leaks; `agents/infosec-sentinel.yaml` — agent definition |
 
 Stack-specific examples (e.g., Python + Flask + Alembic, SaaS multi-tenant, Tailwind + DaisyUI) are in [`project-specific-examples/`](project-specific-examples/). See [ADOPTING.md](ADOPTING.md) Step 1.4 for adoption instructions.
 

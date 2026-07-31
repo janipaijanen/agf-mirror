@@ -109,7 +109,7 @@ Per-MR: the contributor includes the negative test in the MR description; the re
 
 Per-milestone: framework operators audit recent gate-introduction MRs; any that landed without a negative test are flagged and the gate is re-verified post-hoc.
 
-Tooling (recommended, future): a CI check that scans MR descriptions for a `## Negative test` heading or similar marker, blocking merge if absent on MRs that touch known gate-introduction paths (`.git-hooks/`, `tooling/elixir/lib/mix/tasks/agov.validate*`, `.gitlab-ci.yml` rules blocks). Out of scope for the rule's introduction; track as a follow-up issue if adopted.
+Tooling (recommended, future): a CI check that scans MR descriptions for a `## Negative test` heading or similar marker, blocking merge if absent on MRs that touch known gate-introduction paths (`.git-hooks/`, Rust validator/CLI sources under `tooling/rust/crates/`, `.gitlab-ci.yml` rules blocks). Out of scope for the rule's introduction; track as a follow-up issue if adopted.
 
 ## Why MUST on three-source evidence
 
