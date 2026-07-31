@@ -60,6 +60,20 @@ fn version_json_reports_structured_provenance() {
         value["source_dirty"].is_boolean(),
         "source_dirty should be boolean, got: {value}"
     );
+    let source_fingerprint = value["source_fingerprint"]
+        .as_str()
+        .expect("source_fingerprint should be a string");
+    assert_eq!(
+        source_fingerprint.len(),
+        64,
+        "source_fingerprint should be a SHA-256 digest, got: {value}"
+    );
+    assert!(
+        source_fingerprint
+            .chars()
+            .all(|character| character.is_ascii_hexdigit()),
+        "source_fingerprint should be hexadecimal, got: {value}"
+    );
     let commit = value["commit"].as_str().unwrap();
     assert!(
         commit == "unknown"

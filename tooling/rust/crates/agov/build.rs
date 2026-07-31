@@ -5,6 +5,7 @@ fn main() {
     println!("cargo:rerun-if-env-changed=AGOV_BUILD_COMMIT");
     println!("cargo:rerun-if-env-changed=AGOV_BUILD_DIRTY");
     println!("cargo:rerun-if-env-changed=AGOV_BUILD_SOURCE_DIRTY");
+    println!("cargo:rerun-if-env-changed=AGOV_BUILD_SOURCE_FINGERPRINT");
 
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
     let repo_root = Path::new(&manifest_dir)
@@ -37,6 +38,30 @@ fn main() {
         .filter(|value| value == "true" || value == "false")
         .unwrap_or_else(|| tracked_source_dirty(repo_root).to_string());
     println!("cargo:rustc-env=AGOV_SOURCE_DIRTY={source_dirty}");
+    let source_fingerprint = std::env::var("AGOV_BUILD_SOURCE_FINGERPRINT")
+        .ok()
+        .filter(|value| is_sha256(value))
+        .or_else(|| source_fingerprint(repo_root))
+        .unwrap_or_else(|| "unknown".to_string());
+    println!("cargo:rustc-env=AGOV_SOURCE_FINGERPRINT={source_fingerprint}");
+}
+
+fn source_fingerprint(repo_root: &Path) -> Option<String> {
+    let output = Command::new("sh")
+        .arg(repo_root.join("tooling/rust/scripts/agov-source-fingerprint.sh"))
+        .arg(repo_root)
+        .current_dir(repo_root)
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let value = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    is_sha256(&value).then_some(value)
+}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 fn rerun_if_git_path_changes(repo_root: &Path, name: &str) {
