@@ -28,7 +28,7 @@ Disposition meanings:
 | !465 | Learning | Refresh canonical polling/branch-coverage learning or archive and close with successor. |
 | !654 | Gate 1 plan | Supersession audit against current loader/rules state; close only with a named approved successor or merge after Gate 1. |
 | !658 | Governance implementation | Refresh candidate; role-manifest changes require current exact-head governor review. |
-| !661 | Earlier v2.5 discovery plan | Supersession candidate: !755 plus merged !858 are controlling; preserve unique records, then close. |
+| !661 | Earlier v2.5 discovery plan | **Closed as superseded:** !755 and !858 are controlling; its unique coordination is preserved by merged archive !860 and its source branch remains available. |
 | !671 | Coordination | Archive → close. |
 | !672 | Review coordination | Archive → close. |
 | !673 | Session closeout | Archive → close. |
