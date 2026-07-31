@@ -1,7 +1,9 @@
 ---
 id: post-v248-portfolio-and-roadmap-reconciliation
-status: pending-gate1
+status: approved
 topic: post-v248-portfolio-and-roadmap-reconciliation
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-07-31T06:34:40Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
