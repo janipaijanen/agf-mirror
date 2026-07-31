@@ -58,7 +58,7 @@ large release:
 | v2.4.10 | Published repository-local tooling reliability correction | #92; no command-semantic change |
 | v2.5.0 | Authority and acknowledgement contracts | #79, #80, and only necessary #33/#67/#78 slices |
 | v2.6.0 | Coordination reliability | #84, #85, #89, and bounded #76 work |
-| v2.7.0 | MCP and assistant integration | #86-#88, #90, and #92 if still reproduced |
+| v2.7.0 | MCP and assistant integration | #86-#88 and #90 |
 | Later minor | Separately gated work | #91, #94, and approved backlog themes |
 
 ## In scope now
