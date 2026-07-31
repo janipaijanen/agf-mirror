@@ -7,7 +7,7 @@ gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
-    reason: "The external-review claim triage already identifies non-Claude assistant evidence as an open independent-adopter gap. This plan preserves that gap while separating it from author-operated Claude and Codex evidence. A renewed exact-text contribution review remains required before Gate 2."
+    reason: "Review 20260731T180442Z-contribution-auditor-g1sr returned CLEAR and confirmed the three defects, evidence boundary, telemetry treatment, independent-adopter gap, and scope containment. This revision incorporates its explicit-author-attribution advisory; exact implementation text still requires review before Gate 2."
   - role: infosec-sentinel
     status: not-applicable
     reason: "Public prose only: no credentials, private paths, learning payloads, executable behavior, network trust boundary, authorization semantics, or security controls change. Telemetry is summarized as aggregate counts and no raw records are published."
@@ -51,9 +51,10 @@ The commissioning prompt will say exactly:
 Compatibility prose will state, without implying independence or universal
 editor/version coverage:
 
-> AGF and AGOV are developed through sustained use of both the Claude and
-> Codex integrations in Visual Studio Code. They have been used for governed
-> planning, implementation, validation, review, and release work.
+> The project author has developed AGF and AGOV through sustained use of both
+> the Claude and Codex integrations in Visual Studio Code. The integrations
+> have been used for governed planning, implementation, validation, review,
+> and release work.
 
 The contribution page will continue asking for independent experience with
 Codex, Cursor, Windsurf, and other assistants. It must frame that request as
@@ -90,8 +91,9 @@ compatibility is unknown.
 ## Acceptance evidence
 
 1. The commissioning prompt uses the approved text and no longer pins v2.0.
-2. Public compatibility prose names both Claude and Codex integrations in
-   Visual Studio Code and the actual governed workflows.
+2. Public compatibility prose explicitly attributes the evidence to the
+   project author and names both Claude and Codex integrations in Visual Studio
+   Code and the actual governed workflows.
 3. The foundry page no longer says Claude Code is the sole development path.
 4. The independent-adopter request remains visible and clearly independent.
 5. No claim says the telemetry itself proves the IDE surface, universal
