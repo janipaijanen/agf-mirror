@@ -6,7 +6,7 @@ assistants locating the authoritative plan and evidence.*
 | Field | Value |
 |---|---|
 | Status | Released baseline confirmed; next release train **approved**, Gate 1 |
-| Observed at | 2026-07-31T06:34:40Z |
+| Observed at | 2026-07-31T06:56:54Z |
 | Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
 | Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
