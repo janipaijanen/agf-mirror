@@ -2,7 +2,15 @@
 set -eu
 
 fixture=$(mktemp -d)
-trap 'rm -rf "$fixture"' EXIT HUP INT TERM
+linked=
+cleanup() {
+  if [ -n "$linked" ]; then
+    git -C "$fixture" worktree remove --force "$linked" >/dev/null 2>&1 || true
+    rm -rf "$linked"
+  fi
+  rm -rf "$fixture"
+}
+trap cleanup EXIT HUP INT TERM
 
 mkdir -p "$fixture/tooling/rust/target/release" "$fixture/agf/schemas" "$fixture/agf/agents"
 cp "$(git rev-parse --show-toplevel)/tooling/agov" "$fixture/tooling/agov"
@@ -29,7 +37,12 @@ git -C "$fixture" commit -qm initial
 initial=$(git -C "$fixture" rev-parse HEAD)
 
 expect_run() {
-  output=$(cd "$fixture" && PROVENANCE_COMMIT=$1 ./tooling/agov --version 2>&1)
+  commit=$1
+  shift
+  if [ "$#" -eq 0 ]; then
+    set -- --version
+  fi
+  output=$(cd "$fixture" && PROVENANCE_COMMIT=$commit ./tooling/agov "$@" 2>&1)
   printf '%s' "$output" | grep -q 'fixture agov ran'
 }
 
@@ -60,6 +73,10 @@ sensitive=$(git -C "$fixture" rev-parse HEAD)
 expect_reject "$initial"
 expect_run "$sensitive"
 
+# The wrapper forwards the authoritative Rust command tree instead of
+# rejecting commands through a second hand-maintained registry.
+expect_run "$sensitive" coord publication-check --help
+
 # A feature build that descends from the requested base remains valid.
 output=$(cd "$fixture" && PROVENANCE_COMMIT=$sensitive ./tooling/agov session resume --base-branch "$initial" 2>&1)
 printf '%s' "$output" | grep -q 'fixture agov ran'
@@ -77,5 +94,16 @@ status=$?
 set -e
 [ "$status" -eq 127 ]
 printf '%s' "$output" | grep -q 'stale relative to requested base newer'
+
+# Invoking one worktree's wrapper from another linked worktree must fail with
+# the correct local wrapper path instead of silently binding to the first tree.
+linked="${fixture}-linked"
+git -C "$fixture" worktree add -q "$linked" "$sensitive"
+set +e
+output=$(cd "$linked" && PROVENANCE_COMMIT=$sensitive "$fixture/tooling/agov" --version 2>&1)
+status=$?
+set -e
+[ "$status" -eq 126 ]
+printf '%s' "$output" | grep -q "$linked/tooling/agov"
 
 echo 'OK agov wrapper freshness gate'
