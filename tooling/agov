@@ -12,66 +12,15 @@ fi
 repo_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
 rust_debug="$repo_root/tooling/rust/target/debug/agov"
 rust_release="$repo_root/tooling/rust/target/release/agov"
+source_fingerprint_tool="$repo_root/tooling/rust/scripts/agov-source-fingerprint.sh"
 freshness_paths="tooling/agov tooling/rust agf/schemas agf/agents/MANIFEST.yaml"
 
 export AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}"
 export AGOV_MANIFEST_PATH="${AGOV_MANIFEST_PATH:-$repo_root/agf/agents/MANIFEST.yaml}"
 
-rust_supported() {
-  case "${1:-}" in
-    -V|--version|version)
-      return 0
-      ;;
-    coord)
-      case "${2:-}" in
-        -h|--help|help) return 0 ;;
-        validate|brief|post|list|status|stale) return 0 ;;
-        visibility) return 0 ;;
-        graph|graph-index) return 0 ;;
-      esac
-      ;;
-    plan)
-      case "${2:-}" in
-        validate) return 0 ;;
-      esac
-      ;;
-    validate)
-      return 0
-      ;;
-    handoff)
-      case "${2:-}" in
-        next|take|complete) return 0 ;;
-      esac
-      ;;
-    session)
-      case "${2:-}" in
-        resume) return 0 ;;
-      esac
-      ;;
-    token)
-      case "${2:-}:${3:-}" in
-        roi:report) return 0 ;;
-      esac
-      ;;
-    dist)
-      case "${2:-}" in
-        validate|build|check-tag) return 0 ;;
-      esac
-      ;;
-    usage)
-      case "${2:-}" in
-        report) return 0 ;;
-      esac
-      ;;
-    agov.coord.validate|agov.plan.validate|agov.session.resume|agov.token.roi|agov.usage.report)
-      return 0
-      ;;
-  esac
-
-  return 1
-}
-
 run_rust() {
+  guard_invocation_worktree
+
   if [ "${AGOV_ALLOW_STALE_LOCAL_BINARY:-0}" = "1" ]; then
     if [ "${CI:-}" = "true" ]; then
       echo "agov: AGOV_ALLOW_STALE_LOCAL_BINARY is forbidden in CI" >&2
@@ -87,12 +36,36 @@ run_rust() {
   fi
 
   base_ref=$(requested_base_ref "$@")
-  if [ -x "$rust_release" ] && binary_is_fresh "$rust_release" "$base_ref"; then
+  if [ ! -x "$source_fingerprint_tool" ]; then
+    echo "agov: source fingerprint tool is missing or not executable: $source_fingerprint_tool" >&2
+    return 127
+  fi
+  source_fingerprint=$($source_fingerprint_tool "$repo_root") || {
+    echo "agov: failed to fingerprint tooling sources in $repo_root" >&2
+    return 127
+  }
+
+  if [ -x "$rust_release" ] && binary_is_fresh "$rust_release" "$base_ref" "$source_fingerprint"; then
     exec "$rust_release" "$@"
   fi
 
-  if [ -x "$rust_debug" ] && binary_is_fresh "$rust_debug" "$base_ref"; then
+  if [ -x "$rust_debug" ] && binary_is_fresh "$rust_debug" "$base_ref" "$source_fingerprint"; then
     exec "$rust_debug" "$@"
+  fi
+
+  if command -v cargo >/dev/null 2>&1; then
+    echo "agov: rebuilding stale or missing repository-local release binary" >&2
+    if AGOV_BUILD_SOURCE_FINGERPRINT="$source_fingerprint" \
+      cargo build --quiet --release --locked \
+        --manifest-path "$repo_root/tooling/rust/Cargo.toml" -p agov; then
+      if [ -x "$rust_release" ] \
+        && binary_is_fresh "$rust_release" "$base_ref" "$source_fingerprint"; then
+        exec "$rust_release" "$@"
+      fi
+      echo "agov: rebuilt binary failed source compatibility verification" >&2
+    else
+      echo "agov: release rebuild failed" >&2
+    fi
   fi
 
   cat >&2 <<EOF
@@ -101,6 +74,36 @@ Rebuild from the intended checkout, then retry:
   cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
 EOF
   return 127
+}
+
+guard_invocation_worktree() {
+  invocation_root=$(git -C "${PWD:-.}" rev-parse --show-toplevel 2>/dev/null || true)
+  if [ -z "$invocation_root" ] || [ "$invocation_root" = "$repo_root" ]; then
+    return 0
+  fi
+
+  wrapper_common=$(git_common_dir "$repo_root" || true)
+  invocation_common=$(git_common_dir "$invocation_root" || true)
+  if [ -n "$wrapper_common" ] && [ "$wrapper_common" = "$invocation_common" ]; then
+    cat >&2 <<EOF
+agov: wrapper/worktree mismatch.
+This wrapper belongs to:
+  $repo_root/tooling/agov
+Use the wrapper from the current worktree:
+  $invocation_root/tooling/agov
+EOF
+    return 126
+  fi
+}
+
+git_common_dir() {
+  root=$1
+  common=$(git -C "$root" rev-parse --git-common-dir 2>/dev/null) || return 1
+  case "$common" in
+    /*) common_path=$common ;;
+    *) common_path=$root/$common ;;
+  esac
+  (CDPATH= cd -- "$common_path" 2>/dev/null && pwd)
 }
 
 requested_base_ref() {
@@ -126,15 +129,16 @@ requested_base_ref() {
 binary_is_fresh() {
   binary=$1
   base_ref=$2
+  expected_fingerprint=$3
   provenance=$($binary version --format json 2>/dev/null || true)
   case "$provenance" in
-    *'"commit":"'*'"source_dirty":'*) ;;
+    *'"commit":"'*'"source_fingerprint":"'*) ;;
     *) provenance='' ;;
   esac
   commit=${provenance#*'"commit":"'}
   commit=${commit%%\"*}
-  source_dirty=${provenance#*'"source_dirty":'}
-  source_dirty=${source_dirty%\}}
+  source_fingerprint=${provenance#*'"source_fingerprint":"'}
+  source_fingerprint=${source_fingerprint%%\"*}
 
   case "$commit" in
     ''|*[!0-9a-fA-F]*)
@@ -146,8 +150,8 @@ binary_is_fresh() {
     echo "WARN rejected $binary: missing or malformed full commit provenance" >&2
     return 1
   fi
-  if [ "$source_dirty" != "false" ]; then
-    echo "WARN rejected $binary: build-relevant tracked sources were dirty" >&2
+  if [ "$source_fingerprint" != "$expected_fingerprint" ]; then
+    echo "WARN rejected $binary: tooling source fingerprint differs" >&2
     return 1
   fi
   if ! head=$(git -C "$repo_root" rev-parse --verify "HEAD^{commit}" 2>/dev/null); then
@@ -160,10 +164,6 @@ binary_is_fresh() {
   fi
   if [ -n "$base_ref" ] && ! base_matches_binary "$commit" "$base_ref"; then
     echo "WARN rejected $binary: stale relative to requested base $base_ref" >&2
-    return 1
-  fi
-  if ! git -C "$repo_root" diff-index --quiet HEAD -- $freshness_paths; then
-    echo "WARN rejected $binary: tracked freshness-sensitive files are modified" >&2
     return 1
   fi
   return 0
@@ -196,85 +196,4 @@ base_matches_binary() {
     && git -C "$repo_root" diff --quiet "$commit" "$base" -- $freshness_paths
 }
 
-case "${1:-}" in
-  -h|--help)
-    cat <<EOF
-Usage:
-  agov --version
-  agov version [--format text|json]
-  agov coord validate <file>...
-  agov coord brief [--id-format ulid|readable] [--from <role>] [--to <role>] [--kind <kind>] [--topic <topic>]
-  agov coord post --from <role> --to <role> --kind <kind> --topic <topic> [--ref <message>]
-  agov coord list [--since <message-id-or-timestamp>] [--format text|json]
-  agov coord status [--dir <coord-dir>] [--recent <n>] [--roles]
-  agov coord stale [--dir <coord-dir>]
-  agov coord visibility [--base-branch <branch>] [--branch <branch>] [--format text|json]
-  agov coord graph [--dir <coord-dir>] [--format dot|text]
-  agov coord graph-index [--dir <coord-dir>] [--output <file>]
-  agov plan validate <file>...
-  agov agov.coord.validate <file>...
-  agov agov.plan.validate <file>...
-  agov validate [adoption|agents|learnings|infosec|contributions|framework-config]
-  agov handoff next <agent-role> [--dir <coord-dir>]
-  agov handoff take <handoff-id> --from <role> [--dir <coord-dir>]
-  agov handoff complete <handoff-id> --from <role> [--to <role>] [--dir <coord-dir>]
-  agov session resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
-  agov agov.session.resume [--role <agent-role>] [--base-branch <branch>] [--dir <coord-dir>]
-  agov token roi report [--log <path>]
-  agov agov.token.roi report [--log <path>]
-  agov dist validate
-  agov dist build
-  agov dist check-tag
-  agov usage report [--dir <coord-dir>] [--manifest <path>] [--last <n>]
-  agov agov.usage.report [--dir <coord-dir>] [--manifest <path>] [--last <n>]
-
-Rust implementation is the supported operator path. If a command is missing
-from Rust, stop and report the tooling gap instead of falling back to legacy
-tooling.
-
-Build local Rust executable:
-  cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
-
-Use release builds for normal agent/operator work. Use debug builds only when
-actively debugging Rust internals:
-  cargo build --manifest-path tooling/rust/Cargo.toml -p agov
-EOF
-    exit 0
-    ;;
-esac
-
-if rust_supported "$@"; then
-  run_rust "$@"
-fi
-
-cat >&2 <<EOF
-agov: command not available in local Rust tooling.
-
-If this is a supported command, build the Rust executable first:
-  cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
-  export PATH="\$PWD/tooling:\$PATH"
-
-If the command is not yet implemented in Rust, stop and report the gap.
-Do not use legacy tooling for routine agent or operator work.
-
-Supported Rust commands:
-  agov --version
-  agov version [--format text|json]
-  agov coord validate <file>...
-  agov coord brief [--id-format ulid|readable] [--from <role>]
-  agov coord post --from <role> --to <role> --kind <kind> --topic <topic>
-  agov coord list [--since <message-id-or-timestamp>] [--format text|json]
-  agov coord status [--dir <coord-dir>]
-  agov coord stale [--dir <coord-dir>]
-  agov coord visibility [--base-branch <branch>]
-  agov coord graph [--dir <coord-dir>] [--format dot|text]
-  agov coord graph-index [--dir <coord-dir>] [--output <file>]
-  agov plan validate <file>...
-  agov handoff next <agent-role> [--dir <coord-dir>]
-  agov handoff take <handoff-id> --from <role> [--dir <coord-dir>]
-  agov handoff complete <handoff-id> --from <role> [--to <role>] [--dir <coord-dir>]
-  agov session resume [--role <agent-role>] [--base-branch <branch>]
-  agov token roi report [--log <path>]
-  agov usage report [--dir <coord-dir>] [--manifest <path>]
-EOF
-exit 127
+run_rust "$@"
