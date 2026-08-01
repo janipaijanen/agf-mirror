@@ -3,6 +3,23 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [Unreleased]
+
+### Fixed
+
+- `agf/rules/always/governance-file-layout-rule.md` no longer presents
+  "Layout A"/"Layout B" as a live adopter choice. AGF v2.0 supports exactly
+  one adoption layout — already stated in `agf/ADOPTING.md` and
+  `agf/docs/site/docs/adopt/install-and-layouts.md` — and the rule's
+  `<!-- CUSTOMIZE -->` template contradicted both. Replaced with the real
+  single-layout ownership table (adopter-owned vs. upstream-owned paths)
+  and corrected a stale `ADOPTING.md` header pointer and a pre-rename
+  example path.
+
+Adopter docs: not applicable — corrects the rule's own description of an
+already-documented, already-shipped single-layout reality; no adopter
+doc, template, or behavior changes as a result.
+
 ## [2.4.11] — 2026-08-01
 
 Documentation and accessibility patch.

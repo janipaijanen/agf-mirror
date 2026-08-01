@@ -8,6 +8,23 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Fixed
+
+- `agf/rules/always/governance-file-layout-rule.md` and its
+  `.claude/rules/` copy no longer present "Layout A"/"Layout B" as a live
+  adopter choice. AGF v2.0 supports exactly one adoption layout, already
+  stated in `agf/ADOPTING.md` and `agf/docs/site/docs/adopt/install-and-layouts.md`;
+  the rule's stale `<!-- CUSTOMIZE -->` template contradicted both. Replaced
+  with the real single-layout ownership table (which paths are
+  adopter-owned vs. upstream-owned) and corrected a stale header pointer
+  and a pre-rename example path. Editorial — no change to which files are
+  adopter-owned or upstream-owned, only to the rule's own description of
+  that fact.
+
+Adopter docs: not applicable — corrects the rule's internal description of
+an already-documented, already-shipped single-layout reality; no adopter
+doc, template, or behavior changes as a result.
+
 ## [2.4.11] - 2026-08-01
 
 Documentation and accessibility patch.
