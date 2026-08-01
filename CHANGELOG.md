@@ -8,6 +8,39 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.4.11] - 2026-08-01
+
+Documentation and accessibility patch.
+
+### Added
+
+- Added a visible AI-generation disclosure and descriptive alternative text
+  to every public figure embed in `README.md` and the public documentation
+  site (33 embeds), and an AI-assistance/human-responsibility acknowledgement
+  in `README.md` and the generated release-information page.
+- Added a strict-build accessibility hook
+  (`agf/docs/build/hooks/figure_accessibility.py`) that enforces the above
+  going forward. An adopter who reuses the supplied MkDocs configuration
+  unmodified inherits this same check over their own content.
+- Added title/description metadata to all 13 public SVG figure pairs.
+- Stated the disclosure measure as supporting Article 50 (EU AI Act)
+  transparency and accessibility objectives, without claiming legal
+  certification. Academic paper PDF figures remain outside this release's
+  accessibility scope, as a separately tracked follow-up.
+
+### Fixed
+
+- Corrected the copyable commissioning prompt's stale hard-coded version pin
+  (issue #97).
+- Corrected public compatibility prose to describe sustained author-operated
+  Claude and Codex integration use in Visual Studio Code, attributed
+  explicitly to the project author, without asserting independent-adopter or
+  universal-compatibility coverage. The contribution page's request for
+  independent corroboration is unchanged.
+- Fixed the figure renderer's relative-path invocation
+  (`agf/docs/figures/render_svg.py`), which previously misrouted the public
+  site copy when run via its documented invocation.
+
 ### Removed
 
 - Removed `docs/academic/` (the "Governing the Governors" working paper,
@@ -15,7 +48,20 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   relocating it verbatim to `agf-promotional`, where the project's
   promotional and explanatory content about AGF lives. Historical
   coordination records, plans, and `agf/CHANGELOG.md` entries that
-  reference the old path are preserved verbatim as governed evidence.
+  reference the old path are preserved verbatim as governed evidence. This
+  removal predates and is independent of the accessibility work above; it
+  is included here because it was not yet part of a tagged release.
+
+### Validation
+
+- Rust workspace: 299 passed, 0 failed, 3 ignored (version-only bump; no
+  Rust source changed in this release). Clippy clean with warnings denied.
+- Strict `mkdocs build` including the new accessibility hook: passed.
+
+Addresses issue #97. The issue closes only after the published v2.4.11
+assets and site pass post-publication verification.
+
+Adopter docs: updated
 
 ## [2.4.10] - 2026-07-31
 

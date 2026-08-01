@@ -1,13 +1,13 @@
 ---
 id: v2411-release-publication
-status: pending-gate1
+status: approved
 topic: v2411-release-publication
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer decision 20260801T171157Z-governor-reviewer-hek5; MR !903 exact head f6743bf6e8d431a928844f659b3f9ef139295d70"
+gate1_approved_at: "2026-08-01T17:11:57Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
-    reason: "Both candidate batch items already carry prior contribution-auditor review at their own exact heads: MR !890 (docs/coordination/20260731T180442Z-contribution-auditor-g1sr, CLEAR) and MR !894 (docs/coordination/20260801T123434Z-contribution-auditor-6mkq, CLEAR, renewed after an evidence correction). This plan only sequences their joint publication and adds no new implementation content. A renewed review of this exact plan head is still required before Gate 1, per the governor handoff requesting it."
+    reason: "Both candidate batch items already carry prior contribution-auditor review at their own exact heads: MR !890 (docs/coordination/20260731T180442Z-contribution-auditor-g1sr, CLEAR) and MR !894 (docs/coordination/20260801T123434Z-contribution-auditor-6mkq, CLEAR, renewed after an evidence correction). This plan only sequences their joint publication and adds no new implementation content. Renewed review 20260801T161803Z-contribution-auditor-p7qe returned CLEAR with two advisories, both promoted to mandatory Gate 2 acceptance checks by the Gate 1 decision-record."
   - role: infosec-sentinel
     status: not-applicable
     reason: "Release routing and version/changelog metadata only, over content both already assessed not-applicable for InfoSec (public prose, accessibility metadata, and a documentation-build hook with no credential, dependency, network trust boundary, learning-payload, or authorization-semantic change)."
@@ -129,19 +129,27 @@ own existing per-version formatting, but must express this release truth:
 > going forward, adds title/description metadata to all 13 public SVG
 > figure pairs, and fixes the figure renderer's relative-path invocation.
 > It states the measure as supporting Article 50 transparency and
-> accessibility objectives without claiming legal certification. Academic
-> paper PDF figures remain outside this release's accessibility scope, as a
+> accessibility objectives without claiming legal certification. An adopter
+> who reuses the supplied MkDocs configuration unmodified inherits the same
+> strict figure-accessibility check over their own content. Academic paper
+> PDF figures remain outside this release's accessibility scope, as a
 > separately tracked follow-up. Adopter docs: updated. Issue #97 closes
 > only after public artifact verification.
 
 The release changelogs must use the actual test/build counts and pass
 results from the final release branch run, not assume unchanged counts from
-v2.4.10.
+v2.4.10. The adopter-fork disclosure sentence above is a mandatory Gate 2
+acceptance check per the Gate 1 decision-record
+(`docs/coordination/20260801T171157Z-governor-reviewer-hek5.md`), not an
+optional wording preference.
 
 ## Validation before Gate 2
 
 The release MR must provide exact-head evidence for:
 
+- a grep-based check that no touched file in the version-surface edit set
+  (plan item 5) reintroduces a `docs/academic/` or other already-relocated
+  content reference; mandatory per the Gate 1 decision-record;
 - a focused version audit showing every current release-truth surface is
   2.4.11 and historical evidence was not rewritten;
 - Cargo metadata showing exactly five workspace packages at 2.4.11 and the
