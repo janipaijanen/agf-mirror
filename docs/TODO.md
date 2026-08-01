@@ -210,10 +210,11 @@ Academic-peer-reviewer should review any claim that generated topology
 represents observed project evidence.
 
 Teach Rust `agov` to generate the DOT source for these currently hand-authored
-academic figures:
+academic figures. The "Governing the Governors" paper and its figures
+relocated to `agf-promotional` (`docs/academic/`); the target files are now:
 
-- `docs/academic/figures/src/agent-participation-by-phase.dot`
-- `docs/academic/figures/src/role-communication-topology.dot`
+- `docs/academic/figures/src/agent-participation-by-phase.dot` (in `agf-promotional`)
+- `docs/academic/figures/src/role-communication-topology.dot` (in `agf-promotional`)
 
 This is source generation, not merely rendering existing DOT with Graphviz.
 The existing `agov coord graph --format dot` command is only a partial

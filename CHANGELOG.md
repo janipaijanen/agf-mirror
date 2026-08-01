@@ -8,6 +8,15 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Removed
+
+- Removed `docs/academic/` (the "Governing the Governors" working paper,
+  IEEE build files, figures, and academic/visual review records) after
+  relocating it verbatim to `agf-promotional`, where the project's
+  promotional and explanatory content about AGF lives. Historical
+  coordination records, plans, and `agf/CHANGELOG.md` entries that
+  reference the old path are preserved verbatim as governed evidence.
+
 ## [2.4.10] - 2026-07-31
 
 Patch release making the repository-local `tooling/agov` launcher
