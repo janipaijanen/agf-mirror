@@ -218,6 +218,17 @@ Figure sources are Graphviz DOT files under
 including the governance loop, gate pipeline, coordination channel, and
 exit-flow diagrams referenced elsewhere in these docs.
 
+## Acknowledgement of AI assistance
+
+AI assistants have contributed to this project, including planning, drafting,
+implementation, testing, documentation, and review. Their work is subject to
+the project's governed review process.
+
+AI assistants do not approve gates or releases and do not hold project
+authority. The human maintainer and governor, Jani Päijänen, retains approval
+authority, authorizes publication, and takes responsibility for the published
+content and project decisions.
+
 ## How to cite
 
 If you use agents-govern in research or a published project:
