@@ -88,12 +88,13 @@ risk description; it reproduces.
 - Select and document the adopter-owned canonical path for the role-roster
   manifest (candidate: project-root `governance/MANIFEST.yaml`, consistent
   with `governance-file-layout-rule.md`'s existing `GOVERNANCE_ROOT`
-  convention). This is an adopter-facing tooling contract, not specific to
-  this project's own layout — this project itself uses Layout B (confirmed:
-  `agf/agents/MANIFEST.yaml`'s header comment states `Layout: B`), but the
-  `agov` path-resolution logic must work correctly for a Layout A adopter
-  too, per that rule's own detection method, not assume Layout B
-  universally.
+  convention). **Correction from the governor:** this project supports a
+  single adopter layout, not a configurable choice between multiple
+  layouts — confirmed as Layout B (`agf/agents/MANIFEST.yaml`'s header
+  comment states `Layout: B`). The `agov` path-resolution logic targets
+  that one supported layout; it does not need to detect or support an
+  alternate layout. An earlier draft of this plan incorrectly scoped this
+  as a multi-layout compatibility requirement — removed.
 - Rename the shipped example to `agf/agents/MANIFEST.example.yaml`; update
   `ADOPTING.md` and `install-and-layouts.md` with one canonical statement
   (per `marketing-tone-rule.md`'s message-integrity rule) describing the
