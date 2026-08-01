@@ -6,24 +6,46 @@ provenance: verified-agf-v2
 # Governance File Layout
 #
 # Framework principle: Artifact Ownership
-# See: ADOPTING.md — "Where to put files"
+# See: ADOPTING.md — "Confirm the layout"
 # Evidence: sage-review created root-level governance dirs twice by
 #   following ADOPTING.md paths literally in a subdirectory layout.
+# Corrected 2026-08-01: this rule previously offered a choice between two
+#   layouts ("Layout A: framework-as-project" / "Layout B: framework-as-
+#   subdirectory") via a commented-out CUSTOMIZE block. That choice is not
+#   real — AGF v2.0 has supported exactly one layout since v2.0.0, stated
+#   explicitly in ADOPTING.md ("AGF v2.0 supports one adoption layout") and
+#   in install-and-layouts.md ("AGF v2.0 uses one supported layout"). The
+#   dual-option block was stale leftover framing, not a live adopter
+#   choice, and is removed below.
 
-Before creating or modifying governance files (`learnings/`, `agents/`,
-`docs/adr/`, `GOVERNANCE.md`), determine which layout this project uses:
+AGF v2.0 supports exactly one layout: the framework lives inside the
+project as the visible `agf/` directory. Governance-artifact placement is
+not directory-based (there is no separate "governance root" outside
+`agf/`) — it is ownership-based, per ADOPTING.md's "Confirm the layout"
+table:
 
-<!-- CUSTOMIZE: uncomment the layout that matches your project -->
-
-<!-- Layout A: framework-as-project (framework repo IS the project) -->
-<!-- GOVERNANCE_ROOT: . -->
-
-<!-- Layout B: framework-as-subdirectory -->
-<!-- GOVERNANCE_ROOT: agents-govern -->
+| Artifact | Path | Ownership |
+|---|---|---|
+| Learning records | `agf/learnings/<codename>.yaml` | Adopter-owned |
+| Agent definitions / role roster | `agf/agents/*.yaml` | Adopter-owned |
+| ADRs and governance docs | `agf/docs/adr/` | Adopter-owned |
+| Framework rules | `agf/rules/` | Upstream-owned |
+| Working plans | `docs/plans/` | Adopter-owned |
+| Coordination channel | `docs/coordination/` | Adopter-owned |
+| `GOVERNANCE.md` | Project root | Adopter-owned |
 
 Rules:
-- Governance artifacts go under GOVERNANCE_ROOT, not the project root.
-- Framework rules stay under `agf/rules/`. Tool-specific root files may point
-  assistants at those rules, but must not duplicate the AGF rule tree.
-- If unsure which layout is in use, check: does `GOVERNANCE.md` exist at the project root or in a subdirectory? Follow the existing pattern.
-- Never create `learnings/`, `agents/`, or `docs/adr/` at the project root if a `GOVERNANCE.md` exists in a subdirectory.
+- Create `learnings/`, `agents/`, and `docs/adr/` content under `agf/`, at
+  the paths above — never at the project root and never under an invented
+  alternate directory.
+- Framework rules stay under `agf/rules/`. Tool-specific root files (e.g.
+  a `CLAUDE.md`/`AGENTS.md` loader) may point assistants at those rules,
+  but must not duplicate the AGF rule tree.
+- `GOVERNANCE.md` lives at the project root, not under `agf/` — it is the
+  adopter's own document, not shipped framework content.
+- Some paths under `agf/` are adopter-owned despite living inside the
+  upstream-managed tree (learnings, agent definitions, ADRs) — do not
+  assume everything under `agf/` is safe to overwrite on a framework
+  upgrade. See issue #79 (upgrade-safe adopter role authority) for the
+  tooling contract that makes this distinction mechanically enforced
+  rather than documentation-only.
