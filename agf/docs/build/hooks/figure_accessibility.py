@@ -82,4 +82,3 @@ def on_pre_build(*, config, **kwargs):  # noqa: ANN001, ARG001
     if failures:
         details = "\n".join(f"- {failure}" for failure in failures)
         raise RuntimeError(f"Figure accessibility/disclosure check failed:\n{details}")
-
