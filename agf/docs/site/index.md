@@ -51,6 +51,8 @@ every other page on this site assumes you already understand.
 
 [![Governed change flow from plan through two human gates to merge](reference/figures/governed-change-flow.svg)](reference/figures/governed-change-flow.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size governed change flow (SVG)](reference/figures/governed-change-flow.svg)
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"

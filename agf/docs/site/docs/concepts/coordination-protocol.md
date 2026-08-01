@@ -140,6 +140,8 @@ immediate.
 
 [![Ordered coordination handoff from Gate 1 through Gate 2 to completion](../../reference/figures/gate-handoff-sequence.svg)](../../reference/figures/gate-handoff-sequence.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](../../reference/figures/gate-handoff-sequence.svg)
 
 *Palette note: AI actions and handoffs use rounded blue nodes, human Gate
@@ -320,8 +322,10 @@ two roles in your own generated map is not a defect to fix, it just means
 those two roles haven't exchanged that kind of message yet.
 
 <div class="figure-scroll" markdown>
-![Example AGF Foundry coordination map](../../reference/figures/coordination-map-example.svg)
+![AGF Foundry roles connected by coordination message kinds and sampled message counts](../../reference/figures/coordination-map-example.svg)
 </div>
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 The matching dot output shows the representative subset of the busier edges:
 

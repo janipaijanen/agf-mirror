@@ -30,7 +30,9 @@ to retain before reading Table 1: the figure's three columns are the
 answer key for "who does this," and the table below is that same answer
 key applied to specific artifacts.
 
-![Day-to-day responsibility modes](../../reference/figures/operating-responsibility-map.svg)
+![Human-only, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 Table 1 separates the work by authority mode so teams can see what remains
 human-only, what an AI agent may execute, and what both sides handle together.
@@ -59,7 +61,9 @@ what the next reader finds in step 1, which is why skipping the
 completion step (common under time pressure) breaks the cycle for
 whoever reads the channel next, not just for the current task.
 
-![Governance loop](../../reference/figures/governance-loop.svg)
+![Closed governance cycle from planning through learning and back to planning](../../reference/figures/governance-loop.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 1. **Read the channel.** New coordination entries since you last looked —
    pending handoffs addressed to your role, decision records that

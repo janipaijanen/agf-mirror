@@ -271,6 +271,14 @@ authority. The human maintainer and governor, Jani Päijänen, retains approval
 authority, authorizes publication, and takes responsibility for the published
 content and release decisions.
 
+For accessibility and transparency, every figure created with AI assistance
+must have descriptive alternative text and a visible AI-generation disclosure
+at each published embed. The project applies this rule to technical diagrams
+as well as synthetic artwork. This publication control supports the
+transparency and accessibility objectives of
+[Article 50 of the EU AI Act](https://eur-lex.europa.eu/eli/reg/2024/1689/oj),
+but is not by itself a certification of legal compliance.
+
 ## How to cite
 
 If you use agents-govern in research or a published project, please cite it as:

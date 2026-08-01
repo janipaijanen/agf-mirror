@@ -7,7 +7,8 @@
 <svg width="352pt" height="1095pt"
  viewBox="0.00 0.00 352.20 1094.71" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 1073.11)">
-<title>gate_pipeline</title>
+<title>Gate 1 and Gate 2 pipeline</title>
+<desc>A request passes through plan drafting, the human Gate 1 decision, AI implementation, automated validation, the human Gate 2 decision, and merge, with return and rejection paths at both gates.</desc>
 <polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-1073.11 330.6,-1073.11 330.6,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_shapekey</title>

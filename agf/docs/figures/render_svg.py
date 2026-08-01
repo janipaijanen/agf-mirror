@@ -18,6 +18,7 @@ def metadata(source: str, key: str) -> str:
 
 
 def render(source_path: Path) -> None:
+    source_path = source_path.resolve()
     source = source_path.read_text(encoding="utf-8")
     title = metadata(source, "title")
     description = metadata(source, "desc")

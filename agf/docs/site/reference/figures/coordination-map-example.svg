@@ -7,7 +7,8 @@
 <svg width="537pt" height="396pt"
  viewBox="0.00 0.00 537.00 396.02" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 392.02)">
-<title>agf_coordination_example</title>
+<title>Example AGF Foundry coordination map</title>
+<desc>AGF Foundry roles are connected by coordination message kinds, with edge labels reporting sampled message counts from the project&#x27;s recorded history.</desc>
 <polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-392.02 533,-392.02 533,4 -4,4"/>
 <text text-anchor="middle" x="264.5" y="-372.82" font-family="Helvetica,sans-Serif" font-size="14.00">Example AGF Foundry Coordination Map</text>
 <g id="clust1" class="cluster">

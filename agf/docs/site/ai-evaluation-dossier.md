@@ -305,7 +305,9 @@ human Gate 2 decision before merge. The point to retain is that validation can
 support either decision, but it neither replaces the governor nor allows an
 implementer to approve their own work.
 
-![Gate pipeline](reference/figures/gate-pipeline.svg)
+![Request path through plan approval, implementation review, and merge](reference/figures/gate-pipeline.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ### 4.04 Coordination Protocol
 
@@ -332,8 +334,10 @@ Its essential takeaway is that later records reference and extend earlier
 ones; a correction is another visible event rather than a rewritten history.
 
 <div class="figure-scroll" markdown>
-![Coordination channel](reference/figures/coordination-channel.svg)
+![Coordination message kinds grouped by their routing and authority effects](reference/figures/coordination-channel.svg)
 </div>
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ### 4.05 Learning Loop and Evidence
 
@@ -357,7 +361,9 @@ An evaluator should retain that the loop does not turn one observation into a
 universal rule automatically; evidence strength remains visible while the
 result feeds the next cycle of work.
 
-![Learning loop](reference/figures/learning-loop.svg)
+![Recurring learning cycle from governed work through system change and observed use](reference/figures/learning-loop.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ### 4.06 Downstream Impact
 
@@ -384,7 +390,9 @@ to freeze, replace, or remove framework artifacts while retaining required
 history. The key conclusion is that responsible adoption includes a reviewable
 exit path from the outset.
 
-![Adoption and exit flow](reference/figures/adoption-exit-flow.svg)
+![Adoption timeline branching into freeze, replacement, and decommission exit paths](reference/figures/adoption-exit-flow.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ### 4.07 Tooling and CI
 
