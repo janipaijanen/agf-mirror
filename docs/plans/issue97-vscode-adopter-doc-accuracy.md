@@ -1,9 +1,9 @@
 ---
 id: issue97-vscode-adopter-doc-accuracy
-status: pending-gate1
+status: approved
 topic: issue97-vscode-adopter-doc-accuracy
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer decision 20260731T195009Z-governor-reviewer-jhes; MR !882 exact head 9ba35ba78c645f44189ff2b966057dc310b25805"
+gate1_approved_at: "2026-07-31T19:50:09Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
