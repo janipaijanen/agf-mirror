@@ -2427,6 +2427,89 @@ learnings:
       evidence_refs:
         - "MR !774: docs/coordination/20260729T112856Z-contribution-auditor-h3hr.md, docs/coordination/20260729T112857Z-fact-checker-n2bq.md"
 
+  - id: "20260801T123732Z-wtfl"
+    date: "2026-08-01"
+    category: gap
+    scope: framework
+    title: git-work-tree-flag-polluted-live-repo-index-during-mr-review-setup
+    description: >
+      While setting up an isolated location to inspect MR !894's content for
+      an independent review, Claude/contribution-auditor ran
+      `git --work-tree=<scratch-dir> checkout <ref> -- .` against the main
+      AGF-NG checkout. `--work-tree` only redirects where files are written;
+      it does not change which repository's index is used. The index of the
+      live, in-use checkout was silently updated to match MR !894's entire
+      tree (including files under a directory the reviewer's own earlier
+      work had already relocated out of this repository), while the
+      checkout's working-tree files on disk were left untouched. Discovering
+      the target directory was not a real worktree (no `.git`), the reviewer
+      abandoned that approach and used `git worktree add ... --detach`
+      correctly for the actual review, but did not check whether the main
+      repository's index had been left polluted by the earlier command.
+
+      The stray staged state was not caught immediately. Git carries staged,
+      non-conflicting changes across branch switches, so the pollution
+      silently rode along through every subsequent `git checkout <branch>`
+      in the main repo. Much later, when publishing the review as a
+      coordination record, the reviewer ran a plain
+      `git add docs/coordination/<one-file> && git commit`, believing it was
+      a single-file commit. `git add <one-file>` only adds that file to
+      whatever the index already contains — it does not clear prior stray
+      staged entries. The commit captured the entire polluted index (79
+      files) alongside the intended file and was pushed to origin before
+      being caught.
+
+      The reviewer self-detected the problem (the user did not report it)
+      by noticing the pushed commit's unexpectedly large file count, then
+      diagnosed the root cause methodically: `git worktree list`,
+      `git status`, comparing `git diff --cached --stat` against
+      `git diff --stat`, and `git reflog`. The fix was `git reset --hard`
+      to the correct upstream tip, recovering the intended file's content
+      from the corrupted remote branch, a clean single-file recommit, and a
+      `--force-with-lease` push to the same not-yet-merged branch (never to
+      `main`). `main` was confirmed unaffected throughout.
+    agents_involved:
+      - contribution-auditor
+    framework_section: "branch-and-worktree-rule.md's AI-assisted branch state verification subsection covers IDE-vs-agent branch collisions from the same root cause class (stray state silently riding across a `git checkout`) but does not yet name `--work-tree` index pollution or a pre-commit `git diff --cached --stat` check as a required verification step."
+    business_impact:
+      type: cost_overhead
+      description: >
+        A corrupted 79-file commit was briefly pushed to an unmerged,
+        not-yet-reviewed coordination branch before being caught and fixed.
+        No shared/protected branch (`main`) was affected at any point, and
+        no reviewer or CI cycle was spent evaluating the corrupted state
+        before it was corrected. Cost was the reviewer's own diagnosis and
+        recovery time, not a wasted review or release cycle.
+    framework_impact: medium
+    status: proposed
+    recommendation: >
+      Never use `git --work-tree=<dir> checkout <ref> -- .` (or any bare
+      `--work-tree` override) against a repository whose index is also in
+      active use for other work — it silently stages the target ref's
+      entire tree into that live index without touching the substitute
+      directory's own git metadata. Use `git worktree add <path> <ref>
+      --detach` for any read-only inspection of another ref; it is the only
+      form that gets both an isolated working tree and an isolated index in
+      one step. Separately and independently of that specific command:
+      before every commit intended to be single-file or otherwise narrowly
+      scoped — especially a coordination-record commit, where an
+      unexpectedly large diff is a governance-relevant signal, not just a
+      hygiene one — run `git diff --cached --stat` and confirm the file
+      list matches what was actually intended to change, before running
+      `git commit`. Consider whether `branch-and-worktree-rule.md`'s
+      AI-assisted branch state verification subsection should be extended
+      to name this specific command pattern and pre-commit check
+      explicitly; that would be a rule-content change requiring its own
+      branch, scope classification under `downstream-impact-rule.md`, and
+      review — not something to bundle into the branch that surfaced this
+      learning.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !898 (branch coordination/mr894-review): corrupted commit e8b1f08a caught before governor review, corrected in 7ef4498f and again in b987dc75; docs/coordination/20260801T123434Z-contribution-auditor-6mkq.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
