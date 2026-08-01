@@ -257,6 +257,28 @@ claim about the current release.
 Release archives and platform-specific Rust tooling binaries are published on
 the [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
+## Acknowledgement of AI assistance
+
+AI assistants have contributed to this project and its releases, including
+planning, drafting, implementation, testing, documentation, and review. Their
+work is subject to the project's governed review process. Release records
+identify the reviewed revisions, validation evidence, and human gate
+decisions; those records support reconstructibility but do not transfer
+responsibility to an AI system.
+
+AI assistants do not approve gates or releases and do not hold project
+authority. The human maintainer and governor, Jani Päijänen, retains approval
+authority, authorizes publication, and takes responsibility for the published
+content and release decisions.
+
+For accessibility and transparency, every figure created with AI assistance
+must have descriptive alternative text and a visible AI-generation disclosure
+at each published embed. The project applies this rule to technical diagrams
+as well as synthetic artwork. This publication control supports the
+transparency and accessibility objectives of
+[Article 50 of the EU AI Act](https://eur-lex.europa.eu/eli/reg/2024/1689/oj),
+but is not by itself a certification of legal compliance.
+
 ## How to cite
 
 If you use agents-govern in research or a published project, please cite it as:

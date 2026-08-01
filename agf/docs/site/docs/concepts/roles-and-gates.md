@@ -75,7 +75,9 @@ a shape, not just an assertion. The point to retain: there is exactly one
 plan-review checkpoint and exactly one merge-review checkpoint per
 change, and nothing skips between them.
 
-![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+![Request path through plan approval, implementation review, and merge](../../reference/figures/gate-pipeline.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 **Gate 1 — plan approval.** Before implementation. The reviewer reads the
 plan, not code. Redirection here costs minutes; the same redirection
@@ -103,8 +105,10 @@ is edited in place — corrections are new links added to the chain, which
 is why the chain, not any single file, is the audit trail.
 
 <div class="figure-scroll" markdown>
-![Coordination channel](../../reference/figures/coordination-channel.svg)
+![Coordination message kinds grouped by their routing and authority effects](../../reference/figures/coordination-channel.svg)
 </div>
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 Every handoff, decision, and completion is a file:
 `docs/coordination/<YYYYMMDDThhmmssZ-role-slug-suffix>.md`, YAML frontmatter

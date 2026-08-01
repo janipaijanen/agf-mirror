@@ -21,7 +21,9 @@ The point to retain: because the loop closes, a rule that stops matching
 observed practice is itself evidence for the next cycle, not a fixed
 requirement exempt from the process that produced it.
 
-![Learning loop](../../reference/figures/learning-loop.svg)
+![Recurring learning cycle from governed work through system change and observed use](../../reference/figures/learning-loop.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ## Established foundations
 

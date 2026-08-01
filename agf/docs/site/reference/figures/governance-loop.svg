@@ -7,7 +7,8 @@
 <svg width="376pt" height="1112pt"
  viewBox="0.00 0.00 375.60 1111.68" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 1090.08)">
-<title>governance_loop</title>
+<title>Self-applied governance loop</title>
+<desc>Planning, human approval, implementation, validation, review, merge, and learning form a closed feedback cycle in which evidence informs the next plan.</desc>
 <polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-1090.08 354,-1090.08 354,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_shapekey</title>

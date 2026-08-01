@@ -74,6 +74,8 @@ Current roadmap: <https://janipaijanen.gitlab.io/agents-govern-framework/roadmap
 
 ![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 ## Should you adopt?
 
 Start with [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
@@ -217,6 +219,25 @@ Figure sources are Graphviz DOT files under
 [figures.md](agf/docs/figures/figures.md) for the full inventory,
 including the governance loop, gate pipeline, coordination channel, and
 exit-flow diagrams referenced elsewhere in these docs.
+
+## Acknowledgement of AI assistance
+
+AI assistants have contributed to this project, including planning, drafting,
+implementation, testing, documentation, and review. Their work is subject to
+the project's governed review process.
+
+AI assistants do not approve gates or releases and do not hold project
+authority. The human maintainer and governor, Jani Päijänen, retains approval
+authority, authorizes publication, and takes responsibility for the published
+content and project decisions.
+
+For accessibility and transparency, every figure created with AI assistance
+must have descriptive alternative text and a visible AI-generation disclosure
+at each published embed. The project applies this rule to technical diagrams
+as well as synthetic artwork. This publication control supports the
+transparency and accessibility objectives of
+[Article 50 of the EU AI Act](https://eur-lex.europa.eu/eli/reg/2024/1689/oj),
+but is not by itself a certification of legal compliance.
 
 ## How to cite
 

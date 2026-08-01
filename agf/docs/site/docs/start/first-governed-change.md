@@ -20,7 +20,9 @@ optional. The point to retain for this first run: the order in the
 figure is the order you are about to follow, with no stage collapsed or
 reordered for a first attempt.
 
-![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+![Request path through plan approval, implementation review, and merge](../../reference/figures/gate-pipeline.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 Each step below is marked with who actually does it, using the same
 responsibility vocabulary as the rest of this site (see

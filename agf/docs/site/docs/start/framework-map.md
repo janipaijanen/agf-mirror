@@ -20,6 +20,8 @@ each concept eventually points to in the pages below.
 
 [![AGF concept map grouping roles, gates, artifacts, tooling, adoption, boundaries, and evidence](../../reference/figures/framework-map.svg)](../../reference/figures/framework-map.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size AGF concept map (SVG)](../../reference/figures/framework-map.svg)
 
 *Palette rationale: `governor-reviewer` and both gates are explicit human

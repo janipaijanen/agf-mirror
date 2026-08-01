@@ -75,7 +75,9 @@ The point to retain: evidence quality is scoped per gate, so a strong
 Gate 1 does not offset a weak Gate 2, and neither substitutes for the
 release discipline covered next.
 
-![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+![Request path through plan approval, implementation review, and merge](../../reference/figures/gate-pipeline.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ## Releases: the immutability discipline
 

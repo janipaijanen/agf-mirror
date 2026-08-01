@@ -60,6 +60,9 @@ for the size at which MkDocs will embed the SVG.
   `oval`, `diamond`, or `box` inside the swatch; describe the meaning in the
   adjacent text, and mention the shape there only when it disambiguates meaning.
 - Markdown alt text must name what the figure shows, not just say "diagram".
+- Every figure created with AI assistance must have descriptive Markdown alt
+  text and the visible disclosure "AI-generated figure. Publication remains
+  the responsibility of the human maintainer." at each published embed.
 
 ## Generating figures
 
@@ -79,11 +82,7 @@ deterministic renderer so their direct SVG has a useful title and description:
 
 ```bash
 cd agf/docs/figures
-python3 render_svg.py src/governed-change-flow.dot \
-  src/runtime-governance-boundary.dot \
-  src/governance-scope-position.dot \
-  src/gate-handoff-sequence.dot \
-  src/framework-map.dot
+python3 render_svg.py src/*.dot
 ```
 
 The renderer writes identical copies to this directory and the site-facing

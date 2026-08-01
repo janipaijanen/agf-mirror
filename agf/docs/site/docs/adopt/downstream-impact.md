@@ -19,7 +19,9 @@ the "operate with gates" stage specifically, and the same figure shows
 the exit stage that removes them again, detailed on the linked
 exit-and-decommission page.
 
-![Adoption and exit flow](../../reference/figures/adoption-exit-flow.svg)
+![Adoption timeline branching into freeze, replacement, and decommission exit paths](../../reference/figures/adoption-exit-flow.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ## Files added to your repository
 

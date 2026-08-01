@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Day-to-day responsibility modes
+// svg-desc: Human-only decisions, AI-executed tasks, and mixed audit-trail work are separated by authority, with human approval authority retained across every mode.
 // agents-govern: day-to-day responsibility modes
 // Generate: dot -Tsvg operating-responsibility-map.dot -o ../operating-responsibility-map.svg
 //

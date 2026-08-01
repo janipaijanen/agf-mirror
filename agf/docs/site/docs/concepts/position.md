@@ -20,6 +20,8 @@ agents under those boundaries.
 
 [![Runtime execution alongside AGF governance boundaries](../../reference/figures/runtime-governance-boundary.svg)](../../reference/figures/runtime-governance-boundary.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size runtime and governance boundary figure (SVG)](../../reference/figures/runtime-governance-boundary.svg)
 
 *Palette: runtime/orchestrator nodes (right) use the AI action treatment
@@ -101,6 +103,8 @@ adjacent categories prevents both over-scoping and under-scoping what
 adoption delivers.
 
 [![AGF positioned relative to runtimes, CI/CD, SDLC, ML governance, and AI policy](../../reference/figures/governance-scope-position.svg)](../../reference/figures/governance-scope-position.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 [Open the full-size AGF governance-position figure (SVG)](../../reference/figures/governance-scope-position.svg)
 

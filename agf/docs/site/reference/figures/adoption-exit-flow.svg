@@ -7,7 +7,8 @@
 <svg width="399pt" height="967pt"
  viewBox="0.00 0.00 398.73 966.71" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 945.11)">
-<title>adoption_exit</title>
+<title>Adoption and exit flow</title>
+<desc>Adoption progresses from risk assessment through installation and governed operation, then branches into freeze, replace-on-update, or full decommission paths that preserve coordination history.</desc>
 <polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-945.11 377.13,-945.11 377.13,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_shapekey</title>

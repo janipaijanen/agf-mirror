@@ -59,6 +59,7 @@ extra_css:
 hooks:
   - hooks/release_info.py
   - hooks/ai_evaluation_dossier.py
+  - hooks/figure_accessibility.py
 
 # content-plan.md is a planning control artifact, not a site page.
 exclude_docs: |

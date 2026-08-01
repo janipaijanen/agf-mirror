@@ -7,7 +7,8 @@
 <svg width="428pt" height="814pt"
  viewBox="0.00 0.00 428.40 814.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.2 789.2)">
-<title>operating_responsibility_map</title>
+<title>Day-to-day responsibility modes</title>
+<desc>Human-only decisions, AI-executed tasks, and mixed audit-trail work are separated by authority, with human approval authority retained across every mode.</desc>
 <polygon fill="white" stroke="transparent" points="-25.2,25.2 -25.2,-789.2 403.2,-789.2 403.2,25.2 -25.2,25.2"/>
 <g id="clust1" class="cluster">
 <title>cluster_shapekey</title>
