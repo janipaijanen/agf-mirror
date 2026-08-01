@@ -83,18 +83,38 @@ silently reactivated and `documentation-writer`/`capability-developer`
 silently dropped on a naive archive extract. This is not a hypothetical
 risk description; it reproduces.
 
+**Confirmed mechanism gap** (found while fixing `!914`, an unrelated
+adjacent correction, and folded back in here since it directly bears on
+this work package): `ADOPTING.md`'s "Confirm the layout" table already
+documents `agf/agents/*.yaml` (agent definitions / role roster) as
+adopter-owned, and separately states "**upstream-owned** files are
+replaced on upgrade; **adopter-owned** files... are never touched by an
+upgrade" (`install-and-layouts.md:98`). But no `agov upgrade` (or
+equivalent) command exists — confirmed directly: `agov --help` lists no
+upgrade/migrate subcommand, and no such command exists anywhere in
+`tooling/rust/crates/`. The adopter-owned/upstream-owned distinction is
+therefore a documentation promise with no mechanical enforcement today —
+exactly the gap this work package needs to close. `governance-file-layout-
+rule.md` was corrected in `!914` to state this distinction accurately (it
+previously described a stale, unrelated dual-layout choice); this plan is
+what makes the distinction real rather than documentation-only.
+
 ### Scope
 
 - Select and document the adopter-owned canonical path for the role-roster
-  manifest (candidate: project-root `governance/MANIFEST.yaml`, consistent
-  with `governance-file-layout-rule.md`'s existing `GOVERNANCE_ROOT`
-  convention). **Correction from the governor:** this project supports a
-  single adopter layout, not a configurable choice between multiple
-  layouts — confirmed as Layout B (`agf/agents/MANIFEST.yaml`'s header
-  comment states `Layout: B`). The `agov` path-resolution logic targets
-  that one supported layout; it does not need to detect or support an
-  alternate layout. An earlier draft of this plan incorrectly scoped this
-  as a multi-layout compatibility requirement — removed.
+  manifest. `governance-file-layout-rule.md` (as corrected in `!914`)
+  currently documents the *existing* shipped path (`agf/agents/*.yaml`) as
+  already adopter-owned by convention — this work package decides whether
+  the fix keeps that path and adds upgrade-time protection for it, or
+  relocates to a genuinely separate path (candidate: project-root
+  `governance/MANIFEST.yaml`). Either way, this targets AGF v2.0's one
+  supported adoption layout only (confirmed: `agf/agents/MANIFEST.yaml`'s
+  header comment states `Layout: B`, and `ADOPTING.md`/`install-and-
+  layouts.md` both document a single layout, not a configurable choice —
+  the `agov` path-resolution logic does not need to detect or support an
+  alternate layout). An earlier draft of this plan incorrectly scoped this
+  as a multi-layout compatibility requirement; removed per the governor's
+  direct correction.
 - Rename the shipped example to `agf/agents/MANIFEST.example.yaml`; update
   `ADOPTING.md` and `install-and-layouts.md` with one canonical statement
   (per `marketing-tone-rule.md`'s message-integrity rule) describing the
