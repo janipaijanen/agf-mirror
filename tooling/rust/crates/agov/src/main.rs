@@ -253,18 +253,20 @@ enum CoordCommand {
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
         /// RFC3339 timestamp; only records at or after this cutoff are
-        /// considered. Defaults to this work package's own governed
-        /// introduction boundary (Gate 2 review `20260802T193425Z-
-        /// contribution-auditor-rtga.md` finding B2: the default must match
-        /// the work package's merge-commit date, not an arbitrary
-        /// implementation-time pick) so the ~380 pre-existing non-handoff
-        /// requires-ack:true records are grandfathered, not backfilled as a
-        /// surprise pending backlog. The exact merge timestamp cannot be
-        /// known before the merge occurs; this value is fixed as close to
-        /// it as achievable -- the timestamp of the commit that corrected
-        /// this default, immediately before requesting renewed Gate 2
-        /// review. `--cutoff` always overrides this default explicitly.
-        #[arg(long, default_value = "2026-08-02T20:09:55Z")]
+        /// considered. Defaults to the governed introduction boundary set
+        /// by governor-reviewer decision-record
+        /// `20260802T220154Z-governor-reviewer-sejb` (amending
+        /// docs/plans/v250-rc1-contract-core.md decision (c)): the cutoff
+        /// is that decision-record's own timestamp, not a future
+        /// merge-commit date (unimplementable pre-merge, per Gate 2 review
+        /// `20260802T193425Z-contribution-auditor-rtga.md` finding B2 and
+        /// its renewed disposition in
+        /// `20260802T204834Z-contribution-auditor-ah7j.md`). This value is
+        /// later than every pre-existing non-handoff requires-ack:true
+        /// record at decision time, so it grandfathers that full set
+        /// rather than manufacturing a surprise pending backlog.
+        /// `--cutoff` always overrides this default explicitly.
+        #[arg(long, default_value = "2026-08-02T22:01:54Z")]
         cutoff: String,
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,

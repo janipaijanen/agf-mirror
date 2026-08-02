@@ -264,16 +264,16 @@ record's `references-to` names it directly — a direct reference, not a
 transitive chain — and that later record is the resolution event, not the
 `pending` command call that surfaced it.
 
-**Cutoff boundary status.** `docs/plans/v250-rc1-contract-core.md`'s
-approved contract requires the grandfathering cutoff to match this work
-package's own governed merge-commit date. The shipped default in
-`tooling/rust/crates/agov/src/main.rs`'s `Pending` command
-(`2026-08-02T20:09:55Z`) is a pre-merge implementation-time approximation,
-not that governed boundary — this is an open finding
-(`20260802T204834Z-contribution-auditor-ah7j.md`, B2), pending either an
-exact-match implementation or a governor-approved plan amendment. Do not
-treat the current default as the final contract; check the coordination
-channel for the resolution before citing an exact cutoff value elsewhere.
+**Cutoff boundary.** The grandfathering cutoff is `2026-08-02T22:01:54Z` —
+the timestamp of governor-reviewer decision-record
+`20260802T220154Z-governor-reviewer-sejb`, which amended
+`docs/plans/v250-rc1-contract-core.md` decision (c) to use the amendment
+decision's own timestamp rather than a future merge-commit date (the
+original wording was unimplementable pre-merge; see
+`20260802T193425Z-contribution-auditor-rtga.md` finding B2 and its renewed
+disposition in `20260802T204834Z-contribution-auditor-ah7j.md`). This value
+matches the shipped default in `tooling/rust/crates/agov/src/main.rs`'s
+`Pending` command; `--cutoff` overrides it explicitly when needed.
 
 ### Review bodies
 
