@@ -1035,3 +1035,61 @@ that entry, not a new finding.
   competitor(runtime layer) | action: watch. Same runtime layer as the rest of this batch;
   positioned as part of a broader "Agentic AppSec Platform" (application security), a
   different starting discipline than AGF's process-governance framing.
+
+# Batch 9 (2026-08-03) — governor-requested addition + radar-to-source crosswalk,
+# routed via contribution-auditor (20260802T213418Z-contribution-auditor-js3j.md)
+
+Contribution-auditor fetched/verified these directly; Claude independently
+re-verified all five via a fresh fetch of each URL before adding — no
+discrepancies found between the two verification passes.
+
+## Classified
+
+- https://gavinray97.github.io/blog/design-by-contract-and-effects-for-llms
+  type: discussion, practice | relation: prior-art, complement | action: cite, watch
+  note: Gavin Ray (2026-08-02) argues that LLM-generated code increases the value of
+  machine-checkable preconditions, postconditions, invariants, and explicit effect
+  declarations — verified: author, date, and content match. Particularly relevant to
+  AGF's contract-core, capability-boundary, and downstream-impact work: proposed semantic
+  PR reports would expose weakened postconditions and newly introduced effects. The
+  Rust-like syntax is illustrative, not an implemented feature; no accompanying tool or
+  empirical evaluation. Design/opinion argument, not validation evidence.
+
+- https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng
+  type: regulation | relation: threat-model, demand-driver | action: cite, integrate
+  note: Official EUR-Lex text of Regulation (EU) 2016/679 (GDPR), CELEX 32016R0679, OJ L
+  119, 4.5.2016. Grounds the append-only-trail-vs-Art.-17-erasure tension (already tracked
+  in `docs/radar.md` and `docs/plans/ai-regulation-requirements-gap-analysis.md` AI-5) in
+  the primary regulation text itself, alongside the existing hoop.dev secondary-source
+  essay — the registry should not rest that claim on the vendor essay alone.
+
+- https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai
+  type: regulation | relation: demand-driver | action: cite, watch
+  note: Official European Commission page for the AI Act regulatory framework. Adds the
+  second half of `docs/radar.md`'s "EC digital-strategy pages (AI Act, CRA guidance)" watch
+  instruction to the registry alongside the existing CRA open-source-steward page (Batch 3).
+
+- https://orcwg.org/
+  type: practice | relation: complement, demand-driver | action: watch, cite
+  note: Eclipse Foundation's Open Regulatory Compliance (ORC) Working Group — verified
+  live: facilitates collaboration between industry, open-source communities, and regulators
+  on supply-chain/AI-policy compliance. `docs/radar.md`'s "OpenSSF + Eclipse ORC WG" watch
+  entry previously named ORC without a direct registry source; this is that source.
+
+- https://datatracker.ietf.org/wg/wimse/about/
+  type: standard (emerging) | relation: prior-art, complement | action: watch
+  note: IETF WIMSE (Workload Identity in Multi-System Environments) — verified active
+  working group (chairs Justin Richer, Pieter Kasselman; Applications and Real-Time Area).
+  Charter covers workload identity/access-management propagation, representation, and
+  processing, including a JOSE-based token solution — the concrete standards-track home for
+  part of `docs/radar.md`'s "IETF AIMS/WIMSE drafts" entry.
+
+- https://datatracker.ietf.org/doc/slides-126-wimse-aims/
+  type: discussion, standard (proposal) | relation: prior-art, complement | action: watch
+  note: IETF 126 presentation "AI Agent Authentication and Authorization (AIMS)" — the
+  IETF Datatracker has no working group with acronym AIMS; AIMS currently exists only as
+  this presentation/proposal, distinct from the active WIMSE WG above. `docs/radar.md`'s
+  current "IETF AIMS/WIMSE drafts" wording reads as if both were established WG/draft
+  series to the same degree; they are not — flagged here as a radar wording precision item
+  for a separate governed correction (this source-only batch does not itself edit the
+  radar Active list).
