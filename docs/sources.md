@@ -901,3 +901,137 @@ own while diverging sharply on the human-gate question. Not added to the Active 
 here — that list's precedent (see `docs/plans/radar-governance-signal-gaming.md`) treats
 live radar entries as needing their own Gate 1 authorization; this batch is a source-registry
 addition only, per the registry's own stated first-pass/additive purpose.
+
+# Batch 8 (2026-08-02) — third-party AI research, independently cross-verified
+
+**Provenance and verification method, stated up front:** the candidate list below originated
+from a sibling/competitor scan the human operator ran against a general-purpose third-party AI
+assistant (Mistral's Lumo), given this project's public GitLab URL directly — a different
+research method than Batches 1-7 (which used this project's own search/fetch tooling).
+Treated as an unverified external claim on arrival, per this project's own discipline for
+externally-supplied research: every named project below was independently re-searched via
+this session's own WebSearch tool before being classified here, specifically to catch
+plausible-sounding but fabricated project names (a known LLM failure mode). Every entry that
+survived is confirmed to exist and to roughly match its described characteristics; none were
+found to be fabricated. Feature-level detail (star counts, exact license terms, architecture
+specifics) reflects the third-party assistant's original description, re-confirmed only at
+the level of "this repository/product exists and does approximately this," not independently
+re-derived line-by-line the way Batches 1-6 verified their entries — a real, disclosed gap in
+depth, not full parity with those batches.
+
+Corroboration note: the third-party scan independently surfaced `maref-org/maref`, already
+classified in this registry's first "Classified" section above — cross-source agreement on
+that entry, not a new finding.
+
+## Classified (third-party-sourced, existence/description independently confirmed)
+
+- https://github.com/SpillwaveSolutions/agent_rulez (Agent RuleZ)
+  type: tooling | relation: competitor(partial), prior-art | action: compare-in-docs
+  note: Rust binary + hook system for Claude Code — deterministic, sub-10ms YAML policy
+  evaluation, contextual convention-file injection, blocks dangerous operations (e.g. `git
+  push --force`) before execution, governance/provenance logging for compliance. Two points
+  of contact with AGF specifically worth a compare-in-docs: same "convention files as
+  governance" framing as AGF's rules directory, and the same choice of Rust for the
+  enforcement binary as `agov`. Difference: runtime pre-tool-call hook enforcement, not a
+  repo-process Gate 1/Gate 2 review-then-human-decides workflow — same axis distinction
+  already drawn for agentic-os in Batch 7.
+
+- https://github.com/Nikita-Filonov/ai-review
+  type: tooling | relation: complement | action: watch
+  note: AI-powered PR/MR review tool for GitHub/GitLab/Bitbucket Cloud+Server/Azure DevOps/
+  Gitea; "Agent Mode" runs a ReAct-style loop exploring the repo (`ls`/`cat`/`rg`/`git`)
+  before producing a review, and can reply within existing review threads. Confirmed via
+  direct repo fetch. Different category from AGF: this is CI-triggered automated review
+  commentary (like CodeRabbit, already referenced elsewhere in AGF's own docs), not a named
+  independent-AI-reviewer role inside a human-gated approval chain — closer to a review
+  *tool* than a governance *framework*. Worth watching as a possible ingredient (an AGF
+  contribution-auditor implementation could plausibly use a tool like this for the mechanical
+  repo-exploration step) rather than a direct competitor.
+
+- https://github.com/IgorGanapolsky/ThumbGate
+  type: tooling | relation: competitor(runtime layer) | action: watch
+  note: PreToolUse hook for Claude Code/Cursor/Codex/Gemini/Amp/Cline/OpenCode — hard-blocks
+  secret exfiltration, supply-chain installs, and destructive deletes by default; feedback
+  ("thumbs up/down") becomes durable, shared "lessons" and org-visible pre-action checks.
+  Same crowded runtime-tool-call-governance-layer category Batch 6's synthesis note already
+  named (sovereign-agentops, Gategraph, enforra, TaG, sentience-governor) — file alongside
+  that cluster.
+
+- https://github.com/vijaym2k6/SteerPlane
+  type: tooling | relation: competitor(runtime layer, narrow) | action: watch
+  note: Runtime control plane for autonomous agents — per-run cost ceilings (local
+  enforcement if the control API is unreachable), loop/step-cap detection, telemetry
+  dashboard, single-decorator integration (Python/TypeScript). Narrower scope (cost and
+  loop safety specifically) than the general policy-enforcement entries in this cluster;
+  same runtime layer, same "watch only" treatment as the similar narrow-scope entries
+  already logged in Batch 6 (irenee28/akm-clr-governance-layer, simonhansedasi/ai_glue).
+
+- https://github.com/aeoess/agent-passport-system
+  type: framework | relation: complement, prior-art | action: watch
+  note: Cryptographic agent identity, scoped delegation, and signed accountability receipts
+  (Ed25519), framework/transport-agnostic (CrewAI, LangChain, Google ADK, A2A, MCP, Cedar
+  variant). Different axis from AGF's process/review governance — identity and delegation,
+  not repo-change review — adjacent to this registry's already-logged "Agent identity
+  standards race" entry (IETF AIMS/WIMSE, SPIFFE, ID-JAG) rather than a new category. A
+  same-named but apparently distinct product exists at agentpassportai.com (OAuth-style
+  consent layer) — not independently disambiguated further; treat the two as possibly
+  unrelated projects sharing a generic name until confirmed otherwise.
+
+- https://github.com/agentlas-ai/Agentlas-OS
+  type: tooling | relation: complement | action: watch
+  note: Local-first "agent OS" — keeps specialist agents in a hub, spins up a temporary
+  orchestrator per task, package contracts (routing cards, anti-scopes, memory boundaries,
+  verification shims) with auditable receipts, two-boundary governed memory. Governs agent
+  *composition and routing*, not change review or approval gates — a different problem than
+  AGF's, similar distinction already drawn for FutureAtoms/agentic-control-framework in
+  Batch 7.
+
+- https://github.com/Firma-AI/openfirma
+  type: tooling | relation: competitor(runtime layer) | action: watch
+  note: Local sidecar gating every outbound agent call against Cedar policies, deterministic
+  ALLOW/DENY/HITL verdicts, capability tokens issued by a separate "Authority" trust root, no
+  model on the enforcement hot path. Same runtime-tool-call-governance-layer category as
+  ThumbGate/sentience-governor/enforra above and in Batch 6 — the Cedar-policy-engine
+  approach specifically parallels AWS's Cedar-for-agents pattern (surfaced in this same
+  verification pass, not independently classified here).
+
+- https://certiv.ai/
+  type: tooling | relation: competitor(runtime layer) | action: watch
+  note: "AI Agent Assurance for Endpoints" — shadow-agent discovery, real-time monitoring,
+  pre-execution policy enforcement at the endpoint, continuous queryable record of every
+  agent action, policy decision, and outcome. Same runtime layer category as the rest of
+  this batch; endpoint/fleet-visibility framing (rather than single-repo coding-agent
+  framing) distinguishes it slightly from the others but the enforcement-layer classification
+  is the same.
+
+## Noted but not independently deep-verified (well-known industry names, existence not in doubt)
+
+- Credo AI, OneTrust AI Governance, Lumenova AI — established enterprise AI governance/GRC
+  (governance-risk-compliance) platforms: org-wide AI risk inventory, compliance-framework
+  mapping (EU AI Act, NIST AI RMF, ISO 42001), model cards, explainability monitoring.
+  type: practice | relation: competitor(org-governance layer) | action: watch. Operate at
+  the org/portfolio level (which AI systems exist, what risk tier, what compliance evidence)
+  rather than the per-commit/per-change level AGF gates — same "upstream org-governance vs.
+  AGF's per-change gate" distinction already drawn for the AI Council Toolkit entry in
+  Batch 6 and the Harvard Corporate Governance Forum entry in Batch 3.
+
+- ARMO (armosec.io) — confirmed via independent search: Kubescape's parent company,
+  eBPF/kernel-level runtime enforcement for AI agent tool calls and cloud workloads,
+  behavioral baselining with progressive Observe-to-Enforce mode. type: tooling | relation:
+  competitor(runtime layer) | action: watch. Same runtime-call-layer category as the rest of
+  this batch, at the deepest (kernel/eBPF) enforcement point found across all eight batches.
+
+- GitLab Duo Agent Platform — confirmed via independent search: reached general availability
+  January 2026 (GitLab 18.8); group-based access control, LDAP/SAML integration, model
+  selection with namespace inheritance, usage visibility. type: tooling | relation:
+  complement | action: watch. Notable because AGF is itself hosted on GitLab — a plausible
+  future integration surface (Duo's access-control layer governing *who* may invoke agents;
+  AGF governing *whether an agent's change may merge*) rather than a competing product, but
+  not evaluated further here.
+
+- Endor Labs Agent Governance — confirmed via independent search: hooks-based policy
+  enforcement across Cursor/Claude Code/Gemini CLI, blocks shell commands/file access/MCP
+  tool calls, searchable audit log of every agent action. type: tooling | relation:
+  competitor(runtime layer) | action: watch. Same runtime layer as the rest of this batch;
+  positioned as part of a broader "Agentic AppSec Platform" (application security), a
+  different starting discipline than AGF's process-governance framing.
