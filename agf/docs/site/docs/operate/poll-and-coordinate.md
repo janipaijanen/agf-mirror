@@ -21,6 +21,11 @@
    `agov coord list --since <UTC timestamp>` may be used when the installed
    release exposes it. Check `agov coord list --help` rather than assuming
    version parity. `coord watch` is not a shipped command.
+
+   `agov coord pending` may be used, when the installed release exposes it,
+   to list unresolved `requires-ack: true` records of any kind other than
+   `handoff` and `ack` — `handoff` obligations remain `agov coord
+   graph-index`'s and `agov handoff next`'s surface, unchanged.
 4. Inspect every relevant change request/MR: source and target SHA, draft and
    merge state, approvals, exact-head pipeline and jobs, discussions, and
    comments/notes.

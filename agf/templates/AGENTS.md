@@ -155,6 +155,7 @@ agov handoff next <role>                       # your next pending task
 agov coord validate docs/coordination/<file>  # validate a coordination message
 agov plan validate docs/plans/<file>           # validate a Gate 1 plan
 agov coord graph-index                         # pending item scan
+agov coord pending                             # non-handoff requires-ack:true obligations
 agov coord brief --from <role>                 # generate a coordination ID
 agov usage report                              # recent coordination activity
 ```
