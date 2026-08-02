@@ -38,6 +38,52 @@ Observed on this checkout (2026-07-27 UTC, per the requesting handoff):
 - The same targeted branch scanned against **fetched** `origin/main` took
   5.6 seconds and emitted 2.3 KB of useful, accurate output.
 
+### Adopter use-case input (routed from issue #78 finding 4)
+
+Per governor-reviewer handoff `docs/coordination/
+20260728T154327Z-governor-reviewer-gkj5.md` ("Route the coordination
+branch/ref visibility evidence into issue #76's plan as an acceptance/
+use-case input"): issue #78's adopter screening report (finding 4,
+`kantele` downstream project, v2.4.5) independently reproduced the same
+class of failure this plan already targets, from the opposite direction —
+not slowness, but silent invisibility:
+
+- At one point the reporting project had **14 coordination records live
+  only on unmerged feature branches**, including an active handoff and
+  two learnings, invisible to `agov session resume` on `main`.
+- Status polls reported healthy queues repeatedly because `agov handoff
+  next` and related queue commands read the working tree's checked-out
+  ref, not a stated or caller-controlled one — the same class of ambiguity
+  this plan's `--branch`/`--all-branches`/stale-vs-fetched divergence
+  warning already addresses for `coord visibility` specifically, but the
+  adopter's report names it as a broader pattern across queue-reporting
+  commands.
+
+This plan's scope remains `agov coord visibility` only (per "What this
+plan does NOT do" below); it does not extend the batching/branch-selection
+work to `handoff next` or other queue commands. It is recorded here as
+acceptance evidence — a concrete adopter scenario `coord visibility`'s
+explicit `--branch`/stale-ref-warning behavior must correctly handle (see
+Required test 3) — and as a named, not-yet-scoped follow-on: whether
+`handoff next` and similar queue commands need the same explicit-ref
+treatment is a separate future issue, not authorized by this plan.
+
+### Relationship to issue #80 (resolved, no blocking dependency)
+
+The prior portfolio adjudication (`docs/coordination/
+20260728T181701Z-contribution-auditor-p51g.md`) placed this plan as
+"Conditional v2.5 RC work after #80/ref correctness." Issue #80
+(`requires-ack` obligation semantics) is now implemented: the schema
+rejects `ack` + `requires-ack: true`, and `agov coord pending` tracks
+every other kind's obligations via direct `references-to` resolution.
+`coord pending` reads the same working-tree-relative `--dir` scope as
+`coord visibility` and `handoff next` — it does not introduce a new
+ref-scoping model this plan would need to reconcile with. This plan's
+own scope (I/O batching and explicit branch selection for `coord
+visibility`) is unaffected by and does not depend on #80's resolved
+semantics; the adjudication's conditional is satisfied by #80 being
+decided, not by any change to this plan's content.
+
 ## Root cause (read directly from the implementation)
 
 `tooling/rust/crates/agov/src/main.rs`:
