@@ -1270,3 +1270,58 @@ obligations can be surfaced as required work, whether QM's mutable memory can re
 the immutable coordination channel, whether private-to-shared audience transitions prevent
 record leakage, and whether runtime approvals can coexist with protected-main and governor
 Gate-2 authority without bypass or approval fatigue.
+
+# Batch 13 (2026-08-02 UTC) — micro/mu agent tool server
+
+## Classified
+
+- https://github.com/micro/mu/tree/f2ffccc99cefa5e429fa431887584b1584387e96
+  type: tooling, source | relation: complement, prior-art |
+  action: compare-in-docs, watch
+  note: Primary source for μ at the pinned 2026-08-02 revision: an AGPL-3.0,
+  self-hostable single Go binary exposing first-party services (mail, search, storage,
+  wallet, apps, and others) to agents through MCP, a built-in agent, CLI, app SDK, and
+  human-facing web surfaces. It is not a close AGF sibling or governance competitor: μ
+  supplies runtime tools and server-side authorization, while AGF governs plans, changes,
+  review independence, and binding human decisions. Its strongest relevance is architectural
+  and security prior art. Evidence status: primary implementation/design evidence for μ,
+  not empirical validation that its security approach is sufficient in deployment.
+
+## First AGF takeaways
+
+1. **One declaration should derive every supported surface.** μ's typed service registry
+   drives its native agent tools, picker, CLI, and app SDK. That is useful prior art for
+   `agov`'s parser-authority rule and CLI/MCP parity. Its own architecture document also
+   records a revealing exception: MCP entries remain hand-written at this revision, so a
+   new service can reach the agent before it reaches MCP. The lesson is to test generated
+   surface parity rather than infer it from a single-source-of-truth design claim.
+2. **Identity is context, not model input.** Account-scoped μ handlers bind the authenticated
+   account server-side and remove identity fields from tool arguments. This is a strong
+   least-authority pattern for any future AGF/MCP integration: agents may select an action,
+   but must not select whose authority, records, or funds the action uses.
+3. **Capability boundaries belong at method granularity.** μ withholds selected irreversible
+   methods while leaving read/non-destructive methods from the same service available. AGF
+   should compare this with coarse tool allowlists and high-risk-operation rules; granting an
+   MCP server should not automatically grant every effect exposed by that server.
+4. **Treat retrieved content and the model as mutually untrusted.** μ's security charter
+   explicitly assumes email, web, news, social, and app content can carry prompt injection,
+   and says prompts are only a backstop to server-side controls. This supports AGF's declared
+   threat-model and input-provenance work, while remaining runtime evidence rather than a
+   substitute for process gates.
+5. **Economic effects need governed limits.** μ exposes wallet/payment and other paid tools,
+   binds the source wallet to the session, and documents caps plus remaining hardening gaps.
+   This is a concrete example for capability-sensitive approvals: cost-bearing, publishing,
+   messaging, deletion, and data-access effects should be distinguishable in tool authority
+   and audit evidence.
+6. **Self-hostability aids removability but expands operator duty.** A single inspectable
+   binary and AGPL service-source obligation align with AGF's preference for replaceable,
+   adopter-controlled infrastructure. They do not remove the need to govern secrets, SSRF,
+   app sandboxing, retention, upgrades, and human review of identity/wallet changes.
+
+## Evaluation boundary
+
+Keep μ as compare/watch prior art rather than a radar or partnership candidate for now. A
+future technical comparison should test registry-to-MCP parity, per-method capability
+metadata, server-bound identity propagation through MCP, destructive/economic effect
+classification, and whether μ's audit evidence can be referenced without importing mutable
+runtime state into AGF's immutable coordination channel.
