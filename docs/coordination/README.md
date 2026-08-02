@@ -89,10 +89,13 @@ rejects that combination outright. A `requires-ack: true` handoff resolves
 through `agov handoff next` / `take` / `complete`, unchanged. Every other
 kind resolves through `agov coord pending`: a record is pending until any
 later record's `references-to` names it directly — a direct reference, not
-a transitive chain. Records published before `2026-08-02T18:10:18Z` are
-grandfathered and never appear in `coord pending`'s output, so the ~380
-pre-existing non-handoff `requires-ack: true` records already in the
-channel are not retroactively treated as a pending backlog.
+a transitive chain. Records published before `2026-08-02T20:09:55Z` (this feature's governed
+introduction boundary, fixed as close as achievable to this work package's
+own merge-commit date — see `tooling/rust/crates/agov/src/main.rs`'s
+`Pending` command for the exact rationale) are grandfathered and never
+appear in `coord pending`'s output, so the ~380 pre-existing non-handoff
+`requires-ack: true` records already in the channel are not retroactively
+treated as a pending backlog.
 
 ---
 

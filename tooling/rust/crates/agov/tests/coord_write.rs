@@ -177,6 +177,77 @@ artifacts_owned: []
     );
 }
 
+/// Gate 2 review `rtga` finding B3: the plan requires positive fixtures for
+/// every permitted kind x `requires-ack` combination, not just `ack` (the
+/// one rejected combination, already covered above) and `review` (the one
+/// tracked kind exercised by the integration test below). Per Decision (a)
+/// in `docs/plans/v250-rc1-contract-core.md`, every kind except `ack`
+/// remains schema-eligible for `requires-ack: true`; this proves it for
+/// all eight, in both boolean states, via real `agov coord validate`
+/// fixture files -- not just the `find_pending_all_kinds` unit tests in
+/// `agov-coord` (which prove tracking behavior, not schema acceptance).
+#[test]
+fn every_permitted_kind_accepts_both_requires_ack_states() {
+    const PERMITTED_KINDS: &[&str] = &[
+        "claim",
+        "completion",
+        "review",
+        "handoff",
+        "decision-record",
+        "fast-track-waiver",
+        "lesson-proposal",
+        "note",
+    ];
+
+    for kind in PERMITTED_KINDS {
+        for requires_ack in [true, false] {
+            let fixture = tempfile::tempdir().unwrap();
+            let filename = format!("20260720T100000Z-coder-tester-{kind}-{requires_ack}.md");
+            let id = filename.trim_end_matches(".md");
+            let artifacts_owned = match *kind {
+                "claim" => "artifacts_owned:\n  - some/artifact.rs",
+                _ => "artifacts_owned: []",
+            };
+            let handoff_block = if *kind == "handoff" {
+                "\nhandoff:\n  next_agent: governor-reviewer\n  status: ready\n  task:\n    - do the thing\n  must_read: []\n  do_not_touch: []"
+            } else {
+                ""
+            };
+            let body = format!(
+                r#"---
+kind: {kind}
+from: coder-tester
+to: governor-reviewer
+id: {id}
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to: []
+topic: permitted-kind-matrix-fixture
+requires-ack: {requires_ack}
+{artifacts_owned}{handoff_block}
+---
+
+# Fixture
+"#
+            );
+            write_message(&fixture, &filename, &body);
+
+            let validate = agov(&[
+                "coord",
+                "validate",
+                fixture.path().join(&filename).to_str().unwrap(),
+            ]);
+
+            assert_eq!(
+                validate.status.code(),
+                Some(0),
+                "kind {kind} with requires-ack: {requires_ack} must pass schema validation:\n{}",
+                String::from_utf8_lossy(&validate.stderr)
+            );
+        }
+    }
+}
+
 #[test]
 fn coord_list_since_message_id_returns_later_messages() {
     let fixture = tempfile::tempdir().unwrap();

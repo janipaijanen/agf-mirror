@@ -253,10 +253,18 @@ enum CoordCommand {
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
         /// RFC3339 timestamp; only records at or after this cutoff are
-        /// considered. Defaults to this feature's own introduction date so
-        /// the ~380 pre-existing non-handoff requires-ack:true records are
-        /// grandfathered, not backfilled as a surprise pending backlog.
-        #[arg(long, default_value = "2026-08-02T18:10:18Z")]
+        /// considered. Defaults to this work package's own governed
+        /// introduction boundary (Gate 2 review `20260802T193425Z-
+        /// contribution-auditor-rtga.md` finding B2: the default must match
+        /// the work package's merge-commit date, not an arbitrary
+        /// implementation-time pick) so the ~380 pre-existing non-handoff
+        /// requires-ack:true records are grandfathered, not backfilled as a
+        /// surprise pending backlog. The exact merge timestamp cannot be
+        /// known before the merge occurs; this value is fixed as close to
+        /// it as achievable -- the timestamp of the commit that corrected
+        /// this default, immediately before requesting renewed Gate 2
+        /// review. `--cutoff` always overrides this default explicitly.
+        #[arg(long, default_value = "2026-08-02T20:09:55Z")]
         cutoff: String,
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,

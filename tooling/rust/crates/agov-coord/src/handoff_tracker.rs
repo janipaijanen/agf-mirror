@@ -416,4 +416,70 @@ mod tests {
         let pending = find_pending_all_kinds(&[d], CUTOFF);
         assert!(pending.is_empty());
     }
+
+    /// Gate 2 review `rtga` finding B3: the plan requires positive and
+    /// adversarial coverage for every allowed kind x `requires-ack`
+    /// combination, not just `review`. `ack` and `handoff` are excluded
+    /// from this table -- they have their own dedicated exclusion tests
+    /// above (`ack_kind_never_appears_in_all_kinds_surface`,
+    /// `handoff_kind_never_appears_in_all_kinds_surface`) since the schema
+    /// forbids `ack`+`true` outright and `handoff` is tracked exclusively
+    /// through `handoff next`/`take`/`complete`, never this surface.
+    const TRACKED_KINDS: &[&str] = &[
+        "claim",
+        "completion",
+        "review",
+        "decision-record",
+        "fast-track-waiver",
+        "lesson-proposal",
+        "note",
+    ];
+
+    #[test]
+    fn every_tracked_kind_with_requires_ack_true_is_pending() {
+        for kind in TRACKED_KINDS {
+            let file = format!("20260802T100000Z-coder-tester-{kind}.md");
+            let d = ack_descriptor(&file, kind, "2026-08-02T10:00:00Z", true, &[]);
+            let pending = find_pending_all_kinds(&[d], CUTOFF);
+            assert_eq!(
+                pending.len(),
+                1,
+                "kind {kind} with requires-ack:true must be pending"
+            );
+            assert_eq!(pending[0].kind, *kind);
+        }
+    }
+
+    #[test]
+    fn every_tracked_kind_with_requires_ack_false_never_appears() {
+        for kind in TRACKED_KINDS {
+            let file = format!("20260802T100000Z-coder-tester-{kind}.md");
+            let d = ack_descriptor(&file, kind, "2026-08-02T10:00:00Z", false, &[]);
+            let pending = find_pending_all_kinds(&[d], CUTOFF);
+            assert!(
+                pending.is_empty(),
+                "kind {kind} with requires-ack:false must never appear"
+            );
+        }
+    }
+
+    #[test]
+    fn every_tracked_kind_resolved_by_direct_reference() {
+        for kind in TRACKED_KINDS {
+            let target_file = format!("20260802T100000Z-coder-tester-{kind}.md");
+            let target = ack_descriptor(&target_file, kind, "2026-08-02T10:00:00Z", true, &[]);
+            let resolver = ack_descriptor(
+                "20260802T110000Z-governor-reviewer-resolver.md",
+                "ack",
+                "2026-08-02T11:00:00Z",
+                false,
+                &[target_file.as_str()],
+            );
+            let pending = find_pending_all_kinds(&[target, resolver], CUTOFF);
+            assert!(
+                pending.is_empty(),
+                "kind {kind} must resolve via a direct reference"
+            );
+        }
+    }
 }

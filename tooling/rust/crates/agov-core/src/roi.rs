@@ -51,6 +51,7 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_handoff_complete",
     "agov_coord_post",
     "agov_coord_list",
+    "agov_coord_pending",
 ];
 
 /// Environment marker names the trusted local `agov-mcp` adapter sets on
