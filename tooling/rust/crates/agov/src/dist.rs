@@ -793,6 +793,59 @@ forbidden:
         assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
     }
 
+    /// Issue #79: a shipped archive must never contain a file at
+    /// agf/agents/MANIFEST.yaml -- that is what let a plain archive
+    /// re-extraction overwrite an adopter's own divergent roster (the
+    /// exact defect issue #78 reproduced). The template ships as
+    /// agf/agents/MANIFEST.example.yaml instead, matched by the same
+    /// include glob, and is not excluded.
+    #[test]
+    fn manifest_yaml_is_excluded_from_packaging_manifest_example_is_not() {
+        let temp = fixture_root();
+        write(temp.path(), "agf/VERSION", "2.0.0\n");
+        // An adopter's own divergent roster -- packaging must leave this
+        // exact content alone, which this test proves by never selecting
+        // the file for the archive at all.
+        write(
+            temp.path(),
+            "agf/agents/MANIFEST.yaml",
+            "agents:\n  a-divergent-adopter-roster:\n    status: active\n",
+        );
+        write(
+            temp.path(),
+            "agf/agents/MANIFEST.example.yaml",
+            "agents:\n  coder-tester:\n    status: skipped\n",
+        );
+        let manifest = write(
+            temp.path(),
+            "manifest.yaml",
+            r#"
+schema_version: 1
+package:
+  name: agf
+  version_file: agf/VERSION
+  output_dir: dist
+  basename: agf-{{version}}
+  formats: [tar.gz]
+include:
+  - glob: agf/agents/**
+exclude:
+  - agf/agents/MANIFEST.yaml
+"#,
+        );
+
+        let spec = validate(&manifest, temp.path()).expect("validate should succeed");
+
+        assert!(
+            !spec.contains("agf/agents/MANIFEST.yaml"),
+            "the adopter-owned roster must never be selected for packaging"
+        );
+        assert!(
+            spec.contains("agf/agents/MANIFEST.example.yaml"),
+            "the neutral template must still ship"
+        );
+    }
+
     fn fixture_root() -> TempDir {
         tempfile::tempdir().expect("tempdir")
     }

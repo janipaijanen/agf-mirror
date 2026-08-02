@@ -5,6 +5,30 @@ distribution.
 
 ## [Unreleased]
 
+### Added
+
+- Upgrade-safe adopter role authority (issue #79,
+  `docs/plans/v250-rc1-contract-core.md` work package 1). The shipped
+  release archive no longer contains `agf/agents/MANIFEST.yaml` — a plain
+  archive re-extraction over an adopter project could previously overwrite
+  an adopter's own divergent roster with the framework's dogfooding
+  manifest (reproduced concretely by issue #78: `coder-tester` and
+  `build-engineer` silently reactivated, `documentation-writer` and
+  `capability-developer` silently dropped). The archive now ships a
+  neutral `agf/agents/MANIFEST.example.yaml` template instead, matched by
+  the same include glob but excluded by an explicit packaging rule;
+  `agov` never reads it as adopter state. `AGOV_MANIFEST_PATH`'s existing
+  override precedence is unchanged. With the default path in effect and
+  `agf/agents/MANIFEST.yaml` absent, `agov session resume`'s cold-start
+  output now states the missing path explicitly and names both remedies
+  (copy the example, or set `AGOV_MANIFEST_PATH`) rather than a generic
+  "not found" message.
+
+Adopter docs: updated — `ADOPTING.md` §1.3 and
+`docs/site/docs/adopt/install-and-layouts.md` now describe copying
+`MANIFEST.example.yaml` to `MANIFEST.yaml` as the commissioning step,
+replacing the inline roster example.
+
 ### Fixed
 
 - `agf/rules/always/governance-file-layout-rule.md` no longer presents

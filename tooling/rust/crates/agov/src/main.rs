@@ -4161,21 +4161,36 @@ fn render_invalid_files(output: &mut OutputCounter, invalid_files: &[String]) {
 }
 
 fn render_active_roles(output: &mut OutputCounter, manifest: &Path, base_branch: &str) {
+    // Fail-closed by construction, not by extra logic: this function only
+    // ever reads `manifest` (the resolved AGOV_MANIFEST_PATH-or-default
+    // path). It never falls back to reading MANIFEST.example.yaml as a
+    // substitute -- there is no code path here that does so. See issue #79
+    // / docs/plans/v250-rc1-contract-core.md.
     let Ok(content) = std::fs::read_to_string(manifest) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable");
+        if std::env::var_os("AGOV_MANIFEST_PATH").is_some() {
+            output.stdout(format!(
+                "No adopter manifest found at {} (from AGOV_MANIFEST_PATH).",
+                manifest.display()
+            ));
+        } else {
+            output.stdout(format!(
+                "No adopter manifest found at {}; copy agf/agents/MANIFEST.example.yaml or set AGOV_MANIFEST_PATH.",
+                manifest.display()
+            ));
+        }
         output.stdout("");
         return;
     };
     let Ok(data) = serde_norway::from_str::<serde_json::Value>(&content) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable (manifest is not valid YAML)");
+        output.stdout(format!("Fix {} and rerun.", manifest.display()));
         output.stdout("");
         return;
     };
     let Some(agents) = data.get("agents").and_then(|value| value.as_object()) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable (manifest has no top-level 'agents' key)");
+        output.stdout(format!("Fix {} and rerun.", manifest.display()));
         output.stdout("");
         return;
     };

@@ -8,6 +8,22 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Added
+
+- Upgrade-safe adopter role authority (issue #79,
+  `docs/plans/v250-rc1-contract-core.md` work package 1). The shipped
+  release archive no longer contains `agf/agents/MANIFEST.yaml` — a plain
+  archive re-extraction over an adopter project could previously overwrite
+  an adopter's own divergent roster with the framework's dogfooding
+  manifest (reproduced concretely by issue #78). The archive now ships a
+  neutral `agf/agents/MANIFEST.example.yaml` template instead, excluded
+  from packaging by an explicit rule and never read as adopter state by
+  `agov`. With the default path in effect and `MANIFEST.yaml` absent,
+  `agov session resume`'s cold-start output states the missing path
+  explicitly and names both remedies. Full detail: `agf/CHANGELOG.md`.
+
+Adopter docs: updated — see `agf/CHANGELOG.md`.
+
 ### Fixed
 
 - `agf/rules/always/governance-file-layout-rule.md` and its
