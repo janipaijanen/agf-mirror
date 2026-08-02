@@ -921,6 +921,10 @@ rust:tooling:clippy:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
+    # extends does not merge before_script arrays -- redefining this key
+    # here would otherwise silently drop .rust-base's cache-policy
+    # assertion for every job built on this template.
+    - !reference [.rust-base, before_script]
     - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
@@ -1133,6 +1137,10 @@ rust:tooling:build:windows:preview:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
+    # extends does not merge before_script arrays -- redefining this key
+    # here would otherwise silently drop .rust-base's cache-policy
+    # assertion.
+    - !reference [.rust-base, before_script]
     - apt-get update -qq && apt-get install -y -qq docker.io
     - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
