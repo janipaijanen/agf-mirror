@@ -1179,3 +1179,94 @@ contribution-auditor's stated verification alone.
   evaluation should test whether AGF coordination records remain immutable and visible,
   whether `agov` obligations can be surfaced as required work rather than optional chat,
   and whether synchronization can preserve protected-main and governor Gate-2 authority.
+
+# Batch 12 (2026-08-02 UTC) — Y Combinator QM and independent source audit
+
+Both sources belong in the registry, but they serve different evidentiary roles. QM's
+pinned repository is the primary source for the implementation and stated threat model;
+RuntimeWire is a secondary, independent source-level audit of that snapshot. Feature and
+security claims below are tied to reviewed commit
+`7f2c916360f1797a8ff2a77ce2ce40c5fabab087` / npm package
+`@yc-software/qm@0.1.4`; do not silently project them onto later QM revisions.
+
+## Classified
+
+- https://github.com/yc-software/qm/tree/7f2c916360f1797a8ff2a77ce2ce40c5fabab087
+  type: tooling, source | relation: sibling, complement,
+  competitor(operator/runtime layer), potential-partner |
+  action: evaluate, compare-in-docs, watch
+  note: Primary source for Y Combinator's MIT-licensed "multiplayer agent harness for
+  work." QM gives people and shared rooms scoped durable sandboxes, memory, files,
+  credentials, permissions, background jobs, and apps; its central core resolves identity
+  and audience, applies policy, persists an audit/run ledger, and can route Pi, OpenCode,
+  Codex, or Claude Code through the same control plane. This is a close sibling on the
+  multi-agent operator surface and a partial competitor at the runtime-policy layer, while
+  AGF remains the repo/process authority, independent-review, and binding-human-gate layer.
+  Potential partnership: QM could host execution, scopes, credentials, and background work
+  while AGF supplies governed roles, immutable coordination, plan validation, and Gate 1/
+  Gate 2 authority. Treat this only as an integration hypothesis pending a threat model and
+  hands-on evaluation; QM's own security document limits the intended deployment to one
+  trusted organization and records material sandbox, credential, screening, egress, and
+  retention caveats.
+
+- https://runtimewire.com/article/inside-qm-we-read-y-combinator-s-company-wide-agent-runtime
+  type: research, technical analysis | relation: evidence, prior-art, complement |
+  action: cite, compare-in-docs, watch
+  note: Ryan Merket / RuntimeWire source audit published 2026-08-02. The analysis pins QM
+  source and npm package to the same revision, reads runtime and deployment code, generates
+  a deployment directory, and runs the package CLI tests. It is unusually useful secondary
+  evidence because it separates verified implementation behavior from README/security-doc
+  claims and identifies at least one stale security warning at the reviewed head. Strong
+  method reference for AGF's verifiable-claims discipline: review the deployment artifact
+  and runtime together, pin source/package/image provenance, test the claimed boundary, and
+  preserve contradictions rather than smoothing them over. It is not independent proof of
+  QM's effectiveness in production; time-sensitive popularity counts and all findings must
+  remain attributed to the pinned snapshot.
+
+## First AGF takeaways
+
+1. **The durable control plane around the model is the relevant sibling surface.** QM spends
+   its architectural effort on scope resolution, audience filtering, ACLs, credentials,
+   policy, audit records, scheduling, and sandbox lifecycle; the harness is replaceable.
+   AGF should keep its runtime/process boundary explicit, but any future operator integration
+   should bind governance decisions to this control-plane identity and scope rather than to
+   a model name.
+2. **Information-flow rules should be executable where possible.** QM's audience filter
+   retains context only when every audience member is entitled to it; allowed egress is
+   intersected and denials are unioned. This is useful prior art for AGF's cross-record leak
+   controls and future scoped coordination views, while remaining runtime-layer enforcement
+   rather than evidence that AGF should absorb a secrets or identity store.
+3. **Mutable memory is not a governance record.** QM's inspectable plain-text memory and
+   revision history are attractive, but model-assisted extraction/consolidation can add,
+   rewrite, or delete facts asynchronously. AGF should preserve the distinction between
+   helpful mutable operational memory and immutable decision/coordination evidence.
+4. **Human approval must be classified by layer.** QM Strict posture can pause every
+   effectful tool call; AGF gates plans and merge decisions. Combining them naively would
+   create approval fatigue without improving accountability. An integration should record
+   whether an approval authorizes a runtime effect, a repository change, or a binding
+   governance decision, and must keep the named governor's authority distinct.
+5. **Policy friction is not isolation.** QM candidly states that command policy can be
+   bypassed, materialized credentials are readable inside a sandbox, screening coverage is
+   incomplete, egress enforcement differs by backend, and durable state may persist
+   indefinitely. AGF should reuse this honesty pattern: name the trusted operator/core,
+   deployment-specific controls, retention boundary, and unsupported guarantees rather
+   than turning a strict posture into a confinement claim.
+6. **Independent agent review is convergent practice worth comparing.** QM's `AGENTS.md`
+   forbids self-review and calls for an independent agent, while its contribution policy
+   asks outsiders for human-written proposals that maintainers' agents implement. This is
+   close prior art for AGF's planner/implementer/auditor separation; AGF's differentiator is
+   the durable role authority and binding human governor decision, not merely using two
+   agents.
+7. **Release provenance is a concrete benchmark.** QM's reviewed release path pins container
+   images by digest, signs images with Sigstore, and publishes npm provenance. AGF should
+   compare that end-to-end artifact chain with `agov` checksums/provenance and avoid treating
+   an unsigned coordination trail as equivalent to a cryptographic software attestation.
+
+## Evaluation boundary
+
+Do not add QM directly to the governed radar or pursue contact/integration from this source
+entry alone. A separate evaluation should test role/identity mapping, whether `agov`
+obligations can be surfaced as required work, whether QM's mutable memory can remain outside
+the immutable coordination channel, whether private-to-shared audience transitions prevent
+record leakage, and whether runtime approvals can coexist with protected-main and governor
+Gate-2 authority without bypass or approval fatigue.
