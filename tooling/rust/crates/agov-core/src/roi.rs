@@ -135,6 +135,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "token",
     "dist",
     "usage",
+    "ci",
     // coord subcommands.
     "brief",
     "post",
@@ -176,6 +177,8 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     // dist provenance-record subcommands.
     "file",
     "oci",
+    // ci subcommands.
+    "cache-topology-check",
 ];
 
 /// Flags whose *values* are closed vocabulary and may be retained.
@@ -275,6 +278,11 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--label-version",
     "--label-revision",
     "--last",
+    "--merged-yaml",
+    "--shared-key",
+    "--writer-job",
+    "--writer-policy-var",
+    "--consumer-policy-var",
 ];
 
 /// Default-deny redaction over the exact token stream received (v2.4.0

@@ -1,3 +1,4 @@
+mod ci_cache_topology;
 mod dist;
 mod provenance;
 
@@ -80,6 +81,45 @@ enum Command {
     Usage {
         #[command(subcommand)]
         sub: UsageCommand,
+    },
+    /// CI pipeline configuration checks.
+    Ci {
+        #[command(subcommand)]
+        sub: CiCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum CiCommand {
+    /// Statically validate the shared Rust CI cache writer topology against
+    /// GitLab CI Lint's merged YAML (extends/anchors already resolved).
+    CacheTopologyCheck {
+        /// Path to a file containing the merged YAML text (the
+        /// `merged_yaml` field of a `POST /projects/:id/ci/lint` response
+        /// with `include_jobs=true`), or the full JSON response itself.
+        #[arg(long)]
+        merged_yaml: PathBuf,
+        /// The shared cache key that identifies the writer/consumer graph
+        /// under inspection.
+        #[arg(long, default_value = "rust-v3-main")]
+        shared_key: String,
+        /// The single job name authorized to hold the writer role.
+        #[arg(long, default_value = "rust:tooling:test")]
+        writer_job: String,
+        /// CI variable name the writer job's cache.policy must reference.
+        #[arg(long, default_value = "RUST_CACHE_WRITER_POLICY")]
+        writer_policy_var: String,
+        /// CI variable name every consumer job's cache.policy must reference.
+        #[arg(long, default_value = "RUST_CACHE_POLICY")]
+        consumer_policy_var: String,
+        /// "text" prints the OK/ERR summary. "dot" prints the resolved
+        /// writer/consumer graph as Graphviz DOT to stdout instead --
+        /// written regardless of pass/fail, so a second writer, an
+        /// unrecognised role, or a wrong policy variable are visible
+        /// directly in the graph shape. ERR lines from a failing check
+        /// still go to stderr in either format.
+        #[arg(long, default_value = "text", value_parser = ["text", "dot"])]
+        format: String,
     },
 }
 
@@ -648,7 +688,122 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     last,
                 },
         } => usage_report(dir, manifest, last, &args),
+        Command::Ci {
+            sub:
+                CiCommand::CacheTopologyCheck {
+                    merged_yaml,
+                    shared_key,
+                    writer_job,
+                    writer_policy_var,
+                    consumer_policy_var,
+                    format,
+                },
+        } => ci_cache_topology_check_command(
+            &merged_yaml,
+            &shared_key,
+            &writer_job,
+            &writer_policy_var,
+            &consumer_policy_var,
+            &format,
+            &args,
+        ),
     }
+}
+
+fn ci_cache_topology_check_command(
+    merged_yaml_path: &Path,
+    shared_key: &str,
+    writer_job: &str,
+    writer_policy_var: &str,
+    consumer_policy_var: &str,
+    format: &str,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let content = match std::fs::read_to_string(merged_yaml_path) {
+        Ok(content) => content,
+        Err(err) => {
+            output.stderr(format!(
+                "ERR cannot read {}: {err}",
+                merged_yaml_path.display()
+            ));
+            agov_core::roi::record_tool_output("agov", args, "ci-cache-topology-check", output.chars);
+            return 1;
+        }
+    };
+    // Accept either raw merged-YAML text or a full CI Lint JSON response
+    // (whose "merged_yaml" field holds the same text) -- both are valid
+    // inputs a caller might have saved to disk.
+    let doc: serde_json::Value = match serde_json::from_str::<serde_json::Value>(&content)
+        .ok()
+        .and_then(|v| v.get("merged_yaml").and_then(|m| m.as_str()).map(str::to_string))
+    {
+        Some(inner) => match serde_norway::from_str::<serde_json::Value>(&inner) {
+            Ok(doc) => doc,
+            Err(err) => {
+                output.stderr(format!("ERR failed to parse merged_yaml field: {err}"));
+                agov_core::roi::record_tool_output(
+                    "agov",
+                    args,
+                    "ci-cache-topology-check",
+                    output.chars,
+                );
+                return 1;
+            }
+        },
+        None => match serde_norway::from_str::<serde_json::Value>(&content) {
+            Ok(doc) => doc,
+            Err(err) => {
+                output.stderr(format!("ERR failed to parse {}: {err}", merged_yaml_path.display()));
+                agov_core::roi::record_tool_output(
+                    "agov",
+                    args,
+                    "ci-cache-topology-check",
+                    output.chars,
+                );
+                return 1;
+            }
+        },
+    };
+
+    if format == "dot" {
+        let jobs = ci_cache_topology::inventory_shared_cache_jobs(&doc, shared_key);
+        for line in ci_cache_topology::render_dot(&jobs, shared_key).lines() {
+            output.stdout(line);
+        }
+    }
+
+    let exit_code = match ci_cache_topology::check_topology(
+        &doc,
+        shared_key,
+        writer_job,
+        writer_policy_var,
+        consumer_policy_var,
+    ) {
+        Ok(report) => {
+            if format != "dot" {
+                let names: Vec<&str> = report
+                    .shared_key_jobs
+                    .iter()
+                    .map(|j| j.name.as_str())
+                    .collect();
+                output.stdout(format!(
+                    "OK cache-topology: key={shared_key} writer={writer_job} consumers={} total_shared_jobs={} jobs={names:?}",
+                    report.shared_key_jobs.len().saturating_sub(1),
+                    report.shared_key_jobs.len()
+                ));
+            }
+            0
+        }
+        Err(errors) => {
+            for error in errors {
+                output.stderr(format!("ERR {error}"));
+            }
+            1
+        }
+    };
+    agov_core::roi::record_tool_output("agov", args, "ci-cache-topology-check", output.chars);
+    exit_code
 }
 
 #[derive(Serialize)]
