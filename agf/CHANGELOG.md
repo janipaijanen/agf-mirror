@@ -3,6 +3,32 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [Unreleased]
+
+### Fixed
+
+- `agf/rules/always/governance-file-layout-rule.md` no longer presents
+  "Layout A"/"Layout B" as a live adopter choice. AGF v2.0 supports exactly
+  one adoption layout — already stated in `agf/ADOPTING.md` and
+  `agf/docs/site/docs/adopt/install-and-layouts.md` — and the rule's
+  `<!-- CUSTOMIZE -->` template contradicted both. Replaced with a
+  single-layout ownership table (adopter-owned vs. upstream-owned paths)
+  and corrected a stale `ADOPTING.md` header pointer and a pre-rename
+  example path.
+
+**Reclassified from Editorial to Additive** (Codex review, MR !916 on a
+related plan, 2026-08-02): the removed block was inert, so the rule
+previously asserted no concrete ownership guidance. The table is new
+operative content, Additive under `downstream-impact-rule.md`'s own test.
+Its `agf/agents/*.yaml` row is explicitly marked as deciding issue #79's
+own Gate 1 plan (`docs/plans/v250-rc1-contract-core.md`), not asserted
+independently ahead of it.
+
+Adopter docs: not applicable — the table's content already exists in
+`ADOPTING.md`'s "Confirm the layout" table (except the #79-pending row,
+which is explicitly marked as such); no new adopter doc, template, or
+behavior change as a result.
+
 ## [2.4.11] — 2026-08-01
 
 Documentation and accessibility patch.
