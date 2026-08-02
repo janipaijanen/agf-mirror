@@ -1,9 +1,9 @@
 ---
 id: v250-rc1-contract-core
-status: pending-gate1
+status: approved
 topic: v250-rc1-contract-core
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer decision 20260802T072326Z-governor-reviewer; MR !913 exact head 50ce651a51e6379c0c9de737826d51b280c9407d"
+gate1_approved_at: "2026-08-02T07:23:26Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
