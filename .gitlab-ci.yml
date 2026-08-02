@@ -822,6 +822,19 @@ agov:governance:validate:
         - docs/coordination/*.md
         - docs/plans/*.md
         - docs/reviews/rule-projection/*.yaml
+        # Plain top-level docs files with no dedicated job path filter
+        # anywhere in this pipeline. Without this, a commit range
+        # touching only one of these matches zero job path filters in
+        # any trigger context, and GitLab creates no pipeline object at
+        # all for that ref/SHA -- not even a skipped one -- which this
+        # project's only_allow_merge_if_pipeline_succeeds +
+        # allow_merge_on_skipped_pipeline=false settings then turn into
+        # a hard, silent merge block. Confirmed on MR !962 and MR !954
+        # (both docs/sources.md/docs/radar.md-only changes). See
+        # 20260802T222231Z-coder-tester-62p5.md.
+        - docs/sources.md
+        - docs/radar.md
+        - docs/TODO.md
         - .gitlab-ci.yml
         - tooling/agov
         - tooling/rust/**/*
