@@ -2,7 +2,7 @@
 id: ci-rust-cache-policy-slice-b
 status: approved
 topic: ci-rust-cache-policy-slice-b
-gate1_approved_by: "governor-reviewer decision 20260802T143239Z-governor-reviewer-tq8r; MR !936 exact head 4d6baa037225d41585b0ccac1e04f9569e89bd1b"
+gate1_approved_by: "governor-reviewer decisions 20260802T143239Z-governor-reviewer-tq8r and scope amendment 20260802T162616Z-governor-reviewer-3tam; original MR !936 exact head 4d6baa037225d41585b0ccac1e04f9569e89bd1b"
 gate1_approved_at: "2026-08-02T14:32:39Z"
 advisory_consultation:
   - role: contribution-auditor
@@ -43,9 +43,21 @@ Authorize Slice B as a bounded follow-up to Slice A:
    `rust-v3-main` cache in an ordinary default-branch push;
 3. make every other automatic, manual, tag, schedule, API, web, trigger,
    downstream, feature-push, and merge-request consumer pull-only; and
-4. extend the runtime contract so CI fails if a second shared-key writer is
-   introduced or the designated writer resolves write policy in the wrong
-   context.
+4. extend the runtime contract so CI fails if a job's declared role resolves
+   write policy in the wrong context, and require a resolved-configuration
+   topology check as Gate 2 evidence that no second shared-key writer exists.
+
+> **Gate 1 scope amendment (2026-08-02):** Governor-reviewer decision
+> `20260802T162616Z-governor-reviewer-3tam`, responding to independent finding
+> `20260802T162308Z-contribution-auditor-mmbb`, removes automatic
+> second-writer topology enforcement from this slice. The implementation's
+> `CI_JOB_TOKEN` cannot call GitLab CI Lint on this project (observed HTTP 403),
+> and the governor declined to add a new scoped credential. The deterministic
+> topology checker and its negative tests remain required, but it is invoked
+> manually against fresh CI Lint merged YAML for Gate 2 and post-change review.
+> Per-job role/context assertions remain automatic. This amendment accepts the
+> bounded regression-detection gap; it does not weaken the required one-writer
+> topology at the reviewed implementation head.
 
 The implementation must preserve all existing jobs and test commands. Cache
 content remains acceleration only and is never acceptance evidence.
@@ -220,7 +232,7 @@ meaningful and include negative fixtures for:
 - an unset policy.
 
 Add a static topology mode that reads the resolved CI configuration supplied
-by the test harness and fails unless the entire shared-key graph contains
+by the Gate 2 test harness and fails unless the entire shared-key graph contains
 exactly one concrete automatic writer candidate, named `rust:tooling:test`,
 and every other automatic/manual/release shared-key consumer resolves pull-only
 for its context. It must dynamically inventory direct and indirect
@@ -233,6 +245,10 @@ contract without creating a fragile YAML parser, use GitLab CI Lint's merged
 YAML response as the topology input and a small deterministic repository script
 using an already-present runtime. Do not add an unpinned dependency solely to
 parse YAML.
+
+The topology mode is mandatory review evidence but, under the 2026-08-02 scope
+amendment above, is not required to run automatically in every pipeline. Do not
+add a credential or project setting to automate it within this slice.
 
 ## Affected files
 
@@ -343,9 +359,11 @@ reverting cache ownership ad hoc.
 - **Combined cache restores irrelevant compiled targets.** Measurement is
   mandatory and may motivate a later separately gated split; this slice does
   not multiply uploads speculatively.
-- **A new inheritor becomes a writer.** Fail-safe base policy plus dynamic
-  topology validation makes new consumers pull-only and detects any second
-  override.
+- **A new inheritor becomes a writer.** Fail-safe base policy makes new
+  inheritors pull-only. A deliberate second role/policy override is detected by
+  the mandatory resolved-topology review tool, but not automatically in every
+  pipeline under the approved 2026-08-02 amendment. This bounded gap is
+  accepted for Slice B rather than adding a new CI Lint credential.
 - **Runner wrapper text is mistaken for upload.** Acceptance checks actual
   archive creation/upload (`Creating cache`, `Created cache`, `Uploading cache
   to`) and permits the harmless policy-suppressed `archive_cache` wrapper
