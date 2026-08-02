@@ -14,6 +14,12 @@
 #   in install-and-layouts.md ("AGF v2.0 uses one supported layout"). The
 #   dual-option block was stale leftover framing, not a live adopter
 #   choice, and is removed below.
+# Revised 2026-08-02 (Codex review, MR !916 on a related plan): the
+#   ownership table's `agf/agents/*.yaml` row states the same manifest
+#   path issue #79's own Gate 1 plan (docs/plans/v250-rc1-contract-core.md)
+#   decides. That plan is the authority for this row, not this rule
+#   independently. All other rows restate long-standing convention already
+#   published in ADOPTING.md, unaffected by #79.
 
 AGF v2.0 supports exactly one layout: the framework lives inside the
 project as the visible `agf/` directory. Governance-artifact placement is
@@ -24,12 +30,19 @@ table:
 | Artifact | Path | Ownership |
 |---|---|---|
 | Learning records | `agf/learnings/<codename>.yaml` | Adopter-owned |
-| Agent definitions / role roster | `agf/agents/*.yaml` | Adopter-owned |
+| Agent definitions / role roster | `agf/agents/*.yaml` | Adopter-owned pending #79\* |
 | ADRs and governance docs | `agf/docs/adr/` | Adopter-owned |
 | Framework rules | `agf/rules/` | Upstream-owned |
 | Working plans | `docs/plans/` | Adopter-owned |
 | Coordination channel | `docs/coordination/` | Adopter-owned |
 | `GOVERNANCE.md` | Project root | Adopter-owned |
+
+\* This row's canonical path, precedence, and migration behavior are
+decided by issue #79's own Gate 1 plan
+(`docs/plans/v250-rc1-contract-core.md`), not asserted independently by
+this rule — this row restates that plan's decision, not the other way
+around. If that plan's decision changes before Gate 1, update this row to
+match; do not treat this row as settling the question first.
 
 Rules:
 - Create `learnings/`, `agents/`, and `docs/adr/` content under `agf/`, at

@@ -15,15 +15,25 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   adopter choice. AGF v2.0 supports exactly one adoption layout, already
   stated in `agf/ADOPTING.md` and `agf/docs/site/docs/adopt/install-and-layouts.md`;
   the rule's stale `<!-- CUSTOMIZE -->` template contradicted both. Replaced
-  with the real single-layout ownership table (which paths are
-  adopter-owned vs. upstream-owned) and corrected a stale header pointer
-  and a pre-rename example path. Editorial — no change to which files are
-  adopter-owned or upstream-owned, only to the rule's own description of
-  that fact.
+  with a single-layout ownership table (which paths are adopter-owned vs.
+  upstream-owned) and corrected a stale header pointer and a pre-rename
+  example path.
 
-Adopter docs: not applicable — corrects the rule's internal description of
-an already-documented, already-shipped single-layout reality; no adopter
-doc, template, or behavior changes as a result.
+**Reclassified from Editorial to Additive** (Codex review, MR !916 on a
+related plan, 2026-08-02): the removed dual-layout block was inert
+(neither option was ever live), so the rule previously asserted no
+concrete ownership guidance at all. The replacement table is new operative
+content, not a restatement of prior behavior — Additive under
+`downstream-impact-rule.md`'s own test, not Editorial. The table's
+`agf/agents/*.yaml` row is explicitly marked as deciding issue #79's own
+Gate 1 plan (`docs/plans/v250-rc1-contract-core.md`), not asserted
+independently ahead of it — all other rows restate long-standing
+convention already published in `ADOPTING.md`, unaffected by #79.
+
+Adopter docs: not applicable — the table's content already exists in
+`ADOPTING.md`'s "Confirm the layout" table (except the #79-pending row,
+which is explicitly marked as such); no new adopter doc, template, or
+behavior change as a result.
 
 ## [2.4.11] - 2026-08-01
 
