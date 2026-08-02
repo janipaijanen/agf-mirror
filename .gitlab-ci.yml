@@ -18,6 +18,15 @@
 #   rust:tooling:*    — Rust tooling: validation, tests, clippy, parity, archives
 #   release:create    — upload archives to package registry; create GitLab release entry
 
+variables:
+  # Fail-safe default: every pipeline context is pull-only for the shared
+  # Rust cache unless the workflow rule below identifies an ordinary
+  # default-branch push. A context that fails to match that rule -- an
+  # unset/future CI_PIPELINE_SOURCE included -- must never accidentally
+  # resolve to a writer. See docs/plans/ci-rust-cache-policy-slice-a.md
+  # and issue #101 (child scope of #53).
+  RUST_CACHE_POLICY: "pull"
+
 workflow:
   rules:
     # Coordination-only candidates are NOT suppressed at the workflow level.
@@ -39,6 +48,17 @@ workflow:
     # matrix and rationale.
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
       when: never
+    # The sole Rust-cache writer context: an ordinary default-branch push.
+    # The conjunction is intentional -- push excludes schedule/api/web/
+    # trigger/pipeline sources, a truthy branch excludes tag pipelines
+    # (CI_COMMIT_BRANCH is unset there), and equality selects only the
+    # default branch. Every other context falls through to the catch-all
+    # below and keeps the fail-safe "pull" default set above. See
+    # docs/plans/ci-rust-cache-policy-slice-a.md's context acceptance
+    # matrix and .gitlab/scripts/check-rust-cache-policy.sh.
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      variables:
+        RUST_CACHE_POLICY: "pull-push"
     - when: always
 
 # ── Shared templates ──────────────────────────────────────────────────────────
@@ -48,14 +68,21 @@ workflow:
   variables:
     CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
   cache:
-    key: rust-$CI_COMMIT_REF_SLUG
+    # Versioned shared key: non-default consumers read the main-fed
+    # namespace directly instead of preferring a stale branch-specific
+    # cache they can no longer refresh. rust-main remains as a fallback
+    # until the first post-merge default-branch pipeline populates
+    # rust-v2-main. See docs/plans/ci-rust-cache-policy-slice-a.md.
+    key: rust-v2-main
     fallback_keys:
       - rust-main
     paths:
       - .cargo/registry
       - .cargo/bin
       - tooling/rust/target
+    policy: $RUST_CACHE_POLICY
   before_script:
+    - sh .gitlab/scripts/check-rust-cache-policy.sh assert-current
     - cd tooling/rust
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
@@ -894,8 +921,12 @@ rust:tooling:clippy:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
+    # extends does not merge before_script arrays -- redefining this key
+    # here would otherwise silently drop .rust-base's cache-policy
+    # assertion for every job built on this template.
+    - !reference [.rust-base, before_script]
+    # .rust-base's referenced before_script already cd's into tooling/rust.
     - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
-    - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
   script:
@@ -1106,8 +1137,12 @@ rust:tooling:build:windows:preview:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
+    # extends does not merge before_script arrays -- redefining this key
+    # here would otherwise silently drop .rust-base's cache-policy
+    # assertion.
+    - !reference [.rust-base, before_script]
+    # .rust-base's referenced before_script already cd's into tooling/rust.
     - apt-get update -qq && apt-get install -y -qq docker.io
-    - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
   script:
