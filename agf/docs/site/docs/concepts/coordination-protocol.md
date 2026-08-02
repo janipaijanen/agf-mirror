@@ -252,6 +252,19 @@ Each `references-to:` field links backward; `agov session resume` and
 | `ack` | agent → agent | Acknowledge receipt of a `requires-ack` handoff |
 | `claim` | agent → all | Reserve ownership of an artifact |
 
+### `requires-ack` obligation semantics
+
+`requires-ack: true` may be set on any kind except `ack` — an
+acknowledgement cannot require its own acknowledgement, so the schema
+rejects that combination outright. A `requires-ack: true` handoff resolves
+through `agov handoff next` / `take` / `complete`, unchanged. Every other
+kind resolves through `agov coord pending`: a record is pending until any
+later record's `references-to` names it directly — a direct reference, not
+a transitive chain. Records published before `2026-08-02T18:10:18Z` are
+grandfathered and never appear in `coord pending`'s output, so the ~380
+pre-existing non-handoff `requires-ack: true` records already in the
+channel are not retroactively treated as a pending backlog.
+
 ### Review bodies
 
 A review can use the advisory [review findings](../../reference/review-findings.md)

@@ -90,6 +90,93 @@ handoff:
     assert_eq!(next.status.code(), Some(2));
 }
 
+/// Issue #80 (a): an `ack` record requiring its own acknowledgement is not a
+/// meaningful obligation, so the schema forbids the combination outright.
+#[test]
+fn ack_kind_with_requires_ack_true_fails_schema_validation() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        r#"---
+kind: ack
+from: coder-tester
+to: governor-reviewer
+id: 20260720T100000Z-coder-tester-abcd
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to:
+  - 20260719T100000Z-governor-reviewer-wxyz.md
+topic: ack-requires-ack-negative-fixture
+requires-ack: true
+artifacts_owned: []
+---
+
+# Ack
+"#,
+    );
+
+    let validate = agov(&[
+        "coord",
+        "validate",
+        fixture
+            .path()
+            .join("20260720T100000Z-coder-tester-abcd.md")
+            .to_str()
+            .unwrap(),
+    ]);
+
+    assert_ne!(
+        validate.status.code(),
+        Some(0),
+        "an ack record with requires-ack: true must fail schema validation"
+    );
+}
+
+/// Positive control: `ack` with `requires-ack: false` (the normal case) is
+/// unaffected by the new constraint.
+#[test]
+fn ack_kind_with_requires_ack_false_passes_schema_validation() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        r#"---
+kind: ack
+from: coder-tester
+to: governor-reviewer
+id: 20260720T100000Z-coder-tester-abcd
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to:
+  - 20260719T100000Z-governor-reviewer-wxyz.md
+topic: ack-requires-ack-positive-fixture
+requires-ack: false
+artifacts_owned: []
+---
+
+# Ack
+"#,
+    );
+
+    let validate = agov(&[
+        "coord",
+        "validate",
+        fixture
+            .path()
+            .join("20260720T100000Z-coder-tester-abcd.md")
+            .to_str()
+            .unwrap(),
+    ]);
+
+    assert_eq!(
+        validate.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&validate.stderr)
+    );
+}
+
 #[test]
 fn coord_list_since_message_id_returns_later_messages() {
     let fixture = tempfile::tempdir().unwrap();
@@ -128,6 +215,100 @@ fn coord_list_since_message_id_returns_later_messages() {
     assert!(!stdout.contains("first"));
     assert!(stdout.contains("second"));
     assert!(stdout.contains("20260720T110000Z-coder-tester-efgh"));
+}
+
+/// Issue #80: `coord pending` is a distinct surface from `handoff next` --
+/// a non-handoff, non-ack `requires-ack: true` record shows as pending
+/// until a later record's `references-to` names it directly, and a
+/// pre-cutoff record never appears regardless of resolution state.
+#[test]
+fn coord_pending_tracks_non_handoff_requires_ack_and_respects_cutoff() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T090000Z-contribution-auditor-0000.md",
+        r#"---
+kind: review
+from: contribution-auditor
+to: governor-reviewer
+id: 20260720T090000Z-contribution-auditor-0000
+timestamp: 2026-07-20T09:00:00Z
+immutable: true
+references-to: []
+topic: pre-cutoff-review
+requires-ack: true
+artifacts_owned: []
+---
+
+# Pre-cutoff review (must never appear, regardless of cutoff)
+"#,
+    );
+    write_message(
+        &fixture,
+        "20260720T100000Z-contribution-auditor-aaaa.md",
+        r#"---
+kind: review
+from: contribution-auditor
+to: governor-reviewer
+id: 20260720T100000Z-contribution-auditor-aaaa
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to: []
+topic: post-cutoff-review
+requires-ack: true
+artifacts_owned: []
+---
+
+# Post-cutoff review
+"#,
+    );
+
+    let before_resolution = agov(&[
+        "coord",
+        "pending",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+        "--cutoff",
+        "2026-07-20T09:30:00Z",
+    ]);
+    assert_eq!(before_resolution.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&before_resolution.stdout);
+    assert!(stdout.contains("20260720T100000Z-contribution-auditor-aaaa.md"));
+    assert!(
+        !stdout.contains("20260720T090000Z-contribution-auditor-0000.md"),
+        "pre-cutoff record must never appear:\n{stdout}"
+    );
+
+    write_message(
+        &fixture,
+        "20260720T110000Z-governor-reviewer-bbbb.md",
+        r#"---
+kind: decision-record
+from: governor-reviewer
+to: contribution-auditor
+id: 20260720T110000Z-governor-reviewer-bbbb
+timestamp: 2026-07-20T11:00:00Z
+immutable: true
+references-to:
+  - 20260720T100000Z-contribution-auditor-aaaa.md
+topic: post-cutoff-review-resolution
+requires-ack: false
+artifacts_owned: []
+---
+
+# Resolves the post-cutoff review
+"#,
+    );
+
+    let after_resolution = agov(&[
+        "coord",
+        "pending",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+        "--cutoff",
+        "2026-07-20T09:30:00Z",
+    ]);
+    assert_eq!(after_resolution.status.code(), Some(2));
 }
 
 #[test]

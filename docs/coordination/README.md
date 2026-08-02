@@ -70,7 +70,7 @@ by `mix agov.coord.validate`.
 | `claim` | **(schema)** Non-empty `artifacts_owned` — schema rejects empty |
 | `completion` | `verification:` section **(prose)**; releases claimed artifacts (empty `artifacts_owned`) |
 | `review` | `findings:` section or explicit "no findings" **(prose)** |
-| `ack` | **(schema)** Must reference the message being acknowledged via `references-to` |
+| `ack` | **(schema)** Must reference the message being acknowledged via `references-to`; must not itself set `requires-ack: true` |
 | `handoff` | **(schema)** `handoff` object with `next_agent`, `status` (`ready`\|`blocked`), `task` (non-empty array), `must_read`, `do_not_touch` |
 | `decision-record` | Chosen option and rationale **(prose)** |
 | `fast-track-waiver` | Task, why low-risk, who waived **(prose)** |
@@ -80,6 +80,19 @@ by `mix agov.coord.validate`.
 For guidance on choosing the right kind, citing evidence, and preserving the
 audit trail leading to a decision request, see
 [feedback-coordination-messages.md](feedback-coordination-messages.md).
+
+### `requires-ack` obligation semantics
+
+`requires-ack: true` may be set on any kind except `ack` — an
+acknowledgement cannot require its own acknowledgement, so the schema
+rejects that combination outright. A `requires-ack: true` handoff resolves
+through `agov handoff next` / `take` / `complete`, unchanged. Every other
+kind resolves through `agov coord pending`: a record is pending until any
+later record's `references-to` names it directly — a direct reference, not
+a transitive chain. Records published before `2026-08-02T18:10:18Z` are
+grandfathered and never appear in `coord pending`'s output, so the ~380
+pre-existing non-handoff `requires-ack: true` records already in the
+channel are not retroactively treated as a pending backlog.
 
 ---
 
