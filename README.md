@@ -178,6 +178,7 @@ Default POC layout:
 | Communication map | `agov coord graph` — Graphviz dot map of role-to-role coordination flows |
 | Coordination index | `agov coord graph-index` — JSON index of handoffs and references |
 | Coordination updates | `agov coord list --since <id-or-timestamp>` |
+| Coordination obligations | `agov coord pending` — unresolved `requires-ack: true` records of any kind other than `handoff`/`ack` |
 | Tool provenance | `agov --version` / `agov version --format json` |
 
 The `agf/` distribution ships **46 governance rules**, **12 agent definitions**,
