@@ -783,7 +783,15 @@ agov:governance:validate:
         exit 0
       fi
 
+      # README.md and feedback-coordination-messages.md are documentation
+      # that lives in docs/coordination/ by convention, not coordination
+      # messages -- they carry no YAML front matter by design and must be
+      # excluded from the message-shape check, mirroring the MANIFEST.yaml
+      # filename exclusion already used for the analogous case in
+      # agov-validators (agents.rs, adoption.rs, readme_stats.rs).
       git diff --name-only -z "$base"...HEAD -- 'docs/coordination/*.md' \
+          ':!docs/coordination/README.md' \
+          ':!docs/coordination/feedback-coordination-messages.md' \
         | xargs -0r "$agov_bin" coord validate
       git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
         | xargs -0r "$agov_bin" plan validate
