@@ -1,9 +1,9 @@
 ---
 id: ci-rust-cache-policy-slice-a
-status: pending-gate1
+status: approved
 topic: ci-rust-cache-policy-slice-a
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer decision 20260802T091047Z-governor-reviewer; MR !927 exact head b864f130b76ae49513b2e9b72bfc49c8e7761a9a"
+gate1_approved_at: "2026-08-02T09:10:47Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
