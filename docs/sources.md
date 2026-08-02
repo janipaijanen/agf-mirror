@@ -1039,9 +1039,12 @@ that entry, not a new finding.
 # Batch 9 (2026-08-03) — governor-requested addition + radar-to-source crosswalk,
 # routed via contribution-auditor (20260802T213418Z-contribution-auditor-js3j.md)
 
-Contribution-auditor fetched/verified these directly; Claude independently
-re-verified all five via a fresh fetch of each URL before adding — no
-discrepancies found between the two verification passes.
+Contribution-auditor fetched/verified all six directly (per
+`20260802T213418Z-contribution-auditor-js3j.md`). Claude independently
+re-fetched four of the six (Gavin Ray, GDPR, Eclipse ORC, IETF WIMSE) before
+adding — no discrepancies found. The EC AI Act page and the IETF AIMS slides
+were not independently re-fetched; their entries below rely on
+contribution-auditor's stated verification alone.
 
 ## Classified
 
