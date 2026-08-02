@@ -35,6 +35,28 @@ Adopter docs: not applicable — the table's content already exists in
 which is explicitly marked as such); no new adopter doc, template, or
 behavior change as a result.
 
+### Changed
+
+- CI: the shared Rust cache (`.rust-base`) is now pull-only outside ordinary
+  default-branch push pipelines — feature branches, merge requests, tags,
+  schedules, API/web/trigger pipelines, and downstream pipelines no longer
+  spend runner time archiving and uploading a cache most of them use once
+  (issue #101, Slice A of `docs/plans/ci-rust-cache-policy-slice-a.md`,
+  child scope of #53). A single explicit default-branch write context
+  (`RUST_CACHE_POLICY: pull-push`) keeps the shared cache warm; every other
+  context fails safe to `pull` via a top-level default, verified at runtime
+  by `.gitlab/scripts/check-rust-cache-policy.sh assert-current`. The cache
+  key moved to a versioned `rust-v2-main` namespace (with `rust-main`
+  retained as fallback) so non-default consumers stop preferring a stale
+  branch-specific cache they can no longer refresh. This does not eliminate
+  concurrent default-branch writers uploading to the same key — that
+  topology is separately gated as Slice B, per the plan's explicit
+  boundary. No job, test coverage, or acceptance requirement changed; cache
+  content remains build acceleration only, never test evidence.
+
+Adopter docs: not applicable — repository-internal CI cost optimization,
+not an AGF framework capability.
+
 ## [2.4.11] - 2026-08-01
 
 Documentation and accessibility patch.
