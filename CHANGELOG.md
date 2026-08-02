@@ -73,12 +73,17 @@ not an AGF framework capability.
   pinned toolchain's primary cache. `.gitlab/scripts/check-rust-cache-policy.sh`
   is now role-aware (`RUST_CACHE_ROLE=writer|consumer`) and fails closed on
   an unrecognised or missing role. A new `agov ci cache-topology-check`
-  subcommand statically verifies the resolved CI configuration has exactly
+  subcommand statically verifies a resolved CI configuration has exactly
   one writer, dynamically inventoried from GitLab CI Lint's merged YAML
   (not a hard-coded job list, so an indirect `.rust-base` inheritor cannot
-  silently escape the check the way two jobs did during Slice A). A pinned
-  ShellCheck job (`docker.io/koalaman/shellcheck@sha256:...`) lints the
-  policy script in CI. This trades away the small, inconsistent
+  silently escape the check the way two jobs did during Slice A). This is
+  a manually-invoked verification tool used for Gate 2 evidence, not a
+  standing CI job — `CI_JOB_TOKEN` is not authorized against GitLab's CI
+  Lint API on this project (confirmed via a real 403 at implementation
+  time), and adding a scoped credential to enable automatic per-pipeline
+  enforcement was deferred rather than done unilaterally. A pinned
+  ShellCheck job (`docker.io/koalaman/shellcheck-alpine@sha256:...`) lints
+  the policy script in CI. This trades away the small, inconsistent
   release-profile cache benefit `agov:governance:validate` sometimes got
   under the old last-writer-wins topology (see the plan's "why
   rust:tooling:test" section) — acceleration only, no correctness or
