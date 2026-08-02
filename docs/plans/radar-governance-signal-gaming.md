@@ -1,7 +1,9 @@
 ---
 id: radar-governance-signal-gaming
-status: pending-gate1
+status: approved
 topic: radar-governance-signal-gaming
+gate1_approved_by: 20260802T192253Z-governor-reviewer-gkeq
+gate1_approved_at: 2026-08-02T19:22:53Z
 advisory_consultation:
   - role: contribution-auditor
     status: not-applicable
@@ -26,6 +28,10 @@ gaming and adds the two supporting articles to the classified source registry.
 
 This plan does not adopt a countermeasure, create an issue, change a rule, or
 alter validator or CI behavior.
+
+Gate 1 was approved by
+`20260802T192253Z-governor-reviewer-gkeq`; implementation may proceed within
+this bounded scope.
 
 ## Why this belongs on the radar
 
@@ -84,6 +90,5 @@ question, its controversy, and its review deadline without implying adoption.
 
 ## Implementation ownership and gate
 
-After Gate 1 approval, coder-tester owns the documentation edit and evidence.
-Governor-reviewer retains the binding Gate 2 merge decision. No implementation
-may begin while this plan remains `pending-gate1`.
+Coder-tester owns the documentation edit and evidence. Governor-reviewer
+retains the binding Gate 2 merge decision.
