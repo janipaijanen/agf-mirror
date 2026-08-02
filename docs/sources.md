@@ -805,3 +805,99 @@ argue is necessary-but-insufficient without the accountability layer above it.
   multi-instance aggregation, MIT. Governs LLM-API cost/spend and PII exposure, not
   coding-agent workflow or code review — narrower and more tangential to AGF than the other
   entries in this batch; watch only.
+
+# Batch 7 (2026-08-02) — general web search, lighter verification pass
+
+**Verification caveat, stated up front:** unlike Batches 1-6, these entries were found via
+general WebSearch queries plus targeted WebFetch on two of them (agentic-os, AI-Governor-
+Framework), not the systematic per-repo star/license/commit-history verification applied
+throughout the prior batches. Treat star counts, license terms, and feature claims below as
+unverified pending a closer pass — the classification itself (type/relation/action) is a
+first read, not a confirmed one. Motivation: a request to scan for AGF siblings/competitors
+during idle time while waiting on an unrelated Gate 2 pipeline; conceptual queries only, no
+external destination received AGF's own name or specifics (external-anonymization-rule).
+
+## Classified (light verification — see caveat above)
+
+- https://github.com/KbWen/agentic-os
+  type: framework | relation: competitor, prior-art | action: compare-in-docs
+  note: Closest single match found to AGF's own shape: drop-in rules for Claude Code/Codex/
+  Cursor/Copilot/Antigravity via AGENTS.md, risk-scaled phase workflows (tiny-fix through
+  feature/hotfix), evidence-gated commits (credential scan, real test-suite run, phase-chain
+  validation via `validate.sh`), shared coordination state file
+  (`.agentcortex/context/current_state.md` + per-branch work logs) with single-writer locking.
+  Verified via WebFetch (2026-08-02): explicitly **machine-enforced only** — no mandated human
+  approval step; git hooks and CI substitute for human judgment on compliance. That is the
+  central axis distinguishing it from AGF's Gate 1/Gate 2 human-decision model. MIT-licensed
+  per the fetched page.
+
+- https://github.com/alecnielsen/adversarial-review
+  type: tooling | relation: competitor(narrow), prior-art | action: compare-in-docs
+  note: Claude + GPT Codex independently review code, then critique each other across
+  independent-review / cross-review / meta-review / synthesis rounds until consensus or a
+  round limit. Verified via WebFetch (2026-08-02): directly the same two-named-AI-model
+  adversarial pattern this project's own contribution-auditor practice uses (Codex reviewing
+  Claude's implementation independently), but with no human approval gate, no persistent
+  append-only audit trail, and no distinct named roles beyond the two reviewer identities —
+  Claude self-synthesizes the final call. Worth a compare-in-docs specifically contrasting
+  "debate-to-consensus, self-synthesized" against AGF's "independent review recommends,
+  named human governor decides."
+
+- https://www.augmentcode.com/guides/bmad-method-ai-development (BMAD-METHOD)
+  type: framework | relation: competitor, prior-art | action: compare-in-docs
+  note: "Breakthrough Method for Agile AI-Driven Development" — full named-role virtual team
+  (Analyst, PM, Architect, Developer, QA agents), structured handoffs, human-vetted planning
+  gate before implementation ("Agentic Planning" + "Context-Engineered Development"),
+  auditable artifacts per phase. Closest match found on the named-role-plus-human-gate axis;
+  not independently verified whether coordination between roles is an append-only file
+  channel or a different state-passing mechanism, or whether an independent adversarial
+  review role exists distinct from QA. One of the most frequently cited spec-driven/agentic
+  frameworks in 2026 roundups alongside GitHub Spec Kit, Kiro, and OpenSpec — treat as a
+  well-known reference point in this space regardless of the verification gap.
+
+- https://github.com/Fr-e-d/AI-Governor-Framework
+  type: framework | relation: competitor(partial), prior-art | action: watch
+  note: Rules directory (`/rules`, `/dev-workflow`, `.cursor/`/`.claude/`) plus a sequential
+  4-stage workflow (Bootstrap, Define, Plan, Implement & Review) with a "7-layer quality
+  audit protocol" (layers not detailed in what was fetched). Verified via WebFetch
+  (2026-08-02): single-agent-facing — no multi-agent coordination, no independent reviewer
+  role, no coordination channel described. Narrower overlap with AGF than agentic-os or
+  BMAD-METHOD; the rules-directory distribution pattern is the closest point of contact.
+
+- https://github.com/systempromptio (systemprompt-core / systemprompt-template)
+  type: tooling | relation: complement, competitor(runtime layer) | action: watch
+  note: Self-hosted governance layer for Claude Code and MCP agents in a compiled Rust
+  binary — authentication, authorisation, audit trail, cost controls, policy enforcement;
+  systemprompt-core described elsewhere as "the MCP governance runtime," a 30-crate Rust
+  workspace. Notable point of contact: like AGF's own `agov`/`agov-mcp`, this is a Rust
+  CLI+MCP-server pairing wrapping Claude Code — but oriented at runtime access-control and
+  cost governance, not repo-process review gates. Same crowded "runtime tool-call governance
+  layer" category Batch 6's synthesis note already flagged (sovereign-agentops, Gategraph,
+  enforra, TaG, sentience-governor, etc.) — file alongside that cluster rather than as a
+  standalone finding. Not independently verified beyond the search-result description.
+
+- https://github.com/FutureAtoms/agentic-control-framework
+  type: tooling | relation: complement | action: watch
+  note: CLI + MCP-based task management for agentic workflows. Same tooling-pattern choice
+  as `agov`/`agov-mcp` (CLI-first, MCP as a thin wrapper) and as the already-logged
+  loadlore.dev entry, but for task management rather than governance gates or an audit
+  trail — a distribution/tooling-pattern reference, not a governance competitor. Not
+  independently verified beyond the search-result description.
+
+- https://medium.com/@visrow/comprehensive-guide-to-spec-driven-development-kiro-github-spec-kit-and-bmad-method-5d28ff61b9b1 (GitHub Spec Kit)
+  type: framework | relation: complement, prior-art | action: watch
+  note: Constitution-first, spec-driven pipeline (AI respects stated architectural intent
+  across interactions); templates for multiple coding assistants. Adjacent axis — spec-as-
+  source-of-truth rather than gate/role governance — lower priority than BMAD-METHOD or
+  agentic-os for a direct AGF comparison. Not independently verified beyond the search-result
+  description.
+
+## Suggested follow-up
+
+agentic-os is the strongest single candidate for a `docs/radar.md` Active entry alongside
+the existing "Repo-contained, model-replaceable agent package" item, given how closely its
+shape (rules + AGENTS.md landing + phase gates + evidence requirements) converges with AGF's
+own while diverging sharply on the human-gate question. Not added to the Active radar list
+here — that list's precedent (see `docs/plans/radar-governance-signal-gaming.md`) treats
+live radar entries as needing their own Gate 1 authorization; this batch is a source-registry
+addition only, per the registry's own stated first-pass/additive purpose.
