@@ -2510,6 +2510,109 @@ learnings:
       evidence_refs:
         - "MR !898 (branch coordination/mr894-review): corrupted commit e8b1f08a caught before governor review, corrected in 7ef4498f and again in b987dc75; docs/coordination/20260801T123434Z-contribution-auditor-6mkq.md"
 
+  - id: "20260802T230821Z-sv7q"
+    date: "2026-08-02"
+    category: gap
+    scope: framework
+    title: eight-of-nine-agf-schemas-have-no-per-record-schema-version-field-despite-a-known-working-precedent
+    description: >
+      Answering a user question about whether `learning.schema.json` and its
+      records carry version info (asked in the context of the NASA LLIS
+      comparison's proposed schema changes — `status` becoming a real
+      field, `superseded_by` switching from a title-pointer to an
+      id-pointer), the immediate answer was no: neither the schema's own
+      `$schema` field (a JSON-Schema meta-schema reference, not a content
+      version) nor any individual record in `agf/learnings/foundry.yaml`
+      carries a version marker.
+
+      Generalizing the check across all nine files in `agf/schemas/*.json`
+      surfaced a sharper finding than "one schema lacks versioning": this
+      project has already built, and requires, the exact pattern needed —
+      but only for one schema out of nine, and did not generalize it.
+      `release-provenance.schema.json` requires a `schema_version` field
+      (`const: "2.4"`) on every record in both its `fileRecord` and
+      `ociImageRecord` definitions, and a sibling file,
+      `release-provenance-legacy.schema.json`, exists specifically to
+      recognize pre-v2.4 records that lack `schema_version` — its own
+      description states such records are "handled by the validator's
+      legacy code path, never upgraded implicitly." That is a real,
+      shipped, working answer to "how do you migrate old records to a new
+      schema shape without guessing": stamp the version, and give
+      unversioned legacy records their own explicitly-named fallback
+      schema rather than silently treating them as compliant or silently
+      coercing them.
+
+      The other eight schemas — `agent.schema.json`,
+      `coordination-message.schema.json` (the highest-volume schema in the
+      project, backing 1,600+ records in `docs/coordination/`),
+      `gate1-plan.schema.json`, `learning.schema.json`,
+      `release-provenance-legacy.schema.json` itself,
+      `rule-projection-manifest.schema.json`, and `rule.schema.json` — have
+      no per-record schema-version field at all. (`framework.schema.json`
+      has a `contract_version` property, but per its own description that
+      value "equals the framework version" — it is the framework's own
+      semver echoed into the one `framework.yaml` record, not a marker of
+      which shape of `framework.schema.json` that record was written
+      against; it does not solve the same problem `release-provenance`'s
+      `schema_version` solves.) If any of these eight schemas changes
+      shape — which `learning.schema.json` is a live, concrete candidate
+      for right now, per the NASA LLIS comparison document
+      (`docs/plans/nasa-llis-lessons-learned-comparison.md`) — there is no
+      way to look at an existing record and know which schema shape it was
+      authored against. Migration would have to be driven by heuristics
+      (field presence/absence, ID format) instead of a stamped version.
+
+      This finding was self-detected during a user Q&A, not surfaced by
+      any validator, review pass, or incident — the same "structurally
+      invisible until someone asks the specific question" pattern this
+      project's own `audit-log-completeness-rule.md` and
+      `concept-modelling-rule.md` document for other cross-cutting gaps.
+    agents_involved:
+      - coder-tester
+      - contribution-auditor
+    framework_section: "agf/schemas/*.json (all nine schema files); agf/schemas/release-provenance.schema.json and release-provenance-legacy.schema.json as the existing precedent; agf/schemas/learning.schema.json as the schema with a concrete, currently-proposed shape change (docs/plans/nasa-llis-lessons-learned-comparison.md) that would immediately need this to migrate safely"
+    business_impact:
+      type: neutral
+      description: >
+        This finding predates any migration attempt and any migration
+        failure — it is a proactive finding, not a realized cost. The
+        exposure is forward-looking: `learning.schema.json` has a
+        concrete, currently-proposed
+        shape change in flight (the NASA LLIS comparison's `status` field
+        and `superseded_by` id-vs-title correction) that would land into a
+        corpus with zero version markers, making any future migration
+        heuristic-driven rather than deterministic, for that schema and
+        the seven others in the same position.
+    recommendation: >
+      Generalize the `release-provenance.schema.json` pattern rather than
+      inventing a new one: for each of the eight schemas currently without
+      per-record version info, decide (a) whether to require a
+      `schema_version` field going forward (const-pinned per schema
+      revision, matching `release-provenance`'s exact shape) and (b)
+      whether pre-versioning records need their own explicitly-named
+      legacy-shape schema (matching `release-provenance-legacy.schema.json`)
+      or whether "absence of `schema_version` implies legacy" is safe to
+      encode directly in the primary schema's validator logic instead,
+      schema by schema — `coordination-message.schema.json`'s 1,600+
+      existing records make an explicit legacy-schema split likely
+      necessary there specifically, the same shape of decision
+      `release-provenance` already made. Do not treat this as one
+      blanket change across all eight; each schema's own record volume,
+      churn rate, and migration risk should independently decide whether
+      it needs a legacy-split schema or a lighter validator-side rule.
+      `learning.schema.json` is the most time-sensitive of the eight,
+      given the NASA-LLIS-comparison shape change already proposed against
+      it. This recommendation has not yet been adversarially reviewed;
+      contribution-auditor's independent stress-test is requested before
+      any schema change is proposed on the strength of this learning
+      alone.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "Direct inspection of all nine agf/schemas/*.json files, 2026-08-02: grep and python3 json.load() confirmed schema_version presence/absence and required-field status per schema, not inferred from documentation."
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
