@@ -925,8 +925,8 @@ rust:tooling:clippy:
     # here would otherwise silently drop .rust-base's cache-policy
     # assertion for every job built on this template.
     - !reference [.rust-base, before_script]
+    # .rust-base's referenced before_script already cd's into tooling/rust.
     - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
-    - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
   script:
@@ -1141,8 +1141,8 @@ rust:tooling:build:windows:preview:
     # here would otherwise silently drop .rust-base's cache-policy
     # assertion.
     - !reference [.rust-base, before_script]
+    # .rust-base's referenced before_script already cd's into tooling/rust.
     - apt-get update -qq && apt-get install -y -qq docker.io
-    - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
   script:
