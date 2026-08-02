@@ -657,11 +657,16 @@ tooling:live-surface-validate:
 # docs/plans/ci-rust-cache-policy-slice-b.md Gate 2 item 3: "shellcheck
 # passes when available; otherwise the handoff records the gap and CI uses
 # a pinned ShellCheck image before Gate 2." A local run
-# (docker.io/koalaman/shellcheck:v0.10.0) was clean at implementation time;
-# this job makes that check part of CI rather than a one-off local run.
+# (docker.io/koalaman/shellcheck-alpine:v0.10.0) was clean at implementation
+# time; this job makes that check part of CI rather than a one-off local
+# run. Uses the -alpine variant, not the plain koalaman/shellcheck image --
+# the plain image ships only the statically-linked shellcheck binary with
+# no shell at all, so GitLab's script-execution wrapper cannot run inside
+# it (confirmed by a real CI failure at implementation time: "exec: \"sh\":
+# executable file not found in $PATH"). The -alpine variant has /bin/sh.
 tooling:rust-cache-policy-shellcheck:
   image:
-    name: docker.io/koalaman/shellcheck:v0.10.0@sha256:2097951f02e735b613f4a34de20c40f937a6c8f18ecb170612c88c34517221fb
+    name: docker.io/koalaman/shellcheck-alpine:v0.10.0@sha256:5921d946dac740cbeec2fb1c898747b6105e585130cc7f0602eec9a10f7ddb63
     entrypoint: [""]
   stage: test
   interruptible: true
@@ -705,11 +710,13 @@ rust:cache-topology-check:
       '{content: $content, dry_run: true, include_jobs: true}'
       > /tmp/ci-lint-request.json
     - >-
-      curl -sf --header "JOB-TOKEN: $CI_JOB_TOKEN"
+      http_status=$(curl -s -o /tmp/ci-lint-response.json -w '%{http_code}'
+      --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
       --data @/tmp/ci-lint-request.json
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/ci/lint"
-      > /tmp/ci-lint-response.json
+      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/ci/lint")
+      && echo "CI Lint HTTP status: $http_status" && cat /tmp/ci-lint-response.json
+      && [ "$http_status" = "200" ] || (echo "CI Lint request failed (status $http_status)" >&2; exit 1)
     - jq -r '.valid' /tmp/ci-lint-response.json | grep -qx true
     - jq -r '.merged_yaml' /tmp/ci-lint-response.json > /tmp/ci-merged.yml
     - ./target/debug/agov ci cache-topology-check --merged-yaml /tmp/ci-merged.yml
