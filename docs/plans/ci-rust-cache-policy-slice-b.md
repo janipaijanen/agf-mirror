@@ -6,11 +6,12 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >
-      MR !920 independently reproduced the concurrent-writer diagnosis and
-      recommended a measured one-writer topology rather than per-job cache
-      splitting. MR !935 then measured the post-Slice-A default-branch graph:
-      all 8 automatic shared-cache consumers wrote the identical protected
-      cache object. A renewed exact-plan review is required before Gate 1.
+      MR !920 independently reproduced the concurrent-writer diagnosis and MR
+      !935 measured all 8 automatic shared-cache consumers writing the same
+      protected object. The exact-plan review in MR !937 returned CLEAR with 0
+      blocking findings and advisory AG-CACHE-SLICEB-001. This revision adopts
+      that advisory by naming the full writer comparison and the loss of
+      inconsistent release-profile cache reuse explicitly.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -82,6 +83,24 @@ whole Rust workspace. It is preferable to:
   and
 - a new dedicated writer, which would add work and ordering before that cost
   is justified.
+
+The remaining automatic candidates are narrower. `rust:agov:validate` and
+`agf:dist:validate` execute validation paths rather than the full workspace test
+graph; `agf:dist:preview` builds a bounded distribution path; and
+`rust:tooling:clippy` compiles the workspace for linting but not its full
+`#[cfg(test)]` code paths. `rust:tooling:test` therefore produces the broadest
+debug/test-profile overlap for the parallel consumers without introducing new
+work.
+
+This choice has a known acceleration tradeoff. `agov:governance:validate` is
+the only current shared-cache consumer that runs `cargo build --release -p
+agov`. In the eight-writer last-writer-wins topology it could leave reusable
+release-profile objects when it happened to upload last, inconsistently. A
+sole `rust:tooling:test` writer publishes debug/test-profile output, so that
+inconsistent release-profile benefit becomes absent. This cannot affect
+correctness or acceptance, but Gate 2 item 10 and post-merge item 14 must name
+and measure `agov:governance:validate` separately so the tradeoff is visible
+rather than discovered after the fact.
 
 The writer is not a prerequisite for parallel consumers. Consumers restore the
 previous successful `main` cache at pipeline start; the designated writer
