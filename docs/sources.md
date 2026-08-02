@@ -1096,3 +1096,86 @@ contribution-auditor's stated verification alone.
   series to the same degree; they are not — flagged here as a radar wording precision item
   for a separate governed correction (this source-only batch does not itself edit the
   radar Active list).
+
+# Batch 10 (2026-08-02 UTC) — Coldcard entropy incident and creation-time evidence
+
+## Classified
+
+- https://808bits.com/articles/coldcard-entropy-failure-lessons/
+  type: incident analysis, practice | relation: evidence, prior-art, complement |
+  action: cite, integrate
+  note: Secondary technical synthesis, published 2026-08-02 without a clearly named author.
+  Uses the Coldcard entropy failure to make three governance-relevant distinctions:
+  security code being present does not prove the executed path reaches it; redundant
+  components sharing one vendor/firmware lineage do not provide independent assurance;
+  and a property that cannot be reconstructed afterward needs evidence at creation time.
+  These are useful adjacent-domain examples for AGF's verification-independence tiers,
+  input provenance, end-to-end validation, and capability-maturity discipline. Evidence
+  status: Empirically informed by one adjacent-domain incident, not independent validation
+  of AGF. Treat the article's financial totals, victim counts, attribution, and claims about
+  which configurations survived as secondary reporting; do not cite those figures from this
+  page alone.
+
+- https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/
+  type: incident primary source, practice | relation: evidence, threat-model |
+  action: cite, integrate
+  note: Coinkite's security advisory, published 2026-07-30 and updated 2026-08-01,
+  identifies affected Coldcard models/firmware, the independent-dice-entropy exception,
+  the partial passphrase mitigation, fixed releases, and the requirement to generate a new
+  seed and migrate because updating firmware cannot repair an existing weak seed. Primary
+  source for the vendor's disclosure and remediation instructions, but an interested party
+  rather than independent evidence of incident scale or attribution. Pair with the technical
+  backgrounder below when citing the failure mechanism.
+
+- https://blog.coinkite.com/entropy-technical-backgrounder/
+  type: incident primary source, technical analysis | relation: evidence, prior-art,
+  threat-model | action: cite, integrate
+  note: Coinkite's technical backgrounder for the same incident. Documents the 2021
+  integration regression, reduced effective entropy, later-model partial reseeding, and the
+  failure of review to verify end-to-end symbol resolution and call reachability. Strong
+  primary evidence for what the vendor says its code and review process did; not independent
+  proof of the broader forensic narrative. The AGF-relevant lesson is to validate the actual
+  security-critical path and its provenance, not merely the presence of a nominal control.
+
+# Batch 11 (2026-08-02 UTC) — Kota multi-agent workspace
+
+## Classified
+
+- https://www.kota.place/
+  type: tooling | relation: sibling, complement, competitor(operator layer),
+  potential-partner | action: evaluate, watch, contact
+  note: Kota is a macOS/Apple-Silicon desktop workspace for project-scoped multi-agent
+  rooms. Its primary product pages claim shared timelines, agent/human chat, editable agent
+  templates, centralized skills, account/project rules, per-agent worktrees, conflict
+  handoffs, and persistent searchable project memory across Claude Code, Codex, Gemini,
+  OpenCode, and Pi CLIs. This substantially overlaps AGF's operator and coordination surface,
+  while AGF remains the governance/authority/evidence layer rather than the desktop runtime.
+  Potential partnership: Kota hosts agents, worktrees, memory, and human interaction while
+  AGF supplies governed roles, immutable coordination, deterministic validation, and gates.
+  Integration risks must be resolved first: Kota's advertised automatic synchronization can
+  publish clean worktree changes toward main, conflicting with AGF's feature-branch/MR/Gate-2
+  discipline unless disabled or redirected; Kota's emergent-generalist role model also
+  differs from AGF's explicit governed role authority. Evidence status: self-reported product
+  capability; independently verify behavior before making effectiveness claims.
+
+- https://www.kota.place/docs/research/long-term-teammates/v1/
+  type: research, discussion | relation: sibling, prior-art, competitor(organization model),
+  complement | action: cite, compare-in-docs, watch
+  note: Nan Wu's versioned whitepaper "Kota: AI Agents Collaborating as Long-Term
+  Teammates," v1.0 (2026-07-14). Proposes persistent inspectable agent identity, shared
+  project memory, human-readable handoffs, conflict-safe worktree integration, and emergent
+  specialization rather than pre-cast roles. The versioned HTML/PDF records publish hashes,
+  which makes the artifact unusually suitable for stable comparison. Evidence status:
+  Theoretical/self-authored design argument; its architectural descriptions are primary for
+  Kota's intent, not independent validation that the collaboration model works.
+
+- https://github.com/stabruriss/kota-app
+  type: tooling, source | relation: sibling, complement, potential-partner |
+  action: evaluate, watch
+  note: Public Apache-2.0 source and release home for Kota's desktop app, website, docs,
+  privacy/security notices, and citation metadata. Primary evidence that an inspectable
+  implementation and release path exist; it does not by itself validate the feature or
+  collaboration-effectiveness claims on the product page and whitepaper. A partnership
+  evaluation should test whether AGF coordination records remain immutable and visible,
+  whether `agov` obligations can be surfaced as required work rather than optional chat,
+  and whether synchronization can preserve protected-main and governor Gate-2 authority.
