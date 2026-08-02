@@ -29,6 +29,45 @@ Adopter docs: updated — `ADOPTING.md` §1.3 and
 `MANIFEST.example.yaml` to `MANIFEST.yaml` as the commissioning step,
 replacing the inline roster example.
 
+- `requires-ack` obligation semantics for non-handoff coordination records
+  (issue #80, `docs/plans/v250-rc1-contract-core.md` work package 2).
+  Previously, `requires-ack: true` was schema-legal on every message kind
+  but silently inert except on `handoff` — `find_pending()` only ever
+  considered `kind: handoff`, so a `requires-ack: true` `review`, `note`,
+  `claim`, `completion`, `decision-record`, `fast-track-waiver`, or
+  `lesson-proposal` created no tracked obligation at all (reproduced
+  independently twice: the original finding and again against the
+  published v2.4.5 archive). Two changes close this:
+  - The schema now rejects `kind: ack` records that also set
+    `requires-ack: true` — an acknowledgement cannot require its own
+    acknowledgement, so the combination is a schema error, not a silent
+    no-op.
+  - A new `agov coord pending` command lists pending (unresolved)
+    `requires-ack: true` records of every kind other than `handoff`
+    (unchanged, owned exclusively by `handoff next`/`take`/`complete`)
+    and `ack`. Resolution is a direct reference — a record is pending
+    until any later record's `references-to` names its file — not
+    `handoff`'s transitive descendant-chain resolution. Records published
+    before `2026-08-02T22:01:54Z` are grandfathered and never appear, so
+    the pre-existing non-handoff `requires-ack: true` records already
+    in this project's own coordination channel are not retroactively
+    treated as a pending backlog. **Correction (found while resolving
+    this merge, 2026-08-03): the cutoff stated here previously read
+    `2026-08-02T18:10:18Z`, an earlier draft default the governor
+    replaced before merge — see decision-record
+    `20260802T220154Z-governor-reviewer-sejb` — but this changelog entry
+    was never updated to match. The shipped default
+    (`tooling/rust/crates/agov/src/main.rs`) and the rule docs
+    (`docs/coordination/README.md`,
+    `agf/docs/site/docs/concepts/coordination-protocol.md`) already used
+    the corrected value; only this changelog entry had drifted.**
+  `handoff next`, `handoff take`, `handoff complete`, and `coord
+  graph-index` are unchanged — existing tests for all four pass unmodified.
+
+Adopter docs: updated — `docs/coordination/README.md` and
+`agf/docs/site/docs/concepts/coordination-protocol.md` both state the
+same permitted-kind matrix, cutoff, and resolution rule.
+
 ### Fixed
 
 - `agf/rules/always/governance-file-layout-rule.md` no longer presents

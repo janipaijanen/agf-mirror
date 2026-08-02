@@ -97,6 +97,7 @@ The server advertises these tools:
 | `agov_handoff_complete` | `agov handoff complete <id> --from <role>` |
 | `agov_coord_post` | `agov coord post ...` |
 | `agov_coord_list` | `agov coord list ...` |
+| `agov_coord_pending` | `agov coord pending ...` |
 
 ## Operating pattern
 
@@ -104,6 +105,7 @@ Use the MCP tools in the same order as the CLI workflow:
 
 ```text
 agov_session_resume
+agov_coord_pending
 agov_handoff_next
 agov_handoff_take
 agov_coord_post
@@ -111,11 +113,27 @@ agov_coord_validate
 agov_handoff_complete
 ```
 
+`agov_coord_pending` reports unresolved non-`handoff` `requires-ack: true`
+records (claim, review, note, decision-record, fast-track-waiver,
+lesson-proposal). Run it every cold start alongside `agov_session_resume` —
+`session resume` does not surface this obligation class, and `handoff`
+tooling covers only `handoff`-kind records. The tool only reports; a later
+coordination record's direct `references-to` is what resolves an entry, not
+the tool call itself.
+
 Tool calls return structured content containing `ok`, `status`, `command`,
 `stdout`, and `stderr`. A failed validator call is still the underlying `agov`
 validator failing; the MCP server does not add governance authority or bypass
-Gate 1/Gate 2 review. `agov_coord_list` preserves the CLI's `status: 2` for
-"nothing new" polling results but returns it as a non-error MCP tool result.
+Gate 1/Gate 2 review. `agov_coord_list` and `agov_coord_pending` both preserve
+the CLI's `status: 2` for "nothing new"/"nothing pending" polling results but
+return it as a non-error MCP tool result.
+
+`agov_coord_pending` tracks unresolved `requires-ack: true` records of any
+kind except `ack` and `handoff` — `handoff` obligations remain
+`agov_handoff_next`'s surface, unchanged. A record is pending until a later
+record's `references-to` names it directly, not transitively. Records
+published before the feature's introduction cutoff are grandfathered and
+never appear.
 
 ## Distributed development
 

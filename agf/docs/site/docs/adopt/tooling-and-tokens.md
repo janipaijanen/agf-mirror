@@ -69,6 +69,7 @@ at its actual maturity level rather than added to this table by analogy.
 | `agov coord visibility` | Agent compares branches for coordination obligations that exist off the base branch. |
 | `agov coord graph` | Agent reads coordination files to reconstruct which roles communicated with which, then manually renders a flow summary. The command produces a Graphviz dot map in one invocation. |
 | `agov coord graph-index` | Agent scans all coordination files to produce a structured JSON index of handoffs, references, and pending obligations — replaces ad-hoc mental reconstruction. |
+| `agov coord pending` | Agent scans the coordination channel by hand for unresolved non-`handoff` `requires-ack: true` records (claim, review, note, decision-record, fast-track-waiver, lesson-proposal). Reports; does not resolve — a later record's direct `references-to` resolves an entry. Exit code `2` means none found, not a failure. |
 | `agov token roi report` | Agent summarizes local deterministic-tool telemetry instead of estimating savings by hand. |
 | `agov usage report [--last <n>]` | Agent counts message kinds, active senders, inactive active-status agents, and unknown senders. |
 
