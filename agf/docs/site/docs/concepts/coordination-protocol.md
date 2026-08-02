@@ -249,7 +249,7 @@ Each `references-to:` field links backward; `agov session resume` and
 | `note` | any → any or `all` | Status update, polling cycle, broadcast |
 | `completion` | agent → all | Close a task; reference the Gate 2 decision |
 | `review` | reviewer → all | Gate 2 findings before the decision record |
-| `ack` | agent → agent | Acknowledge receipt of a `requires-ack` handoff |
+| `ack` | agent → agent | Acknowledge receipt of any eligible `requires-ack: true` record (handoff take/complete remains the separate resolution path for `handoff`-kind records specifically) |
 | `claim` | agent → all | Reserve ownership of an artifact |
 
 ### `requires-ack` obligation semantics
@@ -258,15 +258,22 @@ Each `references-to:` field links backward; `agov session resume` and
 acknowledgement cannot require its own acknowledgement, so the schema
 rejects that combination outright. A `requires-ack: true` handoff resolves
 through `agov handoff next` / `take` / `complete`, unchanged. Every other
-kind resolves through `agov coord pending`: a record is pending until any
-later record's `references-to` names it directly — a direct reference, not
-a transitive chain. Records published before `2026-08-02T20:09:55Z` (this feature's governed
-introduction boundary, fixed as close as achievable to this work package's
-own merge-commit date — see `tooling/rust/crates/agov/src/main.rs`'s
-`Pending` command for the exact rationale) are grandfathered and never
-appear in `coord pending`'s output, so the ~380 pre-existing non-handoff
-`requires-ack: true` records already in the channel are not retroactively
-treated as a pending backlog.
+kind is *reported* by `agov coord pending` — the command only reports; it
+does not itself resolve anything. A record is pending until any later
+record's `references-to` names it directly — a direct reference, not a
+transitive chain — and that later record is the resolution event, not the
+`pending` command call that surfaced it.
+
+**Cutoff boundary status.** `docs/plans/v250-rc1-contract-core.md`'s
+approved contract requires the grandfathering cutoff to match this work
+package's own governed merge-commit date. The shipped default in
+`tooling/rust/crates/agov/src/main.rs`'s `Pending` command
+(`2026-08-02T20:09:55Z`) is a pre-merge implementation-time approximation,
+not that governed boundary — this is an open finding
+(`20260802T204834Z-contribution-auditor-ah7j.md`, B2), pending either an
+exact-match implementation or a governor-approved plan amendment. Do not
+treat the current default as the final contract; check the coordination
+channel for the resolution before citing an exact cutoff value elsewhere.
 
 ### Review bodies
 

@@ -31,11 +31,20 @@ agov handoff next <agent-role>
 
 # Check for pending items across all branches visible from main
 agov coord visibility --base-branch main
+
+# List unresolved non-handoff acknowledgment obligations (claim, review,
+# note, decision-record, etc. with requires-ack: true) -- run this every
+# cold start when the installed release exposes it; session resume does
+# not surface this obligation class
+agov coord pending
 ```
 
 Run `session resume` before anything else — before reading coordination files,
 before `git log`, before any file inspection. It surfaces pending coordination
-messages, active decisions, and unresolved handoffs. Starting with reads before
+messages, active decisions, and unresolved handoffs, but **not** non-handoff
+`requires-ack: true` obligations of other kinds (claim, review, note,
+decision-record, fast-track-waiver, lesson-proposal) — those are `agov coord
+pending`'s surface, run separately as shown above. Starting with reads before
 the resume means acting on stale context.
 
 After the resume output, file a brief coordination `kind: note` for the current

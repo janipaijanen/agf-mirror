@@ -105,12 +105,21 @@ Use the MCP tools in the same order as the CLI workflow:
 
 ```text
 agov_session_resume
+agov_coord_pending
 agov_handoff_next
 agov_handoff_take
 agov_coord_post
 agov_coord_validate
 agov_handoff_complete
 ```
+
+`agov_coord_pending` reports unresolved non-`handoff` `requires-ack: true`
+records (claim, review, note, decision-record, fast-track-waiver,
+lesson-proposal). Run it every cold start alongside `agov_session_resume` —
+`session resume` does not surface this obligation class, and `handoff`
+tooling covers only `handoff`-kind records. The tool only reports; a later
+coordination record's direct `references-to` is what resolves an entry, not
+the tool call itself.
 
 Tool calls return structured content containing `ok`, `status`, `command`,
 `stdout`, and `stderr`. A failed validator call is still the underlying `agov`
