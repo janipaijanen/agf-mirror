@@ -57,6 +57,37 @@ behavior change as a result.
 Adopter docs: not applicable — repository-internal CI cost optimization,
 not an AGF framework capability.
 
+- CI: narrowed the default-branch Rust cache (`.rust-base`) from eight
+  concurrent last-writer-wins uploaders to exactly one designated writer,
+  `rust:tooling:test` (issue #101, Slice B of
+  `docs/plans/ci-rust-cache-policy-slice-b.md`). Every other consumer —
+  automatic, manual, and tag/release — is pull-only in every context,
+  including an ordinary default-branch push, enforced by two separate
+  variables (`RUST_CACHE_POLICY` for consumers, `RUST_CACHE_WRITER_POLICY`
+  for the sole writer) so a new `.rust-base` inheritor is pull-only by
+  construction rather than by remembering to opt out. The shared Rust job
+  image moved from the floating `rust:1` tag to an immutable
+  `rust:1.97.1@sha256:...` digest pin, and the cache key advanced to
+  `rust-v3-main` (`rust-v2-main` and `rust-main` retained as fallbacks) so
+  compiled output from the formerly floating image is never treated as the
+  pinned toolchain's primary cache. `.gitlab/scripts/check-rust-cache-policy.sh`
+  is now role-aware (`RUST_CACHE_ROLE=writer|consumer`) and fails closed on
+  an unrecognised or missing role. A new `agov ci cache-topology-check`
+  subcommand statically verifies the resolved CI configuration has exactly
+  one writer, dynamically inventoried from GitLab CI Lint's merged YAML
+  (not a hard-coded job list, so an indirect `.rust-base` inheritor cannot
+  silently escape the check the way two jobs did during Slice A). A pinned
+  ShellCheck job (`docker.io/koalaman/shellcheck@sha256:...`) lints the
+  policy script in CI. This trades away the small, inconsistent
+  release-profile cache benefit `agov:governance:validate` sometimes got
+  under the old last-writer-wins topology (see the plan's "why
+  rust:tooling:test" section) — acceleration only, no correctness or
+  acceptance-evidence effect. No job, test coverage, or acceptance
+  requirement changed.
+
+Adopter docs: not applicable — repository-internal CI cost optimization,
+not an AGF framework capability.
+
 ## [2.4.11] - 2026-08-01
 
 Documentation and accessibility patch.

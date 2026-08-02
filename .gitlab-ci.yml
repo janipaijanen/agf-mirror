@@ -25,7 +25,15 @@ variables:
   # unset/future CI_PIPELINE_SOURCE included -- must never accidentally
   # resolve to a writer. See docs/plans/ci-rust-cache-policy-slice-a.md
   # and issue #101 (child scope of #53).
+  #
+  # RUST_CACHE_POLICY governs every .rust-base consumer and is never
+  # overridden away from "pull" -- Slice B narrows the default-branch
+  # write path to a single designated writer via the separate
+  # RUST_CACHE_WRITER_POLICY variable below, so a new inheritor is
+  # pull-only by construction rather than by remembering to opt out.
+  # See docs/plans/ci-rust-cache-policy-slice-b.md.
   RUST_CACHE_POLICY: "pull"
+  RUST_CACHE_WRITER_POLICY: "pull"
 
 workflow:
   rules:
@@ -53,28 +61,44 @@ workflow:
     # trigger/pipeline sources, a truthy branch excludes tag pipelines
     # (CI_COMMIT_BRANCH is unset there), and equality selects only the
     # default branch. Every other context falls through to the catch-all
-    # below and keeps the fail-safe "pull" default set above. See
-    # docs/plans/ci-rust-cache-policy-slice-a.md's context acceptance
-    # matrix and .gitlab/scripts/check-rust-cache-policy.sh.
+    # below and keeps the fail-safe "pull" default set above. This rule
+    # only ever overrides RUST_CACHE_WRITER_POLICY, never RUST_CACHE_POLICY
+    # -- Slice B's single designated writer (rust:tooling:test) is the only
+    # job that consumes RUST_CACHE_WRITER_POLICY; every other consumer stays
+    # on the fail-safe RUST_CACHE_POLICY="pull" set above regardless of
+    # context. See docs/plans/ci-rust-cache-policy-slice-b.md's context
+    # acceptance matrix and .gitlab/scripts/check-rust-cache-policy.sh.
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       variables:
-        RUST_CACHE_POLICY: "pull-push"
+        RUST_CACHE_WRITER_POLICY: "pull-push"
     - when: always
 
 # ── Shared templates ──────────────────────────────────────────────────────────
 
 .rust-base:
-  image: rust:1
+  # Immutable image-index pin, not a floating tag -- a digest always
+  # resolves to exactly one manifest. Re-resolved live against the Docker
+  # Hub registry API at implementation time (2026-08-02): rust:1 and
+  # rust:1.97.1 both report this digest, whose linux/amd64 config declares
+  # RUST_VERSION=1.97.1. See docs/plans/ci-rust-cache-policy-slice-b.md.
+  image: rust:1.97.1@sha256:1bcff4befb740599103a2c7cb51058e14479b2e35e3a34a3f0dc4ede09927488
   variables:
     CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+    # Every .rust-base inheritor is a cache consumer by default. Only
+    # rust:tooling:test overrides this to "writer" -- see Slice B's plan
+    # for why a second override anywhere else is a plan violation, not a
+    # local judgment call.
+    RUST_CACHE_ROLE: "consumer"
   cache:
     # Versioned shared key: non-default consumers read the main-fed
     # namespace directly instead of preferring a stale branch-specific
-    # cache they can no longer refresh. rust-main remains as a fallback
-    # until the first post-merge default-branch pipeline populates
-    # rust-v2-main. See docs/plans/ci-rust-cache-policy-slice-a.md.
-    key: rust-v2-main
+    # cache they can no longer refresh. v2/legacy remain as fallbacks so
+    # the first post-Slice-B default-branch pipeline can still restore a
+    # prior generation while rust-v3-main populates under the pinned
+    # image. See docs/plans/ci-rust-cache-policy-slice-b.md.
+    key: rust-v3-main
     fallback_keys:
+      - rust-v2-main
       - rust-main
     paths:
       - .cargo/registry
@@ -629,6 +653,79 @@ tooling:live-surface-validate:
       changes: *live_tooling_surface_paths
     - if: $CI_COMMIT_TAG
 
+# Pinned ShellCheck for the Rust cache-policy runtime contract script.
+# docs/plans/ci-rust-cache-policy-slice-b.md Gate 2 item 3: "shellcheck
+# passes when available; otherwise the handoff records the gap and CI uses
+# a pinned ShellCheck image before Gate 2." A local run
+# (docker.io/koalaman/shellcheck:v0.10.0) was clean at implementation time;
+# this job makes that check part of CI rather than a one-off local run.
+tooling:rust-cache-policy-shellcheck:
+  image:
+    name: docker.io/koalaman/shellcheck:v0.10.0@sha256:2097951f02e735b613f4a34de20c40f937a6c8f18ecb170612c88c34517221fb
+    entrypoint: [""]
+  stage: test
+  interruptible: true
+  script:
+    - shellcheck .gitlab/scripts/check-rust-cache-policy.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &rust_cache_policy_script_paths
+        - .gitlab-ci.yml
+        - .gitlab/scripts/check-rust-cache-policy.sh
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_cache_policy_script_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *rust_cache_policy_script_paths
+    - if: $CI_COMMIT_TAG
+
+# Static shared-cache writer-topology check (Slice B Gate 2 item 6 /
+# "Runtime policy and topology contract"). Fetches this pipeline's own
+# resolved CI configuration from GitLab's CI Lint API (extends/anchors
+# already flattened, so an indirect .rust-base inheritor -- exactly the
+# class of job that silently skipped the Slice A runtime assertion -- is
+# still caught) and statically verifies the shared-cache graph has exactly
+# one writer (rust:tooling:test) and every other consumer is pull-only.
+# jq builds the JSON request body and parses the response, avoiding a
+# fragile hand-rolled YAML/JSON parser in POSIX shell (the same tool
+# rust:tooling:test's script already uses for JSON handling in this
+# pipeline). See docs/plans/ci-rust-cache-policy-slice-b.md.
+rust:cache-topology-check:
+  extends: .rust-base
+  stage: test
+  interruptible: true
+  script:
+    - apt-get update -qq && apt-get install -y -qq jq
+    - cargo build --quiet -p agov
+    - >-
+      jq -n --rawfile content "$CI_PROJECT_DIR/.gitlab-ci.yml"
+      '{content: $content, dry_run: true, include_jobs: true}'
+      > /tmp/ci-lint-request.json
+    - >-
+      curl -sf --header "JOB-TOKEN: $CI_JOB_TOKEN"
+      --header "Content-Type: application/json"
+      --data @/tmp/ci-lint-request.json
+      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/ci/lint"
+      > /tmp/ci-lint-response.json
+    - jq -r '.valid' /tmp/ci-lint-response.json | grep -qx true
+    - jq -r '.merged_yaml' /tmp/ci-lint-response.json > /tmp/ci-merged.yml
+    - ./target/debug/agov ci cache-topology-check --merged-yaml /tmp/ci-merged.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: *rust_cache_policy_script_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_cache_policy_script_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *rust_cache_policy_script_paths
+    - if: $CI_COMMIT_TAG
+
 release:self-sufficiency-selftest:
   image: alpine:3.22
   stage: test
@@ -817,10 +914,24 @@ rust:tooling:deny:
     - if: $CI_COMMIT_TAG
 
 # Compile and test the Rust workspace on tooling changes and release tags.
+#
+# The sole designated shared-cache writer (Slice B). Every other
+# .rust-base inheritor stays pull-only regardless of context; this is
+# the only job that overrides RUST_CACHE_ROLE and consumes
+# RUST_CACHE_WRITER_POLICY. Only the cache policy and role are
+# overridden here -- key, fallback_keys, and paths are inherited from
+# .rust-base via extends' hash-key deep-merge (verified empirically
+# against GitLab CI Lint's merged YAML at implementation time; extends
+# replaces array keys like before_script wholesale but deep-merges hash
+# keys like cache). See docs/plans/ci-rust-cache-policy-slice-b.md.
 rust:tooling:test:
   extends: .rust-base
   stage: test
   interruptible: true
+  variables:
+    RUST_CACHE_ROLE: "writer"
+  cache:
+    policy: $RUST_CACHE_WRITER_POLICY
   script:
     - apt-get update -qq && apt-get install -y -qq jq
     - sh tests/agov-wrapper-freshness.sh
