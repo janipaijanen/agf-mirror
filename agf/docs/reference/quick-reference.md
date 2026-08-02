@@ -27,8 +27,10 @@ reference most. For detail, follow the links.
 | documentation-writer (P3) | Writes audience-specific guides, tutorials, and reference docs |
 | capability-developer (P4) | Analyzes accumulated evidence and proposes framework capability changes |
 
-See [agents/MANIFEST.yaml](../../agents/MANIFEST.yaml) for the active/skipped
-status of each role in this distribution.
+A release archive ships `agents/MANIFEST.example.yaml`, a neutral template of
+active/skipped role status — copy it to `agents/MANIFEST.yaml` (never itself
+packaged in the archive) and edit before use; see
+[manifest.md](../governance/manifest.md).
 
 ## Minimum commissioning
 
