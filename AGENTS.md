@@ -336,6 +336,9 @@ Rust is the default operator path for supported commands:
   I last checked," not a full re-read of the channel
 - `agov coord graph`
 - `agov coord graph-index`
+- `agov coord pending` — unresolved `requires-ack: true` records of any kind
+  other than `handoff` and `ack`; `handoff` obligations remain `agov handoff
+  next`'s surface
 - `agov handoff next`
 - `agov session resume`
 - `agov validate ...`

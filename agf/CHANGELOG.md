@@ -5,6 +5,38 @@ distribution.
 
 ## [Unreleased]
 
+### Added
+
+- `requires-ack` obligation semantics for non-handoff coordination records
+  (issue #80, `docs/plans/v250-rc1-contract-core.md` work package 2).
+  Previously, `requires-ack: true` was schema-legal on every message kind
+  but silently inert except on `handoff` — `find_pending()` only ever
+  considered `kind: handoff`, so a `requires-ack: true` `review`, `note`,
+  `claim`, `completion`, `decision-record`, `fast-track-waiver`, or
+  `lesson-proposal` created no tracked obligation at all (reproduced
+  independently twice: the original finding and again against the
+  published v2.4.5 archive). Two changes close this:
+  - The schema now rejects `kind: ack` records that also set
+    `requires-ack: true` — an acknowledgement cannot require its own
+    acknowledgement, so the combination is a schema error, not a silent
+    no-op.
+  - A new `agov coord pending` command lists pending (unresolved)
+    `requires-ack: true` records of every kind other than `handoff`
+    (unchanged, owned exclusively by `handoff next`/`take`/`complete`)
+    and `ack`. Resolution is a direct reference — a record is pending
+    until any later record's `references-to` names its file — not
+    `handoff`'s transitive descendant-chain resolution. Records published
+    before `2026-08-02T18:10:18Z` are grandfathered and never appear, so
+    the ~380 pre-existing non-handoff `requires-ack: true` records already
+    in this project's own coordination channel are not retroactively
+    treated as a pending backlog.
+  `handoff next`, `handoff take`, `handoff complete`, and `coord
+  graph-index` are unchanged — existing tests for all four pass unmodified.
+
+Adopter docs: updated — `docs/coordination/README.md` and
+`agf/docs/site/docs/concepts/coordination-protocol.md` both state the
+same permitted-kind matrix, cutoff, and resolution rule.
+
 ### Fixed
 
 - `agf/rules/always/governance-file-layout-rule.md` no longer presents

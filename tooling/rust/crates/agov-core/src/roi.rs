@@ -51,6 +51,7 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_handoff_complete",
     "agov_coord_post",
     "agov_coord_list",
+    "agov_coord_pending",
 ];
 
 /// Environment marker names the trusted local `agov-mcp` adapter sets on
@@ -146,6 +147,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "graph",
     "graph-index",
     "publication-check",
+    "pending",
     // plan subcommands (validate shares the top-level "validate" token).
     "projection-check",
     // validate subcommands.
@@ -283,6 +285,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--writer-job",
     "--writer-policy-var",
     "--consumer-policy-var",
+    "--cutoff",
 ];
 
 /// Default-deny redaction over the exact token stream received (v2.4.0

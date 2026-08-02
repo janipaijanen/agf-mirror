@@ -63,14 +63,16 @@ required fields only; include `model` and `session` when useful for audit.
 
 Body expectations marked **(prose)** are conventions for the message body —
 they are not validated by the schema. Fields marked **(schema)** are enforced
-by `mix agov.coord.validate`.
+by the Rust `agov coord validate` command — the supported and shipped
+implementation. Elixir `mix agov.coord.*` is not a fallback in this
+repository.
 
 | Kind | Body expectations |
 |------|-------------------|
 | `claim` | **(schema)** Non-empty `artifacts_owned` — schema rejects empty |
 | `completion` | `verification:` section **(prose)**; releases claimed artifacts (empty `artifacts_owned`) |
 | `review` | `findings:` section or explicit "no findings" **(prose)** |
-| `ack` | **(schema)** Must reference the message being acknowledged via `references-to` |
+| `ack` | **(schema)** Must reference the message being acknowledged via `references-to`; must not itself set `requires-ack: true` |
 | `handoff` | **(schema)** `handoff` object with `next_agent`, `status` (`ready`\|`blocked`), `task` (non-empty array), `must_read`, `do_not_touch` |
 | `decision-record` | Chosen option and rationale **(prose)** |
 | `fast-track-waiver` | Task, why low-risk, who waived **(prose)** |
@@ -80,6 +82,29 @@ by `mix agov.coord.validate`.
 For guidance on choosing the right kind, citing evidence, and preserving the
 audit trail leading to a decision request, see
 [feedback-coordination-messages.md](feedback-coordination-messages.md).
+
+### `requires-ack` obligation semantics
+
+`requires-ack: true` may be set on any kind except `ack` — an
+acknowledgement cannot require its own acknowledgement, so the schema
+rejects that combination outright. A `requires-ack: true` handoff resolves
+through `agov handoff next` / `take` / `complete`, unchanged. Every other
+kind is *reported* by `agov coord pending` — the command only reports; it
+does not itself resolve anything. A record is pending until any later
+record's `references-to` names it directly — a direct reference, not a
+transitive chain — and that later record is the resolution event, not the
+`pending` command call that surfaced it.
+
+**Cutoff boundary.** The grandfathering cutoff is `2026-08-02T22:01:54Z` —
+the timestamp of governor-reviewer decision-record
+`20260802T220154Z-governor-reviewer-sejb`, which amended
+`docs/plans/v250-rc1-contract-core.md` decision (c) to use the amendment
+decision's own timestamp rather than a future merge-commit date (the
+original wording was unimplementable pre-merge; see
+`20260802T193425Z-contribution-auditor-rtga.md` finding B2 and its renewed
+disposition in `20260802T204834Z-contribution-auditor-ah7j.md`). This value
+matches the shipped default in `tooling/rust/crates/agov/src/main.rs`'s
+`Pending` command; `--cutoff` overrides it explicitly when needed.
 
 ---
 
