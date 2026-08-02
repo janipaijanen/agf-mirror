@@ -304,6 +304,15 @@ Then read [`AGENTS.md`](AGENTS.md) for the branch, gate, and contribution
 rules that apply to changes in this repository. The `agov` helper is optional
 for adopters, but it is the supported operator path for developing AGF itself.
 
+> **CI expectation for the first merge-request push:** The initial branch push
+> and MR creation can currently produce both `push` and
+> `merge_request_event` pipelines for one commit. Later pushes normally retain
+> only the MR pipeline once GitLab can see the open MR. Treat the MR pipeline
+> as canonical acceptance evidence; two same-SHA pipelines alone are not a
+> reason to retry the push, close and reopen the MR, or assume CI failed. See
+> [Agent Cold-Start Habits](docs/reference/agent-cold-start-habits.md#predict-first-push-ci)
+> for the comparison and cancellation checklist.
+
 ## Next
 
 Contributing here → read [`AGENTS.md`](AGENTS.md), then run the development

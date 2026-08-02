@@ -5,6 +5,17 @@ distribution.
 
 ## [Unreleased]
 
+### Added
+
+- Documented the GitLab first-push/MR-registration pipeline race at assistant,
+  contributor, CI-maintainer, and public operator points of use. The guidance
+  requires source/ref/status/job-coverage comparison before cancellation and
+  does not claim that CI behavior itself has changed.
+
+**Downstream impact: EDITORIAL.** The observable pipeline contract and existing
+cancellation obligation are unchanged; this makes the current limitation and
+safe comparison procedure explicit.
+
 ### Fixed
 
 - `agf/rules/always/governance-file-layout-rule.md` no longer presents

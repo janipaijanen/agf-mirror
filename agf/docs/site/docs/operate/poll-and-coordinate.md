@@ -66,6 +66,23 @@ issue notes, exact-head pipelines/jobs, releases, and remote branches. `glab`
 or the API may automate the scan, but GitLab output is observation evidence,
 not gate authority. Preserve IDs and SHAs in progress reports.
 
+### First-push pipeline race
+
+This is a GitLab configuration concern, not behavior created by AGF. Projects
+that create both branch-push and merge-request pipelines, then suppress branch
+pipelines with `$CI_OPEN_MERGE_REQUESTS`, can still see an initial pair: the
+branch push may begin before GitLab has registered the MR, and MR creation then
+starts its own pipeline for the same commit. GitLab documents both the
+[`CI_OPEN_MERGE_REQUESTS` predefined variable](https://docs.gitlab.com/ci/variables/predefined_variables/)
+and [merge request pipelines](https://docs.gitlab.com/ci/pipelines/merge_request_pipelines/).
+
+Do not infer redundancy from a matching SHA alone. Compare pipeline source,
+ref, status, and required-job coverage first. Each project must name its
+canonical acceptance source; this framework's own foundry preserves the MR
+pipeline. Default-branch, tag, schedule, API, web, trigger, and downstream
+pipelines can intentionally share a SHA and should not be canceled merely
+because another pipeline exists.
+
 ## Polling cadence
 
 A cadence such as `15mins/180min` means scan every 15 minutes until 180 minutes
@@ -80,4 +97,3 @@ End a cycle only when the obligation is completed and recorded, actively
 running with an identified monitor, or blocked with evidence and ownership.
 “Found work” is not a terminal outcome when the current role is authorized to
 advance it.
-

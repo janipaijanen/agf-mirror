@@ -1,9 +1,9 @@
 ---
 id: ci-first-push-expectation-guidance
-status: pending-gate1
+status: approved
 topic: ci-first-push-expectation-guidance
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-02T08:11:41Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted

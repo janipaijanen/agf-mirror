@@ -406,10 +406,16 @@ new prompt, an assistant is expected to acknowledge or claim work, run
 read-only inspection and diagnostics, continue approved implementation, answer
 review findings within scope, update owned MR descriptions or notes, publish
 and bridge required coordination, batch and push corrections on its owned
-branch, and advance the next already-authorized handoff. If duplicate paid CI
-starts for the same SHA, preserve the canonical acceptance path and cancel a
-demonstrably redundant path promptly; record exact pipeline/job IDs and any
-runner time already consumed.
+branch, and advance the next already-authorized handoff. In this GitLab
+project, the initial branch push can start before the merge request is
+registered; opening the MR may then create a `push`/`merge_request_event` pair
+for the same SHA. This known first-push limitation does not mean the
+contributor pushed twice or that GitLab ignored the later-push guard. Preserve
+the MR pipeline as the canonical Gate 2 acceptance path. Before canceling
+anything, compare pipeline source, ref, status, and job-name/required-job
+coverage—matching SHA alone is not proof of redundancy. Cancel only the
+demonstrably redundant push path, and record exact pipeline/job IDs and runner
+time already consumed.
 
 The action loop does **not** enlarge authority. Stop and request the binding
 decision for Gate 1 approval, Gate 2 approval or merge, a release/tag/deploy,
