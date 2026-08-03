@@ -1475,3 +1475,85 @@ any eventual AGF claim.
    heuristics, missing lineage, and lack of a real customer are stated plainly; AGF should
    retain that implementation-honesty pattern while avoiding claims that the prototype
    validates the proposed mechanisms.
+
+# Batch 16 (2026-08-03) — Agent Detective multi-agent fault attribution
+
+## Classified
+
+- https://github.com/Thomeras/agent_detective/tree/1f536cccd285e2d2fc3d207b9fad5978081fbf97
+  type: tooling, source, evaluation framework | relation: complement,
+  competitor(evaluation/evidence layer), potential-partner |
+  action: evaluate, compare-in-docs, watch
+  note: Primary source for Agent Detective v0.4.2 at the pinned 2026-07-31
+  revision. The Apache-2.0 project ingests OpenTelemetry traces, reconstructs a
+  multi-agent execution graph, and attempts to distinguish where quality first
+  broke (origin) from its propagation path and terminal manifestation. It has a
+  deterministic evidence channel for contract and propagation checks plus an
+  optional LLM-judged channel; reports retain supporting, refuting, and context
+  evidence, separate observation confidence from attribution confidence, cap
+  confidence for weaker verdict types, and render absent trace evidence as
+  `unverified` rather than silently `ok`. Local CLI/CI use can run without the
+  full persistence stack or an LLM; the full stack stores raw trace payloads
+  and analysis state across ClickHouse/Postgres/MinIO/Redis and currently relies
+  on external authentication if exposed beyond localhost.
+
+  This is adjacent to AGF's evidence and contribution-auditor surface, not its
+  binding governance authority. Agent Detective analyzes what a runtime trace
+  contains and can mechanically fail CI; AGF defines roles, plans, independent
+  review, coordination visibility, and the human governor's Gate 1/Gate 2
+  decisions. A plausible integration would attach a pinned Detective report as
+  advisory Gate 2 evidence, bind trace nodes to governed role/task/commit IDs,
+  and preserve the distinction between a mechanical incident signal and a
+  binding review finding. Do not allow its `culprit` terminology, exit code, or
+  confidence number to acquire governor authority.
+
+  Strong AGF-relevant design patterns: origin-versus-manifestation separation;
+  typed evidence polarity; no defect without supporting evidence; deterministic
+  checks counterbalancing judge failure; explicit observability boundaries;
+  report-version/prompt-hash provenance; human ground-truth feedback; and the
+  rule that missing evidence cannot be upgraded to success. These connect
+  directly to AGF's verification-independence, evidence-status, tool-authority,
+  correction, and post-v2.5.0 analytic-product work.
+
+  Evidence boundary: the README labels the product Beta and warns that report
+  classifications still change between minor versions. The repository reports
+  hundreds of hermetic tests and golden fixtures, but its capability document
+  also says the labelled corpus covers one harness, one linear topology, and
+  one injection; fan-out, retry-loop, and A2A claims still await validating
+  traces. Treat all effectiveness, calibration, and root-cause-accuracy claims
+  as self-reported until reproduced on independent multi-agent traces. Trace
+  payloads may include verbatim prompts, outputs, artifacts, costs, and model
+  metadata, so any AGF evaluation must test minimization, redaction, retention,
+  access control, prompt-injection exposure, and whether incomplete
+  instrumentation produces honest `unverified` results.
+
+## First AGF takeaways
+
+1. **Separate fault origin, propagation, and discovery.** A reviewer finding a
+   bad terminal artifact is not necessarily the actor or step that introduced
+   the defect. Coordination and review evidence should preserve that causal
+   distinction rather than assigning blame from the last visible failure.
+2. **Use deterministic and judged evidence as distinct channels.** Contract
+   violations, hashes, graph edges, and propagation checks should not be mixed
+   into one opaque LLM score. Disagreement between channels is useful evidence,
+   not noise to average away.
+3. **Missing observability is its own result.** If the trace, coordination
+   record, or test artifact cannot support a claim, report `unverified` or an
+   observability gap—never infer `CLEAR` from silence.
+4. **Confidence needs a subject.** Confidence that an observation occurred and
+   confidence that one node caused it are different. Neither is equivalent to
+   AGF evidence status, capability maturity, likelihood, or governor approval.
+5. **Automated blame is high-risk language.** Prefer evidence-linked origin or
+   attribution candidates, expose counter-evidence and caps, and keep a human
+   correction path. A CI exit code can block under an authorized rule, but it
+   cannot make the binding disposition.
+
+## Evaluation boundary
+
+Do not add Agent Detective directly to blocking AGF CI from this source entry.
+A later evaluation should use pinned synthetic and real-consented traces;
+measure incomplete-instrumentation behavior, deterministic replay, judge
+variance, false attribution, parallel/cyclic graphs, privacy/redaction, and
+report-version stability; and decide whether the useful integration is a Gate
+2 evidence attachment, an `agov` import/summary adapter, or documentation-only
+comparison. Contact/partnership is reasonable only after that bounded test.
