@@ -1,9 +1,12 @@
 ---
 id: v250-rc1-release-publication
-status: pending-gate1
+status: approved
 topic: v250-rc1-release-publication
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "human governor; approved in chat, confirming round-5
+  CLEAR review 20260803T163251Z-contribution-auditor-kbdk at exact head
+  b677f9a68fd0213a535796acf79f758b39004f63; Claude-scribed decision-record
+  20260803T173905Z-governor-reviewer-p1mm.md"
+gate1_approved_at: "2026-08-03T17:38:33Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -237,6 +240,12 @@ prefers Option B for any surface, this plan requires a revision (removing
 that surface's changelog entry and shipped artifact from this candidate)
 before Gate 1 can close.
 
+**Governor decision (confirmed at Gate 1):** Option A for all three
+surfaces, and the `agf/CHANGELOG.md` entry for issue #101 is required (not
+root-only coverage). See `gate1_approved_by` above and decision-record
+`20260803T173905Z-governor-reviewer-p1mm.md`. The release-only change set
+below already reflects this.
+
 ## SemVer classification (independently verified)
 
 All five in-scope feature surfaces (#79, #80, learning-supersession,
@@ -366,9 +375,9 @@ merged, per the sequencing above), with only these release-truth changes:
    direct-reference resolution, distinct from `handoff`'s transitive
    resolution). The issue's full concurrency-specification scope is
    unrelated to this candidate's contract and remains genuinely open.
-   **Recommended disposition: keep open, remove from the `v2.5.0`
-   milestone, leave unmilestoned** (no governed later destination named
-   yet) unless the governor names one at Gate 1.
+   **Recommended disposition (governor-confirmed at Gate 1): keep open,
+   remove from the `v2.5.0` milestone, leave unmilestoned** (no governed
+   later destination named yet).
 
    **#67 — eleven findings across the initial body and three follow-up
    comments, independently re-verified against current `main` before
@@ -455,8 +464,9 @@ merged, per the sequencing above), with only these release-truth changes:
        not a mechanical fix this release can make unilaterally.
 
       **Findings 1–7, 9, and 10 are resolved or require no action; 8 and
-      11 remain genuinely open.** Recommended disposition: **keep #67
-      open, remove it from the `v2.5.0` milestone**, add a GitLab note
+      11 remain genuinely open.** Recommended disposition (governor-
+      confirmed at Gate 1): **keep #67 open, remove it from the `v2.5.0`
+      milestone**, add a GitLab note
       recording all nine resolved/no-action items with exact fixing
       commits/MRs, and leave 8 and 11 as the issue's remaining scope
       pending named successor issues or an explicit governor decision —
@@ -505,7 +515,8 @@ merged, per the sequencing above), with only these release-truth changes:
 
       **All four #78 findings now have a settled disposition — finding 1
       retracted, finding 4 routed to #76, findings 2–3 resolved.**
-      Recommended disposition: **close #78**, with a GitLab note recording
+      Recommended disposition (governor-confirmed at Gate 1): **close
+      #78**, with a GitLab note recording
       the finding-1 retraction and its governor-triage citation, findings
       2–3 resolved by #79/#80 with exact commit/MR references, and
       finding 4 routed to #76 (already open, already milestoned
@@ -537,11 +548,15 @@ accurate state:
   #101) — verify this at the release-branch head, don't re-draft.
 - `agf/CHANGELOG.md` (adopter-facing): already contains entries for four
   surfaces (#79, #80, learning-supersession, governance-layout-rule) —
-  verify at the release-branch head. **Issue #101 needs the new entry
-  decided in the scope-amendment section above** (either add adopter-facing
-  coverage, or record the governor's explicit root-only-coverage
-  decision) before this release's `agf/CHANGELOG.md` can be converted to a
-  dated section.
+  verify at the release-branch head. **Governor decision (confirmed at
+  Gate 1): add the missing issue-#101 entry**, not root-only coverage. The
+  release MR must add a short `Added` entry to `agf/CHANGELOG.md`'s
+  `[2.5.0-rc.1]` section along these lines (adjust wording to the actual
+  command `--help` output at release-branch head, don't invent behavior):
+  "Added `agov ci cache-topology-check`, a packaged tooling command that
+  inspects merged CI YAML cache-key/job-name topology; carries no
+  adopter-facing obligation semantic and no documented adopter workflow
+  today."
 
 The release MR must:
 
