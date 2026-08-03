@@ -1,9 +1,9 @@
 ---
 id: historical-branch-only-coordination-recovery
-status: pending-gate1
+status: approved
 topic: historical-branch-only-coordination-recovery-and-prevention
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-03T13:35:40Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -57,8 +57,10 @@ advisory_consultation:
       transitive-descendant algorithm unconditionally, regardless of
       its own timestamp relative to the cutoff; the cutoff continues to
       gate exactly what `sejb` authorized — non-handoff
-      `requires-ack: true` records only. A bounded renewed review is
-      requested before this is treated as Gate 1-ready.
+      `requires-ack: true` records only. Round 5 review
+      (`20260803T131311Z-contribution-auditor-p11r.md`) was CLEAR with
+      zero blocking findings at `3b380412`; its two publication/citation
+      advisories were resolved at the approved exact head `4496097e`.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -83,12 +85,13 @@ per contribution-auditor's round 1 review (`1ajh`); revised again
 (`hpaq`); revised again 2026-08-03T12:35:00Z per contribution-auditor's
 round 3 review (`mjk3`); revised again 2026-08-03T13:05:00Z per
 contribution-auditor's round 4 review (`jmgt`).
-**Status:** REVISED DRAFT (round 4) — round 1's six findings (B-HR-1
+**Status:** APPROVED at Gate 1 by governor-reviewer decision-record `t3ms`
+at exact head `4496097e`. Round 1's six findings (B-HR-1
 through B-HR-6), round 2's five findings (B-HR-EVID-1, B-HR-ROOT-2,
 B-HR-OBL-2, B-HR-VAL-1, B-HR-COST-2), round 3's three findings
 (B-HR-ACK-3, B-HR-HANDOFF-3, B-HR-ACTIVE-3), and round 4's one finding
-(B-HR-HANDOFF-CUTOFF-4) are addressed below; a bounded renewed review
-is requested before this is treated as Gate 1-ready. Proposed
+(B-HR-HANDOFF-CUTOFF-4) are addressed below; round 5 review `p11r` was
+CLEAR and its two advisories were resolved before approval. Proposed
 dispositions remain recommendations only. Final
 disposition of each record remains governor-reviewer authority per the
 triggering handoff's own stated boundary. **No implementation, bulk
@@ -811,6 +814,10 @@ placeholders instead of this project's actual governing text.
   the round 3 review.
 - `docs/coordination/20260803T124844Z-contribution-auditor-jmgt.md` —
   the round 4 review this revision responds to.
+- `docs/coordination/20260803T131311Z-contribution-auditor-p11r.md` —
+  the round 5 CLEAR review.
+- `docs/coordination/20260803T133540Z-governor-reviewer-t3ms.md` — the
+  binding Gate 1 approval and its explicitly bounded authorization.
 - `docs/coordination/20260802T220154Z-governor-reviewer-sejb.md` — the
   governed pending-cutoff decision, scoped to the `--all-kinds` surface
   per B-HR-ACK-3/B-HR-HANDOFF-CUTOFF-4.
