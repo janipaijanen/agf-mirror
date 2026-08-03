@@ -49,7 +49,27 @@ advisory_consultation:
       current body, with an exact recommended disposition (#67: close,
       every finding resolved; #78: keep open, two of four findings
       genuinely still unresolved) rather than a deferred
-      close-or-leave-open algorithm. A bounded round-3 review is requested
+      close-or-leave-open algorithm. Round 3 review
+      (`20260803T155300Z-contribution-auditor-g1ks.md`) at exact head
+      `1e20c0ff`: BLOCK, one blocking finding (B-RC-TRACKER-R3-4) plus two
+      advisories (A-RC-HANDOFF-DESC-R3, A-RC-BRANCH-RETENTION-R3),
+      confirming B-RC-SCOPE-R2-1 and B-RC-ARTIFACT-R2-2 resolved. Addressed
+      in this revision: the #67/#78 map is rebuilt from each issue's full
+      comment history rather than the initial body alone — #67 gains
+      findings 7-11 (7 and 9 resolved by #80 and the current loader
+      template respectively, 10 informational, 8 and 11 independently
+      re-verified as still open) and its recommended disposition flips
+      from close to **keep open, remove from milestone**; #78 finding 1's
+      proposed relocation is withdrawn entirely — the issue author
+      retracted it and governor triage (MR !749,
+      `20260728T154327Z-governor-reviewer-gkj5.md`) made "do not relocate
+      declared projection/review paths" binding — and finding 4 is
+      recorded as routed to already-open, already-`v2.6.0`-milestoned
+      issue #76 rather than left as open #78 scope, flipping #78's
+      recommended disposition from keep-open to **close**; the merge/tag
+      sequence now requires explicit `should_remove_source_branch: false`
+      through the merge API, verified post-merge, rather than relying on
+      an unstated project default. A bounded round-4 review is requested
       before this is treated as Gate 1-ready.
   - role: infosec-sentinel
     status: not-applicable
@@ -313,18 +333,19 @@ merged, per the sequencing above), with only these release-truth changes:
    yet warrant a citation bump per existing convention — confirm against
    the actual current README wording at implementation time rather than
    assuming.
-7. **v2.5 milestone/issue-tracker reconciliation — corrects B-RC-TRACKER-7
-   and its round-2 narrowing B-RC-TRACKER-R2-3.** The GitLab `v2.5.0`
-   milestone currently contains three open issues (#33, #67, #78).
-   **Correction: the round-1 fix for #67/#78 used a deferred
-   close-or-leave-open algorithm ("close only if every remaining item is
-   resolved... otherwise leave open") instead of the explicit
-   governor-decided disposition the review actually required.** Below is
-   the concrete per-finding map, built by independently reading each
-   issue's full current body (not summarized from memory), with an exact
-   recommended outcome for the governor to approve or amend at Gate 1 —
-   tracker notes execute the approved decision afterward, they do not
-   discover it during publication.
+7. **v2.5 milestone/issue-tracker reconciliation — corrects B-RC-TRACKER-7,
+   its round-2 narrowing B-RC-TRACKER-R2-3, and its round-3 narrowing
+   B-RC-TRACKER-R3-4.** The GitLab `v2.5.0` milestone currently contains
+   three open issues (#33, #67, #78). **Correction: the round-2 map used
+   only #67's initial issue body and missed its comment history (findings
+   7–11), and it proposed relocating #78 finding 1's declared paths
+   although the issue author retracted that finding and governor triage
+   made the retraction binding.** Below is the corrected per-finding map,
+   built by reading each issue's full comment history (not the initial
+   body alone) and independently re-verifying every claimed status against
+   current `main`, with an exact recommended outcome for the governor to
+   approve or amend at Gate 1 — tracker notes execute the approved
+   decision afterward, they do not discover it during publication.
 
    **#33 — concurrency semantics.** The minimal slice #80 required
    already shipped in this candidate (the `--all-kinds` pending surface's
@@ -335,15 +356,21 @@ merged, per the sequencing above), with only these release-truth changes:
    milestone, leave unmilestoned** (no governed later destination named
    yet) unless the governor names one at Gate 1.
 
-   **#67 — five defects + one informational, independently re-verified
-   against current `main` before writing this map:**
-   1. Superseded `agent-governance` repo path (34 occurrences,
-      including the Quickstart download link serving `v1.1.50`, three
-      schema `$id` values at the old URL/prefix) — **resolved**, commit
-      `a9b79b8e`. Verified: zero occurrences of the old path anywhere in
-      the actual shipped tree (`agf/**` plus the two individually-included
-      `docs/reviews/` files) today; the Quickstart link now points to
-      `agents-govern-framework`.
+   **#67 — eleven findings across the initial body and three follow-up
+   comments, independently re-verified against current `main` before
+   writing this map (round-2's map covered only findings 1–6):**
+   1. Superseded `agent-governance` repo path (repository-path form, 34
+      occurrences, including the Quickstart download link serving
+      `v1.1.50`, three schema `$id` values at the old URL/prefix) —
+      **resolved**, commit `a9b79b8e`. A later issue comment found the
+      original 34-count itself undercounted (two GitLab Pages-host URLs
+      in `agf/docs/governance/retrospective.md` and
+      `agf/docs/governance/learning-system.md` used a different string
+      form and survived the repository-path fix). Verified today: a
+      broader `agent-governance` grep (excluding the current
+      `agents-govern-framework`/`agents_govern` name) across `agf/` and
+      `docs/reviews/` returns zero matches — both the repository-path and
+      the Pages-host forms are gone from the shipped tree now.
    2. Adopter-owned manifest at an upstream-owned path — **resolved by
       #79** (this candidate, `MANIFEST.example.yaml`).
    3. `ADOPTING.md` contradicted the site docs on packaged-tooling
@@ -358,63 +385,117 @@ merged, per the sequencing above), with only these release-truth changes:
       **resolved**, commit `d7dd5da7`. Verified: `agf/ADOPTING.md` now
       reads `cp agf/docs/adr/_template.md docs/adr/`.
    6. Informational (what worked without intervention) — no action item.
+   7. `requires-ack: true` on `kind: note` created no tracked obligation
+      (identical root cause to #78 finding 3) — **resolved by #80** (this
+      candidate). Verified: `find_pending_all_kinds` in
+      `handoff_tracker.rs` now filters on `requires_ack()` for all
+      tracked kinds, not only `handoff`.
+   8. Learning IDs and coordination IDs share a timestamp-plus-four-char
+      format, so citing a learning ID in a coordination message body
+      produces a `body-reference` graph edge to a target that is not a
+      coordination file, with no target-existence classification — **not
+      resolved, still open.** Verified today by running
+      `agov coord graph-index`: 612 `body-reference` edges exist, none
+      resolve against the node-ID set (no existence classification is
+      emitted for any of them; the issue's smaller reproduction found 73
+      under a scratch coordination directory, this repository's full
+      history naturally produces more). Recommended: name a successor
+      issue for this specific defect (namespace the two ID spaces, or
+      have `graph-index` classify unresolved `body-reference` targets
+      under a separate key) rather than leaving it as an unlabelled
+      remainder of #67.
+   9. The shipped loader template documented a rejected positional
+      `agov coord graph-index docs/coordination/` invocation — **resolved**.
+      Verified: `agf/templates/AGENTS.md` now uses the bare
+      `agov coord graph-index` form (lines 109 and 166 today), which
+      matches the command's actual accepted syntax.
+   10. Malformed coordination files fail visibly (the counter-example
+       showing the machinery works when the file is malformed rather than
+       semantically dropped) — informational, no action item.
+   11. `agov plan validate` rejected `fact-checker` as an unknown advisory
+       role, contradicting the schema (any non-empty string), the
+       commissioning matrix, and `ADOPTING.md`'s claim that advisory roles
+       "do not need YAML definitions or framework tracking" — **partially
+       resolved, contract still contradictory.** Verified today:
+       `plan_validator.rs` no longer hardcodes an allowlist — it now
+       accepts any role active in `agf/agents/MANIFEST.yaml`
+       (`role_statuses`/`validate_semantics_with_manifest`), and this
+       project's own manifest lists `fact-checker: status: active`, so the
+       validator accepts it here. But `agf/ADOPTING.md:311-312` still
+       reads unchanged: advisory roles "do not need Yet Another Markup
+       Language (YAML) definitions or framework tracking; they are
+       project-specific and informal" — directly contradicting a validator
+       that now requires exactly that tracking. Recommended: keep this
+       finding open pending a governor decision on which artifact is
+       authoritative (require manifest tracking and fix `ADOPTING.md`'s
+       claim, or accept any project-declared role and loosen the
+       validator) — this is a documentation/contract-authority decision,
+       not a mechanical fix this release can make unilaterally.
 
-      **Every open finding in #67 is resolved, three of five predating
-      this candidate and independently reverified, one shipped in this
-      candidate (#79).** Recommended disposition: **close #67**, with a
-      GitLab note naming all five fixing commits/MRs above, and remove it
-      from the `v2.5.0` milestone (it closes on completion, not on this
-      release's own merit alone).
+      **Findings 1–7, 9, and 10 are resolved or require no action; 8 and
+      11 remain genuinely open.** Recommended disposition: **keep #67
+      open, remove it from the `v2.5.0` milestone**, add a GitLab note
+      recording all nine resolved/no-action items with exact fixing
+      commits/MRs, and leave 8 and 11 as the issue's remaining scope
+      pending named successor issues or an explicit governor decision —
+      do not close the umbrella on a partial map again.
 
-   **#78 — four findings (the preamble table's four items were already
-   fixed before #78 was filed and need no action), independently
-   re-verified against current `main`:**
-   1. **Regression: the archive ships a top-level `docs/` outside `agf/`**
-      (`docs/reviews/agf-framework-assessment-codex-sol-high.md` and
-      `docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md`,
-      landing in the adopter-owned `docs/` tree instead of
-      `agf/docs/reviews/`) — **still open, unresolved.** Verified directly
-      against `agf/dist/release-manifest.yaml` today: both paths are still
-      listed at `docs/reviews/...`, not `agf/docs/reviews/...`. **This
-      release does not fix it** — fixing it (relocating the paths and
-      updating the manifest) is a real, scoped, one-file change but is
-      not named in the batching amendment's v2.5.0 contract and is not
-      required by #79/#80. Recommended: do not silently claim this is
-      resolved; note it explicitly as a known, still-reproducing defect
-      in this release's evidence, and route the actual fix to its own
-      small follow-on plan (candidate for v2.5.0-rc.2 if the governor
-      wants it in this release line, or v2.6.0 otherwise).
+   **#78 — four findings, independently re-verified against current
+   `main` and against the issue's own retraction and governor-triage
+   comments (round-2's map treated finding 1 as live and proposed a
+   relocation the issue author had already retracted):**
+   1. ~~Regression: the archive ships a top-level `docs/` outside
+      `agf/`~~ — **retracted by the issue author** (comment
+      `3611959113`): `agf/dist/release-manifest.yaml` declares both
+      `docs/reviews/...` paths explicitly, `documentation-rule-projection-
+      rule.md` requires adopters to write into that same shared tree at
+      `docs/reviews/rule-projection/<plan-id>.yaml`, and `agov plan
+      projection-check` validates declared-path resolvability against the
+      manifest — relocating the files, as this plan's round-2 revision
+      proposed, would have broken the declared contract, not fixed a
+      regression. Governor triage (`janipaijanen`, MR !749, canonical
+      record `20260728T154327Z-governor-reviewer-gkj5.md`) made this
+      binding: "retracted; top-level `docs/` is not an accidental
+      regression; do not relocate declared projection/review paths."
+      **This plan withdraws its round-2 relocation recommendation
+      entirely and must not schedule that work anywhere, including a
+      follow-on plan.**
    2. Adopter roster overwritten on upgrade — **resolved by #79** (this
       candidate).
    3. `requires-ack` on a `note` created no tracked obligation —
       **resolved by #80** (this candidate).
    4. Coordination records visible only on unmerged branches (the
       learning behind `coordination-publication-rule.md`'s provisional
-      status) — **partially addressed, not resolved.** The forensic
-      assessment and prevention *design* merged (MR !1010,
-      `historical-branch-only-coordination-recovery.md`), but that plan
-      explicitly does not authorize implementing its prevention
-      mechanisms (e.g., queue-reporting commands stating which ref they
-      answered for). No shipped tooling change exists yet. Recommended:
-      keep this specific finding open, tracked either as a reopened scope
-      item under #78 or a new named successor issue for the prevention
-      implementation — the governor's choice at Gate 1.
+      status) — **routed by the same governor triage to issue #76's
+      acceptance matrix**, not left as open #78 scope. Verified: #76
+      ("Optimize `agov coord visibility` for branch-heavy repositories")
+      is open in milestone `v2.6.0` today and already carries the
+      issue-#78 evidence. The forensic assessment (MR !1010,
+      `historical-branch-only-coordination-recovery.md`) is merged; its
+      prevention *implementation* is #76's scope, not this release's.
 
-      **Recommended disposition: keep #78 open** (findings 1 and 4 remain
-      genuinely unresolved), **remove it from the `v2.5.0` milestone**
-      (neither open item is in this candidate's contract-core scope), add
-      a GitLab note recording findings 2 and 3 resolved by #79/#80 with
-      exact commit/MR references, and finding 1's manifest paths plus
-      finding 4's MR !1010 reference as the still-open items with their
-      recommended next-step routing above.
+      The same governor triage also routed two items that are not #78
+      findings but were raised in the same comment thread: a corrective
+      sweep for the two Pages-host superseded-path URLs under approved
+      #67 Slice B (verified resolved above, #67 finding 1), and the
+      shipped-runbook-test-fixture defect to **issue #81**, which is
+      **closed** today.
+
+      **All four #78 findings now have a settled disposition — finding 1
+      retracted, finding 4 routed to #76, findings 2–3 resolved.**
+      Recommended disposition: **close #78**, with a GitLab note recording
+      the finding-1 retraction and its governor-triage citation, findings
+      2–3 resolved by #79/#80 with exact commit/MR references, and
+      finding 4 routed to #76 (already open, already milestoned
+      `v2.6.0`) — and remove it from the `v2.5.0` milestone.
 
    This step is tracker reconciliation only — it does not authorize
-   implementing #33's remaining scope, #78 finding 1's manifest fix, or
-   #78 finding 4's prevention mechanism. A final GitLab API check before
-   tagging must show the milestone state and the release notes agree (no
-   open issue silently implies unshipped work is included in this
-   candidate, no shipped resolution is silently unrecorded, no still-open
-   defect is silently implied fixed).
+   implementing #33's remaining scope, #67 finding 8's ID-namespace fix,
+   #67 finding 11's authority decision, or #76's prevention-mechanism
+   scope. A final GitLab API check before tagging must show the milestone
+   state and the release notes agree (no open issue silently implies
+   unshipped work is included in this candidate, no shipped resolution is
+   silently unrecorded, no still-open defect is silently implied fixed).
 
 No product implementation, command semantic, schema, validator semantic,
 dependency, CI behavior, new documentation policy, rule, v2.6.0/v2.7.0
@@ -536,7 +617,17 @@ approval.
 ## Merge, tag, and publication sequence
 
 1. Merge only the exact Gate 2-approved release MR head and retain its
-   source branch.
+   source branch. **Corrects A-RC-BRANCH-RETENTION-R3**: the project
+   default `remove_source_branch_after_merge: true` deletes the remote
+   branch on merge even when the merge command itself supplies no
+   deletion flag — this already happened once to a review branch during
+   this plan's own round-2 review cycle. Retention is not automatic;
+   the merge call must explicitly pass `should_remove_source_branch:
+   false` through the merge API (`glab api` / the merge-request "Delete
+   source branch" checkbox left unchecked), and the remote branch's
+   continued existence must be verified immediately after merge, before
+   proceeding to step 2. Prior release MR !888 demonstrates explicit
+   `false` preserves the branch under the current project default.
 2. Confirm `origin/main` resolves to the resulting merge commit and that no
    `v2.5.0-rc.1` tag exists locally or remotely.
 3. Create one annotated `v2.5.0-rc.1` tag on that exact `main` merge commit
@@ -605,16 +696,19 @@ changelog metadata, per `release-via-merge-request-rule.md`.
 8. Framework-archive overlay tests pass from all three named baselines
    (`v2.4.5`, `v2.4.6`, `v2.4.11`).
 9. The v2.5.0 GitLab milestone's #33/#67/#78 disposition is recorded via
-   GitLab notes per release-only change-set item 7's per-finding map, and
-   the milestone state agrees with the release notes before tagging:
-   #67 closed (with note, every finding resolved); #33 and #78 kept open
-   and removed from the `v2.5.0` milestone (each has a genuinely unshipped
-   remainder, per the per-finding map).
+   GitLab notes per release-only change-set item 7's corrected per-finding
+   map, and the milestone state agrees with the release notes before
+   tagging: **#78 closed** (with note: finding 1 retracted per the issue
+   author and governor triage, findings 2–3 resolved by #79/#80, finding 4
+   routed to #76); **#33 and #67 kept open** and removed from the
+   `v2.5.0` milestone (#33's full concurrency scope and #67 findings 8/11
+   are genuinely unshipped remainders, per the per-finding map).
 10. Issues #79 and #80 are not touched by this plan's execution — they
-    stay closed, unmodified. #67 closes deliberately, with an explicit
-    note citing every fixing commit/MR, never as a silent side effect of
-    the release MR's own `closes_issues`. #33 and #78 are noted, not
-    closed.
+    stay closed, unmodified. #78 closes deliberately, with an explicit
+    note citing the finding-1 retraction, the fixing commits/MRs for
+    findings 2–3, and the finding-4 routing to #76, never as a silent side
+    effect of the release MR's own `closes_issues`. #33 and #67 are noted,
+    not closed.
 11. v2.6.0/v2.7.0 scope (per the batching amendment) does not enter this
     release.
 
@@ -628,8 +722,11 @@ governance-layout/#101's own implementation MRs; weakening any existing
 check; changing an existing tag; using a release branch name other than
 `release-2.5.0-rc.1` without an explicit rule amendment; including
 v2.6.0/v2.7.0 scope; deleting a source branch; reopening or re-closing
-issues #79/#80; silently closing #33/#67/#78 without the GitLab-note
-disposition step; or discovering a `main` delta surface not accounted for
-in the scope-reconciliation table above (in which case: stop, classify it
-the same way, and return to the governor rather than silently including or
-excluding it).
+issues #79/#80; silently closing or silently keeping open any of
+#33/#67/#78 without the GitLab-note disposition step matching this plan's
+corrected per-finding map; relocating any path declared in
+`agf/dist/release-manifest.yaml` (including #78 finding 1's retracted
+claim about `docs/reviews/...` — do not revive it); or discovering a
+`main` delta surface not accounted for in the scope-reconciliation table
+above (in which case: stop, classify it the same way, and return to the
+governor rather than silently including or excluding it).
