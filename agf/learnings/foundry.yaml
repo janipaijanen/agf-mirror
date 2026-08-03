@@ -2678,13 +2678,21 @@ learnings:
       adversarial subagent attacked a different layer (raw git/CI) and
       found no `agov`-related git hooks exist anywhere in the tracked
       repository; a branch with zero Gate 1 plan and zero Gate 2
-      approval records merged instantly in a sandbox with no CI
-      attached, meaning all real enforcement is GitLab-server-side CI
-      and branch-protection configuration, invisible and inert outside
-      that specific hosted environment. The two passes are
-      complementary, not redundant: one shows the schema layer accepts
-      forged authority; the other shows nothing outside CI configuration
-      would have stopped the underlying merge regardless.
+      approval records merged instantly in a sandbox with **no CI
+      attached at all**. That sandbox condition shows the absence of any
+      local technical backstop; it does not by itself describe this
+      project's actual hosted configuration. Separating the three
+      layers precisely: human procedural authority (who is entitled to
+      approve a gate) is unaffected by either finding; this project's
+      hosted merge backstop (`coord publication-check`,
+      `only_allow_merge_if_pipeline_succeeds`) blocks merge on pipeline
+      success and validates record shape; neither layer authenticates a
+      governor, requires a Gate 1 plan or Gate 2 decision to exist for
+      every substantive MR, or proves a validated approval record is
+      binding. The two passes are complementary, not redundant: one
+      shows the schema layer accepts forged authority; the other shows
+      a workspace with zero local backstop and no CI attached would not
+      have stopped the underlying merge regardless.
 
       A separate Track 1 (documentation) pass by a third model (Lumo)
       contained fabricated technical specifics — schema filenames and
@@ -2711,7 +2719,7 @@ learnings:
       - coder-tester
       - fact-checker
       - planner-architect
-    framework_section: "agf/schemas/gate1-plan.schema.json (gate1_approved_by not required non-empty or role-bound when status:approved); agf/schemas/coordination-message.schema.json (from: is unauthenticated free text; immutable:true is an asserted label, not a content-hash-enforced guarantee); tooling/rust agov handoff (to: all handoffs invisible to agov handoff next <role>, tested separately in the same review); .gitlab-ci.yml (Gate 1/Gate 2 enforcement is entirely CI-side, zero local git-hook backstop)"
+    framework_section: "agf/schemas/gate1-plan.schema.json (gate1_approved_by not required non-empty or role-bound when status:approved); agf/schemas/coordination-message.schema.json (from: is unauthenticated free text; immutable:true is an asserted label, not a content-hash-enforced guarantee); tooling/rust agov handoff (to: all handoffs invisible to agov handoff next <role>, tested separately in the same review); .gitlab-ci.yml (structural checks — publication-check, pipeline-success-required merge — run in hosted CI and there is zero local git-hook backstop; this is a delivery-context observation, not a claim that CI itself authenticates or grants Gate 1/Gate 2 authority)"
     business_impact:
       type: prevented_loss
       description: >
@@ -2735,11 +2743,15 @@ learnings:
       non-empty and match an active governor-equivalent MANIFEST role
       when status:approved — treated as structural hygiene against the
       exact-role-string case, not as identity proof; the fix itself
-      needs a separately governed cross-record validator, a defined
-      missing-MANIFEST policy (fail closed, not skip), and a migration
-      path for existing records, worked out in
-      `20260803T212420Z-hv3k`'s non-naive shape rather than assumed
-      solved by the schema change alone; (2) decide whether
+      needs a separately governed cross-record validator (a new check
+      alongside the existing advisory_consultation MANIFEST lookup in
+      agov-coord's plan validator) and a defined missing-MANIFEST
+      policy that fails closed (blocking, not silently skipped) for
+      this specific field, distinct from the existing
+      advisory_consultation check's current fail-open-on-missing-
+      MANIFEST behavior, plus an explicit migration path for existing
+      approved/active/complete plan records rather than an
+      undocumented breaking change; (2) decide whether
       coordination-message from: identity binding is in scope for agov
       at all, or explicitly document it as unauthenticated and
       human/CI-trust-dependent everywhere the framework currently
