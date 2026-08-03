@@ -30,8 +30,20 @@ advisory_consultation:
       B-G1-PATH-A-R2, B-G1-EXCEPT-R2, B-G1-IMPACT-R2, B-G1-REPRO-R2,
       B-G1-HANDOFF-R2) plus one advisory (A-G1-TEST-NAME-R2), confirming
       B-G1-AUTH-1/EVID-2/DATA-3/SPEC-4 and most of B-G1-TEST-7 resolved.
-      All six findings and the advisory addressed in this revision.
-      Renewed review requested at the corrected exact head.
+      All six findings and the advisory addressed at exact head
+      `e3550834`. Round 3 review
+      (`20260803T232539Z-contribution-auditor-jhs4.md`) at that head:
+      BLOCK, two further blocking findings (B-G1-AUTH-SCOPE-R3 --
+      three mutually contradictory implementation-authorization
+      statements; B-G1-MIGRATION-TRUTH-R3 -- the "migrated, authority
+      not re-attested" disclosure has no honest, executable
+      representation under the §2 check), confirming B-G1-TIME-R2,
+      B-G1-EXCEPT-R2, B-G1-IMPACT-R2, B-G1-REPRO-R2, B-G1-HANDOFF-R2,
+      and A-G1-TEST-NAME-R2 resolved, and independently re-running the
+      embedded stdlib inventory script verbatim (confirmed
+      80/20/3 again). `jhs4` also recommends Path A for this release
+      sequence. Both findings addressed in this revision. Renewed
+      review requested at the corrected exact head.
 ---
 
 # Plan: `gate1_approved_by` structural approver-field hygiene fix
@@ -51,14 +63,30 @@ every section below, per `5k14`'s explicit instruction.
 
 ## Decision requested
 
-Authorize implementation of a schema-plus-validator change that
-requires `gate1_approved_by` to be non-empty and **start with** either
-a governor-class role name or a coordination-record-ID citation of one,
-for plans whose `status` has reached `approved`, `active`, or
-`complete`. Planning only. No implementation, schema change, or version
-bump is authorized by this plan itself. The migration path (§Migration,
-Path A vs. Path B) is an explicit open decision this plan asks Gate 1
-review to make, not a recommendation this plan pre-selects.
+**Correction (contribution-auditor `jhs4`, B-G1-AUTH-SCOPE-R3): one
+unambiguous authorization contract, replacing three contradictory
+statements in the prior revision.** This plan's Gate 1 approval, once
+given, authorizes implementation of **exactly the selected path below,
+and nothing beyond that path's own stated prerequisites and scope** —
+not "planning only" in the abstract, and not both paths' full scope
+regardless of which is chosen.
+
+- **If Path A is selected:** approval authorizes implementation of the
+  non-blocking advisory diagnostic only (§Migration, Path A). The
+  later schema change and blocking flip are explicitly **not**
+  authorized by this Gate 1 decision and require their own separate,
+  future Gate 1 plan.
+- **If Path B is selected:** approval authorizes implementation of the
+  schema change and blocking check **only after** every one of the 23
+  current cases has an individually verified, truthfully-cited
+  governor approval source or a fresh governor re-attestation (see
+  §Migration, Path B's corrected requirement below — no manufactured
+  "conforming" shortcut exists). Until that per-record work is done,
+  no implementation is authorized under Path B either.
+
+The governor selects Path A or Path B as part of the same Gate 1
+decision that approves this plan; this plan does not pre-select one
+(contribution-auditor's `jhs4` recommends Path A — see §Migration).
 
 **Authorization for this planning work.** A session-specific human
 instruction authorized drafting this plan, superseding an earlier
@@ -538,14 +566,32 @@ B-G1-PATH-A-R2 and B-G1-EXCEPT-R2), applied to both paths below:**
    governor re-attestation) before the blocking flip ships, under
    either path.** There is no third "leave it as an accepted risk"
    outcome.
-2. **This plan authorizes only the advisory diagnostic (if Path A is
-   chosen), never the later blocking flip.** The blocking flip — under
-   either path — is BREAKING and requires its own separate, future
-   Gate 1 plan, written with then-current corpus and adopter evidence
-   and a concrete release boundary. This plan's Gate 1 decision does
-   not pre-authorize an unspecified future breaking state; it
-   authorizes exactly the scope named in whichever path is selected
-   below.
+2. **Correction (contribution-auditor `jhs4`, B-G1-AUTH-SCOPE-R3):**
+   an earlier revision of this item said the blocking flip requires a
+   future Gate 1 plan "under either path" — that is wrong for Path B
+   and directly contradicted this plan's own Path B text. Only **Path
+   A**'s blocking flip is deferred to a future Gate 1 plan. Path B's
+   blocking implementation is authorized by *this* Gate 1 decision,
+   conditional on every one of the 23 cases first being individually,
+   truthfully resolved (see Path B and item 3 below — there is no
+   shortcut that manufactures conformity).
+3. **Correction (contribution-auditor `jhs4`, B-G1-MIGRATION-TRUTH-R3):**
+   an earlier revision offered a `"migrated, authority not
+   re-attested"` disclosure string as a way to make a historical
+   record "conform" under Path B. This does not work and is removed
+   entirely: for such a string to pass the §2 check it would have to
+   start with `governor-reviewer` (or a governor-reviewer coordination
+   ID) — falsely presenting itself as a governor citation in the same
+   breath as disclosing that the governor did not re-attest it. A
+   version that doesn't start with the token simply fails the check.
+   Neither shape is honest and executable at once. **There is no
+   record-level shortcut for Path B.** Each of the 23 cases must get
+   either (a) an existing, individually verified governor approval
+   source cited truthfully, or (b) a fresh governor re-attestation.
+   Records lacking either remain nonconforming and block the flip —
+   this is materially binding for the 20 empty cases in particular,
+   since no approval source exists to cite for them at all; only a
+   fresh re-attestation can resolve those.
 
 ### Path A — advisory first
 
@@ -562,24 +608,42 @@ requires its own subsequent Gate 1 plan, written once the corpus is
 actually clean (not merely "explicitly accepted" — see correction 1
 above) and citing the then-current release boundary.
 
+**Contribution-auditor `jhs4` recommends Path A** for this release
+sequence: it improves detection without rewriting or re-attesting
+historical authority claims under time pressure, avoids shipping a
+breaking validator change while the 23 records' evidence is still
+unresolved, and gives a real observation window to inventory approval
+sources properly. This is a recommendation, not this plan's own
+pre-selection — the governor decides.
+
 ### Path B — block now
 
 Resolve all 23 current cases first, as a separate, preceding migration
-MR: disposition each to conforming (rewrite to a conforming citation,
-or governor re-attestation) — no exception outcome, per correction 1
-above. Only after that MR merges, ship the schema change and the
-blocking semantic check together in the same release, under this
-plan's authorization (Path B, unlike Path A, ships the blocking state
-directly since the corpus is clean first).
+MR: each record gets either (a) an existing, individually verified
+governor approval source cited truthfully, or (b) a fresh governor
+re-attestation — per correction 3 above, no other outcome makes a
+record conforming, and no manufactured-disclosure shortcut exists. Only
+after every one of the 23 cases is genuinely resolved and that MR
+merges, ship the schema change and the blocking semantic check together
+in the same release, authorized by this Gate 1 decision (Path B, unlike
+Path A, ships the blocking state directly since the corpus is
+genuinely clean first — not merely marked as such).
+
+**Contribution-auditor `jhs4`'s caution on Path B:** it "remains
+defensible only if the governor is prepared to verify or re-attest all
+23 records before implementation. Its quality cost is not the code
+change; it is the per-record provenance decision." That per-record
+work is real, human effort — 20 records with literally no historical
+approval source to verify, requiring fresh re-attestation each.
 
 ### What this plan does not decide
 
-Gate 1 review selects Path A or Path B. Either path additionally needs:
-a decision on whether historical nonconforming records are rewritten
-(and if so, whether the governor re-attests each one or the plan
-records an explicit "migrated, authority not re-attested" disclosure —
-see §CI/rollback scope below); and, for Path A, the specific
-window/trigger before its follow-up Gate 1 plan is written.
+Gate 1 review selects Path A or Path B. For Path A: the specific
+window/trigger before its follow-up Gate 1 plan is written. For Path
+B: which of the 23 cases get option (a) (a genuine existing source,
+once someone locates and verifies it) versus option (b) (fresh
+re-attestation) — that per-record determination is not made by this
+plan.
 
 ## CI and rollback scope
 
@@ -608,14 +672,16 @@ exists, since the migration MR itself is the mechanism; Path A could
 reasonably pair with a full-corpus advisory job to surface the list
 during the sunset window.
 
-**Rollback, corrected:** if implementation as part of Path B rewrites
-any of the 23 historical `gate1_approved_by` fields, that is a
+**Rollback, corrected:** if Path B's migration MR sets any of the 23
+historical `gate1_approved_by` fields to a verified source citation or
+records a fresh governor re-attestation (per the corrected Migration
+section — never a manufactured-conformity shortcut), that is a
 data/history change to those files, not only a code change — rollback
-of the validator/schema code does not undo a rewritten historical
-approval field. Any such rewrite must be its own reviewable diff
-(visible per-file in the migration MR), and rollback of that migration
-MR is a separate, explicit git revert of those specific file changes,
-distinct from reverting the validator/schema commit.
+of the validator/schema code does not undo those per-record changes.
+Each such change must be its own reviewable diff (visible per-file in
+the migration MR), and rollback of that migration MR is a separate,
+explicit git revert of those specific file changes, distinct from
+reverting the validator/schema commit.
 
 ## Test strategy
 
