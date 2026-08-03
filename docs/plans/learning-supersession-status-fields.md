@@ -2,7 +2,7 @@
 id: learning-supersession-status-fields
 status: approved
 topic: learning-schema-status-and-supersession-fields
-gate1_approved_by: "governor-reviewer; Claude-scribed decision in 20260803T094702Z-governor-reviewer-3q28.md"
+gate1_approved_by: "governor-reviewer (decision 20260803T094702Z-governor-reviewer-3q28)"
 gate1_approved_at: "2026-08-03T09:47:02Z"
 advisory_consultation:
   - role: contribution-auditor
@@ -380,5 +380,5 @@ the field being removed, so rollback still carries no data-loss risk.
   files whose current mutual inconsistency (D1/D2) motivates this plan.
 - `always/gate-self-test-rule.md` — governs the negative-test requirement
   for the new `supersedes` enforcement.
-- `workflow/deprecation-policy-rule.md` — governs the Phase 0 breaking-removal
+- `.claude/rules/workflow/deprecation-policy-rule.md` — governs the Phase 0 breaking-removal
   reasoning for `superseded_by`.
