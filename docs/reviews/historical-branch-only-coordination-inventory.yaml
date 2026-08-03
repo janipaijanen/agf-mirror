@@ -1,0 +1,2018 @@
+generated: '2026-08-03T08:45:00Z'
+generated_by: planner-architect (claude-sonnet-5), per handoff 20260803T073923Z-governor-reviewer-tenh
+method: Fetched all remote-tracking refs (git fetch --prune, 377 branches). For each branch, listed docs/coordination/*.md
+  blobs via git ls-tree -r. Diffed against origin/main's current coordination file set (2033 files). For
+  each branch-only file, cross-referenced its branch(es) against all 1008 project merge requests (fetched
+  via GitLab API, all states) to determine MR state as root-cause evidence. Excludes this task's own in-flight
+  claim record.
+totals:
+  branch_only_records: 184
+  branches_scanned: 377
+  main_coordination_files_at_scan_time: 2033
+records:
+- path: docs/coordination/00036-contribution-auditor.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  blobs:
+  - 1b4a5fae4e5335e43b61742a8b2f89a8262000cb
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00042-governor-reviewer.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  blobs:
+  - 1573cc5f32ffbfea8d44c84bf52d8982d6202782
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00044-planner-architect.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  - plan/T3b-route-restore
+  - plan/downstream-impact-rule
+  blobs:
+  - 1bcbf0bf821e5edbcd1a00b4999085e8c8e43e88
+  - 6af7f509680df0ecf4809b0868a0212907e1d429
+  - a5d08dd540997f763d7023ec7c4eb699715cf5cb
+  multi_blob_conflict: true
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: duplicate-rename-required (seq collision with different already-published record
+    at same legacy number)
+- path: docs/coordination/00045-contribution-auditor.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  blobs:
+  - 020e7a73e37b2873b867a108bd8943ffb275375d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00046-planner-architect.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  blobs:
+  - 92ba5d9c38b51969740c99f1c0b667be59c86785
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00047-planner-architect.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  blobs:
+  - 318c2c39ecf26009511f663da472ea33cd36fca5
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00048-governor-reviewer.md
+  branches:
+  - feat/T3-spec-alignment
+  - plan/T3-spec-alignment
+  blobs:
+  - c652a239e65670f0be5691696ba4123ffc9b1c10
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00049-coder-tester.md
+  branches:
+  - feat/T3-spec-alignment
+  blobs:
+  - 965bcd4d8a86824a4ace2ec70200bda34bf60e9d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00053-planner-architect.md
+  branches:
+  - plan/T3b-route-restore
+  blobs:
+  - 6a4593839961657c90d580c15e54dff770e4ea32
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00054-governor-reviewer.md
+  branches:
+  - plan/T3b-route-restore
+  blobs:
+  - a4da2b5584c1bfe72b0b9d2454bec4ff22803efc
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00057-coder-tester.md
+  branches:
+  - feat/downstream-impact-rule
+  blobs:
+  - 57d1f44fd996e5bc47232f6a58ae8859ae938163
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: duplicate-rename-required (seq collision with different already-published record
+    at same legacy number)
+- path: docs/coordination/00058-coder-tester.md
+  branches:
+  - feat/downstream-impact-rule
+  blobs:
+  - f3221970a84150a75d3e5d9b724906cd2a78a87d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00059-coder-tester.md
+  branches:
+  - feat/downstream-impact-rule
+  blobs:
+  - cb60907ddc64a81137e6ac23560f40a0ac92d149
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00120-coder-tester.md
+  branches:
+  - docs/validator-advisory-role-usability-note
+  blobs:
+  - 632958cbb1161c4c689ada547b64128e5bce331d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00121-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - 73229cccb838bfefd789e87965fba7305a108c7b
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00122-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - 2d20b3e0f8fa8c6c8ea6ae11e2f15e11409642c5
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00123-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - fb0539396f4826a50d4a77d47c1a217a95cd8eb7
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00124-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - fa96ba8907cc482463384585e01a3252a73a8749
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00125-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - e8e585db8c79ded5f9b78febd456cc58e771dd11
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00126-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - b71ace5c85e9e48b4329362933663de6e99fb344
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00127-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - ad54d6b1d960269cb58a42b33d3a96de36ba1da4
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00128-academic-peer-reviewer.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - 706b30cbb44a8ee9c210a359a648a13fbf45e5e6
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00129-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - 3e61413f78e0d38e0480a70619e3ee3fd26dd351
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00130-academic-peer-reviewer.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - 81e242385cf0c14fc135abbefd60be7e5d9412b5
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00131-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - a570842c697d47e79f39a3f0fab562bcb5296c2d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00132-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - 557ef023a81f803c6aa05e067435908ce64a4a5d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00138-planner-architect.md
+  branches:
+  - plan/elixir-learning-tooling
+  blobs:
+  - 024bc5e2ad0e82acda2889dd6fe55d34ac03dead
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00149-planner-architect.md
+  branches:
+  - plan/full-public-docs-pedagogical-review
+  blobs:
+  - bd5ce6284beec592b40fac2ad6edc66a08fdceed
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00150-planner-architect.md
+  branches:
+  - plan/full-public-docs-pedagogical-review
+  blobs:
+  - e8675cb180b2760bed8883613ed3fb4cbe11378e
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00151-coder-tester.md
+  branches:
+  - docs/v2-layout-b-only
+  blobs:
+  - b902d1c12627464c9fe70949983758549103d562
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00153-coder-tester.md
+  branches:
+  - plan/public-docs-customer-success-review
+  blobs:
+  - 843d0f54fb89c66b1e46103c9853191a4475d4a4
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00250-coder-tester.md
+  branches:
+  - docs/developer-kickstart-elixir-tooling
+  blobs:
+  - 15d88e2d76cbd821643452a1573044bef3f51f20
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00253-planner-architect.md
+  branches:
+  - plan/gateway-assistant-integration
+  blobs:
+  - 2e90a4cfb16c6ffb58efe69041c8ac5bf4dd19e0
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00254-planner-architect.md
+  branches:
+  - plan/gateway-assistant-integration
+  blobs:
+  - 34542688e2ace3496f8f69d4e0dcfa5844b715e1
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00255-planner-architect.md
+  branches:
+  - plan/gateway-assistant-integration
+  blobs:
+  - 1b634b4760d9fb1b25b197c1f9c5d66f6932153b
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00257-coder-tester.md
+  branches:
+  - docs/1x-tail-cutoff-assessment
+  blobs:
+  - dff1b2d85122b43caf7d2b93b86456f405a1c7fa
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00259-planner-architect.md
+  branches:
+  - plan/downstream-ux-improvement
+  blobs:
+  - 4a692440ed5b98d6ba189d50a9022257556be306
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00281-coder-tester.md
+  branches:
+  - docs/agent-runtime-deliberation-proposals
+  blobs:
+  - 680d261d6bad710b35d40eaaa741c6a0923c4120
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00282-coder-tester.md
+  branches:
+  - docs/agent-runtime-deliberation-proposals
+  blobs:
+  - de8b6dc2bf6d1f47cdda29861b95c0003789738d
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00283-coder-tester.md
+  branches:
+  - docs/agent-runtime-deliberation-proposals
+  blobs:
+  - 31135a0781f15656286e602f3a691fce2fad36cf
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00284-coder-tester.md
+  branches:
+  - docs/agent-runtime-deliberation-proposals
+  blobs:
+  - b5ab11db410a5cce6e53d64af0c7a498ec2adce9
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00285-coder-tester.md
+  branches:
+  - docs/academic-paper-draft
+  blobs:
+  - a3ca7eac2a1d87a6216b3ff2a04d2658892e3ba2
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00287-coder-tester.md
+  branches:
+  - docs/dogfood-tooling-authority-note
+  blobs:
+  - deac07f3e36ff3835ed28d80fe68916baf3976ce
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00288-coder-tester.md
+  branches:
+  - docs/dogfood-tooling-authority-note
+  blobs:
+  - 8a263144075331bd9dc2f69be73a20648700f926
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00289-planner-architect.md
+  branches:
+  - docs/dogfood-tooling-authority-note
+  blobs:
+  - bd6cb62255d197ec4c074af3b0bbfd25bfe138c8
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00290-coder-tester.md
+  branches:
+  - docs/dogfood-tooling-authority-note
+  blobs:
+  - d60b33bb0b1b6ca1fd5368c69760d51cae2da1f2
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00291-coder-tester.md
+  branches:
+  - docs/dogfood-tooling-authority-note
+  blobs:
+  - 603ecc18a729adb49060b8765de75fd013fc690c
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00306-coder-tester.md
+  branches:
+  - docs/agov-installation-deployment
+  - docs/agov-packaging-release-plan
+  blobs:
+  - a07dfdb709726491cb27a4c0d7579c07e6f4838a
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00307-coder-tester.md
+  branches:
+  - docs/agov-packaging-release-plan
+  blobs:
+  - e5a8c48f86af8ce67d7719fb017c3a6012a9cc0e
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: duplicate-rename-required (seq collision with different already-published record
+    at same legacy number)
+- path: docs/coordination/00308-coder-tester.md
+  branches:
+  - docs/multi-ai-workspace-isolation
+  blobs:
+  - fb2ef641082dfd8aeb82395770ec7cb60b690212
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/00312-coder-tester.md
+  branches:
+  - docs/multi-ai-workspace-isolation
+  blobs:
+  - 570769c38f153af941f87d40e6263cc2669f4af7
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: duplicate-rename-required (seq collision with different already-published record
+    at same legacy number)
+- path: docs/coordination/20260621T063716Z-planner-architect-pmeq.md
+  branches:
+  - plan/rust-agov-phase2
+  blobs:
+  - 3b3500892cc63d939970b8c6a6c13d86d2710691
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/rust-agov-phase2
+    - 41
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T064711Z-planner-architect-p8g5.md
+  branches:
+  - plan/rust-agov-phase2
+  blobs:
+  - 8d7ff5ce756a3d83753b658b5f66c85528abff03
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/rust-agov-phase2
+    - 41
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T073556Z-planner-architect-2rr6.md
+  branches:
+  - coord/rust-agov-phase2-reviews
+  blobs:
+  - 0d67a7c638ee8e1c4fd1eeeda04ba2752492e34b
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T080327Z-planner-architect-2cd7.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - 07c3d775fde99fea17ee6f92b189f40a31ed2419
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T083004Z-planner-architect-1r6m.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - 6a66e7590d3699a9928658a602922aa19a5f7bde
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T084436Z-planner-architect-nde1.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - b6437d76df648b16dfa7cbcc7d5dffc73f200f9d
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T084953Z-planner-architect-2akm.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - 3da1aeb0d951d0fa065f9f82d476d5e0653ace06
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T130102Z-planner-architect-m2hk.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - 8810dc989d4d8bbf7b5cabe9a971cb47a0e6aa08
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T131242Z-planner-architect-2rzp.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - 957df010cc9cbd5e81b39e832667ae629b616dc7
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T131244Z-planner-architect-nxd6.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - bd20d635d8d38ce62193c5cf7b7e77426167dd1d
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T131248Z-planner-architect-kq3s.md
+  branches:
+  - docs/site-adoption-rust-tooling
+  blobs:
+  - b2972d79005af0872217a7c8addd3ed55c543cdd
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/site-adoption-rust-tooling
+    - 42
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T143538Z-coder-tester-drq5.md
+  branches:
+  - docs/visual-assessment-panel
+  blobs:
+  - 5984b15415db28d6955844d69ab7a81cae72c554
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T144350Z-coder-tester-jnk5.md
+  branches:
+  - docs/citation-version-specific
+  blobs:
+  - d8cbdf87e1c7477400addca830aa61c15f0af5cc
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T144534Z-coder-tester-mpjj.md
+  branches:
+  - docs/citation-version-specific
+  blobs:
+  - 1c931a4cd82785a3a5d350284f17d702b1fffccd
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T145130Z-coder-tester-7rhn.md
+  branches:
+  - feat/rust-coord-stale
+  blobs:
+  - 0ee3e8ac2fd9178d7af79e0e883e8795e7de1f8e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/rust-coord-stale
+    - 45
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T145257Z-coder-tester-psn3.md
+  branches:
+  - feat/rust-coord-stale
+  blobs:
+  - 66adc68376cbd18f829b9eece8e81baa6bb09d01
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/rust-coord-stale
+    - 45
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T154929Z-coder-tester-h6xq.md
+  branches:
+  - master
+  blobs:
+  - a56da806d6b18c54386b6d369f9e8ff0ef773d4c
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T155647Z-coder-tester-pv8m.md
+  branches:
+  - master
+  blobs:
+  - 3278ee9f79c0e8ddcc241336fabc0961bb00ee11
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T155941Z-coder-tester-n4t2.md
+  branches:
+  - master
+  blobs:
+  - 39c6c5eae9af43be25a9dc1d7e1788de6c998524
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T160216Z-coder-tester-v9kp.md
+  branches:
+  - master
+  blobs:
+  - b08e38dd20974cce289cdd18fbcf7425dc607e9f
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T160438Z-coder-tester-m2q8.md
+  branches:
+  - master
+  blobs:
+  - 6467e82db9275cb5eadf2aa2e944622d86e96644
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T162230Z-coder-tester-r7hm.md
+  branches:
+  - master
+  blobs:
+  - 5519c98536a07f0d63f691d9411867d50b2148d7
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T162658Z-coder-tester-k4nd.md
+  branches:
+  - master
+  blobs:
+  - bf27f1561459ab7331fa6f1f9312a31cd2cfb233
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: governor-decision (legacy default-branch artifact predating main, not a feature
+    branch)
+- path: docs/coordination/20260621T164840Z-coder-tester-mr12.md
+  branches:
+  - docs/topbar-version
+  blobs:
+  - 110937fcfcc6d603601c56813806550a4040c9cd
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/topbar-version
+    - 71
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T170140Z-coder-tester-r7s2.md
+  branches:
+  - feat/rust-coord-stale
+  blobs:
+  - 74c7c24ccc75fbc871477fdb0cb5328d8cfa1203
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/rust-coord-stale
+    - 45
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T172235Z-coder-tester-rhg2.md
+  branches:
+  - feat/rust-coord-stale
+  blobs:
+  - 2758ada1690a6c96f8a840558122281585bffed4
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/rust-coord-stale
+    - 45
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T211054Z-coder-tester-hs2n.md
+  branches:
+  - coord/session-closeout-release-tag
+  blobs:
+  - 2a65c2cdb9533478eea8e85c4b0b25c325b1721b
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T215137Z-coder-tester-5rhj.md
+  branches:
+  - coord/session-closeout-after-92
+  blobs:
+  - 4d7b911a05ed429e7de460dd36811c7e2a1cd756
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260621T220740Z-coder-tester-4gaq.md
+  branches:
+  - coord/session-closeout-after-93
+  blobs:
+  - 3dfba8c35a5f46ab2c634e24f101e8e3289ceeed
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260622T110547Z-governor-reviewer-pgha.md
+  branches:
+  - docs/paper-push-rule-learning
+  blobs:
+  - 5a4072056239fe2c7c72e690281d0a62f6709a1e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/paper-push-rule-learning
+    - 116
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260622T113653Z-coder-tester-ntgm.md
+  branches:
+  - coord/run-it-page-critique
+  blobs:
+  - acf9e1ea5510567bd420352c20a9f7314aadb01b
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260623T115146Z-coder-tester-stg8.md
+  branches:
+  - plan/learning-id-suffix-validator
+  blobs:
+  - 5bbd7b313910baecc2d159af2b08b58efe840e5c
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/learning-id-suffix-validator
+    - 130
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260720T160727Z-coder-tester-7hrq.md
+  branches:
+  - rule/agent-improvement-proposal-norm
+  blobs:
+  - 0bf381a8cbd6aafebc022be5979fdbf298d0dfd3
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - rule/agent-improvement-proposal-norm
+    - 240
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260720T161122Z-coder-tester-pg65.md
+  branches:
+  - rule/agent-improvement-proposal-norm
+  blobs:
+  - e039fe18d57a172cb3ab3a69e273b59904aba73b
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - rule/agent-improvement-proposal-norm
+    - 240
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260720T190538Z-coder-tester-8agr.md
+  branches:
+  - coord/mcp-cli-session-resume-parity-ack
+  blobs:
+  - 13f0e08c1711eb17faa00f846194c6ae5f769d08
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260720T191010Z-coder-tester-5kj3.md
+  branches:
+  - coord/mcp-cli-session-resume-parity-ack
+  blobs:
+  - 4fc35bb0167b149c8b0e78f0900bd7e25c28fec3
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260720T200018Z-coder-tester-psht.md
+  branches:
+  - review/mr252-sol-high-synthesis-critique
+  blobs:
+  - 63db2cffc07a52f66e10cd205405a527f0a18d31
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260720T214732Z-coder-tester-1mr4.md
+  branches:
+  - review/mr268-gate1-routing
+  blobs:
+  - 95a377b224d9c67ad9bcc61e67a2e6427b701a17
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - review/mr268-gate1-routing
+    - 269
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T120118Z-coder-tester-1jqq.md
+  branches:
+  - coord/v230-container-registry-enabled
+  blobs:
+  - 829a1ca77e74ce9a5c986bec124bb4ed2e05eae4
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T181117Z-coder-tester-q28p.md
+  branches:
+  - fix/legacy-ulid-reference-compat
+  blobs:
+  - 8c824b9bc4ac0b30087ef9f693ccb014447214c4
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - fix/legacy-ulid-reference-compat
+    - 340
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260721T185029Z-coder-tester-bkkj.md
+  branches:
+  - fix/legacy-ulid-reference-compat
+  blobs:
+  - 7362c705412c1038eedb24271f81e3325189d256
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - fix/legacy-ulid-reference-compat
+    - 340
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260721T185849Z-coder-tester-rmes.md
+  branches:
+  - fix/legacy-ulid-reference-compat
+  blobs:
+  - b45ae4d2736e3eeec4db9e3617304db50282f0bf
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - fix/legacy-ulid-reference-compat
+    - 340
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260721T211851Z-planner-architect-hb5j.md
+  branches:
+  - coord/ack-marketing-audit-in-progress
+  blobs:
+  - 28d89c83db8362bfe0d6a159cffba43eb3ac8d83
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-marketing-audit-in-progress
+    - 352
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T212215Z-contribution-auditor-p4ap.md
+  branches:
+  - review/mr351-schema-embed
+  blobs:
+  - ca65280b33beb4cb50bdd48d66c2f1cd2472e167
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - review/mr351-schema-embed
+    - 353
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T213625Z-planner-architect-p3jp.md
+  branches:
+  - coord/ack-public-experience-release-gate
+  blobs:
+  - 2a24ab33361572d135be8309ee4e47c6d41e0a8b
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-public-experience-release-gate
+    - 355
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T213826Z-planner-architect-qaer.md
+  branches:
+  - coord/build-deployment-role-review
+  blobs:
+  - af3c9dd356ea457c017e01b5114db8c308f4a4b0
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/build-deployment-role-review
+    - 356
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T214629Z-contribution-auditor-msha.md
+  branches:
+  - review/mr351-gate2
+  blobs:
+  - 291c2d6e087471ace0d9a38b39a2a0944f06467c
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - review/mr351-gate2
+    - 357
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T225331Z-contribution-auditor-rsaa.md
+  branches:
+  - review/mr351-gate2
+  blobs:
+  - d16d8f0ad26d3e39c5a7991b968fd32d0a304dec
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - review/mr351-gate2
+    - 357
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260721T234413Z-contribution-auditor-hmpr.md
+  branches:
+  - review/mr351-gate2
+  blobs:
+  - 4b1f6e2549345a80df209860112ee30074900820
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - review/mr351-gate2
+    - 357
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T002055Z-coder-tester-gkdr.md
+  branches:
+  - coord/roi-log-bug-report
+  blobs:
+  - 4650c9da20b589e7167c4934c42503a81c76fd49
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/roi-log-bug-report
+    - 359
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T004752Z-contribution-auditor-kaka.md
+  branches:
+  - review/mr351-gate2
+  blobs:
+  - 3217c8bf2c83d4ba12ada74146aad2c83d266901
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - review/mr351-gate2
+    - 357
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T081349Z-coder-tester-33ns.md
+  branches:
+  - coord/v240-workstream-a-planning-handoff
+  blobs:
+  - 2e1b8b8c40bbc7c97bf0df3ec49e5e9f39735af9
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/v240-workstream-a-planning-handoff
+    - 362
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T081522Z-coder-tester-jjrk.md
+  branches:
+  - coord/v240-workstream-a-planning-handoff
+  blobs:
+  - 7113617d9d2b5941fb73f2655e9d97df5123ea4e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/v240-workstream-a-planning-handoff
+    - 362
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T081522Z-coder-tester-p4aj.md
+  branches:
+  - coord/v240-workstream-a-planning-handoff
+  blobs:
+  - d0bb7994970b8b8e8aa2a57b939dd5fc636a4a28
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/v240-workstream-a-planning-handoff
+    - 362
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T112351Z-contribution-auditor-mks4.md
+  branches:
+  - coord/post-gate2-triggers
+  blobs:
+  - 61c402503b384f1093ba77c3421cb1754ff07db2
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-gate2-triggers
+    - 390
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T112351Z-contribution-auditor-p6bb.md
+  branches:
+  - coord/post-gate2-triggers
+  blobs:
+  - 64dff46211db9a47e3234279b0fe428953d98e56
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-gate2-triggers
+    - 390
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T114045Z-contribution-auditor-qp1m.md
+  branches:
+  - coord/post-gate2-triggers
+  blobs:
+  - 2d194c3b58b8e0788179af9c2e2410e823a89faf
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-gate2-triggers
+    - 390
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T122027Z-contribution-auditor-sgrd.md
+  branches:
+  - coord/workstream-d-next-class1
+  blobs:
+  - 8f6065881cfb11e6654ddd8f7dfb323624412637
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/workstream-d-next-class1
+    - 393
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T122521Z-coder-tester-rqgm.md
+  branches:
+  - coord/ack-workstream-d-class1-palette-handoff
+  blobs:
+  - 1ac2493f03cef1386184577af84dbd246835c640
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-workstream-d-class1-palette-handoff
+    - 394
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T145245Z-contribution-auditor-rsam.md
+  branches:
+  - coord/post-merge-etxtbsy
+  blobs:
+  - feeacfe54cbd44c25ad05f67eb9b4cf0d6b24630
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-merge-etxtbsy
+    - 397
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T155810Z-contribution-auditor-8ggm.md
+  branches:
+  - coord/post-merge-etxtbsy
+  blobs:
+  - 51aedc7abed5650081dd821e679859a511b736bf
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-merge-etxtbsy
+    - 397
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T155935Z-governor-reviewer-khbq.md
+  branches:
+  - coord/post-merge-etxtbsy
+  blobs:
+  - 54877b2ca92cf95718c72f21f2b22821c25aabaf
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-merge-etxtbsy
+    - 397
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T161627Z-contribution-auditor-njqk.md
+  branches:
+  - coord/post-merge-etxtbsy
+  blobs:
+  - 079bfeb0f815f61f83cd26ad3b28c9348547452e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/post-merge-etxtbsy
+    - 397
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T182814Z-coder-tester-1jpq.md
+  branches:
+  - coord/ack-gk2h-push-discipline
+  blobs:
+  - 68a474923e23386463b2967b73f2e300af84f448
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-gk2h-push-discipline
+    - 409
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T194641Z-coder-tester-kd5r.md
+  branches:
+  - coord/mr408-retry-ack-and-mr410-cleanup
+  blobs:
+  - a841381745cf308e207d42d5804e6bb3569667cc
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-retry-ack-and-mr410-cleanup
+    - 411
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T195619Z-coder-tester-jggg.md
+  branches:
+  - coord/mr408-retry-ack-and-mr410-cleanup
+  blobs:
+  - ef91d99493a59edad549eb84961477f9048e6e41
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-retry-ack-and-mr410-cleanup
+    - 411
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T200206Z-coder-tester-tbrb.md
+  branches:
+  - coord/mr408-retry-ack-and-mr410-cleanup
+  blobs:
+  - 5374a5f006cc0d367c148f0c368ace3fa2d3091f
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-retry-ack-and-mr410-cleanup
+    - 411
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T201338Z-coder-tester-4ssj.md
+  branches:
+  - coord/mr408-retry-ack-and-mr410-cleanup
+  blobs:
+  - ff62799ac91a36f1067f42e5f7c08918b0413e13
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-retry-ack-and-mr410-cleanup
+    - 411
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T202252Z-coder-tester-bpt8.md
+  branches:
+  - coord/mr408-retry-ack-and-mr410-cleanup
+  blobs:
+  - ddf0ca81ff100467289d7138889f8589ee9aae37
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-retry-ack-and-mr410-cleanup
+    - 411
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T203038Z-coder-tester-27qg.md
+  branches:
+  - coord/mr408-retry-ack-and-mr410-cleanup
+  blobs:
+  - d657dd90035c645e3058bc4e66a56e3e3bf6b716
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-retry-ack-and-mr410-cleanup
+    - 411
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T205057Z-coder-tester-kkap.md
+  branches:
+  - coord/mr408-postmerge-resume-mr405
+  blobs:
+  - 619da0cda8709b8b6cbc92510267942ad3a30f3c
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr408-postmerge-resume-mr405
+    - 414
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T210235Z-coder-tester-hhra.md
+  branches:
+  - coord/mr405-workstream-d-class1-complete
+  blobs:
+  - 3a55c1764d0d86df7a7a76deda37a57144da5f6e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr405-workstream-d-class1-complete
+    - 415
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T211336Z-coder-tester-4s1p.md
+  branches:
+  - coord/mr405-workstream-d-class1-complete
+  blobs:
+  - 75979653b06c57bc007f5c924eb37625d5372089
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr405-workstream-d-class1-complete
+    - 415
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T213741Z-coder-tester-hgn2.md
+  branches:
+  - coord/mr417-workstream-d-class3-complete
+  blobs:
+  - e223b9c46e2e290db50e1a27c1729cfa4e9819fc
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T214009Z-coder-tester-pjqk.md
+  branches:
+  - coord/ack-mr405-block-and-class3-pause
+  blobs:
+  - abc94de5fc0d7a54093c0b19f00ae1d8a92c2ec6
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-mr405-block-and-class3-pause
+    - 418
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T214431Z-coder-tester-63g4.md
+  branches:
+  - coord/mr405-gate2-correction
+  blobs:
+  - fbdce5bcea7ffbd2c5c880e97d9ae3773903a0bb
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr405-gate2-correction
+    - 419
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T215625Z-coder-tester-h3jh.md
+  branches:
+  - coord/mr405-pipeline-evidence
+  blobs:
+  - 257a7c125e944164806995551c5a7d314972e7f4
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr405-pipeline-evidence
+    - 420
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T221224Z-coder-tester-bb7p.md
+  branches:
+  - coord/propose-mobile-render-learning
+  blobs:
+  - 286b1e9d4ee28bd1666d723375fd39340dfcff5c
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/propose-mobile-render-learning
+    - 421
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T221327Z-coder-tester-t14r.md
+  branches:
+  - coord/ack-grt8-withdraw-hgn2
+  blobs:
+  - 6e2507bed01f6c7affd5caaca3ed39c8915954ed
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-grt8-withdraw-hgn2
+    - 422
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T222207Z-coder-tester-gska.md
+  branches:
+  - coord/mr405-round2-correction-complete
+  blobs:
+  - f4a9e3d3251d51e0cb6457546c296ba4f9427d93
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr405-round2-correction-complete
+    - 423
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T222953Z-coder-tester-8sre.md
+  branches:
+  - coord/ack-mr405-gate2-clear
+  blobs:
+  - e8c6d60e513e1ed0c96eca71ef3da621077fc18e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-mr405-gate2-clear
+    - 424
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T223928Z-coder-tester-jpr6.md
+  branches:
+  - coord/ack-r1gq-mdnp
+  blobs:
+  - 5c43a8e7e01e5ad592cafac0be07f1b70187e77a
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-r1gq-mdnp
+    - 425
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T225058Z-coder-tester-8j2e.md
+  branches:
+  - coord/ack-ph8p-smmj-retroactive
+  blobs:
+  - eac72b66fffdc23918c031b065fc1afb9122766a
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/ack-ph8p-smmj-retroactive
+    - 426
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T225500Z-coder-tester-pn84.md
+  branches:
+  - coord/mr417-gate2-correction-complete
+  blobs:
+  - 867a7c56d4738af33b73fe4fbac22546f96177e4
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr417-gate2-correction-complete
+    - 427
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260722T233626Z-coder-tester-863p.md
+  branches:
+  - feat/tooling-doc-impact-rule
+  blobs:
+  - 34ca36c54e9223760b74dfb3235fc5b7a5586ca9
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/tooling-doc-impact-rule
+    - 430
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260722T233626Z-governor-reviewer-kmrs.md
+  branches:
+  - feat/tooling-doc-impact-rule
+  blobs:
+  - 6f867ed0afbba546bc2a0dc33f1b270931465206
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/tooling-doc-impact-rule
+    - 430
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T012306Z-coder-tester-j2kp.md
+  branches:
+  - feat/v240-workstream-d-class5-labels
+  blobs:
+  - 36c1c40c877af6ed3a05b2b48ae608e5ee28ff15
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - feat/v240-workstream-d-class5-labels
+    - 442
+    - merged
+  root_cause_class: post-merge-branch-reuse
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260723T231212Z-contribution-auditor-q454.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 594288fd83042711e28a544f89700a07dfd438ba
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T231213Z-infosec-sentinel-4erq.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - cdfa903ef5ad82e3a275cfde9c9ac6620a620a93
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T231717Z-planner-architect-mkhm.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 35e979e2191b71a0eae8f634b2f7a9372ce6b7b2
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T232311Z-planner-architect-jk6b.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - e04e422d2eaebfdf43fc08e32fac040482c89b1d
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T232534Z-governor-reviewer-b1ds.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 848427d1c286b2f73cc58d76e79546dc730b9122
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T235808Z-planner-architect-5s2h.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 7f3e3eb4af49dc33d445a74c4651e8552451974f
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260723T235808Z-planner-architect-mhh6.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 9913d781ce8c7a4903420a856b6d87b94535a9ab
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T001603Z-planner-architect-7hpd.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 764430ce56fa093c34722c52a383b82197fd4406
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T001603Z-planner-architect-sk2a.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 91f5bdf5e3cbf481c7f89e1ef18dba8111bdc51d
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T002601Z-governor-reviewer-shh4.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - afb1b4cbb0888f2fb25fc3302f16c07e755952ce
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T003321Z-contribution-auditor-sa1g.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 2ac7d5c4881ab3c2b725d15c91249fca8bcedce0
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T003322Z-infosec-sentinel-m6mk.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - a8d3e46387c3b2f2c8a648034770f8ea4516e83b
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T003756Z-governor-reviewer-bjpr.md
+  branches:
+  - plan/issue53-blinded-ci-followup
+  blobs:
+  - 4db357fbf236bd44eebee51cf476864e947723cc
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/issue53-blinded-ci-followup
+    - 459
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T091938Z-planner-architect-6hks.md
+  branches:
+  - learn/assistive-technology-boundary
+  blobs:
+  - 0ab40f312b772778006d046298b57937ef97c8e1
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - learn/assistive-technology-boundary
+    - 461
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T101927Z-coder-tester-7jrd.md
+  branches:
+  - fix/issue30-role-status-diagnostics
+  blobs:
+  - f050c7bf07aaaa5ac4277ad2ea42d618c92ceb97
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - fix/issue30-role-status-diagnostics
+    - 463
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260724T204721Z-planner-architect-gs92.md
+  branches:
+  - agents/add-release-engineer-role
+  blobs:
+  - 76e5a0e742dc497d5100b4a3cb1b35b41f09be4a
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - agents/add-release-engineer-role
+    - 485
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T054343Z-planner-architect-vxgv.md
+  branches:
+  - agents/add-release-engineer-role
+  blobs:
+  - e7c71d0cf17363c3c676ad4f0d691fff24c0b8c8
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - agents/add-release-engineer-role
+    - 485
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T055351Z-planner-architect-lmaf.md
+  branches:
+  - plan/v244-release-feedback-latency-evidence
+  blobs:
+  - e075665409ac074f1388e749df1397628d866620
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/v244-release-feedback-latency-evidence
+    - 490
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T070049Z-planner-architect-hi2v.md
+  branches:
+  - agents/add-release-engineer-role
+  blobs:
+  - 32182f861967eb4815c1c41bff1cd7bf1b8ef907
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - agents/add-release-engineer-role
+    - 485
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T074710Z-planner-architect-f8yj.md
+  branches:
+  - agents/add-release-engineer-role
+  blobs:
+  - e85dcaf0cc7ce2e265f2a57883b03f8d7af18b63
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - agents/add-release-engineer-role
+    - 485
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T083456Z-planner-architect-upv3.md
+  branches:
+  - agents/add-release-engineer-role
+  blobs:
+  - e3b39b6ed4dd738bb7531db9464054d0529d2dd4
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - agents/add-release-engineer-role
+    - 485
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T084116Z-planner-architect-65kt.md
+  branches:
+  - coord/handoff-agov-day-one-faq
+  blobs:
+  - 8ef23c5cabc8849a56046a3f2fbb6dbec0d34b22
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/handoff-agov-day-one-faq
+    - 516
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260725T090606Z-governor-reviewer-2k4r.md
+  branches:
+  - coord/mr485-gate1-approval
+  blobs:
+  - 89d642b00a33d95e592f5bf587ae14439b4b9260
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - coord/mr485-gate1-approval
+    - 521
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260726T210537Z-coder-tester-rnpe.md
+  branches:
+  - coord/mr590-final-review-request
+  blobs:
+  - df0238b11dbd02dd6bfe59b85e511ec223ae52af
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260726T220658Z-planner-architect-dqms.md
+  branches:
+  - docs/claude-rules-symlink-consolidation
+  blobs:
+  - 8cf00b015f6c5664dd2ddb39c37d10414ff94fec
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/claude-rules-symlink-consolidation
+    - 654
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T222014Z-planner-architect-pr3r.md
+  branches:
+  - docs/claude-rules-symlink-consolidation
+  blobs:
+  - b753f553c4f25e2933f1bb30bf125cc9b704d973
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/claude-rules-symlink-consolidation
+    - 654
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T223846Z-planner-architect-kdqr.md
+  branches:
+  - governance/capability-review-20260726
+  blobs:
+  - 4615c81dba7ef66546b1d544bd0a434b4a7c2001
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - governance/capability-review-20260726
+    - 658
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T223933Z-planner-architect-gqbk.md
+  branches:
+  - governance/capability-review-20260726
+  blobs:
+  - 1e5f996a760b8c184e728fae3e223d83bed28540
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - governance/capability-review-20260726
+    - 658
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T224746Z-planner-architect-kkbr.md
+  branches:
+  - governance/capability-review-20260726
+  blobs:
+  - ec1b9d81bbcfa11bbdb60190c153634c7e519c4b
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - governance/capability-review-20260726
+    - 658
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T225628Z-planner-architect-pqtm.md
+  branches:
+  - plan/v2.5.0-portfolio-discovery
+  blobs:
+  - fd4dbbcfd0ea297a8294a699446397415cb55de8
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/v2.5.0-portfolio-discovery
+    - 661
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260726T230511Z-planner-architect-hmbq.md
+  branches:
+  - docs/claude-rules-symlink-consolidation
+  blobs:
+  - b89f7bc01b03a7bf008ad660652f0d69b92d34ce
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/claude-rules-symlink-consolidation
+    - 654
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T232025Z-planner-architect-dbb3.md
+  branches:
+  - docs/claude-rules-symlink-consolidation
+  blobs:
+  - 3a51c89d0c73dafff2234720a7b93551a5950225
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/claude-rules-symlink-consolidation
+    - 654
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260726T232432Z-planner-architect-j5mj.md
+  branches:
+  - plan/v2.5.0-portfolio-discovery
+  blobs:
+  - 8e16bb22ad63c63c8df75283ed1fd3d45dd99e58
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - plan/v2.5.0-portfolio-discovery
+    - 661
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260726T234330Z-planner-architect-pjse.md
+  branches:
+  - docs/claude-rules-symlink-consolidation
+  blobs:
+  - f5a43d099e98ddb69dfef017f482312f06221b03
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/claude-rules-symlink-consolidation
+    - 654
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260729T105252Z-fact-checker-hp3k.md
+  branches:
+  - learn/release-agent-project-identity-boundary
+  blobs:
+  - 76281cd89f3822cec6ef0680e8b5b37b773c7d9c
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - learn/release-agent-project-identity-boundary
+    - 776
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260729T105421Z-fact-checker-hrss.md
+  branches:
+  - learn/release-agent-project-identity-boundary
+  blobs:
+  - 489fd728ee1d68ee3117014de5171cc16402895d
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - learn/release-agent-project-identity-boundary
+    - 776
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260729T105531Z-fact-checker-msd6.md
+  branches:
+  - learn/release-agent-project-identity-boundary
+  blobs:
+  - c9c29b6dbf60d6e43decbb271779e54ca060d73f
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - learn/release-agent-project-identity-boundary
+    - 776
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260729T105739Z-fact-checker-spgr.md
+  branches:
+  - learn/release-agent-project-identity-boundary
+  blobs:
+  - 6aabae230afb9a5009e12418745f2fe35fd711b2
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - learn/release-agent-project-identity-boundary
+    - 776
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260729T111307Z-planner-architect-77rs.md
+  branches:
+  - learn/release-agent-project-identity-boundary
+  blobs:
+  - fedd8d15454872826dd25feae33568793fda05c0
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - learn/release-agent-project-identity-boundary
+    - 776
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260730T064530Z-contribution-auditor-js8r.md
+  branches:
+  - proposal/coordination-timeline-visualizer
+  blobs:
+  - 1c255c1cfddf57ea4774dcbd22d3f427c3abac5e
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - proposal/coordination-timeline-visualizer
+    - 800
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260730T072926Z-contribution-auditor-rk2k.md
+  branches:
+  - review/agov-mcp-agov-reliability-audit
+  blobs:
+  - 2aaf3961885633a860c37a8bb37dfa7277dd7aa9
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260730T073256Z-contribution-auditor-jpje.md
+  branches:
+  - review/agov-mcp-agov-reliability-audit
+  blobs:
+  - 1dbeb97dc2cb87ee0fa691579f52156a676568b9
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260730T074742Z-contribution-auditor-bhhh.md
+  branches:
+  - review/agov-mcp-agov-reliability-audit
+  blobs:
+  - 0a776e352334f3c2d69064c8fbde6e5899f2cac0
+  multi_blob_conflict: false
+  mr_state_evidence: []
+  root_cause_class: no-mr-ever
+  proposed_disposition: preserve-via-consolidation (default proposal)
+- path: docs/coordination/20260730T080643Z-contribution-auditor-kmbq.md
+  branches:
+  - assess/ci-longitudinal-history
+  blobs:
+  - a7b439f55b75620246fb1cf2dac55f31c883ba04
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - assess/ci-longitudinal-history
+    - 810
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260730T083100Z-contribution-auditor-8dhj.md
+  branches:
+  - assess/ci-longitudinal-history
+  blobs:
+  - 1f965ad6f65185c0a17ae15705c494a508604f7a
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - assess/ci-longitudinal-history
+    - 810
+    - opened
+  root_cause_class: mr-still-open
+  proposed_disposition: defer (tied to live MR resolution, not archival)
+- path: docs/coordination/20260730T133905Z-governor-reviewer-6p42.md
+  branches:
+  - docs/v247-elixir-cleanup-roadmap
+  blobs:
+  - 771a11c98445ffc36ae3d001dcdb589a28e90b02
+  multi_blob_conflict: false
+  mr_state_evidence:
+  - - docs/v247-elixir-cleanup-roadmap
+    - 827
+    - closed
+  root_cause_class: mr-closed-not-merged
+  proposed_disposition: preserve-via-consolidation (default proposal)
