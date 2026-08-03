@@ -1,23 +1,20 @@
-generated: '2026-08-03T12:05:00Z'
-generated_by: planner-architect (claude-sonnet-5), second renewed pass responding to contribution-auditor
-  finding 20260803T114233Z-contribution-auditor-hpaq.md (B-HR-EVID-1, B-HR-ROOT-2, B-HR-OBL-2, B-HR-VAL-1,
-  B-HR-COST-2, A-HR-MR-1)
-method: 'Extends the first-revision method (see git history of this file for that text) with: (1) B-HR-EVID-1
-  -- citing_main_records now names the actual main-branch record(s) (path, id, kind, timestamp) that reference
-  each candidate''s id/filename, not a boolean; (2) B-HR-ROOT-2 -- the field formerly named root_cause_class
-  is renamed observed_state_class (it describes observed MR/repository state, not causation), and a separate
-  causal_root_cause field is added, honestly ''undetermined'' for every record since no close-reason,
-  discussion-thread, or bridge-note evidence was collected; (3) B-HR-OBL-2 -- visibility (cited by a later
-  main record) is now distinguished from proven resolution. For kind:handoff records, only a citing record
-  of kind ''completion'' counts as resolution (resolved-by-completion); a plain citation is ''cited-elsewhere''
-  (visibility only). requires-ack:true records are never silently short-circuited by a citation -- they
-  are flagged unresolved-live (or unresolved-live-but-visible if also cited) regardless, and this check
-  now takes priority over the mr-open observed-state class too, since a live unacknowledged obligation
-  is more consequential than an MR simply still being open; (4) B-HR-VAL-1 -- validation_result (raw pass/fail,
-  67 fail / 133 pass) and proposed_disposition are kept as clearly distinct, cross-checked fields via
-  the new validation_disposition_note field, so the two are never conflated in prose again; (5) B-HR-COST-2
-  -- cost-assessment labels below no longer assert ''wasted'' or ''invisible obligation'' beyond what
-  is evidenced.'
+generated: '2026-08-03T12:35:00Z'
+generated_by: planner-architect (claude-sonnet-5), third renewed pass responding to contribution-auditor
+  finding 20260803T122006Z-contribution-auditor-mjk3.md (B-HR-ACK-3, B-HR-HANDOFF-3, B-HR-ACTIVE-3)
+method: 'Extends the round-2 method (see git history for that text) with three corrections: (1) B-HR-ACK-3
+  -- applies the governed pending cutoff from decision-record 20260802T220154Z-governor-reviewer-sejb.md
+  (2026-08-02T22:01:54Z): any candidate whose own timestamp predates the cutoff is historical/grandfathered
+  and is never classified unresolved-live, regardless of kind, requires-ack, or citation -- this governed
+  rule overrides the disposition logic for 196 of 200 records; (2) B-HR-HANDOFF-3 -- kind:handoff records
+  now use the actual transitive-descendant resolution algorithm from agov-coord/src/handoff_tracker.rs::is_resolved
+  (any ack, completion, or decision-record anywhere in the reference-graph descendant subgraph, not just
+  a direct completion citation), built over a full graph of all 2047 main coordination records plus all
+  200 candidates; non-handoff requires-ack:true records use handoff_tracker.rs::find_pending_all_kinds''s
+  documented semantics instead -- direct reference alone fully resolves them (round 2 had incorrectly
+  treated a citation as visibility-only for every kind, including non-handoffs, where the real tool treats
+  it as resolving); (3) B-HR-ACTIVE-3 -- observed_state_class mr-open records stay disposed defer regardless
+  of requires-ack, reverting round 2''s reprioritization -- an open MR is already the live delivery path
+  and must not be duplicated via separate consolidation.'
 unit_of_inventory: One record = one distinct (path, blob) pair. A single legacy path with multiple distinct
   branch-only blob contents is counted and evidenced as multiple records sharing one legacy filename,
   not one record.
@@ -39,28 +36,28 @@ totals:
     different-message-numeric-collision: 6
     different-message-exact-path-collision: 6
   proposed_disposition_distribution:
-    preserve-via-consolidation: 134
-    defer: 22
+    preserve-via-consolidation: 89
+    defer: 40
     discard-superseded-by-main: 3
-    invalid-with-validation-evidence: 29
+    invalid-with-validation-evidence: 56
     duplicate-rename-required: 12
-  obligation_state_distribution:
-    unresolved-live: 38
-    unresolved-live-but-visible: 48
-    live: 22
-    moot: 30
-    cited-elsewhere: 16
-    superseded: 3
-    invalid: 29
-    unadjudicated-filename-conflict: 12
-    resolved-by-completion: 2
   validation_result_distribution:
     OK: 133
     FAIL: 67
-  validation_note: 67 of 200 records FAIL agov coord validate today (raw total). Of those, 29 are disposed
-    specifically as invalid-with-validation-evidence (the rest failed validation too but a higher-priority
-    disposition rule -- collision, resolution, requires-ack, or open-MR -- applied first). These are deliberately
-    kept as separate, cross-checked numbers -- see validation_disposition_note on each record.
+  pending_cutoff_per_decision_sejb:
+    cutoff_timestamp: '2026-08-02T22:01:54Z'
+    grandfathered_pre_cutoff_records: 196
+    in_scope_post_cutoff_records: 4
+    note: 'This is not an estimate: nearly the entire backlog (196/200) predates the project''s own governed
+      pending-obligation cutoff and is therefore historical by the project''s own rule, not a current
+      pending-obligation backlog. Only 4 records are even eligible to be classified unresolved-live.'
+  handoff_resolution:
+    total_handoff_records: 77
+    resolved_via_transitive_descendant_ack_completion_or_decision_record: 26
+    note: Computed with the same transitive-descendant-subgraph algorithm handoff_tracker.rs::is_resolved
+      uses, over the union of all 2047 main records and all 200 candidates.
+  validation_note: 67 of 200 records FAIL agov coord validate today (raw total). Of those, 56 are disposed
+    specifically as invalid-with-validation-evidence.
   records_found_exclusively_via_local_only_branch_scan:
   - docs/coordination/01KV6J4XAZQC1TXHPT0T8ZF3A0-governor-reviewer.md
   - docs/coordination/20260722T102341Z-coder-tester-ehbh.md
@@ -68,18 +65,14 @@ totals:
   - docs/coordination/20260726T122234Z-build-engineer-mk8p.md
   - docs/coordination/00275-planner-architect.md
 operational_cost_assessment:
-  scope_note: Bounded to what is mechanically countable from git and the GitLab API. Per B-HR-6 and the
-    B-HR-COST-2 correction, categories are labelled to match exactly what the evidence proves -- 'correlated',
-    not 'wasted'; 'unadjudicated', not 'decided' -- and categories with no recoverable evidence are labelled
-    unknown/not-recoverable rather than estimated.
+  scope_note: Bounded to what is mechanically countable from git and the GitLab API. Labels match exactly
+    what the evidence proves -- 'correlated', not 'wasted'; 'unadjudicated', not 'decided'; 'grandfathered',
+    not 'unresolved' for anything predating the governed cutoff.
   ci_pipelines_correlated_with_closed_not_merged_mr_branches:
     value: 54
     basis: '38 distinct closed-not-merged MRs carried at least one branch-only coordination record in
-      this inventory. Queried each MR''s pipelines via GitLab API (/merge_requests/:iid/pipelines). Sum
-      of pipeline counts: 54. Correction (B-HR-COST-2): this is correlated pipeline exposure, not proven
-      waste -- these pipelines belonged to MRs that also carried substantive code changes in most cases,
-      and may have tested those changes legitimately, informed the decision to close the MR, or both.
-      No job-level evidence isolates a cost specifically attributable to the hidden coordination content.'
+      this inventory. Sum of GitLab-reported pipeline counts: 54. Correlated pipeline exposure, not proven
+      waste -- most of these MRs also carried substantive code changes.'
     per_mr_pipeline_counts:
       41: 2
       116: 3
@@ -119,27 +112,13 @@ operational_cost_assessment:
       521: 0
       661: 3
       827: 2
-  obligation_breakdown_within_preserve_via_consolidation:
-    note: 'Correction (B-HR-COST-2): the prior draft''s single ''124 invisible obligations'' figure conflated
-      three different evidence strengths. Broken out honestly:'
-    unresolved_live_or_unresolved_live_but_visible: 86
-    cited_elsewhere_visibility_only: 16
-    moot_no_citation_no_requires_ack: 30
-    resolved_by_completion: 2
   unadjudicated_filename_conflicts:
     value: 12
-    basis: 'Correction (B-HR-COST-2): renamed from ''decisions made without expected visible records''.
-      A filename collision proves a conflict existed and which content ended up on main by merge order
-      -- it does not prove anyone made an active adjudicating decision. No decision record was found for
-      any of these; that absence is evidence of a gap, not evidence of a decision.'
-  governor_reconstruction_time: unknown/not-recoverable -- no session-log or time-tracking artifact exists
-    to measure how much time was spent reconstructing context that a branch-only record would have supplied
-    directly.
-  repeated_review_incidents: unknown/not-recoverable -- would require correlating specific Gate 1/Gate
-    2 review rounds against missing prior context; no such correlation is recoverable from git/GitLab
-    alone.
-  misleading_agov_output_instances: unknown/not-recoverable -- would require historical `agov coord pending`/`agov
-    coord list` output captured at the time, which was not retained.
+    basis: A filename collision proves a conflict existed and which content ended up on main by merge
+      order -- it does not prove anyone made an active adjudicating decision.
+  governor_reconstruction_time: unknown/not-recoverable.
+  repeated_review_incidents: unknown/not-recoverable.
+  misleading_agov_output_instances: unknown/not-recoverable.
 records:
 - path: docs/coordination/20260724T204721Z-planner-architect-gs92.md
   blob: 76e5a0e742dc497d5100b4a3cb1b35b41f09be4a
@@ -181,9 +160,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T054343Z-planner-architect-vxgv.md
   blob: e7c71d0cf17363c3c676ad4f0d691fff24c0b8c8
   remote_branches:
@@ -231,10 +212,11 @@ records:
     id: 20260725T064550Z-contribution-auditor-k2mq
     kind: review
     timestamp: '2026-07-25T06:45:50Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T070049Z-planner-architect-hi2v.md
   blob: 32182f861967eb4815c1c41bff1cd7bf1b8ef907
   remote_branches:
@@ -280,10 +262,11 @@ records:
     id: 20260725T073833Z-contribution-auditor-n7h8
     kind: review
     timestamp: '2026-07-25T07:38:33Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T074710Z-planner-architect-f8yj.md
   blob: e85dcaf0cc7ce2e265f2a57883b03f8d7af18b63
   remote_branches:
@@ -329,10 +312,11 @@ records:
     id: 20260725T082856Z-contribution-auditor-q8qj
     kind: review
     timestamp: '2026-07-25T08:28:56Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T083456Z-planner-architect-upv3.md
   blob: e3b39b6ed4dd738bb7531db9464054d0529d2dd4
   remote_branches:
@@ -378,10 +362,11 @@ records:
     id: 20260725T084846Z-contribution-auditor-adte
     kind: review
     timestamp: '2026-07-25T08:48:46Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260730T080643Z-contribution-auditor-kmbq.md
   blob: a7b439f55b75620246fb1cf2dac55f31c883ba04
   remote_branches:
@@ -429,8 +414,10 @@ records:
     id: 20260730T084357Z-planner-architect-2arh
     kind: review
     timestamp: '2026-07-30T08:43:57Z'
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260730T083100Z-contribution-auditor-8dhj.md
   blob: 1f965ad6f65185c0a17ae15705c494a508604f7a
   remote_branches:
@@ -479,10 +466,9 @@ records:
     id: 20260730T084357Z-planner-architect-2arh
     kind: review
     timestamp: '2026-07-30T08:43:57Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260730T084357Z-planner-architect-2arh.md)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260722T182814Z-coder-tester-1jpq.md
   blob: 68a474923e23386463b2967b73f2e300af84f448
   remote_branches:
@@ -524,8 +510,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T221327Z-coder-tester-t14r.md
   blob: 6e2507bed01f6c7affd5caaca3ed39c8915954ed
   remote_branches:
@@ -568,8 +557,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T211851Z-planner-architect-hb5j.md
   blob: 28d89c83db8362bfe0d6a159cffba43eb3ac8d83
   remote_branches:
@@ -618,9 +610,11 @@ records:
     id: 20260721T212235Z-planner-architect-qj7s
     kind: review
     timestamp: '2026-07-21T21:22:35Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T214009Z-coder-tester-pjqk.md
   blob: abc94de5fc0d7a54093c0b19f00ae1d8a92c2ec6
   remote_branches:
@@ -667,9 +661,11 @@ records:
     id: 20260722T214326Z-contribution-auditor-81qm
     kind: completion
     timestamp: '2026-07-22T21:43:26Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T222953Z-coder-tester-8sre.md
   blob: e8c6d60e513e1ed0c96eca71ef3da621077fc18e
   remote_branches:
@@ -712,8 +708,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T225058Z-coder-tester-8j2e.md
   blob: eac72b66fffdc23918c031b065fc1afb9122766a
   remote_branches:
@@ -756,8 +755,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T213625Z-planner-architect-p3jp.md
   blob: 2a24ab33361572d135be8309ee4e47c6d41e0a8b
   remote_branches:
@@ -800,8 +802,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T223928Z-coder-tester-jpr6.md
   blob: 5c43a8e7e01e5ad592cafac0be07f1b70187e77a
   remote_branches:
@@ -844,8 +849,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T122521Z-coder-tester-rqgm.md
   blob: 1ac2493f03cef1386184577af84dbd246835c640
   remote_branches:
@@ -887,8 +895,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T213826Z-planner-architect-qaer.md
   blob: af3c9dd356ea457c017e01b5114db8c308f4a4b0
   remote_branches:
@@ -930,9 +941,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T084116Z-planner-architect-65kt.md
   blob: 8ef23c5cabc8849a56046a3f2fbb6dbec0d34b22
   remote_branches:
@@ -974,9 +987,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260720T190538Z-coder-tester-8agr.md
   blob: 13f0e08c1711eb17faa00f846194c6ae5f769d08
   remote_branches:
@@ -1016,8 +1031,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260720T191010Z-coder-tester-5kj3.md
   blob: 4fc35bb0167b149c8b0e78f0900bd7e25c28fec3
   remote_branches:
@@ -1063,9 +1081,11 @@ records:
     id: 20260720T193934Z-coder-tester-hpk6
     kind: handoff
     timestamp: '2026-07-20T19:39:34Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260623T200805Z-coder-tester-r8g8.md
   blob: d0b5532c63ae81b373a8c7c39f8eebcaaf5763c7
   remote_branches:
@@ -1116,6 +1136,7 @@ records:
     id: 20260623T201521Z-governor-reviewer-422m
     kind: ack
     timestamp: '2026-06-23T20:15:21Z'
+  pre_cutoff_grandfathered: true
   obligation_state: superseded (main holds the refined/published version under the same id)
   proposed_disposition: discard-superseded-by-main
 - path: docs/coordination/20260722T214431Z-coder-tester-63g4.md
@@ -1168,10 +1189,10 @@ records:
     id: 20260722T222216Z-contribution-auditor-tqer
     kind: review
     timestamp: '2026-07-22T22:22:16Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T230025Z-governor-reviewer-ksdg.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T215625Z-coder-tester-h3jh.md
   blob: 257a7c125e944164806995551c5a7d314972e7f4
   remote_branches:
@@ -1217,10 +1238,11 @@ records:
     id: 20260722T220009Z-contribution-auditor-kkhr
     kind: review
     timestamp: '2026-07-22T22:00:09Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T222207Z-coder-tester-gska.md
   blob: f4a9e3d3251d51e0cb6457546c296ba4f9427d93
   remote_branches:
@@ -1266,10 +1288,10 @@ records:
     id: 20260722T222359Z-contribution-auditor-3m8j
     kind: review
     timestamp: '2026-07-22T22:23:59Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T230025Z-governor-reviewer-ksdg.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T210235Z-coder-tester-hhra.md
   blob: 3a55c1764d0d86df7a7a76deda37a57144da5f6e
   remote_branches:
@@ -1311,8 +1333,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T211336Z-coder-tester-4s1p.md
   blob: 75979653b06c57bc007f5c924eb37625d5372089
   remote_branches:
@@ -1358,10 +1383,10 @@ records:
     id: 20260722T211822Z-contribution-auditor-ghng
     kind: review
     timestamp: '2026-07-22T21:18:22Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T230025Z-governor-reviewer-ksdg.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T205057Z-coder-tester-kkap.md
   blob: 619da0cda8709b8b6cbc92510267942ad3a30f3c
   remote_branches:
@@ -1403,8 +1428,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T194641Z-coder-tester-kd5r.md
   blob: a841381745cf308e207d42d5804e6bb3569667cc
   remote_branches:
@@ -1446,17 +1474,17 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #/requires-ack: false was expected"
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/20260722T195032Z-contribution-auditor-8mag.md
     id: 20260722T195032Z-contribution-auditor-8mag
     kind: note
     timestamp: '2026-07-22T19:50:32Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #/requires-ack: false was expected)"
 - path: docs/coordination/20260722T195619Z-coder-tester-jggg.md
   blob: ef91d99493a59edad549eb84961477f9048e6e41
   remote_branches:
@@ -1503,9 +1531,11 @@ records:
     id: 20260722T195853Z-contribution-auditor-r764
     kind: review
     timestamp: '2026-07-22T19:58:53Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T200206Z-coder-tester-tbrb.md
   blob: 5374a5f006cc0d367c148f0c368ace3fa2d3091f
   remote_branches:
@@ -1547,8 +1577,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T201338Z-coder-tester-4ssj.md
   blob: ff62799ac91a36f1067f42e5f7c08918b0413e13
   remote_branches:
@@ -1592,9 +1625,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T202252Z-coder-tester-bpt8.md
   blob: ddf0ca81ff100467289d7138889f8589ee9aae37
   remote_branches:
@@ -1641,10 +1676,10 @@ records:
     id: 20260722T203057Z-contribution-auditor-hpmt
     kind: review
     timestamp: '2026-07-22T20:30:57Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260722T203038Z-coder-tester-27qg.md::d657dd9003)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T203038Z-coder-tester-27qg.md
   blob: d657dd90035c645e3058bc4e66a56e3e3bf6b716
   remote_branches:
@@ -1691,10 +1726,11 @@ records:
     id: 20260722T203844Z-contribution-auditor-msd8
     kind: handoff
     timestamp: '2026-07-22T20:38:44Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T225500Z-coder-tester-pn84.md
   blob: 867a7c56d4738af33b73fe4fbac22546f96177e4
   remote_branches:
@@ -1741,10 +1777,11 @@ records:
     id: 20260722T230025Z-governor-reviewer-ksdg
     kind: decision-record
     timestamp: '2026-07-22T23:00:25Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T213741Z-coder-tester-hgn2.md
   blob: e223b9c46e2e290db50e1a27c1729cfa4e9819fc
   remote_branches:
@@ -1794,10 +1831,10 @@ records:
     id: 20260722T223540Z-governor-reviewer-mdnp
     kind: decision-record
     timestamp: '2026-07-22T22:35:40Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T223540Z-governor-reviewer-mdnp.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T090606Z-governor-reviewer-2k4r.md
   blob: 89d642b00a33d95e592f5bf587ae14439b4b9260
   remote_branches:
@@ -1844,10 +1881,11 @@ records:
     id: 20260726T071724Z-governor-reviewer-mrbm
     kind: decision-record
     timestamp: '2026-07-26T07:17:24Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260726T210537Z-coder-tester-rnpe.md
   blob: df0238b11dbd02dd6bfe59b85e511ec223ae52af
   remote_branches:
@@ -1886,9 +1924,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T112351Z-contribution-auditor-mks4.md
   blob: 61c402503b384f1093ba77c3421cb1754ff07db2
   remote_branches:
@@ -1932,9 +1972,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T112351Z-contribution-auditor-p6bb.md
   blob: 64dff46211db9a47e3234279b0fe428953d98e56
   remote_branches:
@@ -1978,9 +2020,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T114045Z-contribution-auditor-qp1m.md
   blob: 2d194c3b58b8e0788179af9c2e2410e823a89faf
   remote_branches:
@@ -2036,10 +2080,10 @@ records:
     id: 20260722T120237Z-contribution-auditor-5j4t
     kind: review
     timestamp: '2026-07-22T12:02:37Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T114647Z-coder-tester-j451.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T145245Z-contribution-auditor-rsam.md
   blob: feeacfe54cbd44c25ad05f67eb9b4cf0d6b24630
   remote_branches:
@@ -2098,10 +2142,10 @@ records:
     id: 20260722T173647Z-governor-reviewer-a7mp
     kind: handoff
     timestamp: '2026-07-22T17:36:47Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T145843Z-coder-tester-shqh.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T155810Z-contribution-auditor-8ggm.md
   blob: 51aedc7abed5650081dd821e679859a511b736bf
   remote_branches:
@@ -2144,8 +2188,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T155935Z-governor-reviewer-khbq.md
   blob: 54877b2ca92cf95718c72f21f2b22821c25aabaf
   remote_branches:
@@ -2188,8 +2235,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T161627Z-contribution-auditor-njqk.md
   blob: 079bfeb0f815f61f83cd26ad3b28c9348547452e
   remote_branches:
@@ -2237,9 +2287,11 @@ records:
     id: 20260722T162730Z-governor-reviewer-ph8p
     kind: handoff
     timestamp: '2026-07-22T16:27:30Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T221224Z-coder-tester-bb7p.md
   blob: 286b1e9d4ee28bd1666d723375fd39340dfcff5c
   remote_branches:
@@ -2285,10 +2337,10 @@ records:
     id: 20260722T222008Z-contribution-auditor-sst7
     kind: review
     timestamp: '2026-07-22T22:20:08Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T222008Z-contribution-auditor-sst7.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260723T202047Z-planner-architect-6get.md
   blob: afa68f39c6d089039e30d7a41ecb732a4d1e6eb0
   remote_branches:
@@ -2364,6 +2416,7 @@ records:
     id: 20260724T124546Z-governor-reviewer-br5d
     kind: decision-record
     timestamp: '2026-07-24T12:45:46Z'
+  pre_cutoff_grandfathered: true
   obligation_state: superseded (main holds the refined/published version under the same id)
   proposed_disposition: discard-superseded-by-main
 - path: docs/coordination/20260722T002055Z-coder-tester-gkdr.md
@@ -2411,9 +2464,11 @@ records:
     id: 20260722T082058Z-coder-tester-2mgp
     kind: note
     timestamp: '2026-07-22T08:20:58Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260622T113653Z-coder-tester-ntgm.md
   blob: acf9e1ea5510567bd420352c20a9f7314aadb01b
   remote_branches:
@@ -2450,9 +2505,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T073556Z-planner-architect-2rr6.md
   blob: 0d67a7c638ee8e1c4fd1eeeda04ba2752492e34b
   remote_branches:
@@ -2490,8 +2547,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T215137Z-coder-tester-5rhj.md
   blob: 4d7b911a05ed429e7de460dd36811c7e2a1cd756
   remote_branches:
@@ -2529,8 +2589,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T220740Z-coder-tester-4gaq.md
   blob: 3dfba8c35a5f46ab2c634e24f101e8e3289ceeed
   remote_branches:
@@ -2570,8 +2633,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T211054Z-coder-tester-hs2n.md
   blob: 2a65c2cdb9533478eea8e85c4b0b25c325b1721b
   remote_branches:
@@ -2609,8 +2675,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T120118Z-coder-tester-1jqq.md
   blob: 829a1ca77e74ce9a5c986bec124bb4ed2e05eae4
   remote_branches:
@@ -2652,9 +2721,11 @@ records:
     id: 20260721T120435Z-coder-tester-dhgm
     kind: completion
     timestamp: '2026-07-21T12:04:35Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T081349Z-coder-tester-33ns.md
   blob: 2e1b8b8c40bbc7c97bf0df3ec49e5e9f39735af9
   remote_branches:
@@ -2711,10 +2782,10 @@ records:
     id: 20260722T083033Z-contribution-auditor-jm6q
     kind: review
     timestamp: '2026-07-22T08:30:33Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T104431Z-coder-tester-71sm.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T081522Z-coder-tester-jjrk.md
   blob: 7113617d9d2b5941fb73f2655e9d97df5123ea4e
   remote_branches:
@@ -2773,10 +2844,11 @@ records:
     id: 20260722T092926Z-governor-reviewer-mbkg
     kind: note
     timestamp: '2026-07-22T09:29:26Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T081522Z-coder-tester-p4aj.md
   blob: d0bb7994970b8b8e8aa2a57b939dd5fc636a4a28
   remote_branches:
@@ -2832,10 +2904,11 @@ records:
     id: 20260722T091406Z-contribution-auditor-j1ge
     kind: review
     timestamp: '2026-07-22T09:14:06Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T122027Z-contribution-auditor-sgrd.md
   blob: 8f6065881cfb11e6654ddd8f7dfb323624412637
   remote_branches:
@@ -2896,10 +2969,10 @@ records:
     id: 20260722T170950Z-coder-tester-2hnb
     kind: handoff
     timestamp: '2026-07-22T17:09:50Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260722T122521Z-coder-tester-rqgm.md::1ac2493f03)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260803T105142Z-governor-reviewer-tj6s.md
   blob: 4ab284ffa98dda05de79f1d9aa4f76101a678989
   remote_branches:
@@ -2942,7 +3015,8 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
+  pre_cutoff_grandfathered: false
+  obligation_state: live (open MR is the current delivery path; do not duplicate via consolidation)
   proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
 - path: docs/coordination/20260803T103102Z-coder-tester-1k1r.md
   blob: ff8acf2d8556da0fc20f0672e17f5c2d212a920a
@@ -2986,9 +3060,9 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: false
+  obligation_state: live (open MR is the current delivery path; do not duplicate via consolidation)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
 - path: docs/coordination/20260803T112404Z-coder-tester-km1d.md
   blob: a3f76b0e5402f56c209cf17e77bdc9c8a0e526b8
   remote_branches:
@@ -3030,9 +3104,9 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: false
+  obligation_state: live (open MR is the current delivery path; do not duplicate via consolidation)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
 - path: docs/coordination/00257-coder-tester.md
   blob: dff1b2d85122b43caf7d2b93b86456f405a1c7fa
   remote_branches:
@@ -3069,8 +3143,7 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00258-coder-tester.md
     id: null
@@ -3080,10 +3153,10 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-14T19:56:56Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00324-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00121-coder-tester.md
   blob: 73229cccb838bfefd789e87965fba7305a108c7b
   remote_branches:
@@ -3120,17 +3193,16 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00133-governor-reviewer.md
     id: null
     kind: decision-record
     timestamp: '2026-06-13T07:02:52Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00133-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00122-coder-tester.md
   blob: 2d20b3e0f8fa8c6c8ea6ae11e2f15e11409642c5
   remote_branches:
@@ -3167,12 +3239,12 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00133-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00123-coder-tester.md
   blob: fb0539396f4826a50d4a77d47c1a217a95cd8eb7
   remote_branches:
@@ -3209,12 +3281,12 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00133-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00124-coder-tester.md
   blob: fa96ba8907cc482463384585e01a3252a73a8749
   remote_branches:
@@ -3251,17 +3323,16 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00133-governor-reviewer.md
     id: null
     kind: decision-record
     timestamp: '2026-06-13T07:02:52Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00133-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00125-coder-tester.md
   blob: e8e585db8c79ded5f9b78febd456cc58e771dd11
   remote_branches:
@@ -3300,7 +3371,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00126-coder-tester.md
@@ -3339,17 +3412,16 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00133-governor-reviewer.md
     id: null
     kind: decision-record
     timestamp: '2026-06-13T07:02:52Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00133-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00127-coder-tester.md
   blob: ad54d6b1d960269cb58a42b33d3a96de36ba1da4
   remote_branches:
@@ -3388,7 +3460,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00128-academic-peer-reviewer.md
@@ -3434,7 +3508,9 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-13T07:02:52Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00129-coder-tester.md
@@ -3475,7 +3551,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00130-academic-peer-reviewer.md
@@ -3521,7 +3599,9 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-13T07:02:52Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00131-coder-tester.md
@@ -3562,7 +3642,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00132-coder-tester.md
@@ -3608,7 +3690,9 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-13T07:02:52Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00285-coder-tester.md
@@ -3648,17 +3732,17 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00286-coder-tester.md
     id: null
     kind: handoff
     timestamp: '2026-06-14T02:02:22+03:00'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00281-coder-tester.md
   blob: 680d261d6bad710b35d40eaaa741c6a0923c4120
   remote_branches:
@@ -3695,12 +3779,12 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/00282-coder-tester.md::de8b6dc2bf)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00282-coder-tester.md
   blob: de8b6dc2bf6d1f47cdda29861b95c0003789738d
   remote_branches:
@@ -3737,12 +3821,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00283-coder-tester.md
   blob: 31135a0781f15656286e602f3a691fce2fad36cf
   remote_branches:
@@ -3782,12 +3867,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00284-coder-tester.md
   blob: b5ab11db410a5cce6e53d64af0c7a498ec2adce9
   remote_branches:
@@ -3824,12 +3910,12 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required properties handoff, id, immutable, topic were not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00302-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required properties handoff, id, immutable, topic were not present.)"
 - path: docs/coordination/00306-coder-tester.md
   blob: a07dfdb709726491cb27a4c0d7579c07e6f4838a
   remote_branches:
@@ -3876,7 +3962,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00307-coder-tester.md
@@ -3919,6 +4007,7 @@ records:
   validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
     for why)
   citing_main_records: []
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has record(s) under the same legacy sequence
     number at different path(s): [''docs/coordination/00307-planner-architect.md''])'
@@ -3958,8 +4047,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T144534Z-coder-tester-mpjj.md
   blob: 1c931a4cd82785a3a5d350284f17d702b1fffccd
   remote_branches:
@@ -3997,8 +4089,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260726T220658Z-planner-architect-dqms.md
   blob: 8cf00b015f6c5664dd2ddb39c37d10414ff94fec
   remote_branches:
@@ -4043,8 +4138,10 @@ records:
     id: 20260726T222929Z-planner-architect-bsaj
     kind: note
     timestamp: '2026-07-26T22:29:29Z'
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260726T222014Z-planner-architect-pr3r.md
   blob: b753f553c4f25e2933f1bb30bf125cc9b704d973
   remote_branches:
@@ -4090,10 +4187,10 @@ records:
     id: 20260726T222929Z-planner-architect-bsaj
     kind: note
     timestamp: '2026-07-26T22:29:29Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260726T230511Z-planner-architect-hmbq.md
   blob: b89f7bc01b03a7bf008ad660652f0d69b92d34ce
   remote_branches:
@@ -4135,8 +4232,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260726T232025Z-planner-architect-dbb3.md
   blob: 3a51c89d0c73dafff2234720a7b93551a5950225
   remote_branches:
@@ -4178,9 +4277,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260726T234330Z-planner-architect-pjse.md
   blob: f5a43d099e98ddb69dfef017f482312f06221b03
   remote_branches:
@@ -4227,8 +4327,10 @@ records:
     id: 20260726T234823Z-planner-architect-maj8
     kind: note
     timestamp: '2026-07-26T23:48:23Z'
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/00250-coder-tester.md
   blob: 15d88e2d76cbd821643452a1573044bef3f51f20
   remote_branches:
@@ -4265,12 +4367,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00287-coder-tester.md
   blob: deac07f3e36ff3835ed28d80fe68916baf3976ce
   remote_branches:
@@ -4313,7 +4416,9 @@ records:
     id: null
     kind: handoff
     timestamp: '2026-06-14T07:14:24Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00288-coder-tester.md
@@ -4352,17 +4457,16 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00298-coder-tester.md
     id: null
     kind: handoff
     timestamp: '2026-06-14T07:14:24Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00302-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00289-planner-architect.md
   blob: bd6cb62255d197ec4c074af3b0bbfd25bfe138c8
   remote_branches:
@@ -4406,7 +4510,9 @@ records:
     id: null
     kind: handoff
     timestamp: '2026-06-14T07:14:24Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00290-coder-tester.md
@@ -4451,7 +4557,9 @@ records:
     id: null
     kind: note
     timestamp: '2026-06-14T07:15:49Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00291-coder-tester.md
@@ -4498,7 +4606,9 @@ records:
     id: null
     kind: note
     timestamp: '2026-06-14T07:15:49Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00308-coder-tester.md
@@ -4537,17 +4647,17 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00309-planner-architect.md
     id: null
     kind: note
     timestamp: '2026-06-14T11:24:00Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00312-coder-tester.md
   blob: 570769c38f153af941f87d40e6263cc2669f4af7
   remote_branches:
@@ -4595,6 +4705,7 @@ records:
     id: null
     kind: review
     timestamp: '2026-06-14T17:10:47Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has record(s) under the same legacy sequence
     number at different path(s): [''docs/coordination/00312-planner-architect.md''])'
@@ -4642,10 +4753,11 @@ records:
     id: 20260622T114314Z-coder-tester-qaqt
     kind: review
     timestamp: '2026-06-22T11:43:14Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T080327Z-planner-architect-2cd7.md
   blob: 07c3d775fde99fea17ee6f92b189f40a31ed2419
   remote_branches:
@@ -4687,7 +4799,9 @@ records:
     \    #: Required property references-to was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property references-to was not present.)"
 - path: docs/coordination/20260621T083004Z-planner-architect-1r6m.md
@@ -4731,8 +4845,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T084436Z-planner-architect-nde1.md
   blob: b6437d76df648b16dfa7cbcc7d5dffc73f200f9d
   remote_branches:
@@ -4777,10 +4894,10 @@ records:
     id: 20260621T135430Z-planner-architect-a8jq
     kind: note
     timestamp: '2026-06-21T13:54:30Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260621T084953Z-planner-architect-2akm.md::3da1aeb0d9)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T084953Z-planner-architect-2akm.md
   blob: 3da1aeb0d951d0fa065f9f82d476d5e0653ace06
   remote_branches:
@@ -4821,17 +4938,17 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property handoff was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/20260621T135430Z-planner-architect-a8jq.md
     id: 20260621T135430Z-planner-architect-a8jq
     kind: note
     timestamp: '2026-06-21T13:54:30Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property handoff was not present.)"
 - path: docs/coordination/20260621T130102Z-planner-architect-m2hk.md
   blob: 8810dc989d4d8bbf7b5cabe9a971cb47a0e6aa08
   remote_branches:
@@ -4879,9 +4996,11 @@ records:
     id: 20260621T135430Z-planner-architect-a8jq
     kind: note
     timestamp: '2026-06-21T13:54:30Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T131242Z-planner-architect-2rzp.md
   blob: 957df010cc9cbd5e81b39e832667ae629b616dc7
   remote_branches:
@@ -4928,9 +5047,11 @@ records:
     id: 20260621T135430Z-planner-architect-a8jq
     kind: note
     timestamp: '2026-06-21T13:54:30Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T131244Z-planner-architect-nxd6.md
   blob: bd20d635d8d38ce62193c5cf7b7e77426167dd1d
   remote_branches:
@@ -4976,9 +5097,11 @@ records:
     id: 20260621T135430Z-planner-architect-a8jq
     kind: note
     timestamp: '2026-06-21T13:54:30Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T131248Z-planner-architect-kq3s.md
   blob: b2972d79005af0872217a7c8addd3ed55c543cdd
   remote_branches:
@@ -5024,9 +5147,11 @@ records:
     id: 20260621T135430Z-planner-architect-a8jq
     kind: note
     timestamp: '2026-06-21T13:54:30Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T164840Z-coder-tester-mr12.md
   blob: 110937fcfcc6d603601c56813806550a4040c9cd
   remote_branches:
@@ -5068,8 +5193,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/00151-coder-tester.md
   blob: b902d1c12627464c9fe70949983758549103d562
   remote_branches:
@@ -5106,12 +5234,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00325-governor-reviewer.md
   blob: cc5d38ac3527eba3e7a54ca3288320f4b6e9b5d8
   remote_branches:
@@ -5159,6 +5288,7 @@ records:
     id: null
     kind: handoff
     timestamp: '2026-06-14T20:03:39Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has a DIFFERENT message at this exact path (blob
     b14f7b5424); differing fields: [''model'', ''references-to'', ''requires-ack'', ''to'', ''topic''])'
@@ -5204,8 +5334,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/00120-coder-tester.md
   blob: 632958cbb1161c4c689ada547b64128e5bce331d
   remote_branches:
@@ -5245,7 +5378,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T143538Z-coder-tester-drq5.md
@@ -5301,9 +5436,11 @@ records:
     id: 20260621T151501Z-planner-architect-q7bx
     kind: handoff
     timestamp: '2026-06-21T15:15:01Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/00036-contribution-auditor.md
   blob: 1b4a5fae4e5335e43b61742a8b2f89a8262000cb
   remote_branches:
@@ -5357,7 +5494,9 @@ records:
     id: null
     kind: review
     timestamp: '2026-06-11T12:54:17Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00042-governor-reviewer.md
@@ -5405,7 +5544,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00044-planner-architect.md
@@ -5474,6 +5615,7 @@ records:
     id: 20260803T093704Z-contribution-auditor-1ajh
     kind: review
     timestamp: '2026-08-03T09:37:04Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has record(s) under the same legacy sequence
     number at different path(s): [''docs/coordination/00044-coder-tester.md''])'
@@ -5523,7 +5665,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00046-planner-architect.md
@@ -5571,7 +5715,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00047-planner-architect.md
@@ -5619,7 +5765,8 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/00048-governor-reviewer.md::c652a239e6)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00048-governor-reviewer.md
@@ -5668,7 +5815,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00049-coder-tester.md
@@ -5710,7 +5859,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00057-coder-tester.md
@@ -5760,6 +5911,7 @@ records:
     id: null
     kind: note
     timestamp: '2026-06-12T19:43:00Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has record(s) under the same legacy sequence
     number at different path(s): [''docs/coordination/00057-contribution-auditor.md''])'
@@ -5810,7 +5962,8 @@ records:
     id: null
     kind: handoff
     timestamp: '2026-06-12T19:34:00Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/01KV6KSASMMQ5EH22M5FTSPXEK-governor-reviewer.md)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00059-coder-tester.md
@@ -5856,7 +6009,9 @@ records:
     id: null
     kind: review
     timestamp: '2026-06-12T15:41:02Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T145130Z-coder-tester-7rhn.md
@@ -5899,9 +6054,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260621T145257Z-coder-tester-psn3.md::66adc68376)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T145257Z-coder-tester-psn3.md
   blob: 66adc68376cbd18f829b9eece8e81baa6bb09d01
   remote_branches:
@@ -5947,10 +6103,10 @@ records:
     id: 20260621T145946Z-planner-architect-h4cj
     kind: decision-record
     timestamp: '2026-06-21T14:59:46Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260621T145946Z-planner-architect-h4cj.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T170140Z-coder-tester-r7s2.md
   blob: 74c7c24ccc75fbc871477fdb0cb5328d8cfa1203
   remote_branches:
@@ -5993,8 +6149,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T172235Z-coder-tester-rhg2.md
   blob: 2758ada1690a6c96f8a840558122281585bffed4
   remote_branches:
@@ -6036,8 +6195,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T233626Z-coder-tester-863p.md
   blob: 34ca36c54e9223760b74dfb3235fc5b7a5586ca9
   remote_branches:
@@ -6079,9 +6241,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260722T233626Z-governor-reviewer-kmrs.md
   blob: 6f867ed0afbba546bc2a0dc33f1b270931465206
   remote_branches:
@@ -6122,8 +6285,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T012306Z-coder-tester-j2kp.md
   blob: 36c1c40c877af6ed3a05b2b48ae608e5ee28ff15
   remote_branches:
@@ -6170,8 +6335,11 @@ records:
     id: 20260723T012435Z-coder-tester-nnh3
     kind: completion
     timestamp: '2026-07-23T01:24:35Z'
-  obligation_state: resolved-by-completion (a citing main record is kind:completion)
-  proposed_disposition: preserve-via-consolidation (historical, resolution evidenced)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260724T101927Z-coder-tester-7jrd.md
   blob: f050c7bf07aaaa5ac4277ad2ea42d618c92ceb97
   remote_branches:
@@ -6221,8 +6389,9 @@ records:
     id: 20260726T173950Z-planner-architect-mdkj
     kind: completion
     timestamp: '2026-07-26T17:39:50Z'
-  obligation_state: resolved-by-completion (a citing main record is kind:completion)
-  proposed_disposition: preserve-via-consolidation (historical, resolution evidenced)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260726T173950Z-planner-architect-mdkj.md)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260721T181117Z-coder-tester-q28p.md
   blob: 8c824b9bc4ac0b30087ef9f693ccb014447214c4
   remote_branches:
@@ -6264,9 +6433,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260721T185029Z-coder-tester-bkkj.md
   blob: 7362c705412c1038eedb24271f81e3325189d256
   remote_branches:
@@ -6308,8 +6478,9 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260721T185849Z-coder-tester-rmes.md::b45ae4d273)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260721T185849Z-coder-tester-rmes.md
   blob: b45ae4d2736e3eeec4db9e3617304db50282f0bf
   remote_branches:
@@ -6351,8 +6522,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/00276-coder-tester.md
   blob: eee550eeace38372990dea4ca89b7fd70dd6ff47
   remote_branches:
@@ -6405,6 +6578,7 @@ records:
     id: null
     kind: completion
     timestamp: '2026-06-14T19:29:33Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has a DIFFERENT message at this exact path (blob
     0949177b15); differing fields: [''artifacts_owned'', ''handoff'', ''model'', ''references-to'', ''requires-ack'',
@@ -6453,6 +6627,7 @@ records:
     id: null
     kind: handoff
     timestamp: '2026-06-13T11:54:22Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has a DIFFERENT message at this exact path (blob
     321589d956); differing fields: [''artifacts_owned'', ''handoff'', ''kind'', ''references-to'', ''requires-ack'',
@@ -6497,8 +6672,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260726T223933Z-planner-architect-gqbk.md
   blob: 1e5f996a760b8c184e728fae3e223d83bed28540
   remote_branches:
@@ -6544,8 +6721,10 @@ records:
     id: 20260726T231439Z-planner-architect-mmre
     kind: note
     timestamp: '2026-07-26T23:14:39Z'
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260726T224746Z-planner-architect-kkbr.md
   blob: ec1b9d81bbcfa11bbdb60190c153634c7e519c4b
   remote_branches:
@@ -6587,9 +6766,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T091938Z-planner-architect-6hks.md
   blob: 0ab40f312b772778006d046298b57937ef97c8e1
   remote_branches:
@@ -6632,9 +6812,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260729T105252Z-fact-checker-hp3k.md
   blob: 76281cd89f3822cec6ef0680e8b5b37b773c7d9c
   remote_branches:
@@ -6682,8 +6863,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260729T105421Z-fact-checker-hrss.md
   blob: 489fd728ee1d68ee3117014de5171cc16402895d
   remote_branches:
@@ -6732,9 +6915,9 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260729T111307Z-planner-architect-77rs.md::fedd8d1545)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260729T105531Z-fact-checker-msd6.md
   blob: c9c29b6dbf60d6e43decbb271779e54ca060d73f
   remote_branches:
@@ -6783,8 +6966,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260729T105739Z-fact-checker-spgr.md
   blob: 6aabae230afb9a5009e12418745f2fe35fd711b2
   remote_branches:
@@ -6833,9 +7018,9 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/20260729T111307Z-planner-architect-77rs.md::fedd8d1545)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260729T111307Z-planner-architect-77rs.md
   blob: fedd8d15454872826dd25feae33568793fda05c0
   remote_branches:
@@ -6884,8 +7069,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260621T154929Z-coder-tester-h6xq.md
   blob: a56da806d6b18c54386b6d369f9e8ff0ef773d4c
   remote_branches:
@@ -6922,12 +7109,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T155647Z-coder-tester-pv8m.md
   blob: 3278ee9f79c0e8ddcc241336fabc0961bb00ee11
   remote_branches:
@@ -6966,7 +7154,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T155941Z-coder-tester-n4t2.md
@@ -7008,7 +7198,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T160216Z-coder-tester-v9kp.md
@@ -7051,7 +7243,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T160438Z-coder-tester-m2q8.md
@@ -7095,7 +7289,9 @@ records:
     \    #: Required property id was not present."
   validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T162230Z-coder-tester-r7hm.md
@@ -7134,12 +7330,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T162658Z-coder-tester-k4nd.md
   blob: bf27f1561459ab7331fa6f1f9312a31cd2cfb233
   remote_branches:
@@ -7177,8 +7374,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/00044-planner-architect.md
   blob: a5d08dd540997f763d7023ec7c4eb699715cf5cb
   remote_branches:
@@ -7237,6 +7437,7 @@ records:
     id: 20260803T093704Z-contribution-auditor-1ajh
     kind: review
     timestamp: '2026-08-03T09:37:04Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has record(s) under the same legacy sequence
     number at different path(s): [''docs/coordination/00044-coder-tester.md''])'
@@ -7283,7 +7484,8 @@ records:
     id: null
     kind: review
     timestamp: '2026-06-12T15:12:53Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via CANDIDATE::docs/coordination/00054-governor-reviewer.md::a4da2b5584)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00054-governor-reviewer.md
@@ -7341,7 +7543,9 @@ records:
     id: null
     kind: handoff
     timestamp: '2026-06-12T19:03:00Z'
-  obligation_state: invalid
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
   proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present.)"
 - path: docs/coordination/00044-planner-architect.md
@@ -7402,6 +7606,7 @@ records:
     id: 20260803T093704Z-contribution-auditor-1ajh
     kind: review
     timestamp: '2026-08-03T09:37:04Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has record(s) under the same legacy sequence
     number at different path(s): [''docs/coordination/00044-coder-tester.md''])'
@@ -7441,8 +7646,7 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00260-planner-architect.md
     id: null
@@ -7452,10 +7656,10 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-14T19:58:43Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00325-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00138-planner-architect.md
   blob: 024bc5e2ad0e82acda2889dd6fe55d34ac03dead
   remote_branches:
@@ -7492,17 +7696,16 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00139-planner-architect.md
     id: null
     kind: note
     timestamp: '2026-06-13T10:33:38Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00146-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00149-planner-architect.md
   blob: bd5ce6284beec592b40fac2ad6edc66a08fdceed
   remote_branches:
@@ -7540,12 +7743,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00150-planner-architect.md
   blob: e8675cb180b2760bed8883613ed3fb4cbe11378e
   remote_branches:
@@ -7583,12 +7787,13 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00253-planner-architect.md
   blob: 2e90a4cfb16c6ffb58efe69041c8ac5bf4dd19e0
   remote_branches:
@@ -7624,8 +7829,7 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00256-planner-architect.md
     id: null
@@ -7635,10 +7839,10 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-14T19:58:43Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00325-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00254-planner-architect.md
   blob: 34542688e2ace3496f8f69d4e0dcfa5844b715e1
   remote_branches:
@@ -7674,8 +7878,7 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00256-planner-architect.md
     id: null
@@ -7685,10 +7888,10 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-14T19:58:43Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00325-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/00255-planner-architect.md
   blob: 1b634b4760d9fb1b25b197c1f9c5d66f6932153b
   remote_branches:
@@ -7726,8 +7929,7 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00256-planner-architect.md
     id: null
@@ -7737,10 +7939,10 @@ records:
     id: null
     kind: decision-record
     timestamp: '2026-06-14T19:58:43Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00325-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/20260723T231212Z-contribution-auditor-q454.md
   blob: 594288fd83042711e28a544f89700a07dfd438ba
   remote_branches:
@@ -7781,8 +7983,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T231213Z-infosec-sentinel-4erq.md
   blob: cdfa903ef5ad82e3a275cfde9c9ac6620a620a93
   remote_branches:
@@ -7823,8 +8027,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T231717Z-planner-architect-mkhm.md
   blob: 35e979e2191b71a0eae8f634b2f7a9372ce6b7b2
   remote_branches:
@@ -7867,9 +8073,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T232311Z-planner-architect-jk6b.md
   blob: e04e422d2eaebfdf43fc08e32fac040482c89b1d
   remote_branches:
@@ -7912,8 +8119,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T232534Z-governor-reviewer-b1ds.md
   blob: 848427d1c286b2f73cc58d76e79546dc730b9122
   remote_branches:
@@ -7970,8 +8179,10 @@ records:
     id: 20260726T175502Z-build-engineer-t4rm
     kind: handoff
     timestamp: '2026-07-26T17:55:02Z'
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T235808Z-planner-architect-5s2h.md
   blob: 7f3e3eb4af49dc33d445a74c4651e8552451974f
   remote_branches:
@@ -8014,9 +8225,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260723T235808Z-planner-architect-mhh6.md
   blob: 9913d781ce8c7a4903420a856b6d87b94535a9ab
   remote_branches:
@@ -8059,9 +8271,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T001603Z-planner-architect-7hpd.md
   blob: 764430ce56fa093c34722c52a383b82197fd4406
   remote_branches:
@@ -8104,9 +8317,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T001603Z-planner-architect-sk2a.md
   blob: 91f5bdf5e3cbf481c7f89e1ef18dba8111bdc51d
   remote_branches:
@@ -8149,9 +8363,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T002601Z-governor-reviewer-shh4.md
   blob: afb1b4cbb0888f2fb25fc3302f16c07e755952ce
   remote_branches:
@@ -8195,8 +8410,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T003321Z-contribution-auditor-sa1g.md
   blob: 2ac7d5c4881ab3c2b725d15c91249fca8bcedce0
   remote_branches:
@@ -8239,8 +8456,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T003322Z-infosec-sentinel-m6mk.md
   blob: a8d3e46387c3b2f2c8a648034770f8ea4516e83b
   remote_branches:
@@ -8283,8 +8502,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260724T003756Z-governor-reviewer-bjpr.md
   blob: 4db357fbf236bd44eebee51cf476864e947723cc
   remote_branches:
@@ -8328,8 +8549,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260623T115146Z-coder-tester-stg8.md
   blob: 5bbd7b313910baecc2d159af2b08b58efe840e5c
   remote_branches:
@@ -8381,10 +8604,11 @@ records:
     id: 20260623T122537Z-coder-tester-krme
     kind: handoff
     timestamp: '2026-06-23T12:25:37Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/00153-coder-tester.md
   blob: 843d0f54fb89c66b1e46103c9853191a4475d4a4
   remote_branches:
@@ -8423,8 +8647,7 @@ records:
     only THAT it is in that state today.
   validation_result: "FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
     \    #: Required property id was not present."
-  validation_disposition_note: FAILS agov coord validate but disposed otherwise (see proposed_disposition
-    for why)
+  validation_disposition_note: FAILS agov coord validate -- disposed as invalid
   citing_main_records:
   - path: docs/coordination/00154-coder-tester.md
     id: null
@@ -8442,10 +8665,10 @@ records:
     id: null
     kind: review
     timestamp: '2026-06-13T12:17:05Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/00173-governor-reviewer.md)
+  proposed_disposition: "invalid-with-validation-evidence (FAIL: ERR severity: blocking /tmp/claude-1000/-home-devi-src-AGF-NG/59781b45-7420-4efd-b3b5-6972919c4bd2/scratchpad/_val_tmp.md:\n\
+    \    #: Required property id was not present.)"
 - path: docs/coordination/20260621T063716Z-planner-architect-pmeq.md
   blob: 3b3500892cc63d939970b8c6a6c13d86d2710691
   remote_branches:
@@ -8489,8 +8712,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260621T064711Z-planner-architect-p8g5.md
   blob: 8d7ff5ce756a3d83753b658b5f66c85528abff03
   remote_branches:
@@ -8532,8 +8758,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260726T225628Z-planner-architect-pqtm.md
   blob: fd4dbbcfd0ea297a8294a699446397415cb55de8
   remote_branches:
@@ -8574,9 +8803,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260726T232432Z-planner-architect-j5mj.md
   blob: 8e16bb22ad63c63c8df75283ed1fd3d45dd99e58
   remote_branches:
@@ -8618,9 +8849,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260725T055351Z-planner-architect-lmaf.md
   blob: e075665409ac074f1388e749df1397628d866620
   remote_branches:
@@ -8666,10 +8899,11 @@ records:
     id: 20260725T064551Z-contribution-auditor-mejk
     kind: review
     timestamp: '2026-07-25T06:45:51Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260730T064530Z-contribution-auditor-js8r.md
   blob: 1c255c1cfddf57ea4774dcbd22d3f427c3abac5e
   remote_branches:
@@ -8710,8 +8944,10 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: live (open MR may still resolve normally)
-  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves)
 - path: docs/coordination/20260730T072926Z-contribution-auditor-rk2k.md
   blob: 2aaf3961885633a860c37a8bb37dfa7277dd7aa9
   remote_branches:
@@ -8756,9 +8992,11 @@ records:
     id: 20260730T083948Z-contribution-auditor-1dq4
     kind: review
     timestamp: '2026-07-30T08:39:48Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260730T073256Z-contribution-auditor-jpje.md
   blob: 1dbeb97dc2cb87ee0fa691579f52156a676568b9
   remote_branches:
@@ -8800,9 +9038,11 @@ records:
     id: 20260730T081434Z-planner-architect-s2gp
     kind: handoff
     timestamp: '2026-07-30T08:14:34Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260730T074742Z-contribution-auditor-bhhh.md
   blob: 0a776e352334f3c2d69064c8fbde6e5899f2cac0
   remote_branches:
@@ -8849,9 +9089,11 @@ records:
     id: 20260730T083948Z-contribution-auditor-1dq4
     kind: review
     timestamp: '2026-07-30T08:39:48Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260803T112303Z-contribution-auditor-aedd.md
   blob: 972132f7167ecc0c86aaa6d609d87257137fede2
   remote_branches:
@@ -8894,9 +9136,9 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: unresolved-live (requires-ack:true; no citation, no completion found)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: false
+  obligation_state: live (open MR is the current delivery path; do not duplicate via consolidation)
+  proposed_disposition: defer (open MR; do not consolidate until MR resolves one way or another)
 - path: docs/coordination/20260720T200018Z-coder-tester-psht.md
   blob: 63db2cffc07a52f66e10cd205405a527f0a18d31
   remote_branches:
@@ -8955,9 +9197,11 @@ records:
     id: 20260720T210955Z-coder-tester-sga1
     kind: review
     timestamp: '2026-07-20T21:09:55Z'
-  obligation_state: cited-elsewhere (visibility only -- a later main record references this id/filename;
-    this is evidence of downstream visibility, not proof the obligation was formally acknowledged or resolved)
-  proposed_disposition: preserve-via-consolidation (historical record, visible via citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260720T214732Z-coder-tester-1mr4.md
   blob: 95a377b224d9c67ad9bcc61e67a2e6427b701a17
   remote_branches:
@@ -9004,10 +9248,11 @@ records:
     id: 20260720T215132Z-coder-tester-gmrh
     kind: handoff
     timestamp: '2026-07-20T21:51:32Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T214629Z-contribution-auditor-msha.md
   blob: 291c2d6e087471ace0d9a38b39a2a0944f06467c
   remote_branches:
@@ -9061,10 +9306,10 @@ records:
     id: 20260721T222958Z-coder-tester-nq18
     kind: handoff
     timestamp: '2026-07-21T22:29:58Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260721T215527Z-coder-tester-53pd.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T225331Z-contribution-auditor-rsaa.md
   blob: d16d8f0ad26d3e39c5a7991b968fd32d0a304dec
   remote_branches:
@@ -9115,10 +9360,10 @@ records:
     id: 20260722T003519Z-coder-tester-435j
     kind: handoff
     timestamp: '2026-07-22T00:35:19Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T001928Z-coder-tester-sqje.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T234413Z-contribution-auditor-hmpr.md
   blob: 4b1f6e2549345a80df209860112ee30074900820
   remote_branches:
@@ -9168,10 +9413,10 @@ records:
     id: 20260722T003519Z-coder-tester-435j
     kind: handoff
     timestamp: '2026-07-22T00:35:19Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T001928Z-coder-tester-sqje.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T004752Z-contribution-auditor-kaka.md
   blob: 3217c8bf2c83d4ba12ada74146aad2c83d266901
   remote_branches:
@@ -9227,10 +9472,10 @@ records:
     id: 20260722T081000Z-governor-reviewer-b555
     kind: decision-record
     timestamp: '2026-07-22T08:10:00Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260722T005346Z-coder-tester-m6nj.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260721T212215Z-contribution-auditor-p4ap.md
   blob: ca65280b33beb4cb50bdd48d66c2f1cd2472e167
   remote_branches:
@@ -9280,10 +9525,10 @@ records:
     id: 20260721T213512Z-coder-tester-n5hk
     kind: completion
     timestamp: '2026-07-21T21:35:12Z'
-  obligation_state: unresolved-live-but-visible (requires-ack:true; cited by a later main record, but
-    citation alone does not prove acknowledgement or completion)
-  proposed_disposition: preserve-via-consolidation (live obligation -- highest-priority preservation candidate
-    regardless of citation)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered-and-resolved (pre-cutoff per sejb; also resolved via docs/coordination/20260721T212654Z-coder-tester-bb8k.md)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260720T160727Z-coder-tester-7hrq.md
   blob: 0bf381a8cbd6aafebc022be5979fdbf298d0dfd3
   remote_branches:
@@ -9326,8 +9571,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260720T161122Z-coder-tester-pg65.md
   blob: e039fe18d57a172cb3ab3a69e273b59904aba73b
   remote_branches:
@@ -9371,8 +9619,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/01KV6J4XAZQC1TXHPT0T8ZF3A0-governor-reviewer.md
   blob: 04e3af307aff4c90e1430c811b4c778c2a560913
   remote_branches: []
@@ -9411,8 +9662,11 @@ records:
   validation_result: OK
   validation_disposition_note: passes agov coord validate
   citing_main_records: []
-  obligation_state: moot (no requires-ack, no citation found, historical record only)
-  proposed_disposition: preserve-via-consolidation (historical record, no live obligation detected)
+  pre_cutoff_grandfathered: true
+  obligation_state: historical-grandfathered (pre-cutoff per sejb; not a current pending obligation regardless
+    of resolution status)
+  proposed_disposition: preserve-via-consolidation (historical record, grandfathered, no current pending
+    obligation)
 - path: docs/coordination/20260722T102341Z-coder-tester-ehbh.md
   blob: 1f1ace9daf69dcb4ec36efdd6962520c00f62869
   remote_branches: []
@@ -9468,6 +9722,7 @@ records:
     id: 20260722T103933Z-contribution-auditor-qjbs
     kind: review
     timestamp: '2026-07-22T10:39:33Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has a DIFFERENT message at this exact path (blob
     f6ad250f4f); differing fields: [''kind'', ''to''])'
@@ -9527,6 +9782,7 @@ records:
     id: 20260722T104412Z-contribution-auditor-r78j
     kind: review
     timestamp: '2026-07-22T10:44:12Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has a DIFFERENT message at this exact path (blob
     558082611e); differing fields: [''kind'', ''to''])'
@@ -9587,6 +9843,7 @@ records:
     id: 20260726T213225Z-contribution-auditor-hg2r
     kind: review
     timestamp: '2026-07-26T21:32:25Z'
+  pre_cutoff_grandfathered: true
   obligation_state: superseded (main holds the refined/published version under the same id)
   proposed_disposition: discard-superseded-by-main
 - path: docs/coordination/00275-planner-architect.md
@@ -9641,6 +9898,7 @@ records:
     id: 20260720T080808Z-governor-reviewer-mrp3
     kind: review
     timestamp: '2026-07-20T08:08:08Z'
+  pre_cutoff_grandfathered: true
   obligation_state: unadjudicated-filename-conflict
   proposed_disposition: 'duplicate-rename-required (main has a DIFFERENT message at this exact path (blob
     8a20294ec2); differing fields: [''artifacts_owned'', ''handoff'', ''kind'', ''references-to'', ''requires-ack'',
