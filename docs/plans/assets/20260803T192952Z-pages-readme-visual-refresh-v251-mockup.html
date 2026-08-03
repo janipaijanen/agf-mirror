@@ -5,7 +5,7 @@
     --bg-raised:#FFFFFF;
     --ink:#12161C;
     --ink-soft:#4A5568;
-    --ink-faint:#8590A3;
+    --ink-faint:#5B6675;
     --accent:#0077BB;
     --accent-soft:#99CCEE;
     --accent-wash: color-mix(in srgb, var(--accent-soft) 22%, transparent);
@@ -31,7 +31,7 @@
       --bg-raised:#131822;
       --ink:#EDF1F7;
       --ink-soft:#A8B3C4;
-      --ink-faint:#6B7686;
+      --ink-faint:#8B96A6;
       --accent:#5BB6EC;
       --accent-soft:#1E3A52;
       --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
@@ -46,7 +46,7 @@
     }
   }
   :root[data-theme="dark"]{
-    --bg:#0B0E14; --bg-raised:#131822; --ink:#EDF1F7; --ink-soft:#A8B3C4; --ink-faint:#6B7686;
+    --bg:#0B0E14; --bg-raised:#131822; --ink:#EDF1F7; --ink-soft:#A8B3C4; --ink-faint:#8B96A6;
     --accent:#5BB6EC; --accent-soft:#1E3A52; --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
     --gate-human:#FFA64D; --gate-check:#3FCB7C; --gate-ref:#9AA4B2;
     --border: rgba(237,241,247,0.14); --border-strong: rgba(237,241,247,0.26);
@@ -54,7 +54,7 @@
     --old-strike: #E08560; --new-good: #59D999;
   }
   :root[data-theme="light"]{
-    --bg:#F6F8FB; --bg-raised:#FFFFFF; --ink:#12161C; --ink-soft:#4A5568; --ink-faint:#8590A3;
+    --bg:#F6F8FB; --bg-raised:#FFFFFF; --ink:#12161C; --ink-soft:#4A5568; --ink-faint:#5B6675;
     --accent:#0077BB; --accent-soft:#99CCEE; --accent-wash: color-mix(in srgb, var(--accent-soft) 22%, transparent);
     --gate-human:#EE7700; --gate-check:#009944; --gate-ref:#888888;
     --border: rgba(18,22,28,0.12); --border-strong: rgba(18,22,28,0.22);
@@ -161,14 +161,17 @@
   .ledger-flow{display:flex; flex-direction:column; gap:0;}
   .lnode{
     display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px;
-    opacity:0; transform:translateY(6px); animation:rise .5s ease forwards;
+    animation:rise .5s ease forwards;
   }
+  /* Visible-by-default: the entrance animation only offsets position, never
+     opacity, so content is never hidden on first paint, print, or an
+     interrupted/skipped animation frame (F-VIS-4). */
   .lnode:nth-child(1){animation-delay:.05s;}
   .lnode:nth-child(3){animation-delay:.2s;}
   .lnode:nth-child(5){animation-delay:.35s;}
   .lnode:nth-child(7){animation-delay:.5s;}
-  @keyframes rise{ to{opacity:1; transform:translateY(0);} }
-  @media (prefers-reduced-motion: reduce){ .lnode{opacity:1; transform:none; animation:none;} }
+  @keyframes rise{ from{transform:translateY(6px);} to{transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ .lnode{transform:none; animation:none;} }
 
   .lshape{
     flex:0 0 auto; width:34px; height:34px; display:flex; align-items:center; justify-content:center;
@@ -278,7 +281,7 @@
       <div>
         <div class="eyebrow">Two gates, one repo</div>
         <h1 class="headline">Plans reviewed before code.<br>Code reviewed before merge.</h1>
-        <p class="subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every decision leaves a timestamped, append-only record in your repo.</p>
+        <p class="subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every governed decision leaves a timestamped, append-only record in your repo.</p>
         <div class="ctas">
           <a class="btn btn-primary" href="#">Get started</a>
           <a class="btn btn-secondary" href="#">See the docs</a>

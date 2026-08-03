@@ -1,9 +1,33 @@
-# Pages + README visual refresh — target v2.5.1
+---
+id: pages-readme-visual-refresh-v251
+status: pending-gate1
+topic: pages-readme-visual-refresh-v251
+gate1_approved_by: ""
+gate1_approved_at: ""
+advisory_consultation:
+  - role: contribution-auditor
+    status: consulted
+    reason: Reviewed the exploratory draft 2026-08-03
+      (docs/coordination/20260803T201537Z-contribution-auditor-3kpe.md);
+      found 5 pre-Gate defects (F-VIS-1..5), all addressed in this
+      revision, and recommended holding any Gate 1 submission until the
+      v2.5.0-rc.1 observation hold is lifted.
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Presentation-layer documentation/CSS/navigation change only;
+      no credentials, access control, schema, or security-boundary
+      change.
+---
+
+# Pages + README visual refresh — exploratory draft, not an active v2.5.1 target
 
 Timestamp: 20260803T192952Z (OS-generated, `date -u +%Y%m%dT%H%M%SZ`)
 Branch: `plan/pages-readme-visual-refresh-v251`
-Status: DRAFT — plan + visual mockup only, no implementation yet. Awaiting
-human governor review before any real file changes land.
+Status: DRAFT / ON HOLD — plan + visual mockup only, no implementation.
+Not eligible for Gate 1 submission or any release-planning obligation
+while the v2.5.0-rc.1 observation hold
+(`docs/coordination/20260803T200227Z-governor-reviewer-5m41.md`) is in
+effect. Held as exploratory material only.
 
 ## Intent
 
@@ -17,13 +41,18 @@ register of a reference site the human governor pointed to
 flat navigation), adapted to AGF's own governed brand material rather
 than copied wholesale.
 
-Target release: **v2.5.1**. Current `agf/VERSION` is `2.4.11`;
-`v2.5.0-rc.1` is in an active Gate 2 review cycle per recent coordination
-records. This work does not touch `v2.5.0`'s scope and should land as its
-own MR once 2.5.0 ships, targeting the next patch/minor release. No
-version bump, CHANGELOG entry, or tag is part of this plan (per
-`release-via-merge-request-rule.md`, those happen only in the release
-workflow itself).
+Target release: **provisional, not v2.5.1 as an active obligation.**
+`v2.5.0-rc.1` has since published, been independently verified (three-track
+external evaluation, `docs/coordination/20260803T204257Z-planner-architect-sjqm.md`),
+and is now under a **binding governor observation hold**
+(`docs/coordination/20260803T200227Z-governor-reviewer-5m41.md`, 2026-08-03):
+"Do not begin a v2.5.0 final, v2.5.0-rc.2, v2.5.1-rc.1, or v2.5.1-rc.2 plan
+or release process yet." This plan does not create or advance a v2.5.1
+release obligation while that hold is in effect — it stays exploratory
+material on its own branch until the governor lifts the hold and a
+release target is explicitly reopened. No version bump, CHANGELOG entry,
+or tag is part of this plan in any case (per `release-via-merge-request-rule.md`,
+those happen only in the release workflow itself).
 
 ## How this was drafted
 
@@ -94,17 +123,113 @@ has no external runtime dependencies and Pages builds should stay that
 way); the mockup uses a system-font fallback stack since it cannot ship
 font binaries.
 
-### 3. Navigation
+### 3. Navigation — superseded by a kind-based two-lane resolution
 
-Flatten the current single `Documentation` tree (5 nested groups, up to
-6 levels deep) into 7 top-level tabs — Home, Evaluate, Learn, Adopt,
-Operate, Reference, Contribute — using `navigation.tabs` +
-`navigation.tabs.sticky` in place of `navigation.top`. Full proposed tree
-is in the DX draft below. Two pages are demoted out of top-level nav
-entirely (Philosophical lenses, AI evaluation dossier — both real pages,
-kept and linkable, just not gating a new visitor's first path).
-MkDocs page URLs are driven by file path, not nav position, so this
-restructuring does not break any existing external link into the site.
+**Status: this subsection replaces the original flat 7-tab draft below**
+(kept in "Agent drafts (verbatim)" for audit only — do not implement it
+as written). The flat-tab draft was a real improvement over the current
+6-level nested tree but treated all pages as one undifferentiated list.
+A later exchange in the same review thread (with a human governor and
+an independent external model, Grok, both weighing in) found a sharper
+structure and converged on it collaboratively — recorded here as the
+resolved decision, not as one party's unilateral call.
+
+**The problem the flat draft missed:** a pure two-lane split ("adopter
+path" vs. "evaluate/nosey path") was proposed first and is *almost*
+right, but applied literally it leaves pages like "Roles and gates" and
+"Coordination protocol" homeless — not adopter-only (a new visitor
+doesn't need them before day one) and not evaluator-only (a working
+adopter needs them by day two, not as theory). The fix does not invent
+a third category — this site already states one, in prose, in
+`agf/docs/site/docs/index.md`'s "How to read this site" section, and
+has simply never built it into navigation:
+
+> Human decision · AI action · Shared concept · Reference
+
+**Resolved structure:** keep two reading contracts (critical adopt path
+vs. evaluate/nosey path) but assign pages to a lane by their existing
+four-kind classification, not by a fresh binary:
+
+| Kind (existing taxonomy) | Lane | Rule |
+|---|---|---|
+| Human decision | Adopter path, front | Adopt, approve, accept risk, exit — ordered toward the first governed change |
+| AI action | Adopter path, front | Procedure an assistant executes under supervision |
+| Shared concept | Adopter path, **early** — not stranded under Evaluate | Needed by day one/two *and* by evaluators; pulling it into the adopt path is the one-word fix for the flat-lane version's biggest gap |
+| Reference | Evaluate/reference lane, after the concept is clear | Precision — contracts, provenance, full inventories |
+| Evaluate/theory (adjacent to Reference) | Nosey lane only | Dossier, philosophical lenses, external-review posture, non-binding future direction |
+
+**Per-page inventory** (every page in the current `nav:` tree,
+classified; supersedes the flat draft's tab assignment):
+
+| Page | Kind | Lane |
+|---|---|---|
+| Home (`index.md`) | entry / lane selector | both — the front door, links into each lane explicitly |
+| Use cases + Evaluate (merged, per DX draft) | Human decision | Adopter path, front |
+| Roadmap | Human decision (informs adopt/not) | Adopter path, front |
+| Should you adopt? | Human decision | Adopter path, front |
+| Adopter FAQ | Human decision | Adopter path, front |
+| Exit and decommission | Human decision | Adopter path, front — exit is a front-loaded decision, not a footnote |
+| Install the agf directory | AI action | Adopter path, front |
+| Assistant loader configuration | AI action | Adopter path, front |
+| Your first governed change | AI action | Adopter path, front — the core worked example |
+| agov MCP server | AI action (setup step) | Adopter path, front; Reference-depth content cross-linked |
+| Downstream impact | AI action / Human decision | Adopter path, front |
+| Operations runbook | AI action | Adopter path, day-2 |
+| Session continuity | AI action | Adopter path, day-2 |
+| Poll and coordinate | AI action | Adopter path, day-2 |
+| Day-to-day operation | AI action | Adopter path, day-2 |
+| Run AGF in real situations | AI action / Shared concept | Adopter path, day-2 |
+| Review and release | AI action | Adopter path, day-2 |
+| Upgrade from v1 | AI action | Adopter path, day-2 |
+| Framework map | Shared concept | Adopter path, early |
+| AGF and agent runtimes | Shared concept | Adopter path, early |
+| Roles and gates | Shared concept | Adopter path, early — the page the flat two-lane split lost |
+| Coordination protocol | Shared concept | Adopter path, early — same |
+| Learning loop and evidence | Shared concept | Adopter path, early |
+| Adopter applicability catalog | Reference | Evaluate/reference lane, linked from Adopt |
+| Tooling and token savings | Reference (evidence-heavy) | Evaluate/reference lane, linked from Adopt |
+| Contracts and validators | Reference | Evaluate/reference lane |
+| Customizing the framework | Reference | Evaluate/reference lane, linked from Adopt once minimal path is done |
+| Environment variables | Reference | Evaluate/reference lane |
+| Release artifacts | Reference | Evaluate/reference lane |
+| Maturity vocabulary | Reference | Evaluate/reference lane |
+| Coordination graph index | Reference | Evaluate/reference lane |
+| Review findings | Reference | Evaluate/reference lane |
+| Tooling conformance | Reference | Evaluate/reference lane |
+| Release information | Reference | Evaluate/reference lane |
+| Disclaimer | Reference | Evaluate/reference lane (footer-weight regardless) |
+| AI evaluation dossier | Evaluate/theory | Nosey lane only |
+| Philosophical lenses on AI governance | Evaluate/theory | Nosey lane only |
+| Evolution | Evaluate/theory (non-binding future direction) | Nosey lane only |
+| Contribute | mixed / community | Nosey lane, footer-weight |
+
+**Implementation rules:**
+
+1. Adopter-path nav = Human decision + AI action pages, ordered toward
+   the first governed change, using `navigation.tabs` +
+   `navigation.tabs.sticky`.
+2. Shared concept pages are pulled early into the adopter path — not
+   left stranded under an "Evaluate" or "Learn" tab, which was the flat
+   draft's actual defect.
+3. Nosey/evaluate lane = the dossier, philosophical lenses, Evolution,
+   and Reference-depth pages. Kept as a real top-level tab (`Evaluate`),
+   not deleted — evaluators must not be funneled through a simplified
+   adopter path that hides Track 3 findings, non-goals, or evidence
+   status.
+4. Per-page badge: one of the four kind labels, plus the line *"Not on
+   the critical adopt path"* on any page whose kind is Reference or
+   Evaluate/theory.
+5. Cross-links both ways: Shared concept pages link into both lanes;
+   nosey pages link back to the minimal adopt path. Neither lane is a
+   dead end.
+
+This is **not** two products or two truth levels — one framework, two
+reading contracts, four kinds already on record in this site's own
+docs, now actually built into navigation instead of asserted in prose
+one reader has to already be on `docs/index.md` to see.
+
+MkDocs page URLs are driven by file path, not nav position, so none of
+this restructuring breaks any existing external link into the site.
 
 ### 4. Hero copy
 
@@ -154,12 +279,27 @@ mindset problem decomposition, independent research, and stakeholder
 communication — framed around "DevSecOps competence," foundational
 across development, security, and operations by year three.
 
-**First pass — six adversarial critiques, one per page group** (Home,
-README, "Should you adopt?" as the Human-decision kind, the Shared-
-concept group including Philosophical lenses, the AI-action group
-[Adopt/Operate], and the Reference group). Full arguments available on
-request from the session transcript; the converging structural finding
-and each group's specific counter-proposal:
+**Correction (contribution-auditor finding, `3kpe`, 2026-08-03):** the
+subsections below were originally framed as "six independent adversarial
+critiques" reaching "independent" conclusions. That overstates what
+happened: one orchestrator ran six structured prompts from one shared
+source packet and framing. This is **one AI-assisted adversarial
+exercise with six page-group angles**, not six independent evidence
+sources, and not adopter consensus — corrected throughout this section.
+The raw per-group drafts were not preserved as a durable, citable
+artifact (they existed only in a session transcript, which is not a
+governed evidence source); any future claim that reuses these findings
+must not cite "the session transcript" as if it were retrievable
+evidence. If the underlying arguments are needed again, they should be
+regenerated and committed as a real file, not asserted as already
+existing.
+
+**First pass — one exercise, six page-group angles** (Home, README,
+"Should you adopt?" as the Human-decision kind, the Shared-concept
+group including Philosophical lenses, the AI-action group
+[Adopt/Operate], and the Reference group). The converging structural
+finding and each group's specific counter-proposal, as originally
+recorded:
 
 | Page group | Why the baseline's *axis* is wrong for this page (not just too high/low) | Proposed axis instead |
 |---|---|---|
@@ -170,35 +310,56 @@ and each group's specific counter-proposal:
 | Adopt/Operate (AI action) | The AI does the hands-on work; the human's job is judging the output — a narrower, more teachable skill the baseline never names | "Can read a diff/YAML/CI log well enough to judge correctness" — verification, not construction |
 | Reference | Not too high or too low — irrelevant axis. Gates on this project's own vocabulary, which no external curriculum teaches | "Has read the relevant Concepts page" — an in-project prerequisite, not an external credential |
 
-All six independently concluded the baseline's *axis* is wrong for their
+All six angles landed on the baseline's *axis* being wrong for their
 page, not merely its level — zero overlap in the specific objection,
-one shared structural conclusion: reader-capability is a per-page-kind
-derived attribute here, not a single site-wide constant (same shape as
-`concept-modelling-rule.md`'s intrinsic-vs-derived distinction, applied
-to "assumed reader" instead of a data-model field).
+one shared structural conclusion within this single exercise: reader-
+capability is a per-page-kind derived attribute here, not a single
+site-wide constant (same shape as `concept-modelling-rule.md`'s
+intrinsic-vs-derived distinction, applied to "assumed reader" instead
+of a data-model field). This is a theoretically useful critique from
+one AI-assisted pass, not independently corroborated evidence.
 
-**Status: proposed, not decided.** This table is the AI-side consensus
-output, not a governor decision. Awaiting confirmation, rejection, or
-revision before it is treated as settled calibration for per-page content
+**Accepted follow-up, not yet executed (per `3kpe`):** model each page
+group by primary and secondary audience, user task, prerequisite
+knowledge, and action/verification duty — not by a single capability
+level. Split `Adopt` from `Operate` (they were merged above). Split
+Reference material by task (installation, supervision, troubleshooting,
+command lookup, schema lookup do not share one reader contract). Note
+explicitly that an AI-action page still needs a human troubleshooting
+and verification path, which the single-axis table above does not
+capture.
+
+**Status: proposed, not decided, and due for the re-model above before
+it is treated as settled.** This table is a single AI-assisted-exercise
+output, not multi-source evidence and not a governor decision.
 drafting.
 
-## Flagged for the human governor (not resolved here)
+## Blocking prerequisite: the documentation-audience-rule mismatch
 
-`.claude/rules/docs/documentation-audience-rule.md` states the public
-docs site targets "business users (directors, managers, employees) and
-system administrators." AGF's own site (`agf/docs/site/docs/index.md`,
-"How to read this site") describes a different real audience model —
-Human decision / AI action / Shared concept / Reference, i.e. developers
-and technical evaluators overseeing AI agents, not business users doing
-data entry. This mismatch predates this task and was not created or
-resolved by it (per `uncertainty-and-scope-rule.md`, a rule/reality
-conflict is surfaced, not silently resolved in either direction). All
-four drafting agents were instructed to write for AGF's actual technical
-audience rather than the rule template's business-user framing. If the
-governor agrees, `documentation-audience-rule.md`'s "Public documentation
-site" row should be customized for this project in a separate,
-narrowly-scoped governance change — not folded into this visual-refresh
-work.
+**Correction (contribution-auditor finding, `3kpe`, 2026-08-03):**
+originally recorded below as a flagged-but-parallel note. That
+undersells it. `.claude/rules/docs/documentation-audience-rule.md` is
+the **active, adopted project rule** — not the uncustomized template
+under `agf/rules/` — and this plan's own drafting agents were
+instructed to write against a different audience model that conflicts
+with it. A visual implementation must not knowingly proceed against a
+conflicting active rule. This is now a **hard prerequisite, not a
+parallel side-item**: the rule mismatch needs its own narrow governance
+change, reviewed and merged on its own, before this plan depends on the
+result — not resolved inline as part of the presentation implementation.
+
+Original finding, preserved: `.claude/rules/docs/documentation-audience-rule.md`
+states the public docs site targets "business users (directors,
+managers, employees) and system administrators." AGF's own site
+(`agf/docs/site/docs/index.md`, "How to read this site") describes a
+different real audience model — Human decision / AI action / Shared
+concept / Reference, i.e. developers and technical evaluators
+overseeing AI agents, not business users doing data entry. This
+mismatch predates this task and was not created or resolved by it (per
+`uncertainty-and-scope-rule.md`, a rule/reality conflict is surfaced,
+not silently resolved in either direction). All four drafting agents
+were instructed to write for AGF's actual technical audience rather
+than the rule template's business-user framing.
 
 ## Affected files (once implementation is approved — none touched yet)
 
