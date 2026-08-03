@@ -12,7 +12,7 @@ agent:
   name: "coder-tester"
   id: "agents-govern:coder-tester:0.3.2"
   version: "0.3.2"
-  framework_version: "2.4.11"  # version of framework.md this definition conforms to
+  framework_version: "2.5.0-rc.1"  # version of framework.md this definition conforms to
   provenance: adapted-from-v1x
   tier: "production"
   phase: 1

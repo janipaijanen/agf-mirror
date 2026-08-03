@@ -5,15 +5,15 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | v2.4.11 release publication approved, Gate 2 pending; later release train **approved**, Gate 1 |
-| Observed at | 2026-08-01T17:11:57Z |
-| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.11 release follows approved publication-plan MR !903 at `f6743bf6`, Gate 1-approved by `docs/coordination/20260801T171157Z-governor-reviewer-hek5.md`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
-| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches. `docs/plans/v2411-release-publication.md` is the approved v2.4.11 publication plan. |
+| Status | v2.4.11 published; v2.5.0-rc.1 release publication Gate 1-approved, release execution in progress |
+| Observed at | 2026-08-03T18:02:21Z |
+| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.11 release published via MR !903, Gate 1-approved by `docs/coordination/20260801T171157Z-governor-reviewer-hek5.md`. The v2.5.0-rc.1 release follows approved publication-plan `docs/plans/v250-rc1-release-publication.md` (MR !1051), Gate 1-approved by decision-record `20260803T173905Z-governor-reviewer-p1mm.md`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
+| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches, amended at Gate 1 to fold learning-record `status`/`supersedes`, the `governance-file-layout-rule.md` correction, and issue #101's `agov ci cache-topology-check` command into v2.5.0 alongside #79/#80. `docs/plans/v2411-release-publication.md` is the approved v2.4.11 publication plan; `docs/plans/v250-rc1-release-publication.md` is the approved v2.5.0-rc.1 publication plan. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
 
-**Latest release: `v2.4.10`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.10), tag `v2.4.10`. v2.4.11 is Gate 1-approved and its implementation is in preparation; this line updates once the tag and release artifacts actually exist, per this page's own "How status changes" discipline below.
+**Latest release: `v2.4.11`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.11), tag `v2.4.11`, released 2026-08-01. `v2.5.0-rc.1` is Gate 1-approved and its release execution is in progress; this line updates again once the `v2.5.0-rc.1` tag and release artifacts actually exist, per this page's own "How status changes" discipline below.
 
 v2.4.10 retains the complete v2.4.9 baseline and resolves issue #92 by making
 the repository-local `tooling/agov` wrapper source-compatible with its
@@ -28,8 +28,8 @@ stale commissioning-prompt version pin and Visual Studio Code compatibility
 prose, and adds a visible AI-generation disclosure, descriptive alternative
 text, and a strict-build accessibility check to every public figure embed in
 `README.md` and the public documentation site. It adds no command, schema,
-or adopter-facing obligation semantic. Issue #97 closes only after v2.4.11's
-published assets and site pass post-publication verification.
+or adopter-facing obligation semantic. Issue #97 is closed: v2.4.11's
+published assets and site passed post-publication verification.
 
 A significant limitation in v2.4.5 was fixed in the v2.4.8 baseline:
 [issue #81](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/81)
@@ -52,8 +52,8 @@ The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/ja
 merged to `main` at `27716f20`. Read the plan and its coordination trail directly rather than
 relying on a summary here — this page intentionally does not reproduce the
 release-train stages to avoid a second copy that can drift from the plan.
-v2.4.10 is the latest published patch deliverable in that approved train; v2.4.11
-is Gate 1-approved and in release preparation. v2.4.10 includes
+v2.4.11 is the latest published deliverable in that approved train; v2.5.0-rc.1
+is Gate 1-approved and its release execution is in progress. v2.4.11 includes
 the complete v2.4.8 recovery baseline, which superseded the immutable
 unpublished v2.4.6 tag and the immutable OCI-only v2.4.7 partial publication
 for adoption.
@@ -65,19 +65,26 @@ large release:
 |---|---|---|
 | v2.4.9 | Published patch-only live-surface correction | #93; no new contracted surface |
 | v2.4.10 | Published repository-local tooling reliability correction | #92; no command-semantic change |
-| v2.4.11 | Gate 1-approved documentation and accessibility patch | #97; already-merged !890/!894 content only, no new contracted surface |
-| v2.5.0 | Authority and acknowledgement contracts | #79, #80, and only necessary #33/#67/#78 slices |
+| v2.4.11 | Published documentation and accessibility patch | #97; already-merged !890/!894 content only, no new contracted surface |
+| v2.5.0-rc.1 | Gate 1-approved, release execution in progress; authority and acknowledgement contracts | #79, #80; plus, per the Gate 1 scope-amendment decision, learning-record `status`/`supersedes`, the `governance-file-layout-rule.md` correction, and issue #101's `agov ci cache-topology-check` command — all three already merged and independently Gate 2-approved before the amendment |
 | v2.6.0 | Coordination reliability | #84, #85, #89, and bounded #76 work |
 | v2.7.0 | MCP and assistant integration | #86-#88 and #90 |
 | Later minor | Separately gated work | #91, #94, and approved backlog themes |
 
 ## In scope now
 
-- **v2.5.0 contract core:** upgrade-safe adopter role authority
+- **v2.5.0-rc.1 contract core (Gate 1-approved, release execution in
+  progress):** upgrade-safe adopter role authority
   ([#79](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/79))
   and actionable acknowledgement obligations
   ([#80](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/80)),
-  plus only the minimum #33/#67/#78 compatibility slices those contracts need.
+  plus the minimum #33/#67/#78 compatibility slices those contracts needed
+  (#33 and #67 stay open, unmilestoned; #78 closes with a full disposition
+  note). Per the governor's Gate 1 scope-amendment decision, three further
+  already-merged, already-Gate-2-approved surfaces ship in the same
+  candidate: learning-record `status`/`supersedes`, the
+  `governance-file-layout-rule.md` correction, and issue #101's
+  `agov ci cache-topology-check` command.
 - **Reliability and integration candidates, not yet release promises:**
   #84/#85/#89 route to v2.6.0; #86-#88/#90 route to v2.7.0; #91/#94
   remain later-minor candidates.
@@ -96,11 +103,9 @@ the v2.4.9 release: the broken legacy wrapper and dead parity harness are
 removed, current tooling instructions use Rust `agov`, and the published
 archives are checked for regressions. Issue #92 is fixed in v2.4.10: the
 repository wrapper is bound to compatible tooling-source content and forwards
-the full Rust parser surface. Issue #97 is addressed in the Gate 1-approved
-v2.4.11 plan and remains open pending Gate 2 approval, release, and
-publication verification; it is not deployable until that verification
-completes. Issue closure follows anonymous downloaded-asset and exact-tag
-source-checkout verification so the durable record can cite Level 5 evidence.
+the full Rust parser surface. Issue #97 is fixed and closed in the published
+v2.4.11 release, following anonymous downloaded-asset and exact-tag
+source-checkout verification so the durable record cites Level 5 evidence.
 
 The complete evidence-backed routing is maintained in the
 [issue disposition ledger](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/portfolio/post-v248-issue-disposition.md)

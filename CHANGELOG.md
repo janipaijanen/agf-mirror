@@ -6,7 +6,17 @@ The canonical adopter-facing AGF v2 changelog lives at
 [`agf/CHANGELOG.md`](agf/CHANGELOG.md). The bootstrap reference changelog for
 agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELOG.md).
 
-## [Unreleased]
+## [2.5.0-rc.1] - 2026-08-03
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.2`.
+
+**SemVer classification: Additive minor.** Two new optional learning-record
+schema fields, one new fail-closed adopter-role-authority default, one new
+non-`handoff` obligation-tracking command, one rules-document correction
+(inert content replaced with new operative guidance), and one new packaged
+CI tooling command. No existing schema field, command, or validator
+behavior changed for an adopter not opting into the new fields/commands.
 
 ### Added
 
