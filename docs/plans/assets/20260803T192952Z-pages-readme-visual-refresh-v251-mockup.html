@@ -1,0 +1,402 @@
+<title>agents-govern — v2.5.1 visual direction</title>
+<style>
+  :root{
+    --bg:#F6F8FB;
+    --bg-raised:#FFFFFF;
+    --ink:#12161C;
+    --ink-soft:#4A5568;
+    --ink-faint:#8590A3;
+    --accent:#0077BB;
+    --accent-soft:#99CCEE;
+    --accent-wash: color-mix(in srgb, var(--accent-soft) 22%, transparent);
+    --gate-human:#EE7700;
+    --gate-check:#009944;
+    --gate-ref:#888888;
+    --border: rgba(18,22,28,0.12);
+    --border-strong: rgba(18,22,28,0.22);
+    --shadow: 0 1px 2px rgba(18,22,28,0.06), 0 8px 24px -12px rgba(18,22,28,0.18);
+    --old-strike: #B3390F;
+    --new-good: #00753A;
+
+    --font-display: 'Inter var', Inter, -apple-system, 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter var', Inter, -apple-system, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 16px; --sp-4: 32px; --sp-5: 64px;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0B0E14;
+      --bg-raised:#131822;
+      --ink:#EDF1F7;
+      --ink-soft:#A8B3C4;
+      --ink-faint:#6B7686;
+      --accent:#5BB6EC;
+      --accent-soft:#1E3A52;
+      --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+      --gate-human:#FFA64D;
+      --gate-check:#3FCB7C;
+      --gate-ref:#9AA4B2;
+      --border: rgba(237,241,247,0.14);
+      --border-strong: rgba(237,241,247,0.26);
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px -14px rgba(0,0,0,0.6);
+      --old-strike: #E08560;
+      --new-good: #59D999;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0E14; --bg-raised:#131822; --ink:#EDF1F7; --ink-soft:#A8B3C4; --ink-faint:#6B7686;
+    --accent:#5BB6EC; --accent-soft:#1E3A52; --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+    --gate-human:#FFA64D; --gate-check:#3FCB7C; --gate-ref:#9AA4B2;
+    --border: rgba(237,241,247,0.14); --border-strong: rgba(237,241,247,0.26);
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px -14px rgba(0,0,0,0.6);
+    --old-strike: #E08560; --new-good: #59D999;
+  }
+  :root[data-theme="light"]{
+    --bg:#F6F8FB; --bg-raised:#FFFFFF; --ink:#12161C; --ink-soft:#4A5568; --ink-faint:#8590A3;
+    --accent:#0077BB; --accent-soft:#99CCEE; --accent-wash: color-mix(in srgb, var(--accent-soft) 22%, transparent);
+    --gate-human:#EE7700; --gate-check:#009944; --gate-ref:#888888;
+    --border: rgba(18,22,28,0.12); --border-strong: rgba(18,22,28,0.22);
+    --shadow: 0 1px 2px rgba(18,22,28,0.06), 0 8px 24px -12px rgba(18,22,28,0.18);
+    --old-strike: #B3390F; --new-good: #00753A;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  a{color:var(--accent);}
+  a:focus-visible, button:focus-visible, .tab:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-radius:3px;
+  }
+
+  .shell{max-width:1180px; margin:0 auto; padding:0 var(--sp-4);}
+  @media (max-width:640px){ .shell{padding:0 var(--sp-3);} }
+
+  /* ---------- top chrome ---------- */
+  header.chrome{
+    border-bottom:1px solid var(--border);
+    background:var(--bg-raised);
+  }
+  .chrome-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:var(--sp-3); padding:14px 0;
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:10px;
+    font-family:var(--font-mono);
+    font-weight:600; font-size:15px; color:var(--ink); text-decoration:none;
+  }
+  .brand .dot{color:var(--accent);}
+  .brand .ver{
+    font-size:11px; color:var(--ink-faint); border:1px solid var(--border-strong);
+    border-radius:4px; padding:1px 6px; letter-spacing:0.02em;
+  }
+  .chrome-links{display:flex; gap:var(--sp-4); font-size:14px;}
+  .chrome-links a{color:var(--ink-soft); text-decoration:none;}
+  .chrome-links a:hover{color:var(--accent);}
+  @media (max-width:640px){ .chrome-links{display:none;} }
+
+  /* ---------- hero ---------- */
+  .hero-wrap{padding:var(--sp-5) 0 var(--sp-4);}
+  @media (max-width:640px){ .hero-wrap{padding:var(--sp-4) 0;} }
+  .hero{
+    display:grid; grid-template-columns:1.05fr 0.95fr; gap:var(--sp-5);
+    align-items:center;
+  }
+  @media (max-width:900px){ .hero{grid-template-columns:1fr; gap:var(--sp-4);} }
+
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--accent); display:flex; align-items:center; gap:8px; margin-bottom:var(--sp-3);
+  }
+  .eyebrow::before{content:""; width:7px; height:7px; border-radius:1px; background:var(--gate-human); display:inline-block; transform:rotate(45deg);}
+
+  h1.headline{
+    font-family:var(--font-display); font-weight:700;
+    font-size:clamp(32px, 4.6vw, 56px);
+    line-height:1.08; letter-spacing:-0.01em;
+    margin:0 0 var(--sp-3);
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  p.subhead{
+    font-size:18px; color:var(--ink-soft); max-width:46ch; margin:0 0 var(--sp-4);
+  }
+  .ctas{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:var(--sp-4);}
+  .btn{
+    font-family:var(--font-body); font-weight:600; font-size:15px;
+    padding:11px 20px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    border:1px solid transparent; transition:transform .12s ease, background .12s ease;
+  }
+  .btn-primary{background:var(--accent); color:var(--bg-raised);}
+  .btn-primary:hover{transform:translateY(-1px);}
+  .btn-secondary{background:transparent; color:var(--ink); border-color:var(--border-strong);}
+  .btn-secondary:hover{border-color:var(--accent); color:var(--accent);}
+
+  .hero-foot{font-size:13px; color:var(--ink-faint); font-family:var(--font-mono);}
+  .hero-foot code{color:var(--ink-soft);}
+
+  /* ---------- gate ledger visual ---------- */
+  .ledger{
+    background:var(--bg-raised); border:1px solid var(--border); border-radius:12px;
+    padding:var(--sp-4); box-shadow:var(--shadow);
+  }
+  .ledger-title{
+    font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--ink-faint); margin-bottom:var(--sp-3);
+  }
+  .ledger-flow{display:flex; flex-direction:column; gap:0;}
+  .lnode{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px;
+    opacity:0; transform:translateY(6px); animation:rise .5s ease forwards;
+  }
+  .lnode:nth-child(1){animation-delay:.05s;}
+  .lnode:nth-child(3){animation-delay:.2s;}
+  .lnode:nth-child(5){animation-delay:.35s;}
+  .lnode:nth-child(7){animation-delay:.5s;}
+  @keyframes rise{ to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ .lnode{opacity:1; transform:none; animation:none;} }
+
+  .lshape{
+    flex:0 0 auto; width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:11px; font-weight:700; color:#1A1A1A;
+  }
+  .lshape.diamond{ background:var(--gate-human); transform:rotate(45deg); border-radius:3px; }
+  .lshape.diamond span{ transform:rotate(-45deg); display:block; }
+  .lshape.box{ background:var(--accent-soft); border:2px solid var(--accent); border-radius:6px; color:#1A1A1A; }
+  .lshape.dbox{ background:var(--gate-check); border-radius:6px; box-shadow:0 0 0 2px var(--bg-raised), 0 0 0 3px var(--gate-check); color:#1A1A1A; }
+
+  .ltext{font-size:14px; color:var(--ink);}
+  .ltext b{font-weight:600;}
+  .lconnector{
+    width:1px; height:22px; background:var(--border-strong); margin-left:17px;
+  }
+  .llegend{
+    display:flex; gap:var(--sp-3); margin-top:var(--sp-3); padding-top:var(--sp-3);
+    border-top:1px solid var(--border); flex-wrap:wrap;
+  }
+  .lleg-item{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-faint); font-family:var(--font-mono);}
+  .lleg-swatch{width:9px; height:9px; border-radius:2px; display:inline-block;}
+
+  /* ---------- nav tab strip ---------- */
+  .tabstrip-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--bg-raised);}
+  .tabstrip{display:flex; gap:var(--sp-4); overflow-x:auto;}
+  .tab{
+    font-size:14px; color:var(--ink-soft); text-decoration:none; padding:13px 2px; white-space:nowrap;
+    border-bottom:2px solid transparent; flex:0 0 auto;
+  }
+  .tab.active{color:var(--ink); border-bottom-color:var(--accent); font-weight:600;}
+  .tab:hover{color:var(--ink);}
+
+  /* ---------- feature list ---------- */
+  section.features{padding:var(--sp-5) 0;}
+  .section-head{max-width:60ch; margin-bottom:var(--sp-4);}
+  .section-head .eyebrow::before{background:var(--gate-check);}
+  .section-head h2{font-size:28px; margin:0 0 8px; letter-spacing:-0.01em;}
+  .section-head p{color:var(--ink-soft); margin:0;}
+
+  .flist{display:flex; flex-direction:column;}
+  .fitem{
+    display:grid; grid-template-columns:220px 1fr; gap:var(--sp-4);
+    padding:var(--sp-3) 0; border-top:1px solid var(--border);
+  }
+  .fitem:last-child{border-bottom:1px solid var(--border);}
+  @media (max-width:720px){ .fitem{grid-template-columns:1fr; gap:6px;} }
+  .fkey{font-family:var(--font-mono); font-size:13px; color:var(--accent); padding-top:2px;}
+  .fval{font-size:15.5px; color:var(--ink);}
+  .fval b{font-weight:600;}
+
+  /* ---------- readme diff ---------- */
+  section.diff{padding:var(--sp-5) 0; background:var(--bg-raised); border-top:1px solid var(--border); border-bottom:1px solid var(--border);}
+  .diffgrid{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4);}
+  @media (max-width:820px){ .diffgrid{grid-template-columns:1fr;} }
+  .diffcol{border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--bg);}
+  .diffhead{
+    font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    padding:10px 14px; border-bottom:1px solid var(--border);
+  }
+  .diffhead.old{color:var(--old-strike);}
+  .diffhead.new{color:var(--new-good);}
+  .diffbody{padding:16px 18px; font-size:14px;}
+  .diffbody.old{color:var(--ink-faint);}
+  .diffbody p{margin:0 0 10px;}
+  .diffbody p:last-child{margin-bottom:0;}
+  .tag{
+    display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.04em;
+    padding:2px 6px; border-radius:4px; margin-right:6px; vertical-align:middle;
+  }
+  .tag.moved{background:var(--accent-wash); color:var(--accent);}
+  .tag.kept{background:color-mix(in srgb, var(--gate-check) 18%, transparent); color:var(--new-good);}
+
+  /* ---------- notes ---------- */
+  section.notes{padding:var(--sp-5) 0;}
+  .notes h2{font-size:22px; margin:0 0 var(--sp-3);}
+  .notelist{display:flex; flex-direction:column; gap:var(--sp-3);}
+  .note{
+    display:flex; gap:14px; padding:14px 16px; border:1px solid var(--border); border-radius:8px;
+    background:var(--bg-raised);
+  }
+  .note .mark{font-family:var(--font-mono); font-size:12px; color:var(--gate-ref); flex:0 0 auto; padding-top:2px;}
+  .note p{margin:0; font-size:14px; color:var(--ink-soft);}
+  .note b{color:var(--ink); font-weight:600;}
+
+  footer{padding:var(--sp-4) 0 var(--sp-5); font-size:12.5px; color:var(--ink-faint); font-family:var(--font-mono);}
+  footer a{color:var(--ink-faint);}
+
+  .overflow-x{overflow-x:auto;}
+</style>
+
+<header class="chrome">
+  <div class="shell chrome-row">
+    <a class="brand" href="#" aria-label="agents-govern home">
+      <span>agents<span class="dot">·</span>govern</span>
+      <span class="ver">v2.5.1</span>
+    </a>
+    <nav class="chrome-links" aria-label="secondary">
+      <a href="#">Docs</a>
+      <a href="#">GitLab</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="shell hero-wrap">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Two gates, one repo</div>
+        <h1 class="headline">Plans reviewed before code.<br>Code reviewed before merge.</h1>
+        <p class="subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every decision leaves a timestamped, append-only record in your repo.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="#">Get started</a>
+          <a class="btn btn-secondary" href="#">See the docs</a>
+        </div>
+        <div class="hero-foot">No new accounts · No hosted service · No runtime — files in <code>your-repo/agf/</code></div>
+      </div>
+
+      <div class="ledger" role="img" aria-label="Diagram: a plan is proposed, a human governor approves it at Gate 1, an AI implements and tests it, CI validates it, and a human governor approves it again at Gate 2 before merge.">
+        <div class="ledger-title">Governed change flow</div>
+        <div class="ledger-flow">
+          <div class="lnode">
+            <div class="lshape box"><span style="font-size:10px;">AI</span></div>
+            <div class="ltext">Plan drafted</div>
+          </div>
+          <div class="lconnector"></div>
+          <div class="lnode">
+            <div class="lshape diamond"><span>G1</span></div>
+            <div class="ltext"><b>Gate 1</b> — governor approves the plan</div>
+          </div>
+          <div class="lconnector"></div>
+          <div class="lnode">
+            <div class="lshape box"><span style="font-size:10px;">AI</span></div>
+            <div class="ltext">Implement + test</div>
+          </div>
+          <div class="lconnector"></div>
+          <div class="lnode">
+            <div class="lshape dbox"><span style="font-size:9px;">CI</span></div>
+            <div class="ltext">Validators run</div>
+          </div>
+          <div class="lconnector"></div>
+          <div class="lnode">
+            <div class="lshape diamond"><span>G2</span></div>
+            <div class="ltext"><b>Gate 2</b> — governor approves the merge</div>
+          </div>
+        </div>
+        <div class="llegend">
+          <span class="lleg-item"><span class="lleg-swatch" style="background:var(--gate-human); transform:rotate(45deg);"></span>Human decision</span>
+          <span class="lleg-item"><span class="lleg-swatch" style="background:var(--accent-soft); border:1.5px solid var(--accent);"></span>AI action</span>
+          <span class="lleg-item"><span class="lleg-swatch" style="background:var(--gate-check);"></span>Automated check</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabstrip-wrap">
+    <div class="shell">
+      <nav class="tabstrip" aria-label="primary">
+        <a class="tab active" href="#">Home</a>
+        <a class="tab" href="#">Evaluate</a>
+        <a class="tab" href="#">Learn</a>
+        <a class="tab" href="#">Adopt</a>
+        <a class="tab" href="#">Operate</a>
+        <a class="tab" href="#">Reference</a>
+        <a class="tab" href="#">Contribute</a>
+      </nav>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="shell">
+      <div class="section-head">
+        <div class="eyebrow">What AGF gives you</div>
+        <h2>Six controls, added to a repo you already have.</h2>
+        <p>Each bullet below is one independent claim — no compound sentences carrying two ideas at once.</p>
+      </div>
+      <div class="flist">
+        <div class="fitem"><div class="fkey">01 · roles</div><div class="fval">A named human governor approves the plan before implementation starts <b>(Gate 1)</b> and approves the tested change before it merges <b>(Gate 2)</b>.</div></div>
+        <div class="fitem"><div class="fkey">02 · authority</div><div class="fval">Proposing, implementing, reviewing, and approving are separate, named responsibilities.</div></div>
+        <div class="fitem"><div class="fkey">03 · records</div><div class="fval">Plans, handoffs, reviews, and decisions live as repository files tied to exact revisions.</div></div>
+        <div class="fitem"><div class="fkey">04 · evidence</div><div class="fval">Every public capability claim states whether it's planned, implemented, validated, or deployable — and how well-evidenced that status is.</div></div>
+        <div class="fitem"><div class="fkey">05 · learning</div><div class="fval">Operational evidence can become a reviewed learning record; nothing changes rules or scope automatically.</div></div>
+        <div class="fitem"><div class="fkey">06 · exit</div><div class="fval">No runtime or service holds your data — pause, downgrade, or remove it whenever you want.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="diff">
+    <div class="shell">
+      <div class="section-head">
+        <div class="eyebrow">README, before / after</div>
+        <h2>Same claims. Nothing deleted, only relocated.</h2>
+        <p>The qualifiers below aren't decoration — they're a required distinction in this project's own evidence model. The change is where they sit, not whether they exist.</p>
+      </div>
+      <div class="overflow-x">
+        <div class="diffgrid">
+          <div class="diffcol">
+            <div class="diffhead old">Today — hedges inline</div>
+            <div class="diffbody old">
+              <p>"Typical cost: mechanical installation has taken no more than ten minutes in the maintainer's own deployments — empirically informed maintainer evidence, not yet independent-adopter validation. Governor attention is often 5–15 minutes for a non-trivial change, a maintainer-informed planning estimate, not a benchmark…"</p>
+              <p>— three qualifiers, one paragraph, read before the pitch has finished landing.</p>
+            </div>
+          </div>
+          <div class="diffcol">
+            <div class="diffhead new">Proposed — hedges relocated</div>
+            <div class="diffbody">
+              <p><span class="tag kept">kept verbatim</span>Installation is fast and governor overhead is modest in practice — see <a href="#">Evidence and maturity</a> for what's measured versus estimated.</p>
+              <p><span class="tag moved">moved below</span><b>Evidence and maturity</b> table: claim → status → basis, three rows, same wording as today.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="notes">
+    <div class="shell">
+      <h2>Open items before this ships</h2>
+      <div class="notelist">
+        <div class="note"><div class="mark">01</div><p><b>Dark-mode accent is illustrative, not final.</b> <code style="font-family:var(--font-mono);">#5BB6EC</code> shown here needs to be added to <code style="font-family:var(--font-mono);">reference/palette.md</code> with its own contrast row and pass <code style="font-family:var(--font-mono);">check_palette_contrast.py</code> before it ships — <code style="font-family:var(--font-mono);">blue-mid</code> itself fails AA as a dark-mode accent (~2.7:1 on slate).</p></div>
+        <div class="note"><div class="mark">02</div><p><b>Fonts are system-stack fallbacks in this mockup.</b> Production build self-hosts Inter + JetBrains Mono <code style="font-family:var(--font-mono);">.woff2</code> — no font CDN, matching the project's no-external-runtime posture.</p></div>
+        <div class="note"><div class="mark">03</div><p><b>documentation-audience-rule.md mismatch flagged, not resolved here.</b> The checked-in rule describes the public docs site as business-user-facing; this project's own site targets developers and technical evaluators. Separate governance change recommended.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="shell">
+    Visual direction draft for v2.5.1 — see <code>docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md</code> for the full plan and open items. Not yet implemented in the real MkDocs Material build.
+  </div>
+</footer>

@@ -435,3 +435,50 @@ Candidate outputs:
 
 This work must not expand or block v2.5.0. It begins only after the release's
 contracted work and publication path are complete.
+
+## Pages + README Visual Direction (v2.5.1) — Draft, Not Confirmed Final
+
+Status: open draft TODO. Direction proposed and liked by the human governor,
+explicitly not yet confirmed as final ("I like the approach, but I am not
+100% confident that's the final" — 2026-08-03). Owner: governor-reviewer for
+final disposition and sign-off; documentation-writer role for README
+implementation once confirmed.
+
+Four persona-briefed drafting passes (technical writing, developer
+experience/information architecture, marketing, UX/visual design) proposed a
+coordinated redesign of the public Pages site and README: palette, typography,
+flattened navigation, a real hero component, and a README restructure that
+relocates evidence/maturity hedging out of the pitch without deleting any
+claim. Inspired by a reference site's visual register (near-monochrome
+palette, confident minimal copy, flat navigation), adapted to AGF's own
+governed diagram palette rather than copied wholesale.
+
+Full synthesis, decisions, risks, and test strategy:
+`docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md`.
+Visual mockup: `docs/plans/assets/20260803T192952Z-pages-readme-visual-refresh-v251-mockup.html`.
+Drafting branch: `plan/pages-readme-visual-refresh-v251`.
+
+No implementation has started. `README.md`, `agf/docs/build/mkdocs.yml`, and
+the site CSS remain untouched.
+
+Open before implementation proceeds:
+
+- Confirm hero copy variant (plan recommends "Plans reviewed before code.
+  Code reviewed before merge."; two alternates are in the plan).
+- Resolve the dark-mode accent contrast gap with a real validated palette
+  token added to `reference/palette.md` and passed through
+  `check_palette_contrast.py` — the mockup's dark-mode accent is illustrative
+  only, not a proposed final value.
+- Decide whether `.claude/rules/docs/documentation-audience-rule.md`'s
+  "Public documentation site" row should be customized for this project — the
+  plan flags a mismatch (rule says business users; AGF's own site targets
+  developers/technical evaluators) but does not resolve it.
+- Sanity-check the proposed 7-tab navigation flattening against real adopter
+  feedback if any exists, rather than treating the drafting pass alone as
+  validation.
+- General re-review: the human governor has not yet confirmed this is the
+  final direction versus a strong starting point to iterate on further.
+
+Candidate next step once confirmed: implementation as two independently
+reviewable MRs (README restructure; Pages theme/nav/hero), sized so each
+answers one yes/no review question, per `branch-and-worktree-rule.md`.
