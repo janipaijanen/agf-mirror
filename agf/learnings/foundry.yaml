@@ -2779,6 +2779,314 @@ learnings:
         - "Independent hand-reproduction, 2026-08-03: agov plan validate against the real v2.5.0-rc.1 gate1-plan.schema.json with empty and non-governor gate1_approved_by, both status:approved, both exit 0"
         - "Independent hand-reproduction, 2026-08-03: in-place mutation of a historical handoff record's task text, re-validated OK, served live and unmodified by agov handoff next"
 
+  - id: "20260803T212419Z-nq7p"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: multi-ai-review-relay-carries-the-same-unauthenticated-attribution-gap-track-3-found-in-from-field
+    status: proposed
+    description: >
+      Raised during a session running multi-model adversarial review of
+      v2.5.0-rc.1 (Grok, Codex, and this session's own execution),
+      independently confirmed by Grok when the point was put to it: the
+      review workflow itself carries the same class of gap Track 3 found
+      in `coordination-message.schema.json`'s `from:` field, one layer
+      up. `from: governor-reviewer` on a coordination record is an
+      unauthenticated string; a valid-looking record does not prove a
+      bound actor. The human relay carrying "Grok found X" or "Codex
+      said Y" between chat sessions into a governed coordination record
+      or learning entry has exactly the same property — no cryptographic
+      binding, no tool-attested transcript hash, no enforced role
+      activation.
+
+      Two concrete, non-hypothetical illustrations from the same
+      session: (1) Lumo (a third model, documentation-only) fabricated
+      specific schema filenames and CLI flags that read as plausible and
+      were wrong; caught only because this session had direct repository
+      access to check, not because the relay itself had any integrity
+      check. (2) **Correction (contribution-auditor qqj4, B-LRN-1):**
+      this illustration originally claimed the human governor never
+      formally activated `planner-architect` for this session. That
+      claim is false — `agf/agents/MANIFEST.yaml` marks
+      `planner-architect` `status: active`, `played_by: claude`, and
+      root `AGENTS.md` states the same; role activation is real and
+      pre-existing, not something this session's own conduct could
+      demonstrate absent or present. Role activation, authorization for
+      a specific task, and binding governor decision authority are three
+      different questions; only the first was ever in doubt here, and it
+      was never actually in doubt — it was already granted. The real
+      illustration is narrower: Codex's governor-authorized
+      gate-speed-acceleration synthesis (`4g1e`) was addressed back
+      `to: planner-architect` and instructed it to "author the Gate 1
+      candidate within planner-architect authority" — a specific
+      high-risk task (drafting a Gate 1 candidate for an
+      authority-enforcement fix) whose scope this session judged
+      ambiguous enough that it declined to proceed without an explicit,
+      separately-confirmed human instruction for that exact task,
+      distinct from the role's standing activation. That is a
+      task-scoping caution, not evidence that the relay broke identity
+      binding for the role itself.
+
+      Grok's own restatement: "Multi-AI adversarial review is only as
+      trustworthy as the human (or system) carrying the relay.
+      Unauthenticated chat attribution is the same class of failure as
+      an unauthenticated `from:` field — often worse, because it never
+      hits a schema."
+
+      **Correction (contribution-auditor qqj4, B-LRN-2):** the two
+      Lumo/Grok illustrations above conflate two different controls that
+      this entry should keep separate. *Attribution* is whether a claim
+      is correctly bound to the party who actually said it (a
+      provenance question). *Correctness* is whether the claim itself is
+      true (a truth question). A correctly-attributed model can still
+      hallucinate; a false attribution can still happen to carry a true
+      claim. Lumo's fabricated filenames are a correctness failure this
+      session could check directly against the repository — they say
+      nothing about whether Lumo's identity was itself misattributed.
+      Conversely, this entry cannot independently verify what Lumo or
+      Grok actually said in their own sessions, because no durable
+      primary transcript or digest of either exchange is published here
+      or elsewhere in this project; both should be read as
+      human/Claude-relayed content, not as authenticated statements from
+      those systems, until a primary artifact exists. Where this entry
+      (or its evidence_refs) describes Grok as "confirming" a finding, it
+      means Grok agreed with a specific point already put to it in this
+      relay, not that Grok reached the conclusion from a blinded or
+      independent starting position — no blinding protocol was used.
+    agents_involved:
+      - fact-checker
+      - contribution-auditor
+      - planner-architect
+    framework_section: "agf/schemas/coordination-message.schema.json (from: unauthenticated, same gap one layer up in any workflow relaying external model output into a coordination record or learning entry)"
+    business_impact:
+      type: neutral
+      description: >
+        Proactive, self-detected finding; no incident occurred. Forward-
+        looking exposure: this session's own consolidated review and
+        learning records are session outputs whose "two independent
+        models agree" framing could be read as stronger evidence than a
+        human relay with no integrity check can actually support.
+    recommendation: >
+      Per Grok's suggested mitigations, none requiring new cryptographic
+      infrastructure: cite primary artifacts (commands, exit codes, file
+      paths, commit/tag, schema snippets) rather than resting on model
+      attribution alone, as this session did for the AGF-side findings
+      themselves; treat model-named findings as claims until reproduced,
+      not as evidence on receipt; do not treat a role's standing
+      MANIFEST activation as authorization for a specific high-risk task
+      — require an explicit, separately-confirmed human instruction for
+      the task itself, distinct from role activation; consider an
+      optional field on learning/coordination records for "reproduced by
+      X at time T" to distinguish a relayed claim from an independently
+      reproduced one. Scope is this workflow's trust model, not a new
+      AGF schema defect — no schema change is proposed by this entry
+      alone.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "This session, 2026-08-03: Codex's 4g1e addressed a Gate-1-authoring instruction to planner-architect (a role this session confirmed is MANIFEST-active), and this session declined the specific task pending explicit human confirmation of task scope, distinct from role activation."
+        - "This session, 2026-08-03: Lumo's fabricated schema filenames and CLI syntax, caught only via direct repository access, not via any relay-level check."
+        - "Grok, 2026-08-03: agreed with this finding and its framing after this session put the point to it directly; not an independent or blinded confirmation."
+
+  - id: "20260803T212420Z-hv3k"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: naive-gate1-approved-by-non-empty-check-is-unsafe-without-fail-closed-manifest-and-lifecycle-scope
+    status: proposed
+    description: >
+      Follow-up red-team (Grok, 2026-08-03) of the P0 fix proposed against
+      finding `20260803T205236Z-gt3x` ("require non-empty
+      gate1_approved_by, constrained to governor-class roles, when
+      status: approved"). Attacking the fix design, not the original gap,
+      found a naive implementation is not safe:
+
+      (1) Migration: existing plan records with empty/non-governor
+      approvers become non-conforming the moment this ships as blocking,
+      with no grandfather or profile — a BREAKING change under this
+      project's own `downstream-impact-rule.md`, not additive, and needs
+      an explicit migration/grandfather design.
+
+      (2) MANIFEST-absent silent skip: reusing the existing advisory-role
+      cross-check pattern for the approver field inherits the same trap
+      independently reproduced against `gt3x` — in a workspace with no
+      `agf/agents/MANIFEST.yaml` at all, the check never runs, so empty
+      and non-governor approvers both still pass. **Correction
+      (contribution-auditor qqj4, B-LRN-4):** the no-MANIFEST condition
+      was reproduced directly in this project's own sandboxes; how
+      prevalent no-MANIFEST workspaces are across adopters was not
+      measured and is not claimed here. A naive reuse of the pattern
+      would be "fully bypassed" (Grok's words) whenever that condition
+      holds, regardless of how common it is.
+
+      (3) Exact-match requirement: today's advisory-role lookup is already
+      exact-match, case-sensitive, no fuzzy matching (confirmed:
+      `infosec-sentinels` plural is rejected as unknown). A new approver
+      check needs the same explicit exact-match-after-trim behavior
+      stated, not assumed, or near-miss role strings
+      (`governor-reviewers`, trailing whitespace, wrong case) would pass.
+
+      (4) Ten additional bypass attempts against a naive "non-empty +
+      looks like a role name" rule (full list in the review thread),
+      the two most load-bearing: a rule scoped only to `status: approved`
+      leaves `active`/`complete` plans with empty approvers unguarded
+      after the lifecycle moves past pending; and a schema-only
+      `minLength: 1` check without a MANIFEST bind still passes
+      `gate1_approved_by: "coder-tester"`.
+
+      Independently convergent with Codex's separate, governor-authorized
+      adversarial synthesis (`4g1e`, findings B-GS-3 and B-GS-5), reached
+      through a different specific proposal (gate-speed acceleration
+      tooling) without seeing this session's red-team output: same
+      MANIFEST-absent-silent-skip trap, same "record-shape, not
+      identity-proof" ceiling on what a field-level fix can guarantee.
+    agents_involved:
+      - contribution-auditor
+      - governor-reviewer
+      - coder-tester
+      - planner-architect
+    framework_section: "agf/schemas/gate1-plan.schema.json (gate1_approved_by contract); agf/agents/MANIFEST.yaml role-activation cross-check pattern, currently used only for advisory_consultation"
+    business_impact:
+      type: prevented_loss
+      description: >
+        Prevents shipping a fix that appears to close the
+        `gate1_approved_by` gap while remaining fully bypassed whenever a
+        workspace has no `MANIFEST.yaml` (adopter prevalence of that
+        condition not measured), and prevents an undocumented breaking
+        change to existing conforming plan records.
+    recommendation: >
+      Non-naive P0 shape, per the red-team: require gate1_approved_by
+      non-empty after trim and an exact-match key of an active
+      governor-class MANIFEST role (start with governor-reviewer only,
+      extend via MANIFEST metadata later) whenever
+      status in {approved, active, complete}; fail closed (blocking, not
+      skipped) when the relevant MANIFEST is missing on such a plan, not
+      only for this field but as the same policy for every role
+      cross-check; ship as BREAKING with an explicit migration path
+      (advisory window, strict-profile opt-in, or one-shot rewrite of
+      historical approved plans with an honest "migrated, authority not
+      re-attested" note) rather than a silent hard break. State plainly
+      in docs that this raises the cost of a fake approval in a
+      validated file; it does not authenticate a human or freeze history
+      — those remain separate, unresolved gaps (`gt3x`).
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "Grok, 2026-08-03: reproduced MANIFEST-present/absent behavior differences against the real v2.5.0-rc.1 gate1-plan.schema.json and advisory-role exact-match behavior."
+        - "Codex, 2026-08-03, docs/coordination/20260803T210104Z-contribution-auditor-4g1e.md, findings B-GS-3/B-GS-5: independently convergent conclusions from a different, governor-authorized proposal."
+
+  - id: "20260803T212421Z-t8mz"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: agf-maturity-and-evidence-status-vocabulary-not-yet-applied-to-its-own-gate-enforcement-claims
+    status: proposed
+    description: >
+      Strategic observation surfaced answering "what is AGF's missing
+      killer feature" (Grok, this session, 2026-08-03; independently
+      corroborated by this session's own Track 3 findings). AGF defines a
+      maturity/evidence-status vocabulary (Level 1 Planned through Level 5
+      Deployable; Theoretical / empirically informed / empirically
+      validated) and applies it to capability claims in the documentation
+      reviewed in this session, but has not turned that same discipline
+      on its own enforcement mechanism. **Correction (contribution-auditor
+      qqj4, B-LRN-4):** the claims below are bounded to this project's
+      own release and the configurations this session actually inspected,
+      not to adopter prevalence generally, which was not measured.
+      "Gate 1 approved" is currently asserted as one undifferentiated
+      thing, when the real range spans schema-shape-only validation (what
+      ships today, per `gt3x`), CI-blocking-if-configured (what this
+      project's own hosted pipeline provides when correctly configured,
+      per `sjqm` finding 4), through identity-bound/signed (a tier no
+      configuration observed in this project, including its own release
+      process, currently implements, per the same finding).
+    agents_involved:
+      - planner-architect
+      - governor-reviewer
+    framework_section: "agf/docs/site/reference/maturity-vocabulary.md; agf/schemas/gate1-plan.schema.json; public docs describing Gate 1/Gate 2 (currently state gate authority without a tier label)"
+    business_impact:
+      type: neutral
+      description: >
+        Strategic/positioning insight, not yet costed against a specific
+        incident. If adopted, directly closes part of the honesty gap
+        `gt3x` and the visual-refresh plan's evidence-and-maturity
+        section are already trying to address by other means.
+    recommendation: >
+      Extend the existing maturity vocabulary to describe enforcement
+      tiers, and let a given deployment self-report which tier its own
+      gates actually run at (schema-shape-only / CI-blocking-configured /
+      identity-bound), reusing the labeling discipline the project
+      already operates rather than building new cryptographic
+      infrastructure. Smaller lift than an opt-in signing profile;
+      directly addresses the "excellent process memory vs. enforced
+      governance" gap without overclaiming a fix that doesn't exist yet.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "This session, 2026-08-03: synthesis grounded in gt3x's four reproduced findings, not a new independent observation on its own."
+
+  - id: "20260803T223917Z-290f"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: multi-model-review-relay-has-a-goodhart-risk-distinct-from-attribution-forgery
+    status: proposed
+    description: >
+      Split out of `20260803T212419Z-nq7p` per contribution-auditor
+      review `qqj4` (finding B-LRN-3): this is a distinct causal claim
+      from that entry's unauthenticated-attribution gap and needs its
+      own evidence boundary rather than being folded into the same
+      record as an addendum.
+
+      Raised by Grok during the same rc.1 multi-model review session:
+      attribution forgery (nq7p) is not the only risk in a
+      human-relayed multi-AI review workflow. A separate incentive-layer
+      risk sits on top of it — correction -> agreement -> integrate is
+      the comfortable rhythm for a multi-model review to fall into, and
+      once a session settles into that rhythm, disconfirming work tends
+      to stop early because convergence gets read as closure rather than
+      as one data point. This is a Goodhart-style concern about the
+      review *process* itself, not about any single finding's factual
+      correctness — it does not weaken or cast doubt on any finding in
+      this project's rc.1 review set that was independently reproduced
+      with commands (those stand on their own reproduction evidence,
+      unaffected by how the surrounding synthesis conversation was
+      paced).
+    agents_involved:
+      - fact-checker
+      - contribution-auditor
+      - planner-architect
+    framework_section: "review/synthesis process for multi-model coordination review sessions; no specific schema or code path — this is a process-discipline observation about how convergence is read during synthesis"
+    business_impact:
+      type: neutral
+      description: >
+        Proactive, self-detected process observation; no incident
+        occurred. Forward-looking exposure: a future multi-model
+        synthesis round could treat two-model agreement as sufficient
+        closure when an explicit open/unresolved check would have
+        caught a shared blind spot.
+    recommendation: >
+      When two or more models converge on a finding during a synthesis
+      round, treat convergence as one input, not the closure signal
+      itself: explicitly note what was NOT re-attacked after agreement
+      was reached, and prefer citing independently reproduced primary
+      evidence (commands, exit codes, file diffs) over citing that
+      multiple models agreed. No new tooling is proposed by this entry;
+      this is a synthesis-discipline note for future review rounds.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "This session's own rc.1 review synthesis, 2026-08-03: the correction -> agreement -> integrate pattern was observed directly across multiple rounds of this session's own Grok exchanges, and named by Grok during the same thread; not independently reproduced outside this one session."
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
