@@ -6,7 +6,23 @@ The canonical adopter-facing AGF v2 changelog lives at
 [`agf/CHANGELOG.md`](agf/CHANGELOG.md). The bootstrap reference changelog for
 agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELOG.md).
 
-## [Unreleased]
+## [2.5.0-rc.1] - 2026-08-03
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.2`.
+
+**SemVer classification: Additive minor.** Two new optional learning-record
+schema fields, one new fail-closed adopter-role-authority default, one new
+non-`handoff` obligation-tracking command, one rules-document correction
+(inert content replaced with new operative guidance), and one new packaged
+CI tooling command. Existing command **syntax** is unchanged, and behavior
+for an adopter with a valid, present `agf/agents/MANIFEST.yaml` is
+unchanged. One existing command's **output** does change: with the
+default path and no `MANIFEST.yaml` present, `agov session resume` (#79)
+now reports the missing role-authority path and both remedies explicitly,
+in place of the prior generic "not found" message. No other existing
+command, schema field, or validator behavior changed for an adopter not
+opting into the new fields/commands.
 
 ### Added
 
@@ -122,6 +138,15 @@ not an AGF framework capability.
 
 Adopter docs: not applicable — repository-internal CI cost optimization,
 not an AGF framework capability.
+
+### Validation
+
+- Rust workspace: 340 passed, 0 failed, 3 ignored. Clippy clean with
+  warnings denied.
+- Strict `mkdocs build`: passed, no broken links.
+- Framework-archive overlay tested against three published baselines:
+  `v2.4.5`, `v2.4.8` (substituted for unpublished `v2.4.6` per governor
+  decision `20260803T183732Z-governor-reviewer-rntt.md`), and `v2.4.11`.
 
 ## [2.4.11] - 2026-08-01
 

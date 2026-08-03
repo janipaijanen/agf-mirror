@@ -12,7 +12,7 @@ agent:
   name: "documentation-writer"
   id: "agents-govern:documentation-writer:0.1.0"
   version: "0.1.0"
-  framework_version: "2.4.11"  # version of framework.md this definition conforms to
+  framework_version: "2.5.0-rc.1"  # version of framework.md this definition conforms to
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 3

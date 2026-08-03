@@ -3,7 +3,23 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## [Unreleased]
+## [2.5.0-rc.1] — 2026-08-03
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.2`.
+
+**SemVer classification: Additive minor.** Two new optional learning-record
+schema fields, one new fail-closed adopter-role-authority default, one new
+non-`handoff` obligation-tracking command, one rules-document correction
+(inert content replaced with new operative guidance), and one new packaged
+CI tooling command. Existing command **syntax** is unchanged, and behavior
+for an adopter with a valid, present `agf/agents/MANIFEST.yaml` is
+unchanged. One existing command's **output** does change: with the
+default path and no `MANIFEST.yaml` present, `agov session resume` (#79)
+now reports the missing role-authority path and both remedies explicitly,
+in place of the prior generic "not found" message. No other existing
+command, schema field, or validator behavior changed for an adopter not
+opting into the new fields/commands.
 
 ### Added
 
@@ -92,6 +108,21 @@ Adopter docs: updated — `docs/coordination/README.md` and
 `agf/docs/site/docs/concepts/coordination-protocol.md` both state the
 same permitted-kind matrix, cutoff, and resolution rule.
 
+- Added `agov ci cache-topology-check` (issue #101), a packaged tooling
+  command that statically validates a shared CI cache's writer/consumer
+  topology against GitLab CI Lint's merged YAML — confirming exactly one
+  authorized writer job and that every writer and consumer job references
+  the expected cache-policy CI variable. It was built for this project's
+  own CI cost problem and carries no documented adopter workflow today,
+  but is not adopter-inert: it accepts arbitrary merged CI YAML plus
+  configurable cache-key, writer-job, and policy-variable names as input,
+  so an adopter with a similar shared-cache topology could point it at
+  their own CI configuration. It has no `requires-ack`/obligation
+  semantic and does not participate in the coordination protocol.
+
+Adopter docs: not applicable — no dedicated how-to page exists yet; this
+entry is this feature's only current adopter-facing documentation.
+
 ### Fixed
 
 - `agf/rules/always/governance-file-layout-rule.md` no longer presents
@@ -115,6 +146,15 @@ Adopter docs: not applicable — the table's content already exists in
 `ADOPTING.md`'s "Confirm the layout" table (except the #79-pending row,
 which is explicitly marked as such); no new adopter doc, template, or
 behavior change as a result.
+
+### Validation
+
+- Rust workspace: 340 passed, 0 failed, 3 ignored. Clippy clean with
+  warnings denied.
+- Strict `mkdocs build`: passed, no broken links.
+- Framework-archive overlay tested against three published baselines:
+  `v2.4.5`, `v2.4.8` (substituted for unpublished `v2.4.6` per governor
+  decision `20260803T183732Z-governor-reviewer-rntt.md`), and `v2.4.11`.
 
 ## [2.4.11] — 2026-08-01
 
