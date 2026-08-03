@@ -40,8 +40,25 @@ advisory_consultation:
       direct-completion-only heuristic), B-HR-ACTIVE-3 (`mr-open`
       records must stay `defer` regardless of `requires-ack` — an open
       MR is already the live delivery path). All three addressed in
-      this third revision. A bounded renewed review is requested before
-      this is treated as Gate 1-ready.
+      the third revision. Round 4 review
+      (`20260803T124844Z-contribution-auditor-jmgt.md`) at exact head
+      `99fc1210`: BLOCK, one blocking finding.
+      B-HR-HANDOFF-CUTOFF-4: decision-record `sejb` scopes the governed
+      cutoff to "the `--all-kinds` pending surface" only, and
+      `handoff_tracker.rs::find_pending` (which owns `kind: handoff`
+      resolution) takes no cutoff parameter at all — only
+      `find_pending_all_kinds` (non-handoff records) is cutoff-gated.
+      The third revision let a handoff's own pre-cutoff timestamp
+      short-circuit its classification ahead of transitive resolution,
+      silently reclassifying up to 51 potentially-unresolved handoffs
+      as historical/grandfathered without governor authority to extend
+      the cutoff to handoffs. Fixed in this fourth revision: every
+      `kind: handoff` record is now classified by the real
+      transitive-descendant algorithm unconditionally, regardless of
+      its own timestamp relative to the cutoff; the cutoff continues to
+      gate exactly what `sejb` authorized — non-handoff
+      `requires-ack: true` records only. A bounded renewed review is
+      requested before this is treated as Gate 1-ready.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -64,13 +81,15 @@ advisory_consultation:
 per contribution-auditor's round 1 review (`1ajh`); revised again
 2026-08-03T12:05:00Z per contribution-auditor's round 2 review
 (`hpaq`); revised again 2026-08-03T12:35:00Z per contribution-auditor's
-round 3 review (`mjk3`).
-**Status:** REVISED DRAFT (round 3) — round 1's six findings (B-HR-1
+round 3 review (`mjk3`); revised again 2026-08-03T13:05:00Z per
+contribution-auditor's round 4 review (`jmgt`).
+**Status:** REVISED DRAFT (round 4) — round 1's six findings (B-HR-1
 through B-HR-6), round 2's five findings (B-HR-EVID-1, B-HR-ROOT-2,
-B-HR-OBL-2, B-HR-VAL-1, B-HR-COST-2), and round 3's three findings
-(B-HR-ACK-3, B-HR-HANDOFF-3, B-HR-ACTIVE-3) are addressed below; a
-bounded renewed review is requested before this is treated as
-Gate 1-ready. Proposed dispositions remain recommendations only. Final
+B-HR-OBL-2, B-HR-VAL-1, B-HR-COST-2), round 3's three findings
+(B-HR-ACK-3, B-HR-HANDOFF-3, B-HR-ACTIVE-3), and round 4's one finding
+(B-HR-HANDOFF-CUTOFF-4) are addressed below; a bounded renewed review
+is requested before this is treated as Gate 1-ready. Proposed
+dispositions remain recommendations only. Final
 disposition of each record remains governor-reviewer authority per the
 triggering handoff's own stated boundary. **No implementation, bulk
 merge, or historical-record publication is authorized by this plan.**
@@ -153,16 +172,19 @@ backlog — claimed by planner-architect (this role) via
       `20260802T220154Z-governor-reviewer-sejb.md` sets
       `2026-08-02T22:01:54Z` as the boundary before which coordination
       records are grandfathered and never counted as current pending
-      obligations, full stop. Applied here: any candidate whose own
-      `timestamp` predates the cutoff is classified
-      historical/grandfathered regardless of kind, `requires-ack`, or
-      citation. **196 of the 200 records predate the cutoff.**
+      obligations on **the `--all-kinds` pending surface**, full stop —
+      `sejb`'s own text names that surface explicitly. Applied here: any
+      non-handoff candidate whose own `timestamp` predates the cutoff is
+      classified historical/grandfathered regardless of `requires-ack`
+      or citation. **196 of the 200 records predate the cutoff**, but
+      per B-HR-HANDOFF-CUTOFF-4 below, this no longer determines the
+      classification of `kind: handoff` records among them.
     - **Real handoff resolution** — for `kind: handoff` records, built
       the actual transitive-descendant-subgraph check
       `agov-coord/src/handoff_tracker.rs::is_resolved` implements (any
       `ack`, `completion`, or `decision-record` anywhere downstream in
       the reference graph, not merely a direct citation), over the
-      union of all 2047 current `main` coordination records and all 200
+      union of all current `main` coordination records and all 200
       candidates. For non-handoff `requires-ack: true` records, applied
       `find_pending_all_kinds`'s actual documented semantics instead: a
       direct reference from any later record fully resolves it — round
@@ -174,6 +196,23 @@ backlog — claimed by planner-architect (this role) via
       An open MR is already a live, shared delivery path; pulling its
       coordination content into a separate consolidation pass risks
       duplicate delivery and ambiguous closeout, per B-HR-ACTIVE-3.
+12. **Per B-HR-HANDOFF-CUTOFF-4 (round 4 — the cutoff never gates
+    handoffs, only the `--all-kinds` surface):** round 3's fix above
+    still let a handoff's own pre-cutoff timestamp short-circuit its
+    classification *ahead of* transitive resolution, which silently
+    reclassified handoffs the transitive algorithm actually finds
+    unresolved as merely historical/grandfathered. `find_pending`, the
+    function that owns `kind: handoff` resolution in
+    `handoff_tracker.rs`, takes no `cutoff` parameter at all in its
+    signature — only `find_pending_all_kinds` does. Fixed: every
+    `kind: handoff` record is now classified by the transitive-
+    descendant algorithm unconditionally, regardless of its own
+    timestamp; `pre_cutoff_grandfathered` remains recorded as
+    informational metadata on every record but no longer gates a
+    handoff's obligation state or disposition. This surfaces **30
+    previously-hidden `unresolved-live` handoffs** — see "Obligation
+    state and disposition methodology" below for the corrected priority
+    order and full numbers.
 8. **Per B-HR-ROOT-2:** the field this document's round-1 revision
    called `root_cause_class` is renamed `observed_state_class` — it
    describes observed MR/repository state (does an MR exist, is it
@@ -338,38 +377,45 @@ so they carry no obligation another agent could have been expected to
 see. They are reported here as an evidence source, not as an
 obligation-bearing backlog.
 
-## Obligation state and disposition methodology (B-HR-3, revised per B-HR-EVID-1/B-HR-VAL-1, round 3 per B-HR-ACK-3/B-HR-HANDOFF-3/B-HR-ACTIVE-3)
+## Obligation state and disposition methodology (B-HR-3, revised per B-HR-EVID-1/B-HR-VAL-1, round 3 per B-HR-ACK-3/B-HR-HANDOFF-3/B-HR-ACTIVE-3, round 4 per B-HR-HANDOFF-CUTOFF-4)
 
 Per record, obligation state and disposition are derived in this order.
-**Collision classification takes priority; then the governed pending
-cutoff; then observed state `mr-open`; then proven resolution using the
-project's actual resolution semantics; then validation; then citation
-visibility; then moot:**
+**Collision classification takes priority; then observed state
+`mr-open`; then `kind: handoff` resolution (unconditional, never
+cutoff-gated); then the governed pending cutoff for everything else;
+then validation; then citation visibility; then moot:**
 
 1. `same-message-edited-draft` → obligation **superseded** → disposition
    `discard-superseded-by-main`.
 2. `different-message-*-collision` → obligation
    **unadjudicated-filename-conflict** → disposition
    `duplicate-rename-required`.
-3. **Governed pending cutoff (B-HR-ACK-3):** the record's own
-   `timestamp` predates `2026-08-02T22:01:54Z`
-   (`20260802T220154Z-governor-reviewer-sejb.md`) → obligation
-   **historical-grandfathered**, regardless of kind, `requires-ack`, or
-   citation → disposition `defer` if `mr-open`, else
-   `invalid-with-validation-evidence` if validation fails, else
-   `preserve-via-consolidation` (historical, grandfathered, no current
-   pending obligation). **196 of 200 records fall into this step.**
-4. Observed state `mr-open` (post-cutoff only; B-HR-ACTIVE-3) →
-   obligation **live** → disposition `defer`, with no exception for
-   `requires-ack: true` — the open MR is already the delivery path.
-5. `kind: handoff`, post-cutoff, `requires-ack: true` (B-HR-HANDOFF-3):
-   resolved if any `ack`, `completion`, or `decision-record` exists
-   anywhere in the transitive-descendant subgraph of the reference
-   graph (the exact algorithm `handoff_tracker.rs::is_resolved` uses,
+3. Observed state `mr-open` (B-HR-ACTIVE-3, applied ahead of both the
+   handoff check and the cutoff check) → obligation **live** →
+   disposition `defer`, with no exception for `requires-ack: true` or
+   `kind: handoff` — the open MR is already the delivery path.
+4. `kind: handoff` (B-HR-HANDOFF-3, corrected by B-HR-HANDOFF-4 to be
+   **unconditional — never cutoff-gated**): resolved if any `ack`,
+   `completion`, or `decision-record` exists anywhere in the
+   transitive-descendant subgraph of the reference graph (the exact
+   algorithm `handoff_tracker.rs::find_pending` / `is_resolved` uses,
    not a direct-citation heuristic) → obligation **resolved** →
    disposition `preserve-via-consolidation`; else obligation
    **unresolved-live** → disposition `preserve-via-consolidation`,
-   highest-priority preservation candidate.
+   highest-priority preservation candidate. `pre_cutoff_grandfathered`
+   is recorded as informational metadata only on this branch — it never
+   changes the outcome, because `find_pending` (the function that owns
+   handoff resolution) takes no cutoff parameter at all in
+   `handoff_tracker.rs`; only `find_pending_all_kinds` does.
+5. **Governed pending cutoff (B-HR-ACK-3, scope corrected by
+   B-HR-HANDOFF-CUTOFF-4 to non-handoff records only):** the record's
+   own `timestamp` predates `2026-08-02T22:01:54Z`
+   (`20260802T220154Z-governor-reviewer-sejb.md`) → obligation
+   **historical-grandfathered** → disposition
+   `invalid-with-validation-evidence` if validation fails, else
+   `preserve-via-consolidation` (historical, grandfathered, no current
+   pending obligation). This step never reaches `kind: handoff` records
+   (already dispositioned at step 4) or `mr-open` records (step 3).
 6. Non-handoff, post-cutoff, `requires-ack: true`
    (`find_pending_all_kinds` semantics): resolved if **any** later
    record directly references it → obligation **resolved** →
@@ -392,33 +438,57 @@ visibility; then moot:**
 YAML names the actual citing record(s) — path, id, kind, timestamp —
 not an assertion.
 
-**B-HR-ACK-3 fix — the governed cutoff dominates the picture.** Nearly
-the entire backlog (196/200 records) predates
-`2026-08-02T22:01:54Z` and is therefore historical/grandfathered by
-this project's own rule, not a current pending-obligation backlog. The
-4 post-cutoff records are not additional historical debt at all — they
-are branch-only copies of records from *this session's own active
-work* (the retracted `tj6s` decision, the `1k1r`/`km1d` Gate 2 handoffs,
-contribution-auditor's `aedd` review), swept up by the scan only
-because they happen to live on branches with currently-open MRs. All
-four are correctly disposed `defer`, the same as any other `mr-open`
-record. **Zero records in this inventory are classified
-`unresolved-live` after applying the governed cutoff correctly.**
+**B-HR-HANDOFF-CUTOFF-4 fix — the cutoff never gates handoffs.**
+Decision-record `sejb` scopes the cutoff to "the `--all-kinds` pending
+surface" only, and `handoff_tracker.rs::find_pending` (which owns
+`kind: handoff` resolution) takes no cutoff parameter at all — only
+`find_pending_all_kinds` (non-handoff records) is cutoff-gated. Round 3
+let a handoff's own pre-cutoff timestamp short-circuit its
+classification ahead of transitive resolution, which silently
+reclassified handoffs that the transitive algorithm actually finds
+unresolved as merely historical/grandfathered — losing their
+`unresolved-live` status without any governor authority to extend the
+cutoff to handoffs. Fixed: `kind: handoff` records are now classified
+by the real transitive-descendant algorithm unconditionally (step 4,
+above), regardless of the record's own timestamp.
 
-**B-HR-HANDOFF-3 fix — real resolution semantics found far more
-resolved handoffs than the round-2 heuristic.** Of 77 `kind: handoff`
-records in the inventory, the actual transitive-descendant algorithm
-finds **26 resolved** (up from round 2's 2, which only checked for a
-direct `completion` citation and missed `ack`/`decision-record`
-resolution and indirect/transitive resolution entirely).
+**B-HR-ACK-3 fix (retained, scope corrected) — the governed cutoff
+still dominates the picture for everything it actually covers.** Of
+200 records, 196 predate `2026-08-02T22:01:54Z`; of those, all but the
+handoffs among them are historical/grandfathered by this project's own
+rule. The 4 post-cutoff records are not additional historical debt at
+all — they are branch-only copies of records from *this session's own
+active work* (the retracted `tj6s` decision, the `1k1r`/`km1d` Gate 2
+handoffs, contribution-auditor's `aedd` review), swept up by the scan
+only because they happen to live on branches with currently-open MRs.
+All four are correctly disposed `defer`, the same as any other
+`mr-open` record.
 
-Resulting distribution: **89 preserve-via-consolidation**, **40
-defer** (all `mr-open` records, per B-HR-ACTIVE-3), **56
+**B-HR-HANDOFF-3 fix (retained, corrected by B-HR-HANDOFF-CUTOFF-4) —
+real resolution semantics, applied unconditionally.** Of 77
+`kind: handoff` records in the inventory: 16 are also `mr-open` and
+defer to that live delivery path (step 3, ahead of handoff resolution);
+9 are collisions, dispositioned at step 1–2; of the remaining 52, the
+actual transitive-descendant algorithm finds **22 resolved** and **30
+unresolved-live** — all 30 unresolved-live handoffs predate the cutoff
+(none are post-cutoff), which is exactly the set B-HR-HANDOFF-CUTOFF-4
+identified as wrongly grandfathered in round 3.
+
+Resulting distribution: **112 preserve-via-consolidation**, **40
+defer** (all `mr-open` records, per B-HR-ACTIVE-3), **33
 invalid-with-validation-evidence**, **12 duplicate-rename-required**,
-**3 discard-superseded-by-main**. (Round 2 reported 134/22/29/12/3 —
-the governed cutoff reclassifies most of round 2's `unresolved-live`
-bucket as grandfathered, and reverting the `mr-open` reprioritization
-returns those 18 records to `defer`.)
+**3 discard-superseded-by-main**. (Round 3 reported 89/40/56/12/3 — the
+23-record swing is exactly the 52 non-`mr-open`, non-collision
+handoffs (22 resolved + 30 unresolved-live) whose disposition in round
+3 depended on whether they happened to also fail `agov coord validate`
+(29 passed → `preserve-via-consolidation`; 23 failed → dispositioned
+`invalid-with-validation-evidence` instead, losing their live-obligation
+status). In round 4 all 52 are `preserve-via-consolidation` regardless
+of validation status, per the corrected priority order — the 23 that
+fail validation (8 of the 30 unresolved-live, 15 of the 22 resolved)
+move from `invalid-with-validation-evidence` to
+`preserve-via-consolidation`, and their validation failure is retained
+in `validation_disposition_note` rather than lost.)
 
 **B-HR-VAL-1 fix (retained) — validation and disposition are distinct,
 cross-checked numbers:** **67 of 200 records fail
@@ -428,15 +498,18 @@ current schema's `Required property id was not present` check — real
 evidence, not inference. Each record's `validation_disposition_note`
 field states per-record whether a validation failure was the reason
 for its disposition or a separate, additional fact about it. Of the 67
-failures: 56 are disposed `invalid-with-validation-evidence`, 10 are
+failures: 33 are disposed `invalid-with-validation-evidence`, 10 are
 disposed `duplicate-rename-required` (need reformatting **and**
-renaming), and 1 is disposed `discard-superseded-by-main` (doesn't
-matter, being discarded). **None of the 89 `preserve-via-consolidation`
-records fail validation** — unlike round 2, where 27 did; the governed
-cutoff moved those specific records into
-`invalid-with-validation-evidence` instead, since a grandfathered
-record that also fails validation has no live obligation to justify
-preserving it ahead of the reformatting question.
+renaming), 1 is disposed `discard-superseded-by-main` (doesn't matter,
+being discarded), and **23 are disposed `preserve-via-consolidation`**
+— these are `kind: handoff` records whose resolution status (resolved
+or, more often, unresolved-live) is decided at step 4, ahead of the
+validation check at step 7, per this methodology's own documented
+priority order: a live handoff obligation is not demoted by a
+formatting defect in the file that carries it. `validation_disposition_note`
+records the validation failure on each of these 23 explicitly, so the
+fact is never lost — it is just not allowed to override the live-obligation
+disposition.
 
 ## Operational cost assessment (B-HR-6, revised per B-HR-COST-2)
 
@@ -456,14 +529,20 @@ category asserts more than that.**
   No job-level evidence isolates a cost specifically attributable to
   the hidden coordination content — round 1's "wasted CI compute"
   framing overstated what this number proves.
-- **Obligation breakdown within the 89 `preserve-via-consolidation`
-  records** (round 3 revision, per B-HR-ACK-3): **all 89 are
-  historical/grandfathered per `sejb`'s decision — zero are classified
-  `unresolved-live`.** These are real records worth preserving as
-  evidence of what happened, but none of them represent a live
-  obligation anyone is currently failing to act on; round 1/2's
-  "invisible obligations" framing overstated the urgency the evidence
-  actually supports. This is a count of records by evidence strength,
+- **Obligation breakdown within the 112 `preserve-via-consolidation`
+  records** (round 4 revision, per B-HR-HANDOFF-CUTOFF-4): **82 have no
+  live obligation** (60 non-handoff records that are grandfathered,
+  cited-elsewhere, or moot, plus 22 `kind: handoff` records the
+  transitive algorithm finds resolved), **and 30 are `unresolved-live`
+  `kind: handoff` records** — a real, currently-unacknowledged
+  obligation each, per the transitive-descendant algorithm in
+  `handoff_tracker.rs`. Round 3's
+  claim that zero were `unresolved-live` was itself the bug
+  B-HR-HANDOFF-CUTOFF-4 identified: those 30 handoffs predate the
+  cutoff, but the cutoff was never authorized to gate handoff
+  resolution (`sejb`'s own text scopes it to "the `--all-kinds` pending
+  surface"; `find_pending`, which owns handoffs, takes no cutoff
+  parameter at all). This is a count of records by evidence strength,
   not a time or cost estimate; converting it to person-hours or review
   cycles would require session-log or human-recollection evidence this
   pass has no access to.
@@ -493,40 +572,53 @@ Per-record disposition is recorded in the YAML inventory; grouped here
 by class since the reasoning is documented in "Obligation state and
 disposition methodology" above:
 
-- **89 records → `preserve-via-consolidation`.** All 89 are
-  historical/grandfathered per the governed pending cutoff (`sejb`) —
-  none are live obligations. Rationale: a closed MR, an unmerged
-  branch, or a grandfathered obligation does not retroactively make the
-  coordination record's *existence* untrue — the record documents that
-  an action, claim, or review happened at a point in time, which
-  remains true regardless of whether the associated code change
-  ultimately merged. This mirrors MR !994's own precedent exactly:
-  preserve unique records unchanged via one fresh-main,
+- **112 records → `preserve-via-consolidation`.** 82 are
+  historical/grandfathered, resolved, or cited — no live obligation.
+  **30 are `unresolved-live` `kind: handoff` records** — a real,
+  currently-unacknowledged obligation, found by the same
+  transitive-descendant algorithm `handoff_tracker.rs::find_pending`
+  uses in production, applied unconditionally per B-HR-HANDOFF-CUTOFF-4
+  (never cutoff-gated). Rationale for preserving all 112 as a class: a
+  closed MR, an unmerged branch, or a grandfathered obligation does not
+  retroactively make the coordination record's *existence* untrue — the
+  record documents that an action, claim, or review happened at a point
+  in time, which remains true regardless of whether the associated code
+  change ultimately merged. This mirrors MR !994's own precedent
+  exactly: preserve unique records unchanged via one fresh-main,
   content-hash-manifested consolidation MR, validate the range, merge,
-  **then** close source branches — never delete first. None of these 89
-  fail validation (see "Obligation state and disposition methodology").
+  **then** close source branches — never delete first. The 30
+  `unresolved-live` records additionally need a real acknowledgement,
+  completion, or decision-record filed against them — consolidating the
+  record alone does not resolve the underlying obligation, and
+  disposition of *that* obligation remains governor-reviewer authority,
+  not something this plan or its consolidation step settles. 23 of the
+  112 also fail `agov coord validate` (8 of the 30 unresolved-live, 15
+  of the 22 resolved handoffs) — recorded per-record in
+  `validation_disposition_note`, not lost, but not allowed to override
+  the live-obligation or resolved-handoff disposition (see "Obligation
+  state and disposition methodology").
 - **40 records → `defer`** (every `mr-open` record, with no exception
-  for `requires-ack: true`, per B-HR-ACTIVE-3). These are live, not
-  archival — an open MR is already the delivery path for whatever
-  obligation the record carries. Bulk-consolidating a coordination
-  record whose MR might still merge normally — or might still get
-  closed, at which point it joins the closed-MR class — would pre-empt
-  an in-flight decision and risk duplicate delivery. Per the v2.5.0
-  Statement of Work's own portfolio-disposition rule ("No blanket
-  retrigger-and-sequential-merge ... prefer one fresh-main archive for
-  *completed* historical records"), these stay out of any bulk pass and
-  get resolved individually as their MRs resolve.
+  for `requires-ack: true` or `kind: handoff`, per B-HR-ACTIVE-3). These
+  are live, not archival — an open MR is already the delivery path for
+  whatever obligation the record carries. Bulk-consolidating a
+  coordination record whose MR might still merge normally — or might
+  still get closed, at which point it joins the closed-MR class — would
+  pre-empt an in-flight decision and risk duplicate delivery. Per the
+  v2.5.0 Statement of Work's own portfolio-disposition rule ("No
+  blanket retrigger-and-sequential-merge ... prefer one fresh-main
+  archive for *completed* historical records"), these stay out of any
+  bulk pass and get resolved individually as their MRs resolve.
 - **12 records → `duplicate-rename-required`** (the collision cases
   above: 6 exact-path, 6 numeric; 10 of these 12 also fail validation
   and would need reformatting in addition to renaming).
 - **3 records → `discard-superseded-by-main`** (same-message
   pre-merge-edited drafts; `main`'s published version is authoritative).
-- **56 records → `invalid-with-validation-evidence`** (the subset of
+- **33 records → `invalid-with-validation-evidence`** (the subset of
   the 67 total validation failures that weren't already claimed by a
-  collision or open-MR rule first — see "Obligation state and
-  disposition methodology" for the full 67-record breakdown; this
-  bucket and the 89 preserve-via-consolidation total are mutually
-  exclusive, not overlapping, per B-HR-VAL-1).
+  collision, open-MR, or handoff-resolution rule first — see
+  "Obligation state and disposition methodology" for the full
+  67-record breakdown; this bucket and the 112 preserve-via-consolidation
+  total are mutually exclusive, not overlapping, per B-HR-VAL-1).
 
 **No disposition in this plan is final.** Per the handoff's explicit
 boundary and `.claude/rules/always/coordination-sequence-guard-rule.md`,
@@ -656,11 +748,17 @@ placeholders instead of this project's actual governing text.
    content-hash-manifested archive MR, validated, merged, **then**
    source branches closed as merged-by-content — never deleted first.
    That plan must account for all 66 records requiring reformatting to
-   pass current schema validation before preservation or rename (56
+   pass current schema validation before preservation or rename (33
    `invalid-with-validation-evidence` + 10 `duplicate-rename-required`
-   that also fail validation; none of the 89 `preserve-via-consolidation`
-   records fail validation as of round 3 — see
-   `validation_disposition_note` per record).
+   that also fail validation + 23 `preserve-via-consolidation` handoffs
+   that also fail validation, per round 4's B-HR-HANDOFF-CUTOFF-4 fix —
+   see `validation_disposition_note` per record). It must separately
+   account for the 30 `unresolved-live` `kind: handoff` records within
+   `preserve-via-consolidation`: consolidating the record preserves it
+   as evidence, but does not itself resolve the obligation — each needs
+   a real `ack`, `completion`, or `decision-record` filed against it,
+   which is governor-reviewer disposition, not a mechanical step of
+   this plan.
 4. A separate follow-on implementation plan (or plans) covers the
    prevention-design items above, each with its own Gate 1 review,
    negative-test evidence per
@@ -679,11 +777,19 @@ placeholders instead of this project's actual governing text.
   under their original filename.
 - Do not preserve or rename any of the 66 records with
   `validation_disposition_note` indicating a validation failure
-  (56 `invalid-with-validation-evidence` + 10 `duplicate-rename-required`)
-  without first reformatting to pass current schema validation.
-- Do not treat any pre-cutoff record (`pre_cutoff_grandfathered: true`
-  in the YAML) as a current pending obligation — per governor
-  decision-record `sejb`, it is grandfathered, full stop.
+  (33 `invalid-with-validation-evidence` + 10 `duplicate-rename-required`
+  + 23 `preserve-via-consolidation` handoffs) without first reformatting
+  to pass current schema validation.
+- Do not treat a `kind: handoff` record's classification as governed by
+  `pre_cutoff_grandfathered` — per B-HR-HANDOFF-CUTOFF-4, the cutoff
+  gates only the non-handoff `--all-kinds` pending surface;
+  `find_pending` (handoffs) has no cutoff. Do not treat any *non-handoff*
+  pre-cutoff record (`pre_cutoff_grandfathered: true` in the YAML) as a
+  current pending obligation — per governor decision-record `sejb`, it
+  is grandfathered, full stop.
+- Do not treat any of the 30 `unresolved-live` `kind: handoff` records
+  as resolved by consolidation alone — each needs its own `ack`,
+  `completion`, or `decision-record`, per B-HR-HANDOFF-CUTOFF-4.
 - Do not treat a `cited-elsewhere` classification as proof of
   acknowledgement or resolution — it is visibility evidence only, per
   B-HR-OBL-2.
@@ -702,11 +808,16 @@ placeholders instead of this project's actual governing text.
 - `docs/coordination/20260803T114233Z-contribution-auditor-hpaq.md` —
   the round 2 review.
 - `docs/coordination/20260803T122006Z-contribution-auditor-mjk3.md` —
-  the round 3 review this revision responds to.
+  the round 3 review.
+- `docs/coordination/20260803T124844Z-contribution-auditor-jmgt.md` —
+  the round 4 review this revision responds to.
 - `docs/coordination/20260802T220154Z-governor-reviewer-sejb.md` — the
-  governed pending-cutoff decision applied per B-HR-ACK-3.
+  governed pending-cutoff decision, scoped to the `--all-kinds` surface
+  per B-HR-ACK-3/B-HR-HANDOFF-CUTOFF-4.
 - `tooling/rust/crates/agov-coord/src/handoff_tracker.rs` — the actual
-  resolution algorithms applied per B-HR-HANDOFF-3.
+  resolution algorithms applied per B-HR-HANDOFF-3/B-HR-HANDOFF-CUTOFF-4
+  (`find_pending`, unconditional, owns handoffs; `find_pending_all_kinds`,
+  cutoff-gated, owns everything else).
 - `docs/reviews/historical-branch-only-coordination-inventory.yaml` —
   the full 200-record machine-readable inventory this plan summarizes.
 - `docs/TODO.md`'s "Historical Branch-Only Coordination Recovery and
