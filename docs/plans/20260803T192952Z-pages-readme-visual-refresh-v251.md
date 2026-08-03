@@ -129,6 +129,59 @@ under `downstream-impact-rule.md`'s classification (no behavioral
 contract changes; README.md is outside that rule's trigger-path list in
 any case).
 
+## Audience-assumption stress test (protocol + first pass)
+
+**Protocol, going forward:** a single imported reader-capability baseline
+must not be applied uniformly to public pages without an adversarial pass
+per page (or per page-group, at the granularity the plan is currently
+operating at). Each pass argues *against* applying the baseline to that
+specific page, independently. Disagreements and convergent findings are
+synthesized and put to the human governor for a decision — the synthesis
+is not self-resolved by AI consensus. This is now standing practice for
+this workstream as it advances from hero/nav/README scope into per-page
+content drafting.
+
+**The baseline being stress-tested** (paraphrased from a named technical
+university's published bachelor's-in-ICT-engineering graduate-outcomes
+page — the institution is deliberately not named in this file):
+full-stack build skill (front end, back end, DB schema, deployment);
+Linux/Windows infrastructure and networking; cybersecurity practice
+(risk assessment, vulnerability scanning, hardening, incident response);
+relational DB design/SQL; scripting/automation/CI-CD; ML/AI
+implementation if specialized; TCP/IP and network architecture; IoT
+sensor/edge basics; plus Agile project management, teamwork, engineering-
+mindset problem decomposition, independent research, and stakeholder
+communication — framed around "DevSecOps competence," foundational
+across development, security, and operations by year three.
+
+**First pass — six adversarial critiques, one per page group** (Home,
+README, "Should you adopt?" as the Human-decision kind, the Shared-
+concept group including Philosophical lenses, the AI-action group
+[Adopt/Operate], and the Reference group). Full arguments available on
+request from the session transcript; the converging structural finding
+and each group's specific counter-proposal:
+
+| Page group | Why the baseline's *axis* is wrong for this page (not just too high/low) | Proposed axis instead |
+|---|---|---|
+| Homepage | Assumes the reader already self-selected as an implementer before the page has earned that | "Has used or heard of PR/code-review workflows" — nothing deeper |
+| README | Assumes one reader; a README structurally draws several incompatible ones, including an AI agent reader with no human-style "capability level" at all | No single baseline; mixed-audience prose + a separately labeled AI-instructions section |
+| Should you adopt? (Human decision) | The person who decides is often the one representing the DevSecOps gap the framework fills, not someone who already embodies it | "Can read a technical proposal and make a resourcing/risk decision" — generalist, not practitioner |
+| Concepts / Philosophical lenses (Shared concept) | Measures build/operate skill; these pages need organizational-authority literacy and tolerance for non-convergent argument — orthogonal to an engineering curriculum, not a subset of it | Decision/escalation literacy + comfort with normative argument |
+| Adopt/Operate (AI action) | The AI does the hands-on work; the human's job is judging the output — a narrower, more teachable skill the baseline never names | "Can read a diff/YAML/CI log well enough to judge correctness" — verification, not construction |
+| Reference | Not too high or too low — irrelevant axis. Gates on this project's own vocabulary, which no external curriculum teaches | "Has read the relevant Concepts page" — an in-project prerequisite, not an external credential |
+
+All six independently concluded the baseline's *axis* is wrong for their
+page, not merely its level — zero overlap in the specific objection,
+one shared structural conclusion: reader-capability is a per-page-kind
+derived attribute here, not a single site-wide constant (same shape as
+`concept-modelling-rule.md`'s intrinsic-vs-derived distinction, applied
+to "assumed reader" instead of a data-model field).
+
+**Status: proposed, not decided.** This table is the AI-side consensus
+output, not a governor decision. Awaiting confirmation, rejection, or
+revision before it is treated as settled calibration for per-page content
+drafting.
+
 ## Flagged for the human governor (not resolved here)
 
 `.claude/rules/docs/documentation-audience-rule.md` states the public
