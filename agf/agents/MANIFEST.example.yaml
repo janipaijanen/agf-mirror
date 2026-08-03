@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Copyright (c) 2026 Jani Päijänen
+# =============================================================================
+# Agent Manifest — adopter template
+# =============================================================================
+# Copy this file to agf/agents/MANIFEST.yaml and edit it to record YOUR
+# project's own active roles. It is never read as adopter state itself --
+# agov only reads agf/agents/MANIFEST.yaml (or the path set by
+# AGOV_MANIFEST_PATH).
+#
+# Every role below starts "skipped" with a placeholder reason. Set each
+# role you actually use to "active" (or "suspended" if temporarily paused)
+# and record who or what plays it. Delete roles your project does not use,
+# or leave them skipped -- agov does not require every role to be present.
+#
+# Run: agov validate agents
+# =============================================================================
+
+agents:
+  planner-architect:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  coder-tester:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  governor-reviewer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  contribution-auditor:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  infosec-sentinel:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  build-engineer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  fact-checker:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  capability-developer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  documentation-writer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  deployment-engineer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  academic-peer-reviewer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  academic-visual-reviewer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"

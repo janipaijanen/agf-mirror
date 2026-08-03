@@ -209,11 +209,12 @@ roles only when the work warrants them — the
 model, and the shipped raw reference at `agf/docs/reference/quick-reference.md`
 lists which phase each role belongs to.
 
-The manifest file currently present in `agf/agents/MANIFEST.yaml` is the
-AGF-NG/foundry dogfooding manifest. Treat it as an example of role-status
-tracking, not as an adopter-ready roster. Before wiring manifest-driven
-tooling, create or document your own local role-status authority and point
-tooling at it explicitly.
+The shipped archive contains `agf/agents/MANIFEST.example.yaml`, a neutral
+template — not an adopter-ready roster. Copy it to `agf/agents/MANIFEST.yaml`
+and edit each role's `status` and `played_by` before wiring manifest-driven
+tooling (`agov` only ever reads `agf/agents/MANIFEST.yaml`, or the path set
+by `AGOV_MANIFEST_PATH`; it never falls back to the example file). See
+`ADOPTING.md` §1.3 for the full procedure.
 
 Minimum commissioning matrix:
 

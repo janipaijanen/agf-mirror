@@ -21,6 +21,17 @@
    `agov coord list --since <UTC timestamp>` may be used when the installed
    release exposes it. Check `agov coord list --help` rather than assuming
    version parity. `coord watch` is not a shipped command.
+
+   Run `agov coord pending` every cycle when the installed release exposes
+   it — it is the only surface that reports unresolved non-`handoff`
+   `requires-ack: true` records (claim, review, note, decision-record,
+   fast-track-waiver, lesson-proposal). Neither `session resume` nor
+   `coord graph-index` reports this class; skipping this command risks
+   missing an obligation none of the other listed commands surface.
+   `handoff` obligations remain `agov coord graph-index`'s and `agov
+   handoff next`'s surface, unchanged. The command only *reports* pending
+   obligations — a later coordination record's direct `references-to` is
+   what resolves one, not the `pending` command itself.
 4. Inspect every relevant change request/MR: source and target SHA, draft and
    merge state, approvals, exact-head pipeline and jobs, discussions, and
    comments/notes.

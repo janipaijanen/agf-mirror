@@ -112,7 +112,12 @@
     },
     {
       "if":   { "properties": { "kind": { "const": "ack" } }, "required": ["kind"] },
-      "then": { "properties": { "references-to": { "minItems": 1 } } }
+      "then": {
+        "properties": {
+          "references-to": { "minItems": 1 },
+          "requires-ack": { "const": false }
+        }
+      }
     },
     {
       "if":   { "properties": { "kind": { "const": "handoff" } }, "required": ["kind"] },

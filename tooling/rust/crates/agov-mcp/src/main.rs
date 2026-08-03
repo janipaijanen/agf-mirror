@@ -14,6 +14,7 @@
 //! | `agov_handoff_complete` | `agov handoff complete <id> --from <role>` |
 //! | `agov_coord_post` | `agov coord post ...` |
 //! | `agov_coord_list` | `agov coord list ...` |
+//! | `agov_coord_pending` | `agov coord pending ...` |
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -262,7 +263,7 @@ fn run_agov(
 fn is_expected_non_error_status(args: &[String], status: Option<i32>) -> bool {
     status == Some(2)
         && args.first().map(String::as_str) == Some("coord")
-        && args.get(1).map(String::as_str) == Some("list")
+        && matches!(args.get(1).map(String::as_str), Some("list") | Some("pending"))
 }
 
 fn validate_agov_startup(command: &AgovCommand) -> Result<(), String> {
@@ -433,6 +434,13 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             let mut cli = vec!["coord".to_string(), "list".to_string()];
             push_optional_flag(args, "since", "--since", &mut cli)?;
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
+            push_optional_flag(args, "format", "--format", &mut cli)?;
+            Ok(cli)
+        }
+        "agov_coord_pending" => {
+            let mut cli = vec!["coord".to_string(), "pending".to_string()];
+            push_optional_flag(args, "dir", "--dir", &mut cli)?;
+            push_optional_flag(args, "cutoff", "--cutoff", &mut cli)?;
             push_optional_flag(args, "format", "--format", &mut cli)?;
             Ok(cli)
         }
@@ -638,6 +646,18 @@ fn tools() -> Vec<Value> {
                 }
             }),
         ),
+        tool(
+            "agov_coord_pending",
+            "List unresolved requires-ack:true records of any non-ack, non-handoff kind (handoff obligations remain agov_handoff_next's surface). A record is pending until a later record's references-to names it directly. Records before the feature's introduction cutoff are grandfathered and never appear. Exit code 2 means the query found nothing pending, not a transport error.",
+            json!({
+                "type": "object",
+                "properties": {
+                    "dir": { "type": "string" },
+                    "cutoff": { "type": "string" },
+                    "format": { "type": "string", "enum": ["text", "json"] }
+                }
+            }),
+        ),
     ]
 }
 
@@ -730,6 +750,7 @@ mod tests {
                 "agov_handoff_complete",
                 "agov_coord_post",
                 "agov_coord_list",
+                "agov_coord_pending",
             ]
         );
     }
@@ -784,6 +805,7 @@ mod tests {
                 }),
             ),
             ("agov_coord_list", json!({})),
+            ("agov_coord_pending", json!({})),
         ];
 
         assert_eq!(
@@ -868,5 +890,62 @@ mod tests {
         let args = vec!["coord".to_string(), "list".to_string()];
 
         assert!(is_expected_non_error_status(&args, Some(2)));
+    }
+
+    #[test]
+    fn coord_pending_maps_to_cli_arguments() {
+        let args = tool_cli_args(
+            "agov_coord_pending",
+            &json!({
+                "dir": "docs/coordination",
+                "cutoff": "2026-08-02T18:10:18Z",
+                "format": "json"
+            }),
+        )
+        .unwrap();
+
+        assert_eq!(
+            args,
+            vec![
+                "coord",
+                "pending",
+                "--dir",
+                "docs/coordination",
+                "--cutoff",
+                "2026-08-02T18:10:18Z",
+                "--format",
+                "json",
+            ]
+        );
+    }
+
+    #[test]
+    fn coord_pending_requires_no_arguments() {
+        assert_eq!(
+            tool_cli_args("agov_coord_pending", &json!({})).unwrap(),
+            vec!["coord", "pending"]
+        );
+    }
+
+    #[test]
+    fn coord_pending_exit_two_is_polling_empty_not_transport_error() {
+        let args = vec!["coord".to_string(), "pending".to_string()];
+
+        assert!(is_expected_non_error_status(&args, Some(2)));
+    }
+
+    /// `coord list` and `coord pending` share exit code 2 for "empty
+    /// result," but no other subcommand pair does -- guards against a
+    /// future subcommand accidentally matching the `Some("list") |
+    /// Some("pending")` pattern by coincidence of name.
+    #[test]
+    fn other_coord_subcommands_do_not_get_exit_two_amnesty() {
+        for sub in ["validate", "post", "status", "stale", "visibility"] {
+            let args = vec!["coord".to_string(), sub.to_string()];
+            assert!(
+                !is_expected_non_error_status(&args, Some(2)),
+                "coord {sub} must not be treated as expected-empty on exit 2"
+            );
+        }
     }
 }

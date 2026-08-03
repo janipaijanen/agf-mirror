@@ -242,6 +242,35 @@ enum CoordCommand {
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
     },
+    /// List pending (unresolved) requires-ack:true records of any kind other
+    /// than handoff (owned exclusively by `handoff next/take/complete`) and
+    /// ack. A record is resolved when any later record's references-to
+    /// lists its file -- direct reference, not handoff's transitive
+    /// descendant-chain resolution. Records older than the cutoff are
+    /// grandfathered and never appear. Issue #80,
+    /// docs/plans/v250-rc1-contract-core.md.
+    Pending {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        /// RFC3339 timestamp; only records at or after this cutoff are
+        /// considered. Defaults to the governed introduction boundary set
+        /// by governor-reviewer decision-record
+        /// `20260802T220154Z-governor-reviewer-sejb` (amending
+        /// docs/plans/v250-rc1-contract-core.md decision (c)): the cutoff
+        /// is that decision-record's own timestamp, not a future
+        /// merge-commit date (unimplementable pre-merge, per Gate 2 review
+        /// `20260802T193425Z-contribution-auditor-rtga.md` finding B2 and
+        /// its renewed disposition in
+        /// `20260802T204834Z-contribution-auditor-ah7j.md`). This value is
+        /// later than every pre-existing non-handoff requires-ack:true
+        /// record at decision time, so it grandfathers that full set
+        /// rather than manufacturing a surprise pending backlog.
+        /// `--cutoff` always overrides this default explicitly.
+        #[arg(long, default_value = "2026-08-02T22:01:54Z")]
+        cutoff: String,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -642,6 +671,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     format,
                 },
         } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
+        Command::Coord {
+            sub: CoordCommand::Pending { dir, cutoff, format },
+        } => coord_pending(dir, &cutoff, &format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -4161,21 +4193,36 @@ fn render_invalid_files(output: &mut OutputCounter, invalid_files: &[String]) {
 }
 
 fn render_active_roles(output: &mut OutputCounter, manifest: &Path, base_branch: &str) {
+    // Fail-closed by construction, not by extra logic: this function only
+    // ever reads `manifest` (the resolved AGOV_MANIFEST_PATH-or-default
+    // path). It never falls back to reading MANIFEST.example.yaml as a
+    // substitute -- there is no code path here that does so. See issue #79
+    // / docs/plans/v250-rc1-contract-core.md.
     let Ok(content) = std::fs::read_to_string(manifest) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable");
+        if std::env::var_os("AGOV_MANIFEST_PATH").is_some() {
+            output.stdout(format!(
+                "No adopter manifest found at {} (from AGOV_MANIFEST_PATH).",
+                manifest.display()
+            ));
+        } else {
+            output.stdout(format!(
+                "No adopter manifest found at {}; copy agf/agents/MANIFEST.example.yaml or set AGOV_MANIFEST_PATH.",
+                manifest.display()
+            ));
+        }
         output.stdout("");
         return;
     };
     let Ok(data) = serde_norway::from_str::<serde_json::Value>(&content) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable (manifest is not valid YAML)");
+        output.stdout(format!("Fix {} and rerun.", manifest.display()));
         output.stdout("");
         return;
     };
     let Some(agents) = data.get("agents").and_then(|value| value.as_object()) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable (manifest has no top-level 'agents' key)");
+        output.stdout(format!("Fix {} and rerun.", manifest.display()));
         output.stdout("");
         return;
     };
@@ -4448,6 +4495,87 @@ fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
         output.chars,
     );
     0
+}
+
+#[derive(Serialize)]
+struct PendingAckRow {
+    id: String,
+    file: String,
+    kind: String,
+    from: String,
+    to: String,
+    topic: String,
+    pending_since: String,
+}
+
+impl From<&agov_coord::handoff_tracker::PendingAck> for PendingAckRow {
+    fn from(p: &agov_coord::handoff_tracker::PendingAck) -> Self {
+        Self {
+            id: p.id.clone(),
+            file: p.file.clone(),
+            kind: p.kind.clone(),
+            from: p.from.clone(),
+            to: p.to.clone(),
+            topic: p.topic.clone(),
+            pending_since: p.pending_since.clone(),
+        }
+    }
+}
+
+fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!(
+                "Coordination directory not found: {}",
+                dir.display()
+            ));
+            return 1;
+        }
+    };
+
+    let descriptors: Vec<agov_coord::handoff_tracker::MessageDescriptor> = messages
+        .iter()
+        .map(|m| agov_coord::handoff_tracker::MessageDescriptor {
+            file: m.file.clone(),
+            sort_key: format!("{}_{}", m.sort_key.0, m.sort_key.1),
+            refs: m.refs.clone(),
+            msg: agov_coord::coord_validator::CoordMessage { raw: m.raw.clone() },
+        })
+        .collect();
+
+    let pending = agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, cutoff);
+
+    if format == "json" {
+        let rows: Vec<PendingAckRow> = pending.iter().map(PendingAckRow::from).collect();
+        match serde_json::to_string_pretty(&rows) {
+            Ok(json) => output.stdout(json),
+            Err(err) => {
+                output.stderr(format!("ERR  could not render JSON: {err}"));
+                return 1;
+            }
+        }
+    } else if pending.is_empty() {
+        output.stdout(format!("No pending requires-ack records since {cutoff}"));
+    } else {
+        output.stdout(format!("Pending requires-ack records since {cutoff}:"));
+        for p in &pending {
+            output.stdout(format!(
+                "  {}  {}  {} -> {}  {}  {}",
+                p.pending_since, p.kind, p.from, p.to, p.topic, p.file
+            ));
+        }
+    }
+
+    agov_core::roi::record_tool_output("agov.coord.pending", args, "coord-pending", output.chars);
+    if pending.is_empty() {
+        2
+    } else {
+        0
+    }
 }
 
 fn handoff_take(id: &str, from: &str, dir: PathBuf, args: &[String]) -> i32 {
