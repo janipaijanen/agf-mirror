@@ -23,9 +23,15 @@ advisory_consultation:
       Round 1 review (`20260803T225012Z-contribution-auditor-5k14.md`)
       at exact head `dff82cb0`: BLOCK, seven blocking findings
       (B-G1-AUTH-1, B-G1-EVID-2, B-G1-DATA-3, B-G1-SPEC-4, B-G1-MIG-5,
-      B-G1-SCOPE-6, B-G1-TEST-7) plus two advisories
-      (A-G1-ROLE-1, A-G1-AUTHZ-2), all addressed in this revision. Renewed
-      review requested at the corrected exact head.
+      B-G1-SCOPE-6, B-G1-TEST-7) plus two advisories (A-G1-ROLE-1,
+      A-G1-AUTHZ-2), all addressed at exact head `c1cf1aba`. Round 2
+      review (`20260803T231107Z-contribution-auditor-d2jr.md`) at that
+      head: BLOCK, six further blocking findings (B-G1-TIME-R2,
+      B-G1-PATH-A-R2, B-G1-EXCEPT-R2, B-G1-IMPACT-R2, B-G1-REPRO-R2,
+      B-G1-HANDOFF-R2) plus one advisory (A-G1-TEST-NAME-R2), confirming
+      B-G1-AUTH-1/EVID-2/DATA-3/SPEC-4 and most of B-G1-TEST-7 resolved.
+      All six findings and the advisory addressed in this revision.
+      Renewed review requested at the corrected exact head.
 ---
 
 # Plan: `gate1_approved_by` structural approver-field hygiene fix
@@ -36,8 +42,10 @@ verify a cited record exists or says what it's cited as saying, or
 prove the human governor made a decision. It closes exactly one thing:
 today, `gate1_approved_by` accepts empty or arbitrary text on an
 `approved`/`active`/`complete` plan with zero schema-shape check. After
-this plan, it must at minimum name — not prove — a currently active,
-governor-class role, in one of two precisely specified textual shapes.
+this plan, it must at minimum name — not prove — a MANIFEST-configured
+governor-class role (present in this project's role list; current
+active/suspended/skipped status is not checked, per B-G1-TIME-R2), in
+one of two precisely specified textual shapes.
 That boundary is stated once here and then held consistently through
 every section below, per `5k14`'s explicit instruction.
 
@@ -86,20 +94,20 @@ schema and recorded in `docs/coordination/20260803T204257Z-planner-architect-sjq
 synthesis, `docs/coordination/20260803T210104Z-contribution-auditor-4g1e.md`
 (also merged to `main`).
 
-**Evidence provenance (contribution-auditor `5k14`, B-G1-EVID-2).**
-`sjqm` and `4g1e`, both cited above, are on `main` and are sufficient by
-themselves to establish the reproduced structural gap and the
-MANIFEST-absent trap. This plan's earlier draft additionally cited
-learning entries `gt3x` and `hv3k` as if they were already accepted
-corpus; at the time of `5k14`'s review they existed only in blocked
-MRs. As of this revision, contribution-auditor has independently
-CLEARed both at their corrected heads (`20260803T225227Z-contribution-auditor-k3n4.md`
-for `gt3x`, `20260803T225850Z-contribution-auditor-hanm.md` for the
-learning MR containing `hv3k`), but **the governor has not yet decided
-whether to accept either learning, and neither is merged to `main`**.
-This plan therefore treats `gt3x`/`hv3k` as **provisional** supporting
-context only — cited for the reasoning trail, never as the sole basis
-for a claim that could instead be sourced from `sjqm`/`4g1e`.
+**Evidence provenance (contribution-auditor `5k14`, B-G1-EVID-2;
+updated at this revision).** `sjqm` and `4g1e`, both cited above, are
+on `main` and are sufficient by themselves to establish the reproduced
+structural gap and the MANIFEST-absent trap. This plan's earlier draft
+additionally cited learning entries `gt3x` and `hv3k` as if they were
+already accepted corpus; at the time of `5k14`'s review they existed
+only in blocked MRs, so that citation was premature. Since then,
+contribution-auditor independently CLEARed both at corrected heads
+(`20260803T225227Z-contribution-auditor-k3n4.md` for `gt3x`,
+`20260803T225850Z-contribution-auditor-hanm.md` for the learning MR
+containing `hv3k`), and **the human governor has since merged both**
+(!1086 and !1087, both now on `main`). `gt3x` and `hv3k` are therefore
+accepted corpus as of this revision, not provisional — cited directly
+alongside `sjqm`/`4g1e` below, no longer hedged.
 
 The existing precedent for a MANIFEST cross-check is
 `tooling/rust/crates/agov-coord/src/plan_validator.rs`'s
@@ -186,9 +194,36 @@ value's own first clause actually says.
     itself validly authored, or contains an approval matching this
     plan/head/scope. See §6.
 - The governor-class role name used in either shape must additionally
-  be an **exact-match** key of a role in `agf/agents/MANIFEST.yaml`
-  whose `status` is `active` **and** whose role is in the
-  governor-class allowlist below.
+  be an **exact-match** key **present** under `agents:` in
+  `agf/agents/MANIFEST.yaml` (any `status` value — see the
+  correction below) and a member of the governor-class allowlist
+  below.
+
+**Correction (contribution-auditor `d2jr`, B-G1-TIME-R2): presence, not
+current-active status.** An earlier draft additionally required the
+matched role's MANIFEST `status` to be `active` at validation time.
+Contribution-auditor correctly found this retroactively unsound: a
+`status: complete` plan can have been validly approved by a governor
+role that is *today* suspended, renamed, or retired — that role's
+current status says nothing about whether it was active at the
+historical approval timestamp, and this stateless file validator has
+no access to MANIFEST's state at that past timestamp. Requiring
+current-`active` status would make editing an old, validly-approved
+plan for an unrelated reason (a typo fix) start failing hygiene
+validation purely because time passed and the role's status changed —
+turning role lifecycle into retroactive approval invalidation, which
+contradicts this check's own stated structural-only boundary (§6).
+
+Fixed design: the check requires only that the role name **appears as
+a key** under `agf/agents/MANIFEST.yaml`'s `agents:` mapping — status
+`active`, `suspended`, or `skipped` all satisfy this. This still binds
+the check to a real, project-configured role (not an arbitrary string
+untethered from any project's actual role list) without asserting
+anything about whether that role was staffed at any particular moment.
+Distinguishing "role never configured in this project at all" from
+"role configured but not currently staffed" remains useful and is
+preserved; asserting "currently staffed" as a proxy for "staffed at
+approval time" is what's removed.
 - **v1 governor-class allowlist: `governor-reviewer` only.**
   **Correction (contribution-auditor `5k14`, A-G1-ROLE-1):** this is
   not a project-local convenience choice — `governor-reviewer` is the
@@ -213,11 +248,14 @@ value's own first clause actually says.
 ### 3. Fail-closed on missing MANIFEST — scoped to this new check only
 
 When `agf/agents/MANIFEST.yaml` cannot be read (absent, malformed, or
-the `governor-reviewer` entry is missing or not `active`), the new
+the `governor-reviewer` key is missing entirely from `agents:`), the new
 `gate1_approved_by` check **fails closed**: blocking error, not
-silently skipped. This is a deliberate divergence from the existing
-`advisory_consultation` check's current fail-open-on-missing-MANIFEST
-behavior.
+silently skipped. Per the B-G1-TIME-R2 correction above, a
+`governor-reviewer` entry present with any `status` value (including
+`suspended` or `skipped`) satisfies this — only a fully absent
+MANIFEST file or a fully absent role key fails closed. This is a
+deliberate divergence from the existing `advisory_consultation`
+check's current fail-open-on-missing-MANIFEST behavior.
 
 **This plan does not propose changing `advisory_consultation`'s
 existing fallback to also fail closed.** Reasoning: that is a second
@@ -269,11 +307,14 @@ constrains the available migration designs.**
   - Trim `gate1_approved_by`. If empty: blocking error.
   - If `agf/agents/MANIFEST.yaml` is unreadable: blocking error (fail
     closed — new behavior, scoped to this check only, per §3).
-  - If the prefix parser above does not match: blocking error,
-    distinguishing "does not name a governor-class role" from "names a
-    governor-class role that exists in MANIFEST but is not active"
-    (mirrors the existing `unknown advisory role` vs. `advisory role
-    is not active` distinction already in this file).
+  - If the prefix parser above does not match a `governor_class_roles()`
+    member: blocking error, "does not name a governor-class role."
+  - If the prefix parser matches a `governor_class_roles()` member, but
+    that role key is entirely absent from `agf/agents/MANIFEST.yaml`'s
+    `agents:` mapping: blocking error, "governor-class role not
+    configured in this project's MANIFEST" — status value (active,
+    suspended, skipped) is irrelevant per B-G1-TIME-R2; only full
+    absence of the key blocks.
 - MCP surface: `agov_plan_validate` wraps this validator directly (no
   separate reimplementation), so CLI and MCP behavior stay identical by
   construction — verified by a shared test fixture, not by two
@@ -283,25 +324,74 @@ constrains the available migration designs.**
 
 This raises the cost of a forged or empty approval passing
 schema/validator checks from zero to "the value's first token must
-name an exact, currently-active governor-class role, as a bare name or
-a shape-valid coordination-ID citation." It does **not** authenticate
+name an exact governor-class role that is present in this project's
+MANIFEST (any status — see B-G1-TIME-R2), as a bare name or a
+shape-valid coordination-ID citation." It does **not** authenticate
 that the human governor themselves wrote the value, verify the cited
 coordination record exists or contains a matching approval, or prove
 the human governor made the decision — `from:`/`gate1_approved_by:`
 remain unauthenticated free text at the record-authorship layer (`gt3x`,
-unresolved by this plan, cited here as provisional context per
-B-G1-EVID-2). It does **not** freeze history — a later in-place edit of
-an already-approved plan's `gate1_approved_by` field is a separate gap
-(`gt3x` finding 3, content-hash-on-first-reference, also unresolved).
+unresolved by this plan). It does **not** freeze history — a later
+in-place edit of an already-approved plan's `gate1_approved_by` field
+is a separate gap (`gt3x` finding 3, content-hash-on-first-reference,
+also unresolved).
 
 ## Migration evidence (measured, reproducible)
 
 Direct measurement against this repository's own `docs/plans/*.md` on
 current `main`, re-run at this revision (not carried over from the
-prior draft), using the exact §2 prefix-only rule:
+prior draft), using the exact §2 prefix-only rule.
+
+**Correction (contribution-auditor `d2jr`, B-G1-REPRO-R2).** The prior
+revision's script `import`ed `yaml` (PyYAML). PyYAML is not declared
+anywhere in this project (no `mise.toml`/`pyproject.toml`/
+`requirements*.txt` entry, no project `.py` file imports it) — a
+reviewer following the "re-run this script" instruction in a clean
+environment would hit `ModuleNotFoundError` before it counted anything.
+The script below is stdlib-only: it hand-parses just the two scalar
+frontmatter fields this measurement needs (`status`,
+`gate1_approved_by`), including YAML's double-quoted-scalar line
+folding, without a general YAML parser. Verified to reproduce the exact
+same 80/20/3 result as the PyYAML version it replaces.
 
 ```python
-import re, glob, yaml
+#!/usr/bin/env python3
+"""Dependency-free (stdlib only) frontmatter scanner for docs/plans/*.md."""
+import glob
+import re
+
+FIELD_RE = re.compile(r'^([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$')
+
+
+def extract_frontmatter_fields(text, keys):
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}
+    end = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
+    if end is None:
+        return {}
+    fm_lines = lines[1:end]
+    result, i = {}, 0
+    while i < len(fm_lines):
+        m = FIELD_RE.match(fm_lines[i])
+        if not m or m.group(1) not in keys:
+            i += 1
+            continue
+        key, rest = m.group(1), m.group(2).strip()
+        if rest.startswith('"') and not (len(rest) > 1 and rest.endswith('"')):
+            parts = [rest[1:]]
+            i += 1
+            while i < len(fm_lines) and fm_lines[i].startswith((" ", "\t")):
+                cont = fm_lines[i].strip()
+                if cont.endswith('"'):
+                    parts.append(cont[:-1]); i += 1; break
+                parts.append(cont); i += 1
+            result[key] = " ".join(p for p in parts if p)
+            continue
+        result[key] = rest[1:-1] if rest.startswith('"') and rest.endswith('"') else rest
+        i += 1
+    return result
+
 
 role = "governor-reviewer"
 id_prefix_re = re.compile(
@@ -312,22 +402,19 @@ bare_prefix_re = re.compile(rf'^{re.escape(role)}(?![A-Za-z0-9])')
 total = empty = other = conforming = 0
 for path in sorted(glob.glob("docs/plans/*.md")):
     content = open(path, encoding="utf-8", errors="replace").read()
-    m = re.match(r"^---\n(.*?)\n---\n", content, re.DOTALL)
-    if not m:
-        continue
-    fm = yaml.safe_load(m.group(1))
-    if not isinstance(fm, dict) or fm.get("status") not in (
-        "approved", "active", "complete"
-    ):
+    fields = extract_frontmatter_fields(content, {"status", "gate1_approved_by"})
+    if fields.get("status") not in ("approved", "active", "complete"):
         continue
     total += 1
-    approver = (fm.get("gate1_approved_by") or "").strip()
+    approver = (fields.get("gate1_approved_by") or "").strip()
     if not approver:
         empty += 1
     elif bare_prefix_re.match(approver) or id_prefix_re.match(approver):
         conforming += 1
     else:
         other += 1
+
+print(f"total={total} conforming={conforming} empty={empty} other={other}")
 ```
 
 | Category | Count | Disposition |
@@ -371,6 +458,53 @@ measurement.
    Same disposition as case 1: migration case, not a design flaw —
    this is the design working as intended.
 
+### Impact
+
+**Restored (contribution-auditor `d2jr`, B-G1-IMPACT-R2).** The prior
+revision's migration prose did not replace this project's mandatory
+`downstream-impact-rule.md` block; it is required in addition to that
+prose, not instead of it.
+
+```
+Impact:
+  Foundry:          Yes, measured directly: 23 of this repository's own
+                     103 in-scope plan files (20 empty + 3 "other") fail
+                     the proposed check today and must become
+                     conforming before the blocking flip ships, under
+                     either Migration Path. Unchanged historical files
+                     are not retroactively failed by CI merely by
+                     existing (see CI and rollback scope) -- only
+                     touched files are validated by the current
+                     governance job.
+  Direct adopters:  BREAKING. Any adopter plan file with status
+                     approved/active/complete and a gate1_approved_by
+                     value that does not start with a governor-class
+                     role name or its coordination-ID citation will
+                     fail `agov plan validate` once the blocking state
+                     ships (Path A: in a later, separately-planned
+                     release; Path B: in this release, after its own
+                     preceding migration MR).
+  Downstream:       No change to plan file shape for conforming plans.
+                     No change to agov's CLI surface or exit-code
+                     contract for the non-blocking Path A diagnostic
+                     (still exit 0); a new failure condition within the
+                     existing exit-code contract once blocking ships.
+  Migration:        Required. Path A vs. Path B is an open Gate 1
+                     decision (see Migration section below); this plan
+                     does not pre-select one. No exception/grandfather
+                     outcome exists for any of the 23 current cases --
+                     all must become conforming before the blocking
+                     flip, under either path.
+  Evidence:         docs/coordination/20260803T204257Z-planner-architect-sjqm.md
+                     (merged, Track 3 finding 1),
+                     docs/coordination/20260803T210104Z-contribution-auditor-4g1e.md
+                     (merged), and learning entries 20260803T205236Z-gt3x
+                     and 20260803T212420Z-hv3k in
+                     agf/learnings/foundry.yaml (merged via !1086/!1087)
+                     establish the reproduced structural gap and the
+                     naive-fix bypasses this design avoids.
+```
+
 ## Migration — BREAKING, explicit Path A / Path B decision required
 
 ### Why the schema change forces a binary choice
@@ -386,25 +520,57 @@ failure is unconditional. An advisory window is only achievable by
 recommend a path; it asks Gate 1 review to choose one of exactly two
 executable designs.
 
+**Corrections in this section (contribution-auditor `d2jr`,
+B-G1-PATH-A-R2 and B-G1-EXCEPT-R2), applied to both paths below:**
+
+1. **No "accepted exception" outcome is offered by either path.**
+   The prior draft allowed a nonconforming record to remain if the
+   governor recorded an "explicit accepted-exception decision." The
+   proposed schema and Rust validator have no grandfather marker,
+   exception registry, or decision-lookup mechanism — once the blocking
+   check ships, such a record fails identically to any other
+   nonconforming record regardless of what a coordination record says
+   about it. A prose risk-acceptance cannot change validator output.
+   This plan does not design a grandfather mechanism (that would be its
+   own scoped feature, with its own authority/distribution/rollback
+   design — out of scope here per simplicity-rule). Accordingly: **every
+   one of the 23 current cases must become conforming (via rewrite or
+   governor re-attestation) before the blocking flip ships, under
+   either path.** There is no third "leave it as an accepted risk"
+   outcome.
+2. **This plan authorizes only the advisory diagnostic (if Path A is
+   chosen), never the later blocking flip.** The blocking flip — under
+   either path — is BREAKING and requires its own separate, future
+   Gate 1 plan, written with then-current corpus and adopter evidence
+   and a concrete release boundary. This plan's Gate 1 decision does
+   not pre-authorize an unspecified future breaking state; it
+   authorizes exactly the scope named in whichever path is selected
+   below.
+
 ### Path A — advisory first
 
-Ship only a new, named, non-blocking semantic diagnostic in the Rust
-validator (no schema change yet) that reports every plan whose
-`gate1_approved_by` would fail the §2 check, without failing the
-overall `agov plan validate` exit code. Give the diagnostic a fixed
-sunset (a named future release or date). Use the sunset window to
-disposition the 23 current non-conforming records (20 empty + 3 other).
-Ship the `minLength: 1` schema change and flip the semantic check to
-blocking together, in a later release, once the corpus is clean or the
-remaining exceptions are explicitly accepted and recorded.
+**This Gate 1 decision, if Path A is selected, authorizes only the
+non-blocking diagnostic below — nothing else.** Ship a new, named,
+non-blocking semantic diagnostic in the Rust validator (no schema
+change in this slice) that reports every plan whose `gate1_approved_by`
+would fail the §2 check, without failing the overall `agov plan
+validate` exit code. Use a defined window to disposition all 23
+current non-conforming records (20 empty + 3 other) to conforming.
+**Shipping the `minLength: 1` schema change and flipping the semantic
+check to blocking is explicitly out of this plan's authorization** and
+requires its own subsequent Gate 1 plan, written once the corpus is
+actually clean (not merely "explicitly accepted" — see correction 1
+above) and citing the then-current release boundary.
 
 ### Path B — block now
 
 Resolve all 23 current cases first, as a separate, preceding migration
-MR: disposition each (rewrite to a conforming citation, or record an
-explicit accepted-exception decision naming why). Only after that MR
-merges, ship the schema change and the blocking semantic check
-together in the same release.
+MR: disposition each to conforming (rewrite to a conforming citation,
+or governor re-attestation) — no exception outcome, per correction 1
+above. Only after that MR merges, ship the schema change and the
+blocking semantic check together in the same release, under this
+plan's authorization (Path B, unlike Path A, ships the blocking state
+directly since the corpus is clean first).
 
 ### What this plan does not decide
 
@@ -412,9 +578,8 @@ Gate 1 review selects Path A or Path B. Either path additionally needs:
 a decision on whether historical nonconforming records are rewritten
 (and if so, whether the governor re-attests each one or the plan
 records an explicit "migrated, authority not re-attested" disclosure —
-see §CI/rollback scope below) or left as recorded, accepted exceptions;
-and the specific release/version boundary the sunset or blocking flip
-lands in.
+see §CI/rollback scope below); and, for Path A, the specific
+window/trigger before its follow-up Gate 1 plan is written.
 
 ## CI and rollback scope
 
@@ -459,7 +624,13 @@ Following this project's existing pattern in `plan_validator.rs`'s
 (B-G1-TEST-7):
 
 - Positive — bare role: `gate1_approved_by: "governor-reviewer"`,
-  MANIFEST has `governor-reviewer` active — passes.
+  MANIFEST has a `governor-reviewer` key present — passes.
+- Positive — role present but not currently active
+  (contribution-auditor `d2jr`, B-G1-TIME-R2): `governor-reviewer` key
+  present with `status: suspended` or `status: skipped` — **passes**
+  (presence, not current-active status, is what's checked; this is the
+  regression test for the historical-approval-invalidation bug this
+  correction fixes).
 - Positive — bare role plus citation suffix:
   `"governor-reviewer; decision 20260802T091047Z-governor-reviewer;
   MR !927 exact head ..."` — passes (prefix match on shape 1).
@@ -468,9 +639,8 @@ Following this project's existing pattern in `plan_validator.rs`'s
 - Positive — coordination-ID prefix with `.md` suffix:
   `"20260802T192253Z-governor-reviewer-gkeq.md"` — passes.
 - Negative — empty: `""` — blocks.
-- Negative — non-governor role: `"coder-tester"` (real, active,
-  non-governor-class) — blocks, message distinguishes from "unknown
-  role."
+- Negative — non-governor role: `"coder-tester"` (real,
+  MANIFEST-present, non-governor-class) — blocks.
 - Negative — near-miss string: `"governor-reviewers"` (trailing
   plural) — blocks. `"  governor-reviewer  "` (untrimmed) — passes
   after trim.
@@ -479,12 +649,16 @@ Following this project's existing pattern in `plan_validator.rs`'s
   case 3 — blocks (this is the exact case that drove the §2 design
   correction; it must have a dedicated regression test, not only the
   corpus fixture below).
-- Negative — fabricated citation for authenticity framing: a
-  syntactically valid `<date>T<time>Z-governor-reviewer-<suffix>`
-  string that does not correspond to any real coordination record —
-  passes the shape check (proving the check is structural-only, not
-  authentication) but the test itself must assert and document that
-  this is expected, not a false negative in the fix.
+- **Positive — acceptance-boundary test, not a negative test
+  (contribution-auditor `d2jr`, A-G1-TEST-NAME-R2):** a syntactically
+  valid `<date>T<time>Z-governor-reviewer-<suffix>` string that does
+  not correspond to any real coordination record. This is specified to
+  **pass** — labelling it "negative" mislabels its own expected
+  outcome. The test exists to make the check's structural-only,
+  non-authenticating boundary explicit and asserted, not implicit:
+  its assertion must include an inline comment or test-name suffix
+  stating that shape-validity is not authenticity, so a future reader
+  doesn't mistake the pass for a bug.
 - Negative — MANIFEST absent entirely: no `MANIFEST.yaml`, `status:
   approved` — blocks (fail closed), distinct from the existing
   `advisory_consultation` fallback test's fail-open behavior on the
@@ -494,9 +668,11 @@ Following this project's existing pattern in `plan_validator.rs`'s
   path as absent.
 - Negative — MANIFEST valid YAML but with no top-level `agents` key —
   blocks.
-- Negative — `governor-reviewer` present in MANIFEST but `status:
-  suspended` or `status: skipped` — blocks, message distinguishes "not
-  active" from "unknown role."
+- Negative — `governor-reviewer` key entirely absent from MANIFEST's
+  `agents:` mapping (project never configured this role at all,
+  distinct from present-but-inactive above) — blocks, message
+  distinguishes "role not configured in this project" from "does not
+  name a governor-class role."
 - Negative — lifecycle scope: `status: active` and `status: complete`
   with empty `gate1_approved_by` — both block, not just `approved`.
 - Positive — `status: pending-gate1` with empty `gate1_approved_by` —
@@ -541,12 +717,6 @@ description.
 - **Does not close `gt3x`'s other two gaps** (unauthenticated `from:`
   field generally; mutation-after-first-reference). Explicitly out of
   scope.
-- **Evidence provenance risk.** `gt3x` and `hv3k` are cited only as
-  provisional context (§Verified current defect); if the governor
-  ultimately declines to accept either learning, this plan's reasoning
-  trail should be re-checked to confirm nothing here rests solely on a
-  declined learning rather than on `sjqm`/`4g1e`, which are both
-  already on `main`.
 
 ## Rollback
 
@@ -563,13 +733,12 @@ commit.
   (§3).
 - Extensible governor-class metadata on MANIFEST roles beyond the v1
   hardcoded allowlist (§2) — reconsideration trigger stated there.
-- Coordination-record `from:` field authentication (`gt3x`, provisional,
-  unresolved).
+- Coordination-record `from:` field authentication (`gt3x`, unresolved).
 - Content-hash-on-first-reference tamper-evidence for immutable records
-  (`gt3x`, provisional, unresolved).
-- Enforcement-tier self-reporting vocabulary (`t8mz`'s recommendation,
-  provisional) — a documentation/vocabulary change, not a
-  schema/validator change; belongs in its own plan if pursued.
+  (`gt3x`, unresolved).
+- Enforcement-tier self-reporting vocabulary (`t8mz`'s recommendation) —
+  a documentation/vocabulary change, not a schema/validator change;
+  belongs in its own plan if pursued.
 - A full-corpus CI job to surface nonconforming plans proactively
   (§CI and rollback scope) — a Gate 1 decision contingent on the
   Path A/Path B choice, not decided by this plan.
