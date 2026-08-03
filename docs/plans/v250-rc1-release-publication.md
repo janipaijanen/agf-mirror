@@ -30,8 +30,27 @@ advisory_consultation:
       open #33/#67/#78 now get an explicit per-issue disposition step
       before the release is called feature-complete; and maturity language
       throughout now distinguishes "merged, Level 4 Validated" from
-      Level 5 Deployable. A bounded renewed review is requested before
-      this is treated as Gate 1-ready.
+      Level 5 Deployable. Round 2 review
+      (`20260803T152434Z-contribution-auditor-pgq6.md`) at exact head
+      `4950be18`: BLOCK, three narrowed blocking findings
+      (B-RC-SCOPE-R2-1, B-RC-ARTIFACT-R2-2, B-RC-TRACKER-R2-3) plus two
+      advisories (A-RC-AUDIT-COUNT-R2, A-RC-HANDOFF-DESC-R2), confirming
+      the other four round-1 blockers and both round-1 advisories
+      resolved. All three addressed in this revision: the scope table now
+      has separate framework-archive/tooling-archive columns and #101's
+      row is corrected to "No" for the framework archive; the
+      `agf/CHANGELOG.md` coverage claim is corrected (issue #101 has none
+      today, framed as an explicit governor decision) and the "inert for
+      any adopter" overclaim is withdrawn; the CLI/MCP learning-validation
+      interfaces are corrected to the real `agov validate learnings
+      <path>` / `agov_validate` shapes (bare `agov validate` has no
+      generic validation action); and #67/#78 now carry a full per-finding
+      resolution map, independently built from each issue's complete
+      current body, with an exact recommended disposition (#67: close,
+      every finding resolved; #78: keep open, two of four findings
+      genuinely still unresolved) rather than a deferred
+      close-or-leave-open algorithm. A bounded round-3 review is requested
+      before this is treated as Gate 1-ready.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -81,21 +100,27 @@ Deployable, via the publication path itself.
 ## Scope reconciliation: the actual `main` delta since v2.4.11
 
 Independently audited (`git log v2.4.11..origin/main --no-merges`, 121
-commits at audit time, reclassified by what they touch and cross-checked
-against `agf/dist/release-manifest.yaml`'s actual `include`/`exclude`
-globs — the only authoritative answer to "does this ship in the archive").
+commits measured at baseline `f77d80d2`; this count grows continuously as
+the repository's own coordination/plan activity continues — cite the
+baseline SHA, not the count, as the reproducible anchor if re-verifying),
+reclassified by what they touch and cross-checked against
+`agf/dist/release-manifest.yaml`'s actual `include`/`exclude` globs — the
+only authoritative answer to "does this ship in the archive." The refresh
+to `ca5a56d6` (5 more commits, all coordination records plus one
+repo-internal metadata-sync MR, per the "Current baseline" note above)
+added nothing to reclassify.
 
-| Surface | Ships in `agf-{version}` archive? | In original batching-amendment scope? | Disposition |
-|---|---|---|---|
-| **#79** — upgrade-safe adopter role authority | Yes (`agf/agents/**` glob; `MANIFEST.yaml` explicitly excluded, `MANIFEST.example.yaml` ships) | Yes, named explicitly | Ship as planned. |
-| **#80** — `requires-ack` obligation semantics | Yes (`agf/schemas/**`; new `agov coord pending` command ships in the Rust tooling archive) | Yes, named explicitly | Ship as planned. |
-| **Learning-record `status`/`supersedes`** (`docs/plans/learning-supersession-status-fields.md`, Path B, MR !1025, merged `e6dbc0a3`) | Yes (`agf/schemas/**`, `agf/templates/**`) | **No** | **Governor scope-amendment decision requested — see below.** |
-| **`governance-file-layout-rule.md` correction** (both `.claude/rules/` and `agf/rules/` copies, reclassified Additive per Codex MR !916, 2026-08-02) | Yes — `agf/rules/**` is an `include` glob. **This was omitted from the original audit entirely; found by contribution-auditor's review (`gbkp`, B-RC-SCOPE-1), not by me.** | No | **Governor scope-amendment decision requested — see below.** |
-| **Issue #101 — CI cache-policy Slice A/B** (`agov ci cache-topology-check` command) | Yes — the compiled command necessarily enters every Rust tooling binary built from current `main`, regardless of the feature's internal purpose. The CI config/script changes that consume it (`.gitlab-ci.yml`, `.gitlab/scripts/`) do not ship — those are `forbidden` paths. **Original audit wrongly concluded "no scope decision needed" because the *purpose* is internal; contribution-auditor correctly points out a compiled command doesn't disappear from the product archive because of its purpose.** | No | **Governor scope-amendment decision requested — see below.** |
-| `docs/plans/historical-branch-only-coordination-recovery.md` + its inventory (MR !1010, merged `f77d80d2`) | No — `docs/plans/` and `docs/reviews/` (except the two individually-included review docs already in the manifest) are not in the `include` glob. | No, and this is repository-internal governance process, not a product surface. | No release-content impact. No changelog entry needed — no other internal plan-drafting commit gets one either. |
-| MR !1050 (Gate 1 metadata sync for the already-merged historical-recovery plan) | No — plan-file frontmatter edit only, not in any `include` glob. | N/A | No release-content impact. |
-| Source registry / radar tracking (`docs/sources.md`, `docs/radar.md`, `docs/plans/radar-governance-signal-gaming.md`, `docs/TODO.md`) | No — repo-root `docs/`, not `agf/`. | No. | No release-content impact (confirmed against the manifest). Currently has zero coverage in either changelog's `[Unreleased]` section; this is a `CHANGELOG.md` (repository-level) completeness question, not a release-artifact question — flagged as a non-blocking observation, not a stop condition, since repo-root `CHANGELOG.md`'s own precedent already omits other purely-internal governance/plan commits (the historical-recovery-plan row above) without complaint. |
-| `agf/learnings/foundry.yaml` edits | **No** — `agf/learnings/**` is not in the `include` glob at all. This project's own learning corpus never ships. | N/A | No release-content impact. Confirms there is no latent version of the #78 MANIFEST-collision problem here (unlike `agf/agents/**`, `agf/learnings/**` was never included, so nothing needed excluding). |
+| Surface | Ships in framework archive (`agf-{version}.tar.gz`/`.zip`)? | Ships in a platform tooling archive (`agov`/`agov-mcp` binaries)? | In original batching-amendment scope? | Disposition |
+|---|---|---|---|---|
+| **#79** — upgrade-safe adopter role authority | Yes (`agf/agents/**`; `MANIFEST.yaml` explicitly excluded, `MANIFEST.example.yaml` ships) | No new binary behavior; the fail-closed error path is `agov` logic, ships in the tooling archive | Yes, named explicitly | Ship as planned. |
+| **#80** — `requires-ack` obligation semantics | Yes (`agf/schemas/**`) | Yes — new `agov coord pending` command ships in the Rust tooling archive binaries | Yes, named explicitly | Ship as planned. |
+| **Learning-record `status`/`supersedes`** (`docs/plans/learning-supersession-status-fields.md`, Path B, MR !1025, merged `e6dbc0a3`) | Yes (`agf/schemas/**`, `agf/templates/**`) | Yes — the new validator logic ships in the tooling binaries | **No** | **Governor scope-amendment decision requested — see below.** |
+| **`governance-file-layout-rule.md` correction** (both `.claude/rules/` and `agf/rules/` copies, reclassified Additive per Codex MR !916, 2026-08-02) | Yes — `agf/rules/**` is an `include` glob. **This was omitted from the original audit entirely; found by contribution-auditor's review (`gbkp`, B-RC-SCOPE-1), not by me.** | No binary change | No | **Governor scope-amendment decision requested — see below.** |
+| **Issue #101 — CI cache-policy Slice A/B** (`agov ci cache-topology-check` command) | **No.** **Correction (round-2 review, B-RC-SCOPE-R2-1): the first revision wrongly answered "yes" for this row using tooling-archive reasoning under a column asking specifically about the framework archive.** `ci_cache_topology.rs` is not under any `agf/` path and is not in the framework-archive `include` glob. | **Yes** — the compiled command necessarily enters every Rust tooling binary built from current `main`. The CI config/script changes that consume it (`.gitlab-ci.yml`, `.gitlab/scripts/`) do not ship in either archive — those are `forbidden` paths. | No | **Governor scope-amendment decision requested — see below.** |
+| `docs/plans/historical-branch-only-coordination-recovery.md` + its inventory (MR !1010, merged `f77d80d2`) | No — `docs/plans/` and `docs/reviews/` (except the two individually-included review docs already in the manifest) are not in the `include` glob. | No | No, and this is repository-internal governance process, not a product surface. | No release-content impact. No changelog entry needed — no other internal plan-drafting commit gets one either. |
+| MR !1050 (Gate 1 metadata sync for the already-merged historical-recovery plan) | No — plan-file frontmatter edit only, not in any `include` glob. | No | N/A | No release-content impact. |
+| Source registry / radar tracking (`docs/sources.md`, `docs/radar.md`, `docs/plans/radar-governance-signal-gaming.md`, `docs/TODO.md`) | No — repo-root `docs/`, not `agf/`. | No | No. | No release-content impact (confirmed against the manifest). Currently has zero coverage in either changelog's `[Unreleased]` section; this is a `CHANGELOG.md` (repository-level) completeness question, not a release-artifact question — flagged as a non-blocking observation, not a stop condition, since repo-root `CHANGELOG.md`'s own precedent already omits other purely-internal governance/plan commits (the historical-recovery-plan row above) without complaint. |
+| `agf/learnings/foundry.yaml` edits | **No** — `agf/learnings/**` is not in the `include` glob at all. This project's own learning corpus never ships. | No | N/A | No release-content impact. Confirms there is no latent version of the #78 MANIFEST-collision problem here (unlike `agf/agents/**`, `agf/learnings/**` was never included, so nothing needed excluding). |
 
 ### Governor scope-amendment decision requested: three surfaces ship but weren't in the original batching-amendment scope
 
@@ -120,24 +145,49 @@ own suggestion that one combined amendment is acceptable:
    inert, so the replacement single-layout ownership table is new operative
    guidance, not a restatement.
 3. **Issue #101's `agov ci cache-topology-check` command** — already
-   merged, ships as a new CLI subcommand with zero adopter-facing
-   obligation semantic (it inspects this project's own resolved CI
-   configuration; an adopter's project has no equivalent config for it to
-   check, so the command is inert for them, not broken — but it is present
-   in their binary and their `agov --help` output).
+   merged, ships as a new CLI subcommand in the platform tooling archive
+   binaries only (not the framework archive). **Correction (round-2
+   review, B-RC-SCOPE-R2-1): the first revision claimed this command is
+   "inert for any adopter" because its motivating use case is this
+   project's own CI. That overclaims — the command accepts arbitrary
+   merged GitLab CI YAML plus configurable cache keys/job names as input;
+   nothing prevents an adopter from pointing it at their own CI
+   configuration. The accurate statement is narrower: the command was
+   *built for* this project's own CI-cost problem and carries no
+   documented adopter workflow, not that it is technically unusable by an
+   adopter.**
+
+**Changelog/documentation treatment decision, per B-RC-SCOPE-R2-1
+(resolves the false "both changelogs already cover it" claim):** issue
+#101 currently appears in root `CHANGELOG.md` (repository-level, correct —
+this is this repository's own CI-cost work) but **nowhere in
+`agf/CHANGELOG.md`** (the adopter-facing distribution changelog) —
+verified directly, not assumed. Because the command ships in the
+adopter-downloaded tooling binary and in `agov --help`, silence in
+`agf/CHANGELOG.md` is not currently honest: an adopter inspecting their
+own `--help` output after upgrading would see a command the adopter-facing
+changelog never mentioned. **Recommended: add a short `agf/CHANGELOG.md`
+entry** stating the command exists, what it inspects, and that it carries
+no adopter-facing obligation semantic or documented adopter workflow —
+matching the corrected, narrower claim above rather than "inert for any
+adopter." The governor may instead choose to explicitly accept root-only
+coverage with a stated reason; either is a valid Gate 1 decision, but the
+plan must not proceed with both files "already covering it" as a settled
+fact when only one does.
 
 **Recommended: Option A, amend the boundary to include all three.**
 Justification, applying uniformly: all three are already on `main`,
-already independently Gate 2-approved, already have complete
-`CHANGELOG.md`/`agf/CHANGELOG.md` coverage written at merge time (except
-the changelog-acceptance-text contradiction noted below, now fixed), and
-are the same additive-minor SemVer class as #79/#80. Excluding any of them
-would require reverting an already-approved merge or branching the release
-from an older, non-`main` commit — more costly and less honest than
-acknowledging the scope grew by three governed items since the amendment
-was written. `post-v248-release-batching-amendment.md`'s own text does not
-forbid amendment; it states the batches as the then-current decision, not
-as immutable.
+already independently Gate 2-approved, and are the same additive-minor
+SemVer class as #79/#80. Two of the three (learning-supersession,
+governance-layout) already have complete `CHANGELOG.md`/`agf/CHANGELOG.md`
+coverage; the third (#101) requires the adopter-facing changelog decision
+above before it can be said to have complete coverage. Excluding any of
+the three would require reverting an already-approved merge or branching
+the release from an older, non-`main` commit — more costly and less
+honest than acknowledging the scope grew by three governed items since the
+amendment was written. `post-v248-release-batching-amendment.md`'s own
+text does not forbid amendment; it states the batches as the then-current
+decision, not as immutable.
 
 **Option B (per surface): hold any of the three for v2.6.0.** Would
 require cherry-picking #79/#80 onto a release branch that excludes the
@@ -174,9 +224,10 @@ capability with no removed or redefined existing behavior:
   inert (asserted no concrete guidance), not because it changes runtime
   behavior.
 - #101's cache-topology command: one new CLI subcommand
-  (`agov ci cache-topology-check`), inert for any adopter project (it
-  inspects this project's own CI configuration shape), no schema or
-  existing-command change.
+  (`agov ci cache-topology-check`), built for this project's own CI-cost
+  problem with no documented adopter workflow — not technically inert for
+  an adopter (it accepts arbitrary merged CI YAML as input), just
+  unaddressed to one. No schema or existing-command change.
 
 **Additive minor. `v2.5.0-rc.1` is the correct target**, matching
 `v250-rc1-contract-core.md`'s own classification and the SoW's release-train
@@ -262,33 +313,108 @@ merged, per the sequencing above), with only these release-truth changes:
    yet warrant a citation bump per existing convention — confirm against
    the actual current README wording at implementation time rather than
    assuming.
-7. **v2.5 milestone/issue-tracker reconciliation (corrects
-   B-RC-TRACKER-7):** the GitLab `v2.5.0` milestone currently contains
-   three open issues (#33, #67, #78) that this release does not fully
-   resolve. Before the release is represented as feature-complete, add a
-   precise disposition for each:
-   - #33 — the minimal concurrency slice #80 required already shipped in
-     this candidate; the issue's full concurrency-specification scope
-     remains open and parked for a separate later plan. Add a GitLab note
-     stating this and leave the issue open, unmilestoned from v2.5.0 (its
-     remaining scope has no governed release destination yet) unless the
-     governor names one.
-   - #67 — the required legacy-URL and advisory-role compatibility slices
-     already shipped (verified in `v250-rc1-contract-core.md`'s "Removed
-     work packages" section). Add a GitLab note naming exactly what
-     shipped and where, then close #67 only if every remaining item in its
-     body is either resolved or has a named successor issue — otherwise
-     leave it open with the note.
-   - #78 — its reproduced manifest-overwrite and requires-ack defects are
-     resolved by #79/#80 in this candidate. Add a GitLab note naming the
-     resolution, then apply the same close-or-leave-open test as #67 for
-     its remaining observations (some were already retracted or routed
-     elsewhere per its own comment thread).
-   - This step is tracker reconciliation only — it does not authorize
-     implementing any parked remainder of #33/#67/#78. A final GitLab API
-     check before tagging must show the milestone state and the release
-     notes agree (no open issue silently implies unshipped work is
-     included, no shipped resolution is silently unrecorded).
+7. **v2.5 milestone/issue-tracker reconciliation — corrects B-RC-TRACKER-7
+   and its round-2 narrowing B-RC-TRACKER-R2-3.** The GitLab `v2.5.0`
+   milestone currently contains three open issues (#33, #67, #78).
+   **Correction: the round-1 fix for #67/#78 used a deferred
+   close-or-leave-open algorithm ("close only if every remaining item is
+   resolved... otherwise leave open") instead of the explicit
+   governor-decided disposition the review actually required.** Below is
+   the concrete per-finding map, built by independently reading each
+   issue's full current body (not summarized from memory), with an exact
+   recommended outcome for the governor to approve or amend at Gate 1 —
+   tracker notes execute the approved decision afterward, they do not
+   discover it during publication.
+
+   **#33 — concurrency semantics.** The minimal slice #80 required
+   already shipped in this candidate (the `--all-kinds` pending surface's
+   direct-reference resolution, distinct from `handoff`'s transitive
+   resolution). The issue's full concurrency-specification scope is
+   unrelated to this candidate's contract and remains genuinely open.
+   **Recommended disposition: keep open, remove from the `v2.5.0`
+   milestone, leave unmilestoned** (no governed later destination named
+   yet) unless the governor names one at Gate 1.
+
+   **#67 — five defects + one informational, independently re-verified
+   against current `main` before writing this map:**
+   1. Superseded `agent-governance` repo path (34 occurrences,
+      including the Quickstart download link serving `v1.1.50`, three
+      schema `$id` values at the old URL/prefix) — **resolved**, commit
+      `a9b79b8e`. Verified: zero occurrences of the old path anywhere in
+      the actual shipped tree (`agf/**` plus the two individually-included
+      `docs/reviews/` files) today; the Quickstart link now points to
+      `agents-govern-framework`.
+   2. Adopter-owned manifest at an upstream-owned path — **resolved by
+      #79** (this candidate, `MANIFEST.example.yaml`).
+   3. `ADOPTING.md` contradicted the site docs on packaged-tooling
+      availability — **resolved**, commit `d7dd5da7`. Verified: the
+      contradicting text no longer exists in `agf/ADOPTING.md`.
+   4. GitLab Releases web page is unreadable to assistants; no API
+      pointer existed — **resolved**, commit `d7dd5da7`. Verified: the
+      Releases API URL is present in both `agf/ADOPTING.md` and
+      `install-and-layouts.md` today.
+   5. ADR setup commands copied the template onto itself
+      (`docs/adr/_template.md` instead of `agf/docs/adr/_template.md`) —
+      **resolved**, commit `d7dd5da7`. Verified: `agf/ADOPTING.md` now
+      reads `cp agf/docs/adr/_template.md docs/adr/`.
+   6. Informational (what worked without intervention) — no action item.
+
+      **Every open finding in #67 is resolved, three of five predating
+      this candidate and independently reverified, one shipped in this
+      candidate (#79).** Recommended disposition: **close #67**, with a
+      GitLab note naming all five fixing commits/MRs above, and remove it
+      from the `v2.5.0` milestone (it closes on completion, not on this
+      release's own merit alone).
+
+   **#78 — four findings (the preamble table's four items were already
+   fixed before #78 was filed and need no action), independently
+   re-verified against current `main`:**
+   1. **Regression: the archive ships a top-level `docs/` outside `agf/`**
+      (`docs/reviews/agf-framework-assessment-codex-sol-high.md` and
+      `docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md`,
+      landing in the adopter-owned `docs/` tree instead of
+      `agf/docs/reviews/`) — **still open, unresolved.** Verified directly
+      against `agf/dist/release-manifest.yaml` today: both paths are still
+      listed at `docs/reviews/...`, not `agf/docs/reviews/...`. **This
+      release does not fix it** — fixing it (relocating the paths and
+      updating the manifest) is a real, scoped, one-file change but is
+      not named in the batching amendment's v2.5.0 contract and is not
+      required by #79/#80. Recommended: do not silently claim this is
+      resolved; note it explicitly as a known, still-reproducing defect
+      in this release's evidence, and route the actual fix to its own
+      small follow-on plan (candidate for v2.5.0-rc.2 if the governor
+      wants it in this release line, or v2.6.0 otherwise).
+   2. Adopter roster overwritten on upgrade — **resolved by #79** (this
+      candidate).
+   3. `requires-ack` on a `note` created no tracked obligation —
+      **resolved by #80** (this candidate).
+   4. Coordination records visible only on unmerged branches (the
+      learning behind `coordination-publication-rule.md`'s provisional
+      status) — **partially addressed, not resolved.** The forensic
+      assessment and prevention *design* merged (MR !1010,
+      `historical-branch-only-coordination-recovery.md`), but that plan
+      explicitly does not authorize implementing its prevention
+      mechanisms (e.g., queue-reporting commands stating which ref they
+      answered for). No shipped tooling change exists yet. Recommended:
+      keep this specific finding open, tracked either as a reopened scope
+      item under #78 or a new named successor issue for the prevention
+      implementation — the governor's choice at Gate 1.
+
+      **Recommended disposition: keep #78 open** (findings 1 and 4 remain
+      genuinely unresolved), **remove it from the `v2.5.0` milestone**
+      (neither open item is in this candidate's contract-core scope), add
+      a GitLab note recording findings 2 and 3 resolved by #79/#80 with
+      exact commit/MR references, and finding 1's manifest paths plus
+      finding 4's MR !1010 reference as the still-open items with their
+      recommended next-step routing above.
+
+   This step is tracker reconciliation only — it does not authorize
+   implementing #33's remaining scope, #78 finding 1's manifest fix, or
+   #78 finding 4's prevention mechanism. A final GitLab API check before
+   tagging must show the milestone state and the release notes agree (no
+   open issue silently implies unshipped work is included in this
+   candidate, no shipped resolution is silently unrecorded, no still-open
+   defect is silently implied fixed).
 
 No product implementation, command semantic, schema, validator semantic,
 dependency, CI behavior, new documentation policy, rule, v2.6.0/v2.7.0
@@ -296,19 +422,31 @@ scope, or branch deletion is in scope.
 
 ## Proposed changelog substance
 
-Both changelog files' `[Unreleased]` sections already contain the
-substantive entries for #79, #80, learning-supersession,
-governance-layout-rule, and #101, written at each feature's own merge
-time — this release converts them to a dated `[2.5.0-rc.1]` section rather
-than drafting new prose. The release MR must:
+**Correction (round-2 review, B-RC-SCOPE-R2-1):** the claim that "both
+changelog files already contain" all five surfaces was itself false and
+independently re-verified before this fix, not just accepted from the
+review — direct grep of `agf/CHANGELOG.md`'s `[Unreleased]` section shows
+zero mentions of issue #101; root `CHANGELOG.md` covers it fully. The
+accurate state:
+
+- `CHANGELOG.md` (repository-level): already contains entries for all
+  five surfaces (#79, #80, learning-supersession, governance-layout-rule,
+  #101) — verify this at the release-branch head, don't re-draft.
+- `agf/CHANGELOG.md` (adopter-facing): already contains entries for four
+  surfaces (#79, #80, learning-supersession, governance-layout-rule) —
+  verify at the release-branch head. **Issue #101 needs the new entry
+  decided in the scope-amendment section above** (either add adopter-facing
+  coverage, or record the governor's explicit root-only-coverage
+  decision) before this release's `agf/CHANGELOG.md` can be converted to a
+  dated section.
+
+The release MR must:
 
 - verify every `[Unreleased]` entry in both files as of the release branch
   head is one of the five in-scope items above (no stray entry from an
-  unrelated merge slipped in between drafting and release) — the first
-  revision's claim of "three in-scope items" was itself the
-  changelog/scope-table contradiction B-RC-SCOPE-1 flagged, since root
-  `CHANGELOG.md` already contained the governance-layout fix and both
-  issue #101 slices at the time that claim was written;
+  unrelated merge slipped in between drafting and release), and confirm
+  the corrected per-file coverage list above rather than assuming parity
+  between the two files;
 - per **A-RC-MATURITY-1**: describe each shipped feature using accurate
   maturity language — "merged and Level 4 Validated" (per
   `implementation-honesty-rule.md`'s five-level model), not "already
@@ -358,14 +496,22 @@ The release MR must provide exact-head evidence for:
     command).
   - **(b) Platform tooling archive install and CLI/MCP parity.** Install
     the separate Linux Rust tooling archive's packaged `agov` and
-    `agov-mcp` binaries and confirm, via the actual shipped interfaces
-    (not a description of them): CLI `agov coord pending` lists the
-    expected pending records; MCP tool `agov_coord_pending` returns
-    equivalent output for the same fixture; CLI `agov validate` (the
-    generic validator surface, not a schema-specific subcommand) accepts a
-    learning record using `status`/`supersedes` and rejects a malformed
-    one; packaged-binary self-reporting confirms `2.5.0-rc.1`, the release
-    MR exact head, and clean source.
+    `agov-mcp` binaries and confirm, via the actual shipped interfaces —
+    **corrects B-RC-ARTIFACT-R2-2, which found the first revision named a
+    nonexistent bare "generic validation" action; verified directly via
+    `agov validate --help` before writing this fix, not assumed**:
+    - CLI `agov coord pending` lists the expected pending records; MCP
+      tool `agov_coord_pending` returns equivalent output for the same
+      fixture;
+    - CLI `agov validate learnings <fixture-path>` accepts a positive
+      fixture using `status`/`supersedes` and rejects a malformed one
+      (there is no bare `agov validate` validation action — it only lists
+      subcommands; `learnings` is the specific one this feature needs);
+    - MCP tool `agov_validate` with `check: "learnings"` and the fixture
+      path in `paths` returns equivalent accept/reject results for the
+      same two fixtures;
+    - packaged-binary self-reporting confirms `2.5.0-rc.1`, the release MR
+      exact head, and clean source.
 - `tooling/rust/scripts/check-live-tooling-surfaces.sh check` and
   `selftest`;
 - tag/version guard evidence with `CI_COMMIT_TAG=v2.5.0-rc.1`;
@@ -459,10 +605,16 @@ changelog metadata, per `release-via-merge-request-rule.md`.
 8. Framework-archive overlay tests pass from all three named baselines
    (`v2.4.5`, `v2.4.6`, `v2.4.11`).
 9. The v2.5.0 GitLab milestone's #33/#67/#78 disposition is recorded via
-   GitLab notes per release-only change-set item 7, and the milestone
-   state agrees with the release notes before tagging.
+   GitLab notes per release-only change-set item 7's per-finding map, and
+   the milestone state agrees with the release notes before tagging:
+   #67 closed (with note, every finding resolved); #33 and #78 kept open
+   and removed from the `v2.5.0` milestone (each has a genuinely unshipped
+   remainder, per the per-finding map).
 10. Issues #79 and #80 are not touched by this plan's execution — they
-    stay closed, unmodified. #33/#67/#78 are noted, not silently closed.
+    stay closed, unmodified. #67 closes deliberately, with an explicit
+    note citing every fixing commit/MR, never as a silent side effect of
+    the release MR's own `closes_issues`. #33 and #78 are noted, not
+    closed.
 11. v2.6.0/v2.7.0 scope (per the batching amendment) does not enter this
     release.
 
