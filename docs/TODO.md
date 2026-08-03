@@ -482,3 +482,45 @@ Open before implementation proceeds:
 Candidate next step once confirmed: implementation as two independently
 reviewable MRs (README restructure; Pages theme/nav/hero), sized so each
 answers one yes/no review question, per `branch-and-worktree-rule.md`.
+
+## Philosophical-lenses page: self-application gap, not yet actioned
+
+Status: open, uncaptured elsewhere. Owner: documentation-writer for the page
+edit; contribution-auditor or academic-peer-reviewer for review, given the
+page's evidence-citation discipline.
+
+A review of `agf/docs/site/docs/concepts/philosophical-lenses.md` against its
+actual source text (2026-08-03, same session as the v2.5.0-rc.1 three-track
+evaluation) found the page's evidence-status discipline is genuinely careful
+(each of the six lenses correctly scopes its own citation, e.g. the
+Bainbridge lens explicitly disclaims corroboration from literature it didn't
+cite), but every lens ends in a generic "design question" that the page never
+answers against AGF's own concrete mechanisms — despite the project's
+self-application motto ("the framework that cannot govern itself has no
+business governing anything else").
+
+This is no longer a hypothetical gap. The three-track evaluation
+(`docs/coordination/20260803T204257Z-planner-architect-sjqm.md`, learning
+`20260803T205236Z-gt3x`) already answers several of the page's own design
+questions for AGF specifically:
+
+- The **legibility critique** ("does producing the evidence the system wants
+  distort the work, and can a record be gamed while looking legitimate")
+  is exactly what the mutation-served-as-authentic finding demonstrates,
+  observed in this system, not hypothesized.
+- **Accountability sinks** ("is there a specific named person who could have
+  decided otherwise") has an honest current answer: `gate1_approved_by` can
+  be empty or a non-governor role and still validate as `approved`.
+
+Recommendation: add a concrete "applied to AGF" callout per lens (or at
+least for legibility and accountability sinks, the two with direct evidence
+already on record), citing the relevant coordination/learning record, rather
+than leaving all six design questions purely generic. Low effort — the
+evidence already exists and is already cited elsewhere in the repo; this is
+a linking/citation task, not new research.
+
+Not captured as a `learnings/` entry: this is a documentation-content gap on
+an already-published page, not operational evidence from running the
+framework's tooling (contrast with `t8mz`, which is the adjacent but
+distinct "no self-reported enforcement profile" finding). Recorded here in
+TODO.md for lack of a more specific tracked home.
