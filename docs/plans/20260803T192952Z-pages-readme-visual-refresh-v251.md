@@ -254,6 +254,45 @@ under `downstream-impact-rule.md`'s classification (no behavioral
 contract changes; README.md is outside that rule's trigger-path list in
 any case).
 
+### 5a. README structure — refined, supersedes the loose hero+bullets shape above
+
+**Frame (new, adopted):** README is the forge door, doing triage — the
+published Pages site is where persuasion and teaching happen. The
+earlier hero+bullets+evidence-section draft above still describes the
+right *content*, but not the right *division of labor* between the two
+surfaces. Concretely: README should point, not carry the full pitch.
+
+**Structure (replaces the loose shape in Decision 5):**
+
+| Section | Max length | Content |
+|---|---|---|
+| Title + one-liner | 3 lines | What it is, one sentence; explicitly not a runtime |
+| Not this | 5 bullets | Not Microsoft AGT, not an orchestrator, not a root of trust alone |
+| Fit | 6 bullets | Try when / skip when — including the root-of-trust and forge-native-AI-review skip cases from the competitive-positioning section above |
+| 60-second install | commands | Pinned `vX.Y.Z` archive, link to published docs |
+| Map | short table | `agf/` = shipped product; `docs/` = this repo's own evidence/process |
+| Deep dive | one line | Link to the published docs site — full narrative lives there, not in README |
+
+**Correction, verified false (2026-08-03):** an earlier claim that
+README's docs links are "repo-native paths (`agf/docs/site/docs/...`),
+not the published URL first" is checked and **wrong** for the current
+README — `grep` confirms six separate links to the actual
+`https://janipaijanen.gitlab.io/agents-govern-framework/...` site,
+starting at the top ("Published docs:" / "Current roadmap:"). Dropped,
+not carried forward. The broader point (README currently carries too
+much narrative density for a repo door) stands on its own evidence and
+doesn't need that specific claim to hold.
+
+**TODO — unverified, needs a citation check before use:** a claim that
+"AGF" collides with other unrelated uses (session finders, papers, 5G,
+funds) was offered with no source and no verification method — same
+unverified-specific-claim shape as Lumo's fabricated schema filenames
+earlier in this review. Not dropped outright, because the underlying
+instinct (short acronyms are usually overloaded; disambiguate on first
+screen regardless) is plausible on priors — but not to be repeated as
+fact, and not to inform the "Not this" bullets above, until someone
+actually searches and confirms specific real collisions.
+
 ## Audience-assumption stress test (protocol + first pass)
 
 **Protocol, going forward:** a single imported reader-capability baseline
