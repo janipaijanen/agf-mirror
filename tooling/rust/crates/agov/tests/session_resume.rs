@@ -61,6 +61,50 @@ agents:
     assert!(stdout.contains("governor-reviewer:"));
 }
 
+/// Issue #79 fail-closed requirement: with the default manifest path in
+/// effect and MANIFEST.yaml absent, `agov` must never silently read a
+/// sibling MANIFEST.example.yaml as live adopter state. Places a real
+/// MANIFEST.example.yaml (with an active role) next to a *missing*
+/// MANIFEST.yaml at the exact real default relative layout
+/// (agf/agents/MANIFEST.yaml vs. agf/agents/MANIFEST.example.yaml) and
+/// asserts the example file's role never appears in the output.
+#[test]
+fn cold_start_never_substitutes_manifest_example_for_missing_manifest() {
+    let fixture = Fixture::new();
+    fixture.write_coord("agov-config.yaml", "from_aliases: {}\n");
+    let agents_dir = fixture.root.join("agf").join("agents");
+    fs::create_dir_all(&agents_dir).unwrap();
+    fs::write(
+        agents_dir.join("MANIFEST.example.yaml"),
+        "agents:\n  example-only-role:\n    status: active\n",
+    )
+    .unwrap();
+    let missing_manifest = agents_dir.join("MANIFEST.yaml");
+    assert!(!missing_manifest.exists());
+
+    let output = agov(&[
+        "session",
+        "resume",
+        "--dir",
+        fixture.coord_dir().to_str().unwrap(),
+        "--manifest",
+        missing_manifest.to_str().unwrap(),
+        "--base-branch",
+        "main",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("example-only-role"),
+        "the sibling MANIFEST.example.yaml's role leaked into cold-start \
+         output; the missing-manifest path must never read it as a \
+         substitute -- stdout:\n{stdout}"
+    );
+    assert!(stdout.contains("Active roles: unavailable"));
+    assert!(stdout.contains("MANIFEST.example.yaml"));
+}
+
 #[test]
 fn role_resume_shows_pending_handoffs_claims_decisions_and_must_read() {
     let fixture = Fixture::new();

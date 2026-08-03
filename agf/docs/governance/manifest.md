@@ -23,7 +23,8 @@ install it from the GitLab release artifacts or adopt from this repository.
 | Path | Purpose | Adopt as |
 |------|---------|---------|
 | `agents/` | Agent role definitions (one YAML per role) | Install under `agf/agents/` or use in place |
-| `agents/MANIFEST.yaml` | Example active-role status file (foundry dogfood) | Replace with your own project's role-status file |
+| `agents/MANIFEST.yaml` | This foundry's own local role-status authority (adopter-owned path; never packaged in release archives) | Not present in a release archive — start from `agents/MANIFEST.example.yaml` instead |
+| `agents/MANIFEST.example.yaml` | Neutral role-status template shipped in release archives | Copy to `agents/MANIFEST.yaml` and edit each role's `status`/`played_by` before wiring manifest-driven tooling |
 | `rules/` | Governance rules (`always/`, `workflow/`, `docs/`, `ui/`) | Keep under `agf/rules/`; point your assistant at this canonical copy |
 | `schemas/` | JSON schemas and invariants for validation | Use through the shipped Rust `agov` validators |
 | `templates/` | First-run starter files (coordination, plans, learning) | Ask your assistant to prepare first-run evidence from these templates |
@@ -55,8 +56,9 @@ After the assistant prepares the diff, review:
   name;
 - `docs/plans/` and `docs/coordination/` exist, or your project has documented
   different paths;
-- `agf/agents/MANIFEST.yaml` is replaced or clearly documented as your local
-  role-status authority, not the foundry dogfood roster;
+- `agf/agents/MANIFEST.yaml` exists as your local role-status authority —
+  copied from the shipped `agf/agents/MANIFEST.example.yaml` template and
+  edited, not this foundry's own dogfood roster;
 - remaining `CUSTOMIZE` markers are deliberate and tracked.
 
 For the full 7-step adoption process, see [ADOPTING.md](../../ADOPTING.md).

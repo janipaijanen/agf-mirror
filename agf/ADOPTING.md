@@ -362,34 +362,25 @@ Then edit each file:
   record and note what changed. The `id` stays the same (it tracks the
   upstream origin), but the customization is documented for auditability.
 
-**Create an agent manifest when your project needs one.** If you track role
-activation locally, keep the manifest under your adopted framework directory
-unless your project has documented a different role-authority file:
+**Create an agent manifest when your project needs one.** Copy the shipped
+template to your project's live roster, then edit each role's `status` and
+`played_by`:
 
-```yaml
-# agf/agents/MANIFEST.yaml
-agents:
-  planner-architect:
-    status: active
-    played_by: "claude"
-  coder-tester:
-    status: active
-    played_by: "claude"
-  governor-reviewer:
-    status: active
-    played_by: "human (you)"
-  build-engineer:
-    status: active              # activate if project has CI
-    played_by: "claude"
-  localizer:
-    status: skipped
-    reason: "english only"      # suspended/skipped require a reason
+```
+cp agf/agents/MANIFEST.example.yaml agf/agents/MANIFEST.yaml
 ```
 
-The manifest declares which agents are commissioned. Use `agov validate` to
-check consistency: every active manifest entry should have a corresponding YAML
-role definition, and every role definition you rely on should have an explicit
-status.
+`agf/agents/MANIFEST.example.yaml` is never read as adopter state itself —
+`agov` only reads `agf/agents/MANIFEST.yaml` (or the path set by
+`AGOV_MANIFEST_PATH`). It is not part of your project's tracked state until
+you copy it; a plain framework re-extraction never overwrites your copy,
+because the shipped archive never places a file at
+`agf/agents/MANIFEST.yaml`.
+
+The manifest declares which agents are commissioned. Use `agov validate
+agents` to check consistency: every active manifest entry should have a
+corresponding YAML role definition, and every role definition you rely on
+should have an explicit status.
 
 **Copyright and licensing for custom agents.**
 When you create new agent definitions for your project:

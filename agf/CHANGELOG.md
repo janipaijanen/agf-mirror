@@ -7,6 +7,28 @@ distribution.
 
 ### Added
 
+- Upgrade-safe adopter role authority (issue #79,
+  `docs/plans/v250-rc1-contract-core.md` work package 1). The shipped
+  release archive no longer contains `agf/agents/MANIFEST.yaml` — a plain
+  archive re-extraction over an adopter project could previously overwrite
+  an adopter's own divergent roster with the framework's dogfooding
+  manifest (reproduced concretely by issue #78: `coder-tester` and
+  `build-engineer` silently reactivated, `documentation-writer` and
+  `capability-developer` silently dropped). The archive now ships a
+  neutral `agf/agents/MANIFEST.example.yaml` template instead, matched by
+  the same include glob but excluded by an explicit packaging rule;
+  `agov` never reads it as adopter state. `AGOV_MANIFEST_PATH`'s existing
+  override precedence is unchanged. With the default path in effect and
+  `agf/agents/MANIFEST.yaml` absent, `agov session resume`'s cold-start
+  output now states the missing path explicitly and names both remedies
+  (copy the example, or set `AGOV_MANIFEST_PATH`) rather than a generic
+  "not found" message.
+
+Adopter docs: updated — `ADOPTING.md` §1.3 and
+`docs/site/docs/adopt/install-and-layouts.md` now describe copying
+`MANIFEST.example.yaml` to `MANIFEST.yaml` as the commissioning step,
+replacing the inline roster example.
+
 - `requires-ack` obligation semantics for non-handoff coordination records
   (issue #80, `docs/plans/v250-rc1-contract-core.md` work package 2).
   Previously, `requires-ack: true` was schema-legal on every message kind
@@ -26,10 +48,19 @@ distribution.
     and `ack`. Resolution is a direct reference — a record is pending
     until any later record's `references-to` names its file — not
     `handoff`'s transitive descendant-chain resolution. Records published
-    before `2026-08-02T18:10:18Z` are grandfathered and never appear, so
-    the ~380 pre-existing non-handoff `requires-ack: true` records already
+    before `2026-08-02T22:01:54Z` are grandfathered and never appear, so
+    the pre-existing non-handoff `requires-ack: true` records already
     in this project's own coordination channel are not retroactively
-    treated as a pending backlog.
+    treated as a pending backlog. **Correction (found while resolving
+    this merge, 2026-08-03): the cutoff stated here previously read
+    `2026-08-02T18:10:18Z`, an earlier draft default the governor
+    replaced before merge — see decision-record
+    `20260802T220154Z-governor-reviewer-sejb` — but this changelog entry
+    was never updated to match. The shipped default
+    (`tooling/rust/crates/agov/src/main.rs`) and the rule docs
+    (`docs/coordination/README.md`,
+    `agf/docs/site/docs/concepts/coordination-protocol.md`) already used
+    the corrected value; only this changelog entry had drifted.**
   `handoff next`, `handoff take`, `handoff complete`, and `coord
   graph-index` are unchanged — existing tests for all four pass unmodified.
 
