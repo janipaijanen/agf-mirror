@@ -394,8 +394,8 @@ then validation; then citation visibility; then moot:**
    handoff check and the cutoff check) → obligation **live** →
    disposition `defer`, with no exception for `requires-ack: true` or
    `kind: handoff` — the open MR is already the delivery path.
-4. `kind: handoff` (B-HR-HANDOFF-3, corrected by B-HR-HANDOFF-4 to be
-   **unconditional — never cutoff-gated**): resolved if any `ack`,
+4. `kind: handoff` (B-HR-HANDOFF-3, corrected by B-HR-HANDOFF-CUTOFF-4
+   to be **unconditional — never cutoff-gated**): resolved if any `ack`,
    `completion`, or `decision-record` exists anywhere in the
    transitive-descendant subgraph of the reference graph (the exact
    algorithm `handoff_tracker.rs::find_pending` / `is_resolved` uses,
