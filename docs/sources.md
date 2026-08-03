@@ -1557,3 +1557,36 @@ variance, false attribution, parallel/cyclic graphs, privacy/redaction, and
 report-version stability; and decide whether the useful integration is a Gate
 2 evidence attachment, an `agov` import/summary adapter, or documentation-only
 comparison. Contact/partnership is reasonable only after that bounded test.
+
+# Batch 17 (2026-08-04) — NASA LLIS design provenance
+
+These entries preserve a narrow, traceable influence on shipped AGF design.
+They do not establish protocol equivalence, NASA endorsement, comparable
+assurance stakes, or adoption of NASA's governance process.
+
+## Classified
+
+- https://llis.nasa.gov/
+  type: practice, public lessons system | relation: prior-art, design-influence |
+  action: cite
+  note: NASA's public Lessons Learned Information System (LLIS) prompted AGF to
+  review how its own learning records represent structure, lifecycle, and
+  relationships. The resulting AGF changes are independently designed and
+  deliberately narrower: append-safe `supersedes` on the newer record, a
+  derived reverse relationship, and an optional `proposed | implemented`
+  status convention. AGF did not adopt LLIS's overall protocol, governance
+  body, review process, classification model, or assurance stakes. The broad
+  comparison research and its review history remain preserved in MR !981,
+  which is superseded as a publication direction rather than treated as an
+  AGF protocol specification. (accessed 2026-08-04)
+
+- https://llis.nasa.gov/lesson/30101
+  type: primary source, public learning record | relation: evidence,
+  design-influence | action: cite
+  note: Public NASA LLIS Lesson 30101, dated 2021-02-28, supplied the concrete
+  record used in AGF's review. NASA's page exposes distinct lesson metadata and
+  narrative sections; its public data endpoint is
+  `https://llis.nasa.gov/llis/lesson/30101/_source`. This one record supports
+  claims about its own visible structure, not the complete LLIS schema or
+  current system-wide governance. It prompted review; it is not a template AGF
+  copied and does not imply NASA endorsement. (accessed 2026-08-04)
