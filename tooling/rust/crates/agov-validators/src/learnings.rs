@@ -464,6 +464,42 @@ learnings:
     }
 
     #[test]
+    fn accepts_supersedes_targeting_a_bare_timestamp_id() {
+        let path = write_fixture(
+            "supersedes-bare-timestamp-target",
+            r#"
+project:
+  codename: foundry-fixture
+learnings:
+  - id: 20260621T150000Z
+    title: Historical bare-timestamp finding
+    description: Generic finding.
+  - id: 20260622T150000Z-bbbb
+    title: Corrected finding
+    description: Generic finding.
+    supersedes: 20260621T150000Z
+"#,
+        );
+
+        let result = validate_file(&path);
+        assert!(
+            result.is_err(),
+            "the target's own bare-timestamp id still produces its existing advisory"
+        );
+        let errors = result.unwrap_err();
+        assert!(
+            errors
+                .iter()
+                .all(|error| error.severity == agov_core::Severity::Advisory),
+            "supersedes referencing a bare-timestamp id must not itself be a blocking finding: {errors:?}"
+        );
+        assert!(errors
+            .iter()
+            .any(|error| error.message.contains("bare timestamp learning id")));
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
     fn rejects_invalid_status_value() {
         let path = write_fixture(
             "invalid-status-value",

@@ -74,8 +74,8 @@
           },
           "supersedes": {
             "type": "string",
-            "pattern": "^(L[0-9]{3}|[0-9]{8}T[0-9]{6}Z-[a-z0-9]{4})$",
-            "description": "Optional forward-only pointer, set on the new/superseding entry, to the id of the earlier entry it replaces. Never edits the superseded entry. Validated by validate_learnings: the referenced id must exist in the same file and must precede this entry's position. The reverse view (what superseded id X) is derived at read time, not stored."
+            "pattern": "^(L[0-9]{3}|[0-9]{8}T[0-9]{6}Z(-[a-z0-9]{4})?)$",
+            "description": "Optional forward-only pointer, set on the new/superseding entry, to the id of the earlier entry it replaces. Never edits the superseded entry. Validated by validate_learnings: the referenced id must exist in the same file and must precede this entry's position. The reverse view (what superseded id X) is derived at read time, not stored. Pattern accepts the same three id forms 'id' itself accepts (L###, bare YYYYMMDDThhmmssZ, suffixed YYYYMMDDThhmmssZ-xxxx) so a bare-timestamp record already accepted by the corpus validator can be named as a supersession target (fixed 2026-08-03, B-LS-IMP-1)."
           },
           "status": {
             "type": "string",
