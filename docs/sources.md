@@ -1325,3 +1325,24 @@ future technical comparison should test registry-to-MCP parity, per-method capab
 metadata, server-bound identity propagation through MCP, destructive/economic effect
 classification, and whether μ's audit evidence can be referenced without importing mutable
 runtime state into AGF's immutable coordination channel.
+
+# Batch 14 (2026-08-03) — user-supplied, economics/epistemics analogy
+
+- https://shonczinner.substack.com/p/supply-and-demand-is-not-what-most
+  type: discussion | relation: analogy, evidence | action: cite, watch
+  note: Argues the supply-and-demand model predicts equilibrium outcomes from *shifts* of the
+  supply/demand curves, not from movements along them — price and quantity moving together
+  (or apart) reveals nothing about mechanism without knowing which curve shifted and why; the
+  same directional co-movement can come from a demand shock or a supply shock. Cites three
+  documented misreadings as evidence this is a widespread, not niche, confusion: a Substack
+  economics writer, economist Noah Smith, and ChatGPT scoring 33% on textbook supply-and-demand
+  problems. AGF relevance is by analogy, not economics content: the same reasoning trap applies
+  to governance outcome metrics (e.g. a drop in Gate 2 BLOCK-finding count reveals nothing about
+  whether quality improved, review rigor relaxed, or submission volume fell, without knowing
+  which underlying factor actually shifted) — see the new radar item below. The ChatGPT
+  33%-accuracy data point is a secondary, weaker transfer: one more data point that LLMs get
+  precise, textbook-structured domain reasoning wrong at a non-trivial rate even in mature,
+  well-taught fields, consistent with this project's existing verify-before-trust posture. This
+  is a single opinion essay, not a controlled study — treat the underlying economics claim as
+  the author's argument, not as independently verified pedagogy research, and preserve that
+  distinction whenever citing it. (accessed 2026-08-03)

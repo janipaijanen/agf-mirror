@@ -39,6 +39,16 @@ Next review: 2026-10.
   approval-rate telemetry) are themselves surveillance-flavored — controversial. review-by:
   2026-10
 
+- **Outcome-metric interpretation risk in governance dashboards** — a governance metric moving
+  (e.g. Gate 2 BLOCK-finding count falling, coordination-trail volume rising) reveals nothing
+  about mechanism without knowing what actually shifted: quality improving, review rigor
+  relaxing, and submission volume changing can all produce the same directional reading.
+  Directly compounds the anti-rubber-stamping item above and the existing signal-gaming radar
+  work: a dashboard reader who infers cause from a metric's direction alone is exposed to the
+  same fallacy regardless of whether the underlying change was benign drift or deliberate
+  gaming. No AGF dashboard/metric currently states its own shift-vs-movement caveat explicitly.
+  sources: shonczinner Substack in `docs/sources.md` Batch 14 | review-by: 2026-10
+
 - **Verification independence tiers** — different-session < different-model < different-
   vendor; evidence-backed (LLM-as-judge unreliability) but raises cost and vendor-neutrality
   questions. review-by: 2026-10
