@@ -489,3 +489,75 @@ pairings re-checked against the existing 4.5:1 normal-text / 3:1
 large-text-or-fill AA thresholds; the one pairing that fails
 (`blue-mid` accent on dark slate) is explicitly excluded rather than
 shipped.
+
+## Competitive positioning and exit criteria — draft input for "Who should not adopt"
+
+**Status: exploratory draft content, not reviewed for accuracy or
+publication, not to be advanced while the v2.5.0-rc.1 observation hold
+is in effect.** Different artifact class from this plan's other
+sections and from the framework's `learnings/` schema — captured here
+because it's draft-ready input for a documentation section, not
+operational evidence from running the framework. The one operational
+angle (no self-reported enforcement profile → overclaim risk) is
+already recorded as learning `20260803T212421Z-t8mz`; do not duplicate
+it here.
+
+Produced via the same cross-model exchange pattern as the rest of this
+session (Grok proposed, corrected, and integrated through direct
+critique — not independent corroboration; see learning
+`20260803T212419Z-nq7p` on the relay-trust caveat that applies to this
+content too).
+
+**Landscape, three tiers:**
+
+- **Substrate, not siblings** — `AGENTS.md`, Cursor/Claude rule loaders,
+  and `agf/rules/` are the delivery mechanism assistants already load;
+  AGF is a structured superset (schemas, gates, coordination,
+  validators) built on top of that mechanism, not a parallel choice
+  against it. The comparison "AGENTS.md vs. AGF" is a category error;
+  the real comparison is "rule pack alone vs. rule pack plus AGF."
+- **Collaborators** — agent runtimes/IDEs, CI/forge branch protection,
+  runtime agent-governance platforms (explicitly a different layer, not
+  a competitor), model/ML governance tooling, security scanning,
+  identity/signing (Sigstore, signed commits — could harden AGF's
+  currently-unbound `from:`/approval story per the gt3x/hv3k learnings).
+- **Competitors** — "CODEOWNERS + required CI + good prompts" for
+  small/low-AI-volume teams; **forge-native AI review** (GitHub Copilot
+  PR review, GitLab Duo) as a distinct row — competes on convenience and
+  existing procurement budget, not on a full coordination/gate model,
+  and is likely the first thing many teams reach for; runtime governance
+  platforms when the actual problem is production tool-call policy, not
+  git process; heavier multi-agent orchestration frameworks when the
+  buyer wants an orchestration product, not a file library; and simply
+  "nothing," when disposable code doesn't justify the process cost.
+
+**Exit-criteria table (detect "AGF has no business here"):**
+
+| Signal | Why it's an exit |
+|---|---|
+| No durable git product (chat-only, spikes, one-off scripts) | Nothing for the process to attach to |
+| Problem is runtime behavior (tool calls, sandboxing, kill switches) | Different layer — AGT-class/mesh/gateway territory |
+| Problem is the model itself (training, eval, bias, release gates) | ML governance, not process governance |
+| Zero human governor capacity | AGF cannot supply authority — Track 3 confirmed this directly |
+| Branch protection + CODEOWNERS + "no AI on main" already meets the org's risk appetite | Simpler sibling already does the job |
+| Buyer wants a root of trust — tamper-proof, identity-bound approval as the product | Current AGF is scaffolding; this is the overclaim failure mode |
+| Org already standardized on a different in-repo protocol | Second vocabulary is pure cost |
+| AI writes little of the code | Process overhead without the failure mode it targets |
+
+**The sharpest point, tying back to `t8mz`:** the "root of trust" exit
+row is not just a positioning judgment call — it's currently
+undetectable by AGF itself. Without a self-reported enforcement-profile
+label (schema-shape-only / CI-blocking-configured / identity-bound),
+there's no mechanism for AGF to cleanly signal "you're in this exit
+category, go elsewhere" to a prospect who needs real tamper-evidence.
+The same missing label that risks overclaiming to a casual reader is
+the label that would let the docs correctly decline the wrong customer.
+One fix (the maturity-vocabulary extension `t8mz` proposes) serves both
+the honesty gap and this business-development disambiguation.
+
+**Recommended eventual home:** a "Who should not adopt" section with
+equal visual/structural weight to "Should you adopt?", using this exit
+table directly, once (a) the observation hold lifts and (b) this
+content has had an actual accuracy/citation review — none of the
+competitor claims above have been fact-checked the way the AGF-specific
+technical findings elsewhere in this plan were.
