@@ -1,9 +1,9 @@
 ---
 id: learning-supersession-status-fields
-status: pending-gate1
+status: approved
 topic: learning-schema-status-and-supersession-fields
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer; Claude-scribed decision in 20260803T094702Z-governor-reviewer-3q28.md"
+gate1_approved_at: "2026-08-03T09:47:02Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -15,8 +15,9 @@ advisory_consultation:
       model), B-LS-3 (the `status` optional-vs-required contract was
       unspecified), B-LS-4 (Phase 0 removal was asserted without evidence
       of zero *external* dependents, only zero in-repo usage). All four
-      addressed in this revision; a bounded renewed review is requested
-      before this is treated as Gate 1-ready.
+      addressed in this revision. Bounded renewed review at this same
+      exact head (`20260803T084017Z-contribution-auditor-mmde.md`)
+      returned CLEAR, zero blocking findings, recommending Path B.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -37,10 +38,13 @@ advisory_consultation:
 
 **Date:** 2026-08-03T07:09:21Z (drafted); revised 2026-08-03 per
 contribution-auditor's independent review (`p2bm`, MR !999).
-**Status:** REVISED DRAFT — contribution-auditor's first review round
-(four blocking findings, B-LS-1 through B-LS-4) is addressed below; a
-bounded renewed review is requested before this is treated as
-Gate 1-ready.
+**Status:** GATE 1 APPROVED — Path B, at exact head `55bdd4d5`, per the
+governor's binding decision-record
+(`20260803T094702Z-governor-reviewer-3q28.md`). Contribution-auditor's
+first review round (B-LS-1 through B-LS-4) was addressed in this
+revision; the bounded renewed review (`mmde`) returned CLEAR. Path A
+(outright removal) remains unauthorized absent a future, separate
+governor factual determination.
 
 ## Why this document exists
 
@@ -139,9 +143,10 @@ field that finding was originally written about:
    scope; if a real need for multi-entry consolidation arises later, it
    should get its own plan rather than be folded into this field's
    design now.
-2. **Deprecate `superseded_by` rather than remove it outright, pending
-   governor confirmation (contribution-auditor finding B-LS-4, addressed
-   below under Migration and SemVer).** Keeping both fields live and
+2. **Deprecate `superseded_by` rather than remove it outright — Gate 1
+   APPROVED per `20260803T094702Z-governor-reviewer-3q28.md`
+   (contribution-auditor finding B-LS-4, addressed below under Migration
+   and SemVer).** Keeping both fields live and
    bidirectionally consistent would repeat the exact "bidirectional by
    convention" drift AGF-C4 identified — but *removal* requires evidence
    this plan does not yet have (see Migration and SemVer). The default
@@ -257,9 +262,11 @@ cannot establish by itself:
   across the only known corpus and required editing already-published
   entries to populate, contradicting its own append-only invariant;
   replaced by `supersedes` on the superseding entry."*
-- **Path B — deprecate, don't remove (Additive/PREVENTIVE).** The
-  default this plan actually proposes (see design decision point 2
-  above): mark `superseded_by` deprecated in its schema description
+- **Path B — deprecate, don't remove (Additive/PREVENTIVE). APPROVED at
+  Gate 1** (`20260803T094702Z-governor-reviewer-3q28.md`, exact head
+  `55bdd4d5`). The default this plan actually proposes (see design
+  decision point 2 above): mark `superseded_by` deprecated in its schema
+  description
   (matching the existing `x-deprecated: true` pattern used elsewhere in
   this project, e.g. the coordination-message `seq` field), stop
   documenting or enforcing it, but keep it schema-legal. Nothing existing
@@ -328,26 +335,43 @@ the field being removed, so rollback still carries no data-loss risk.
 
 ## Stop conditions
 
-- Do not implement before this plan's Gate 1 approval.
+- ~~Do not implement before this plan's Gate 1 approval.~~ **Satisfied:**
+  Gate 1 approved 2026-08-03T09:47:02Z
+  (`20260803T094702Z-governor-reviewer-3q28.md`).
 - Do not implement Path A (outright `superseded_by` removal) without a
   recorded governor-reviewer factual determination of zero external
-  production dependents, per B-LS-4. Absent that determination, Path B
-  (deprecate, don't remove) is what ships.
+  production dependents, per B-LS-4. **Not made** — Path B (deprecate,
+  don't remove) is what ships under this approval; Path A remains
+  unauthorized.
 
 ## Before Gate 1 approval
 
 - [x] contribution-auditor's independent review
       (`20260803T072119Z-contribution-auditor-p2bm.md`, MR !999) — BLOCK
       pending B-LS-1 through B-LS-4, all four addressed in this revision.
-- [ ] Bounded renewed contribution-auditor review of this revision at its
-      new exact head.
-- [ ] Governor-reviewer factual determination on Path A vs. Path B
-      (B-LS-4) — Path B ships by default absent that determination.
+- [x] Bounded renewed contribution-auditor review of this revision at its
+      new exact head — CLEAR, zero blocking findings, Path B recommended
+      (`20260803T084017Z-contribution-auditor-mmde.md`).
+- [x] Governor-reviewer factual determination on Path A vs. Path B
+      (B-LS-4) — **Path B approved** at Gate 1
+      (`20260803T094702Z-governor-reviewer-3q28.md`); Path A not
+      authorized.
 
 ## Related documents
 
 - `docs/coordination/20260803T072119Z-contribution-auditor-p2bm.md`
   (MR !999) — the independent review this revision responds to.
+- `docs/coordination/20260803T084017Z-contribution-auditor-mmde.md` —
+  bounded renewed review, CLEAR, Path B recommended.
+- `docs/coordination/20260803T084747Z-governor-reviewer-pkqk.md` —
+  governor's Path A/B consultation request.
+- `docs/coordination/20260803T085310Z-planner-architect-jpj6.md` and
+  `docs/coordination/20260803T090605Z-planner-architect-7hbs.md` —
+  planner-architect's Path B recommendation and its citation correction.
+- `docs/coordination/20260803T085945Z-contribution-auditor-smhs.md` —
+  the factual-correction finding that produced `7hbs`.
+- `docs/coordination/20260803T094702Z-governor-reviewer-3q28.md` — the
+  binding Gate 1 decision-record: Path B approved.
 - `docs/plans/nasa-llis-lessons-learned-comparison.md` — AGF-C4, the
   finding this plan generalizes from a proposed field to an already-shipped
   one.
