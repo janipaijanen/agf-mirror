@@ -69,8 +69,22 @@ advisory_consultation:
       recommended disposition from keep-open to **close**; the merge/tag
       sequence now requires explicit `should_remove_source_branch: false`
       through the merge API, verified post-merge, rather than relying on
-      an unstated project default. A bounded round-4 review is requested
-      before this is treated as Gate 1-ready.
+      an unstated project default. Round 4 review
+      (`20260803T161807Z-contribution-auditor-s224.md`) at exact head
+      `e278b6ff`: BLOCK, two narrow blocking findings
+      (B-RC-TRACKER-EVIDENCE-R4-5, B-RC-HANDOFF-TRUTH-R4-6), confirming
+      the substantive #67/#78 dispositions, both advisories, and the
+      branch-retention instruction correct. Addressed in this revision:
+      #67 finding 8's evidence no longer conflates the total
+      `body-reference` edge population (~612-614, all shapes) with the
+      subset actually matching the timestamp-plus-four-character collision
+      shape (73 edges, 37 unique targets) or with the issue's own narrow
+      reproduction (two direct learning-ID targets cited in one message
+      body) — all three are now stated as distinct facts; MR !1051's
+      GitLab description is corrected to recommend #33/#67 stay open
+      (removed from v2.5.0) and #78 close, matching the plan body instead
+      of contradicting it. A bounded round-5 review is requested before
+      this is treated as Gate 1-ready.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -394,12 +408,20 @@ merged, per the sequencing above), with only these release-truth changes:
       format, so citing a learning ID in a coordination message body
       produces a `body-reference` graph edge to a target that is not a
       coordination file, with no target-existence classification — **not
-      resolved, still open.** Verified today by running
-      `agov coord graph-index`: 612 `body-reference` edges exist, none
-      resolve against the node-ID set (no existence classification is
-      emitted for any of them; the issue's smaller reproduction found 73
-      under a scratch coordination directory, this repository's full
-      history naturally produces more). Recommended: name a successor
+      resolved, still open.** **Corrects B-RC-TRACKER-EVIDENCE-R4-5**,
+      which caught this plan conflating three distinct facts. Verified
+      today by running `agov coord graph-index`: of ~612-614
+      `body-reference` edges in total (all shapes, including legacy
+      numeric and other shorthand references — not evidence of the
+      collision on their own), 73 edges (37 unique targets) specifically
+      match the `YYYYMMDDThhmmssZ-<four-chars>.md` collision shape, and
+      `graph-index` emits no target-existence classification for any of
+      them. The issue itself reproduced the defect narrowly — two direct
+      learning-ID targets cited in one coordination message body, not a
+      73-record scan. The 73 collision-shaped edges are this repository's
+      current count, not the issue's own reproduction; both facts support
+      keeping the finding open, but must not be stated as one number.
+      Recommended: name a successor
       issue for this specific defect (namespace the two ID spaces, or
       have `graph-index` classify unresolved `body-reference` targets
       under a separate key) rather than leaving it as an unlabelled
