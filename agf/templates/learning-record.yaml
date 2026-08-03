@@ -29,10 +29,38 @@ learnings:
       description: "Initial commissioning evidence only."
     recommendation: "Record whether the assistant kept AGF-owned files under agf/, created only a small loader if needed, and left clear governor decisions."
     severity: informational
+    status: implemented   # optional; proposed | implemented. Omit if not yet decided.
     confidence:
       level: single-adopter
       evidence_count: 1
       evidence_refs:
         - docs/coordination/<commissioning-note-id>.md
+
+  # Example of superseding an earlier entry: the NEW entry declares the
+  # relationship via `supersedes`, pointing at the earlier entry's id.
+  # Never edit the earlier entry to add `superseded_by` — that field is
+  # deprecated (agf/schemas/learning.schema.json) precisely because it
+  # required editing already-published entries.
+  - id: "20260615T093000Z-yyyy"
+    date: "2026-06-15"
+    category: adoption-friction
+    scope: project
+    title: agf-commissioning-completed-corrected
+    description: "Learned that the original commissioning evidence entry above was incomplete; this entry replaces it with the corrected finding."
+    agents_involved:
+      - coder-tester
+    framework_section: install-and-layouts
+    business_impact:
+      type: neutral
+      description: "Correction of prior commissioning evidence."
+    recommendation: "Same recommendation as the superseded entry, refined with the corrected evidence."
+    severity: informational
+    status: proposed
+    supersedes: "20260614T120000Z-xxxx"   # id of the entry this one replaces; must exist and precede this entry
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - docs/coordination/<correction-note-id>.md
 
 sentinel_ack: []
