@@ -2787,9 +2787,11 @@ learnings:
     status: proposed
     description: >
       Raised during a session running multi-model adversarial review of
-      v2.5.0-rc.1 (Grok, Codex, and this session's own execution),
-      independently confirmed by Grok when the point was put to it: the
-      review workflow itself carries the same class of gap Track 3 found
+      v2.5.0-rc.1 (Grok, Codex, and this session's own execution). Grok
+      agreed with this finding when the specific point was put to it
+      through the relay — a relayed agreement, not independent
+      corroboration; see the correction below. The finding itself: the
+      review workflow carries the same class of gap Track 3 found
       in `coordination-message.schema.json`'s `from:` field, one layer
       up. `from: governor-reviewer` on a coordination record is an
       unauthenticated string; a valid-looking record does not prove a
@@ -2998,12 +3000,24 @@ learnings:
       own release and the configurations this session actually inspected,
       not to adopter prevalence generally, which was not measured.
       "Gate 1 approved" is currently asserted as one undifferentiated
-      thing, when the real range spans schema-shape-only validation (what
-      ships today, per `gt3x`), CI-blocking-if-configured (what this
-      project's own hosted pipeline provides when correctly configured,
-      per `sjqm` finding 4), through identity-bound/signed (a tier no
-      configuration observed in this project, including its own release
-      process, currently implements, per the same finding).
+      thing, when what actually varies is the assurance different
+      configurations add. **Correction (contribution-auditor 3kae,
+      B-LRN-4-R2):** describing hosted CI as a stronger "enforcement
+      tier" than schema-shape validation reintroduces the exact
+      conflation corrected in `sjqm`/`gt3x` — this project's hosted
+      pipeline runs the same structural checks (record shape,
+      publication-check) merge-blocking rather than locally, which
+      changes the technical delivery context, not whether Gate 1/Gate 2
+      authority itself is authenticated; gate authority remains
+      procedurally asserted either way, per `sjqm` finding 4. If an
+      enforcement-tier taxonomy is retained at all, tiers should be
+      defined by the assurance actually added — for example: an
+      approval-record field is present (today, unenforced); the field
+      is constrained to a known role string (the fix proposed in
+      `gt3x`); the actor is authenticated, not just named (unresolved);
+      the record's provenance is protected and immutable in fact, not
+      only by label (unresolved, `gt3x` finding 3) — not by whether the
+      same shape check happens to run locally or in CI.
     agents_involved:
       - planner-architect
       - governor-reviewer
