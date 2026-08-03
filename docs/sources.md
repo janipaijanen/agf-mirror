@@ -1346,3 +1346,132 @@ runtime state into AGF's immutable coordination channel.
   is a single opinion essay, not a controlled study — treat the underlying economics claim as
   the author's argument, not as independently verified pedagogy research, and preserve that
   distinction whenever citing it. (accessed 2026-08-03)
+
+# Batch 15 (2026-08-03) — intelligence-product tradecraft and Aurora prototype
+
+The user supplied Luntta's article and Aurora as a possible post-v2.5.0 learning source.
+They belong in the registry, but not as operational validation: the article is a secondary
+design synthesis and Aurora uses simulated data and heuristic/deterministic assessments.
+The official analytic standards discovered through the article are the primary sources for
+any eventual AGF claim.
+
+## Classified
+
+- https://luntta.fi/notes/what-makes-an-intelligence-product/
+  type: discussion, design synthesis | relation: prior-art, complement, evidence-discovery |
+  action: cite, compare-in-docs, research-further
+  note: Raine Luntta's 2026-07-14 account of redesigning a public-data maritime radar into
+  the Aurora intelligence-product prototype after reading public US and UK analytic
+  standards. Its strongest AGF relevance is the product discipline it synthesizes:
+  start with a named customer requirement and intended decision; distinguish observation,
+  assumption, and analytical judgment; separate likelihood from confidence in the
+  evidentiary basis; expose alternatives and what would change the assessment; treat source
+  limitations as provenance rather than merely attaching links; and optimize dissemination
+  for timeliness, access, and use. The article also treats AI-assisted analysis as a sourcing
+  and reproducibility problem, naming model/system version, settings, prompt/parameters,
+  training/performance information, and date of use as potentially relevant metadata.
+  Evidence status: Empirically informed design reflection, not validated intelligence
+  tradecraft or evidence that Aurora is effective. Preserve the author's explicit caveats:
+  no intelligence-practitioner involvement, no real customer requirement, and no claim that
+  public doctrine describes Finnish operational practice.
+
+- https://luntta.fi/aurora
+  type: prototype, interactive design artifact | relation: prior-art, complement |
+  action: evaluate, watch
+  note: Primary artifact for Aurora's design claims: simulated SAR/AIS/passive-radio inputs,
+  observation-versus-judgment separation, distinct likelihood and confidence, source grades
+  and measurement uncertainty, a leading hypothesis plus benign alternatives, assessment
+  change notes, and an AI assistant with citations, caveats, abstention, and limited query
+  provenance. It is useful as a UI/protocol thought experiment for AGF review products, not
+  as empirical or operational evidence. The author states that all data are simulated, the
+  confidence model is heuristic, hypotheses are deterministic, the audit trail is not
+  persistent/reproducible, and the prototype lacks a real customer, raw-input lineage,
+  versioned assessments, handling controls, accreditation, and institutional validation.
+
+- https://www.dni.gov/files/documents/ICD/ICD-203.pdf
+  type: standard, primary source | relation: prior-art, evidence |
+  action: cite, compare-in-docs
+  note: US Intelligence Community Directive 203, Analytic Standards. Primary basis for
+  objectivity, timeliness, source-quality description, explicit uncertainty, separation of
+  underlying information/assumptions/judgments, analysis of alternatives, customer
+  relevance, clear argumentation, changed-judgment explanation, and pertinent visual
+  information. Applicable to the US Intelligence Community, not directly to AGF; use it as
+  mature adjacent-domain prior art. A post-v2.5.0 comparison should test whether AGF review
+  artifacts can distinguish evidence from inference and surface contrary information without
+  importing intelligence authority or compliance claims.
+
+- https://www.dni.gov/files/documents/ICD/ICD-206.pdf
+  type: standard, primary source | relation: prior-art, evidence |
+  action: cite, compare-in-docs
+  note: US Intelligence Community Directive 206, Sourcing Requirements for Disseminated
+  Analytic Products. Primary source for source locatability, quality/scope description, and
+  source-summary expectations referenced by ICD 203 and the Luntta synthesis. Relevant to
+  AGF's provenance and verifiable-claims work: a URL or record identifier alone does not
+  state age, completeness, bias, access, validation, technical limitations, or potential
+  deception. Applicability remains limited to its own institutional scope.
+
+- https://www.dni.gov/files/documents/ICD/ICD-208-Maximizing-the-Utility-of-Analytic-Products-2017-01-09.pdf
+  type: standard, primary source | relation: prior-art, evidence |
+  action: cite, compare-in-docs
+  note: US Intelligence Community Directive 208, Maximizing the Utility of Analytic
+  Products. Primary source for knowing the customer, timeliness/classification/dissemination
+  needs, discoverability/accessibility, feedback, tailored reuse, and keeping facts,
+  judgments, confidence, and probability congruent across sanitized or alternate versions.
+  Particularly relevant to AGF's distinction between a valid record existing somewhere and
+  a decision product being visible to the right recipient in time to act.
+
+- https://www.dni.gov/files/documents/ICD/ICS-206-01.pdf
+  type: standard, primary source | relation: prior-art, evidence |
+  action: cite, compare-in-docs
+  note: US Intelligence Community Standard 206-01 on citing public/commercial information,
+  OSINT, and AI-assisted services. Candidate primary source for a bounded post-v2.5.0 audit
+  of AGF's AI-contribution provenance fields. Do not copy its metadata requirements blindly:
+  compare model/version/settings/prompt/date and source-discovery expectations against AGF's
+  privacy boundary, immutable coordination model, reproducibility limits, and the fact that
+  AGF governs software-change decisions rather than intelligence products.
+
+- https://www.gov.uk/government/publications/explaining-uncertainty-in-uk-intelligence-assessment/explaining-uncertainty-in-uk-intelligence-assessment
+  type: guidance, primary source | relation: prior-art, evidence |
+  action: cite, compare-in-docs
+  note: UK Professional Head of Intelligence Assessment guidance, published 2025-03-24.
+  Separates probability (likelihood a statement is true or event occurs) from analytical
+  confidence (soundness and stability of its foundations), with confidence informed by the
+  information base, analytical rigour, and complexity/volatility. This is directly useful
+  for checking whether AGF's capability maturity and evidence-status labels leave a separate
+  gap for uncertainty about a particular review judgment. The frameworks are related but not
+  interchangeable and should not be collapsed into a single score.
+
+- https://www.gov.uk/government/publications/jdp-2-00-understanding-and-intelligence-support-to-joint-operations
+  type: doctrine, primary source | relation: prior-art, evidence |
+  action: cite, research-further
+  note: UK Ministry of Defence JDP 2-00 (fourth edition, 2023) describes the intelligence
+  cycle and the need for accurate, timely intelligence supporting decision makers who
+  understand their own role. Use only as adjacent-domain process prior art after reading the
+  relevant sections directly; the Luntta article's design interpretation is not a substitute
+  for the doctrine, and neither source establishes requirements for AGF adopters.
+
+## First AGF takeaways
+
+1. **A governed artifact should name the decision it serves.** A valid plan, review, or
+   coordination record can still be useless if its audience, question, deadline, authority,
+   and intended next action are unclear.
+2. **Evidence and judgment need different fields or unmistakable language.** AGF already
+   distinguishes advisory evidence from binding decisions, but a post-v2.5.0 audit should
+   test whether reviews consistently separate observations, assumptions, inferences,
+   alternatives, and recommendations inside the advisory layer.
+3. **Likelihood, analytical confidence, evidence status, and capability maturity answer
+   different questions.** Any proposal must preserve those axes rather than create a seductive
+   composite score.
+4. **Provenance includes limitations.** Source identity is insufficient without currency,
+   scope, quality, access, validation, independence, and known failure/deception modes. AI
+   provenance must also balance reproducibility metadata against privacy and secret leakage.
+5. **Changed judgments deserve first-class explanation.** Corrections and renewed reviews
+   should identify what new evidence or reasoning changed the conclusion, not merely publish
+   a new verdict.
+6. **Visibility and utility are part of correctness.** Publication to the intended recipient,
+   discoverability, timeliness, and consistent alternate/sanitized versions are useful lenses
+   for the branch-only coordination and bridge-note work already planned.
+7. **Aurora's self-limitation is itself good evidence practice.** Simulated inputs,
+   heuristics, missing lineage, and lack of a real customer are stated plainly; AGF should
+   retain that implementation-honesty pattern while avoiding claims that the prototype
+   validates the proposed mechanisms.

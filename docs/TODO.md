@@ -366,3 +366,72 @@ Minimum acceptance evidence:
 This TODO does not expand or block v2.4.0. Workstream D should correct and
 regenerate the existing sources under its approved release plan; generator
 implementation requires its own Gate 1 plan after the release priority clears.
+
+## Post-v2.5.0 Intelligence-Analysis Product Discipline Assessment
+
+Status: open post-v2.5.0 TODO (Level 1: Planned). Owner: planner-architect for
+the comparison and Gate 1 design; contribution-auditor for adversarial review;
+fact-checker for primary-source fidelity; governor-reviewer for scope and any
+binding adoption decision. Academic-peer-reviewer should review any formalized
+uncertainty vocabulary before it becomes a framework claim.
+
+Assess whether mature public intelligence-analysis product discipline can
+improve AGF's plans, reviews, coordination, and decision products without
+importing intelligence-community authority, institutional assumptions, or
+compliance claims. Start from Batch 15 of `docs/sources.md`: Luntta's secondary
+design synthesis and simulated Aurora prototype are discovery/design artifacts;
+ODNI ICD 203/206/208, ICS 206-01, and the UK government guidance/doctrine are
+the primary sources for any substantive comparison.
+
+Minimum assessment scope:
+
+- identify which AGF artifact types should explicitly state their intended
+  audience, decision/question served, time sensitivity, authority boundary,
+  and next action; distinguish a product being valid from it being useful and
+  visible in time;
+- test whether current review/coordination prose reliably distinguishes
+  observation, source information, assumption, inference/judgment,
+  alternative explanation, recommendation, and binding decision;
+- compare probability/likelihood, analytical confidence, AGF evidence status,
+  and capability maturity as separate axes. Do not create a composite score or
+  use confidence language without defining what its foundation is;
+- assess whether review artifacts should record plausible alternatives,
+  contrary evidence, key assumptions, information gaps, and indicators or new
+  evidence that would change the judgment;
+- audit source provenance beyond locators: currency, completeness, quality,
+  independence, access, validation, technical limits, possible bias/deception,
+  and which judgments each source can actually support;
+- audit AI-assistance provenance across coordination, plans, reviews, generated
+  artifacts, and tool telemetry. Compare model/system identity, version,
+  settings, prompt/parameters, performance/training-data limits, and date of
+  use against AGF's privacy, secret, reproducibility, and data-minimization
+  boundaries; do not persist sensitive prompts or ambient session metadata;
+- assess whether corrections and renewed reviews explain what evidence or
+  reasoning changed, rather than only replacing the verdict;
+- examine discoverability, recipient visibility, timeliness, feedback, and
+  consistency across alternate, summarized, sanitized, or exported versions of
+  the same facts, judgments, uncertainty, and decision status;
+- use Aurora only as a synthetic interface/protocol case study. Preserve its
+  stated limits (simulated data, heuristic confidence, deterministic
+  hypotheses, incomplete provenance, no operational user validation) and do
+  not present it as evidence that the mechanisms work in production;
+- map proposals onto existing AGF fields and rules before adding schema. Prefer
+  documentation guidance or derived views where they suffice, and preserve the
+  distinction between advisory analytic quality and governor authority.
+
+Candidate outputs:
+
+1. A crosswalk from each primary analytic standard/guidance concept to current
+   AGF support, gap, non-applicability, and evidence status.
+2. A small synthetic review packet demonstrating observation/assumption/
+   judgment/alternative/uncertainty/decision separation, including a corrected
+   judgment and a sanitized view whose meaning remains congruent.
+3. A decision on whether improvements belong in writing guidance, coordination
+   or review schemas, `agov` derived views/validation, or no AGF change.
+4. If structural changes remain justified, a separate Gate 1 plan with
+   negative tests against false precision, composite confidence scores,
+   unsupported source-quality claims, provenance leakage, and tooling that
+   accidentally acquires binding authority.
+
+This work must not expand or block v2.5.0. It begins only after the release's
+contracted work and publication path are complete.
