@@ -201,6 +201,91 @@ Candidate output:
 4. Usage telemetry guidance that measures quality-adjusted cost without
    treating context occupancy as billing-grade evidence.
 
+## Historical Branch-Only Coordination Recovery and Prevention
+
+Status: open post-consolidation TODO. Owner: planner-architect for the forensic
+assessment and prevention design; coder-tester/build-engineer for `agov` and CI
+controls; contribution-auditor for independent root-cause review;
+governor-reviewer for the disposition of each historical record.
+
+MR !994 consolidated 79 immutable coordination records from the active
+2026-08-01 through 2026-08-03 backlog. The broader visibility scan also exposed
+older branch-only coordination records predating that bounded packet. Those
+older records still need a deliberate recovery and disposition pass; their
+continued presence on historical branches must not be mistaken for publication
+to `main`, acknowledgement, supersession, or harmless archival state.
+
+Minimum recovery and assessment scope:
+
+- fetch and scan all relevant remote-tracking refs before inventorying; include
+  local branches only as a secondary recovery source, not as proof that another
+  agent could see a record;
+- enumerate every coordination record absent from the current target branch,
+  recording its filename/id, blob hash, originating commit, branch, MR or other
+  publication route, sender, recipient, kind, `requires-ack` state, references,
+  and whether an identical or conflicting blob exists elsewhere;
+- determine why each record was created and then left branch-only, using Git,
+  MR, pipeline, discussion, bridge-note, and coordination evidence rather than
+  guessing. Candidate causes to test include skipped or missing pipelines,
+  abandoned/conflicted/closed MRs, records bundled with implementation work,
+  stale target branches, missing bridge notes, validation failures, duplicate
+  publication attempts, branch deletion or replacement, and manual workflow
+  interruption;
+- determine whether the record created a downstream obligation that is still
+  live, was acknowledged elsewhere, became moot, or was superseded by a later
+  binding record. Do not infer closure merely from age or from the associated
+  implementation having merged;
+- assign an explicit governed disposition to every record: preserve unchanged
+  on the target branch, preserve through a byte-identical consolidation,
+  superseded with the replacing record named, duplicate with the canonical blob
+  named, invalid with validation evidence, or intentionally excluded by a
+  governor decision. Never silently discard unique historical evidence;
+- separately assess the operational cost already incurred: invisible
+  obligations, repeated reviews, duplicate CI, misleading `agov` resume/status
+  results, governor reconstruction time, and any decisions made without the
+  expected record being visible.
+
+Prevention design must address introduction and detection, not only periodic
+cleanup:
+
+- define a mechanically checkable close/merge invariant: an MR that introduces
+  a coordination record cannot be treated as disposed until the identical blob
+  is visible on its target branch or an explicit governor disposition names the
+  replacement/exclusion;
+- make coordination-only publication failures visible and actionable when a
+  pipeline is skipped, absent, canceled, or no longer attached to the exact
+  head; do not let a successful bridge note substitute for publishing the
+  canonical record;
+- extend the supported `agov` visibility/poll path to scan fetched
+  remote-tracking branches deterministically, continue past legacy sequence
+  collisions with explicit diagnostics, and report newly introduced
+  branch-only records separately from acknowledged historical debt;
+- add a CI or repository check that detects coordination records present in an
+  MR/source branch but absent from the intended target, with tests for
+  coordination-only MRs, implementation MRs carrying a handoff, superseded
+  records, byte-identical consolidation, conflicting blobs, deleted branches,
+  skipped pipelines, and target-branch advancement;
+- require bridge notes to identify the record, exact source commit, branch/MR,
+  and intended publication path so recovery does not depend on session memory;
+- define one owner and cursor for recurring remote visibility polling, plus a
+  bounded escalation age for records that remain branch-only after their first
+  visible publication attempt;
+- ensure MR-close and worktree/branch-cleanup guidance checks for unpublished
+  coordination before declaring the work complete.
+
+Candidate outputs:
+
+1. A machine-readable inventory and human-readable root-cause report for all
+   pre-2026-08-01 branch-only records, with one governed disposition per record.
+2. A recovery MR or ordered set of MRs that preserves every record authorized
+   for publication unchanged and proves filename/blob collision handling.
+3. A Gate 1 prevention plan covering `agov`, CI, polling, MR closeout, and
+   operator documentation without giving tooling binding gate authority it
+   does not have.
+4. Fixture-driven tests demonstrating that a newly introduced branch-only
+   coordination record becomes visible before the originating task can be
+   reported as durably complete.
+
 ## Deterministic Academic Figure Source Generation
 
 Status: open post-v2.4.0 TODO (Level 1: Planned). Owner: planner-architect for
