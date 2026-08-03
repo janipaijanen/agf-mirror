@@ -10,6 +10,11 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ### Added
 
+- Learning-record `status` and `supersedes` fields
+  (`docs/plans/learning-supersession-status-fields.md`, Gate 1 approved,
+  Path B). `superseded_by` is now deprecated (`x-deprecated: true`) but
+  kept schema-legal; `supersedes` on the new entry replaces it and is
+  enforced by `validate_learnings`. Full detail: `agf/CHANGELOG.md`.
 - Upgrade-safe adopter role authority (issue #79,
   `docs/plans/v250-rc1-contract-core.md` work package 1). The shipped
   release archive no longer contains `agf/agents/MANIFEST.yaml` — a plain

@@ -69,7 +69,18 @@
           },
           "superseded_by": {
             "type": "string",
-            "description": "Optional forward-pointer to a later entry's title in this same file. Validated structurally by validate_learnings (must point forward)."
+            "x-deprecated": true,
+            "description": "Deprecated (Gate 1 approved 2026-08-03, docs/plans/learning-supersession-status-fields.md). Required editing the old entry after a later one existed, contradicting append-only operation, and was never enforced or populated. Not documented as the current mechanism and not validated. Use 'supersedes' on the new entry instead. Kept schema-legal pending a future governor factual determination on outright removal (Path A)."
+          },
+          "supersedes": {
+            "type": "string",
+            "pattern": "^(L[0-9]{3}|[0-9]{8}T[0-9]{6}Z-[a-z0-9]{4})$",
+            "description": "Optional forward-only pointer, set on the new/superseding entry, to the id of the earlier entry it replaces. Never edits the superseded entry. Validated by validate_learnings: the referenced id must exist in the same file and must precede this entry's position. The reverse view (what superseded id X) is derived at read time, not stored."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "implemented"],
+            "description": "Optional. Tracks promotion of a recommendation from proposed to implemented. Does not describe supersession — see 'supersedes'. Records predating this field have no status; this is expected and not a validation failure."
           },
           "confidence": {
             "type": "object",

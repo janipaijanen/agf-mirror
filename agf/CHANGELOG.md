@@ -7,6 +7,30 @@ distribution.
 
 ### Added
 
+- Learning-record `status` and `supersedes` fields
+  (`docs/plans/learning-supersession-status-fields.md`, Gate 1 approved
+  2026-08-03, Path B). `agf/schemas/learning.schema.json` gains two new
+  optional fields: `status` (`proposed | implemented`) and `supersedes`
+  (a stable learning id, set on the *new* superseding entry, never on the
+  entry being replaced). `supersedes` is enforced by `validate_learnings`
+  (`tooling/rust/crates/agov-validators/src/learnings.rs`): the
+  referenced id must exist in the same file and must precede the
+  referencing entry's position — both requirements were previously only
+  claimed by `agf/schemas/invariants.yaml`'s `learnings.append_only_supersession`
+  invariant, not actually implemented. The reverse view (what superseded
+  id X) is derived at read time, never stored, avoiding the
+  bidirectional-consistency drift AGF-C4 already identified for the
+  proposed `related_learnings` field. `status` is optional; existing
+  records with no `status` remain valid and are not rewritten.
+
+  `superseded_by` is now marked `x-deprecated: true` in its schema
+  description: it required editing already-published entries to
+  populate, contradicting append-only operation, and was never enforced
+  or actually used across the corpus. It remains schema-legal —
+  outright removal (Path A) requires a separate, future governor factual
+  determination that the field has zero external production dependents;
+  absent that, this is Path B (deprecate, don't remove), Additive.
+
 - Upgrade-safe adopter role authority (issue #79,
   `docs/plans/v250-rc1-contract-core.md` work package 1). The shipped
   release archive no longer contains `agf/agents/MANIFEST.yaml` — a plain
