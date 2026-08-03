@@ -36,9 +36,11 @@ command, Git forge, or automation does not grant authority.
 | Approve gates, merge, release, resolve authority | governor-reviewer | Binding human decision |
 
 Read [roles and gates](../concepts/roles-and-gates.md) and the adopter-designated
-local role authority for the project's actual role set and status. The shipped
-`agf/agents/MANIFEST.yaml` is a framework example/reference until the adopter
-explicitly designates or customizes it as local authority.
+local role authority for the project's actual role set and status. A release
+archive ships `agf/agents/MANIFEST.example.yaml`, a neutral framework
+example/reference; copy it to `agf/agents/MANIFEST.yaml` and edit it to become
+the local authority — the archive never places a file at that path itself, so
+nothing is silently overwritten by a plain re-extraction.
 
 ## Durable-state rule
 
