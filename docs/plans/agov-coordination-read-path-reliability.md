@@ -18,7 +18,17 @@ advisory_consultation:
       impact/migration note, explicit dependency on MR !746) per governor
       scheduling decision `20260804T134723Z-governor-reviewer-q4a8.md`
       and handoff `20260804T134725Z-contribution-auditor-nej7.md`.
-      Requesting fresh coupled review alongside MR !746's refresh.
+      Coupled review `20260804T164959Z-contribution-auditor-p438.md`
+      returned BLOCK (B-V26-1, B-V26-2, B-V26-3, A-V26-1): froze the
+      JSON/text output contract (`effective_base_oid`,
+      `effective_base_source`, `legacy_base_collisions`, and the narrowed
+      `sequence_collisions` field), added
+      `docs/reference/coord-visibility.md` to affected files/acceptance
+      criteria, added the mixed exit-code test case (legacy noise plus a
+      genuine obligation -> exit 1, obligation rendered first), and
+      refreshed ref-dependent evidence wording with both the 2026-07-30
+      and 2026-08-04 measured counts. Requesting fresh coupled re-review
+      alongside MR !746's round-3 revision.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -89,17 +99,26 @@ branch/base-branch pair is actually being compared) and `:3934`
 (`visibility_exit_code`: any non-empty `sequence_collisions` is treated
 the same as a genuine visibility error, regardless of relevance to the
 branch under inspection — lines refreshed against current `main`).
-Reproduced: 15 collision groups from 330 known-legacy
-`NNNNN-role.md` files in this repo's own history produce `ERR sequence
-collision` (~44 lines) ahead of the one actionable `WARN` line, and the
-command exits `2`. `agov session resume` handles the identical legacy
-files by counting, warning once, and continuing (exit `0`) — `coord
-visibility` should match that discipline for collisions that exist purely
-in base history and are not caused by, or relevant to, the branch being
-scanned. Correction from `rk2k`: the collision *count* is ref-dependent
-(varies with which branch/base-branch pair is compared) — the acceptance
-criterion is the unconditional treatment and exit semantics, not a fixed
-count.
+Reproduced (2026-07-30, `rg8h`'s review baseline): 15 collision groups
+from 330 known-legacy `NNNNN-role.md` files in this repo's own history
+produced `ERR sequence collision` (~44 lines) ahead of the one actionable
+`WARN` line, and the command exits `2`. Re-measured independently
+(2026-08-04, `p438`'s coupled review, current `main` at `95a8a9a6`): 14
+collision groups from 324 legacy files — a smaller count than the
+2026-07-30 baseline because history moves and matching legacy files age
+out or get validated, exactly the ref-dependency `rk2k` flagged below.
+`agov session resume` handles the identical legacy files by counting,
+warning once, and continuing (exit `0`) — `coord visibility` should match
+that discipline for collisions that exist purely in base history and are
+not caused by, or relevant to, the branch being scanned. Correction from
+`rk2k`: the collision *count* is ref-dependent (varies with which
+branch/base-branch pair is compared, and drifts over time as this
+repository's own history grows) — the acceptance criterion is the
+unconditional treatment and exit semantics, not a fixed count. Both
+figures above are historical observations anchored to their own date and
+ref, not claims about the count at any other time; test fixtures (see
+"Test strategy" below) use a small representative fixture sized to
+exercise the defect, not a reproduction of either count.
 
 ### #89 — default `agov coord visibility` only enumerates `refs/heads`, missing remote-only branches
 
@@ -233,6 +252,84 @@ Three sub-parts, all within #89's original contract:
      should never see "hidden obligation on `main`" when `main` is the
      branch they're already comparing against.
 
+### Frozen output contract for Slices 2 and 3 (B-V26-1, `p438`)
+
+`p438`'s review correctly found that "effective base appears in JSON and
+text" and "base-history collisions collapse to a summary" are observable
+automation contracts that cannot be left to implementation discretion
+under a BREAKING plan. This subsection freezes both, grounded directly in
+current `VisibilityReport`/`visibility_json`/`render_visibility_text`
+(`tooling/rust/crates/agov/src/main.rs:3118`, `:3881`, `:3827`).
+
+**New/changed `VisibilityReport` JSON fields:**
+
+- `base_branch` (existing field, **unchanged meaning**): stays exactly
+  the requested base branch name as given via `--base-branch` (default
+  `"main"`) — Slice 3 does not repurpose this field to hold a resolved
+  OID or ref name. This is called out explicitly because it is the field
+  most likely to be misread as already covering the new behavior.
+- `effective_base_oid` (**new**, string, full 40-character hex commit
+  OID): the commit actually used as the comparison base after Slice 3's
+  freshness rule. Always populated, including the unchanged/no-upstream
+  case (it is simply the local base branch's OID then) — the field is
+  never `null` or omitted, so callers never need an existence check.
+- `effective_base_source` (**new**, string enum `"local"` |
+  `"upstream"`): which ref supplied `effective_base_oid`. `"upstream"`
+  only when a configured upstream's OID differs from the local base
+  branch's OID and Slice 3's freshness rule substituted it; `"local"` in
+  every other case (no upstream configured, or upstream OID matches
+  local).
+- `sequence_collisions` (existing field, **narrowed semantics — the one
+  BREAKING change to an existing field's contents**): after this plan,
+  contains **only** branch-relevant collisions — JSON
+  `"type": "branch_base_seq_collision"` (Rust
+  `VisibilityCollision::BranchBaseSeq`). Base-only legacy collisions
+  (JSON `"type": "base_duplicate_seq"`, Rust
+  `VisibilityCollision::BaseDuplicateSeq`) are removed from this array.
+  Any adopter script filtering `sequence_collisions` by `"type"` to find
+  `base_duplicate_seq` entries will find the array no longer contains
+  them — see `legacy_base_collisions` below instead.
+- `legacy_base_collisions` (**new**, object, always present — never
+  `null` or omitted): `{"count": <integer>, "seqs": [<integer>, ...]}`.
+  `count` is the number of distinct `seq` groups colliding purely within
+  base-branch history (exactly the `VisibilityCollision::BaseDuplicateSeq`
+  entries removed from `sequence_collisions` above); `seqs` lists those
+  `seq` values, sorted ascending, for diagnosability without per-file
+  detail. Empty case is `{"count": 0, "seqs": []}`, not an omitted field.
+- `exit_code` (existing field, **decision inputs change, existing 0/1/2
+  values unchanged**): `2` iff `sequence_collisions` (now branch-relevant
+  only) is non-empty OR `errors` is non-empty; else `1` iff
+  `unbridged_obligations` is non-empty; else `0`.
+  `legacy_base_collisions.count` never drives `exit_code` by itself —
+  this is the mechanism for Slice 2's "does not by themselves force a
+  nonzero exit," and it composes with Slice 3 to produce the mixed case
+  `p438` flagged as untested (B-V26-3, resolved in "Test strategy" item 2
+  below): base-only legacy noise **plus** a genuine unbridged obligation
+  still exits `1` — the legacy noise never escalates it to `2`, and never
+  suppresses the `1`.
+
+**Text rendering order (all cases, including the mixed case):**
+
+1. Effective-base line, always first, every exit path:
+   `effective-base: <oid> (<local|upstream>)`.
+2. If `sequence_collisions` (branch-relevant) is non-empty: the existing
+   `ERR sequence collision` block(s), unchanged per-collision detail —
+   these remain genuine, individually-reported collisions.
+3. If `unbridged_obligations` is non-empty: the existing
+   `WARN branch-local coordination obligations not visible on base
+   branch` block(s), rendered **before** the legacy-collision summary
+   line (item 4) — the actionable item is never buried under legacy
+   noise, resolving `p438`'s explicit ordering requirement for the mixed
+   case.
+4. If `legacy_base_collisions.count > 0`: a single summary line,
+   `WARN <count> legacy sequence collision group(s) confined to base
+   branch history; run agov coord validate for detail` — matching
+   `session resume`'s existing warn-once-and-continue pattern, never a
+   per-collision block.
+5. If none of 2/3/4 produced output: `OK coordination visibility clean
+   relative to <base_branch>` (unchanged wording), as the sole line after
+   the effective-base line.
+
 ## Affected files
 
 - `tooling/rust/crates/agov/src/main.rs` — `coord_list_cursor` (#84),
@@ -248,6 +345,26 @@ Three sub-parts, all within #89's original contract:
 - `AGENTS.md` — the "Supported commands" `coord list` description already
   documents "one line per coordination message after a given id,
   filename, or RFC3339 timestamp"; add the compact form once implemented.
+- `docs/reference/coord-visibility.md` (B-V26-2, `p438`) — the current
+  page directly contradicts this plan's changes in three places and was
+  missing from the original affected-files list (it named only
+  `AGENTS.md`, for #84): "The scanner compares local branches against the
+  base branch" (line 44) must become local **and** remote-tracking
+  branches, per Slice 3; the "Exit Codes" table (lines 66–72), including
+  "If both obligations and collisions exist, the command exits `2`,"
+  must be replaced with the frozen decision table above (branch-relevant
+  collisions and scanner errors force `2`; legacy-only base-history
+  collisions never do); and the page must describe the new
+  `effective_base_oid`/`effective_base_source`/`legacy_base_collisions`
+  fields and the fetched/effective-base freshness behavior from Slice 3.
+  Checked for shipped-Pages/template parity per
+  `documentation-rule-projection-rule.md`: `agf/docs/site/docs/operate/
+  poll-and-coordinate.md`, `agf/docs/site/docs/adopt/tooling-and-tokens.md`,
+  `agf/docs/site/docs/advanced/contracts-and-validators.md`,
+  `agf/docs/site/reference/tooling-conformance.md`, and
+  `agf/templates/AGENTS.md` all reference `agov coord visibility` but
+  none restate the exit-code table or branch-scope claim in detail — no
+  other shipped page requires a parity update for this change.
 
 ## Test strategy (Gate 2 evidence)
 
@@ -256,13 +373,31 @@ Per `bhhh`'s minimum evidence list:
 1. **Cursor equivalence**: compact timestamp, full message id, and
    RFC3339-with-punctuation for the *same* target message all return the
    identical result set.
-2. **Legacy-collision tolerance**: a fixture reproducing this repo's own
-   330-legacy-file/15-collision-group shape produces a summary warning and
-   exit `0` when no collision involves the branch under test; a fixture
-   with a collision that *does* involve the branch under test still
-   produces a blocking result — both cases need their own test, not just
-   the tolerant one, per `boundary-shape-testing-rule.md`'s negative-case
-   discipline.
+2. **Legacy-collision tolerance and the required exit-code matrix
+   (B-V26-3, `p438`)**: a small representative fixture (not a
+   330-file/15-group reproduction — see the updated "#85" evidence
+   wording above) exercises all three outcomes explicitly:
+   - (a) base-history-only legacy noise, no obligation ->
+     `exit_code: 0`, `legacy_base_collisions.count > 0`,
+     `sequence_collisions: []`, text output is the single summary line
+     (Frozen output contract item 4) with no `ERR` block.
+   - (b) the same base-history-only legacy noise **plus** a genuine
+     unbridged obligation on the branch under test -> `exit_code: 1`,
+     `legacy_base_collisions.count > 0`, `sequence_collisions: []`,
+     `unbridged_obligations` non-empty — text output renders the
+     `WARN branch-local coordination obligations` block **before** the
+     legacy-collision summary line (this is `p438`'s explicit ordering
+     requirement and the exact case the prior draft's two-outcome test
+     left untested). This is the live dogfooding shape: Foundry's own
+     `main` has legacy base-history noise and, at any given time, may
+     also have a genuine open obligation.
+   - (c) a branch-relevant collision (`VisibilityCollision::BranchBaseSeq`)
+     -> `exit_code: 2`, `sequence_collisions` non-empty — unchanged
+     blocking behavior, still individually reported.
+   Both text and JSON assertions are required for all three outcomes, not
+   just exit code — a test that only checks `exit_code` would not catch a
+   correct exit code paired with a wrong `legacy_base_collisions` count
+   or wrong block ordering.
 3. **Remote-only branch discovery**: a fixture with a coordination file
    only on `refs/remotes/origin/<branch>` (never checked out locally) is
    found by default `coord visibility` after a fetch, with no `--branch`
@@ -288,12 +423,35 @@ Per `bhhh`'s minimum evidence list:
 6. **Base-ref freshness and exclusion (B1/R1)**: a fixture with local
    `main` behind its configured upstream and a remote-only obligation
    that only resolves correctly against the upstream OID — the default
-   `--base-branch main` workflow must find it, and output must state
-   which OID was used. A second fixture with no configured upstream
-   confirms unchanged local-only behavior. A third fixture asserts that
-   neither the local base branch nor `origin/<base>` (when it matches
-   the effective base OID) ever appears in `scanned_branches` or as a
-   reported obligation candidate.
+   `--base-branch main` workflow must find it, `effective_base_oid` must
+   equal the upstream OID and `effective_base_source` must equal
+   `"upstream"`, and the text `effective-base:` line must show the same
+   OID. A second fixture with no configured upstream confirms
+   `effective_base_source: "local"` and unchanged local-only behavior. A
+   third fixture asserts that neither the local base branch nor
+   `origin/<base>` (when it matches the effective base OID) ever appears
+   in `scanned_branches` or as a reported obligation candidate.
+7. **Frozen JSON contract, positive and negative (B-V26-1, `p438`)**: per
+   `boundary-shape-testing-rule.md`, assert the exact field shape, not
+   just presence — (a) positive: `effective_base_oid` is a 40-character
+   hex string, `effective_base_source` is exactly `"local"` or
+   `"upstream"`, `legacy_base_collisions` is always an object with
+   integer `count` and array `seqs` (never `null`/omitted, including the
+   zero case), and `sequence_collisions` entries are exclusively
+   `"type": "branch_base_seq_collision"` after this change; (b) negative:
+   a fixture with a base-only legacy collision asserts
+   `sequence_collisions` does **not** contain a `"type":
+   "base_duplicate_seq"` entry (the pre-change shape) — this is the
+   negative case that would silently pass if an implementation kept the
+   old field contents and merely changed exit-code logic around them.
+8. **Operator documentation verification (B-V26-2)**: after
+   `docs/reference/coord-visibility.md` is updated, confirm no remaining
+   reference to "local branches" (singular scope) or the old three-row
+   exit-code table without the legacy/branch-relevant distinction — a
+   grep-based check is sufficient (the page's content is not
+   machine-validated), documented as a manual Gate 2 review step since
+   `agov validate adopter-docs` covers presence/parity, not per-page
+   semantic correctness.
 
 All new tests are unit/integration tests in the existing
 `tooling/rust/crates/agov/tests/` suite; no live GitLab API calls needed
@@ -339,20 +497,29 @@ even though both changes are correctness fixes, not regressions:
 ```
 Impact:
   Foundry:          Yes. This project's own coordination-channel history
-                     (330 legacy files, 15 collision groups) is exactly
-                     the fixture this plan's own evidence is drawn from;
-                     Foundry's own `agov coord visibility` invocations
-                     change exit code today under both slices.
+                     (illustrative counts under "#85" above — 15 groups/
+                     330 files as of 2026-07-30, 14 groups/324 files as of
+                     2026-08-04, ref-dependent and expected to drift) is
+                     exactly the fixture this plan's own evidence is drawn
+                     from; Foundry's own `agov coord visibility`
+                     invocations change exit code today under both
+                     slices.
   Direct adopters:  BREAKING. Any adopter script or CI job that branches
                      on `agov coord visibility`'s exit code (0/1/2) may
                      see a different code for the same repository state
                      after this change, for the two directions above.
   Downstream:       No schema, artifact, or file-format change. The
-                     JSON/text output shape is unchanged except for the
-                     new effective-base-OID field (additive) and the
-                     collapsed legacy-collision summary line (replaces
-                     per-collision ERR blocks only when every collision
-                     in the group is legacy-only, per Slice 2).
+                     JSON/text output shape gains two always-present
+                     fields (`effective_base_oid`, `effective_base_source`
+                     — additive) and one always-present summary object
+                     (`legacy_base_collisions` — additive), and narrows
+                     one existing field's contents: `sequence_collisions`
+                     no longer contains `"type": "base_duplicate_seq"`
+                     entries (moved to `legacy_base_collisions`) — this
+                     narrowing is the one BREAKING change to an existing
+                     field, not merely additive; see "Frozen output
+                     contract for Slices 2 and 3" above for the full
+                     field-by-field freeze.
   Migration:        Adopter CI/scripts that treat any nonzero exit as
                      uniformly "stop" are unaffected (still nonzero when
                      a genuine obligation or collision exists). Scripts
