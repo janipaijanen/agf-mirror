@@ -3,6 +3,43 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.5.0-rc.2] — 2026-08-04
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.3`.
+
+**SemVer classification: Additive minor, documentation-only.** One new
+page (`agf/docs/site/acknowledgements.md`) crediting NASA's Lessons
+Learned Information System (LLIS) and other named design influences
+behind specific shipped AGF surfaces (the learning-record
+`supersedes`/`status` fields; the `downstream-impact-rule.md`
+classification model). No schema, command, or validator behavior
+changes.
+
+### Added
+
+- `agf/docs/site/acknowledgements.md`: new page attributing design
+  influences, most notably NASA LLIS, behind specific shipped AGF
+  surfaces (`docs/plans/nasa-llis-influence-attribution.md`, Gate 1
+  approved 2026-08-03 `ts77`, Gate 2 approved `k2bk` evidenced by
+  fact-checker `sppt`'s CLEAR verdict).
+- `agf/docs/build/mkdocs.yml`: nav entry for the new acknowledgements
+  page.
+- `agf/docs/site/docs/concepts/evidence-and-learnings.md`: cross-link
+  section referencing the new acknowledgements page.
+
+### Governance
+
+- `sjqm`'s external evaluation (Grok, Lumo) against published
+  `v2.5.0-rc.1` classified: findings 2 (unauthenticated coordination
+  `from:`), 3 (mutation-served-as-authentic / tamper-evidence gap), and
+  4 (zero local technical Gate enforcement) remain unresolved and are
+  deferred through stable `v2.5.0` to separate post-2.5.0 hardening
+  work, per governor decision `rq2n` — a scope/timing disposition, not
+  an acceptance of the underlying risk. None of the three is introduced
+  by, or remediable through, this candidate's shipped documentation
+  paths.
+
 ## [2.5.0-rc.1] — 2026-08-03
 
 **RC checkpoint; not final.** `v2.5.0` final ships the same functional

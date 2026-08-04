@@ -6,6 +6,29 @@ The canonical adopter-facing AGF v2 changelog lives at
 [`agf/CHANGELOG.md`](agf/CHANGELOG.md). The bootstrap reference changelog for
 agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELOG.md).
 
+## [2.5.0-rc.2] - 2026-08-04
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.3`.
+
+**SemVer classification: Additive minor, documentation-only.** One new
+page, `agf/docs/site/acknowledgements.md`, crediting NASA's Lessons
+Learned Information System (LLIS) and other named design influences
+behind specific shipped AGF surfaces (the learning-record
+`supersedes`/`status` fields; the `downstream-impact-rule.md`
+classification model), plus a nav entry (`agf/docs/build/mkdocs.yml`)
+and a cross-link section in
+`agf/docs/site/docs/concepts/evidence-and-learnings.md`. No schema,
+command, or validator behavior changes. Full detail:
+`agf/CHANGELOG.md`.
+
+### Added
+
+- NASA LLIS and design-influence acknowledgements page
+  (`docs/plans/nasa-llis-influence-attribution.md`, Gate 1 approved
+  2026-08-03, Gate 2 approved). Merged and Level 4 Validated as of
+  `rc.1`; reaches Level 5 Deployable via this publication.
+
 ## [2.5.0-rc.1] - 2026-08-03
 
 **RC checkpoint; not final.** `v2.5.0` final ships the same functional
