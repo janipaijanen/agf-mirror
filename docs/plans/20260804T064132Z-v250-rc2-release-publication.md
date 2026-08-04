@@ -15,7 +15,15 @@ advisory_consultation:
       challenge before this plan incorporates it; that challenge is filed
       as `20260804T012713Z-planner-architect-jqs5.md` and is referenced,
       not restated, in "Relationship to the CI-latency plans" below.
-      Requesting fresh Gate 1 review of this plan itself.
+      Round 1 review (`20260804T065846Z-contribution-auditor-3r3a.md`):
+      BLOCK, 9 blocking + 2 advisory findings, all addressed on a fresh
+      branch (MR !1129) after a process-failure correction — see "Gate 1
+      metadata sequencing" below. Round 2 review
+      (`20260804T072908Z-contribution-auditor-eb4h.md`): BLOCK, 3
+      residual mechanical findings (external-review classification
+      scope, acceptance-criterion-7 baseline mismatch, stale
+      coordination-path count), none disputing scope — addressed in this
+      revision. Requesting round 3 review.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -140,7 +148,7 @@ per the Gate 1 metadata sequencing below.
 | `agf/docs/site/acknowledgements.md` | Yes — matches `agf/docs/site/**` | New page. Part of MR !1105. |
 | `agf/docs/site/docs/concepts/evidence-and-learnings.md` | Yes — matches `agf/docs/site/**` | Cross-link addition. Part of MR !1105. |
 | `agf/learnings/foundry.yaml` (multiple commits) | **No** — `agf/learnings/**` is not in the `include` glob at all, per `v250-rc1-release-publication.md`'s own confirmed precedent for this exact path | No release-content impact. |
-| `docs/coordination/*.md` (52 files) | No — repo-root `docs/`, not `agf/` | No release-content impact. This is the ordinary coordination-channel activity of drafting, reviewing, and fixing MR !1090 and this plan's own commissioning thread — not release content. |
+| `docs/coordination/*.md` (54 files) | No — repo-root `docs/`, not `agf/` | No release-content impact. This is the ordinary coordination-channel activity of drafting, reviewing, and fixing MR !1090 and this plan's own commissioning thread — not release content. |
 | `docs/plans/nasa-llis-influence-attribution.md` | No — repo-root `docs/plans/`, not in any `include` glob | No release-content impact (the plan document itself; its authorized *implementation* is the three `agf/` paths above). |
 | `docs/sources.md` | No — repo-root `docs/`, not `agf/` | No release-content impact. |
 
@@ -410,18 +418,57 @@ The release MR must provide exact-head evidence for:
 - strict `mkdocs build` and link checks over the current site content,
   specifically confirming the new acknowledgements page builds cleanly
   and its nav entry resolves;
-- **bounded external documentation-review classification** (**adds
-  `B-RC2-EXTERNAL-3`**, per `rnp5`'s minimum-evidence list): classify
-  every external (non-project-internal) documentation-review comment
-  received on the acknowledgements-page content, as of the release MR's
-  exact head, as either a reproducible released-surface blocker or a
-  post-2.5.0 enhancement suggestion. As of this plan's drafting, no
-  external documentation-review comment has been received for this
-  candidate — state that explicitly with the checked cutoff, rather
-  than omitting the step; if any arrive before the release branch is
-  cut, classify them here before Gate 2. Only a reproducible blocker may
-  alter this candidate; an enhancement suggestion routes to 2.5.1 and
-  does not create `rc.3`;
+- **bounded external documentation-review classification** (**corrects
+  `B-RC2-EXTERNAL-R2-1`**, per `rnp5`'s and `3r3a`'s minimum-evidence
+  list): the check below classifies every already-collected external
+  (non-project-internal) documentation-review comment, not only comments
+  narrowly scoped to the new acknowledgements page — the round-1 and
+  round-2 wording wrongly limited intake to acknowledgements-page
+  content, which made the one packet that actually exists disappear by
+  definition.
+
+  **Named packet:** `20260803T204257Z-planner-architect-sjqm.md`, the
+  consolidated three-track external evaluation (Grok, Lumo) against
+  published `v2.5.0-rc.1`. **Exact cutoff:** no later external-review
+  packet was received between `sjqm`'s timestamp (2026-08-03T20:42:57Z)
+  and this plan's audit anchor `c15186d5` (2026-08-04T07:09:08Z),
+  confirmed by `git log --since=... --until=...
+  docs/coordination/` over that window containing no further
+  external-evaluation entry.
+
+  **Classification, grouped by disposition (none alters this
+  candidate — reproduction target is the three RC2-shipped paths:
+  `agf/docs/build/mkdocs.yml`, `agf/docs/site/acknowledgements.md`,
+  `agf/docs/site/docs/concepts/evidence-and-learnings.md`; `sjqm`
+  predates and does not examine any of them):**
+  - *Not applicable to this candidate* — Track 1's "release-identity
+    unconfirmed" (already stale/reconfirmed correct by `sjqm` itself)
+    and Lumo's fabricated schema/CLI claims (a reviewer-reliability
+    finding about Lumo, not a repository defect).
+  - *Post-2.5.0 enhancement, no RC2 blocker* — Track 1's UX
+    observations (terminology density, no worked minimal-activation
+    example); Track 2's `agov plan validate` MANIFEST-absence
+    state-dependency, archive-member-count documentation gap (T2-08),
+    and MCP NDJSON wire-framing documentation gap (T2-09); Track 3's
+    semantic-collision detection gap (finding 5) and the `to: all`
+    handoff-queue visibility bug (finding 6).
+  - *Already dispositioned outside this candidate* — Track 3's Gate 1
+    approval identity/non-emptiness gap (finding 1) is the same gap MR
+    !1090 (Path A) addresses, already deferred to `v2.5.1` per the
+    "Explicitly excluded" list above; findings 2 (unauthenticated
+    `from:`), 3 (mutation-served-as-authentic), and 4 (zero local Gate
+    enforcement) are accepted design-tradeoff or future-hardening
+    items per `sjqm`'s own disposition, none of which is a reproducible
+    defect on the three shipped paths this candidate publishes.
+
+  None of the above is a reproducible blocker on this candidate's
+  shipped surface; none creates `rc.3`. If a new external-review packet
+  arrives before the release branch is cut, classify it here before
+  Gate 2 using the same reproducible-blocker-vs-enhancement test. The
+  acknowledgements-page-specific check from the prior revision is kept
+  as an additional narrow check, not a substitute for the above: as of
+  this cutoff, no external comment addresses the acknowledgements page
+  specifically either;
 - release-path, provenance, artifact-exclusion, SPDX/license, links, and
   `git diff --check` checks; and
 - a green exact-head GitLab MR pipeline, confirmed to be the only
@@ -485,8 +532,11 @@ release-publication plan, limited to version and changelog metadata.
 6. Fresh archive extraction proves `agf/docs/site/acknowledgements.md`
    is present in the framework archive and reachable from the built
    site nav.
-7. Framework-archive overlay test passes from the `v2.5.0-rc.1`
-   baseline.
+7. Framework-archive overlay test passes from all three governed
+   published baselines (`v2.4.5`, `v2.4.8`, `v2.4.11`, per `rntt`'s
+   governed set and the corrected validation matrix above). An
+   additional `v2.5.0-rc.1` overlay may be run as optional supplementary
+   evidence but does not substitute for the three-baseline requirement.
 8. `v2.5.0` final's own future plan can promote this exact functional
    candidate with only release-metadata changes, or this plan's own
    observation surfaces a correction requiring `rc.3` instead.
