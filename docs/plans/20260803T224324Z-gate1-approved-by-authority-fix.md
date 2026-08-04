@@ -1,7 +1,9 @@
 ---
 id: gate1-approved-by-authority-fix
-status: pending-gate1
+status: approved
 topic: gate1-approved-by-authority-fix
+gate1_approved_by: "governor-reviewer; decision 20260804T000658Z-governor-reviewer-n5jr"
+gate1_approved_at: "2026-08-04T00:06:58Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
@@ -52,11 +54,23 @@ advisory_consultation:
       advisory (A-G1-INVENTORY-R4, refresh the baseline count before
       Gate 1 -- corpus grew to 104/81/20/3, nonconforming burden
       unchanged at 23). `s3m1` reaffirms the Path A recommendation.
-      Both addressed in this revision. The governor separately posted
-      a Path A decision contingent on this round-5 fix
-      (`20260804T000658Z-governor-reviewer-n5jr.md`) before this round
-      landed; that contingency is what round 5 satisfies. Renewed
-      review requested at the corrected exact head.
+      Both addressed at exact head `8d46e6f0`. The governor separately
+      posted a binding Path A decision
+      (`20260804T000658Z-governor-reviewer-n5jr.md`) contingent on
+      that fix. Round 5 review
+      (`20260804T002010Z-contribution-auditor-6d36.md`) at that head:
+      BLOCK, one administrative finding (B-G1-METADATA-R5 -- the
+      plan's own `status`/`gate1_approved_by`/`gate1_approved_at`
+      frontmatter had not yet been updated to reflect the already-
+      posted `n5jr` decision, no substantive edit requested), plus one
+      advisory (A-G1-FIXTURE-COUNT-R5, a leftover `103-plan` label).
+      `6d36` confirms `B-G1-SOURCE-ABSENCE-R4` and `A-G1-INVENTORY-R4`
+      resolved and states a round-6 CLEAR on the metadata-only fix
+      satisfies `n5jr`'s contingency with no new governor Path
+      selection required. Both addressed in this revision, which sets
+      `status: approved` and cites `n5jr` in `gate1_approved_by`/
+      `gate1_approved_at` per that resolution. Renewed review
+      requested at the corrected exact head.
 ---
 
 # Plan: `gate1_approved_by` structural approver-field hygiene fix
@@ -100,6 +114,12 @@ regardless of which is chosen.
 The governor selects Path A or Path B as part of the same Gate 1
 decision that approves this plan; this plan does not pre-select one
 (contribution-auditor's `jhs4` recommends Path A — see §Migration).
+
+**Decision recorded.** The governor selected **Path A**
+(`20260804T000658Z-governor-reviewer-n5jr.md`): the non-blocking
+advisory diagnostic only, per the bullet above. The schema change and
+blocking flip remain unauthorized by this Gate 1 decision and require
+their own future Gate 1 plan.
 
 **Authorization for this planning work.** A session-specific human
 instruction authorized drafting this plan, superseding an earlier
@@ -786,9 +806,9 @@ Following this project's existing pattern in `plan_validator.rs`'s
   with empty `gate1_approved_by` — both block, not just `approved`.
 - Positive — `status: pending-gate1` with empty `gate1_approved_by` —
   passes (field not yet asserted).
-- Corpus regression fixture: a frozen snapshot of the 103-plan
-  classification from Migration evidence (or the then-current
-  equivalent at implementation time), asserting the exact
+- Corpus regression fixture: a frozen snapshot of the then-current plan
+  classification from Migration evidence (104/81/20/3 as of round 5;
+  re-verify at implementation time), asserting the exact
   conforming/empty/other counts do not silently drift as the validator
   changes.
 - CLI/MCP parity: the same fixture set run through both `agov plan
