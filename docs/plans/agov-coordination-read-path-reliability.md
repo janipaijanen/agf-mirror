@@ -12,7 +12,13 @@ advisory_consultation:
       not a ULID; #85's collision count is ref-dependent, the invariant
       defect is the unconditional base-history treatment and exit
       semantics). Decomposition assignment from
-      `20260730T074742Z-contribution-auditor-bhhh`.
+      `20260730T074742Z-contribution-auditor-bhhh`. Received full CLEAR
+      from `20260730T131404Z-contribution-auditor-rg8h.md`. Refreshed
+      2026-08-04 against current `main` (line references, BREAKING
+      impact/migration note, explicit dependency on MR !746) per governor
+      scheduling decision `20260804T134723Z-governor-reviewer-q4a8.md`
+      and handoff `20260804T134725Z-contribution-auditor-nej7.md`.
+      Requesting fresh coupled review alongside MR !746's refresh.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -41,11 +47,31 @@ discoverability of the tooling itself). Per `bhhh`, coordinate with #76
 (visibility performance) but keep separate acceptance criteria —
 correctness/legacy-tolerance/remote-ref-discovery here, throughput there.
 
+**Dependency on `docs/plans/issue76-coord-visibility-performance.md`
+(MR !746), per governor decision
+`docs/coordination/20260804T134723Z-governor-reviewer-q4a8.md`:** this
+plan (`!805`) is the sole authority for default branch selection,
+effective-base resolution, and remote-branch discovery semantics — `!746`
+must not (and, per its own reconciled revision, does not) redefine any of
+those contracts. `!746`'s batching work is what makes Slice 3's widened
+default scan (local + remote-tracking branches, potentially hundreds of
+refs on a branch-heavy checkout) affordable to run by default without
+reintroducing the O(branches × files) subprocess-spawn cost `!746`
+separately fixes. This plan's acceptance does not require `!746` to be
+implemented first — Slice 3 is correct on its own, just potentially slow
+on a large checkout until `!746` lands — but both should be implemented
+in the same coordinated `v2.6.0` branch/MR with issue-separated commits,
+per `q4a8`.
+
 ## Issues in scope
 
 ### #84 — `agov coord list --since` rejects the compact filename-prefix timestamp
 
-`tooling/rust/crates/agov/src/main.rs:2495-2511`, `coord_list_cursor()`.
+`tooling/rust/crates/agov/src/main.rs:2684`, `coord_list_cursor()`
+(line refreshed against current `main` at `95a8a9a6`; this plan's merge
+base is 634 commits behind current `main` as of this revision — content
+below re-verified directly against current source, not assumed
+unchanged).
 Currently tries `time::OffsetDateTime::parse(since, &Rfc3339)` (requires
 punctuation: `2026-07-29T19:54:31Z`), then falls back to matching a full
 message id or filename stem exactly. The compact form embedded as the
@@ -57,12 +83,13 @@ must not assume ULID parsing.
 
 ### #85 — `agov coord visibility` hard-fails on pre-existing legacy sequence collisions
 
-`tooling/rust/crates/agov/src/main.rs:3342` (`base_sequence_collisions_visibility`,
+`tooling/rust/crates/agov/src/main.rs:3722` (`base_sequence_collisions_visibility`,
 computed once from the full base-branch history, independent of which
-branch/base-branch pair is actually being compared) and `:3746` (exit-code
-decision: any non-empty `sequence_collisions` is treated the same as a
-genuine visibility error, regardless of relevance to the branch under
-inspection). Reproduced: 15 collision groups from 330 known-legacy
+branch/base-branch pair is actually being compared) and `:3934`
+(`visibility_exit_code`: any non-empty `sequence_collisions` is treated
+the same as a genuine visibility error, regardless of relevance to the
+branch under inspection — lines refreshed against current `main`).
+Reproduced: 15 collision groups from 330 known-legacy
 `NNNNN-role.md` files in this repo's own history produce `ERR sequence
 collision` (~44 lines) ahead of the one actionable `WARN` line, and the
 command exits `2`. `agov session resume` handles the identical legacy
@@ -289,11 +316,62 @@ All new tests are unit/integration tests in the existing
   text and JSON) so the change is visible, not silent, and by the
   no-upstream-configured fallback preserving current behavior exactly.
 
+## Downstream-impact classification and migration note
+
+**BREAKING**, not ADDITIVE/PREVENTIVE, per `always/downstream-impact-rule.md`
+(correcting this plan's own prior rollback text, which understated the
+change — flagged by `20260804T120121Z-contribution-auditor-s7bq.md`
+finding B-CR-5 against a duplicate draft of this same scope, and
+confirmed applicable here by
+`20260804T130826Z-contribution-auditor-3skh.md` point 3). Both Slice 2
+and Slice 3 change observable command/automation exit-code contracts,
+even though both changes are correctness fixes, not regressions:
+
+- Slice 3's widened default branch enumeration can change a previously
+  exit-`0` invocation (no obligations found, because the caller's remote
+  branch was invisible to the old scan) to exit `1` (a real obligation is
+  now correctly discovered).
+- Slice 2's legacy-collision tolerance can change some previously exit-`2`
+  invocations (blocked purely by legacy noise) to exit `0` or `1`.
+
+### Three-circle impact statement
+
+```
+Impact:
+  Foundry:          Yes. This project's own coordination-channel history
+                     (330 legacy files, 15 collision groups) is exactly
+                     the fixture this plan's own evidence is drawn from;
+                     Foundry's own `agov coord visibility` invocations
+                     change exit code today under both slices.
+  Direct adopters:  BREAKING. Any adopter script or CI job that branches
+                     on `agov coord visibility`'s exit code (0/1/2) may
+                     see a different code for the same repository state
+                     after this change, for the two directions above.
+  Downstream:       No schema, artifact, or file-format change. The
+                     JSON/text output shape is unchanged except for the
+                     new effective-base-OID field (additive) and the
+                     collapsed legacy-collision summary line (replaces
+                     per-collision ERR blocks only when every collision
+                     in the group is legacy-only, per Slice 2).
+  Migration:        Adopter CI/scripts that treat any nonzero exit as
+                     uniformly "stop" are unaffected (still nonzero when
+                     a genuine obligation or collision exists). Scripts
+                     that distinguish exit 1 vs 2 specifically, or that
+                     relied on legacy-collision noise as a signal, should
+                     re-verify their handling after upgrading.
+  Evidence:         B-CR-5 (s7bq, against a duplicate draft of this same
+                     scope) and 3skh point 3, both independently
+                     identifying the same gap in this plan's own prior
+                     rollback text.
+```
+
 ## Rollback
 
-Revert the governed commit/MR as a whole; no schema, data, or artifact
-migration involved — this changes command-line parsing and exit-code
-logic only.
+Revert the governed commit/MR as a whole. No schema, data, or artifact
+migration is involved (corrected from "no migration involved" — that
+referred to file/schema migration, not the BREAKING command-contract
+change documented above, which this plan now states explicitly rather
+than leaving implicit).
 
 ## Out of scope
 
