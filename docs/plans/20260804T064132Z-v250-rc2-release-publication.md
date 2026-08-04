@@ -22,8 +22,14 @@ advisory_consultation:
       (`20260804T072908Z-contribution-auditor-eb4h.md`): BLOCK, 3
       residual mechanical findings (external-review classification
       scope, acceptance-criterion-7 baseline mismatch, stale
-      coordination-path count), none disputing scope — addressed in this
-      revision. Requesting round 3 review.
+      coordination-path count), none disputing scope — addressed in the
+      prior revision. Round 3 review
+      (`20260804T080216Z-contribution-auditor-hqs8.md`): BLOCK, 1
+      residual finding — unresolved `sjqm` findings (2, 3, 4) were
+      wrongly classified as accepted/dispositioned with no governor
+      authority behind that claim, and the external-review cutoff
+      overstated what was actually searched. Both corrected in this
+      revision. Requesting round 4 review.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -429,12 +435,20 @@ The release MR must provide exact-head evidence for:
 
   **Named packet:** `20260803T204257Z-planner-architect-sjqm.md`, the
   consolidated three-track external evaluation (Grok, Lumo) against
-  published `v2.5.0-rc.1`. **Exact cutoff:** no later external-review
-  packet was received between `sjqm`'s timestamp (2026-08-03T20:42:57Z)
-  and this plan's audit anchor `c15186d5` (2026-08-04T07:09:08Z),
-  confirmed by `git log --since=... --until=...
-  docs/coordination/` over that window containing no further
-  external-evaluation entry.
+  published `v2.5.0-rc.1`. **Exact cutoff, scoped to the evidence
+  actually searched** (**corrects `B-RC2-EXTERNAL-AUTH-R3-1`**'s cutoff
+  finding): `git log --since=... --until=... docs/coordination/` over
+  the window between `sjqm`'s timestamp (2026-08-03T20:42:57Z) and this
+  plan's audit anchor `c15186d5` (2026-08-04T07:09:08Z) contains no
+  further external-evaluation entry on the named Git ref, and no
+  additional external-review packet was filed as a GitLab issue or MR
+  comment on the tracked project in that window either. This proves
+  absence only on those two searched surfaces — it cannot prove no
+  external review was relayed through an unpersisted chat session or
+  another channel this plan did not search; such feedback cannot be
+  proven absent, only unfound. This bounded intake scan must be
+  repeated at the release MR's exact head before Gate 2, not treated as
+  settled by this plan's own audit anchor.
 
   **Classification, grouped by disposition (none alters this
   candidate — reproduction target is the three RC2-shipped paths:
@@ -452,14 +466,35 @@ The release MR must provide exact-head evidence for:
     and MCP NDJSON wire-framing documentation gap (T2-09); Track 3's
     semantic-collision detection gap (finding 5) and the `to: all`
     handoff-queue visibility bug (finding 6).
+  - *Expected, not a defect* — Track 3 findings 7 (dangling
+    `references-to` / invalid `next_agent` role names not validated)
+    and 8 (prompt injection via governed rule-file or coordination
+    message content is out of scope for a schema validator): `sjqm`
+    itself classifies both as "Low / as-expected," confirmed by
+    positive-control fixtures in the same session. No remediation
+    required; recorded here only so the classification is exhaustive
+    over `sjqm`'s full finding set.
   - *Already dispositioned outside this candidate* — Track 3's Gate 1
     approval identity/non-emptiness gap (finding 1) is the same gap MR
     !1090 (Path A) addresses, already deferred to `v2.5.1` per the
-    "Explicitly excluded" list above; findings 2 (unauthenticated
-    `from:`), 3 (mutation-served-as-authentic), and 4 (zero local Gate
-    enforcement) are accepted design-tradeoff or future-hardening
-    items per `sjqm`'s own disposition, none of which is a reproducible
-    defect on the three shipped paths this candidate publishes.
+    "Explicitly excluded" list above.
+  - *Unresolved, deferred to post-2.5.0 hardening — not an accepted
+    risk* (**corrects `B-RC2-EXTERNAL-AUTH-R3-1`**: `sjqm` is a
+    planner-architect review, not a governor risk-acceptance decision;
+    it calls findings 2–4 concrete and reproduced and asks for an
+    explicit disposition, and the corresponding learning entry remains
+    `status: proposed`. Neither the approved MR !1090 plan nor any
+    located governor decision-record accepts these as risk; !1090 only
+    lists them as out of its own scope) — findings 2 (unauthenticated
+    `from:`), 3 (mutation-served-as-authentic, a real append-only /
+    tamper-evidence gap per `sjqm`'s own text), and 4 (zero local Gate
+    enforcement, which `sjqm` says *may* be an accepted tradeoff but
+    requires explicit confirmation) are none of them caused by, or
+    remediable through, the three NASA-attribution paths this candidate
+    ships. This Gate 1 review is asked to bind their deferral through
+    stable `v2.5.0` as unresolved post-2.5.0 hardening candidates; that
+    deferral, if granted, is itself the governor decision `sjqm` says is
+    missing — it is not presupposed here.
 
   None of the above is a reproducible blocker on this candidate's
   shipped surface; none creates `rc.3`. If a new external-review packet
