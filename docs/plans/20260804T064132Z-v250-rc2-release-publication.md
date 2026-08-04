@@ -1,6 +1,8 @@
 ---
 id: v250-rc2-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-04T09:19:52Z
 topic: v250-rc2-release-publication
 advisory_consultation:
   - role: contribution-auditor
