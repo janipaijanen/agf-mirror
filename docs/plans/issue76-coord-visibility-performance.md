@@ -4,8 +4,17 @@ status: pending-gate1
 topic: issue76-coord-visibility-performance
 advisory_consultation:
   - role: contribution-auditor
-    status: not-applicable
-    reason: "This plan changes internal Git-object-loading performance and adds assistant-facing usage guidance; it does not change coordination-message schema, authorship attribution, or any contribution-audit-relevant surface."
+    status: consulted
+    reason: >-
+      Scheduling assessment `20260804T130826Z-contribution-auditor-3skh.md`
+      found this plan's original default-branch-selection design (item 3,
+      now removed) conflicted with MR !805's Slice 3 contract. Refreshed
+      2026-08-04 against current `main` (line references, removed the
+      conflicting design, narrowed to performance-only scope) per
+      governor scheduling decision
+      `20260804T134723Z-governor-reviewer-q4a8.md` and handoff
+      `20260804T134725Z-contribution-auditor-nej7.md`. Requesting fresh
+      coupled review alongside MR !805's refresh.
   - role: infosec-sentinel
     status: not-applicable
     reason: "No credentials, learning data, or external trust boundary is touched. The change is a local-only Git object read strategy; no new network calls or data exposure."
@@ -54,19 +63,21 @@ not slowness, but silent invisibility:
 - Status polls reported healthy queues repeatedly because `agov handoff
   next` and related queue commands read the working tree's checked-out
   ref, not a stated or caller-controlled one — the same class of ambiguity
-  this plan's `--branch`/`--all-branches`/stale-vs-fetched divergence
-  warning already addresses for `coord visibility` specifically, but the
-  adopter's report names it as a broader pattern across queue-reporting
-  commands.
+  MR !805's stale-vs-fetched effective-base resolution addresses for
+  `coord visibility` specifically (see "Boundary with MR !805" below),
+  but the adopter's report names it as a broader pattern across
+  queue-reporting commands.
 
-This plan's scope remains `agov coord visibility` only (per "What this
-plan does NOT do" below); it does not extend the batching/branch-selection
-work to `handoff next` or other queue commands. It is recorded here as
-acceptance evidence — a concrete adopter scenario `coord visibility`'s
-explicit `--branch`/stale-ref-warning behavior must correctly handle (see
-Required test 3) — and as a named, not-yet-scoped follow-on: whether
-`handoff next` and similar queue commands need the same explicit-ref
-treatment is a separate future issue, not authorized by this plan.
+This plan's scope remains `agov coord visibility`'s I/O performance only
+(per "What this plan does NOT do" below); it does not extend the batching
+work to `handoff next` or other queue commands, and it does not itself
+implement branch-selection or stale-ref behavior (that is MR !805's
+scope, see below). It is recorded here as acceptance evidence — a
+concrete adopter scenario that MR !805's stale-ref/effective-base
+behavior must correctly handle — and as a named, not-yet-scoped
+follow-on: whether `handoff next` and similar queue commands need the
+same explicit-ref treatment is a separate future issue, not authorized
+by this plan.
 
 ### Relationship to issue #80 (resolved, no blocking dependency)
 
@@ -86,15 +97,21 @@ decided, not by any change to this plan's content.
 
 ## Root cause (read directly from the implementation)
 
-`tooling/rust/crates/agov/src/main.rs`:
+`tooling/rust/crates/agov/src/main.rs` (line numbers refreshed against
+current `main` at `95a8a9a6`; this plan's merge base is 711 commits
+behind current `main` as of this revision — a uniform +190 offset from
+this plan's original line numbers, confirmed by direct re-inspection of
+each cited function, not assumed from the offset alone):
 
-- `visibility_scan` (line 3318) calls `git_coord_files` (an `ls-tree`) once
+- `visibility_scan` (line 3508) calls `git_coord_files` (an `ls-tree`) once
   per branch, then `load_git_messages` once per branch, and by default
-  iterates **every local branch** (`git_local_branches`, line 3414, which
-  lists `refs/heads` with no bound).
-- `load_git_messages` (line 3436) calls `git_output(&["show",
-  "<ref>:<file>"])` **in a loop, once per coordination file** (line 3439).
-  `git_output` (line 3898) spawns a fresh `git` subprocess per call
+  iterates **every local branch** (`git_local_branches`, line 3604, which
+  lists `refs/heads` with no bound — **this default-selection behavior is
+  MR !805's contract to own and change, not this plan's; see "Boundary
+  with MR !805" below**).
+- `load_git_messages` (line 3626) calls `git_output(&["show",
+  "<ref>:<file>"])` **in a loop, once per coordination file** (line 3629).
+  `git_output` (line 4088) spawns a fresh `git` subprocess per call
   (`std::process::Command::new("git")`, no batching, no reuse).
 
 For a checkout with `B` branches averaging `F` coordination files each,
@@ -131,42 +148,39 @@ only the I/O strategy changes, not the parsed output shape, so downstream
 
 ### 2. Parse/reuse base messages once per scan
 
-`base_messages` (line 3325) is already computed once per `visibility_scan`
+`base_messages` (line 3515) is already computed once per `visibility_scan`
 call, not per branch — confirm this holds after the batching change and
 add a regression test asserting `load_git_messages` is called exactly
 once for the base branch regardless of how many branches are scanned.
 
-### 3. Bound or make default branch selection deliberate
+### 3. Boundary with MR !805 — this plan does not own branch selection
 
-Two independent problems currently collapse into one flag
-(`--base-branch`):
+**Removed in this revision, per governor decision
+`docs/coordination/20260804T134723Z-governor-reviewer-q4a8.md`:** the
+prior draft's `--all-branches` opt-in flag, its "small, clearly documented
+default set" design, and its stale-local-vs-fetched-remote divergence
+*warning* (as opposed to correction) were an independently-designed
+default-branch-selection contract that conflicts with
+`docs/plans/agov-coordination-read-path-reliability.md` (MR !805), which
+is issues #84/#85/#89's plan and — per that same governor decision — the
+sole authority for default branch selection, effective-base resolution,
+and remote-branch discovery semantics (MR !805's Slice 3: widen the
+default scan to local + remote-tracking branches, prefer the fetched
+upstream OID as effective base when local and upstream diverge, exclude
+base-OID aliases from candidates).
 
-- **Unbounded default scan.** With no `--branch` argument, the scanner
-  visits every local branch. On a branch-heavy checkout (this project
-  accumulated dozens of short-lived `coord/*`, `review/*`, and `fix/*`
-  branches in a single session) this is the multiplicative-cost path.
-- **Stale-local-vs-fetched-remote ambiguity.** `git_local_branches` never
-  considers `refs/remotes/origin/*`, so a caller who has not run `git
-  fetch` recently gets a scan against stale state with no warning.
-
-Planned behavior:
-
-- Add an explicit `--all-branches` flag (or equivalent) required to
-  opt into the unbounded scan; without it, the command requires at least
-  one `--branch` value or defaults to a small, clearly documented set
-  (e.g., the current branch plus any branch with an open MR against the
-  base, if that information is cheaply available; exact default is an
-  implementation decision to resolve on the branch, not fixed here).
-- When a local branch ref exists but its corresponding
-  `refs/remotes/origin/<branch>` is present and diverges from it, emit an
-  explicit warning identifying the local ref as potentially stale, rather
-  than silently scanning it. Do not change the scanned ref automatically
-  (correctness of "what did you actually ask me to scan" matters more
-  than convenience here) — surface the divergence and let the caller
-  decide.
-- The unbounded, all-local-branches mode remains available (for
-  maintenance/audit runs, per the requesting handoff) but stops being the
-  silent default.
+This plan takes MR !805's default-selection contract as given and solves
+only the affordability problem it creates: MR !805's widened default scan
+(local + remote-tracking branches, potentially hundreds of refs on a
+branch-heavy checkout) is exactly the scale this plan's batching work
+(item 1 above) makes cheap. This plan does not itself decide which
+branches are scanned by default, does not add an `--all-branches` flag,
+and does not implement a stale-ref divergence warning — those are MR
+!805's Slice 3 acceptance criteria. If MR !805 is not yet implemented
+when this plan lands, this plan's batching still benefits the *existing*
+(pre-!805) branch selection unchanged; if !805 lands first or
+concurrently, this plan's batching applies transparently to !805's wider
+default set with no additional design needed here.
 
 ### 4. Regression/performance fixtures
 
@@ -188,21 +202,16 @@ production incident). Assert:
 ### 5. Assistant-facing documentation
 
 Update `docs/reference/coord-visibility.md`'s "How AI Agents Should Use
-It" section to state explicitly:
-
-- Fetch first (`git fetch origin`) before scanning, so `origin/main` is
-  current.
-- Prefer `--branch origin/main` (or the fetched equivalent of the base)
-  over an unfetched local `main` for routine polling.
-- Pass explicit `--branch <name>` values for routine polling against
-  specific branches of interest, rather than the unbounded all-branches
-  scan.
-- Reserve the unbounded scan for maintenance/audit runs where covering
-  every local branch matters more than latency.
-
-This directly targets the false-positive mode observed in the evidence
-(stale local `main` producing 168 KB of misleading findings vs. 2.3 KB of
-accurate output against fetched `origin/main`).
+It" section to state that the default scan is now fast enough (per this
+plan's batching) to cover MR !805's widened default branch set (local +
+remote-tracking) without the caller needing to pass explicit `--branch`
+values purely for performance reasons. Branch-selection guidance itself
+(fetch-first, explicit-ref preferences, when to use an unbounded scan) is
+MR !805's documentation responsibility, since !805 owns the flags and
+default-selection behavior this guidance describes — this plan's doc
+update is scoped to reporting the performance characteristic (default
+scan is now O(1) subprocesses per branch, not O(files)), not to
+prescribing which branches to scan.
 
 ## What this plan preserves (non-negotiable per the requesting handoff)
 
@@ -210,19 +219,24 @@ accurate output against fetched `origin/main`).
   detected for a given set of inputs — only how the inputs are read.
 - **Exit-code semantics.** `0` no findings, `1` unbridged obligations,
   `2` sequence collisions or scanner errors, unchanged (`visibility_exit_code`,
-  line 3744) — non-zero for real obligations/collisions must remain
-  distinct from a scanner operational failure (e.g., `git cat-file`
+  line 3934, refreshed) — non-zero for real obligations/collisions must
+  remain distinct from a scanner operational failure (e.g., `git cat-file`
   itself failing to start), which should map to the existing `2`
-  (scanner error) path, not a new exit code.
+  (scanner error) path, not a new exit code. This plan introduces no exit
+  code change of its own; MR !805's exit-code changes (legacy-collision
+  tolerance, remote-discovery-driven exit `0`→`1` transitions) are that
+  plan's BREAKING classification, not this one's.
 - **Output schema.** `VisibilityReport`'s JSON shape (`visibility_json`,
-  line 3691) is unchanged; this is a purely internal I/O optimization.
+  line 3881, refreshed) is unchanged; this is a purely internal I/O
+  optimization.
 - **Token-ROI telemetry** (`docs/reference/tooling-token-roi.md`'s
-  existing redaction/attribution model) is unaffected — no new command
-  surface, subcommand, or flag requiring `COMMAND_PATH_TOKENS`/
-  `KNOWN_FLAG_NAMES` allowlist changes except the new `--all-branches`
-  flag itself, which must be added to `agov-core/src/roi.rs`'s allowlists
-  (per `roi_redaction_audit_matches_real_clap_surface`'s existing
-  self-test) as part of implementation, not left to fail CI.
+  existing redaction/attribution model) is unaffected — this plan adds no
+  new command surface, subcommand, or flag, so no
+  `COMMAND_PATH_TOKENS`/`KNOWN_FLAG_NAMES` allowlist change is needed
+  here (the round-1 draft's `--all-branches` flag and its associated
+  allowlist requirement are removed along with the rest of the
+  branch-selection design — see "Boundary with MR !805" above; any new
+  flag MR !805 introduces is that plan's allowlist obligation).
 
 ## What this plan does NOT do
 
@@ -240,14 +254,16 @@ accurate output against fetched `origin/main`).
    fixture, before and after the batching change.
 2. Git-invocation-count assertion proving the batched path issues O(1)
    subprocesses per branch rather than O(files).
-3. A test proving the stale-local-vs-fetched-remote divergence warning
-   fires when a local branch ref diverges from its `refs/remotes/origin/*`
-   counterpart, and does not fire when they match or no remote-tracking
-   ref exists.
-4. `roi_redaction_audit_matches_real_clap_surface` continues to pass with
-   the new flag added to the allowlist.
-5. Exit-code regression tests confirming `0`/`1`/`2` semantics are
-   unchanged for representative fixtures of each case.
+3. `roi_redaction_audit_matches_real_clap_surface` continues to pass
+   unchanged (this plan adds no new flag).
+4. Exit-code regression tests confirming `0`/`1`/`2` semantics are
+   unchanged for representative fixtures of each case, under this plan's
+   change alone (independent of MR !805's separately-tested exit-code
+   BREAKING changes).
+
+Removed in this revision: the round-1 draft's required test 3 (stale-ref
+divergence-warning firing/non-firing) — that behavior belongs to MR
+!805's Slice 3 and is tested there, not here.
 
 ## Acceptance criteria
 
@@ -256,10 +272,11 @@ accurate output against fetched `origin/main`).
    baseline (an approximate, reported-in-the-MR figure — not a fixed
    numeric gate, since CI runner performance varies; the git-invocation-count
    test is the enforceable gate, wall-clock is reported evidence).
-2. Scanning fetched `origin/main` and scanning stale local `main` no
-   longer produce silently divergent results — the divergence is either
-   surfaced as a warning or (if the caller passed an explicit ref) simply
-   scanned as requested with no silent behavior change.
-3. All five required tests pass.
-4. `docs/reference/coord-visibility.md` reflects the new default-scan
-   guidance.
+2. All four required tests pass.
+3. `docs/reference/coord-visibility.md` reflects the new performance
+   characteristic (per item 5 above), without prescribing branch-selection
+   behavior that belongs to MR !805's documentation scope.
+
+Removed in this revision: the round-1 draft's acceptance criterion 2
+(stale-vs-fetched divergence surfaced as a warning) — that is MR !805's
+acceptance criterion, not this plan's.
