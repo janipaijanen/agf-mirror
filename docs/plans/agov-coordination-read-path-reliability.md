@@ -27,8 +27,17 @@ advisory_consultation:
       criteria, added the mixed exit-code test case (legacy noise plus a
       genuine obligation -> exit 1, obligation rendered first), and
       refreshed ref-dependent evidence wording with both the 2026-07-30
-      and 2026-08-04 measured counts. Requesting fresh coupled re-review
-      alongside MR !746's round-3 revision.
+      and 2026-08-04 measured counts. Round-4 coupled re-review
+      `20260804T172356Z-contribution-auditor-61gt.md` cleared MR !746 and
+      found one narrow blocker in this plan (B-V26-CONTRACT-R4-6): "Test
+      strategy" items 2(a) and 4 contradicted the just-frozen output
+      contract by requiring byte-identical/single-line output, when the
+      contract itself adds an always-first `effective-base:` text line
+      and three always-present JSON fields on every invocation, including
+      the clean case. Corrected both items to assert unchanged detection
+      findings/exit code plus the frozen additive fields, not byte
+      identity. Requesting bounded round-5 review of this plan alone (no
+      change needed to MR !746 per `61gt`).
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -379,8 +388,10 @@ Per `bhhh`'s minimum evidence list:
    wording above) exercises all three outcomes explicitly:
    - (a) base-history-only legacy noise, no obligation ->
      `exit_code: 0`, `legacy_base_collisions.count > 0`,
-     `sequence_collisions: []`, text output is the single summary line
-     (Frozen output contract item 4) with no `ERR` block.
+     `sequence_collisions: []`, text output is the always-first
+     `effective-base:` line (Frozen output contract item 1) followed by
+     exactly one warning summary line for the legacy collisions (Frozen
+     output contract item 4), with no `ERR` block.
    - (b) the same base-history-only legacy noise **plus** a genuine
      unbridged obligation on the branch under test -> `exit_code: 1`,
      `legacy_base_collisions.count > 0`, `sequence_collisions: []`,
@@ -402,10 +413,19 @@ Per `bhhh`'s minimum evidence list:
    only on `refs/remotes/origin/<branch>` (never checked out locally) is
    found by default `coord visibility` after a fetch, with no `--branch`
    argument.
-4. **Unchanged behavior for clean local-only repositories**: a fixture
-   with no legacy files and only local branches produces byte-identical
-   output to current behavior — this plan must not regress the common
-   case while fixing the edge cases.
+4. **Unchanged detection for clean local-only repositories (corrected
+   per `61gt`, finding B-V26-CONTRACT-R4-6)**: a fixture with no legacy
+   files and only local branches produces the same detection findings
+   and the same `exit_code` (`0`) as current behavior — **not**
+   byte-identical output. Output is not byte-identical even in this
+   clean case: text output gains the always-first `effective-base:` line
+   (Frozen output contract item 1) and JSON output gains the three
+   always-present `effective_base_oid`/`effective_base_source`/
+   `legacy_base_collisions` fields (the last as `{"count": 0, "seqs":
+   []}`) on every invocation, per the frozen contract above — this test
+   must assert the frozen additive fields are present with their
+   documented empty-case values, not assert their absence via a
+   byte-identity comparison against pre-change output.
 5. **Deduplication cardinality and naming (B2/R4, re-tested)**: one
    entry per OID group, tested with (a) a local branch plus one
    remote-tracking ref at the same OID — reports once, under the local
