@@ -42,7 +42,20 @@ advisory_consultation:
       and A-G1-TEST-NAME-R2 resolved, and independently re-running the
       embedded stdlib inventory script verbatim (confirmed
       80/20/3 again). `jhs4` also recommends Path A for this release
-      sequence. Both findings addressed in this revision. Renewed
+      sequence. Both findings addressed at exact head `dff4ef3a`. Round
+      4 review (`20260804T000320Z-contribution-auditor-s3m1.md`) at
+      that head: BLOCK, one further blocking finding
+      (B-G1-SOURCE-ABSENCE-R4 -- an empty `gate1_approved_by` field
+      was overstated as proof no approval source exists anywhere,
+      rather than only that the field itself names none), confirming
+      B-G1-AUTH-SCOPE-R3 and B-G1-MIGRATION-TRUTH-R3 resolved, plus one
+      advisory (A-G1-INVENTORY-R4, refresh the baseline count before
+      Gate 1 -- corpus grew to 104/81/20/3, nonconforming burden
+      unchanged at 23). `s3m1` reaffirms the Path A recommendation.
+      Both addressed in this revision. The governor separately posted
+      a Path A decision contingent on this round-5 fix
+      (`20260804T000658Z-governor-reviewer-n5jr.md`) before this round
+      landed; that contingency is what round 5 satisfies. Renewed
       review requested at the corrected exact head.
 ---
 
@@ -447,8 +460,8 @@ print(f"total={total} conforming={conforming} empty={empty} other={other}")
 
 | Category | Count | Disposition |
 |---|---|---|
-| Total in scope (status approved/active/complete) | 103 | — |
-| Conforms under the prefix-only design | 80 | No action needed |
+| Total in scope (status approved/active/complete) | 104 | — |
+| Conforms under the prefix-only design | 81 | No action needed |
 | Truly empty `gate1_approved_by` | 20 | Genuine gap this fix targets — needs a migration path (below) |
 | Neither empty nor conforming ("other") | 3 | Needs human disposition, not auto-migration — see below |
 
@@ -467,6 +480,19 @@ not carry forward any uncomputed figure; the script above is the single
 source of truth and should be re-run at Gate 1 review time against the
 then-current `main`, since more plans may have been added since this
 measurement.
+
+**Refreshed baseline (contribution-auditor `s3m1`, A-G1-INVENTORY-R4):**
+the count above was re-measured against current `main` immediately
+before Gate 1 review, per the instruction two paragraphs up. It moved
+from 103/80/20/3 to **104/81/20/3** — one additional conforming plan
+(`docs/plans/nasa-llis-influence-attribution.md`) was approved and
+merged after the prior measurement. The nonconforming burden this
+plan targets is unchanged at exactly 23 (20 empty + 3 other). Both
+`s3m1` and an independent re-run of the embedded script above, done
+while addressing this finding, produced the identical `total=104
+conforming=81 empty=20 other=3`. Re-run the script again immediately
+before acting on the governor's decision, since the count is a live
+measurement, not a fixed constant of this plan.
 
 **The three "other" cases:**
 
@@ -496,7 +522,7 @@ prose, not instead of it.
 ```
 Impact:
   Foundry:          Yes, measured directly: 23 of this repository's own
-                     103 in-scope plan files (20 empty + 3 "other") fail
+                     104 in-scope plan files (20 empty + 3 "other") fail
                      the proposed check today and must become
                      conforming before the blocking flip ships, under
                      either Migration Path. Unchanged historical files
@@ -588,10 +614,24 @@ B-G1-PATH-A-R2 and B-G1-EXCEPT-R2), applied to both paths below:**
    record-level shortcut for Path B.** Each of the 23 cases must get
    either (a) an existing, individually verified governor approval
    source cited truthfully, or (b) a fresh governor re-attestation.
-   Records lacking either remain nonconforming and block the flip —
-   this is materially binding for the 20 empty cases in particular,
-   since no approval source exists to cite for them at all; only a
-   fresh re-attestation can resolve those.
+   Records lacking either remain nonconforming and block the flip.
+
+4. **Correction (contribution-auditor `s3m1`, B-G1-SOURCE-ABSENCE-R4):**
+   an earlier revision of this item and the Path B caution below both
+   said the 20 empty-field cases have "no approval source ... at all"
+   or "literally no historical approval source," and concluded fresh
+   re-attestation was therefore the only path for all 20. That
+   overstates what was actually measured. **The measured fact is only
+   that those 20 plan files' `gate1_approved_by` field names no source
+   today.** An empty field does not prove no governor decision exists
+   elsewhere — in coordination records, GitLab MR/issue history, or
+   another durable record. Each of the 20 requires an individual
+   bounded source search under Path B: use a verified existing source
+   if one is found, otherwise obtain fresh governor re-attestation. No
+   individual record may be classified as requiring re-attestation
+   until its own bounded search is recorded — the distinction changes
+   the actual human workload the governor is accepting under Path B
+   and must not be collapsed for narrative convenience.
 
 ### Path A — advisory first
 
@@ -633,8 +673,11 @@ genuinely clean first — not merely marked as such).
 defensible only if the governor is prepared to verify or re-attest all
 23 records before implementation. Its quality cost is not the code
 change; it is the per-record provenance decision." That per-record
-work is real, human effort — 20 records with literally no historical
-approval source to verify, requiring fresh re-attestation each.
+work is real, human effort — 3 "other" cases need human disposition
+(see Migration evidence), and 20 empty-field cases each need an
+individual bounded source search before it is known whether a
+verified existing source exists or fresh re-attestation is required
+(correction 4 above).
 
 ### What this plan does not decide
 
@@ -765,7 +808,7 @@ description.
 ## Risks
 
 - **Migration burden.** Measured directly: 20 empty + 3 "other" = 23 of
-  103 plans in scope, re-verifiable via the script in Migration
+  104 plans in scope, re-verifiable via the script in Migration
   evidence.
 - **Design correction risk, generalized.** This plan's own design
   changed twice — bare-match to "anywhere," then "anywhere" to
