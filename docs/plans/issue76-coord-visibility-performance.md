@@ -13,8 +13,15 @@ advisory_consultation:
       conflicting design, narrowed to performance-only scope) per
       governor scheduling decision
       `20260804T134723Z-governor-reviewer-q4a8.md` and handoff
-      `20260804T134725Z-contribution-auditor-nej7.md`. Requesting fresh
-      coupled review alongside MR !805's refresh.
+      `20260804T134725Z-contribution-auditor-nej7.md`. Coupled review
+      `20260804T164959Z-contribution-auditor-p438.md` returned BLOCK
+      (B-V26-4, B-V26-5): a residual "explicit branch selection"/
+      "unbounded scan" claim removed, and a coupled representative
+      fixture (dozens of local/multi-remote refs, equal-OID aliases,
+      diverged refs, hundreds of files) added to prove the widened
+      default is affordable at deduplicated-OID-group cardinality, not
+      raw ref count. Requesting fresh coupled re-review alongside MR
+      !805's round-3 revision.
   - role: infosec-sentinel
     status: not-applicable
     reason: "No credentials, learning data, or external trust boundary is touched. The change is a local-only Git object read strategy; no new network calls or data exposure."
@@ -90,10 +97,11 @@ every other kind's obligations via direct `references-to` resolution.
 `coord pending` reads the same working-tree-relative `--dir` scope as
 `coord visibility` and `handoff next` — it does not introduce a new
 ref-scoping model this plan would need to reconcile with. This plan's
-own scope (I/O batching and explicit branch selection for `coord
-visibility`) is unaffected by and does not depend on #80's resolved
-semantics; the adjudication's conditional is satisfied by #80 being
-decided, not by any change to this plan's content.
+own scope (I/O batching for `coord visibility`; branch selection is MR
+!805's scope, per "Boundary with MR !805" below) is unaffected by and
+does not depend on #80's resolved semantics; the adjudication's
+conditional is satisfied by #80 being decided, not by any change to this
+plan's content.
 
 ## Root cause (read directly from the implementation)
 
@@ -199,6 +207,46 @@ production incident). Assert:
   wall-clock timing assertion — timing assertions are flaky across CI
   runners; a call-count assertion is deterministic).
 
+**Coupled representative fixture (B-V26-5, `p438`).** The `N` branches ×
+`M` files fixture above is necessary but not sufficient on its own: it
+does not exercise the specific shape MR !805's Slice 3 widens the default
+scan to, and the existing per-branch batching design (one `ls-tree` plus
+one `cat-file --batch` per branch) still spawns two processes per
+*distinct* branch even after this plan's fix — with hundreds of
+remote-tracking refs in `!805`'s default local-plus-remote enumeration,
+that can still approach or exceed the historical 787-process incident
+once deduplication is applied per ref rather than per OID group. Add a
+second, coupled fixture, built to exercise !805's widened default
+directly:
+
+- Dozens of local branches, dozens of `refs/remotes/origin/*` and at
+  least one other remote's tracking refs, including deliberate
+  equal-OID aliases (a local branch and one or more remote-tracking refs
+  pointing at the same commit) and deliberate diverged refs (same branch
+  name, different OID, across local vs. remote or across two remotes).
+- Hundreds of coordination files distributed across those refs, at the
+  scale of the original 787-process incident.
+- Assert Git process cardinality is bounded **after !805's OID-group
+  deduplication is applied** — i.e. the count of distinct scan targets
+  this plan's batching operates over is the number of deduplicated OID
+  groups from !805's Slice 3, not the raw ref count — and that findings
+  (unbridged obligations, sequence collisions) are unchanged from a
+  pre-batching baseline run against the same fixture.
+- Report nonblocking wall-clock evidence for this specific widened-default
+  fixture (not only the plain `N`×`M` fixture above), so the plan's
+  "affordable to run by default" claim in `docs/plans/
+  agov-coordination-read-path-reliability.md`'s dependency paragraph is
+  evidenced against the actual shape !805 produces, not only against an
+  arbitrary branch/file grid.
+- If measurement on this coupled fixture shows the per-branch topology
+  (two processes per distinct OID group) is still too slow at the
+  observed scale, this plan permits — but does not mandate in advance —
+  moving to a single scan-wide batch (one `ls-tree`-equivalent pass and
+  one `cat-file --batch` process for the entire scan, keyed by blob OID
+  across all groups, not one pair per group). The per-branch topology in
+  item 1 above is not pre-frozen as sufficient; the coupled fixture's
+  measured result decides which topology ships.
+
 ### 5. Assistant-facing documentation
 
 Update `docs/reference/coord-visibility.md`'s "How AI Agents Should Use
@@ -206,11 +254,13 @@ It" section to state that the default scan is now fast enough (per this
 plan's batching) to cover MR !805's widened default branch set (local +
 remote-tracking) without the caller needing to pass explicit `--branch`
 values purely for performance reasons. Branch-selection guidance itself
-(fetch-first, explicit-ref preferences, when to use an unbounded scan) is
-MR !805's documentation responsibility, since !805 owns the flags and
-default-selection behavior this guidance describes — this plan's doc
-update is scoped to reporting the performance characteristic (default
-scan is now O(1) subprocesses per branch, not O(files)), not to
+— when the default local-plus-remote scan is sufficient versus when a
+targeted `--branch` invocation is preferable, and fetch-first practice —
+is MR !805's documentation responsibility (see B-V26-2 in
+`docs/plans/agov-coordination-read-path-reliability.md`), since !805 owns
+the flags and default-selection behavior this guidance describes — this
+plan's doc update is scoped to reporting the performance characteristic
+(default scan is now O(1) subprocesses per branch, not O(files)), not to
 prescribing which branches to scan.
 
 ## What this plan preserves (non-negotiable per the requesting handoff)
@@ -260,6 +310,14 @@ prescribing which branches to scan.
    unchanged for representative fixtures of each case, under this plan's
    change alone (independent of MR !805's separately-tested exit-code
    BREAKING changes).
+5. **Coupled representative-fixture test (B-V26-5, `p438`).** The coupled
+   fixture from "Regression/performance fixtures" item 4 above: dozens of
+   local and multi-remote tracking refs including equal-OID aliases and
+   diverged refs, hundreds of coordination files, findings unchanged
+   against a pre-batching baseline, Git process cardinality bounded by
+   deduplicated OID-group count (not raw ref count) after applying
+   !805's Slice 3 grouping, and nonblocking wall-clock evidence reported
+   for this specific fixture.
 
 Removed in this revision: the round-1 draft's required test 3 (stale-ref
 divergence-warning firing/non-firing) — that behavior belongs to MR
@@ -272,10 +330,15 @@ divergence-warning firing/non-firing) — that behavior belongs to MR
    baseline (an approximate, reported-in-the-MR figure — not a fixed
    numeric gate, since CI runner performance varies; the git-invocation-count
    test is the enforceable gate, wall-clock is reported evidence).
-2. All four required tests pass.
+2. All five required tests pass.
 3. `docs/reference/coord-visibility.md` reflects the new performance
    characteristic (per item 5 above), without prescribing branch-selection
    behavior that belongs to MR !805's documentation scope.
+4. The coupled representative-fixture test (required test 5) passes,
+   demonstrating the widened local-plus-remote default from MR !805's
+   Slice 3 is affordable under this plan's batching, at the process
+   topology the fixture's measurement actually supports (per-branch or
+   scan-wide, per "Regression/performance fixtures" item 4).
 
 Removed in this revision: the round-1 draft's acceptance criterion 2
 (stale-vs-fetched divergence surfaced as a warning) — that is MR !805's
