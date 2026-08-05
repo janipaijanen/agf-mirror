@@ -42,10 +42,11 @@ Pin a release and let your AI coding assistant do the mechanical work:
 1. Download a pinned release archive into a `tmp/` directory in your project:
 
    ```bash
-   curl -LO https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/download/vX.Y.Z/agf-vX.Y.Z.tar.gz
+   curl -LO https://gitlab.com/api/v4/projects/janipaijanen%2Fagents-govern-framework/packages/generic/agf/vX.Y.Z/agf-X.Y.Z.tar.gz
    ```
 
-   Replace `vX.Y.Z` with the version shown on the
+   Replace both `vX.Y.Z` (path) and `X.Y.Z` (filename, no `v`) with the
+   version shown on the
    [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases) —
    never fetch an unpinned or `latest` archive.
 2. Tell your coding assistant: *"There is a `.tar.gz` file in `tmp/`. Adopt
