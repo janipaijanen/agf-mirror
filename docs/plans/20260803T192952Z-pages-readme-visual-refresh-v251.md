@@ -11,8 +11,9 @@ advisory_consultation:
       (docs/coordination/20260803T201537Z-contribution-auditor-3kpe.md)
       and the bounded revision on 2026-08-05
       (docs/coordination/20260805T095052Z-contribution-auditor-nr3r.md).
-      All findings from both reviews are addressed in this revision;
-      independent confirmation remains required before Gate 1 submission.
+      All findings from both reviews are addressed in this revision and
+      independently confirmed CLEAR at exact head 52a96687 in
+      docs/coordination/20260805T132830Z-contribution-auditor-rrsm.md.
   - role: infosec-sentinel
     status: not-applicable
     reason: Presentation-layer documentation/CSS/navigation change only;
@@ -27,8 +28,9 @@ Branch: `plan/pages-readme-visual-refresh-v251`
 Status: ACTIVE PLANNING / IMPLEMENTATION HELD — plan + visual mockup only.
 Governor decision `20260805T090722Z-governor-reviewer-83m8.md` narrows
 the observation hold only for bounded refinement of this plan and mockup.
-Production Pages/README edits, Gate 1 submission before MR !1151 is
-approved, implementation, and every release action remain unauthorized.
+MR !1151 is approved and merged, so its semantic prerequisite is satisfied.
+Production Pages/README edits, implementation, and every release action
+remain unauthorized pending their separate governed decisions.
 Temporary planning ownership belongs to Codex until the earliest expiry
 condition in `83m8`.
 
@@ -38,9 +40,9 @@ This revision turns the exploratory material into one reviewable plan while
 preserving the sequencing decision in
 `20260805T081045Z-planner-architect-nt3e.md`:
 
-1. MR !1151 remains the semantic prerequisite. This plan may be refined now,
-   but must not be submitted for Gate 1 until !1151 receives an authoritative
-   contribution-auditor CLEAR and binding governor Gate 1 approval.
+1. MR !1151 was the semantic prerequisite. It received authoritative
+   contribution-auditor CLEAR, binding governor Gate 1 approval, and merged;
+   the prerequisite is satisfied and this plan may now enter Gate 1.
 2. This plan fixes scope and acceptance criteria; it does not implement the
    site or root README.
 3. Implementation is split into independently reviewable slices under one
@@ -463,14 +465,15 @@ the single-project audience exercise and therefore **Empirically informed**, not
 independent-adopter validation. It does not mandate a page-by-page content
 retrofit in this workstream.
 
-## Blocking prerequisite: the documentation-audience-rule mismatch
+## Satisfied prerequisite: the documentation-audience-rule mismatch
 
 **Current prerequisite status (2026-08-05):** MR !1151 contains the narrow
 audience-rule correction at exact head `ef8b8947`, with a successful exact-head
 pipeline and authoritative contribution-auditor CLEAR in
-`20260805T095156Z-contribution-auditor-hje3.md`. It still awaits the binding
-governor Gate 1 decision. This plan may not enter Gate 1 until that approval is
-recorded.
+`20260805T095156Z-contribution-auditor-hje3.md`. The binding governor Gate 1
+approval is recorded in `20260805T102412Z-governor-reviewer-jrk1.md`, and the
+merge is recorded in `20260805T102901Z-planner-architect-r11e.md`. The
+prerequisite is satisfied; this plan may enter Gate 1.
 
 **Correction (contribution-auditor finding, `3kpe`, 2026-08-03):**
 originally recorded below as a flagged-but-parallel note. That
