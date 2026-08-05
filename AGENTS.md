@@ -332,8 +332,9 @@ Rust is the default operator path for supported commands:
 - `agov coord stale`
 - `agov coord visibility`
 - `agov coord list` — one line per coordination message after a given id,
-  filename, or RFC3339 timestamp; the designed answer to "what changed since
-  I last checked," not a full re-read of the channel
+  filename, RFC3339 timestamp, or the compact filename-prefix timestamp
+  (`20260729T195431Z`, no punctuation); the designed answer to "what changed
+  since I last checked," not a full re-read of the channel
 - `agov coord graph`
 - `agov coord graph-index`
 - `agov coord pending` — unresolved `requires-ack: true` records of any kind

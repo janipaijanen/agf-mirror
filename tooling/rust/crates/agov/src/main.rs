@@ -672,7 +672,12 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
         Command::Coord {
-            sub: CoordCommand::Pending { dir, cutoff, format },
+            sub:
+                CoordCommand::Pending {
+                    dir,
+                    cutoff,
+                    format,
+                },
         } => coord_pending(dir, &cutoff, &format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
@@ -759,7 +764,12 @@ fn ci_cache_topology_check_command(
                 "ERR cannot read {}: {err}",
                 merged_yaml_path.display()
             ));
-            agov_core::roi::record_tool_output("agov", args, "ci-cache-topology-check", output.chars);
+            agov_core::roi::record_tool_output(
+                "agov",
+                args,
+                "ci-cache-topology-check",
+                output.chars,
+            );
             return 1;
         }
     };
@@ -768,8 +778,11 @@ fn ci_cache_topology_check_command(
     // inputs a caller might have saved to disk.
     let doc: serde_json::Value = match serde_json::from_str::<serde_json::Value>(&content)
         .ok()
-        .and_then(|v| v.get("merged_yaml").and_then(|m| m.as_str()).map(str::to_string))
-    {
+        .and_then(|v| {
+            v.get("merged_yaml")
+                .and_then(|m| m.as_str())
+                .map(str::to_string)
+        }) {
         Some(inner) => match serde_norway::from_str::<serde_json::Value>(&inner) {
             Ok(doc) => doc,
             Err(err) => {
@@ -786,7 +799,10 @@ fn ci_cache_topology_check_command(
         None => match serde_norway::from_str::<serde_json::Value>(&content) {
             Ok(doc) => doc,
             Err(err) => {
-                output.stderr(format!("ERR failed to parse {}: {err}", merged_yaml_path.display()));
+                output.stderr(format!(
+                    "ERR failed to parse {}: {err}",
+                    merged_yaml_path.display()
+                ));
                 agov_core::roi::record_tool_output(
                     "agov",
                     args,
@@ -2685,6 +2701,9 @@ fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String
     if let Ok(timestamp) = time::OffsetDateTime::parse(since, &Rfc3339) {
         return Ok((iso_timestamp(timestamp), String::new()));
     }
+    if let Some(timestamp) = parse_compact_timestamp(since) {
+        return Ok((iso_timestamp(timestamp), String::new()));
+    }
 
     let normalized = normalize_coord_reference(since).unwrap_or_else(|| since.to_string());
     let stem = normalized.strip_suffix(".md").unwrap_or(&normalized);
@@ -2697,6 +2716,35 @@ fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String
         })
         .map(|message| message.sort_key.clone())
         .ok_or_else(|| format!("--since did not match an RFC3339 timestamp or message id: {since}"))
+}
+
+/// Issue #84: the compact filename-prefix timestamp embedded as the
+/// literal first path segment of every coordination filename
+/// (`20260729T195431Z`) is exactly RFC3339 with `-` and `:` stripped.
+/// Requires an exact 16-character `YYYYMMDDTHHMMSSZ` match before
+/// attempting to parse -- a malformed or truncated digit string (e.g. a
+/// 13-digit string) must fall through to the id/filename match, not be
+/// silently accepted as a valid cursor.
+fn parse_compact_timestamp(value: &str) -> Option<time::OffsetDateTime> {
+    let bytes = value.as_bytes();
+    if bytes.len() != 16 || bytes[8] != b'T' || bytes[15] != b'Z' {
+        return None;
+    }
+    if !value[0..8].bytes().all(|b| b.is_ascii_digit())
+        || !value[9..15].bytes().all(|b| b.is_ascii_digit())
+    {
+        return None;
+    }
+    let rfc3339 = format!(
+        "{}-{}-{}T{}:{}:{}Z",
+        &value[0..4],
+        &value[4..6],
+        &value[6..8],
+        &value[9..11],
+        &value[11..13],
+        &value[13..15],
+    );
+    time::OffsetDateTime::parse(&rfc3339, &Rfc3339).ok()
 }
 
 #[derive(Clone)]
@@ -3116,11 +3164,36 @@ struct VisibilityMessage {
 
 #[derive(Debug)]
 struct VisibilityReport {
+    /// The requested base branch name, exactly as given via
+    /// `--base-branch` (default `"main"`) -- unchanged meaning; never
+    /// repurposed to hold a resolved OID or ref name (issue #89).
     base_branch: String,
+    /// Full commit OID actually used as the comparison base after
+    /// freshness resolution (issue #89). Always populated -- the local
+    /// base branch's own OID when no upstream is configured or upstream
+    /// matches local.
+    effective_base_oid: String,
+    /// Which ref supplied `effective_base_oid`: `"local"` or `"upstream"`.
+    effective_base_source: String,
     scanned_branches: Vec<String>,
     unbridged_obligations: Vec<VisibilityObligation>,
-    sequence_collisions: Vec<VisibilityCollision>,
+    /// Branch-relevant collisions only (issue #85) -- a base-history-only
+    /// duplicate seq never appears here; see `legacy_base_collisions`.
+    sequence_collisions: Vec<BranchCollision>,
+    /// Issue #85: `seq` values of collisions confined to base-branch
+    /// history, unrelated to the branch under inspection. Always
+    /// present (never conflated with `sequence_collisions`); reported as
+    /// a summary count, never drives `exit_code` on its own.
+    legacy_base_collisions: Vec<i64>,
     errors: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct BranchCollision {
+    seq: i64,
+    branch: String,
+    branch_file: String,
+    base_file: String,
 }
 
 #[derive(Debug, Clone)]
@@ -3131,20 +3204,6 @@ struct VisibilityObligation {
     kind: String,
     to: String,
     topic: String,
-}
-
-#[derive(Debug, Clone)]
-enum VisibilityCollision {
-    BaseDuplicateSeq {
-        seq: i64,
-        files: Vec<String>,
-    },
-    BranchBaseSeq {
-        seq: i64,
-        branch: String,
-        branch_file: String,
-        base_file: String,
-    },
 }
 
 fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
@@ -3510,25 +3569,26 @@ fn visibility_scan(
     requested_branches: Vec<String>,
     coord_dir: &str,
 ) -> Result<VisibilityReport, String> {
-    let base_files = git_coord_files(base_branch, coord_dir)
+    let effective_base = resolve_effective_base(base_branch)
         .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
-    let base_messages = load_git_messages(base_branch, &base_files)?;
+
+    let base_files = git_coord_files(&effective_base.ref_for_scan, coord_dir)
+        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
+    let base_messages = load_git_messages(&effective_base.ref_for_scan, &base_files)?;
     let base_file_set: std::collections::BTreeSet<&str> = base_messages
         .iter()
         .map(|message| message.file.as_str())
         .collect();
 
     let branches = if requested_branches.is_empty() {
-        git_local_branches()?
-            .into_iter()
-            .filter(|branch| branch != base_branch)
-            .collect()
+        dedup_and_select_branches(&git_branch_refs()?, &effective_base.oid)
     } else {
         requested_branches
     };
 
     let mut unbridged_obligations = Vec::new();
-    let mut sequence_collisions = base_sequence_collisions_visibility(&base_messages);
+    let mut sequence_collisions: Vec<BranchCollision> = Vec::new();
+    let legacy_base_collisions = base_sequence_collisions_visibility(&base_messages);
 
     for branch in &branches {
         let branch_files = git_coord_files(branch, coord_dir)?;
@@ -3577,11 +3637,174 @@ fn visibility_scan(
 
     Ok(VisibilityReport {
         base_branch: base_branch.to_string(),
+        effective_base_oid: effective_base.oid,
+        effective_base_source: effective_base.source.to_string(),
         scanned_branches: branches,
         unbridged_obligations,
         sequence_collisions,
+        legacy_base_collisions,
         errors: Vec::new(),
     })
+}
+
+/// Issue #89 (B1): resolves the effective comparison base for
+/// `--base-branch <base_branch>`. When a configured upstream exists and
+/// its OID differs from the local base branch's OID, the upstream OID is
+/// preferred (and the upstream ref is what base content is actually read
+/// from) -- this makes the documented `git fetch` then `agov coord
+/// visibility --base-branch main` workflow correct without requiring the
+/// caller to separately fast-forward local `main`. When no upstream is
+/// configured, or upstream matches local, behavior is unchanged.
+struct EffectiveBase {
+    /// The ref git commands should read base content from -- the
+    /// requested `base_branch` name, or its upstream short name
+    /// (e.g. `origin/main`) when freshness resolution prefers it.
+    ref_for_scan: String,
+    oid: String,
+    source: &'static str,
+}
+
+fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
+    let local_oid = git_output(&[
+        "rev-parse",
+        "--verify",
+        &format!("{base_branch}^{{commit}}"),
+    ])?
+    .trim()
+    .to_string();
+
+    let upstream_short = git_output(&[
+        "for-each-ref",
+        "--format=%(upstream:short)",
+        &format!("refs/heads/{base_branch}"),
+    ])
+    .unwrap_or_default();
+    let upstream_short = upstream_short.trim();
+
+    if upstream_short.is_empty() {
+        return Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        });
+    }
+
+    let Ok(upstream_oid) = git_output(&[
+        "rev-parse",
+        "--verify",
+        &format!("{upstream_short}^{{commit}}"),
+    ]) else {
+        // Upstream configured but unresolvable (e.g. not fetched yet) --
+        // fall back to local, unchanged behavior.
+        return Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        });
+    };
+    let upstream_oid = upstream_oid.trim().to_string();
+
+    if upstream_oid != local_oid {
+        Ok(EffectiveBase {
+            ref_for_scan: upstream_short.to_string(),
+            oid: upstream_oid,
+            source: "upstream",
+        })
+    } else {
+        Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        })
+    }
+}
+
+/// Issue #89: a local or remote-tracking branch ref, as returned by
+/// `git_branch_refs`. `full_name` is the fully-qualified ref (used only
+/// to determine class and to sort within a class -- comparing full names
+/// and comparing `short_name`s produce the same relative order within a
+/// single class, since the prefix stripped by `short_name` is constant
+/// across all members of that class). `short_name` is the actual branch
+/// identifier used everywhere else (git ref argument, JSON/text output).
+struct BranchRef {
+    full_name: String,
+    short_name: String,
+    oid: String,
+}
+
+/// Enumerates every `refs/heads/*` and `refs/remotes/<remote>/*` ref that
+/// is not a symbolic ref (excludes `refs/remotes/<remote>/HEAD`).
+fn git_branch_refs() -> Result<Vec<BranchRef>, String> {
+    let output = git_output(&[
+        "for-each-ref",
+        "--format=%(refname)%09%(refname:short)%09%(objectname)%09%(symref)",
+        "refs/heads",
+        "refs/remotes",
+    ])?;
+    let mut refs = Vec::new();
+    for line in output.lines() {
+        let mut parts = line.splitn(4, '\t');
+        let (Some(full_name), Some(short_name), Some(oid), Some(symref)) =
+            (parts.next(), parts.next(), parts.next(), parts.next())
+        else {
+            continue;
+        };
+        if !symref.is_empty() {
+            continue;
+        }
+        refs.push(BranchRef {
+            full_name: full_name.to_string(),
+            short_name: short_name.to_string(),
+            oid: oid.to_string(),
+        });
+    }
+    Ok(refs)
+}
+
+/// Class 1 (local) < Class 2 (`origin/*`) < Class 3 (other remotes) --
+/// only reached in that priority order, per issue #89's Slice 3 spec.
+fn branch_ref_class(full_name: &str) -> u8 {
+    if full_name.starts_with("refs/heads/") {
+        0
+    } else if full_name.starts_with("refs/remotes/origin/") {
+        1
+    } else {
+        2
+    }
+}
+
+/// Groups refs by peeled commit OID (tracking configuration is not part
+/// of the equivalence test), excludes every ref at the effective base
+/// OID, and picks one display name per group: the lexicographically
+/// smallest fully-qualified ref name among refs in the first non-empty
+/// class. Returns a sorted, deterministic list of branch identifiers.
+fn dedup_and_select_branches(refs: &[BranchRef], effective_base_oid: &str) -> Vec<String> {
+    let mut by_oid: BTreeMap<&str, Vec<&BranchRef>> = BTreeMap::new();
+    for r in refs {
+        if r.oid == effective_base_oid {
+            continue;
+        }
+        by_oid.entry(r.oid.as_str()).or_default().push(r);
+    }
+
+    let mut names: Vec<String> = by_oid
+        .into_values()
+        .map(|group| {
+            let min_class = group
+                .iter()
+                .map(|r| branch_ref_class(&r.full_name))
+                .min()
+                .unwrap_or(2);
+            group
+                .into_iter()
+                .filter(|r| branch_ref_class(&r.full_name) == min_class)
+                .min_by(|left, right| left.full_name.cmp(&right.full_name))
+                .map(|r| r.short_name.clone())
+                .expect("each OID group has at least one member")
+        })
+        .collect();
+    names.sort();
+    names
 }
 
 fn git_coord_dir(dir: &Path) -> Result<String, String> {
@@ -3601,17 +3824,6 @@ fn git_coord_dir(dir: &Path) -> Result<String, String> {
         })
 }
 
-fn git_local_branches() -> Result<Vec<String>, String> {
-    let output = git_output(&["for-each-ref", "--format=%(refname:short)", "refs/heads"])?;
-    let mut branches: Vec<String> = output
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .map(str::to_string)
-        .collect();
-    branches.sort();
-    Ok(branches)
-}
-
 fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, String> {
     let output = git_output(&["ls-tree", "-r", "--name-only", ref_name, "--", coord_dir])?;
     let mut files: Vec<String> = output
@@ -3625,11 +3837,8 @@ fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, Strin
 
 fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityMessage>, String> {
     let mut messages = Vec::new();
-    for file in files {
-        let content = match git_output(&["show", &format!("{ref_name}:{file}")]) {
-            Ok(content) => content,
-            Err(_) => continue,
-        };
+    for (file, content) in git_cat_file_batch(ref_name, files)? {
+        let Some(content) = content else { continue };
         let Ok(mut raw) = agov_core::yaml::parse_frontmatter_json(&content) else {
             continue;
         };
@@ -3639,12 +3848,180 @@ fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityM
                 serde_json::Value::String(markdown_body(&content)),
             );
         }
-        messages.push(VisibilityMessage {
-            file: file.clone(),
-            raw,
-        });
+        messages.push(VisibilityMessage { file, raw });
     }
     Ok(messages)
+}
+
+/// Issue #76: reads all `files` at `ref_name` via a single long-lived
+/// `git cat-file --batch` subprocess (stdin/stdout streaming), instead of
+/// one `git show <ref>:<file>` process per file -- turns `1 + F`
+/// subprocess spawns per branch into `1 + 1` (one `ls-tree`, already
+/// done by the caller, plus this one `cat-file --batch`). `git cat-file
+/// --batch` accepts `<ref>:<path>` object specifiers directly on stdin,
+/// so no separate blob-OID resolution pass is needed.
+///
+/// Returns one `(file, Some(content))` per readable file and
+/// `(file, None)` for a file `cat-file` reports missing, preserving
+/// `files`' order and length.
+fn git_cat_file_batch(
+    ref_name: &str,
+    files: &[String],
+) -> Result<Vec<(String, Option<String>)>, String> {
+    use std::io::{BufRead, Read, Write};
+
+    if files.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let mut child = std::process::Command::new("git")
+        .args(["cat-file", "--batch"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|err| format!("git cat-file --batch: spawn failed: {err}"))?;
+
+    let mut stdin = child.stdin.take().ok_or("git cat-file --batch: no stdin")?;
+    let specifiers: Vec<String> = files
+        .iter()
+        .map(|file| format!("{ref_name}:{file}"))
+        .collect();
+    let writer_specifiers = specifiers.clone();
+    let writer = std::thread::spawn(move || -> Result<(), String> {
+        for specifier in &writer_specifiers {
+            writeln!(stdin, "{specifier}").map_err(|err| err.to_string())?;
+        }
+        // Dropping `stdin` here closes the pipe, signaling EOF so
+        // `git cat-file --batch` exits after answering the last request.
+        Ok(())
+    });
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or("git cat-file --batch: no stdout")?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or("git cat-file --batch: no stderr")?;
+    let mut reader = std::io::BufReader::new(stdout);
+    let mut results = Vec::with_capacity(files.len());
+
+    // B-V26-G2-1: every early-exit path below sets `read_error` and
+    // breaks, rather than silently returning a short `results` -- the
+    // caller must never receive a shorter-than-requested response list
+    // as if it were a normal "some files missing" outcome.
+    let mut read_error: Option<String> = None;
+    for specifier in &specifiers {
+        let mut header = String::new();
+        let read_bytes = match reader.read_line(&mut header) {
+            Ok(n) => n,
+            Err(err) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: read failed for {specifier}: {err}"
+                ));
+                break;
+            }
+        };
+        if read_bytes == 0 {
+            read_error = Some(format!(
+                "git cat-file --batch: unexpected end of output before a response for \
+                 {specifier} ({} of {} responses received)",
+                results.len(),
+                specifiers.len()
+            ));
+            break;
+        }
+        let header = header.trim_end();
+        if header.ends_with(" missing") {
+            results.push(None);
+            continue;
+        }
+        // Header format: "<oid> <type> <size>".
+        let mut header_fields = header.rsplitn(3, ' ');
+        let size_field = header_fields.next();
+        let type_field = header_fields.next();
+        let oid_field = header_fields.next();
+        // B-V26-G2-R2-1: the object type must be checked, not merely
+        // parsed and discarded. A syntactically valid but non-blob
+        // header (e.g. `<oid> tree <size>`) must fail closed rather
+        // than have its bytes treated as coordination-file content.
+        let size: usize = match (
+            oid_field,
+            type_field,
+            size_field.and_then(|v| v.parse().ok()),
+        ) {
+            (Some(_), Some("blob"), Some(size)) => size,
+            (Some(_), Some(other_type), Some(_)) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: unexpected object type {other_type:?} \
+                     (expected blob) for {specifier}"
+                ));
+                break;
+            }
+            _ => {
+                read_error = Some(format!(
+                    "git cat-file --batch: malformed header for {specifier}: {header:?}"
+                ));
+                break;
+            }
+        };
+        let mut content = vec![0u8; size];
+        if let Err(err) = reader.read_exact(&mut content) {
+            read_error = Some(format!(
+                "git cat-file --batch: truncated content for {specifier} \
+                 (expected {size} bytes): {err}"
+            ));
+            break;
+        }
+        // `cat-file --batch` appends a trailing newline after each
+        // object's content, separate from the content itself.
+        let mut trailing = [0u8; 1];
+        if reader.read_exact(&mut trailing).is_err() {
+            read_error = Some(format!(
+                "git cat-file --batch: missing trailing separator for {specifier}"
+            ));
+            break;
+        }
+        results.push(Some(String::from_utf8_lossy(&content).to_string()));
+    }
+
+    let writer_result = writer
+        .join()
+        .map_err(|_| "git cat-file --batch: writer thread panicked".to_string())?;
+
+    let mut stderr_output = String::new();
+    let _ = stderr.read_to_string(&mut stderr_output);
+    let exit_status = child
+        .wait()
+        .map_err(|err| format!("git cat-file --batch: failed to wait on child: {err}"))?;
+
+    if let Some(err) = read_error {
+        return Err(err);
+    }
+    if let Err(err) = writer_result {
+        return Err(format!("git cat-file --batch: writer failed: {err}"));
+    }
+    if !exit_status.success() {
+        let stderr_note = if stderr_output.trim().is_empty() {
+            String::new()
+        } else {
+            format!(": {}", stderr_output.trim())
+        };
+        return Err(format!(
+            "git cat-file --batch: exited with {exit_status}{stderr_note}"
+        ));
+    }
+    if results.len() != specifiers.len() {
+        return Err(format!(
+            "git cat-file --batch: expected {} response(s), got {}",
+            specifiers.len(),
+            results.len()
+        ));
+    }
+
+    Ok(files.iter().cloned().zip(results).collect())
 }
 
 fn markdown_body(content: &str) -> String {
@@ -3719,9 +4096,12 @@ fn visibility_sort_key(message: &VisibilityMessage) -> (String, String) {
     )
 }
 
-fn base_sequence_collisions_visibility(
-    base_messages: &[VisibilityMessage],
-) -> Vec<VisibilityCollision> {
+/// Issue #85: seq values colliding purely within base-branch history,
+/// independent of which branch/base-branch pair is being compared.
+/// Returned as a sorted list of `seq` values (the `legacy_base_collisions`
+/// summary), not as blocking `VisibilityCollision` entries -- see
+/// `render_visibility_text`/`visibility_json`/`visibility_exit_code`.
+fn base_sequence_collisions_visibility(base_messages: &[VisibilityMessage]) -> Vec<i64> {
     let mut by_seq: BTreeMap<i64, Vec<String>> = BTreeMap::new();
     for message in base_messages {
         if visibility_modern_filename(&message.file) {
@@ -3735,13 +4115,8 @@ fn base_sequence_collisions_visibility(
 
     by_seq
         .into_iter()
-        .filter_map(|(seq, mut files)| {
-            if files.len() <= 1 {
-                return None;
-            }
-            files.sort();
-            Some(VisibilityCollision::BaseDuplicateSeq { seq, files })
-        })
+        .filter(|(_, files)| files.len() > 1)
+        .map(|(seq, _)| seq)
         .collect()
 }
 
@@ -3749,7 +4124,7 @@ fn branch_sequence_collisions(
     branch: &str,
     branch_messages: &[VisibilityMessage],
     base_messages: &[VisibilityMessage],
-) -> Vec<VisibilityCollision> {
+) -> Vec<BranchCollision> {
     let mut base_by_seq: BTreeMap<i64, Vec<&VisibilityMessage>> = BTreeMap::new();
     for message in base_messages {
         if visibility_modern_filename(&message.file) {
@@ -3773,7 +4148,7 @@ fn branch_sequence_collisions(
             if base.file == message.file {
                 continue;
             }
-            collisions.push(VisibilityCollision::BranchBaseSeq {
+            collisions.push(BranchCollision {
                 seq,
                 branch: branch.to_string(),
                 branch_file: message.file.clone(),
@@ -3782,25 +4157,13 @@ fn branch_sequence_collisions(
         }
     }
     collisions.sort_by(|left, right| {
-        visibility_collision_key(left).cmp(&visibility_collision_key(right))
+        (left.seq, left.branch.as_str(), left.branch_file.as_str()).cmp(&(
+            right.seq,
+            right.branch.as_str(),
+            right.branch_file.as_str(),
+        ))
     });
     collisions
-}
-
-fn visibility_collision_key(collision: &VisibilityCollision) -> (i64, String, String) {
-    match collision {
-        VisibilityCollision::BaseDuplicateSeq { seq, files } => (
-            *seq,
-            String::new(),
-            files.first().cloned().unwrap_or_default(),
-        ),
-        VisibilityCollision::BranchBaseSeq {
-            seq,
-            branch,
-            branch_file,
-            ..
-        } => (*seq, branch.clone(), branch_file.clone()),
-    }
 }
 
 fn visibility_modern_filename(file: &str) -> bool {
@@ -3825,7 +4188,17 @@ fn is_ulid_stem(value: &str) -> bool {
 }
 
 fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport) {
-    if report.sequence_collisions.is_empty() && report.unbridged_obligations.is_empty() {
+    // Issue #89: always first, every exit path -- states which OID was
+    // actually used as the comparison base.
+    output.stdout(format!(
+        "effective-base: {} ({})",
+        report.effective_base_oid, report.effective_base_source
+    ));
+
+    if report.sequence_collisions.is_empty()
+        && report.unbridged_obligations.is_empty()
+        && report.legacy_base_collisions.is_empty()
+    {
         output.stdout(format!(
             "OK coordination visibility clean relative to {}",
             report.base_branch
@@ -3836,25 +4209,10 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
     if !report.sequence_collisions.is_empty() {
         output.stdout("ERR sequence collision");
         for collision in &report.sequence_collisions {
-            match collision {
-                VisibilityCollision::BaseDuplicateSeq { seq, files } => {
-                    output.stdout(format!("  seq: {seq}"));
-                    for file in files {
-                        output.stdout(format!("  base-file: {file}"));
-                    }
-                }
-                VisibilityCollision::BranchBaseSeq {
-                    seq,
-                    branch,
-                    branch_file,
-                    base_file,
-                } => {
-                    output.stdout(format!("  seq: {seq}"));
-                    output.stdout(format!("  base: {base_file}"));
-                    output.stdout(format!("  branch: {branch}"));
-                    output.stdout(format!("  branch-file: {branch_file}"));
-                }
-            }
+            output.stdout(format!("  seq: {}", collision.seq));
+            output.stdout(format!("  base: {}", collision.base_file));
+            output.stdout(format!("  branch: {}", collision.branch));
+            output.stdout(format!("  branch-file: {}", collision.branch_file));
         }
     }
 
@@ -3875,6 +4233,17 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
             output.stdout(format!("  topic: {}", obligation.topic));
             output.stdout("  bridge: missing");
         }
+    }
+
+    // Issue #85: base-history-only legacy collisions are reported as a
+    // single summary count, matching `session resume`'s warn-once-and-
+    // continue pattern -- never a per-collision ERR block, and always
+    // rendered last so a genuine obligation is never buried under noise.
+    if !report.legacy_base_collisions.is_empty() {
+        output.stdout(format!(
+            "WARN {} legacy sequence collision group(s) confined to base branch history; run agov coord validate for detail",
+            report.legacy_base_collisions.len()
+        ));
     }
 }
 
@@ -3897,34 +4266,28 @@ fn visibility_json(report: &VisibilityReport) -> String {
     let collisions: Vec<serde_json::Value> = report
         .sequence_collisions
         .iter()
-        .map(|collision| match collision {
-            VisibilityCollision::BaseDuplicateSeq { seq, files } => {
-                serde_json::json!({
-                    "type": "base_duplicate_seq",
-                    "seq": seq,
-                    "files": files,
-                })
-            }
-            VisibilityCollision::BranchBaseSeq {
-                seq,
-                branch,
-                branch_file,
-                base_file,
-            } => serde_json::json!({
+        .map(|collision| {
+            serde_json::json!({
                 "type": "branch_base_seq_collision",
-                "seq": seq,
-                "branch": branch,
-                "branch_file": branch_file,
-                "base_file": base_file,
-            }),
+                "seq": collision.seq,
+                "branch": collision.branch,
+                "branch_file": collision.branch_file,
+                "base_file": collision.base_file,
+            })
         })
         .collect();
 
     serde_json::json!({
         "base_branch": report.base_branch,
+        "effective_base_oid": report.effective_base_oid,
+        "effective_base_source": report.effective_base_source,
         "scanned_branches": report.scanned_branches,
         "unbridged_obligations": obligations,
         "sequence_collisions": collisions,
+        "legacy_base_collisions": {
+            "count": report.legacy_base_collisions.len(),
+            "seqs": report.legacy_base_collisions,
+        },
         "errors": report.errors,
         "exit_code": visibility_exit_code(report),
     })
