@@ -3,6 +3,58 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [Unreleased]
+
+### Fixed
+
+- `agov coord list --since` now accepts the compact filename-prefix
+  timestamp (`20260729T195431Z`, no punctuation) in addition to
+  RFC3339-with-punctuation and a full message id/filename (#84).
+- `agov coord visibility` no longer treats sequence collisions confined
+  to base-branch history, unrelated to the branch under inspection, as
+  blocking. They are reported as a `legacy_base_collisions` summary
+  (count + seqs) and no longer force a nonzero exit; a collision that
+  involves the branch under inspection still blocks, unchanged (#85).
+- `agov coord visibility`'s default (no `--branch`) scan now enumerates
+  local branches and remote-tracking branches, deduplicated by commit,
+  so a coordination file that exists only on a fetched-but-not-checked-
+  out remote branch is discovered without the caller needing to already
+  know to pass `--branch origin/<name>` explicitly. The base ref used
+  for comparison also prefers a configured upstream's OID over a
+  possibly-stale local ref when they diverge (#89).
+
+### Changed
+
+- **BREAKING**: `agov coord visibility`'s JSON output gains two
+  always-present fields (`effective_base_oid`, `effective_base_source`)
+  and one always-present summary object (`legacy_base_collisions`), and
+  narrows `sequence_collisions` to branch-relevant collisions only
+  (`base_duplicate_seq` entries move to `legacy_base_collisions`). Text
+  output gains an always-first `effective-base: <oid> (<source>)` line.
+  Any adopter script or CI job that branches on `agov coord
+  visibility`'s exit code (0/1/2) may see a different code for the same
+  repository state after this change — see `docs/plans/
+  agov-coordination-read-path-reliability.md`'s migration note. Full
+  field-by-field contract in `docs/reference/coord-visibility.md`.
+
+### Performance
+
+- `agov coord visibility` reads coordination files for each candidate
+  branch via one batched `git cat-file --batch` process instead of one
+  `git show` process per file, cutting Git process count from O(branches
+  × files) to O(branches) (#76). A representative fixture with 15
+  branches, equal-OID aliases, a diverged remote ref, and 225+
+  coordination files dropped from ~500ms to ~95ms wall-clock in local
+  testing.
+
+Adopter docs: waived — `docs/reference/coord-visibility.md` was
+rewritten in full to cover the new default branch scope, base-ref
+freshness, legacy-collision handling, the exit-code table, and the JSON
+field contract; it is not under this validator's recognized
+`agf/docs/site/docs/{adopt,operate,advanced}/` paths, so it does not
+clear the automated check on its own, but adopter documentation for this
+change does exist.
+
 ## [2.5.0-rc.2] — 2026-08-04
 
 **RC checkpoint; not final.** `v2.5.0` final ships the same functional
