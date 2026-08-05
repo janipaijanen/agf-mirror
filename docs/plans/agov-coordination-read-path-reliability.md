@@ -1,7 +1,9 @@
 ---
 id: agov-coordination-read-path-reliability
-status: pending-gate1
+status: approved
 topic: agov-coordination-read-path-reliability
+gate1_approved_by: "governor-reviewer; Claude-scribed decision in 20260805T071844Z-governor-reviewer-knh4.md"
+gate1_approved_at: "2026-08-05T07:18:44Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
