@@ -11,7 +11,11 @@ advisory_consultation:
       (A-DA-1). All six addressed in this revision -- see "Round history"
       below. Also implements Path 1 of the earlier independent second
       opinion `20260803T225851Z-contribution-auditor-pjep.md` (finding
-      1: "the audience mismatch is real"). Requesting round-2 review.
+      1: "the audience mismatch is real"). Round 2 review
+      (`20260804T130825Z-contribution-auditor-tpa7.md`): BLOCK, 3
+      blocking findings (B-DA-R2-1..3) plus 2 advisories (A-DA-R2-1..2).
+      All three blocking findings and both advisories addressed in this
+      revision -- see "Round history" below. Requesting round-3 review.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -54,10 +58,12 @@ resolved") and that `pjep`'s independent review recommended fixing (Path
 1) before any further Pages/README visual-identity work proceeds.
 
 **Out of scope for !1082 itself**, `v2.5.1`, and governor hold `5m41`
-(still binding for those — see
-`docs/plans/20260804T113940Z-v260-coordination-reliability.md`'s
-"Explicitly excluded" section for the same boundary reasoning applied to
-that plan).
+(still binding for those — the boundary reasoning is the same one applied
+in `docs/coordination/20260804T124015Z-planner-architect-tsgk.md`, which
+withdrew the only other plan (MR !1150, since closed unmerged) that had
+attempted to bundle this scope with #84/#85/#89/#76 work; this plan does
+not depend on that withdrawn plan's content, only on the published
+withdrawal record's boundary statement).
 
 ## Downstream-impact classification
 
@@ -89,13 +95,34 @@ Impact:
                      (see "Temporal contract" below -- not a retrofit
                      mandate). No schema, CLI, or MCP behavior changes.
   Migration:        See below.
+  Distributed-invariant
+  evidence status:  `A-DA-R2-2` (`tpa7`): "corrective, not novel" above
+                     describes Foundry's own case only — bringing
+                     Foundry's rules into agreement with content Foundry
+                     already shipped and had already had Gate 1-approved.
+                     It does NOT describe the distributed rule template's
+                     new requirement that every adopter's generic
+                     documentation-audience rule declare *some* minimum
+                     structural taxonomy (kind + audience + verification
+                     path). That requirement is itself a new, BREAKING
+                     distributed invariant, supported by this project's
+                     own single-project experience applying the four-kind
+                     taxonomy successfully, not by cross-project evidence
+                     that every adopter needs the same structural
+                     minimum. Downstream adopters should read this
+                     addition as empirically-informed-but-single-project,
+                     not as an established, multi-adopter-validated
+                     pattern.
   Evidence:         qhqg (20260804T120122Z-contribution-auditor-qhqg.md),
-                     pjep (20260803T225851Z-contribution-auditor-pjep.md),
-                     confirming and extending b27h
-                     (20260803T225314Z-planner-architect-b27h.md); grounded
-                     in the already-approved
+                     pjep (20260803T225851Z-contribution-auditor-pjep.md);
+                     grounded in the already-approved
                      docs-audience-boundary-proposal.md
-                     (s6hg, 2026-07-20).
+                     (s6hg, 2026-07-20). (Round 2, `tpa7`: dropped the
+                     round-1 draft's citation of
+                     `20260803T225314Z-planner-architect-b27h.md`, which
+                     is not published on `main` and cannot be resolved by
+                     a cold-starting implementer; `qhqg` and `pjep` alone
+                     already establish this finding.)
 ```
 
 ## Migration note (required — BREAKING)
@@ -104,10 +131,22 @@ Impact:
    `documentation-rule-projection-rule.md`'s baseline-audit boundary,
    this does not retroactively invalidate historical content. It also
    does not claim Foundry's own pages are already fully compliant (see
-   `B-DA-3` correction below): as of this plan's own drafting,
-   `docs-audience-boundary-proposal.md`'s own text records only 22 of
-   34 nav pages carrying an explicit `Audience:` line — the retrofit was
-   already explicitly partial and tracked, not asserted complete.
+   `B-DA-3` correction below). Two distinct figures, not to be conflated
+   (corrected per round-2 finding `A-DA-R2-1`, which caught the round-2
+   draft treating the older figure as current): **historical baseline**
+   — `docs-audience-boundary-proposal.md`'s own text, as of its
+   2026-07-20 approval, recorded 22 of 34 nav pages carrying an explicit
+   `Audience:` line, an explicitly partial and tracked retrofit, not
+   asserted complete at the time. **Current inventory** — independently
+   re-counted as of this revision (2026-08-04) against current `main`:
+   `find agf/docs/site/docs -name '*.md' | wc -l` returns 26 files, and
+   25 of those 26 carry an `audience` mention in their first 20 lines.
+   Neither figure is this plan's compliance target — per-page compliance
+   with the *newly proposed* kind/verification contract (declared kind +
+   audience + verification path, not merely an `Audience:` line) is a
+   separate question this plan does not resolve, since the corrected
+   rule's structural requirement is stricter than the older count
+   measures.
 2. **New or substantively revised pages**, from this rule's adoption
    forward, must: (a) declare which of the four kinds it is (or the
    adopter's own equivalent taxonomy, per the CUSTOMIZE boundary below),
@@ -179,9 +218,12 @@ round-1 draft wrongly asserted "approximately 37," which came from
 `pjep`'s different, broader count basis that included non-`docs/`
 sections; `find agf/docs/site/docs -name '*.md' | wc -l` is exhaustive and
 reproducible). It also does not claim Foundry's pages already fully
-comply — `docs-audience-boundary-proposal.md`'s own 22-of-34 figure
-already establishes partial, tracked compliance; this plan does not
-overstate it as complete. A full retrofit, if wanted, is a separate,
+comply — `docs-audience-boundary-proposal.md`'s 2026-07-20 baseline
+(22 of 34) and this revision's current re-count (25 of 26, per the
+Migration note above) both show partial, tracked compliance against the
+*older* `Audience:`-line convention; neither claims full compliance, and
+neither measures compliance with this plan's newly proposed kind/
+verification contract. A full retrofit, if wanted, is a separate,
 governor-approved staged migration with its own tracked deadline — not
 bundled here (bundling would fail the branch sizing test: "does the rule
 now say the right thing" is a different reviewable question from "does
@@ -234,30 +276,77 @@ disposing all six rows, with shipped and project-local surfaces listed
   `docs-assessment-2026-06-21.md`) — that reconciliation, if still
   needed, belongs to those plans' own governance thread, not this one.
 
-## Test strategy and verification — resolves `B-DA-6`
+## Test strategy and verification — resolves `B-DA-6`, `B-DA-R2-2`, `B-DA-R2-3`
 
-Documentation-only change; no unit/integration tests apply. Exact
-commands (corrected from the round-1 draft's bare, non-executing `agov
-validate`):
+Documentation-only change; no unit/integration tests apply. Commands
+below are each a single, uninterrupted line — copy the whole fenced block
+per step, not the surrounding prose, and run them in this order.
 
-- `agov validate adopter-docs` — the actual adopter-facing-documentation
-  coverage check (bare `agov validate` only prints subcommand help and
-  runs nothing).
-- `agov plan projection-check --base-ref origin/main docs/reviews/
-  rule-projection/documentation-audience-rule-correction.yaml` — the
-  actual structured six-surface projection-evidence validator.
-- `agov plan validate` against this plan file.
-- Manual diff confirming both rule-pairs (audience-rule,
-  marketing-tone-rule) are textually identical in substantive content
-  between their `.claude/` and `agf/` copies.
-- Strict `mkdocs build --strict` if any Pages page (e.g. README's
-  cross-referenced content) is touched at implementation time.
+**Step 1 — validate the plan file itself:**
+
+```
+agov plan validate docs/plans/20260804T113940Z-documentation-audience-rule-correction.md
+```
+
+**Step 2 — check adopter-facing-documentation coverage** (bare `agov
+validate` only prints subcommand help and runs nothing — this is the
+actual coverage check):
+
+```
+agov validate adopter-docs
+```
+
+**Step 3 — after implementation creates the six-row projection evidence
+file** (`docs/reviews/rule-projection/
+documentation-audience-rule-correction.yaml`, per the "Rule-projection
+screen" section above) **, run the projection-manifest validator against
+it.** This step is a post-implementation check, not a pre-implementation
+command — the manifest file does not exist until the implementing commit
+creates it:
+
+```
+agov plan projection-check --base-ref origin/main docs/reviews/rule-projection/documentation-audience-rule-correction.yaml
+```
+
+**Step 4 — focused parity diff (`B-DA-R2-3`, corrected from round 2's
+"textually identical in substantive content," which contradicted the
+chosen generic/specialized split).** The check is not textual identity
+between the `.claude/` and `agf/` copies of each rule — the whole point
+of the split is that Foundry's `.claude/rules/docs/` copies specialize
+the `## CUSTOMIZE` block while `agf/rules/docs/` states the generic
+invariant, so the two copies are expected to differ *inside* that block.
+The actual check has two parts:
+1. **Invariant match**: everything **outside** the `## CUSTOMIZE` block
+   must be identical (or a documented, deliberate generalization —
+   e.g. persona-neutral tone principles replacing hard-coded personas)
+   between the distributed and project-local copy of each rule. Confirm
+   with a diff scoped to exclude the `## CUSTOMIZE` section (e.g.
+   `diff <(sed -n '/^## CUSTOMIZE/q;p' agf/rules/docs/documentation-audience-rule.md) <(sed -n '/^## CUSTOMIZE/q;p' .claude/rules/docs/documentation-audience-rule.md)`,
+   repeated for `marketing-tone-rule.md`) shows no difference.
+2. **Specialization review**: the `.claude/rules/docs/` copies'
+   `## CUSTOMIZE` content is separately reviewed against the approved
+   taxonomy in `docs-audience-boundary-proposal.md` (Human decision, AI
+   action, Shared concept, Reference; the stated primary/secondary
+   audiences) — not diffed against the distributed copy, since the
+   distributed copy intentionally does not contain AGF-specific
+   taxonomy.
+
+**Step 5 — if any Pages page is touched at implementation time** (e.g.
+README's cross-referenced content): run `mkdocs build --strict` from the
+Pages site root and confirm it exits `0`.
 
 ## Risks
 
-- Wordsmithing drift between copies if edited separately — mitigate by
-  editing all four files in the same commit and diffing for substantive
-  agreement before proposing the commit.
+- Wordsmithing drift **outside the `## CUSTOMIZE` block** between the
+  distributed and project-local copy of each rule, if edited separately —
+  mitigate by editing all four files in the same commit and running the
+  Step 4 focused invariant-diff (excluding `## CUSTOMIZE`) before
+  proposing the commit. Divergence *inside* the `## CUSTOMIZE` block
+  between copies is the intended, deliberate specialization, not drift —
+  see "Test strategy and verification" Step 4 for the corrected check
+  (round-2 finding `B-DA-R2-3`: the round-1 revision's "textually
+  identical in substantive content" phrasing would have flagged the
+  deliberate specialization itself as a defect).
 - Scope creep into a full page-by-page retrofit — explicitly excluded
   above; a reviewer should block if the implementing branch grows beyond
   the four rule files, the README one-line check, and the projection
@@ -308,3 +397,32 @@ Also incorporated the round-1-missed discovery that
 defines and implements the taxonomy this plan corrects the rules to
 match — the round-1 draft independently reinvented an audience contract
 without checking for this prior, already-governing artifact.
+
+**Round 2** (`tpa7`, BLOCK, 3 findings + 2 advisories) resolved in this
+revision:
+- `B-DA-R2-1`: dropped the round-2 draft's dependency on the withdrawn
+  `docs/plans/20260804T113940Z-v260-coordination-reliability.md` (only
+  ever existed on closed, unmerged MR !1150) and the unpublished
+  `20260803T225314Z-planner-architect-b27h.md`; replaced with the
+  published withdrawal record `tsgk` and the already-sufficient `qhqg`/
+  `pjep` citations, all resolvable from `main`.
+- `B-DA-R2-2`: "Test strategy and verification" rewritten as five
+  numbered, single-line, copy-paste-safe command blocks in execution
+  order, with the projection-check step explicitly stated as
+  post-implementation (it validates a file the implementing commit
+  creates, not one that exists yet).
+- `B-DA-R2-3`: replaced "textually identical in substantive content"
+  (which would have flagged the deliberate `## CUSTOMIZE`-block
+  specialization itself as a defect) with a two-part check: an
+  invariant-match diff scoped to exclude `## CUSTOMIZE`, plus a separate
+  specialization review of the `.claude/` copies' `## CUSTOMIZE` content
+  against the approved taxonomy. Applied the same correction to the
+  matching "Risks" entry.
+- `A-DA-R2-1`: separated the 2026-07-20 historical baseline (22 of 34,
+  per `docs-audience-boundary-proposal.md`'s own text at approval time)
+  from this revision's independently re-verified current inventory
+  (2026-08-04: 26 total pages, 25 with an `audience` mention in the
+  first 20 lines) — neither figure is restated as this plan's own
+  compliance target.
+- `A-DA-R2-2`: see the "Distributed-invariant evidence status" note
+  added to the three-circle impact statement below.
