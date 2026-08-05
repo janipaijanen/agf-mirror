@@ -2,42 +2,9 @@
 
 *The framework that cannot govern itself has no business governing anything else.*
 
-Two human gates around every AI-implemented change to your repository — no
-hosted service, no runtime, not a coding agent itself.
-
-<!-- public-feature-summary:start -->
-## What AGF gives you
-
-- **Human plan and merge decisions.** A named human governor decides whether
-  implementation may start (Gate 1) and whether the tested change may merge
-  (Gate 2); validators provide evidence but never approve a gate.
-- **Named roles, explicit authority.** Proposing, implementing, reviewing, and
-  approving are separate, named responsibilities, so each participant's remit
-  is visible.
-- **Durable, reconstructible records.** Plans, handoffs, reviews, and decisions
-  stay as repository files tied to exact revisions, preserving the reasoning
-  alongside the work.
-- **Evidence and maturity labels.** Public capability claims distinguish what
-  is planned, implemented, validated, or deployable and whether the supporting
-  evidence is theoretical, empirically informed, or empirically validated.
-- **Reviewed learning, separately governed improvement.** Operational evidence
-  can become a reviewed learning record, and a learning may motivate an
-  improvement proposal; neither step changes rules, roles, or scope
-  automatically, because improvement begins behind a fresh plan-approval gate.
-- **Repository-native ownership, bounded exit.** AGF ships as files, rules, and
-  conventions, with no runtime or service holding adopter data. You can pause,
-  downgrade, or remove it; optional validation tooling supports consistency but
-  is required neither to adopt nor to leave.
-<!-- public-feature-summary:end -->
-
-![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
-
-*AI-generated figure. Publication remains the responsibility of the human maintainer.*
-
-```text
-AI writes a plan -> Governor approves -> AI implements + CI validates -> Merge
-       Gate 1                                      Gate 2
-```
+Plans reviewed before code. Code reviewed before merge. Not a hosted
+service, not a runtime, not a coding agent itself — governance files
+that live in your repository.
 
 ## Not this
 
@@ -68,13 +35,19 @@ Skip or wait when:
 - your forge's built-in AI code review already covers your risk appetite;
 - nobody can own gate decisions.
 
-## 60-second install
+## Quick install
 
 Pin a release and let your AI coding assistant do the mechanical work:
 
-1. Download `agf-<version>.tar.gz` (or `.zip`) from the
-   [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-   into a `tmp/` directory in your project.
+1. Download a pinned release archive into a `tmp/` directory in your project:
+
+   ```bash
+   curl -LO https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/download/vX.Y.Z/agf-vX.Y.Z.tar.gz
+   ```
+
+   Replace `vX.Y.Z` with the version shown on the
+   [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases) —
+   never fetch an unpinned or `latest` archive.
 2. Tell your coding assistant: *"There is a `.tar.gz` file in `tmp/`. Adopt
    it into the project."* It unpacks the archive, wires `agf/`, and prepares
    a diff for you to review — it does not commit or claim adoption is
@@ -131,6 +104,40 @@ adoption steps, and the complete reference catalog — lives on the
 [published docs site](https://janipaijanen.gitlab.io/agents-govern-framework/);
 the [roadmap](https://janipaijanen.gitlab.io/agents-govern-framework/roadmap/)
 tracks what's next.
+
+<!-- public-feature-summary:start -->
+## What AGF gives you
+
+- **Human plan and merge decisions.** A named human governor decides whether
+  implementation may start (Gate 1) and whether the tested change may merge
+  (Gate 2); validators provide evidence but never approve a gate.
+- **Named roles, explicit authority.** Proposing, implementing, reviewing, and
+  approving are separate, named responsibilities, so each participant's remit
+  is visible.
+- **Durable, reconstructible records.** Plans, handoffs, reviews, and decisions
+  stay as repository files tied to exact revisions, preserving the reasoning
+  alongside the work.
+- **Evidence and maturity labels.** Public capability claims distinguish what
+  is planned, implemented, validated, or deployable and whether the supporting
+  evidence is theoretical, empirically informed, or empirically validated.
+- **Reviewed learning, separately governed improvement.** Operational evidence
+  can become a reviewed learning record, and a learning may motivate an
+  improvement proposal; neither step changes rules, roles, or scope
+  automatically, because improvement begins behind a fresh plan-approval gate.
+- **Repository-native ownership, bounded exit.** AGF ships as files, rules, and
+  conventions, with no runtime or service holding adopter data. You can pause,
+  downgrade, or remove it; optional validation tooling supports consistency but
+  is required neither to adopt nor to leave.
+<!-- public-feature-summary:end -->
+
+![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
+```text
+AI writes a plan -> Governor approves -> AI implements + CI validates -> Merge
+       Gate 1                                      Gate 2
+```
 
 ## What a trial adds to your project
 
