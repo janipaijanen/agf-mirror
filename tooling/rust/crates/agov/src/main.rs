@@ -672,7 +672,12 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
         Command::Coord {
-            sub: CoordCommand::Pending { dir, cutoff, format },
+            sub:
+                CoordCommand::Pending {
+                    dir,
+                    cutoff,
+                    format,
+                },
         } => coord_pending(dir, &cutoff, &format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
@@ -759,7 +764,12 @@ fn ci_cache_topology_check_command(
                 "ERR cannot read {}: {err}",
                 merged_yaml_path.display()
             ));
-            agov_core::roi::record_tool_output("agov", args, "ci-cache-topology-check", output.chars);
+            agov_core::roi::record_tool_output(
+                "agov",
+                args,
+                "ci-cache-topology-check",
+                output.chars,
+            );
             return 1;
         }
     };
@@ -768,8 +778,11 @@ fn ci_cache_topology_check_command(
     // inputs a caller might have saved to disk.
     let doc: serde_json::Value = match serde_json::from_str::<serde_json::Value>(&content)
         .ok()
-        .and_then(|v| v.get("merged_yaml").and_then(|m| m.as_str()).map(str::to_string))
-    {
+        .and_then(|v| {
+            v.get("merged_yaml")
+                .and_then(|m| m.as_str())
+                .map(str::to_string)
+        }) {
         Some(inner) => match serde_norway::from_str::<serde_json::Value>(&inner) {
             Ok(doc) => doc,
             Err(err) => {
@@ -786,7 +799,10 @@ fn ci_cache_topology_check_command(
         None => match serde_norway::from_str::<serde_json::Value>(&content) {
             Ok(doc) => doc,
             Err(err) => {
-                output.stderr(format!("ERR failed to parse {}: {err}", merged_yaml_path.display()));
+                output.stderr(format!(
+                    "ERR failed to parse {}: {err}",
+                    merged_yaml_path.display()
+                ));
                 agov_core::roi::record_tool_output(
                     "agov",
                     args,
@@ -3148,7 +3164,17 @@ struct VisibilityMessage {
 
 #[derive(Debug)]
 struct VisibilityReport {
+    /// The requested base branch name, exactly as given via
+    /// `--base-branch` (default `"main"`) -- unchanged meaning; never
+    /// repurposed to hold a resolved OID or ref name (issue #89).
     base_branch: String,
+    /// Full commit OID actually used as the comparison base after
+    /// freshness resolution (issue #89). Always populated -- the local
+    /// base branch's own OID when no upstream is configured or upstream
+    /// matches local.
+    effective_base_oid: String,
+    /// Which ref supplied `effective_base_oid`: `"local"` or `"upstream"`.
+    effective_base_source: String,
     scanned_branches: Vec<String>,
     unbridged_obligations: Vec<VisibilityObligation>,
     /// Branch-relevant collisions only (issue #85) -- a base-history-only
@@ -3543,19 +3569,19 @@ fn visibility_scan(
     requested_branches: Vec<String>,
     coord_dir: &str,
 ) -> Result<VisibilityReport, String> {
-    let base_files = git_coord_files(base_branch, coord_dir)
+    let effective_base = resolve_effective_base(base_branch)
         .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
-    let base_messages = load_git_messages(base_branch, &base_files)?;
+
+    let base_files = git_coord_files(&effective_base.ref_for_scan, coord_dir)
+        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
+    let base_messages = load_git_messages(&effective_base.ref_for_scan, &base_files)?;
     let base_file_set: std::collections::BTreeSet<&str> = base_messages
         .iter()
         .map(|message| message.file.as_str())
         .collect();
 
     let branches = if requested_branches.is_empty() {
-        git_local_branches()?
-            .into_iter()
-            .filter(|branch| branch != base_branch)
-            .collect()
+        dedup_and_select_branches(&git_branch_refs()?, &effective_base.oid)
     } else {
         requested_branches
     };
@@ -3611,12 +3637,174 @@ fn visibility_scan(
 
     Ok(VisibilityReport {
         base_branch: base_branch.to_string(),
+        effective_base_oid: effective_base.oid,
+        effective_base_source: effective_base.source.to_string(),
         scanned_branches: branches,
         unbridged_obligations,
         sequence_collisions,
         legacy_base_collisions,
         errors: Vec::new(),
     })
+}
+
+/// Issue #89 (B1): resolves the effective comparison base for
+/// `--base-branch <base_branch>`. When a configured upstream exists and
+/// its OID differs from the local base branch's OID, the upstream OID is
+/// preferred (and the upstream ref is what base content is actually read
+/// from) -- this makes the documented `git fetch` then `agov coord
+/// visibility --base-branch main` workflow correct without requiring the
+/// caller to separately fast-forward local `main`. When no upstream is
+/// configured, or upstream matches local, behavior is unchanged.
+struct EffectiveBase {
+    /// The ref git commands should read base content from -- the
+    /// requested `base_branch` name, or its upstream short name
+    /// (e.g. `origin/main`) when freshness resolution prefers it.
+    ref_for_scan: String,
+    oid: String,
+    source: &'static str,
+}
+
+fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
+    let local_oid = git_output(&[
+        "rev-parse",
+        "--verify",
+        &format!("{base_branch}^{{commit}}"),
+    ])?
+    .trim()
+    .to_string();
+
+    let upstream_short = git_output(&[
+        "for-each-ref",
+        "--format=%(upstream:short)",
+        &format!("refs/heads/{base_branch}"),
+    ])
+    .unwrap_or_default();
+    let upstream_short = upstream_short.trim();
+
+    if upstream_short.is_empty() {
+        return Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        });
+    }
+
+    let Ok(upstream_oid) = git_output(&[
+        "rev-parse",
+        "--verify",
+        &format!("{upstream_short}^{{commit}}"),
+    ]) else {
+        // Upstream configured but unresolvable (e.g. not fetched yet) --
+        // fall back to local, unchanged behavior.
+        return Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        });
+    };
+    let upstream_oid = upstream_oid.trim().to_string();
+
+    if upstream_oid != local_oid {
+        Ok(EffectiveBase {
+            ref_for_scan: upstream_short.to_string(),
+            oid: upstream_oid,
+            source: "upstream",
+        })
+    } else {
+        Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        })
+    }
+}
+
+/// Issue #89: a local or remote-tracking branch ref, as returned by
+/// `git_branch_refs`. `full_name` is the fully-qualified ref (used only
+/// to determine class and to sort within a class -- comparing full names
+/// and comparing `short_name`s produce the same relative order within a
+/// single class, since the prefix stripped by `short_name` is constant
+/// across all members of that class). `short_name` is the actual branch
+/// identifier used everywhere else (git ref argument, JSON/text output).
+struct BranchRef {
+    full_name: String,
+    short_name: String,
+    oid: String,
+}
+
+/// Enumerates every `refs/heads/*` and `refs/remotes/<remote>/*` ref that
+/// is not a symbolic ref (excludes `refs/remotes/<remote>/HEAD`).
+fn git_branch_refs() -> Result<Vec<BranchRef>, String> {
+    let output = git_output(&[
+        "for-each-ref",
+        "--format=%(refname)%09%(refname:short)%09%(objectname)%09%(symref)",
+        "refs/heads",
+        "refs/remotes",
+    ])?;
+    let mut refs = Vec::new();
+    for line in output.lines() {
+        let mut parts = line.splitn(4, '\t');
+        let (Some(full_name), Some(short_name), Some(oid), Some(symref)) =
+            (parts.next(), parts.next(), parts.next(), parts.next())
+        else {
+            continue;
+        };
+        if !symref.is_empty() {
+            continue;
+        }
+        refs.push(BranchRef {
+            full_name: full_name.to_string(),
+            short_name: short_name.to_string(),
+            oid: oid.to_string(),
+        });
+    }
+    Ok(refs)
+}
+
+/// Class 1 (local) < Class 2 (`origin/*`) < Class 3 (other remotes) --
+/// only reached in that priority order, per issue #89's Slice 3 spec.
+fn branch_ref_class(full_name: &str) -> u8 {
+    if full_name.starts_with("refs/heads/") {
+        0
+    } else if full_name.starts_with("refs/remotes/origin/") {
+        1
+    } else {
+        2
+    }
+}
+
+/// Groups refs by peeled commit OID (tracking configuration is not part
+/// of the equivalence test), excludes every ref at the effective base
+/// OID, and picks one display name per group: the lexicographically
+/// smallest fully-qualified ref name among refs in the first non-empty
+/// class. Returns a sorted, deterministic list of branch identifiers.
+fn dedup_and_select_branches(refs: &[BranchRef], effective_base_oid: &str) -> Vec<String> {
+    let mut by_oid: BTreeMap<&str, Vec<&BranchRef>> = BTreeMap::new();
+    for r in refs {
+        if r.oid == effective_base_oid {
+            continue;
+        }
+        by_oid.entry(r.oid.as_str()).or_default().push(r);
+    }
+
+    let mut names: Vec<String> = by_oid
+        .into_values()
+        .map(|group| {
+            let min_class = group
+                .iter()
+                .map(|r| branch_ref_class(&r.full_name))
+                .min()
+                .unwrap_or(2);
+            group
+                .into_iter()
+                .filter(|r| branch_ref_class(&r.full_name) == min_class)
+                .min_by(|left, right| left.full_name.cmp(&right.full_name))
+                .map(|r| r.short_name.clone())
+                .expect("each OID group has at least one member")
+        })
+        .collect();
+    names.sort();
+    names
 }
 
 fn git_coord_dir(dir: &Path) -> Result<String, String> {
@@ -3634,17 +3822,6 @@ fn git_coord_dir(dir: &Path) -> Result<String, String> {
                 dir.display()
             )
         })
-}
-
-fn git_local_branches() -> Result<Vec<String>, String> {
-    let output = git_output(&["for-each-ref", "--format=%(refname:short)", "refs/heads"])?;
-    let mut branches: Vec<String> = output
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .map(str::to_string)
-        .collect();
-    branches.sort();
-    Ok(branches)
 }
 
 fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, String> {
@@ -3846,6 +4023,13 @@ fn is_ulid_stem(value: &str) -> bool {
 }
 
 fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport) {
+    // Issue #89: always first, every exit path -- states which OID was
+    // actually used as the comparison base.
+    output.stdout(format!(
+        "effective-base: {} ({})",
+        report.effective_base_oid, report.effective_base_source
+    ));
+
     if report.sequence_collisions.is_empty()
         && report.unbridged_obligations.is_empty()
         && report.legacy_base_collisions.is_empty()
@@ -3930,6 +4114,8 @@ fn visibility_json(report: &VisibilityReport) -> String {
 
     serde_json::json!({
         "base_branch": report.base_branch,
+        "effective_base_oid": report.effective_base_oid,
+        "effective_base_source": report.effective_base_source,
         "scanned_branches": report.scanned_branches,
         "unbridged_obligations": obligations,
         "sequence_collisions": collisions,
