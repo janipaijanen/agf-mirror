@@ -2685,6 +2685,9 @@ fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String
     if let Ok(timestamp) = time::OffsetDateTime::parse(since, &Rfc3339) {
         return Ok((iso_timestamp(timestamp), String::new()));
     }
+    if let Some(timestamp) = parse_compact_timestamp(since) {
+        return Ok((iso_timestamp(timestamp), String::new()));
+    }
 
     let normalized = normalize_coord_reference(since).unwrap_or_else(|| since.to_string());
     let stem = normalized.strip_suffix(".md").unwrap_or(&normalized);
@@ -2697,6 +2700,35 @@ fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String
         })
         .map(|message| message.sort_key.clone())
         .ok_or_else(|| format!("--since did not match an RFC3339 timestamp or message id: {since}"))
+}
+
+/// Issue #84: the compact filename-prefix timestamp embedded as the
+/// literal first path segment of every coordination filename
+/// (`20260729T195431Z`) is exactly RFC3339 with `-` and `:` stripped.
+/// Requires an exact 16-character `YYYYMMDDTHHMMSSZ` match before
+/// attempting to parse -- a malformed or truncated digit string (e.g. a
+/// 13-digit string) must fall through to the id/filename match, not be
+/// silently accepted as a valid cursor.
+fn parse_compact_timestamp(value: &str) -> Option<time::OffsetDateTime> {
+    let bytes = value.as_bytes();
+    if bytes.len() != 16 || bytes[8] != b'T' || bytes[15] != b'Z' {
+        return None;
+    }
+    if !value[0..8].bytes().all(|b| b.is_ascii_digit())
+        || !value[9..15].bytes().all(|b| b.is_ascii_digit())
+    {
+        return None;
+    }
+    let rfc3339 = format!(
+        "{}-{}-{}T{}:{}:{}Z",
+        &value[0..4],
+        &value[4..6],
+        &value[6..8],
+        &value[9..11],
+        &value[11..13],
+        &value[13..15],
+    );
+    time::OffsetDateTime::parse(&rfc3339, &Rfc3339).ok()
 }
 
 #[derive(Clone)]

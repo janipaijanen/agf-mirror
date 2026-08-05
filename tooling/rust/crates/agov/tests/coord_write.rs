@@ -398,6 +398,138 @@ fn coord_list_returns_two_when_no_messages_match() {
     assert_eq!(output.status.code(), Some(2));
 }
 
+/// Issue #84: `--since` must accept the compact filename-prefix timestamp
+/// (no `-`/`:` punctuation), the literal form embedded as the first path
+/// segment of every coordination filename, not only RFC3339-with-
+/// punctuation or a full message id/filename.
+#[test]
+fn coord_list_since_compact_timestamp_matches_rfc3339_for_the_same_instant() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        note(
+            "20260720T100000Z-coder-tester-abcd",
+            "2026-07-20T10:00:00Z",
+            "first",
+        )
+        .as_str(),
+    );
+    write_message(
+        &fixture,
+        "20260720T110000Z-coder-tester-efgh.md",
+        note(
+            "20260720T110000Z-coder-tester-efgh",
+            "2026-07-20T11:00:00Z",
+            "second",
+        )
+        .as_str(),
+    );
+
+    let compact = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "20260720T100000Z",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+    let rfc3339 = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "2026-07-20T10:00:00Z",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(compact.status.code(), Some(0));
+    assert_eq!(compact.status.code(), rfc3339.status.code());
+    assert_eq!(
+        compact.stdout, rfc3339.stdout,
+        "compact and RFC3339 forms of the identical instant must take the \
+         same code path and produce byte-identical output"
+    );
+    let stdout = String::from_utf8_lossy(&compact.stdout);
+    assert!(stdout.contains("20260720T100000Z-coder-tester-abcd"));
+    assert!(stdout.contains("20260720T110000Z-coder-tester-efgh"));
+}
+
+/// Companion to `coord_list_since_message_id_returns_later_messages`:
+/// the compact-timestamp form of a message's own filename-prefix
+/// timestamp resolves and lists later messages, exactly like the
+/// existing RFC3339-with-punctuation and message-id forms.
+#[test]
+fn coord_list_since_compact_timestamp_lists_later_messages() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        note(
+            "20260720T100000Z-coder-tester-abcd",
+            "2026-07-20T10:00:00Z",
+            "first",
+        )
+        .as_str(),
+    );
+    write_message(
+        &fixture,
+        "20260720T110000Z-coder-tester-efgh.md",
+        note(
+            "20260720T110000Z-coder-tester-efgh",
+            "2026-07-20T11:00:00Z",
+            "second",
+        )
+        .as_str(),
+    );
+
+    let output = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "20260720T093000Z",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("first"));
+    assert!(stdout.contains("second"));
+}
+
+/// Negative case (`boundary-shape-testing-rule.md`): a 13-digit string is
+/// not a valid compact timestamp and must not be silently accepted as
+/// one -- it must fall through to (and fail) the id/filename match, not
+/// be misparsed as a truncated or malformed date.
+#[test]
+fn coord_list_since_rejects_malformed_compact_timestamp() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        note(
+            "20260720T100000Z-coder-tester-abcd",
+            "2026-07-20T10:00:00Z",
+            "first",
+        )
+        .as_str(),
+    );
+
+    let output = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "2026072010000",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("did not match an RFC3339 timestamp or message id"));
+}
+
 #[test]
 fn coord_validate_blocks_duplicate_ids_in_same_directory() {
     let fixture = tempfile::tempdir().unwrap();
