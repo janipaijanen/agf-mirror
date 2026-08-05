@@ -1,7 +1,9 @@
 ---
 id: issue76-coord-visibility-performance
-status: pending-gate1
+status: approved
 topic: issue76-coord-visibility-performance
+gate1_approved_by: "governor-reviewer; Claude-scribed decision in 20260805T071845Z-governor-reviewer-3rmm.md"
+gate1_approved_at: "2026-08-05T07:18:45Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
