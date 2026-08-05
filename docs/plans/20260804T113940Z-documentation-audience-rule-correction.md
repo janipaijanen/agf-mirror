@@ -14,8 +14,14 @@ advisory_consultation:
       1: "the audience mismatch is real"). Round 2 review
       (`20260804T130825Z-contribution-auditor-tpa7.md`): BLOCK, 3
       blocking findings (B-DA-R2-1..3) plus 2 advisories (A-DA-R2-1..2).
-      All three blocking findings and both advisories addressed in this
-      revision -- see "Round history" below. Requesting round-3 review.
+      All three blocking findings and both advisories addressed in round
+      3 -- see "Round history" below. Round 3 coder-tester advisory
+      review (`20260805T081138Z-coder-tester-rqsg.md`): advisory-only
+      BLOCK recommendation, 2 blocking findings (B-DA-R3-1..2) plus 1
+      advisory (A-DA-R3-1); does not replace or satisfy the requested
+      contribution-auditor review. All three addressed in this revision
+      -- see "Round history" below. Requesting round-4 contribution-auditor
+      review.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -109,10 +115,14 @@ Impact:
                      own single-project experience applying the four-kind
                      taxonomy successfully, not by cross-project evidence
                      that every adopter needs the same structural
-                     minimum. Downstream adopters should read this
-                     addition as empirically-informed-but-single-project,
-                     not as an established, multi-adopter-validated
-                     pattern.
+                     minimum. Per the project's canonical maturity
+                     vocabulary (`agf/docs/site/reference/
+                     maturity-vocabulary.md`), downstream adopters should
+                     read this addition as **Empirically informed**
+                     (derived from one project, one sustained
+                     self-application thread — plausible, but not
+                     independently corroborated), not as an established,
+                     multi-adopter-validated pattern.
   Evidence:         qhqg (20260804T120122Z-contribution-auditor-qhqg.md),
                      pjep (20260803T225851Z-contribution-auditor-pjep.md);
                      grounded in the already-approved
@@ -310,19 +320,34 @@ agov plan projection-check --base-ref origin/main docs/reviews/rule-projection/d
 
 **Step 4 — focused parity diff (`B-DA-R2-3`, corrected from round 2's
 "textually identical in substantive content," which contradicted the
-chosen generic/specialized split).** The check is not textual identity
+chosen generic/specialized split; command shape corrected again in round
+4 for `B-DA-R3-1`/`B-DA-R3-2`).** The check is not textual identity
 between the `.claude/` and `agf/` copies of each rule — the whole point
 of the split is that Foundry's `.claude/rules/docs/` copies specialize
 the `## CUSTOMIZE` block while `agf/rules/docs/` states the generic
 invariant, so the two copies are expected to differ *inside* that block.
 The actual check has two parts:
-1. **Invariant match**: everything **outside** the `## CUSTOMIZE` block
-   must be identical (or a documented, deliberate generalization —
-   e.g. persona-neutral tone principles replacing hard-coded personas)
-   between the distributed and project-local copy of each rule. Confirm
-   with a diff scoped to exclude the `## CUSTOMIZE` section (e.g.
-   `diff <(sed -n '/^## CUSTOMIZE/q;p' agf/rules/docs/documentation-audience-rule.md) <(sed -n '/^## CUSTOMIZE/q;p' .claude/rules/docs/documentation-audience-rule.md)`,
-   repeated for `marketing-tone-rule.md`) shows no difference.
+
+1. **Invariant match**: everything **outside** the `## CUSTOMIZE` block —
+   both before it and after it, if any content follows it — must be
+   byte-identical between the distributed and project-local copy of each
+   rule. Round 3's "or a documented, deliberate generalization" exception
+   is dropped: it conflicted with the "must show no difference" outcome
+   it was paired with, and it is unnecessary — both copies are edited in
+   the same commit specifically so that content outside `## CUSTOMIZE`
+   never diverges. Confirm with a diff that strips the entire `##
+   CUSTOMIZE` section (from that heading up to, but not including, the
+   next `## ` heading or end of file) from both copies before comparing,
+   so drift after the `## CUSTOMIZE` block is caught too, not only drift
+   before it. Run this exact command for `documentation-audience-rule.md`:
+   ```
+   diff <(awk '/^## CUSTOMIZE/{skip=1;next} /^## /{skip=0} !skip' agf/rules/docs/documentation-audience-rule.md) <(awk '/^## CUSTOMIZE/{skip=1;next} /^## /{skip=0} !skip' .claude/rules/docs/documentation-audience-rule.md)
+   ```
+   And this exact command for `marketing-tone-rule.md`:
+   ```
+   diff <(awk '/^## CUSTOMIZE/{skip=1;next} /^## /{skip=0} !skip' agf/rules/docs/marketing-tone-rule.md) <(awk '/^## CUSTOMIZE/{skip=1;next} /^## /{skip=0} !skip' .claude/rules/docs/marketing-tone-rule.md)
+   ```
+   Both must produce no output (exit `0`).
 2. **Specialization review**: the `.claude/rules/docs/` copies'
    `## CUSTOMIZE` content is separately reviewed against the approved
    taxonomy in `docs-audience-boundary-proposal.md` (Human decision, AI
@@ -332,21 +357,31 @@ The actual check has two parts:
    taxonomy.
 
 **Step 5 — if any Pages page is touched at implementation time** (e.g.
-README's cross-referenced content): run `mkdocs build --strict` from the
-Pages site root and confirm it exits `0`.
+README's cross-referenced content); skip this step otherwise:
+
+```
+mkdocs build --strict --config-file agf/docs/build/mkdocs.yml
+```
+
+Run from the repository root and confirm it exits `0`.
 
 ## Risks
 
-- Wordsmithing drift **outside the `## CUSTOMIZE` block** between the
-  distributed and project-local copy of each rule, if edited separately —
-  mitigate by editing all four files in the same commit and running the
-  Step 4 focused invariant-diff (excluding `## CUSTOMIZE`) before
+- Wordsmithing drift **outside the `## CUSTOMIZE` block** (before or
+  after it) between the distributed and project-local copy of each rule,
+  if edited separately — mitigate by editing all four files in the same
+  commit and running the Step 4 focused invariant-diff (which strips the
+  entire `## CUSTOMIZE` section, not just the text before it) before
   proposing the commit. Divergence *inside* the `## CUSTOMIZE` block
   between copies is the intended, deliberate specialization, not drift —
   see "Test strategy and verification" Step 4 for the corrected check
   (round-2 finding `B-DA-R2-3`: the round-1 revision's "textually
   identical in substantive content" phrasing would have flagged the
-  deliberate specialization itself as a defect).
+  deliberate specialization itself as a defect; round-3 finding
+  `B-DA-R3-2`: the round-3 draft's prefix-only diff missed drift after
+  `## CUSTOMIZE` and its stated "documented generalization" exception
+  conflicted with the no-difference outcome — both fixed in Step 4
+  above).
 - Scope creep into a full page-by-page retrofit — explicitly excluded
   above; a reviewer should block if the implementing branch grows beyond
   the four rule files, the README one-line check, and the projection
@@ -426,3 +461,25 @@ revision:
   compliance target.
 - `A-DA-R2-2`: see the "Distributed-invariant evidence status" note
   added to the three-circle impact statement below.
+
+**Round 3** (`rqsg`, coder-tester advisory-only BLOCK, 2 blocking
+findings + 1 advisory; does not replace or satisfy the requested
+contribution-auditor review) resolved in this revision:
+- `B-DA-R3-1`: Step 4 now gives two separate, complete, single-line
+  fenced `diff`/`awk` commands — one per rule pair — instead of one
+  inline example plus prose saying "repeated for" the second file. Step
+  5's `mkdocs build --strict` command is now its own fenced block with
+  an explicit config-file path, not named inline.
+- `B-DA-R3-2`: Step 4's parity command now strips the entire `##
+  CUSTOMIZE` section (heading through the line before the next `## `
+  heading or end of file) via `awk`, so drift *after* `## CUSTOMIZE` is
+  caught, not only drift before it (the round-3 draft's
+  `sed -n '/^## CUSTOMIZE/q;p'` only ever checked the prefix). The
+  conflicting "or a documented, deliberate generalization" exception is
+  dropped — the design already requires outside-`## CUSTOMIZE` content
+  to be byte-identical because both copies are edited in the same
+  commit; no generalization exception was ever needed for that to hold.
+- `A-DA-R3-1`: the three-circle impact statement's evidence-status note
+  now uses the project's canonical maturity-vocabulary label
+  **Empirically informed**, with the single-project limitation stated in
+  the following prose rather than folded into a hyphenated label.
