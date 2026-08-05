@@ -3151,8 +3151,23 @@ struct VisibilityReport {
     base_branch: String,
     scanned_branches: Vec<String>,
     unbridged_obligations: Vec<VisibilityObligation>,
-    sequence_collisions: Vec<VisibilityCollision>,
+    /// Branch-relevant collisions only (issue #85) -- a base-history-only
+    /// duplicate seq never appears here; see `legacy_base_collisions`.
+    sequence_collisions: Vec<BranchCollision>,
+    /// Issue #85: `seq` values of collisions confined to base-branch
+    /// history, unrelated to the branch under inspection. Always
+    /// present (never conflated with `sequence_collisions`); reported as
+    /// a summary count, never drives `exit_code` on its own.
+    legacy_base_collisions: Vec<i64>,
     errors: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct BranchCollision {
+    seq: i64,
+    branch: String,
+    branch_file: String,
+    base_file: String,
 }
 
 #[derive(Debug, Clone)]
@@ -3163,20 +3178,6 @@ struct VisibilityObligation {
     kind: String,
     to: String,
     topic: String,
-}
-
-#[derive(Debug, Clone)]
-enum VisibilityCollision {
-    BaseDuplicateSeq {
-        seq: i64,
-        files: Vec<String>,
-    },
-    BranchBaseSeq {
-        seq: i64,
-        branch: String,
-        branch_file: String,
-        base_file: String,
-    },
 }
 
 fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
@@ -3560,7 +3561,8 @@ fn visibility_scan(
     };
 
     let mut unbridged_obligations = Vec::new();
-    let mut sequence_collisions = base_sequence_collisions_visibility(&base_messages);
+    let mut sequence_collisions: Vec<BranchCollision> = Vec::new();
+    let legacy_base_collisions = base_sequence_collisions_visibility(&base_messages);
 
     for branch in &branches {
         let branch_files = git_coord_files(branch, coord_dir)?;
@@ -3612,6 +3614,7 @@ fn visibility_scan(
         scanned_branches: branches,
         unbridged_obligations,
         sequence_collisions,
+        legacy_base_collisions,
         errors: Vec::new(),
     })
 }
@@ -3751,9 +3754,12 @@ fn visibility_sort_key(message: &VisibilityMessage) -> (String, String) {
     )
 }
 
-fn base_sequence_collisions_visibility(
-    base_messages: &[VisibilityMessage],
-) -> Vec<VisibilityCollision> {
+/// Issue #85: seq values colliding purely within base-branch history,
+/// independent of which branch/base-branch pair is being compared.
+/// Returned as a sorted list of `seq` values (the `legacy_base_collisions`
+/// summary), not as blocking `VisibilityCollision` entries -- see
+/// `render_visibility_text`/`visibility_json`/`visibility_exit_code`.
+fn base_sequence_collisions_visibility(base_messages: &[VisibilityMessage]) -> Vec<i64> {
     let mut by_seq: BTreeMap<i64, Vec<String>> = BTreeMap::new();
     for message in base_messages {
         if visibility_modern_filename(&message.file) {
@@ -3767,13 +3773,8 @@ fn base_sequence_collisions_visibility(
 
     by_seq
         .into_iter()
-        .filter_map(|(seq, mut files)| {
-            if files.len() <= 1 {
-                return None;
-            }
-            files.sort();
-            Some(VisibilityCollision::BaseDuplicateSeq { seq, files })
-        })
+        .filter(|(_, files)| files.len() > 1)
+        .map(|(seq, _)| seq)
         .collect()
 }
 
@@ -3781,7 +3782,7 @@ fn branch_sequence_collisions(
     branch: &str,
     branch_messages: &[VisibilityMessage],
     base_messages: &[VisibilityMessage],
-) -> Vec<VisibilityCollision> {
+) -> Vec<BranchCollision> {
     let mut base_by_seq: BTreeMap<i64, Vec<&VisibilityMessage>> = BTreeMap::new();
     for message in base_messages {
         if visibility_modern_filename(&message.file) {
@@ -3805,7 +3806,7 @@ fn branch_sequence_collisions(
             if base.file == message.file {
                 continue;
             }
-            collisions.push(VisibilityCollision::BranchBaseSeq {
+            collisions.push(BranchCollision {
                 seq,
                 branch: branch.to_string(),
                 branch_file: message.file.clone(),
@@ -3814,25 +3815,13 @@ fn branch_sequence_collisions(
         }
     }
     collisions.sort_by(|left, right| {
-        visibility_collision_key(left).cmp(&visibility_collision_key(right))
+        (left.seq, left.branch.as_str(), left.branch_file.as_str()).cmp(&(
+            right.seq,
+            right.branch.as_str(),
+            right.branch_file.as_str(),
+        ))
     });
     collisions
-}
-
-fn visibility_collision_key(collision: &VisibilityCollision) -> (i64, String, String) {
-    match collision {
-        VisibilityCollision::BaseDuplicateSeq { seq, files } => (
-            *seq,
-            String::new(),
-            files.first().cloned().unwrap_or_default(),
-        ),
-        VisibilityCollision::BranchBaseSeq {
-            seq,
-            branch,
-            branch_file,
-            ..
-        } => (*seq, branch.clone(), branch_file.clone()),
-    }
 }
 
 fn visibility_modern_filename(file: &str) -> bool {
@@ -3857,7 +3846,10 @@ fn is_ulid_stem(value: &str) -> bool {
 }
 
 fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport) {
-    if report.sequence_collisions.is_empty() && report.unbridged_obligations.is_empty() {
+    if report.sequence_collisions.is_empty()
+        && report.unbridged_obligations.is_empty()
+        && report.legacy_base_collisions.is_empty()
+    {
         output.stdout(format!(
             "OK coordination visibility clean relative to {}",
             report.base_branch
@@ -3868,25 +3860,10 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
     if !report.sequence_collisions.is_empty() {
         output.stdout("ERR sequence collision");
         for collision in &report.sequence_collisions {
-            match collision {
-                VisibilityCollision::BaseDuplicateSeq { seq, files } => {
-                    output.stdout(format!("  seq: {seq}"));
-                    for file in files {
-                        output.stdout(format!("  base-file: {file}"));
-                    }
-                }
-                VisibilityCollision::BranchBaseSeq {
-                    seq,
-                    branch,
-                    branch_file,
-                    base_file,
-                } => {
-                    output.stdout(format!("  seq: {seq}"));
-                    output.stdout(format!("  base: {base_file}"));
-                    output.stdout(format!("  branch: {branch}"));
-                    output.stdout(format!("  branch-file: {branch_file}"));
-                }
-            }
+            output.stdout(format!("  seq: {}", collision.seq));
+            output.stdout(format!("  base: {}", collision.base_file));
+            output.stdout(format!("  branch: {}", collision.branch));
+            output.stdout(format!("  branch-file: {}", collision.branch_file));
         }
     }
 
@@ -3907,6 +3884,17 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
             output.stdout(format!("  topic: {}", obligation.topic));
             output.stdout("  bridge: missing");
         }
+    }
+
+    // Issue #85: base-history-only legacy collisions are reported as a
+    // single summary count, matching `session resume`'s warn-once-and-
+    // continue pattern -- never a per-collision ERR block, and always
+    // rendered last so a genuine obligation is never buried under noise.
+    if !report.legacy_base_collisions.is_empty() {
+        output.stdout(format!(
+            "WARN {} legacy sequence collision group(s) confined to base branch history; run agov coord validate for detail",
+            report.legacy_base_collisions.len()
+        ));
     }
 }
 
@@ -3929,26 +3917,14 @@ fn visibility_json(report: &VisibilityReport) -> String {
     let collisions: Vec<serde_json::Value> = report
         .sequence_collisions
         .iter()
-        .map(|collision| match collision {
-            VisibilityCollision::BaseDuplicateSeq { seq, files } => {
-                serde_json::json!({
-                    "type": "base_duplicate_seq",
-                    "seq": seq,
-                    "files": files,
-                })
-            }
-            VisibilityCollision::BranchBaseSeq {
-                seq,
-                branch,
-                branch_file,
-                base_file,
-            } => serde_json::json!({
+        .map(|collision| {
+            serde_json::json!({
                 "type": "branch_base_seq_collision",
-                "seq": seq,
-                "branch": branch,
-                "branch_file": branch_file,
-                "base_file": base_file,
-            }),
+                "seq": collision.seq,
+                "branch": collision.branch,
+                "branch_file": collision.branch_file,
+                "base_file": collision.base_file,
+            })
         })
         .collect();
 
@@ -3957,6 +3933,10 @@ fn visibility_json(report: &VisibilityReport) -> String {
         "scanned_branches": report.scanned_branches,
         "unbridged_obligations": obligations,
         "sequence_collisions": collisions,
+        "legacy_base_collisions": {
+            "count": report.legacy_base_collisions.len(),
+            "seqs": report.legacy_base_collisions,
+        },
         "errors": report.errors,
         "exit_code": visibility_exit_code(report),
     })

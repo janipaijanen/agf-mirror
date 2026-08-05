@@ -133,6 +133,198 @@ fn emits_stable_json_fields() {
     assert_eq!(json["unbridged_obligations"][0]["seq"], 111);
 }
 
+/// Issue #85, outcome (a) of the required exit-code matrix: sequence
+/// collisions confined purely to base-branch history (both colliding
+/// files exist only on the base, unrelated to the branch under
+/// inspection) must not block -- exit `0`, reported as a single summary
+/// line, not a per-collision `ERR` block.
+#[test]
+fn legacy_base_only_collision_does_not_block_and_reports_summary() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00050-governor-reviewer.md",
+        &decision(50, "legacy base collision one", &[]),
+    );
+    repo.write(
+        "docs/coordination/00050-planner-architect.md",
+        &decision(50, "legacy base collision two", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base with legacy collision"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/clean"]);
+    repo.write("docs/coordination/.gitkeep", "");
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "unrelated branch commit, no coordination messages"]);
+
+    let output = repo.agov(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/clean",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.contains("ERR sequence collision"));
+    assert!(stdout.contains(
+        "WARN 1 legacy sequence collision group(s) confined to base branch history; run agov coord validate for detail"
+    ));
+}
+
+/// Issue #85, outcome (b) -- the mixed case `p438`/`61gt` required:
+/// base-history-only legacy noise plus a genuine unbridged obligation on
+/// the branch under test must still exit `1` (the legacy noise never
+/// escalates to `2`, and never suppresses the `1`), with the obligation
+/// block rendered before the legacy-collision summary line.
+#[test]
+fn legacy_base_only_collision_plus_unbridged_obligation_exits_one_with_obligation_first() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00050-governor-reviewer.md",
+        &decision(50, "legacy base collision one", &[]),
+    );
+    repo.write(
+        "docs/coordination/00050-planner-architect.md",
+        &decision(50, "legacy base collision two", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base with legacy collision"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/obligation"]);
+    repo.write(
+        "docs/coordination/00300-coder-tester.md",
+        &handoff(300, "governor-reviewer", "unbridged gate2"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "unbridged obligation"]);
+
+    let output = repo.agov(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/obligation",
+    ]);
+
+    assert_eq!(output.status.code(), Some(1));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.contains("ERR sequence collision"));
+    let obligation_pos = stdout
+        .find("WARN branch-local coordination obligations not visible")
+        .expect("obligation block must be present");
+    let summary_pos = stdout
+        .find("legacy sequence collision group(s) confined to base branch history")
+        .expect("legacy-collision summary line must be present");
+    assert!(
+        obligation_pos < summary_pos,
+        "obligation block must render before the legacy-collision summary:\n{stdout}"
+    );
+}
+
+/// Issue #85 (B-V26-1 frozen contract), positive and negative JSON shape
+/// assertions per `boundary-shape-testing-rule.md`: `legacy_base_collisions`
+/// is always an object with integer `count` and array `seqs`, and
+/// `sequence_collisions` no longer contains `"type": "base_duplicate_seq"`
+/// entries -- the negative case that would silently pass if an
+/// implementation kept the old field contents and only changed exit-code
+/// logic around them.
+#[test]
+fn legacy_base_collisions_json_shape_and_narrowed_sequence_collisions() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00050-governor-reviewer.md",
+        &decision(50, "legacy base collision one", &[]),
+    );
+    repo.write(
+        "docs/coordination/00050-planner-architect.md",
+        &decision(50, "legacy base collision two", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base with legacy collision"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/json-legacy"]);
+    repo.write("docs/coordination/.gitkeep", "");
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "unrelated branch commit, no coordination messages"]);
+
+    let output = repo.agov(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/json-legacy",
+        "--format",
+        "json",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let json: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
+    assert_eq!(json["legacy_base_collisions"]["count"], 1);
+    assert_eq!(json["legacy_base_collisions"]["seqs"], serde_json::json!([50]));
+    assert_eq!(json["sequence_collisions"], serde_json::json!([]));
+    for entry in json["sequence_collisions"].as_array().unwrap() {
+        assert_ne!(
+            entry["type"], "base_duplicate_seq",
+            "sequence_collisions must never contain base_duplicate_seq entries after this change"
+        );
+    }
+}
+
+/// Companion negative-shape check using the clean-repository case: even
+/// with zero legacy collisions, `legacy_base_collisions` must be present
+/// as `{"count": 0, "seqs": []}`, never `null` or omitted.
+#[test]
+fn legacy_base_collisions_present_with_empty_values_when_clean() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00100-governor-reviewer.md",
+        &decision(100, "base decision", &[]),
+    );
+    repo.write(
+        "docs/coordination/00120-coder-tester.md",
+        &decision(
+            120,
+            "reference bridge",
+            &["docs/coordination/00110-coder-tester.md"],
+        ),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/clean-json"]);
+    repo.write(
+        "docs/coordination/00110-coder-tester.md",
+        &handoff(110, "governor-reviewer", "referenced bridge"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "bridged coordination"]);
+
+    let output = repo.agov(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/clean-json",
+        "--format",
+        "json",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let json: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
+    assert_eq!(
+        json["legacy_base_collisions"],
+        serde_json::json!({"count": 0, "seqs": []})
+    );
+}
+
 struct GitFixture {
     root: PathBuf,
 }
