@@ -3878,9 +3878,9 @@ fn git_cat_file_batch(
         .args(["cat-file", "--batch"])
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
+        .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|err| err.to_string())?;
+        .map_err(|err| format!("git cat-file --batch: spawn failed: {err}"))?;
 
     let mut stdin = child.stdin.take().ok_or("git cat-file --batch: no stdin")?;
     let specifiers: Vec<String> = files
@@ -3901,15 +3901,36 @@ fn git_cat_file_batch(
         .stdout
         .take()
         .ok_or("git cat-file --batch: no stdout")?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or("git cat-file --batch: no stderr")?;
     let mut reader = std::io::BufReader::new(stdout);
     let mut results = Vec::with_capacity(files.len());
 
-    for _ in &specifiers {
+    // B-V26-G2-1: every early-exit path below sets `read_error` and
+    // breaks, rather than silently returning a short `results` -- the
+    // caller must never receive a shorter-than-requested response list
+    // as if it were a normal "some files missing" outcome.
+    let mut read_error: Option<String> = None;
+    for specifier in &specifiers {
         let mut header = String::new();
-        let read_bytes = reader
-            .read_line(&mut header)
-            .map_err(|err| err.to_string())?;
+        let read_bytes = match reader.read_line(&mut header) {
+            Ok(n) => n,
+            Err(err) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: read failed for {specifier}: {err}"
+                ));
+                break;
+            }
+        };
         if read_bytes == 0 {
+            read_error = Some(format!(
+                "git cat-file --batch: unexpected end of output before a response for \
+                 {specifier} ({} of {} responses received)",
+                results.len(),
+                specifiers.len()
+            ));
             break;
         }
         let header = header.trim_end();
@@ -3918,24 +3939,76 @@ fn git_cat_file_batch(
             continue;
         }
         // Header format: "<oid> <type> <size>".
-        let size: usize = header
-            .rsplit(' ')
-            .next()
-            .and_then(|value| value.parse().ok())
-            .unwrap_or(0);
+        let mut header_fields = header.rsplitn(3, ' ');
+        let size_field = header_fields.next();
+        let type_field = header_fields.next();
+        let oid_field = header_fields.next();
+        let size: usize = match (
+            oid_field,
+            type_field,
+            size_field.and_then(|v| v.parse().ok()),
+        ) {
+            (Some(_), Some(_), Some(size)) => size,
+            _ => {
+                read_error = Some(format!(
+                    "git cat-file --batch: malformed header for {specifier}: {header:?}"
+                ));
+                break;
+            }
+        };
         let mut content = vec![0u8; size];
-        reader
-            .read_exact(&mut content)
-            .map_err(|err| err.to_string())?;
+        if let Err(err) = reader.read_exact(&mut content) {
+            read_error = Some(format!(
+                "git cat-file --batch: truncated content for {specifier} \
+                 (expected {size} bytes): {err}"
+            ));
+            break;
+        }
         // `cat-file --batch` appends a trailing newline after each
         // object's content, separate from the content itself.
         let mut trailing = [0u8; 1];
-        let _ = reader.read_exact(&mut trailing);
+        if reader.read_exact(&mut trailing).is_err() {
+            read_error = Some(format!(
+                "git cat-file --batch: missing trailing separator for {specifier}"
+            ));
+            break;
+        }
         results.push(Some(String::from_utf8_lossy(&content).to_string()));
     }
 
-    let _ = writer.join();
-    let _ = child.wait();
+    let writer_result = writer
+        .join()
+        .map_err(|_| "git cat-file --batch: writer thread panicked".to_string())?;
+
+    let mut stderr_output = String::new();
+    let _ = stderr.read_to_string(&mut stderr_output);
+    let exit_status = child
+        .wait()
+        .map_err(|err| format!("git cat-file --batch: failed to wait on child: {err}"))?;
+
+    if let Some(err) = read_error {
+        return Err(err);
+    }
+    if let Err(err) = writer_result {
+        return Err(format!("git cat-file --batch: writer failed: {err}"));
+    }
+    if !exit_status.success() {
+        let stderr_note = if stderr_output.trim().is_empty() {
+            String::new()
+        } else {
+            format!(": {}", stderr_output.trim())
+        };
+        return Err(format!(
+            "git cat-file --batch: exited with {exit_status}{stderr_note}"
+        ));
+    }
+    if results.len() != specifiers.len() {
+        return Err(format!(
+            "git cat-file --batch: expected {} response(s), got {}",
+            specifiers.len(),
+            results.len()
+        ));
+    }
 
     Ok(files.iter().cloned().zip(results).collect())
 }

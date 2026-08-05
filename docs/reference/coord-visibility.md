@@ -33,8 +33,10 @@ The default scan (no `--branch`) covers **local branches and
 remote-tracking branches** (`refs/heads/*` and `refs/remotes/<remote>/*`),
 deduplicated by commit -- a branch checked out locally and its
 remote-tracking alias are one candidate, not two. This scan is batched
-(one Git read per candidate branch, not one per coordination file), so
-the default scan is fast enough for everyday use without needing
+(one file listing plus one batched content read per candidate branch --
+a bounded O(branches) number of Git subprocesses, not one per
+coordination file), so the default scan is fast enough for everyday use
+without needing
 `--branch` purely for performance reasons. Prefer a targeted `--branch`
 invocation when you already know which branch you care about, or when
 you want output scoped to a single review.

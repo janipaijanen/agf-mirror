@@ -903,6 +903,55 @@ fn coupled_widened_default_keeps_invocation_count_bounded_by_dedup_groups() {
     );
 }
 
+/// B-V26-G2-1: a `git cat-file --batch` failure must fail the scan closed
+/// (exit 2, with a diagnostic naming the failure), never report a clean
+/// scan by silently omitting the files the batch reader didn't get a
+/// response for.
+#[test]
+fn cat_file_batch_failure_fails_closed_not_clean() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00100-governor-reviewer.md",
+        &decision(100, "base decision", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/faulty-batch"]);
+    repo.write(
+        "docs/coordination/00111-coder-tester.md",
+        &handoff(111, "governor-reviewer", "would be an obligation"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "hidden coordination"]);
+
+    let output = repo.agov_with_faulty_cat_file(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/faulty-batch",
+    ]);
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(
+        output.status.code(),
+        Some(2),
+        "a git cat-file --batch failure must fail closed (exit 2), not report \
+         clean\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        !stdout.contains("OK coordination visibility clean"),
+        "must not report a clean scan when the batch reader failed\nstdout:\n{stdout}"
+    );
+    assert!(
+        stderr.contains("cat-file") || stdout.contains("cat-file"),
+        "error output should name the failing git operation\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+}
+
 struct GitFixture {
     root: PathBuf,
 }
@@ -1010,6 +1059,50 @@ impl GitFixture {
             &format!("refs/remotes/{remote}/HEAD"),
             &format!("refs/remotes/{remote}/{target_branch}"),
         ]);
+    }
+
+    /// B-V26-G2-1 fault injection: runs `agov` with a fake `git` shadowing
+    /// PATH that delegates every subcommand to the real `git` except
+    /// `cat-file --batch`, which it makes exit non-zero immediately --
+    /// reproduces a real `git cat-file --batch` failure deterministically
+    /// (the reviewer's own repro method), without depending on breaking
+    /// the real binary.
+    fn agov_with_faulty_cat_file(&self, args: &[&str]) -> std::process::Output {
+        use std::os::unix::fs::PermissionsExt;
+        let real_git = String::from_utf8(
+            Command::new("sh")
+                .args(["-c", "command -v git"])
+                .output()
+                .expect("locate real git")
+                .stdout,
+        )
+        .expect("utf8")
+        .trim()
+        .to_string();
+        let fake_bin_dir = self.root.join(".fake-bin");
+        fs::create_dir_all(&fake_bin_dir).unwrap();
+        let script_path = fake_bin_dir.join("git");
+        fs::write(
+            &script_path,
+            format!(
+                "#!/bin/sh\nif [ \"$1\" = \"cat-file\" ] && [ \"$2\" = \"--batch\" ]; then\n  exit 73\nfi\nexec \"{real_git}\" \"$@\"\n"
+            ),
+        )
+        .unwrap();
+        let mut perms = fs::metadata(&script_path).unwrap().permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&script_path, perms).unwrap();
+
+        let existing_path = std::env::var("PATH").unwrap_or_default();
+        let new_path = format!("{}:{existing_path}", fake_bin_dir.display());
+
+        Command::new(env!("CARGO_BIN_EXE_agov"))
+            .env("AGOV_TOKEN_ROI", "0")
+            .env("PATH", new_path)
+            .args(args)
+            .current_dir(&self.root)
+            .output()
+            .expect("run agov")
     }
 
     fn set_upstream(&self, local_branch: &str, remote_ref: &str) {
