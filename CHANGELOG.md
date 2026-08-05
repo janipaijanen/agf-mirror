@@ -6,6 +6,22 @@ The canonical adopter-facing AGF v2 changelog lives at
 [`agf/CHANGELOG.md`](agf/CHANGELOG.md). The bootstrap reference changelog for
 agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELOG.md).
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING (Phase 0, no deprecation cycle — zero known external
+  dependents on the aarch64-linux tooling archive today; see
+  `workflow/deprecation-policy-rule.md`):** `aarch64-unknown-linux-musl`
+  dropped from the mandatory Rust tooling target set in
+  `.gitlab-ci.yml`. Cross-compilation for this target via Docker/QEMU
+  repeatedly exhausted disk on the shared `saas-linux-small-amd64` CI
+  runner class (`docs/plans/20260805T084100Z-drop-aarch64-linux-required-target.md`).
+  Future tag releases publish only the `linux-x86_64` Rust tooling
+  archive until CI runner capacity for this target is sponsored.
+  Already-published `linux-aarch64` archives on releases v2.4.7 through
+  v2.5.0-rc.2 are unaffected.
+
 ## [2.5.0-rc.2] - 2026-08-04
 
 **RC checkpoint; not final.** `v2.5.0` final ships the same functional
