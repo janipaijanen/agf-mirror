@@ -7,11 +7,12 @@ gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
-    reason: Reviewed the exploratory draft 2026-08-03
-      (docs/coordination/20260803T201537Z-contribution-auditor-3kpe.md);
-      found 5 pre-Gate defects (F-VIS-1..5), all addressed in this
-      revision, and recommended holding any Gate 1 submission until the
-      v2.5.0-rc.1 observation hold is lifted.
+    reason: Reviewed the exploratory draft on 2026-08-03
+      (docs/coordination/20260803T201537Z-contribution-auditor-3kpe.md)
+      and the bounded revision on 2026-08-05
+      (docs/coordination/20260805T095052Z-contribution-auditor-nr3r.md).
+      All findings from both reviews are addressed in this revision;
+      independent confirmation remains required before Gate 1 submission.
   - role: infosec-sentinel
     status: not-applicable
     reason: Presentation-layer documentation/CSS/navigation change only;
@@ -310,13 +311,12 @@ this restructuring breaks any existing external link into the site.
 
 ### 4. Hero copy
 
-Recommend **Variant A** from the marketing draft: *"Plans reviewed
+**Final selection: Variant A** from the marketing draft: *"Plans reviewed
 before code. Code reviewed before merge."* — states the mechanism, not
 an adjective; a reader can verify it by reading the workflow rather than
-trusting a claim. Variant B (*"A decision record for every change an AI
-makes."*) is a strong second option if the governor prefers a
-record/audit framing over a gate framing. Variant C is included in the
-draft for completeness but not recommended as primary.
+trusting a claim. Variants B and C are rejected alternatives retained only
+as visible audit history in the draft section; neither is an open choice for
+implementation. Any later change to the selected headline returns to planning.
 
 ### 5. README restructure
 
@@ -324,7 +324,9 @@ Adopt the technical-writing draft's structure: unchanged epigraph, a
 tightened hero paragraph and bullet list with zero inline hedging, and a
 new `## Evidence and maturity` section that consolidates every
 qualifier currently interleaved in the "Typical cost" paragraph into a
-claim/status/basis table. No claim is deleted or weakened — every
+four-row claim/status/basis table: mechanical installation, initial
+commissioning, governor attention, and exit duration. No claim is deleted or
+weakened — every
 qualifier that exists today still exists, just relocated and linked from
 the hero with one sentence. This keeps the change EDITORIAL/ADDITIVE
 under `downstream-impact-rule.md`'s classification (no behavioral
@@ -347,8 +349,17 @@ surfaces. Concretely: README should point, not carry the full pitch.
 | Not this | 5 bullets | Not Microsoft AGT, not an orchestrator, not a root of trust alone |
 | Fit | 6 bullets | Try when / skip when — including the root-of-trust and forge-native-AI-review skip cases from the competitive-positioning section above |
 | 60-second install | commands | Pinned `vX.Y.Z` archive, link to published docs |
+| AI assistants | 3 lines | Separately labeled route to `AGENTS.md`; the `agov` CLI is the universal supported path, while MCP-capable assistants are recommended to connect agov MCP for structured access, linking to the MCP status/limitations page |
 | Map | short table | `agf/` = shipped product; `docs/` = this repo's own evidence/process |
 | Deep dive | one line | Link to the published docs site — full narrative lives there, not in README |
+
+The separately labeled AI-assistant route uses this exact relationship:
+"Read `AGENTS.md` before acting. The `agov` CLI is the universal supported
+path. Recommended for MCP-capable assistants: connect agov MCP for structured
+access." The MCP phrase links to the published `docs/adopt/mcp-server.md`
+status page so its Level 4 maturity and known path-contract limitation remain
+one click away. It is a recommendation for a capable surface, not a requirement
+for adoption and not a claim that MCP is Level 5 Deployable.
 
 **Correction, verified false (2026-08-03):** an earlier claim that
 README's docs links are "repo-native paths (`agf/docs/site/docs/...`),
@@ -454,11 +465,12 @@ retrofit in this workstream.
 
 ## Blocking prerequisite: the documentation-audience-rule mismatch
 
-**Current prerequisite status (2026-08-05):** MR !1151 now contains the
-narrow audience-rule correction at exact head `ef8b8947` with a successful
-exact-head pipeline and awaits authoritative contribution-auditor review under
-`20260805T083202Z-planner-architect-k3kj.md`. This plan may not enter Gate 1
-until that review is CLEAR and the governor records Gate 1 approval for !1151.
+**Current prerequisite status (2026-08-05):** MR !1151 contains the narrow
+audience-rule correction at exact head `ef8b8947`, with a successful exact-head
+pipeline and authoritative contribution-auditor CLEAR in
+`20260805T095156Z-contribution-auditor-hje3.md`. It still awaits the binding
+governor Gate 1 decision. This plan may not enter Gate 1 until that approval is
+recorded.
 
 **Correction (contribution-auditor finding, `3kpe`, 2026-08-03):**
 originally recorded below as a flagged-but-parallel note. That
@@ -487,8 +499,10 @@ than the rule template's business-user framing.
 
 ## Affected files (once implementation is approved — none touched yet)
 
-- `README.md` — hero/bullet restructure, new Evidence and maturity
-  section.
+- `README.md` — hero/bullet restructure, separately labeled AI-assistant
+  route, and a four-row Evidence and maturity section preserving mechanical
+  installation, initial commissioning, governor-attention, and exit-duration
+  qualifiers.
 - `agf/docs/build/mkdocs.yml` — `theme.palette` (custom primary/accent),
   `theme.features` (`navigation.tabs`, `navigation.tabs.sticky` replacing
   `navigation.top`), restructured `nav:` tree.
@@ -499,6 +513,13 @@ than the rule template's business-user framing.
   shape-and-label treatment rather than relying on colour alone.
 - `agf/docs/site/reference/palette.md` — measured `blue-light` contrast on
   Material's dark background; no new colour token.
+- `agf/docs/build/hooks/check_palette_contrast.py` — extend the existing
+  checker and its self-tests with the actual Material slate background and
+  the governed dark-theme text/accent pairings used by the hero.
+- `agf/docs/build/hooks/check_nav_inventory.py` — new deterministic check that
+  extracts all `nav:` leaf URLs, rejects duplicates, and compares the set with
+  every eligible Markdown page below MkDocs `docs_dir`; the expected result at
+  this plan's baseline is exactly the 42 unique URLs listed above.
 
 Explicitly not affected: `agf/docs/site/overrides/main.html`, font binaries,
 the 42 existing page bodies, URLs/file paths, release metadata, and version
@@ -527,25 +548,42 @@ python3 agf/docs/build/hooks/check_palette_contrast.py
 ```
 
 ```
+python3 agf/docs/build/hooks/check_nav_inventory.py --config agf/docs/build/mkdocs.yml
+```
+
+```
 mkdocs build -f agf/docs/build/mkdocs.yml --strict
 ```
 
 The plan and adopter-doc checks run before implementation and again at each
 slice head. Palette and MkDocs checks run on the Pages theme/hero and navigation
-slices. The README slice runs the repository's full governed acceptance
+slices. The palette checker extension and its self-tests are a required task in
+the theme/hero slice, not pre-existing evidence. The nav-inventory command is a
+required task and blocking acceptance check in the navigation slice; it must
+report 42 unique leaves at this baseline and fail on any missing, extra, or
+duplicate URL. The README slice runs the repository's full governed acceptance
 pipeline; it does not claim MkDocs coverage for a root-only file.
 - Per `accessibility-rule.md`: new hero CTAs and tab nav need visible
   keyboard focus states, accessible names, and must not rely on colour
   alone (the gate-ledger hero visual already carries shape distinctions
   from the existing governed responsibility palette, so this should
   carry over rather than being designed fresh).
-- Per `visible-artifact-verification-rule.md` (this is visible output a
-  human is meant to look at): before merge, a human opens the rendered
-  site via `mkdocs serve` in both light and dark theme and at desktop and
-  mobile widths, and confirms it looks correct — the Artifact mockup
-  produced alongside this plan is a stand-in for early-stage visual
-  review, not a substitute for that final check against the real
-  MkDocs Material build.
+- Per `visible-artifact-verification-rule.md` (this is visible output a human
+  is meant to look at): before merge, a human opens the rendered site via
+  `mkdocs serve` in both light and dark theme at the core viewports 375×844,
+  641×844, 900×1000, and 1280×900. Responsive inspection additionally checks
+  both sides of every custom-CSS breakpoint at 639/641, 719/721, 819/821, and
+  899/901 CSS pixels. The reviewer confirms no clipped copy, hidden action,
+  horizontal page scroll, overlap, lost focus indicator, or layout dependence
+  on a particular locally installed font. The Artifact mockup is a stand-in
+  for early-stage visual review, not a substitute for that final check against
+  the real MkDocs Material build.
+- The theme/hero implementation gives "Get started" the existing first-
+  governed-change destination and "See the docs" the documentation overview
+  destination. The standalone mockup's custom header and tab chrome are
+  illustrative composition only; production uses MkDocs Material's existing
+  responsive header/navigation affordances, including mobile access, rather
+  than carrying over `.chrome-links` or its hide-at-640px behavior.
 
 ## Risks
 
@@ -581,9 +619,9 @@ release, or deploy.
 
 ### 1. Technical writing — README restructure
 
-<!-- Full draft output preserved for audit; see coordination/session
-record for the raw subagent transcript if this section needs
-re-verification. Synthesized into Decision 5 above. -->
+**Superseded — see Decisions 5 and 5a above. Do not implement this draft as
+written.** It remains visible only as audit history; the adopted structure has
+four evidence rows and a separately labeled AI-assistant route.
 
 Restructured hero: unchanged epigraph, tightened "What AGF gives you"
 bullets (each cut to one independent clause), new "## Evidence and
@@ -596,7 +634,8 @@ decorative hedging.
 
 ### 2. Developer experience / IA — navigation
 
-<!-- Synthesized into Decision 3 above. -->
+**Superseded — see Decision 3 above. Do not implement this seven-tab draft or
+its proposed page merges/demotions.** It remains visible only as audit history.
 
 Proposed 7 top-level tabs (Home, Evaluate, Learn, Adopt, Operate,
 Reference, Contribute) replacing the single nested "Documentation" tree.
@@ -610,7 +649,8 @@ evaluation dossier (narrow audiences, still linkable), Disclaimer
 
 ### 3. Marketing / positioning — hero copy
 
-<!-- Synthesized into Decision 4 above. -->
+**Superseded — see Decision 4 above. Do not treat these as open variants.**
+Variant A is final; B and C remain visible only as rejected audit history.
 
 Three headline variants, all mechanism-first with no unsupported
 superlative or vendor comparison:
@@ -628,7 +668,10 @@ superlative.
 
 ### 4. UX / visual design — MkDocs Material spec
 
-<!-- Synthesized into Decisions 1-2 and the CSS/component notes above. -->
+**Superseded — see Decisions 1–2 and the implementation/acceptance rules
+above. Do not implement this draft as written.** In particular, its font and
+dark-accent choices contradict the adopted system-font and governed-token
+decisions; it remains visible only as audit history.
 
 Palette: `blue-mid` for chrome in both themes; stock indigo (not
 `blue-mid`) for dark-mode accent until a validated lightened tint exists.

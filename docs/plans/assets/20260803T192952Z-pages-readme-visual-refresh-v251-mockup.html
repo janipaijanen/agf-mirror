@@ -38,8 +38,8 @@
       --ink-soft:#A8B3C4;
       --ink-faint:#8B96A6;
       --accent:#99CCEE;
-      --accent-soft:#1E3A52;
-      --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+      --accent-soft:#99CCEE;
+      --accent-wash: color-mix(in srgb, var(--accent-soft) 20%, transparent);
       --gate-human:#FFA64D;
       --gate-check:#3FCB7C;
       --gate-ref:#9AA4B2;
@@ -52,7 +52,7 @@
   }
   :root[data-theme="dark"]{
     --bg:#0B0E14; --bg-raised:#131822; --ink:#EDF1F7; --ink-soft:#A8B3C4; --ink-faint:#8B96A6;
-    --accent:#99CCEE; --accent-soft:#1E3A52; --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+    --accent:#99CCEE; --accent-soft:#99CCEE; --accent-wash: color-mix(in srgb, var(--accent-soft) 20%, transparent);
     --gate-human:#FFA64D; --gate-check:#3FCB7C; --gate-ref:#9AA4B2;
     --border: rgba(237,241,247,0.14); --border-strong: rgba(237,241,247,0.26);
     --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px -14px rgba(0,0,0,0.6);
@@ -271,13 +271,13 @@
 
 <header class="chrome">
   <div class="shell chrome-row">
-    <a class="brand" href="#" aria-label="agents-govern home">
+    <a class="brand" href="https://janipaijanen.gitlab.io/agents-govern-framework/" aria-label="agents-govern home">
       <span>agents<span class="dot">·</span>govern</span>
       <span class="ver">planning</span>
     </a>
     <nav class="chrome-links" aria-label="secondary">
-      <a href="#">Docs</a>
-      <a href="#">GitLab</a>
+      <a href="https://janipaijanen.gitlab.io/agents-govern-framework/docs/">Docs</a>
+      <a href="https://gitlab.com/janipaijanen/agents-govern-framework">GitLab</a>
     </nav>
   </div>
 </header>
@@ -290,8 +290,8 @@
         <h1 class="headline">Plans reviewed before code.<br>Code reviewed before merge.</h1>
         <p class="subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every governed decision leaves a timestamped, append-only record in your repo.</p>
         <div class="ctas">
-          <a class="btn btn-primary" href="#">Get started</a>
-          <a class="btn btn-secondary" href="#">See the docs</a>
+          <a class="btn btn-primary" href="https://janipaijanen.gitlab.io/agents-govern-framework/docs/start/first-governed-change/">Get started</a>
+          <a class="btn btn-secondary" href="https://janipaijanen.gitlab.io/agents-govern-framework/docs/">See the docs</a>
         </div>
         <div class="hero-foot">No new accounts · No hosted service · No runtime — files in <code>your-repo/agf/</code></div>
       </div>
@@ -336,11 +336,11 @@
   <div class="tabstrip-wrap">
     <div class="shell">
       <nav class="tabstrip" aria-label="primary">
-        <a class="tab active" href="#">Home</a>
-        <a class="tab" href="#">Adopt</a>
-        <a class="tab" href="#">Evaluate</a>
-        <a class="tab" href="#">Reference</a>
-        <a class="tab" href="#">Contribute</a>
+        <a class="tab active" href="https://janipaijanen.gitlab.io/agents-govern-framework/">Home</a>
+        <a class="tab" href="https://janipaijanen.gitlab.io/agents-govern-framework/docs/start/should-you-adopt/">Adopt</a>
+        <a class="tab" href="https://janipaijanen.gitlab.io/agents-govern-framework/evaluate/">Evaluate</a>
+        <a class="tab" href="https://janipaijanen.gitlab.io/agents-govern-framework/reference/maturity-vocabulary/">Reference</a>
+        <a class="tab" href="https://janipaijanen.gitlab.io/agents-govern-framework/contribute/">Contribute</a>
       </nav>
     </div>
   </div>
@@ -356,7 +356,7 @@
         <div class="fitem"><div class="fkey">01 · roles</div><div class="fval">A named human governor approves the plan before implementation starts <b>(Gate 1)</b> and approves the tested change before it merges <b>(Gate 2)</b>.</div></div>
         <div class="fitem"><div class="fkey">02 · authority</div><div class="fval">Proposing, implementing, reviewing, and approving are separate, named responsibilities.</div></div>
         <div class="fitem"><div class="fkey">03 · records</div><div class="fval">Plans, handoffs, reviews, and decisions live as repository files tied to exact revisions.</div></div>
-        <div class="fitem"><div class="fkey">04 · evidence</div><div class="fval">Every public capability claim states whether it's planned, implemented, validated, or deployable — and how well-evidenced that status is.</div></div>
+        <div class="fitem"><div class="fkey">04 · evidence</div><div class="fval">AGF's publication standard is to state whether a capability is planned, implemented, validated, or deployable — and how well-evidenced that status is.</div></div>
         <div class="fitem"><div class="fkey">05 · learning</div><div class="fval">Operational evidence can become a reviewed learning record; nothing changes rules or scope automatically.</div></div>
         <div class="fitem"><div class="fkey">06 · exit</div><div class="fval">No runtime or service holds your data — pause, downgrade, or remove it whenever you want.</div></div>
       </div>
@@ -375,15 +375,15 @@
           <div class="diffcol">
             <div class="diffhead old">Today — hedges inline</div>
             <div class="diffbody old">
-              <p>"Typical cost: mechanical installation has taken no more than ten minutes in the maintainer's own deployments — empirically informed maintainer evidence, not yet independent-adopter validation. Governor attention is often 5–15 minutes for a non-trivial change, a maintainer-informed planning estimate, not a benchmark…"</p>
-              <p>— three qualifiers, one paragraph, read before the pitch has finished landing.</p>
+              <p>"Typical cost: mechanical installation has taken no more than ten minutes in the maintainer's own deployments — empirically informed maintainer evidence, not yet independent-adopter validation. Initial commissioning is separate, variable work with no numeric estimate. Governor attention is often 5–15 minutes for a non-trivial change, a maintainer-informed planning estimate, not a benchmark. Exit duration is unmeasured and varies with your CI, hooks, and retained evidence."</p>
+              <p>— four qualified claims, one paragraph, read before the pitch has finished landing.</p>
             </div>
           </div>
           <div class="diffcol">
             <div class="diffhead new">Proposed — hedges relocated</div>
             <div class="diffbody">
-              <p><span class="tag kept">kept verbatim</span>Installation is fast and governor overhead is modest in practice — see <a href="#">Evidence and maturity</a> for what's measured versus estimated.</p>
-              <p><span class="tag moved">moved below</span><b>Evidence and maturity</b> table: claim → status → basis, three rows, same wording as today.</p>
+              <p><span class="tag kept">claims kept</span>See <a href="#evidence-and-maturity">Evidence and maturity</a> for what's measured, estimated, variable, or still unmeasured.</p>
+              <p id="evidence-and-maturity"><span class="tag moved">moved below</span><b>Evidence and maturity</b> table: claim → status → basis, four rows (installation, commissioning, governor attention, exit duration), preserving today's qualifications.</p>
             </div>
           </div>
         </div>
@@ -397,7 +397,9 @@
       <div class="notelist">
         <div class="note"><div class="mark">01</div><p><b>Dark-mode accent uses the governed <code style="font-family:var(--font-mono);">blue-light</code> token.</b> Its contrast on the actual Material slate background must be recorded in <code style="font-family:var(--font-mono);">reference/palette.md</code> and pass <code style="font-family:var(--font-mono);">check_palette_contrast.py</code> before implementation ships.</p></div>
         <div class="note"><div class="mark">02</div><p><b>System font stacks are the chosen first-refresh contract.</b> This workstream adds neither font binaries nor a font CDN; later font vendoring would need its own licensing and supply-chain review.</p></div>
-        <div class="note"><div class="mark">03</div><p><b>The audience-rule correction remains a prerequisite.</b> MR !1151 must receive authoritative review and binding Gate 1 approval before this visual-refresh plan enters Gate 1.</p></div>
+        <div class="note"><div class="mark">03</div><p><b>The audience-rule correction remains a prerequisite.</b> MR !1151 has authoritative contribution-auditor CLEAR and still needs binding governor Gate 1 approval before this visual-refresh plan enters Gate 1.</p></div>
+        <div class="note"><div class="mark">04</div><p><b>AI assistants get a separately labeled README route.</b> Read <code style="font-family:var(--font-mono);">AGENTS.md</code> first; the <code style="font-family:var(--font-mono);">agov</code> CLI remains universal, while MCP-capable assistants are recommended to connect agov MCP and follow its linked maturity/limitations page.</p></div>
+        <div class="note"><div class="mark">05</div><p><b>This custom header is mockup-only.</b> Production retains MkDocs Material's responsive chrome and mobile navigation; only the page composition, governed palette, hero, and five-entry information architecture carry forward.</p></div>
       </div>
     </div>
   </section>
