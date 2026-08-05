@@ -36,6 +36,18 @@ distribution.
   repository state after this change — see `docs/plans/
   agov-coordination-read-path-reliability.md`'s migration note. Full
   field-by-field contract in `docs/reference/coord-visibility.md`.
+- **BREAKING (Phase 0, no deprecation cycle — zero known external
+  dependents on the aarch64-linux tooling archive today; see
+  `workflow/deprecation-policy-rule.md`):** `aarch64-unknown-linux-musl`
+  dropped from the mandatory Rust tooling target set in
+  `.gitlab-ci.yml`. Cross-compilation for this target via Docker/QEMU
+  repeatedly exhausted disk on the shared `saas-linux-small-amd64` CI
+  runner class (`docs/plans/20260805T084100Z-drop-aarch64-linux-required-target.md`).
+  Future tag releases publish only the `linux-x86_64` Rust tooling
+  archive until CI runner capacity for this target is sponsored.
+  Already-published `linux-aarch64` archives on releases v2.4.7 through
+  v2.5.0-rc.2 are unaffected. `agf/docs/site/reference/
+  release-artifacts.md` updated to match.
 
 ### Performance
 

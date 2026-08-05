@@ -1046,7 +1046,12 @@ rust:tooling:clippy:
     - cargo build --quiet --release -p agov
     - AGOV_BIN="$PWD/target/release/agov"
     - |
-      for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
+      # aarch64-unknown-linux-musl dropped from the mandatory target set
+      # 2026-08-05: cross-compilation via Docker/QEMU repeatedly exhausted
+      # disk on the shared saas-linux-small-amd64 runner class. Reinstate
+      # by adding the target back here once CI runner capacity is
+      # sponsored (see docs/plans/20260805T084100Z-drop-aarch64-linux-required-target.md).
+      for target in x86_64-unknown-linux-musl; do
         # Public filename slug per the Workstream A naming decision (er5h):
         # archives are named by platform slug; the real Rust triple stays in
         # cross --target and the provenance record's target_platform field.
