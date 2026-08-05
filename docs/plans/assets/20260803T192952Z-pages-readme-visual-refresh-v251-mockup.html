@@ -1,4 +1,9 @@
-<title>agents-govern — v2.5.1 visual direction</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agents-govern — Pages and README planning mockup</title>
 <style>
   :root{
     --bg:#F6F8FB;
@@ -18,9 +23,9 @@
     --old-strike: #B3390F;
     --new-good: #00753A;
 
-    --font-display: 'Inter var', Inter, -apple-system, 'Segoe UI', system-ui, sans-serif;
-    --font-body: 'Inter var', Inter, -apple-system, 'Segoe UI', system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
     --sp-1: 4px; --sp-2: 8px; --sp-3: 16px; --sp-4: 32px; --sp-5: 64px;
   }
@@ -32,7 +37,7 @@
       --ink:#EDF1F7;
       --ink-soft:#A8B3C4;
       --ink-faint:#8B96A6;
-      --accent:#5BB6EC;
+      --accent:#99CCEE;
       --accent-soft:#1E3A52;
       --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
       --gate-human:#FFA64D;
@@ -47,7 +52,7 @@
   }
   :root[data-theme="dark"]{
     --bg:#0B0E14; --bg-raised:#131822; --ink:#EDF1F7; --ink-soft:#A8B3C4; --ink-faint:#8B96A6;
-    --accent:#5BB6EC; --accent-soft:#1E3A52; --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+    --accent:#99CCEE; --accent-soft:#1E3A52; --accent-wash: color-mix(in srgb, var(--accent-soft) 55%, transparent);
     --gate-human:#FFA64D; --gate-check:#3FCB7C; --gate-ref:#9AA4B2;
     --border: rgba(237,241,247,0.14); --border-strong: rgba(237,241,247,0.26);
     --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px -14px rgba(0,0,0,0.6);
@@ -261,12 +266,14 @@
 
   .overflow-x{overflow-x:auto;}
 </style>
+</head>
+<body>
 
 <header class="chrome">
   <div class="shell chrome-row">
     <a class="brand" href="#" aria-label="agents-govern home">
       <span>agents<span class="dot">·</span>govern</span>
-      <span class="ver">v2.5.1</span>
+      <span class="ver">planning</span>
     </a>
     <nav class="chrome-links" aria-label="secondary">
       <a href="#">Docs</a>
@@ -330,10 +337,8 @@
     <div class="shell">
       <nav class="tabstrip" aria-label="primary">
         <a class="tab active" href="#">Home</a>
-        <a class="tab" href="#">Evaluate</a>
-        <a class="tab" href="#">Learn</a>
         <a class="tab" href="#">Adopt</a>
-        <a class="tab" href="#">Operate</a>
+        <a class="tab" href="#">Evaluate</a>
         <a class="tab" href="#">Reference</a>
         <a class="tab" href="#">Contribute</a>
       </nav>
@@ -390,9 +395,9 @@
     <div class="shell">
       <h2>Open items before this ships</h2>
       <div class="notelist">
-        <div class="note"><div class="mark">01</div><p><b>Dark-mode accent is illustrative, not final.</b> <code style="font-family:var(--font-mono);">#5BB6EC</code> shown here needs to be added to <code style="font-family:var(--font-mono);">reference/palette.md</code> with its own contrast row and pass <code style="font-family:var(--font-mono);">check_palette_contrast.py</code> before it ships — <code style="font-family:var(--font-mono);">blue-mid</code> itself fails AA as a dark-mode accent (~2.7:1 on slate).</p></div>
-        <div class="note"><div class="mark">02</div><p><b>Fonts are system-stack fallbacks in this mockup.</b> Production build self-hosts Inter + JetBrains Mono <code style="font-family:var(--font-mono);">.woff2</code> — no font CDN, matching the project's no-external-runtime posture.</p></div>
-        <div class="note"><div class="mark">03</div><p><b>documentation-audience-rule.md mismatch flagged, not resolved here.</b> The checked-in rule describes the public docs site as business-user-facing; this project's own site targets developers and technical evaluators. Separate governance change recommended.</p></div>
+        <div class="note"><div class="mark">01</div><p><b>Dark-mode accent uses the governed <code style="font-family:var(--font-mono);">blue-light</code> token.</b> Its contrast on the actual Material slate background must be recorded in <code style="font-family:var(--font-mono);">reference/palette.md</code> and pass <code style="font-family:var(--font-mono);">check_palette_contrast.py</code> before implementation ships.</p></div>
+        <div class="note"><div class="mark">02</div><p><b>System font stacks are the chosen first-refresh contract.</b> This workstream adds neither font binaries nor a font CDN; later font vendoring would need its own licensing and supply-chain review.</p></div>
+        <div class="note"><div class="mark">03</div><p><b>The audience-rule correction remains a prerequisite.</b> MR !1151 must receive authoritative review and binding Gate 1 approval before this visual-refresh plan enters Gate 1.</p></div>
       </div>
     </div>
   </section>
@@ -400,6 +405,8 @@
 
 <footer>
   <div class="shell">
-    Visual direction draft for v2.5.1 — see <code>docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md</code> for the full plan and open items. Not yet implemented in the real MkDocs Material build.
+    Planning mockup — see <code>docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md</code> for the governed scope and prerequisites. Not implemented in the real MkDocs Material build.
   </div>
 </footer>
+</body>
+</html>

@@ -19,15 +19,34 @@ advisory_consultation:
       change.
 ---
 
-# Pages + README visual refresh — exploratory draft, not an active v2.5.1 target
+# Pages + README visual refresh — active planning, implementation held
 
 Timestamp: 20260803T192952Z (OS-generated, `date -u +%Y%m%dT%H%M%SZ`)
 Branch: `plan/pages-readme-visual-refresh-v251`
-Status: DRAFT / ON HOLD — plan + visual mockup only, no implementation.
-Not eligible for Gate 1 submission or any release-planning obligation
-while the v2.5.0-rc.1 observation hold
-(`docs/coordination/20260803T200227Z-governor-reviewer-5m41.md`) is in
-effect. Held as exploratory material only.
+Status: ACTIVE PLANNING / IMPLEMENTATION HELD — plan + visual mockup only.
+Governor decision `20260805T090722Z-governor-reviewer-83m8.md` narrows
+the observation hold only for bounded refinement of this plan and mockup.
+Production Pages/README edits, Gate 1 submission before MR !1151 is
+approved, implementation, and every release action remain unauthorized.
+Temporary planning ownership belongs to Codex until the earliest expiry
+condition in `83m8`.
+
+## 2026-08-05 bounded planning activation
+
+This revision turns the exploratory material into one reviewable plan while
+preserving the sequencing decision in
+`20260805T081045Z-planner-architect-nt3e.md`:
+
+1. MR !1151 remains the semantic prerequisite. This plan may be refined now,
+   but must not be submitted for Gate 1 until !1151 receives an authoritative
+   contribution-auditor CLEAR and binding governor Gate 1 approval.
+2. This plan fixes scope and acceptance criteria; it does not implement the
+   site or root README.
+3. Implementation is split into independently reviewable slices under one
+   Gate 1 decision: README; Pages theme/hero; and Pages navigation. Each slice
+   receives its own implementation commit and Gate 2 disposition.
+4. Historical drafts below remain audit evidence. Where they conflict with the
+   decisions or bounded scope above, the decisions in this revision control.
 
 ## Intent
 
@@ -41,18 +60,18 @@ register of a reference site the human governor pointed to
 flat navigation), adapted to AGF's own governed brand material rather
 than copied wholesale.
 
-Target release: **provisional, not v2.5.1 as an active obligation.**
+Target release: **unassigned; this is not an active v2.5.1 release
+obligation.**
 `v2.5.0-rc.1` has since published, been independently verified (three-track
 external evaluation, `docs/coordination/20260803T204257Z-planner-architect-sjqm.md`),
 and is now under a **binding governor observation hold**
 (`docs/coordination/20260803T200227Z-governor-reviewer-5m41.md`, 2026-08-03):
 "Do not begin a v2.5.0 final, v2.5.0-rc.2, v2.5.1-rc.1, or v2.5.1-rc.2 plan
-or release process yet." This plan does not create or advance a v2.5.1
-release obligation while that hold is in effect — it stays exploratory
-material on its own branch until the governor lifts the hold and a
-release target is explicitly reopened. No version bump, CHANGELOG entry,
-or tag is part of this plan in any case (per `release-via-merge-request-rule.md`,
-those happen only in the release workflow itself).
+or release process yet." Decision `83m8` permits this plan and mockup to
+advance, but does not reopen v2.5.1 or any other release target. No version
+bump, CHANGELOG entry, tag, release, or deployment is part of this plan (per
+`release-via-merge-request-rule.md`, those happen only in the release
+workflow itself).
 
 ## How this was drafted
 
@@ -104,26 +123,24 @@ recorded anywhere in this plan or in any drafted copy.
 
 Adopt the existing governed `blue-mid` (`#0077BB`) as the site's UI
 `primary` (nav/header chrome) in both light and dark schemes — white text
-on `blue-mid` is 4.82:1 in both directions. Do **not** reuse `blue-mid`
-as the **accent** (link/button text on page background) in dark mode: the
-UX draft computed it at ≈2.7:1 against Material's slate background, which
-fails WCAG AA even at the large-text threshold. Dark-mode accent needs a
-new lightened tint, added to `reference/palette.md` with its own
-contrast entry and validated by the existing `check_palette_contrast.py`
-CI hook — **not** invented ad hoc in CSS. The mockup below uses an
-illustrative tint (`#5BB6EC`) to demonstrate the direction; it is not
-proposed as the final validated value.
+on `blue-mid` is 4.82:1. Use `blue-mid` for light-theme accents and the
+existing governed `blue-light` (`#99CCEE`) for dark-theme accents. Do
+**not** ship the mockup's illustrative `#5BB6EC` tint or invent another
+token ad hoc. Implementation records `blue-light`'s measured contrast on
+the actual Material slate background in `reference/palette.md` and must
+clear WCAG AA before use; if it fails, the slice blocks and returns to
+planning rather than choosing an ungoverned fallback.
 
 ### 2. Typography
 
-Inter (display/body) + JetBrains Mono (labels, evidence/status values,
-code) — both OFL-licensed and self-hostable. Real implementation must
-vendor `.woff2` files into the repo (no font CDN — the project already
-has no external runtime dependencies and Pages builds should stay that
-way); the mockup uses a system-font fallback stack since it cannot ship
-font binaries.
+Use the mockup's system stacks for the first refresh: platform sans-serif
+for display/body and platform monospace for labels, evidence/status values,
+and code. Do not vendor Inter or JetBrains Mono and do not add a font CDN in
+this workstream. Font binaries, licensing/attribution, subsetting, and cache
+policy would create a separate supply-chain review that is not necessary to
+establish the visual hierarchy; it may be proposed later.
 
-### 3. Navigation — superseded by a kind-based two-lane resolution
+### 3. Navigation — kind-based structure with five top-level entry points
 
 **Status: this subsection replaces the original flat 7-tab draft below**
 (kept in "Agent drafts (verbatim)" for audit only — do not implement it
@@ -135,7 +152,7 @@ structure and converged on it collaboratively — recorded here as the
 resolved decision, not as one party's unilateral call.
 
 **The problem the flat draft missed:** a pure two-lane split ("adopter
-path" vs. "evaluate/nosey path") was proposed first and is *almost*
+path" vs. "evaluate/deep-dive path") was proposed first and is *almost*
 right, but applied literally it leaves pages like "Roles and gates" and
 "Coordination protocol" homeless — not adopter-only (a new visitor
 doesn't need them before day one) and not evaluator-only (a working
@@ -147,8 +164,11 @@ has simply never built it into navigation:
 > Human decision · AI action · Shared concept · Reference
 
 **Resolved structure:** keep two reading contracts (critical adopt path
-vs. evaluate/nosey path) but assign pages to a lane by their existing
-four-kind classification, not by a fresh binary:
+vs. evaluate/deep-dive path) but assign pages by their existing four-kind
+classification, not by a fresh binary. Expose five stable top-level entries:
+**Home, Adopt, Evaluate, Reference, Contribute**. `Reference` remains a
+separate tab for direct lookup while still belonging to the evaluate/deep-dive
+reading contract.
 
 | Kind (existing taxonomy) | Lane | Rule |
 |---|---|---|
@@ -156,15 +176,17 @@ four-kind classification, not by a fresh binary:
 | AI action | Adopter path, front | Procedure an assistant executes under supervision |
 | Shared concept | Adopter path, **early** — not stranded under Evaluate | Needed by day one/two *and* by evaluators; pulling it into the adopt path is the one-word fix for the flat-lane version's biggest gap |
 | Reference | Evaluate/reference lane, after the concept is clear | Precision — contracts, provenance, full inventories |
-| Evaluate/theory (adjacent to Reference) | Nosey lane only | Dossier, philosophical lenses, external-review posture, non-binding future direction |
+| Evaluate/theory (adjacent to Reference) | Evaluate/deep-dive lane only | Dossier, philosophical lenses, external-review posture, non-binding future direction |
 
-**Per-page inventory** (every page in the current `nav:` tree,
-classified; supersedes the flat draft's tab assignment):
+**Per-page inventory** (the 2026-08-05 current `nav:` contains 42 Markdown
+entries; this classification is a planning map, not new page metadata and not
+a requirement to edit all 42 files):
 
 | Page | Kind | Lane |
 |---|---|---|
 | Home (`index.md`) | entry / lane selector | both — the front door, links into each lane explicitly |
-| Use cases + Evaluate (merged, per DX draft) | Human decision | Adopter path, front |
+| Use cases | Human decision | Evaluate, linked from Adopt's decision group |
+| Evaluate | Human decision | Evaluate, linked from Adopt's decision group |
 | Roadmap | Human decision (informs adopt/not) | Adopter path, front |
 | Should you adopt? | Human decision | Adopter path, front |
 | Adopter FAQ | Human decision | Adopter path, front |
@@ -198,30 +220,85 @@ classified; supersedes the flat draft's tab assignment):
 | Tooling conformance | Reference | Evaluate/reference lane |
 | Release information | Reference | Evaluate/reference lane |
 | Disclaimer | Reference | Evaluate/reference lane (footer-weight regardless) |
-| AI evaluation dossier | Evaluate/theory | Nosey lane only |
-| Philosophical lenses on AI governance | Evaluate/theory | Nosey lane only |
-| Evolution | Evaluate/theory (non-binding future direction) | Nosey lane only |
-| Contribute | mixed / community | Nosey lane, footer-weight |
+| AI evaluation dossier | Evaluate/theory | Evaluate/deep-dive lane only |
+| Philosophical lenses on AI governance | Evaluate/theory | Evaluate/deep-dive lane only |
+| Evolution | Evaluate/theory (non-binding future direction) | Evaluate/deep-dive lane only |
+| Contribute | mixed / community | Contribute, footer-weight |
+| Influences and acknowledgements | Reference / community | Contribute, footer-weight |
 
 **Implementation rules:**
 
-1. Adopter-path nav = Human decision + AI action pages, ordered toward
-   the first governed change, using `navigation.tabs` +
-   `navigation.tabs.sticky`.
-2. Shared concept pages are pulled early into the adopter path — not
-   left stranded under an "Evaluate" or "Learn" tab, which was the flat
-   draft's actual defect.
-3. Nosey/evaluate lane = the dossier, philosophical lenses, Evolution,
-   and Reference-depth pages. Kept as a real top-level tab (`Evaluate`),
-   not deleted — evaluators must not be funneled through a simplified
-   adopter path that hides Track 3 findings, non-goals, or evidence
-   status.
-4. Per-page badge: one of the four kind labels, plus the line *"Not on
-   the critical adopt path"* on any page whose kind is Reference or
-   Evaluate/theory.
-5. Cross-links both ways: Shared concept pages link into both lanes;
-   nosey pages link back to the minimal adopt path. Neither lane is a
-   dead end.
+1. Configure `navigation.tabs` + `navigation.tabs.sticky` and use exactly the
+   five top-level entries above.
+2. `Adopt` contains decision pages, the Shared-concept pages needed on day
+   one/two, setup procedures, and operating procedures, ordered toward the
+   first governed change.
+3. `Evaluate` contains use cases, the existing evaluate page, roadmap,
+   dossier, philosophical lenses, and Evolution. It must not hide Track 3
+   findings, non-goals, or evidence status.
+4. `Reference` contains lookup/contract pages without changing their paths.
+   `Contribute` contains the existing contribute and acknowledgement pages.
+5. This slice changes `mkdocs.yml` navigation only. It does **not** merge page
+   bodies, rename/move files, add 42 per-page badges, or perform a site-wide
+   cross-link retrofit. Those earlier ideas would materially enlarge the
+   review surface and require their own content plan. Existing URLs therefore
+   remain unchanged.
+
+**Exact navigation target (all 42 current entries, no additions or drops):**
+
+```yaml
+nav:
+  - Home: index.md
+  - Adopt:
+      - Decide:
+          - Should you adopt?: docs/start/should-you-adopt.md
+          - Adopter FAQ: docs/start/adopter-faq.md
+          - Downstream impact: docs/adopt/downstream-impact.md
+          - Exit and decommission: docs/adopt/exit-and-decommission.md
+      - Understand:
+          - Documentation overview: docs/index.md
+          - Framework map: docs/start/framework-map.md
+          - AGF and agent runtimes: docs/concepts/position.md
+          - Roles and gates: docs/concepts/roles-and-gates.md
+          - Coordination protocol: docs/concepts/coordination-protocol.md
+          - Learning loop and evidence: docs/concepts/evidence-and-learnings.md
+      - Start:
+          - Install the agf directory: docs/adopt/install-and-layouts.md
+          - Assistant loader configuration: docs/adopt/assistant-loader-configuration.md
+          - Your first governed change: docs/start/first-governed-change.md
+          - agov MCP server: docs/adopt/mcp-server.md
+      - Operate:
+          - Operations runbook: docs/operate/runbook.md
+          - Session continuity: docs/operate/session-continuity.md
+          - Poll and coordinate: docs/operate/poll-and-coordinate.md
+          - Day-to-day operation: docs/operate/day-to-day.md
+          - Run AGF in real situations: docs/operate/run-agf-in-real-situations.md
+          - Review and release: docs/operate/review-and-release.md
+          - Upgrade from v1: docs/adopt/upgrade-from-v1.md
+  - Evaluate:
+      - Use cases: use-cases.md
+      - Evaluate AGF: evaluate.md
+      - Roadmap: roadmap.md
+      - AI evaluation dossier: ai-evaluation-dossier.md
+      - Philosophical lenses: docs/concepts/philosophical-lenses.md
+      - Evolution: future/evolution.md
+  - Reference:
+      - Adopter applicability catalog: docs/adopt/applicability-catalog.md
+      - Tooling and token savings: docs/adopt/tooling-and-tokens.md
+      - Contracts and validators: docs/advanced/contracts-and-validators.md
+      - Customizing the framework: docs/advanced/customizing-the-framework.md
+      - Environment variables: reference/environment-variables.md
+      - Release artifacts: reference/release-artifacts.md
+      - Maturity vocabulary: reference/maturity-vocabulary.md
+      - Coordination graph index: reference/coord-graph-index.md
+      - Review findings: reference/review-findings.md
+      - Tooling conformance: reference/tooling-conformance.md
+      - Release information: reference/release-info.md
+      - Disclaimer: reference/disclaimer.md
+  - Contribute:
+      - Contribute: contribute.md
+      - Influences and acknowledgements: acknowledgements.md
+```
 
 This is **not** two products or two truth levels — one framework, two
 reading contracts, four kinds already on record in this site's own
@@ -358,22 +435,30 @@ intrinsic-vs-derived distinction, applied to "assumed reader" instead
 of a data-model field). This is a theoretically useful critique from
 one AI-assisted pass, not independently corroborated evidence.
 
-**Accepted follow-up, not yet executed (per `3kpe`):** model each page
-group by primary and secondary audience, user task, prerequisite
-knowledge, and action/verification duty — not by a single capability
-level. Split `Adopt` from `Operate` (they were merged above). Split
-Reference material by task (installation, supervision, troubleshooting,
-command lookup, schema lookup do not share one reader contract). Note
-explicitly that an AI-action page still needs a human troubleshooting
-and verification path, which the single-axis table above does not
-capture.
+**Resolved planning model (executes `3kpe`'s accepted follow-up):**
 
-**Status: proposed, not decided, and due for the re-model above before
-it is treated as settled.** This table is a single AI-assisted-exercise
-output, not multi-source evidence and not a governor decision.
-drafting.
+| Group | Primary / secondary audience | User task | Prerequisite | Action and verification duty |
+|---|---|---|---|---|
+| Home | Curious technical evaluator / engineering decision-maker | Decide whether to inspect fit or start the adopt path | Familiarity with pull requests or code review | Human selects a lane; claims link to evidence |
+| README | Developer arriving through the forge / evaluator or AI assistant | Identify the project, reject obvious misfit, install or open deeper docs | Git repository literacy | Human verifies pinned install source; assistants are routed to governed instructions rather than given an implicit execution contract |
+| Human-decision pages | Governor or engineering lead / assurance stakeholder | Adopt, wait, reject, accept risk, or exit | Can read a technical proposal and make a resourcing/risk decision | Human owns the decision and can locate costs, caveats, and exit path |
+| Shared-concept pages | Adopter/operator / evaluator | Build the mental model needed to interpret procedures and reference contracts | Decision/escalation literacy; no assumed AGF vocabulary | Reader can explain the concept and follow links into both action and evidence surfaces |
+| AI-action: Adopt | AI assistant under a human governor / developer verifying setup | Install, configure, and complete the first governed change | Git, diffs, YAML, and CI-log literacy for the verifier | AI executes; human gets explicit checkpoints, troubleshooting, and acceptance evidence |
+| AI-action: Operate | AI assistant under a human governor / operator | Resume, coordinate, poll, review, and release | Completed adoption path plus relevant concept page | AI executes bounded steps; human verifies exact revisions, CI, and gate decisions |
+| Reference | Operator or reviewer seeking a contract / evaluator checking evidence | Command, schema, environment, release, or evidence lookup | Relevant concept/action page named where necessary | Reader verifies an exact value or contract; reference text does not silently become a tutorial |
+
+This matrix is a planning decision for the three bounded slices, grounded in
+the single-project audience exercise and therefore **Empirically informed**, not
+independent-adopter validation. It does not mandate a page-by-page content
+retrofit in this workstream.
 
 ## Blocking prerequisite: the documentation-audience-rule mismatch
+
+**Current prerequisite status (2026-08-05):** MR !1151 now contains the
+narrow audience-rule correction at exact head `ef8b8947` with a successful
+exact-head pipeline and awaits authoritative contribution-auditor review under
+`20260805T083202Z-planner-architect-k3kj.md`. This plan may not enter Gate 1
+until that review is CLEAR and the governor records Gate 1 approval for !1151.
 
 **Correction (contribution-auditor finding, `3kpe`, 2026-08-03):**
 originally recorded below as a flagged-but-parallel note. That
@@ -409,24 +494,46 @@ than the rule template's business-user framing.
   `navigation.top`), restructured `nav:` tree.
 - `agf/docs/site/stylesheets/agf.css` — hero component styles, type
   scale, spacing scale.
-- `agf/docs/site/overrides/main.html` — hero block markup for the
-  homepage.
-- `agf/docs/site/index.md` — hero copy source.
-- `agf/docs/site/reference/palette.md` — new dark-mode accent tint entry
-  with its own contrast row, if the UI-chrome unification in Decision 1
-  is approved.
-- New binary assets: self-hosted Inter + JetBrains Mono `.woff2` subsets
-  (path TBD, likely `agf/docs/site/assets/fonts/`).
+- `agf/docs/site/index.md` — semantic hero markup/copy and the governed-change
+  flow; implementation reuses the existing accessible figure or equivalent
+  shape-and-label treatment rather than relying on colour alone.
+- `agf/docs/site/reference/palette.md` — measured `blue-light` contrast on
+  Material's dark background; no new colour token.
+
+Explicitly not affected: `agf/docs/site/overrides/main.html`, font binaries,
+the 42 existing page bodies, URLs/file paths, release metadata, and version
+files.
 
 No migration needed (presentation-layer only, no schema/data changes).
 
 ## Test strategy
 
-- `mkdocs build -f agf/docs/build/mkdocs.yml --strict` must still pass
-  (broken internal links fail the build today; nav restructuring must not
-  introduce any).
-- `check_palette_contrast.py` must pass, including for any new dark-mode
-  accent tint added to `reference/palette.md`.
+Run these exact commands from repository root in this order:
+
+```
+agov plan validate docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md
+```
+
+```
+agov validate adopter-docs
+```
+
+```
+python3 agf/docs/build/hooks/check_palette_contrast.py --self-test
+```
+
+```
+python3 agf/docs/build/hooks/check_palette_contrast.py
+```
+
+```
+mkdocs build -f agf/docs/build/mkdocs.yml --strict
+```
+
+The plan and adopter-doc checks run before implementation and again at each
+slice head. Palette and MkDocs checks run on the Pages theme/hero and navigation
+slices. The README slice runs the repository's full governed acceptance
+pipeline; it does not claim MkDocs coverage for a root-only file.
 - Per `accessibility-rule.md`: new hero CTAs and tab nav need visible
   keyboard focus states, accessible names, and must not rely on colour
   alone (the gate-ledger hero visual already carries shape distinctions
@@ -442,12 +549,12 @@ No migration needed (presentation-layer only, no schema/data changes).
 
 ## Risks
 
-- Dark-mode accent contrast gap (Decision 1) must be resolved with a
-  real validated token before shipping, not deferred or shipped with a
-  guessed value.
-- Font self-hosting adds binary assets to the repo; confirm OFL licence
-  terms permit redistribution and add attribution if the licence
-  requires it.
+- Dark-mode accent contrast remains a blocking check: `blue-light` must be
+  measured on the actual Material background before use, never inferred from
+  the mockup.
+- System font rendering differs by platform. The implementation must preserve
+  layout at the acceptance viewports without depending on a particular locally
+  installed font; font vendoring remains out of scope.
 - Nav flattening is a real information-architecture change; the DX
   draft's "first 60 seconds" journey should be sanity-checked against
   actual adopter feedback if any exists, not treated as validated by
@@ -455,12 +562,18 @@ No migration needed (presentation-layer only, no schema/data changes).
 
 ## Rollout
 
-Implementation (once approved) proceeds as its own branch/MR per
-`branch-and-worktree-rule.md` and `merge-request-workflow-rule.md`,
-sized so a reviewer can answer one yes/no question per MR (likely split:
-one MR for README, one for the Pages theme/nav/hero, since those are
-independently reviewable and revertible). No commit in this plan's
-branch should be tagged or version-bumped.
+Implementation (once separately authorized) uses three ordered slices on
+reviewable branches/MRs per `branch-and-worktree-rule.md` and
+`merge-request-workflow-rule.md`:
+
+1. root README structure and claim-preserving copy;
+2. Pages palette/theme/hero; and
+3. Pages navigation only.
+
+Each slice is independently revertible and receives exact-head CI, visible
+artifact verification where applicable, and its own Gate 2 disposition. No
+implementation commit lands on this plan branch; no slice may tag, version,
+release, or deploy.
 
 ---
 
