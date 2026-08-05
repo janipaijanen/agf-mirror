@@ -3837,11 +3837,8 @@ fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, Strin
 
 fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityMessage>, String> {
     let mut messages = Vec::new();
-    for file in files {
-        let content = match git_output(&["show", &format!("{ref_name}:{file}")]) {
-            Ok(content) => content,
-            Err(_) => continue,
-        };
+    for (file, content) in git_cat_file_batch(ref_name, files)? {
+        let Some(content) = content else { continue };
         let Ok(mut raw) = agov_core::yaml::parse_frontmatter_json(&content) else {
             continue;
         };
@@ -3851,12 +3848,96 @@ fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityM
                 serde_json::Value::String(markdown_body(&content)),
             );
         }
-        messages.push(VisibilityMessage {
-            file: file.clone(),
-            raw,
-        });
+        messages.push(VisibilityMessage { file, raw });
     }
     Ok(messages)
+}
+
+/// Issue #76: reads all `files` at `ref_name` via a single long-lived
+/// `git cat-file --batch` subprocess (stdin/stdout streaming), instead of
+/// one `git show <ref>:<file>` process per file -- turns `1 + F`
+/// subprocess spawns per branch into `1 + 1` (one `ls-tree`, already
+/// done by the caller, plus this one `cat-file --batch`). `git cat-file
+/// --batch` accepts `<ref>:<path>` object specifiers directly on stdin,
+/// so no separate blob-OID resolution pass is needed.
+///
+/// Returns one `(file, Some(content))` per readable file and
+/// `(file, None)` for a file `cat-file` reports missing, preserving
+/// `files`' order and length.
+fn git_cat_file_batch(
+    ref_name: &str,
+    files: &[String],
+) -> Result<Vec<(String, Option<String>)>, String> {
+    use std::io::{BufRead, Read, Write};
+
+    if files.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let mut child = std::process::Command::new("git")
+        .args(["cat-file", "--batch"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|err| err.to_string())?;
+
+    let mut stdin = child.stdin.take().ok_or("git cat-file --batch: no stdin")?;
+    let specifiers: Vec<String> = files
+        .iter()
+        .map(|file| format!("{ref_name}:{file}"))
+        .collect();
+    let writer_specifiers = specifiers.clone();
+    let writer = std::thread::spawn(move || -> Result<(), String> {
+        for specifier in &writer_specifiers {
+            writeln!(stdin, "{specifier}").map_err(|err| err.to_string())?;
+        }
+        // Dropping `stdin` here closes the pipe, signaling EOF so
+        // `git cat-file --batch` exits after answering the last request.
+        Ok(())
+    });
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or("git cat-file --batch: no stdout")?;
+    let mut reader = std::io::BufReader::new(stdout);
+    let mut results = Vec::with_capacity(files.len());
+
+    for _ in &specifiers {
+        let mut header = String::new();
+        let read_bytes = reader
+            .read_line(&mut header)
+            .map_err(|err| err.to_string())?;
+        if read_bytes == 0 {
+            break;
+        }
+        let header = header.trim_end();
+        if header.ends_with(" missing") {
+            results.push(None);
+            continue;
+        }
+        // Header format: "<oid> <type> <size>".
+        let size: usize = header
+            .rsplit(' ')
+            .next()
+            .and_then(|value| value.parse().ok())
+            .unwrap_or(0);
+        let mut content = vec![0u8; size];
+        reader
+            .read_exact(&mut content)
+            .map_err(|err| err.to_string())?;
+        // `cat-file --batch` appends a trailing newline after each
+        // object's content, separate from the content itself.
+        let mut trailing = [0u8; 1];
+        let _ = reader.read_exact(&mut trailing);
+        results.push(Some(String::from_utf8_lossy(&content).to_string()));
+    }
+
+    let _ = writer.join();
+    let _ = child.wait();
+
+    Ok(files.iter().cloned().zip(results).collect())
 }
 
 fn markdown_body(content: &str) -> String {

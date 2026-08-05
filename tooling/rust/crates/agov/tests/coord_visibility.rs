@@ -734,6 +734,175 @@ fn base_exclusion_never_reports_base_aliases_as_candidates() {
     );
 }
 
+/// Issue #76, Required test 2: a bound on Git process count for a scan
+/// of `N` branches x `M` files, proving the batched read path issues
+/// O(1) subprocesses per branch rather than O(files). Before batching,
+/// this fixture's 10 files/branch would have added 10 extra `git show`
+/// processes per branch on top of the ls-tree call.
+#[test]
+fn git_invocation_count_is_bounded_per_branch_not_per_file() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00100-governor-reviewer.md",
+        &decision(100, "base decision", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+
+    const BRANCHES: i64 = 4;
+    const FILES_PER_BRANCH: i64 = 10;
+    for b in 0..BRANCHES {
+        repo.git(&["checkout", "main"]);
+        repo.git(&["checkout", "-b", &format!("feat/branch-{b}")]);
+        for f in 0..FILES_PER_BRANCH {
+            let seq = 1000 + b * 100 + f;
+            repo.write(
+                &format!("docs/coordination/{seq:05}-coder-tester.md"),
+                &handoff(seq, "governor-reviewer", &format!("obligation {seq}")),
+            );
+        }
+        repo.git(&["add", "."]);
+        repo.git(&["commit", "-m", "branch work"]);
+    }
+    repo.git(&["checkout", "main"]);
+
+    let (output, invocation_count) =
+        repo.agov_with_git_trace(&["coord", "visibility", "--base-branch", "main"]);
+    assert_eq!(output.status.code(), Some(1));
+
+    // Fixed overhead (freshness resolution, branch enumeration, base
+    // ls-tree/batch) plus 2 processes (ls-tree + cat-file --batch) per
+    // branch -- independent of FILES_PER_BRANCH.
+    let bound = 10 + 2 * BRANCHES;
+    assert!(
+        invocation_count as i64 <= bound,
+        "expected at most {bound} git invocations for {BRANCHES} branches x \
+         {FILES_PER_BRANCH} files each, got {invocation_count}"
+    );
+}
+
+/// Issue #76 (B-V26-5): a coupled representative fixture exercising MR
+/// !805's widened default (local branches plus multi-remote tracking
+/// refs, including deliberate equal-OID aliases and deliberate diverged
+/// refs) at a scale approaching the 787-process historical incident.
+/// Proves Git process cardinality is bounded by the deduplicated
+/// OID-group count from !805's Slice 3 -- not the raw ref count and not
+/// the file count -- and reports nonblocking wall-clock evidence for
+/// this specific widened-default shape (not asserted against a
+/// threshold; the invocation-count bound below is the enforceable gate).
+#[test]
+fn coupled_widened_default_keeps_invocation_count_bounded_by_dedup_groups() {
+    let repo = GitFixture::new();
+    for seq in 0..5 {
+        repo.write(
+            &format!("docs/coordination/{seq:05}-governor-reviewer.md"),
+            &decision(seq, &format!("base {seq}"), &[]),
+        );
+    }
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+
+    const DISTINCT_BRANCHES: i64 = 15;
+    const FILES_PER_BRANCH: i64 = 15;
+    const ALIASED_BRANCHES: i64 = 5;
+    const DIVERGED_BRANCHES: i64 = 2;
+
+    let mut expected_scanned = std::collections::BTreeSet::new();
+
+    for b in 0..DISTINCT_BRANCHES {
+        let branch_name = format!("feat/branch-{b:02}");
+        repo.git(&["checkout", "main"]);
+        repo.git(&["checkout", "-b", &branch_name]);
+        for f in 0..FILES_PER_BRANCH {
+            let seq = 10_000 + b * 100 + f;
+            repo.write(
+                &format!("docs/coordination/{seq:05}-coder-tester.md"),
+                &handoff(seq, "governor-reviewer", &format!("obligation {seq}")),
+            );
+        }
+        repo.git(&["add", "."]);
+        repo.git(&["commit", "-m", "branch work"]);
+        let oid = repo.rev_parse(&branch_name);
+
+        if b < ALIASED_BRANCHES {
+            // Equal-OID alias: origin/<name> at the SAME commit -- must
+            // dedup to a single scanned-branch entry (the local name).
+            repo.set_remote_ref("origin", &branch_name, &oid);
+        } else if b < ALIASED_BRANCHES + DIVERGED_BRANCHES {
+            // Diverged ref: origin/<name> at a DIFFERENT commit, with its
+            // own additional file -- a genuinely separate OID group.
+            repo.write(
+                &format!("docs/coordination/{:05}-coder-tester.md", 20_000 + b),
+                &handoff(20_000 + b, "governor-reviewer", "diverged obligation"),
+            );
+            repo.git(&["add", "."]);
+            repo.git(&["commit", "-m", "diverged remote content"]);
+            let diverged_oid = repo.rev_parse(&branch_name);
+            repo.git(&["reset", "--hard", &oid]);
+            repo.set_remote_ref("origin", &branch_name, &diverged_oid);
+            expected_scanned.insert(format!("origin/{branch_name}"));
+        }
+        expected_scanned.insert(branch_name);
+    }
+
+    // At least one other-remote tracking ref (Class 3), distinct OID.
+    repo.git(&["checkout", "main"]);
+    repo.git(&["checkout", "-b", "feat/other-remote"]);
+    repo.write(
+        "docs/coordination/30000-coder-tester.md",
+        &handoff(30000, "governor-reviewer", "other-remote obligation"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "other remote work"]);
+    let other_oid = repo.rev_parse("feat/other-remote");
+    repo.set_remote_ref("upstream", "feat/other-remote", &other_oid);
+    repo.git(&["checkout", "main"]);
+    repo.git(&["branch", "-D", "feat/other-remote"]);
+    expected_scanned.insert("upstream/feat/other-remote".to_string());
+
+    let started = std::time::Instant::now();
+    let (output, invocation_count) = repo.agov_with_git_trace(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--format",
+        "json",
+    ]);
+    let elapsed = started.elapsed();
+    eprintln!(
+        "coupled widened-default fixture: {} distinct branch groups, wall-clock {:?} (reported, not a gate)",
+        expected_scanned.len(),
+        elapsed
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let json: serde_json::Value = serde_json::from_str(stdout.trim()).unwrap();
+    let scanned: std::collections::BTreeSet<String> = json["scanned_branches"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap().to_string())
+        .collect();
+
+    assert_eq!(
+        scanned, expected_scanned,
+        "deduplicated cardinality must equal the number of distinct OID groups, \
+         not the raw ref count"
+    );
+
+    let dedup_group_count = scanned.len() as i64;
+    let bound = 10 + 2 * dedup_group_count;
+    assert!(
+        invocation_count as i64 <= bound,
+        "expected at most {bound} git invocations for {dedup_group_count} deduplicated \
+         branch groups ({} total coordination files spread across them), got {invocation_count}",
+        DISTINCT_BRANCHES * FILES_PER_BRANCH + DIVERGED_BRANCHES + 1
+    );
+}
+
 struct GitFixture {
     root: PathBuf,
 }
@@ -783,6 +952,27 @@ impl GitFixture {
             .current_dir(&self.root)
             .output()
             .expect("run agov")
+    }
+
+    /// Issue #76 (Required test 2, B-V26-5): runs `agov` with `GIT_TRACE`
+    /// pointed at a fresh log file. Every internal `git` subprocess `agov`
+    /// spawns inherits the env var and appends one trace line to the log
+    /// -- a deterministic Git-invocation counter, not a wall-clock timing
+    /// assertion (which is flaky across CI runners).
+    fn agov_with_git_trace(&self, args: &[&str]) -> (std::process::Output, usize) {
+        let trace_path = self.root.join("git-trace.log");
+        let _ = fs::remove_file(&trace_path);
+        let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+            .env("AGOV_TOKEN_ROI", "0")
+            .env("GIT_TRACE", &trace_path)
+            .args(args)
+            .current_dir(&self.root)
+            .output()
+            .expect("run agov");
+        let count = fs::read_to_string(&trace_path)
+            .map(|contents| contents.lines().count())
+            .unwrap_or(0);
+        (output, count)
     }
 
     fn rev_parse(&self, refname: &str) -> String {
