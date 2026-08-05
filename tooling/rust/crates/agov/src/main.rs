@@ -3943,12 +3943,23 @@ fn git_cat_file_batch(
         let size_field = header_fields.next();
         let type_field = header_fields.next();
         let oid_field = header_fields.next();
+        // B-V26-G2-R2-1: the object type must be checked, not merely
+        // parsed and discarded. A syntactically valid but non-blob
+        // header (e.g. `<oid> tree <size>`) must fail closed rather
+        // than have its bytes treated as coordination-file content.
         let size: usize = match (
             oid_field,
             type_field,
             size_field.and_then(|v| v.parse().ok()),
         ) {
-            (Some(_), Some(_), Some(size)) => size,
+            (Some(_), Some("blob"), Some(size)) => size,
+            (Some(_), Some(other_type), Some(_)) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: unexpected object type {other_type:?} \
+                     (expected blob) for {specifier}"
+                ));
+                break;
+            }
             _ => {
                 read_error = Some(format!(
                     "git cat-file --batch: malformed header for {specifier}: {header:?}"

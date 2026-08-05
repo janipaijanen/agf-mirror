@@ -952,6 +952,61 @@ fn cat_file_batch_failure_fails_closed_not_clean() {
     );
 }
 
+/// B-V26-G2-R2-1: contribution-auditor review `att1` on MR !1167 found the
+/// prior fail-closed correction still accepted a syntactically valid but
+/// non-blob `git cat-file --batch` header (e.g. `<oid> tree <size>`),
+/// parsing and discarding the type field instead of requiring `blob`. A
+/// non-blob response must fail the scan closed (exit 2), never be treated
+/// as coordination-file content.
+#[test]
+fn cat_file_batch_non_blob_type_fails_closed() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00100-governor-reviewer.md",
+        &decision(100, "base decision", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/non-blob-batch"]);
+    repo.write(
+        "docs/coordination/00111-coder-tester.md",
+        &handoff(111, "governor-reviewer", "would be an obligation"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "hidden coordination"]);
+
+    let output = repo.agov_with_non_blob_cat_file(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/non-blob-batch",
+    ]);
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(
+        output.status.code(),
+        Some(2),
+        "a non-blob cat-file --batch response must fail closed (exit 2), not be \
+         accepted as content\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        !stdout.contains("OK coordination visibility clean"),
+        "must not report a clean scan when the batch response was non-blob\nstdout:\n{stdout}"
+    );
+    assert!(
+        stderr.contains("cat-file") || stdout.contains("cat-file"),
+        "error output should name the failing git operation\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+    assert!(
+        stderr.contains("tree") || stdout.contains("tree"),
+        "error output should name the unexpected object type\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    );
+}
+
 struct GitFixture {
     root: PathBuf,
 }
@@ -1086,6 +1141,50 @@ impl GitFixture {
             &script_path,
             format!(
                 "#!/bin/sh\nif [ \"$1\" = \"cat-file\" ] && [ \"$2\" = \"--batch\" ]; then\n  exit 73\nfi\nexec \"{real_git}\" \"$@\"\n"
+            ),
+        )
+        .unwrap();
+        let mut perms = fs::metadata(&script_path).unwrap().permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&script_path, perms).unwrap();
+
+        let existing_path = std::env::var("PATH").unwrap_or_default();
+        let new_path = format!("{}:{existing_path}", fake_bin_dir.display());
+
+        Command::new(env!("CARGO_BIN_EXE_agov"))
+            .env("AGOV_TOKEN_ROI", "0")
+            .env("PATH", new_path)
+            .args(args)
+            .current_dir(&self.root)
+            .output()
+            .expect("run agov")
+    }
+
+    /// B-V26-G2-R2-1 fault injection: runs `agov` with a fake `git`
+    /// shadowing PATH that answers `cat-file --batch` with a
+    /// syntactically valid, but non-blob (`tree`), header for every
+    /// requested specifier -- proves the parser rejects the response
+    /// instead of silently accepting a wrong-type payload as
+    /// coordination-file content.
+    fn agov_with_non_blob_cat_file(&self, args: &[&str]) -> std::process::Output {
+        use std::os::unix::fs::PermissionsExt;
+        let real_git = String::from_utf8(
+            Command::new("sh")
+                .args(["-c", "command -v git"])
+                .output()
+                .expect("locate real git")
+                .stdout,
+        )
+        .expect("utf8")
+        .trim()
+        .to_string();
+        let fake_bin_dir = self.root.join(".fake-bin-nonblob");
+        fs::create_dir_all(&fake_bin_dir).unwrap();
+        let script_path = fake_bin_dir.join("git");
+        fs::write(
+            &script_path,
+            format!(
+                "#!/bin/sh\nif [ \"$1\" = \"cat-file\" ] && [ \"$2\" = \"--batch\" ]; then\n  while IFS= read -r line; do\n    content=\"not a blob\"\n    size=$(printf '%s' \"$content\" | wc -c)\n    printf '0000000000000000000000000000000000000000 tree %s\\n' \"$size\"\n    printf '%s\\n' \"$content\"\n  done\n  exit 0\nfi\nexec \"{real_git}\" \"$@\"\n"
             ),
         )
         .unwrap();
