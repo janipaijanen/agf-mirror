@@ -186,7 +186,7 @@ learning record, and how a pattern worth sharing travels upstream as a
 rule or agent proposal. Both are explained with an embedded figure on
 the published docs site, kept in sync with the text:
 
-- [Evidence and learnings](https://janipaijanen.gitlab.io/agents-govern-framework/concepts/evidence-and-learnings/)
+- [Evidence and learnings](https://janipaijanen.gitlab.io/agents-govern-framework/docs/concepts/evidence-and-learnings/)
   — the learning-loop diagram, and the ownership table distinguishing
   framework-owned learning records from your own
   `agf/learnings/<codename>.yaml` (never touched on upgrade).
