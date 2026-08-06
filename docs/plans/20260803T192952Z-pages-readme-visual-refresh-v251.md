@@ -1,9 +1,9 @@
 ---
 id: pages-readme-visual-refresh-v251
-status: pending-gate1
+status: approved
 topic: pages-readme-visual-refresh-v251
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "governor-reviewer decision 20260805T135235Z-governor-reviewer-j86r; merged plan MR !1082"
+gate1_approved_at: "2026-08-05T13:52:35Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
