@@ -6,6 +6,190 @@
   --agf-amber:      #EE7700;
   --agf-red-mid:    #CC3311;
   --agf-grey-mid:   #888888;
+  --agf-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --agf-font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+  --agf-space-1: 0.25rem;
+  --agf-space-2: 0.5rem;
+  --agf-space-3: 1rem;
+  --agf-space-4: 2rem;
+  --agf-space-5: 4rem;
+  --md-text-font: var(--agf-font-sans);
+  --md-code-font: var(--agf-font-mono);
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--agf-blue-mid);
+  --md-primary-fg-color--light: var(--agf-blue-light);
+  --md-primary-fg-color--dark: var(--agf-blue-mid);
+  --md-primary-bg-color: #FFFFFF;
+  --md-accent-fg-color: var(--agf-blue-mid);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--agf-blue-mid);
+  --md-primary-fg-color--light: var(--agf-blue-light);
+  --md-primary-fg-color--dark: var(--agf-blue-mid);
+  --md-primary-bg-color: #FFFFFF;
+  --md-accent-fg-color: var(--agf-blue-light);
+}
+
+.md-typeset,
+.md-header,
+.md-tabs,
+.md-nav {
+  font-family: var(--agf-font-sans);
+}
+
+.md-typeset code,
+.md-typeset pre,
+.agf-hero__eyebrow,
+.agf-hero__foot {
+  font-family: var(--agf-font-mono);
+}
+
+.md-typeset a:focus-visible,
+.md-header a:focus-visible,
+.md-tabs a:focus-visible,
+.md-nav a:focus-visible {
+  border-radius: 0.15rem;
+  outline: 0.15rem solid var(--md-accent-fg-color);
+  outline-offset: 0.15rem;
+}
+
+.agf-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(15rem, 0.95fr);
+  gap: var(--agf-space-5);
+  align-items: center;
+  padding: var(--agf-space-5) 0 var(--agf-space-4);
+}
+
+.agf-hero__eyebrow {
+  display: flex;
+  gap: var(--agf-space-2);
+  align-items: center;
+  margin-bottom: var(--agf-space-3);
+  color: var(--md-accent-fg-color);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agf-hero__eyebrow::before {
+  width: 0.4rem;
+  height: 0.4rem;
+  flex: 0 0 auto;
+  border-radius: 0.05rem;
+  background: var(--agf-amber);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.md-typeset .agf-hero__headline {
+  margin: 0 0 var(--agf-space-3);
+  color: var(--md-default-fg-color);
+  font-family: var(--agf-font-sans);
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.agf-hero__subhead {
+  max-width: 46ch;
+  margin: 0 0 var(--agf-space-4);
+  color: var(--md-default-fg-color--light);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.agf-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: var(--agf-space-4);
+}
+
+.md-typeset .agf-hero__action {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  padding: 0.55rem 1rem;
+  border: 0.05rem solid var(--md-accent-fg-color);
+  border-radius: 0.3rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.md-typeset .agf-hero__action--primary {
+  border-color: var(--agf-blue-mid);
+  background: var(--agf-blue-mid);
+  color: #FFFFFF;
+}
+
+.md-typeset .agf-hero__action--secondary {
+  background: transparent;
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .agf-hero__action:hover {
+  box-shadow: 0 0 0 0.1rem var(--md-default-bg-color),
+    0 0 0 0.2rem var(--md-accent-fg-color);
+}
+
+.agf-hero__foot {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.68rem;
+}
+
+.agf-hero__visual {
+  margin: 0;
+  padding: var(--agf-space-3);
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+  border-radius: 0.6rem;
+  background: #FFFFFF;
+  box-shadow: 0 0.4rem 1.2rem -0.7rem rgb(0 0 0 / 24%);
+}
+
+.agf-hero__visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.agf-hero__visual figcaption {
+  margin-top: var(--agf-space-2);
+  color: #1A1A1A;
+  font-size: 0.62rem;
+  text-align: center;
+}
+
+@media screen and (max-width: 56.25em) {
+  .agf-hero {
+    grid-template-columns: 1fr;
+    gap: var(--agf-space-4);
+  }
+
+  .agf-hero__visual {
+    max-width: 34rem;
+  }
+}
+
+@media screen and (max-width: 40em) {
+  .agf-hero {
+    padding: var(--agf-space-4) 0;
+  }
+
+  .agf-hero__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .md-typeset .agf-hero__action {
+    justify-content: center;
+  }
 }
 
 /* Mobile figure scroll. Used by wide (rankdir=LR) DOT figures whose
