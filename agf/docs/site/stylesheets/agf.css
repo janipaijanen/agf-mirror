@@ -59,7 +59,7 @@
 .agf-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(15rem, 0.95fr);
-  gap: var(--agf-space-5);
+  gap: var(--agf-space-4);
   align-items: center;
   padding: var(--agf-space-5) 0 var(--agf-space-4);
 }
@@ -90,7 +90,7 @@
   margin: 0 0 var(--agf-space-3);
   color: var(--md-default-fg-color);
   font-family: var(--agf-font-sans);
-  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  font-size: clamp(2rem, 3.2vw, 2.4rem);
   font-weight: 750;
   letter-spacing: -0.01em;
   line-height: 1.08;
