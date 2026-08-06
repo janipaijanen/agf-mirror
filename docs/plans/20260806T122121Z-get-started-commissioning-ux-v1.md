@@ -88,6 +88,20 @@ plan, which remaps the taxonomy classification of all 42 existing pages and
 remains separately unauthorized). Adding one new page's nav entry is additive
 and does not touch any existing page's classification or position.
 
+### Canonical prompt ownership (resolved at Gate 1, not deferred)
+
+`commission.md` is the single canonical source of the commissioning prompt
+text (both the AGF and AGOV artifact steps and the new/existing branching).
+`install-and-layouts.md`'s existing "Step 2: Commission the install with your
+assistant" section (lines 102-164 today) is replaced with a short paragraph
+pointing to `commission.md#step-3-paste-one-assistant-commissioning-prompt`
+and renumbered so the page reads Step 1 (get the distribution) → Step 2
+(pointer to commissioning) → Step 3 (review) → Step 4 (rule loading) → Step 5
+(agent definitions) → Step 6 (validators) → Step 7 (evidence). No shared
+MkDocs include mechanism is introduced — that would be new build-tooling
+scope beyond this plan. One canonical copy, one pointer; no second copy to
+drift.
+
 ## Affected files
 
 - `agf/docs/site/index.md` — hero CTA target changes from
@@ -95,9 +109,13 @@ and does not touch any existing page's classification or position.
 - `agf/docs/site/docs/start/commission.md` — **new file**. The concise
   commissioning entry point (content spec below).
 - `agf/docs/site/docs/adopt/install-and-layouts.md` — opening paragraph
-  updated to point first-time visitors to the new page; existing Steps 1-7
-  content otherwise unchanged (it remains the canonical deep-reference
-  source; the new page links into it, never duplicates it).
+  updated to point first-time visitors to the new page; Step 2 (currently
+  "Commission the install with your assistant", lines 102-164) replaced
+  with a short pointer to `commission.md`'s canonical prompt, and the
+  remaining steps renumbered (see "Canonical prompt ownership" below).
+  Steps covering layout theory, rule customization, agent definitions,
+  validators, and evidence initialization are otherwise unchanged in
+  content — this page remains the canonical deep-reference source.
 - `agf/docs/site/docs/start/first-governed-change.md` — step 1 reordered so
   the assistant-delegated path (currently described second) is the default
   instruction, manual `mkdir` demoted to the documented fallback, matching
@@ -109,13 +127,33 @@ and does not touch any existing page's classification or position.
   after `should-you-adopt.md` in the existing "1. Start" section (the
   natural next step after the adopt/wait/skip decision). No other nav entry
   moves.
-- New scripted checks (location TBD at implementation time, matching the
-  existing hook-test pattern in `agf/docs/build/hooks/`): a link-integrity
-  check covering the new page and its outbound links (including the AGOV
-  release/checksum/provenance URLs — HTTP-verified, not assumed, per the
-  `B-MR1193-CA-3` lesson from the README slice), and a DOM-order check
-  confirming no theory content precedes the six-step sequence on the new
-  page.
+- `agf/docs/build/hooks/check_commissioning_first_screen.py` — **new file**.
+  Renders (or parses the already-built) `commission.md` HTML and asserts, in
+  DOM order: (a) the six-item operational sequence appears before any
+  paragraph classified as theory/rationale content (the "Decision" rationale
+  text, if any survives onto the page, must live after step 6 or on a linked
+  page, never before step 1); (b) the assistant-delegated prompt (step 3)
+  appears before any raw shell/manual command on both `commission.md` and
+  the reordered `first-governed-change.md` step 1. Self-test pair
+  (positive/negative fixture), matching the pattern in
+  `check_palette_contrast.py --self-test`.
+- `agf/docs/build/hooks/check_commissioning_links.py` — **new file**. Scripted
+  check for every relative link on `commission.md` and the updated hero CTA,
+  plus HTTP-verifies the AGF and AGOV release/checksum/provenance URLs
+  end-to-end (download + `sha256sum -c` match, not a HEAD probe), per the
+  `B-MR1193-CA-3` lesson from the README slice.
+- `tooling/tests/test_commissioning_postconditions.py` — **new file**.
+  Deterministic CI check described under GS-PLAN-R4 below.
+- `tooling/fixtures/commissioning/new-project/` — **new directory**. Minimal
+  synthetic empty-ish repository fixture (a `.git` init, a README, nothing
+  else) representing the new-project commissioning starting state.
+- `tooling/fixtures/commissioning/existing-project/` — **new directory**.
+  Synthetic repository fixture seeded with exactly the three collision types
+  `GS-COMMISSION-R3` names: an unrelated `docs/` directory (e.g. a
+  `docs/api-reference.md` with no relation to AGF), a minimal CI config file
+  (e.g. `.gitlab-ci.yml` with one unrelated job), and an unrelated
+  assistant-loader file (e.g. an `AGENTS.md` with project-specific content
+  that is not AGF's).
 
 ## Content spec: `commission.md`
 
@@ -128,10 +166,43 @@ per this repo's `feature-flagged-docs-rule.md` howto structure:
    `.sha256`/`-provenance.json` verification text already in
    `install-and-layouts.md`'s prerequisites — linked and quoted verbatim, not
    rewritten, to avoid the two-canonical-copies drift `pqja` already flagged
-   once. Extended to also cover the pinned AGOV release artifact for the
-   host platform (`GS-COMMISSION-R1`): download, `sha256sum -c` against the
-   published checksum, and provenance-file verification, using the same
-   mechanism already documented for the AGF archive.
+   once. Extended with the following AGOV procedure (`GS-COMMISSION-R3`,
+   verified against the live GitLab Releases API for the current
+   `v2.5.0-rc.2` release, not invented):
+
+   - **Supported platforms today: `linux-x86_64` and `linux-aarch64` only.**
+     No macOS or Windows AGOV binary is currently published. State this
+     plainly rather than implying broader support; a platform without a
+     published asset falls back to "run from a full source checkout" (link
+     to the repository's build instructions), not a silent assumption that
+     a binary exists.
+   - **Asset naming:** `agov-<version>-<platform>.tar.gz`, with a
+     companion `agov-<version>-<platform>.tar.gz.sha256` and
+     `agov-<version>-<platform>.tar.gz-provenance.json`, each linked
+     individually on the Releases page. Discover the exact current asset
+     URLs via the unauthenticated Releases API
+     (`https://gitlab.com/api/v4/projects/83321848/releases`), the same
+     discovery mechanism already documented for the AGF archive — do not
+     hand-construct the URL.
+   - **Verification:** download the tarball and its `.sha256` file into the
+     same directory, then `sha256sum -c agov-<version>-<platform>.tar.gz.sha256`.
+     Confirm the matching `-provenance.json` is present alongside it (same
+     level of provenance verification already documented for the AGF
+     archive — this plan does not introduce a deeper provenance-check
+     procedure that doesn't exist elsewhere in the docs).
+   - **Installation destination:** either symlink the extracted `agov`
+     binary into `~/.local/bin/agov` (most adopter repositories — this is
+     the path already recommended in `first-governed-change.md`'s
+     prerequisites), or place it at project-local `tooling/agov` for a full
+     source checkout. Document both; let the assistant choose based on
+     whether a `tooling/` directory already exists in the target repository.
+   - **PATH exposure:** `~/.local/bin` must be on the invoking shell's
+     `PATH`; if it is not, the assistant reports this rather than silently
+     failing later validator invocations.
+   - **Verification commands:** `agov version` (prints version and build
+     provenance) and `agov session resume` (confirms the tool can read
+     project state) must both succeed and their output must be included
+     verbatim in the assistant's completion report.
 3. **Paste one assistant commissioning prompt.** The single canonical prompt
    (full text below), covering both AGF and AGOV, branching on new/existing.
 4. **Review the assistant's report.** Points at the completion contract
@@ -160,11 +231,50 @@ one copy exists in either direction):
   directories, run `agov version` and `agov session resume`.
 - **Existing project:** check for a pre-existing `docs/` used for something
   else, a partial prior `agf/` install, an existing assistant loader file, or
-  colliding CI paths, *before* writing anything. Never overwrite an
-  adopter-owned file (`agf/learnings/<codename>.yaml` if present,
-  `agf/agents/MANIFEST.yaml` if present, any existing loader). Where a
-  collision is detected, do not resolve it unilaterally — report it as an
-  unresolved governor decision instead.
+  colliding CI paths, *before* writing anything. Ownership classification
+  below governs what may be written automatically versus what must be
+  reported. Where a collision is detected, do not resolve it unilaterally —
+  report it as an unresolved governor decision instead.
+
+### Ownership authority (`GS-COMMISSION-R5` correction)
+
+Classification is not this plan's own judgment — it is read from two
+existing authorities and cross-checked for consistency:
+`agf/docs/governance/manifest.md`'s Contents table, and
+`.claude/rules/always/governance-file-layout-rule.md`'s ownership table.
+
+- **Adopter-owned — never overwrite; always preserve and report if already
+  present:** `agf/agents/MANIFEST.yaml` (manifest.md states it is "never
+  packaged in release archives" — its mere presence in a target repository
+  proves an adopter created it, so it is categorically not a candidate for
+  silent overwrite); `agf/learnings/<codename>.yaml`; `docs/plans/`;
+  `docs/coordination/`; any existing tool-specific assistant loader file.
+  `governance-file-layout-rule.md` flags that `agf/agents/*.yaml`'s
+  precedence is still pending issue #79's own Gate 1 plan — this plan
+  follows current authority as written today and does not attempt to
+  pre-resolve #79.
+- **Upstream-owned — safe to write for files that do not yet exist:**
+  `agf/rules/**`, `agf/schemas/*`, `agf/templates/*`,
+  `agf/agents/*.yaml` other than `MANIFEST.yaml`, `agf/skills/**`,
+  `agf/project-specific-examples/**`, `agf/ADOPTING.md`, `agf/framework.md`,
+  `agf/CHANGELOG.md`, `agf/VERSION`, `agf/LICENSE*`,
+  `agf/docs/governance/**`, `agf/docs/contracts/**`, `agf/docs/adopt/**`,
+  `agf/docs/adr/**`.
+- **Partial-install nuance:** an upstream-owned path that *already exists*
+  in an existing-project target is not automatically safe to overwrite,
+  even though its category is upstream-owned. A prior partial install may
+  contain adopter edits to a `CUSTOMIZE` marker inside a nominally
+  upstream-owned rule file. The commissioning prompt must diff any
+  already-present upstream-owned file against the pinned distribution's
+  copy before writing: identical content is refreshed silently (a no-op);
+  different content is treated as a collision and reported, exactly like an
+  adopter-owned collision, not silently replaced.
+- **Explicitly out of scope:** upgrading an *already-commissioned* existing
+  AGF project. That is a separate, already-documented flow
+  (`agf/docs/governance/manifest.md`'s "Upgrading" section). This plan's
+  "existing project" case means a target repository without a prior
+  complete AGF commissioning, which may still contain a partial or failed
+  prior attempt.
 
 ### Completion contract (`GS-COMMISSION-R4`) — what "commissioned" means
 
@@ -190,40 +300,69 @@ must include all of:
 A repository is not "commissioned" merely because files were copied — the
 report above is the testable definition.
 
-## Test strategy (acceptance evidence per `dqg1`)
+## Test strategy (acceptance evidence per `dqg1`, made reproducible per `GS-COMMISSION-R4`)
 
-1. **New-repository path.** Disposable scratch git repository (not this
-   checkout, matching the isolation already used for prior release-archive
-   verification this session). Run the commissioning prompt exactly as
-   written. Confirm: `agf/` present, AGOV installed and checksum-verified,
-   loader active, zero collisions reported (none exist), completion report
-   satisfies every item in the contract above.
-2. **Existing-repository path.** A second scratch repository, pre-seeded
-   with: a `docs/` directory used for an unrelated purpose, a CI config, and
-   an unrelated assistant-loader file. Run the same prompt. Confirm the
-   assistant detects and reports every seeded collision rather than
-   overwriting any of them; diff the repository before/after to confirm no
-   pre-existing file was silently modified.
-3. **Link integrity.** Scripted relative- and external-link check (extending
-   the pattern already used for the README slice) covering the new page,
-   the updated hero CTA, and the AGOV release/checksum/provenance URLs —
+Two evidence classes, kept explicitly distinct rather than conflated:
+
+**Class A — deterministic, CI-repeatable checks.** Run on every pipeline;
+require no live AI assistant.
+
+1. **Fixture postconditions (`tooling/tests/test_commissioning_postconditions.py`).**
+   The repeatable substitute for "run the prompt and see what happens":
+   the test does not invoke a live assistant. It ships two committed
+   fixture pairs under `tooling/fixtures/commissioning/`:
+   - `new-project/before/` and `new-project/after/` — the `after/` tree is a
+     hand-authored, reviewed exemplar of what a correct commissioning
+     changeset produces from `before/`'s empty-ish starting state.
+   - `existing-project/before/` (seeded with the three collision types) and
+     `existing-project/after/` — the exemplar preserves every seeded
+     collision file byte-for-byte and adds only new files, plus a written
+     collision report.
+   The test asserts structural properties of each `after/` fixture against
+   the completion contract (below): required files present, `before/`'s
+   pre-existing files byte-identical in `after/` for the existing-project
+   case, no unexpected files. This catches regressions in what "correct"
+   looks like even though it cannot verify a live assistant will actually
+   produce that output.
+2. **Link integrity (`agf/docs/build/hooks/check_commissioning_links.py`).**
+   Scripted relative- and external-link check covering `commission.md`, the
+   updated hero CTA, and the AGF/AGOV release/checksum/provenance URLs —
    each external URL HTTP-verified end-to-end (download + checksum match),
    not just a HEAD probe, per the `B-MR1193-CA-3` lesson.
-4. **Rendered first-screen check.** Build the site (same strict MkDocs build
-   already used for the theme/hero slice) and inspect the rendered HTML's DOM
-   order for `commission.md`: the six-step sequence must precede any theory
-   content. Visual inspection at the same four viewports and theme pairings
-   already established for the theme/hero slice
-   (375x844, 641x844, 900x1000, 1280x900; light and dark).
-5. **No-manual-command-as-default check.** Scripted content check confirming
-   the assistant-delegated prompt appears before any raw shell command in
-   reading order on both `commission.md` and the reordered
-   `first-governed-change.md` step 1, and that any manual command is
-   explicitly labeled as the no-assistant fallback.
-6. **Tutorial-gating check.** Confirm `first-governed-change.md` is not
-   linked from the homepage hero or `commission.md` except as the
-   "continue" step after commissioning; confirm its existing audience
+3. **Rendered first-screen check (`agf/docs/build/hooks/check_commissioning_first_screen.py`).**
+   Build the site (same strict MkDocs build already used for the theme/hero
+   slice) and inspect the rendered HTML's DOM order for `commission.md`:
+   the six-step sequence must precede any theory content, and the
+   assistant-delegated prompt must precede any raw shell command, on both
+   `commission.md` and the reordered `first-governed-change.md` step 1.
+4. **Tutorial-gating check.** Scripted: confirm `first-governed-change.md`
+   is not linked from the homepage hero or from `commission.md` except as
+   the "continue" step after commissioning; confirm its existing audience
    prerequisite line is unchanged (already correct, verified in `pqja`).
+
+**Class B — one-time AI-execution evidence.** Not part of the repeatable CI
+suite; requires an actual coding assistant session, captured as an artifact
+for Gate 2 review, not re-run automatically.
+
+5. **New-repository trial.** The implementer, using their coding assistant
+   of record (name and version stated in the Gate 2 evidence — e.g. "Claude
+   Sonnet 5, Claude Code CLI"), runs the exact `commission.md` prompt
+   against a disposable scratch git repository seeded from the committed
+   `new-project/before/` fixture. Captures: the full assistant transcript
+   or diff, the completion report, and confirmation every item in the
+   contract below is present. Attached to the Gate 2 handoff as evidence,
+   not re-executed in CI.
+6. **Existing-repository trial.** Same procedure, seeded from
+   `existing-project/before/`. Captures the same evidence, plus explicit
+   confirmation the assistant reported all three seeded collisions rather
+   than resolving or overwriting any of them, and a before/after diff of
+   the seeded files proving byte-for-byte preservation.
+7. **Visual inspection.** Same four viewports and theme pairings already
+   established for the theme/hero slice (375x844, 641x844, 900x1000,
+   1280x900; light and dark), performed once on the rendered `commission.md`
+   as human/AI visual-acceptance evidence per
+   `visible-artifact-verification-rule.md`, complementing (not replacing)
+   Class A's automated DOM-order check.
 
 ## Risks
 
