@@ -76,6 +76,7 @@ nav:
       - 'Start':
           - Framework map: docs/start/framework-map.md
           - Should you adopt?: docs/start/should-you-adopt.md
+          - Commission AGF and AGOV: docs/start/commission.md
           - Adopter FAQ: docs/start/adopter-faq.md
       - 'Concepts':
           - AGF and agent runtimes: docs/concepts/position.md
