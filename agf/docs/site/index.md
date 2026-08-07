@@ -8,7 +8,7 @@
 <p class="agf-hero__subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every governed decision leaves a timestamped, append-only record in your repo.</p>
 
 <div class="agf-hero__actions">
-  <a class="agf-hero__action agf-hero__action--primary" href="docs/start/first-governed-change/" aria-label="Get started with your first governed change">Get started</a>
+  <a class="agf-hero__action agf-hero__action--primary" href="docs/start/commission/" aria-label="Get started: commission AGF and AGOV in your repository">Get started</a>
   <a class="agf-hero__action agf-hero__action--secondary" href="docs/" aria-label="See the agents-govern documentation overview">See the docs</a>
 </div>
 
