@@ -1,9 +1,9 @@
 ---
 id: get-started-commissioning-ux-v1
-status: pending-gate1
+status: approved
 topic: get-started-commissioning-ux
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-07T17:00:36Z"
 advisory_consultation:
   - role: contribution-auditor
     status: waived
