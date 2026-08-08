@@ -1612,3 +1612,24 @@ assurance stakes, or adoption of NASA's governance process.
   complexity/architecture-rule checks as gate layers, neither currently named in
   testing-environments-rule.md — a minor rule-enhancement candidate, not a new concept,
   not actioned by this entry. (accessed 2026-08-08)
+
+# Batch 19 (2026-08-08) — user-submitted candidate
+
+## Classified
+
+- https://github.com/sanshagn/Canon
+  type: framework (notation/spec) | relation: prior-art | action: watch
+  note: "Canonical Agent Notation" (CANON) — controlled English for model prompting,
+  agent-to-agent messaging, and post-delivery auditing; structured pseudocode with no
+  evaluator or compiler, built on Attempto Controlled English (lexicon determinism),
+  FIPA-ACL (speech acts), RFC 2119 (obligation levels — the same MUST/SHOULD convention
+  AGF's own rules use), and Gherkin (executable acceptance criteria). Ships a
+  `canon-lint` tool; LLMs are meant to translate plain English into CANON rather than
+  humans writing it directly. Thematically adjacent to AGF's coordination-message
+  schema (structured YAML frontmatter — `kind`/`requires-ack`/`references-to` — over
+  free-text `task:` bodies) as potential prior-art if AGF ever tightens handoff-task
+  ambiguity specifically; no overlap with AGF's Gate 1/Gate 2 governance mechanism —
+  CANON has no review, audit-trail, or human-decision layer of its own. Verified via
+  GitHub API 2026-08-08: repo created 2026-08-01 (one week old), 1 star, 0 forks, 0
+  open issues, single author, 14 commits, MIT, no external validation or adoption
+  evidence. Action stays watch until adoption evidence appears. (accessed 2026-08-08)
