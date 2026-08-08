@@ -9,8 +9,8 @@ This page gets AGF and its optional `agov` tooling running in your
 repository, whether it is a brand-new project or an existing one. Your
 coding assistant does the mechanical work; you review the diff and make the
 decisions that stay yours: the layout, the governor, the codename, and any
-risk-bearing rule choices. After this page, continue to
-[your first governed change](first-governed-change.md).
+risk-bearing rule choices. Step 6 below points you to your first governed
+change once commissioning is done.
 
 ## Prerequisites
 
@@ -235,7 +235,6 @@ demonstrate the governance loop working end to end.
 | Task | Location |
 |---|---|
 | Deep reference on layout, rule customization, agent definitions, and validators | [Install the `agf/` directory](../adopt/install-and-layouts.md) |
-| Run your first governed change | [Your first governed change](first-governed-change.md) |
 | Decide whether to adopt at all | [Should you adopt?](should-you-adopt.md) |
 | Leave cleanly | [Exit and decommission](../adopt/exit-and-decommission.md) |
 
