@@ -1633,3 +1633,67 @@ assurance stakes, or adoption of NASA's governance process.
   GitHub API 2026-08-08: repo created 2026-08-01 (one week old), 1 star, 0 forks, 0
   open issues, single author, 14 commits, MIT, no external validation or adoption
   evidence. Action stays watch until adoption evidence appears. (accessed 2026-08-08)
+
+# Batch 20 (2026-08-08) — Piyaz external context graph and review workflow
+
+## Classified
+
+- https://github.com/FrkAk/piyaz/tree/9a7a0fd363daa0a954ee05e9cc4be98c042b9fbd
+  type: tooling, agentic workspace, MCP server | relation: complement,
+  competitor(coordination/context-management), potential-integration |
+  action: evaluate, compare-in-docs, watch
+  note: Primary implementation and project-authored documentation for Piyaz
+  v0.4.13, pinned to its 2026-08-04 release commit. Piyaz stores projects as a
+  PostgreSQL-backed graph of tasks, dependency edges, decisions, execution
+  records, files, and activity; exposes the same state through a web UI and
+  nine ref-first MCP tools; and supports hosted or AGPL-3.0 self-hosted use.
+  Its documented workflow claims work before execution, supplies task context
+  and acceptance criteria, records outcomes for downstream tasks, and stops an
+  agent's normal terminal write at `in_review` rather than `done`.
+
+  The review workflow is directly relevant to AGF's proposed independent-
+  implementation-reviewer role. Piyaz documents a read-only review agent that
+  compares the implementation plan, execution record, acceptance criteria,
+  diff/PR, CI state, and plan-versus-files drift; returns `approve`,
+  `request-changes`, or `block` with file-cited reasoning across five review
+  lenses; and owns no task transition or working-tree edit. Under the default
+  merge policy, a human decides both merge and `in_review -> done`. This is
+  useful prior art for separating review evidence from the binding decision.
+  It is not evidence that AGF should copy Piyaz's three-value verdict taxonomy
+  or its optional `ask-each`/`auto-on-approve` merge policies.
+
+  The architectural boundary is material. Piyaz's live graph is editable
+  external state, while AGF treats versioned repository artifacts and visible
+  coordination as the canonical reconstructable trail. An evaluation must
+  therefore test export, backup, deletion, migration, deterministic replay,
+  immutable-history behavior, org/identity authorization, concurrent claims,
+  stale writes, exact commit/MR/plan linkage, data minimization and retention,
+  offline failure, and disagreement between the database and Git. Piyaz tool
+  hints, statuses, and review verdicts must remain operational/advisory inputs;
+  they do not acquire AGF Gate 1, Gate 2, merge, release, or governor authority.
+
+  Evidence boundary: these capability and workflow descriptions are primary
+  but self-reported by the project. AGF has not installed Piyaz, connected to
+  its hosted MCP endpoint, inspected a database export, reproduced its review
+  behavior, or verified reviewer independence across session, model, or vendor.
+  The repository README labels hosted use beta. Treat the visible implementation
+  as instantiated prior art, not independently validated effectiveness or a
+  partnership/adoption recommendation. Official workflow references reviewed:
+  `https://docs.piyaz.ai/docs/using-piyaz/track-execution/`,
+  `https://docs.piyaz.ai/docs/using-piyaz/review/`, and
+  `https://docs.piyaz.ai/docs/reference/mcp-overview/`. (accessed 2026-08-08)
+
+## First AGF takeaways
+
+1. **A context graph is a projection until authority says otherwise.** Richer
+   task/dependency navigation can assist AGF, but cannot silently replace the
+   repository trail or the human governor's recorded decisions.
+2. **Read-only review and human completion are useful separations.** Piyaz's
+   reviewer boundaries support the independent-reviewer direction, while its
+   optional automatic merge policies mark a deliberate divergence to assess.
+3. **Dual-write recovery is part of the product question.** Integration value
+   depends on which side wins, how divergence is surfaced, and whether the
+   complete governed history remains reconstructable after the service leaves.
+4. **Reviewer independence needs explicit provenance.** Tool-level read-only
+   status does not prove independence of session, model, vendor, prompt, or
+   evidence channel.

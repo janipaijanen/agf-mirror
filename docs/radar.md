@@ -74,6 +74,17 @@ Next review: 2026-10.
   principle (observation-only variant conceivable). Kept on radar because industry pressure
   toward runtime interposition keeps growing (ACS, Enforra, Tenure). review-by: 2027-01
 
+- **External context graph vs canonical repository trail** — Piyaz represents tasks,
+  dependencies, decisions, execution records, and activity in a live PostgreSQL-backed graph
+  shared through MCP and a web UI. That could complement AGF's compact repository records and
+  downstream-impact work, but it could also create split-brain authority when the graph and Git
+  disagree. A bounded evaluation must test export and deterministic reconstruction, immutable
+  history versus editable records, identity and authorization, concurrent claims and stale
+  writes, exact commit/MR/plan linkage, hosted-data privacy and retention, migration, and clean
+  removal. Any projection must leave AGF's repository trail and human gate decisions canonical;
+  a Piyaz status, hint, or review verdict acquires no AGF authority. source: Piyaz v0.4.13 in
+  `docs/sources.md` Batch 20 | status: evaluate, not adopt | review-by: 2026-11
+
 - **Repo-contained, model-replaceable agent package / deliberate self-cannibalization** —
   APSquared describes one self-contained marketing agent per repository: local instructions,
   activity logs, a human task queue, one activity per run, and Claude or Codex as a replaceable
