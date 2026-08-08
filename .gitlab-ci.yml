@@ -204,6 +204,10 @@ site-html-build:
     - python3 agf/docs/build/hooks/check_palette_contrast.py
     - python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test
     - python3 agf/docs/build/hooks/check_stale_version_labels.py
+    - python3 agf/docs/build/hooks/check_commissioning_first_screen.py --self-test
+    - python3 agf/docs/build/hooks/check_commissioning_first_screen.py
+    - python3 agf/docs/build/hooks/check_commissioning_links.py --self-test
+    - python3 agf/docs/build/hooks/check_commissioning_links.py
     - python3 -m unittest discover -s agf/docs/build/hooks -p 'test_*.py' -v
     - python3 -m unittest discover -s tooling/tests -p 'test_*.py' -v
     # Shallow checkouts do not fetch tags by default, and a depth-limited tag
