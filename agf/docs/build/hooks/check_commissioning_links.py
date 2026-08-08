@@ -14,7 +14,13 @@ earlier version of this script:
   archive was ever downloaded or checksum-matched.
 - **GS-B-3**: the homepage hero CTA was never inspected at all.
 
-Four checks:
+`20260808T140046Z-coder-tester-qnbd.md` also found the plan's Class A item 4
+(tutorial-gating) entirely unimplemented (GS-B-4). Governor decision `hd1d`
+authorized a bounded content correction to `commission.md` (removing the
+Overview and next-steps-table mentions of `first-governed-change.md`, per
+`GS-B-4`) rather than narrowing the invariant.
+
+Six checks:
 
 1. Every `[text](target)` relative link on `commission.md` resolves to a
    real file on disk (anchors stripped before resolution; one documented
@@ -23,14 +29,19 @@ Four checks:
    GitLab endpoints and is HTTP-verified live with a real `GET`.
 3. The rendered homepage's primary hero CTA resolves to the rendered
    commissioning page (`agf/site-html/docs/start/commission/index.html`).
-4. The latest release's AGF archive and both supported AGOV platform
+4. `first-governed-change.md` is not linked from the homepage hero, and is
+   linked exactly once from `commission.md` -- inside Step 6's own section,
+   never earlier (GS-B-4).
+5. `first-governed-change.md`'s audience/prerequisite line is unchanged
+   from what `pqja` verified (a drift guard, not a re-verification).
+6. The latest release's AGF archive and both supported AGOV platform
    archives (`linux-x86_64`, `linux-aarch64`) are discovered through the
    GitLab Releases API (never hand-constructed, per the plan and
    `commission.md`'s own instruction), downloaded, and their bytes verified
    against the companion `.sha256` file; the companion `-provenance.json`
    asset's presence is confirmed live.
 
-Run directly (after a strict MkDocs build, for check 3):
+Run directly (after a strict MkDocs build, for checks 3-4):
     mkdocs build -f agf/docs/build/mkdocs.yml --strict
     python3 agf/docs/build/hooks/check_commissioning_links.py
 Self-test (no network access required):
@@ -76,6 +87,15 @@ BUILD_TIME_GENERATED_TARGETS = {"reference/release-info.md"}
 HERO_PRIMARY_CTA_RE = re.compile(
     r'<a class="agf-hero__action agf-hero__action--primary" href="([^"]+)"'
 )
+
+# Duplicated from check_commissioning_first_screen.py rather than imported --
+# each check script here is independently runnable
+# (`python3 agf/docs/build/hooks/check_X.py`), matching the existing
+# one-script-per-check pattern.
+ARTICLE_RE = re.compile(
+    r'<article[^>]*class="[^"]*md-content__inner[^"]*"[^>]*>(.*?)</article>', re.DOTALL
+)
+H2_RE = re.compile(r'<h2 id="([^"]*)">(.*?)</h2>', re.DOTALL)
 
 
 class LinkCheckError(ValueError):
@@ -194,6 +214,104 @@ def check_hero_cta(html: str, site_html_root: Path, expected_target: Path) -> li
         return [
             f"hero CTA href {href!r} resolves to {target}, expected the rendered "
             f"commissioning page {expected_resolved}"
+        ]
+    return []
+
+
+# ── Check 5: tutorial-gating (GS-B-4) ────────────────────────────────────
+
+HERO_SECTION_RE = re.compile(
+    r'<section aria-labelledby="agf-hero-title" class="agf-hero">.*?</section>',
+    re.DOTALL,
+)
+# Excludes same-page anchors (href="#step-6-continue-to-your-first-governed-
+# change") -- MkDocs Material's TOC/permalink anchors reuse the heading's own
+# slugified text as the fragment, which contains "first-governed-change" for
+# any heading whose title mentions it (Step 6's does), even though that
+# anchor is not a link to the sibling page at all. Verified against the real
+# rendered page before shipping this check -- see check history.
+FIRST_GOVERNED_CHANGE_HREF_RE = re.compile(r'href="([^"#][^"]*first-governed-change[^"]*)"')
+STEP6_HEADING_RE = re.compile(r'<h2 id="step-6-[^"]*">.*?</h2>', re.DOTALL)
+
+
+def check_tutorial_gating(commission_html: str, homepage_html: str) -> list[str]:
+    """Per the approved plan's Class A item 4: `first-governed-change.md`
+    must not be linked from the homepage hero, and on `commission.md` must
+    be linked exactly once -- as Step 6's own "continue" step, never
+    earlier. `20260808T140046Z-coder-tester-qnbd.md` (GS-B-4) found this
+    check entirely unimplemented; `hd1d`'s governor decision authorized a
+    bounded content correction to `commission.md` (removing the Overview
+    and next-steps-table mentions) rather than narrowing the invariant."""
+    failures: list[str] = []
+
+    hero_match = HERO_SECTION_RE.search(homepage_html)
+    if not hero_match:
+        raise LinkCheckError(
+            'no <section aria-labelledby="agf-hero-title" class="agf-hero"> '
+            "found on the rendered homepage -- markup may have changed"
+        )
+    if FIRST_GOVERNED_CHANGE_HREF_RE.search(hero_match.group(0)):
+        failures.append(
+            "the homepage hero links to first-governed-change.md -- it must only "
+            "be reachable after commissioning, never from the hero"
+        )
+
+    article_match = ARTICLE_RE.search(commission_html)
+    if not article_match:
+        raise LinkCheckError(
+            "could not locate the rendered commission.md article region"
+        )
+    article = article_match.group(1)
+
+    all_hrefs = FIRST_GOVERNED_CHANGE_HREF_RE.findall(article)
+    if len(all_hrefs) == 0:
+        failures.append(
+            "commission.md no longer links first-governed-change.md at all -- "
+            "Step 6 must link it as the continue step"
+        )
+    elif len(all_hrefs) > 1:
+        failures.append(
+            f"commission.md links first-governed-change.md {len(all_hrefs)} times "
+            "-- it must be linked exactly once, as Step 6's continue step"
+        )
+
+    step6_match = STEP6_HEADING_RE.search(article)
+    if not step6_match:
+        raise LinkCheckError("no 'step-6-...' heading found in rendered commission.md")
+    step6_and_after = article[step6_match.start() :]
+    next_h2 = H2_RE.search(step6_and_after, step6_match.end() - step6_match.start())
+    step6_section = step6_and_after[: next_h2.start()] if next_h2 else step6_and_after
+    before_step6 = article[: step6_match.start()]
+
+    if FIRST_GOVERNED_CHANGE_HREF_RE.search(before_step6):
+        failures.append(
+            "commission.md links first-governed-change.md before Step 6 -- it "
+            "must only appear as Step 6's own continue step"
+        )
+    elif all_hrefs and not FIRST_GOVERNED_CHANGE_HREF_RE.search(step6_section):
+        failures.append(
+            "commission.md's single link to first-governed-change.md is not "
+            "inside Step 6's own section"
+        )
+
+    return failures
+
+
+FIRST_GOVERNED_CHANGE_MD = DOCS_SITE_ROOT / "docs/start/first-governed-change.md"
+EXPECTED_AUDIENCE_LINE = (
+    "Audience: developers who have\ncompleted [install and layouts]"
+    "(../adopt/install-and-layouts.md). After"
+)
+
+
+def check_first_governed_change_audience_line(text: str) -> list[str]:
+    """`pqja` already verified this line is correct; this is a drift guard,
+    not a re-verification -- it must not silently change underneath the
+    tutorial-gating invariant above."""
+    if EXPECTED_AUDIENCE_LINE not in text:
+        return [
+            "first-governed-change.md's audience/prerequisite line has changed "
+            f"from the text verified in pqja (expected to find {EXPECTED_AUDIENCE_LINE!r})"
         ]
     return []
 
@@ -332,6 +450,32 @@ def run_real_checks() -> int:
         print("[OK] homepage hero CTA resolves to the rendered commissioning page")
     all_failures += hero_failures
 
+    if not COMMISSION_PAGE_HTML.exists():
+        raise LinkCheckError(f"not found: {COMMISSION_PAGE_HTML}")
+    gating_failures = check_tutorial_gating(
+        COMMISSION_PAGE_HTML.read_text(encoding="utf-8"),
+        HOMEPAGE_HTML.read_text(encoding="utf-8"),
+    )
+    for f in gating_failures:
+        print(f"[FAIL] {f}")
+    if not gating_failures:
+        print(
+            "[OK] first-governed-change.md is linked exactly once, as Step 6's "
+            "continue step, and not from the homepage hero"
+        )
+    all_failures += gating_failures
+
+    if not FIRST_GOVERNED_CHANGE_MD.exists():
+        raise LinkCheckError(f"not found: {FIRST_GOVERNED_CHANGE_MD}")
+    audience_failures = check_first_governed_change_audience_line(
+        FIRST_GOVERNED_CHANGE_MD.read_text(encoding="utf-8")
+    )
+    for f in audience_failures:
+        print(f"[FAIL] {f}")
+    if not audience_failures:
+        print("[OK] first-governed-change.md's audience/prerequisite line is unchanged")
+    all_failures += audience_failures
+
     releases_json = fetch_json(RELEASES_API_URL)
     tag_name, assets = parse_release_assets(releases_json)
     version = release_version(tag_name)
@@ -448,6 +592,87 @@ or the
             raise AssertionError("a missing hero CTA anchor was not detected as an error")
         except LinkCheckError:
             pass
+
+    # ── Check 4: tutorial gating (GS-B-4) ─────────────────────────────────
+    good_gating_commission_html = """
+<article class="md-content__inner md-typeset">
+<h2 id="overview">Overview</h2>
+<p>No mention of first-governed-change here.</p>
+<h2 id="step-6-continue-to-your-first-governed-change">Step 6: Continue to your first governed change</h2>
+<p>Continue to
+<a href="../first-governed-change/">your first governed change</a>.</p>
+<h2 id="entry-points-summary">Entry points summary</h2>
+<p>No mention here either.</p>
+</article>
+"""
+    good_gating_homepage_html = """
+<section aria-labelledby="agf-hero-title" class="agf-hero">
+<a class="agf-hero__action agf-hero__action--primary" href="docs/start/commission/">Get started</a>
+</section>
+<a href="docs/start/first-governed-change/">mentioned further down the page, outside the hero</a>
+"""
+    assert (
+        check_tutorial_gating(good_gating_commission_html, good_gating_homepage_html) == []
+    )
+
+    # A TOC/permalink anchor whose fragment happens to contain
+    # "first-governed-change" (Step 6's own heading slug) must not be
+    # mistaken for a real link to the sibling page.
+    permalink_only_html = good_gating_commission_html.replace(
+        '<h2 id="step-6-continue-to-your-first-governed-change">Step 6: Continue to your first governed change</h2>',
+        '<h2 id="step-6-continue-to-your-first-governed-change">Step 6: Continue to your first governed change'
+        '<a class="headerlink" href="#step-6-continue-to-your-first-governed-change"></a></h2>',
+    )
+    permalink_failures = check_tutorial_gating(permalink_only_html, good_gating_homepage_html)
+    assert permalink_failures == [], (
+        f"a same-page permalink anchor was mistaken for a real link: {permalink_failures}"
+    )
+
+    hero_link_html = good_gating_homepage_html.replace(
+        "</section>",
+        '<a href="docs/start/first-governed-change/">skip ahead</a></section>',
+    )
+    hero_link_failures = check_tutorial_gating(good_gating_commission_html, hero_link_html)
+    assert hero_link_failures, "a hero-region link to first-governed-change.md was not detected"
+
+    zero_links_html = good_gating_commission_html.replace(
+        '<p>Continue to\n<a href="../first-governed-change/">your first governed change</a>.</p>',
+        "<p>Continue on to what's next.</p>",
+    )
+    zero_links_failures = check_tutorial_gating(zero_links_html, good_gating_homepage_html)
+    assert zero_links_failures, "commission.md linking first-governed-change.md zero times was not detected"
+
+    early_link_html = good_gating_commission_html.replace(
+        "<p>No mention of first-governed-change here.</p>",
+        '<p>See <a href="../first-governed-change/">your first governed change</a>.</p>',
+    ).replace(
+        '<p>Continue to\n<a href="../first-governed-change/">your first governed change</a>.</p>',
+        "<p>You are done.</p>",
+    )
+    early_link_failures = check_tutorial_gating(early_link_html, good_gating_homepage_html)
+    assert early_link_failures, (
+        "a first-governed-change.md link placed before Step 6 (in Overview) was not detected"
+    )
+
+    double_link_html = good_gating_commission_html.replace(
+        "<p>No mention of first-governed-change here.</p>",
+        '<p>See <a href="../first-governed-change/">your first governed change</a>.</p>',
+    )
+    double_link_failures = check_tutorial_gating(double_link_html, good_gating_homepage_html)
+    assert double_link_failures, (
+        "commission.md linking first-governed-change.md twice was not detected"
+    )
+
+    good_audience_text = (
+        "*Status: Released. ... Audience: developers who have\n"
+        "completed [install and layouts](../adopt/install-and-layouts.md). After\n"
+        "this page ...*"
+    )
+    assert check_first_governed_change_audience_line(good_audience_text) == []
+
+    drifted_audience_text = good_audience_text.replace("developers who have", "anyone who has")
+    drifted_audience_failures = check_first_governed_change_audience_line(drifted_audience_text)
+    assert drifted_audience_failures, "a drifted audience/prerequisite line was not detected"
 
     good_allowlist_failures, good_urls = check_external_url_allowlist(good_text)
     assert good_allowlist_failures == [], good_allowlist_failures
@@ -575,9 +800,13 @@ or the
         "\nSelf-test passed: detects a broken relative link, an "
         "off-allowlist external URL, a hero CTA pointing at a missing "
         "page, a hero CTA redirected to a different existing page, a "
-        "missing hero CTA anchor, a checksum mismatch, a malformed or "
-        "empty .sha256 file, missing release-asset companions, and "
-        "correctly ignores links inside inline code spans -- release-asset "
+        "missing hero CTA anchor, a hero-region link to "
+        "first-governed-change.md, zero/two links to "
+        "first-governed-change.md from commission.md, a link placed "
+        "before Step 6, a drifted audience/prerequisite line, a checksum "
+        "mismatch, a malformed or empty .sha256 file, missing "
+        "release-asset companions, and correctly ignores links inside "
+        "inline code spans and same-page permalink anchors -- release-asset "
         "fixtures use the real GitLab Releases API response shape."
     )
     return 0
