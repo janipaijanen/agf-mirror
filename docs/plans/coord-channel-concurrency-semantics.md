@@ -20,6 +20,11 @@ advisory_consultation:
 **Sequencing:** First in the coord-cli-ci-distribution cluster. `coord-cli-write-and-watch.md`
 (GitLab #32, #36) depends on the ordering/collision answer this plan gives.
 
+**Planning clarification (2026-08-08):** Beagle/CRDT prior-art review
+(`20260808T183635Z-contribution-auditor-gjsk.md`) added the layered-convergence
+boundary and negative semantic-conflict scenario below. This does not approve
+this plan or expand it into CRDT storage or semantic-conflict enforcement.
+
 ---
 
 ## Intent
@@ -114,6 +119,39 @@ and the validator to catch.
    the rebased branch) is the safety net for the collision case, once the
    validator gap above is closed.
 
+## Layered convergence and the semantic boundary
+
+“Conflict-free” is not one guarantee. For this channel it separates into five
+layers:
+
+1. **File merge:** distinct file additions merge without a Git text conflict.
+2. **Record validity:** filenames/IDs are unique and each record satisfies its
+   schema and named invariants.
+3. **Causal coherence:** `references-to` edges and explicit supersession make
+   the relevant sequence reconstructible; timestamp order alone is not
+   causality.
+4. **Governed semantic consistency:** two valid records do not imply
+   incompatible obligations, claims, or binding decisions about one topic.
+5. **Downstream correctness:** code, documentation, tests, and human decisions
+   remain correct after the concurrent work is combined.
+
+This plan covers layers 1 and 2 and documents the layer-3 ordering boundary. It
+does **not** claim to solve layers 4 or 5. A clean Git merge plus a green schema
+validation therefore means mechanically convergent records, not necessarily a
+coherent or correct governed outcome.
+
+The implementation documentation must include this negative scenario: two
+worktrees independently add different, schema-valid filenames with the same
+`topic`; one record says an obligation is cleared and the other says it remains
+blocked, with neither referencing the other. Git merges both and the current
+schema validates both. That outcome demonstrates the boundary; it must not be
+presented as successful semantic conflict resolution.
+
+Any future advisory same-topic contradiction/index check requires a separate
+plan after an observed harmful ambiguity or concrete adopter need. It must
+account for legitimate dissent, later correction, role authority, explicit
+supersession, and false positives before receiving even advisory status.
+
 ## Scope
 
 **In scope:**
@@ -141,6 +179,11 @@ and the validator to catch.
 - Locking or claims TTL redesign (`claim`/`expires_on` semantics are
   unchanged).
 - Distributed, non-git transports.
+- Native CRDT/RDX storage, Beagle or StrictMark adoption, Git replacement, or
+  automatic semantic merging.
+- Same-topic contradiction detection or any validator claim that mechanically
+  convergent records are semantically consistent. The negative scenario above
+  documents this limit; it does not add a blocker.
 - Promoting the existing advisory naming-drift warnings
   (`add_readable_drift_findings` in `coord_validator.rs`) to blocking.
   `agf/docs/site/docs/concepts/coordination-protocol.md` and
@@ -155,7 +198,7 @@ and the validator to catch.
 
 | File | Change |
 |---|---|
-| `agf/docs/site/docs/concepts/coordination-protocol.md` | Rewrite "Parallel work and conflicts" section: explicit ordering guarantee, collision probability, merge/rebase semantics, link to the documented test scenario |
+| `agf/docs/site/docs/concepts/coordination-protocol.md` | Rewrite "Parallel work and conflicts" section: explicit ordering guarantee, collision probability, merge/rebase semantics, layered-convergence boundary, and links to both documented scenarios |
 | `agf/rules/workflow/coordination-id-rule.md` | Add short "Concurrency" section, cross-reference the protocol doc (no duplication — link, per marketing-tone-rule message-integrity discipline applied internally) |
 | `tooling/rust/crates/agov-coord/src/coord_validator.rs` | Add a directory-aware duplicate-ID check (new function, e.g. `duplicate_id_errors_against_dir`) usable independently of the CLI-argument-only check already in `main.rs::duplicate_id_errors` |
 | `tooling/rust/crates/agov/src/main.rs` | Wire the new directory-aware check into `validate_coord_files` when the files being validated live under a coordination directory; keep existing behaviour for files outside one |
@@ -194,6 +237,7 @@ and adds documentation. Existing coordination files are unaffected.
 | Unit | Directory-aware duplicate check finds a collision between a new file and a pre-existing sibling on disk | `tooling/rust/crates/agov-coord/src/coord_validator.rs` (`#[cfg(test)]`) |
 | Unit | Directory-aware check does not false-positive on two files with distinct IDs | same |
 | Integration (documented, manual) | Two git worktrees, each branched from the same base, each adds one new readable-ID-named coordination file; merge both branches into a throwaway integration branch; assert `git merge` produces zero conflicts and `agov coord validate` on the full directory reports 0 duplicate-ID errors | Documented as a reproducible shell transcript in the protocol doc per this issue's acceptance criteria |
+| Boundary (documented, negative) | Two worktrees add distinct, schema-valid records with the same topic and incompatible governed meaning; demonstrate that Git/schema convergence succeeds while semantic consistency remains unresolved | Documented beside the integration scenario; no automated detector or blocking result in this plan |
 
 TDD order: write the directory-collision unit test first (RED against
 current `coord_validator.rs`, which has no such function), implement the
@@ -206,6 +250,7 @@ new check (GREEN), then wire into `main.rs`, then write docs.
 | Directory-aware scan is slow on very large channels | Coordination channels are bounded by project lifetime, not user data volume; `docs/coordination/` is already scanned in full by `coord status`, `coord stale`, `coord graph` with no reported performance issue. Not a concern at current or foreseeable scale. |
 | Scope creep into promoting naming-drift warnings to blocking | Explicitly out of scope (see above); requires a separate rule change first per tool-authority-boundary-rule |
 | Documentation drift between `coordination-id-rule.md` and the protocol concept doc | Cross-reference, not duplicate, per this plan's own Scope section |
+| Mechanical convergence is overstated as semantic correctness | Document the five layers and the negative same-topic scenario; reserve any semantic detector for a separate evidenced plan |
 
 ## Rollback
 
