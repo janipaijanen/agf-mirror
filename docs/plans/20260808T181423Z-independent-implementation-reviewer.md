@@ -217,7 +217,7 @@ and returns to the governor rather than being folded into this role slice.
 - `agov handoff next independent-implementation-reviewer`
 - `mkdocs build --strict --config-file agf/docs/build/mkdocs.yml`
 - `agov validate adopter-docs`
-- `agov plan projection-check docs/plans/20260808T181423Z-independent-implementation-reviewer.md`
+- `agov plan projection-check --base-ref main docs/reviews/rule-projection/20260808T181423Z-independent-implementation-reviewer.yaml`
 - `git diff --check`
 - Manual jurisdiction-overlap matrix against `coder-tester`,
   `contribution-auditor`, `governor-reviewer`, `fact-checker`,
