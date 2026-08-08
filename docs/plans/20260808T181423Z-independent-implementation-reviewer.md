@@ -1,7 +1,9 @@
 ---
 id: 20260808T181423Z-independent-implementation-reviewer
-status: pending-gate1
+status: approved
 topic: independent-implementation-reviewer-role
+gate1_approved_by: 20260808T193155Z-governor-reviewer-get2
+gate1_approved_at: 2026-08-08T19:31:55Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
