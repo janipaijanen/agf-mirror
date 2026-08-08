@@ -2,8 +2,8 @@
 id: 20260808T183550Z-beagle-crdt-source-concurrency
 status: approved
 topic: beagle-crdt-source-concurrency
-gate1_approved_by: "governor-reviewer direct chat approval transcribed in 20260808T183636Z-governor-reviewer-d6ps.md"
-gate1_approved_at: "2026-08-08T18:36:36Z"
+gate1_approved_by: "20260808T183636Z-governor-reviewer-d6ps.md; Batch 21 amendment reaffirmed in 20260808T193155Z-governor-reviewer-get2.md"
+gate1_approved_at: "2026-08-08T19:31:55Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -64,7 +64,7 @@ entry must state that boundary rather than infer reuse permission.
 
 ### Source registry
 
-Append Batch 20 to `docs/sources.md` with:
+Append Batch 21 to `docs/sources.md` with:
 
 - the article classified as `technical design, tooling, source`;
 - relationship `prior-art, complement`;
@@ -116,7 +116,7 @@ empty. This approval does not extend to that plan's implementation.
 
 ## Acceptance criteria
 
-1. Batch 20 contains the article, pinned implementation sources, and
+1. Batch 21 contains the article, pinned implementation sources, and
    Chronofold with clear evidence limits.
 2. The registry explains that AGF already uses structured front matter over
    Markdown and Git, while Beagle is prior art rather than an adopted backend.
@@ -131,7 +131,7 @@ empty. This approval does not extend to that plan's implementation.
 
 ## Rollback
 
-Revert Batch 20 if factual review finds a source/provenance error. Revert the
+Revert Batch 21 if factual review finds a source/provenance error. Revert the
 issue #33 plan clarification independently if its framing is rejected during
 advisory Gate 1 review. Neither rollback mutates historical coordination or
 requires a data migration.
