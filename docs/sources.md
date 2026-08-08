@@ -1697,3 +1697,88 @@ assurance stakes, or adoption of NASA's governance process.
 4. **Reviewer independence needs explicit provenance.** Tool-level read-only
    status does not prove independence of session, model, vendor, prompt, or
    evidence channel.
+
+# Batch 21 (2026-08-08) — Beagle, token-level CRDT, and structured Markdown
+
+The supplied article is useful primary design evidence and unusually candid about the
+gap between mechanically convergent merges and syntactic or semantic correctness. It is
+the project author's report, not independent validation. The implementation sources are
+pinned below so later Beagle changes are not silently projected onto this assessment.
+
+## Classified
+
+- https://replicated.live/blog/crdt
+  type: technical design, tooling, source | relation: prior-art, complement |
+  action: cite, evaluate, watch
+  note: Victor Grishchenko, “My own GitHub: Git, CRDT, Markdown,” dated
+  2026-08-07. Describes Beagle's current approach: Git-compatible blob storage,
+  token-level CRDT diff/merge in libdog, and StrictMark headers that turn a folder of
+  Markdown tickets into structured, queryable project metadata. The author reports
+  dogfooding roughly 1,000 tickets and instant operations, but supplies no independent
+  benchmark or adoption study; retain those as attributed self-report. The strongest AGF
+  evidence is the stated consistency boundary: CRDT convergence can still produce
+  touching concurrent insertions, malformed higher-level structure, incompatible
+  key/value rewrites, or semantically invalid code. This is prior art for distinguishing
+  Git/file convergence, schema validity, causal coherence, governed semantic consistency,
+  and downstream correctness—not evidence that AGF should adopt a CRDT backend.
+  (accessed 2026-08-08)
+
+- https://github.com/gritzko/beagle/tree/4b64468cd39de5c43c342012012f1b0f32853e0e
+  type: tooling, source | relation: prior-art, complement | action: evaluate, watch
+  note: Pinned Beagle source revision associated with the article. Beagle is a
+  Git-compatible revision-control experiment with syntax-aware operations and local
+  project-management views. Its later status report says the original RDX-based CRDT
+  storage engine was phased out in favor of a Git-compatible backend after faster
+  tokenization made blob storage sufficient
+  (`https://replicated.live/blog/partIII.html`). That evolution supports evaluating
+  structured/derived views and sharper merge evidence without replacing AGF's Git-native
+  authority trail. GitHub exposes no recognized repository license at this pinned
+  revision, so this entry records design prior art only and grants no inferred reuse
+  permission. (accessed 2026-08-08)
+
+- https://github.com/gritzko/libdog/tree/06a2a21de7f76046f921535f4411cbf701bfcd0d
+  type: library, source | relation: prior-art | action: evaluate
+  note: Pinned MIT-licensed token-level revision-control library used by Beagle for
+  tokenization, diff, blame, and merge behavior. Relevant if AGF later evaluates Beagle's
+  concrete merge/conflict evidence rather than relying on the blog description. It does
+  not implement AGF role authority, plan gates, coordination semantics, or human binding
+  decisions. (accessed 2026-08-08)
+
+- https://arxiv.org/abs/2002.09511
+  type: research, primary source | relation: evidence, prior-art | action: cite
+  note: Grishchenko and Patrakeev, “Chronofold: a data structure for versioned text”
+  (arXiv:2002.09511; PaPoC 2020, DOI 10.1145/3380787.3393680). Defines a replicated
+  versioned-text structure based on the Causal Tree model, using subjective linear orders
+  locally and a distributed model between replicas. It supports the technical lineage of
+  the article's sequence-CRDT discussion. It does not establish that Beagle's current
+  implementation, structured-ticket model, or AGF governance records are correct.
+
+## First AGF takeaways
+
+1. **AGF already uses structured Markdown as governed data.** YAML front matter supplies
+   typed fields; `agov` derives pending queues, graphs, visibility, and session summaries.
+   Beagle is convergent prior art for richer derived views, not a missing reason to invent
+   another source format.
+2. **Convergence has layers.** Distinct coordination files can merge cleanly and validate
+   while two records about one topic still imply incompatible obligations or decisions.
+   Issue #33 should claim only the file/ID/schema/ordering guarantees it actually tests.
+3. **A negative semantic scenario is valuable even without a detector.** Document two
+   independently valid same-topic records—one clearing an obligation and one keeping it
+   blocked—to prove that a clean Git merge and green schema result are not semantic
+   conflict resolution.
+4. **Normalization and tolerant parsing are design tools, not authority.** Canonical
+   `agov coord brief` output and strict validation can reduce representational ambiguity,
+   but neither chooses between causally unrelated binding decisions; role authority and
+   explicit references/supersession still matter.
+5. **Preserve Git as the authority substrate.** Beagle's own move from native RDX storage
+   back to a Git-compatible backend weighs against introducing a CRDT/database dependency
+   into AGF absent a reproduced failure that file-per-message records cannot address.
+
+## Evaluation boundary
+
+Do not create a separate radar item or implement a CRDT store, StrictMark, automatic
+semantic merge, or same-topic blocker from these sources. The mature concurrency question
+is already issue #33. Its pending plan may document the layered guarantee and negative
+scenario; any contradiction detector/index requires a separate Gate 1 plan after an
+observed harmful ambiguity or concrete adopter requirement, with legitimate dissent,
+correction, supersession, role authority, and false positives explicitly handled.
