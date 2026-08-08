@@ -74,19 +74,43 @@ def _strip_html_tags(text: str) -> str:
     return re.sub(r"<[^>]+>", "", text).strip()
 
 
+STEP_ID_RE = re.compile(r"^step-(\d+)-")
+REQUIRED_STEPS = (1, 2, 3, 4, 5, 6)
+
+
 def check_commission_page_order(html: str) -> list[str]:
-    """Return failures: pre-Step-1 headings must be allow-listed only, and
-    no highlighted code block may precede the Step 3 assistant-prompt
-    marker, in the rendered DOM."""
+    """Return failures: pre-Step-1 headings must be allow-listed only, Steps
+    1-6 must all be present as *consecutive* headings in ascending order (no
+    theory/rationale heading interspersed among them -- the plan's "the
+    six-step sequence must precede any theory content" is stronger than
+    "nothing precedes Step 1"; a stray heading between, say, Step 4 and
+    Step 5 must also fail), and no highlighted code block may precede the
+    Step 3 assistant-prompt marker, all in the rendered DOM."""
     failures: list[str] = []
     article = _extract_article(html)
 
     headings = list(H2_RE.finditer(article))
-    step1_idx = next(
-        (i for i, m in enumerate(headings) if m.group(1).startswith("step-1")), None
-    )
-    if step1_idx is None:
-        raise CommissioningStructureError("no 'step-1' heading id found in rendered page")
+    step_positions: dict[int, int] = {}
+    for i, m in enumerate(headings):
+        step_match = STEP_ID_RE.match(m.group(1))
+        if step_match:
+            step_positions[int(step_match.group(1))] = i
+
+    missing_steps = [n for n in REQUIRED_STEPS if n not in step_positions]
+    if missing_steps:
+        raise CommissioningStructureError(
+            f"missing rendered heading(s) for Step(s) {missing_steps} -- expected "
+            f"one 'step-N-...' heading id for each of {list(REQUIRED_STEPS)}"
+        )
+
+    ordered_positions = [step_positions[n] for n in REQUIRED_STEPS]
+    step1_idx = ordered_positions[0]
+    if ordered_positions != list(range(step1_idx, step1_idx + len(REQUIRED_STEPS))):
+        failures.append(
+            "Steps 1-6 are not consecutive headings in the rendered DOM -- a "
+            "non-step heading (theory/rationale, or a step out of order) "
+            "appears between them"
+        )
 
     for m in headings[:step1_idx]:
         heading_text = _strip_html_tags(m.group(2)).lower()
@@ -212,13 +236,21 @@ def _self_test() -> int:
 <p>A git repository.</p>
 <h2 id="step-1-choose-new-or-existing-project">Step 1: Choose new or existing project</h2>
 <p><strong>What:</strong> Decide.</p>
+<h2 id="step-2-get-your-pinned-agf-and-agov-artifacts">Step 2: Get your pinned AGF and AGOV artifacts</h2>
+<p><strong>What:</strong> Download.</p>
 <h2 id="step-3-paste-one-assistant-commissioning-prompt">Step 3: Paste one assistant commissioning prompt</h2>
 <p><strong>How:</strong> Paste this into your coding assistant:</p>
 <div class="highlight"><pre><span></span><code>Commission AGF and AGOV in this repository.
 </code></pre></div>
+<h2 id="step-4-review-the-assistants-report">Step 4: Review the assistant's report</h2>
+<p><strong>What:</strong> Review.</p>
 <h2 id="step-5-confirm-validation">Step 5: Confirm validation</h2>
 <div class="highlight"><pre><span></span><code>agov version
 </code></pre></div>
+<h2 id="step-6-continue-to-your-first-governed-change">Step 6: Continue to your first governed change</h2>
+<p><strong>What:</strong> Continue.</p>
+<h2 id="entry-points-summary">Entry points summary</h2>
+<p>A table.</p>
 </article>
 """
     assert check_commission_page_order(good_commission_html) == []
@@ -244,6 +276,34 @@ def _self_test() -> int:
         "a highlighted code block before the Step 3 assistant-prompt marker "
         "was not detected in the rendered DOM"
     )
+
+    # GS-B-1-R2 (20260808T143713Z-coder-tester-4bkh.md): a theory heading
+    # interspersed *between* two operational steps -- not just before
+    # Step 1 -- must also fail. The plan requires the six-step sequence to
+    # be contiguous, not merely "nothing precedes Step 1."
+    theory_between_steps_html = good_commission_html.replace(
+        '<h2 id="step-5-confirm-validation">Step 5: Confirm validation</h2>',
+        '<h2 id="decision-why-this-order">Decision: why this order</h2>\n'
+        "<p>Some rationale interspersed mid-sequence.</p>\n"
+        '<h2 id="step-5-confirm-validation">Step 5: Confirm validation</h2>',
+    )
+    theory_between_steps_failures = check_commission_page_order(theory_between_steps_html)
+    assert theory_between_steps_failures, (
+        "a theory heading inserted between Step 4 and Step 5 was not detected"
+    )
+
+    # A page missing one of the required six steps entirely must fail loudly
+    # (a structural error, not a silently-empty failure list).
+    missing_step_html = good_commission_html.replace(
+        '<h2 id="step-4-review-the-assistants-report">Step 4: Review the assistant\'s report</h2>\n'
+        "<p><strong>What:</strong> Review.</p>\n",
+        "",
+    )
+    try:
+        check_commission_page_order(missing_step_html)
+        raise AssertionError("a rendered page missing Step 4 entirely was not detected")
+    except CommissioningStructureError:
+        pass
 
     good_first_governed_change_html = """
 <article class="md-content__inner md-typeset">
@@ -307,11 +367,12 @@ yourself first:</p>
 
     print(
         "\nSelf-test passed: detects a theory heading before Step 1, a "
-        "highlighted code block before the assistant prompt, a step 1 "
-        "missing its delegation mention, a manual fallback without its "
-        "marker phrase, a delegation mention placed after the manual "
-        "command, and a missing <article> region -- all against synthetic "
-        "rendered-HTML fixtures, not Markdown source."
+        "theory heading interspersed between Step 4 and Step 5, a page "
+        "missing a required step entirely, a highlighted code block before "
+        "the assistant prompt, a step 1 missing its delegation mention, a "
+        "manual fallback without its marker phrase, a delegation mention "
+        "placed after the manual command, and a missing <article> region -- "
+        "all against synthetic rendered-HTML fixtures, not Markdown source."
     )
     return 0
 

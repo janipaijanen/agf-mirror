@@ -171,7 +171,12 @@ def resolve_hero_target(href: str, site_html_root: Path) -> Path:
     return (site_html_root / href.rstrip("/") / "index.html").resolve()
 
 
-def check_hero_cta(html: str, site_html_root: Path) -> list[str]:
+def check_hero_cta(html: str, site_html_root: Path, expected_target: Path) -> list[str]:
+    """The primary hero CTA must resolve to exactly `expected_target` (the
+    rendered commissioning page) -- not merely to *some* existing page.
+    20260808T143713Z-coder-tester-4bkh.md (GS-B-3-R2) found an earlier
+    version only checked existence, so a hero CTA silently redirected to a
+    different real page would have passed."""
     href = extract_hero_primary_href(html)
     if href is None:
         raise LinkCheckError(
@@ -184,6 +189,12 @@ def check_hero_cta(html: str, site_html_root: Path) -> list[str]:
     target = resolve_hero_target(href, site_html_root)
     if not target.exists():
         return [f"hero CTA href {href!r} does not resolve: {target} does not exist"]
+    expected_resolved = expected_target.resolve()
+    if target != expected_resolved:
+        return [
+            f"hero CTA href {href!r} resolves to {target}, expected the rendered "
+            f"commissioning page {expected_resolved}"
+        ]
     return []
 
 
@@ -312,7 +323,9 @@ def run_real_checks() -> int:
             f"not found: {HOMEPAGE_HTML} -- run `mkdocs build -f "
             "agf/docs/build/mkdocs.yml --strict` first"
         )
-    hero_failures = check_hero_cta(HOMEPAGE_HTML.read_text(encoding="utf-8"), SITE_HTML_ROOT)
+    hero_failures = check_hero_cta(
+        HOMEPAGE_HTML.read_text(encoding="utf-8"), SITE_HTML_ROOT, COMMISSION_PAGE_HTML
+    )
     for f in hero_failures:
         print(f"[FAIL] {f}")
     if not hero_failures:
@@ -401,22 +414,37 @@ or the
         # ── Check 3: hero CTA, against a synthetic rendered homepage ──────
         site_html = base / "site-html"
         (site_html / "docs/start/commission").mkdir(parents=True)
-        (site_html / "docs/start/commission" / "index.html").write_text("<html></html>")
+        commission_target = site_html / "docs/start/commission" / "index.html"
+        commission_target.write_text("<html></html>")
+        (site_html / "docs/start/other-page").mkdir(parents=True)
+        (site_html / "docs/start/other-page" / "index.html").write_text("<html></html>")
 
         good_hero_html = (
             '<a class="agf-hero__action agf-hero__action--primary" '
             'href="docs/start/commission/" aria-label="Get started">Get started</a>'
         )
-        assert check_hero_cta(good_hero_html, site_html) == []
+        assert check_hero_cta(good_hero_html, site_html, commission_target) == []
 
         broken_hero_html = good_hero_html.replace(
             'href="docs/start/commission/"', 'href="docs/start/does-not-exist/"'
         )
-        broken_hero_failures = check_hero_cta(broken_hero_html, site_html)
+        broken_hero_failures = check_hero_cta(broken_hero_html, site_html, commission_target)
         assert broken_hero_failures, "a hero CTA pointing at a missing page was not detected"
 
+        # GS-B-3-R2 (20260808T143713Z-coder-tester-4bkh.md): a hero CTA
+        # redirected to a *different, existing* page must also fail -- an
+        # earlier version only checked that the resolved target existed at
+        # all, not that it was the commissioning page specifically.
+        wrong_page_hero_html = good_hero_html.replace(
+            'href="docs/start/commission/"', 'href="docs/start/other-page/"'
+        )
+        wrong_page_failures = check_hero_cta(wrong_page_hero_html, site_html, commission_target)
+        assert wrong_page_failures, (
+            "a hero CTA redirected to a different existing page was not detected"
+        )
+
         try:
-            check_hero_cta("<html><body>no hero here</body></html>", site_html)
+            check_hero_cta("<html><body>no hero here</body></html>", site_html, commission_target)
             raise AssertionError("a missing hero CTA anchor was not detected as an error")
         except LinkCheckError:
             pass
@@ -546,11 +574,11 @@ or the
     print(
         "\nSelf-test passed: detects a broken relative link, an "
         "off-allowlist external URL, a hero CTA pointing at a missing "
-        "page, a missing hero CTA anchor, a checksum mismatch, a "
-        "malformed or empty .sha256 file, missing release-asset "
-        "companions, and correctly ignores links inside inline code "
-        "spans -- release-asset fixtures use the real GitLab Releases "
-        "API response shape."
+        "page, a hero CTA redirected to a different existing page, a "
+        "missing hero CTA anchor, a checksum mismatch, a malformed or "
+        "empty .sha256 file, missing release-asset companions, and "
+        "correctly ignores links inside inline code spans -- release-asset "
+        "fixtures use the real GitLab Releases API response shape."
     )
     return 0
 
