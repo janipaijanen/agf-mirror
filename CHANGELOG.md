@@ -8,6 +8,23 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Added
+
+- New `web-ux-reviewer` agent role (`agf/agents/web-ux-reviewer.yaml`),
+  activated in this foundry's `agf/agents/MANIFEST.yaml`. Reviews the
+  rendered public Pages site (`agf/docs/site/`) for responsive layout,
+  navigation/CTA correctness, dark/light theme rendering, WCAG AA
+  accessibility (in situ, complementing the existing token-pair-only
+  `check_palette_contrast.py`), typography, and overall visual
+  impression — independent of the session/model that implemented the
+  change under review. Distinct from `academic-visual-reviewer` (which
+  stays skipped; scoped to compiled academic PDF output, not web/Pages
+  content). Additive: no existing role, schema, or command behavior
+  changes; adopters without a public Pages site can leave the role
+  unstaffed or remove the definition file. See
+  `20260808T161743Z-planner-architect-kpdj.md` finding 4a for the
+  staffing-gap evidence that motivated this role.
+
 ### Fixed
 
 - `agov coord list --since` now accepts the compact filename-prefix

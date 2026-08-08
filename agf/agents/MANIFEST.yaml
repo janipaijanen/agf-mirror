@@ -79,3 +79,16 @@ agents:
   academic-visual-reviewer:
     status: skipped
     reason: "no academic publications in this project"
+
+  web-ux-reviewer:
+    status: active
+    played_by: "human (Jani) + AI advisory (any model independent of the session that implemented the change under review), for public Pages site changes"
+    notes: >
+      Activated by governor-reviewer 2026-08-08, per
+      20260808T161743Z-planner-architect-kpdj.md finding 4a (Claude/
+      planner-architect Pages-rework staffing assessment): no active role
+      covered web-UX/visual review of the public GitLab Pages site
+      (agf/docs/site/), distinct from academic-visual-reviewer's
+      compiled-PDF scope. Independence from the implementing session is a
+      role requirement, not advisory -- see
+      agf/agents/web-ux-reviewer.yaml's boundaries.forbidden_actions.
