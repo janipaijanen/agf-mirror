@@ -1590,3 +1590,25 @@ assurance stakes, or adoption of NASA's governance process.
   claims about its own visible structure, not the complete LLIS schema or
   current system-wide governance. It prompted review; it is not a template AGF
   copied and does not imply NASA endorsement. (accessed 2026-08-04)
+
+# Batch 18 (2026-08-08) — user-submitted candidate
+
+## Classified
+
+- https://addyo.substack.com/p/agentic-code-quality
+  type: discussion | relation: complement, prior-art | action: cite (with caveat)
+  note: Addy Osmani (Google Chrome eng.), "Agentic Code Quality" (Elevate/Substack,
+  2026-08-08). Argues traditional end-of-pipeline human code review doesn't scale for
+  AI-agent-generated volume; quality must be enforced via constraints/gates distributed
+  throughout the pipeline (compilers, tests, property tests, mutation testing,
+  architecture-rule checks, CI), with human attention reserved for subjective judgment
+  (taste, architecture, intent) that automation can't perform. Opinion/framework piece,
+  no studies or case data cited — corroborates AGF's advisory-vs-structural thesis
+  (Kaptein et al. and ACS in Batch 2/3, twmrg.substack in Batch 5) from an independent,
+  credible-but-uncited voice rather than adding new evidence. Its "tighter constraints in
+  critical areas, looser elsewhere" framing already matches how AGF's
+  high-risk-operations-rule and simplicity-rule task-size calibration work together.
+  One concrete gap it names that AGF does not: mutation testing and cyclomatic-
+  complexity/architecture-rule checks as gate layers, neither currently named in
+  testing-environments-rule.md — a minor rule-enhancement candidate, not a new concept,
+  not actioned by this entry. (accessed 2026-08-08)
