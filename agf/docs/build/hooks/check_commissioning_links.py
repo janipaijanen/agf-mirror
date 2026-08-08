@@ -1,31 +1,46 @@
 # SPDX-License-Identifier: MIT
-"""Link-integrity check for the Get Started commissioning page.
+"""Link-integrity and release-artifact verification for the Get Started
+commissioning page.
 
-`docs/plans/20260806T122121Z-get-started-commissioning-ux-v1.md` requires
-every relative link on `commission.md` to resolve to a real file, and every
-external URL to be HTTP-verified end-to-end rather than assumed -- the
-`B-MR1193-CA-3` lesson from the earlier README slice, where a hand-written
-release-download URL 404'd and was only caught by a live HTTP probe, not by
-MkDocs' own strict internal-link check (which does not see external URLs at
-all).
+`docs/plans/20260806T122121Z-get-started-commissioning-ux-v1.md` (Class A
+item 2) requires every relative link on `commission.md` to resolve to a real
+file, the rendered homepage hero CTA to resolve to the rendered commissioning
+page, and every AGF/AGOV release URL to be HTTP-verified **end-to-end
+(download + checksum match)** -- not just a HEAD or GET probe against a
+generic page. `20260808T140046Z-coder-tester-qnbd.md` found two gaps in an
+earlier version of this script:
 
-Two checks:
+- **GS-B-2**: only the generic Releases page/API were GET-verified; no
+  archive was ever downloaded or checksum-matched.
+- **GS-B-3**: the homepage hero CTA was never inspected at all.
+
+Four checks:
 
 1. Every `[text](target)` relative link on `commission.md` resolves to a
-   real file on disk (anchors stripped before resolution).
-2. Every external URL on the page is one of the two known-correct GitLab
-   endpoints (protects against a similar-looking but wrong project ID or
-   path silently still returning 200 on some other page) and, when network
-   access is available, is HTTP-verified live with a real `GET`, not a
-   `HEAD` probe.
+   real file on disk (anchors stripped before resolution; one documented
+   exception for `reference/release-info.md`, generated at build time).
+2. Every external URL on `commission.md` is one of the two known-correct
+   GitLab endpoints and is HTTP-verified live with a real `GET`.
+3. The rendered homepage's primary hero CTA resolves to the rendered
+   commissioning page (`agf/site-html/docs/start/commission/index.html`).
+4. The latest release's AGF archive and both supported AGOV platform
+   archives (`linux-x86_64`, `linux-aarch64`) are discovered through the
+   GitLab Releases API (never hand-constructed, per the plan and
+   `commission.md`'s own instruction), downloaded, and their bytes verified
+   against the companion `.sha256` file; the companion `-provenance.json`
+   asset's presence is confirmed live.
 
-Run directly: `python3 agf/docs/build/hooks/check_commissioning_links.py`
+Run directly (after a strict MkDocs build, for check 3):
+    mkdocs build -f agf/docs/build/mkdocs.yml --strict
+    python3 agf/docs/build/hooks/check_commissioning_links.py
 Self-test (no network access required):
-`python3 agf/docs/build/hooks/check_commissioning_links.py --self-test`
+    python3 agf/docs/build/hooks/check_commissioning_links.py --self-test
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import sys
 import urllib.error
@@ -36,6 +51,9 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 DOCS_SITE_ROOT = REPO_ROOT / "agf/docs/site"
 COMMISSION_MD = DOCS_SITE_ROOT / "docs/start/commission.md"
 COMMISSION_MD_DIR = COMMISSION_MD.parent
+SITE_HTML_ROOT = REPO_ROOT / "agf/site-html"
+HOMEPAGE_HTML = SITE_HTML_ROOT / "index.html"
+COMMISSION_PAGE_HTML = SITE_HTML_ROOT / "docs/start/commission/index.html"
 
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
 
@@ -43,6 +61,9 @@ KNOWN_GOOD_EXTERNAL_URLS = {
     "https://gitlab.com/janipaijanen/agents-govern-framework/-/releases",
     "https://gitlab.com/api/v4/projects/83321848/releases",
 }
+
+RELEASES_API_URL = "https://gitlab.com/api/v4/projects/83321848/releases"
+AGOV_SUPPORTED_PLATFORMS = ("linux-x86_64", "linux-aarch64")
 
 # release-info.md does not exist as a source file -- release_info.py's
 # `on_pre_build` MkDocs hook generates it into docs_dir at build time. This
@@ -52,9 +73,16 @@ KNOWN_GOOD_EXTERNAL_URLS = {
 # rather than a broken link.
 BUILD_TIME_GENERATED_TARGETS = {"reference/release-info.md"}
 
+HERO_PRIMARY_CTA_RE = re.compile(
+    r'<a class="agf-hero__action agf-hero__action--primary" href="([^"]+)"'
+)
+
 
 class LinkCheckError(ValueError):
     pass
+
+
+# ── Check 1 & 2: commission.md's own links ───────────────────────────────
 
 
 def extract_links(text: str) -> list[tuple[str, str]]:
@@ -128,6 +156,124 @@ def http_verify_live(url: str, timeout: float = 15.0) -> str | None:
     return None
 
 
+# ── Check 3: rendered homepage hero CTA ──────────────────────────────────
+
+
+def extract_hero_primary_href(html: str) -> str | None:
+    match = HERO_PRIMARY_CTA_RE.search(html)
+    return match.group(1) if match else None
+
+
+def resolve_hero_target(href: str, site_html_root: Path) -> Path:
+    """MkDocs Material's default directory-URL scheme: a relative href like
+    'docs/start/commission/' resolves to that directory's own index.html,
+    relative to the page it appears on (here, the site root)."""
+    return (site_html_root / href.rstrip("/") / "index.html").resolve()
+
+
+def check_hero_cta(html: str, site_html_root: Path) -> list[str]:
+    href = extract_hero_primary_href(html)
+    if href is None:
+        raise LinkCheckError(
+            "no primary hero CTA anchor "
+            '(class="agf-hero__action agf-hero__action--primary") found on the '
+            "rendered homepage -- markup may have changed"
+        )
+    if is_external(href):
+        return [f"hero CTA href {href!r} is external, expected an internal relative path"]
+    target = resolve_hero_target(href, site_html_root)
+    if not target.exists():
+        return [f"hero CTA href {href!r} does not resolve: {target} does not exist"]
+    return []
+
+
+# ── Check 4: release archive discovery + end-to-end verification ────────
+
+
+def parse_release_assets(releases_json: list[dict]) -> tuple[str, dict[str, str]]:
+    """(tag_name, {asset_name: url}) for the latest (first) release entry.
+    Matches the real GitLab Releases API response shape -- see the
+    self-test fixture below, captured from a live `glab api
+    projects/83321848/releases` call."""
+    if not releases_json:
+        raise LinkCheckError("GitLab Releases API returned zero releases")
+    latest = releases_json[0]
+    tag_name = latest["tag_name"]
+    assets = {
+        link["name"]: link["url"] for link in latest.get("assets", {}).get("links", [])
+    }
+    return tag_name, assets
+
+
+def release_version(tag_name: str) -> str:
+    """Asset filenames use the version without the tag's leading 'v'."""
+    return tag_name[1:] if tag_name.startswith("v") else tag_name
+
+
+def expected_archive_names(version: str) -> dict[str, str]:
+    """{label: archive filename} for the AGF archive and every supported
+    AGOV platform archive, per commission.md's own asset-naming spec."""
+    names = {"agf": f"agf-{version}.tar.gz"}
+    for platform in AGOV_SUPPORTED_PLATFORMS:
+        names[f"agov-{platform}"] = f"agov-{version}-{platform}.tar.gz"
+    return names
+
+
+def verify_checksum_bytes(data: bytes, sha256_file_content: str, filename: str) -> str | None:
+    """Compare `data`'s SHA-256 against the `<hex>  <filename>` content of a
+    downloaded `.sha256` file. Returns a failure message, or None on match."""
+    stripped = sha256_file_content.strip()
+    if not stripped:
+        return f"{filename}: .sha256 file is empty"
+    expected_hex = stripped.split()[0].lower()
+    if len(expected_hex) != 64 or any(c not in "0123456789abcdef" for c in expected_hex):
+        return f"{filename}: .sha256 file does not contain a valid 64-hex-digit checksum"
+    actual_hex = hashlib.sha256(data).hexdigest()
+    if actual_hex != expected_hex:
+        return f"{filename}: checksum mismatch (expected {expected_hex}, got {actual_hex})"
+    return None
+
+
+def download_bytes(url: str, timeout: float = 60.0) -> bytes:
+    req = urllib.request.Request(url, method="GET", headers={"User-Agent": "agf-link-check"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read()
+
+
+def verify_release_archive(archive_name: str, assets: dict[str, str]) -> list[str]:
+    """Download `archive_name` end-to-end: confirm the archive, its
+    `.sha256`, and its `-provenance.json` companions are all present in the
+    discovered asset set; download the archive and the checksum file and
+    confirm the bytes match; confirm the provenance asset is live."""
+    failures: list[str] = []
+    sha256_name = f"{archive_name}.sha256"
+    provenance_name = f"{archive_name}-provenance.json"
+
+    for name in (archive_name, sha256_name, provenance_name):
+        if name not in assets:
+            failures.append(f"{name}: not found among the latest release's assets")
+    if failures:
+        return failures
+
+    archive_bytes = download_bytes(assets[archive_name])
+    sha256_text = download_bytes(assets[sha256_name]).decode("utf-8", errors="replace")
+    checksum_failure = verify_checksum_bytes(archive_bytes, sha256_text, archive_name)
+    if checksum_failure:
+        failures.append(checksum_failure)
+
+    provenance_failure = http_verify_live(assets[provenance_name])
+    if provenance_failure:
+        failures.append(f"{provenance_name}: {provenance_failure}")
+
+    return failures
+
+
+def fetch_json(url: str, timeout: float = 15.0) -> list[dict]:
+    req = urllib.request.Request(url, method="GET", headers={"User-Agent": "agf-link-check"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read())
+
+
 def run_real_checks() -> int:
     if not COMMISSION_MD.exists():
         raise LinkCheckError(f"not found: {COMMISSION_MD}")
@@ -161,10 +307,38 @@ def run_real_checks() -> int:
         else:
             print(f"[OK] {url}: live, HTTP 200")
 
+    if not HOMEPAGE_HTML.exists():
+        raise LinkCheckError(
+            f"not found: {HOMEPAGE_HTML} -- run `mkdocs build -f "
+            "agf/docs/build/mkdocs.yml --strict` first"
+        )
+    hero_failures = check_hero_cta(HOMEPAGE_HTML.read_text(encoding="utf-8"), SITE_HTML_ROOT)
+    for f in hero_failures:
+        print(f"[FAIL] {f}")
+    if not hero_failures:
+        print("[OK] homepage hero CTA resolves to the rendered commissioning page")
+    all_failures += hero_failures
+
+    releases_json = fetch_json(RELEASES_API_URL)
+    tag_name, assets = parse_release_assets(releases_json)
+    version = release_version(tag_name)
+    print(f"[OK] latest release discovered via Releases API: {tag_name}")
+
+    for label, archive_name in expected_archive_names(version).items():
+        archive_failures = verify_release_archive(archive_name, assets)
+        for f in archive_failures:
+            print(f"[FAIL] {label} ({archive_name}): {f}")
+        if not archive_failures:
+            print(f"[OK] {label} ({archive_name}): archive, checksum, and provenance verified")
+        all_failures += [f"{label} ({archive_name}): {f}" for f in archive_failures]
+
     if all_failures:
-        print(f"\n{len(all_failures)} link-integrity failure(s).")
+        print(f"\n{len(all_failures)} link-integrity/release-artifact failure(s).")
         return 1
-    print(f"\nAll relative links resolve and all {len(external_urls)} external URL(s) are live.")
+    print(
+        f"\nAll relative links resolve, all {len(external_urls)} external URL(s) are "
+        "live, the hero CTA resolves, and all release archives verify end-to-end."
+    )
     return 0
 
 
@@ -224,6 +398,29 @@ or the
             f"incorrectly flagged: {generated_failures}"
         )
 
+        # ── Check 3: hero CTA, against a synthetic rendered homepage ──────
+        site_html = base / "site-html"
+        (site_html / "docs/start/commission").mkdir(parents=True)
+        (site_html / "docs/start/commission" / "index.html").write_text("<html></html>")
+
+        good_hero_html = (
+            '<a class="agf-hero__action agf-hero__action--primary" '
+            'href="docs/start/commission/" aria-label="Get started">Get started</a>'
+        )
+        assert check_hero_cta(good_hero_html, site_html) == []
+
+        broken_hero_html = good_hero_html.replace(
+            'href="docs/start/commission/"', 'href="docs/start/does-not-exist/"'
+        )
+        broken_hero_failures = check_hero_cta(broken_hero_html, site_html)
+        assert broken_hero_failures, "a hero CTA pointing at a missing page was not detected"
+
+        try:
+            check_hero_cta("<html><body>no hero here</body></html>", site_html)
+            raise AssertionError("a missing hero CTA anchor was not detected as an error")
+        except LinkCheckError:
+            pass
+
     good_allowlist_failures, good_urls = check_external_url_allowlist(good_text)
     assert good_allowlist_failures == [], good_allowlist_failures
     assert good_urls == KNOWN_GOOD_EXTERNAL_URLS, good_urls
@@ -240,10 +437,120 @@ or the
     code_span_text = "Example: `[not a link](https://example.invalid)`."
     assert extract_links(code_span_text) == []
 
+    # ── Check 4: release-asset discovery + checksum verification ─────────
+    # Trimmed from a real `glab api projects/83321848/releases` response
+    # (captured 2026-08-08) -- the real shape, not an invented one, per
+    # boundary-shape-testing-rule.
+    real_shaped_releases_json = [
+        {
+            "tag_name": "v2.5.0-rc.2",
+            "assets": {
+                "links": [
+                    {
+                        "name": "agov-oci-2.5.0-rc.2-provenance.json",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-oci-2.5.0-rc.2-provenance.json",
+                    },
+                    {
+                        "name": "agov-2.5.0-rc.2-linux-x86_64.tar.gz.sha256",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-2.5.0-rc.2-linux-x86_64.tar.gz.sha256",
+                    },
+                    {
+                        "name": "agov-2.5.0-rc.2-linux-x86_64.tar.gz-provenance.json",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-2.5.0-rc.2-linux-x86_64.tar.gz-provenance.json",
+                    },
+                    {
+                        "name": "agov-2.5.0-rc.2-linux-x86_64.tar.gz",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-2.5.0-rc.2-linux-x86_64.tar.gz",
+                    },
+                    {
+                        "name": "agov-2.5.0-rc.2-linux-aarch64.tar.gz.sha256",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-2.5.0-rc.2-linux-aarch64.tar.gz.sha256",
+                    },
+                    {
+                        "name": "agov-2.5.0-rc.2-linux-aarch64.tar.gz-provenance.json",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-2.5.0-rc.2-linux-aarch64.tar.gz-provenance.json",
+                    },
+                    {
+                        "name": "agov-2.5.0-rc.2-linux-aarch64.tar.gz",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agov-2.5.0-rc.2-linux-aarch64.tar.gz",
+                    },
+                    {
+                        "name": "agf-2.5.0-rc.2.tar.gz.sha256",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agf-2.5.0-rc.2.tar.gz.sha256",
+                    },
+                    {
+                        "name": "agf-2.5.0-rc.2.tar.gz-provenance.json",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agf-2.5.0-rc.2.tar.gz-provenance.json",
+                    },
+                    {
+                        "name": "agf-2.5.0-rc.2.tar.gz",
+                        "url": "https://gitlab.com/api/v4/projects/83321848/packages/generic/agf/v2.5.0-rc.2/agf-2.5.0-rc.2.tar.gz",
+                    },
+                ]
+            },
+        }
+    ]
+    tag_name, assets = parse_release_assets(real_shaped_releases_json)
+    assert tag_name == "v2.5.0-rc.2"
+    version = release_version(tag_name)
+    assert version == "2.5.0-rc.2"
+
+    names = expected_archive_names(version)
+    assert names["agf"] == "agf-2.5.0-rc.2.tar.gz"
+    assert names["agov-linux-x86_64"] == "agov-2.5.0-rc.2-linux-x86_64.tar.gz"
+    assert names["agov-linux-aarch64"] == "agov-2.5.0-rc.2-linux-aarch64.tar.gz"
+    for name in names.values():
+        assert name in assets, f"{name} missing from parsed asset set"
+        assert f"{name}.sha256" in assets
+        assert f"{name}-provenance.json" in assets
+
+    # Negative: a release with only a "v1.0.0" style tag and no leading v.
+    tag_name_no_v, _ = parse_release_assets(
+        [{"tag_name": "2.5.0-rc.2", "assets": {"links": []}}]
+    )
+    assert release_version(tag_name_no_v) == "2.5.0-rc.2"
+
+    try:
+        parse_release_assets([])
+        raise AssertionError("zero releases was not detected as an error")
+    except LinkCheckError:
+        pass
+
+    # Checksum verification: real sha256sum-style file content, computed
+    # against known bytes.
+    payload = b"agf test archive payload"
+    real_hex = hashlib.sha256(payload).hexdigest()
+    assert verify_checksum_bytes(payload, f"{real_hex}  agf-test.tar.gz\n", "agf-test.tar.gz") is None
+
+    tampered_payload = b"agf test archive payload -- tampered"
+    tamper_failure = verify_checksum_bytes(
+        tampered_payload, f"{real_hex}  agf-test.tar.gz\n", "agf-test.tar.gz"
+    )
+    assert tamper_failure, "a checksum mismatch (corrupted download) was not detected"
+
+    malformed_failure = verify_checksum_bytes(payload, "not a checksum file", "agf-test.tar.gz")
+    assert malformed_failure, "a malformed .sha256 file content was not detected"
+
+    empty_failure = verify_checksum_bytes(payload, "", "agf-test.tar.gz")
+    assert empty_failure, "an empty .sha256 file was not detected"
+
+    # An archive missing its companion .sha256/provenance in the discovered
+    # asset set must be reported, not silently skipped.
+    incomplete_assets = {"agf-9.9.9.tar.gz": "https://example.invalid/agf-9.9.9.tar.gz"}
+    incomplete_failures = verify_release_archive("agf-9.9.9.tar.gz", incomplete_assets)
+    assert len(incomplete_failures) == 2, (
+        f"missing .sha256 and -provenance.json companions were not both "
+        f"reported: {incomplete_failures}"
+    )
+
     print(
         "\nSelf-test passed: detects a broken relative link, an "
-        "off-allowlist external URL, and correctly ignores links inside "
-        "inline code spans."
+        "off-allowlist external URL, a hero CTA pointing at a missing "
+        "page, a missing hero CTA anchor, a checksum mismatch, a "
+        "malformed or empty .sha256 file, missing release-asset "
+        "companions, and correctly ignores links inside inline code "
+        "spans -- release-asset fixtures use the real GitLab Releases "
+        "API response shape."
     )
     return 0
 

@@ -1,32 +1,35 @@
 # SPDX-License-Identifier: MIT
-"""Structural regression guard for the Get Started commissioning pages.
+"""Rendered-DOM regression guard for the Get Started commissioning pages.
 
-`docs/plans/20260806T122121Z-get-started-commissioning-ux-v1.md` (finding
-`GS-COMMISSION-1`/`GS-PLAN-R1`) requires that a first-time visitor reaches
-operational commissioning steps before any planning theory or rationale,
-and that the assistant-delegated path is never preceded by a manual
-command presented as the default. This script checks the markdown
-sources directly (the same pattern `figure_accessibility.py` uses), not
-rendered HTML -- the property under test is source ordering, which survives
-into the rendered DOM by construction of MkDocs' linear document model.
+`docs/plans/20260806T122121Z-get-started-commissioning-ux-v1.md` (Class A
+item 3) requires that a first-time visitor reaches operational commissioning
+steps before any planning theory or rationale, and that the
+assistant-delegated path is never preceded by a manual command presented as
+the default -- checked against the **rendered HTML DOM order**, not the
+Markdown source. An earlier version of this script parsed Markdown source
+directly; `20260808T140046Z-coder-tester-qnbd.md` (GS-B-1) found that the
+plan explicitly requires "build the site... and inspect the rendered HTML's
+DOM order," and that CI ran the Markdown-based version before `mkdocs
+build`. This version reads `agf/site-html/` after the strict build instead,
+so the check exercises the same artifact a browser renders.
 
 Two checks:
 
-1. `commission.md` must not carry any heading between the title and
-   "## Step 1" other than the allowed pre-step headings (Overview,
-   Prerequisites). A "Decision"/"Rationale"-style heading landing there
-   would be exactly the "moved one table, still not operational on first
-   screen" regression `dqg1` rejected in the plan's first Gate 1 review.
-   It also must not contain any fenced command block before the Step 3
-   assistant-prompt block.
-2. `first-governed-change.md`'s "1. Know where the files will go" section
-   must describe the assistant-delegated default (a mention of "step 2")
-   before its manual `mkdir` fallback command, and that fallback must be
-   introduced with a no-assistant marker phrase -- not presented as the
-   primary instruction.
+1. `commission.md`'s rendered page must not carry any `<h2>` between the
+   title and the "Step 1" heading other than the allowed pre-step headings
+   (Overview, Prerequisites). It also must not contain any highlighted code
+   block (a fenced block in the source) before the Step 3 assistant-prompt
+   marker text.
+2. `first-governed-change.md`'s rendered "1. Know where the files will go"
+   section must mention step 2's assistant-delegated default before its
+   manual `mkdir` fallback code block, and that fallback must be introduced
+   with a no-assistant marker phrase.
 
-Run directly: `python3 agf/docs/build/hooks/check_commissioning_first_screen.py`
-Self-test: `python3 agf/docs/build/hooks/check_commissioning_first_screen.py --self-test`
+Run after a strict MkDocs build:
+    mkdocs build -f agf/docs/build/mkdocs.yml --strict
+    python3 agf/docs/build/hooks/check_commissioning_first_screen.py
+Self-test (no build required, uses synthetic rendered-HTML fixtures):
+    python3 agf/docs/build/hooks/check_commissioning_first_screen.py --self-test
 """
 
 from __future__ import annotations
@@ -36,14 +39,15 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-COMMISSION_MD = REPO_ROOT / "agf/docs/site/docs/start/commission.md"
-FIRST_GOVERNED_CHANGE_MD = REPO_ROOT / "agf/docs/site/docs/start/first-governed-change.md"
+SITE_HTML_ROOT = REPO_ROOT / "agf/site-html"
+COMMISSION_HTML = SITE_HTML_ROOT / "docs/start/commission/index.html"
+FIRST_GOVERNED_CHANGE_HTML = SITE_HTML_ROOT / "docs/start/first-governed-change/index.html"
 
 ALLOWED_PRE_STEP_HEADINGS = {"overview", "prerequisites"}
 
-H2_RE = re.compile(r"^## (.+)$", re.MULTILINE)
-STEP1_RE = re.compile(r"^## Step 1:", re.MULTILINE)
-FENCE_RE = re.compile(r"^```(\w*)\s*$", re.MULTILINE)
+ARTICLE_RE = re.compile(r'<article[^>]*class="[^"]*md-content__inner[^"]*"[^>]*>(.*?)</article>', re.DOTALL)
+H2_RE = re.compile(r'<h2 id="([^"]*)">(.*?)</h2>', re.DOTALL)
+HIGHLIGHT_RE = re.compile(r'<div class="highlight">')
 STEP3_PROMPT_MARKER = "Paste this into your coding assistant:"
 
 
@@ -51,102 +55,132 @@ class CommissioningStructureError(ValueError):
     pass
 
 
-def check_commission_page_order(text: str) -> list[str]:
+def _extract_article(html: str) -> str:
+    """The main content region only -- excludes nav, TOC, and footer, which
+    also contain heading-like markup that would produce false positives."""
+    match = ARTICLE_RE.search(html)
+    if not match:
+        raise CommissioningStructureError(
+            "could not locate '<article class=\"md-content__inner ...\">' "
+            "in the rendered page -- MkDocs Material's template markup may "
+            "have changed"
+        )
+    # Collapse whitespace so multi-line rendered text (MkDocs wraps long
+    # source lines) is searchable as a single contiguous string.
+    return re.sub(r"\s+", " ", match.group(1))
+
+
+def _strip_html_tags(text: str) -> str:
+    return re.sub(r"<[^>]+>", "", text).strip()
+
+
+def check_commission_page_order(html: str) -> list[str]:
     """Return failures: pre-Step-1 headings must be allow-listed only, and
-    no fenced block may precede the Step 3 assistant-prompt block."""
+    no highlighted code block may precede the Step 3 assistant-prompt
+    marker, in the rendered DOM."""
     failures: list[str] = []
+    article = _extract_article(html)
 
-    step1_match = STEP1_RE.search(text)
-    if not step1_match:
-        raise CommissioningStructureError("no '## Step 1:' heading found")
-    head = text[: step1_match.start()]
+    headings = list(H2_RE.finditer(article))
+    step1_idx = next(
+        (i for i, m in enumerate(headings) if m.group(1).startswith("step-1")), None
+    )
+    if step1_idx is None:
+        raise CommissioningStructureError("no 'step-1' heading id found in rendered page")
 
-    for heading in H2_RE.findall(head):
-        if heading.strip().lower() not in ALLOWED_PRE_STEP_HEADINGS:
+    for m in headings[:step1_idx]:
+        heading_text = _strip_html_tags(m.group(2)).lower()
+        if heading_text not in ALLOWED_PRE_STEP_HEADINGS:
             failures.append(
-                f"heading '## {heading.strip()}' appears before Step 1 -- only "
-                f"{sorted(ALLOWED_PRE_STEP_HEADINGS)} may precede the "
-                "operational sequence"
+                f"heading '{_strip_html_tags(m.group(2))}' appears before Step 1 -- only "
+                f"{sorted(ALLOWED_PRE_STEP_HEADINGS)} may precede the operational sequence"
             )
 
-    prompt_idx = text.find(STEP3_PROMPT_MARKER)
+    prompt_idx = article.find(STEP3_PROMPT_MARKER)
     if prompt_idx == -1:
         raise CommissioningStructureError(
-            f"assistant-prompt marker {STEP3_PROMPT_MARKER!r} not found"
+            f"assistant-prompt marker {STEP3_PROMPT_MARKER!r} not found in rendered page"
         )
-    first_fence = FENCE_RE.search(text)
-    if first_fence and first_fence.start() < prompt_idx:
+    first_highlight = HIGHLIGHT_RE.search(article)
+    if first_highlight and first_highlight.start() < prompt_idx:
         failures.append(
-            "a fenced code block appears before the Step 3 assistant-prompt "
-            "marker -- the assistant-delegated path must be the first "
-            "command-bearing content on the page"
+            "a highlighted code block appears before the Step 3 assistant-prompt "
+            "marker in the rendered page -- the assistant-delegated path must be "
+            "the first command-bearing content on the page"
         )
 
     return failures
 
 
-STEP1_SECTION_RE = re.compile(
-    r"^## 1\. Know where the files will go\n(.*?)(?=^## 2\.)", re.MULTILINE | re.DOTALL
-)
 FALLBACK_MARKERS = ("without an assistant", "if you are working without")
 
 
-def check_first_governed_change_step1_order(text: str) -> list[str]:
-    """Within step 1's own section, the delegation-to-step-2 description
-    must precede the manual `mkdir` fallback, and the fallback must carry
-    a no-assistant marker phrase."""
+def check_first_governed_change_step1_order(html: str) -> list[str]:
+    """Within the rendered step 1 section, the delegation-to-step-2
+    description must precede the manual `mkdir` fallback code block, and
+    the fallback must carry a no-assistant marker phrase."""
     failures: list[str] = []
+    article = _extract_article(html)
 
-    section_match = STEP1_SECTION_RE.search(text)
-    if not section_match:
+    headings = list(H2_RE.finditer(article))
+    step1_idx = next(
+        (i for i, m in enumerate(headings) if m.group(1) == "1-know-where-the-files-will-go"),
+        None,
+    )
+    if step1_idx is None or step1_idx + 1 >= len(headings):
         raise CommissioningStructureError(
-            "could not isolate the 'Know where the files will go' section "
+            "could not isolate the 'Know where the files will go' rendered section "
             "(step 2 heading not found immediately after it)"
         )
-    section = section_match.group(1)
+    section = article[headings[step1_idx].end() : headings[step1_idx + 1].start()]
 
     delegation_idx = section.lower().find("step 2")
     if delegation_idx == -1:
         failures.append(
-            "step 1 does not mention step 2's assistant-delegated default "
-            "before its manual command"
+            "rendered step 1 section does not mention step 2's assistant-delegated "
+            "default before its manual command"
         )
 
-    fence_match = FENCE_RE.search(section)
-    if not fence_match:
+    highlight_match = HIGHLIGHT_RE.search(section)
+    if not highlight_match:
         raise CommissioningStructureError(
-            "step 1 no longer contains a fenced mkdir fallback block"
+            "rendered step 1 section no longer contains a highlighted mkdir "
+            "fallback code block"
         )
-    bash_idx = fence_match.start()
+    highlight_idx = highlight_match.start()
 
-    if delegation_idx != -1 and delegation_idx > bash_idx:
+    if delegation_idx != -1 and delegation_idx > highlight_idx:
         failures.append(
-            "step 1 mentions step 2's assistant-delegated default after the "
-            "manual mkdir command instead of before it"
+            "rendered step 1 section mentions step 2's assistant-delegated default "
+            "after the manual mkdir command instead of before it"
         )
 
-    preceding = section[:bash_idx].lower()
+    preceding = section[:highlight_idx].lower()
     if not any(marker in preceding for marker in FALLBACK_MARKERS):
         failures.append(
-            "the manual mkdir command in step 1 is not introduced with a "
-            f"no-assistant fallback marker (expected one of {FALLBACK_MARKERS!r})"
+            "the manual mkdir command in the rendered step 1 section is not "
+            f"introduced with a no-assistant fallback marker (expected one of "
+            f"{FALLBACK_MARKERS!r})"
         )
 
     return failures
 
 
 def run_real_checks() -> int:
-    if not COMMISSION_MD.exists():
-        raise CommissioningStructureError(f"not found: {COMMISSION_MD}")
-    if not FIRST_GOVERNED_CHANGE_MD.exists():
-        raise CommissioningStructureError(f"not found: {FIRST_GOVERNED_CHANGE_MD}")
+    if not COMMISSION_HTML.exists():
+        raise CommissioningStructureError(
+            f"not found: {COMMISSION_HTML} -- run `mkdocs build -f "
+            "agf/docs/build/mkdocs.yml --strict` first"
+        )
+    if not FIRST_GOVERNED_CHANGE_HTML.exists():
+        raise CommissioningStructureError(f"not found: {FIRST_GOVERNED_CHANGE_HTML}")
 
     all_failures: list[str] = []
     for label, path, checker in (
-        ("commission.md", COMMISSION_MD, check_commission_page_order),
+        ("commission.md (rendered)", COMMISSION_HTML, check_commission_page_order),
         (
-            "first-governed-change.md",
-            FIRST_GOVERNED_CHANGE_MD,
+            "first-governed-change.md (rendered)",
+            FIRST_GOVERNED_CHANGE_HTML,
             check_first_governed_change_step1_order,
         ),
     ):
@@ -168,115 +202,116 @@ def run_real_checks() -> int:
 
 
 def _self_test() -> int:
-    good_commission_md = """# Commission AGF and AGOV
-
-*Status: Released.*
-
-## Overview
-
-Some overview text.
-
-## Prerequisites
-
-- A git repository.
-
-## Step 1: Choose new or existing project
-
-**What:** Decide.
-
-## Step 3: Paste one assistant commissioning prompt
-
-Paste this into your coding assistant:
-
-```text
-Commission AGF and AGOV in this repository.
-```
-
-## Step 5: Confirm validation
-
-```bash
-agov version
-```
+    good_commission_html = """
+<article class="md-content__inner md-typeset">
+<h1 id="commission-agf-and-agov">Commission AGF and AGOV</h1>
+<p><em>Status: Released.</em></p>
+<h2 id="overview">Overview</h2>
+<p>Some overview text.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>A git repository.</p>
+<h2 id="step-1-choose-new-or-existing-project">Step 1: Choose new or existing project</h2>
+<p><strong>What:</strong> Decide.</p>
+<h2 id="step-3-paste-one-assistant-commissioning-prompt">Step 3: Paste one assistant commissioning prompt</h2>
+<p><strong>How:</strong> Paste this into your coding assistant:</p>
+<div class="highlight"><pre><span></span><code>Commission AGF and AGOV in this repository.
+</code></pre></div>
+<h2 id="step-5-confirm-validation">Step 5: Confirm validation</h2>
+<div class="highlight"><pre><span></span><code>agov version
+</code></pre></div>
+</article>
 """
-    assert check_commission_page_order(good_commission_md) == []
+    assert check_commission_page_order(good_commission_html) == []
 
-    bad_heading_md = good_commission_md.replace(
-        "## Prerequisites",
-        "## Decision: why a new page\n\nSome rationale.\n\n## Prerequisites",
+    bad_heading_html = good_commission_html.replace(
+        '<h2 id="prerequisites">Prerequisites</h2>',
+        '<h2 id="decision-why-a-new-page">Decision: why a new page</h2>'
+        "<p>Some rationale.</p>"
+        '<h2 id="prerequisites">Prerequisites</h2>',
     )
-    bad_heading_failures = check_commission_page_order(bad_heading_md)
+    bad_heading_failures = check_commission_page_order(bad_heading_html)
     assert bad_heading_failures, "a Decision heading before Step 1 was not detected"
 
-    bad_order_md = good_commission_md.replace(
-        "## Step 1: Choose new or existing project\n\n**What:** Decide.\n",
-        "## Step 1: Choose new or existing project\n\n"
-        "**What:** Decide.\n\n```bash\nmkdir -p docs/plans\n```\n",
+    bad_order_html = good_commission_html.replace(
+        '<h2 id="step-1-choose-new-or-existing-project">Step 1: Choose new or existing project</h2>\n'
+        "<p><strong>What:</strong> Decide.</p>",
+        '<h2 id="step-1-choose-new-or-existing-project">Step 1: Choose new or existing project</h2>\n'
+        "<p><strong>What:</strong> Decide.</p>\n"
+        '<div class="highlight"><pre><span></span><code>mkdir -p docs/plans\n</code></pre></div>',
     )
-    bad_order_failures = check_commission_page_order(bad_order_md)
+    bad_order_failures = check_commission_page_order(bad_order_html)
     assert bad_order_failures, (
-        "a fenced command block before the Step 3 assistant-prompt marker "
-        "was not detected"
+        "a highlighted code block before the Step 3 assistant-prompt marker "
+        "was not detected in the rendered DOM"
     )
 
-    good_first_governed_change = """# Your first governed change
-
-## 1. Know where the files will go
-
-Step 2's assistant prompt below creates the directories for you.
+    good_first_governed_change_html = """
+<article class="md-content__inner md-typeset">
+<h2 id="1-know-where-the-files-will-go">1. Know where the files will go</h2>
+<p>Step 2's assistant prompt below creates the directories for you.
 If you are working without an assistant for this step, create them
-yourself first:
-
-```bash
-mkdir -p docs/plans docs/coordination agf/learnings
-```
-
-## 2. Ask your assistant to prepare the starter files
-
-Paste this into your coding assistant.
+yourself first:</p>
+<div class="highlight"><pre><span></span><code>mkdir -p docs/plans docs/coordination agf/learnings
+</code></pre></div>
+<h2 id="2-ask-your-assistant-to-prepare-the-starter-files">2. Ask your assistant to prepare the starter files</h2>
+<p>Paste this into your coding assistant.</p>
+</article>
 """
-    assert check_first_governed_change_step1_order(good_first_governed_change) == []
+    assert check_first_governed_change_step1_order(good_first_governed_change_html) == []
 
-    missing_delegation = good_first_governed_change.replace(
+    missing_delegation_html = good_first_governed_change_html.replace(
         "Step 2's assistant prompt below creates the directories for you.\n"
         "If you are working without an assistant for this step, create them\n"
         "yourself first:",
         "Create the directories:",
     )
-    missing_delegation_failures = check_first_governed_change_step1_order(missing_delegation)
+    missing_delegation_failures = check_first_governed_change_step1_order(missing_delegation_html)
     assert missing_delegation_failures, (
-        "a step 1 with no mention of step 2's delegated default was not detected"
+        "a rendered step 1 with no mention of step 2's delegated default was not detected"
     )
 
-    missing_fallback_marker = good_first_governed_change.replace(
+    missing_fallback_html = good_first_governed_change_html.replace(
         "Step 2's assistant prompt below creates the directories for you.\n"
         "If you are working without an assistant for this step, create them\n"
         "yourself first:",
         "Step 2's assistant prompt below creates the directories for you.\n"
         "You can also run:",
     )
-    missing_fallback_failures = check_first_governed_change_step1_order(missing_fallback_marker)
+    missing_fallback_failures = check_first_governed_change_step1_order(missing_fallback_html)
     assert missing_fallback_failures, (
         "a manual mkdir command with no no-assistant fallback marker was not detected"
     )
 
-    reordered_bad = good_first_governed_change.replace(
-        "Step 2's assistant prompt below creates the directories for you.\n"
+    reordered_bad_html = good_first_governed_change_html.replace(
+        "<p>Step 2's assistant prompt below creates the directories for you.\n"
         "If you are working without an assistant for this step, create them\n"
-        "yourself first:\n\n```bash\nmkdir -p docs/plans docs/coordination agf/learnings\n```",
-        "```bash\nmkdir -p docs/plans docs/coordination agf/learnings\n```\n\n"
-        "Step 2's assistant prompt below creates the directories for you, "
-        "if you are working without an assistant for this step.",
+        "yourself first:</p>\n"
+        '<div class="highlight"><pre><span></span><code>mkdir -p docs/plans docs/coordination agf/learnings\n</code></pre></div>',
+        '<div class="highlight"><pre><span></span><code>mkdir -p docs/plans docs/coordination agf/learnings\n</code></pre></div>\n'
+        "<p>Step 2's assistant prompt below creates the directories for you, "
+        "if you are working without an assistant for this step.</p>",
     )
-    reordered_failures = check_first_governed_change_step1_order(reordered_bad)
+    reordered_failures = check_first_governed_change_step1_order(reordered_bad_html)
     assert reordered_failures, (
-        "a step 2 delegation mention placed after the manual command was not detected"
+        "a step 2 delegation mention placed after the manual command was not detected "
+        "in the rendered DOM"
     )
+
+    # The article-extraction guard must fail loudly (not silently pass) if
+    # MkDocs Material's template markup changes shape.
+    try:
+        check_commission_page_order("<html><body>no article here</body></html>")
+        raise AssertionError("missing <article> region was not detected as an error")
+    except CommissioningStructureError:
+        pass
 
     print(
         "\nSelf-test passed: detects a theory heading before Step 1, a "
-        "command block before the assistant prompt, a step 1 missing its "
-        "delegation mention, a manual fallback without its marker phrase, "
-        "and a delegation mention placed after the manual command."
+        "highlighted code block before the assistant prompt, a step 1 "
+        "missing its delegation mention, a manual fallback without its "
+        "marker phrase, a delegation mention placed after the manual "
+        "command, and a missing <article> region -- all against synthetic "
+        "rendered-HTML fixtures, not Markdown source."
     )
     return 0
 
