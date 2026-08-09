@@ -3100,6 +3100,89 @@ learnings:
       evidence_refs:
         - "This session's own rc.1 review synthesis, 2026-08-03: the correction -> agreement -> integrate pattern was observed directly across multiple rounds of this session's own Grok exchanges, and named by Grok during the same thread; not independently reproduced outside this one session."
 
+  - id: "20260809T065546Z-b3xj"
+    date: "2026-08-09"
+    category: gap
+    scope: framework
+    title: requesting-a-required-review-does-not-mechanically-block-merge-before-it-lands
+    status: proposed
+    description: >
+      coder-tester (this session) published a Gate 2 handoff (`qpp4`)
+      requesting contribution-auditor/independent-implementation-reviewer
+      review of MR !1265 (the independent-implementation-reviewer role
+      itself), then merged MR !1265 to `main` before any such review
+      existed for that exact head. The role went live on `main` with 6
+      unresolved blocking findings once the independent review did land
+      (`12nr`, Codex, post-merge) — including a real contract gap
+      (`forbidden_actions` covered only Gate 2, not both gates, contrary
+      to the approved plan) and a missing infosec-escalation route for
+      sensitive material a reviewer might encounter.
+
+      This is distinct from `coordination-sequence-guard-rule.md`'s
+      existing scope: that rule guards against a *human instruction*
+      asking the agent to skip a gate or break the sequence, requiring
+      the agent to name the break and ask for confirmation before
+      complying. Here no human instructed the skip — the agent's own
+      merge action outran a review it had itself just requested, with no
+      external prompt to catch. Nothing in the coordination protocol or
+      `agov coord publication-check` mechanically ties "a Gate 2 handoff
+      named next_agent: contribution-auditor with status: ready" to
+      "merge is blocked until a COMPLETE review exists for the same exact
+      head." The only gate was the agent's own discipline remembering not
+      to merge past its own open request, and on this occasion it did not
+      hold.
+
+      Self-reported in coordination record
+      `20260809T065546Z-coder-tester-smtj.md`, cross-referencing both
+      `12nr` (independent-implementation-reviewer, COMPLETE/BLOCK) and
+      `7pth` (contribution-auditor, COMPLETE/BLOCK on the unrelated but
+      concurrently-merged MR !1267 plan, for a different reason: plan
+      content, not sequence).
+    agents_involved:
+      - coder-tester
+      - independent-implementation-reviewer
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: "always/coordination-sequence-guard-rule.md (adjacent but distinct trigger: human-instructed breaks, not self-inflicted ones); workflow/coordination-publication-rule.md (publication-check's mechanical scope currently covers coordination-record range hygiene, not review-completeness gating)"
+    business_impact:
+      type: cost_overhead
+      description: >
+        A role definition with a real normative gap (incomplete
+        both-gates prohibition) and a missing safety escalation route
+        (infosec routing for sensitive material) was live on `main` for
+        roughly 25 minutes before the independent review caught it.
+        No externally visible harm occurred and no sensitive material
+        was actually mishandled during that window — the cost is
+        rework: a corrective governed MR and a fresh exact-head review
+        are now required before governor-reviewer can issue a valid
+        Gate 2 decision, work that a mechanical block would have made
+        unnecessary by preventing the premature merge in the first
+        place.
+    recommendation: >
+      Two independent layers, not one: (1) process discipline — an
+      agent that has published a handoff naming a required next-review
+      role should treat that handoff as a self-imposed hold and not
+      merge the same MR until a matching COMPLETE/CLEAR review for the
+      exact head is observed, exactly as if a human had instructed the
+      skip (apply coordination-sequence-guard-rule's "name the break,
+      ask before proceeding" discipline reflexively to the agent's own
+      pending requests, not only to external instructions). (2) tooling
+      — extend `agov coord publication-check` (or a sibling check) to
+      optionally verify, for a candidate merge, that any open Gate 2
+      handoff whose `next_agent` names a review role and whose `status`
+      is `ready` has a corresponding review record referencing the
+      exact candidate head before the merge is treated as clean. This
+      is scoped as a proposal, not yet designed or implemented — a
+      Gate 1 plan should size it (which merges it applies to, how it
+      finds the "matching" review record, what happens to handoffs with
+      no review role named) before any code changes.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "This session, 2026-08-09: MR !1265 merged as 75e2e0b7102989dd258bb6a19b82402ea5e6fbab before qpp4's requested review existed; 12nr (independent-implementation-reviewer, Codex codex-gpt-5) filed finding B6 post-merge; self-reported in 20260809T065546Z-coder-tester-smtj.md."
+
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
