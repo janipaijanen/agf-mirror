@@ -94,8 +94,26 @@ agents:
       agf/agents/web-ux-reviewer.yaml's boundaries.forbidden_actions.
 
   independent-implementation-reviewer:
-    status: active
-    played_by: "any model/session distinct from the implementer (Codex, codex-gpt-5, for Claude-implemented changes; the reverse when Codex implements), named by governor-reviewer or an approved plan for specific non-trivial Gate 2 candidates"
+    status: suspended
+    reason: >
+      Provisionally inactive effective 2026-08-09 per governor decision
+      20260809T073516Z-governor-reviewer-2gbg.md, accepting review
+      20260809T063108Z-independent-implementation-reviewer-12nr.md's six
+      blocking findings against the role definition itself (incomplete
+      both-gates prohibition at forbidden_actions; missing infosec
+      detection/escalation route for sensitive material; an
+      unreproducible-as-written validation claim; a Gate 2 handoff
+      missing the mandatory adopter-docs-parity outcome; a live MR
+      description that violated the MUST description rule; and a
+      required-review-sequence bypass at merge time). No work may rely
+      on or commission this role until a corrective MR resolves the
+      findings, an independent exact-head review returns COMPLETE/CLEAR,
+      and a fresh binding governor Gate 2 decision reactivates it. This
+      is an authority/status correction, not a rejection of the role
+      program -- the corrected role may still be reviewed while
+      suspended.
+    resume_when: "A corrective MR resolves 12nr's B1-B6, an independent exact-head review of the corrected head returns COMPLETE/CLEAR, and governor-reviewer records a fresh binding Gate 2 decision reactivating the role."
+    played_by: "any model/session distinct from the implementer (Codex, codex-gpt-5, for Claude-implemented changes; the reverse when Codex implements), named by governor-reviewer or an approved plan for specific non-trivial Gate 2 candidates -- while active"
     notes: >
       Activated by governor-reviewer, Gate 1 approved
       20260808T193155Z-governor-reviewer-get2.md, per
@@ -111,4 +129,5 @@ agents:
       named per Gate 2 candidate when additional independent review
       separation is warranted. Never approves Gate 2, merges, or holds
       mechanical blocking authority; CLEAR/BLOCK is advisory evidence for
-      governor-reviewer, per tool-authority-boundary-rule.md.
+      governor-reviewer, per tool-authority-boundary-rule.md. Suspended
+      2026-08-09; see `reason` above for the active corrective-work trail.

@@ -77,9 +77,10 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
 | web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
-| independent-implementation-reviewer | AI distinct from the implementer, named per Gate 2 candidate | Read-only exact-head review of an implementation against its approved plan; advisory only, never a Gate 2 approval |
 
-Suspended: capability-developer.
+Suspended: capability-developer, independent-implementation-reviewer (role
+definition has 6 unresolved findings from its own first exact-head review;
+see `agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
 Authoritative status: `agf/agents/MANIFEST.yaml`.
