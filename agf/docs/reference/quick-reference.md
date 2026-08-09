@@ -19,7 +19,7 @@ reference most. For detail, follow the links.
 | academic-peer-reviewer | Reviews long-form/academic artifacts for methodological rigor |
 | academic-visual-reviewer | Reviews visual quality, layout, and figure legibility |
 | web-ux-reviewer | Reviews rendered web/documentation-site UX, layout, theming, and accessibility, independent of the implementer |
-| independent-implementation-reviewer | Read-only exact-head review of an implementation against its approved plan and evidence, by a session/model distinct from the implementer; advisory, never a Gate 2 approval |
+| independent-implementation-reviewer | Read-only exact-head review of an implementation against its approved plan and evidence, by a session/model distinct from the implementer; advisory, never a Gate 1 or Gate 2 approval |
 
 **Extended (Phase 3-4)** — activate when the project needs them:
 
