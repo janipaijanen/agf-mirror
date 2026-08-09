@@ -1,7 +1,9 @@
 ---
 id: v250-final-release-publication-maintenance-line
-status: pending-gate1
+status: approved
 topic: v250-final-release-publication
+gate1_approved_by: 20260809T200252Z-governor-reviewer-h4wn
+gate1_approved_at: 2026-08-09T20:02:52Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
