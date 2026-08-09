@@ -58,6 +58,18 @@ distribution.
 
 ### Changed
 
+- `independent-implementation-reviewer` is **provisionally inactive
+  (suspended)** in this foundry's `agf/agents/MANIFEST.yaml`, effective
+  2026-08-09, per governor decision
+  `20260809T073516Z-governor-reviewer-2gbg.md` accepting review
+  `20260809T063108Z-independent-implementation-reviewer-12nr.md`'s six
+  blocking findings against the role definition (incomplete both-gates
+  prohibition, missing infosec-escalation route, and others). No work
+  may rely on or commission the role until a corrective MR resolves the
+  findings, an independent exact-head review returns COMPLETE/CLEAR, and
+  a fresh binding Gate 2 decision reactivates it. This is an authority/
+  status correction, not a rejection of the role program; see the same
+  decision record for the full corrective-work sequence.
 - **BREAKING**: `agov coord visibility`'s JSON output gains two
   always-present fields (`effective_base_oid`, `effective_base_source`)
   and one always-present summary object (`legacy_base_collisions`), and
