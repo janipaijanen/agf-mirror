@@ -3194,6 +3194,92 @@ learnings:
         - "This session, 2026-08-09: MR !1265 merged as 75e2e0b7102989dd258bb6a19b82402ea5e6fbab before qpp4's requested review existed; 12nr (independent-implementation-reviewer, Codex codex-gpt-5) filed finding B6 post-merge; self-reported in 20260809T065546Z-coder-tester-smtj.md."
         - "Same session, same agent, 2026-08-09: this very learning entry's own originating MR !1272 was merged (merge commit dafb6ebc, 07:15:27Z) without publishing any review request first and without checking for an existing one. Review v4nq was recorded at 07:11:39Z and committed to a shared review branch by 07:12:27Z, with a visible bridge note on MR !1272 at 07:13:25Z — about two minutes before the merge — but MR !1274 carrying v4nq had not yet merged to `main`, so the review had not landed on `main` before !1272 merged; it went unchecked/unacknowledged either way. This is a second recurrence of the same root cause within roughly 45 minutes, on the artifact created to document the first, not an independent instance or independent corroboration: same session, same agent."
 
+  - id: "20260809T082147Z-h4vx"
+    date: "2026-08-09"
+    category: gap
+    scope: framework
+    title: hand-extended-git-sha-from-memory-instead-of-copying-tool-output
+    status: proposed
+    description: >
+      Same session, same agent (coder-tester), twice within roughly ten
+      minutes: a coordination record asserted a full 40-character git
+      commit SHA that was hand-extended from an 8-character short hash
+      seen in a `git commit` confirmation message, rather than copied
+      from an actual `git rev-parse HEAD` (or equivalent) output. Both
+      wrong values shared the correct 8-char prefix (`ceb03184`,
+      `ac5cf838`) but diverged completely after that point — the
+      remaining 32 characters were fabricated, not transposed or
+      truncated from a real value.
+
+      Instance 1 (caught before publication): drafting a handoff for MR
+      !1289, wrote `ac5cf8384c4bab53c86e7a76470a99b3b0d1c789b` in the
+      handoff body before pushing; caught by deliberately re-running
+      `git rev-parse HEAD` and comparing before publishing, per this
+      project's own verifiable-claims discipline. Corrected to the real
+      `ac5cf838b85dc1e3f92ec52d153543ffb7d6c560` pre-publication — no
+      externally visible defect.
+
+      Instance 2 (NOT caught before publication): handoff `tbdr`
+      (published, merged via MR !1285) asserted
+      `ceb031843e650c6bf83d2fd8ec78ac81c96ae7d5e` as MR !1284's exact
+      head. The real head was `ceb031842b1ecf8081a6f9973c81e7ec98cee872`.
+      This one was not independently re-verified before publishing and
+      went out with the wrong value; caught only by Codex's
+      contribution-auditor review (`4mrt`, finding S2) after the fact.
+      Corrected via a superseding coordination record
+      (`20260809T081915Z-coder-tester-qemk.md`) per this project's
+      append-only convention — `tbdr` itself was not mutated.
+
+      Both instances happened in a session already actively practicing
+      exact-head discipline (every review handoff this session names an
+      exact SHA, per this project's coordination conventions) — the
+      failure was not forgetting to cite a SHA, it was citing one from
+      memory/pattern-completion instead of a fresh tool call, even while
+      already holding the correct short form in view.
+    agents_involved:
+      - coder-tester
+      - contribution-auditor
+    framework_section: "always/verifiable-claims-rule.md (a fabricated SHA is exactly the unverifiable-claim-presented-as-fact pattern that rule targets, applied to a git-object identity rather than a prose claim); always/coordination-message-rule.md (the coordination record is the audit trail; a wrong SHA in it is a wrong audit trail, not a cosmetic typo)"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Instance 1 cost nothing externally (self-caught pre-publish).
+        Instance 2 cost one extra review round: `4mrt`'s S2 finding, one
+        superseding coordination record to correct the audit trail, and
+        reviewer time spent noticing the mismatch. No merge or Gate
+        decision was made against the wrong SHA in this case — the
+        wrong value was in an informational handoff, not a Gate 2
+        approval record — but the same failure mode in a Gate
+        decision record (approving/blocking the wrong exact head) would
+        be materially worse: a governor decision citing a fabricated SHA
+        could approve or block a commit that was never actually
+        reviewed.
+    recommendation: >
+      Never write a full-length git SHA into a coordination record,
+      commit message, or MR description from memory or by extending a
+      short hash seen elsewhere in the same session — always copy it
+      from a fresh command's actual output (`git rev-parse HEAD`, the
+      `git commit` confirmation line in full non-abbreviated form if
+      available, or `git log -1 --format=%H`) in the same tool call or
+      the immediately preceding one. Before publishing any record that
+      asserts an exact-head SHA, grep the draft for 40-character hex
+      strings and verify each one resolves via `git cat-file -e <sha>`
+      against the actual repository — this is cheap (one command) and
+      would have caught instance 2 before publication, exactly as it
+      did for a later draft in the same session once adopted as a
+      habit. No tooling change proposed here — this is a per-agent
+      discipline note, not a validator gap (a coordination-schema
+      validator cannot know which SHA is "real" for an exact-head claim
+      without re-deriving it from git itself, which is exactly what the
+      recommended habit already does at authoring time).
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "This session, 2026-08-09, ~08:13Z: fabricated SHA in a draft handoff for MR !1289, self-caught before publication by re-running git rev-parse HEAD."
+        - "This session, 2026-08-09, 08:00Z (published), caught 08:07Z: fabricated SHA in published/merged handoff tbdr for MR !1284, caught by contribution-auditor review 4mrt finding S2, corrected via superseding record 20260809T081915Z-coder-tester-qemk.md."
+
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
