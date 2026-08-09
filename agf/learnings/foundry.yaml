@@ -3192,7 +3192,7 @@ learnings:
       evidence_count: 2
       evidence_refs:
         - "This session, 2026-08-09: MR !1265 merged as 75e2e0b7102989dd258bb6a19b82402ea5e6fbab before qpp4's requested review existed; 12nr (independent-implementation-reviewer, Codex codex-gpt-5) filed finding B6 post-merge; self-reported in 20260809T065546Z-coder-tester-smtj.md."
-        - "Same session, 2026-08-09, same agent: this very learning entry's own originating MR !1272 was merged (161778b7, 07:15:26Z) without publishing any review request first and without checking for an existing one — contribution-auditor's BLOCK review v4nq (07:11:39Z) had actually already landed 4 minutes earlier but went unchecked before merge. A second, independent instance of the same root cause within roughly 45 minutes, on the artifact created to document the first instance."
+        - "Same session, same agent, 2026-08-09: this very learning entry's own originating MR !1272 was merged (merge commit dafb6ebc, 07:15:27Z) without publishing any review request first and without checking for an existing one. Review v4nq was recorded at 07:11:39Z and committed to a shared review branch by 07:12:27Z, with a visible bridge note on MR !1272 at 07:13:25Z — about two minutes before the merge — but MR !1274 carrying v4nq had not yet merged to `main`, so the review had not landed on `main` before !1272 merged; it went unchecked/unacknowledged either way. This is a second recurrence of the same root cause within roughly 45 minutes, on the artifact created to document the first, not an independent instance or independent corroboration: same session, same agent."
 
 
 sentinel_ack:
