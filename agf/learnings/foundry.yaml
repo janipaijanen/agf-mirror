@@ -3149,15 +3149,25 @@ learnings:
       description: >
         A role definition with a real normative gap (incomplete
         both-gates prohibition) and a missing safety escalation route
-        (infosec routing for sensitive material) was live on `main` for
-        roughly 25 minutes before the independent review caught it.
-        No externally visible harm occurred and no sensitive material
-        was actually mishandled during that window — the cost is
-        rework: a corrective governed MR and a fresh exact-head review
-        are now required before governor-reviewer can issue a valid
-        Gate 2 decision, work that a mechanical block would have made
-        unnecessary by preventing the premature merge in the first
-        place.
+        (infosec routing for sensitive material) went live on `main` at
+        2026-08-09T06:30:13Z. Detection (the independent review's
+        authorship timestamp) followed about 55 seconds later, at
+        06:31:08Z. Durable publication of that review to `main`
+        followed about 7 minutes 45 seconds after the merge, at
+        06:37:58Z. The implementer's acknowledgment of the finding
+        followed about 25 minutes 33 seconds after the merge, at
+        06:55:46Z — an acknowledgment interval, not the detection or
+        correction interval, and it must not be read as either. As of
+        this record, the deficient role definition remains live and
+        uncorrected on `main`; no end timestamp for the exposure window
+        exists yet, since correction requires its own governed MR and
+        fresh exact-head review. No externally visible harm occurred
+        and no sensitive material was actually mishandled during any
+        part of this window so far — the cost is rework: a corrective
+        governed MR and a fresh exact-head review are required before
+        governor-reviewer can issue a valid Gate 2 decision, work that
+        a mechanical block would have made unnecessary by preventing
+        the premature merge in the first place.
     recommendation: >
       Two independent layers, not one: (1) process discipline — an
       agent that has published a handoff naming a required next-review
@@ -3179,9 +3189,10 @@ learnings:
     severity: significant
     confidence:
       level: single-adopter
-      evidence_count: 1
+      evidence_count: 2
       evidence_refs:
         - "This session, 2026-08-09: MR !1265 merged as 75e2e0b7102989dd258bb6a19b82402ea5e6fbab before qpp4's requested review existed; 12nr (independent-implementation-reviewer, Codex codex-gpt-5) filed finding B6 post-merge; self-reported in 20260809T065546Z-coder-tester-smtj.md."
+        - "Same session, 2026-08-09, same agent: this very learning entry's own originating MR !1272 was merged (161778b7, 07:15:26Z) without publishing any review request first and without checking for an existing one — contribution-auditor's BLOCK review v4nq (07:11:39Z) had actually already landed 4 minutes earlier but went unchecked before merge. A second, independent instance of the same root cause within roughly 45 minutes, on the artifact created to document the first instance."
 
 
 sentinel_ack:
