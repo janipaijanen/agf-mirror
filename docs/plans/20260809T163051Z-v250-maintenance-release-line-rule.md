@@ -294,10 +294,23 @@ scenarios:
 2. target not protected or not equal to the frozen candidate SHA;
 3. proposed release diff contains one nonmetadata functional file.
 
-For each scenario, the MR must quote the exact rule clause and show the
-expected result `STOP — standard or new-candidate plan required`. It must also
-show one positive scenario satisfying every eligibility field. Tooling output
-must not be described as the source of Gate authority.
+It must also exercise the three consultation-added gates:
+
+4. target or source branch protection permits GitLab access level 30
+   (Developer) rather than requiring level 40 (Maintainer) for both push and
+   merge — expected result: `STOP — Maintainer-level protection required`;
+5. no protected-tag rule matches the intended stable tag immediately before
+   tag creation — expected result: `STOP — protect the intended tag before
+   creation`;
+6. the immediate post-merge API check reports either maintenance target or
+   source ref missing or at an unexpected SHA — expected result: `STOP — do
+   not tag or publish; escalate the retained-ref failure to governor-reviewer`.
+
+For each scenario, the MR must quote the exact rule clause and show its stated
+`STOP`/escalation result; scenarios 1-3 use `STOP — standard or new-candidate
+plan required`. It must also show one positive scenario satisfying every
+eligibility field. Tooling output must not be described as the source of Gate
+authority.
 
 ## Acceptance criteria
 
