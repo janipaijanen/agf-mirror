@@ -3198,87 +3198,120 @@ learnings:
     date: "2026-08-09"
     category: gap
     scope: framework
-    title: hand-extended-git-sha-from-memory-instead-of-copying-tool-output
+    title: memory-derived-git-mr-identifiers-instead-of-authoritative-source-lookup
     status: proposed
     description: >
-      Same session, same agent (coder-tester), twice within roughly ten
-      minutes: a coordination record asserted a full 40-character git
-      commit SHA that was hand-extended from an 8-character short hash
-      seen in a `git commit` confirmation message, rather than copied
-      from an actual `git rev-parse HEAD` (or equivalent) output. Both
-      wrong values shared the correct 8-char prefix (`ceb03184`,
-      `ac5cf838`) but diverged completely after that point — the
-      remaining 32 characters were fabricated, not transposed or
-      truncated from a real value.
+      Three occurrences, one project, one day, across two
+      assistant/model-role contexts (Claude as coder-tester; Codex as
+      contribution-auditor): an agent asserted an exact Git/MR identity
+      field — a full 40-character commit SHA, or an MR source-branch
+      name — reconstructed from memory or pattern-completion instead of
+      fetched fresh from an authoritative source (git itself, or the
+      platform API) at publish time. Two of the three were published
+      defects; one was caught before publication.
 
-      Instance 1 (caught before publication): drafting a handoff for MR
-      !1289, wrote `ac5cf8384c4bab53c86e7a76470a99b3b0d1c789b` in the
-      handoff body before pushing; caught by deliberately re-running
-      `git rev-parse HEAD` and comparing before publishing, per this
-      project's own verifiable-claims discipline. Corrected to the real
-      `ac5cf838b85dc1e3f92ec52d153543ffb7d6c560` pre-publication — no
-      externally visible defect.
+      Instance 1 (Claude, self-reported, no preserved artifact):
+      drafting a handoff for MR !1289, reportedly wrote
+      `ac5cf8384c4bab53c86e7a76470a99b3b0d1c789b`, hand-extended from
+      the correct 8-char prefix `ac5cf838` seen in an earlier `git
+      commit` confirmation, then caught and corrected to the real
+      `ac5cf838b85dc1e3f92ec52d153543ffb7d6c560` before publishing. This
+      is Claude's own attributed self-report
+      (`20260809T081915Z-coder-tester-qemk.md`); no preserved draft or
+      tool transcript proves the exact fabricated value quoted — treat
+      the specific wrong string as an illustrative self-report, not
+      independently verified evidence.
 
-      Instance 2 (NOT caught before publication): handoff `tbdr`
-      (published, merged via MR !1285) asserted
+      Instance 2 (Claude, published, NOT caught before publication):
+      handoff `tbdr` (published, merged via MR !1285) asserted
       `ceb031843e650c6bf83d2fd8ec78ac81c96ae7d5e` as MR !1284's exact
-      head. The real head was `ceb031842b1ecf8081a6f9973c81e7ec98cee872`.
-      This one was not independently re-verified before publishing and
-      went out with the wrong value; caught only by Codex's
-      contribution-auditor review (`4mrt`, finding S2) after the fact.
-      Corrected via a superseding coordination record
-      (`20260809T081915Z-coder-tester-qemk.md`) per this project's
-      append-only convention — `tbdr` itself was not mutated.
+      head. The real head was `ceb031842b1ecf8081a6f9973c81e7ec98cee872`
+      — again a correct 8-char prefix (`ceb03184`) with the remaining 32
+      characters fabricated. Not independently re-verified before
+      publishing; caught only by Codex's contribution-auditor review
+      (`4mrt`, finding S2) after the fact. Corrected via a superseding
+      coordination record (`20260809T081915Z-coder-tester-qemk.md`) per
+      this project's append-only convention — `tbdr` itself was not
+      mutated. (`qemk` itself later required its own lifecycle
+      correction for an unrelated false "merged and immutable" claim —
+      see `20260809T085425Z-coder-tester-dbba.md` — which does not
+      affect the SHA-correction content of `qemk` cited here.)
 
-      Both instances happened in a session already actively practicing
-      exact-head discipline (every review handoff this session names an
-      exact SHA, per this project's coordination conventions) — the
-      failure was not forgetting to cite a SHA, it was citing one from
-      memory/pattern-completion instead of a fresh tool call, even while
-      already holding the correct short form in view.
+      Instance 3 (Codex, published, self-caught): during the MR !1284
+      review, Codex/contribution-auditor published GitLab note
+      `3663753831` naming MR !1292's source branch from memory as
+      `coordination/reviewer-role-fix-ack`. The authoritative MR !1292
+      API reported `coordination/suspend-role-corrections-s1-s3`. Codex
+      queried the API and published an append-only correction note
+      `3663754171` 23 seconds later. No gate, merge, or release action
+      used the wrong branch name.
+
+      These are three occurrences, two published defects, across two
+      assistant/model-role contexts, in one project, in one day — not
+      three independent adopters, and not longitudinal evidence.
+      Cross-model recurrence (Claude and Codex both exhibiting the same
+      failure shape) strengthens confidence that this is a real,
+      general failure mode rather than one model's quirk, but it does
+      not constitute multi-adopter evidence; confidence stays
+      single-adopter.
     agents_involved:
       - coder-tester
       - contribution-auditor
-    framework_section: "always/verifiable-claims-rule.md (a fabricated SHA is exactly the unverifiable-claim-presented-as-fact pattern that rule targets, applied to a git-object identity rather than a prose claim); always/coordination-message-rule.md (the coordination record is the audit trail; a wrong SHA in it is a wrong audit trail, not a cosmetic typo)"
+    framework_section: "always/verifiable-claims-rule.md (an exact Git/MR identifier asserted from memory is exactly the unverifiable-claim-presented-as-fact pattern that rule targets, applied to a git-object or branch identity rather than a prose claim); always/coordination-message-rule.md (the coordination record is the audit trail; a wrong identifier in it is a wrong audit trail, not a cosmetic typo). Neither rule currently states, as an explicit operational step, that exact Git/MR identity fields (SHA, branch name, MR IID) must be fetched from the authoritative source immediately before publication rather than recalled from earlier context in the same session — that specific operational gap is what this learning proposes to close."
     business_impact:
       type: cost_overhead
       description: >
-        Instance 1 cost nothing externally (self-caught pre-publish).
-        Instance 2 cost one extra review round: `4mrt`'s S2 finding, one
-        superseding coordination record to correct the audit trail, and
-        reviewer time spent noticing the mismatch. No merge or Gate
-        decision was made against the wrong SHA in this case — the
-        wrong value was in an informational handoff, not a Gate 2
-        approval record — but the same failure mode in a Gate
-        decision record (approving/blocking the wrong exact head) would
-        be materially worse: a governor decision citing a fabricated SHA
-        could approve or block a commit that was never actually
-        reviewed.
+        Instance 1: no external cost (self-caught pre-publish, and even
+        the self-report itself has no preserved artifact). Instance 2:
+        one finding (`4mrt` S2) surfaced inside a review round that was
+        already required for other reasons, plus one superseding
+        coordination record to correct the audit trail — not a whole
+        additional review round. Instance 3: one immediate,
+        self-authored correction note (23 seconds after the original).
+        In no instance did a gate, merge, or release decision actually
+        rely on the wrong identifier; the realized cost in all three
+        cases was reviewer/author attention and one extra artifact, not
+        a wrong decision. A wrong-head decision remains a risk
+        rationale for the recommendation below, not evidence of
+        realized harm.
     recommendation: >
-      Never write a full-length git SHA into a coordination record,
-      commit message, or MR description from memory or by extending a
-      short hash seen elsewhere in the same session — always copy it
-      from a fresh command's actual output (`git rev-parse HEAD`, the
-      `git commit` confirmation line in full non-abbreviated form if
-      available, or `git log -1 --format=%H`) in the same tool call or
-      the immediately preceding one. Before publishing any record that
-      asserts an exact-head SHA, grep the draft for 40-character hex
-      strings and verify each one resolves via `git cat-file -e <sha>`
-      against the actual repository — this is cheap (one command) and
-      would have caught instance 2 before publication, exactly as it
-      did for a later draft in the same session once adopted as a
-      habit. No tooling change proposed here — this is a per-agent
-      discipline note, not a validator gap (a coordination-schema
-      validator cannot know which SHA is "real" for an exact-head claim
-      without re-deriving it from git itself, which is exactly what the
-      recommended habit already does at authoring time).
-    severity: significant
+      Never write an exact Git/MR identity field (a full 40-character
+      commit SHA, an MR source-branch name, an MR IID) into a
+      coordination record, commit message, or MR description/note from
+      memory or by extending/recalling a value seen earlier in the same
+      session — always fetch it fresh from the authoritative source
+      immediately before publication: `git rev-parse <ref>^{commit}`
+      (or the `git commit` confirmation line in full non-abbreviated
+      form) for a commit SHA, or the platform API's `.source_branch` /
+      `.sha` / `.iid` fields for an MR. Before publishing any record
+      that asserts such a field, compare it directly against that fresh
+      lookup, not against memory of an earlier tool call in the same
+      conversation. `git cat-file -e "${sha}^{commit}"` is a useful
+      secondary check (it proves the value names an existing commit)
+      but is NOT sufficient as the primary control — it cannot confirm
+      the commit is the intended ref, and it cannot validate a branch
+      name at all.
+
+      This is a real, if narrow, framework gap: neither
+      `verifiable-claims-rule.md` nor `coordination-message-rule.md`
+      currently states "fetch exact Git/MR identity fields from the
+      authoritative source immediately before publication" as an
+      explicit operational step — both rules cover the general
+      unverifiable-claim and audit-trail-integrity principles but stop
+      short of this specific, mechanically checkable sub-case. No
+      tooling/validator change is proposed here (a coordination-schema
+      validator cannot know which SHA or branch name is "real" without
+      re-deriving it from git/the platform itself, which is exactly
+      what the recommended habit already does at authoring time) — the
+      gap is in written operational guidance, not tooling.
+    severity: minor
     confidence:
       level: single-adopter
-      evidence_count: 2
+      evidence_count: 3
       evidence_refs:
-        - "This session, 2026-08-09, ~08:13Z: fabricated SHA in a draft handoff for MR !1289, self-caught before publication by re-running git rev-parse HEAD."
-        - "This session, 2026-08-09, 08:00Z (published), caught 08:07Z: fabricated SHA in published/merged handoff tbdr for MR !1284, caught by contribution-auditor review 4mrt finding S2, corrected via superseding record 20260809T081915Z-coder-tester-qemk.md."
+        - "Claude, self-reported, 2026-08-09 ~08:13Z, no preserved artifact: attributed fabricated-SHA self-report in 20260809T081915Z-coder-tester-qemk.md, for a draft handoff for MR !1289."
+        - "Claude, published, 2026-08-09 08:00Z (published), caught 08:07Z: fabricated SHA in published/merged handoff tbdr for MR !1284, caught by contribution-auditor review 4mrt finding S2, corrected via superseding record 20260809T081915Z-coder-tester-qemk.md."
+        - "Codex, published, 2026-08-09: GitLab note 3663753831 named MR !1292's source branch from memory as coordination/reviewer-role-fix-ack; authoritative MR !1292 API reported coordination/suspend-role-corrections-s1-s3; self-corrected via append-only note 3663754171, 23 seconds later."
 
 
 sentinel_ack:
