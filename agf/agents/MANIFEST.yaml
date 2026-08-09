@@ -92,3 +92,23 @@ agents:
       compiled-PDF scope. Independence from the implementing session is a
       role requirement, not advisory -- see
       agf/agents/web-ux-reviewer.yaml's boundaries.forbidden_actions.
+
+  independent-implementation-reviewer:
+    status: active
+    played_by: "any model/session distinct from the implementer (Codex, codex-gpt-5, for Claude-implemented changes; the reverse when Codex implements), named by governor-reviewer or an approved plan for specific non-trivial Gate 2 candidates"
+    notes: >
+      Activated by governor-reviewer, Gate 1 approved
+      20260808T193155Z-governor-reviewer-get2.md, per
+      docs/plans/20260808T181423Z-independent-implementation-reviewer.md.
+      Evidence: 20260808T161743Z-planner-architect-kpdj.md finding 4b and
+      20260808T171050Z-contribution-auditor-q1ge.md's independent
+      concurrence identified that contribution-auditor's real jurisdiction
+      (agf/agents/contribution-auditor.yaml) covers contribution/governance
+      guidance, not exact-head implementation-diff review -- yet
+      contribution-auditor was repeatedly used for exactly that during MR
+      !1224's four review rounds. This role gives that function a distinct,
+      audit-legible identity. Not a mandatory gate for every change --
+      named per Gate 2 candidate when additional independent review
+      separation is warranted. Never approves Gate 2, merges, or holds
+      mechanical blocking authority; CLEAR/BLOCK is advisory evidence for
+      governor-reviewer, per tool-authority-boundary-rule.md.

@@ -5,6 +5,39 @@ distribution.
 
 ## [Unreleased]
 
+### Added
+
+- New `web-ux-reviewer` agent role (`agf/agents/web-ux-reviewer.yaml`),
+  activated in this foundry's `agf/agents/MANIFEST.yaml`. Reviews the
+  rendered public Pages site (`agf/docs/site/`) for responsive layout,
+  navigation/CTA correctness, dark/light theme rendering, WCAG AA
+  accessibility (in situ, complementing the existing token-pair-only
+  `check_palette_contrast.py`), typography, and overall visual
+  impression — independent of the session/model that implemented the
+  change under review. Distinct from `academic-visual-reviewer` (which
+  stays skipped; scoped to compiled academic PDF output, not web/Pages
+  content). Additive: no existing role, schema, or command behavior
+  changes; adopters without a public Pages site can leave the role
+  unstaffed or remove the definition file. See
+  `20260808T161743Z-planner-architect-kpdj.md` finding 4a for the
+  staffing-gap evidence that motivated this role.
+- New `independent-implementation-reviewer` agent role
+  (`agf/agents/independent-implementation-reviewer.yaml`), activated in
+  this foundry's `agf/agents/MANIFEST.yaml`. Read-only, advisory review
+  of a named implementation's exact Git head against its approved Gate 1
+  plan, acceptance criteria, tests, and CI evidence, by a session and
+  model distinct from the implementer. Named per non-trivial Gate 2
+  candidate, not a mandatory fourth gate; `CLEAR`/`BLOCK` is evidence for
+  `governor-reviewer`, never a Gate 2 approval or mechanically blocking
+  signal (`tool-authority-boundary-rule.md`). Distinct from
+  `contribution-auditor`, whose jurisdiction covers contribution/
+  governance-guidance integrity, not exact-head implementation-diff
+  review. Additive: no existing role, schema, or command behavior
+  changes; adopters may leave the role unstaffed or remove the
+  definition file. See `20260808T161743Z-planner-architect-kpdj.md`
+  finding 4b and `20260808T171050Z-contribution-auditor-q1ge.md` for the
+  audit-trail-ambiguity evidence that motivated this role.
+
 ### Fixed
 
 - `agov coord list --since` now accepts the compact filename-prefix

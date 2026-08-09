@@ -111,6 +111,7 @@ extracted as `agf/` in your existing project.
    | Solo trial | `coder-tester`, `governor-reviewer` |
    | Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` |
    | CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed |
+   | Independent-review project | Standard or CI-conscious roles plus active `independent-implementation-reviewer`, named per non-trivial Gate 2 candidate |
 
    Gateway assistants and agent runtimes are execution surfaces, not AGF gate
    authorities.

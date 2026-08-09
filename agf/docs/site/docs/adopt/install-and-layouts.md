@@ -174,6 +174,7 @@ Minimum commissioning matrix:
 | Solo trial | `coder-tester`, `governor-reviewer` | Human governor checks plans and merges; use fast track only when criteria fit |
 | Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` | `contribution-auditor` and `infosec-sentinel` are consulted for non-trivial plans |
 | CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed | CI runs validators; security-sensitive changes require explicit evidence |
+| Independent-review project | Standard or CI-conscious roles plus active `independent-implementation-reviewer`, named per non-trivial Gate 2 candidate | A session/model distinct from the implementer must review the exact head before Gate 2 on named changes |
 
 Assistant tools and automation runtimes are execution surfaces. They do not
 become AGF approval authorities unless a human governor explicitly changes the
