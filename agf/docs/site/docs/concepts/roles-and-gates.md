@@ -45,7 +45,8 @@ an implementation against its approved Gate 1 plan and evidence, by a
 session and model distinct from the implementer. It is not a fourth
 binding gate — its `CLEAR`/`BLOCK` recommendation is advisory evidence
 for the governor's Gate 2 decision, the same way any other domain
-reviewer's findings are. A plan or the governor names it for a specific
+reviewer's findings are, and it never approves or rejects either Gate 1
+or Gate 2 directly. A plan or the governor names it for a specific
 non-trivial Gate 2 candidate when additional independent-review
 separation is warranted; it is not activated for every change.
 
