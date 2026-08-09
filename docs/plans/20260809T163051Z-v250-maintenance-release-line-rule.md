@@ -1,7 +1,9 @@
 ---
 id: v250-maintenance-release-line-rule
-status: pending-gate1
+status: approved
 topic: v250-maintenance-release-line-rule
+gate1_approved_by: 20260809T180533Z-governor-reviewer-sp7d
+gate1_approved_at: 2026-08-09T18:05:33Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
