@@ -111,6 +111,31 @@ release diff changes scope, omits adopter-facing documentation, or relies on a
 weak coordination record, the reviewer should require a plan update,
 coordination repair, or explicit waiver before approval.
 
+## Releases: the maintenance-line exception
+
+The standard path above — branch from the default branch, tag the
+merge commit — covers ordinary releases. It does not cover one
+specific, occasional case: promoting a previously published,
+immutable release-candidate commit to a stable version *after* the
+default branch has moved on with unrelated work, without pulling that
+later work into the promoted release.
+
+For that one case, and only after a binding governor decision names
+the exact candidate and a separate release plan is itself Gate
+1-approved, releases may instead go through a protected maintenance
+target (`release/X.Y`, created at the exact candidate commit) rather
+than the default branch. The tag still lands on a reviewed,
+protected-branch merge commit; retention and namespace checks are, if
+anything, stricter than the standard path. A later, separate
+metadata-only merge makes the tagged commit reachable from the default
+branch without disturbing its newer work. The full mechanical contract
+— eligibility, protection requirements, tag/publication, and
+forward-sync — is owned by
+[`release-via-merge-request-rule.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/release-via-merge-request-rule.md);
+this page does not restate it. Most adopters will never need this
+path — it exists for the specific, evidenced situation where a
+previously shipped candidate must ship exactly as-is, later.
+
 ## Gates must be proven to fire
 
 Any new gate — hook, validator, CI check — ships with a **negative

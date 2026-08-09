@@ -73,7 +73,7 @@ without understanding why. Never start on a broken baseline.
 - Each commit should be independently passable (no broken intermediate state)
 - Never force-push to `main` or any shared branch
 - Never commit directly to `main`
-- **No version bump or tag on feature branches** -- version bumps happen only during the release workflow on `main`
+- **No version bump or tag on feature branches** -- version bumps happen only during the release workflow on `main`, or on a protected maintenance-line target (`release/X.Y`) under `release-via-merge-request-rule.md`'s narrowly eligible maintenance-line exception
 
 ### Multi-commit per branch — when it's OK
 
