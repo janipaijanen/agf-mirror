@@ -11,19 +11,24 @@ advisory_consultation:
       that conflict in d58p and will request a fresh exact-head review of this
       replacement plan after the named infosec and build consultations land.
   - role: infosec-sentinel
-    status: consulted
+    status: not-applicable
     reason: >-
-      Consultation request 20260809T162523Z-planner-architect-1hqh.md is on
-      main. Gate 1 review must not begin until its branch/tag integrity,
-      provenance, namespace, and ref-substitution findings are incorporated
-      or explicitly dispositioned by the Governor.
+      Governor assessment 20260809T171844Z-governor-reviewer-sq5j.md confirms
+      that infosec-sentinel's active charter is limited to information-leak
+      screening and does not own branch/tag supply-chain integrity. The
+      Governor instead assessed the named risks under security-hardening-rule,
+      returned CLEAR for Gate 1, and supplied two strengthening requirements
+      incorporated below: exact Maintainer-level protection plus command/API
+      evidence that retained refs actually survive the merge.
   - role: build-engineer
     status: consulted
     reason: >-
-      Consultation request 20260809T162524Z-planner-architect-16rp.md is on
-      main. Gate 1 review must not begin until it confirms whether the current
-      MR/tag pipelines support a maintenance target without CI changes and
-      freezes the required build evidence.
+      Result 20260809T170723Z-build-engineer-pste.md confirms that current MR
+      and tag pipelines support the maintenance target without CI or release-
+      script changes. It freezes dynamic-target, tag-job, cache, and merge-gate
+      evidence and identifies one accepted non-safety caveat: first-push
+      preview pipelines will run an over-inclusive heavy job set once because
+      their comparison target is current main.
 ---
 
 # Plan: protected maintenance release lines for immutable-candidate promotion
@@ -86,7 +91,10 @@ created:
    immutable namespaces, and forward-sync procedure.
 5. The existing candidate tag remains immutable. The new version's Git tag,
    GitLab Release, generic-package, and OCI namespaces are independently
-   absent through their authoritative APIs.
+   absent through their authoritative APIs. A protected-tag rule matching the
+   exact intended stable tag (or the governed `vX.Y.Z*` convention) must also
+   exist before the tag is created, with creation restricted to GitLab access
+   level 40 (Maintainer).
 
 If any condition becomes false, stop. Do not fall back silently to current
 main, a temporary main rewind, a custom tree-overwriting merge, or artifact
@@ -98,10 +106,14 @@ relabeling.
 
 1. Create a target named `release/X.Y` at the exact eligible candidate commit.
    Protect it before creating release content. The protection must reject
-   force-push and deletion, limit merge/push authority to the governed
-   maintainer role, and be re-read from the platform API as evidence.
+   force-push and deletion and restrict both push and merge to GitLab access
+   level 40 (Maintainer), rather than inheriting main's current Developer-level
+   merge permission. Re-read the exact platform rule as evidence.
 2. Create `release-X.Y.Z` at exactly the same candidate commit. Confirm both
-   refs resolve to the frozen SHA before the first release-metadata edit.
+   refs resolve to the frozen SHA before the first release-metadata edit. Give
+   the source branch equivalent level-40 push/merge protection and deletion/
+   force-push denial before editing it; verify both exact branch rules through
+   the platform API rather than assuming a wildcard matched.
 3. Open a non-squash, non-rebase merge request from `release-X.Y.Z` to
    `release/X.Y`. The target branch, merge base, candidate head, and full diff
    are review inputs. Any change invalidates the prior review.
@@ -110,7 +122,10 @@ relabeling.
    alone is insufficient.
 5. Exact-head Gate 2 remains binding Governor authority. Merge only the named
    SHA with the reviewed pipeline and retain both maintenance refs. Automatic
-   source-branch removal must be explicitly disabled and verified afterward.
+   source-branch removal must be explicitly disabled. Gate 2 evidence must
+   show the exact merge invocation, including its branch-retention option, and
+   immediate authoritative API reads proving both refs still exist at the
+   intended SHAs; decision text alone is insufficient evidence of retention.
 
 ### Tag and publication
 
@@ -191,6 +206,14 @@ scope. If build-engineer finds that existing CI cannot safely validate or
 publish a maintenance target, revise this plan and obtain a fresh review before
 adding any CI/script path.
 
+Build consultation `pste` confirms no CI/script expansion is required. The
+first push of each older-candidate maintenance branch is expected to trigger an
+over-inclusive heavy preview pipeline because the shared new-branch rule
+compares to current main. Accept that one-time runner cost; it is extra
+validation, not missing validation, and does not justify weakening the ordinary
+branch rule. All later acceptance evidence remains bound to the actual MR or tag
+pipeline source and exact commit.
+
 The `agents-govern/` bootstrap reference remains untouched. Historical plans,
 coordination records, tags, and changelog entries are immutable evidence, not
 rewrite targets.
@@ -211,9 +234,10 @@ these six dispositions:
 
 ## Micro-task sequence
 
-1. **Integrate consultations.** Record infosec/build outcomes in this plan,
-   freeze any additional requirement, and request fresh review if the affected
-   path set changes. No implementation before this plan is approved.
+1. **Integrate consultations.** Completed by `pste` and `sq5j`: no affected
+   path expansion; exact access-level, protected-tag, retained-ref, and
+   first-push evidence is frozen here. No implementation before this plan is
+   approved.
 2. **Update canonical rule pair.** Modify the release rule first, then remove
    the contradictory “only on main” wording in branch discipline. Done when
    standard and maintenance paths are mutually exclusive and every stop
@@ -253,6 +277,15 @@ documented commands/tests, and inspect both built archive formats to confirm
 the canonical rule, Pages explanation, release skill, and changelog are
 present while foundry-local `.claude/rules` is absent.
 
+For the first intended maintenance release, record authoritative API output
+showing: target-branch push and merge access level 40; a protected-tag rule
+covering the exact stable tag with Maintainer-only creation; absence of all four
+immutable namespaces; the actual non-squash/non-rebase merge invocation with
+source removal disabled; and immediate post-merge existence/SHA checks for
+both retained maintenance refs. Also record that the expected first-push heavy
+preview pipeline is over-inclusive and green, not mistaken for the later exact-
+head acceptance pipeline.
+
 Because this adds normative process gates but no new mechanical validator,
 Gate-self-test evidence is a review transcript with three deliberately bad
 scenarios:
@@ -272,7 +305,8 @@ must not be described as the source of Gate authority.
    weakened.
 2. The maintenance path cannot start without an immutable candidate, binding
    Governor topology decision, approved release plan, protected exact-SHA
-   target/source refs, and four-namespace preflight.
+   target/source refs, Maintainer-only target and tag protection, and four-
+   namespace preflight.
 3. The maintenance MR is metadata-only at both path and mixed-file field
    levels, non-squash/non-rebase, exact-head-reviewed, and retains both refs.
 4. Tagging, provenance, publication, and failure handling bind to the reviewed
@@ -296,8 +330,13 @@ must not be described as the source of Gate authority.
   Governor decision, separate release plan, and explicit ineligibility on any
   functional correction.
 - **Protected ref is substituted or deleted.** Mitigation: API-read protection
-  evidence, exact-SHA comparison before edit/merge/tag, retained refs, and
-  fail-closed re-review on any change.
+  evidence at exact access level 40, exact-SHA comparison before
+  edit/merge/tag, exact merge-command evidence, immediate post-merge API proof
+  of both retained refs, and fail-closed re-review on any change.
+- **Release tag is process-immutable but platform-mutable.** Mitigation: require
+  an exact or governed wildcard protected-tag rule with Maintainer-only creation
+  before the stable tag exists; never treat written policy alone as platform
+  enforcement.
 - **Tag bytes differ from reviewed bytes.** Mitigation: tag exact merge commit,
   provenance/source-commit checks, real downloaded-asset validation, never
   relabel artifacts.
