@@ -64,3 +64,11 @@ agents:
   academic-visual-reviewer:
     status: skipped
     reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  web-ux-reviewer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  independent-implementation-reviewer:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"

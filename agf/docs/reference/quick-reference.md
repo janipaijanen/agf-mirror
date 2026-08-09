@@ -18,6 +18,8 @@ reference most. For detail, follow the links.
 | build-engineer | Owns CI configuration, build automation, and pipeline efficiency |
 | academic-peer-reviewer | Reviews long-form/academic artifacts for methodological rigor |
 | academic-visual-reviewer | Reviews visual quality, layout, and figure legibility |
+| web-ux-reviewer | Reviews rendered web/documentation-site UX, layout, theming, and accessibility, independent of the implementer |
+| independent-implementation-reviewer | Read-only exact-head review of an implementation against its approved plan and evidence, by a session/model distinct from the implementer; advisory, never a Gate 2 approval |
 
 **Extended (Phase 3-4)** — activate when the project needs them:
 
@@ -39,6 +41,7 @@ packaged in the archive) and edit before use; see
 | Solo trial | coder-tester, governor-reviewer | One human wants to test whether gates help |
 | Standard governed project | planner-architect, coder-tester, governor-reviewer | A team wants plans before non-trivial implementation |
 | CI/security-conscious project | Standard roles plus contribution-auditor, infosec-sentinel, fact-checker as needed | Security, compliance, or external evidence matters |
+| Independent-review project | Standard or CI roles plus independent-implementation-reviewer, named per non-trivial Gate 2 candidate | Cross-model or cross-session implementation review evidence is needed before Gate 2 |
 
 External gateways and agent runtimes are execution surfaces. They do not become
 AGF approval authorities unless the governor records that role decision.

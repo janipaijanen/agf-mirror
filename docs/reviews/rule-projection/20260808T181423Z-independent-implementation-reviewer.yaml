@@ -1,0 +1,117 @@
+# Six-surface projection evidence for the independent-implementation-reviewer
+# role, per agf/rules/workflow/documentation-rule-projection-rule.md.
+# Plan: docs/plans/20260808T181423Z-independent-implementation-reviewer.md
+# (Gate 1 approved: 20260808T193155Z-governor-reviewer-get2.md)
+#
+# Gap-fix note (not a schema field, recorded here as a comment): while
+# updating these tables, found that `web-ux-reviewer` (activated earlier
+# this session, MR !1235) was never added to AGENTS.md's or
+# quick-reference.md's role tables or MANIFEST.example.yaml -- a gap from
+# that earlier change, not this one. Fixed both roles in the same pass
+# across the surfaces below rather than leaving `web-ux-reviewer`
+# inconsistent while adding `independent-implementation-reviewer`
+# correctly.
+
+plan_id: 20260808T181423Z-independent-implementation-reviewer
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/roles-and-gates.md
+  - agf/docs/site/docs/adopt/install-and-layouts.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/agents/independent-implementation-reviewer.yaml
+    reason: >-
+      New agent definition file created for this role. It owns the role's
+      purpose, activation condition, independence minimum, jurisdiction,
+      review-output contract, forbidden actions, and escalation triggers.
+      All other surfaces below point to or summarize this contract; none
+      redefine it.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/roles-and-gates.md
+    reason: >-
+      Added a short paragraph after the "twelve"->"fourteen" role-count
+      correction naming the new role, its exact-head/independent-session
+      review function, and stating explicitly that it is advisory evidence
+      for Gate 2, not a fourth binding gate. This is the canonical
+      explanatory page for AGF's role model; other surfaces point here
+      rather than restating the role contract.
+
+  runbook_situation_map:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/adopt/install-and-layouts.md
+      - agf/ADOPTING.md
+    reason: >-
+      Added a fourth "Independent-review project" row to both
+      minimum-commissioning-matrix tables (they carry the same three-tier
+      table today; this change adds the same fourth row to each rather
+      than only one, since both are adopter-facing decision points for
+      "what role set do I start with"). The role is explicitly placed
+      outside the three-role minimum, matching the plan's acceptance
+      criterion 9 and the role's own optional/named-per-candidate
+      activation condition.
+
+  ai_landing_loaders:
+    disposition: updated
+    path: AGENTS.md
+    reason: >-
+      Added the role to the foundry-local "Active agents" roster table
+      (the same table that already listed web-ux-reviewer's absence was
+      corrected in the same pass -- see below). This is foundry's own
+      cold-start loader; an assistant reading it at session start now sees
+      both new roles.
+    not_applicable:
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          The shipped adopter template uses role-agnostic
+          `<agent-role>` placeholders throughout (`agov session resume
+          --role <agent-role>`, `agov handoff next <role>`) and does not
+          enumerate specific role names. No edit is needed for a new
+          reusable role to be usable through this template.
+      - path: .claude/CLAUDE.md
+        reason: >-
+          This file does not exist in this repository. Foundry's own
+          assistant-loading path is AGENTS.md plus .claude/rules/ (loaded
+          directly by the tool), not a CLAUDE.md pointer file.
+
+  validation_drift_evidence:
+    disposition: implemented
+    path: tooling/rust/crates/agov-coord/src/projection_manifest.rs
+    reason: >-
+      `agov validate agents` schema-validates the new
+      independent-implementation-reviewer.yaml (and web-ux-reviewer.yaml)
+      definitions against agf/schemas/agent.schema.json. `agov plan
+      projection-check --base-ref main` mechanically validates this
+      manifest file itself: all six rows present, every actually-changed
+      Pages/runbook file declared, every declared path resolves. Prose
+      consistency of the roster tables themselves (AGENTS.md,
+      quick-reference.md, roles-and-gates.md all naming the same set of
+      roles) is advisory/human-verified only -- no mechanical cross-file
+      roster-parity check exists yet; a future validator closing that gap
+      is out of this change's scope.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/agents/independent-implementation-reviewer.yaml
+      - agf/agents/web-ux-reviewer.yaml
+      - agf/agents/MANIFEST.example.yaml
+      - agf/docs/site/docs/concepts/roles-and-gates.md
+      - agf/docs/site/docs/adopt/install-and-layouts.md
+      - agf/docs/reference/quick-reference.md
+      - agf/ADOPTING.md
+    reason: >-
+      Verified against agf/dist/release-manifest.yaml directly: `agf/
+      agents/**` (line 20) ships both new role definitions and the
+      updated MANIFEST.example.yaml (agf/agents/MANIFEST.yaml itself is
+      explicitly excluded, per the manifest's own comment, since it is
+      foundry's local live roster); `agf/docs/site/**` (line 29) ships
+      both updated Pages pages; `agf/docs/reference/**` (line 28) ships
+      quick-reference.md; `agf/ADOPTING.md` (line 16, explicit path)
+      ships directly. AGENTS.md (root-level, foundry-local) is correctly
+      the one changed surface outside distribution -- not matched by any
+      glob or explicit path in release-manifest.yaml, same as the prior
+      coordination-independent-publication precedent found for that file.

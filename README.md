@@ -160,7 +160,7 @@ Default POC layout:
 | Coordination obligations | `agov coord pending` — unresolved `requires-ack: true` records of any kind other than `handoff`/`ack` |
 | Tool provenance | `agov --version` / `agov version --format json` |
 
-The `agf/` distribution ships **48 governance rules**, **13 agent definitions**,
+The `agf/` distribution ships **48 governance rules**, **15 agent definitions**,
 and **7 skills**.
 
 The framework source archive is usable on its own. Adopters who want the
