@@ -40,6 +40,28 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   definition file. See `20260808T161743Z-planner-architect-kpdj.md`
   finding 4b and `20260808T171050Z-contribution-auditor-q1ge.md` for the
   audit-trail-ambiguity evidence that motivated this role.
+- Maintenance-line release exception in
+  `agf/rules/workflow/release-via-merge-request-rule.md` (and its
+  `.claude/rules/` projection): an optional, narrowly eligible path for
+  promoting a previously published, immutable release-candidate commit
+  to stable after the default branch has accumulated unrelated later
+  work, without pulling that work into the promoted release. Requires
+  a binding governor decision naming the exact candidate, its own
+  Gate 1-approved release plan, Maintainer-level (40) protection on
+  both the maintenance target and source refs, a matching protected-tag
+  rule, and post-merge API proof that retained refs survive the merge.
+  The standard current-main release workflow is unchanged and remains
+  the default for every ordinary release. `agf/rules/workflow/branch-
+  and-worktree-rule.md`'s prior "version bumps happen only ... on
+  `main`" wording corrected to acknowledge this one exception.
+  `agf/docs/site/docs/operate/review-and-release.md` and
+  `agf/skills/release/SKILL.md` both updated: the release skill's new
+  Step 0 fails closed to the standard path unless all three
+  eligibility preconditions are already met. First intended use is a
+  separately Gate 1-approved `v2.5.0` final release-publication plan;
+  this change authorizes no release action by itself. See
+  `20260809T163051Z-v250-maintenance-release-line-rule.md` and Gate 1
+  approval `20260809T180533Z-governor-reviewer-sp7d.md`.
 
 ### Fixed
 

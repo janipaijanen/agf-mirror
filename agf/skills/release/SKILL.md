@@ -21,6 +21,29 @@ gate requires explicit human confirmation.
   project-specific test command)
 - You know the bump type: `major`, `minor`, or `patch`
 
+## Step 0 — Confirm topology (fail-closed to standard)
+
+Almost every release uses the standard path below: branch from the
+default branch, bump, tag the merge commit. Do not select the
+maintenance-line path (a protected `release/X.Y` target instead of the
+default branch) unless **all** of the following are already true —
+if any is missing, use the standard path, even if someone asks for
+the maintenance-line path by name:
+
+- A binding governor decision-record names the exact candidate tag
+  object, peeled commit, and intended stable version.
+- A separate release-publication plan for that exact candidate has
+  its own Gate 1 approval.
+- The release changes only version, changelog, and other enumerated
+  release-truth metadata — no functional, schema, migration, test,
+  dependency, CI, or artifact-layout change.
+
+If all three hold, follow
+[`release-via-merge-request-rule.md`](../../rules/workflow/release-via-merge-request-rule.md)'s
+"Maintenance-line exception" section instead of Steps 1-7 below — its
+eligibility, protection, tag, and forward-sync contract is the
+authority; do not improvise a variant.
+
 ## Step 1 — Bump version
 
 Version bump tooling is deferred. Until `agov bump` exists, perform

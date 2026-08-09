@@ -37,6 +37,26 @@ distribution.
   definition file. See `20260808T161743Z-planner-architect-kpdj.md`
   finding 4b and `20260808T171050Z-contribution-auditor-q1ge.md` for the
   audit-trail-ambiguity evidence that motivated this role.
+- Maintenance-line release exception in
+  `agf/rules/workflow/release-via-merge-request-rule.md`: an optional,
+  narrowly eligible path for shipping a previously published,
+  immutable release-candidate commit as a stable version after your
+  default branch has kept moving with unrelated work — without pulling
+  that work into the promoted release. Requires a binding governor
+  decision naming the exact candidate, its own separately Gate
+  1-approved release plan, Maintainer-level protection on the
+  maintenance branches, a matching protected-tag rule, and post-merge
+  proof that both refs survive the merge before anything is tagged.
+  The standard release workflow (branch from your default branch, tag
+  the merge commit) is unchanged and remains what every ordinary
+  release uses — this exception exists for the specific, evidenced
+  case where a shipped candidate must ship again exactly as-is, later.
+  See [Review and release](docs/site/docs/operate/review-and-release.md#releases-the-maintenance-line-exception)
+  for the adopter-facing explanation and the release skill's Step 0 for
+  the fail-closed selection procedure. Additive: no existing release
+  path changes; adopters who never need this exception see no
+  difference in their normal release flow. **Adopter docs parity:
+  updated.**
 
 ### Fixed
 
