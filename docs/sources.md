@@ -1782,3 +1782,37 @@ is already issue #33. Its pending plan may document the layered guarantee and ne
 scenario; any contradiction detector/index requires a separate Gate 1 plan after an
 observed harmful ambiguity or concrete adopter requirement, with legitimate dissent,
 correction, supersession, role authority, and false positives explicitly handled.
+
+# Batch 22 (2026-08-10) — user-submitted candidate
+
+## Classified
+
+- https://vivekhaldar.com/articles/continual-learning-needs-more-nuance/
+  type: discussion | relation: prior-art (thematic) | action: cite (with caveat)
+  note: Vivek Haldar, "Continual Learning Needs More Nuance" (2026-08-09), responding to
+  Dwarkesh Patel's saxophone analogy for why AI agents need continual, weight-update-based
+  learning (dwarkesh.com/p/era-of-continual-learning; youtube.com/watch?v=iewm45atodE).
+  Using Rasmussen's skills/rules/knowledge taxonomy (Haldar's own earlier video,
+  youtube.com/watch?v=SGSpdqhbBBg; Rasmussen 1983, doi:10.1109/TSMC.1983.6313160), Haldar
+  argues weight updates matter mainly for tight perception-action "skills" (the saxophone
+  case); rule-based and knowledge-based work — open-ended, novel-context problem-solving,
+  the category AGF's coding agents actually perform — can learn adequately from written
+  artifacts handed to the next learner, no weight update required, citing written
+  civilizational knowledge transmission as the existence proof. Also raises, more briefly
+  and citing Alex Karp/Palantir (axios.com/2026/07/02/karp-palintir-openai-anthropic-
+  amodei), an ownership objection to distributed weight updates: companies may prefer
+  frozen, company-controlled "scoped learners" over models that continually absorb and
+  blend everyone's proprietary interactions. Opinion piece responding to another opinion
+  piece — no original study, benchmark, or citation count — but its central claim is close
+  to a plain-language description of this project's own operating premise: AGF's agents
+  run on frozen, session-fresh weights (see `docs/reference/agent-cold-start-habits.md`'s
+  "session memory... [is] advisory until... backed by governed artifacts"), and
+  cross-session learning happens entirely through written artifacts — `agf/rules/`,
+  `agf/learnings/*.yaml`, `docs/coordination/*.md`, `docs/plans/` — passed to the next
+  agent, not through fine-tuning. Useful as an independent, AGF-unaware articulation of why
+  that design choice is sound for knowledge-based work specifically; not evidence that AGF
+  should change anything, and its taxonomy is silent on where governance judgment (Gate 1/
+  Gate 2 review, human authority) fits — AGF's actual differentiator is not addressed by
+  either Haldar's or Patel's framing. No radar entry: corroborates existing design rather
+  than raising a new unresolved or controversial question for AGF specifically. (accessed
+  2026-08-10)
