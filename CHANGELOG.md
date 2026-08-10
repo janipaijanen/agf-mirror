@@ -136,6 +136,16 @@ field contract; it is not under this validator's recognized
 clear the automated check on its own, but adopter documentation for this
 change does exist.
 
+## [2.5.0] - 2026-08-09
+
+**Stable.** Metadata-only promotion of the exact `v2.5.0-rc.2` functional
+candidate to stable, published through the protected maintenance-line
+workflow. Zero functional, schema, documentation-content, migration, test,
+dependency, CI, or artifact-layout change from RC2. Independently re-run:
+340 passed, 0 failed, 3 ignored (matches RC2's own precedent exactly).
+Adopter docs: not applicable — exact RC2 functional candidate; metadata-only
+promotion. Full detail: `agf/CHANGELOG.md`.
+
 ## [2.5.0-rc.2] - 2026-08-04
 
 **RC checkpoint; not final.** `v2.5.0` final ships the same functional
