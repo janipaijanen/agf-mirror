@@ -1816,3 +1816,29 @@ correction, supersession, role authority, and false positives explicitly handled
   either Haldar's or Patel's framing. No radar entry: corroborates existing design rather
   than raising a new unresolved or controversial question for AGF specifically. (accessed
   2026-08-10)
+
+# Batch 23 (2026-08-10) — user-submitted candidate
+
+## Classified
+
+- https://tokenshrinker.com/
+  type: tooling, practice | relation: complement, prior-art | action: watch
+  note: Vivek Haldar (Enchiridion Labs), "Agent Workflow Compiler" — a prompt-driven
+  methodology, not a discussion piece: given an agent's own session history, it profiles
+  repeated workflows, partitions each into stable procedure (compiled to code), irreducible
+  judgment (kept as bounded LLM calls), and human authority (approval gates), then produces
+  a deterministic harness plus a replay benchmark comparing old vs. new. Self-reported
+  results across 15 measured scenarios: 94-96% fewer gross tokens, 87-92% less elapsed
+  time, up to 10x fewer AI calls, claimed same output quality — single-source, no
+  third-party replication, and the author states these are "what is possible, not what
+  every workflow will achieve." The compiled harness's stated safety design explicitly
+  forbids publishing, committing, pushing, or other side effects without approval, which is
+  compatible with (not a substitute for) AGF's own gate model. Relevant to AGF as a live
+  worked example of the same code-over-LLM-for-deterministic-work instinct
+  `simplicity-rule.md` already states, applied one layer up (agent workflow steps, not code
+  architecture) — not evidence AGF should adopt the technique itself. AGF's own Gate 1/
+  Gate 2 coordination cycle is deliberately *not* a candidate for this kind of compilation:
+  the judgment exercised at those gates is exactly the "irreducible judgment plus human
+  authority" category this technique is designed to preserve, not compile away. No radar
+  entry: complements existing design rather than raising an open question for AGF
+  specifically. (accessed 2026-08-10)
