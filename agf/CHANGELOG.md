@@ -3,6 +3,36 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
+## [2.5.0] — 2026-08-09
+
+**Stable.** Metadata-only promotion of the exact `v2.5.0-rc.2` functional
+candidate (tag object `2bdcbb76716ba84ffa78e792b380b7befdd9340e`, peeled
+commit `3874a5b92b006fc867a4cedf359cfc17c6dfbae9`) to stable, published
+through the protected maintenance-line workflow
+(`agf/rules/workflow/release-via-merge-request-rule.md`'s maintenance-line
+exception). Zero functional, schema, documentation-content, migration,
+test, dependency, CI, or artifact-layout change from RC2 — only the current-
+version surfaces and this changelog changed. Independently re-run against
+the identical source tree: 340 passed, 0 failed, 3 ignored (matches RC2's
+own precedent exactly).
+
+**Adopter docs: not applicable — exact RC2 functional candidate;
+metadata-only promotion.**
+
+### Governance
+
+- Governor decision `20260809T171844Z-governor-reviewer-sq5j.md`'s external
+  evaluation disposition stands unchanged: `sjqm` findings 2 (unauthenticated
+  coordination `from:`), 3 (mutation-served-as-authentic / tamper-evidence
+  gap), and 4 (zero local technical Gate enforcement) remain unresolved and
+  are deferred through this stable release to separate post-2.5.0 hardening
+  work, per governor decision `rq2n`'s original disposition — a scope/timing
+  disposition, not an acceptance of the underlying risk, and not a defect
+  introduced by this promotion.
+- Plan `docs/plans/20260809T194404Z-v250-final-release-publication.md`,
+  Gate 1 approved by decision-record
+  `docs/coordination/20260809T200252Z-governor-reviewer-h4wn.md`.
+
 ## [2.5.0-rc.2] — 2026-08-04
 
 **RC checkpoint; not final.** `v2.5.0` final ships the same functional
