@@ -80,11 +80,14 @@ identifies the platform for a person downloading; the record identifies
 the exact build target for a verifier.
 
 Linux arm64 (`aarch64-unknown-linux-musl`, published as `linux-aarch64`
-on releases v2.4.7 through v2.5.0-rc.2) is not currently built. The
-cross-compilation step requires more disk than the project's current
-shared CI runner tier provides; it will resume once CI runner capacity
-for this target is sponsored. Adopters needing arm64 Linux tooling in
-the meantime can build `agov` and `agov-mcp` from source for
+on releases v2.4.7 through v2.5.0-rc.2, and on `v2.5.0` itself as the
+exact metadata-only promotion of that same RC2 candidate under
+temporary provisioned runner capacity) is not currently built for
+releases derived from current `main`. The cross-compilation step
+requires more disk than the project's current shared CI runner tier
+provides; it will resume once CI runner capacity for this target is
+sponsored. Adopters needing arm64 Linux tooling in the meantime can
+build `agov` and `agov-mcp` from source for
 `aarch64-unknown-linux-musl` (or `aarch64-unknown-linux-gnu`).
 
 ### The unified release-provenance contract
