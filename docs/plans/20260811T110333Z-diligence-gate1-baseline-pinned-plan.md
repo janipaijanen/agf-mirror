@@ -71,10 +71,15 @@ This replacement plan is a genuinely different, simpler shape:
   this session, outside this repository's tooling), given only a
   frozen package of already-public files. It is not a same-session
   sub-agent, so it does not automatically inherit this project's
-  rules, memory, or git state the way an `Agent`-tool spawn would —
-  there is nothing to disclose because there is nothing inherited.
-  This plan states that mechanical fact plainly and does not claim
-  anything stronger (Section 4).
+  rules, memory, or git state the way an `Agent`-tool spawn would.
+  Round-1 review (`BP-DD-3`) correctly found an earlier draft of this
+  section overclaimed that fact as "nothing to disclose because there
+  is nothing inherited" — package acquisition alone cannot establish
+  what a Gemini conversation setting, connected app, or account-level
+  memory setting is doing. Section 3/4 below state only the narrower,
+  provable fact: no AGF workspace/session context is *deliberately
+  supplied* beyond the frozen package and prompt, and the invocation
+  surface itself is recorded as evidence rather than assumed.
 - The evidence universe (Section 2) excludes coordination records,
   plans, learnings, prior due-diligence reports, MR discussions, and
   issue prose by construction — this is a **one-time** assessment of
@@ -95,18 +100,22 @@ This replacement plan is a genuinely different, simpler shape:
 ## Decision requested
 
 Authorize, via binding Governor Gate 1, the pinned baseline (Section
-1), the evidence universe and its acquisition method (Section 2), the
-frozen evaluator prompt and output contract (Section 3), the honest
-context-disclosure statement (Section 4), and the forward role
-assignment (Section 5) below. This authorization is for **Phase 1
-(evidence acquisition and packaging) and Phase 2 (evaluator
-submission) only**, both performed by coder-tester after Gate 1 on a
-new implementation branch, per Section 5. This document does not
-itself construct the package, spawn or contact any evaluator, or lift
-MR !1382/!1383's containment holds — per the Governor decision, those
-holds lift only when a replacement Gate 1 plan pins the baseline below
-**and** receives binding Gate 1 approval, which this submission
-requests but does not grant itself.
+1), the evidence universe, acquisition method, and package layout
+(Section 2), the frozen evaluator prompt, output schema, and
+invocation-surface checklist (Section 3), the honest
+context-disclosure statement (Section 4), and the exactly-two-candidate
+forward role assignment — Candidate A (package) and Candidate B
+(results), each separately Gate-2-gated — (Section 5) below. This
+authorization covers Candidate A and Candidate B's existence and
+sequencing; it does **not** itself construct any package, spawn or
+contact any evaluator, or authorize either candidate's Gate 2 — each
+of Gate 2 A and Gate 2 B is a separate binding Governor decision made
+when its candidate is actually ready for review, not granted in
+advance by this document. This document does not lift MR !1382/!1383's
+containment holds — per the Governor decision, those holds lift only
+when a replacement Gate 1 plan pins the baseline below **and**
+receives binding Gate 1 approval, which this submission requests but
+does not grant itself.
 
 ## 1. Pinned immutable baseline
 
@@ -168,17 +177,102 @@ this project's own internal governance material (`docs/coordination/`,
 `docs/plans/`, `docs/reviews/`, `agf/learnings/` are all outside this
 list by construction, not by a separate exclude step).
 
-**B — Release metadata**: the GitLab Release API object for `v2.5.0`
-itself (tag name, release date, description, the 13 asset
-name/URL/checksum entries) — Section 1's own verification record is
-the frozen shape of this evidence class.
+**B — Release metadata**: the raw GitLab Release API response for
+`v2.5.0` itself (tag name, release date, description, and the 13 asset
+link entries — name, URL, link type; the API exposes no checksum
+field of its own). The downloaded bytes of this API response are
+hashed into the package manifest (Section 2's manifest, below) exactly
+like every other evidence file — the API response's *authenticity* is
+established by the manifest hash, not by a checksum GitLab does not
+publish for it.
 
-**C — Release assets**: the 13 published assets listed in Section 1,
-downloaded from the GitLab generic-package registry, each checksum-
-verified against its published `.sha256` file before being included.
+**C — Release assets**: the exact 13 published links named in Section
+1, downloaded from the GitLab generic-package registry. Acquisition
+**fails closed** (produces no package) if the live Release does not
+have exactly these 13 links, or any one is missing, duplicated,
+renamed, or unreachable. Verification differs honestly by asset
+shape, corrected here after round-1 review (`BP-DD-1`) found the plan
+had claimed a uniform checksum check none of the 9 non-archive assets
+actually have:
 
-**D — Public Pages**: a fetch of the live public Pages site,
-timestamped at fetch time, labeled per Section 1's immutability note.
+- The **4 payload archives** (`agov-2.5.0-linux-x86_64.tar.gz`,
+  `agov-2.5.0-linux-aarch64.tar.gz`, `agf-2.5.0.tar.gz`,
+  `agf-2.5.0.zip`) are each verified against their own paired
+  `<name>.sha256` file — the only 4 of the 13 assets that have one.
+- The **5 provenance JSON files** (`agov-oci-2.5.0-provenance.json`
+  plus one paired provenance file per payload archive) have no
+  `.sha256` sibling of their own. Each is instead parsed, and its
+  declared source commit, tag, artifact name/kind, and embedded
+  archive hash (or, for the OCI provenance file, OCI manifest digest)
+  is cross-checked against the corresponding authoritative object
+  already pinned in Section 1 (the tag/commit) or verified above (the
+  archive's own `.sha256`-checked hash). A mismatch on any field fails
+  acquisition.
+- The **4 `.sha256` files** themselves have no meta-checksum; their
+  content is exactly what verifies the payload archives above, and
+  their own bytes are hashed into the package manifest like every
+  other evidence file.
+- The OCI container image itself is **not** acquired by this plan —
+  only its provenance JSON (which is). The report's limitations
+  section (Section 3) must state plainly that the OCI provenance
+  claim is evidence as received, but its registry digest is not
+  independently reverified against the live registry by this
+  acquisition.
+
+**D — Public Pages**: a bounded, same-origin snapshot of
+`https://janipaijanen.gitlab.io/agents-govern-framework/` (the exact
+base URL configured in `agf/docs/build/mkdocs.yml`'s `site_url`,
+corrected here after `BP-DD-2` found the plan had named no URL at
+all), fetched at one fixed acquisition timestamp:
+
+- **Scope**: every HTML page reachable by same-origin recursive link
+  traversal starting from the base URL, plus every same-origin asset
+  (CSS, JS, image) those pages directly reference. External links
+  (any URL outside the base URL's origin) are recorded as link text
+  and target URL only — never fetched or followed.
+- **Redirects**: same-origin redirects are followed once and the
+  final resolved URL is what is recorded; a redirect leaving the
+  origin is treated as an external link (not followed).
+- **Errors**: a non-2xx response for any in-scope URL is recorded in
+  the manifest as a failed fetch for that URL — it does not abort the
+  whole Pages acquisition, but the report's limitations section must
+  list every such failure.
+- **URL-to-file mapping**: each fetched URL is written to a file path
+  mirroring its URL path under the package's `pages/` subtree (e.g.
+  `https://janipaijanen.gitlab.io/agents-govern-framework/rules/` →
+  `pages/rules/index.html`), with a per-file SHA-256 recorded in the
+  package manifest alongside the shared acquisition timestamp.
+
+**Package layout and manifest (frozen; corrected here after
+`BP-DD-2`)**: the assembled evidence package is one directory tree,
+committed to the results/package candidate named in Section 5:
+
+```
+evidence-package/
+  product-archive/         # Class A, extracted read-only from the git-archive tar
+  release-metadata.json    # Class B, the raw API response bytes, unmodified
+  release-assets/          # Class C, the 13 downloaded files, unmodified
+  RELEASE-VERIFICATION.md  # Class C's per-asset verification method and result (see Class C above)
+  pages/                   # Class D, the URL-mirrored HTML/asset tree
+  MANIFEST.sha256          # one line per file above: sha256  relative/path
+```
+
+Release archives (Class C) are supplied **raw** — not extracted —
+inside `release-assets/`; the evaluator is told which of them are
+themselves archives and may reference their manifests/checksums as
+evidence without this plan requiring their contents to be unpacked.
+`RELEASE-VERIFICATION.md` is a generated (not downloaded) evidence
+file recording, per asset, which of Class C's three verification
+methods applied and the result — this is what resolves "checksum-
+verified" honestly per file, rather than the prompt or report
+asserting a uniform check that does not exist. `MANIFEST.sha256` is
+the single per-file hash ledger for every file in the tree (including
+`RELEASE-VERIFICATION.md` itself), generated once at acquisition time
+and never edited after. This entire `evidence-package/` tree, plus
+`MANIFEST.sha256`, is what is transmitted to the evaluator (Section
+3) — every citation the
+evaluator is permitted to make must resolve to a path inside this
+tree, with no live network access required to verify any of it.
 
 No bespoke scanner is built for this acquisition. Every byte in every
 evidence class originates from this project's own tagged release, its
@@ -201,12 +295,14 @@ plan revision and fresh Gate 1.
 >
 > The evidence package contains: (A) the public source/documentation
 > tree at the pinned release commit, (B) the release's own published
-> metadata, (C) the release's published, checksum-verified binary/
-> archive assets, and (D) a timestamped snapshot of the public
-> documentation site. Cite every finding by evidence class and path
-> (e.g., "A: agf/rules/workflow/tdd-rule.md" or "C:
-> agf-2.5.0.tar.gz"). A citation that does not resolve to an actual
-> path in the package is not acceptable.
+> metadata, (C) the release's published assets — verified per the
+> notes in `RELEASE-VERIFICATION.md` (each file's own verification
+> method is recorded there; not every asset has an independent
+> checksum, and that is explained, not hidden), and (D) a timestamped
+> snapshot of the public documentation site. Cite every finding by
+> evidence class and path (e.g., "A: agf/rules/workflow/tdd-rule.md"
+> or "C: release-assets/agf-2.5.0.tar.gz"). A citation that does not
+> resolve to an actual path in `MANIFEST.sha256` is not acceptable.
 >
 > Answer these six dimension questions, each scored 1–5 or
 > `unavailable` (a dimension the package does not address is always
@@ -219,29 +315,78 @@ plan revision and fresh Gate 1.
 > per dimension citing evidence, a material-risks section, and a
 > Conclusion section using exactly one of `{recommend-adopt,
 > recommend-pilot, recommend-wait, recommend-decline,
-> insufficient-evidence-to-conclude}`); `findings-register.json` (one
-> entry per material finding, each citing an evidence path, with
-> `stated_conclusion` matching `report.md`'s Conclusion); and
-> `evidence-log.md` (one line per register entry, citing the exact
-> evidence-package path it is drawn from).
+> insufficient-evidence-to-conclude}`); `findings-register.json`
+> (matching the frozen schema below); and `evidence-log.md` (one line
+> per register entry, citing the exact evidence-package path it is
+> drawn from).
 >
 > State plainly, as the first line of `report.md`, whether you have
 > any prior awareness of this project from training or other sources,
 > and if so, that your findings below are nonetheless scoped strictly
 > to the provided evidence package.
 
+**`findings-register.json` schema (frozen; added here after round-1
+review found no field schema existed, `BP-DD-4`)** — a JSON array,
+one object per material finding:
+
+```json
+{
+  "id": "string, unique within the register, e.g. \"F-01\"",
+  "dimension": "one of the six dimension names above",
+  "claim": "string, one-sentence statement of the finding",
+  "evidence_class": "one of A|B|C|D",
+  "evidence_path": "string, resolves inside MANIFEST.sha256",
+  "confidence": "one of high|medium|low",
+  "stated_conclusion": "one of the five Conclusion terms above -- identical string across every entry"
+}
+```
+
+**Consistency invariants**, checked at reconciliation (Section 5):
+every entry's `stated_conclusion` is byte-identical to `report.md`'s
+own Conclusion term; every `evidence_path` resolves to a real path in
+the package's `MANIFEST.sha256`; every `dimension` value is one of the
+six named above; the register is non-empty (at least one finding, or
+the report's Conclusion must be `insufficient-evidence-to-conclude`
+with that absence itself explained in `report.md`).
+
+**Invocation-surface checklist (frozen; corrected here after
+round-1 review found package acquisition alone cannot establish
+conversation-level facts, `BP-DD-3`):** coder-tester records the
+following as invocation evidence (Section 3's raw-response
+preservation, below) at the moment of submission — this is what
+actually supports any isolation claim, not the acquisition method:
+
+- Gemini product/surface used (e.g. the consumer web app, AI Studio,
+  or API), and the displayed model/version string.
+- The new-conversation identifier or start time, confirming this is a
+  conversation with zero prior turns.
+- Whether a custom Gem or saved system-instruction persona is active
+  — **must be no**; if the surface does not allow confirming this,
+  record that inability as a limitation.
+- Whether any connected app, extension, or plugin is enabled for this
+  conversation, and whether browsing/search/live-retrieval tooling is
+  enabled — disabled where the surface permits; recorded as a
+  limitation where it cannot be disabled or verified.
+- The account-level memory/personalization setting, if the surface
+  exposes it as visible/inspectable state.
+- The exact attachment set given to the evaluator (the package tree
+  from Section 2, nothing else).
+
 **Limitations, stated honestly in the plan and required in the
-report's own limitations section:** this is a genuinely fresh,
-external conversation with no tool access to this repository and no
-prior turns in this conversation — that much is mechanically true and
-verifiable by the acquisition method itself (Section 2's evidence
-package is the only input given). This plan does **not** claim the
-evaluating model has no training-time awareness of this project (an
-unprovable claim about model weights), and does not claim the
+report's own limitations section:** the *deliberately supplied* input
+is exactly the evidence package and prompt in Section 2/this section
+— nothing else is intentionally given. This plan does **not** claim
+the evaluating model has no training-time awareness of this project
+(an unprovable claim about model weights), does not claim the
 provider retains no memory across separate conversations on the same
-account (a provider-operational fact outside this project's control).
-The prompt above requires the evaluator to disclose any such prior
-awareness rather than the plan asserting its absence.
+account (a provider-operational fact outside this project's control),
+and — corrected here — does not claim package acquisition alone
+proves the conversation had no system instructions, connected tools,
+or account-level context; the invocation-surface checklist above,
+not the acquisition method, is what supports whatever isolation claim
+the final report makes. The prompt above requires the evaluator to
+disclose any prior awareness rather than the plan asserting its
+absence.
 
 **Raw-response preservation:** the evaluator's complete raw response
 (not only the three named output files) is saved verbatim alongside
@@ -258,40 +403,67 @@ This assessment is described, in the plan, in the evaluator prompt,
 and in any resulting report, as: a new external conversation, given
 only the evidence package in Section 2, asked to assess AGF v2.5.0
 from that package alone. It is **not** described as memory-erased,
-provider-blind, or otherwise stronger than the mechanical fact that no
-repository tool access or prior conversation turns exist for this
-submission. This replaces MR !1403's "simulated, disclosed-context"
+provider-blind, or otherwise stronger than what the invocation-surface
+checklist (Section 3) actually records — no AGF workspace/session
+context is *deliberately supplied* beyond the frozen package and
+prompt, and that recorded checklist, not an assumption about what
+"external conversation" mechanically implies, is the evidence for any
+isolation claim. This replaces MR !1403's "simulated, disclosed-context"
 framing entirely — that framing existed only because the prior design
 used a same-session sub-agent; it does not apply here and must not be
 carried forward into any implementation of this plan.
 
 ## 5. Forward role assignment (after Gate 1 only)
 
-1. **Coder-tester**, on a new implementation branch, owns: literal
-   acquisition of evidence classes A–D (Section 2), checksum
-   verification of class C, allowlist assembly into the frozen package
-   layout, and the report/register/log artifacts once the evaluator
-   response is received. No implementation begins before binding Gate
-   1 approval of this plan.
-2. **Contribution-auditor** performs an exact-head implementation
-   review of coder-tester's acquisition/assembly work before Gate 2.
-3. **Build-engineer** owns any CI change this work turns out to need.
-   The default and preferred design has **no CI change at all** — per
-   the Governor decision, any CI need must be separately justified and
-   governed, never introduced inside this plan or its implementation
-   MR.
-4. Only after binding Gate 2: submit the frozen package (Section 2)
-   and prompt (Section 3) to a new external Gemini conversation,
-   preserve the raw response and invocation metadata (Section 3), then
-   perform fact-check (every `report.md` citation resolves to an
-   actual evidence-package path — fact-checker) and reconciliation
-   (contribution-auditor cross-checks `findings-register.json` against
-   `report.md`'s Conclusion for consistency) before the assessment is
-   considered complete.
-5. This plan does not authorize, and no implementation of it may
-   perform, any step beyond acquisition/assembly (Phase 1) and
-   submission/preservation (Phase 2) without a further binding Gate 2
-   decision for each subsequent phase.
+Round-1 review (`BP-DD-4`) found the prior version of this section
+left the branch/MR topology ambiguous — one branch could not
+plausibly own both pre-submission package work and post-response
+report artifacts, since the response does not exist until after
+submission. This plan authorizes, at Gate 1, exactly **two** governed
+candidates in sequence — no more, no fewer, and no step of either may
+be taken without its own named gate below:
+
+**Candidate A — the package candidate.** New branch, owned by
+coder-tester. Contains: the assembled `evidence-package/` tree
+(Section 2's layout), `MANIFEST.sha256`, `RELEASE-VERIFICATION.md`,
+and the frozen prompt text (Section 3) copied verbatim into the branch
+as `evaluator-prompt.md`, plus a submission checklist covering the
+invocation-surface checklist (Section 3). Gated by: exact-head
+contribution-auditor implementation review, then binding **Governor
+Gate 2 A**. Gate 2 A authorizes exactly one thing beyond merging
+Candidate A: the single external Gemini submission described in
+Section 3/4, performed immediately after Gate 2 A using the merged
+package unmodified.
+
+**Candidate B — the results candidate.** New branch, opened only
+after the Gemini submission has actually happened (never before —
+per `coordination-publication-rule.md`'s lifecycle-semantics
+principle, a record of a not-yet-occurred event is a false claim).
+Owned by coder-tester. Contains, immutably: the evaluator's complete
+verbatim raw response and the invocation metadata recorded at
+submission time (Section 3), committed once and never edited in
+place — a correction to a preserved raw response is a new file, not
+an edit, mirroring `immutable-tags-rule.md`'s append-only principle.
+Separately, in the same candidate: the derived `report.md`,
+`findings-register.json` (matching Section 3's frozen schema), and
+`evidence-log.md`, produced by coder-tester from the raw response.
+Gated by: fact-checker (every citation in `report.md` resolves to a
+`MANIFEST.sha256` path), contribution-auditor (reconciliation —
+`findings-register.json`'s consistency invariants, Section 3, all
+hold), then binding **Governor Gate 2 B**. Gate 2 B is the completion
+gate for this entire assessment.
+
+**Build-engineer** owns any CI change either candidate turns out to
+need. The default and preferred design has **no CI change at all** —
+per the Governor decision, any CI need must be separately justified
+and governed, never introduced inside either candidate's MR.
+
+No implementation of either candidate begins before this plan's own
+binding Gate 1. No step of Candidate B begins before Candidate A's
+Gate 2 A. No submission to Gemini happens more than once under this
+plan's authorization — a second submission (e.g. to correct a defect
+found after the fact) requires a plan revision and fresh Gate 1, not
+an ad hoc resubmission.
 
 ## Risks and rollback
 
