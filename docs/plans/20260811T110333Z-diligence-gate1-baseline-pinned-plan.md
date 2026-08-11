@@ -78,6 +78,38 @@ advisory_consultation:
 
 # Plan: one-time external due-diligence assessment of AGF v2.5.0 (baseline-pinned replacement for MR !1403)
 
+## Outcome: ABANDONED after Gate 1 approval, before completion
+
+Gate 1 was approved (below, `gate1_approved_by`/`gate1_approved_at`) after
+seven review rounds. Candidate A (implementation) then acquired the full
+evidence package and built the six-attachment `.tar.gz`/JSON transport
+this plan specifies. The human Governor performed the one authorized
+synthetic preflight; it **failed** — the evaluator (Gemini Pro) could not
+open the attached archive at all
+(`docs/coordination/20260811T175332Z-contribution-auditor-rtgg.md`,
+finding `PF-1`). Per this plan's own text, that outcome required a plan
+revision and fresh Gate 1 before any further Gemini submission.
+
+Rather than invest further in a heavier, more heavily-governed replacement
+transport design, the human Governor directed dropping this effort. Three
+independently-run, ungoverned prompts (Gemini, Perplexity, a fresh Grok
+run) were tried directly against live public URLs instead, outside any
+plan/gate process — Gemini's output was unusable (fabricated, wrong
+tech stack and file structure); Perplexity and Grok were partially to
+substantially grounded, with specific fact-checked errors. The Grok run
+is filed as a lightweight addition alongside the existing external
+assessments in
+`docs/reviews/20260810T134228Z-external-ai-diligence-grok-copilot/`,
+following that filing's existing verbatim-relay-plus-corrections pattern,
+not this plan's Candidate A/B apparatus.
+
+This plan, Candidate A's branch (`candidate-a/diligence-gate1-baseline-pinned`,
+MR !1440, closed without merging), and the six built transport attachments
+are retired. No further Gemini submission, Candidate B, or plan revision
+is authorized under this document. It is retained, unedited below, as the
+historical record of the approved-but-abandoned design and the review
+process that produced it.
+
 ## Why this plan exists, and how it differs from MR !1403
 
 MR !1403 (10 rounds, `docs/plans/20260810T172503Z-fresh-context-diligence-gate1-plan.md`)
