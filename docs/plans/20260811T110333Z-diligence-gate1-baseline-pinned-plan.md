@@ -359,26 +359,29 @@ analyze files](https://support.google.com/gemini/answer/14903178),
 independently confirmed live: up to 10 files per prompt, 100 MB per
 file; corrected here after round-4 review found the 7-unit design's
 manifest contract unresolvable and its transport shape unverified,
-`R4-DD-1`)**: the evaluator is given exactly **6** file attachments:
+`R4-DD-1`; ordering corrected here after round-5 review found these
+built after Gate 2 A rather than reviewed by it, `R5-DD-1`)**: the
+evaluator is given exactly **6** file attachments, each built once at
+Candidate A package-assembly time — **before** Gate 2 A reviews and
+names them, not at real-submission time — and uploaded unmodified at
+the real submission (Section 5):
 
-1. `product-archive.tar.gz` — freshly created at submission time from
-   the committed `product-archive/` tree, byte-for-byte from those
-   already-committed files (no regeneration from source).
+1. `product-archive.tar.gz` — created from the committed
+   `product-archive/` tree, byte-for-byte from those already-committed
+   files (no regeneration from source).
 2. `release-metadata.json` — the committed file, unmodified.
 3. `release-assets-text.tar.gz` — bundling the 9 committed small
    Class C text files (4 `.sha256` + 5 provenance JSON) and
-   `RELEASE-VERIFICATION.md` (10 members total) into one freshly
-   created container, byte-for-byte from those already-committed
-   files.
-4. `pages.tar.gz` — freshly created at submission time from the
-   committed `pages/` tree.
+   `RELEASE-VERIFICATION.md` (10 members total) into one created
+   container, byte-for-byte from those already-committed files.
+4. `pages.tar.gz` — created from the committed `pages/` tree.
 5. `MANIFEST.sha256` — the committed file, covering the pre-packaging
    member paths of attachments 1, 3, and 4 above.
-6. `submission-manifest.json` — generated fresh at submission time,
-   the bridge between `MANIFEST.sha256` (which hashes pre-packaging
-   member files) and what Gemini actually receives (3 freshly packaged
-   containers: attachments 1, 3, and 4). For each of those three: the
-   container's own filename and SHA-256 as uploaded, and one entry per
+6. `submission-manifest.json` — generated once, after attachments 1–5
+   are final, the bridge between `MANIFEST.sha256` (which hashes
+   pre-packaging member files) and what Gemini actually receives (3
+   packaged containers: attachments 1, 3, and 4). For each of those
+   three: the container's own filename and SHA-256, and one entry per
    member file giving its in-container path and its pre-packaging
    SHA-256 — which must be byte-identical to that same path's entry in
    `MANIFEST.sha256`. For attachment 2 (`release-metadata.json`):
@@ -388,8 +391,8 @@ manifest contract unresolvable and its transport shape unverified,
    forbade self-hashing, `R4-DD-1` point 1, the same logical
    impossibility `MANIFEST.sha256`'s own sibling rule already resolves.
    Its own post-generation filename and SHA-256 are instead recorded in
-   `invocation-metadata.json` (Section 5), generated after it, at
-   submission time.
+   `invocation-metadata.json` (Section 5), generated after it, at the
+   real submission.
 
 The four payload archives are **removed from this transport entirely**
 (round 4, `R4-DD-1` point 2 and point 4): they are never transmitted to
@@ -432,27 +435,93 @@ actually received contained that exact path with byte-identical
 content — confirming transport packaging did not silently substitute or
 corrupt what the evaluator saw.
 
-**Transport-shape feasibility (added here after round-4 review found no
-authoritative support that Gemini Apps unpacks and reasons over `.tar.gz`
-containers, only that its file-count/size limits permit uploading them,
-`R4-DD-1`)**: this plan does not assume the chosen `.tar.gz` container
-shape works without verification, and does not spend the one authorized
-AGF submission finding out. Candidate A's Gate 2 A (Section 5) requires
-a **synthetic transport preflight** before the real submission: coder-
-tester submits a throwaway, non-AGF `.tar.gz` bundling several small
-text files to the exact same Gemini surface/model that will receive the
-real submission, and confirms the response can read and cite content
-from specific named files inside it by path. The preflight's own
-invocation-surface facts (product/model, timestamp) and its outcome are
-recorded in a reserved literal filename, `transport-preflight.md`, under
-Candidate A's package. If the preflight does not demonstrate correct
-per-file content access, Candidate A's transport design is not
+**Transport-shape feasibility and the governed preflight (added here
+after round-4 review found no authoritative support that Gemini Apps
+unpacks and reasons over `.tar.gz` containers, `R4-DD-1`; fully
+specified here after round-5 review found the preflight ungoverned —
+no frozen fixture, no frozen expected answers, no submission-count
+correction, no size check, `R5-DD-2`)**: this plan does not assume the
+chosen `.tar.gz` container shape works without verification, and does
+not spend the one authorized real AGF submission finding out. This plan
+authorizes exactly **two** Gemini submissions, of two different
+classes, each singular and never retried:
+
+1. Exactly one **synthetic transport preflight** (below), before
+   Gate 2 A.
+2. Exactly one **real AGF assessment submission** (Section 4/5), after
+   Gate 2 A.
+
+Corrected here: Section 5's "no submission to Gemini happens more than
+once" means no submission *of either class* happens more than once —
+not that only one submission total exists across the plan. A failure of
+either class (a failed preflight, or a triggered/flagged real response)
+requires a plan revision and fresh Gate 1, never an ad hoc resubmission
+of that class.
+
+**Preflight fixture (frozen, literal content — not left to coder-tester
+to invent)**: two throwaway, non-AGF text files, bundled into
+`preflight.tar.gz` (the same container shape as the real transport,
+mirroring its risk):
+
+- `preflight/alpha.txt`, containing exactly the bytes
+  `preflight-fixture-alpha-e5f2` (no trailing newline).
+- `preflight/beta/gamma.txt`, containing exactly the bytes
+  `preflight-fixture-gamma-91ac` (no trailing newline) — nested one
+  directory deep, specifically to test subdirectory member visibility.
+
+Each member's SHA-256 is recorded before bundling; `preflight.tar.gz`'s
+own SHA-256 is recorded after.
+
+**Preflight prompt (frozen, verbatim)**:
+
+> You will receive one file attachment, `preflight.tar.gz`, a
+> gzip-compressed tar archive. List the exact relative path and the
+> exact literal file contents of every file it contains. Do not
+> summarize or paraphrase file contents — quote them verbatim.
+
+**Preflight pass condition (frozen, mechanical — no evaluator judgment
+involved, unlike the real assessment)**: the raw response's text
+contains, verbatim, both exact relative paths (`alpha.txt` and
+`beta/gamma.txt`, allowing for a leading unpacked-root prefix such as
+`preflight/`) and both exact file contents
+(`preflight-fixture-alpha-e5f2` and `preflight-fixture-gamma-91ac`).
+Any deviation — a missing member, truncated or paraphrased content, an
+incorrect path — is a **fail**, not a partial pass; there is no scoring,
+only pass/fail.
+
+**Preflight invocation governance**: run in its own new, zero-prior-turn
+conversation, distinct from the real submission's conversation, on the
+same Gemini product/surface/model that will receive the real
+submission. The chosen product/surface/model, the new-conversation
+identity, and the pass/fail outcome are recorded in `transport-
+preflight.md`, under Candidate A's package. The preflight's raw response
+is captured verbatim and goes through the same fail-closed
+pre-publication check (Section 5) as the real assessment's response
+before being committed to `transport-preflight.md` — it is arbitrary
+third-party output too, even though its content is synthetic.
+
+**Real-attachment size governance (closes the Pages-bound/100 MB-limit
+gap round 5 found, `R5-DD-2`)**: each of the six real attachments' exact
+byte size, once packaged, is checked against Gemini's documented 100 MB
+per-file limit at Candidate A package-assembly time (before Gate 2 A,
+per the ordering fix in Section 5, below). Section 2's Class D Pages
+acquisition bound (500 pages / 200 MiB raw fetched bytes / depth 6) is a
+bound on *raw fetched content*, not on the packaged `pages.tar.gz`
+attachment — if the packaged attachment exceeds 100 MB despite the
+raw-fetch bound, that is a fail-closed acquisition failure requiring a
+plan revision (e.g. a tighter Pages bound), never a silent violation or
+an ad hoc workaround.
+
+If the preflight does not pass exactly as specified, or any real
+attachment exceeds 100 MB, Candidate A's transport design is not
 executable as frozen — that is a fresh finding requiring a plan revision
-and fresh Gate 1, not a design coder-tester improvises around, and the
-one authorized real submission is not spent attempting it anyway.
-Candidate A's package (Section 5) also reserves the literal filename
-`submission-checklist.md` for the invocation-surface checklist
-(Section 3) coder-tester records at the real submission.
+and fresh Gate 1, not a design coder-tester improvises around.
+Candidate A's package (Section 5) reserves the literal filename
+`submission-checklist-template.md` for the blank invocation-surface
+checklist (Section 3); Candidate B (Section 5) reserves
+`submission-checklist-completed.md` for the filled-in record at the
+real submission, kept explicitly distinct per round 5's finding that
+the two were not previously distinguished.
 
 No bespoke scanner is built for this acquisition. Every byte in every
 evidence class originates from this project's own tagged release, its
@@ -475,17 +544,30 @@ plan revision and fresh Gate 1.
 >
 > The evidence package contains: (A) the public source/documentation
 > tree at the pinned release commit, (B) the release's own published
-> metadata, (C) the release's published assets — verified per the
-> notes in `RELEASE-VERIFICATION.md` (each file's own verification
-> method is recorded there; not every asset has an independent
-> checksum, and that is explained, not hidden), and (D) a timestamped
-> snapshot of the public documentation site. Some evidence is bundled
-> into container files for delivery, but this does not change how you
-> cite it: cite every finding by evidence class and the underlying
-> file's path, not by attachment or container name (e.g., "A:
+> metadata, (C) checksum and provenance evidence **about** the
+> release's published assets — **not the assets' own binary contents**
+> (see the explicit limitation below) — verified per the notes in
+> `RELEASE-VERIFICATION.md` (each file's own verification method is
+> recorded there; not every asset has an independent checksum, and
+> that is explained, not hidden), and (D) a timestamped snapshot of the
+> public documentation site. Some evidence is bundled into container
+> files for delivery, but this does not change how you cite it: cite
+> every finding by evidence class and the underlying file's path, not
+> by attachment or container name (e.g., "A:
 > agf/rules/workflow/tdd-rule.md" or "C:
 > release-assets/agf-2.5.0.tar.gz.sha256"). A citation that does not
 > resolve to an actual path in `MANIFEST.sha256` is not acceptable.
+>
+> **You do not receive, and cannot inspect, the release's actual
+> compiled/packaged binary archives or its OCI container image.** Class
+> C gives you only their published checksums and provenance metadata
+> (declared source commit, tag, artifact kind, and archive/image
+> digest) — never their binary contents. You cannot verify or describe
+> what is inside those archives or that image, their runtime behavior,
+> or platform-specific parity from this evidence; do not claim to have
+> inspected them. State this limitation explicitly in `report.md`'s
+> limitations section whenever your findings touch code quality,
+> supply chain, or release-artifact completeness.
 >
 > Answer these six dimension questions, each scored 1–5 or
 > `unavailable` (a dimension the package does not address is always
@@ -560,7 +642,12 @@ actually supports any isolation claim, not the acquisition method:
 **Limitations, stated honestly in the plan and required in the
 report's own limitations section:** the *deliberately supplied* input
 is exactly the evidence package and prompt in Section 2/this section
-— nothing else is intentionally given. This plan does **not** claim
+— nothing else is intentionally given. As the frozen prompt above now
+states explicitly (corrected here after round 5, `R5-DD-3`), the
+evaluator never receives the release's actual compiled/packaged binary
+archives or its OCI container image — only checksum and provenance
+metadata about them — and cannot inspect their contents or runtime
+behavior from this evidence. This plan does **not** claim
 the evaluating model has no training-time awareness of this project
 (an unprovable claim about model weights), does not claim the
 provider retains no memory across separate conversations on the same
@@ -623,36 +710,58 @@ coder-tester. Contains, under `docs/diligence/v2.5.0-baseline/`
 Class C's 4 payload archives are *not* committed and, since round 4,
 never transmitted to the evaluator at all), `MANIFEST.sha256`,
 `RELEASE-VERIFICATION.md`, and the frozen prompt text (Section 3)
-copied verbatim into the branch as `evaluator-prompt.md`, plus
-`submission-checklist.md` (the invocation-surface checklist, Section 3)
-and `transport-preflight.md` (the synthetic transport-shape preflight,
-Section 2, required here after round 4, `R4-DD-1`). Gated by:
-exact-head contribution-auditor implementation review — which, per the
-transport-feasibility requirement above, verifies `transport-
-preflight.md` demonstrates correct per-file content access before
-approving — then binding **Governor Gate 2 A**. Gate 2 A authorizes
-exactly one thing beyond merging Candidate A: the single external
-Gemini submission described in Section 2 (transport)/Section 3/
-Section 4, performed immediately after Gate 2 A using the merged
-package, generating `submission-manifest.json` fresh at that time.
+copied verbatim into the branch as `evaluator-prompt.md`.
+
+**Corrected here after round 5 found Gate 2 A reviewed source, not the
+actual upload bytes, `R5-DD-1`**: Candidate A additionally contains the
+**exact, final, immutable transport artifacts** — `product-archive.tar.gz`,
+`release-assets-text.tar.gz`, `pages.tar.gz`, and `submission-manifest.json`
+— built once, at Candidate A package-assembly time, byte-identical to
+what the real submission will upload. There is no submission-time
+regeneration: the real submission (below) uploads exactly these
+already-committed, already-reviewed bytes. Candidate A also contains
+`submission-checklist-template.md` (the blank invocation-surface
+checklist, Section 3) and `transport-preflight.md` (the governed
+synthetic preflight, Section 2, its fixture/prompt/pass-condition frozen
+there and its outcome recorded here once run).
+
+Gated by: exact-head contribution-auditor implementation review —
+verifying the four transport artifacts are present, that
+`submission-manifest.json`'s member hashes match `MANIFEST.sha256`,
+that each transport artifact is ≤100 MB (Section 2), and that
+`transport-preflight.md` records a pass under Section 2's frozen
+preflight — then binding **Governor Gate 2 A**. Gate 2 A's approval
+names the exact reviewed identities: each attachment's filename and
+SHA-256, the attachment count (6), and each attachment's exact byte
+size. Gate 2 A authorizes exactly one thing beyond merging Candidate A:
+the single real external Gemini submission described in Section 2
+(transport)/Section 3/Section 4, uploading precisely the bytes Gate 2 A
+named — no regeneration, no substitution — in a new, zero-prior-turn
+conversation distinct from the preflight's. Any byte, member, surface,
+or model change from what Gate 2 A named invalidates that approval and
+requires a fresh Gate 2 A before submission.
 
 **Candidate B — the results candidate.** New branch, opened only
 after the Gemini submission has actually happened (never before —
 per `coordination-publication-rule.md`'s lifecycle-semantics
 principle, a record of a not-yet-occurred event is a false claim).
-Owned by coder-tester. Reserved durable paths, both under
+Owned by coder-tester. Reserved durable paths, all under
 `docs/diligence/v2.5.0-baseline/results/`:
 
 - `raw-response.md` and `invocation-metadata.json` — the evaluator's
   complete verbatim raw response and the invocation metadata recorded
   at submission time (Section 3), committed once and never edited in
-  place. `invocation-metadata.json` additionally records
-  `submission-manifest.json`'s own post-generation filename and
-  SHA-256 (added here after round 4, `R4-DD-1` point 1 — the manifest
-  cannot record its own hash inside itself). A correction to either is
-  a new, separate file (e.g. `raw-response-correction-1.md`), never an
-  edit to the original,
+  place. A correction to either is a new, separate file (e.g.
+  `raw-response-correction-1.md`), never an edit to the original,
   mirroring `immutable-tags-rule.md`'s append-only principle.
+- `submission-manifest.json` and `submission-checklist-completed.md` —
+  **reserved here after round 5, `R5-DD-1`**: a copy of the exact
+  `submission-manifest.json` Gate 2 A named and the real submission
+  used (already durably committed in Candidate A, but copied here so
+  Candidate B's reconciliation evidence is self-contained), and the
+  filled-in invocation-surface checklist recorded at the real
+  submission — explicitly distinct from Candidate A's
+  `submission-checklist-template.md`.
 - `report.md`, `findings-register.json` (matching Section 3's frozen
   schema — additional fields beyond the frozen 7 are permitted and
   preserved verbatim if the evaluator includes them, but only the
@@ -746,7 +855,11 @@ treats security-boundary decisions as non-delegable.
 Gated by: fact-checker (every citation in `report.md` resolves to a
 `MANIFEST.sha256` path **and**, via `submission-manifest.json`, to a
 packaged container member that byte-matches that path — added here
-after round 4, `R4-DD-1` point 3), contribution-auditor (reconciliation —
+after round 4, `R4-DD-1` point 3; **and**, added here after round 5,
+`R5-DD-3`, `report.md` contains no claim of having directly inspected
+the payload archives' or OCI image's binary contents or runtime
+behavior — any such claim is a fact-check rejection, not a passable
+finding), contribution-auditor (reconciliation —
 `findings-register.json`'s consistency invariants, Section 3, all
 hold), then binding **Governor Gate 2 B**. Gate 2 B is the completion
 gate for this entire assessment.
@@ -758,10 +871,12 @@ and governed, never introduced inside either candidate's MR.
 
 No implementation of either candidate begins before this plan's own
 binding Gate 1. No step of Candidate B begins before Candidate A's
-Gate 2 A. No submission to Gemini happens more than once under this
-plan's authorization — a second submission (e.g. to correct a defect
-found after the fact) requires a plan revision and fresh Gate 1, not
-an ad hoc resubmission.
+Gate 2 A. Per Section 2's two-submission-class correction (round 5,
+`R5-DD-2`), no submission *of either class* — the synthetic preflight or
+the real assessment submission — happens more than once under this
+plan's authorization; a second submission of either class (e.g. to
+correct a defect found after the fact, or to retry a failed preflight)
+requires a plan revision and fresh Gate 1, not an ad hoc resubmission.
 
 ## Risks and rollback
 
