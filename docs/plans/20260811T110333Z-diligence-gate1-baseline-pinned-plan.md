@@ -44,10 +44,18 @@ advisory_consultation:
       scanner) — and the commitment that `raw-response.md` is not
       committed until that check runs and any trigger is routed to
       infosec-sentinel and governor-reviewer, per Section 5's own text.
-      A real, applicable infosec-sentinel review of the actual response
-      is a named precondition of Candidate B proceeding past that
-      check, not something this Gate 1 plan can fabricate in advance of
-      the content it would review.
+      Corrected here after round-4 review (`R4-DD-2`) found the prior
+      wording of this sentence overclaimed a review of *every* response
+      — Section 5's actual contract is **trigger-only**: coder-tester's
+      bounded manual-plus-tool check runs on every response, but
+      infosec-sentinel is engaged only if that check finds a trigger,
+      not as a review step every response passes through regardless of
+      outcome. This Gate 1 plan does not, and cannot, fabricate a
+      pinned infosec-sentinel consultation in advance of content that
+      does not exist yet; what it commits to is that *if* Section 5's
+      check ever fires, infosec-sentinel's actual involvement at that
+      point is mandatory before Candidate B proceeds further — a
+      conditional precondition, not a review of every run.
   - role: fact-checker
     status: waived
     reason: >-
@@ -295,18 +303,21 @@ per the Governor decision; not reused).
 
 **Retention choice for Class C's binary archives (frozen; added here
 after round-2 review offered this as the required either/or,
-`R2-DD-2` point 4)**: the four payload archives are **not** duplicated
-as permanent git blobs in this repository — they are already durably
-published, immutable evidence at the GitLab Release (Section 1), and
-re-committing multi-megabyte binaries into git history has a real,
-unnecessary storage cost. Only their small text evidence (the 4
-`.sha256` files, the 5 provenance JSON files, and
-`RELEASE-VERIFICATION.md`, below) is committed to the durable path.
-The archives themselves are re-fetched immediately before Gemini
-submission (Section 5) and their freshly-fetched bytes re-verified
-against the already-committed `.sha256`/provenance evidence before
-upload — if a re-fetch does not match, submission is refused and this
-is a fresh finding, not silently proceeded past.
+`R2-DD-2` point 4; simplified here after round-4 review found the
+submission-time re-fetch/re-verify step it required created an
+unresolvable manifest-scope mismatch, `R4-DD-1` point 2)**: the four
+payload archives are **not** duplicated as permanent git blobs in this
+repository — they are already durably published, immutable evidence at
+the GitLab Release (Section 1), and re-committing multi-megabyte
+binaries into git history has a real, unnecessary storage cost. Only
+their small text evidence (the 4 `.sha256` files, the 5 provenance JSON
+files, and `RELEASE-VERIFICATION.md`, below) is committed to the
+durable path. Their acquisition-time verification (Class C's fail-closed
+acquisition, above) is the durable evidence of their integrity — round
+4 removes the payload archives from the Gemini transport entirely (see
+below), so there is no submission-time re-fetch step: the archives are
+acquired and verified exactly once, at Candidate A package-assembly
+time, and never touched again.
 
 **Package layout and manifest (frozen; corrected here after `BP-DD-2`
 and, for the manifest self-reference defect, `R2-DD-2` point 2)**: the
@@ -331,17 +342,14 @@ inside it — round-2 review correctly found that a manifest hashing
 (a file's hash cannot include its own hash). It lists every file
 inside `evidence-package/` and nothing else; it is generated once,
 after every other file in the tree is final, and never edited after.
-Release archives, when re-fetched for submission per the retention
-choice above, are supplied **raw** — not extracted — as transient
-submission-time attachments; the evaluator is told which of them are
-themselves archives and may reference their manifests/checksums
-(already in the committed `evidence-package/`) as evidence without
-this plan requiring their contents to be unpacked.
 `RELEASE-VERIFICATION.md` is a generated (not downloaded) evidence
 file recording, per asset, which of Class C's three verification
 methods applied and the result — this is what resolves "checksum-
 verified" honestly per file, rather than the prompt or report
-asserting a uniform check that does not exist.
+asserting a uniform check that does not exist. The 4 payload archives
+are **not** transmitted to the evaluator at all (removed from the
+Gemini transport here after round 4, `R4-DD-1`) — see the Gemini
+transport list below for what is.
 
 **Gemini transport (frozen; added here after round-2 review found it
 unspecified, `R2-DD-2` point 4; consolidated here after round-3 review
@@ -349,65 +357,102 @@ found the prior 18-unit design exceeds Gemini Apps' published 10-file-
 per-prompt limit, `R3-DD-1` — see [Google Gemini Apps Help — Upload and
 analyze files](https://support.google.com/gemini/answer/14903178),
 independently confirmed live: up to 10 files per prompt, 100 MB per
-file)**: the evaluator is given exactly **7** file attachments — the
-prior design's 9 individual Class-C text files and 4 individual payload
-archives are each bundled into one container, below, specifically to
-fit this limit:
+file; corrected here after round-4 review found the 7-unit design's
+manifest contract unresolvable and its transport shape unverified,
+`R4-DD-1`)**: the evaluator is given exactly **6** file attachments:
 
 1. `product-archive.tar.gz` — freshly created at submission time from
    the committed `product-archive/` tree, byte-for-byte from those
    already-committed files (no regeneration from source).
 2. `release-metadata.json` — the committed file, unmodified.
-3. `release-assets-text.tar.gz` — **new, bundling the 9 committed
-   small Class C text files (4 `.sha256` + 5 provenance JSON) and
+3. `release-assets-text.tar.gz` — bundling the 9 committed small
+   Class C text files (4 `.sha256` + 5 provenance JSON) and
    `RELEASE-VERIFICATION.md` (10 members total) into one freshly
-   created container**, byte-for-byte from those already-committed
+   created container, byte-for-byte from those already-committed
    files.
-4. `release-assets-payloads.tar.gz` — **new, bundling the 4 payload
-   archives (each independently confirmed under 3.5 MB, well inside
-   Gemini's 100 MB per-file limit), re-fetched and re-verified per the
-   retention choice above, into one freshly created container.** The
-   evaluator is told these 4 members are themselves archives and may
-   cite their manifests/checksums/provenance (already fully described
-   in attachment 3) as evidence without this plan requiring the
-   evaluator to unpack them.
-5. `pages.tar.gz` — freshly created at submission time from the
+4. `pages.tar.gz` — freshly created at submission time from the
    committed `pages/` tree.
-6. `MANIFEST.sha256` — the committed file, covering the pre-packaging
-   member paths of attachments 1, 3, 4, and 5 above.
-7. `submission-manifest.json` — **new (added here per `R3-DD-1`)**:
-   generated fresh at submission time, the exact bridge between
-   `MANIFEST.sha256` (which hashes pre-packaging member files) and
-   what Gemini actually receives (4 freshly packaged containers). For
-   each of attachments 1, 3, 4, and 5: the container's own filename and
-   SHA-256 as uploaded, and one entry per member file giving its
-   in-container path and its pre-packaging SHA-256 — which must be
-   byte-identical to that same path's entry in `MANIFEST.sha256`. For
-   attachments 2, 6, and 7: filename and SHA-256 only (uploaded
-   unmodified or, for this file itself, generated once and not
-   self-hashed, mirroring `MANIFEST.sha256`'s own sibling rule above).
-   A citation the evaluator makes (e.g. "C:
-   release-assets/agov-2.5.0-linux-x86_64.tar.gz.sha256") resolves by:
-   look up the path in `submission-manifest.json`'s member entries to
-   find its container and pre-packaging hash, then confirm that hash
-   matches `MANIFEST.sha256`'s entry for the same path.
+5. `MANIFEST.sha256` — the committed file, covering the pre-packaging
+   member paths of attachments 1, 3, and 4 above.
+6. `submission-manifest.json` — generated fresh at submission time,
+   the bridge between `MANIFEST.sha256` (which hashes pre-packaging
+   member files) and what Gemini actually receives (3 freshly packaged
+   containers: attachments 1, 3, and 4). For each of those three: the
+   container's own filename and SHA-256 as uploaded, and one entry per
+   member file giving its in-container path and its pre-packaging
+   SHA-256 — which must be byte-identical to that same path's entry in
+   `MANIFEST.sha256`. For attachment 2 (`release-metadata.json`):
+   filename and SHA-256 only, uploaded unmodified. `submission-
+   manifest.json` does **not** include an entry for itself — corrected
+   here after round-4 review found the prior text both required and
+   forbade self-hashing, `R4-DD-1` point 1, the same logical
+   impossibility `MANIFEST.sha256`'s own sibling rule already resolves.
+   Its own post-generation filename and SHA-256 are instead recorded in
+   `invocation-metadata.json` (Section 5), generated after it, at
+   submission time.
 
-Packaging (attachments 1, 3, 4, 5) **is** a byte-level transformation
-of the underlying files into a container — corrected here after
-round-3 review found the plan's prior claim that no bytes are
-transformed to be false for exactly these attachments (`R3-DD-1`).
-What is preserved, and what `submission-manifest.json` exists to prove,
-is that every *member file's* pre-packaging bytes are unchanged and
-independently re-verifiable against `MANIFEST.sha256` — not that the
-container bytes themselves equal any pre-existing hash. Attachments 2,
-6, and 7 are transferred unmodified with no packaging step. The prompt
-(Section 3) tells the evaluator which numbered attachment corresponds
-to which evidence class, and every citation the evaluator is permitted
-to make must resolve to a path recoverable from `submission-manifest.json`
-and `MANIFEST.sha256` together, with no live network access required to
-verify any of it. Candidate A's package (Section 5) reserves the
-literal filename `submission-checklist.md` for the invocation-surface
-checklist (Section 3) coder-tester records at submission time.
+The four payload archives are **removed from this transport entirely**
+(round 4, `R4-DD-1` point 2 and point 4): they are never transmitted to
+the evaluator. Every verification signal a due-diligence read can act
+on — hash, provenance, and cross-check against the pinned tag/commit —
+is already fully present in `RELEASE-VERIFICATION.md` and the 9 small
+text files (attachment 3); the evaluator is never asked or expected to
+open the raw binaries in the first place, so sending untouched
+multi-megabyte archives added real transport/format risk (per round 4's
+finding, below) without adding evidence a report can cite that is not
+already available. This also removes the `MANIFEST.sha256`-scope
+mismatch round 4 found: every member path any attachment now claims a
+hash for is, without exception, a path actually committed inside
+`evidence-package/` and present in `MANIFEST.sha256`.
+
+Packaging (attachments 1, 3, 4) **is** a byte-level transformation of
+the underlying files into a container — corrected here after round-3
+review found the plan's prior claim that no bytes are transformed to be
+false for exactly these attachments (`R3-DD-1`). What is preserved, and
+what `submission-manifest.json` exists to prove, is that every *member
+file's* pre-packaging bytes are unchanged and independently
+re-verifiable against `MANIFEST.sha256` — not that the container bytes
+themselves equal any pre-existing hash. Attachments 2, 5, and 6 are
+transferred unmodified with no packaging step.
+
+**Citation resolution (corrected here after round-4 review found the
+frozen prompt text unchanged despite the packaging transformation,
+`R4-DD-1` point 3)**: the evaluator's citation contract (Section 3) is
+unaffected by transport packaging — the evaluator cites by evidence
+class and the underlying committed file's path (e.g. "C: release-
+assets/agf-2.5.0.tar.gz.sha256"), exactly as if reading the committed
+`evidence-package/` tree directly; the evaluator is never told about
+attachment numbers, containers, or `submission-manifest.json`, and does
+not need to be — those are purely fact-checker's internal reconciliation
+tools. The prompt (Section 3) is updated to say this explicitly. At
+Gate 2 B, fact-checker's citation check becomes two steps, not one:
+(a) the cited path exists in `MANIFEST.sha256`, as before, and (b) via
+`submission-manifest.json`, the packaged container the evaluator
+actually received contained that exact path with byte-identical
+content — confirming transport packaging did not silently substitute or
+corrupt what the evaluator saw.
+
+**Transport-shape feasibility (added here after round-4 review found no
+authoritative support that Gemini Apps unpacks and reasons over `.tar.gz`
+containers, only that its file-count/size limits permit uploading them,
+`R4-DD-1`)**: this plan does not assume the chosen `.tar.gz` container
+shape works without verification, and does not spend the one authorized
+AGF submission finding out. Candidate A's Gate 2 A (Section 5) requires
+a **synthetic transport preflight** before the real submission: coder-
+tester submits a throwaway, non-AGF `.tar.gz` bundling several small
+text files to the exact same Gemini surface/model that will receive the
+real submission, and confirms the response can read and cite content
+from specific named files inside it by path. The preflight's own
+invocation-surface facts (product/model, timestamp) and its outcome are
+recorded in a reserved literal filename, `transport-preflight.md`, under
+Candidate A's package. If the preflight does not demonstrate correct
+per-file content access, Candidate A's transport design is not
+executable as frozen — that is a fresh finding requiring a plan revision
+and fresh Gate 1, not a design coder-tester improvises around, and the
+one authorized real submission is not spent attempting it anyway.
+Candidate A's package (Section 5) also reserves the literal filename
+`submission-checklist.md` for the invocation-surface checklist
+(Section 3) coder-tester records at the real submission.
 
 No bespoke scanner is built for this acquisition. Every byte in every
 evidence class originates from this project's own tagged release, its
@@ -434,10 +479,13 @@ plan revision and fresh Gate 1.
 > notes in `RELEASE-VERIFICATION.md` (each file's own verification
 > method is recorded there; not every asset has an independent
 > checksum, and that is explained, not hidden), and (D) a timestamped
-> snapshot of the public documentation site. Cite every finding by
-> evidence class and path (e.g., "A: agf/rules/workflow/tdd-rule.md"
-> or "C: release-assets/agf-2.5.0.tar.gz.sha256"). A citation that does
-> not resolve to an actual path in `MANIFEST.sha256` is not acceptable.
+> snapshot of the public documentation site. Some evidence is bundled
+> into container files for delivery, but this does not change how you
+> cite it: cite every finding by evidence class and the underlying
+> file's path, not by attachment or container name (e.g., "A:
+> agf/rules/workflow/tdd-rule.md" or "C:
+> release-assets/agf-2.5.0.tar.gz.sha256"). A citation that does not
+> resolve to an actual path in `MANIFEST.sha256` is not acceptable.
 >
 > Answer these six dimension questions, each scored 1–5 or
 > `unavailable` (a dimension the package does not address is always
@@ -572,17 +620,21 @@ be taken without its own named gate below:
 coder-tester. Contains, under `docs/diligence/v2.5.0-baseline/`
 (Section 2's durable path): the committed subset of the
 `evidence-package/` tree (Section 2's layout and retention choice —
-Class C's 4 payload archives are *not* committed), `MANIFEST.sha256`,
+Class C's 4 payload archives are *not* committed and, since round 4,
+never transmitted to the evaluator at all), `MANIFEST.sha256`,
 `RELEASE-VERIFICATION.md`, and the frozen prompt text (Section 3)
-copied verbatim into the branch as `evaluator-prompt.md`, plus a
-submission checklist covering the invocation-surface checklist
-(Section 3). Gated by: exact-head contribution-auditor implementation
-review, then binding **Governor Gate 2 A**. Gate 2 A authorizes
+copied verbatim into the branch as `evaluator-prompt.md`, plus
+`submission-checklist.md` (the invocation-surface checklist, Section 3)
+and `transport-preflight.md` (the synthetic transport-shape preflight,
+Section 2, required here after round 4, `R4-DD-1`). Gated by:
+exact-head contribution-auditor implementation review — which, per the
+transport-feasibility requirement above, verifies `transport-
+preflight.md` demonstrates correct per-file content access before
+approving — then binding **Governor Gate 2 A**. Gate 2 A authorizes
 exactly one thing beyond merging Candidate A: the single external
 Gemini submission described in Section 2 (transport)/Section 3/
 Section 4, performed immediately after Gate 2 A using the merged
-package and the Section 2 retention/re-verification procedure for
-Class C's archives.
+package, generating `submission-manifest.json` fresh at that time.
 
 **Candidate B — the results candidate.** New branch, opened only
 after the Gemini submission has actually happened (never before —
@@ -594,8 +646,12 @@ Owned by coder-tester. Reserved durable paths, both under
 - `raw-response.md` and `invocation-metadata.json` — the evaluator's
   complete verbatim raw response and the invocation metadata recorded
   at submission time (Section 3), committed once and never edited in
-  place. A correction to either is a new, separate file (e.g.
-  `raw-response-correction-1.md`), never an edit to the original,
+  place. `invocation-metadata.json` additionally records
+  `submission-manifest.json`'s own post-generation filename and
+  SHA-256 (added here after round 4, `R4-DD-1` point 1 — the manifest
+  cannot record its own hash inside itself). A correction to either is
+  a new, separate file (e.g. `raw-response-correction-1.md`), never an
+  edit to the original,
   mirroring `immutable-tags-rule.md`'s append-only principle.
 - `report.md`, `findings-register.json` (matching Section 3's frozen
   schema — additional fields beyond the frozen 7 are permitted and
@@ -688,7 +744,9 @@ resolution, exactly as `deputy-governor-rule.md`'s red list already
 treats security-boundary decisions as non-delegable.
 
 Gated by: fact-checker (every citation in `report.md` resolves to a
-`MANIFEST.sha256` path), contribution-auditor (reconciliation —
+`MANIFEST.sha256` path **and**, via `submission-manifest.json`, to a
+packaged container member that byte-matches that path — added here
+after round 4, `R4-DD-1` point 3), contribution-auditor (reconciliation —
 `findings-register.json`'s consistency invariants, Section 3, all
 hold), then binding **Governor Gate 2 B**. Gate 2 B is the completion
 gate for this entire assessment.
