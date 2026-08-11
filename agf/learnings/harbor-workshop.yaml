@@ -1,0 +1,110 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# =============================================================================
+# Project Learning Record: harbor-workshop
+# =============================================================================
+# Submitted snapshot. Received by the human Governor via email 2026-08-10 and
+# filed here as an adopter-submitted upstream snapshot, per the mechanism
+# ADOPTING.md already describes ("The upstream copy in the agents-govern repo
+# is a submitted snapshot"). The adopter's own local
+# agf/learnings/harbor-workshop.yaml remains their own source of truth; this
+# file is upstream's copy of what they sent.
+# =============================================================================
+
+project:
+  codename: "harbor-workshop"
+  description: >
+    External adopter project that upgraded its local AGF adoption from
+    2.2.4 to 2.5.0 using the published release archive and matching agov
+    binary.
+
+adoption:
+  framework_id: "agf"
+  framework_version: "2.5.0"
+  framework_commit: unknown
+  upgrade_history:
+    - date: "2026-08-10"
+      from_version: "2.2.4"
+      to_version: "2.5.0"
+      agent_changes: []
+      notes: >
+        Upgrade succeeded via explicit preservation of adopter-owned paths
+        rather than a blind whole-tree replacement.
+
+learnings:
+  - id: "20260810T134847Z-mdgg"
+    date: "2026-08-10"
+    category: adoption-friction
+    scope: framework
+    title: agf-adopter-upgrades-need-explicit-adopter-owned-path-preservation
+    description: >
+      An adopter project upgraded its local AGF adoption from 2.2.4 to 2.5.0
+      using the published release archive and matching agov binary. The
+      upgrade succeeded, but only because the upgrade process explicitly
+      preserved adopter-owned paths instead of blindly replacing the whole
+      agf/ tree. The v2.5.0 archive correctly shifts role roster handling
+      toward agf/agents/MANIFEST.example.yaml, while the adopter project
+      already had a real agf/agents/MANIFEST.yaml and several
+      project-specific agent definitions. The safe upgrade path required:
+      overlay upstream-owned AGF framework files; preserve
+      agf/agents/MANIFEST.yaml; preserve project-specific agent definitions;
+      preserve agf/learnings/<codename>.yaml; preserve agf/docs/adr/;
+      preserve local project skills under agf/skills/<project>/; update
+      loader/version references separately; validate with the new agov
+      binary. Separately, the v2.5.0 adoption guidance still references
+      checking agf/MANIFEST.md to distinguish adopter-owned and
+      upstream-owned files, but the v2.5.0 release archive does not contain
+      agf/MANIFEST.md. During upgrade this created a small uncertainty: the
+      practical ownership boundary had to be inferred from ADOPTING.md,
+      governance-file-layout-rule.md, and the changelog instead.
+
+      Upstream verification (2026-08-10, foundry side): confirmed
+      agf/MANIFEST.md does not exist anywhere in this repository's git
+      history — not merely absent from the packaged archive. ADOPTING.md
+      line 1013 is a dangling reference to a file that was apparently never
+      created; the actual ownership-relevant content lives in
+      agf/docs/governance/manifest.md and governance-file-layout-rule.md.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: agf upgrade guidance (ADOPTING.md), agents/MANIFEST.example.yaml, assistant loader templates
+    business_impact:
+      type: cost_overhead
+      description: >
+        Without an explicit upgrade checklist, adopters may accidentally
+        overwrite their local role roster, project-specific agent
+        definitions, learning records, ADRs, or local skills while applying
+        a framework archive. This is especially risky now that v2.5.0
+        intentionally stops shipping agf/agents/MANIFEST.yaml as upstream
+        state. The dangling agf/MANIFEST.md reference adds avoidable
+        friction at exactly the moment an adopter most needs a reliable
+        ownership boundary.
+    recommendation: >
+      Add an adopter upgrade checklist to AGF docs that explicitly says:
+      (1) do not blindly replace the entire agf/ tree; (2) preserve
+      adopter-owned paths (agf/agents/MANIFEST.yaml, project-specific
+      agf/agents/*.yaml, agf/learnings/<codename>.yaml, agf/docs/adr/,
+      local project skills such as agf/skills/<project>/); (3) overlay
+      upstream-owned framework paths from the release archive; (4) copy
+      agf/agents/MANIFEST.example.yaml if it is new or changed; (5) update
+      root assistant loaders and local agent framework_version fields;
+      (6) run agov validate adoption, agov validate agents, agov validate
+      learnings, agov validate infosec, and agov validate; (7) fix the
+      dangling agf/MANIFEST.md reference in ADOPTING.md — either point it at
+      agf/docs/governance/manifest.md (the file that actually exists and
+      actually carries the ownership table) or ship the named file.
+    severity: significant
+    status: proposed
+    confidence:
+      level: single-adopter
+      evidence_count: 8
+      evidence_refs:
+        - "agov validate adoption (2.5.0) — passed"
+        - "agov validate agents (2.5.0) — passed"
+        - "agov validate learnings (2.5.0) — passed"
+        - "agov validate infosec (2.5.0) — passed"
+        - "agov validate (2.5.0) — passed"
+        - "agov plan validate docs/plans/agf-2.5.0-adoption.md — passed"
+        - "mise exec -- npm run build / npm test / npm run test:ts — passed"
+        - "upstream-side confirmation 2026-08-10: agf/MANIFEST.md absent from repo history, ADOPTING.md:1013 dangling reference confirmed"
+
+sentinel_ack: []
