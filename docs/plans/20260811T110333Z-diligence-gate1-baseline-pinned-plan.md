@@ -1,7 +1,9 @@
 ---
 id: diligence-gate1-baseline-pinned-plan
-status: pending-gate1
+status: approved
 topic: one-time-external-due-diligence-assessment-baseline-pinned
+gate1_approved_by: "20260811T161420Z-governor-reviewer-514h.md"
+gate1_approved_at: "2026-08-11T16:14:20Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
