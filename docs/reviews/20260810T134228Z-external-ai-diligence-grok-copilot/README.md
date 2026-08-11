@@ -148,3 +148,35 @@ not authorize any Tier 1–5 item, does not change the diligence Gate 1 plan's
 method contract, and does not treat either external report as confirmed
 fact — both are simulated assessments based on public metadata, same
 limitation class as any other AI-authored due-diligence memo.
+
+## Follow-up: second Grok run, pinned to v2.5.0 (after the baseline-pinned Gemini plan was abandoned)
+
+`docs/plans/20260811T110333Z-diligence-gate1-baseline-pinned-plan.md`
+attempted a more heavily governed, evidence-transported due-diligence
+assessment via Gemini. It was abandoned after its one authorized
+synthetic preflight failed — the evaluator could not open the transport
+attachment at all
+(`docs/coordination/20260811T175332Z-contribution-auditor-rtgg.md`). The
+human Governor directed dropping further investment in a replacement
+transport design, instead trying simple, ungoverned prompts (explicitly
+pinned to the `v2.5.0` tag, with a version/title echo-back check) against
+Gemini, Perplexity, and a fresh Grok run — see
+`docs/coordination/20260811T190048Z-planner-architect-hjpt.md` for the
+full disposition.
+
+Gemini's response was unusable (fabricated a report about a different,
+imaginary project — wrong implementation language, invented file paths).
+Perplexity's was partially grounded with two specific errors. The new
+Grok run, filed here as `grok-report-v250-tag-pinned-followup.md`, was
+judged worth keeping: correct version/title echo, correct README and
+test-count citations, and it independently caught the same Pages-
+staleness issue this original filing already documented — but it also
+repeats the exact same false "tooling is MIT" claim `B-DD-FILE-2` above
+already flagged in `grok-report.md`, this time from a second, independent
+run. See that file's own "Independent fact-check" section for the full
+verification detail.
+
+This follow-up does not change this filing's own merge-hold status or
+disposition-requested section above — it is an additional, independently
+fact-checked data point, filed under the same limitations already stated
+throughout this document.
