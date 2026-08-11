@@ -18,15 +18,24 @@ advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
-      The evidence universe (Section 2) is, by construction, entirely
-      first-party public content this project already publishes: the
-      tagged v2.5.0 release archive, published release assets, release
-      metadata, and this project's own public Pages site. There is no
-      untrusted or arbitrary candidate file in this design, so the
-      candidate-file scanning apparatus MR !1403 built (and which
-      `khkg` correctly found undermined the role boundary) is not
-      needed here. If a future revision of this plan introduces any
-      third-party or untrusted input, this waiver must be revisited.
+      Narrowed here after round-2 review (`R2-DD-3`) correctly found
+      the original blanket waiver conflated two different things. The
+      evidence universe an evaluator is GIVEN (Section 2) is, by
+      construction, entirely first-party public content this project
+      already publishes — that half of the waiver stands, and the
+      candidate-file scanning apparatus MR !1403 built for arbitrary
+      *input* files is genuinely not needed for it. But the evaluator's
+      RESPONSE (Section 5, Candidate B) is third-party, arbitrary
+      external LLM output — public-only prompt material does not
+      prove the model cannot emit an unrelated credential, personal
+      datum, unsafe URL, or other material this project must not
+      publish. Section 5's fail-closed pre-publication handling rule
+      is this plan's answer for that half; it is a bounded manual-plus-
+      available-secret-detection-tool check (this project already
+      references `detect-secrets`/`gitleaks`-class tooling in
+      `security-hardening-rule.md`), never a bespoke scanner, and any
+      trigger routes to infosec-sentinel and governor-reviewer before
+      anything is committed or quoted.
   - role: fact-checker
     status: waived
     reason: >-
@@ -180,11 +189,19 @@ list by construction, not by a separate exclude step).
 **B — Release metadata**: the raw GitLab Release API response for
 `v2.5.0` itself (tag name, release date, description, and the 13 asset
 link entries — name, URL, link type; the API exposes no checksum
-field of its own). The downloaded bytes of this API response are
-hashed into the package manifest (Section 2's manifest, below) exactly
-like every other evidence file — the API response's *authenticity* is
-established by the manifest hash, not by a checksum GitLab does not
-publish for it.
+field of its own), fetched from
+`https://gitlab.com/api/v4/projects/83321848/releases/v2.5.0`
+(the authoritative HTTPS endpoint). Corrected here after round-2
+review (`R2-DD-1`) found the plan conflated integrity with
+authenticity: the response's **provenance** record is the exact
+endpoint above, the HTTP response status (must be `200`), and the
+acquisition timestamp — recorded alongside the response bytes as
+`release-metadata.json`. `MANIFEST.sha256` (below) records only the
+**post-acquisition integrity** of that already-provenance-recorded
+file (that its bytes have not changed since acquisition) — it does
+not and cannot establish that the bytes originated from GitLab in the
+first place; that is what the recorded endpoint/status/timestamp is
+for.
 
 **C — Release assets**: the exact 13 published links named in Section
 1, downloaded from the GitLab generic-package registry. Acquisition
@@ -225,11 +242,24 @@ base URL configured in `agf/docs/build/mkdocs.yml`'s `site_url`,
 corrected here after `BP-DD-2` found the plan had named no URL at
 all), fetched at one fixed acquisition timestamp:
 
-- **Scope**: every HTML page reachable by same-origin recursive link
-  traversal starting from the base URL, plus every same-origin asset
-  (CSS, JS, image) those pages directly reference. External links
-  (any URL outside the base URL's origin) are recorded as link text
-  and target URL only — never fetched or followed.
+- **Scope (bounded; corrected here after round-2 review found
+  "same-origin" alone unbounded, `R2-DD-2` point 1)**: every HTML page
+  whose path starts with the exact prefix `/agents-govern-framework/`
+  on host `janipaijanen.gitlab.io`, reachable by recursive link
+  traversal starting from the base URL, plus every same-prefix asset
+  (CSS, JS, image) those pages directly reference. A URL differing
+  only by query string or `#fragment` is canonicalized by dropping
+  both before comparison — two URLs identical except for query/fragment
+  are the same page, fetched once. A path collision (two distinct
+  source URLs canonicalizing to the same local file path) fails
+  acquisition rather than silently overwriting one file with another.
+  The crawl stops at whichever bound is reached first: 500 pages, 200
+  MiB total fetched bytes, or link depth 6 from the base URL — reaching
+  a bound is recorded as a limitation in the report, not a silent
+  truncation. A same-prefix asset or link outside `/agents-govern-
+  framework/` (any other path on the same host, or any other host
+  entirely) is recorded as link text and target URL only — never
+  fetched or followed.
 - **Redirects**: same-origin redirects are followed once and the
   final resolved URL is what is recorded; a redirect leaving the
   origin is treated as an external link (not followed).
@@ -243,36 +273,92 @@ all), fetched at one fixed acquisition timestamp:
   `pages/rules/index.html`), with a per-file SHA-256 recorded in the
   package manifest alongside the shared acquisition timestamp.
 
-**Package layout and manifest (frozen; corrected here after
-`BP-DD-2`)**: the assembled evidence package is one directory tree,
-committed to the results/package candidate named in Section 5:
+**Durable repository path (frozen; added here after round-2 review
+found none reserved, `R2-DD-2` point 3)**: Candidate A (Section 5)
+commits its package identity artifacts under
+`docs/diligence/v2.5.0-baseline/` — a fresh, dedicated top-level
+location, distinct from and unrelated to the superseded MR !1403's
+`docs/plans/support/fresh-context-diligence-gate1/` (non-authoritative
+per the Governor decision; not reused).
+
+**Retention choice for Class C's binary archives (frozen; added here
+after round-2 review offered this as the required either/or,
+`R2-DD-2` point 4)**: the four payload archives are **not** duplicated
+as permanent git blobs in this repository — they are already durably
+published, immutable evidence at the GitLab Release (Section 1), and
+re-committing multi-megabyte binaries into git history has a real,
+unnecessary storage cost. Only their small text evidence (the 4
+`.sha256` files, the 5 provenance JSON files, and
+`RELEASE-VERIFICATION.md`, below) is committed to the durable path.
+The archives themselves are re-fetched immediately before Gemini
+submission (Section 5) and their freshly-fetched bytes re-verified
+against the already-committed `.sha256`/provenance evidence before
+upload — if a re-fetch does not match, submission is refused and this
+is a fresh finding, not silently proceeded past.
+
+**Package layout and manifest (frozen; corrected here after `BP-DD-2`
+and, for the manifest self-reference defect, `R2-DD-2` point 2)**: the
+assembled evidence package is one directory tree under
+`docs/diligence/v2.5.0-baseline/evidence-package/`:
 
 ```
 evidence-package/
   product-archive/         # Class A, extracted read-only from the git-archive tar
   release-metadata.json    # Class B, the raw API response bytes, unmodified
-  release-assets/          # Class C, the 13 downloaded files, unmodified
+  release-assets/          # Class C, ONLY the 9 small text files (4 .sha256 + 5 provenance JSON) --
+                            # NOT the 4 payload archives themselves, per the retention choice above
   RELEASE-VERIFICATION.md  # Class C's per-asset verification method and result (see Class C above)
   pages/                   # Class D, the URL-mirrored HTML/asset tree
-  MANIFEST.sha256          # one line per file above: sha256  relative/path
+MANIFEST.sha256             # sibling of evidence-package/, NOT inside it --
+                             # one line per file INSIDE evidence-package/: sha256  relative/path
 ```
 
-Release archives (Class C) are supplied **raw** — not extracted —
-inside `release-assets/`; the evaluator is told which of them are
-themselves archives and may reference their manifests/checksums as
-evidence without this plan requiring their contents to be unpacked.
+`MANIFEST.sha256` is a **sibling** of `evidence-package/`, not a file
+inside it — round-2 review correctly found that a manifest hashing
+"every file in the tree, including itself" is a logical impossibility
+(a file's hash cannot include its own hash). It lists every file
+inside `evidence-package/` and nothing else; it is generated once,
+after every other file in the tree is final, and never edited after.
+Release archives, when re-fetched for submission per the retention
+choice above, are supplied **raw** — not extracted — as transient
+submission-time attachments; the evaluator is told which of them are
+themselves archives and may reference their manifests/checksums
+(already in the committed `evidence-package/`) as evidence without
+this plan requiring their contents to be unpacked.
 `RELEASE-VERIFICATION.md` is a generated (not downloaded) evidence
 file recording, per asset, which of Class C's three verification
 methods applied and the result — this is what resolves "checksum-
 verified" honestly per file, rather than the prompt or report
-asserting a uniform check that does not exist. `MANIFEST.sha256` is
-the single per-file hash ledger for every file in the tree (including
-`RELEASE-VERIFICATION.md` itself), generated once at acquisition time
-and never edited after. This entire `evidence-package/` tree, plus
-`MANIFEST.sha256`, is what is transmitted to the evaluator (Section
-3) — every citation the
-evaluator is permitted to make must resolve to a path inside this
-tree, with no live network access required to verify any of it.
+asserting a uniform check that does not exist.
+
+**Gemini transport (frozen; added here after round-2 review found it
+unspecified, `R2-DD-2` point 4)**: the evaluator is given individual
+file attachments, not a directory (chat interfaces do not accept
+directory upload):
+
+1. `product-archive.tar.gz` — freshly created at submission time from
+   the committed `product-archive/` tree, byte-for-byte from those
+   already-committed files (no regeneration from source).
+2. `release-metadata.json` — the committed file, unmodified.
+3. The 9 committed small Class C text files, individually.
+4. `RELEASE-VERIFICATION.md`, individually.
+5. The 4 payload archives, re-fetched per the retention choice above,
+   individually.
+6. `pages.tar.gz` — freshly created at submission time from the
+   committed `pages/` tree.
+7. `MANIFEST.sha256` — the committed file, covering attachments 1–4
+   and 6 above by their pre-packaging paths; attachments packaged at
+   submission time (1 and 6) additionally get their own post-packaging
+   hash recorded in the invocation metadata (Section 3), alongside
+   every attachment's exact filename as given to Gemini.
+
+No attachment's bytes are transformed between what `MANIFEST.sha256`
+(or the submission-time re-verification, for Class C archives) covers
+and what Gemini receives — the prompt (Section 3) tells the evaluator
+which numbered attachment corresponds to which evidence class, and
+every citation the evaluator is permitted to make must resolve to a
+path recoverable from these attachments, with no live network access
+required to verify any of it.
 
 No bespoke scanner is built for this acquisition. Every byte in every
 evidence class originates from this project's own tagged release, its
@@ -424,29 +510,90 @@ candidates in sequence — no more, no fewer, and no step of either may
 be taken without its own named gate below:
 
 **Candidate A — the package candidate.** New branch, owned by
-coder-tester. Contains: the assembled `evidence-package/` tree
-(Section 2's layout), `MANIFEST.sha256`, `RELEASE-VERIFICATION.md`,
-and the frozen prompt text (Section 3) copied verbatim into the branch
-as `evaluator-prompt.md`, plus a submission checklist covering the
-invocation-surface checklist (Section 3). Gated by: exact-head
-contribution-auditor implementation review, then binding **Governor
-Gate 2 A**. Gate 2 A authorizes exactly one thing beyond merging
-Candidate A: the single external Gemini submission described in
-Section 3/4, performed immediately after Gate 2 A using the merged
-package unmodified.
+coder-tester. Contains, under `docs/diligence/v2.5.0-baseline/`
+(Section 2's durable path): the committed subset of the
+`evidence-package/` tree (Section 2's layout and retention choice —
+Class C's 4 payload archives are *not* committed), `MANIFEST.sha256`,
+`RELEASE-VERIFICATION.md`, and the frozen prompt text (Section 3)
+copied verbatim into the branch as `evaluator-prompt.md`, plus a
+submission checklist covering the invocation-surface checklist
+(Section 3). Gated by: exact-head contribution-auditor implementation
+review, then binding **Governor Gate 2 A**. Gate 2 A authorizes
+exactly one thing beyond merging Candidate A: the single external
+Gemini submission described in Section 2 (transport)/Section 3/
+Section 4, performed immediately after Gate 2 A using the merged
+package and the Section 2 retention/re-verification procedure for
+Class C's archives.
 
 **Candidate B — the results candidate.** New branch, opened only
 after the Gemini submission has actually happened (never before —
 per `coordination-publication-rule.md`'s lifecycle-semantics
 principle, a record of a not-yet-occurred event is a false claim).
-Owned by coder-tester. Contains, immutably: the evaluator's complete
-verbatim raw response and the invocation metadata recorded at
-submission time (Section 3), committed once and never edited in
-place — a correction to a preserved raw response is a new file, not
-an edit, mirroring `immutable-tags-rule.md`'s append-only principle.
-Separately, in the same candidate: the derived `report.md`,
-`findings-register.json` (matching Section 3's frozen schema), and
-`evidence-log.md`, produced by coder-tester from the raw response.
+Owned by coder-tester. Reserved durable paths, both under
+`docs/diligence/v2.5.0-baseline/results/`:
+
+- `raw-response.md` and `invocation-metadata.json` — the evaluator's
+  complete verbatim raw response and the invocation metadata recorded
+  at submission time (Section 3), committed once and never edited in
+  place. A correction to either is a new, separate file (e.g.
+  `raw-response-correction-1.md`), never an edit to the original,
+  mirroring `immutable-tags-rule.md`'s append-only principle.
+- `report.md`, `findings-register.json` (matching Section 3's frozen
+  schema — additional fields beyond the frozen 7 are permitted and
+  preserved verbatim if the evaluator includes them, but only the
+  frozen 7 are validated; `id` and `evidence_path` must each be a
+  non-empty string, `id` unique within the register), and
+  `evidence-log.md`.
+
+**Byte-faithful derivation (frozen; added here after round-2 review
+found "produced from the raw response" permitted undefined rewriting,
+`R2-DD-4` point 3)**: coder-tester extracts `report.md`,
+`findings-register.json`, and `evidence-log.md` from the raw response
+byte-for-byte (copy, not paraphrase, summarize, correct, or
+supplement). If the raw response does not contain a cleanly extractable
+version of any of the three — malformed JSON, a missing Conclusion
+term, or similar — that is a **preservation-worthy failure**, not a
+gap coder-tester fills: `report.md`'s Conclusion is set to
+`insufficient-evidence-to-conclude`, `findings-register.json` is
+either the empty array or omitted with the failure stated in
+`evidence-log.md`, and the raw response is preserved regardless.
+Coder-tester never authors a substitute finding, score, or conclusion
+that the evaluator itself did not produce.
+
+**Score anchors (frozen; added here after round-2 review found none
+defined, `R2-DD-4` point 1)**: for every dimension, `1` = no
+supporting evidence found or the evidence indicates a severe,
+unmitigated gap; `3` = partial evidence, some real capability with
+material gaps; `5` = strong, directly-cited evidence of a mature,
+complete capability for that dimension. `unavailable` remains distinct
+from `1` — `1` is evidence *of absence or severe weakness*,
+`unavailable` is *absence of evidence either way*. The relation
+between the six dimension scores and the report's single Conclusion
+term is the evaluator's own judgment call, not a mechanical formula
+this plan prescribes — the reconciliation check (below) verifies
+internal consistency (the stated conclusion appears identically
+everywhere it must), not that the scores mathematically justify the
+conclusion.
+
+**Fail-closed handling of the raw response before publication (frozen;
+added here after round-2 review found the evaluator's response is
+untrusted third-party content, `R2-DD-3`)**: before `raw-response.md`
+is committed, coder-tester runs a bounded manual review plus whatever
+secret/sensitive-content detection tooling this project already has
+available (no bespoke scanner is built for this). If a trigger is
+found: the raw content is **not** committed or quoted anywhere,
+including in a coordination record or MR description; only the
+trigger's class, its approximate location in the response, and a hash
+of the full raw response are recorded, and the finding is routed to
+infosec-sentinel and governor-reviewer for a decision before Candidate
+B proceeds further. Because Section 5's "no submission happens more
+than once" rule still holds, a triggered response is **not** silently
+resubmitted to Gemini for a "clean" retry — the Governor decides
+whether the assessment is abandoned, the flagged content is handled
+under a separate governed disclosure process, or some other
+resolution, exactly as `deputy-governor-rule.md`'s red list already
+treats security-boundary decisions as non-delegable.
+
 Gated by: fact-checker (every citation in `report.md` resolves to a
 `MANIFEST.sha256` path), contribution-auditor (reconciliation —
 `findings-register.json`'s consistency invariants, Section 3, all
