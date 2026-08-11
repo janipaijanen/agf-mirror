@@ -3313,6 +3313,167 @@ learnings:
         - "Claude, published, 2026-08-09 08:00Z (published), caught 08:07Z: fabricated SHA in published/merged handoff tbdr for MR !1284, caught by contribution-auditor review 4mrt finding S2, corrected via superseding record 20260809T081915Z-coder-tester-qemk.md."
         - "Codex, published, 2026-08-09: GitLab note 3663753831 named MR !1292's source branch from memory as coordination/reviewer-role-fix-ack; authoritative MR !1292 API reported coordination/suspend-role-corrections-s1-s3; self-corrected via append-only note 3663754171, 23 seconds later."
 
+  - id: "20260811T210748Z-h4rp"
+    date: "2026-08-11"
+    category: process
+    scope: framework
+    title: recurring-scope-bloat-in-review-cycles-must-be-jealously-prevented-not-merely-detected
+    agents_involved: [planner-architect, contribution-auditor, governor-reviewer]
+    summary: >
+      Detecting scope bloat with a check-in is necessary but proved
+      insufficient on its own: the check-in fired correctly, was
+      answered honestly, and the human Governor still reacted with
+      strong, genuine frustration when the growth was named a second
+      time — because naming the problem is not the same as stopping it.
+      The durable fix that actually worked was abandoning the
+      elaborate governed track entirely for the parts that didn't need
+      it (a mechanical batch-close of already-agreed items, done
+      directly, with zero new process) rather than continuing to
+      iterate the governed artifact toward correctness. This is also
+      the second independent occurrence of the same failure shape
+      within one project in one week — the original due-diligence
+      postmortem (seven Gate 1 rounds before the cheapest feasibility
+      test) and this roadmap-document episode (five review rounds
+      building a mechanically-specified sub-protocol for a triage that
+      hadn't started) — which is why detection alone is not enough:
+      the pattern recurs even when everyone involved already knows
+      about it, and needs active, standing, "jealous" prevention from
+      the start of a task, not a reactive checklist partway through.
+    detail: >
+      During post-due-diligence roadmap planning (2026-08-11), the human
+      Governor gave a direct instruction: if any AI assistant finds or
+      "mildly suspects" the team is running circles across review
+      rounds, or if the content focus has drifted from the planned
+      work, it must signal, explain clearly, and ask for a decision or
+      stop — sidetracks are acceptable only when planned and
+      intentional.
+
+      Asked to argue against, develop, and improve that statement,
+      planner-architect (Claude) identified five weaknesses: (1) "mildly
+      suspect" is a feeling-based trigger with no mechanical floor,
+      which tends toward either alarm fatigue or quiet non-triggering
+      over a long session — exactly the class of thing this project's
+      own gate-self-test-rule already distrusts ("process discipline
+      alone is at-will and breaks under speed"); (2) it conflates scope
+      creep with doing the actually-assigned work thoroughly — a
+      document whose task IS "pass governance review" is not sidetracked
+      by review rounds that fix real defects; (3) it has no way to
+      distinguish convergence (shrinking, new defect classes each round)
+      from true circularity (the same defect recurring, or the artifact
+      oscillating); (4) "ask for a decision or stop" doesn't specify a
+      decision set, so it degrades into an unhelpful bare "should I
+      continue?"; (5) it risked duplicating a rule that already existed
+      one document away — contribution-auditor's own hmgq review
+      (docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md)
+      had already proposed an operating principle covering the same
+      ground ("repeated review rounds that keep exposing new contract
+      classes... trigger a scope/decomposition review rather than
+      another patch round"), and this project's own
+      documentation-rule-projection-rule / marketing-tone-rule both push
+      hard on one-owner, stated-once normative claims.
+
+      The same session produced a live, concrete, self-caught instance
+      of the pattern this check-in is meant to catch, at much smaller
+      scale than the original DD-effort postmortem that motivated
+      hmgq's principle: a single roadmap/triage planning document (MR
+      !1448, originally requested as "draft a roadmap because I'm
+      lost") went through five full review rounds
+      (hmgq, dkp7, 732p, mdrg, and a final recheck) before stabilizing.
+      Each round found genuinely new, narrowing defect classes (round
+      2: architectural CI/publication-topology break plus four content
+      defects; round 3: three residual authority/ownership/timing
+      defects; round 4: two bounded findings, one of which — a `grep`
+      command that silently collapsed a numeric-IID collision across
+      two different namespaces — was independently reproduced against
+      a fixture before being trusted, confirming it was a real bug and
+      not a false positive; round 5 confirmed content CLEAR). That
+      trend is convergence, not circularity, by the very test this
+      learning proposes. But the document's rigor had still grown
+      enormously past the original ask, into a mechanically-specified
+      sub-protocol with frozen table grammars, type-aware extraction
+      commands, and split pre/post-mutation ledgers — real, defensible
+      content given what governance actually required, but a scope the
+      Governor had no visibility into choosing round-by-round.
+
+      planner-architect surfaced this explicitly as a check-in (round
+      count, convergence-not-circularity trend, scope growth, named
+      options) and separately applied it live by pausing before
+      auto-chaining a further review request. The Governor's response
+      was not relief that the check-in worked — it was direct, strong
+      frustration, quoting the check-in's own "scope growth" language
+      back verbatim as evidence of how badly the episode had gone. The
+      Governor then gave the actual fix: stop revising the governed
+      document further; instead, directly close the 20 MRs the
+      document itself already listed as having a real,
+      multi-round-agreed disposition, as a plain mechanical action with
+      zero new process — explicitly bypassing the phase-1a/1b protocol
+      the document had spent five rounds building, on the grounds that
+      protocol exists for genuinely undecided items, not for
+      re-litigating a settled one. That closure action
+      (docs/coordination/20260811T211945Z-planner-architect-kmgb.md)
+      also caught and reported, in passing, an arithmetic error the
+      document had carried through all five review rounds unnoticed
+      (an 11-vs-12 MR count) — found in under a minute of direct
+      execution, not in another round of review. The lesson is not
+      "the check-in failed" — it worked exactly as designed and
+      produced the honest self-assessment that let the Governor make a
+      fast, correct call. The lesson is that a check-in is a detection
+      mechanism, not a prevention mechanism, and the gap between the
+      two is exactly where the Governor's frustration landed: naming
+      scope bloat is not the same as refusing to let it accumulate in
+      the first place.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Two complementary mechanisms, not one — detection alone was
+      shown insufficient by this incident:
+
+      (1) DETECTION (necessary but not sufficient on its own): a
+      mandatory, round-count-triggered check-in in review-heavy
+      workflow guidance (not a new freestanding rule — extend hmgq's
+      already-proposed stop-loss operating principle so there is one
+      owner for this idea, not two). At a fixed threshold (e.g. the 3rd
+      consecutive review/revision round on the same artifact), the
+      acting agent must surface, unprompted: round count on this
+      specific artifact; whether each round found a new defect class or
+      a recurring one; how far the artifact's scope/rigor has grown
+      relative to the original ask; named options for the human to
+      choose from — not a bare "should I continue?".
+
+      (2) PREVENTION (the part this incident showed is actually
+      load-bearing): default to the smallest artifact/process that
+      satisfies the immediate, stated need, and treat every additional
+      review round, every added mechanical-procedure requirement, and
+      every governance-artifact-in-place-of-a-direct-answer as needing
+      to justify itself against that default — not the reverse. When a
+      request sounds like "help me get unstuck" or "draft something
+      because I'm lost," the default response is a direct, plain
+      answer, not a governed document. Escalate to process only when
+      the direct answer is demonstrably insufficient, and say so
+      explicitly when escalating. This is "jealous" prevention in the
+      Governor's own words: treated as a standing bias applied from the
+      first response to a task, not a checklist item consulted after
+      several rounds have already accumulated.
+
+      Both mechanisms are now evidenced twice in one project within one
+      week (the original due-diligence postmortem behind hmgq's
+      principle, and this roadmap-document episode) — a genuine
+      recurring pattern, not a one-off, which is why this record's
+      title and confidence framing changed from "add a check-in" to
+      "must be jealously prevented, not merely detected." Generalizes
+      cleanly beyond AI-assisted review cycles to any iterative human
+      review process with the same failure shape.
+    confidence:
+      level: single-adopter
+      evidence_count: 7
+      evidence_refs:
+        - "docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md — originating stop-loss operating principle, itself motivated by the due-diligence postmortem (first occurrence of this pattern)"
+        - "docs/coordination/20260811T203258Z-contribution-auditor-dkp7.md — round-2 review, 5 findings"
+        - "docs/coordination/20260811T204632Z-contribution-auditor-732p.md — round-3 review, 3 residual findings"
+        - "docs/coordination/20260811T205627Z-contribution-auditor-mdrg.md — round-4 review, 2 bounded findings including the reproduced grep/namespace bug"
+        - "docs/coordination/20260811T211454Z-contribution-auditor-r8kb.md — round-5 recheck, content CLEAR"
+        - "docs/coordination/20260811T211945Z-planner-architect-kmgb.md — the actual resolution: 20 MRs closed directly, bypassing the document's own phase-1a/1b protocol, per direct Governor instruction after the check-in's honest self-assessment produced frustration rather than relief"
+        - "MR !1448 (plan/post-dd-roadmap-and-triage) — the five-round document itself, live example, second independent occurrence of the pattern"
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
