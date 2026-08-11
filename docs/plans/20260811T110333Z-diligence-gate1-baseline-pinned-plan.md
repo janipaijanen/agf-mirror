@@ -16,26 +16,38 @@ advisory_consultation:
       Governor Gate 1; per the decision, this document does not
       pre-approve itself.
   - role: infosec-sentinel
-    status: not-applicable
+    status: waived
     reason: >-
-      Narrowed here after round-2 review (`R2-DD-3`) correctly found
-      the original blanket waiver conflated two different things. The
-      evidence universe an evaluator is GIVEN (Section 2) is, by
-      construction, entirely first-party public content this project
-      already publishes — that half of the waiver stands, and the
-      candidate-file scanning apparatus MR !1403 built for arbitrary
-      *input* files is genuinely not needed for it. But the evaluator's
-      RESPONSE (Section 5, Candidate B) is third-party, arbitrary
-      external LLM output — public-only prompt material does not
-      prove the model cannot emit an unrelated credential, personal
-      datum, unsafe URL, or other material this project must not
-      publish. Section 5's fail-closed pre-publication handling rule
-      is this plan's answer for that half; it is a bounded manual-plus-
-      available-secret-detection-tool check (this project already
-      references `detect-secrets`/`gitleaks`-class tooling in
-      `security-hardening-rule.md`), never a bespoke scanner, and any
-      trigger routes to infosec-sentinel and governor-reviewer before
-      anything is committed or quoted.
+      Corrected here after round-3 review (`R3-DD-2`) found
+      `not-applicable` wrong in kind: this project's only playback
+      mechanism for infosec-sentinel is CI-automated
+      (`agf/agents/MANIFEST.yaml`: "ci (agov validate infosec, on
+      commit)"), and `agov validate infosec`'s actual, current scope is
+      narrow — it scans `agf/learnings/*.yaml` free-text fields for
+      secret patterns; it has no scope over plan text or, more to the
+      point, over content that does not exist yet. Run live against
+      this plan branch's current tree immediately before this revision
+      (`agov validate` → `OK agov.validate.infosec`, scanning its one
+      in-scope file, `agf/learnings/foundry.yaml`): clean, but that run
+      says nothing about Section 5's future third-party evaluator
+      response, because no mechanism this project has today scans that
+      content class at all. A pinned "applicable" consultation result
+      for content that is not yet acquired cannot honestly be obtained
+      before Gate 1 — so this entry is **waived**, on the same footing
+      as `fact-checker` and `web-ux-reviewer` below: the real
+      consultation is a Gate 2 B precondition (Section 5), not a Gate 1
+      one. What is frozen now, at Gate 1, is the handling rule itself —
+      Section 5's fail-closed pre-publication check (bounded manual
+      review plus whatever secret/sensitive-content tooling this
+      project already has available, e.g. `detect-secrets`/
+      `gitleaks`-class per `security-hardening-rule.md`; no bespoke
+      scanner) — and the commitment that `raw-response.md` is not
+      committed until that check runs and any trigger is routed to
+      infosec-sentinel and governor-reviewer, per Section 5's own text.
+      A real, applicable infosec-sentinel review of the actual response
+      is a named precondition of Candidate B proceeding past that
+      check, not something this Gate 1 plan can fabricate in advance of
+      the content it would review.
   - role: fact-checker
     status: waived
     reason: >-
@@ -332,33 +344,70 @@ verified" honestly per file, rather than the prompt or report
 asserting a uniform check that does not exist.
 
 **Gemini transport (frozen; added here after round-2 review found it
-unspecified, `R2-DD-2` point 4)**: the evaluator is given individual
-file attachments, not a directory (chat interfaces do not accept
-directory upload):
+unspecified, `R2-DD-2` point 4; consolidated here after round-3 review
+found the prior 18-unit design exceeds Gemini Apps' published 10-file-
+per-prompt limit, `R3-DD-1` — see [Google Gemini Apps Help — Upload and
+analyze files](https://support.google.com/gemini/answer/14903178),
+independently confirmed live: up to 10 files per prompt, 100 MB per
+file)**: the evaluator is given exactly **7** file attachments — the
+prior design's 9 individual Class-C text files and 4 individual payload
+archives are each bundled into one container, below, specifically to
+fit this limit:
 
 1. `product-archive.tar.gz` — freshly created at submission time from
    the committed `product-archive/` tree, byte-for-byte from those
    already-committed files (no regeneration from source).
 2. `release-metadata.json` — the committed file, unmodified.
-3. The 9 committed small Class C text files, individually.
-4. `RELEASE-VERIFICATION.md`, individually.
-5. The 4 payload archives, re-fetched per the retention choice above,
-   individually.
-6. `pages.tar.gz` — freshly created at submission time from the
+3. `release-assets-text.tar.gz` — **new, bundling the 9 committed
+   small Class C text files (4 `.sha256` + 5 provenance JSON) and
+   `RELEASE-VERIFICATION.md` (10 members total) into one freshly
+   created container**, byte-for-byte from those already-committed
+   files.
+4. `release-assets-payloads.tar.gz` — **new, bundling the 4 payload
+   archives (each independently confirmed under 3.5 MB, well inside
+   Gemini's 100 MB per-file limit), re-fetched and re-verified per the
+   retention choice above, into one freshly created container.** The
+   evaluator is told these 4 members are themselves archives and may
+   cite their manifests/checksums/provenance (already fully described
+   in attachment 3) as evidence without this plan requiring the
+   evaluator to unpack them.
+5. `pages.tar.gz` — freshly created at submission time from the
    committed `pages/` tree.
-7. `MANIFEST.sha256` — the committed file, covering attachments 1–4
-   and 6 above by their pre-packaging paths; attachments packaged at
-   submission time (1 and 6) additionally get their own post-packaging
-   hash recorded in the invocation metadata (Section 3), alongside
-   every attachment's exact filename as given to Gemini.
+6. `MANIFEST.sha256` — the committed file, covering the pre-packaging
+   member paths of attachments 1, 3, 4, and 5 above.
+7. `submission-manifest.json` — **new (added here per `R3-DD-1`)**:
+   generated fresh at submission time, the exact bridge between
+   `MANIFEST.sha256` (which hashes pre-packaging member files) and
+   what Gemini actually receives (4 freshly packaged containers). For
+   each of attachments 1, 3, 4, and 5: the container's own filename and
+   SHA-256 as uploaded, and one entry per member file giving its
+   in-container path and its pre-packaging SHA-256 — which must be
+   byte-identical to that same path's entry in `MANIFEST.sha256`. For
+   attachments 2, 6, and 7: filename and SHA-256 only (uploaded
+   unmodified or, for this file itself, generated once and not
+   self-hashed, mirroring `MANIFEST.sha256`'s own sibling rule above).
+   A citation the evaluator makes (e.g. "C:
+   release-assets/agov-2.5.0-linux-x86_64.tar.gz.sha256") resolves by:
+   look up the path in `submission-manifest.json`'s member entries to
+   find its container and pre-packaging hash, then confirm that hash
+   matches `MANIFEST.sha256`'s entry for the same path.
 
-No attachment's bytes are transformed between what `MANIFEST.sha256`
-(or the submission-time re-verification, for Class C archives) covers
-and what Gemini receives — the prompt (Section 3) tells the evaluator
-which numbered attachment corresponds to which evidence class, and
-every citation the evaluator is permitted to make must resolve to a
-path recoverable from these attachments, with no live network access
-required to verify any of it.
+Packaging (attachments 1, 3, 4, 5) **is** a byte-level transformation
+of the underlying files into a container — corrected here after
+round-3 review found the plan's prior claim that no bytes are
+transformed to be false for exactly these attachments (`R3-DD-1`).
+What is preserved, and what `submission-manifest.json` exists to prove,
+is that every *member file's* pre-packaging bytes are unchanged and
+independently re-verifiable against `MANIFEST.sha256` — not that the
+container bytes themselves equal any pre-existing hash. Attachments 2,
+6, and 7 are transferred unmodified with no packaging step. The prompt
+(Section 3) tells the evaluator which numbered attachment corresponds
+to which evidence class, and every citation the evaluator is permitted
+to make must resolve to a path recoverable from `submission-manifest.json`
+and `MANIFEST.sha256` together, with no live network access required to
+verify any of it. Candidate A's package (Section 5) reserves the
+literal filename `submission-checklist.md` for the invocation-surface
+checklist (Section 3) coder-tester records at submission time.
 
 No bespoke scanner is built for this acquisition. Every byte in every
 evidence class originates from this project's own tagged release, its
@@ -387,8 +436,8 @@ plan revision and fresh Gate 1.
 > checksum, and that is explained, not hidden), and (D) a timestamped
 > snapshot of the public documentation site. Cite every finding by
 > evidence class and path (e.g., "A: agf/rules/workflow/tdd-rule.md"
-> or "C: release-assets/agf-2.5.0.tar.gz"). A citation that does not
-> resolve to an actual path in `MANIFEST.sha256` is not acceptable.
+> or "C: release-assets/agf-2.5.0.tar.gz.sha256"). A citation that does
+> not resolve to an actual path in `MANIFEST.sha256` is not acceptable.
 >
 > Answer these six dimension questions, each scored 1–5 or
 > `unavailable` (a dimension the package does not address is always
@@ -398,13 +447,15 @@ plan revision and fresh Gate 1.
 > **adoption_market_release_ops**.
 >
 > Write three outputs: `report.md` (executive summary, one subsection
-> per dimension citing evidence, a material-risks section, and a
-> Conclusion section using exactly one of `{recommend-adopt,
-> recommend-pilot, recommend-wait, recommend-decline,
-> insufficient-evidence-to-conclude}`); `findings-register.json`
-> (matching the frozen schema below); and `evidence-log.md` (one line
-> per register entry, citing the exact evidence-package path it is
-> drawn from).
+> per dimension citing evidence — each subsection headed by exactly the
+> dimension name, e.g. `### product_architecture`, with the literal
+> line `Score: {1-5 or unavailable}` immediately following the heading
+> — a material-risks section, and a Conclusion section using exactly
+> one of `{recommend-adopt, recommend-pilot, recommend-wait,
+> recommend-decline, insufficient-evidence-to-conclude}`);
+> `findings-register.json` (matching the frozen schema below); and
+> `evidence-log.md` (one line per register entry, citing the exact
+> evidence-package path it is drawn from).
 >
 > State plainly, as the first line of `report.md`, whether you have
 > any prior awareness of this project from training or other sources,
@@ -475,13 +526,21 @@ disclose any prior awareness rather than the plan asserting its
 absence.
 
 **Raw-response preservation:** the evaluator's complete raw response
-(not only the three named output files) is saved verbatim alongside
-them, with the exact prompt text, evidence-package manifest hash, and
-submission timestamp, as invocation metadata. Unlike MR !1403's
-same-session design, there is no sensitive-material boundary concern
-here — the evaluator was given no session-internal content to
-possibly leak in the first place — so the raw response requires no
-redaction before being committed as evidence.
+(not only the three named output files) is captured verbatim, with the
+exact prompt text, evidence-package manifest hash, and submission
+timestamp, as invocation metadata. Corrected here after round-3 review
+found the prior text asserted no sensitive-material boundary applies at
+all (`R3-DD-2`) — that is true of what the evaluator was *given* (no
+session-internal content to leak, since the input evidence is entirely
+first-party public material per Section 2), but not of what the
+evaluator *returns*: the response itself is third-party, arbitrary
+external LLM output, and Section 5's fail-closed pre-publication
+handling rule — not an assumption of safety — is what governs whether
+and how it is committed. The raw response is captured to a local,
+uncommitted location immediately at submission time; it is committed as
+`raw-response.md` only after Section 5's check passes, or, if a trigger
+is found, only the safe class/location/hash evidence Section 5
+describes is committed instead.
 
 ## 4. Honest context-disclosure statement
 
@@ -543,37 +602,71 @@ Owned by coder-tester. Reserved durable paths, both under
   preserved verbatim if the evaluator includes them, but only the
   frozen 7 are validated; `id` and `evidence_path` must each be a
   non-empty string, `id` unique within the register), and
-  `evidence-log.md`.
+  `evidence-log.md` — each omitted entirely, not populated with
+  coder-authored substitute content, if the byte-faithful derivation
+  rule below finds it not cleanly extractable.
+- `extraction-status.md` — **reserved here after round-3 review found
+  the derivation-failure path had no coder-owned location of its own,
+  `R3-DD-3`** — coder-tester's own record of which of the three files
+  above were cleanly extracted and which were omitted and why. Always
+  present once Candidate B exists, regardless of whether any omission
+  occurred.
 
 **Byte-faithful derivation (frozen; added here after round-2 review
 found "produced from the raw response" permitted undefined rewriting,
-`R2-DD-4` point 3)**: coder-tester extracts `report.md`,
+`R2-DD-4` point 3; corrected here after round-3 review found the
+failure path itself authored substitute evaluator content, contradicting
+the very next sentence, `R3-DD-3`)**: coder-tester extracts `report.md`,
 `findings-register.json`, and `evidence-log.md` from the raw response
 byte-for-byte (copy, not paraphrase, summarize, correct, or
 supplement). If the raw response does not contain a cleanly extractable
 version of any of the three — malformed JSON, a missing Conclusion
-term, or similar — that is a **preservation-worthy failure**, not a
-gap coder-tester fills: `report.md`'s Conclusion is set to
-`insufficient-evidence-to-conclude`, `findings-register.json` is
-either the empty array or omitted with the failure stated in
-`evidence-log.md`, and the raw response is preserved regardless.
-Coder-tester never authors a substitute finding, score, or conclusion
-that the evaluator itself did not produce.
+term, or similar — that is a **preservation-worthy failure**, not a gap
+coder-tester fills: the affected file (`report.md`,
+`findings-register.json`, and/or `evidence-log.md`) is **omitted
+entirely** rather than populated with any coder-authored value — no
+Conclusion is set, no empty register is manufactured as a stand-in for
+a real one. The raw response is preserved regardless. Instead,
+coder-tester records the mechanical failure — which file(s), which
+extraction step, and why — in a separate, explicitly coder-owned
+artifact, `extraction-status.md`, reserved here alongside
+`raw-response.md`/`invocation-metadata.json` under
+`docs/diligence/v2.5.0-baseline/results/`. Coder-tester never authors a
+substitute finding, score, or conclusion that the evaluator itself did
+not produce, in `report.md`/`findings-register.json`/`evidence-log.md`
+or anywhere else presented as if it were evaluator output;
+`extraction-status.md` is unambiguously coder-tester's own status
+report, never mistakable for the evaluator's. Gate 2 B's binding
+Governor decision (below), informed by `extraction-status.md` when
+present, determines the assessment's outcome when extraction fails —
+this plan does not pre-decide it as `insufficient-evidence-to-conclude`
+or any other specific value.
 
 **Score anchors (frozen; added here after round-2 review found none
-defined, `R2-DD-4` point 1)**: for every dimension, `1` = no
+defined, `R2-DD-4` point 1; completed here after round-3 review found
+only 1/3/5 defined, `R3-DD-3`)**: for every dimension, `1` = no
 supporting evidence found or the evidence indicates a severe,
-unmitigated gap; `3` = partial evidence, some real capability with
-material gaps; `5` = strong, directly-cited evidence of a mature,
-complete capability for that dimension. `unavailable` remains distinct
-from `1` — `1` is evidence *of absence or severe weakness*,
-`unavailable` is *absence of evidence either way*. The relation
-between the six dimension scores and the report's single Conclusion
-term is the evaluator's own judgment call, not a mechanical formula
-this plan prescribes — the reconciliation check (below) verifies
-internal consistency (the stated conclusion appears identically
-everywhere it must), not that the scores mathematically justify the
-conclusion.
+unmitigated gap; `2` = minimal evidence — a partial or tangential
+capability exists but with major, largely unaddressed gaps; `3` =
+partial evidence, some real capability with material gaps; `4` =
+substantial evidence — a materially complete capability with only
+minor, specifically-identified gaps; `5` = strong, directly-cited
+evidence of a mature, complete capability for that dimension.
+`unavailable` remains distinct from `1` — `1` is evidence *of absence
+or severe weakness*, `unavailable` is *absence of evidence either way*.
+The relation between the six dimension scores and the report's single
+Conclusion term is the evaluator's own judgment call, not a mechanical
+formula this plan prescribes — the reconciliation check (below)
+verifies internal consistency (the stated conclusion appears
+identically everywhere it must), not that the scores mathematically
+justify the conclusion. **Score placement (frozen; added here after
+round-3 review found no literal location specified, `R3-DD-3`)**: each
+dimension's score appears exactly once, as the first line of that
+dimension's subsection in `report.md`, in the exact literal form
+`Score: {1-5 or unavailable}` — the subsection heading itself names
+only the dimension (e.g. `### product_architecture`), immediately
+followed by the `Score:` line, so reconciliation can locate every score
+by a fixed textual position rather than inferring presentation.
 
 **Fail-closed handling of the raw response before publication (frozen;
 added here after round-2 review found the evaluator's response is
