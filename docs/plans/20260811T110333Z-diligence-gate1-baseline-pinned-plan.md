@@ -420,15 +420,21 @@ transferred unmodified with no packaging step.
 
 **Citation resolution (corrected here after round-4 review found the
 frozen prompt text unchanged despite the packaging transformation,
-`R4-DD-1` point 3)**: the evaluator's citation contract (Section 3) is
-unaffected by transport packaging — the evaluator cites by evidence
-class and the underlying committed file's path (e.g. "C: release-
+`R4-DD-1` point 3; corrected again here after round-6 review found the
+prompt still withheld the attachment-to-evidence mapping needed to cite
+across a six-attachment, two-ledger transport, `R6-DD-1`)**: the
+evaluator's citation contract (Section 3) is unaffected in *form* by
+transport packaging — the evaluator still cites by evidence class and
+the underlying committed file's path (e.g. "C: release-
 assets/agf-2.5.0.tar.gz.sha256"), exactly as if reading the committed
-`evidence-package/` tree directly; the evaluator is never told about
-attachment numbers, containers, or `submission-manifest.json`, and does
-not need to be — those are purely fact-checker's internal reconciliation
-tools. The prompt (Section 3) is updated to say this explicitly. At
-Gate 2 B, fact-checker's citation check becomes two steps, not one:
+`evidence-package/` tree directly. The frozen prompt (Section 3) now
+tells the evaluator explicitly which of the six attachments maps to
+which evidence root, and that `MANIFEST.sha256`/`submission-
+manifest.json` are delivery/integrity ledgers, not citable product
+evidence — correcting the prior claim that the evaluator was never told
+about attachment structure at all, which round 6 found incompatible
+with a multi-attachment, two-ledger transport. At Gate 2 B,
+fact-checker's citation check becomes two steps, not one:
 (a) the cited path exists in `MANIFEST.sha256`, as before, and (b) via
 `submission-manifest.json`, the packaged container the evaluator
 actually received contained that exact path with byte-identical
@@ -550,10 +556,21 @@ plan revision and fresh Gate 1.
 > `RELEASE-VERIFICATION.md` (each file's own verification method is
 > recorded there; not every asset has an independent checksum, and
 > that is explained, not hidden), and (D) a timestamped snapshot of the
-> public documentation site. Some evidence is bundled into container
-> files for delivery, but this does not change how you cite it: cite
-> every finding by evidence class and the underlying file's path, not
-> by attachment or container name (e.g., "A:
+> public documentation site.
+>
+> You will receive exactly six file attachments, mapped as follows:
+> `product-archive.tar.gz` contains Class A paths under
+> `product-archive/`; `release-metadata.json` is the single Class B
+> path `release-metadata.json`; `release-assets-text.tar.gz` contains
+> Class C paths under `release-assets/`, plus `RELEASE-VERIFICATION.md`;
+> `pages.tar.gz` contains Class D paths under `pages/`; `MANIFEST.sha256`
+> and `submission-manifest.json` are delivery/integrity ledgers used to
+> verify the other four attachments' contents — they are not
+> independently sourced product evidence, and neither is a valid
+> `evidence_path` citation in `findings-register.json`. Regardless of
+> which attachment a file arrived in, cite it by evidence class and its
+> underlying path within that attachment's mapped root, not by
+> attachment or container name (e.g., "A:
 > agf/rules/workflow/tdd-rule.md" or "C:
 > release-assets/agf-2.5.0.tar.gz.sha256"). A citation that does not
 > resolve to an actual path in `MANIFEST.sha256` is not acceptable.
@@ -726,11 +743,14 @@ synthetic preflight, Section 2, its fixture/prompt/pass-condition frozen
 there and its outcome recorded here once run).
 
 Gated by: exact-head contribution-auditor implementation review —
-verifying the four transport artifacts are present, that
-`submission-manifest.json`'s member hashes match `MANIFEST.sha256`,
-that each transport artifact is ≤100 MB (Section 2), and that
-`transport-preflight.md` records a pass under Section 2's frozen
-preflight — then binding **Governor Gate 2 A**. Gate 2 A's approval
+verifying all **six attachments** are present (corrected from "four
+transport artifacts" here after round 6, `R6-DD-A1` — Section 2's
+size check and the binding Gate 2 A decision both already covered all
+six; this sentence had lagged), that `submission-manifest.json`'s
+member hashes match `MANIFEST.sha256`, that each of the six attachments
+is ≤100 MB (Section 2), and that `transport-preflight.md` records a
+pass under Section 2's frozen preflight — then binding **Governor
+Gate 2 A**. Gate 2 A's approval
 names the exact reviewed identities: each attachment's filename and
 SHA-256, the attachment count (6), and each attachment's exact byte
 size. Gate 2 A authorizes exactly one thing beyond merging Candidate A:
