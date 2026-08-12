@@ -3324,156 +3324,107 @@ learnings:
       insufficient on its own: the check-in fired correctly, was
       answered honestly, and the human Governor still reacted with
       strong, genuine frustration when the growth was named a second
-      time — because naming the problem is not the same as stopping it.
-      The durable fix that actually worked was abandoning the
-      elaborate governed track entirely for the parts that didn't need
-      it (a mechanical batch-close of already-agreed items, done
-      directly, with zero new process) rather than continuing to
-      iterate the governed artifact toward correctness. This is also
-      the second independent occurrence of the same failure shape
-      within one project in one week — the original due-diligence
-      postmortem (seven Gate 1 rounds before the cheapest feasibility
-      test) and this roadmap-document episode (five review rounds
-      building a mechanically-specified sub-protocol for a triage that
-      hadn't started) — which is why detection alone is not enough:
-      the pattern recurs even when everyone involved already knows
-      about it, and needs active, standing, "jealous" prevention from
-      the start of a task, not a reactive checklist partway through.
+      time — because naming the problem is not the same as stopping
+      it. The durable fix that actually worked was abandoning the
+      elaborate governed track for the parts that didn't need it (a
+      mechanical batch-close of already-agreed items, done directly)
+      rather than continuing to iterate the governed artifact toward
+      correctness. This is the second recurrence of the same failure
+      shape within one project in one week: a due-diligence plan that
+      required a Governor-ordered scope reset after a role-boundary
+      violation surfaced at review round 10, and a roadmap-document
+      episode that ran five review rounds building a
+      mechanically-specified sub-protocol for a triage that hadn't
+      started. Both occurred in the same foundry project on the same
+      day with overlapping agents and governance, so this is a
+      related/recurrent pair, not two independent occurrences — but
+      it is why detection alone is not enough: the pattern recurred
+      even though everyone involved already knew about it once, and
+      needs active, standing prevention from the start of a task, not
+      a reactive checklist partway through.
     detail: >
-      During post-due-diligence roadmap planning (2026-08-11), the human
-      Governor gave a direct instruction: if any AI assistant finds or
-      "mildly suspects" the team is running circles across review
-      rounds, or if the content focus has drifted from the planned
-      work, it must signal, explain clearly, and ask for a decision or
-      stop — sidetracks are acceptable only when planned and
-      intentional.
+      Episode 1 (due-diligence plan, MR !1403): after multiple review
+      rounds, planner-architect self-reported a role-boundary
+      violation at round 10 — eleven shell/Python programs and a
+      `.gitlab-ci.yml` change committed under a role whose
+      `forbidden_actions` explicitly exclude writing source, tests, or
+      CI config
+      (`docs/coordination/20260811T085814Z-planner-architect-kjm5.md`).
+      The Governor's decision
+      (`docs/coordination/20260811T105210Z-governor-reviewer-mh8p.md`)
+      declined retroactive authorization, superseded the MR entirely,
+      and commissioned a minimal planner-only replacement plan — a
+      scope reset, not a further patch round, and did not perform a
+      round 11.
 
-      Asked to argue against, develop, and improve that statement,
-      planner-architect (Claude) identified five weaknesses: (1) "mildly
-      suspect" is a feeling-based trigger with no mechanical floor,
-      which tends toward either alarm fatigue or quiet non-triggering
-      over a long session — exactly the class of thing this project's
-      own gate-self-test-rule already distrusts ("process discipline
-      alone is at-will and breaks under speed"); (2) it conflates scope
-      creep with doing the actually-assigned work thoroughly — a
-      document whose task IS "pass governance review" is not sidetracked
-      by review rounds that fix real defects; (3) it has no way to
-      distinguish convergence (shrinking, new defect classes each round)
-      from true circularity (the same defect recurring, or the artifact
-      oscillating); (4) "ask for a decision or stop" doesn't specify a
-      decision set, so it degrades into an unhelpful bare "should I
-      continue?"; (5) it risked duplicating a rule that already existed
-      one document away — contribution-auditor's own hmgq review
-      (docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md)
-      had already proposed an operating principle covering the same
-      ground ("repeated review rounds that keep exposing new contract
-      classes... trigger a scope/decomposition review rather than
-      another patch round"), and this project's own
-      documentation-rule-projection-rule / marketing-tone-rule both push
-      hard on one-owner, stated-once normative claims.
+      Episode 2 (roadmap/triage document, MR !1448): a document
+      originally requested as "draft a roadmap because I'm lost" grew,
+      across five review rounds (hmgq, dkp7, 732p, mdrg, r8kb), into a
+      mechanically-specified sub-protocol with frozen table grammars
+      and split pre/post-mutation ledgers. Each round found genuinely
+      new, narrowing defects — convergence, not circularity —
+      culminating in round 5's then-current CLEAR result; that result
+      did not preclude the arithmetic error (11 vs. 12 MRs) found next,
+      in under a minute of direct execution rather than a sixth review
+      round. planner-architect surfaced the growth as a check-in; the
+      Governor's response was direct frustration, not relief, and the
+      actual fix was to stop revising the document and instead
+      directly close the 20 MRs it already listed as having a real,
+      agreed disposition
+      (`docs/coordination/20260811T211945Z-planner-architect-kmgb.md`)
+      — a plain action, not the document's own five-round-built
+      phase-1a/1b protocol.
 
-      The same session produced a live, concrete, self-caught instance
-      of the pattern this check-in is meant to catch, at much smaller
-      scale than the original DD-effort postmortem that motivated
-      hmgq's principle: a single roadmap/triage planning document (MR
-      !1448, originally requested as "draft a roadmap because I'm
-      lost") went through five full review rounds
-      (hmgq, dkp7, 732p, mdrg, and a final recheck) before stabilizing.
-      Each round found genuinely new, narrowing defect classes (round
-      2: architectural CI/publication-topology break plus four content
-      defects; round 3: three residual authority/ownership/timing
-      defects; round 4: two bounded findings, one of which — a `grep`
-      command that silently collapsed a numeric-IID collision across
-      two different namespaces — was independently reproduced against
-      a fixture before being trusted, confirming it was a real bug and
-      not a false positive; round 5 confirmed content CLEAR). That
-      trend is convergence, not circularity, by the very test this
-      learning proposes. But the document's rigor had still grown
-      enormously past the original ask, into a mechanically-specified
-      sub-protocol with frozen table grammars, type-aware extraction
-      commands, and split pre/post-mutation ledgers — real, defensible
-      content given what governance actually required, but a scope the
-      Governor had no visibility into choosing round-by-round.
+      Realized cost and what was actually avoided: the 20-MR closure
+      was not zero process — each MR received an evidence comment
+      citing the deciding record, and the batch produced a validated
+      completion record, its own MR, a CI run, and a merge. What it
+      avoided was a new decision/review protocol: the phase-1a/1b
+      machinery the document had spent five rounds designing for
+      exactly this kind of action.
 
-      planner-architect surfaced this explicitly as a check-in (round
-      count, convergence-not-circularity trend, scope growth, named
-      options) and separately applied it live by pausing before
-      auto-chaining a further review request. The Governor's response
-      was not relief that the check-in worked — it was direct, strong
-      frustration, quoting the check-in's own "scope growth" language
-      back verbatim as evidence of how badly the episode had gone. The
-      Governor then gave the actual fix: stop revising the governed
-      document further; instead, directly close the 20 MRs the
-      document itself already listed as having a real,
-      multi-round-agreed disposition, as a plain mechanical action with
-      zero new process — explicitly bypassing the phase-1a/1b protocol
-      the document had spent five rounds building, on the grounds that
-      protocol exists for genuinely undecided items, not for
-      re-litigating a settled one. That closure action
-      (docs/coordination/20260811T211945Z-planner-architect-kmgb.md)
-      also caught and reported, in passing, an arithmetic error the
-      document had carried through all five review rounds unnoticed
-      (an 11-vs-12 MR count) — found in under a minute of direct
-      execution, not in another round of review. The lesson is not
-      "the check-in failed" — it worked exactly as designed and
-      produced the honest self-assessment that let the Governor make a
-      fast, correct call. The lesson is that a check-in is a detection
-      mechanism, not a prevention mechanism, and the gap between the
-      two is exactly where the Governor's frustration landed: naming
-      scope bloat is not the same as refusing to let it accumulate in
-      the first place.
+      Relationship to existing guidance: `agf/rules/workflow/
+      simplicity-rule.md` already owns proportional workflow, the
+      simpler-way test, and "choose the lighter process; upgrade if
+      the task grows." Both episodes are not evidence that a new rule
+      is needed — they are evidence of failing to apply that existing
+      principle while a review artifact expanded past the operator's
+      immediate need, round by round, with no single round crossing a
+      visible line.
     framework_impact: high
     status: proposed
     recommendation: >
-      Two complementary mechanisms, not one — detection alone was
-      shown insufficient by this incident:
+      One stop rule, layered on existing guidance rather than
+      replacing it: when an additional review round, procedure
+      requirement, or governance artifact stops changing the decision
+      or materially reducing risk, stop expanding it and return to the
+      smallest authorized action — apply `simplicity-rule.md`'s
+      existing "lighter process" default as a standing bias from the
+      first response to a task, not a checklist consulted after rounds
+      have already accumulated.
 
-      (1) DETECTION (necessary but not sufficient on its own): a
-      mandatory, round-count-triggered check-in in review-heavy
-      workflow guidance (not a new freestanding rule — extend hmgq's
-      already-proposed stop-loss operating principle so there is one
-      owner for this idea, not two). At a fixed threshold (e.g. the 3rd
-      consecutive review/revision round on the same artifact), the
-      acting agent must surface, unprompted: round count on this
-      specific artifact; whether each round found a new defect class or
-      a recurring one; how far the artifact's scope/rigor has grown
-      relative to the original ask; named options for the human to
-      choose from — not a bare "should I continue?".
+      A fixed-round check-in (e.g., surfacing round count, new-vs-
+      recurring defect class, and scope growth at the 3rd consecutive
+      round on the same artifact) remains a proposed, advisory
+      experiment — extending hmgq's stop-loss operating principle
+      ("repeated review rounds that keep exposing new contract
+      classes... trigger a scope/decomposition review rather than
+      another patch round") so there is one owner for the idea, not
+      two — pending separate governed guidance. It is not established
+      as a mandatory obligation by this learning: episode 2 shows a
+      check-in alone did not prevent the growth it correctly detected.
 
-      (2) PREVENTION (the part this incident showed is actually
-      load-bearing): default to the smallest artifact/process that
-      satisfies the immediate, stated need, and treat every additional
-      review round, every added mechanical-procedure requirement, and
-      every governance-artifact-in-place-of-a-direct-answer as needing
-      to justify itself against that default — not the reverse. When a
-      request sounds like "help me get unstuck" or "draft something
-      because I'm lost," the default response is a direct, plain
-      answer, not a governed document. Escalate to process only when
-      the direct answer is demonstrably insufficient, and say so
-      explicitly when escalating. This is "jealous" prevention in the
-      Governor's own words: treated as a standing bias applied from the
-      first response to a task, not a checklist item consulted after
-      several rounds have already accumulated.
-
-      Both mechanisms are now evidenced twice in one project within one
-      week (the original due-diligence postmortem behind hmgq's
-      principle, and this roadmap-document episode) — a genuine
-      recurring pattern, not a one-off, which is why this record's
-      title and confidence framing changed from "add a check-in" to
-      "must be jealously prevented, not merely detected." Generalizes
-      cleanly beyond AI-assisted review cycles to any iterative human
-      review process with the same failure shape.
+      Whether this generalizes beyond AI-assisted review cycles to
+      other iterative human review processes is a hypothesis to
+      validate against further evidence, not an observed conclusion —
+      both episodes are same-project, same-day, with overlapping
+      agents and governance.
     confidence:
       level: single-adopter
-      evidence_count: 7
+      evidence_count: 2
       evidence_refs:
-        - "docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md — originating stop-loss operating principle, itself motivated by the due-diligence postmortem (first occurrence of this pattern)"
-        - "docs/coordination/20260811T203258Z-contribution-auditor-dkp7.md — round-2 review, 5 findings"
-        - "docs/coordination/20260811T204632Z-contribution-auditor-732p.md — round-3 review, 3 residual findings"
-        - "docs/coordination/20260811T205627Z-contribution-auditor-mdrg.md — round-4 review, 2 bounded findings including the reproduced grep/namespace bug"
-        - "docs/coordination/20260811T211454Z-contribution-auditor-r8kb.md — round-5 recheck, content CLEAR"
-        - "docs/coordination/20260811T211945Z-planner-architect-kmgb.md — the actual resolution: 20 MRs closed directly, bypassing the document's own phase-1a/1b protocol, per direct Governor instruction after the check-in's honest self-assessment produced frustration rather than relief"
-        - "MR !1448 (plan/post-dd-roadmap-and-triage) — the five-round document itself, live example, second independent occurrence of the pattern"
+        - "Episode 1 (due-diligence plan, MR !1403): docs/coordination/20260811T085814Z-planner-architect-kjm5.md (round-10 role-boundary self-report), docs/coordination/20260811T105210Z-governor-reviewer-mh8p.md (Governor scope-reset decision; no round 11)"
+        - "Episode 2 (roadmap/triage document, MR !1448): docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md (originating stop-loss operating principle), docs/coordination/20260811T203258Z-contribution-auditor-dkp7.md (round-2, 5 findings), docs/coordination/20260811T204632Z-contribution-auditor-732p.md (round-3, 3 findings), docs/coordination/20260811T205627Z-contribution-auditor-mdrg.md (round-4, 2 findings including a reproduced grep/namespace bug), docs/coordination/20260811T211454Z-contribution-auditor-r8kb.md (round-5, then-current CLEAR), docs/coordination/20260811T211945Z-planner-architect-kmgb.md (resolution: 20 MRs closed directly, bypassing the document's own protocol)"
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
