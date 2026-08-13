@@ -43,9 +43,18 @@ advisory_consultation:
       governance-authority boundary). All four independently re-verified
       against the live project (Owner access 50 confirmed; `release/2.5`
       protection confirmed at push level 40, unprotect level 40) and
-      addressed in this revision. The named infosec-sentinel's own
-      consultation (distinct from this coder-tester-assisted pass)
-      remains outstanding.
+      addressed in one revision. A round-3 coder-tester technical review
+      (`20260813T172451Z-coder-tester-1jnk.md`) then found that the
+      B-FSR-SEC-1/2 fix introduced a genuine internal contradiction — the
+      required source-branch construction-to-frozen transition would
+      itself trip the fail-closed "any protection drift invalidates"
+      rule as originally worded — plus an advisory (plan-local
+      self-reference in reusable rule text). Both confirmed by re-reading
+      the contradiction directly and fixed with a two-baseline scheme
+      (target: single constant baseline; source: construction baseline
+      until one authorized transition, frozen baseline after). The named
+      infosec-sentinel's own consultation (distinct from these
+      coder-tester-assisted passes) remains outstanding.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -163,26 +172,35 @@ the existing "Maintenance-line exception" section (same file, same
 >    fail-closed integrity incident (see below), and by reading and
 >    recording the full protection object from the platform API at three
 >    points: immediately after creation, immediately before the release
->    MR merges, and immediately after tag publication. A protection
->    object that differs from its own prior recording at any checkpoint
->    invalidates the exception for that release.
+>    MR merges, and immediately after tag publication. **The target's
+>    baseline is single and constant**: its protection object recorded at
+>    all three points must be identical. Any difference at any point
+>    invalidates the exception — the target never has an authorized
+>    reason to change.
 > 2. Create a reconstruction source branch (e.g. `release-vX.Y.Z`) at the
 >    same exact base commit. **Construction and freeze are separate
->    protection states, not one setting held throughout:** during
->    construction (cherry-picks and the metadata change set being
->    assembled), the source branch may carry the minimum push access
->    needed to do that work (e.g. level 40). Before this plan's Gate 2
->    evidence is presented, the source branch **must** be reprotected to
->    `push_access_levels: No one`, `merge_access_levels: Maintainers`,
->    `allow_force_push: false` — the same frozen posture as the target —
->    and both branches' protection objects and resolved head SHAs must be
->    read fresh from the platform API immediately after that reprotection
->    and recorded as Gate 2 evidence. A level-40 "push and merge" setting
->    held all the way to Gate 2 grants direct-push authority indistinguishable
->    from a reviewed merge, which defeats the point of the reviewable MR
->    in step 3 below; this two-phase protection is what actually closes
->    that gap. Cherry-pick the reconstruction allowlist onto the *source*
->    branch,
+>    protection states for the *source* branch specifically — the target
+>    has no such transition (step 1's single constant baseline is
+>    unaffected).** During construction (cherry-picks and the metadata
+>    change set being assembled), the source branch may carry the minimum
+>    push access needed to do that work (e.g. level 40); record this as
+>    the source's **construction baseline** at creation. Before the
+>    reconstruction release MR's exact-head Gate 2 evidence is presented,
+>    the source branch **must** be reprotected to `push_access_levels: No
+>    one`, `merge_access_levels: Maintainers`, `allow_force_push: false`
+>    — the same posture as the target — and this single, one-time
+>    transition is recorded as the source's **frozen baseline**,
+>    immediately after reprotection, alongside both branches' resolved
+>    head SHAs, as Gate 2 evidence. From that point forward the source's
+>    fail-closed comparison is against its **frozen baseline**, not its
+>    construction baseline — the recorded transition is the one
+>    authorized difference; any other change, before or after it, is not.
+>    A level-40 "push and merge" setting held all the way to Gate 2 grants
+>    direct-push authority indistinguishable from a reviewed merge, which
+>    defeats the point of the reviewable MR in step 3 below; this
+>    two-baseline scheme is what actually closes that gap without
+>    contradicting the drift check. Cherry-pick the reconstruction
+>    allowlist onto the *source* branch,
 >    as **deterministic ordered replay**: the governing plan states the
 >    exact ordered list of `git cherry-pick` invocations (commit SHA,
 >    parent selection for merge commits, no squash), and that exact
@@ -335,12 +353,14 @@ the existing "Maintenance-line exception" section (same file, same
 > branch's resolved SHA, drift in the reconstruction source branch's
 > head between review and merge, a tree-delta or frozen-out-set proof
 > failure, an allowlist commit whose own Gate 2 approval cannot be
-> independently re-confirmed at merge time, either branch's protection
-> object differing from its own prior recording at any of the three
-> required checkpoints, the source branch reaching Gate 2 evidence
-> without having been reprotected to the frozen `push_access_levels: No
-> one` posture, or the pre-tag-push namespace check finding any
-> non-absence or API ambiguity.
+> independently re-confirmed at merge time, the target branch's
+> protection object differing from its own single constant baseline at
+> any of the three checkpoints, the source branch's protection object
+> differing from its construction baseline before the one authorized
+> construction-to-frozen transition or from its frozen baseline at any
+> point after that transition, the source branch reaching Gate 2
+> evidence without that transition having occurred, or the pre-tag-push
+> namespace check finding any non-absence or API ambiguity.
 
 ---
 
@@ -489,19 +509,30 @@ maintenance-line precedent alone).
    names, consistent with the evidence-only (non-ancestry) linkage this
    plan declares (`kpt5`'s A-FSR-1).
 10. Both reconstruction branches' protection objects are read fresh from
-    the platform API and recorded at all three required checkpoints
-    (creation, pre-merge, post-tag), with no unexplained drift
-    (`mdth`'s B-FSR-SEC-1).
+    the platform API at all three checkpoints (creation, pre-merge,
+    post-tag): the target's three readings are identical to each other;
+    the source's readings match its construction baseline until the one
+    authorized reprotection, then match its frozen baseline thereafter —
+    per the two-baseline scheme, not the single-baseline check the
+    target uses (`mdth`'s B-FSR-SEC-1, corrected for internal
+    consistency by `1jnk`'s B-FSR-SEC-R3-1).
 11. The source branch is proven reprotected to `push_access_levels: No
-    one` before Gate 2 evidence is presented, and the release MR merge
-    is proven to have used the exact-SHA API call, not a UI click
-    (`mdth`'s B-FSR-SEC-2).
+    one` (its frozen baseline) before the reconstruction release MR's
+    exact-head Gate 2 evidence is presented, and that MR's merge is
+    proven to have used the exact-SHA API call, not a UI click (`mdth`'s
+    B-FSR-SEC-2).
 12. A second, independent namespace-absence check runs immediately
     before the tag push, bound to the exact merge commit/tree, covering
     every relevant package status (`mdth`'s B-FSR-SEC-3).
 13. The governor coordination record authorizing merge names the exact
     source/target SHAs, expected hash, and project identifier before the
     exact-SHA merge call executes (`mdth`'s A-FSR-SEC-1).
+14. The rule text contains no plan-local self-reference ("this plan's
+    Gate 2") — all timing language names the governed artifact directly
+    (`1jnk`'s A-FSR-SEC-R3-1), and the target/source checkpoint
+    baselines are two distinct, individually-consistent state machines,
+    not one shared equality check the required source transition would
+    itself violate (`1jnk`'s B-FSR-SEC-R3-1).
 
 ## Stop conditions
 
