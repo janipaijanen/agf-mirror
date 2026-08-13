@@ -78,9 +78,20 @@ advisory_consultation:
       an any-advance-invalidates rule mirroring the existing tree-delta
       fail-closed condition, a pre-merge exact-target-SHA re-read plus
       exact-sync-source-SHA API merge requirement, and a post-merge
-      allowed-diff verification step. The named infosec-sentinel's own
-      consultation (distinct from these coder-tester-assisted passes)
-      remains outstanding.
+      allowed-diff verification step. A round-2 coder-tester technical
+      review of that fix (`20260813T185934Z-coder-tester-stqp.md`) found
+      one further blocking finding, `B-FSR-SEC-FH-R2-1`: recording the
+      sync-source head at branch creation (before the required
+      changelog/version edits) meant those very edits would trip the
+      just-added drift rule, making the branch unable to reach Gate 2
+      while satisfying both. Fixed by separating the two recording
+      times: the sync-target head is recorded once at branch creation
+      (before any edits); the sync-source head is recorded once after
+      the changelog/version-field proof and pipeline exist — the
+      required edits between those two points are not themselves drift,
+      only changes after each respective recording are. The named
+      infosec-sentinel's own consultation (distinct from these
+      coder-tester-assisted passes) remains outstanding.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -338,11 +349,12 @@ the existing "Maintenance-line exception" section (same file, same
 > reconstruction branch names.
 >
 > 1. After successful tag publication, open a separate MR to `main` from
->    a fresh branch based on `main`'s then-current tip. Record this
->    branch's exact base SHA (the **sync-source head**) and `main`'s
->    exact tip SHA at that same moment (the **sync-target head**) in the
->    forward-sync MR description — both are the binding reference points
->    for every check below.
+>    a fresh branch created exactly at `main`'s then-current tip. Record
+>    that tip SHA as the **sync-target head** in the forward-sync MR
+>    description — this is the binding reference point for the target
+>    side of every check below. Do **not** record a source head yet: the
+>    branch has no edits at this point, so there is nothing to bind as
+>    the reviewed source.
 > 2. Split `main`'s own `CHANGELOG.md` and `agf/CHANGELOG.md`
 >    `## [Unreleased]` sections so that exactly the entries corresponding
 >    to the frozen release's allowlist (matched by issue/commit
@@ -370,22 +382,30 @@ the existing "Maintenance-line exception" section (same file, same
 > 4. Prove the forward-sync MR's diff touches only the changelog files
 >    from step 2 and the version fields (not content) of the surfaces
 >    from step 3 — no code, test, schema, or other file changes. This is
->    a mechanical, Gate-2-checkable condition, not advisory.
-> 5. **Sync-source/sync-target drift invalidates the proof.** Any advance
->    of the sync-source branch's head, or of `main`'s tip, between the
->    heads recorded in step 1 and the eventual merge invalidates the
->    diff proof and pipeline from steps 2-4 above, exactly as a stable-
->    base or protected-target drift invalidates the reconstruction
->    release merge under the fail-closed section below. Refresh the
->    branch, diff, proof, and pipeline against the new heads, and obtain
->    a fresh exact-head Gate 2 review, before proceeding.
+>    a mechanical, Gate-2-checkable condition, not advisory. Once this
+>    proof and its pipeline are produced, record the branch's resulting
+>    exact head as the **sync-source head** in the forward-sync MR
+>    description — this is the reviewed content presented for Gate 2, and
+>    the binding reference point for the source side of every check
+>    below.
+> 5. **Sync-source/sync-target drift invalidates the proof.** The two
+>    recording times are distinct and each guards a different boundary:
+>    **target drift** is any advance of `main`'s tip after the step-1
+>    recording; **source drift** is any advance of the sync branch's head
+>    after the step-4 recording (i.e. any change made after the diff
+>    proof and pipeline were produced, not the changelog/version edits
+>    step 4 itself records). Either drift invalidates the corresponding
+>    proof and requires a refreshed branch, diff, proof, pipeline, and a
+>    fresh exact-head Gate 2 review before proceeding — exactly as a
+>    stable-base or protected-target drift invalidates the reconstruction
+>    release merge under the fail-closed section below.
 > 6. **Exact-SHA merge, not a branch-name merge.** Immediately before
 >    merging the forward-sync MR, re-read `main`'s current tip via the
 >    platform API and require it to equal the recorded sync-target head
->    exactly; a mismatch triggers step 5's refresh, not a proceed-anyway
->    judgment call. Merge only through the platform API's exact-SHA merge
->    parameter, set to the recorded sync-source head — no branch-name
->    merge, no squash, no rebase.
+>    exactly; a mismatch triggers step 5's target-drift refresh, not a
+>    proceed-anyway judgment call. Merge only through the platform API's
+>    exact-SHA merge parameter, set to the recorded sync-source head — no
+>    branch-name merge, no squash, no rebase.
 > 7. **Post-merge verification.** Immediately after merge, record the
 >    resulting merge commit SHA and verify its diff against the recorded
 >    sync-target head is limited to exactly the changelog and
@@ -412,10 +432,11 @@ the existing "Maintenance-line exception" section (same file, same
 > point after that transition, the source branch reaching Gate 2
 > evidence without that transition having occurred, the pre-tag-push
 > namespace check finding any non-absence or API ambiguity, or — for the
-> metadata-forward-synchronization step — drift in the recorded
-> sync-source or sync-target head between the diff/pipeline proof and
-> the eventual merge that is not resolved by that step's required
-> refresh before merging.
+> metadata-forward-synchronization step — target drift (`main`'s tip
+> advancing after the sync-target head is recorded) or source drift (the
+> sync branch's head advancing after the sync-source head is recorded,
+> post-proof) that is not resolved by that step's required refresh before
+> merging.
 
 ---
 
@@ -588,13 +609,18 @@ maintenance-line precedent alone).
     baselines are two distinct, individually-consistent state machines,
     not one shared equality check the required source transition would
     itself violate (`1jnk`'s B-FSR-SEC-R3-1).
-15. The forward-sync MR records its exact sync-source and sync-target
-    heads, is merged only via the platform API's exact-SHA parameter
-    against a freshly re-read `main` tip matching the recorded
-    sync-target head, and any drift in either head between the diff
-    proof and the merge triggers a refresh (fresh branch, diff, proof,
-    pipeline, and exact-head Gate 2 review) rather than a proceed-anyway
-    judgment call (`qpj4`'s B-FSR-SEC-FH-1).
+15. The forward-sync MR records its exact sync-target head (`main`'s tip
+    at branch creation) before any edits, and its exact sync-source head
+    (the branch's head after the changelog/version-field proof and
+    pipeline) only once that proof exists — never the same recording
+    step, since the required edits between them are not themselves drift
+    (`qpj4`'s B-FSR-SEC-FH-1, corrected for the two-boundary distinction
+    by `stqp`'s B-FSR-SEC-FH-R2-1). It is merged only via the platform
+    API's exact-SHA parameter against a freshly re-read `main` tip
+    matching the recorded sync-target head, and any drift in either head
+    after its own recording point triggers a refresh (fresh branch,
+    diff, proof, pipeline, and exact-head Gate 2 review) rather than a
+    proceed-anyway judgment call.
 
 ## Stop conditions
 
