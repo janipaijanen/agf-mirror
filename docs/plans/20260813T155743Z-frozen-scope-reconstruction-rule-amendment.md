@@ -119,9 +119,23 @@ advisory_consultation:
       role-YAML/manifest/doc/rule-path leakage. `A-FSR-FRESH-1`
       (advisory) — added a protected-tag-rule object re-read at the
       pre-tag and post-publication checkpoints, alongside the existing
-      namespace-absence re-reads. The named infosec-sentinel's own
-      consultation (distinct from these coder-tester-assisted and
-      fresh-context passes) remains outstanding.
+      namespace-absence re-reads. A round-seven exact-head technical
+      review (`20260813T201833Z-coder-tester-adjp.md`) then found the
+      `B-FSR-FRESH-1` fix was a mitigation, not a resolution:
+      `B-FSR-R7-1` — detect-and-remediate-after-landing is not the same
+      property as `2r8r`'s literal fail-closed-on-target-drift
+      requirement, and this plan does not have standing authority to
+      narrow that requirement on its own; **left explicitly open, routed
+      to the governor as a named decision point (acceptance criterion
+      19), not resolved by further planner text.** `B-FSR-R7-2` — path
+      attribution alone does not prove a manually resolved conflict's
+      *content* is free of unauthorized additions; fixed by adding a
+      third required proof (content faithfulness for every manually
+      resolved conflict, independently re-verified line-by-line for both
+      `CHANGELOG.md` conflicts in this application). The named
+      infosec-sentinel's own consultation (distinct from these
+      coder-tester-assisted and fresh-context passes) remains
+      outstanding, alongside the governor decision on `B-FSR-R7-1`.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -296,7 +310,15 @@ the existing "Maintenance-line exception" section (same file, same
 >    sufficient — patch union is non-compositional the moment two
 >    allowlisted commits touch the same insertion point (this
 >    exception's own first application does exactly that). The proof
->    instead has two required, independently checkable parts:
+>    instead has three required, independently checkable parts —
+>    **reproducibility, path attribution, and content faithfulness are
+>    three distinct properties; none of the three substitutes for
+>    another** (round-seven review `adjp`'s `B-FSR-R7-2` on a two-part
+>    version of this proof: path attribution alone does not show that a
+>    *manually resolved* file's content is free of unauthorized
+>    additions, and reproducing a recorded hash proves the replay is
+>    deterministic, not that the originally recorded resolution was
+>    itself faithful):
 >    - **Deterministic replay proof:** re-running the exact ordered
 >      cherry-pick sequence and recorded conflict-resolution hashes from
 >      step 2, from the exact stable base, must produce a tree whose Git
@@ -304,20 +326,36 @@ the existing "Maintenance-line exception" section (same file, same
 >      acceptable but the governing plan must state which) equals the
 >      value the governing plan recorded at authoring time. A mismatch
 >      is a fail-closed condition (see below), not a discretionary call.
->    - **Frozen-out negative proof: structural, not a curated named
->      list.** A hand-picked list of "items that must be absent" cannot
->      be proven complete — it only catches whatever the plan's author
->      happened to think of. Instead: compute `git diff --stat` of the
->      resulting tree against the stable base, and independently compute
->      `git diff --stat` (or full diff) of each allowlisted commit
->      against its own immediate parent. Every file path in the
->      resulting tree's diff-from-base must appear in at least one
->      allowlisted commit's own diff. **Any file path present in the
->      resulting diff that is not attributable to a named allowlisted
->      commit is itself the negative-proof failure** — no separate named
->      list is needed or sufficient. Record the full attributed file list
->      as Gate 2 evidence.
->    Both proofs are exact-head Gate 2 evidence, not advisory.
+>      This proves the replay is *reproducible*, not that the recorded
+>      result is *faithful* — see the next check.
+>    - **Path attribution (necessary, not sufficient):** compute `git
+>      diff --stat` of the resulting tree against the stable base, and
+>      independently compute `git diff --stat` (or full diff) of each
+>      allowlisted commit against its own immediate parent. Every file
+>      path in the resulting tree's diff-from-base must appear in at
+>      least one allowlisted commit's own diff. Any file path present in
+>      the resulting diff that is not attributable to a named allowlisted
+>      commit fails this check — but a file passing this check has only
+>      been shown to be an *expected file*, not *expected content*: a
+>      manually resolved conflict can stage arbitrary text inside an
+>      otherwise-expected file without tripping this check alone.
+>    - **Content faithfulness for every manually resolved conflict (the
+>      gap path attribution cannot close):** for every file where cherry-
+>      pick reported a conflict requiring manual resolution — not the
+>      files that applied cleanly, whose content is mechanically fixed by
+>      the patch itself — record, as Gate 2 evidence, the pre-resolution
+>      conflicting hunks from both sides (the `<<<<<<<`/`=======`/
+>      `>>>>>>>` markers' bracketed content, before editing) alongside the
+>      post-resolution file. An independent reviewer must confirm every
+>      line in the resolved region traces to one of the two original
+>      sides (verbatim or with only mechanical reordering/deduplication
+>      to keep chronological or structural ordering) — **zero net-new
+>      lines beyond a pure two-way combination of what conflicted.** A
+>      resolution introducing any line absent from both original sides
+>      fails this check regardless of what the deterministic-replay hash
+>      says, and regardless of whether the touched file's path was itself
+>      allowlist-attributable.
+>    All three are exact-head Gate 2 evidence, not advisory.
 > 6. Exact-head Gate 2 remains binding governor authority, applying the
 >    same standard the maintenance-line exception applies: the named SHA
 >    with the reviewed pipeline, nothing else. **Platform credentials
@@ -487,6 +525,26 @@ the existing "Maintenance-line exception" section (same file, same
 >    `main`'s new actual tip, following steps 1-7 again in full, and
 >    treat the defective merge commit as superseded evidence, not as a
 >    silent partial state.
+>
+>    **Open governance question, not settled by this text (round-seven
+>    review `adjp`'s `B-FSR-R7-1`).** Governor decision `2r8r` requires
+>    fail-closed behavior on target drift — preventing a proof-invalid
+>    merge from landing, not detecting and remediating it afterward.
+>    Steps 6-7 above are this plan's best mitigation given a verified
+>    platform constraint (no GitLab merge-train/merged-results support on
+>    this project's tier, no target-HEAD-pinning merge parameter), but
+>    detect-and-remediate-after-landing is not the same property as
+>    fail-closed-before-proceeding, and a planner-architect plan does not
+>    have standing authority to narrow a standing governor decision's
+>    requirement to a weaker one. Whether this specific, narrow,
+>    metadata-only residual risk is an acceptable substitute for literal
+>    prevention — or whether a stronger control (e.g., a human operator
+>    manually confirming no competing merge is in flight on `main`
+>    immediately before and during this one merge, as a bounded-but-not-
+>    atomic serialization) is required instead — is an explicit binding
+>    governor decision this plan requests separately, not a conclusion
+>    this text draws for itself. See the accompanying coordination
+>    record.
 > 8. If this synchronization fails or is delayed, the published release
 >    remains valid; correct the sync forward without touching the tag or
 >    either reconstruction branch.
@@ -578,6 +636,26 @@ the existing "Maintenance-line exception" section (same file, same
     entries the earlier curated list named — both are correctly absent
     as a consequence of the structural proof, not because they were
     separately grepped for.
+- **Content-faithfulness proof for the two manually resolved files**
+  (round-seven finding `B-FSR-R7-2`; path attribution alone does not
+  cover this). Both cherry-picks conflict on `CHANGELOG.md` and
+  `agf/CHANGELOG.md` — every other file in the 10-file union applies
+  cleanly (mechanically fixed by the patch itself, not human-editable
+  without breaking the deterministic-replay hash). For each conflict,
+  the pre-resolution sides were: `HEAD` (the running base, initially
+  `v2.5.0`'s own `## [2.5.0]`/`## [2.5.0] —` section header and body)
+  and the incoming commit's own new `## [Unreleased]` section
+  (`3456c1fa`'s aarch64-drop entry first; `bcb0fadd`'s coord-visibility
+  entries added to the same `## [Unreleased]` section on the second
+  cherry-pick). The resolution in both files and both rounds is a pure
+  reordering: the incoming `## [Unreleased]` section is placed
+  immediately above the `HEAD` side's most recent dated section, with
+  no line from either side dropped, altered, or duplicated, and no line
+  present that traces to neither side. Independently re-verified during
+  this revision by re-running both cherry-picks fresh in a scratch
+  worktree and diffing the resolved region against the two sides'
+  original conflict-marker content line-by-line — zero unattributed
+  lines in either file, either round.
 - **Deterministic replay proof.** Per the rule text's "either is
   acceptable but the plan must state which": **this plan designates the
   binary base-to-head patch hash as authoritative** (the Git tree hash
@@ -737,16 +815,26 @@ maintenance-line precedent alone).
     first parent against the recorded sync-target head — not merely the
     file-level diff — with a defined remediation (fresh corrective
     forward-sync MR, tag and reconstruction branches untouched) on
-    mismatch (`8hn8`'s `B-FSR-FRESH-1`).
-17. The frozen-out negative proof is structural — every file path in the
-    reconstructed tree's diff from the stable base is independently
-    shown attributable to a named allowlisted commit's own diff — not a
-    curated named list of specific paths believed to be at risk
-    (`8hn8`'s `B-FSR-FRESH-2`).
+    mismatch (`8hn8`'s `B-FSR-FRESH-1`, technical mitigation only —
+    criterion 19 below is the actual closure condition).
+17. The frozen-out negative proof has three independently checkable
+    parts — deterministic replay, path attribution, and content
+    faithfulness for every manually resolved conflict — not path
+    attribution alone (`8hn8`'s `B-FSR-FRESH-2`, strengthened by
+    round-seven review `adjp`'s `B-FSR-R7-2` after path attribution
+    alone was shown insufficient to prove content-level absence).
 18. The exact protected-tag-rule object (not only namespace absence) is
     re-read immediately before the tag push and once more after
     publication, bound to the tag-pipeline evidence (`8hn8`'s
     `A-FSR-FRESH-1`).
+19. **Open, not yet satisfied at this plan head:** an explicit binding
+    governor decision exists on whether detect-and-remediate-after-
+    landing (criterion 16) is an acceptable substitute for `2r8r`'s
+    literal fail-closed-on-target-drift requirement for the forward-sync
+    merge specifically, or whether a stronger serialization control is
+    required instead (round-seven review `adjp`'s `B-FSR-R7-1`). This
+    plan does not claim this criterion satisfied by its own text; Gate 1
+    cannot close on this point until the governor decides.
 
 ## Stop conditions
 
@@ -758,5 +846,8 @@ at the actual release MR's exact head even though it passed in this
 plan's scratch-worktree verification; the merge-result byte-identity
 check fails for any allowlisted merge commit; the forward-sync's
 governed version-surface list cannot be updated together (no partial
-sync); or contribution-auditor/infosec-sentinel raise a finding this
-plan does not already address.
+sync); contribution-auditor/infosec-sentinel raise a finding this plan
+does not already address; **or the forward-sync merge is about to be
+executed and acceptance criterion 19's governor decision has not yet
+been made** — the plan's own text is not authority to proceed on that
+point regardless of how many other rounds have cleared.
