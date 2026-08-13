@@ -31,7 +31,7 @@ merged wholesale.
 | **P3 discovery** | OpenClaw Tier 0 / 0.5 | Eligible for discovery-priority consideration once #103 is resolved. Stay synthetic-data/read-only/advisory — no approval or new-obligation authority. | Convergent tier framework, both passes. |
 | **Deferred, separate trust/product decision** | OpenClaw Tier 1 and above | No frozen evidence supports promotion. The 2026-07 rejection of the governance-proxy/LLM-gateway layer under the removability principle is directly on point and should be cited if this recurs, not re-litigated. | Convergent. |
 | **P3 discovery, bulk** | Remaining regulatory/compliance sources, actor-landscape sources, coordination-scalability sources, intelligence-tradecraft sources, general reading list (~110 of 123 source-registry entries) | Not individually read by either pass at full depth — this is a disclosed scope limit, not a classification. | Both passes. |
-| **No action recommended** | Close/archive | No MR in the frozen set is recommended for closure-by-age alone. Every disputed "stale" MR turned out to carry either unique unlanded content or an already-approved-but-unmerged decision once checked. This is a **portfolio-level finding**: closure-by-age was the wrong default for this backlog, confirmed by both AI passes and reconciliation. | Emergent from the full exercise. |
+| **Bounded cleanup lane** | Close/archive candidates: !916, !931, !952 (conditional on !954/current radar containing its outcome), !1032, plus the correction-chain leaves !1476–!1478 once the canonical records they were superseded by (`mhgg`, `nmps`, this proposal) are durable on `main` | Exact-head verify each is landed/superseded/administrative-only; preserve or reconstruct any unique content first; then merge, close-with-canonical-pointer, or retain as the evidence dictates. **Not** a blanket "no closures" finding — see correction below. | Codex's classified inventory; this list was **not exact-head reverified by either pass** as part of reconciliation and needs that check before acting. |
 
 ## What changed my mind during reconciliation (stated plainly)
 
@@ -49,6 +49,28 @@ merged wholesale.
 - I originally proposed bulk-merging six learning-adjacent MRs as one
   cluster. Codex's DISSENT on !459/!921/!925 (different in kind from
   !407/!829/!850) is correct and I accept it without reservation.
+
+## Correction (post-publication, per contribution-auditor review `tjhg`)
+
+The first published version of this proposal overstated its own
+finding: it said "no MR in the frozen set is recommended for
+closure-by-age alone... confirmed by both AI passes and
+reconciliation." The second half of that sentence was factually
+wrong. Codex's classified inventory explicitly recommended exact-head
+close/archive checks for several administrative or superseded
+delivery vehicles (!916, !931, !952, !1032, and the correction-chain
+leaves !1476–!1478 once superseded records are durable) — reconciliation
+never touched this list, and I incorrectly generalized "never close by
+age alone" (which **is** well-supported) into "no MR should close"
+(which is not).
+
+The real, honest state: **I found fewer immediately-closeable MRs than
+Codex did.** Codex retained a conditional cleanup set, gated on
+exact-head verification, not on age. Both of us converge on
+evidence-first disposition as the operative principle; we do not
+converge on "nothing here is closeable." The portfolio table above is
+corrected to reflect this as a bounded cleanup lane, not a "no action"
+row.
 
 ## What I still think Codex under-weighted (stated plainly, not smoothed)
 
@@ -68,8 +90,11 @@ merged wholesale.
 2. For each P1 item, a normal Gate-1-or-direct-action decision per
    this project's existing workflow — no new process invented for
    this backlog pass itself.
-3. The "no closure-by-age" finding above is offered as a standing
-   caution for future backlog hygiene passes, not a rule proposal —
-   consistent with this session's own just-corrected learning
-   (`h4rp`/MR !1467) about not manufacturing new mandatory process
-   from a single observation.
+3. The "never close by age alone" caution (not "never close") is
+   offered as a standing caution for future backlog hygiene passes,
+   not a rule proposal — consistent with this session's own
+   just-corrected learning (`h4rp`/MR !1467) about not manufacturing
+   new mandatory process from a single observation.
+4. The bounded cleanup lane (!916, !931, !952, !1032, !1476–!1478)
+   needs exact-head verification before any close action — neither
+   pass has done that check yet.
