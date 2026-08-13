@@ -24,9 +24,20 @@ advisory_consultation:
       settling the question with evidence rather than assertion). A
       renewed coder-tester technical review
       (`20260813T164610Z-coder-tester-qrmm.md`) confirmed all four fixes
-      COMPLETE/CLEAR against the revised head. The named
-      contribution-auditor's own review (distinct from these coder-tester
-      technical passes) remains outstanding.
+      COMPLETE/CLEAR against the revised head. Coder-tester then prepared
+      a decision-ready evidence packet
+      (`20260813T180855Z-coder-tester-qrr8.md`) for the governor's own
+      required non-self judgment, explicitly declining to claim it
+      satisfied the role itself. The governor's own non-self
+      contribution-auditor review
+      (`20260813T182631Z-contribution-auditor-1tq2.md`) landed
+      COMPLETE/CLEAR at exact head `80c0d78b`: zero blocking findings, one
+      advisory (`A-FSR-CA-AID-1`, disposed — a single successful bounded
+      necessity-check run must not be read as proof of reliability; stop
+      and return to the governor rather than inferring it), and an
+      explicit human precedent judgment accepting the reusable exception
+      for Gate 1 consideration on the conjunctive-eligibility, per-use
+      binding-freeze, fail-closed-to-governor terms this plan states.
   - role: infosec-sentinel
     status: consulted
     reason: >-
@@ -52,9 +63,24 @@ advisory_consultation:
       self-reference in reusable rule text). Both confirmed by re-reading
       the contradiction directly and fixed with a two-baseline scheme
       (target: single constant baseline; source: construction baseline
-      until one authorized transition, frozen baseline after). The named
-      infosec-sentinel's own consultation (distinct from these
-      coder-tester-assisted passes) remains outstanding.
+      until one authorized transition, frozen baseline after). A
+      renewed coder-tester technical review
+      (`20260813T175059Z-coder-tester-24rj.md`) confirmed the fix
+      COMPLETE/CLEAR. A further coder-tester infosec-review-aid at the
+      final exact head (`20260813T184351Z-coder-tester-qpj4.md`) found
+      one new blocking finding, `B-FSR-SEC-FH-1`: the
+      metadata-forward-synchronization section bound the reconstruction
+      release merge to reviewed source/target SHAs but did not bind the
+      later forward-sync-to-`main` merge the same way, leaving it able to
+      authorize a different merge context (a stale sync-source head or an
+      advanced `main` tip) without refreshed proof. Fixed in this
+      revision by adding explicit sync-source/sync-target SHA recording,
+      an any-advance-invalidates rule mirroring the existing tree-delta
+      fail-closed condition, a pre-merge exact-target-SHA re-read plus
+      exact-sync-source-SHA API merge requirement, and a post-merge
+      allowed-diff verification step. The named infosec-sentinel's own
+      consultation (distinct from these coder-tester-assisted passes)
+      remains outstanding.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -312,7 +338,11 @@ the existing "Maintenance-line exception" section (same file, same
 > reconstruction branch names.
 >
 > 1. After successful tag publication, open a separate MR to `main` from
->    a fresh branch based on `main`'s then-current tip.
+>    a fresh branch based on `main`'s then-current tip. Record this
+>    branch's exact base SHA (the **sync-source head**) and `main`'s
+>    exact tip SHA at that same moment (the **sync-target head**) in the
+>    forward-sync MR description — both are the binding reference points
+>    for every check below.
 > 2. Split `main`'s own `CHANGELOG.md` and `agf/CHANGELOG.md`
 >    `## [Unreleased]` sections so that exactly the entries corresponding
 >    to the frozen release's allowlist (matched by issue/commit
@@ -341,7 +371,28 @@ the existing "Maintenance-line exception" section (same file, same
 >    from step 2 and the version fields (not content) of the surfaces
 >    from step 3 — no code, test, schema, or other file changes. This is
 >    a mechanical, Gate-2-checkable condition, not advisory.
-> 5. If this synchronization fails or is delayed, the published release
+> 5. **Sync-source/sync-target drift invalidates the proof.** Any advance
+>    of the sync-source branch's head, or of `main`'s tip, between the
+>    heads recorded in step 1 and the eventual merge invalidates the
+>    diff proof and pipeline from steps 2-4 above, exactly as a stable-
+>    base or protected-target drift invalidates the reconstruction
+>    release merge under the fail-closed section below. Refresh the
+>    branch, diff, proof, and pipeline against the new heads, and obtain
+>    a fresh exact-head Gate 2 review, before proceeding.
+> 6. **Exact-SHA merge, not a branch-name merge.** Immediately before
+>    merging the forward-sync MR, re-read `main`'s current tip via the
+>    platform API and require it to equal the recorded sync-target head
+>    exactly; a mismatch triggers step 5's refresh, not a proceed-anyway
+>    judgment call. Merge only through the platform API's exact-SHA merge
+>    parameter, set to the recorded sync-source head — no branch-name
+>    merge, no squash, no rebase.
+> 7. **Post-merge verification.** Immediately after merge, record the
+>    resulting merge commit SHA and verify its diff against the recorded
+>    sync-target head is limited to exactly the changelog and
+>    version-field edits from steps 2-3 — proving no code, test, schema,
+>    or other file change slipped in through an intervening `main`
+>    change between the proof and the merge.
+> 8. If this synchronization fails or is delayed, the published release
 >    remains valid; correct the sync forward without touching the tag or
 >    either reconstruction branch.
 >
@@ -359,8 +410,12 @@ the existing "Maintenance-line exception" section (same file, same
 > differing from its construction baseline before the one authorized
 > construction-to-frozen transition or from its frozen baseline at any
 > point after that transition, the source branch reaching Gate 2
-> evidence without that transition having occurred, or the pre-tag-push
-> namespace check finding any non-absence or API ambiguity.
+> evidence without that transition having occurred, the pre-tag-push
+> namespace check finding any non-absence or API ambiguity, or — for the
+> metadata-forward-synchronization step — drift in the recorded
+> sync-source or sync-target head between the diff/pipeline proof and
+> the eventual merge that is not resolved by that step's required
+> refresh before merging.
 
 ---
 
@@ -533,6 +588,13 @@ maintenance-line precedent alone).
     baselines are two distinct, individually-consistent state machines,
     not one shared equality check the required source transition would
     itself violate (`1jnk`'s B-FSR-SEC-R3-1).
+15. The forward-sync MR records its exact sync-source and sync-target
+    heads, is merged only via the platform API's exact-SHA parameter
+    against a freshly re-read `main` tip matching the recorded
+    sync-target head, and any drift in either head between the diff
+    proof and the merge triggers a refresh (fresh branch, diff, proof,
+    pipeline, and exact-head Gate 2 review) rather than a proceed-anyway
+    judgment call (`qpj4`'s B-FSR-SEC-FH-1).
 
 ## Stop conditions
 
