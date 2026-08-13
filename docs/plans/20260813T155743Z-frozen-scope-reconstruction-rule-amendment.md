@@ -21,17 +21,31 @@ advisory_consultation:
       fresh with concrete hashes; B-FSR-3's surface list now reuses the
       release plan's own enumeration verbatim; A-FSR-1 resolved via an
       actual `--no-ff` merge test that found real content conflict,
-      settling the question with evidence rather than assertion). The
-      named contribution-auditor's own review (distinct from this
-      coder-tester technical pass) remains outstanding.
+      settling the question with evidence rather than assertion). A
+      renewed coder-tester technical review
+      (`20260813T164610Z-coder-tester-qrmm.md`) confirmed all four fixes
+      COMPLETE/CLEAR against the revised head. The named
+      contribution-auditor's own review (distinct from these coder-tester
+      technical passes) remains outstanding.
   - role: infosec-sentinel
     status: consulted
     reason: >-
       Named as required consultation by the same governor decision, item
       2: "infosec-sentinel is consulted on protected refs, approval
-      integrity, namespace checks, and forward synchronization" — exactly
-      the four areas the rule amendment below governs. Requested; not yet
-      received.
+      integrity, namespace checks, and forward synchronization." A
+      coder-tester infosec-review-aid
+      (`20260813T165120Z-coder-tester-mdth.md`, explicitly not an
+      infosec-sentinel verdict) queried the live GitLab API and found
+      three blocking platform-control findings (B-FSR-SEC-1 overclaimed
+      deletion-proof guarantee, B-FSR-SEC-2 direct-push bypass of the
+      reviewed merge path, B-FSR-SEC-3 unclosed namespace time-of-check
+      race) and one advisory (A-FSR-SEC-1 platform-identity vs.
+      governance-authority boundary). All four independently re-verified
+      against the live project (Owner access 50 confirmed; `release/2.5`
+      protection confirmed at push level 40, unprotect level 40) and
+      addressed in this revision. The named infosec-sentinel's own
+      consultation (distinct from this coder-tester-assisted pass)
+      remains outstanding.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -135,13 +149,40 @@ the existing "Maintenance-line exception" section (same file, same
 >
 > 1. Create a reconstruction target branch (e.g. `reconstruct/vX.Y`) at
 >    the exact stable base tag/commit named by the eligible governor
->    record. Protect it — reject force-push and deletion, restrict push
->    and merge to access level 40 (Maintainer) — before any cherry-pick
->    lands. Confirm the protection rule from the platform API as
->    evidence.
+>    record, before any cherry-pick lands, protected as: `push_access_
+>    levels: No one` (level 0 — matching how `main` itself is actually
+>    configured on this platform, not the weaker "level 40 push and
+>    merge" pattern), `merge_access_levels: Maintainers` (level 40),
+>    `allow_force_push: false`. **State the platform guarantee
+>    accurately, not optimistically:** branch protection prevents
+>    Git-level force-push and deletion, but does **not** make the ref
+>    undeletable to a Maintainer/Owner acting through the platform UI or
+>    API, who can unprotect then delete. This is a residual risk the
+>    protection setting does not close; it is closed instead by treating
+>    unexpected unprotection, deletion, or protection-setting drift as a
+>    fail-closed integrity incident (see below), and by reading and
+>    recording the full protection object from the platform API at three
+>    points: immediately after creation, immediately before the release
+>    MR merges, and immediately after tag publication. A protection
+>    object that differs from its own prior recording at any checkpoint
+>    invalidates the exception for that release.
 > 2. Create a reconstruction source branch (e.g. `release-vX.Y.Z`) at the
->    same exact base commit, with equivalent level-40 protection.
->    Cherry-pick the reconstruction allowlist onto the *source* branch,
+>    same exact base commit. **Construction and freeze are separate
+>    protection states, not one setting held throughout:** during
+>    construction (cherry-picks and the metadata change set being
+>    assembled), the source branch may carry the minimum push access
+>    needed to do that work (e.g. level 40). Before this plan's Gate 2
+>    evidence is presented, the source branch **must** be reprotected to
+>    `push_access_levels: No one`, `merge_access_levels: Maintainers`,
+>    `allow_force_push: false` — the same frozen posture as the target —
+>    and both branches' protection objects and resolved head SHAs must be
+>    read fresh from the platform API immediately after that reprotection
+>    and recorded as Gate 2 evidence. A level-40 "push and merge" setting
+>    held all the way to Gate 2 grants direct-push authority indistinguishable
+>    from a reviewed merge, which defeats the point of the reviewable MR
+>    in step 3 below; this two-phase protection is what actually closes
+>    that gap. Cherry-pick the reconstruction allowlist onto the *source*
+>    branch,
 >    as **deterministic ordered replay**: the governing plan states the
 >    exact ordered list of `git cherry-pick` invocations (commit SHA,
 >    parent selection for merge commits, no squash), and that exact
@@ -185,11 +226,23 @@ the existing "Maintenance-line exception" section (same file, same
 >    Both proofs are exact-head Gate 2 evidence, not advisory.
 > 6. Exact-head Gate 2 remains binding governor authority, applying the
 >    same standard the maintenance-line exception applies: the named SHA
->    with the reviewed pipeline, nothing else. The merge invocation's
->    exact command (including branch-retention behavior) and an immediate
->    post-merge API read proving both refs still exist at the intended
->    SHAs are required Gate 2 evidence, matching the maintenance-line
->    exception's own retention-proof requirement.
+>    with the reviewed pipeline, nothing else. **Platform credentials
+>    execute a governance decision; they do not originate one.** Holding
+>    Owner or Maintainer access on the platform proves who could act, not
+>    which AGF-governed role or human decided the release-truth diff was
+>    correct — the two are different claims, and only the binding
+>    governor coordination record makes the second one. Before merge,
+>    that record must name: the exact source-branch head SHA, the exact
+>    target-branch head SHA, the expected tree/patch hash from the
+>    deterministic-replay proof, and the canonical project identifier.
+>    The merge itself must be performed via the platform's merge API with
+>    the `sha` parameter set to the exact reviewed source head (never a
+>    UI click against "whatever the branch currently points to"),
+>    `squash=false`, and source-branch retention requested explicitly.
+>    Read the merge response and both refs immediately afterward,
+>    confirming the resulting merge commit, and that both branches still
+>    exist at their intended SHAs — required Gate 2 evidence, matching
+>    the maintenance-line exception's own retention-proof requirement.
 >
 > ### Tag and publication
 >
@@ -199,6 +252,21 @@ the existing "Maintenance-line exception" section (same file, same
 > (`immutable-tags-rule.md`; every archive, checksum, provenance record,
 > package, and OCI digest binds to the tag commit exactly as it does for
 > any other release).
+>
+> **The eligibility checklist's namespace-absence check is a
+> point-in-time result, not a reservation.** Time elapses between that
+> early check and the actual tag push — enough for another actor or
+> process to occupy the same names. A second, independent, authenticated
+> namespace check (Git tag, GitLab Release, generic package across every
+> relevant status — default, hidden, processing, error,
+> pending_destruction, deprecated — paginated fully, and exact OCI
+> repository tag with the repository ID resolved fresh, not cached) is
+> required **immediately before the tag is pushed**, bound to the exact
+> merge commit and tree the release MR produced. Any non-absence result
+> or API ambiguity at this second check stops the release; it is not
+> treated as equivalent to the earlier result. After publication, re-read
+> each namespace and bind its resulting immutable identity/digest to the
+> tag pipeline as evidence.
 >
 > ### Metadata-forward synchronization (content-preserving, main untouched)
 >
@@ -266,8 +334,13 @@ the existing "Maintenance-line exception" section (same file, same
 > drift in the stable base tag identity, drift in the protected target
 > branch's resolved SHA, drift in the reconstruction source branch's
 > head between review and merge, a tree-delta or frozen-out-set proof
-> failure, or an allowlist commit whose own Gate 2 approval cannot be
-> independently re-confirmed at merge time.
+> failure, an allowlist commit whose own Gate 2 approval cannot be
+> independently re-confirmed at merge time, either branch's protection
+> object differing from its own prior recording at any of the three
+> required checkpoints, the source branch reaching Gate 2 evidence
+> without having been reprotected to the frozen `push_access_levels: No
+> one` posture, or the pre-tag-push namespace check finding any
+> non-absence or API ambiguity.
 
 ---
 
@@ -415,6 +488,20 @@ maintenance-line precedent alone).
    its commit/tree SHAs, the release MR, and both reconstruction branch
    names, consistent with the evidence-only (non-ancestry) linkage this
    plan declares (`kpt5`'s A-FSR-1).
+10. Both reconstruction branches' protection objects are read fresh from
+    the platform API and recorded at all three required checkpoints
+    (creation, pre-merge, post-tag), with no unexplained drift
+    (`mdth`'s B-FSR-SEC-1).
+11. The source branch is proven reprotected to `push_access_levels: No
+    one` before Gate 2 evidence is presented, and the release MR merge
+    is proven to have used the exact-SHA API call, not a UI click
+    (`mdth`'s B-FSR-SEC-2).
+12. A second, independent namespace-absence check runs immediately
+    before the tag push, bound to the exact merge commit/tree, covering
+    every relevant package status (`mdth`'s B-FSR-SEC-3).
+13. The governor coordination record authorizing merge names the exact
+    source/target SHAs, expected hash, and project identifier before the
+    exact-SHA merge call executes (`mdth`'s A-FSR-SEC-1).
 
 ## Stop conditions
 
