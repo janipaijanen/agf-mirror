@@ -89,9 +89,39 @@ advisory_consultation:
       (before any edits); the sync-source head is recorded once after
       the changelog/version-field proof and pipeline exist — the
       required edits between those two points are not themselves drift,
-      only changes after each respective recording are. The named
-      infosec-sentinel's own consultation (distinct from these
-      coder-tester-assisted passes) remains outstanding.
+      only changes after each respective recording are. A round-six
+      exact-head technical review
+      (`20260813T191518Z-coder-tester-6pet.md`) confirmed the fix
+      COMPLETE/CLEAR and flagged that the human contribution-auditor
+      CLEAR and infosec-sentinel's own consultation both needed
+      refreshing at the new head; both refresh requests were filed
+      (`20260813T193341Z-coder-tester-dmjq.md`,
+      `20260813T193344Z-coder-tester-gd2t.md`). A fresh-context Codex
+      security review commissioned by the governor
+      (`20260813T200130Z-coder-tester-8hn8.md`, explicitly not
+      infosec-sentinel's own verdict) then found two further blocking
+      findings and one advisory at that head: `B-FSR-FRESH-1` — the
+      forward-sync merge's "exact-SHA merge" language could be read as
+      claiming atomic target binding, when GitLab's merge API only pins
+      the source branch's HEAD; fixed by stating the non-atomicity
+      plainly, citing the already-governed absence of merge-train/
+      merged-results support on this project's GitLab tier
+      (`coordination-publication-rule.md`), and making the post-merge
+      check (actual merge-commit parent vs. recorded sync-target head)
+      the defined detection-and-remediation control, not prevention.
+      `B-FSR-FRESH-2` — the frozen-out negative proof was a curated
+      2-item named list rather than a structural check; fixed by
+      switching to attribution-based verification (every file in the
+      reconstructed tree's diff-from-base must be attributable to a
+      named allowlisted commit's own diff) and independently
+      reproducing the v2.6.0 application's actual file list in a scratch
+      worktree to confirm it: exactly 10 files, all attributable, no
+      role-YAML/manifest/doc/rule-path leakage. `A-FSR-FRESH-1`
+      (advisory) — added a protected-tag-rule object re-read at the
+      pre-tag and post-publication checkpoints, alongside the existing
+      namespace-absence re-reads. The named infosec-sentinel's own
+      consultation (distinct from these coder-tester-assisted and
+      fresh-context passes) remains outstanding.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -274,10 +304,19 @@ the existing "Maintenance-line exception" section (same file, same
 >      acceptable but the governing plan must state which) equals the
 >      value the governing plan recorded at authoring time. A mismatch
 >      is a fail-closed condition (see below), not a discretionary call.
->    - **Frozen-out-set negative check:** grep or otherwise search the
->      resulting tree for every named item in the frozen-out set (file
->      paths, manifest entries, changelog section markers) and prove
->      zero matches.
+>    - **Frozen-out negative proof: structural, not a curated named
+>      list.** A hand-picked list of "items that must be absent" cannot
+>      be proven complete — it only catches whatever the plan's author
+>      happened to think of. Instead: compute `git diff --stat` of the
+>      resulting tree against the stable base, and independently compute
+>      `git diff --stat` (or full diff) of each allowlisted commit
+>      against its own immediate parent. Every file path in the
+>      resulting tree's diff-from-base must appear in at least one
+>      allowlisted commit's own diff. **Any file path present in the
+>      resulting diff that is not attributable to a named allowlisted
+>      commit is itself the negative-proof failure** — no separate named
+>      list is needed or sufficient. Record the full attributed file list
+>      as Gate 2 evidence.
 >    Both proofs are exact-head Gate 2 evidence, not advisory.
 > 6. Exact-head Gate 2 remains binding governor authority, applying the
 >    same standard the maintenance-line exception applies: the named SHA
@@ -322,6 +361,17 @@ the existing "Maintenance-line exception" section (same file, same
 > treated as equivalent to the earlier result. After publication, re-read
 > each namespace and bind its resulting immutable identity/digest to the
 > tag pipeline as evidence.
+>
+> **Protected-tag-rule object, not just namespace absence.** The
+> eligibility checklist's protected-tag-rule check (naming the exact
+> intended tag) is also a point-in-time result. Re-read the exact
+> protected-tag-rule object via the platform API immediately before the
+> tag push (same checkpoint as the namespace recheck above) and record
+> it as evidence; a rule that no longer matches the exact intended tag,
+> or that has been removed or widened, stops the release under the
+> fail-closed section below. Re-read it once more after publication and
+> bind the confirmed rule state to the tag-pipeline evidence, alongside
+> the namespace identities.
 >
 > ### Metadata-forward synchronization (content-preserving, main untouched)
 >
@@ -399,19 +449,44 @@ the existing "Maintenance-line exception" section (same file, same
 >    fresh exact-head Gate 2 review before proceeding — exactly as a
 >    stable-base or protected-target drift invalidates the reconstruction
 >    release merge under the fail-closed section below.
-> 6. **Exact-SHA merge, not a branch-name merge.** Immediately before
->    merging the forward-sync MR, re-read `main`'s current tip via the
->    platform API and require it to equal the recorded sync-target head
->    exactly; a mismatch triggers step 5's target-drift refresh, not a
+> 6. **Exact-SHA source merge with a pre-merge target read — not an
+>    atomic target guarantee.** Immediately before merging the
+>    forward-sync MR, re-read `main`'s current tip via the platform API
+>    and require it to equal the recorded sync-target head exactly; a
+>    mismatch triggers step 5's target-drift refresh, not a
 >    proceed-anyway judgment call. Merge only through the platform API's
 >    exact-SHA merge parameter, set to the recorded sync-source head — no
->    branch-name merge, no squash, no rebase.
-> 7. **Post-merge verification.** Immediately after merge, record the
->    resulting merge commit SHA and verify its diff against the recorded
->    sync-target head is limited to exactly the changelog and
+>    branch-name merge, no squash, no rebase. **State plainly: GitLab's
+>    merge API pins the source branch's HEAD (`sha` must match the
+>    source), but has no equivalent parameter for the target branch's
+>    HEAD.** The pre-merge read and the merge call are therefore two
+>    separate operations, not one atomic one — a narrow race window
+>    exists in which another commit could land on `main` between the
+>    read and the merge accepting. This project's GitLab plan tier does
+>    not expose merge-train or merged-results pipelines that would close
+>    this window (already investigated and recorded in
+>    `coordination-publication-rule.md`'s CI-implementation-shape
+>    section); do not re-investigate this per-application. The residual
+>    risk is bounded, not eliminated, and step 7 below is the mandatory
+>    detection-and-remediation control for it — never described as
+>    prevention.
+> 7. **Post-merge verification is the enforcement point for step 6's
+>    race window, not an optional double-check.** Immediately after
+>    merge, record the resulting merge commit SHA and its first-parent
+>    (target-side) parent SHA. If that parent SHA does not exactly equal
+>    the recorded sync-target head, the race in step 6 occurred: `main`
+>    advanced between the pre-merge read and the merge accepting, and
+>    the merge commit's actual diff was not the diff Gate 2 reviewed.
+>    Independently of that check, verify the merge commit's diff against
+>    its actual first-parent is limited to exactly the changelog and
 >    version-field edits from steps 2-3 — proving no code, test, schema,
->    or other file change slipped in through an intervening `main`
->    change between the proof and the merge.
+>    or other file change slipped in. **Remediation on either check
+>    failing:** do not touch the tag or either reconstruction branch (the
+>    published release is unaffected — this step is metadata-only, per
+>    step 8); open a corrective forward-sync MR from a fresh branch at
+>    `main`'s new actual tip, following steps 1-7 again in full, and
+>    treat the defective merge commit as superseded evidence, not as a
+>    silent partial state.
 > 8. If this synchronization fails or is delayed, the published release
 >    remains valid; correct the sync forward without touching the tag or
 >    either reconstruction branch.
@@ -431,12 +506,17 @@ the existing "Maintenance-line exception" section (same file, same
 > construction-to-frozen transition or from its frozen baseline at any
 > point after that transition, the source branch reaching Gate 2
 > evidence without that transition having occurred, the pre-tag-push
-> namespace check finding any non-absence or API ambiguity, or — for the
-> metadata-forward-synchronization step — target drift (`main`'s tip
-> advancing after the sync-target head is recorded) or source drift (the
-> sync branch's head advancing after the sync-source head is recorded,
-> post-proof) that is not resolved by that step's required refresh before
-> merging.
+> namespace check finding any non-absence or API ambiguity, the pre-tag
+> or post-publication protected-tag-rule re-read finding the rule
+> missing, widened, or no longer matching the exact intended tag, or —
+> for the metadata-forward-synchronization step — target drift (`main`'s
+> tip advancing after the sync-target head is recorded) or source drift
+> (the sync branch's head advancing after the sync-source head is
+> recorded, post-proof) that is not resolved by that step's required
+> refresh before merging, or the post-merge check finding the forward-
+> sync merge commit's actual first parent does not match the recorded
+> sync-target head (per that step's own remediation, not a
+> proceed-anyway judgment call).
 
 ---
 
@@ -460,15 +540,44 @@ the existing "Maintenance-line exception" section (same file, same
      both equal
      `baf3afa2e988ef6281236330447e79ec2726477d4f9491d58456d3367abebeae`.
      Byte-identical; case (b) is satisfied.
-- **Frozen-out set (must be absent from the resulting tree):**
-  `agf/agents/web-ux-reviewer.yaml` activation in
-  `agf/agents/MANIFEST.yaml`; `independent-implementation-reviewer`
-  activation/suspension entries in the same manifest; the maintenance-
-  line release exception content in
-  `agf/rules/workflow/release-via-merge-request-rule.md` beyond what
-  already existed at the `v2.5.0` stable tag (i.e., this new frozen-
-  scope-reconstruction section itself is **not** part of v2.6.0's
-  content — it lands on `main` only, per this plan's own scope).
+- **Frozen-out negative proof (structural, per the rule text's
+  attribution method — corrected from a curated named list by fresh-
+  context review finding `B-FSR-FRESH-2`).** Independently computed in
+  a scratch worktree from the exact stable base
+  `f1932a1a486b772ca4353c7fa71c2279132fe0dc`:
+  - `3456c1fa`'s own diff touches exactly 5 files: `.gitlab-ci.yml`,
+    `CHANGELOG.md`, `agf/CHANGELOG.md`,
+    `agf/docs/site/reference/release-artifacts.md`,
+    `docs/plans/20260805T084100Z-drop-aarch64-linux-required-target.md`.
+  - `bcb0fadd`'s first-parent diff touches exactly 7 files: `AGENTS.md`,
+    `CHANGELOG.md`, `agf/CHANGELOG.md`,
+    `docs/reference/coord-visibility.md`,
+    `tooling/rust/crates/agov/src/main.rs`,
+    `tooling/rust/crates/agov/tests/coord_visibility.rs`,
+    `tooling/rust/crates/agov/tests/coord_write.rs`.
+  - The reconstructed tree's `git diff --stat` against the stable base
+    (after both cherry-picks, both `CHANGELOG.md`/`agf/CHANGELOG.md`
+    conflicts resolved by merging, never discarding, either side) is
+    exactly the 10-file union of the two lists above — `.gitlab-ci.yml`,
+    `AGENTS.md`, `CHANGELOG.md`, `agf/CHANGELOG.md`,
+    `agf/docs/site/reference/release-artifacts.md`, the aarch64-drop plan
+    file, `docs/reference/coord-visibility.md`, and the three Rust source/
+    test files. Every path is attributable; nothing else appears. This
+    also empirically confirms the specific groups `B-FSR-FRESH-2` named
+    as unverified — role YAML (`agf/agents/*.yaml`), `MANIFEST.yaml`,
+    `agf/VERSION`, documentation/projection/skill paths, and rule-file
+    paths beyond the two commits' own diffs — are genuinely absent from
+    this reconstruction: by construction, a cherry-pick of a commit's own
+    diff cannot introduce a file that diff never touched. This includes
+    the maintenance-line release exception content in
+    `agf/rules/workflow/release-via-merge-request-rule.md` beyond what
+    already existed at the `v2.5.0` stable tag (this new frozen-scope-
+    reconstruction section itself is **not** part of v2.6.0's content —
+    it lands on `main` only, per this plan's own scope) and the
+    `web-ux-reviewer`/`independent-implementation-reviewer` manifest
+    entries the earlier curated list named — both are correctly absent
+    as a consequence of the structural proof, not because they were
+    separately grepped for.
 - **Deterministic replay proof.** Per the rule text's "either is
   acceptable but the plan must state which": **this plan designates the
   binary base-to-head patch hash as authoritative** (the Git tree hash
@@ -621,6 +730,23 @@ maintenance-line precedent alone).
     after its own recording point triggers a refresh (fresh branch,
     diff, proof, pipeline, and exact-head Gate 2 review) rather than a
     proceed-anyway judgment call.
+16. The forward-sync merge's inherent non-atomicity (GitLab's merge API
+    binds only the source branch's HEAD; no target-branch-HEAD parameter
+    exists) is stated plainly, not described as achieving atomic target
+    binding, and the post-merge check verifies the actual merge commit's
+    first parent against the recorded sync-target head — not merely the
+    file-level diff — with a defined remediation (fresh corrective
+    forward-sync MR, tag and reconstruction branches untouched) on
+    mismatch (`8hn8`'s `B-FSR-FRESH-1`).
+17. The frozen-out negative proof is structural — every file path in the
+    reconstructed tree's diff from the stable base is independently
+    shown attributable to a named allowlisted commit's own diff — not a
+    curated named list of specific paths believed to be at risk
+    (`8hn8`'s `B-FSR-FRESH-2`).
+18. The exact protected-tag-rule object (not only namespace absence) is
+    re-read immediately before the tag push and once more after
+    publication, bound to the tag-pipeline evidence (`8hn8`'s
+    `A-FSR-FRESH-1`).
 
 ## Stop conditions
 
