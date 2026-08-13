@@ -1,0 +1,112 @@
+# Six-surface projection evidence for the frozen-scope-reconstruction
+# release-rule amendment, per
+# agf/rules/workflow/documentation-rule-projection-rule.md.
+# Plan: docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-amendment.md
+# (Gate 1 pending at drafting time)
+
+plan_id: 20260813T155743Z-frozen-scope-reconstruction-rule-amendment
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/review-and-release.md
+  - agf/skills/release/SKILL.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/workflow/release-via-merge-request-rule.md
+    reason: >-
+      New "Frozen-scope reconstruction exception (optional, narrowly
+      eligible)" section added, positioned after the existing
+      "Maintenance-line exception" section, owning the eligibility
+      contract, protected target/source requirements (two branches:
+      reconstruction target + reconstruction source), tree-delta and
+      frozen-out-set proof requirements, tag/publication rules, and
+      metadata-forward synchronization procedure. Neither the standard
+      workflow section nor the maintenance-line exception section is
+      changed. All other surfaces below point to or summarize this
+      contract; none redefine it.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/operate/review-and-release.md
+    reason: >-
+      Adds a "Releases: the frozen-scope reconstruction exception"
+      section immediately after the existing maintenance-line-exception
+      coverage, explaining when this third path applies (a governor-
+      frozen release scope whose approved content is scattered across
+      `main`'s history alongside unrelated later work that must not
+      ship) and linking to the canonical rule for the mechanical
+      contract rather than restating it. States plainly this is rarer
+      than the maintenance-line exception and most adopters will never
+      need it.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/skills/release/SKILL.md
+    reason: >-
+      Extends the existing "Step 0 — Confirm topology (fail-closed to
+      standard)" (added for the maintenance-line exception) with a third
+      named path and its own eligibility gate: a binding governor record
+      naming the frozen scope and stable base, a separate Gate
+      1-approved reconstruction plan, and confirmed absence of any
+      already-tagged RC candidate (which would instead route to the
+      maintenance-line path). Preserves the existing instruction to
+      default to the standard path if any precondition is missing.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - .claude/rules/workflow/release-via-merge-request-rule.md
+    reason: >-
+      Foundry's own active local projection of the canonical rule
+      mirrors the same new section, carrying an explicit "Canonical
+      owner" pointer line so the projection is not mistaken for a second,
+      competing normative source — same pattern the maintenance-line
+      exception's own projection record used.
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          Already points generically to `agf/rules/workflow/` for
+          "branching, releases, code review" content without enumerating
+          individual rules or exceptions. A new section inside an
+          existing rule file needs no new pointer.
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          Same generic directory-level pointer as AGENTS.md; ships
+          unchanged to adopters.
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Does not exist in this repository. Foundry's own
+          assistant-loading path is AGENTS.md plus .claude/rules/
+          (loaded directly by the tool), not a CLAUDE.md pointer file.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    path: agf/rules/workflow/release-via-merge-request-rule.md
+    reason: >-
+      `agov plan projection-check --base-ref origin/main` mechanically
+      validates this manifest file's own shape: all six rows present,
+      every actually-changed Pages/runbook file declared, every declared
+      path resolves. Whether the frozen-scope-reconstruction eligibility
+      fence, tree-delta proof, and frozen-out-set proof are actually
+      honored at release time is evidence-based governor/reviewer
+      judgment at each future use of this exception, not something a
+      validator can decide from this manifest — same reasoning as the
+      maintenance-line exception's own precedent record
+      (20260809T163051Z-v250-maintenance-release-line-rule.yaml). No new
+      mechanical validator is introduced by this plan; none is claimed
+      here.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+      - agf/docs/site/docs/operate/review-and-release.md
+      - agf/skills/release/SKILL.md
+    reason: >-
+      Verified directly against agf/dist/release-manifest.yaml: the
+      `agf/rules/**` glob ships the updated rule file; the
+      `agf/docs/site/**` glob ships the updated adopter page; the
+      `agf/skills/**` glob ships the updated release skill.
+      `.claude/rules/**` is correctly absent from this manifest and from
+      this list — foundry-local only, matching the maintenance-line
+      exception's own precedent record.
