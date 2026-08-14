@@ -180,13 +180,34 @@ advisory_consultation:
       target-HEAD TOCTOU class already fixed for the forward-sync merge
       also applied to the reconstruction **release** merge itself, which
       had never been given the equivalent pre-merge target/source re-read
-      and post-merge parent/tree verification. Fixed — and, unlike the
-      forward-sync case, closed as a genuinely fail-closed control rather
-      than a governor-accepted residual risk, because the release merge
-      executes entirely before the irreversible tag push: a mismatch now
-      stops before any tag, release, package, or namespace is created,
-      with the target marked proof-invalid and abandoned. The named
-      infosec-sentinel's own consultation (distinct from these
+      and post-merge parent/tree verification. Fixed by adding that
+      re-read and verification. A round-thirteen focused infosec recheck
+      (`20260814T070936Z-coder-tester-amjp.md`) then found the round-12
+      fix's own framing overclaimed in two ways: `B-FSR-SEC-R13-1` — the
+      post-merge check compared the merge-result tree to "the tree/patch
+      hash the deterministic-replay proof recorded," which is both a
+      category error (a Git tree OID and a SHA-256 patch hash are
+      different object types) and a temporal one (the deterministic-
+      replay hashes are computed before the release-only metadata change
+      set, while the merge-result tree necessarily includes it).
+      `B-FSR-SEC-R13-2` — the text's "genuinely fail-closed, not a
+      residual-risk acceptance requiring separate governor sign-off"
+      claim overstates the property: it is fail-closed at the
+      publication boundary (no tag/release/namespace on mismatch), but a
+      proof-invalid merge can still land on the isolated protected
+      target before detection, which is post-landing detection relative
+      to that target even though it precedes the tag; `apkm` does not
+      cover this case, since it is scoped to the forward-sync merge only
+      and expressly disclaims release-construction precedent. Fixed: the
+      governor record and post-merge check now name and compare the
+      exact reviewed source HEAD's Git tree OID (recorded only after all
+      release-only metadata edits are frozen), never the pre-metadata
+      patch/tree hash; the "genuinely fail-closed... no separate
+      governor sign-off" claim is removed and replaced with a named open
+      decision for governor Gate 1 (acceptance criterion 20) on whether
+      fail-closed-before-publication with isolated-target detect-and-
+      remediate satisfies `2r8r`, or needs its own scoped exception. The
+      named infosec-sentinel's own consultation (distinct from these
       coder-tester-assisted and fresh-context passes) remains the last
       outstanding item before governor Gate 1.
 ---
@@ -448,8 +469,16 @@ the existing "Maintenance-line exception" section (same file, same
 >    correct — the two are different claims, and only the binding
 >    governor coordination record makes the second one. Before merge,
 >    that record must name: the exact source-branch head SHA, the exact
->    target-branch head SHA, the expected tree/patch hash from the
->    deterministic-replay proof, and the canonical project identifier.
+>    target-branch head SHA, the exact reviewed source HEAD's Git tree
+>    OID — recorded only after all release-only metadata edits are
+>    frozen, and distinct from the pre-metadata deterministic-replay
+>    patch/tree hashes recorded earlier (round-thirteen infosec-aid
+>    review `20260814T070936Z-coder-tester-amjp.md`'s `B-FSR-SEC-R13-1`:
+>    a Git tree OID and a SHA-256 patch hash are different object types
+>    and are never asserted equal to each other; the deterministic-
+>    replay hashes are computed before the metadata change set while
+>    this tree OID is computed after it) — and the canonical project
+>    identifier.
 >    **Immediately before merge, re-read both the target and source
 >    branch heads via the platform API and require each to equal the
 >    exact SHAs the binding governor record names — a mismatch on
@@ -472,21 +501,33 @@ the existing "Maintenance-line exception" section (same file, same
 >    the reviewed target SHA (proving the merge landed on the reviewed
 >    target, not a drifted one), its second parent equals the reviewed
 >    source SHA (proving the exact reviewed content merged, not a
->    substituted branch state), and its resulting tree equals the
->    tree/patch hash the deterministic-replay proof recorded. **Unlike
->    the metadata-forward-sync step's analogous check, a mismatch here
->    is not detect-and-remediate-after-landing — it is a hard stop
->    before the tag.** No tag, release, package, OCI artifact, or other
->    namespace may be created from a mismatched merge commit; mark the
->    target proof-invalid and abandoned, and return to the governor for
->    a fresh protected target rather than proceeding under assumed
->    authority. This is a genuinely fail-closed control, not a residual-
->    risk acceptance requiring separate governor sign-off, because it
->    executes entirely before the irreversible tag push — the same
->    property `apkm`'s exception could not offer the forward-sync step,
->    which by construction runs only after the tag is already published.
->    All of the above is required Gate 2 evidence, matching the
->    maintenance-line exception's own retention-proof requirement.
+>    substituted branch state), and its resulting tree OID equals that
+>    exact reviewed source HEAD's Git tree OID named in the governor
+>    record above. **This is fail-closed at the publication boundary:**
+>    no tag, release, package, OCI artifact, or other namespace may be
+>    created from a mismatched merge commit; mark the target proof-
+>    invalid and abandoned, and return to the governor for a fresh
+>    protected target rather than proceeding under assumed authority.
+>    **This is narrower than literal prevention of target drift, and this
+>    text no longer claims otherwise (round-thirteen infosec-aid review
+>    `20260814T070936Z-coder-tester-amjp.md`'s `B-FSR-SEC-R13-2` correctly
+>    rejected the stronger claim made in an earlier revision): at check
+>    time, a proof-invalid merge has already landed on the protected
+>    reconstruction target — dedicated-target containment makes the
+>    impact far lower than a proof-invalid merge to `main`, but it
+>    remains post-landing detection relative to that target, not literal
+>    prevention.** `apkm` expressly limits its accepted detect-and-
+>    remediate residual to the post-release metadata-forward-sync merge
+>    and expressly disclaims release-construction precedent, so this plan
+>    cannot conclude on its own that no governor authority is needed for
+>    this property. **Whether fail-closed-before-publication with
+>    isolated-target detect-and-remediate satisfies `2r8r`'s
+>    fail-closed-on-target-drift requirement, or needs its own scoped
+>    residual-risk exception distinct from `apkm`, is a named open
+>    decision for governor Gate 1 (acceptance criterion 20 below), not
+>    resolved by this text.** All of the above is required Gate 2
+>    evidence, matching the maintenance-line exception's own
+>    retention-proof requirement.
 >
 > ### Tag and publication
 >
@@ -680,9 +721,13 @@ the existing "Maintenance-line exception" section (same file, same
 > drift in the stable base tag identity, drift in the protected target
 > branch's resolved SHA (enforced by the release merge's mandatory
 > pre-merge target/source re-read and post-merge first-parent/second-
-> parent/tree verification — round-twelve infosec-aid `2egn`'s
-> `B-FSR-SEC-R12-1`; a mismatch here is a hard stop before the tag, not
-> a residual risk), drift in the reconstruction source branch's
+> parent/tree-OID verification — round-twelve infosec-aid `2egn`'s
+> `B-FSR-SEC-R12-1`; a mismatch here is fail-closed before the tag, but
+> round-thirteen infosec-aid `amjp`'s `B-FSR-SEC-R13-2` found this is
+> post-landing detection relative to the isolated protected target, not
+> literal prevention of target drift — see acceptance criterion 20 for
+> the resulting named open governor decision), drift in the
+> reconstruction source branch's
 > head between review and merge, a tree-delta or frozen-out-set proof
 > failure, an allowlist commit whose own Gate 2 approval cannot be
 > independently re-confirmed at merge time, the target branch's
@@ -990,15 +1035,34 @@ maintenance-line precedent alone).
     cites explicitly, including the platform-reassessment condition for
     any future reuse of this exception (round-seven review `adjp`'s
     `B-FSR-R7-1`, resolved).
-20. The reconstruction **release** merge (distinct from the forward-
-    sync merge) re-reads both the reviewed target and source SHAs
-    immediately before merging and, immediately after, verifies the
-    resulting merge commit's first parent, second parent, and tree
-    against the reviewed context — genuinely fail-closed (a mismatch
-    stops before the tag, not detect-and-remediate) because it executes
-    entirely before the irreversible tag push, unlike the
-    forward-sync step which by construction runs only after
-    publication (round-twelve infosec-aid `2egn`'s `B-FSR-SEC-R12-1`).
+20. **Open — governor disposition required.** The reconstruction
+    **release** merge (distinct from the forward-sync merge) re-reads
+    both the reviewed target and source SHAs immediately before merging
+    and, immediately after, verifies the resulting merge commit's first
+    parent, second parent, and tree OID against the reviewed context
+    (round-twelve infosec-aid `2egn`'s `B-FSR-SEC-R12-1`). This is
+    fail-closed **at the publication boundary** — no tag, release, or
+    namespace is created on mismatch — but round-thirteen infosec-aid
+    review (`20260814T070936Z-coder-tester-amjp.md`)'s `B-FSR-SEC-R13-2`
+    correctly found an earlier revision of this text overclaimed that as
+    literal prevention of target drift: a proof-invalid merge can still
+    land on the isolated, then-abandoned protected target before
+    detection. `apkm` (criterion 19) does not cover this case — it is
+    scoped to the forward-sync merge only and expressly disclaims
+    release-construction precedent. Whether fail-closed-before-
+    publication with isolated-target detect-and-remediate satisfies
+    `2r8r`'s fail-closed requirement, or needs its own scoped governor
+    exception, is a named open decision for governor Gate 1, not
+    resolved by this text.
+21. **Satisfied.** The release merge's pre-merge governor record and
+    post-merge check name and compare the exact reviewed source HEAD's
+    Git tree OID — recorded only after all release-only metadata edits
+    are frozen — never the pre-metadata deterministic-replay patch/tree
+    hash, and never assert a Git tree OID equal to a SHA-256 patch hash
+    (round-thirteen infosec-aid `amjp`'s `B-FSR-SEC-R13-1`: a category
+    and temporal error in an earlier revision, since the deterministic-
+    replay hashes are computed before the metadata change set while the
+    merge-result tree necessarily includes it).
 
 ## Stop conditions
 
@@ -1017,8 +1081,8 @@ executed and any of `apkm`'s mandatory boundaries (acceptance criterion
 scoped to those boundaries holding, not an unconditional clearance, and
 a boundary failing at execution time is itself a stop condition, not a
 discretionary call; **or the reconstruction release merge's post-merge
-verification (acceptance criterion 20) finds the merge commit's first
-parent, second parent, or tree does not match the reviewed target,
+verification (acceptance criteria 20-21) finds the merge commit's first
+parent, second parent, or tree OID does not match the reviewed target,
 source, or release context** — no tag, release, package, OCI artifact,
 or other namespace may be created from that merge commit; mark the
 target proof-invalid and abandoned and return to the governor for a
