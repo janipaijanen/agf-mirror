@@ -151,9 +151,16 @@ advisory_consultation:
       regions. Re-derived independently twice in fresh scratch worktrees
       with identical resulting hashes both times; those hashes now
       supersede every earlier round's informally-produced values. The
-      named infosec-sentinel's own consultation (distinct from these
-      coder-tester-assisted and fresh-context passes) remains outstanding,
-      alongside the governor decision on `B-FSR-R7-1`.
+      governor then decided `B-FSR-R7-1`
+      (`20260814T040118Z-governor-reviewer-apkm.md`): detect-and-
+      remediate is accepted as a narrow, scoped exception to `2r8r` for
+      this post-release metadata-forward-sync merge only, conditioned on
+      named mandatory boundaries plus a new platform-reassessment
+      condition for any future reuse — reflected in this revision
+      (acceptance criterion 19 now satisfied). The named
+      infosec-sentinel's own consultation (distinct from these
+      coder-tester-assisted and fresh-context passes) remains the last
+      outstanding item before governor Gate 1.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -574,25 +581,37 @@ the existing "Maintenance-line exception" section (same file, same
 >    treat the defective merge commit as superseded evidence, not as a
 >    silent partial state.
 >
->    **Open governance question, not settled by this text (round-seven
->    review `adjp`'s `B-FSR-R7-1`).** Governor decision `2r8r` requires
->    fail-closed behavior on target drift — preventing a proof-invalid
->    merge from landing, not detecting and remediating it afterward.
->    Steps 6-7 above are this plan's best mitigation given a verified
->    platform constraint (no GitLab merge-train/merged-results support on
->    this project's tier, no target-HEAD-pinning merge parameter), but
->    detect-and-remediate-after-landing is not the same property as
->    fail-closed-before-proceeding, and a planner-architect plan does not
->    have standing authority to narrow a standing governor decision's
->    requirement to a weaker one. Whether this specific, narrow,
->    metadata-only residual risk is an acceptable substitute for literal
->    prevention — or whether a stronger control (e.g., a human operator
->    manually confirming no competing merge is in flight on `main`
->    immediately before and during this one merge, as a bounded-but-not-
->    atomic serialization) is required instead — is an explicit binding
->    governor decision this plan requests separately, not a conclusion
->    this text draws for itself. See the accompanying coordination
->    record.
+>    **Resolved by binding governor decision (round-seven review
+>    `adjp`'s `B-FSR-R7-1`, decided by
+>    `20260814T040118Z-governor-reviewer-apkm.md`).** Governor decision
+>    `2r8r` requires fail-closed behavior on target drift generally; a
+>    planner-architect plan does not have standing authority to narrow
+>    that requirement on its own, so this exact question was routed to
+>    the governor rather than settled by plan text (see the prior
+>    revision's coordination record `spkh`). The governor has now
+>    explicitly decided: detect-and-remediate (steps 6-7 above) is
+>    accepted as a **narrow, scoped exception** to `2r8r`'s literal
+>    fail-closed requirement, **only** for this post-release
+>    metadata-forward-sync merge — never described as equivalent to
+>    atomic compare-and-swap, and never treated as a precedent for
+>    ordinary feature, governance, release-construction, or any other
+>    forward-sync merge. The exception holds only while all of `apkm`'s
+>    mandatory boundaries remain true, each already reflected above:
+>    the sync changes only the governed metadata surfaces (step 3);
+>    immediately-before-merge target re-read and exact-source-SHA-only
+>    merge (step 6); immediately-after-merge parent-SHA and diff checks
+>    (step 7); a mismatch is a proof-invalid merge requiring a fresh
+>    corrective MR through the full process, tag and reconstruction refs
+>    untouched (step 7's remediation); and human observation of merge
+>    activity is optional additional care, never the security property
+>    itself (never claimed as such anywhere in this section). **One
+>    additional condition `apkm` adds, not previously stated here:** if
+>    GitLab later supplies a usable target-bound merge parameter, merge
+>    train, or equivalent serialization control, that stronger mechanism
+>    must be evaluated before this exception is reused for any future
+>    application of the frozen-scope-reconstruction rule — do not assume
+>    the platform constraint checked at this application's authoring
+>    time still holds at a later one.
 > 8. If this synchronization fails or is delayed, the published release
 >    remains valid; correct the sync forward without touching the tag or
 >    either reconstruction branch.
@@ -900,14 +919,15 @@ maintenance-line precedent alone).
     re-read immediately before the tag push and once more after
     publication, bound to the tag-pipeline evidence (`8hn8`'s
     `A-FSR-FRESH-1`).
-19. **Open, not yet satisfied at this plan head:** an explicit binding
-    governor decision exists on whether detect-and-remediate-after-
-    landing (criterion 16) is an acceptable substitute for `2r8r`'s
-    literal fail-closed-on-target-drift requirement for the forward-sync
-    merge specifically, or whether a stronger serialization control is
-    required instead (round-seven review `adjp`'s `B-FSR-R7-1`). This
-    plan does not claim this criterion satisfied by its own text; Gate 1
-    cannot close on this point until the governor decides.
+19. **Satisfied.** An explicit binding governor decision
+    (`20260814T040118Z-governor-reviewer-apkm.md`) accepts
+    detect-and-remediate-after-landing (criterion 16) as a narrow,
+    scoped exception to `2r8r`'s literal fail-closed-on-target-drift
+    requirement, for this post-release metadata-forward-sync merge
+    only, conditioned on the mandatory boundaries the plan text now
+    cites explicitly, including the platform-reassessment condition for
+    any future reuse of this exception (round-seven review `adjp`'s
+    `B-FSR-R7-1`, resolved).
 
 ## Stop conditions
 
@@ -921,6 +941,8 @@ check fails for any allowlisted merge commit; the forward-sync's
 governed version-surface list cannot be updated together (no partial
 sync); contribution-auditor/infosec-sentinel raise a finding this plan
 does not already address; **or the forward-sync merge is about to be
-executed and acceptance criterion 19's governor decision has not yet
-been made** — the plan's own text is not authority to proceed on that
-point regardless of how many other rounds have cleared.
+executed and any of `apkm`'s mandatory boundaries (acceptance criterion
+19) does not hold at that exact moment** — the governor's decision is
+scoped to those boundaries holding, not an unconditional clearance, and
+a boundary failing at execution time is itself a stop condition, not a
+discretionary call.
