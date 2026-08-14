@@ -1,6 +1,9 @@
 ---
 id: frozen-scope-reconstruction-rule-amendment
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-14T07:44:27Z
+gate1_decision_record: 20260814T074427Z-governor-reviewer-33br.md
 topic: frozen-scope-reconstruction-rule-amendment
 advisory_consultation:
   - role: contribution-auditor
@@ -39,7 +42,7 @@ advisory_consultation:
       for Gate 1 consideration on the conjunctive-eligibility, per-use
       binding-freeze, fail-closed-to-governor terms this plan states.
   - role: infosec-sentinel
-    status: consulted
+    status: waived
     reason: >-
       Named as required consultation by the same governor decision, item
       2: "infosec-sentinel is consulted on protected refs, approval
@@ -208,8 +211,21 @@ advisory_consultation:
       fail-closed-before-publication with isolated-target detect-and-
       remediate satisfies `2r8r`, or needs its own scoped exception. The
       named infosec-sentinel's own consultation (distinct from these
-      coder-tester-assisted and fresh-context passes) remains the last
-      outstanding item before governor Gate 1.
+      coder-tester-assisted and fresh-context passes) remained the last
+      outstanding item before governor Gate 1. **Waived by binding
+      governor decision** (`20260814T074427Z-governor-reviewer-33br.md`,
+      decision 2): the configured `infosec-sentinel` is the CI actor
+      `agov-validate-infosec`, whose governed blocking authority is
+      limited to its configured mechanical checks — it cannot author the
+      semantic protected-ref, approval-integrity, namespace, and
+      merge-race review this plan requires. The exact-head pipeline
+      succeeding is mechanical evidence, not a semantic role
+      disposition. The governor explicitly waived the named consultation
+      for this MR and exact head; the extensive coder-tester security
+      reviews are retained as advisory evidence and are not reattributed
+      to infosec-sentinel. This waiver is plan-specific and does not
+      expand Codex's role authority or establish that future security
+      consultations may be silently substituted.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -1035,25 +1051,26 @@ maintenance-line precedent alone).
     cites explicitly, including the platform-reassessment condition for
     any future reuse of this exception (round-seven review `adjp`'s
     `B-FSR-R7-1`, resolved).
-20. **Open — governor disposition required.** The reconstruction
-    **release** merge (distinct from the forward-sync merge) re-reads
-    both the reviewed target and source SHAs immediately before merging
-    and, immediately after, verifies the resulting merge commit's first
-    parent, second parent, and tree OID against the reviewed context
-    (round-twelve infosec-aid `2egn`'s `B-FSR-SEC-R12-1`). This is
-    fail-closed **at the publication boundary** — no tag, release, or
-    namespace is created on mismatch — but round-thirteen infosec-aid
-    review (`20260814T070936Z-coder-tester-amjp.md`)'s `B-FSR-SEC-R13-2`
+20. **Satisfied.** The reconstruction **release** merge (distinct from
+    the forward-sync merge) re-reads both the reviewed target and source
+    SHAs immediately before merging and, immediately after, verifies the
+    resulting merge commit's first parent, second parent, and tree OID
+    against the reviewed context (round-twelve infosec-aid `2egn`'s
+    `B-FSR-SEC-R12-1`). This is fail-closed **at the publication
+    boundary** — no tag, release, or namespace is created on mismatch —
+    but round-thirteen infosec-aid review
+    (`20260814T070936Z-coder-tester-amjp.md`)'s `B-FSR-SEC-R13-2`
     correctly found an earlier revision of this text overclaimed that as
     literal prevention of target drift: a proof-invalid merge can still
     land on the isolated, then-abandoned protected target before
     detection. `apkm` (criterion 19) does not cover this case — it is
     scoped to the forward-sync merge only and expressly disclaims
-    release-construction precedent. Whether fail-closed-before-
-    publication with isolated-target detect-and-remediate satisfies
-    `2r8r`'s fail-closed requirement, or needs its own scoped governor
-    exception, is a named open decision for governor Gate 1, not
-    resolved by this text.
+    release-construction precedent. An explicit binding governor decision
+    (`20260814T074427Z-governor-reviewer-33br.md`, decision 1) accepts
+    this residual — for this frozen-scope reconstruction rule and its
+    v2.6.0 application only — as a separate scoped exception from
+    `apkm`, conditioned on every boundary this criterion's text already
+    states, plus a platform-reassessment condition for any future reuse.
 21. **Satisfied.** The release merge's pre-merge governor record and
     post-merge check name and compare the exact reviewed source HEAD's
     Git tree OID — recorded only after all release-only metadata edits
