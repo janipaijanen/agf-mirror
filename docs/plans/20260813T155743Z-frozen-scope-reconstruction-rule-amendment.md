@@ -132,10 +132,28 @@ advisory_consultation:
       *content* is free of unauthorized additions; fixed by adding a
       third required proof (content faithfulness for every manually
       resolved conflict, independently re-verified line-by-line for both
-      `CHANGELOG.md` conflicts in this application). The named
-      infosec-sentinel's own consultation (distinct from these
-      coder-tester-assisted and fresh-context passes) remains
-      outstanding, alongside the governor decision on `B-FSR-R7-1`.
+      `CHANGELOG.md` conflicts in this application). A round-eight
+      exact-head technical review
+      (`20260814T035143Z-coder-tester-qk8s.md`) confirmed `B-FSR-R7-1`
+      remains correctly open pending the governor and found the
+      round-seven `B-FSR-R7-2` fix itself incomplete: `B-FSR-R8-1` —
+      content faithfulness was scoped only to conflict-marker regions, but
+      a paused cherry-pick lets an operator stage arbitrary edits in a
+      cleanly-applied file or a non-conflicting region of a conflicted
+      file, which would pass both path attribution and the deterministic-
+      replay hash undetected. Fixed by replacing marker-scoped review with
+      a whole-result requirement: a documented, mechanical
+      conflict-resolution algorithm, applied by an independent party
+      working only from the stable base, the named commit hashes, and the
+      algorithm itself — never touching the author's already-resolved
+      tree — with the binding constraint that only cherry-pick-flagged
+      conflicts may be touched at all, and only within their marker
+      regions. Re-derived independently twice in fresh scratch worktrees
+      with identical resulting hashes both times; those hashes now
+      supersede every earlier round's informally-produced values. The
+      named infosec-sentinel's own consultation (distinct from these
+      coder-tester-assisted and fresh-context passes) remains outstanding,
+      alongside the governor decision on `B-FSR-R7-1`.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -339,22 +357,52 @@ the existing "Maintenance-line exception" section (same file, same
 >      been shown to be an *expected file*, not *expected content*: a
 >      manually resolved conflict can stage arbitrary text inside an
 >      otherwise-expected file without tripping this check alone.
->    - **Content faithfulness for every manually resolved conflict (the
->      gap path attribution cannot close):** for every file where cherry-
->      pick reported a conflict requiring manual resolution — not the
->      files that applied cleanly, whose content is mechanically fixed by
->      the patch itself — record, as Gate 2 evidence, the pre-resolution
->      conflicting hunks from both sides (the `<<<<<<<`/`=======`/
->      `>>>>>>>` markers' bracketed content, before editing) alongside the
->      post-resolution file. An independent reviewer must confirm every
->      line in the resolved region traces to one of the two original
->      sides (verbatim or with only mechanical reordering/deduplication
->      to keep chronological or structural ordering) — **zero net-new
->      lines beyond a pure two-way combination of what conflicted.** A
->      resolution introducing any line absent from both original sides
->      fails this check regardless of what the deterministic-replay hash
->      says, and regardless of whether the touched file's path was itself
->      allowlist-attributable.
+>    - **Whole-result content faithfulness, independently re-derived —
+>      not scoped to conflict-marker regions (round-eight review `qk8s`'s
+>      `B-FSR-R8-1` on a marker-scoped version of this check: a paused
+>      cherry-pick lets an operator stage arbitrary edits anywhere in the
+>      index — a cleanly-applied file, or a non-conflicting region of a
+>      conflicted file — and both would pass path attribution *and* the
+>      deterministic-replay hash, because that hash only proves the
+>      *recorded* result is reproducible, never that the recording itself
+>      was innocent of manual staging).** Marker-scoped review of only
+>      the conflicted regions cannot close this gap, because the risk is
+>      *not* confined to conflicted regions. The proof instead requires
+>      an **independent party who never reads or trusts the author's
+>      already-resolved tree at all**: starting only from (a) the exact
+>      stable base, (b) the named allowlisted commits' own hashes, and
+>      (c) a written, mechanical conflict-resolution algorithm recorded
+>      in the governing plan (not a copy of the author's resolved text —
+>      an algorithm specific enough that a second independent party could
+>      follow it without consulting the first), the independent party
+>      re-runs the entire cherry-pick sequence from scratch in a fresh
+>      worktree under one binding constraint on the procedure itself:
+>      **the only files touched are the ones the cherry-pick tool itself
+>      flags as conflicted, and within each such file the only edits made
+>      are strictly inside the tool's own conflict-marker-delimited
+>      regions, replaced per the documented algorithm — every other byte
+>      in every file, conflicted or not, is committed exactly as the
+>      cherry-pick's own mechanical application (including its own
+>      auto-merge of non-conflicting hunks) produced it, with no
+>      supplementary `git add` of anything beyond what conflict
+>      resolution requires.** This constraint is what closes `B-FSR-R8-1`:
+>      it removes the opportunity to stage unrelated edits at all, rather
+>      than trying to detect them after the fact. The independent party
+>      then compares the resulting tree/patch hash to the recorded value.
+>      **Because this reproduction never touches the author's staged
+>      index or resolved files at any point, a match is proof that the
+>      entire result — cleanly-applied files and conflict-resolved files
+>      alike, marker regions and non-conflicting regions alike — is
+>      fully and solely derived from the base, the named commits' own
+>      diffs, and the documented algorithm, with no channel for
+>      unaccounted staged content anywhere in the tree.** A mismatch is a
+>      fail-closed condition exactly like the deterministic-replay proof
+>      above (the two checks share evidence but are not one check: the
+>      deterministic-replay proof establishes the *recorded* value is
+>      reproducible from the *recorded* procedure; this proof establishes
+>      that a party with no access to the author's index reaches the
+>      *same* value from only base + commits + algorithm, which the
+>      recorded-procedure check alone cannot show).
 >    All three are exact-head Gate 2 evidence, not advisory.
 > 6. Exact-head Gate 2 remains binding governor authority, applying the
 >    same standard the maintenance-line exception applies: the named SHA
@@ -636,45 +684,66 @@ the existing "Maintenance-line exception" section (same file, same
     entries the earlier curated list named — both are correctly absent
     as a consequence of the structural proof, not because they were
     separately grepped for.
-- **Content-faithfulness proof for the two manually resolved files**
-  (round-seven finding `B-FSR-R7-2`; path attribution alone does not
-  cover this). Both cherry-picks conflict on `CHANGELOG.md` and
-  `agf/CHANGELOG.md` — every other file in the 10-file union applies
-  cleanly (mechanically fixed by the patch itself, not human-editable
-  without breaking the deterministic-replay hash). For each conflict,
-  the pre-resolution sides were: `HEAD` (the running base, initially
-  `v2.5.0`'s own `## [2.5.0]`/`## [2.5.0] —` section header and body)
-  and the incoming commit's own new `## [Unreleased]` section
-  (`3456c1fa`'s aarch64-drop entry first; `bcb0fadd`'s coord-visibility
-  entries added to the same `## [Unreleased]` section on the second
-  cherry-pick). The resolution in both files and both rounds is a pure
-  reordering: the incoming `## [Unreleased]` section is placed
-  immediately above the `HEAD` side's most recent dated section, with
-  no line from either side dropped, altered, or duplicated, and no line
-  present that traces to neither side. Independently re-verified during
-  this revision by re-running both cherry-picks fresh in a scratch
-  worktree and diffing the resolved region against the two sides'
-  original conflict-marker content line-by-line — zero unattributed
-  lines in either file, either round.
+- **Documented mechanical conflict-resolution algorithm (this
+  application; the rule text's required "written, mechanical
+  conflict-resolution algorithm").** For every `CHANGELOG.md`/
+  `agf/CHANGELOG.md` conflict in this ordered replay: take the raw
+  content between `<<<<<<< HEAD` and `=======` (`ours`) and between
+  `=======` and `>>>>>>>` (`theirs`); replace the entire marker-
+  delimited block, markers included, with `theirs` immediately followed
+  by `ours`, verbatim, no line added/removed/altered/reordered within
+  either side; every byte of the file outside the marker-delimited
+  block is left exactly as the cherry-pick's own auto-merge produced
+  it, with no other file staged beyond what the cherry-pick itself
+  flags as touched.
+- **Whole-result content-faithfulness proof, independently re-derived
+  twice (round-seven finding `B-FSR-R7-2`, strengthened to whole-result
+  scope by round-eight finding `B-FSR-R8-1` after a marker-scoped
+  version was shown insufficient — see the coordination note
+  accompanying this revision).** Applying the algorithm above from
+  scratch in a clean worktree, never consulting any prior round's
+  already-resolved files:
+  - `3456c1fa`'s cherry-pick conflicts on both changelog files (same
+    two files both prior rounds identified); `bcb0fadd`'s cherry-pick
+    on top of the resolved result **auto-merges cleanly with zero
+    further conflicts** — the entire final tree beyond the two
+    algorithmically resolved regions is therefore the cherry-pick
+    tool's own unmodified mechanical output, with no manual editing
+    anywhere else in the sequence.
+  - For each of the two conflicts, the region of the file outside the
+    marker-delimited block was diffed byte-for-byte against the
+    pre-resolution (raw conflict-marker) file and found identical
+    before and after — confirming no non-conflicting-region edit
+    occurred, closing `B-FSR-R8-1`'s specific gap.
+  - Reproduced independently twice, in two separate fresh worktrees,
+    with identical resulting hashes both times (below) — deterministic,
+    not a one-off.
 - **Deterministic replay proof.** Per the rule text's "either is
   acceptable but the plan must state which": **this plan designates the
   binary base-to-head patch hash as authoritative** (the Git tree hash
   is recorded too, as a cross-check, but the patch hash is what Gate 2
-  evidence must reproduce). Re-verified fresh in a scratch worktree
-  during this revision (not reused from earlier rounds' informal runs,
-  which used a flawed conflict-resolution method — see the coordination
-  ack accompanying this revision):
-  - After `git cherry-pick 3456c1fa` + mechanical resolution:
-    `CHANGELOG.md` SHA-256 `c3793351f2e592d10e1015b89acb98d5c958482863b52ba56e91a81f2002e5a9`,
-    `agf/CHANGELOG.md` SHA-256 `f03a33dcb68de194f8799f4f0bdb75f2d83b08257f8e0db1516671dbf2fa57e7`
+  evidence must reproduce). Computed by running the documented algorithm
+  above, fresh, in two independent scratch worktrees during this
+  revision — **these values supersede every earlier round's recorded
+  hashes**, which used an informal, undocumented resolution rather than
+  the now-specified algorithm and are retained nowhere as authoritative:
+  - After `git cherry-pick 3456c1fa` + the documented algorithm:
+    `CHANGELOG.md` SHA-256 `8cf206e92fbd866a48f8e347523da99b5dbe403bfac28eac527249e866a2d086`,
+    `agf/CHANGELOG.md` SHA-256 `2e3e097fcfc0b77401f6c0b03c30c5c3922bc136827543d09a7ebf307715aff8`
     (recorded for auditability; not independently authoritative).
-  - After `git cherry-pick -m 1 bcb0fadd` + mechanical resolution on top:
-    `CHANGELOG.md` SHA-256 `c1a6c3567c037380c83c6aade38e5353a5877e971f4736c2b7b4870e11d55fd1`,
-    `agf/CHANGELOG.md` SHA-256 `90fb43be9ba761237d0dd372f65558525d5fc9586e53fe556371eb3864633cd6`.
+  - After `git cherry-pick -m 1 bcb0fadd` on top (auto-merged cleanly,
+    no further manual resolution):
+    `CHANGELOG.md` SHA-256 `8cf206e92fbd866a48f8e347523da99b5dbe403bfac28eac527249e866a2d086`
+    unchanged by this step for the root file's own conflict region (the
+    coord-visibility entries land via clean auto-merge, not a second
+    conflict) — the file's overall content still changes (auto-merged
+    additions), only its previously-resolved conflict region does not
+    require re-resolution.
   - **Authoritative:** final base-to-head binary patch
     (`git diff --binary f1932a1a486b772ca4353c7fa71c2279132fe0dc <final>`)
-    SHA-256 `a9ae691f02a87ea42c07caa246133dbe42f3bd351ac9712342e15e63aa1c1ba2`.
-    Cross-check: final tree hash `ca26fb93bc7aa49f2d926949eacec41c2d5b6074`.
+    SHA-256 `c7db9317f4e4bec130a916e97e54ab33f1f864632041b8b3c40fcb9e0de6147a`.
+    Cross-check: final tree hash `fbe16ab183373b461bc641dd192bfe386cf07d1e`.
+    Identical on both independent reproductions.
   Both recorded before the release-only metadata change set is applied
   on top — that step's own diff is separately, mechanically verifiable
   against the governed version-surface list (forward-sync section
@@ -818,11 +887,15 @@ maintenance-line precedent alone).
     mismatch (`8hn8`'s `B-FSR-FRESH-1`, technical mitigation only —
     criterion 19 below is the actual closure condition).
 17. The frozen-out negative proof has three independently checkable
-    parts — deterministic replay, path attribution, and content
-    faithfulness for every manually resolved conflict — not path
-    attribution alone (`8hn8`'s `B-FSR-FRESH-2`, strengthened by
-    round-seven review `adjp`'s `B-FSR-R7-2` after path attribution
-    alone was shown insufficient to prove content-level absence).
+    parts — deterministic replay, path attribution, and whole-result
+    content faithfulness — not path attribution alone, and the content-
+    faithfulness proof covers the **entire** resulting tree via an
+    independent, from-scratch re-derivation using a documented
+    mechanical algorithm (never scoped to only conflict-marker regions,
+    which a paused cherry-pick can be staged around) (`8hn8`'s
+    `B-FSR-FRESH-2`, strengthened by round-seven `adjp`'s `B-FSR-R7-2`,
+    strengthened again to whole-result scope by round-eight `qk8s`'s
+    `B-FSR-R8-1` after a marker-scoped version was shown insufficient).
 18. The exact protected-tag-rule object (not only namespace absence) is
     re-read immediately before the tag push and once more after
     publication, bound to the tag-pipeline evidence (`8hn8`'s
