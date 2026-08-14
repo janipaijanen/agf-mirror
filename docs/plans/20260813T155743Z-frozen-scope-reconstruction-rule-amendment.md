@@ -157,10 +157,24 @@ advisory_consultation:
       this post-release metadata-forward-sync merge only, conditioned on
       named mandatory boundaries plus a new platform-reassessment
       condition for any future reuse — reflected in this revision
-      (acceptance criterion 19 now satisfied). The named
-      infosec-sentinel's own consultation (distinct from these
-      coder-tester-assisted and fresh-context passes) remains the last
-      outstanding item before governor Gate 1.
+      (acceptance criterion 19 now satisfied). Two renewed coder-tester
+      technical reviews at the following two heads
+      (`20260814T041436Z-coder-tester-qb1n.md`,
+      `20260814T042055Z-coder-tester-5gm6.md`) confirmed `B-FSR-R8-1`
+      technically resolved and `B-FSR-R9-2` (the `apkm`-consumption fix)
+      resolved, but found one bounded record-correctness defect,
+      `B-FSR-R9-1`: the deterministic-replay evidence paragraph
+      attributed the whole-file changelog hashes to the wrong cherry-pick
+      step — the values actually produced after `bcb0fadd`'s clean
+      auto-merge were mislabeled as the values after `3456c1fa` alone,
+      and the root file was incorrectly described as "unchanged" by the
+      second step despite the paragraph's own adjacent statement that its
+      content does change. Fixed by re-attributing all four intermediate
+      hashes to their correct step boundaries; the final authoritative
+      patch/tree hashes were already correct and are unchanged by this
+      fix. The named infosec-sentinel's own consultation (distinct from
+      these coder-tester-assisted and fresh-context passes) remains the
+      last outstanding item before governor Gate 1.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -747,17 +761,18 @@ the existing "Maintenance-line exception" section (same file, same
   hashes**, which used an informal, undocumented resolution rather than
   the now-specified algorithm and are retained nowhere as authoritative:
   - After `git cherry-pick 3456c1fa` + the documented algorithm:
-    `CHANGELOG.md` SHA-256 `8cf206e92fbd866a48f8e347523da99b5dbe403bfac28eac527249e866a2d086`,
-    `agf/CHANGELOG.md` SHA-256 `2e3e097fcfc0b77401f6c0b03c30c5c3922bc136827543d09a7ebf307715aff8`
+    `CHANGELOG.md` SHA-256 `7fdfce3b0da9543530e69247a910900e62dd1b3d96ce594b6e195f341405d48f`,
+    `agf/CHANGELOG.md` SHA-256 `0e6f3bea5337dd04efd7304b89c32a44fb403a6339f70d93d78714b10c95f543`
     (recorded for auditability; not independently authoritative).
   - After `git cherry-pick -m 1 bcb0fadd` on top (auto-merged cleanly,
-    no further manual resolution):
-    `CHANGELOG.md` SHA-256 `8cf206e92fbd866a48f8e347523da99b5dbe403bfac28eac527249e866a2d086`
-    unchanged by this step for the root file's own conflict region (the
-    coord-visibility entries land via clean auto-merge, not a second
-    conflict) — the file's overall content still changes (auto-merged
-    additions), only its previously-resolved conflict region does not
-    require re-resolution.
+    no further manual resolution — the two files' previously resolved
+    conflict regions from the step above require no re-resolution, but
+    both files' overall content changes as the coord-visibility entries
+    land via clean auto-merge elsewhere in the file):
+    `CHANGELOG.md` SHA-256 `8cf206e92fbd866a48f8e347523da99b5dbe403bfac28eac527249e866a2d086`,
+    `agf/CHANGELOG.md` SHA-256 `2e3e097fcfc0b77401f6c0b03c30c5c3922bc136827543d09a7ebf307715aff8`
+    (both distinct from the step above's values, as expected for a
+    whole-file hash after further auto-merged content lands).
   - **Authoritative:** final base-to-head binary patch
     (`git diff --binary f1932a1a486b772ca4353c7fa71c2279132fe0dc <final>`)
     SHA-256 `c7db9317f4e4bec130a916e97e54ab33f1f864632041b8b3c40fcb9e0de6147a`.
