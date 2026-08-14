@@ -172,9 +172,23 @@ advisory_consultation:
       content does change. Fixed by re-attributing all four intermediate
       hashes to their correct step boundaries; the final authoritative
       patch/tree hashes were already correct and are unchanged by this
-      fix. The named infosec-sentinel's own consultation (distinct from
-      these coder-tester-assisted and fresh-context passes) remains the
-      last outstanding item before governor Gate 1.
+      fix. A renewed coder-tester technical review
+      (`20260814T043752Z-coder-tester-1kg7.md`) confirmed all three fixes
+      COMPLETE/CLEAR. A further fresh coder-tester infosec-review-aid
+      (`20260814T045751Z-coder-tester-2egn.md`) then found one new
+      blocking finding at the same head, `B-FSR-SEC-R12-1`: the same
+      target-HEAD TOCTOU class already fixed for the forward-sync merge
+      also applied to the reconstruction **release** merge itself, which
+      had never been given the equivalent pre-merge target/source re-read
+      and post-merge parent/tree verification. Fixed — and, unlike the
+      forward-sync case, closed as a genuinely fail-closed control rather
+      than a governor-accepted residual risk, because the release merge
+      executes entirely before the irreversible tag push: a mismatch now
+      stops before any tag, release, package, or namespace is created,
+      with the target marked proof-invalid and abandoned. The named
+      infosec-sentinel's own consultation (distinct from these
+      coder-tester-assisted and fresh-context passes) remains the last
+      outstanding item before governor Gate 1.
 ---
 
 # Plan: add a "Frozen-scope reconstruction" exception to release-via-merge-request-rule.md
@@ -436,14 +450,43 @@ the existing "Maintenance-line exception" section (same file, same
 >    that record must name: the exact source-branch head SHA, the exact
 >    target-branch head SHA, the expected tree/patch hash from the
 >    deterministic-replay proof, and the canonical project identifier.
->    The merge itself must be performed via the platform's merge API with
->    the `sha` parameter set to the exact reviewed source head (never a
->    UI click against "whatever the branch currently points to"),
->    `squash=false`, and source-branch retention requested explicitly.
->    Read the merge response and both refs immediately afterward,
->    confirming the resulting merge commit, and that both branches still
->    exist at their intended SHAs — required Gate 2 evidence, matching
->    the maintenance-line exception's own retention-proof requirement.
+>    **Immediately before merge, re-read both the target and source
+>    branch heads via the platform API and require each to equal the
+>    exact SHAs the binding governor record names — a mismatch on
+>    either stops here, before any merge call, and returns to the
+>    governor for a fresh protected target and complete proof (round-
+>    twelve infosec-aid review `2egn`'s `B-FSR-SEC-R12-1`: the target's
+>    dedicated, `push_access_levels: No one` protection reduces
+>    accidental drift but does not supply target compare-and-swap —
+>    nothing mechanically prevents a separately authorized merge from
+>    advancing this same target between review and this merge, however
+>    unlikely in practice).** The merge itself must be performed via the
+>    platform's merge API with the `sha` parameter set to the exact
+>    reviewed source head (never a UI click against "whatever the branch
+>    currently points to"), `squash=false`, and source-branch retention
+>    requested explicitly.
+>
+>    **Immediately after merge, verify — not merely that both branches
+>    exist at *some* SHA, but that the resulting merge commit's exact
+>    structure matches the reviewed context:** its first parent equals
+>    the reviewed target SHA (proving the merge landed on the reviewed
+>    target, not a drifted one), its second parent equals the reviewed
+>    source SHA (proving the exact reviewed content merged, not a
+>    substituted branch state), and its resulting tree equals the
+>    tree/patch hash the deterministic-replay proof recorded. **Unlike
+>    the metadata-forward-sync step's analogous check, a mismatch here
+>    is not detect-and-remediate-after-landing — it is a hard stop
+>    before the tag.** No tag, release, package, OCI artifact, or other
+>    namespace may be created from a mismatched merge commit; mark the
+>    target proof-invalid and abandoned, and return to the governor for
+>    a fresh protected target rather than proceeding under assumed
+>    authority. This is a genuinely fail-closed control, not a residual-
+>    risk acceptance requiring separate governor sign-off, because it
+>    executes entirely before the irreversible tag push — the same
+>    property `apkm`'s exception could not offer the forward-sync step,
+>    which by construction runs only after the tag is already published.
+>    All of the above is required Gate 2 evidence, matching the
+>    maintenance-line exception's own retention-proof requirement.
 >
 > ### Tag and publication
 >
@@ -635,7 +678,11 @@ the existing "Maintenance-line exception" section (same file, same
 > Any of the following invalidates the exception and requires returning
 > to the governor rather than proceeding under assumed authority:
 > drift in the stable base tag identity, drift in the protected target
-> branch's resolved SHA, drift in the reconstruction source branch's
+> branch's resolved SHA (enforced by the release merge's mandatory
+> pre-merge target/source re-read and post-merge first-parent/second-
+> parent/tree verification — round-twelve infosec-aid `2egn`'s
+> `B-FSR-SEC-R12-1`; a mismatch here is a hard stop before the tag, not
+> a residual risk), drift in the reconstruction source branch's
 > head between review and merge, a tree-delta or frozen-out-set proof
 > failure, an allowlist commit whose own Gate 2 approval cannot be
 > independently re-confirmed at merge time, the target branch's
@@ -943,6 +990,15 @@ maintenance-line precedent alone).
     cites explicitly, including the platform-reassessment condition for
     any future reuse of this exception (round-seven review `adjp`'s
     `B-FSR-R7-1`, resolved).
+20. The reconstruction **release** merge (distinct from the forward-
+    sync merge) re-reads both the reviewed target and source SHAs
+    immediately before merging and, immediately after, verifies the
+    resulting merge commit's first parent, second parent, and tree
+    against the reviewed context — genuinely fail-closed (a mismatch
+    stops before the tag, not detect-and-remediate) because it executes
+    entirely before the irreversible tag push, unlike the
+    forward-sync step which by construction runs only after
+    publication (round-twelve infosec-aid `2egn`'s `B-FSR-SEC-R12-1`).
 
 ## Stop conditions
 
@@ -955,9 +1011,15 @@ plan's scratch-worktree verification; the merge-result byte-identity
 check fails for any allowlisted merge commit; the forward-sync's
 governed version-surface list cannot be updated together (no partial
 sync); contribution-auditor/infosec-sentinel raise a finding this plan
-does not already address; **or the forward-sync merge is about to be
+does not already address; the forward-sync merge is about to be
 executed and any of `apkm`'s mandatory boundaries (acceptance criterion
-19) does not hold at that exact moment** — the governor's decision is
+19) does not hold at that exact moment — the governor's decision is
 scoped to those boundaries holding, not an unconditional clearance, and
 a boundary failing at execution time is itself a stop condition, not a
-discretionary call.
+discretionary call; **or the reconstruction release merge's post-merge
+verification (acceptance criterion 20) finds the merge commit's first
+parent, second parent, or tree does not match the reviewed target,
+source, or release context** — no tag, release, package, OCI artifact,
+or other namespace may be created from that merge commit; mark the
+target proof-invalid and abandoned and return to the governor for a
+fresh protected target, before any tag push, not after.
