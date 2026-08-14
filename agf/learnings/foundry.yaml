@@ -3426,6 +3426,99 @@ learnings:
         - "Episode 1 (due-diligence plan, MR !1403): docs/coordination/20260811T085814Z-planner-architect-kjm5.md (round-10 role-boundary self-report), docs/coordination/20260811T105210Z-governor-reviewer-mh8p.md (Governor scope-reset decision; no round 11)"
         - "Episode 2 (roadmap/triage document, MR !1448): docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md (originating stop-loss operating principle), docs/coordination/20260811T203258Z-contribution-auditor-dkp7.md (round-2, 5 findings), docs/coordination/20260811T204632Z-contribution-auditor-732p.md (round-3, 3 findings), docs/coordination/20260811T205627Z-contribution-auditor-mdrg.md (round-4, 2 findings including a reproduced grep/namespace bug), docs/coordination/20260811T211454Z-contribution-auditor-r8kb.md (round-5, then-current CLEAR), docs/coordination/20260811T211945Z-planner-architect-kmgb.md (resolution: 20 MRs closed directly, bypassing the document's own protocol)"
 
+  - id: "20260814T041407Z-6j2m"
+    date: "2026-08-14"
+    category: gap
+    scope: framework
+    title: cherry-pick-content-faithfulness-scoped-to-one-narrow-exception
+    status: proposed
+    description: >
+      MR !1503 (the frozen-scope-reconstruction release exception,
+      `docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-
+      amendment.md`) required nine review rounds to converge on a correct
+      content-integrity proof for a Git cherry-pick sequence with manual
+      conflict resolution. The proof went through three distinct failure
+      shapes before landing on a genuinely closed one: (1) "the diff looks
+      like the union of the inputs" — not a defined, reproducible Git
+      operation, rejected at round 1 (`kpt5`); (2) path attribution plus a
+      deterministic-replay hash of the author's own recorded resolution —
+      proves the recorded result is reproducible, not that the recording
+      was faithful; a manually resolved conflict can stage arbitrary text
+      inside an allowlist-attributable file undetected (round 7, `adjp`'s
+      `B-FSR-R7-2`); (3) content faithfulness scoped only to the
+      conflict-marker regions Git itself flags — still incomplete, because
+      a paused cherry-pick lets an operator stage edits in a cleanly-
+      applied file or a non-conflicting region of a conflicted file,
+      passing every check undetected (round 9, `qk8s`'s `B-FSR-R8-1`). The
+      shape that finally closed the gap: a documented, written mechanical
+      resolution algorithm, applied by an independent party working only
+      from the stable base, the named commit hashes, and the algorithm
+      itself (never the author's already-resolved tree), under a binding
+      procedural constraint that only cherry-pick-flagged conflicts — and
+      only their marker-delimited regions — may be touched at all;
+      matching hashes from two independent from-scratch reproductions is
+      what proves the whole result, not just the conflicted parts.
+
+      This discipline currently exists only as text embedded inside one
+      narrow, rarely-invoked exception (`release-via-merge-request-rule.md`'s
+      frozen-scope reconstruction section, itself gated behind a governor
+      freeze and a separate release-publication plan). It is not a general,
+      independently discoverable rule, and nothing points an AI agent or
+      human contributor at it for an ordinary cherry-pick (e.g. a hotfix
+      backport) performed outside that narrow exception's eligibility
+      gate — the same three-round failure progression could recur there
+      with no review pressure forcing convergence.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+    framework_section: "workflow/migration-generation-rule.md is the closest existing precedent (tool-generated artifacts as source of truth, ripple-check discipline) but covers migrations specifically, not cherry-pick conflict resolution. No existing rule states that manual Git conflict resolution requires a documented algorithm plus independent from-scratch re-derivation as its content-integrity proof; the closest general rule (workflow/tdd-rule.md, boundary-shape-testing-rule.md) targets test-writing discipline, not Git-mechanics content integrity."
+    business_impact:
+      type: cost_overhead
+      description: >
+        Nine review rounds on one Gate 1 plan, three of which (rounds 7,
+        8, 9) were spent narrowing the same underlying content-integrity
+        gap in successive stages rather than closing it in one pass. No
+        realized harm — the gap was caught before Gate 1 approval in every
+        instance — but the repeated narrowing pattern (marker-scoped review
+        looked sufficient twice before a fresh-context or renewed review
+        found the next layer) is itself evidence that the correct shape of
+        this check is not obvious from first principles and is worth
+        stating as reusable guidance rather than re-deriving under review
+        pressure next time.
+    recommendation: >
+      Generalize the pattern discovered in MR !1503 into a standalone rule
+      (e.g. `agf/rules/workflow/cherry-pick-content-faithfulness-rule.md`,
+      mirrored to `.claude/rules/`) covering any manual Git cherry-pick
+      conflict resolution in this repository's workflow, not only the
+      frozen-scope-reconstruction exception. Core requirement: a documented,
+      written, mechanical conflict-resolution algorithm (specific enough
+      that a second independent party can follow it without consulting the
+      first), verified by an independent from-scratch reproduction that
+      never reads the author's already-resolved tree, under a binding
+      procedural constraint that only tool-flagged conflicts — and only
+      their marker-delimited regions — may be touched at all. Per
+      `documentation-rule-projection-rule.md`, project the new rule to
+      `AGENTS.md`/`.claude/CLAUDE.md` loaders so AI agents discover it at
+      cold start for any cherry-pick task, not only ones already inside the
+      frozen-scope exception's gate.
+
+      Not implemented here: single-incident evidence (one plan, one
+      application) is enough to preserve the pattern but not enough, by
+      this project's own established practice (see e.g. the neighboring
+      `20260809T082147Z-h4vx` record, and the cross-AI independent-review
+      proposal routed as an unnumbered backlog candidate in
+      `20260813T173540Z-planner-architect-2g4d.md`), to mint a MUST-strength
+      standing rule from a single occurrence. Promote to an actual rule
+      either on governor decision to invest directly, or after a second
+      real occurrence corroborates the pattern.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !1503, docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-amendment.md: three-stage content-faithfulness failure progression across rounds 1, 7, 8, and 9 of Gate 1 review (kpt5, adjp/B-FSR-R7-2, qk8s/B-FSR-R8-1), closed at exact head e63f20c681fec56101db730caada06a1c5b841b0 by a documented-algorithm-plus-independent-reproduction proof, itself independently re-verified twice with identical patch hash c7db9317f4e4bec130a916e97e54ab33f1f864632041b8b3c40fcb9e0de6147a and tree hash fbe16ab183373b461bc641dd192bfe386cf07d1e."
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
