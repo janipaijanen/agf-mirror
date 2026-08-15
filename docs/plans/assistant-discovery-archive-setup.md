@@ -52,6 +52,28 @@ advisory_consultation:
 
 ## Revision history
 
+**Round 3, per coder-tester's exact-head review and infosec-review-aid
+pass `20260815T224603Z-coder-tester-87k8.md` (requested via `r7vb`, MR
+!1595): BLOCK, 2 blocking (`B-V27-LOAD-R2-1`, `B-V27-LOAD-R2-2`).** Seven
+of nine `V27-LOAD` findings confirmed `pass` outright. Both remaining:
+
+- `B-V27-LOAD-R2-1`: round 2's import-resolver spec was self-defeating —
+  "reject if the canonicalized path is absolute" also rejects the valid
+  in-repository bridge, since canonical paths are normally absolute. Fixed
+  with a frozen, ordered algorithm: reject the *raw* absolute token before
+  any resolution; canonicalize root and target separately; compare by
+  path components (not string prefix) for containment; require regular/
+  readable; and an exact, metadata-checked size bound
+  (`MAX_IMPORT_TARGET_BYTES`, 64 KiB) checked before any content read —
+  see Slice 1, item 7, revised.
+- `B-V27-LOAD-R2-2`: the plan's own advisory-only framing (item 2)
+  contradicted its prose, which described missing/unknown/stale surfaces
+  as making the validator "fail" — read as a nonzero exit, that
+  contradicts `tool-authority-boundary-rule.md`. Fixed with one outcome
+  table (new item 8) pairing every condition with its exact finding and
+  exit status (always 0), and reworded every "fails"/"passes" description
+  elsewhere in the plan to match.
+
 **Round 2, per contribution-auditor's fresh exact-head review
 `20260809T074441Z-contribution-auditor-pghm.md` (governor decision `2gbg`):
 COMPLETE/BLOCK against current `main` (`72b23940`), superseding the
@@ -278,8 +300,9 @@ citation.
    `MANIFEST.example.yaml` to `MANIFEST.yaml` and set
    `supported_assistant_loaders: [claude-code]` with no `.claude/CLAUDE.md`
    present, and confirm `agov validate agents` (or the relevant validator)
-   fails exactly as it would in this repo — proving the contract works
-   from a fresh adopter's own copy, not only from this repo's already-
+   produces the same advisory finding (exit status 0, per item 8's
+   outcome table) it would in this repo — proving the contract works from
+   a fresh adopter's own copy, not only from this repo's already-
    configured `MANIFEST.yaml`.
 5. **Shipped Claude loader template, added per `pghm`'s `V27-LOAD-2`**
    (round 2 — the plan's Slice 1 item 1 creates `.claude/CLAUDE.md` in
@@ -332,36 +355,98 @@ citation.
      the same file"). This makes the example consistent with the
      project's own canonical shape instead of showing adopters two
      different patterns.
-7. **Import-following safety bounds, added per `pghm`'s `V27-LOAD-4`**
-   (round 2 — item 2's freshness-check import-following logic, added to
-   handle the comment-less `.claude/CLAUDE.md` bridge, was specified for
-   *what* it follows but not bounded for *how safely*). The resolver
+7. **Import-following safety bounds, added per `pghm`'s `V27-LOAD-4`,
+   corrected per coder-tester's infosec-review-aid finding
+   `B-V27-LOAD-R2-1`** (`20260815T224603Z-coder-tester-87k8.md`,
+   requested via `r7vb`; round 2's spec was self-defeating — canonical
+   filesystem paths are normally absolute, including the intended
+   in-repository `AGENTS.md` target, so "reject if the canonicalized path
+   is absolute" rejected the valid bridge along with unsafe input; the
+   "defined size bound" was also never actually defined). The resolver
    that follows a loader candidate file's single `@<relative-path>` line
-   must:
-   - Canonicalize the resolved path against the repository root before
-     reading it (resolve `.`/`..` segments and symlinks to their real
-     target).
-   - Reject the import if the canonicalized path is absolute, resolves
-     outside the repository root, or resolves through a symlink whose
-     target escapes the repository root — treat any of these as "no
-     comment present: no warning" (the existing safe-default behavior for
-     an unparseable case), not as an error that could be mistaken for a
-     stale-version failure.
-   - Require the resolved target to be an existing, readable, in-
-     repository regular file — a missing target, an unreadable target
-     (permissions), or a target exceeding a defined size bound (reuse
-     Slice 1's spirit of a documented cap rather than an unbounded read;
-     a version-comment scan needs only the first few lines, not the
-     whole file) all fall back to the same safe default, not a crash or
-     a hang.
+   is a **frozen, ordered algorithm**, not a set of unordered checks:
+   1. Reject the import if the **raw import token** (the literal text
+      after `@`, before any filesystem resolution) starts with `/` — an
+      absolute *raw* token is unsafe input; this check happens before
+      canonicalization, which is exactly why round 2's "reject if
+      canonical is absolute" was wrong (it checked the wrong thing, at
+      the wrong stage).
+   2. Canonicalize the repository root once
+      (`std::fs::canonicalize(repo_root)`).
+   3. Resolve the (already-known-relative) raw token against the
+      *importing file's own parent directory* — not the process's
+      current working directory — producing a candidate path.
+   4. Canonicalize the candidate path (this step requires the target to
+      exist; a nonexistent target fails here, naturally producing the
+      "missing target" outcome as a side effect of canonicalization
+      itself, not a separate existence check).
+   5. Require the canonical target path to be equal to, or beneath,
+      the canonical repository root using **path-component comparison**
+      (compare the sequence of path components, not a string prefix —
+      a string-prefix check would wrongly accept a sibling directory
+      whose name happens to start with the root's name, e.g. treating
+      `/repo-evil` as "beneath" `/repo`). Reject if not — this single
+      check now correctly covers `..`-traversal escapes and symlink
+      escapes alike, since both produce a canonical target outside the
+      root.
+   6. Require the canonical target to be a regular file (not a
+      directory, device, or other special file) and readable.
+   7. **Exact, defined size bound**: check the target's size via
+      filesystem metadata *before* opening it for content — reject
+      (same safe default) if it exceeds `MAX_IMPORT_TARGET_BYTES`
+      (64 KiB — a version-comment scan only needs the first few lines of
+      a real Markdown file; this is checked via metadata, not by
+      attempting a read and truncating it, so the read method genuinely
+      "cannot allocate past it before checking," per the review's own
+      wording). Only after this check passes does the resolver actually
+      read the file's content.
+   8. Any rejection at any step above (1, 4's implicit missing-target
+      failure, 5, 6, or 7) produces the same outcome: "no comment
+      present: no warning" — the existing safe-default behavior for an
+      unparseable case, per the outcome-contract table in item 8 below
+      (not a crash, not a hang, and — per `B-V27-LOAD-R2-2`'s fix below —
+      not a nonzero exit status).
    - This scope explicitly does **not** extend to arbitrary nested
      imports (an imported file itself containing another `@<path>` line)
      — only one level of import-following is in scope, matching Claude
      Code's own documented import behavior for this exact case; deeper
      nesting is out of scope and must not be silently followed.
-   Add test cases for each rejected shape (absolute path, `..`
-   traversal, symlink escape, missing target, oversized target) alongside
-   the existing per-surface freshness tests from item 2.
+   Add test cases for the valid `@../AGENTS.md` bridge (accepted,
+   unchanged behavior) plus every rejected shape (raw absolute token,
+   `..` traversal, symlink escape, missing target, non-regular target
+   [e.g. a directory], unreadable target, oversized target, and a target
+   at exactly `MAX_IMPORT_TARGET_BYTES` as the boundary-size positive
+   control) alongside the existing per-surface freshness tests from
+   item 2.
+8. **Advisory-only outcome contract, added per `pghm`'s `V27-LOAD-7`,
+   corrected per `87k8`'s `B-V27-LOAD-R2-2`** (round 2 said missing/
+   unknown/stale declared surfaces make `agov validate agents` "fail,"
+   which contradicts `tool-authority-boundary-rule.md`'s requirement that
+   an advisory finding never change process exit status — item 2 already
+   correctly says these findings stay `Severity::Advisory`, but the
+   surrounding prose used "fail" loosely enough to read as a nonzero
+   exit). One outcome table, separating validator evidence from process
+   authority, replaces every "fails"/"passes" description above with the
+   exact pair below:
+
+   | Condition | Finding | Exit status |
+   |---|---|---|
+   | Declared surface's candidate file exists, current version | none | 0 |
+   | Declared surface's candidate file missing | advisory, stable diagnostic naming the surface and missing file | 0 |
+   | Unknown `supported_assistant_loaders` token | advisory, stable diagnostic naming the value | 0 |
+   | Declared surface's file present but stale version comment | advisory, stable diagnostic (unchanged existing behavior) | 0 |
+   | Import resolver: any rejection from item 7 (absolute token, traversal, symlink escape, missing/non-regular/unreadable/oversized target) | none — falls back to "no comment present: no warning," itself an advisory-severity finding, not a distinct error class | 0 |
+   | No `supported_assistant_loaders` field declared, no loader file found at all (pre-existing behavior) | advisory (unchanged, pre-existing) | 0 |
+
+   Every row is `0` — `agov validate`'s process exit status is never
+   affected by any assistant-loader finding, matching
+   `tool-authority-boundary-rule.md` exactly. "Fails" in this plan's
+   remaining prose (item 1's test-case descriptions, "Test strategy")
+   means "produces the advisory finding," never "nonzero exit" — reworded
+   throughout to say exactly that, closing the gap between item 7's "no
+   silent acceptance" requirement (every rejection still produces a
+   visible advisory finding) and item 2's advisory-severity guarantee
+   (that finding never changes the exit code).
 
 ### Slice 2 — Shipped Claude MCP configuration template (#90)
 
@@ -465,26 +550,32 @@ full acceptance contract directly, not a paraphrase of it:
 
 ## Test strategy (Gate 2 evidence)
 
-Per `bhhh`'s minimum evidence list, tightened per `1dq4`'s B6/B7/B8 and
-`ppt8`'s R3:
+Per `bhhh`'s minimum evidence list, tightened per `1dq4`'s B6/B7/B8,
+`ppt8`'s R3, and reworded per `87k8`'s `B-V27-LOAD-R2-2` to say exactly
+what item 8's outcome table specifies — **"produces the advisory finding
+(exit status 0 always)"**, never "fails" in the nonzero-exit sense:
 
 1. `agov.validate.assistant_loader` unit tests: a repo declaring
    `supported_assistant_loaders: [claude-code]` with only `AGENTS.md`
-   (no `.claude/CLAUDE.md`) now fails (where it currently passes); a repo
-   declaring `[codex]` only, with only `AGENTS.md`, passes (single-surface
-   adopter not falsely rejected — the case `bhhh` names); a repo
-   declaring `[github-copilot]` behaves identically to `[codex]` (alias,
-   same required file); a repo declaring both surfaces requires both
-   files; a repo with an unknown value (e.g. `[cursor]`) fails as a
-   validation error; a repo with no `supported_assistant_loaders` field
-   at all preserves current OR-based behavior exactly.
+   (no `.claude/CLAUDE.md`) now produces the advisory finding (where it
+   currently produces none); a repo declaring `[codex]` only, with only
+   `AGENTS.md`, produces no finding (single-surface adopter not falsely
+   flagged — the case `bhhh` names); a repo declaring `[github-copilot]`
+   behaves identically to `[codex]` (alias, same required file); a repo
+   declaring both surfaces requires both files to avoid the finding; a
+   repo with an unknown value (e.g. `[cursor]`) produces the advisory
+   finding naming the unknown value; a repo with no
+   `supported_assistant_loaders` field at all preserves current OR-based
+   behavior exactly. Every case above: exit status 0.
 1a. Freshness-per-surface (R3): a repo declaring `[codex]` with a stale
-    `<!-- AGF: ... -->` comment directly in `AGENTS.md` fails, matching
-    unchanged existing behavior; a repo declaring `[claude-code]` with a
-    current `.claude/CLAUDE.md` (single `@../AGENTS.md` line, no comment
-    of its own) but a *stale* comment in the imported `AGENTS.md` fails —
-    proving freshness follows the import rather than silently passing
-    because the loader file itself has no comment to check.
+    `<!-- AGF: ... -->` comment directly in `AGENTS.md` produces the
+    advisory finding, matching unchanged existing behavior; a repo
+    declaring `[claude-code]` with a current `.claude/CLAUDE.md` (single
+    `@../AGENTS.md` line, no comment of its own) but a *stale* comment in
+    the imported `AGENTS.md` also produces the finding — proving
+    freshness follows the import rather than silently producing no
+    finding because the loader file itself has no comment to check. Exit
+    status 0 in both cases.
 2. Inspect built Linux tar and Windows zip archive contents in CI:
    `examples/claude/.mcp.json` present with the complete `mcpServers.agov`
    object, README.txt mentions it and the project-scoped-server approval
