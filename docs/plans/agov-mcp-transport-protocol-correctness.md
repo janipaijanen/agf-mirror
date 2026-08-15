@@ -37,6 +37,17 @@ advisory_consultation:
 
 ## Revision history
 
+**Round 4, per coder-tester's exact-head review
+`20260815T224602Z-coder-tester-83tn.md` (requested via `p3xn`, MR !1595):
+BLOCK, 1 blocking (`B-V27-MCP-R3-1`).** Round 3's bounded-reader algorithm
+split into separate "newline found" and "no newline found" branches with
+inconsistent bounds checks — the newline-found branch never defined the
+ordinary "this exact chunk's payload pushes the line over the cap for the
+first time" case (the one-byte-over test itself). Fixed by unifying the
+bounds check into one step applied identically regardless of whether a
+newline was found in the current chunk — see Slice 1's bounded-line-read
+contract, revised, and the new chunk-boundary test.
+
 **Round 3, per coder-tester's exact-head review and infosec-review-aid
 pass `20260815T222810Z-coder-tester-h6qr.md` (requested via `vt8q`/`hzwc`,
 MR !1593): BLOCK, 1 blocking (`B-V27-MCP-R2-1`).** `V27-MCP-1`, `V27-MCP-2`,
@@ -252,32 +263,47 @@ already happened by the time the check runs. Round 3 replaces it with a
 genuinely bounded incremental reader using `BufRead::fill_buf()`/
 `consume()` directly, never `read_until`:
 
+**Round 4, corrected per `h6qr`'s `B-V27-MCP-R3-1`**: round 3's algorithm
+split into a "newline found" branch and a "no newline found" branch with
+*separate, inconsistent* bounds checks — the newline-found branch never
+defined what happens when the line was not yet oversized but this exact
+chunk's payload (the bytes up to the newline) pushes it over the cap for
+the first time, which is precisely the ordinary "one byte over" case the
+test matrix names. Unifying the bounds check removes the inconsistency
+instead of patching the missing branch:
+
 1. Loop calling `fill_buf()` to get the next available chunk from the
    underlying buffered reader (this returns whatever is already buffered
    or does one bounded underlying read — it never itself reads an
    unbounded amount).
-2. Within each returned chunk, scan for `b'\n'`. If found: this ends the
-   current line. If the bytes accumulated into the line buffer so far
-   (plus the chunk up to the newline) are within `MAX_REQUEST_LINE_BYTES`,
-   append them and process the complete line normally. If the line was
-   already marked oversized (step 3), do not append — just note the line
-   is complete and move to response handling. Always `consume()` through
-   the newline so the reader's position advances past it.
-3. If no `b'\n'` found in the chunk: if appending the whole chunk would
-   push the accumulated line buffer past `MAX_REQUEST_LINE_BYTES`, mark
-   the line **oversized** and stop appending to the line buffer entirely
-   (cap it at `MAX_REQUEST_LINE_BYTES` bytes, never grow it further) —
-   but still `consume()` the chunk from the underlying reader (discarding
-   it without retaining it in the line buffer), so the stream position
-   keeps advancing and EOF/the next newline is still reachable. If not
-   yet oversized, append the chunk and `consume()` it.
-4. EOF while a line is in progress (no trailing newline): treat exactly
-   like reaching a newline for whatever state the line was in (complete
-   normal line, or oversized).
-5. Oversized outcome: respond `-32600 Invalid Request` with `id: null`
+2. Within each returned chunk, scan for `b'\n'`. The **payload** for this
+   step is the chunk's bytes up to (not including) the newline if one was
+   found, or the entire chunk if not.
+3. **Bounds check, applied identically regardless of whether a newline
+   was found** (this is the fix — round 3 applied this check only in the
+   no-newline branch): if the line is not yet marked oversized, and
+   `accumulated_len + payload.len()` would exceed
+   `MAX_REQUEST_LINE_BYTES`, mark the line **oversized** and append
+   nothing further (the line buffer stays at whatever length it already
+   had, never exceeding the cap). If the line is not yet oversized and
+   the payload fits, append it and update `accumulated_len`. If the line
+   is already oversized, append nothing (payload is discarded either
+   way).
+4. `consume()` the chunk up through the newline if one was found, or the
+   whole chunk if not — always advances the stream position, whether or
+   not the payload was retained in step 3.
+5. If a newline was found: the line is complete. If it was never marked
+   oversized, process it normally (parse/dispatch as today). If it was
+   marked oversized, respond `-32600 Invalid Request` with `id: null`
    (the line was never successfully parsed as JSON, so it cannot be
-   attributed to a request `id`), then continue the loop for the next
-   line — one oversized line must not terminate the session.
+   attributed to a request `id`). Either way, reset all per-line state
+   (`accumulated_len`, the oversized flag, the line buffer) before
+   starting the next line. If no newline was found, continue the loop
+   with another `fill_buf()` call — the line is still in progress.
+6. EOF while a line is in progress (no trailing newline): treat exactly
+   like reaching a newline for whatever state the line was in (complete
+   normal line, or oversized) — same step-5 handling, then the read loop
+   ends.
 
 This bounds the **line buffer itself** to at most `MAX_REQUEST_LINE_BYTES`
 at every point during the read, including while still consuming a
@@ -289,13 +315,18 @@ and matched by the exactly-at-cap test below.
 
 Test: a line of exactly `MAX_REQUEST_LINE_BYTES` (accepted, normal
 processing); one byte over the cap, delivered as a normal (non-hostile)
-single write (rejected, loop continues); a **delimiter-free stream many
-times larger than the cap** — the specific case round 2's design failed
-to actually bound — with an assertion on the line-buffer's length staying
-capped throughout the read, not only on the final `-32600` response; EOF
-while mid-line and already oversized (treated as line-complete, not a
-hang); and a well-formed request line immediately following an oversized
-one (processed normally, proving recovery).
+single write (rejected, loop continues); **the chunk-boundary case added
+per `h6qr`'s `B-V27-MCP-R3-1`** — a line whose first over-cap byte and
+its terminating newline arrive in the *same* `fill_buf` chunk (this is the
+exact gap round 3 left undefined: not-yet-oversized, newline present,
+payload alone pushes it over) — rejected with `-32600`/`id: null`, not a
+panic or an inconsistent state; a **delimiter-free stream many times
+larger than the cap** — the case round 2's design failed to actually
+bound — with an assertion on the line-buffer's length staying capped
+throughout the read, not only on the final `-32600` response; EOF while
+mid-line and already oversized (treated as line-complete, not a hang);
+and a well-formed request line immediately following an oversized one
+(processed normally, proving recovery).
 
 ### Slice 2 — coordination subcommand parity (#86)
 
@@ -435,9 +466,12 @@ Per `bhhh`'s minimum evidence list — exercise all of:
     request: `-32600`, `id: null`. `params` absent, an empty object, and
     an empty array: all still valid, unchanged behavior.
 15. **Bounded-line-read contract, corrected per `h6qr`'s
-    `B-V27-MCP-R2-1`** — a line of exactly `MAX_REQUEST_LINE_BYTES`:
-    accepted, processed normally. A line one byte over, delivered as a
-    single normal write: rejected (`-32600`, `id: null`). A
+    `B-V27-MCP-R2-1` and `B-V27-MCP-R3-1`** — a line of exactly
+    `MAX_REQUEST_LINE_BYTES`: accepted, processed normally. A line one
+    byte over, delivered as a single normal write: rejected (`-32600`,
+    `id: null`). **The chunk-boundary case (`B-V27-MCP-R3-1`)**: the
+    first over-cap byte and the terminating newline in the same
+    `fill_buf` chunk — rejected consistently, not left undefined. A
     **delimiter-free stream many times larger than the cap** (the actual
     hostile case): the line buffer's length is asserted to stay at or
     below `MAX_REQUEST_LINE_BYTES` throughout the read, not only checked
