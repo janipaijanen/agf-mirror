@@ -37,6 +37,23 @@ advisory_consultation:
 
 ## Revision history
 
+**Round 3, per coder-tester's exact-head review and infosec-review-aid
+pass `20260815T222810Z-coder-tester-h6qr.md` (requested via `vt8q`/`hzwc`,
+MR !1593): BLOCK, 1 blocking (`B-V27-MCP-R2-1`).** `V27-MCP-1`, `V27-MCP-2`,
+and `V27-MCP-3` all confirmed `pass` — no design changes needed. The one
+blocking finding: round 2's bounded-line-read design specified checking
+`buf.len()` *after* `BufRead::read_until()` returns, but `read_until`
+itself appends the entire delimiter-free line before returning — the
+unbounded allocation the fix was meant to prevent already happened by the
+time the check ran. Fixed by replacing `read_until` with a genuinely
+bounded incremental reader built on `fill_buf()`/`consume()` directly,
+which never allows the line buffer itself to exceed the cap even while
+still consuming a hostile, arbitrarily-long, delimiter-free stream — see
+Slice 1's bounded-line-read contract, revised, and validation-plan item
+15. Still awaiting the separate governor decision on the plan-specific
+infosec consultation waiver this aid-review's findings are evidence for
+(frontmatter unchanged this round).
+
 **Round 2, per contribution-auditor's fresh exact-head review
 `20260809T074441Z-contribution-auditor-pghm.md` (governor decision `2gbg`):
 COMPLETE/BLOCK against current `main` (`72b23940`), superseding the
@@ -213,30 +230,72 @@ Must fail closed on malformed JSON itself (parse error, `-32700`)
 without panicking or hanging the stdio loop, per the infosec-sentinel
 note above.
 
-**Bounded-line-read contract, added per `pghm`'s `V27-MCP-4`** (round 2 —
-the plan previously promised "oversized input safety" without defining
-it): `run_stdio`'s current `stdin.lock().lines()`
+**Bounded-line-read contract, corrected in round 3 per coder-tester's
+infosec-review-aid finding `B-V27-MCP-R2-1`
+(`20260815T222810Z-coder-tester-h6qr.md`, requested via `hzwc`).**
+`run_stdio`'s current `stdin.lock().lines()`
 (`tooling/rust/crates/agov-mcp/src/main.rs:112`) uses
 `std::io::BufRead::lines()`, which allocates an unbounded `String` for any
 single line with no length check before the line is even handed to the
 JSON parser — a client (or a corrupted/adversarial stream) sending
 megabytes of non-newline-terminated bytes grows that allocation without
-bound. Replace with a byte-capped read: define `MAX_REQUEST_LINE_BYTES`
-(8 MiB — comfortably larger than any real coordination message, plan
-file, or tool-call payload this project produces, while still bounding
-worst-case memory) and read each line via `BufRead::read_until(b'\n',
-&mut buf)` with a check after each read that `buf.len()` has not exceeded
-the cap. On exceeding the cap: respond `-32600 Invalid Request` with
-`id: null` (the line cannot yet be attributed to a request `id`, since it
-was never successfully parsed as JSON), discard the remainder of that
-oversized line up to the next newline or EOF (so the stream stays
-byte-aligned and the *next* line is parsed cleanly, not treated as a
-continuation of garbage), and continue the loop — one oversized line must
-not terminate the session or leave it unable to process subsequent valid
-requests. Test: a single line at exactly the cap (accepted, normal
-processing), one byte over the cap (rejected per above, loop continues),
-and a well-formed request line immediately following an oversized one
-(processed normally, proving recovery).
+bound. Define `MAX_REQUEST_LINE_BYTES` (8 MiB — comfortably larger than
+any real coordination message, plan file, or tool-call payload this
+project produces, while still bounding worst-case memory).
+
+**Round 2's first design was itself insufficiently bounded** —
+`BufRead::read_until(b'\n', &mut buf)` does not return merely because
+`buf` crossed the cap; it appends the entire delimiter-free line to `buf`
+before returning at all, so checking `buf.len()` *after* the call is too
+late: the same unbounded allocation the fix is meant to prevent has
+already happened by the time the check runs. Round 3 replaces it with a
+genuinely bounded incremental reader using `BufRead::fill_buf()`/
+`consume()` directly, never `read_until`:
+
+1. Loop calling `fill_buf()` to get the next available chunk from the
+   underlying buffered reader (this returns whatever is already buffered
+   or does one bounded underlying read — it never itself reads an
+   unbounded amount).
+2. Within each returned chunk, scan for `b'\n'`. If found: this ends the
+   current line. If the bytes accumulated into the line buffer so far
+   (plus the chunk up to the newline) are within `MAX_REQUEST_LINE_BYTES`,
+   append them and process the complete line normally. If the line was
+   already marked oversized (step 3), do not append — just note the line
+   is complete and move to response handling. Always `consume()` through
+   the newline so the reader's position advances past it.
+3. If no `b'\n'` found in the chunk: if appending the whole chunk would
+   push the accumulated line buffer past `MAX_REQUEST_LINE_BYTES`, mark
+   the line **oversized** and stop appending to the line buffer entirely
+   (cap it at `MAX_REQUEST_LINE_BYTES` bytes, never grow it further) —
+   but still `consume()` the chunk from the underlying reader (discarding
+   it without retaining it in the line buffer), so the stream position
+   keeps advancing and EOF/the next newline is still reachable. If not
+   yet oversized, append the chunk and `consume()` it.
+4. EOF while a line is in progress (no trailing newline): treat exactly
+   like reaching a newline for whatever state the line was in (complete
+   normal line, or oversized).
+5. Oversized outcome: respond `-32600 Invalid Request` with `id: null`
+   (the line was never successfully parsed as JSON, so it cannot be
+   attributed to a request `id`), then continue the loop for the next
+   line — one oversized line must not terminate the session.
+
+This bounds the **line buffer itself** to at most `MAX_REQUEST_LINE_BYTES`
+at every point during the read, including while still consuming a
+hostile, arbitrarily long, delimiter-free stream — the discard path never
+retains the discarded bytes, only advances past them. Whether the
+`MAX_REQUEST_LINE_BYTES` count includes the trailing `\n`/`\r\n` itself is
+implementation-defined but must be stated explicitly in the code comment
+and matched by the exactly-at-cap test below.
+
+Test: a line of exactly `MAX_REQUEST_LINE_BYTES` (accepted, normal
+processing); one byte over the cap, delivered as a normal (non-hostile)
+single write (rejected, loop continues); a **delimiter-free stream many
+times larger than the cap** — the specific case round 2's design failed
+to actually bound — with an assertion on the line-buffer's length staying
+capped throughout the read, not only on the final `-32600` response; EOF
+while mid-line and already oversized (treated as line-complete, not a
+hang); and a well-formed request line immediately following an oversized
+one (processed normally, proving recovery).
 
 ### Slice 2 — coordination subcommand parity (#86)
 
@@ -375,13 +434,19 @@ Per `bhhh`'s minimum evidence list — exercise all of:
     string, a number, and `true` as `params`, each with an otherwise-valid
     request: `-32600`, `id: null`. `params` absent, an empty object, and
     an empty array: all still valid, unchanged behavior.
-15. **Bounded-line-read contract, added per `pghm`'s `V27-MCP-4`** — a
-    line of exactly `MAX_REQUEST_LINE_BYTES`: accepted, processed
-    normally. A line one byte over: rejected (`-32600`, `id: null`), the
-    remainder of that line discarded up to the next newline, loop
-    continues. A well-formed request line immediately following an
-    oversized one: processed normally, proving the transport recovers
-    rather than desyncing or hanging.
+15. **Bounded-line-read contract, corrected per `h6qr`'s
+    `B-V27-MCP-R2-1`** — a line of exactly `MAX_REQUEST_LINE_BYTES`:
+    accepted, processed normally. A line one byte over, delivered as a
+    single normal write: rejected (`-32600`, `id: null`). A
+    **delimiter-free stream many times larger than the cap** (the actual
+    hostile case): the line buffer's length is asserted to stay at or
+    below `MAX_REQUEST_LINE_BYTES` throughout the read, not only checked
+    after the fact — this is the test that would have caught round 2's
+    `read_until`-based design failing to actually bound memory. EOF while
+    mid-line and already oversized: treated as line-complete, no hang. A
+    well-formed request line immediately following an oversized one:
+    processed normally, proving the transport recovers rather than
+    desyncing.
 16. **`MCP_TOOL_ALLOWLIST` sync, added per `pghm`'s `V27-MCP-1`** — each
     of the six new tool names is present in `MCP_TOOL_ALLOWLIST`; a tool
     call for a name present in `tools()` but absent from the allowlist is
