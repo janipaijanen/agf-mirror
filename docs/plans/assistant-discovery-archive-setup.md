@@ -52,6 +52,24 @@ advisory_consultation:
 
 ## Revision history
 
+**Round 4, per coder-tester's exact-head review and infosec-review-aid
+pass `20260815T232502Z-coder-tester-p371.md` (requested via `b5wq`, MR
+!1597): BLOCK, 2 blocking (`B-V27-LOAD-R3-1`, `B-V27-LOAD-R3-2`).**
+
+- `B-V27-LOAD-R3-1`: round 3's `starts_with('/')` absolute check missed
+  Windows drive-letter and UNC forms; its metadata-then-read size bound
+  was a TOCTOU race (the file can grow between the check and the read).
+  Fixed with `Path::is_absolute()` (platform-native) and a hard
+  `MAX_IMPORT_TARGET_BYTES + 1` read cap enforced on the open file handle
+  itself, not a pre-read metadata check — see Slice 1 item 7, revised.
+- `B-V27-LOAD-R3-2`: round 3's outcome table called import rejections both
+  "none" (the silent pre-existing fallback) and "an advisory finding" —
+  mutually exclusive claims about the same test's expected output. Fixed
+  by picking one outcome: every rejection produces its own named, visible
+  advisory diagnostic, distinct from the silent fallback (which stays
+  reserved for "no version comment present in a successfully-read file")
+  — see Slice 1 items 7-8, revised.
+
 **Round 3, per coder-tester's exact-head review and infosec-review-aid
 pass `20260815T224603Z-coder-tester-87k8.md` (requested via `r7vb`, MR
 !1595): BLOCK, 2 blocking (`B-V27-LOAD-R2-1`, `B-V27-LOAD-R2-2`).** Seven
@@ -356,18 +374,28 @@ citation.
      project's own canonical shape instead of showing adopters two
      different patterns.
 7. **Import-following safety bounds, added per `pghm`'s `V27-LOAD-4`,
-   corrected per coder-tester's infosec-review-aid finding
-   `B-V27-LOAD-R2-1`** (`20260815T224603Z-coder-tester-87k8.md`,
-   requested via `r7vb`; round 2's spec was self-defeating — canonical
-   filesystem paths are normally absolute, including the intended
-   in-repository `AGENTS.md` target, so "reject if the canonicalized path
-   is absolute" rejected the valid bridge along with unsafe input; the
-   "defined size bound" was also never actually defined). The resolver
-   that follows a loader candidate file's single `@<relative-path>` line
-   is a **frozen, ordered algorithm**, not a set of unordered checks:
+   corrected per coder-tester's infosec-review-aid findings
+   `B-V27-LOAD-R2-1` and `B-V27-LOAD-R3-1`**
+   (`20260815T224603Z-coder-tester-87k8.md` and
+   `20260815T232502Z-coder-tester-p371.md`, requested via `r7vb`/`b5wq`;
+   round 2's spec was self-defeating — canonical filesystem paths are
+   normally absolute, including the intended in-repository `AGENTS.md`
+   target, so "reject if the canonicalized path is absolute" rejected the
+   valid bridge along with unsafe input. Round 3's fix was still wrong in
+   two ways `p371` caught: `starts_with('/')` doesn't recognize a Windows
+   drive letter, UNC path, or other platform-rooted form as absolute; and
+   checking size via metadata *before* opening the file is a
+   time-of-check-to-time-of-use race — the file can grow between the
+   metadata check and the actual read, so metadata was never really the
+   security bound). The resolver that follows a loader candidate file's
+   single `@<relative-path>` line is a **frozen, ordered algorithm**, not
+   a set of unordered checks:
    1. Reject the import if the **raw import token** (the literal text
-      after `@`, before any filesystem resolution) starts with `/` — an
-      absolute *raw* token is unsafe input; this check happens before
+      after `@`, before any filesystem resolution), interpreted as a
+      `std::path::Path`, is absolute per `Path::is_absolute()` — the
+      platform-native check (covers Unix `/...`, Windows drive-letter
+      `C:\...`, and Windows UNC `\\server\share\...` forms), not a naive
+      `starts_with('/')` string check. This happens before
       canonicalization, which is exactly why round 2's "reject if
       canonical is absolute" was wrong (it checked the wrong thing, at
       the wrong stage).
@@ -391,62 +419,85 @@ citation.
       root.
    6. Require the canonical target to be a regular file (not a
       directory, device, or other special file) and readable.
-   7. **Exact, defined size bound**: check the target's size via
-      filesystem metadata *before* opening it for content — reject
-      (same safe default) if it exceeds `MAX_IMPORT_TARGET_BYTES`
-      (64 KiB — a version-comment scan only needs the first few lines of
-      a real Markdown file; this is checked via metadata, not by
-      attempting a read and truncating it, so the read method genuinely
-      "cannot allocate past it before checking," per the review's own
-      wording). Only after this check passes does the resolver actually
-      read the file's content.
-   8. Any rejection at any step above (1, 4's implicit missing-target
-      failure, 5, 6, or 7) produces the same outcome: "no comment
-      present: no warning" — the existing safe-default behavior for an
-      unparseable case, per the outcome-contract table in item 8 below
-      (not a crash, not a hang, and — per `B-V27-LOAD-R2-2`'s fix below —
-      not a nonzero exit status).
+   7. **Hard read bound, corrected per `B-V27-LOAD-R3-1`** — open the
+      canonical regular-file target, then read from that open handle
+      through a hard `MAX_IMPORT_TARGET_BYTES + 1` (64 KiB + 1) byte cap
+      (e.g. `Read::take(MAX_IMPORT_TARGET_BYTES + 1).read_to_end(...)`),
+      never allocating or retaining beyond that. A result of length
+      `MAX_IMPORT_TARGET_BYTES + 1` means the real file is larger than
+      the cap — treat as oversized (same safe default), regardless of
+      what any earlier metadata check reported. A preliminary metadata
+      check MAY still be used as a cheap early rejection for obviously
+      oversized files, but the bounded read through the open handle —
+      not the metadata check — is what actually enforces the security
+      bound, since the file can change between the two.
+   8. **Outcome, corrected per `p371`'s `B-V27-LOAD-R3-2`**: any
+      rejection at any step above (1, 4's implicit missing-target
+      failure, 5, 6, or 7) produces **one stable, visible
+      `Severity::Advisory` diagnostic naming the specific rejected
+      condition** — not the silent pre-existing "no comment present: no
+      warning" fallback (that fallback is reserved for a different case:
+      a successfully-read file with no version comment in it at all).
+      Per the outcome-contract table in item 8 below: not a crash, not a
+      hang, and not a nonzero exit status — but always a visible finding,
+      never silent.
    - This scope explicitly does **not** extend to arbitrary nested
      imports (an imported file itself containing another `@<path>` line)
      — only one level of import-following is in scope, matching Claude
      Code's own documented import behavior for this exact case; deeper
      nesting is out of scope and must not be silently followed.
    Add test cases for the valid `@../AGENTS.md` bridge (accepted,
-   unchanged behavior) plus every rejected shape (raw absolute token,
-   `..` traversal, symlink escape, missing target, non-regular target
-   [e.g. a directory], unreadable target, oversized target, and a target
-   at exactly `MAX_IMPORT_TARGET_BYTES` as the boundary-size positive
-   control) alongside the existing per-surface freshness tests from
-   item 2.
+   unchanged behavior) plus every rejected shape: raw absolute token in
+   **both** platform forms per `B-V27-LOAD-R3-1` (Unix `/etc/passwd`-style
+   and, run under `#[cfg(windows)]` or an equivalent platform-gated test,
+   a Windows drive-letter and a UNC form), `..` traversal, symlink
+   escape, missing target, non-regular target (e.g. a directory),
+   unreadable target, a target at exactly `MAX_IMPORT_TARGET_BYTES`
+   (accepted, boundary-size positive control), a target at
+   `MAX_IMPORT_TARGET_BYTES + 1` (rejected as oversized), and — per
+   `B-V27-LOAD-R3-1`'s TOCTOU point — a target that passes an initial
+   metadata check but is grown past the cap before the bounded read
+   completes (still rejected as oversized, proving the read-time cap is
+   the real bound, not the metadata check) — alongside the existing
+   per-surface freshness tests from item 2.
 8. **Advisory-only outcome contract, added per `pghm`'s `V27-LOAD-7`,
-   corrected per `87k8`'s `B-V27-LOAD-R2-2`** (round 2 said missing/
-   unknown/stale declared surfaces make `agov validate agents` "fail,"
-   which contradicts `tool-authority-boundary-rule.md`'s requirement that
-   an advisory finding never change process exit status — item 2 already
-   correctly says these findings stay `Severity::Advisory`, but the
-   surrounding prose used "fail" loosely enough to read as a nonzero
-   exit). One outcome table, separating validator evidence from process
-   authority, replaces every "fails"/"passes" description above with the
-   exact pair below:
+   corrected per `87k8`'s `B-V27-LOAD-R2-2` and `p371`'s
+   `B-V27-LOAD-R3-2`** (round 2 said missing/unknown/stale declared
+   surfaces make `agov validate agents` "fail," contradicting
+   `tool-authority-boundary-rule.md`'s requirement that an advisory
+   finding never change process exit status. Round 3's fix corrected the
+   exit-status contradiction but introduced a second one `p371` caught:
+   it called the import-rejection row both "none" — the pre-existing
+   silent "no comment present: no warning" fallback — *and* "itself an
+   advisory-severity finding," which are mutually exclusive; "none" and
+   "a finding" cannot both be the expected output of the same test).
+   **Round 4 picks one observable outcome and states it once**: every
+   import rejection produces its own **named, visible**
+   `Severity::Advisory` diagnostic — never the silent pre-existing
+   fallback, which is reserved for the genuinely different case of "no
+   comment present in an otherwise-successfully-read file." One outcome
+   table, separating validator evidence from process authority, replaces
+   every "fails"/"passes" description elsewhere in the plan with the
+   exact pair below — `finding`, message class, and exit status now agree
+   word-for-word with every other reference to these conditions in this
+   document:
 
    | Condition | Finding | Exit status |
    |---|---|---|
    | Declared surface's candidate file exists, current version | none | 0 |
    | Declared surface's candidate file missing | advisory, stable diagnostic naming the surface and missing file | 0 |
    | Unknown `supported_assistant_loaders` token | advisory, stable diagnostic naming the value | 0 |
-   | Declared surface's file present but stale version comment | advisory, stable diagnostic (unchanged existing behavior) | 0 |
-   | Import resolver: any rejection from item 7 (absolute token, traversal, symlink escape, missing/non-regular/unreadable/oversized target) | none — falls back to "no comment present: no warning," itself an advisory-severity finding, not a distinct error class | 0 |
-   | No `supported_assistant_loaders` field declared, no loader file found at all (pre-existing behavior) | advisory (unchanged, pre-existing) | 0 |
+   | Declared surface's file present but stale version comment (comment successfully read, value differs from expected) | advisory, stable diagnostic (unchanged existing behavior) | 0 |
+   | Declared surface's file present, no version comment at all (existing pre-`V27-LOAD` behavior, unrelated to import-following) | none — the pre-existing silent fallback, unchanged | 0 |
+   | Import resolver: any rejection from item 7 (raw-absolute token in either platform form, `..` traversal, symlink escape, missing/non-regular/unreadable/oversized target) | advisory, **one stable diagnostic naming the specific rejected condition** (e.g. "import target escapes repository root," "import target exceeds size bound") — never the silent no-comment fallback | 0 |
+   | No `supported_assistant_loaders` field declared, no loader file found at all (pre-existing OR-based behavior) | advisory (unchanged, pre-existing) | 0 |
 
-   Every row is `0` — `agov validate`'s process exit status is never
+   Every row is exit `0` — `agov validate`'s process exit status is never
    affected by any assistant-loader finding, matching
    `tool-authority-boundary-rule.md` exactly. "Fails" in this plan's
    remaining prose (item 1's test-case descriptions, "Test strategy")
-   means "produces the advisory finding," never "nonzero exit" — reworded
-   throughout to say exactly that, closing the gap between item 7's "no
-   silent acceptance" requirement (every rejection still produces a
-   visible advisory finding) and item 2's advisory-severity guarantee
-   (that finding never changes the exit code).
+   means "produces the named advisory finding," never "nonzero exit" and
+   never "silently nothing" — reworded throughout to say exactly that.
 
 ### Slice 2 — Shipped Claude MCP configuration template (#90)
 
