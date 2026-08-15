@@ -4,25 +4,30 @@ status: pending-gate1
 topic: v261-release-asset-contract-fix
 advisory_consultation:
   - role: contribution-auditor
-    status: consulted
+    status: not-applicable
     reason: >-
-      Round 1 (coder-tester exact-head review `4h25`, MR !1580): BLOCK, four
-      bounded corrections, addressed in this revision — see "Revision
-      history" below. The named contribution-auditor's own sign-off (per
-      MANIFEST.yaml: human + Claude at plan review, both self-review-
-      conflicted for a plan I authored — same conflict already resolved for
-      MR !1492 via artifact-specific routing) is requested below and remains
-      outstanding before Gate 1. This entry does not claim that sign-off has
-      happened.
+      Round 3 correction: rounds 1-2 assumed this role applied by analogy to
+      MR !1492 (the v2.6.0 release-*publication* plan) without checking
+      jurisdiction fit. contribution-auditor's actual stated jurisdiction
+      (agf/agents/MANIFEST.yaml notes: "audits incoming proposals from AI
+      assessment synthesis and future contributors. Also audits any
+      upstream framework upgrade diffs") does not cover an ordinary internal
+      CI-script bug fix — this plan is neither an incoming contribution
+      proposal nor an upstream framework-upgrade diff. coder-tester's three
+      independent exact-head reviews (`4h25`, `mqka`, this round) already
+      supply the technical review this plan needs. Flagged explicitly as a
+      judgment call, not asserted as settled — coder-tester or the governor
+      should challenge this classification in the next round if they
+      disagree, rather than this plan silently relying on it.
   - role: infosec-sentinel
-    status: consulted
+    status: not-applicable
     reason: >-
-      Requested via this plan's own routing (see "Decision requested"); no
-      change to network calls, secrets, or provenance-record content, only
-      to which target set is mandatory and when the check runs. The named
-      infosec-sentinel's own semantic consultation, or a plan-specific
-      governor waiver matching `33br`'s established boundary, is requested
-      below and remains outstanding before Gate 1.
+      Round 3 correction: rounds 1-2 mistakenly framed this as a pending
+      human/AI consultation. Per MANIFEST.yaml, infosec-sentinel is
+      `played_by: "ci (agov validate infosec, on commit)"` — an automated
+      CI check, not a pre-Gate-1 consultation gate. It runs automatically
+      against the implementation commit once this plan is approved and
+      implemented; there is nothing to request or wait on before Gate 1.
 ---
 
 # Plan: fix the v2.6.0 release-asset contract gap (mandatory-target drift)
@@ -80,6 +85,42 @@ raised by `4h25`, but the same root-cause class): `agov-oci-image.sh`'s
 `target_slug()` function is a **third** unsynchronized hardcoded copy of the
 target-to-slug mapping, alongside the two `4h25` and the round-1 plan already
 named. Folded into "Scope" item 5.
+
+**Round 3, per coder-tester's exact-head review
+`20260815T205646Z-coder-tester-mqka.md` (MR !1582): BLOCK, 3 blocking + 1
+advisory.** All four addressed:
+
+- `B-V261-R2-1` (critical): confirmed by reading `.gitlab-ci.yml` directly —
+  both `rust:tooling:release` and `agf:dist:release` have `rules: - if:
+  $CI_COMMIT_TAG` only, so round 2's throwaway-branch design (manually
+  triggering them on a branch) was never possible; a tag-only job cannot run
+  on a branch pipeline regardless of branch name or manual trigger. Rather
+  than adding a new rule/variable contract to expose tag-only jobs on a
+  named branch (the resolution shape `mqka` sketched, which would itself
+  need its own negative test proving it can't leak into publish jobs),
+  found that `agf:dist:preview` and `rust:tooling:preview` **already exist,
+  already run automatically on this fix's own MR** (both match on
+  `.gitlab-ci.yml` changes, which this fix necessarily makes), and already
+  produce archives under the exact same filenames the tag pipeline
+  produces. Dropped the throwaway-branch design entirely — see "Scope" item
+  8, replaced.
+- `B-V261-R2-2` (material): re-examined both roles' actual jurisdiction
+  instead of re-wording the same contradiction a third time. infosec-
+  sentinel is CI-automated (`played_by: ci`), not a consultation gate at
+  all; contribution-auditor's real jurisdiction (contribution proposals,
+  upstream framework diffs) does not cover this plan. Both reclassified
+  `not-applicable` in the frontmatter above, with reasoning — not asserted
+  as `consulted` when no consultation occurred.
+- `B-V261-R2-3` (material): "Files affected" always listed six paths;
+  fixed the prose, acceptance criterion 7, and stop conditions to say six
+  consistently, and added the preview-verify job's `.gitlab-ci.yml` change
+  to the enumerated scope.
+- `A-V261-R2-1` (advisory): `agov-oci-image.sh`'s manifest read is now
+  explicitly CWD-independent (resolved relative to the script's own
+  directory, matching `release-assets.sh`); added a new `agov-oci-image.sh
+  selftest` subcommand exercising `target_slug()` against every manifest
+  entry plus a malformed line and the still-special-cased Windows-target
+  rejection, wired into CI — see "Scope" items 4 and 9.
 
 ## Incident, independently re-verified before writing this plan
 
@@ -157,11 +198,10 @@ around the constraint instead (see "Scope" item 6).
 
 ## Scope
 
-**In scope** (all in `tooling/rust/scripts/release-assets.sh` and
-`.gitlab-ci.yml`, ordinary main-track change per
-`release-via-merge-request-rule.md`'s standard workflow — no frozen-scope
-exception needed, this is exactly the kind of individually-approved change
-that belongs on `main` directly):
+**In scope** (the six files enumerated in "Files affected" below, ordinary
+main-track change per `release-via-merge-request-rule.md`'s standard
+workflow — no frozen-scope exception needed, this is exactly the kind of
+individually-approved change that belongs on `main` directly):
 
 1. **Single source of truth for the mandatory Linux target set.** Add
    `tooling/rust/release-targets.txt`: one line per mandatory target, format
@@ -178,19 +218,40 @@ that belongs on `main` directly):
    now-dead `aarch64-unknown-linux-musl) slug="linux-aarch64"` case arm —
    it was leftover cruft with no corresponding loop entry, not a live
    contract.
-3. **`release-assets.sh`'s `expected()` function**: remove the hardcoded
+3. **`release-assets.sh`'s `expected()` function, decomposed into three
+   layered functions** (revised from round 2's single-split description to
+   name all three explicitly, since item 8 now needs the per-target subset
+   on its own): remove the hardcoded
    `agov-${version}-linux-x86_64...`/`agov-${version}-linux-aarch64...`
-   lines; generate the per-target archive/checksum/provenance triplet from
-   the same `tooling/rust/release-targets.txt`, resolved relative to the
-   script's own directory (`$(dirname "$0")/release-targets.txt`) so it
-   works regardless of caller CWD. `agf-*` mandatory lines are untouched
-   (not per-target). The `agov-oci-*-provenance.json` line moves to a
-   **separate function**, `expected_oci()` — see item 6 below for why.
+   lines from `expected()`. Add `expected_targets()`: generates only the
+   manifest-driven per-target archive/checksum/provenance triplets, reading
+   `tooling/rust/release-targets.txt` resolved relative to the script's own
+   directory (`$(dirname "$0")/release-targets.txt`) so it works regardless
+   of caller CWD. Add `expected_pre_oci()`: the literal `agf-*` mandatory
+   lines plus `expected_targets()`'s output. `expected()` becomes
+   `expected_pre_oci()` plus `expected_oci()` (the OCI provenance line,
+   unchanged in content, isolated per item 7 below). New subcommands
+   `verify-targets` and `verify-pre-oci` check presence against
+   `expected_targets()` and `expected_pre_oci()` respectively; the existing
+   `verify` subcommand (unchanged) still checks the full `expected()`.
 4. **`agov-oci-image.sh`'s `target_slug()`**: read the same
-   `tooling/rust/release-targets.txt` instead of its own hardcoded
-   `x86_64-unknown-linux-musl`/`aarch64-unknown-linux-musl` case arms. Third
-   and last consumer of the shared manifest; no hardcoded target list
-   remains anywhere in the tree after this item and items 2-3.
+   `tooling/rust/release-targets.txt`, resolved relative to the script's own
+   directory (matching item 3's CWD-independence for `release-assets.sh`),
+   instead of its own hardcoded `x86_64-unknown-linux-musl`/
+   `aarch64-unknown-linux-musl` case arms. Third and last consumer of the
+   shared manifest; no hardcoded target list remains anywhere in the tree
+   after this item and items 2-3. The existing explicit rejection of
+   `x86_64-pc-windows-gnu` (with its specific "not supported by this Linux
+   OCI-image path" message) is preserved as a special case checked before
+   the manifest lookup — the manifest only ever lists Linux targets, so this
+   is not a manifest-driven entry. **New, addressing `mqka`'s
+   `A-V261-R2-1`**: add an `agov-oci-image.sh selftest` subcommand (no
+   network calls, no image build) that calls `target_slug()` once per
+   `release-targets.txt` entry and asserts the expected slug, calls it with
+   `x86_64-pc-windows-gnu` and asserts the specific rejection message, and
+   calls it with a fully unknown target and a deliberately malformed
+   manifest line (scratch fixture, not the real file) and asserts a clear
+   error in both cases.
 5. **Non-self-referential cross-contract check.** Single-sourcing removes
    the possibility of the three lists (build loop, `expected()`,
    `target_slug()`) drifting from *each other* by construction, but does
@@ -238,29 +299,49 @@ that belongs on `main` directly):
      correctly positioned** — this is exactly what stopped `v2.6.0`'s
      GitLab Release from being created on incomplete input. No new job
      needed here; phase 2 was never the bug, only phase 1's absence was.
-8. **Real pre-tag acceptance path.** **New, addressing `4h25`'s
-   `B-V261-P2`** — round 1's hand-created-empty-files dry run did not
-   exercise real producers. Reuse the exact throwaway-branch pattern
-   already proven today for the aarch64 necessity check
-   (`docs/coordination/20260815T174820Z-governor-reviewer-jj5s.md`,
-   branch `throwaway/v260-aarch64-necessity-20260815`): before requesting
-   authority to cut `v2.6.1`, create a non-protected, never-merged
-   throwaway branch at the fix's exact commit, manually trigger
-   `rust:tooling:release`, `agf:dist:release`, and
-   `release:assets-verify-pre-oci` (real producers, real `verify-pre-oci`
-   call, no `CI_COMMIT_TAG` set so `agov:oci:release`/`release:create`
-   never run and nothing is published), and publish the exact pipeline
-   URL, job results, and assembled `dist/` file list in a coordination
-   completion record. This is preflight evidence for the *next* plan (the
-   one that actually requests `v2.6.1` authority), not evidence this plan
-   itself needs to reach Gate 1 — recorded here so that later plan can
-   cite a real run instead of inventing a new one.
-9. **`release:assets-selftest`'s trigger paths.** **New, addressing
-   `4h25`'s `B-V261-P3`** — add `tooling/rust/release-targets.txt` to the
+8. **Real pre-tag acceptance path, using existing preview jobs — no
+   throwaway branch.** **Revised from round 2** after `mqka`'s
+   `B-V261-R2-1`: `rust:tooling:release` and `agf:dist:release` are
+   `rules: - if: $CI_COMMIT_TAG` only (confirmed by reading
+   `.gitlab-ci.yml` directly) — neither can run on a branch pipeline by any
+   manual trigger, so round 2's throwaway-branch design was never
+   achievable without also changing those jobs' rules, which would need its
+   own leak-proof contract and negative test. Dropped that shape entirely.
+   `agf:dist:preview` (line 416) and `rust:tooling:preview` (line 1152)
+   **already exist** for exactly this purpose ("build preview archives for
+   reviewers" / preview Rust tooling archives), already run on
+   `merge_request_event` pipelines whose changes touch `tooling/rust/**/*`
+   or `.gitlab-ci.yml`, and already write archives under the identical
+   filenames the tag pipeline's real producers write — same `agov dist
+   build` / `.rust-tooling-package` script logic, version-named not
+   tag-named. This fix necessarily touches `.gitlab-ci.yml`, so both preview
+   jobs run automatically on this fix's own MR pipeline — no throwaway
+   branch, no new CI rule exposing a tag-only job, no separate later
+   rehearsal needed for the contract-fix itself. New job
+   `release:assets-verify-preview`, `stage: test`, `needs: [{job:
+   rust:tooling:preview, artifacts: true}]` (mandatory — this fix always
+   touches `tooling/rust/**/*`), runs `release-assets.sh verify-targets dist
+   "$VERSION"` — a new subcommand checking only the manifest-driven
+   per-target archive/checksum/provenance triplets (not `agf-*`, not OCI
+   provenance; those are outside what a preview pipeline can produce or
+   what this fix's incident class touches). Cite this job's real pipeline
+   URL and output as this MR's own Gate 2 evidence — see "Test and
+   validation plan". Rehearsing the full OCI-publish path end-to-end
+   remains correctly out of scope, deferred to the separate `v2.6.1`
+   cut-and-tag plan (see "Out of scope"), which is the only step that
+   actually needs a real tag pipeline.
+9. **Selftest trigger paths.** **New, addressing `4h25`'s `B-V261-P3`** —
+   add `tooling/rust/release-targets.txt` to the
    `&release_assets_selftest_paths` anchor list (currently
    `tooling/rust/scripts/release-assets.sh` and `.gitlab-ci.yml` only), so
-   a manifest-only change (e.g. reinstating aarch64 later) schedules this
-   job instead of silently skipping it.
+   a manifest-only change (e.g. reinstating aarch64 later) schedules
+   `release:assets-selftest` instead of silently skipping it. Add a new
+   `agov-oci-image:selftest` job (`stage: test`, mirroring
+   `release:assets-selftest`'s shape) running item 4's new `agov-oci-image.sh
+   selftest` subcommand, triggered on changes to
+   `tooling/rust/scripts/agov-oci-image.sh`, `tooling/rust/release-targets.txt`,
+   and `.gitlab-ci.yml` — the manifest path is in both anchors from the
+   start, so this job's own trigger cannot repeat `B-V261-P3`'s gap.
 10. **Namespace handling documentation for the retained `v2.6.0` failure.**
    `agf/docs/site/reference/release-artifacts.md` already accurately
    documents the current aarch64-not-built state — no change needed there.
@@ -294,22 +375,27 @@ that belongs on `main` directly):
 
 ## Files affected
 
+Six files total, including one new file:
+
 - `tooling/rust/release-targets.txt` (new)
-- `tooling/rust/scripts/release-assets.sh` (`expected()` split, new
-  `verify-pre-oci` subcommand, `selftest` cross-contract check and fixture
-  independence)
+- `tooling/rust/scripts/release-assets.sh` (`expected()` decomposed into
+  `expected_targets()`/`expected_pre_oci()`/`expected_oci()`; new
+  `verify-targets`/`verify-pre-oci` subcommands; `selftest` cross-contract
+  check and fixture independence)
 - `tooling/rust/scripts/agov-oci-image.sh` (`target_slug()` reads the shared
-  manifest)
+  manifest, CWD-independently; new `selftest` subcommand)
 - `.gitlab-ci.yml` (build loop reads the manifest; new
-  `release:assets-verify-pre-oci` job; `agov:oci:release`'s `needs:` gains
-  that job; `release_assets_selftest_paths` anchor gains the manifest path)
+  `release:assets-verify-pre-oci` job gating `agov:oci:release`; new
+  `release:assets-verify-preview` job on this fix's own MR; new
+  `agov-oci-image:selftest` job; `release_assets_selftest_paths` anchor
+  gains the manifest path)
 - `CHANGELOG.md`, `agf/CHANGELOG.md` (entry documenting the fix and the
   `v2.6.0` disposition, once merged)
 
-Five files/one new file — larger than round 1's four, but still a single
-bounded purpose (the release-asset contract), not a broader release-process
-rewrite. The growth from round 1 is entirely `4h25`'s findings, not scope
-creep.
+Six files/one new file — larger than round 1's four and round 2's five, but
+still a single bounded purpose (the release-asset contract), not a broader
+release-process rewrite. The growth across rounds is entirely `4h25`'s and
+`mqka`'s findings, not scope creep.
 
 ## Test and validation plan
 
@@ -344,10 +430,19 @@ thing:
    deliberately absent, `verify` must fail and name it) already works
    correctly today — re-run after the fixture-independence change (item 6)
    to confirm it still passes against the manifest-driven `expected()`.
-- A **real pre-tag dry run**, not a synthetic one: item 8 above (the
-  throwaway-branch preflight), run once before this MR's Gate 2, with its
-  exact pipeline URL and job results cited as MR evidence — not merely
-  described as a future step.
+4. **`agov-oci-image.sh selftest` (new, addressing `A-V261-R2-1`).** Every
+   `release-targets.txt` entry resolves to its correct slug via
+   `target_slug()`; the Windows-target special case still produces its
+   specific rejection message; a fully unknown target and a malformed
+   scratch manifest line both produce clear errors. No network call, no
+   image build.
+- A **real pre-tag dry run using existing producers, not a throwaway
+  branch**: item 8's `release:assets-verify-preview` job, which runs
+  automatically on this MR's own pipeline (it touches `.gitlab-ci.yml` and
+  `tooling/rust/**/*`, matching `rust:tooling:preview`'s trigger), cited
+  with its exact pipeline URL and job output as this MR's Gate 2 evidence —
+  not merely described as a future step, and not requiring any separate
+  branch or manual pipeline trigger.
 - Full `agov validate`, `agov dist validate`, `git diff --check`, and the
   existing MR pipeline (unaffected jobs must remain green — this change
   touches release-only paths, not product code).
@@ -375,13 +470,18 @@ thing:
 4. `release-assets.sh expected 2.6.0` (or any version) no longer lists
    `agov-*-linux-aarch64.*` — matching the actual `rust:tooling:release`
    build output for any tag cut against current `main`.
-5. The throwaway-branch preflight (validation-plan item, "real pre-tag dry
-   run") has actually run once against real producers, with its exact
-   pipeline URL and job results cited as MR evidence before Gate 2.
+5. The `release:assets-verify-preview` job (validation-plan item, "real
+   pre-tag dry run using existing producers") has actually run once on this
+   MR's own pipeline against `rust:tooling:preview`'s real output, with its
+   exact pipeline URL and job results cited as MR evidence before Gate 2 —
+   no throwaway branch, no manual pipeline trigger.
 6. `CHANGELOG.md`/`agf/CHANGELOG.md` document both the fix and the `v2.6.0`
    failed-publication disposition.
 7. No product, schema, or command-semantic change; no touch to any file
-   outside the five listed in "Files affected".
+   outside the six listed in "Files affected".
+8. `agov-oci-image.sh selftest` (validation-plan item 4) passes for every
+   real manifest entry and the Windows special case, and fails clearly for
+   an unknown target and a malformed scratch manifest line.
 
 ## Downstream impact (per `downstream-impact-rule.md`, `tooling/**` trigger path)
 
@@ -406,10 +506,10 @@ rule's trigger scope).
 ## Stop conditions
 
 Stop and return to the governor if: the fix requires touching any file
-outside the five listed in "Files affected"; the fix would reinstate
+outside the six listed in "Files affected"; the fix would reinstate
 aarch64 as mandatory; the fix would delete, move, or retry anything against
-the `v2.6.0` tag, branches, or OCI residue; the throwaway-branch preflight
-in item 8 cannot be run without pushing anything to a protected ref or
-publishing anything externally visible; or any of the three tests in "Test
-and validation plan" cannot be made to fail/pass convincingly as designed
-(a gate that doesn't actually gate).
+the `v2.6.0` tag, branches, or OCI residue; the `release:assets-verify-preview`
+job in item 8 cannot run without a rule change to any tag-gated job, a
+throwaway branch, or publishing anything externally visible; or any of the
+tests in "Test and validation plan" cannot be made to fail/pass convincingly
+as designed (a gate that doesn't actually gate).
