@@ -12,19 +12,69 @@ advisory_consultation:
       reproducing #86. Decomposition and Gate 2 evidence scope from
       `20260730T074742Z-contribution-auditor-bhhh`.
   - role: infosec-sentinel
-    status: consulted
+    status: not-applicable
     reason: >
-      This plan touches the MCP stdio transport's request-validation
-      boundary (#88) — the one place in `agov-mcp` that parses
-      externally-supplied input before dispatch. No credential, secret,
-      or permission-model change; the transport already only proxies to
-      the same `agov` CLI subcommands with the same authority. Flagging
-      for a pass on whether stricter JSON-RPC validation could itself
-      become a new denial-of-service surface (e.g. malformed-input
-      handling must fail closed with a JSON-RPC error, not panic or hang).
+      Round 2 correction, per `pghm`'s V27-MCP-4: the prior `consulted`
+      status was the same self-contradictory pattern later independently
+      found in the v2.6.1 plan — claiming a status whose own reason text
+      only requests a future pass with no pinned result. infosec-sentinel
+      has no configured human or AI player (`played_by: "ci (agov validate
+      infosec, on commit)"` per `agf/agents/MANIFEST.yaml`), so there is no
+      role-holder to "consult" the way contribution-auditor has one. This
+      plan touches the MCP stdio transport's request-validation boundary
+      (#88) — the one place in `agov-mcp` that parses externally-supplied
+      input before dispatch, with a genuine bounded-input/DoS-surface
+      question (see Slice 1's malformed-input handling and the input-safety
+      risk item below). Per the established precedent (frozen-scope plan's
+      `2r8r`/`mdth`; v2.6.1's `fq2w`), an infosec-review-aid pass from
+      coder-tester plus a governor waiver decision is the path to
+      resolution — requested separately, not asserted here before it
+      exists. **This plan is not ready for Gate 1 while this entry is
+      unresolved.**
 ---
 
 # Plan: agov-mcp transport completeness and protocol correctness (#86, #88)
+
+## Revision history
+
+**Round 2, per contribution-auditor's fresh exact-head review
+`20260809T074441Z-contribution-auditor-pghm.md` (governor decision `2gbg`):
+COMPLETE/BLOCK against current `main` (`72b23940`), superseding the
+2026-07-30 CLEAR evidence, which had gone stale. Four findings
+(`V27-MCP-1..4`), all addressed in this revision:
+
+- `V27-MCP-1`: tool-inventory baseline refreshed — current `main` has ten
+  MCP tools (one more than this plan's original count: `agov_coord_pending`
+  shipped from the coordination read-path plan since this plan was
+  drafted) and eleven `agov coord` CLI subcommands (one more:
+  `pending`), four of which are mirrored. Both counts independently
+  re-verified against live `main` before writing this revision, not taken
+  from `pghm` alone. `MCP_TOOL_ALLOWLIST`
+  (`tooling/rust/crates/agov-core/src/roi.rs`) added to scope — see
+  "Affected files".
+- `V27-MCP-2`: added the BREAKING three-circle impact statement — see
+  "Downstream impact" below.
+- `V27-MCP-3`: froze all six new tool names, schemas, and CLI-flag mappings
+  explicitly — see "Slice 2" and the new "Frozen tool contract" table.
+  Corrected the plan's own inconsistent `agov_graph_index` reference (no
+  `coord_` infix) to `agov_coord_graph_index`, matching the established
+  `agov_coord_*` namespace throughout. Resolved the `dir` vs
+  `coordination_dir` question: every one of the ten existing tools uses
+  `dir` (confirmed by reading `main.rs`'s tool schemas directly); the six
+  new tools use `dir` too, for consistency — introducing `coordination_dir`
+  for only the new tools would create a second inconsistency instead of
+  resolving the first. If a project-wide `dir`→`coordination_dir` rename is
+  ever adopted, it applies to all sixteen tools in one coordinated change,
+  not selectively. Added `params`-shape validation to Slice 1's outcome
+  table instead of leaving the "exhaustive" claim silently incomplete.
+- `V27-MCP-4`: defined a bounded-line-read contract with an explicit
+  maximum, error behavior, and oversized-input test (see Slice 1). Fixed
+  the frontmatter's self-contradictory infosec-sentinel `consulted` claim —
+  the same defect class independently caught in the v2.6.1 plan's own
+  review history; `not-applicable` here is an honest placeholder pending a
+  real infosec-review-aid pass, not an assertion the plan doesn't need one.
+  Refreshed the stale v2.4.6 exclusion language to the current v2.7.0 child-
+  plan relationship (see "Out of scope").
 
 ## Trigger
 
@@ -38,18 +88,20 @@ contribution-auditor (`rk2k`), which additionally found and filed #88
 
 ## Issues in scope
 
-### #86 — `agov-mcp` exposes 9 of ~16 `agov` CLI commands
+### #86 — `agov-mcp` exposes 10 of 11 `agov coord` subcommands' worth of the CLI, missing 6 tools
 
-Confirmed via a live MCP session (9 tools:
-`agov_coord_list`, `agov_coord_post`, `agov_coord_validate`,
-`agov_handoff_complete`, `agov_handoff_next`, `agov_handoff_take`,
-`agov_plan_validate`, `agov_session_resume`, `agov_validate`) against the
-CLI's `agov coord` subcommand list (`validate, brief, post, list, status,
-stale, visibility, graph, graph-index, publication-check` — 10 total, 3
-mirrored). Correction from `rk2k`: state as "nine MCP tools total, three
-of ten coordination subcommands exposed" rather than the looser "9 of
-~16" framing. Additionally, the one `agov_session_resume` tool that *is*
-exposed omits the CLI's `--manifest <MANIFEST>` flag — confirmed at
+**Refreshed against current `main` per `pghm`'s `V27-MCP-1`** (round-2
+correction from the original "nine tools ... three of ten"): live MCP
+session confirms ten tools total (`agov_coord_list`, `agov_coord_pending`,
+`agov_coord_post`, `agov_coord_validate`, `agov_handoff_complete`,
+`agov_handoff_next`, `agov_handoff_take`, `agov_plan_validate`,
+`agov_session_resume`, `agov_validate`) against the CLI's `agov coord`
+subcommand list (`validate, brief, post, list, status, stale, visibility,
+graph, graph-index, publication-check, pending` — 11 total, 4 mirrored:
+`list`, `post`, `validate`, `pending`). State as "ten MCP tools total, four
+of eleven coordination subcommands exposed." Additionally, the one
+`agov_session_resume` tool that *is* exposed omits the CLI's `--manifest
+<MANIFEST>` flag — confirmed at
 `tooling/rust/crates/agov-mcp/src/main.rs:390-396`, which forwards only
 `role`, `base_branch`, `dir`.
 
@@ -127,11 +179,24 @@ attempts:
 |---|---|
 | Structurally valid, `id` present (string or integer, per B3) | Normal response (success result or method-level error), echoing the same `id` |
 | Structurally valid, `id` absent — a Notification | No response sent, ever, regardless of what the method would have returned |
-| Structurally invalid for any reason (bad/missing `jsonrpc`, missing/wrong-type `method`, malformed JSON, or an `id` shape B3 rejects) — with or without `id` present | `-32600 Invalid Request` (or `-32700` for malformed JSON specifically) with `id: null` in the response |
+| Structurally invalid for any reason (bad/missing `jsonrpc`, missing/wrong-type `method`, malformed JSON, an `id` shape B3 rejects, or a `params` shape rejected below) — with or without `id` present | `-32600 Invalid Request` (or `-32700` for malformed JSON specifically) with `id: null` in the response |
+
+**`params` shape validation, added per `pghm`'s `V27-MCP-3`** (round 2 —
+the outcome table above was labeled exhaustive while leaving `params`
+unvalidated; this closes that gap rather than narrowing the claim). Per
+JSON-RPC 2.0 §4: "if present, parameters for the rpc call MUST be provided
+as a Structured value" — an Object or Array, never a bare string, number,
+boolean, or `null`. The current `params: Option<Value>` field accepts any
+JSON value. Add validation rejecting non-object, non-array `params` (when
+present) as part of "structurally invalid," row three of the table above.
+Test: `params` present as a string, a number, and `true` — three
+additional negative cases, each `-32600`/`id: null`. `params` absent, an
+empty object, and an empty array all remain valid (unchanged).
 
 "Structurally valid" means: parses as JSON, `jsonrpc` is exactly `"2.0"`,
-`method` is present and a string, and if `id` is present it is a string
-or integer (B3). Per the JSON-RPC 2.0 spec's normative examples, an
+`method` is present and a string, `params` if present is an object or
+array, and if `id` is present it is a string or integer (B3). Per the
+JSON-RPC 2.0 spec's normative examples, an
 ID-less object that fails any of those checks is not a notification —
 it's an invalid Request object, evaluated by the same rules as an
 ID-bearing one, and returns row three's outcome with `id: null`, not "no
@@ -147,6 +212,31 @@ Normative references checked 2026-07-30:
 Must fail closed on malformed JSON itself (parse error, `-32700`)
 without panicking or hanging the stdio loop, per the infosec-sentinel
 note above.
+
+**Bounded-line-read contract, added per `pghm`'s `V27-MCP-4`** (round 2 —
+the plan previously promised "oversized input safety" without defining
+it): `run_stdio`'s current `stdin.lock().lines()`
+(`tooling/rust/crates/agov-mcp/src/main.rs:112`) uses
+`std::io::BufRead::lines()`, which allocates an unbounded `String` for any
+single line with no length check before the line is even handed to the
+JSON parser — a client (or a corrupted/adversarial stream) sending
+megabytes of non-newline-terminated bytes grows that allocation without
+bound. Replace with a byte-capped read: define `MAX_REQUEST_LINE_BYTES`
+(8 MiB — comfortably larger than any real coordination message, plan
+file, or tool-call payload this project produces, while still bounding
+worst-case memory) and read each line via `BufRead::read_until(b'\n',
+&mut buf)` with a check after each read that `buf.len()` has not exceeded
+the cap. On exceeding the cap: respond `-32600 Invalid Request` with
+`id: null` (the line cannot yet be attributed to a request `id`, since it
+was never successfully parsed as JSON), discard the remainder of that
+oversized line up to the next newline or EOF (so the stream stays
+byte-aligned and the *next* line is parsed cleanly, not treated as a
+continuation of garbage), and continue the loop — one oversized line must
+not terminate the session or leave it unable to process subsequent valid
+requests. Test: a single line at exactly the cap (accepted, normal
+processing), one byte over the cap (rejected per above, loop continues),
+and a well-formed request line immediately following an oversized one
+(processed normally, proving recovery).
 
 ### Slice 2 — coordination subcommand parity (#86)
 
@@ -170,12 +260,36 @@ caller-chosen filesystem path. This plan's stated "every new MCP tool is
 read-only" claim did not decide whether that flag is exposed — if it
 were, the MCP surface would let a caller write to an arbitrary host
 path, which is a mutation, not a read. Frozen decision: the MCP
-`agov_graph_index` tool does **not** expose `--output`; it always
-requests stdout output and returns the JSON body as the tool result.
-This is an intentional, documented exclusion, not an oversight, and the
-CLI/MCP contract test below must assert it explicitly (a passing test
-that merely doesn't cover `--output` is not the same as a test proving
-it's absent).
+`agov_coord_graph_index` tool (corrected name — see below) does **not**
+expose `--output`; it always requests stdout output and returns the JSON
+body as the tool result. This is an intentional, documented exclusion, not
+an oversight, and the CLI/MCP contract test below must assert it
+explicitly (a passing test that merely doesn't cover `--output` is not the
+same as a test proving it's absent).
+
+**Frozen tool contract, added per `pghm`'s `V27-MCP-3`** (round 2 — the
+six mappings were named only as CLI subcommands, not as frozen MCP tool
+names/schemas). Corrects the plan's own prior `agov_graph_index` reference
+(missing the `coord_` infix used by every other coordination tool). Every
+new tool takes an optional `dir` string parameter, matching the CLI's
+`--dir` (default `docs/coordination`) and the existing ten tools'
+convention — no `coordination_dir` rename for these six only (see
+"Revision history"):
+
+| MCP tool name | CLI subcommand | Parameters (beyond `dir`) |
+|---|---|---|
+| `agov_coord_status` | `agov coord status` | `recent` (integer), `roles` (boolean) |
+| `agov_coord_visibility` | `agov coord visibility` | `base_branch` (string), `branch` (string), `format` (enum: text, json) |
+| `agov_coord_stale` | `agov coord stale` | none |
+| `agov_coord_graph_index` | `agov coord graph-index` | none — `--output` deliberately not exposed (B5 above) |
+| `agov_coord_publication_check` | `agov coord publication-check` | `base_ref` (string, **required**), `subject_prefix` (string), `format` (enum: text, json) |
+| `agov_coord_brief` | `agov coord brief` | `id_format` (enum: readable, ulid), `from`, `to`, `kind`, `topic`, `model` (all string) |
+
+All six mirror the CLI's own flag names and defaults exactly (verified
+against `agov coord <subcommand> --help` output on current `main`, not
+assumed). `agov_coord_brief` generates a skeleton and does not write to
+disk (unlike `agov_coord_post`) — confirmed read-only, consistent with
+this plan's "every new tool is read-only" scope.
 
 Add the missing `--manifest` forwarding to `agov_session_resume`. Do not
 claim full parity from a hand-maintained count: add an executable test
@@ -188,18 +302,33 @@ reason, not just absent.
 
 ## Affected files
 
-- `tooling/rust/crates/agov-mcp/src/main.rs` — `JsonRpcRequest` struct and
-  request-handling loop (#88); `tools()` and the CLI-arg-building match
-  arms (#86); `agov_session_resume` arm specifically for `--manifest`.
+- `tooling/rust/crates/agov-mcp/src/main.rs` — `JsonRpcRequest` struct,
+  `run_stdio`'s bounded-line-read loop, and `params`/`id` validation
+  (#88); `tools()` and the CLI-arg-building match arms for all six new
+  tools (#86); `agov_session_resume` arm specifically for `--manifest`.
+- `tooling/rust/crates/agov-core/src/roi.rs` — **added per `pghm`'s
+  `V27-MCP-1`**: `MCP_TOOL_ALLOWLIST` gains the six new tool names
+  (`agov_coord_status`, `agov_coord_visibility`, `agov_coord_stale`,
+  `agov_coord_graph_index`, `agov_coord_publication_check`,
+  `agov_coord_brief`) — every dispatched tool is checked against this
+  allowlist before dispatch, so a tool added to `tools()` without a
+  matching allowlist entry would be listed but silently rejected at call
+  time. Add a test asserting the allowlist and the tool registry stay in
+  sync (same drift risk `V27-MCP-1` flagged for the tool-count claim
+  generally).
 - `tooling/rust/crates/agov-mcp/tests/stdio.rs` — existing transport
-  tests; add JSON-RPC validity cases.
+  tests; add JSON-RPC validity cases (`jsonrpc`, `id`, and `params`
+  shape validation; bounded-line-read cases).
 - `tooling/rust/crates/agov-mcp/tests/roi_transport_attribution.rs` —
-  check for interaction with new tool entries.
+  check for interaction with new tool entries and the allowlist addition.
 - New: a CLI-registry/MCP-registry contract test (exact location to be
   decided at implementation time — likely alongside the existing
   `tool_list_contains_only_cli_backed_tools` test at `main.rs:715`).
 - `AGENTS.md` and `agf/docs/site/docs/adopt/mcp-server.md` — update the
   documented tool-to-CLI mapping once the new tools ship.
+- `docs/reference/tooling-token-roi.md` — mentioned by `roi.rs`'s own doc
+  comment as documenting `MCP_TOOL_ALLOWLIST`; update if the six new
+  entries change any documented figure there.
 
 ## Test strategy (Gate 2 evidence)
 
@@ -242,6 +371,68 @@ Per `bhhh`'s minimum evidence list — exercise all of:
     any other mutating tool's authority/validation behavior is unchanged
     by this plan; this plan only adds read-path tools plus the JSON-RPC
     validity gate, it does not touch mutation authority.
+14. **`params` shape validation, added per `pghm`'s `V27-MCP-3`** — a
+    string, a number, and `true` as `params`, each with an otherwise-valid
+    request: `-32600`, `id: null`. `params` absent, an empty object, and
+    an empty array: all still valid, unchanged behavior.
+15. **Bounded-line-read contract, added per `pghm`'s `V27-MCP-4`** — a
+    line of exactly `MAX_REQUEST_LINE_BYTES`: accepted, processed
+    normally. A line one byte over: rejected (`-32600`, `id: null`), the
+    remainder of that line discarded up to the next newline, loop
+    continues. A well-formed request line immediately following an
+    oversized one: processed normally, proving the transport recovers
+    rather than desyncing or hanging.
+16. **`MCP_TOOL_ALLOWLIST` sync, added per `pghm`'s `V27-MCP-1`** — each
+    of the six new tool names is present in `MCP_TOOL_ALLOWLIST`; a tool
+    call for a name present in `tools()` but absent from the allowlist is
+    rejected, not silently dispatched (proves the two lists are actually
+    checked against each other, not just both hand-updated).
+
+## Downstream impact (per `downstream-impact-rule.md`, `tooling/**` trigger path)
+
+**Added per `pghm`'s `V27-MCP-2`.** Round 1 treated this plan as purely
+additive (new tools only). It is not: Slice 1 makes the transport *reject*
+requests that are accepted today (missing/wrong `jsonrpc`, invalid `id`
+shapes, invalid `params` shapes) — existing MCP clients that have been
+sending non-conformant requests and getting away with it will start
+receiving `-32600` errors instead of silent dispatch. That is a behavioral
+contract change, not purely additive.
+
+    Impact:
+      Foundry:          Any of this project's own AI-assistant sessions
+                         using `agov-mcp` that send non-`"2.0"` `jsonrpc`,
+                         non-string/integer `id`, or non-object/array
+                         `params` will start seeing `-32600` where they
+                         previously got a normal response. No current
+                         Foundry client is known to do this (the transport
+                         only ever emitted spec-correct requests itself),
+                         but this has not been exhaustively audited.
+      Direct adopters:  BREAKING for any adopter's MCP client sending
+                         non-conformant JSON-RPC 2.0 requests; ADDITIVE for
+                         the six new tools. A conformant client (the normal
+                         case — every mainstream MCP client library sends
+                         valid `jsonrpc`/`id`/`params`) sees no behavior
+                         change on existing tools, only new tools appearing
+                         in `tools/list`.
+      Downstream:       No schema, storage, or data-model change. No
+                         change to any tool's read/write authority.
+      Migration:         Adopters whose MCP client sends non-conformant
+                         JSON-RPC 2.0 requests must fix the client to send
+                         valid `jsonrpc: "2.0"`, a string-or-integer `id`
+                         (or omit it for a notification), and an
+                         object-or-array `params` (or omit it). This is
+                         conformance to an existing external spec
+                         (JSON-RPC 2.0 / MCP), not a new AGF-specific
+                         requirement.
+      Evidence:          Issues #86, #88; `agov-core/src/roi.rs`'s
+                         `MCP_TOOL_ALLOWLIST` cross-check; `pghm`'s
+                         `V27-MCP-2` finding.
+
+Gate 2 must include the exact `Adopter docs parity` outcome per
+`downstream-impact-rule.md` — whether `agf/docs/site/docs/adopt/mcp-server.md`
+and any other adopter-facing MCP documentation needed a matching update, and
+confirmation that update shipped in the same change or is explicitly
+tracked as a fast-following documentation commit.
 
 ## Risks
 
@@ -276,4 +467,8 @@ concern.
   tool names in prose, that text must be re-checked against this plan's
   final tool list at that time.
 - `graph` (Graphviz/dot) MCP exposure — explicitly not added.
-- Any v2.4.6 release action.
+- Any release/tag/version action. This plan is one of the two governor-
+  selected (`8hgm`) child plans of the v2.7.0 MCP/assistant-integration
+  lane (alongside MR !807, issues #87/#90); it does not request authority
+  to cut, tag, or publish v2.7.0 itself — that remains a separate, later
+  decision.
