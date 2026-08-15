@@ -4,30 +4,35 @@ status: pending-gate1
 topic: v261-release-asset-contract-fix
 advisory_consultation:
   - role: contribution-auditor
-    status: not-applicable
+    status: consulted
     reason: >-
-      Round 3 correction: rounds 1-2 assumed this role applied by analogy to
-      MR !1492 (the v2.6.0 release-*publication* plan) without checking
-      jurisdiction fit. contribution-auditor's actual stated jurisdiction
-      (agf/agents/MANIFEST.yaml notes: "audits incoming proposals from AI
-      assessment synthesis and future contributors. Also audits any
-      upstream framework upgrade diffs") does not cover an ordinary internal
-      CI-script bug fix — this plan is neither an incoming contribution
-      proposal nor an upstream framework-upgrade diff. coder-tester's three
-      independent exact-head reviews (`4h25`, `mqka`, this round) already
-      supply the technical review this plan needs. Flagged explicitly as a
-      judgment call, not asserted as settled — coder-tester or the governor
-      should challenge this classification in the next round if they
-      disagree, rather than this plan silently relying on it.
+      Round 5 correction: rounds 1-3 got this wrong twice (round 1-2's
+      self-contradictory "consulted"/"outstanding" wording; round 3's
+      unauthorized `not-applicable` reclassification, a plan author
+      narrowing another role's project-level jurisdiction by
+      interpretation — `AGENTS.md`: contribution-auditor "reviews plans and
+      proposals"). The governor decided to route this plan to coder-tester
+      under the contribution-auditor hat, mirroring MR !1492's `3hgr`
+      precedent (request: `20260815T213515Z-planner-architect-x4mp.md`).
+      That non-author review landed CLEAR, zero findings:
+      `20260815T214557Z-contribution-auditor-b1jr.md`, exact head
+      `857cfcf53a4f773d928d77dc44ec857b16ceab24`. This status now cites a
+      real, non-self review rather than asserting a state that hadn't
+      happened yet.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
-      Round 3 correction: rounds 1-2 mistakenly framed this as a pending
-      human/AI consultation. Per MANIFEST.yaml, infosec-sentinel is
-      `played_by: "ci (agov validate infosec, on commit)"` — an automated
-      CI check, not a pre-Gate-1 consultation gate. It runs automatically
-      against the implementation commit once this plan is approved and
-      implemented; there is nothing to request or wait on before Gate 1.
+      Round 5 (still open, disposition unchanged from round 3's mistaken
+      framing until this is genuinely resolved): coder-tester's `hegm`
+      review correctly rejects treating the CI-automated `agov validate
+      infosec` check as satisfying this consultation — "do not describe the
+      configured CI actor's later mechanical execution as semantic review."
+      An actual infosec-review-aid pass and/or a binding plan-specific
+      governor waiver (mirroring the frozen-scope plan's `2r8r`/`mdth`
+      pattern) is being requested separately; this entry remains
+      `not-applicable` as a placeholder only because the schema requires a
+      terminal value and none of `consulted`/`waived` is true yet.
+      **This plan is not ready for Gate 1 while this entry is unresolved.**
 ---
 
 # Plan: fix the v2.6.0 release-asset contract gap (mandatory-target drift)
@@ -53,6 +58,29 @@ the proposed learning
 `agf/learnings/foundry.yaml` entry `20260815T193807Z-2k22`).
 
 ## Revision history
+
+**Round 5, per coder-tester's exact-head review
+`20260815T214558Z-coder-tester-hegm.md` (MR !1587): BLOCK, 1 blocking
+(`B-V261-R4-1`).** `B-V261-R3-1` and `A-V261-R3-1` both confirmed `pass` —
+no changes needed to the mechanical design. `B-V261-R4-1` (the consultation-
+metadata finding) is **partially resolved this round**:
+
+- The distinct contribution-auditor-hat review requested last round landed
+  CLEAR, zero findings (`20260815T214557Z-contribution-auditor-b1jr.md`,
+  sibling record `b1jr`, same MR !1587). Frontmatter above updated to
+  `consulted`, citing that real, non-self review by exact head — not
+  asserted before it existed.
+- infosec-sentinel remains genuinely unresolved. `hegm` correctly rejects
+  treating the CI-automated `agov validate infosec` check's later mechanical
+  execution as satisfying semantic consultation. Since infosec-sentinel has
+  no configured human or AI player (`played_by: ci` only, per
+  `agf/agents/MANIFEST.yaml`) — unlike contribution-auditor, there is no
+  "route to Codex under that hat" available for this role — the only
+  established path is the frozen-scope plan's precedent (`2r8r`/`mdth`): a
+  coder-tester infosec-review-aid pass, explicitly not itself claiming to be
+  infosec-sentinel, followed by a governor decision on a bounded waiver.
+  That aid-review request is filed separately, accompanying this push. This
+  plan remains **not ready for Gate 1** until it resolves.
 
 **Round 2 (this revision), per coder-tester's exact-head review
 `20260815T203020Z-coder-tester-4h25.md` (MR !1580): BLOCK, 4 blocking + 1
