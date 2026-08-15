@@ -136,6 +136,31 @@ this page does not restate it. Most adopters will never need this
 path — it exists for the specific, evidenced situation where a
 previously shipped candidate must ship exactly as-is, later.
 
+## Releases: the frozen-scope reconstruction exception
+
+The maintenance-line exception above promotes a candidate that already
+exists as one immutable commit. It does not cover a second, rarer case:
+a governor has frozen an exact, named subset of already-approved work
+as its own release, but that work was never assembled into a single
+reviewable commit, and the default branch has since kept moving with
+other, unrelated approved work that must not enter the release.
+
+For that case, and only after a binding governor decision names the
+frozen scope and a separate release plan is itself Gate 1-approved, the
+release is reconstructed on a pair of dedicated, protected branches
+from the last stable tag — never from the default branch's current
+tip — with independently reproducible proof that the resulting content
+is exactly the named scope, no more and no less. The tag still lands on
+a reviewed, protected-branch merge commit under the same immutability
+and namespace discipline as every other release; a later, separate
+metadata-only merge reconciles the default branch's own changelog and
+version records without touching its code. The full mechanical contract
+— eligibility, the tree-delta proof, protection requirements, and
+forward-sync — is owned by
+[`release-via-merge-request-rule.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/release-via-merge-request-rule.md);
+this page does not restate it. This path is rarer still than the
+maintenance-line exception — most adopters will never need it.
+
 ## Gates must be proven to fire
 
 Any new gate — hook, validator, CI check — ships with a **negative

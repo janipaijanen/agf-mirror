@@ -62,6 +62,40 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   this change authorizes no release action by itself. See
   `20260809T163051Z-v250-maintenance-release-line-rule.md` and Gate 1
   approval `20260809T180533Z-governor-reviewer-sp7d.md`.
+- Frozen-scope reconstruction exception in
+  `agf/rules/workflow/release-via-merge-request-rule.md` (and its
+  `.claude/rules/` projection): a second, rarer optional path for
+  shipping a governor-frozen, named subset of already Gate 2-approved
+  work as its own immutable release when that work was never combined
+  into one reviewable commit and the default branch has since kept
+  moving with other, unrelated approved work that must not enter the
+  release. Requires a binding governor decision naming the frozen scope
+  and stable base, its own Gate 1-approved release-publication plan, a
+  three-part tree-delta proof (deterministic replay, path attribution,
+  and independent whole-result content faithfulness — not scoped to
+  conflict-marker regions), `push_access_levels: No one` protection on
+  the dedicated reconstruction target, a two-baseline construction/
+  frozen protection scheme for the reconstruction source, and post-merge
+  parent/tree-OID verification before any tag is created. Two residual
+  target-drift risks — inherent to the platform's non-atomic merge API —
+  are each closed by a separate, narrowly scoped governor decision: the
+  release-construction merge's own drift is accepted as
+  fail-closed-before-publication detect-and-remediate
+  (`20260814T074427Z-governor-reviewer-33br.md`), distinct from and not
+  extending the metadata-forward-sync merge's own detect-and-remediate
+  exception (`20260814T040118Z-governor-reviewer-apkm.md`) — neither
+  exception treats the other as precedent, and neither extends to
+  ordinary feature, governance, or standard release merges.
+  `agf/docs/site/docs/operate/review-and-release.md` and
+  `agf/skills/release/SKILL.md` both updated: the release skill's Step 0
+  gains a third named path with its own fail-closed eligibility gate.
+  First intended use is a separately Gate 1-approved `v2.6.0`
+  coordination-reliability release-publication plan; this change
+  authorizes no release action by itself. See
+  `docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-amendment.md`,
+  governor decision `20260813T154648Z-governor-reviewer-2r8r.md`
+  (commissioning), and Gate 1 approval
+  `20260814T074427Z-governor-reviewer-33br.md`.
 
 ### Fixed
 

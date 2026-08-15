@@ -57,6 +57,26 @@ distribution.
   path changes; adopters who never need this exception see no
   difference in their normal release flow. **Adopter docs parity:
   updated.**
+- Frozen-scope reconstruction exception in
+  `agf/rules/workflow/release-via-merge-request-rule.md`: a second,
+  rarer optional path for shipping a governor-frozen, named subset of
+  already-approved work as its own immutable release when that work
+  was never combined into one reviewable commit and your default
+  branch has since kept moving with other, unrelated approved work
+  that must not enter the release. Requires a binding governor decision
+  naming the frozen scope and stable base, its own Gate 1-approved
+  release plan, an independently reproducible proof that the
+  reconstructed content is exactly the named scope, and post-merge
+  proof before anything is tagged. The standard release workflow and
+  the maintenance-line exception are both unchanged and remain the
+  default — this exception exists for the specific, evidenced case
+  where an approved-but-never-assembled scope must ship on its own.
+  See [Review and release](docs/site/docs/operate/review-and-release.md#releases-the-frozen-scope-reconstruction-exception)
+  for the adopter-facing explanation and the release skill's Step 0 for
+  the fail-closed selection procedure. Additive: no existing release
+  path changes; adopters who never need this exception see no
+  difference in their normal release flow. **Adopter docs parity:
+  updated.**
 
 ### Fixed
 
