@@ -59,6 +59,25 @@ the proposed learning
 
 ## Revision history
 
+**Round 6, per coder-tester's infosec-review-aid pass
+`20260815T222421Z-coder-tester-4rrm.md` (requested via `fq2w`, MR !1592):
+BLOCK, 1 blocking (`B-V261-SEC-AID-1`).** The pre-OCI ordering and the
+production-path/no-override findings both passed. The one blocking finding:
+the manifest file's values feed directly into build target arguments,
+staging paths, and archive filenames, but the originally-specified parser
+only rejected a missing slug column — not traversal characters, extra
+fields, or duplicate entries. Fixed by specifying a hardened, uniformly-
+enforced manifest grammar (exactly two safe path-component fields per
+record, no duplicates, validated in full before any side effect) — see
+"Scope" item 5, revised — with six new negative tests. Also made the
+pre-OCI gate job's tag-only rule boundary and non-optional `needs` edges
+explicit per the same review's implementation note — see "Scope" item 7.
+This is a genuine security-hardening fix, not a wording change; still
+awaiting the separate governor decision on the plan-specific infosec
+consultation waiver this aid-review's own findings are evidence for
+(frontmatter unchanged this round — `not-applicable` remains an honest
+placeholder, not a claim the waiver has been granted).
+
 **Round 5, per coder-tester's exact-head review
 `20260815T214558Z-coder-tester-hegm.md` (MR !1587): BLOCK, 1 blocking
 (`B-V261-R4-1`).** `B-V261-R3-1` and `A-V261-R3-1` both confirmed `pass` —
@@ -340,19 +359,53 @@ individually-approved change that belongs on `main` directly):
    Windows-special-case assertions. No environment variable or global
    state is introduced; the public entry point's canonical-path resolution
    has no conditional branch to get wrong.
-5. **Non-self-referential cross-contract check.** Single-sourcing removes
-   the possibility of the three lists (build loop, `expected()`,
-   `target_slug()`) drifting from *each other* by construction, but does
-   not itself prove any one consumer's manifest-parsing logic is correct.
+5. **Non-self-referential cross-contract check, with a hardened manifest
+   grammar.** Single-sourcing removes the possibility of the three lists
+   (build loop, `expected()`, `target_slug()`) drifting from *each other*
+   by construction, but does not itself prove any one consumer's
+   manifest-parsing logic is correct — or that the manifest's *content* is
+   safe to use unvalidated in build target arguments, source paths,
+   staging directory names, archive names, and `dist/` output paths.
+   **Round 6, per coder-tester's infosec-review-aid finding
+   `B-V261-SEC-AID-1`** (`20260815T222421Z-coder-tester-4rrm.md`,
+   requested via `fq2w`): the original spec ("reject a malformed line —
+   missing slug column") only caught one shape of bad input, not the
+   general case — a manifest line containing `/`, `..`, extra fields, or a
+   duplicate target/slug could escape the intended artifact namespace or
+   make producer and verifier disagree, even though the parser
+   "succeeds." One canonical manifest grammar, enforced identically by
+   every consumer (the build loop, `expected_targets()`, and
+   `target_slug_from()`), validated **in full, before any build, staging,
+   archive-write, or publication side effect begins** — not line-by-line
+   as each is consumed mid-build:
+   - Exactly two non-empty, whitespace-separated fields per data record
+     (`<target> <slug>`); blank lines and `#`-prefixed comment lines are
+     the only other permitted content — anything else (wrong field count,
+     stray content) is a parse error.
+   - Both `target` and `slug` must be a single safe path-component token:
+     reject any value containing `/`, `\`, `..`, leading `-`, whitespace,
+     or control characters. This is deliberately stricter than "a valid
+     Rust target triple" or "a valid filename slug" individually — it's
+     the narrowest shape that is safe to interpolate into a path or
+     archive name without further escaping.
+   - No duplicate `target` values and no duplicate `slug` values across
+     the whole file — a duplicate target is ambiguous (which line wins?);
+     a duplicate slug means two different targets would produce
+     colliding archive filenames.
+   - Validate the **complete** file against all of the above before the
+     build loop processes its first target, before `expected_targets()`
+     returns a single filename, and before `target_slug_from()` resolves
+     a single lookup — a manifest that fails validation must produce zero
+     partial output (no half-written `dist/` files, no half-populated
+     archive), not fail partway through a target loop.
    Add a check to `release-assets.sh selftest` that reads
    `tooling/rust/release-targets.txt` directly with separately-written
    parsing (e.g. `awk`, not `expected()`'s own heredoc-based logic),
    independently computes the expected per-target filenames, and asserts
-   the result equals `expected()`'s actual output. Also assert the parser
-   rejects a malformed line (missing slug column) with a clear error rather
-   than silently producing a wrong filename — this is the genuinely
-   independent check spmj's decision requires, and it can catch a parsing
-   bug even though all consumers now read the same file.
+   the result equals `expected()`'s actual output — this remains the
+   genuinely independent check `spmj`'s decision requires, now exercising
+   the hardened grammar above rather than only the missing-slug-column
+   case.
 6. **Fixture independence for `selftest`'s own positive/negative cases.**
    Per the incident's exact stated cause, replace the fixture-generation
    line `fixture_names="$(expected "$test_version")..."` with a **literal,
@@ -369,10 +422,18 @@ individually-approved change that belongs on `main` directly):
    OCI provenance record cannot exist before OCI push (see "Root cause").
    Two phases instead:
    - **Phase 1 (pre-OCI).** New job `release:assets-verify-pre-oci`,
-     `stage: deploy` (same stage as its producers/consumers — a `test`-stage
-     job cannot depend on `deploy`-stage artifacts, `4h25`'s other correct
-     point), `needs: [agf:dist:release, rust:tooling:release]` (both
-     `artifacts: true`). Runs `release-assets.sh verify-pre-oci dist
+     **`rules: - if: $CI_COMMIT_TAG`, made explicit per `4rrm`'s
+     resolution condition** — the exact same tag-only rule boundary as its
+     producers (`agf:dist:release`, `rust:tooling:release`) and consumer
+     (`agov:oci:release`), so GitLab either instantiates the whole gate
+     chain on a tag pipeline or the job simply doesn't exist — never a
+     partial graph. `stage: deploy` (same stage as its producers/consumers
+     — a `test`-stage job cannot depend on `deploy`-stage artifacts,
+     `4h25`'s other correct point), `needs: [agf:dist:release,
+     rust:tooling:release]`, both `artifacts: true` and **non-optional** —
+     no `optional: true` on either edge, so a missing producer fails the
+     pipeline graph rather than silently skipping the gate. Runs
+     `release-assets.sh verify-pre-oci dist
      "$VERSION"` — a new subcommand checking every mandatory file *except*
      `expected_oci()`'s OCI provenance line (the framework archives and the
      manifest-driven per-target Linux archives). Add `needs: [job:
@@ -532,6 +593,20 @@ thing:
    specific rejection message; a fully unknown target and a malformed
    scratch manifest line both produce clear errors. No network call, no
    image build.
+5. **Manifest-grammar negative tests, added per `4rrm`'s
+   `B-V261-SEC-AID-1`.** Each case is a scratch manifest fixture, never
+   the real `release-targets.txt`, and each must fail **before** any
+   build/staging/archive-write side effect — the test asserts zero
+   partial output, not just a non-zero exit code:
+   - A traversal-like value (`../etc`, `foo/bar`) in either field.
+   - A field containing a control character or leading `-`.
+   - A record with three fields instead of two.
+   - A duplicate `target` value across two lines.
+   - A duplicate `slug` value across two lines (different targets).
+   - A well-formed file (all records pass the grammar) still succeeds
+     unchanged — this and the six failure cases above together prove the
+     grammar is exactly as strict as specified, not stricter (rejecting
+     valid input) or looser (missing a case).
 - A **real pre-tag dry run using existing producers, not a throwaway
   branch**: item 8's `release:assets-verify-preview` job, which needs both
   `agf:dist:preview` and `rust:tooling:preview` and runs the exact same
@@ -559,6 +634,11 @@ thing:
    manifest; the manifest-growth test (item 2) shows both consumers
    expanding consistently on a valid new line; the existing missing-sidecar
    test (item 3) still fails correctly, naming the missing file.
+2a. **Added per `4rrm`'s `B-V261-SEC-AID-1`.** Every manifest-grammar
+    negative test (validation-plan item 5) fails before any build/staging/
+    archive-write side effect occurs — traversal characters, control
+    characters, leading `-`, wrong field count, and both duplicate forms
+    are all rejected; a well-formed file is unaffected.
 3. `agov:oci:release` cannot start until `release:assets-verify-pre-oci`
    succeeds; confirmed by reading the `needs:` graph, not merely asserted.
    `release:create`'s existing full `verify` call, gated by its existing
