@@ -3518,6 +3518,114 @@ learnings:
       evidence_refs:
         - "MR !1503, docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-amendment.md: three-stage content-faithfulness failure progression across rounds 1, 7, 8, and 9 of Gate 1 review (kpt5, adjp/B-FSR-R7-2, qk8s/B-FSR-R8-1), closed at exact head e63f20c681fec56101db730caada06a1c5b841b0 by a documented-algorithm-plus-independent-reproduction proof, itself independently re-verified twice with identical patch hash c7db9317f4e4bec130a916e97e54ab33f1f864632041b8b3c40fcb9e0de6147a and tree hash fbe16ab183373b461bc641dd192bfe386cf07d1e."
 
+  - id: "20260815T193807Z-2k22"
+    date: "2026-08-15"
+    category: gap
+    scope: framework
+    title: removing-a-release-target-requires-a-complete-contract-graph-change
+    status: proposed
+    description: >
+      The v2.6.0 release intentionally removed
+      `aarch64-unknown-linux-musl` from the mandatory Rust release build
+      loop after an explicit Governor product-policy decision. The change
+      updated `.gitlab-ci.yml` and the release narrative, but did not update
+      `tooling/rust/scripts/release-assets.sh`'s mandatory `expected()`
+      list. That list continued to require the aarch64 archive, checksum,
+      and provenance sidecar. Release-branch validation and the synthetic
+      `release:assets-selftest` passed because the self-test populated its
+      positive fixture from the same stale `expected()` function and used
+      the stale aarch64 provenance sidecar as its negative-case sentinel.
+      It therefore proved internal consistency of one list, not agreement
+      between the asset consumer and the build producer.
+
+      The mismatch became visible only after immutable annotated tag
+      `v2.6.0` was pushed at exact commit
+      `4890dfe9ef96abdbfc54f9e975080cedd0f280f6`. Tag pipeline
+      `2762930639` completed seventeen jobs successfully, including the
+      x86_64 tooling build, framework archives, Rust tests, distribution
+      checks, OCI publication, and OCI pull test. `release:create` job
+      `15917296084` then failed because the three aarch64 files were
+      absent, and `release:verify` was skipped. The GitLab Release and
+      generic package were never created, but OCI `agov:2.6.0` had already
+      become public. The protected immutable tag and partial OCI artifact
+      must now remain as an auditable failed publication; issues stayed
+      open and no metadata-forward sync occurred.
+
+      The immediate defect was three stale mandatory filenames. The
+      process defect was treating “drop aarch64 from mandatory targets” as
+      a local loop edit rather than a change to a release contract graph:
+      policy and documentation -> configured build targets -> produced
+      archives -> checksum/provenance sidecars -> mandatory asset manifest
+      -> self-test fixtures -> release creation -> post-publication
+      verification -> generic-package/OCI/Release claims. A target removal
+      is incomplete while any downstream consumer still requires its
+      outputs or any test derives its expected answer solely from the
+      consumer it is meant to check.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - governor-reviewer
+    framework_section: >
+      `release-via-merge-request-rule.md`, `gate-self-test-rule.md`, and the
+      release asset scripts/CI graph. Existing guidance requires release
+      validation and negative gate tests, but does not explicitly require a
+      producer-consumer bijection when a platform, target, artifact, or
+      requirement is removed, nor side-effect ordering that prevents one
+      publication namespace from becoming public before the complete asset
+      contract has passed.
+    business_impact:
+      type: cost_overhead
+      description: >
+        One immutable version tag was consumed by a deterministic release
+        failure. The project now needs a separately governed corrective
+        release, must preserve and explain a public OCI artifact that does
+        not correspond to a successful GitLab Release, and incurred a full
+        paid tag pipeline plus additional review and coordination work.
+        Users who inspect only the container registry could also mistake
+        the partial OCI tag for a completed release unless the failed state
+        remains explicit.
+    recommendation: >
+      Treat every request to remove, de-scope, make optional, rename, or
+      replace a release target/requirement/platform as a contract-graph
+      migration. Before editing, identify one authoritative target/artifact
+      manifest and inventory every producer and consumer with repository
+      search plus CI expanded-configuration inspection: build loops,
+      filename mappings, archive/checksum/provenance lists, package and
+      Release links, self-test fixtures, negative-test sentinels,
+      documentation, post-publication checks, and external namespace
+      claims. Record an explicit disposition for every former output:
+      mandatory, optional, replaced, or removed.
+
+      Mechanically check both directions before Gate 2: every mandatory
+      asset has exactly one configured producer, and every configured
+      producer output has an explicit consumer/disposition. The check must
+      compare independently derived surfaces or a single generated manifest;
+      a fixture populated from the same function under test is not
+      independent evidence. Negative tests should remove an element selected
+      from the current authoritative manifest, not name the platform being
+      removed.
+
+      Before an immutable tag, run the real release-creation verifier against
+      the exact artifacts produced by a tag-simulating pipeline, not only
+      synthetic placeholder files or source-branch unit checks. Structure the
+      pipeline so complete manifest/checksum/provenance verification succeeds
+      before any irreversible or externally visible OCI, generic-package, or
+      GitLab Release publication. When publication cannot be atomic, record
+      each namespace as a compensating-transaction boundary and define the
+      failed-partial-publication disposition in advance.
+
+      This is single-adopter evidence from one release incident. The
+      producer-consumer and side-effect-ordering recommendations are proposed
+      preventive guidance, not yet a validated general rule; corroborate them
+      through the v2.6.1 corrective release and future target-removal changes
+      before promoting them to MUST-strength framework policy.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "v2.6.0 tag pipeline 2762930639 at 4890dfe9ef96abdbfc54f9e975080cedd0f280f6: release:create job 15917296084 failed on missing agov-2.6.0-linux-aarch64.tar.gz plus its SHA-256 and provenance sidecars after seventeen jobs passed; release:verify 15917296085 skipped; OCI job 15917296086 succeeded. Canonical diagnosis and public-state inventory: docs/coordination/20260815T193127Z-coder-tester-pj71.md; binding disposition and corrective-planning authority: docs/coordination/20260815T193735Z-governor-reviewer-spmj.md."
+
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
