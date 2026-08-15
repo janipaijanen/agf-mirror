@@ -86,6 +86,48 @@ raised by `4h25`, but the same root-cause class): `agov-oci-image.sh`'s
 target-to-slug mapping, alongside the two `4h25` and the round-1 plan already
 named. Folded into "Scope" item 5.
 
+**Round 4, per coder-tester's exact-head review
+`20260815T211813Z-coder-tester-adjg.md` (MR !1584): BLOCK, 2 blocking + 1
+advisory.**
+
+- `B-V261-R3-1` (critical): round 3's `release:assets-verify-preview` needed
+  only `rust:tooling:preview` and ran a narrow `verify-targets` check —
+  proving real per-target archives, but not the exact assembled pre-OCI
+  set `spmj`'s binding decision requires (mandatory manifest, checksum/
+  provenance, exact artifact set). `agf:dist:preview` already runs on this
+  MR too (same `.gitlab-ci.yml`-change trigger). Fixed by needing **both**
+  preview jobs and running the **same** `verify-pre-oci` subcommand the tag
+  pipeline uses — see "Scope" item 8, revised. This also removes the
+  `verify-targets` subcommand entirely: one pre-OCI check, exercised
+  against two different producer contexts (preview, real), is simpler and
+  more faithful than two different checks.
+- `B-V261-R2-2`/`B-V261-R3-2` (material, **still open — not resolved in
+  this revision**): `adjg` is right that the frontmatter's `not-applicable`
+  reclassification was a plan author narrowing another role's project-level
+  jurisdiction by interpretation — `AGENTS.md` states contribution-auditor
+  "reviews plans and proposals," which does cover this plan. The governor
+  was asked directly which resolution path to take (route to Codex under
+  the contribution-auditor hat, the governor reviews it directly, or an
+  explicit bounded waiver) and chose routing to Codex, mirroring the
+  precedent already used for MR !1492 (`3hgr`). That request is filed as a
+  **separate** coordination record accompanying this push, addressed to
+  coder-tester specifically under the contribution-auditor mandate (a
+  distinct ask from the coder-tester technical reviews already done). The
+  frontmatter below is **left unchanged from round 3** (still
+  `not-applicable`, now known to be substantively contested rather than
+  correct) rather than guessed at again — per `adjg`'s own instruction, "do
+  not request Gate 1 while the plan states its own prerequisites are
+  outstanding," and re-wording the status to a different unsupported claim
+  a fourth time would repeat exactly the pattern this finding objects to.
+  It will be corrected to `consulted`, with a real citation, once that
+  routed review actually lands. Fixing `B-V261-R3-1` and `A-V261-R3-1` here
+  so the mechanical design work isn't blocked on a decision that's still
+  pending — this round is **not** a Gate 1 request.
+- `A-V261-R3-1` (advisory): the malformed-manifest selftest case for
+  `agov-oci-image.sh selftest` now uses an explicit private-function-
+  parameter seam (not an environment variable) rather than editing the
+  canonical file — see "Scope" item 4, revised.
+
 **Round 3, per coder-tester's exact-head review
 `20260815T205646Z-coder-tester-mqka.md` (MR !1582): BLOCK, 3 blocking + 1
 advisory.** All four addressed:
@@ -218,22 +260,26 @@ individually-approved change that belongs on `main` directly):
    now-dead `aarch64-unknown-linux-musl) slug="linux-aarch64"` case arm —
    it was leftover cruft with no corresponding loop entry, not a live
    contract.
-3. **`release-assets.sh`'s `expected()` function, decomposed into three
-   layered functions** (revised from round 2's single-split description to
-   name all three explicitly, since item 8 now needs the per-target subset
-   on its own): remove the hardcoded
+3. **`release-assets.sh`'s `expected()` function, decomposed into layered
+   functions** (**revised from round 3**: dropped the standalone
+   `verify-targets` subcommand per `B-V261-R3-1` — a per-target-only check
+   doesn't prove the exact assembled pre-OCI set `spmj`'s binding decision
+   requires; one `verify-pre-oci` check, run against two different producer
+   contexts, replaces it): remove the hardcoded
    `agov-${version}-linux-x86_64...`/`agov-${version}-linux-aarch64...`
-   lines from `expected()`. Add `expected_targets()`: generates only the
-   manifest-driven per-target archive/checksum/provenance triplets, reading
+   lines from `expected()`. Add `expected_targets()`: an internal helper
+   (not its own subcommand) generating only the manifest-driven per-target
+   archive/checksum/provenance triplets, reading
    `tooling/rust/release-targets.txt` resolved relative to the script's own
    directory (`$(dirname "$0")/release-targets.txt`) so it works regardless
-   of caller CWD. Add `expected_pre_oci()`: the literal `agf-*` mandatory
-   lines plus `expected_targets()`'s output. `expected()` becomes
+   of caller CWD. `expected_pre_oci()`: the literal `agf-*` mandatory lines
+   plus `expected_targets()`'s output — this is the function
+   `verify-pre-oci` (item 8) checks against. `expected()` becomes
    `expected_pre_oci()` plus `expected_oci()` (the OCI provenance line,
-   unchanged in content, isolated per item 7 below). New subcommands
-   `verify-targets` and `verify-pre-oci` check presence against
-   `expected_targets()` and `expected_pre_oci()` respectively; the existing
-   `verify` subcommand (unchanged) still checks the full `expected()`.
+   unchanged in content, isolated per item 7 below). Two subcommands only:
+   `verify-pre-oci` (checks `expected_pre_oci()`, used by both the tag-
+   pipeline gate and the preview-pipeline dry run) and the existing
+   `verify` (unchanged, checks the full `expected()`).
 4. **`agov-oci-image.sh`'s `target_slug()`**: read the same
    `tooling/rust/release-targets.txt`, resolved relative to the script's own
    directory (matching item 3's CWD-independence for `release-assets.sh`),
@@ -250,8 +296,22 @@ individually-approved change that belongs on `main` directly):
    `release-targets.txt` entry and asserts the expected slug, calls it with
    `x86_64-pc-windows-gnu` and asserts the specific rejection message, and
    calls it with a fully unknown target and a deliberately malformed
-   manifest line (scratch fixture, not the real file) and asserts a clear
-   error in both cases.
+   manifest line and asserts a clear error in both cases. **Revised from
+   round 3** after `adjg`'s `A-V261-R3-1`: the malformed-manifest case
+   needs an explicit injection seam rather than editing the canonical file
+   in place — a private function parameter, not an environment variable
+   (no seam that could leak into a real build path at all). Split
+   `target_slug()` into two: `target_slug_from(manifest, target)` — the
+   actual lookup logic, taking the manifest path as its first argument —
+   and the public `target_slug(target)` — the only form called by `build`/
+   `push`/every production code path — which always calls `target_slug_from
+   "$(dirname "$0")/release-targets.txt" "$1"`, hardcoded, no override
+   possible. `selftest` calls `target_slug_from` directly with a scratch
+   fixture path for the malformed-line case, and calls the public
+   `target_slug()` (canonical path, no override) for the real-manifest and
+   Windows-special-case assertions. No environment variable or global
+   state is introduced; the public entry point's canonical-path resolution
+   has no conditional branch to get wrong.
 5. **Non-self-referential cross-contract check.** Single-sourcing removes
    the possibility of the three lists (build loop, `expected()`,
    `target_slug()`) drifting from *each other* by construction, but does
@@ -317,18 +377,25 @@ individually-approved change that belongs on `main` directly):
    tag-named. This fix necessarily touches `.gitlab-ci.yml`, so both preview
    jobs run automatically on this fix's own MR pipeline — no throwaway
    branch, no new CI rule exposing a tag-only job, no separate later
-   rehearsal needed for the contract-fix itself. New job
+   rehearsal needed for the contract-fix itself. **Revised again from
+   round 3** after `adjg`'s `B-V261-R3-1`: needing only
+   `rust:tooling:preview` and checking only per-target files proved real
+   archives but not the *exact assembled pre-OCI set* — `spmj`'s binding
+   decision requires the mandatory manifest, checksum/provenance, and exact
+   artifact set, not a target-only subset. New job
    `release:assets-verify-preview`, `stage: test`, `needs: [{job:
-   rust:tooling:preview, artifacts: true}]` (mandatory — this fix always
-   touches `tooling/rust/**/*`), runs `release-assets.sh verify-targets dist
-   "$VERSION"` — a new subcommand checking only the manifest-driven
-   per-target archive/checksum/provenance triplets (not `agf-*`, not OCI
-   provenance; those are outside what a preview pipeline can produce or
-   what this fix's incident class touches). Cite this job's real pipeline
-   URL and output as this MR's own Gate 2 evidence — see "Test and
-   validation plan". Rehearsing the full OCI-publish path end-to-end
-   remains correctly out of scope, deferred to the separate `v2.6.1`
-   cut-and-tag plan (see "Out of scope"), which is the only step that
+   agf:dist:preview, artifacts: true}, {job: rust:tooling:preview,
+   artifacts: true}]` (both mandatory — this fix touches both
+   `tooling/rust/**/*` and `.gitlab-ci.yml`, so both producers always run on
+   its own MR pipeline), runs the **same** `release-assets.sh verify-pre-oci
+   dist "$VERSION"` subcommand item 7's tag-pipeline gate uses — one check,
+   two producer contexts (preview archives here; real `release:*` archives
+   at tag time), not two different checks that could drift from each
+   other. Cite this job's real pipeline URL and output as this MR's own
+   Gate 2 evidence — see "Test and validation plan". Rehearsing the full
+   OCI-publish path end-to-end remains correctly out of scope, deferred to
+   the separate `v2.6.1` cut-and-tag plan (see "Out of scope"), which is
+   the only step that
    actually needs a real tag pipeline.
 9. **Selftest trigger paths.** **New, addressing `4h25`'s `B-V261-P3`** —
    add `tooling/rust/release-targets.txt` to the
@@ -380,10 +447,11 @@ Six files total, including one new file:
 - `tooling/rust/release-targets.txt` (new)
 - `tooling/rust/scripts/release-assets.sh` (`expected()` decomposed into
   `expected_targets()`/`expected_pre_oci()`/`expected_oci()`; new
-  `verify-targets`/`verify-pre-oci` subcommands; `selftest` cross-contract
-  check and fixture independence)
-- `tooling/rust/scripts/agov-oci-image.sh` (`target_slug()` reads the shared
-  manifest, CWD-independently; new `selftest` subcommand)
+  `verify-pre-oci` subcommand, used by both the tag gate and the preview
+  dry run; `selftest` cross-contract check and fixture independence)
+- `tooling/rust/scripts/agov-oci-image.sh` (`target_slug()` split into
+  `target_slug_from(manifest, target)` and a public `target_slug(target)`
+  with a hardcoded canonical path, no override; new `selftest` subcommand)
 - `.gitlab-ci.yml` (build loop reads the manifest; new
   `release:assets-verify-pre-oci` job gating `agov:oci:release`; new
   `release:assets-verify-preview` job on this fix's own MR; new
@@ -437,12 +505,13 @@ thing:
    scratch manifest line both produce clear errors. No network call, no
    image build.
 - A **real pre-tag dry run using existing producers, not a throwaway
-  branch**: item 8's `release:assets-verify-preview` job, which runs
-  automatically on this MR's own pipeline (it touches `.gitlab-ci.yml` and
-  `tooling/rust/**/*`, matching `rust:tooling:preview`'s trigger), cited
-  with its exact pipeline URL and job output as this MR's Gate 2 evidence —
-  not merely described as a future step, and not requiring any separate
-  branch or manual pipeline trigger.
+  branch**: item 8's `release:assets-verify-preview` job, which needs both
+  `agf:dist:preview` and `rust:tooling:preview` and runs the exact same
+  `verify-pre-oci` check the tag pipeline uses, against real archives from
+  this MR's own pipeline (it touches `.gitlab-ci.yml` and both producers'
+  trigger paths) — cited with its exact pipeline URL and job output as this
+  MR's Gate 2 evidence, not merely described as a future step, and not
+  requiring any separate branch or manual pipeline trigger.
 - Full `agov validate`, `agov dist validate`, `git diff --check`, and the
   existing MR pipeline (unaffected jobs must remain green — this change
   touches release-only paths, not product code).
@@ -472,9 +541,11 @@ thing:
    build output for any tag cut against current `main`.
 5. The `release:assets-verify-preview` job (validation-plan item, "real
    pre-tag dry run using existing producers") has actually run once on this
-   MR's own pipeline against `rust:tooling:preview`'s real output, with its
-   exact pipeline URL and job results cited as MR evidence before Gate 2 —
-   no throwaway branch, no manual pipeline trigger.
+   MR's own pipeline, needing both `agf:dist:preview` and
+   `rust:tooling:preview` and running the same `verify-pre-oci` check the
+   tag pipeline uses, with its exact pipeline URL and job results cited as
+   MR evidence before Gate 2 — no throwaway branch, no manual pipeline
+   trigger.
 6. `CHANGELOG.md`/`agf/CHANGELOG.md` document both the fix and the `v2.6.0`
    failed-publication disposition.
 7. No product, schema, or command-semantic change; no touch to any file
