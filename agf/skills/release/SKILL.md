@@ -44,6 +44,31 @@ If all three hold, follow
 eligibility, protection, tag, and forward-sync contract is the
 authority; do not improvise a variant.
 
+Do not select the frozen-scope reconstruction path (a pair of
+dedicated, protected `reconstruct/vX.Y` / `release-vX.Y.Z` branches
+built from the last stable tag, not the default branch's current tip)
+unless **all** of the following are already true — if any is missing,
+use the standard path, even if someone asks for this path by name:
+
+- A binding governor decision-record names the frozen release scope by
+  tracker identifier, the exact stable tag to build from, and why
+  neither the standard path nor the maintenance-line exception applies.
+- A separate release-publication plan for that exact frozen scope has
+  its own Gate 1 approval, naming the exact cherry-pick allowlist and
+  frozen-out set.
+- Every allowlisted commit is independently verified against its own
+  Gate 2 approval before being treated as consumed.
+- No immutable release candidate already exists to promote (if one
+  does, use the maintenance-line path above instead), and the intended
+  Git tag, GitLab Release, generic-package, and OCI namespaces for the
+  new version are independently confirmed absent.
+
+If all four hold, follow
+[`release-via-merge-request-rule.md`](../../rules/workflow/release-via-merge-request-rule.md)'s
+"Frozen-scope reconstruction exception" section instead of Steps 1-7
+below — its eligibility, tree-delta proof, protection, tag, and
+forward-sync contract is the authority; do not improvise a variant.
+
 ## Step 1 — Bump version
 
 Version bump tooling is deferred. Until `agov bump` exists, perform
