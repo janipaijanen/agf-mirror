@@ -31,6 +31,32 @@ automate where the cost of doing so is low (add pre-commit hooks, add CI checks)
 and accept the advisory model where it is not — while making the distinction
 visible to reviewers.
 
+## Finding format
+
+This applies to every finding raised in this checklist, and in any Gate 1,
+Gate 2, or multi-agent review — not only pre-commit review. Wherever
+feasible, a finding should include:
+
+1. **A concrete failure scenario.** What breaks, under what input or state,
+   if the finding is not addressed. A finding without one is advisory at
+   most — never BLOCK.
+2. **A proposed fix**, not just a description of the defect. Prefer a
+   literal patch, exact text to insert, or a numbered list of concrete
+   edits, wherever the fix is unambiguous enough to write directly.
+3. **A one-line statement of the assumed intent** behind the fix — the
+   reviewer's best guess at what the artifact's owner meant to achieve.
+   This turns the fix into a falsifiable hypothesis: the owner can correct
+   a wrong assumption in one round instead of relitigating the wording
+   across several.
+
+The artifact's owner still independently verifies any factual claim inside
+a proposed fix before adopting it — a polished, confidently-worded fix is
+not evidence of correctness. Propose the fix and the reasoning; acceptance
+is never "looks plausible, merge it." This format exists to converge
+review rounds faster without weakening review substance: the fastest way
+to fix a defect is to already have a candidate fix in front of the person
+who owns the decision.
+
 ---
 
 ### 1. Specification compliance
