@@ -38,8 +38,10 @@ Gate 2, or multi-agent review — not only pre-commit review. Wherever
 feasible, a finding should include:
 
 1. **A concrete failure scenario.** What breaks, under what input or state,
-   if the finding is not addressed. A finding without one is advisory at
-   most — never BLOCK.
+   if the finding is not addressed. Where a concrete scenario is not
+   feasible, cite the exact governed rule, acceptance criterion, or missing
+   authority that makes the finding actionable. This presentation format
+   does not change finding severity or blocking authority.
 2. **A proposed fix**, not just a description of the defect. Prefer a
    literal patch, exact text to insert, or a numbered list of concrete
    edits, wherever the fix is unambiguous enough to write directly.
