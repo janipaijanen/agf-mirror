@@ -11,19 +11,30 @@ gate1_decision_record: >-
 topic: v261-release-asset-contract-fix
 advisory_consultation:
   - role: contribution-auditor
-    status: consulted
+    status: not-applicable
     reason: >-
-      Round 7 refresh: the round-5 citation (`b1jr`, at round-4 head
-      `857cfcf5`) predated rounds 5-6's manifest-grammar hardening.
-      Non-self contribution-auditor re-review at the current exact head
-      landed CLEAR, zero findings:
-      `20260816T002624Z-contribution-auditor-n2j3.md` — "the changes
-      since `b1jr`'s earlier CLEAR review strengthen rather than relax
-      the proposed controls" — exact head
-      `81be35457a5d5c3ef5726b2f0fa0182c39b5654d`. Per `n2j3`'s own note,
-      this citation-only correction does not require a further
-      substantive contribution-auditor pass unless scope or reviewed
-      substance changes.
+      Round 10 correction: this plan's entire contribution-auditor
+      evidence chain — both `20260815T214557Z-contribution-auditor-
+      b1jr.md` (round 5) and `20260816T002624Z-contribution-auditor-
+      n2j3.md` (round 7, previously cited above as satisfying this
+      consultation) — is `model: codex-gpt-5`, `from: contribution-
+      auditor`. Per `agf/agents/MANIFEST.yaml`, contribution-auditor is
+      authorized as "human (Jani) + claude (AI, at plan review)" only;
+      Codex was never authorized to hold that role. Neither record
+      supplies valid contribution-auditor consultation. This correction
+      is made per binding governor decision
+      `20260816T124942Z-governor-reviewer-pehh.md` item A4, which
+      authorized planner-architect to prepare an honest metadata
+      correction and explicitly directed that MR !1610 (the corrective
+      implementation this plan authorized, merged prior to this defect's
+      discovery) not be reverted solely on this basis — see `pehh` A3.
+      A properly-authorized contribution-auditor review (Jani, or Codex
+      once `docs/plans/20260816T130924Z-contribution-auditor-codex-
+      staffing.md` is approved) has not yet occurred for this plan. This
+      is a disclosed historical evidence gap, not a currently-open Gate 1
+      blocker for already-merged work — `status: approved` above remains
+      accurate to what actually happened; only the contribution-auditor
+      citation is corrected here.
   - role: infosec-sentinel
     status: waived
     reason: >-
@@ -66,7 +77,19 @@ the proposed learning
 
 ## Revision history
 
-**Round 9 (this revision): Gate 1 metadata reflection only — `status:
+**Round 10 (this revision): honest contribution-auditor metadata
+correction, per `pehh` item A4.** Both `b1jr` (round 5) and `n2j3` (round
+7, previously cited as satisfying contribution-auditor consultation) are
+`model: codex-gpt-5`, `from: contribution-auditor` — Codex was never an
+authorized contribution-auditor player per `MANIFEST.yaml`. Corrected the
+frontmatter's `contribution-auditor` entry from a false `consulted` claim
+to `not-applicable` with full disclosure. Per `pehh` A3, MR !1610 (already
+merged, implementing this plan) is not reverted solely on this basis —
+its coder-tester technical review remains valid and distinct from this
+role-label defect. `status: approved` is unchanged; only the evidence
+citation is corrected. No scope, design, or implementation change.
+
+**Round 9: Gate 1 metadata reflection only — `status:
 approved`.** Per coder-tester's self-contained activation record
 `20260816T091335Z-coder-tester-8mjr.md`, all four `tgjs` conditions are
 documented satisfied for exact plan head
