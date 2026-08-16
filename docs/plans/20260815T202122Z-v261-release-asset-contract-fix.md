@@ -1,6 +1,13 @@
 ---
 id: v261-release-asset-contract-fix
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-16T09:13:35Z
+gate1_decision_record: >-
+  20260815T213022Z-governor-reviewer-tgjs.md (bounded mandate), applied to
+  this exact plan by 20260816T082118Z-governor-reviewer-gm2h.md
+  (plan-specific infosec waiver), satisfaction documented in
+  20260816T091335Z-coder-tester-8mjr.md (self-contained activation record)
 topic: v261-release-asset-contract-fix
 advisory_consultation:
   - role: contribution-auditor
@@ -59,7 +66,22 @@ the proposed learning
 
 ## Revision history
 
-**Round 8 (this revision): infosec-sentinel consultation metadata updated to
+**Round 9 (this revision): Gate 1 metadata reflection only — `status:
+approved`.** Per coder-tester's self-contained activation record
+`20260816T091335Z-coder-tester-8mjr.md`, all four `tgjs` conditions are
+documented satisfied for exact plan head
+`2447c243180d520406fbe5c37122d6dacc4b3648` (round 8): traceable backlog
+scope (`pj71`/`spmj`/`2k22`), independent planner-architect ready (`r8fx`)
+and coder-tester CLEAR (`tpap`) at that exact head, `agov plan validate` +
+exact-head CI green, and preserved contribution-auditor evidence (`n2j3`).
+This round changes only the frontmatter `status` field (from `pending-gate1`
+to `approved`) and the three new `gate1_*` fields citing that authority
+chain — no scope, design, or content change, exactly as `8mjr` instructs.
+Implementation of the activated scope may now proceed through validation
+and presentation for Gate 2; Gate 2 approval, merge, tag, release, and
+publication remain separately governed.
+
+**Round 8: infosec-sentinel consultation metadata updated to
 `waived`, per binding governor decision `gm2h`.** Per `gm2h`'s exact
 authorization, this round changes only the `advisory_consultation`
 frontmatter entry for `infosec-sentinel` from `not-applicable` (placeholder)
