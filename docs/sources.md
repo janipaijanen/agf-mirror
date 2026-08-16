@@ -1878,3 +1878,65 @@ correction, supersession, role authority, and false positives explicitly handled
   authority" category this technique is designed to preserve, not compile away. No radar
   entry: complements existing design rather than raising an open question for AGF
   specifically. (accessed 2026-08-10)
+
+# Batch 24 (2026-08-16) — user-submitted candidate
+
+## Classified
+
+- https://yusufaytas.com/the-sdlc-was-designed-for-humans
+  type: discussion, practice | relation: prior-art, evidence | action: cite
+  note: Yusuf Aytas, "The SDLC Was Designed for Humans" (accessed 2026-08-16, including
+  the 23 same-site posts it links inline, read in full before this classification per
+  house practice for linked prior-art review). Central claim: the traditional SDLC
+  encodes assumptions about human-scale constraints — slow code production, individual
+  accountability, judgment exercised in the moment — and those assumptions break once AI
+  agents produce code at superhuman speed. Aytas's proposed fixes: standardized,
+  machine-readable environments/documentation for agents; constraints that are
+  enforceable, not merely suggested; a shift in what gets measured, from raw throughput to
+  "time to safe merge"; and an acknowledgment that coordinating multiple parallel agents
+  requires rebuilding organizational systems humans built for themselves, not just faster
+  versions of the same systems. Independent, AGF-unaware corroboration of several design
+  choices already present here: machine-readable, loaded-at-cold-start guidance
+  (`AGENTS.md`, `.claude/rules/`) answers the machine-readable-documentation claim;
+  structural gates that block regardless of agent cooperation, versus advisory findings
+  that never change exit status (`gate-self-test-rule.md`,
+  `tool-authority-boundary-rule.md`), answer the enforceable-not-suggested claim; Gate 1/
+  Gate 2 discipline over velocity answers the safe-merge-over-throughput claim; the entire
+  coordination-channel and role-manifest design answers the rebuilt-org-systems claim. No
+  original data, benchmark, or study — a single practitioner's synthesis, stated as such —
+  but the convergence with AGF's own governance decisions, reached independently, is itself
+  useful evidence that the problem AGF addresses is being named the same way by people
+  outside this project.
+
+  Three of the 23 linked posts are close enough to name directly rather than fold into the
+  general note: `where-the-automation-has-to-stop` argues the hard problem is deciding
+  where agent automation must yield to human understanding, not how much can be automated
+  — the same boundary question `deputy-governor-rule.md`'s red list and
+  `high-risk-operations-rule.md` answer for this project.
+  `vibe-coder-vs-software-engineer` draws the same distinction as this project's Gate 1/
+  Gate 2 cycle: success measured by time-to-working-demo versus time-to-safe-merge, with
+  AI-generated code scoped to low-risk discovery rather than production paths absent that
+  discipline. `the-invariant-is-hiding` argues recurring cross-team coordination persists
+  because a system constraint hasn't yet been made explicit in the architecture — close to
+  this project's own reason for writing rules down as files rather than leaving them as
+  convention (`always/uncertainty-and-scope-rule.md`'s escalation-over-improvisation
+  principle). A fourth, `incentives-drive-everything`, is thematically adjacent to the
+  existing signal-gaming radar entry (`docs/radar.md`, "Anti-rubber-stamping gate design" /
+  "Outcome-metric interpretation risk in governance dashboards") — its "once a signal
+  becomes a target, the fastest career path becomes manufacturing the signal" is a general
+  statement of the same failure mode those radar items already track for this project's own
+  governance metrics; not new evidence, a confirming citation.
+
+  The remaining 19 linked posts (code review discipline, "what good looks like" baselines,
+  telemetry governance, production-change safeguards, dependency-risk communication, and
+  others) are the author's wider engineering-management corpus, read for context and
+  credibility rather than independent AGF relevance — general software-engineering practice
+  writing, not prior art for this project's specific governance mechanisms.
+
+## Evaluation boundary
+
+No radar entry: the primary article and its three closely-linked posts corroborate design
+decisions already made here rather than raising a new open or controversial question
+specific to AGF. Do not cite this batch as validation that AGF's specific implementation is
+correct — Aytas's posts describe the shape of the problem and a compatible direction, not
+this project's mechanisms, which he has not seen.
