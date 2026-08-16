@@ -6,19 +6,17 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Round 5 correction: rounds 1-3 got this wrong twice (round 1-2's
-      self-contradictory "consulted"/"outstanding" wording; round 3's
-      unauthorized `not-applicable` reclassification, a plan author
-      narrowing another role's project-level jurisdiction by
-      interpretation — `AGENTS.md`: contribution-auditor "reviews plans and
-      proposals"). The governor decided to route this plan to coder-tester
-      under the contribution-auditor hat, mirroring MR !1492's `3hgr`
-      precedent (request: `20260815T213515Z-planner-architect-x4mp.md`).
-      That non-author review landed CLEAR, zero findings:
-      `20260815T214557Z-contribution-auditor-b1jr.md`, exact head
-      `857cfcf53a4f773d928d77dc44ec857b16ceab24`. This status now cites a
-      real, non-self review rather than asserting a state that hadn't
-      happened yet.
+      Round 7 refresh: the round-5 citation (`b1jr`, at round-4 head
+      `857cfcf5`) predated rounds 5-6's manifest-grammar hardening.
+      Non-self contribution-auditor re-review at the current exact head
+      landed CLEAR, zero findings:
+      `20260816T002624Z-contribution-auditor-n2j3.md` — "the changes
+      since `b1jr`'s earlier CLEAR review strengthen rather than relax
+      the proposed controls" — exact head
+      `81be35457a5d5c3ef5726b2f0fa0182c39b5654d`. Per `n2j3`'s own note,
+      this citation-only correction does not require a further
+      substantive contribution-auditor pass unless scope or reviewed
+      substance changes.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -58,6 +56,15 @@ the proposed learning
 `agf/learnings/foundry.yaml` entry `20260815T193807Z-2k22`).
 
 ## Revision history
+
+**Round 7 (this revision): citation-only refresh.** Round 6's manifest-
+grammar hardening was CLEAR per coder-tester
+(`20260815T224601Z-coder-tester-sbh6.md`) and per a fresh non-self
+contribution-auditor pass (`20260816T002624Z-contribution-auditor-n2j3.md`).
+Frontmatter above updated to cite `n2j3` instead of the now two-rounds-stale
+`b1jr`. No design change. infosec-sentinel remains the sole outstanding
+prerequisite — a governor decision, not something further plan revision
+can resolve.
 
 **Round 6, per coder-tester's infosec-review-aid pass
 `20260815T222421Z-coder-tester-4rrm.md` (requested via `fq2w`, MR !1592):
