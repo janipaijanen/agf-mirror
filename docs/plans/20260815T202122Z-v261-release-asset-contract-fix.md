@@ -18,19 +18,21 @@ advisory_consultation:
       substantive contribution-auditor pass unless scope or reviewed
       substance changes.
   - role: infosec-sentinel
-    status: not-applicable
+    status: waived
     reason: >-
-      Round 5 (still open, disposition unchanged from round 3's mistaken
-      framing until this is genuinely resolved): coder-tester's `hegm`
-      review correctly rejects treating the CI-automated `agov validate
-      infosec` check as satisfying this consultation — "do not describe the
-      configured CI actor's later mechanical execution as semantic review."
-      An actual infosec-review-aid pass and/or a binding plan-specific
-      governor waiver (mirroring the frozen-scope plan's `2r8r`/`mdth`
-      pattern) is being requested separately; this entry remains
-      `not-applicable` as a placeholder only because the schema requires a
-      terminal value and none of `consulted`/`waived` is true yet.
-      **This plan is not ready for Gate 1 while this entry is unresolved.**
+      Round 8: plan-specific waiver granted by binding governor decision
+      `20260816T082118Z-governor-reviewer-gm2h.md`, transcribing "proceed as
+      proposed" in response to coder-tester's bounded recommendation
+      `20260816T081629Z-coder-tester-jmsn.md` (COMPLETE/CLEAR, zero open
+      findings, for the plan-stage security surface at exact head
+      `c97b97af57b058b128e39b0ea9a85e23b96160b1`). The governor accepted the
+      bounded review-aid chain `4rrm` -> corrected plan head `81be3545` ->
+      `sbh6` -> exact-head continuity `sq33` as sufficient plan-stage
+      security evidence, since the configured CI-only infosec-sentinel actor
+      cannot provide semantic review. This is a plan-specific consultation
+      waiver only — not a standing waiver, role change, or finding
+      suppression (`gm2h`'s own "Boundaries" section). It does not authorize
+      Gate 2, merge, tag, release, or publication.
 ---
 
 # Plan: fix the v2.6.0 release-asset contract gap (mandatory-target drift)
@@ -57,7 +59,20 @@ the proposed learning
 
 ## Revision history
 
-**Round 7 (this revision): citation-only refresh.** Round 6's manifest-
+**Round 8 (this revision): infosec-sentinel consultation metadata updated to
+`waived`, per binding governor decision `gm2h`.** Per `gm2h`'s exact
+authorization, this round changes only the `advisory_consultation`
+frontmatter entry for `infosec-sentinel` from `not-applicable` (placeholder)
+to `waived`, citing the decision. No scope, design, parser grammar, test
+contract, job graph, or rollback change — the corrective design itself is
+unchanged from round 7. Per `gm2h`'s conditions, this new exact head still
+requires: (1) `agov plan validate` + exact-head CI green, (2) preserved
+contribution-auditor evidence (`n2j3` remains current — no reviewed
+substance changed), (3) fresh independent planner-architect ready and
+coder-tester CLEAR statements at this new head, and (4) a self-contained
+`tgjs` activation record before implementation begins.
+
+**Round 7: citation-only refresh.** Round 6's manifest-
 grammar hardening was CLEAR per coder-tester
 (`20260815T224601Z-coder-tester-sbh6.md`) and per a fresh non-self
 contribution-auditor pass (`20260816T002624Z-contribution-auditor-n2j3.md`).
