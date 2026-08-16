@@ -6,11 +6,16 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >
-      Issues #86, #88 independently reproduced and confirmed by
-      contribution-auditor (`20260730T072926Z-contribution-auditor-rk2k`);
-      #88 is an additional defect contribution-auditor found while
-      reproducing #86. Decomposition and Gate 2 evidence scope from
-      `20260730T074742Z-contribution-auditor-bhhh`.
+      Round 5 refresh: the original `rk2k`/`bhhh` citations (2026-07-30)
+      predated `pghm`'s fresh BLOCK (2026-08-09) and every fix made since.
+      Non-self contribution-auditor re-review at the current exact head
+      landed CLEAR, zero findings:
+      `20260816T002624Z-contribution-auditor-n2j3.md` — "resolves `pghm`'s
+      prior contribution-audit findings without expanding the two-issue
+      boundary" — exact head `0d0d66fd062332fc320d7923ad3ee9c3cdeb045a`.
+      Per `n2j3`'s own note, this citation-only correction does not
+      require a further substantive contribution-auditor pass unless
+      scope or reviewed substance changes.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -36,6 +41,14 @@ advisory_consultation:
 # Plan: agov-mcp transport completeness and protocol correctness (#86, #88)
 
 ## Revision history
+
+**Round 5 (this revision): citation-only refresh.** Round 4's bounds-check
+unification was CLEAR per coder-tester
+(`20260815T232500Z-coder-tester-85hh.md`) and per a fresh non-self
+contribution-auditor pass (`20260816T002624Z-contribution-auditor-n2j3.md`,
+replacing the 2026-07-30 `rk2k`/`bhhh` citations, which predated `pghm`'s
+fresh BLOCK). No design change. infosec-sentinel remains the sole
+outstanding prerequisite — a governor decision.
 
 **Round 4, per coder-tester's exact-head review
 `20260815T224602Z-coder-tester-83tn.md` (requested via `p3xn`, MR !1595):
