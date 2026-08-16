@@ -6,14 +6,17 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >
-      Issues #87, #90 independently reproduced and confirmed by
-      contribution-auditor (`20260730T072926Z-contribution-auditor-rk2k`,
-      `20260730T073256Z-contribution-auditor-jpje`), which corrected #87's
-      framing from "always require both loader files" to
-      "assistant-surface/configuration aware" — requiring both globally
-      would penalize projects that intentionally support only one
-      assistant runtime. Decomposition from
-      `20260730T074742Z-contribution-auditor-bhhh`.
+      Round 5 refresh: the original `rk2k`/`jpje`/`bhhh` citations
+      (2026-07-30) predated `pghm`'s fresh BLOCK (2026-08-09) and every
+      fix made since. Non-self contribution-auditor re-review at the
+      current exact head landed CLEAR, zero findings:
+      `20260816T002624Z-contribution-auditor-n2j3.md` — "resolves
+      `pghm`'s nine earlier findings and the later path-safety and
+      outcome-contract corrections without broadening issues #87/#90" —
+      exact head `d9e512048b5b9afe715d1a2e0b53f1958d182eb7`. Per `n2j3`'s
+      own note, this citation-only correction does not require a further
+      substantive contribution-auditor pass unless scope or reviewed
+      substance changes.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -51,6 +54,14 @@ advisory_consultation:
 # Plan: assistant discovery and archive setup (#87, #90)
 
 ## Revision history
+
+**Round 5 (this revision): citation-only refresh.** Round 4's resolver/
+outcome-contract fixes were CLEAR per coder-tester
+(`20260816T000505Z-coder-tester-s3bq.md`) and per a fresh non-self
+contribution-auditor pass (`20260816T002624Z-contribution-auditor-n2j3.md`,
+replacing the 2026-07-30 `rk2k`/`jpje`/`bhhh` citations, which predated
+`pghm`'s fresh BLOCK). No design change. infosec-sentinel remains the sole
+outstanding prerequisite — a governor decision.
 
 **Round 4, per coder-tester's exact-head review and infosec-review-aid
 pass `20260815T232502Z-coder-tester-p371.md` (requested via `b5wq`, MR
