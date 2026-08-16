@@ -94,25 +94,34 @@ agents:
       agf/agents/web-ux-reviewer.yaml's boundaries.forbidden_actions.
 
   independent-implementation-reviewer:
-    status: suspended
+    status: active
     reason: >
-      Provisionally inactive effective 2026-08-09 per governor decision
-      20260809T073516Z-governor-reviewer-2gbg.md, accepting review
-      20260809T063108Z-independent-implementation-reviewer-12nr.md's six
-      blocking findings against the role definition itself (incomplete
-      both-gates prohibition at forbidden_actions; missing infosec
-      detection/escalation route for sensitive material; an
-      unreproducible-as-written validation claim; a Gate 2 handoff
-      missing the mandatory adopter-docs-parity outcome; a live MR
-      description that violated the MUST description rule; and a
-      required-review-sequence bypass at merge time). No work may rely
-      on or commission this role until a corrective MR resolves the
-      findings, an independent exact-head review returns COMPLETE/CLEAR,
-      and a fresh binding governor Gate 2 decision reactivates it. This
-      is an authority/status correction, not a rejection of the role
-      program -- the corrected role may still be reviewed while
-      suspended.
-    resume_when: "A corrective MR resolves 12nr's B1-B6, an independent exact-head review of the corrected head returns COMPLETE/CLEAR, and governor-reviewer records a fresh binding Gate 2 decision reactivating the role."
+      Reactivation proposed 2026-08-16, closing the suspension opened
+      2026-08-09 by governor decision 20260809T073516Z-governor-reviewer-
+      2gbg.md over 20260809T063108Z-independent-implementation-reviewer-
+      12nr.md's six blocking findings (incomplete both-gates prohibition
+      at forbidden_actions; missing infosec detection/escalation route
+      for sensitive material; an unreproducible-as-written validation
+      claim; a Gate 2 handoff missing the mandatory adopter-docs-parity
+      outcome; a live MR description that violated the MUST description
+      rule; and a required-review-sequence bypass at merge time). Two of
+      the three resume_when conditions are satisfied: the corrective MR
+      (!1289, exact head 6940d4deb7ce02b0244cddd2fb44f9cbc263962f) fixed
+      the role definition; a fresh independent exact-head review returned
+      COMPLETE/CLEAR (20260816T130240Z-coder-tester-g1k1.md, performed
+      under the reviewer's own already-authorized coder-tester role per
+      binding governor decision 20260816T124942Z-governor-reviewer-
+      pehh.md path C1 -- not a contribution-auditor or self-reactivation
+      act). The third condition -- a fresh binding governor Gate 2
+      decision reactivating the role -- is what this MR is presented for;
+      `status: active` here reflects the proposed end state, not yet in
+      effect until that decision merges this change. `g1k1` also
+      disclosed, without relying on, a role-mislabeling defect in the
+      historical review that originally cleared !1289
+      (20260809T150324Z-contribution-auditor-sd8g.md was Codex-authored
+      under a role Codex was never authorized to hold) -- see
+      docs/plans/20260816T130924Z-independent-implementation-reviewer-
+      reactivation.md for the full reactivation plan.
     played_by: "any model/session distinct from the implementer (Codex, codex-gpt-5, for Claude-implemented changes; the reverse when Codex implements), named by governor-reviewer or an approved plan for specific non-trivial Gate 2 candidates -- while active"
     notes: >
       Activated by governor-reviewer, Gate 1 approved
