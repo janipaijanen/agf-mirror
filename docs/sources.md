@@ -9,6 +9,42 @@ withheld, not guessed. Verify before relying on them.
 
 ## Classified
 
+- https://github.com/wycliffRotich-dev/aethergrid
+  type: tooling, practice | relation: prior-art, threat-model | action: watch,
+  compare-in-docs
+  note: MIT-licensed distributed workload-orchestration demonstration whose
+  AGF-relevant mechanics are time-bounded renewable leases for exclusive work
+  ownership, explicit execution-start confirmation, worker heartbeats, bounded
+  retry, immutable lifecycle events, and reconciliation after worker or node
+  failure. These are useful concrete prior art for testing AGF's repository-
+  native claim/stale/completion lifecycle under concurrent or interrupted
+  agents. It is not an agent-governance framework and should not be presented
+  as validation of AGF outcomes. The README reports 260 tests and documents
+  strong failure-mode reasoning through ADRs, but the evidence is project-
+  authored and the repository is small; treat capability claims as self-
+  reported until independently reproduced. The open design question is whether
+  renewable leases and reconciliation can improve AGF without introducing a
+  continuously available coordinator that weakens removability. (accessed
+  2026-08-16)
+
+- https://www.aihero.dev/skills-handoff
+  source: https://github.com/mattpocock/skills/blob/main/skills/productivity/handoff/SKILL.md
+  type: tooling, practice | relation: prior-art, complement | action: integrate,
+  compare-in-docs
+  note: Matt Pocock's MIT-licensed `/handoff` skill writes a portable Markdown
+  summary so work can cross agent harnesses, repositories, colleagues, or forked
+  side tasks. It deliberately references durable specifications, plans, issues,
+  commits, and diffs instead of copying them, and asks the model to redact
+  sensitive information. This is useful prior art for an assistant-neutral AGF
+  session-transit skill, but not for AGF authority: the file is temporary,
+  non-durable, model-summarized secondary evidence with no role, acknowledgement,
+  publication, or gate semantics. Its own documentation warns that temporary
+  files can disappear and that unverified beliefs can become false premises.
+  Any AGF adaptation should remain explicitly non-authoritative, require normal
+  published coordination when a downstream obligation is created, label
+  observed/inferred/unverified state, and use a durable operator-selected path
+  when crossing machines or delayed sessions. (accessed 2026-08-16)
+
 - https://apsquared.co/posts/marketing-automation-claude-codex
   type: practice, discussion | relation: prior-art, complement, demand-driver | action: watch,
   compare-in-docs

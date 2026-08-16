@@ -181,6 +181,16 @@ Minimum documentation scope:
 - define canonical lifecycle ordering, including cold start, role-specific
   resume, task execution, validation/review, durable closeout,
   `compact-agf`, and `/compact` or session replacement;
+- assess an assistant-neutral portable session-transit skill, informed by the
+  AIHero `/handoff` source recorded in `docs/sources.md`, for work that must move
+  between Claude, Codex, another harness, another repository, a colleague, or a
+  forked side task. Keep it distinct from authoritative AGF coordination: the
+  transit document should reference durable artifacts instead of copying them,
+  identify role/branch/exact SHA/validation/next action, label observed versus
+  inferred or unverified claims, screen sensitive content, and require a normal
+  validated and published coordination record whenever it creates a downstream
+  obligation. Do not default delayed or cross-machine handoffs to an ephemeral
+  OS temporary directory;
 - distinguish first-class supported paths from legacy/reference surfaces and
   prevent documentation from silently recommending fallback implementations;
 - keep human manuals, AI cold-start/manual guidance, skill descriptions, MCP
@@ -200,6 +210,9 @@ Candidate output:
    or differently ordered instructions.
 4. Usage telemetry guidance that measures quality-adjusted cost without
    treating context occupancy as billing-grade evidence.
+5. A Gate 1 implementation recommendation for either an adopter-facing
+   `handoff-agf` skill or no new feature, including its boundary with
+   `compact-agf`, `agov session resume`, and coordination `kind: handoff`.
 
 ## Historical Branch-Only Coordination Recovery and Prevention
 

@@ -85,6 +85,20 @@ Next review: 2026-10.
   a Piyaz status, hint, or review verdict acquires no AGF authority. source: Piyaz v0.4.13 in
   `docs/sources.md` Batch 20 | status: evaluate, not adopt | review-by: 2026-11
 
+- **Renewable work leases vs repository-native claims** — AetherGrid uses
+  time-bounded renewable leases, explicit execution-start confirmation,
+  heartbeats, immutable lifecycle events, and reconciliation to preserve
+  exclusive job ownership across worker failure. AGF already has claims, stale
+  detection, completion, and Git-backed history, but not a continuously renewed
+  ownership lease. The candidate benefit is safer concurrent execution and
+  deterministic recovery from interrupted agents; the counter-risk is turning
+  a removable file-based framework into a scheduler-dependent runtime, plus
+  false reassignment when a healthy agent temporarily cannot renew. Evaluate
+  whether the useful invariants can remain repository-native and advisory, or
+  whether this belongs only in external orchestrator integrations. Do not infer
+  gate authority from lease ownership. source: AetherGrid in `docs/sources.md`
+  | status: compare mechanics, do not implement | review-by: 2026-11
+
 - **Repo-contained, model-replaceable agent package / deliberate self-cannibalization** —
   APSquared describes one self-contained marketing agent per repository: local instructions,
   activity logs, a human task queue, one activity per run, and Claude or Codex as a replaceable
