@@ -185,14 +185,17 @@ boundaries:
 
   # Added 2026-08-16 per binding governor decisions
   # 20260816T124942Z-governor-reviewer-pehh.md (path B2) and
-  # 20260816T130941Z-governor-reviewer-p4hk.md (binding cross-LLM policy),
-  # when Codex was authorized as a second AI player for this role.
+  # 20260816T131724Z-governor-reviewer-6srq.md (binding cross-LLM/
+  # session-independence policy, superseding an earlier record
+  # 20260816T130941Z-governor-reviewer-p4hk.md where that record required
+  # a different LLM with no availability fallback), when Codex was
+  # authorized as a second AI player for this role.
   cross_llm_independence:
-    - "An AI player may audit a contribution only if it was authored by a genuinely different LLM than the auditing player."
-    - "An AI player must not audit any contribution it authored or materially co-authored -- a separate session does not cure that conflict."
-    - "When an AI player authored or materially co-authored a contribution, a genuinely different LLM must perform this role's review."
-    - "Mixed authorship that includes a given AI player is treated as that player's own authorship for this independence rule."
-    - "Every review must identify the contribution's authoring LLM and the auditing LLM sufficiently to demonstrate the required separation actually held -- a role label alone is not evidence of LLM independence."
+    - "No AI agent or LLM may audit a contribution within the session that authored or materially co-authored it."
+    - "The preferred auditor uses a genuinely different underlying LLM or model family; product names alone do not prove different underlying models were used."
+    - "When no different LLM is available, a fresh isolated session may perform the audit. The audit record must disclose that the fallback used the same LLM or model family and identify the authoring and auditing sessions sufficiently to demonstrate session separation."
+    - "A role-label change inside the authoring session is not separation. The fallback requires a genuinely fresh context, without the authoring session's hidden scratch state or commitments."
+    - "Material or high-risk findings must be escalated to governor-reviewer. The governor may require another LLM, human review, or additional evidence before accepting the audit for a governed gate."
 
   jurisdiction_boundary: >-
     This role's jurisdiction is contributions and governance guidance --

@@ -28,18 +28,21 @@ agents:
 
   contribution-auditor:
     status: active
-    played_by: "human (Jani) + claude (AI, at plan review) + codex (AI, at plan review, only for contributions not authored or materially co-authored by codex)"
+    played_by: "human (Jani) + claude (AI, at plan review) + codex (AI, at plan review, only for contributions not authored or materially co-authored by codex in the auditing session; isolated-session fallback per 6srq when no different LLM is available)"
     notes: >
       Audits incoming proposals from AI assessment synthesis and future
       contributors. Also audits any upstream framework upgrade diffs.
       Codex added 2026-08-16 per binding governor decisions
       20260816T124942Z-governor-reviewer-pehh.md (path B2) and
-      20260816T130941Z-governor-reviewer-p4hk.md (binding cross-LLM
-      independence policy, encoded in full in
+      20260816T131724Z-governor-reviewer-6srq.md (binding cross-LLM/
+      session-independence policy, superseding an earlier record
+      20260816T130941Z-governor-reviewer-p4hk.md; encoded in full in
       agf/agents/contribution-auditor.yaml's boundaries section). Codex
-      may audit only a contribution authored by a genuinely different
-      LLM; mixed Codex co-authorship is treated as Codex-authored for
-      this rule. See
+      may audit only a contribution not authored or materially
+      co-authored by Codex in the auditing session; when no genuinely
+      different LLM is available, an isolated fresh session of the same
+      LLM family may audit under 6srq's disclosed-fallback conditions.
+      See
       docs/plans/20260816T130924Z-contribution-auditor-codex-staffing.md
       for the full staffing plan and its jurisdiction-boundary rationale.
 
