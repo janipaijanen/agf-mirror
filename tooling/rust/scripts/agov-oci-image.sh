@@ -9,6 +9,7 @@ Usage:
   agov-oci-image.sh scan
   agov-oci-image.sh push
   agov-oci-image.sh provenance
+  agov-oci-image.sh selftest
 
 Environment:
   AGOV_VERSION        Required. Version from agf/VERSION.
@@ -30,6 +31,9 @@ AGOV_TARGET still carries the real Rust triple for the staged binary.
 EOF
 }
 
+SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
+TARGETS_MANIFEST="$SCRIPT_DIR/../release-targets.txt"
+
 # Public archive filename slug for a Rust target triple. Only the archive
 # *filename* uses the slug (Workstream A naming decision, er5h); AGOV_TARGET
 # itself keeps the real triple for build/binary selection.
@@ -40,19 +44,128 @@ EOF
 # release artifact (agov-...-windows-x86_64.zip, containing agov.exe) can
 # never satisfy that, so x86_64-pc-windows-gnu is rejected as unsupported
 # here rather than translated into a nonexistent .tar.gz path.
+manifest_records() {
+  manifest="$1"
+  awk '
+    function reject(message) {
+      printf "invalid release-target manifest %s:%d: %s\n", FILENAME, NR, message > "/dev/stderr"
+      failed = 1
+    }
+    function unsafe(value) {
+      return value ~ /[\\\/]/ || index(value, "..") || value ~ /^-/ || value ~ /[[:cntrl:]]/
+    }
+    /^[[:space:]]*$/ { next }
+    /^#/ { next }
+    {
+      if (NF != 2) {
+        reject("expected exactly two fields: <rust-triple> <public-slug>")
+        next
+      }
+      if (unsafe($1) || unsafe($2)) {
+        reject("fields must be safe path-component tokens (no slash, backslash, .., leading -, whitespace, or control characters)")
+        next
+      }
+      if (targets[$1]++) {
+        reject("duplicate target: " $1)
+        next
+      }
+      if (slugs[$2]++) {
+        reject("duplicate slug: " $2)
+        next
+      }
+      count++
+      target[count] = $1
+      slug[count] = $2
+    }
+    END {
+      if (failed) exit 1
+      if (count == 0) {
+        printf "invalid release-target manifest %s: no target records\n", FILENAME > "/dev/stderr"
+        exit 1
+      }
+      for (i = 1; i <= count; i++) print target[i], slug[i]
+    }
+  ' "$manifest"
+}
+
+# Private injection seam for selftest only. Production callers cannot choose
+# the manifest path: target_slug() below always supplies TARGETS_MANIFEST.
+target_slug_from() {
+  manifest="$1"
+  requested="$2"
+  if ! records=$(manifest_records "$manifest"); then
+    return 1
+  fi
+  found=""
+  while IFS=' ' read -r target slug; do
+    if [ "$target" = "$requested" ]; then
+      found="$slug"
+      break
+    fi
+  done <<EOF
+$records
+EOF
+  if [ -z "$found" ]; then
+    echo "no public filename slug mapped for target $requested" >&2
+    return 1
+  fi
+  printf '%s' "$found"
+}
+
 target_slug() {
-  case "$1" in
-    x86_64-unknown-linux-musl) printf 'linux-x86_64' ;;
-    aarch64-unknown-linux-musl) printf 'linux-aarch64' ;;
-    x86_64-pc-windows-gnu)
-      echo "target $1 is not supported by this Linux OCI-image path (its release artifact is a Windows .zip with agov.exe, not a .tar.gz with a runnable agov binary)" >&2
-      exit 1
-      ;;
-    *)
-      echo "no public filename slug mapped for target $1" >&2
-      exit 1
-      ;;
-  esac
+  requested="$1"
+  if [ "$requested" = "x86_64-pc-windows-gnu" ]; then
+    echo "target $requested is not supported by this Linux OCI-image path (its release artifact is a Windows .zip with agov.exe, not a .tar.gz with a runnable agov binary)" >&2
+    return 1
+  fi
+  target_slug_from "$TARGETS_MANIFEST" "$requested"
+}
+
+selftest() {
+  tmp=$(mktemp -d)
+  trap 'rm -rf "$tmp"' EXIT INT TERM
+  failed=0
+
+  records=$(manifest_records "$TARGETS_MANIFEST")
+  while IFS=' ' read -r target expected_slug; do
+    [ -n "$target" ] || continue
+    actual_slug=$(target_slug "$target")
+    if [ "$actual_slug" != "$expected_slug" ]; then
+      echo "target_slug mismatch for $target: expected $expected_slug, got $actual_slug" >&2
+      failed=1
+    fi
+  done <<EOF
+$records
+EOF
+
+  windows_output=$(target_slug x86_64-pc-windows-gnu 2>&1 || true)
+  if target_slug x86_64-pc-windows-gnu >/dev/null 2>&1 ||
+     ! printf '%s\n' "$windows_output" | grep -qF 'not supported by this Linux OCI-image path'; then
+    echo "Windows target did not produce its specific rejection" >&2
+    failed=1
+  fi
+
+  unknown_output=$(target_slug unknown-target 2>&1 || true)
+  if target_slug unknown-target >/dev/null 2>&1 ||
+     ! printf '%s\n' "$unknown_output" | grep -qF 'no public filename slug mapped'; then
+    echo "unknown target did not fail clearly" >&2
+    failed=1
+  fi
+
+  malformed="$tmp/malformed.txt"
+  printf '%s\n' 'target-without-slug' > "$malformed"
+  malformed_output=$(target_slug_from "$malformed" target-without-slug 2>&1 || true)
+  if target_slug_from "$malformed" target-without-slug >/dev/null 2>&1 ||
+     ! printf '%s\n' "$malformed_output" | grep -qF 'expected exactly two fields'; then
+    echo "malformed manifest did not fail clearly" >&2
+    failed=1
+  fi
+
+  if [ "$failed" -ne 0 ]; then
+    echo "selftest FAILED" >&2
+    return 1
+  fi
+  echo "selftest OK: canonical targets resolve; Windows, unknown, and malformed inputs are rejected"
 }
 
 require_env() {
@@ -205,6 +318,9 @@ case "${1:-}" in
     ;;
   provenance)
     provenance_record
+    ;;
+  selftest)
+    selftest
     ;;
   -h|--help|help)
     usage

@@ -590,6 +590,7 @@ release:assets-selftest:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes: &release_assets_selftest_paths
         - tooling/rust/scripts/release-assets.sh
+        - tooling/rust/release-targets.txt
         - .gitlab-ci.yml
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       changes:
@@ -600,6 +601,53 @@ release:assets-selftest:
     - if: $CI_COMMIT_BRANCH
       changes: *release_assets_selftest_paths
     - if: $CI_COMMIT_TAG
+
+agov-oci-image:selftest:
+  image: alpine:3.22
+  stage: test
+  interruptible: true
+  script:
+    - tooling/rust/scripts/agov-oci-image.sh selftest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &agov_oci_image_selftest_paths
+        - tooling/rust/scripts/agov-oci-image.sh
+        - tooling/rust/release-targets.txt
+        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agov_oci_image_selftest_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *agov_oci_image_selftest_paths
+    - if: $CI_COMMIT_TAG
+
+# Assemble the real preview artifacts from both producers and run the same
+# pre-OCI contract check used by the tag pipeline. This is the pre-tag proof
+# that the mandatory set matches what the builders actually emit.
+release:assets-verify-preview:
+  image: alpine:3.22
+  stage: test
+  interruptible: true
+  needs:
+    - job: agf:dist:preview
+      artifacts: true
+    - job: rust:tooling:preview
+      artifacts: true
+  script:
+    - VERSION="$(cat agf/VERSION)"
+    - tooling/rust/scripts/release-assets.sh verify-pre-oci dist "$VERSION"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - tooling/rust/**/*
+        - .gitlab-ci.yml
 
 release:elixir-exclusion-selftest:
   image: alpine:3.22
@@ -1036,6 +1084,35 @@ rust:tooling:clippy:
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
     - export AGOV_BUILD_SOURCE_DIRTY=false
+    # Validate the complete manifest before any target build, staging, or
+    # archive write. Every later consumer can safely iterate it only after
+    # this fail-closed pass succeeds.
+    - |
+      awk '
+        function reject(message) {
+          printf "invalid release-target manifest %s:%d: %s\n", FILENAME, NR, message > "/dev/stderr"
+          failed = 1
+        }
+        function unsafe(value) {
+          return value ~ /[\\\/]/ || index(value, "..") || value ~ /^-/ || value ~ /[[:cntrl:]]/
+        }
+        /^[[:space:]]*$/ { next }
+        /^#/ { next }
+        {
+          if (NF != 2) { reject("expected exactly two fields: <rust-triple> <public-slug>"); next }
+          if (unsafe($1) || unsafe($2)) {
+            reject("fields must be safe path-component tokens (no slash, backslash, .., leading -, whitespace, or control characters)")
+            next
+          }
+          if (targets[$1]++) { reject("duplicate target: " $1); next }
+          if (slugs[$2]++) { reject("duplicate slug: " $2); next }
+          count++
+        }
+        END {
+          if (failed) exit 1
+          if (count == 0) { print "invalid release-target manifest: no target records" > "/dev/stderr"; exit 1 }
+        }
+      ' release-targets.txt
     - scripts/stage-tooling-runbook.sh selftest
     - scripts/check-release-self-sufficiency.sh selftest
     - |
@@ -1055,20 +1132,12 @@ rust:tooling:clippy:
     - cargo build --quiet --release -p agov
     - AGOV_BIN="$PWD/target/release/agov"
     - |
-      # aarch64-unknown-linux-musl dropped from the mandatory target set
-      # 2026-08-05: cross-compilation via Docker/QEMU repeatedly exhausted
-      # disk on the shared saas-linux-small-amd64 runner class. Reinstate
-      # by adding the target back here once CI runner capacity is
-      # sponsored (see docs/plans/20260805T084100Z-drop-aarch64-linux-required-target.md).
-      for target in x86_64-unknown-linux-musl; do
-        # Public filename slug per the Workstream A naming decision (er5h):
-        # archives are named by platform slug; the real Rust triple stays in
-        # cross --target and the provenance record's target_platform field.
-        case "$target" in
-          x86_64-unknown-linux-musl) slug="linux-x86_64" ;;
-          aarch64-unknown-linux-musl) slug="linux-aarch64" ;;
-          *) echo "no public filename slug mapped for target $target" >&2; exit 1 ;;
-        esac
+      # The validated manifest is the sole mandatory Linux target/slug list.
+      # Reinstating aarch64 requires a governed one-line manifest change and
+      # adequate sponsored runner capacity; no hardcoded target arm lives here.
+      while IFS=' ' read -r target slug extra; do
+        [ -n "$target" ] || continue
+        case "$target" in \#*) continue ;; esac
         cargo clean --release --target "$target" -p agov -p agov-mcp
         cross build --release --target "$target" -p agov -p agov-mcp
         sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
@@ -1096,7 +1165,7 @@ rust:tooling:clippy:
           --artifact "../../dist/${archive}" \
           --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
-      done
+      done < release-targets.txt
     # Windows packaging is optional preview evidence. It runs only on demand
     # via AGOV_PACKAGE_WINDOWS_PREVIEW=1 (the
     # rust:tooling:preview:windows-package manual job), never as part of a tag
@@ -1206,6 +1275,23 @@ rust:tooling:release:
   rules:
     - if: $CI_COMMIT_TAG
 
+# Phase 1 release gate: verify every framework and mandatory tooling artifact
+# before OCI publication is allowed to start. OCI provenance is necessarily
+# excluded here because it records the digest produced by the later push.
+release:assets-verify-pre-oci:
+  image: alpine:3.22
+  stage: deploy
+  needs:
+    - job: agf:dist:release
+      artifacts: true
+    - job: rust:tooling:release
+      artifacts: true
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - tooling/rust/scripts/release-assets.sh verify-pre-oci dist "$VERSION"
+  rules:
+    - if: $CI_COMMIT_TAG
+
 agov:oci:release:
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
@@ -1215,6 +1301,7 @@ agov:oci:release:
   needs:
     - job: rust:tooling:release
       artifacts: true
+    - job: release:assets-verify-pre-oci
   script:
     - export AGOV_VERSION="$(cat agf/VERSION)"
     - tooling/rust/scripts/agov-oci-image.sh check-tag
