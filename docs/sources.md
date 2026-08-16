@@ -1991,3 +1991,88 @@ Radar entry added (below) for the session-digest question specifically. Do not t
 citation as evidence AGF should adopt LLM Wiki's promotion/gate mechanics generally — the
 domains differ enough (research curation vs. code-change governance) that structural
 similarity is not itself a reason to converge implementations.
+
+# Batch 26 (2026-08-16) — user-submitted agentic-orchestration landscape
+
+## Classified
+
+- https://rywalker.com/research/autonomous-agentic-engineering-tools
+  type: industry research, discussion | relation: prior-art, landscape,
+  demand-driver, threat-model | action: cite (with caveat), watch
+  note: Ry Walker Research, “Autonomous Agentic Engineering Tools,” published
+  2026-03-10 and marked updated 2026-06-11, compares 13 autonomous coding
+  agents, orchestrators, SDKs, and collaboration platforms. Its most useful AGF
+  contribution is the category map rather than its product ranking: isolated
+  worktrees, issue-tracker-driven dispatch, specialized role pipelines,
+  cross-model review, CI retry, merge queues, and human pre-merge oversight are
+  presented as distinct orchestration/verification choices rather than one
+  undifferentiated “agent” capability. That is useful external vocabulary for
+  explaining AGF's own boundary: an orchestrator may schedule work and collect
+  evidence, while repository records and authorized human decisions determine
+  governance state.
+
+  The article independently identifies cross-model adversarial review as a
+  product pattern and names Claude-writes/Codex-reviews as an example. This
+  corroborates the existence of the pattern tracked by AGF's “Verification
+  independence tiers” radar item, but its FAQ claim that the pattern
+  “eliminate[s] single-model blind spots” is too strong: changing models can
+  reduce correlated failure, not prove that blind spots are gone. The article
+  also reports fast-moving star counts, maintenance states, vendor features,
+  and 2027-2028 forecasts. Those are dated secondary-source observations, not
+  durable capability or effectiveness evidence; recheck the primary project
+  before relying on any one comparison. The page discloses that the author is
+  CEO of orchestration vendor Tembo, so recommendations carry a commercial
+  perspective. (accessed 2026-08-16)
+
+- https://www.zhcinstitute.com/research/oh-my-claudecode-multi-agent-field-notes/
+  type: practice, discussion | relation: prior-art, demand-driver, threat-model |
+  action: cite (as a counter-position), watch
+  note: ZHC Institute/Juno, “Field Notes: oh-my-claudecode — The Orchestration
+  Layer That Removes Humans from the Build Loop,” dated 2026-04-01. Describes
+  oh-my-claudecode as a staged team pipeline — plan, PRD/specify, execute,
+  verify, fix — using separate tmux workers and a Socratic “deep interview” to
+  expose ambiguity before implementation. These are concrete orchestration
+  patterns compatible with AGF's planning, decomposition, parallel execution,
+  and independent-evidence goals, but the article does not describe AGF-style
+  role authority, immutable decision provenance, or binding human gates.
+
+  Its strongest AGF relevance is adversarial rather than corroborative: it
+  argues that agent-native clarification and verification can remove the human
+  review queue and suggests agent verification before production merge. That
+  is a clear external statement of the throughput-first position against which
+  AGF's Gate 1/Gate 2 authority boundary should be explained. The same article
+  concedes that humans still define the initial ask and business logic and
+  decide whether to trust output, and that wider coordination remains outside
+  the coding pipeline. Its star-growth, “3x lever,” continuous-shipping, and
+  no-review claims are promotional self-report with no benchmark, defect-rate,
+  incident, or production-outcome evidence. Cite it as evidence that this
+  operating philosophy exists, not that removing human review is safe or more
+  effective. (accessed 2026-08-16)
+
+## First AGF takeaways
+
+1. **Orchestration capability is not governance authority.** Worktree
+   isolation, role pipelines, retries, dashboards, and merge queues can improve
+   execution without acquiring Gate 1, Gate 2, merge, release, or governor
+   authority.
+2. **Cross-model review is evidence, not proof.** It can improve independence
+   relative to same-session self-review, but does not eliminate shared training
+   priors, prompt errors, incomplete evidence, or incorrect acceptance criteria.
+3. **Agent-native verification is the live counter-position to human gates.**
+   AGF should state the tradeoff plainly: faster iteration and less queueing
+   versus accountable risk acceptance by someone authorized to change the
+   decision.
+4. **Landscape claims decay quickly.** Product status, integrations, star
+   counts, and vendor rankings should be rechecked against primary sources
+   before use in public comparison material.
+
+## Evaluation boundary
+
+No new radar item. Ry Walker's cross-model and orchestration observations map
+to the existing “Verification independence tiers,” “Renewable work leases vs
+repository-native claims,” and external-orchestrator boundary questions. The
+ZHC article's proposal to replace human review is a useful counter-position,
+but AGF's binding human-gate policy is an explicit governed design decision,
+not an unresolved radar question. Do not install or evaluate an orchestrator,
+change role authority, automate a gate, or infer effectiveness from these two
+secondary sources without a separately approved plan and primary evidence.
