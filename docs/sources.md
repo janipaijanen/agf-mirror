@@ -1940,3 +1940,54 @@ decisions already made here rather than raising a new open or controversial ques
 specific to AGF. Do not cite this batch as validation that AGF's specific implementation is
 correct — Aytas's posts describe the shape of the problem and a compatible direction, not
 this project's mechanisms, which he has not seen.
+
+# Batch 25 (2026-08-16) — user-submitted candidate
+
+## Classified
+
+- https://llm-wiki.net/
+  type: tooling, source | relation: sibling, prior-art, complement | action: cite, watch
+  note: LLM Wiki (nvk, MIT-licensed) — a research and knowledge-management tool for AI
+  agents, installable as a Claude Code plugin, Codex marketplace entry, OpenCode
+  instruction file, or portable `AGENTS.md`. Organizes research into
+  `~/wiki/topics/<name>/` with `raw/` (immutable ingested sources), `wiki/` (compiled
+  articles), `inventory/` (Ideas and other durable operational state), and `output/`
+  (generated artifacts). Self-described as "a research-driven governance framework
+  combining knowledge-base functionality with approval gates": Ideas captured in
+  `inventory/ideas/` remain uncertain proposals until an explicit promotion step converts
+  them into frozen project briefs, with "Human-owned topic guides" for convention
+  enforcement and outputs audited against source provenance (accessed 2026-08-16).
+
+  Different domain from AGF (research/knowledge curation, not software-development
+  governance — no code review, CI, git, or deployment concepts anywhere in the tool), but
+  the governance *pattern* is a close structural sibling: append-only evidence, explicit
+  human-gated promotion from tentative to durable state, and audit trails as a design
+  goal rather than an afterthought. Independently arriving at the same shape as AGF's
+  Gate 1/Gate 2 discipline, from a different starting problem, is corroborating evidence
+  that the pattern generalizes.
+
+  The specific feature that prompted this citation — session rehydration
+  (`#sessions-rehydrate-future-work`) — is the closer AGF parallel. Default-on hook
+  capture writes "redacted checkpoints, compact digests, and user-feedback candidates
+  under `HUB/.sessions/`" without storing full transcripts; `/wiki:session rehydrate`
+  hands a future session "a compact context block pointing the agent to relevant digests"
+  rather than raw history, and digests stay operational-only until explicitly promoted
+  into topic evidence. The `.sessions/` layout is stated to work uniformly across Claude
+  Code, Codex, OpenCode, and local wikis — the same cross-harness continuity problem
+  AGF's coordination channel exists to solve. This corroborates the ephemeral-vs-durable
+  split already cited in Batch 22 (session memory is advisory; governed artifacts —
+  `agf/rules/`, `agf/learnings/*.yaml`, `docs/coordination/*.md` — are authoritative), and
+  additionally names a concrete design AGF does not currently have: a redacted,
+  default-on, cross-harness *digest* layer sitting between within-harness session memory
+  (`agov session resume`) and durable coordination records. See radar entry below — not
+  proposed as an implementation here, since AGF's coordination channel already provides
+  cross-harness continuity through a different mechanism (durable records, not compact
+  digests), and whether the digest layer adds real value over that or just a second,
+  weaker memory channel is unresolved.
+
+## Evaluation boundary
+
+Radar entry added (below) for the session-digest question specifically. Do not treat this
+citation as evidence AGF should adopt LLM Wiki's promotion/gate mechanics generally — the
+domains differ enough (research curation vs. code-change governance) that structural
+similarity is not itself a reason to converge implementations.

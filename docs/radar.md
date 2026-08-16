@@ -108,6 +108,25 @@ Next review: 2026-10.
   the source is a self-reported marketing case, not independent evidence. source: APSquared in
   `docs/sources.md` | status: joint Claude/Codex assessment requested | review-by: 2026-10
 
+- **Cross-harness session-digest layer vs. coordination-only continuity** — LLM Wiki's
+  session rehydration writes default-on, redacted digests to a `.sessions/` directory
+  (state JSON + Markdown, no full transcripts) that stay operational-only until explicitly
+  promoted into durable evidence, readable uniformly across Claude Code, Codex, OpenCode.
+  AGF handles the same cross-harness continuity problem differently: `agov session resume`
+  covers within-harness continuity, and durable coordination records
+  (`docs/coordination/*.md`) cover cross-agent state, but nothing sits between them as a
+  lighter-weight, redacted "what was I doing" pointer for a fresh session on a different
+  harness. Open question: does that gap cause real friction (a concrete cold-start failure
+  mode `agent-cold-start-habits.md`'s existing protocol doesn't already cover), or would a
+  digest layer just be a second, weaker memory channel competing with the coordination
+  channel's own authority — the exact risk `coordination-message-rule.md` and
+  `coordination-sequence-guard-rule.md` exist to prevent? Controversial: any answer other
+  than "no gap, coordination records already suffice" risks re-legitimizing an informal
+  parallel-authority channel, the same failure mode flagged when assessing AIHero's
+  `/handoff` pattern (`docs/coordination/20260816T115701Z-planner-architect-hrd1.md`).
+  source: LLM Wiki in `docs/sources.md` Batch 25 | status: evaluate, no implementation
+  proposed | review-by: 2026-11
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
