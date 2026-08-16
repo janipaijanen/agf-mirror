@@ -99,6 +99,14 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ### Fixed
 
+- Release tooling now reads one validated `tooling/rust/release-targets.txt`
+  manifest for the mandatory Linux build loop, release-asset contract, and
+  OCI archive lookup. Preview CI assembles real framework/tooling archives and
+  checks the pre-OCI set; tag CI runs the same check before any OCI push. This
+  prevents a target-list change from leaving the producer and mandatory-asset
+  verifier out of sync. The immutable `v2.6.0` tag is retained as a failed
+  publication attempt: no GitLab Release exists, while `agov:2.6.0` is
+  failed-publication OCI residue and must not be treated as a usable release.
 - `agov coord list --since` now accepts the compact filename-prefix
   timestamp (`20260729T195431Z`, no punctuation) in addition to
   RFC3339-with-punctuation and a full message id/filename (#84).
