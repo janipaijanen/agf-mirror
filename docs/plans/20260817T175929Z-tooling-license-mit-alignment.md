@@ -1,7 +1,9 @@
 ---
 id: tooling-license-mit-alignment
-status: pending-gate1
+status: approved
 topic: tooling-license-mit-alignment
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-17T19:59:40Z"
 advisory_consultation:
   - role: governor-reviewer
     status: consulted
@@ -10,12 +12,14 @@ advisory_consultation:
       red list. The human governor made the call directly in chat, 2026-08-17
       — "Tooling is MIT" — after reviewing tmp/dd-20260817-license/, a 4-model
       (ChatGPT, Claude, Grok, Lumo) round-3 DD focused specifically on the
-      licensing contradiction. Per coder-tester review
-      20260817T185103Z-coder-tester-hj7n (B-LIC-1709-1), a chat instruction is
-      the substantive decision but not by itself the required published Gate 1
-      decision; `gate1_approved_by`/`gate1_approved_at` are correctly absent
-      until a governor-reviewer coordination decision-record is published and
-      cited here.
+      licensing contradiction. Per coder-tester reviews
+      20260817T185103Z-coder-tester-hj7n, 20260817T191832Z-coder-tester-2the,
+      and 20260817T195109Z-coder-tester-h6qr (B-LIC-1709-1), the chat
+      instruction alone was the substantive decision but not the required
+      published Gate 1 authority. Resolved: the governor reviewed and
+      approved the drafted text directly in chat ("approved the MIT decission
+      draft"), and it is now published as
+      20260817T195940Z-governor-reviewer-pkp7.
   - role: infosec-sentinel
     status: consulted
     reason: >
@@ -25,17 +29,14 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >
-      Non-self coder-tester/contribution-auditor review
-      20260817T185103Z-coder-tester-hj7n at exact head fba42f2e reviewed all
-      six changed files, plan metadata, and adopter-facing licensing claims.
-      Recommendation: BLOCK, 4 findings (B-LIC-1709-1 through -4), all
-      accepted and being fixed at a new exact head. This corrects an earlier,
-      inaccurate "waived, review requested for the exact same head" claim
-      that hj7n itself flagged (B-LIC-1709-2) — the referenced request
-      (pdjj/MR !1710) named head 7b9b69c1, but the branch had already moved to
-      fba42f2e by the time this plan was pushed, so "same head" was false.
-      A fresh exact-head re-review is required after these fixes before this
-      plan can be presented for Gate 1.
+      Three rounds of non-self coder-tester/contribution-auditor review
+      (hj7n, 2the, h6qr) across three exact heads. h6qr (round 3, head
+      a00ec15e) confirms all substantive/technical findings (B-LIC-1709-2
+      through -5) are resolved; the only remaining finding was B-LIC-1709-1
+      (missing Gate 1 record), now itself resolved per the governor-reviewer
+      entry above. Per h6qr: this citation-only frontmatter update requires
+      no further substantive review since it changes no reviewed scope or
+      claim.
 ---
 
 # Tooling license: align Rust/Container metadata to MIT
@@ -48,11 +49,15 @@ advisory_consultation:
   licensing question). This is a licensing/legal artifact, non-delegable
   per `deputy-governor-rule.md`'s red list; the human governor made the
   call directly, which is the only path authorized to make it. Per
-  coder-tester review `20260817T185103Z-coder-tester-hj7n`
-  (B-LIC-1709-1), this chat instruction is the substantive decision but
-  is **not itself the required published Gate 1 authorization** — Gate 1
-  remains pending until a governor-reviewer coordination decision-record
-  is published and cited in this plan's frontmatter.
+  coder-tester reviews `20260817T185103Z-coder-tester-hj7n`,
+  `20260817T191832Z-coder-tester-2the`, and
+  `20260817T195109Z-coder-tester-h6qr` (B-LIC-1709-1), this chat
+  instruction was the substantive decision but not itself the required
+  published Gate 1 authorization. **Resolved**: the governor reviewed
+  and approved this exact plan's drafted decision-record text directly
+  in chat, and it is now published as
+  `20260817T195940Z-governor-reviewer-pkp7`, cited in this plan's
+  frontmatter (`gate1_approved_by`/`gate1_approved_at`).
 
 ## Intent
 
