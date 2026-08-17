@@ -34,9 +34,10 @@ Six checks:
    never earlier (GS-B-4).
 5. `first-governed-change.md`'s audience/prerequisite line is unchanged
    from what `pqja` verified (a drift guard, not a re-verification).
-6. The latest release's AGF archive and both supported AGOV platform
-   archives (`linux-x86_64`, `linux-aarch64`) are discovered through the
-   GitLab Releases API (never hand-constructed, per the plan and
+6. The latest release's AGF archive and every currently-mandatory AGOV
+   platform archive (per `tooling/rust/release-targets.txt`, single-sourced
+   with `release-assets.sh` and `agov-oci-image.sh`) are discovered through
+   the GitLab Releases API (never hand-constructed, per the plan and
    `commission.md`'s own instruction), downloaded, and their bytes verified
    against the companion `.sha256` file; the companion `-provenance.json`
    asset's presence is confirmed live.
@@ -74,7 +75,32 @@ KNOWN_GOOD_EXTERNAL_URLS = {
 }
 
 RELEASES_API_URL = "https://gitlab.com/api/v4/projects/83321848/releases"
-AGOV_SUPPORTED_PLATFORMS = ("linux-x86_64", "linux-aarch64")
+RELEASE_TARGETS_FILE = REPO_ROOT / "tooling/rust/release-targets.txt"
+
+
+def load_mandatory_platforms() -> tuple[str, ...]:
+    """Single-sourced from `tooling/rust/release-targets.txt` -- the same
+    manifest `release-assets.sh` and `agov-oci-image.sh` read since MR
+    !1610 -- so this check cannot drift from the actual mandatory target
+    set the way the previously hardcoded `AGOV_SUPPORTED_PLATFORMS =
+    ("linux-x86_64", "linux-aarch64")` tuple did. That hardcoded tuple went
+    stale when `aarch64-unknown-linux-musl` was dropped from the mandatory
+    target set (2026-08-05) but kept passing silently until v2.6.1 became
+    the first release published after the drop with no aarch64 assets to
+    find -- v2.5.0 (built before the drop) still had them."""
+    platforms: list[str] = []
+    for line in RELEASE_TARGETS_FILE.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) != 2:
+            raise LinkCheckError(f"malformed release-targets.txt line: {line!r}")
+        platforms.append(parts[1])
+    if not platforms:
+        raise LinkCheckError("release-targets.txt has no mandatory targets")
+    return tuple(platforms)
+
 
 # release-info.md does not exist as a source file -- release_info.py's
 # `on_pre_build` MkDocs hook generates it into docs_dir at build time. This
@@ -100,6 +126,9 @@ H2_RE = re.compile(r'<h2 id="([^"]*)">(.*?)</h2>', re.DOTALL)
 
 class LinkCheckError(ValueError):
     pass
+
+
+AGOV_SUPPORTED_PLATFORMS = load_mandatory_platforms()
 
 
 # ── Check 1 & 2: commission.md's own links ───────────────────────────────
@@ -751,7 +780,16 @@ or the
     names = expected_archive_names(version)
     assert names["agf"] == "agf-2.5.0-rc.2.tar.gz"
     assert names["agov-linux-x86_64"] == "agov-2.5.0-rc.2-linux-x86_64.tar.gz"
-    assert names["agov-linux-aarch64"] == "agov-2.5.0-rc.2-linux-aarch64.tar.gz"
+    # This fixture's real asset set also includes linux-aarch64: v2.5.0-rc.2
+    # was released before the 2026-08-05 mandatory-target drop, so its
+    # already-published assets still have it (the drop applies going
+    # forward, not retroactively -- see release-artifacts.md). expected_
+    # archive_names() only asserts presence of currently-mandatory
+    # platforms; extra assets in a real API response must not cause a
+    # failure, so "agov-linux-aarch64" is deliberately not asserted here --
+    # it is not a key `expected_archive_names()` produces once
+    # AGOV_SUPPORTED_PLATFORMS no longer includes it.
+    assert "agov-linux-aarch64" not in names
     for name in names.values():
         assert name in assets, f"{name} missing from parsed asset set"
         assert f"{name}.sha256" in assets

@@ -80,7 +80,10 @@ AGF (the framework directory):
 AGOV (the optional Rust tooling binary), same verification discipline
 extended to a second artifact:
 
-- **Supported platforms today: `linux-x86_64` and `linux-aarch64` only.** No
+- **Supported platform today: `linux-x86_64` only.** `linux-aarch64` was
+  published on releases through v2.5.0 but is not currently built for
+  releases from `main` (CI runner capacity constraint; see
+  [release artifacts](../../reference/release-artifacts.md) for detail). No
   macOS or Windows AGOV binary is currently published. On an unsupported
   platform, run `agov` from a full source checkout instead of assuming a
   binary exists.
