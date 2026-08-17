@@ -2076,3 +2076,54 @@ but AGF's binding human-gate policy is an explicit governed design decision,
 not an unresolved radar question. Do not install or evaluate an orchestrator,
 change role authority, automate a gate, or infer effectiveness from these two
 secondary sources without a separately approved plan and primary evidence.
+
+# Batch 27 (2026-08-17) — user-submitted candidate
+
+## Classified
+
+- https://blog.lunatech.com/posts/2026-05-19-from-coding-to-orchestrating/
+  type: practice | relation: adjacent (thematic, not governance) |
+  action: cite (bounded), no radar item
+  note: Nicolas Leroux (Lunatech), "From Coding to Orchestrating: The New
+  Role of the Software Engineer" (2026-05-19). Central claim: "AI Output
+  Quality = AI Capability x Context Quality" — since AI capability is
+  vendor-controlled, the engineer's leverage is context quality, delivered
+  via a seven-layer "Claude Context Pack" (System, Code, Data, Business,
+  Architecture, Test, Decision) fed into single-agent prompts, plus
+  spec-driven development for regulated domains. Illustrative before/after
+  comparison ("80% rework" from a naive prompt vs. "5-10% review" from an
+  engineered one) is presented without a benchmark methodology, sample
+  size, or measured production outcome — prescriptive/aspirational, not
+  evidence, per `verifiable-claims-rule.md`'s hedging requirement if cited
+  further.
+
+  No multi-agent coordination, role separation, handoffs, gate/approval
+  authority, or audit-trail ownership model is described — the piece is
+  entirely about one engineer directing one agent session well, not about
+  governing multiple agents or bounding decision authority. That's a real
+  scope gap relative to AGF, not a weak treatment of AGF's actual
+  differentiator: this source simply isn't about that problem.
+
+  Weak structural echo, not a new capability gap: the seven-layer Context
+  Pack's "Decision" layer (ADRs, constraints, non-negotiables fed to the
+  agent as context) is analogous to what AGF's `docs/coordination/*.md`
+  and `docs/plans/` already are — the "Business"/"Architecture" layers map
+  loosely onto `agf/rules/` and `framework.md`. Read as independent,
+  AGF-unaware corroboration that structuring durable context this way is
+  a sound general pattern, not as a prompt to add a new AGF mechanism —
+  AGF's version already carries governance authority (Gate 1/Gate 2,
+  role boundaries) this source's version does not attempt. (accessed
+  2026-08-17)
+
+## Evaluation boundary
+
+No new radar item. The source is single-author, vendor-consultancy-adjacent,
+and offers no benchmark evidence for its comparative claims — same
+evidentiary tier as other single-author blog sources already filed here, not
+a reason to exclude it, but a reason not to cite its numbers as measured
+fact. Its actual subject (single-agent context/prompt engineering) doesn't
+engage AGF's governance/authority differentiator at all, so there is nothing
+here to accept, contest, or fold into an existing radar question. Do not
+treat the Context Pack layering as a gap AGF needs to fill — AGF's rules/
+coordination/plan structure already carries the equivalent information with
+governance authority this source doesn't address.
