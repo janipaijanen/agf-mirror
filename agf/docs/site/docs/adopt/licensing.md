@@ -14,7 +14,7 @@ root `LICENCE` file.
 | Material | Licence | What it covers |
 |---|---|---|
 | Framework and governance content — rules, agent definitions, schemas, documentation, examples, plans, proposals, coordination records | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode) | Use, modify, and redistribute for any purpose, including commercial. Redistributing an adapted version requires the same licence on the adaptation (ShareAlike) and attribution. Internal use and modification, with no external redistribution of the modified content, carries no ShareAlike obligation. |
-| Implementation tooling — the `agov` CLI, validators, build and release tooling | MIT | Use, modify, embed, and redistribute, including in proprietary software, with the copyright notice retained. No ShareAlike or attribution-on-redistribution obligation. |
+| Implementation tooling — the `agov` CLI, validators, build and release tooling | MIT | Use, modify, embed, and redistribute, including in proprietary software. No ShareAlike condition — but the copyright notice and permission notice must be preserved in copies or substantial portions of the software, per the MIT licence text. |
 
 A file-specific `SPDX-License-Identifier` header, where present, is
 authoritative for that file. Where no header is present, the path-based
@@ -23,13 +23,13 @@ split above applies.
 ## Commercial licensing
 
 Some framework content is marked with the alternative expression
-`CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial`. This exists for
-organisations that want to redistribute AGF content — with or without
-modification — under terms other than CC BY-SA's ShareAlike obligation.
-Commercial terms are available by agreement with the copyright holder;
-published, standardised terms are being finalised. If your organisation
-needs a redistribution licence without a ShareAlike condition, contact
-the copyright holder directly rather than assuming terms from this page.
+`CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial`. Commercial or
+otherwise separate licence terms *may* be available by agreement with the
+copyright holder. Those terms are alternatives to the public licence
+where expressly granted; they are not implied by this page. If your
+organisation needs a redistribution licence without a ShareAlike
+condition, contact the copyright holder directly rather than assuming
+terms from this page.
 
 ## Practical guidance by use case
 

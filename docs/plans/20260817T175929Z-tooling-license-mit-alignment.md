@@ -1,19 +1,21 @@
 ---
 id: tooling-license-mit-alignment
-status: active
+status: pending-gate1
 topic: tooling-license-mit-alignment
-gate1_approved_by: governor-reviewer
-gate1_approved_at: "2026-08-17T17:55:00Z"
 advisory_consultation:
   - role: governor-reviewer
     status: consulted
     reason: >
       Licensing/legal artifacts are non-delegable per deputy-governor-rule's
-      red list. The human governor made the call directly this session —
-      "Tooling is MIT" — after reviewing tmp/dd-20260817-license/, a 4-model
+      red list. The human governor made the call directly in chat, 2026-08-17
+      — "Tooling is MIT" — after reviewing tmp/dd-20260817-license/, a 4-model
       (ChatGPT, Claude, Grok, Lumo) round-3 DD focused specifically on the
-      licensing contradiction. This consultation record is the governor's
-      direct decision, not a delegated or inferred one.
+      licensing contradiction. Per coder-tester review
+      20260817T185103Z-coder-tester-hj7n (B-LIC-1709-1), a chat instruction is
+      the substantive decision but not by itself the required published Gate 1
+      decision; `gate1_approved_by`/`gate1_approved_at` are correctly absent
+      until a governor-reviewer coordination decision-record is published and
+      cited here.
   - role: infosec-sentinel
     status: consulted
     reason: >
@@ -21,18 +23,19 @@ advisory_consultation:
       trust-boundary, schema, or validator behavior change — pure license
       metadata correction plus one new adopter-facing docs page.
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >
-      Bounded, low-risk metadata correction (3 files) plus one factual
-      docs page with no code-logic, schema, or trust-boundary change.
-      A coder-tester review is already requested for the exact same head
-      via 20260817T182421Z-planner-architect-pdjj (MR !1710); per
-      20260817T164935Z-coder-tester-a15e's established cross-LLM policy
-      (agf/agents/contribution-auditor.yaml), coder-tester/Codex is an
-      authorized contribution-auditor player for content Claude authored.
-      Formal contribution-auditor status upgrades to "consulted" once
-      that review lands; not blocking Gate 1 given the governor's direct
-      licensing decision already authorizes the change itself.
+      Non-self coder-tester/contribution-auditor review
+      20260817T185103Z-coder-tester-hj7n at exact head fba42f2e reviewed all
+      six changed files, plan metadata, and adopter-facing licensing claims.
+      Recommendation: BLOCK, 4 findings (B-LIC-1709-1 through -4), all
+      accepted and being fixed at a new exact head. This corrects an earlier,
+      inaccurate "waived, review requested for the exact same head" claim
+      that hj7n itself flagged (B-LIC-1709-2) — the referenced request
+      (pdjj/MR !1710) named head 7b9b69c1, but the branch had already moved to
+      fba42f2e by the time this plan was pushed, so "same head" was false.
+      A fresh exact-head re-review is required after these fixes before this
+      plan can be presented for Gate 1.
 ---
 
 # Tooling license: align Rust/Container metadata to MIT
