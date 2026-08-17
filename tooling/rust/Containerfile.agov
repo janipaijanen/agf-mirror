@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Jani Paijanen
 
 # Digest-pinned to the current Alpine 3.22 patch (3.22.5, verified
@@ -18,7 +18,7 @@ LABEL org.opencontainers.image.title="agov" \
       org.opencontainers.image.source="${AGOV_SOURCE}" \
       org.opencontainers.image.version="${AGOV_VERSION}" \
       org.opencontainers.image.revision="${AGOV_REVISION}" \
-      org.opencontainers.image.licenses="CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial"
+      org.opencontainers.image.licenses="MIT"
 
 RUN apk add --no-cache ca-certificates git \
     && addgroup -S agov \
