@@ -2076,3 +2076,74 @@ but AGF's binding human-gate policy is an explicit governed design decision,
 not an unresolved radar question. Do not install or evaluate an orchestrator,
 change role authority, automate a gate, or infer effectiveness from these two
 secondary sources without a separately approved plan and primary evidence.
+
+# Batch 27 (2026-08-17) — user-submitted candidate
+
+## Classified
+
+- https://blog.lunatech.com/posts/2026-05-19-from-coding-to-orchestrating/
+  type: practice | relation: adjacent (thematic, not governance) |
+  action: cite (bounded), no radar item
+  note: Nicolas Leroux (Lunatech), "From Coding to Orchestrating: The New
+  Role of the Software Engineer" (2026-05-19). Central claim: "AI Output
+  Quality = AI Capability x Context Quality" — since AI capability is
+  vendor-controlled, the engineer's leverage is context quality, delivered
+  via a seven-layer "Claude Context Pack" (System, Code, Data, Business,
+  Architecture, Test, Decision) fed into AI-agent task-specific briefs, plus
+  spec-driven development for regulated domains. Illustrative before/after
+  comparison ("80% rework" from a naive prompt vs. "5-10% review" from an
+  engineered one) is presented without a benchmark methodology, sample
+  size, or measured production outcome — prescriptive/aspirational, not
+  evidence, per `verifiable-claims-rule.md`'s hedging requirement if cited
+  further.
+
+  Correction (coder-tester review `hgjj`, finding B-SRC-LUNATECH-1): the
+  article does use plural "agents" and names adjacent control/evidence
+  concepts — "defining quality gates," specs that "become the acceptance
+  criteria that AI agents use as guardrails, auditors use to verify
+  compliance, and CI pipelines use to catch regressions" — so it is
+  inaccurate to say it doesn't engage governance-related concepts at all.
+  The precise distinction: the article describes one engineer orchestrating
+  AI agents via task-specific briefs, with those agent-adjacent quality-gate/
+  verification/spec concepts under that one engineer's own control. It
+  specifies neither an inter-agent coordination model nor agent scheduling/
+  topology (concurrent vs. sequential, one agent vs. several active at
+  once) — that absence, not a claimed topology, is the real scope gap
+  relative to AGF's differentiator: no described role separation, binding
+  approval authority held by someone else, or audit-trail ownership model.
+
+  Correction (coder-tester review `2mmb`, finding B-SRC-LUNATECH-R2-1): the
+  first correction above still asserted "single-agent prompts" and
+  "sequentially," neither of which the article states — its only
+  agent-topology-adjacent sentence ("They orchestrate AI agents -- setting
+  the context, defining the constraints, breaking work into coherent tasks,
+  verifying each output, and accumulating knowledge over time") describes
+  what the agents do, not how many run at once or in what order. Rewritten
+  above to state the actual omission (no coordination/topology model
+  specified) rather than an invented one (single-agent, sequential).
+
+  Weak structural echo, not a new capability gap: the seven-layer Context
+  Pack's "Decision" layer (ADRs, constraints, non-negotiables fed to the
+  agent as context) resembles durable decision/rule *inputs* AGF also
+  carries — it is not equivalent to AGF's immutable coordination channel
+  or Gate 1 plans, which additionally carry role, obligation, sequencing,
+  and authority semantics no single-session context pack needs. The
+  "Business"/"Architecture" layers map loosely onto `agf/rules/` and
+  `framework.md`. Read as independent, AGF-unaware corroboration that
+  structuring durable context this way is a sound general pattern, not as
+  a prompt to add a new AGF mechanism. (accessed 2026-08-17)
+
+## Evaluation boundary
+
+No new radar item. The source is single-author, vendor-consultancy-adjacent,
+and offers no benchmark evidence for its comparative claims — same
+evidentiary tier as other single-author blog sources already filed here, not
+a reason to exclude it, but a reason not to cite its numbers as measured
+fact. Its actual subject (one engineer orchestrating AI agents, with quality
+gates and verification under that engineer's own control) doesn't engage
+AGF's specific differentiator — coordination and binding approval authority
+held across separate roles — so there is nothing here to accept, contest, or
+fold into an existing radar question. Do not treat the Context Pack layering
+as a gap AGF needs to fill — AGF's rules/
+coordination/plan structure already carries the equivalent information with
+governance authority this source doesn't address.
