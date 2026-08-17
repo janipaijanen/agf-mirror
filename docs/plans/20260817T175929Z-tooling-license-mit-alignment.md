@@ -1,3 +1,40 @@
+---
+id: tooling-license-mit-alignment
+status: active
+topic: tooling-license-mit-alignment
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-17T17:55:00Z"
+advisory_consultation:
+  - role: governor-reviewer
+    status: consulted
+    reason: >
+      Licensing/legal artifacts are non-delegable per deputy-governor-rule's
+      red list. The human governor made the call directly this session —
+      "Tooling is MIT" — after reviewing tmp/dd-20260817-license/, a 4-model
+      (ChatGPT, Claude, Grok, Lumo) round-3 DD focused specifically on the
+      licensing contradiction. This consultation record is the governor's
+      direct decision, not a delegated or inferred one.
+  - role: infosec-sentinel
+    status: consulted
+    reason: >
+      agov validate infosec clean at implementation head. No credential,
+      trust-boundary, schema, or validator behavior change — pure license
+      metadata correction plus one new adopter-facing docs page.
+  - role: contribution-auditor
+    status: waived
+    reason: >
+      Bounded, low-risk metadata correction (3 files) plus one factual
+      docs page with no code-logic, schema, or trust-boundary change.
+      A coder-tester review is already requested for the exact same head
+      via 20260817T182421Z-planner-architect-pdjj (MR !1710); per
+      20260817T164935Z-coder-tester-a15e's established cross-LLM policy
+      (agf/agents/contribution-auditor.yaml), coder-tester/Codex is an
+      authorized contribution-auditor player for content Claude authored.
+      Formal contribution-auditor status upgrades to "consulted" once
+      that review lands; not blocking Gate 1 given the governor's direct
+      licensing decision already authorizes the change itself.
+---
+
 # Tooling license: align Rust/Container metadata to MIT
 
 - Timestamp: 2026-08-17T17:59:29Z (OS clock, `date -u`)
@@ -44,19 +81,28 @@ change propagates to all of them automatically; no per-crate edits needed.
 check licenses` passes without a `deny.toml` change — no dependency is
 newly disallowed by this change.
 
-## Affected files (3)
+## Affected files (5)
 
 1. `tooling/rust/Cargo.toml` — SPDX header comment + `license =` field → `MIT`.
 2. `tooling/rust/Containerfile.agov` — SPDX header comment + OCI
    `org.opencontainers.image.licenses` label → `MIT`.
 3. `tooling/rust/Cross.toml` — SPDX header comment → `MIT`.
+4. `agf/docs/site/docs/adopt/licensing.md` — new adopter-facing page
+   (added after `agov validate adopter-docs` correctly flagged this
+   change as adopter-relevant and requiring either downstream-facing
+   docs or an explicit waiver; a real licensing page is more honest than
+   waiving, and is exactly what all four DD models recommended).
+5. `agf/docs/build/mkdocs.yml` — nav entry for the new page.
 
 No `CHANGELOG.md` entry: checked the repo's actual convention before
 adding one — every existing entry lives under a version heading added at
 release time (`release-via-merge-request-rule.md`'s workflow), there is
 no `Unreleased` section, and no other fast-track fix this session added
 one. Will be captured under whichever version heading the next release
-adds.
+adds. (Note: `agov validate adopter-docs` checks `agf/CHANGELOG.md`
+specifically for a waiver marker, not the root `CHANGELOG.md` — this
+plan satisfies that check via real downstream-facing doc coverage
+instead of a waiver.)
 
 ## Explicitly out of scope for this bounded fix
 
