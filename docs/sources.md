@@ -2097,23 +2097,30 @@ secondary sources without a separately approved plan and primary evidence.
   evidence, per `verifiable-claims-rule.md`'s hedging requirement if cited
   further.
 
-  No multi-agent coordination, role separation, handoffs, gate/approval
-  authority, or audit-trail ownership model is described — the piece is
-  entirely about one engineer directing one agent session well, not about
-  governing multiple agents or bounding decision authority. That's a real
-  scope gap relative to AGF, not a weak treatment of AGF's actual
-  differentiator: this source simply isn't about that problem.
+  Correction (coder-tester review `hgjj`, finding B-SRC-LUNATECH-1): the
+  article does use plural "agents" and names adjacent control/evidence
+  concepts — "defining quality gates," specs that "become the acceptance
+  criteria that AI agents use as guardrails, auditors use to verify
+  compliance, and CI pipelines use to catch regressions" — so it is
+  inaccurate to say it doesn't engage governance-related concepts at all.
+  The precise distinction: the article describes one engineer orchestrating
+  AI agents sequentially, with those agent-adjacent quality-gate/
+  verification/spec concepts under that one engineer's own control — not
+  inter-agent coordination, role separation, binding approval authority
+  held by someone else, or an audit-trail ownership model. That's a real
+  scope gap relative to AGF's differentiator, not an absence of
+  governance-adjacent vocabulary.
 
   Weak structural echo, not a new capability gap: the seven-layer Context
   Pack's "Decision" layer (ADRs, constraints, non-negotiables fed to the
-  agent as context) is analogous to what AGF's `docs/coordination/*.md`
-  and `docs/plans/` already are — the "Business"/"Architecture" layers map
-  loosely onto `agf/rules/` and `framework.md`. Read as independent,
-  AGF-unaware corroboration that structuring durable context this way is
-  a sound general pattern, not as a prompt to add a new AGF mechanism —
-  AGF's version already carries governance authority (Gate 1/Gate 2,
-  role boundaries) this source's version does not attempt. (accessed
-  2026-08-17)
+  agent as context) resembles durable decision/rule *inputs* AGF also
+  carries — it is not equivalent to AGF's immutable coordination channel
+  or Gate 1 plans, which additionally carry role, obligation, sequencing,
+  and authority semantics no single-session context pack needs. The
+  "Business"/"Architecture" layers map loosely onto `agf/rules/` and
+  `framework.md`. Read as independent, AGF-unaware corroboration that
+  structuring durable context this way is a sound general pattern, not as
+  a prompt to add a new AGF mechanism. (accessed 2026-08-17)
 
 ## Evaluation boundary
 
@@ -2121,9 +2128,11 @@ No new radar item. The source is single-author, vendor-consultancy-adjacent,
 and offers no benchmark evidence for its comparative claims — same
 evidentiary tier as other single-author blog sources already filed here, not
 a reason to exclude it, but a reason not to cite its numbers as measured
-fact. Its actual subject (single-agent context/prompt engineering) doesn't
-engage AGF's governance/authority differentiator at all, so there is nothing
-here to accept, contest, or fold into an existing radar question. Do not
-treat the Context Pack layering as a gap AGF needs to fill — AGF's rules/
+fact. Its actual subject (one engineer orchestrating AI agents, with quality
+gates and verification under that engineer's own control) doesn't engage
+AGF's specific differentiator — coordination and binding approval authority
+held across separate roles — so there is nothing here to accept, contest, or
+fold into an existing radar question. Do not treat the Context Pack layering
+as a gap AGF needs to fill — AGF's rules/
 coordination/plan structure already carries the equivalent information with
 governance authority this source doesn't address.
