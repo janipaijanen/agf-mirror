@@ -5,15 +5,15 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | v2.4.11 published; v2.5.0-rc.1 published; v2.5.0-rc.2 published; v2.5.0 (stable) published |
-| Observed at | 2026-08-10T05:49:07Z |
-| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.11 release published via MR !903, Gate 1-approved by `docs/coordination/20260801T171157Z-governor-reviewer-hek5.md`. The v2.5.0-rc.1 release published via approved publication-plan `docs/plans/v250-rc1-release-publication.md` (MR !1051), Gate 1-approved by decision-record `20260803T173905Z-governor-reviewer-p1mm.md`. The v2.5.0-rc.2 release published via approved publication-plan `docs/plans/20260804T064132Z-v250-rc2-release-publication.md` (MR !1129), Gate 1-approved by decision-record `docs/coordination/20260804T091952Z-governor-reviewer-rq2n.md`. The v2.5.0 (stable) release published via approved publication-plan `docs/plans/20260809T194404Z-v250-final-release-publication.md` (MR !1349), Gate 1-approved by decision-record `docs/coordination/20260809T200252Z-governor-reviewer-h4wn.md`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
-| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches, amended at Gate 1 to fold learning-record `status`/`supersedes`, the `governance-file-layout-rule.md` correction, and issue #101's `agov ci cache-topology-check` command into v2.5.0 alongside #79/#80. `docs/plans/v2411-release-publication.md` is the approved v2.4.11 publication plan; `docs/plans/v250-rc1-release-publication.md` is the approved v2.5.0-rc.1 publication plan. |
+| Status | v2.4.11 published; v2.5.0 (stable) published; v2.6.0 tag constructed but incompletely published (OCI only — GitLab Release and package never created, `release:create` failed on a stale aarch64 asset contract); v2.6.1 Gate 1 approved, correcting that failure, release-MR construction in progress |
+| Observed at | 2026-08-17T03:47:48Z |
+| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.11 release published via MR !903, Gate 1-approved by `docs/coordination/20260801T171157Z-governor-reviewer-hek5.md`. The v2.5.0 (stable) release published via approved publication-plan `docs/plans/20260809T194404Z-v250-final-release-publication.md` (MR !1349), Gate 1-approved by decision-record `docs/coordination/20260809T200252Z-governor-reviewer-h4wn.md`. The v2.6.0 release was constructed from a frozen `reconstruct/v2.6` line (not `main`) per `docs/plans/20260813T051840Z-v260-release-publication.md`; its tag object `445a3875` (peeled `4890dfe9`) exists and its OCI image published, but its `release:create` job failed — diagnosed in `20260815T193127Z-coder-tester-pj71.md` and fixed on `main` by MR !1610 (`9ad75651`). The v2.6.1 release corrects this by constructing directly from `main` (Path A), per `docs/plans/20260816T174141Z-v261-release-publication.md` (MR !1657), Gate 1-approved by decision-record `docs/coordination/20260817T034748Z-governor-reviewer-ps6t.md`, following binding path selection `docs/coordination/20260816T212149Z-governor-reviewer-ram5.md`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
+| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches. `docs/plans/20260816T174141Z-v261-release-publication.md` is the approved v2.6.1 publication plan. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
 
-**Latest stable release: `v2.5.0`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.5.0), tag `v2.5.0` (`b9215bd6`), released 2026-08-10. Published through the protected maintenance-line workflow as a metadata-only promotion of the exact `v2.5.0-rc.2` functional candidate — zero functional, schema, documentation-content, migration, test, dependency, CI, or artifact-layout change from RC2. `v2.4.11` — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.11), tag `v2.4.11`, released 2026-08-01 — was the prior stable release. `v2.5.0-rc.1` published as a release candidate, tag `v2.5.0-rc.1` (`623e782b`), released 2026-08-03. `v2.5.0-rc.2` published as a release candidate, tag `v2.5.0-rc.2` (`2bdcbb76`), released 2026-08-04.
+**Latest fully published stable release: `v2.5.0`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.5.0), tag `v2.5.0` (`b9215bd6`), released 2026-08-10. Published through the protected maintenance-line workflow as a metadata-only promotion of the exact `v2.5.0-rc.2` functional candidate — zero functional, schema, documentation-content, migration, test, dependency, CI, or artifact-layout change from RC2. `v2.4.11` — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.11), tag `v2.4.11`, released 2026-08-01 — was the prior stable release. `v2.6.0`'s tag exists and its OCI image published, but its GitLab Release and generic package were never created — it is not counted as a fully published release. `v2.6.1` is Gate 1 approved and its release-MR construction is in progress; this line updates again once the `v2.6.1` tag and full release artifacts actually exist.
 
 v2.4.10 retains the complete v2.4.9 baseline and resolves issue #92 by making
 the repository-local `tooling/agov` wrapper source-compatible with its
@@ -47,16 +47,19 @@ with Windows retained only as optional manual preview evidence.
 
 ## Active release train
 
-The v2.5.0 release train is **Gate 1 approved**. [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755)
-(`docs/plans/v250-statement-of-work.md`) is the approved controlling SoW and
-merged to `main` at `27716f20`. Read the plan and its coordination trail directly rather than
-relying on a summary here — this page intentionally does not reproduce the
-release-train stages to avoid a second copy that can drift from the plan.
-v2.4.11 is the latest published deliverable in that approved train; v2.5.0-rc.1
-is Gate 1-approved and its release execution is in progress. v2.4.11 includes
-the complete v2.4.8 recovery baseline, which superseded the immutable
-unpublished v2.4.6 tag and the immutable OCI-only v2.4.7 partial publication
-for adoption.
+The v2.6.1 release is **Gate 1 approved** under
+`docs/plans/20260816T174141Z-v261-release-publication.md` (MR !1657). It
+constructs directly from `main` (Path A, per binding decision `ram5`),
+carrying every commit `main` has accumulated since peeled v2.5.0 —
+including the four v2.6.0-targeted feature commits (#76, #84, #85, #89,
+merged 2026-08-05) and the release-asset-contract fix (`9ad75651`, merged
+2026-08-16) that v2.6.0's frozen construction line never received. Read
+the plan and its coordination trail directly rather than relying on a
+summary here — this page intentionally does not reproduce the
+release-construction stages to avoid a second copy that can drift from
+the plan. v2.5.0 remains the latest **fully published** stable
+deliverable until v2.6.1's tag, GitLab Release, package, and OCI image
+are independently verified.
 
 The remaining portfolio is deliberately split rather than accumulated into one
 large release:
@@ -66,8 +69,9 @@ large release:
 | v2.4.9 | Published patch-only live-surface correction | #93; no new contracted surface |
 | v2.4.10 | Published repository-local tooling reliability correction | #92; no command-semantic change |
 | v2.4.11 | Published documentation and accessibility patch | #97; already-merged !890/!894 content only, no new contracted surface |
-| v2.5.0-rc.1 | Gate 1-approved, release execution in progress; authority and acknowledgement contracts | #79, #80; plus, per the Gate 1 scope-amendment decision, learning-record `status`/`supersedes`, the `governance-file-layout-rule.md` correction, and issue #101's `agov ci cache-topology-check` command — all three already merged and independently Gate 2-approved before the amendment |
-| v2.6.0 | Coordination reliability | #84, #85, #89, and bounded #76 work |
+| v2.5.0 | Published stable release | Final stable promotion of the v2.5.0 release train |
+| v2.6.0 | Tag constructed, incompletely published (OCI only) | #84, #85, #89, bounded #76 work; `release:create` failed on a stale aarch64 asset contract |
+| v2.6.1 | Gate 1 approved; release-MR construction in progress | Same functional scope as v2.6.0 (already on `main`), plus the asset-contract fix that lets the release-create job succeed |
 | v2.7.0 | MCP and assistant integration | #86-#88 and #90 |
 | Later minor | Separately gated work | #91, #94, and approved backlog themes |
 
@@ -85,17 +89,17 @@ large release:
   candidate: learning-record `status`/`supersedes`, the
   `governance-file-layout-rule.md` correction, and issue #101's
   `agov ci cache-topology-check` command.
-- **Reliability and integration candidates, not yet release promises:**
-  #84/#85/#89 route to v2.6.0; #86-#88/#90 route to v2.7.0; #91/#94
-  remain later-minor candidates.
-  Each requires current-main reproduction, compatibility classification, an
-  approved child plan, and Gate 2 evidence. A `v2.5.0` milestone is routing
-  metadata, not implementation authority.
+- **v2.6.1 coordination reliability (Gate 1 approved; release-MR
+  construction in progress):** #84, #85, #89, and #76 — already merged to
+  `main` (2026-08-05) and carried by every commit since; v2.6.1's Gate 1
+  approval authorizes their first full publication, correcting v2.6.0's
+  incomplete tag-only construction. These items remain Level 4 Validated
+  until post-publication verification establishes Level 5 Deployable
+  evidence. #86-#88/#90 route to v2.7.0; #91/#94 remain later-minor
+  candidates. A `v2.5.0` milestone is routing metadata, not implementation
+  authority.
 - **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
   proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
-  not yet approved.
-- **Coordination-visibility performance** ([issue #76](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/76)) —
-  proposed, Gate 1 plan open in [MR !746](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/746),
   not yet approved.
 
 Issue #81 remains fixed in the v2.4.8 recovery baseline. Issue #93 is fixed in

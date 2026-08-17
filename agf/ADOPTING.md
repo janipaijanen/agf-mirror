@@ -326,7 +326,7 @@ section:
 ```yaml
 adoption:
   framework_id: "agents-govern"
-  framework_version: "2.5.0"       # check agf/VERSION for current version
+  framework_version: "2.6.1"       # check agf/VERSION for current version
   framework_commit: "<git-hash>"    # run: git rev-parse HEAD in the framework repo
   agent_definitions:
     - id: "agents-govern:planner-architect:0.4.0"

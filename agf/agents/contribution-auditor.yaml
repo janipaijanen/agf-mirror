@@ -26,7 +26,7 @@ agent:
   name: "contribution-auditor"
   id: "agents-govern:contribution-auditor:0.2.0"
   version: "0.2.0"
-  framework_version: "2.5.0"
+  framework_version: "2.6.1"
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 1
