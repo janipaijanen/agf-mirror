@@ -93,6 +93,7 @@ nav:
           - Upgrade from v1 (agents-govern): docs/adopt/upgrade-from-v1.md
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
           - agov MCP server: docs/adopt/mcp-server.md
+          - Commercial licensing: docs/adopt/commercial-licensing.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
           - Operations runbook: docs/operate/runbook.md
