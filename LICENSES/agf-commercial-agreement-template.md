@@ -40,43 +40,31 @@ CC-BY-SA-4.0 for material used under this commercial licence.
 
 ## 3. Term and Fee
 
+This licence is available from 1 January 2027; no agreement under this
+template is dated earlier than that.
+
 | Item | Details |
 |------|---------|
-| Signing period | [2026 founding period / 2027 or later] |
-| Tier (if signed 2027 or later) | [Starter / Standard / Enterprise] |
-| Annual fee | [EUR 0 — 2026 founding period, through 31 December 2030 / EUR 100 / EUR 500 / as agreed] |
-| Term | [If signed in 2026: fixed term through 31 December 2030, no fee due. / If signed 2027 or later: 12 months commencing [START DATE], fee due per Section 3 payment terms below.] |
+| Tier | [Starter / Standard / Enterprise] |
+| Annual fee | [EUR 100 / EUR 500 / as agreed] |
+| Term | 12 months commencing [START DATE] |
 
-**2026 founding period.** An agreement signed on or before 31 December
-2026 grants free use of this licence through 31 December 2030. No fee is
-due during that period. This grant does not renew automatically:
-continuing commercial redistribution after 31 December 2030 requires a
-new agreement at the Licensor's then-current terms.
+**Payment.** Payment must be made in full to the account designated by
+the Licensor, per the invoice issued for this agreement.
 
-**Agreements signed 2027 or later.** The annual fee for the selected
-tier is due as set out below, and the licence becomes effective per the
-payment terms in this section.
-
-**Payment (agreements signed 2027 or later only).** Payment must be made
-in full to the account designated by the Licensor, per the invoice
-issued for this agreement.
-
-**Effectiveness.** For a 2026 founding-period agreement, this agreement
-and the commercial licence grant become effective on the date both
-parties sign. For an agreement signed 2027 or later, they become
-effective only on the date the Licensor has received the full cleared
-payment; until that date no commercial redistribution rights are
+**Effectiveness.** This agreement and the commercial licence grant
+become effective only on the date the Licensor has received the full
+cleared payment; until that date no commercial redistribution rights are
 granted.
 
-**Failed or reversed payment (2027+ agreements).** Failure to make the
-required payment, or any later bounce, charge-back, reversal, or failure
-of the payment to remain cleared, constitutes a material breach. In that
-case the Licensor may immediately suspend or terminate the commercial
-licence grant without waiting for the thirty-day cure period in Section
-7.
+**Failed or reversed payment.** Failure to make the required payment, or
+any later bounce, charge-back, reversal, or failure of the payment to
+remain cleared, constitutes a material breach. In that case the Licensor
+may immediately suspend or terminate the commercial licence grant
+without waiting for the thirty-day cure period in Section 7.
 
-This agreement does not auto-renew in any case. Continuing past its
-stated term requires a new agreement.
+This agreement does not auto-renew. Continuing past its stated term
+requires a new agreement.
 
 ## 4. Attribution
 
@@ -106,9 +94,9 @@ require this commercial licence.
 
 The agreement's term is as stated in Section 3. Either party may
 terminate for material breach if the breach is not cured within thirty
-(30) days after written notice. For 2027+ agreements, non-payment or any
-reversal/failure of payment to remain cleared may be treated as an
-immediate material breach (see Section 3).
+(30) days after written notice. Non-payment, or any reversal/failure of
+payment to remain cleared, may be treated as an immediate material
+breach (see Section 3).
 
 On termination or expiry, the Licensee must cease **new** distributions
 under this commercial licence. End users may continue to use copies
