@@ -42,12 +42,17 @@ advisory_consultation:
 
 - Timestamp: 2026-08-17T17:59:29Z (OS clock, `date -u`)
 - Author: planner-architect (Claude)
-- Gate 1 authorization: direct governor instruction, this session, 2026-08-17
-  — "Tooling is MIT" — after reviewing `tmp/dd-20260817-license/` (4-model
-  round-3 DD specifically on the licensing question). This is a licensing/
-  legal artifact, non-delegable per `deputy-governor-rule.md`'s red list;
-  the human governor made the call directly, which is the only path
-  authorized to make it.
+- Substantive licensing direction: direct governor instruction, this
+  session, 2026-08-17 — "Tooling is MIT" — after reviewing
+  `tmp/dd-20260817-license/` (4-model round-3 DD specifically on the
+  licensing question). This is a licensing/legal artifact, non-delegable
+  per `deputy-governor-rule.md`'s red list; the human governor made the
+  call directly, which is the only path authorized to make it. Per
+  coder-tester review `20260817T185103Z-coder-tester-hj7n`
+  (B-LIC-1709-1), this chat instruction is the substantive decision but
+  is **not itself the required published Gate 1 authorization** — Gate 1
+  remains pending until a governor-reviewer coordination decision-record
+  is published and cited in this plan's frontmatter.
 
 ## Intent
 

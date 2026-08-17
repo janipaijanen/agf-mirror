@@ -6,8 +6,9 @@ procurement, and legal reviewers evaluating AGF for adoption.*
 
 AGF uses more than one licence because the repository contains both
 framework content and implementation tooling. This page is the canonical
-adopter-facing summary; the authoritative text lives in the repository's
-root `LICENCE` file.
+adopter-facing summary. Root `LICENCE` is itself a summary; the
+authoritative licence texts are `agf/LICENSE` (CC BY-SA 4.0) and
+`agf/LICENSE-MIT` (MIT).
 
 ## The split
 
@@ -34,8 +35,11 @@ terms from this page.
 ## Practical guidance by use case
 
 - **Using AGF internally** (adopting the rules, running the tooling, not
-  redistributing the framework itself): both licences already permit
-  this, including commercial internal use, with no action needed.
+  redistributing the framework itself): both licences permit this,
+  including commercial internal use, without the ShareAlike condition
+  ever applying. MIT's copyright/permission-notice preservation still
+  applies to copies or substantial portions you keep — it isn't limited
+  to external redistribution.
 - **Redistributing AGF unmodified** (e.g., as part of your own
   documentation or a public fork): CC BY-SA 4.0 requires attribution;
   MIT requires the copyright notice.
@@ -48,7 +52,9 @@ terms from this page.
 
 ## See also
 
-- Root `LICENCE` file — the authoritative summary.
+- Root `LICENCE` file — the repository-wide summary.
+- `agf/LICENSE` — the authoritative CC BY-SA 4.0 text.
+- `agf/LICENSE-MIT` — the authoritative MIT text.
 - [Release information](../../reference/release-info.md) — version,
   source commit, and copyright details for the release you're
   evaluating.
