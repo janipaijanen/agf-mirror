@@ -3614,17 +3614,41 @@ learnings:
       each namespace as a compensating-transaction boundary and define the
       failed-partial-publication disposition in advance.
 
-      This is single-adopter evidence from one release incident. The
-      producer-consumer and side-effect-ordering recommendations are proposed
-      preventive guidance, not yet a validated general rule; corroborate them
-      through the v2.6.1 corrective release and future target-removal changes
-      before promoting them to MUST-strength framework policy.
+      This is single-adopter evidence from one release incident, now with a
+      second observed consumer inside the same corrective arc (see the
+      second evidence_refs entry below). The v2.6.1 correction (MR !1610)
+      fixed three of the contract graph's consumers -- `.gitlab-ci.yml`,
+      `release-assets.sh`, and `agov-oci-image.sh` -- by single-sourcing them
+      from `tooling/rust/release-targets.txt`, but missed a fourth:
+      `agf/docs/build/hooks/check_commissioning_links.py` hardcoded its own
+      independent copy of the mandatory-platform list
+      (`AGOV_SUPPORTED_PLATFORMS = ("linux-x86_64", "linux-aarch64")`) and
+      kept passing silently because v2.5.0 (built before the drop) still had
+      aarch64 assets to find -- v2.6.1 was the first release published after
+      the drop with nothing for that check to find, so it failed for the
+      first time and blocked an unrelated docs MR's pipeline. Fixed in MR
+      !1686 by reading the same `release-targets.txt` manifest the producer
+      scripts use.
+
+      This second observation has predictive value -- it is exactly the
+      failure shape ("a target-removal migration missed a consumer") this
+      recommendation already named -- but it is not yet independent
+      corroboration. Both consumers were latent effects of the same
+      2026-08-05 aarch64-removal migration, discovered within the same
+      v2.6.0-to-v2.6.1 corrective arc, not recurrence across two separately
+      initiated migrations. `confidence.level` therefore stays
+      `single-adopter`: the producer-consumer and side-effect-ordering
+      recommendations remain proposed preventive guidance, not yet a
+      validated general rule. Promote to `longitudinal` only on recurrence
+      during a later, independently initiated target/platform/artifact/
+      requirement migration -- not on a second consumer of this same one.
     severity: significant
     confidence:
       level: single-adopter
-      evidence_count: 1
+      evidence_count: 2
       evidence_refs:
         - "v2.6.0 tag pipeline 2762930639 at 4890dfe9ef96abdbfc54f9e975080cedd0f280f6: release:create job 15917296084 failed on missing agov-2.6.0-linux-aarch64.tar.gz plus its SHA-256 and provenance sidecars after seventeen jobs passed; release:verify 15917296085 skipped; OCI job 15917296086 succeeded. Canonical diagnosis and public-state inventory: docs/coordination/20260815T193127Z-coder-tester-pj71.md; binding disposition and corrective-planning authority: docs/coordination/20260815T193735Z-governor-reviewer-spmj.md."
+        - "v2.6.1 site-html-build pipeline 2764876752 (MR !1684, unrelated roadmap-docs change) failed on agf/docs/build/hooks/check_commissioning_links.py's hardcoded AGOV_SUPPORTED_PLATFORMS tuple expecting agov-2.6.1-linux-aarch64.tar.gz, which the original mandatory-target drop (2026-08-05, MR !1171, commit 3456c1fa, merge 5b4851e0) removed from the mandatory build loop, and which the later three-consumer corrective single-sourcing (2026-08-16, MR !1610, commit 9ad75651, merge adda2bac) removed from .gitlab-ci.yml/release-assets.sh/agov-oci-image.sh but missed as a fourth consumer. Same migration, fourth consumer, first release where the gap had nothing to find. Diagnosis and fix: MR !1686, docs/coordination/20260817T053404Z-planner-architect-gbtr.md."
 
 
 sentinel_ack:
