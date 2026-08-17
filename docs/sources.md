@@ -2089,7 +2089,7 @@ secondary sources without a separately approved plan and primary evidence.
   Quality = AI Capability x Context Quality" — since AI capability is
   vendor-controlled, the engineer's leverage is context quality, delivered
   via a seven-layer "Claude Context Pack" (System, Code, Data, Business,
-  Architecture, Test, Decision) fed into single-agent prompts, plus
+  Architecture, Test, Decision) fed into AI-agent task-specific briefs, plus
   spec-driven development for regulated domains. Illustrative before/after
   comparison ("80% rework" from a naive prompt vs. "5-10% review" from an
   engineered one) is presented without a benchmark methodology, sample
@@ -2104,12 +2104,23 @@ secondary sources without a separately approved plan and primary evidence.
   compliance, and CI pipelines use to catch regressions" — so it is
   inaccurate to say it doesn't engage governance-related concepts at all.
   The precise distinction: the article describes one engineer orchestrating
-  AI agents sequentially, with those agent-adjacent quality-gate/
-  verification/spec concepts under that one engineer's own control — not
-  inter-agent coordination, role separation, binding approval authority
-  held by someone else, or an audit-trail ownership model. That's a real
-  scope gap relative to AGF's differentiator, not an absence of
-  governance-adjacent vocabulary.
+  AI agents via task-specific briefs, with those agent-adjacent quality-gate/
+  verification/spec concepts under that one engineer's own control. It
+  specifies neither an inter-agent coordination model nor agent scheduling/
+  topology (concurrent vs. sequential, one agent vs. several active at
+  once) — that absence, not a claimed topology, is the real scope gap
+  relative to AGF's differentiator: no described role separation, binding
+  approval authority held by someone else, or audit-trail ownership model.
+
+  Correction (coder-tester review `2mmb`, finding B-SRC-LUNATECH-R2-1): the
+  first correction above still asserted "single-agent prompts" and
+  "sequentially," neither of which the article states — its only
+  agent-topology-adjacent sentence ("They orchestrate AI agents -- setting
+  the context, defining the constraints, breaking work into coherent tasks,
+  verifying each output, and accumulating knowledge over time") describes
+  what the agents do, not how many run at once or in what order. Rewritten
+  above to state the actual omission (no coordination/topology model
+  specified) rather than an invented one (single-agent, sequential).
 
   Weak structural echo, not a new capability gap: the seven-layer Context
   Pack's "Decision" layer (ADRs, constraints, non-negotiables fed to the
