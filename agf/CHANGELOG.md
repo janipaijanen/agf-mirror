@@ -3,7 +3,16 @@
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
 distribution.
 
-## [Unreleased]
+## [2.6.1] — 2026-08-17
+
+**Minor release.** Corrects v2.6.0's incomplete publication: the release
+tooling now reads one validated `tooling/rust/release-targets.txt`
+manifest across the mandatory Linux build loop, release-asset contract,
+and OCI archive lookup, closing the stale-target-list gap that failed
+v2.6.0's `release:create` job after its OCI image had already published.
+Ships the same coordination-reliability functional scope v2.6.0 targeted
+(#76, #84, #85, #89), constructed directly from `main` rather than a
+frozen line, per `docs/plans/20260816T174141Z-v261-release-publication.md`.
 
 ### Added
 
