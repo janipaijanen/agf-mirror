@@ -10,12 +10,12 @@ writing to a specific licensee.
 
 1. Definitions
 
-   "Framework Content" means the adopter-facing framework materials
-   distributed under the dual expression
-   "CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial", including
-   governance rules, agent definitions, schemas, templates, skills,
-   documentation and related non-code artefacts, but excluding the
-   MIT-licensed tooling code.
+   "Framework Content" means only the files enumerated as included in
+   commercial corpus manifest version 1 at
+   "LICENSES/commercial-corpus-manifest-v1.yaml", corpus set digest
+   "75695c3096e62cfc133590493dafff26efef972184e8ca25f9630dffdacfca52".
+   Files listed as excluded in that manifest, files absent from that
+   manifest, and MIT-licensed tooling code are not Framework Content.
 
    "Modified Version" means any adaptation, derivative work or
    modified form of the Framework Content.
