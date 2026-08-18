@@ -13,7 +13,7 @@ writing to a specific licensee.
    "Framework Content" means only the files enumerated as included in
    commercial corpus manifest version 1 at
    "LICENSES/commercial-corpus-manifest-v1.yaml", corpus set digest
-   "75695c3096e62cfc133590493dafff26efef972184e8ca25f9630dffdacfca52".
+   "e0730e18716fe9b05ff4aeeb59b09c9e52ff1a97710c5054cc313ef9bc2ee479".
    Files listed as excluded in that manifest, files absent from that
    manifest, and MIT-licensed tooling code are not Framework Content.
 

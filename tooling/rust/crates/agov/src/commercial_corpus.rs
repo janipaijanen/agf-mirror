@@ -104,18 +104,53 @@ pub fn generate(options: GenerateOptions) -> Result<CommandReport, Vec<String>> 
             &format!("{}:{inventory_path}", options.inventory_ref),
         ],
     )?;
-    let inventory = parse_inventory(&inventory_bytes)?;
+    let (manifest, candidates) = build_manifest(
+        &options.repo_root,
+        &inventory_bytes,
+        &options.inventory_ref,
+        &inventory_path,
+        &options.corpus_content_revision,
+    )?;
+    validate_against_schema(&options.repo_root, &options.schema, &manifest)?;
+
+    let output_path = resolve(&options.repo_root, &options.output);
+    let pointer_path = resolve(&options.repo_root, &options.pointer);
+    write_yaml(&output_path, &manifest)?;
+    let pointer = CurrentPointer {
+        schema_version: 1,
+        current_manifest: repository_path_string(&options.output)?,
+    };
+    write_yaml(&pointer_path, &pointer)?;
+
+    Ok(CommandReport {
+        lines: vec![format!(
+            "OK generated {} included={} excluded={} candidates={} corpus_set_digest={}",
+            options.output.display(),
+            manifest.included.len(),
+            manifest.excluded.len(),
+            candidates.len(),
+            manifest.corpus_set_digest
+        )],
+    })
+}
+
+fn build_manifest(
+    repo_root: &Path,
+    inventory_bytes: &[u8],
+    inventory_ref: &str,
+    inventory_path: &str,
+    corpus_content_revision: &str,
+) -> Result<(CommercialCorpusManifest, BTreeSet<String>), Vec<String>> {
+    validate_exact_commit(inventory_ref, "inventory ref")?;
+    validate_exact_commit(corpus_content_revision, "corpus content revision")?;
+    let inventory = parse_inventory(inventory_bytes)?;
 
     let mut included = Vec::new();
     let mut excluded = Vec::new();
     for row in inventory {
         match row.classification.as_str() {
             "Licensor-authored" => included.push(IncludedEntry {
-                sha256: sha256_git_path(
-                    &options.repo_root,
-                    &options.corpus_content_revision,
-                    &row.path,
-                )?,
+                sha256: sha256_git_path(repo_root, corpus_content_revision, &row.path)?,
                 path: row.path,
             }),
             "generated/vendor" => excluded.push(ExcludedEntry {
@@ -145,13 +180,13 @@ pub fn generate(options: GenerateOptions) -> Result<CommandReport, Vec<String>> 
     let mut manifest = CommercialCorpusManifest {
         schema_version: 1,
         corpus_version: 1,
-        corpus_content_revision: options.corpus_content_revision.clone(),
+        corpus_content_revision: corpus_content_revision.to_string(),
         provenance: Provenance {
-            source_inventory_commit: options.inventory_ref.clone(),
+            source_inventory_commit: inventory_ref.to_string(),
             cl3_decision: CL3_DECISION.to_string(),
         },
         source_inventory: SourceInventory {
-            path: inventory_path,
+            path: inventory_path.to_string(),
         },
         included,
         excluded,
@@ -159,8 +194,7 @@ pub fn generate(options: GenerateOptions) -> Result<CommandReport, Vec<String>> 
     };
     structural_errors(&manifest)?;
 
-    let candidates =
-        candidate_paths_at_revision(&options.repo_root, &options.corpus_content_revision)?;
+    let candidates = candidate_paths_at_revision(repo_root, corpus_content_revision)?;
     let accounted = accounted_paths(&manifest);
     let unaccounted: Vec<_> = candidates.difference(&accounted).cloned().collect();
     let non_candidates: Vec<_> = accounted.difference(&candidates).cloned().collect();
@@ -177,7 +211,7 @@ pub fn generate(options: GenerateOptions) -> Result<CommandReport, Vec<String>> 
             errors.push(format!(
                 "generation stopped: {} manifest path(s) do not satisfy the candidate rule at {}: {}",
                 non_candidates.len(),
-                options.corpus_content_revision,
+                corpus_content_revision,
                 non_candidates.join(", ")
             ));
         }
@@ -185,27 +219,7 @@ pub fn generate(options: GenerateOptions) -> Result<CommandReport, Vec<String>> 
     }
 
     manifest.corpus_set_digest = corpus_set_digest(&manifest)?;
-    validate_against_schema(&options.repo_root, &options.schema, &manifest)?;
-
-    let output_path = resolve(&options.repo_root, &options.output);
-    let pointer_path = resolve(&options.repo_root, &options.pointer);
-    write_yaml(&output_path, &manifest)?;
-    let pointer = CurrentPointer {
-        schema_version: 1,
-        current_manifest: repository_path_string(&options.output)?,
-    };
-    write_yaml(&pointer_path, &pointer)?;
-
-    Ok(CommandReport {
-        lines: vec![format!(
-            "OK generated {} included={} excluded={} candidates={} corpus_set_digest={}",
-            options.output.display(),
-            manifest.included.len(),
-            manifest.excluded.len(),
-            candidates.len(),
-            manifest.corpus_set_digest
-        )],
-    })
+    Ok((manifest, candidates))
 }
 
 pub fn validate_current(options: ValidateOptions) -> Result<CommandReport, Vec<String>> {
@@ -987,6 +1001,30 @@ mod tests {
     }
 
     #[test]
+    fn missing_included_path_is_advisory() {
+        let temp = tempfile::tempdir().unwrap();
+        init_repo(temp.path());
+        fs::create_dir_all(temp.path().join("agf")).unwrap();
+        let original = b"CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial\noriginal\n";
+        fs::write(temp.path().join("agf/a.md"), original).unwrap();
+        let revision = commit_all(temp.path(), "base");
+        write_test_manifest(temp.path(), &revision, original);
+        fs::remove_file(temp.path().join("agf/a.md")).unwrap();
+
+        let report = validate_current(ValidateOptions {
+            repo_root: temp.path().to_path_buf(),
+            pointer: PathBuf::from("LICENSES/commercial-corpus-manifest-current.yaml"),
+            schema: schema_path(),
+            base_ref: None,
+        })
+        .unwrap();
+        assert!(report.lines.iter().any(|line| {
+            line.contains("ADVISORY included path missing or unreadable")
+                && line.contains("agf/a.md")
+        }));
+    }
+
+    #[test]
     fn historical_verification_uses_recorded_revision_not_live_tree() {
         let temp = tempfile::tempdir().unwrap();
         init_repo(temp.path());
@@ -1009,6 +1047,126 @@ mod tests {
         })
         .unwrap();
         assert!(report.lines[0].starts_with("OK verified"));
+    }
+
+    #[test]
+    fn v1_remains_historically_valid_while_current_tree_validation_uses_v2() {
+        let temp = tempfile::tempdir().unwrap();
+        init_repo(temp.path());
+        fs::create_dir_all(temp.path().join("agf")).unwrap();
+        let v1_bytes = b"CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial\nv1\n";
+        fs::write(temp.path().join("agf/a.md"), v1_bytes).unwrap();
+        let v1_revision = commit_all(temp.path(), "v1");
+        write_test_manifest(temp.path(), &v1_revision, v1_bytes);
+
+        let v2_bytes = b"CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial\nv2\n";
+        fs::write(temp.path().join("agf/a.md"), v2_bytes).unwrap();
+        let v2_revision = commit_all(temp.path(), "v2");
+        let mut v2_manifest = CommercialCorpusManifest {
+            schema_version: 1,
+            corpus_version: 2,
+            corpus_content_revision: v2_revision,
+            provenance: Provenance {
+                source_inventory_commit: "b".repeat(40),
+                cl3_decision: CL3_DECISION.to_string(),
+            },
+            source_inventory: SourceInventory {
+                path: "inventory.csv".to_string(),
+            },
+            included: vec![IncludedEntry {
+                path: "agf/a.md".to_string(),
+                sha256: sha256(v2_bytes),
+            }],
+            excluded: Vec::new(),
+            corpus_set_digest: String::new(),
+        };
+        v2_manifest.corpus_set_digest = corpus_set_digest(&v2_manifest).unwrap();
+        write_yaml(
+            &temp
+                .path()
+                .join("LICENSES/commercial-corpus-manifest-v2.yaml"),
+            &v2_manifest,
+        )
+        .unwrap();
+        write_yaml(
+            &temp
+                .path()
+                .join("LICENSES/commercial-corpus-manifest-current.yaml"),
+            &CurrentPointer {
+                schema_version: 1,
+                current_manifest: "LICENSES/commercial-corpus-manifest-v2.yaml".to_string(),
+            },
+        )
+        .unwrap();
+
+        let historical = verify_version(VerifyOptions {
+            repo_root: temp.path().to_path_buf(),
+            manifest: PathBuf::from("LICENSES/commercial-corpus-manifest-v1.yaml"),
+            schema: schema_path(),
+        })
+        .unwrap();
+        assert!(historical.lines[0].starts_with("OK verified"));
+
+        let current = validate_current(ValidateOptions {
+            repo_root: temp.path().to_path_buf(),
+            pointer: PathBuf::from("LICENSES/commercial-corpus-manifest-current.yaml"),
+            schema: schema_path(),
+            base_ref: None,
+        })
+        .unwrap();
+        assert!(current.lines.iter().any(
+            |line| line == "OK current-tree advisory check: included=1 excluded=0 candidates=1"
+        ));
+        assert!(!current
+            .lines
+            .iter()
+            .any(|line| line.starts_with("ADVISORY")));
+    }
+
+    #[test]
+    fn real_mr1712_generation_acceptance_is_142_included_plus_50_excluded() {
+        const CORPUS_REVISION: &str = "48049759dfd9c681863d510ac6f7971235c5b0fb";
+        const INVENTORY_REVISION: &str = "d13bb9084fce9a9b1c7c08bb735e0fe6d08d7e98";
+        const INVENTORY_PATH: &str = "docs/reviews/commercial-licensing/20260817T224900Z-rights-provenance-inventory/inventory.csv";
+        const AGREEMENT_TEMPLATE: &str = "LICENSES/agf-commercial-agreement-template.md";
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../../..")
+            .canonicalize()
+            .unwrap();
+        let inventory =
+            include_bytes!("../tests/fixtures/commercial-corpus/inventory-path-classification.csv");
+
+        let (manifest, candidates) = build_manifest(
+            &repo_root,
+            inventory,
+            INVENTORY_REVISION,
+            INVENTORY_PATH,
+            CORPUS_REVISION,
+        )
+        .unwrap();
+
+        assert_eq!(manifest.corpus_content_revision, CORPUS_REVISION);
+        assert_eq!(manifest.included.len(), 142);
+        assert_eq!(manifest.excluded.len(), 50);
+        assert_eq!(
+            manifest
+                .excluded
+                .iter()
+                .filter(|entry| entry.source == "inventory")
+                .count(),
+            49
+        );
+        assert_eq!(
+            manifest
+                .excluded
+                .iter()
+                .filter(|entry| entry.source == "post-inventory-governor-decision")
+                .count(),
+            1
+        );
+        assert_eq!(candidates.len(), 192);
+        assert_eq!(accounted_paths(&manifest), candidates);
+        assert!(!candidates.contains(AGREEMENT_TEMPLATE));
     }
 
     #[test]

@@ -1,6 +1,6 @@
 schema_version: 1
 corpus_version: 1
-corpus_content_revision: b3a04178f149e287f82988ca90061a9153c13f3b
+corpus_content_revision: 48049759dfd9c681863d510ac6f7971235c5b0fb
 provenance:
   source_inventory_commit: d13bb9084fce9a9b1c7c08bb735e0fe6d08d7e98
   cl3_decision: 20260818T054511Z-governor-reviewer-1gaj
@@ -8,7 +8,7 @@ source_inventory:
   path: docs/reviews/commercial-licensing/20260817T224900Z-rights-provenance-inventory/inventory.csv
 included:
 - path: .gitlab-ci.yml
-  sha256: a78f2fbd8c7774d9ee0d8393e7d3e35b64233319594c7b8962a107dfe3f990f8
+  sha256: 5bcbe89ce8e639d7ee113d590b21b3d150a61d78e5dfea0fe82e24d1cb5b4504
 - path: .gitlab/issue_templates/Bug Report.md
   sha256: d911e6d39fdfe0883aac9c98430d97130aafd129559281d05d12e6de93ccf62c
 - path: .gitlab/issue_templates/External Review.md
@@ -443,4 +443,4 @@ excluded:
   reason: licensing instrument, not Framework Content -- explicit post-inventory exclusion per governor decision 20260818T090855Z-governor-reviewer-7b2r
   source: post-inventory-governor-decision
   decision: 20260818T090855Z-governor-reviewer-7b2r
-corpus_set_digest: 75695c3096e62cfc133590493dafff26efef972184e8ca25f9630dffdacfca52
+corpus_set_digest: e0730e18716fe9b05ff4aeeb59b09c9e52ff1a97710c5054cc313ef9bc2ee479
