@@ -24,6 +24,20 @@ for the Agents Govern Framework (AGF). The full text of that licence is
 at `LICENSES/LicenseRef-AgentsGovern-Commercial.txt` in the AGF
 repository.
 
+The executed agreement must identify the exact licence and corpus artifacts
+reviewed by the parties:
+
+| Binding field | Exact value at signing |
+|---------------|------------------------|
+| Licence text Git blob | `[LICENCE TEXT GIT BLOB SHA]` |
+| Commercial corpus manifest version | `[CORPUS VERSION]` |
+| Commercial corpus manifest Git blob | `[MANIFEST GIT BLOB SHA]` |
+| Corpus set SHA-256 | `[CORPUS SET SHA-256]` |
+
+These fields are required. A Git blob can be recovered with `git cat-file
+blob <sha>` even if a repository path later changes. The unfilled template's
+own blob is not an executed-agreement identifier.
+
 ## 2. Grant Scope
 
 The Licensor grants the Licensee the rights described in the

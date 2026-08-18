@@ -23,6 +23,32 @@ condition. If you can comply with CC BY-SA 4.0 (including keeping any
 redistributed adaptation under CC BY-SA 4.0), you do not need this
 licence.
 
+## Fixed commercial corpus
+
+The commercial grant does not automatically cover every AGF file carrying a
+dual-licence header. Corpus version 1 is a closed, enumerated set of 142 files
+recorded in
+[`LICENSES/commercial-corpus-manifest-v1.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/LICENSES/commercial-corpus-manifest-v1.yaml).
+The manifest also records 50 explicit exclusions: 49 inventory-derived paths
+pending qualified-counsel clearance and the commercial licence text itself,
+which is the licensing instrument rather than Framework Content.
+
+Each included path is bound to its SHA-256 at the manifest's recorded Git
+revision. New matching files do not enter the commercial corpus implicitly;
+each needs an explicit included or excluded disposition and a new governed
+manifest version. The current-tree check is intentionally advisory, while
+manifest schema defects are blocking:
+
+```sh
+agov commercial-corpus validate
+agov commercial-corpus verify-version \
+  --manifest LICENSES/commercial-corpus-manifest-v1.yaml
+```
+
+Executed agreements cite the exact Git blobs for both the licence text and
+the selected manifest, plus the manifest's corpus-set digest. Qualified-
+counsel review remains mandatory before any real offer or agreement.
+
 ## Commercialisation begins 2027
 
 **Commercial licence agreements are available from 1 January 2027.**
@@ -133,4 +159,4 @@ different pricing.
 
 ---
 
-*Last updated: 2026-08-17.*
+*Last updated: 2026-08-18.*

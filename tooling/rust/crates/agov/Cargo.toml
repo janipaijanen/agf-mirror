@@ -16,6 +16,7 @@ agov-core = { workspace = true }
 agov-coord = { workspace = true }
 agov-validators = { workspace = true }
 clap = { workspace = true }
+csv = { workspace = true }
 flate2 = { workspace = true }
 glob = { workspace = true }
 rayon = { workspace = true }
