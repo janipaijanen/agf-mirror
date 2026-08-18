@@ -1,6 +1,6 @@
 # Commercial licensing
 
-*Status: Released. Current framework version: see [Release
+*Status: Proposed draft — not released. Current framework version: see [Release
 information](../../reference/release-info.md). Audience: administrators,
 procurement, and legal reviewers evaluating commercial redistribution of
 AGF framework content.*

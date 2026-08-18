@@ -2,8 +2,8 @@ LicenseRef-AgentsGovern-Commercial
 
 Copyright (c) 2026 Jani Päijänen
 
-This is the commercial licence alternative for selected agents-govern
-(AGF) framework content. It is an alternative to the Creative Commons
+This is the commercial licence alternative for selected Agents Govern
+Framework (AGF) content. It is an alternative to the Creative Commons
 Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0) and
 applies only when the copyright holder has granted this licence in
 writing to a specific licensee.
