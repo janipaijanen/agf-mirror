@@ -952,6 +952,25 @@ rust:tooling:deny:
       changes: *rust_tooling_deny_paths
     - if: $CI_COMMIT_TAG
 
+# Validate the active commercial-corpus manifest on every pipeline. Manifest
+# schema defects are blocking; content drift and numbered-path mutation are
+# advisory findings emitted by the command with exit 0.
+commercial-corpus:validate:
+  extends: .rust-base
+  stage: test
+  interruptible: true
+  script:
+    - |
+      set -eu
+      base_ref="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-HEAD^}"
+      cargo run --quiet -p agov -- commercial-corpus validate \
+        --repo-root "$CI_PROJECT_DIR" \
+        --base-ref "$base_ref"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
 # Compile and test the Rust workspace on tooling changes and release tags.
 #
 # The sole designated shared-cache writer (Slice B). Every other

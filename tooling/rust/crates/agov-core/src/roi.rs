@@ -135,6 +135,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "session",
     "token",
     "dist",
+    "commercial-corpus",
     "usage",
     "ci",
     // coord subcommands.
@@ -176,6 +177,9 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "self-report-check",
     "post-publication-check",
     "provenance-record",
+    // commercial-corpus subcommands (validate shares the top-level token).
+    "generate",
+    "verify-version",
     // dist provenance-record subcommands.
     "file",
     "oci",
@@ -243,6 +247,12 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--model",
     "--dir",
     "--base-ref",
+    "--repo-root",
+    "--inventory-ref",
+    "--inventory-path",
+    "--corpus-content-revision",
+    "--pointer",
+    "--schema",
     "--subject-prefix",
     "--ref",
     "--artifact",

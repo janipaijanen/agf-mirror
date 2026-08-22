@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2026 Jani Paijanen
+# Copyright (c) 2026 Jani Päijänen
 #
 # `cross build` runs the actual compilation inside a Docker/Podman container
 # and does not pass host environment variables through by default. Without

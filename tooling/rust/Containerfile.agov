@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2026 Jani Paijanen
+# Copyright (c) 2026 Jani Päijänen
 
 # Digest-pinned to the current Alpine 3.22 patch (3.22.5, verified
 # 2026-07-21) after v2.3.0 release-readiness review found 19 fixed

@@ -1,4 +1,5 @@
 mod ci_cache_topology;
+mod commercial_corpus;
 mod dist;
 mod provenance;
 
@@ -76,6 +77,11 @@ enum Command {
     Dist {
         #[command(subcommand)]
         sub: DistCommand,
+    },
+    /// Restricted commercial-corpus manifest commands.
+    CommercialCorpus {
+        #[command(subcommand)]
+        sub: CommercialCorpusCommand,
     },
     /// Coordination usage reporting commands.
     Usage {
@@ -452,6 +458,68 @@ enum DistCommand {
 }
 
 #[derive(Subcommand)]
+enum CommercialCorpusCommand {
+    /// Generate a closed, versioned manifest from a reviewed inventory.
+    Generate {
+        #[arg(long, default_value = ".")]
+        repo_root: PathBuf,
+        /// Exact commit containing the reviewed inventory CSV.
+        #[arg(long)]
+        inventory_ref: String,
+        #[arg(
+            long,
+            default_value = "docs/reviews/commercial-licensing/20260817T224900Z-rights-provenance-inventory/inventory.csv"
+        )]
+        inventory_path: PathBuf,
+        /// Exact pre-implementation commit whose content bytes are hashed.
+        #[arg(long)]
+        corpus_content_revision: String,
+        #[arg(long, default_value = "LICENSES/commercial-corpus-manifest-v1.yaml")]
+        output: PathBuf,
+        #[arg(
+            long,
+            default_value = "LICENSES/commercial-corpus-manifest-current.yaml"
+        )]
+        pointer: PathBuf,
+        #[arg(
+            long,
+            default_value = "agf/schemas/commercial-corpus-manifest.schema.json"
+        )]
+        schema: PathBuf,
+    },
+    /// Validate the current manifest. Schema defects block; drift is advisory.
+    Validate {
+        #[arg(long, default_value = ".")]
+        repo_root: PathBuf,
+        #[arg(
+            long,
+            default_value = "LICENSES/commercial-corpus-manifest-current.yaml"
+        )]
+        pointer: PathBuf,
+        #[arg(
+            long,
+            default_value = "agf/schemas/commercial-corpus-manifest.schema.json"
+        )]
+        schema: PathBuf,
+        /// Optional comparison base for advisory numbered-manifest mutation checks.
+        #[arg(long)]
+        base_ref: Option<String>,
+    },
+    /// Verify one historical manifest against its own recorded Git revision.
+    VerifyVersion {
+        #[arg(long, default_value = ".")]
+        repo_root: PathBuf,
+        #[arg(long, default_value = "LICENSES/commercial-corpus-manifest-v1.yaml")]
+        manifest: PathBuf,
+        #[arg(
+            long,
+            default_value = "agf/schemas/commercial-corpus-manifest.schema.json"
+        )]
+        schema: PathBuf,
+    },
+}
+
+#[derive(Subcommand)]
 enum ProvenanceRecordCommand {
     /// Build an `artifact_kind: file` record for an archive already on disk
     /// (framework source archives and Rust tooling archives share this
@@ -717,6 +785,7 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => token_roi_report(log),
         Command::Dist { sub } => dist_command(sub, &args),
+        Command::CommercialCorpus { sub } => commercial_corpus_command(sub, &args),
         Command::Usage {
             sub:
                 UsageCommand::Report {
@@ -962,6 +1031,68 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
 
     if exit_code == 0 {
         agov_core::roi::record_tool_output("agov", args, "dist", output.chars);
+    }
+    exit_code
+}
+
+fn commercial_corpus_command(sub: CommercialCorpusCommand, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let result = match sub {
+        CommercialCorpusCommand::Generate {
+            repo_root,
+            inventory_ref,
+            inventory_path,
+            corpus_content_revision,
+            output,
+            pointer,
+            schema,
+        } => commercial_corpus::generate(commercial_corpus::GenerateOptions {
+            repo_root,
+            inventory_ref,
+            inventory_path,
+            corpus_content_revision,
+            output,
+            pointer,
+            schema,
+        }),
+        CommercialCorpusCommand::Validate {
+            repo_root,
+            pointer,
+            schema,
+            base_ref,
+        } => commercial_corpus::validate_current(commercial_corpus::ValidateOptions {
+            repo_root,
+            pointer,
+            schema,
+            base_ref,
+        }),
+        CommercialCorpusCommand::VerifyVersion {
+            repo_root,
+            manifest,
+            schema,
+        } => commercial_corpus::verify_version(commercial_corpus::VerifyOptions {
+            repo_root,
+            manifest,
+            schema,
+        }),
+    };
+
+    let exit_code = match result {
+        Ok(report) => {
+            for line in report.lines {
+                output.stdout(line);
+            }
+            0
+        }
+        Err(errors) => {
+            for error in errors {
+                output.stderr(format!("ERR {error}"));
+            }
+            1
+        }
+    };
+    if exit_code == 0 {
+        agov_core::roi::record_tool_output("agov", args, "commercial-corpus", output.chars);
     }
     exit_code
 }

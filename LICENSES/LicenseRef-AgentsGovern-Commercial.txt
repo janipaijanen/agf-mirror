@@ -1,0 +1,108 @@
+LicenseRef-AgentsGovern-Commercial
+
+Copyright (c) 2026 Jani Päijänen
+
+This is the commercial licence alternative for selected Agents Govern
+Framework (AGF) content. It is an alternative to the Creative Commons
+Attribution-ShareAlike 4.0 International licence (CC-BY-SA-4.0) and
+applies only when the copyright holder has granted this licence in
+writing to a specific licensee.
+
+1. Definitions
+
+   "Framework Content" means only the files enumerated as included in
+   commercial corpus manifest version 1 at
+   "LICENSES/commercial-corpus-manifest-v1.yaml", corpus set digest
+   "e0730e18716fe9b05ff4aeeb59b09c9e52ff1a97710c5054cc313ef9bc2ee479".
+   Files listed as excluded in that manifest, files absent from that
+   manifest, and MIT-licensed tooling code are not Framework Content.
+
+   "Modified Version" means any adaptation, derivative work or
+   modified form of the Framework Content.
+
+   "Redistribute" means to distribute, make available, sublicense or
+   otherwise provide copies of the Framework Content or a Modified
+   Version to any third party.
+
+   "Licensor" means Jani Päijänen.
+
+   "Licensee" means the entity to which this commercial licence has
+   been granted in writing.
+
+2. Licence Grant
+
+   Subject to the terms of this licence and to the Licensor's actual
+   receipt of any fees agreed in writing, the Licensor grants the
+   Licensee a worldwide, non-exclusive licence to:
+
+   (a) use, copy and modify the Framework Content;
+   (b) Redistribute the Framework Content and Modified Versions under
+       terms of the Licensee's choosing, including proprietary or
+       other non-ShareAlike terms;
+   (c) combine the Framework Content or Modified Versions with other
+       works and distribute the combination under terms of the
+       Licensee's choosing.
+
+   This grant is an alternative to the rights available under
+   CC-BY-SA-4.0. Where this commercial licence has been granted, the
+   ShareAlike obligation of CC-BY-SA-4.0 does not apply to
+   Redistributions made under this licence.
+
+3. Conditions
+
+   (a) The Licensee must not remove or obscure copyright notices or
+       licence statements that identify the original Framework Content.
+   (b) The Licensee must not use the Licensor's name, trademarks or
+       logos to endorse or promote products derived from the
+       Framework Content without prior written permission.
+   (c) Fees and any additional commercial terms are solely those set
+       out in the written agreement between the Licensor and the
+       Licensee. Current baseline fees are published on the project
+       licensing page; they are not part of this licence text.
+   (d) Attribution is satisfied by retaining the original copyright
+       notice for the Framework Content unless the written agreement
+       specifies a stronger requirement.
+
+4. Reservation of Rights
+
+   All rights not expressly granted are reserved by the Licensor.
+   The MIT-licensed tooling remains under the MIT Licence and is
+   unaffected by this commercial licence.
+
+5. No Warranty
+
+   THE FRAMEWORK CONTENT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+   WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+   AND NONINFRINGEMENT. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR
+   ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE FRAMEWORK
+   CONTENT OR ITS USE.
+
+6. Termination
+
+   This licence terminates if the Licensee materially breaches its
+   terms or the related commercial agreement and fails to cure the
+   breach within thirty (30) days after written notice.
+
+   Non-payment of agreed fees, or any bounce, charge-back, reversal
+   or failure of a payment to remain cleared, is a material breach.
+   The Licensor may suspend or terminate the licence immediately upon
+   such an event.
+
+   On termination the Licensee must cease new Redistribution under
+   this licence. End users may continue to use copies already
+   supplied to them under valid prior grants.
+
+7. General
+
+   This licence is governed by the laws of Finland, without regard to
+   conflict-of-law principles. If any provision is held
+   unenforceable, the remaining provisions continue in effect.
+
+Contact
+-------
+To request a commercial licence or discuss terms:
+Email: jani.paijanen@protonmail.com
+Web:   https://janipaijanen.gitlab.io/agents-govern-framework/docs/adopt/commercial-licensing/
+
+End of LicenseRef-AgentsGovern-Commercial

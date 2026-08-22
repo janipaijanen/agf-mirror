@@ -94,6 +94,7 @@ nav:
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
           - agov MCP server: docs/adopt/mcp-server.md
           - Licensing: docs/adopt/licensing.md
+          - Commercial licensing: docs/adopt/commercial-licensing.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
           - Operations runbook: docs/operate/runbook.md

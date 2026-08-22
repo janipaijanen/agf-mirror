@@ -1,0 +1,68 @@
+# Six-surface projection evidence for the CL-4 immutable commercial-corpus
+# binding, per agf/rules/workflow/documentation-rule-projection-rule.md.
+
+plan_id: cl4-immutable-corpus-binding-gate1-plan
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/adopt/commercial-licensing.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    paths:
+      - LICENSES/LicenseRef-AgentsGovern-Commercial.txt
+      - LICENSES/commercial-corpus-manifest-v1.yaml
+    reason: >-
+      The licence definition owns the legal grant reference. The generated,
+      versioned manifest owns the exact included/excluded corpus and digest;
+      the Pages explanation and validator point to those artifacts instead of
+      redefining the boundary.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/adopt/commercial-licensing.md
+    reason: >-
+      Adds a fixed-corpus section explaining the 142 included and 50 excluded
+      paths, per-file future disposition, blob/digest citations, validator
+      commands, and the continuing qualified-counsel condition.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      CL-4 changes a commercial licence offer and its verification contract,
+      not an operator incident or lifecycle situation. The adopter-facing
+      commercial-licensing page is the appropriate request and verification
+      surface; no operational runbook is changed.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      The change does not alter assistant startup, role selection, or governed
+      coding behavior. AGENTS.md already routes tooling work to agov and
+      governance work to the canonical rules; duplicating commercial corpus
+      counts into assistant loaders would create a stale second source.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/crates/agov/src/commercial_corpus.rs
+      - agf/schemas/commercial-corpus-manifest.schema.json
+      - .gitlab-ci.yml
+    reason: >-
+      The Rust command family generates the closed manifest from the reviewed
+      inventory, blocks malformed schema, emits current-tree and numbered-path
+      drift as advisory exit-0 findings, and verifies historical versions at
+      their own recorded Git revision. CI runs current validation on every
+      pipeline. Unit and acceptance fixtures cover the 15-line predicate,
+      canonical JSON, path immutability signal, and 142+50 boundary.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/docs/site/docs/adopt/commercial-licensing.md
+      - agf/schemas/commercial-corpus-manifest.schema.json
+    reason: >-
+      Both adopter-facing files ship through agf/dist/release-manifest.yaml's
+      existing agf/docs/site/** and agf/schemas/** coverage. Root LICENSES
+      commercial-control artifacts remain repository offer artifacts rather
+      than files inside the public AGF source archive, so they are not falsely
+      claimed as distribution inputs here.

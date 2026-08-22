@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
-# Governed Agents for Software Development
+# Agents Govern Framework
 
 **Framework ID:** `agents-govern`
 **Version:** see [VERSION](VERSION)
