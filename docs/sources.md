@@ -2147,3 +2147,100 @@ fold into an existing radar question. Do not treat the Context Pack layering
 as a gap AGF needs to fill — AGF's rules/
 coordination/plan structure already carries the equivalent information with
 governance authority this source doesn't address.
+
+# Batch 28 (2026-08-21) — user-submitted candidate (ChatGPT scheduled-task digest)
+
+Source: a ChatGPT scheduled task's weekly "AI agent governance reading" digest,
+pasted in full by the user with no URLs. All four entries were independently
+searched (WebSearch, plus WebFetch on the two that resolved to a primary
+source) before classification, per this file's standing rule that
+`[unverified]` entries withhold classification rather than guess. Two
+resolved to real, checkable arXiv papers; two did not resolve to any
+primary source across multiple targeted searches.
+
+## Classified
+
+- https://arxiv.org/abs/2608.16295
+  type: research | relation: prior-art | action: watch
+  note: "Executable Code Knowledge: Code as a Native, Validation-Carrying
+  Knowledge Representation for AI Coding Agents" (Xueping Gao, submitted
+  2026-08-17, AgenticDev 2026 workshop co-located with ASE 2026). Verified
+  via WebFetch. Defines an "Executable Code Knowledge Unit" — a source-bound
+  object carrying identity, semantics, executable behavior, contracts,
+  evidence, relations, provenance, validation state, and a query interface —
+  with freshness/staleness checking against the underlying code. Structurally
+  close to the manifest-plus-digest pattern this project just built by hand
+  for the commercial-corpus binding (`LICENSES/commercial-corpus-manifest-
+  v1.yaml`: pinned revision, bounded digest domain, advisory drift checks) —
+  a candidate design source if AGF ever generalizes that pattern beyond one
+  manifest. Single author; evaluated on 3 real Python repositories and 26
+  controlled patch tasks, reporting perfect 1.000 precision/recall/F1 on
+  changed-line impact analysis. Treat the perfect scores as a signal of a
+  narrow evaluation, not a validated technique — a 26-task single-author
+  benchmark reaching 1.000 on every metric is far more likely to reflect
+  eval-set narrowness than a solved problem. `action: watch`, not `cite`,
+  until independent reproduction or a larger evaluation appears.
+
+- https://arxiv.org/abs/2608.02764
+  type: research | relation: prior-art, evidence | action: cite (with caveat), watch
+  note: "Stateful Governance for Concurrent Agentic Systems" (Yuxiang Peng,
+  Xiaodi Wu, University of Maryland; v1 2026-08-03, v2 revised 2026-08-10).
+  Verified via WebFetch. Defines **policy-state serializability**: a
+  committed effect must be explainable as authorized against the policy
+  state immediately before it occurred, not merely at initial-request time.
+  Prototype (verified name: **MasuGate**, not the unnamed "PostgreSQL
+  prototype" framing the source digest used) is PostgreSQL-backed;
+  evaluation is a scripted, LLM-free procurement workflow exercising shared
+  budgets/inventory, not production or live-agent traffic — weaker evidence
+  than "comparative simulated workloads" implies, though the formal
+  correctness condition itself stands independent of the evaluation's scale.
+  **Directly relevant to an already-documented AGF gap:**
+  `agf/rules/workflow/coordination-publication-rule.md`'s CI-implementation
+  section states plainly that `only_allow_merge_if_pipeline_succeeds` blocks
+  a failed/skipped pipeline but does **not** force revalidation when the
+  *target* branch advances after a candidate's pipeline last passed, and
+  that GitLab merge-trains/merged-results pipelines (the feature that would
+  close this gap) are confirmed absent from this project's GitLab plan tier
+  via a direct project-API check — a governed, accepted narrowing, not a
+  silent gap. Policy-state serializability is close to a formal name for
+  exactly that failure mode, generalized: a Gate 1 approval or a passed
+  pipeline is a "policy state at approval time," and nothing currently
+  proves that state still holds at merge/commit time beyond the one GitLab
+  setting already in place. See radar entry below.
+
+## Unverified — could not be confirmed by search
+
+- "Agentic Configuration Management: A Reference Configuration Model for
+  Governed Agentic Systems" (per the digest: typed, independently-versioned
+  "Agentic Configuration Items," immutable revisions/baselines, a canonical
+  configuration graph, adapters for LangGraph/CrewAI/OpenAI Agents SDK, 27
+  governance scenarios, 9 impact-propagation cases). Three targeted
+  WebSearch queries did not return a primary source (arXiv ID, DOI, or
+  project page) for this exact title. One WebSearch AI-generated summary
+  described matching content and numbers closely, but a search engine's own
+  synthesized summary is not a primary source and may itself be a
+  conflation or hallucination — per this file's own rule, content
+  classification is withheld until an actual paper/page is located and
+  fetched directly. Not filed as `watch` or `cite`; re-attempt when a URL
+  surfaces.
+
+- "Responsible Agentic AI Playbook: A Practical Guide for State and Local
+  Government Agencies" (per the digest, dated 2026-08-19: staged deployment
+  checklists, named accountable roles, evidence requirements, a four-level
+  change-classification process with Type C/D distinctions requiring
+  independent-reviewer + accountable-owner sign-off). Not found under this
+  title anywhere, including direct checks against Urban Institute and NASCIO
+  publication pages (both active in this exact subject area but with
+  differently-titled, differently-dated publications). Treat as unconfirmed
+  rather than assume it exists; do not cite the Type C/D framing as a real
+  external precedent until a primary source is located.
+
+## Evaluation boundary
+
+Radar entry added (below) for the stale-authorization/policy-state
+question specifically, tied to the already-documented gap in
+`coordination-publication-rule.md`. The Executable Code Knowledge paper is
+`watch`-only — no radar entry, since it doesn't raise a new open question
+for AGF, it's a candidate technique for a pattern AGF already implemented
+manually once. The two unverified entries get no radar entry and no
+classification until located.

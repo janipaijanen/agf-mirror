@@ -127,6 +127,26 @@ Next review: 2026-10.
   source: LLM Wiki in `docs/sources.md` Batch 25 | status: evaluate, no implementation
   proposed | review-by: 2026-11
 
+- **Stale-authorization / policy-state serializability at Gate 1→merge** — "Stateful
+  Governance for Concurrent Agentic Systems" formalizes the requirement that a committed
+  effect must be authorized against the policy state immediately before it occurs, not
+  merely at initial-request time. `coordination-publication-rule.md` already documents an
+  accepted, governed gap of exactly this shape: `only_allow_merge_if_pipeline_succeeds`
+  blocks a failed/skipped pipeline but does not force revalidation when the *target*
+  branch advances after a candidate's pipeline last passed, and GitLab merge-trains
+  (the feature that would close it) are confirmed absent from this project's plan tier.
+  The paper's prototype (MasuGate) is evaluated only on a scripted, LLM-free procurement
+  workflow — not evidence its specific mechanism transfers to a Git/CI setting — but the
+  formal correctness condition itself (policy-state serializability) is a candidate
+  vocabulary for naming and eventually closing this gap properly, rather than leaving it
+  as a documented narrowing. Controversial only in scope: is this worth a real mechanism
+  (e.g. binding a Gate 1 approval to an exact plan hash + forced re-check at merge time),
+  or does `agov coord publication-check`'s existing fresh-fetch-at-run-time behavior
+  already provide equivalent protection when actually invoked pre-merge, making this a
+  documentation gap rather than a mechanism gap? source: arXiv 2608.02764 in
+  `docs/sources.md` Batch 28 | status: evaluate against existing gap, no implementation
+  proposed | review-by: 2026-11
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
