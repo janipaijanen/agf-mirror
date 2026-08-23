@@ -1,7 +1,9 @@
 ---
 id: agov-version-drift-warning
-status: pending-gate1
+status: approved
 topic: agov-version-drift-warning
+gate1_approved_by: "20260823T105116Z-governor-reviewer-t2sk.md"
+gate1_approved_at: "2026-08-23T10:51:16Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
