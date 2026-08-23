@@ -19,6 +19,23 @@ advisory_consultation:
 # the coordination poll cycle, plus two corrections to the canonical
 # adopter-facing procedure it operationalizes
 
+## Round 3 (fixes contribution-auditor's round-2 finding, `rs2g`)
+
+Round-2 review (`20260823T102213Z-contribution-auditor-rs2g`) found
+PAC-R3 blocking and PAC-A2 advisory, both fixed in this round:
+
+- **PAC-R3** — the Inputs table claimed the default cursor path
+  (`.agov/poll-cursor.json`) was "git-ignored," but no ignore rule
+  existed at the exact head; `git check-ignore` returned no match. Fix:
+  added a `.agov/` entry to `.gitignore`, and hardened the skill itself
+  to verify (`git check-ignore -v`) before the first write to any
+  configured `cursor_path` and add an ignore rule rather than write an
+  unignored file — so the skill fails closed in adopter repositories
+  that don't inherit this repo's `.gitignore`, not just this one.
+- **PAC-A2** (advisory) — defined "shared surface" once, in the
+  canonical `poll-and-coordinate.md` page immediately after its first
+  use, per the governor's own preference for keeping the compact phrase.
+
 ## Round 2 (fixes contribution-auditor's round-1 blocking findings, `dekp`)
 
 Round-1 review (`20260823T094611Z-contribution-auditor-dekp`) found two

@@ -2,6 +2,12 @@
 
 *Status: Released. Audience: operators and AI assistants responsible for advancing already-authorized work. A poll is complete only when all shared surfaces were checked and the highest-priority obligation was advanced, monitored, or concretely blocked.*
 
+**Shared surface** means repository/worktree state, published
+coordination records, and forge issues/MRs/pipelines — anything visible
+to concurrent AI assistants or operators sharing one repository. The
+term is used as shorthand for that set throughout this page and the
+`poll-and-coordinate` skill that operationalizes it.
+
 ## One complete cycle
 
 1. Record last-seen coordination IDs, timestamps, branch SHAs, pipeline IDs,

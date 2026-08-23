@@ -32,10 +32,17 @@ mean and the terminal-outcome contract this skill's Step 6 enforces.
 |---|---|---|
 | `cadence_seconds` | 1800 | Gap between cycles while work may still be pending |
 | `idle_window_minutes` | 240 | Stop rearming once this much wall-clock time has passed with nothing new found |
-| `cursor_path` | `.agov/poll-cursor.json` (git-ignored, project-local) | Durable record of last-seen state across cycles and across sessions |
+| `cursor_path` | `.agov/poll-cursor.json` (project-local, must be git-ignored) | Durable record of last-seen state across cycles and across sessions |
 
 If the invoking surface passes explicit values for any input, use those.
 Otherwise use the defaults above and state which you used.
+
+Runtime polling state must never enter version control. Before the first
+write to `cursor_path` in a given repository, verify it is actually
+ignored (`git check-ignore -v <cursor_path>`). If it is not, add an
+ignore rule for it (this project ships one for the default path, under
+`.gitignore`) before writing — do not write an unignored cursor file and
+do not silently fall back to committing it.
 
 ## Step 0 — Pause any armed wake-up before starting
 
