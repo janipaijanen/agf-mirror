@@ -10,11 +10,13 @@ advisory_consultation:
     reason: >-
       Independent audit
       20260823T210538Z-contribution-auditor-qmdj reviewed the first frozen head
-      COMPLETE / BLOCK. This revision resolves CA-RMFP-1 with per-commit and
-      final-tree allowlist evidence, resolves CA-RMFP-2 with a fresh-target and
-      all-open-MR pre-Gate-2 collision scan, and corrects consultation metadata
-      per CA-RMFP-A1. A bounded exact-head re-review is requested through the
-      follow-up handoff; Gate 1 remains pending until it clears the corrections.
+      COMPLETE / BLOCK. Re-audit
+      20260823T211551Z-contribution-auditor-h5rr confirmed CA-RMFP-2 and
+      CA-RMFP-A1 closed but found the first corrected Bash block could report
+      CA-RMFP-1 violations and still exit zero. This revision closes residual
+      CA-RMFP-R2-1 with explicit fail-fast exits, complete passing-scope output,
+      and asserted positive/negative exit-code transcripts. Gate 1 remains
+      pending on another bounded exact-head re-review.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -211,40 +213,93 @@ The operator runs the following Bash procedure after fetching the target. It
 fails closed when the merge base cannot resolve, the range is empty, any merge
 commit exists, any individual commit touches a non-allowed path, or the final
 aggregate diff contains a non-allowed path. Inspecting commits separately is
-what catches a path added and later removed or reverted.
+what catches a path added and later removed or reverted. Every failure calls an
+explicit non-zero exit; no later successful command can overwrite it. A passing
+run prints the target ref/SHA, resolved merge-base SHA, exact commit range,
+every commit SHA, every per-commit path, every final-tree path, and the final
+PASS result so its transcript proves what was inspected.
 
 ```bash
-git fetch --prune origin
-research_target=origin/main
-research_base="$(git merge-base "$research_target" HEAD)"
-test -n "$research_base"
-test -n "$(git rev-list "$research_base"..HEAD)"
-test -z "$(git rev-list --merges "$research_base"..HEAD)"
+#!/usr/bin/env bash
+set -euo pipefail
+
+research_fail() {
+  printf 'FAIL: %s\n' "$1" >&2
+  exit 1
+}
+
+git fetch --prune origin || research_fail 'target fetch failed'
+research_target_ref="${1:-origin/main}"
+research_target_sha="$(git rev-parse --verify \
+  "${research_target_ref}^{commit}")" || research_fail 'target ref unresolved'
+research_base="$(git merge-base "$research_target_sha" HEAD)" || \
+  research_fail 'merge base unresolved'
+[[ -n "$research_base" ]] || research_fail 'merge base empty'
+
+research_commit_list="$(git rev-list --reverse "$research_base"..HEAD)" || \
+  research_fail 'commit range unresolved'
+[[ -n "$research_commit_list" ]] || research_fail 'commit range empty'
+research_merge_list="$(git rev-list --merges "$research_base"..HEAD)" || \
+  research_fail 'merge-commit scan failed'
+[[ -z "$research_merge_list" ]] || research_fail \
+  "merge commit in range: $research_merge_list"
+
+research_tmp="$(mktemp -d)" || research_fail 'temporary directory failed'
+trap 'rm -rf -- "$research_tmp"' EXIT
+
+printf 'target_ref=%s\n' "$research_target_ref"
+printf 'target_sha=%s\n' "$research_target_sha"
+printf 'merge_base_sha=%s\n' "$research_base"
+printf 'commit_range=%s..HEAD\n' "$research_base"
 
 research_bad=0
+research_index=0
 while IFS= read -r research_commit; do
+  [[ -n "$research_commit" ]] || research_fail 'empty commit id in range'
+  research_index=$((research_index + 1))
+  printf 'commit[%d]=%s\n' "$research_index" "$research_commit"
+  research_path_file="$research_tmp/commit-$research_index.paths"
+  git diff-tree --no-commit-id --name-only -r -z \
+    "${research_commit}^" "$research_commit" >"$research_path_file" || \
+    research_fail "path scan failed for $research_commit"
+  research_path_index=0
   while IFS= read -r -d '' research_path; do
+    research_path_index=$((research_path_index + 1))
+    printf 'commit_path[%d,%d]=%s\n' \
+      "$research_index" "$research_path_index" "$research_path"
     case "$research_path" in
       docs/sources.md|docs/radar.md) ;;
       *) printf 'disallowed commit path: %s %s\n' \
            "$research_commit" "$research_path" >&2
          research_bad=1 ;;
     esac
-  done < <(git diff-tree --no-commit-id --name-only -r -z \
-             "${research_commit}^" "$research_commit")
-done < <(git rev-list --reverse "$research_base"..HEAD)
-test "$research_bad" -eq 0
+  done <"$research_path_file"
+  printf 'commit_path_count[%d]=%d\n' \
+    "$research_index" "$research_path_index"
+done <<<"$research_commit_list"
+(( research_bad == 0 )) || research_fail 'disallowed per-commit path found'
 
+research_final_file="$research_tmp/final.paths"
+git diff --name-only -z "$research_base"...HEAD >"$research_final_file" || \
+  research_fail 'final-tree path scan failed'
 research_bad=0
+research_final_index=0
 while IFS= read -r -d '' research_path; do
+  research_final_index=$((research_final_index + 1))
+  printf 'final_path[%d]=%s\n' "$research_final_index" "$research_path"
   case "$research_path" in
     docs/sources.md|docs/radar.md) ;;
     *) printf 'disallowed final-tree path: %s\n' "$research_path" >&2
        research_bad=1 ;;
   esac
-done < <(git diff --name-only -z "$research_base"...HEAD)
-test "$research_bad" -eq 0
-git diff --check "$research_base"...HEAD
+done <"$research_final_file"
+printf 'final_path_count=%d\n' "$research_final_index"
+(( research_bad == 0 )) || research_fail 'disallowed final-tree path found'
+
+git diff --check "$research_base"...HEAD || \
+  research_fail 'whitespace validation failed'
+printf 'result=PASS\n'
+exit 0
 ```
 
 The implementation MR must record deterministic acceptance transcripts for:
@@ -255,6 +310,15 @@ The implementation MR must record deterministic acceptance transcripts for:
 - a non-allowed path added and reverted in a later commit failing even though
   the final aggregate diff contains only allowed paths; and
 - a merge commit in the range failing.
+
+Each positive transcript must record `procedure_exit=0` and explicitly assert
+that it equals zero. Each negative transcript must run the procedure inside a
+guard that treats unexpected success as a test failure, record the actual
+non-zero `procedure_exit`, and explicitly assert that it is not zero. The
+recorded positive output must contain the target ref/SHA, merge-base SHA,
+commit range, every commit SHA, every per-commit path/count, and every final
+path/count. A finding printed to stderr without a non-zero asserted exit is a
+failed acceptance test, not evidence that the control works.
 
 These are procedure acceptance tests, not new validator authority. Semantic
 eligibility, source fidelity, and collision dispositions remain human Gate 2
@@ -348,14 +412,17 @@ Adopter docs parity outcome required at Gate 2: **updated** through
    pipeline, human Gate 2 decision, and protected-branch merge remain
    mandatory.
 3. A source-only, radar-only, and combined sources+radar advisory maintenance
-   test range each passes the per-commit and final-tree procedure.
+   test range each passes the per-commit and final-tree procedure with an
+   explicitly asserted exit code zero and complete target/base/range/path
+   transcript.
 4. Negative examples for an extra file, rule/authority change, integration or
    dependency, implementation commitment, roadmap priority, sensitive/legal/
    security material, public product claim, and uncertain source inference
    each clearly return to full Gate 1.
 5. A non-allowed path added and later reverted fails range qualification even
    when the aggregate final diff contains only allowed paths; a merge commit
-   and a non-allowed final-tree path also fail deterministically.
+   and a non-allowed final-tree path also fail with explicitly asserted
+   non-zero procedure exit codes.
 6. Gate 2 evidence names the fresh target SHA, scan time, every open target-MR
    IID/head SHA/update time/path set, and the duplicate, batch/allocation,
    vocabulary, cross-reference, review-by, and edit-collision dispositions for
