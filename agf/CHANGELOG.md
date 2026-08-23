@@ -5,6 +5,22 @@ distribution.
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING workflow relaxation:** projects that retain `docs/sources.md`
+  and/or `docs/radar.md` as non-normative research artifacts may let a narrowly
+  eligible advisory, reversible maintenance MR skip a separate Gate 1 plan,
+  contribution audit, and pre-change coordination MR. The canonical
+  `agf/rules/workflow/simplicity-rule.md` now owns exact path and semantic
+  eligibility, automatic disqualifiers, per-commit/final-tree evidence, fresh
+  target/open-MR collision scans, escalation, and the retained human Gate 2
+  boundary. Generic documentation does not inherit the exception. Before
+  enabling it, confirm both artifacts are non-normative, keep protected-branch
+  MR review and human Gate 2 enabled, and ensure assistant loaders point to the
+  updated rule; projects without the artifacts or wanting stricter governance
+  retain full Gate 1. No file or data migration is required. Adopter docs
+  parity: updated in the day-to-day guide, situation map, and AGENTS template.
+
 ### Added
 
 - `agov validate` and `agov session resume` now emit an advisory (never

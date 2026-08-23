@@ -186,6 +186,20 @@ Every non-trivial task requires:
 - **Gate 2** (coder-tester → governor-reviewer): implementation on a feature
   branch, all tests green, governor-reviewer reviews diff and merges.
 
+**Narrow research-maintenance exception:** an advisory, reversible change
+limited in every commit and the final diff to the existing `docs/sources.md`
+and/or `docs/radar.md` may skip the separate Gate 1 plan, contribution audit,
+and pre-change coordination MR only when every eligibility, source-fidelity,
+fresh target/open-MR collision-scan, and disqualifier condition in
+`agf/rules/workflow/simplicity-rule.md` passes. Generic docs-only work does not
+inherit this exception. The normal branch/MR, commit-message waiver, exact-head
+pipeline, and binding governor-reviewer Gate 2 decision remain mandatory.
+Uncertainty or any rule/authority, implementation, integration/dependency,
+roadmap/resource, sensitive/legal/security/privacy, public AGF claim, governed
+decision, or extra-path scope returns to full Gate 1. A coordination record is
+not required merely to start or submit an eligible MR; separate obligations,
+escalations, accepted risks, and decisions still use coordination.
+
 Gate 1 approval comes from a governor-reviewer coordination message. Gate 2
 merge target and remote must be confirmed with the governor-reviewer before
 merging — the repository may be local-only or the target branch name may differ.

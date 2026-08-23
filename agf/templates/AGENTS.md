@@ -138,6 +138,17 @@ Every non-trivial task requires two gates:
   approves before implementation starts.
 - **Gate 2** — coder-tester files a handoff; governor-reviewer reviews and merges.
 
+If this project retains `docs/sources.md` and/or `docs/radar.md` as strictly
+non-normative research artifacts, it may use the exact research-maintenance
+exception in `agf/rules/workflow/simplicity-rule.md`. Only an advisory,
+reversible change limited in every commit and the final diff to those existing
+paths may skip the separate Gate 1 plan, contribution audit, and pre-change
+coordination MR, and only when every source-fidelity, fresh collision-scan, and
+disqualifier condition in that rule passes. Generic documentation does not
+qualify. The normal branch/MR, exact-head pipeline, human Gate 2 decision, and
+protected-branch merge remain mandatory. Projects without those artifacts, or
+projects choosing stricter local policy, retain the ordinary Gate 1 route.
+
 Gate 1 approval is a governor-reviewer coordination message with `kind: decision-record`
 or `kind: handoff` referencing the plan file and stating `status: approved`.
 

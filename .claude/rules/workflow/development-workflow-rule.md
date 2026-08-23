@@ -5,9 +5,19 @@
 # Framework principle: Pre-implementation planning gate
 # See: framework.md — Pattern 1 (Pipeline), ADOPTING.md Step 4
 
+Canonical owner: `agf/rules/workflow/development-workflow-rule.md`. This
+foundry-local loader projection mirrors its applicability boundary.
+
 This rule applies to every non-trivial task.
 **Non-trivial** = creates, modifies, or deletes more than one file,
 or touches a service, route, model, migration, or test.
+
+The only multi-file exception is the exact `docs/sources.md` and/or
+`docs/radar.md` research-maintenance fast path owned by
+`agf/rules/workflow/simplicity-rule.md`. It applies only when every semantic,
+evidence, collision-scan, and disqualifier condition there passes. Generic
+documentation, ambiguity, or expanded scope returns to full Gate 1. Gate 2 and
+the protected-branch MR remain mandatory.
 
 ## Phase 1 -- Clarify First (Socratic)
 
@@ -32,6 +42,9 @@ Do NOT proceed to Phase 2 until questions are answered or trivially obvious.
 ## Phase 2 -- Write a Plan File First
 
 For any change touching >1 module, write a plan file FIRST.
+
+The exact sources/radar exception above follows its canonical simplicity rule
+instead of this plan-file phase.
 
 **Location: `docs/plans/<project>-<short-description>.md`**
 - MUST be in a VCS-tracked directory so all agents, tools, and reviewers can read it.

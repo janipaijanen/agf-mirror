@@ -12,6 +12,15 @@ This rule applies to every non-trivial task.
 **Non-trivial** = creates, modifies, or deletes more than one file,
 or touches a service, route, model, migration, or test.
 
+**Exact research-maintenance exception:** a change limited throughout every
+commit and its final diff to the existing `docs/sources.md` and/or
+`docs/radar.md` may skip this rule's Gate 1 plan only when it satisfies every
+semantic, evidence, collision-scan, and disqualifier condition in
+`simplicity-rule.md`'s sources/radar fast path. That rule is the canonical
+owner. Generic documentation and every ambiguous or expanded change remain
+subject to this workflow. Gate 2 and protected-branch MR review are never
+skipped.
+
 ## Phase 1 -- Clarify First (Socratic)
 
 Before writing any code, surface hidden assumptions.
@@ -35,6 +44,9 @@ Do NOT proceed to Phase 2 until questions are answered or trivially obvious.
 ## Phase 2 -- Write a Plan File First
 
 For any change touching >1 module, write a plan file FIRST.
+
+The exact sources/radar exception above is not a module-count loophole; it is
+the only multi-file exception owned by `simplicity-rule.md`.
 
 **Location: `docs/plans/<project>-<short-description>.md`**
 <!-- CUSTOMIZE: adapt the path prefix to your project's plan directory -->

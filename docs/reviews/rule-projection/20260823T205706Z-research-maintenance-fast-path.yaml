@@ -1,0 +1,83 @@
+# Six-surface projection evidence for the proportional sources/radar
+# research-maintenance fast path.
+# Plan: docs/plans/20260823T205706Z-research-maintenance-fast-path.md
+
+plan_id: 20260823T205706Z-research-maintenance-fast-path
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/day-to-day.md
+  - agf/docs/site/docs/operate/run-agf-in-real-situations.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    paths:
+      - agf/rules/workflow/simplicity-rule.md
+      - agf/rules/workflow/development-workflow-rule.md
+    reason: >-
+      simplicity-rule.md owns the exact semantic/path eligibility,
+      disqualifiers, MR evidence, escalation, and retained Gate 2 boundary.
+      development-workflow-rule.md only points its otherwise-general
+      non-trivial-task and plan requirements to that one exception; it does
+      not redefine the test.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      Explains the optional proportional path, evidence retained in the MR,
+      fresh-state invalidation, strict migration choice, and the boundary
+      against generic documentation without copying the full canonical test.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/run-agf-in-real-situations.md
+    reason: >-
+      Adds the exact sources/radar situation and routes assistants to the
+      canonical simplicity rule. The generic docs-only row now explicitly
+      refuses to inherit this exception.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - .claude/rules/workflow/simplicity-rule.md
+      - .claude/rules/workflow/development-workflow-rule.md
+    reason: >-
+      Root and adopter-template AGENTS loaders summarize the optional route
+      and retained Gate 2 boundary. Foundry's two active Claude projections
+      point to their canonical owners and mirror only the applicability needed
+      at cold start.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          This repository has no .claude/CLAUDE.md; AGENTS.md plus directly
+          loaded .claude/rules files are the active foundry surfaces.
+
+  validation_drift_evidence:
+    disposition: implemented with deterministic procedure and human review
+    path: agf/rules/workflow/simplicity-rule.md
+    reason: >-
+      The implementation Gate 2 evidence records asserted positive
+      source-only, radar-only, and combined-range transcripts plus asserted
+      negative extra-final-path, hidden add/revert, and merge-commit
+      transcripts. The procedure enumerates target/base/range/commit/path
+      scope and fails explicitly. Semantic eligibility, source fidelity, and
+      fresh target/open-MR collision dispositions remain governor judgment;
+      no new validator authority is claimed.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/rules/workflow/simplicity-rule.md
+      - agf/rules/workflow/development-workflow-rule.md
+      - agf/templates/AGENTS.md
+      - agf/docs/site/docs/operate/day-to-day.md
+      - agf/docs/site/docs/operate/run-agf-in-real-situations.md
+      - agf/CHANGELOG.md
+    reason: >-
+      agf/dist/release-manifest.yaml ships agf/rules/**, agf/templates/**,
+      agf/docs/site/**, and agf/CHANGELOG.md. Root AGENTS.md, root CHANGELOG.md,
+      .claude/rules/**, the approved plan, and this projection record are
+      intentionally foundry-local evidence and are not claimed as adopter
+      distribution content.
