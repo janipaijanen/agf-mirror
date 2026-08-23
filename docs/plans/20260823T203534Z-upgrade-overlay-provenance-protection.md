@@ -118,6 +118,25 @@ findings — all implementation-boundary contradictions, not gaps in the
   applying any change until every manual-conflict and
   confirmation-required path has an explicit recorded disposition.
 
+## Round 3 correction (fixes contribution-auditor's exact-head review, `nm4h`)
+
+`20260823T215731Z-contribution-auditor-nm4h.md` reviewed the round-2
+corrected head (`fda14341`) and recommended BLOCK, 1 critical finding:
+
+- **`CA-LRB-UPG-R2-1`** — round 2's local-tree walk excluded any path
+  the local root's own `.gitignore` would exclude, which is unsafe for a
+  classifier whose entire purpose is protecting adopter-local content: a
+  locally-modified path that happens to be gitignored (exactly the
+  ignore-collision failure mode issue #113, and this plan's own
+  companion `dist-path-ignore-protection` plan, exist to describe) would
+  be silently treated as absent, and a same-named path in the new
+  release would then be misclassified as upstream-added and copied over
+  it — destroying adopter content because of the very failure mode this
+  plan exists to prevent. Fixed: see the "Round 3 correction" paragraph
+  under Design §1's "Local-tree enumeration" subsection — the walk now
+  enumerates every filesystem entry under the confined local root
+  regardless of Git ignore state, excluding only `.git/` itself.
+
 Implements GitLab issues [#96](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/96)
 and [#111](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/111),
 two independently-submitted adopter learning records (`night-heron`,
@@ -194,16 +213,35 @@ release-manifest.yaml` — do not invent a second enumeration. The
 provenance flags are specified in Design §2 below.
 
 **Local-tree enumeration, defined (fixes `CA-LRB-UPG-R1-1`'s second
-half — "the three trees' relevant entries" for local-only paths).** P
-and N enumerate via each release's own manifest, per above. L (the local
-tree) has no manifest of its own by definition — a local-only adopter
-file is exactly a file no manifest names. L is enumerated instead by a
-recursive filesystem walk of `--local <dir>`'s recognized `agf/` root
-(per `governance-file-layout-rule.md`'s conventions), excluding only
-version-control metadata (`.git/`) and any path the local root's own
-`.gitignore` would exclude — walking, not any manifest, is what
+half — "the three trees' relevant entries" for local-only paths;
+corrected round 3, fixes `CA-LRB-UPG-R2-1`).** P and N enumerate via
+each release's own manifest, per above. L (the local tree) has no
+manifest of its own by definition — a local-only adopter file is exactly
+a file no manifest names. L is enumerated instead by a recursive
+filesystem walk of `--local <dir>`'s recognized `agf/` root (per
+`governance-file-layout-rule.md`'s conventions), excluding **only**
+version-control metadata (`.git/`) — walking, not any manifest, is what
 guarantees a local-only rule file (row 1) is enumerated at all, since by
 definition no manifest names it.
+
+**Round 3 correction: the walk MUST NOT exclude gitignored paths.** The
+round-1/round-2 design excluded any path the local root's own
+`.gitignore` would exclude, on the assumption that ignored paths are
+noise. That assumption is exactly backwards for a classifier whose
+purpose is to protect adopter-local content: an ignored path can still
+exist on disk and carry a real adopter change — the companion
+`dist-path-ignore-protection` plan (issue #113) exists specifically
+because generic ignore rules routinely and accidentally match `agf/`
+paths. Treating an ignored-but-present local file as absent (L=∅) when
+the new release ships that same path would misclassify it as row 2
+(upstream-added) and authorize copying over it — silently destroying the
+exact adopter content this whole plan exists to protect, and doing so
+*because* of the same ignore-collision failure mode issue #113 reports,
+not despite it. Fixed: the walk enumerates every filesystem entry under
+the confined local root regardless of Git ignore state; `.git/` is
+excluded because it is version-control metadata that can never be
+adopter-authored governance content under `governance-file-layout-
+rule.md`'s conventions, not because of any ignore rule.
 
 For every path in the union of the three trees' relevant entries,
 classify using this table. **P** = present in previous-release, **N** =
@@ -514,6 +552,14 @@ On the implementation branch, after Gate 1 approval:
 - Regression fixture matching night-heron's reported need: a path that
   differs between previous and new releases, with local matching
   previous (row 14, upstream-only) — safe overwrite, no manual step.
+- Regression fixture (fixes `CA-LRB-UPG-R2-1`): a path present locally,
+  matched by the local root's own `.gitignore` (so `git status` does not
+  show it), locally modified relative to what the previous release
+  shipped, **and** also present in the new release with different
+  content — assert the walk still enumerates it (L=✓ despite being
+  gitignored) and the classifier resolves it as row 16 (overlapping,
+  manual merge), never silently as row 2 (upstream-added, auto-copied)
+  as it would if ignored paths were excluded from the walk.
 - Adversarial fixtures (fixes `CA-LRB-UPG-2`): a manifest entry with a
   parent-traversal (`../`) path — rejected fail-closed; a symlink whose
   target escapes its tree root — rejected fail-closed; an unverified
