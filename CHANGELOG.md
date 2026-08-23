@@ -8,6 +8,22 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING workflow relaxation:** an exact, advisory and reversible
+  `docs/sources.md`/`docs/radar.md` research-maintenance class may skip the
+  separate Gate 1 plan, contribution audit, and pre-change coordination MR.
+  The canonical simplicity rule now owns strict semantic/path eligibility,
+  disqualifiers, fail-closed per-commit and final-tree evidence, fresh
+  target/open-MR collision checks, and escalation. The normal MR, green
+  exact-head pipeline, protected-branch merge, and binding human Gate 2 remain.
+  Generic documentation, ambiguous work, and any authority, implementation,
+  integration, roadmap/resource, sensitive/legal/security/privacy, public AGF
+  claim, governed-decision, or extra-path scope still require full Gate 1.
+  Adopters opt in only when both files are genuinely non-normative research
+  artifacts; stricter local policy remains valid. No file or data migration is
+  required.
+
 ### Added
 
 - `agov validate` and `agov session resume` now emit an advisory (never
