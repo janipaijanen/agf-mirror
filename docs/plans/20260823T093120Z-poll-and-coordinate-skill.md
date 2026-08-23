@@ -1,7 +1,9 @@
 ---
 id: poll-and-coordinate-skill
-status: pending-gate1
+status: approved
 topic: poll-and-coordinate-skill
+gate1_approved_by: "20260823T114354Z-governor-reviewer-md3e.md"
+gate1_approved_at: "2026-08-23T11:43:54Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
