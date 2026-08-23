@@ -6,6 +6,19 @@ The canonical adopter-facing AGF v2 changelog lives at
 [`agf/CHANGELOG.md`](agf/CHANGELOG.md). The bootstrap reference changelog for
 agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELOG.md).
 
+## [Unreleased]
+
+### Added
+
+- `agov validate` and `agov session resume` now emit an advisory (never
+  blocking) warning when the running `agov` binary's own build version
+  differs from the commissioned `agf/VERSION` of the tree it is invoked
+  against (issue #114). Neither an older binary run against a newer
+  tree nor a newer binary run against an older tree was previously
+  detectable — both could silently under- or over-validate. Absent
+  `agf/VERSION` (not every tree `agov` runs against is AGF-adopted)
+  produces no warning.
+
 ## [2.6.1] - 2026-08-17
 
 **Minor release.** Corrects v2.6.0's incomplete publication: the release

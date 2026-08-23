@@ -4533,6 +4533,10 @@ impl SessionGitStatus {
             }
         }
 
+        if let Some(message) = version_drift_warning() {
+            warnings.push(message);
+        }
+
         warnings
     }
 }
@@ -5817,6 +5821,7 @@ fn run_all_validators(args: &[String]) -> i32 {
         ),
         render_framework_config(&mut output),
         render_readme_stats(&mut output, &agov_core::repo_root()),
+        render_version_drift(&mut output),
     ];
 
     output.stdout("OK agov.validate.coverage: framework checks complete; for complete governance coverage, also run `agov plan validate` and `agov coord validate`; the umbrella command does not validate those records");
@@ -5855,6 +5860,38 @@ fn render_readme_stats(output: &mut OutputCounter, root: &std::path::Path) -> i3
             output.stdout(format!("WARN {label}: {} ({loc})", f.message));
         }
         0 // advisory only — never blocking
+    }
+}
+
+/// Compare the running `agov` binary's own build version against the
+/// commissioned `agf/VERSION` of the tree it is invoked against.
+/// Returns `Some(warning line)` on mismatch; `None` if `agf/VERSION` is
+/// absent or matches -- nothing to report either way.
+fn version_drift_warning() -> Option<String> {
+    let commissioned = agov_core::commissioned_version()?;
+    let running = env!("CARGO_PKG_VERSION");
+    if commissioned == running {
+        None
+    } else {
+        Some(format!(
+            "agov binary is v{running} but commissioned agf/ is v{commissioned} -- \
+             results may be inaccurate if schema, subcommands, or validation rules \
+             changed between versions"
+        ))
+    }
+}
+
+fn render_version_drift(output: &mut OutputCounter) -> i32 {
+    let label = "agov.validate.version_drift";
+    match version_drift_warning() {
+        Some(message) => {
+            output.stdout(format!("WARN {label}: agf/VERSION: {message}"));
+            0 // advisory only — never blocking
+        }
+        None => {
+            output.stdout(format!("OK {label}"));
+            0
+        }
     }
 }
 
