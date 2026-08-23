@@ -2244,3 +2244,122 @@ question specifically, tied to the already-documented gap in
 for AGF, it's a candidate technique for a pattern AGF already implemented
 manually once. The two unverified entries get no radar entry and no
 classification until located.
+
+# Batch 29 (2026-08-23) — Replicated Live knowledge and worktree source family
+
+This batch extends Batch 21's Beagle assessment. The essays are the project
+author's design reports, not independent effectiveness evidence. Current
+implementation and specification revisions are pinned so later upstream
+changes are not silently projected onto this classification.
+
+## Classified
+
+- https://replicated.live/blog/wiki.html
+  type: technical design, discussion | relation: prior-art, complement |
+  action: cite (with caveat), watch
+  note: Victor Grishchenko, “Wiki Is Not Enough,” published 2026-08-23.
+  Argues that a growing agent-maintained wiki accumulates stale,
+  contradictory, or weakly sourced claims; proposes separating project
+  material into meta, seed, wiki, code, ticket, chat, and primary-artifact
+  repositories, joined by edit-resilient line references and forward/reverse
+  citation views. The useful AGF prior art is bidirectional dependency
+  navigation across durable artifacts, not the essay's unmeasured claim that
+  this architecture solves retrieval and coherence.
+
+  The essay reacts largely to Google's initial OKF v0.1 announcement. The
+  canonical OKF specification is now v0.2 and makes provenance, trust,
+  freshness, lifecycle, and attestation first-class, partially answering the
+  essay's knowledge-rot critique. Do not characterize present OKF from the
+  essay alone. (accessed 2026-08-23)
+
+- https://replicated.live/blog/worktree.html
+  type: technical design, practice | relation: prior-art, complement |
+  action: cite (with caveat), watch
+  note: Grishchenko, “Tree-of-life and evolution of code,” published
+  2026-07-20. Describes a hierarchy of ticket-named worktrees with
+  upstream/downstream links, ahead/behind state, delayed promotion, discard,
+  and merge-back of selected candidate revisions. It explicitly discusses
+  parallel investigator, test-writer, coder, and reviewer roles and warns
+  that a reviewer declaring a fix does not justify rushing it to trunk.
+  These are concrete parallels to AGF's worktree, role-separation, evidence,
+  and Gate 2 concerns. The claimed “x100 improvement” and workflow outcomes
+  have no disclosed baseline, sample, or independent reproduction; retain
+  them only as author self-report. (accessed 2026-08-23)
+
+- https://replicated.live/blog/follow-up.html
+  type: discussion | relation: prior-art (thematic), counter-position |
+  action: watch
+  note: Grishchenko, “New model economics,” published 2026-08-15, comments on
+  Cursor's SQLite swarm experiment. Its strongest point is that specification
+  and implementation co-evolve through objectives, progress, and feedback,
+  rather than one being a complete static input to the other. Its proposed
+  response to probabilistic, incompletely verifiable work is evolutionary:
+  generate alternatives, evaluate gradually, select, and recombine. That is a
+  useful exploration model, but the essay supplies no proof that selection
+  yields correct or safe software and defines no binding acceptance authority.
+  It cannot replace explicit acceptance criteria, independent review, or human
+  gate decisions. Claims about Cursor's experiment must be checked against
+  Cursor's primary article rather than inherited from this commentary.
+  (accessed 2026-08-23)
+
+- https://github.com/GoogleCloudPlatform/open-knowledge-format/tree/ad30107c31c06aec8a7d5636e0d1058118604e6f
+  type: specification, source | relation: prior-art, complement |
+  action: cite, watch
+  note: Canonical Open Knowledge Format v0.2 specification, pinned at the
+  2026-08-21 main revision and Apache-2.0 licensed. OKF defines portable
+  Markdown concepts with YAML front matter, optional progressive-disclosure
+  indexes and logs, ordinary Markdown relationships, and v0.2 provenance,
+  trust, freshness, lifecycle, and attestation fields. It is direct prior art
+  for AGF's repository-readable structured artifacts, but it is a knowledge
+  interchange format, not a role-authority, coordination, or gate protocol.
+  Its reference producer and viewer are proof-of-concept tooling, not evidence
+  of governance effectiveness. (accessed 2026-08-23)
+
+- https://github.com/gritzko/bee/tree/184fddf4ec318469d70406ff8b51b58dcb5c0ba6
+  type: tooling, source | relation: prior-art, complement |
+  action: evaluate, watch
+  note: Pinned Bee implementation evidence. This revision documents and tests
+  version-aware `file:line:hash` references, `bee see`, forward citation
+  expansion through `bee cite`, and cross-repository backlink lookup through
+  `bee lindex`. It does **not** expose the essay's named `cited` command, so the
+  exact reverse-interleaving capability described in “Wiki Is Not Enough” was
+  not reproduced from this public revision. GitHub reports no recognized
+  repository license; record design prior art only and infer no reuse
+  permission. (accessed 2026-08-23)
+
+- https://github.com/gritzko/beagle/tree/c27ac6ff71aea78cdfc2864d4308e8f994cca245
+  type: tooling, source | relation: prior-art, complement |
+  action: evaluate, watch
+  note: Pinned Beagle implementation evidence for the worktree essay. The
+  README confirms `be work`, support for many parallel worktrees, and an
+  upstream-fork “tree-of-life” used to propagate selected changes. This
+  verifies the public surface, not the claimed productivity or quality
+  effects. GitHub reports no recognized repository license; record design
+  prior art only and infer no reuse permission. (accessed 2026-08-23)
+
+## First AGF takeaways
+
+1. **Separate authority from derived navigation.** Forward citations,
+   backlinks, and worktree trees can reduce discovery cost, but repository
+   records and authorized role decisions remain canonical.
+2. **Knowledge freshness needs explicit evidence.** OKF v0.2's provenance and
+   lifecycle fields strengthen the source family; an index or wiki alone does
+   not establish that a claim remains current.
+3. **Candidate selection is not acceptance authority.** Keeping and comparing
+   parallel attempts may improve exploration, while Gate 1/Gate 2 still decide
+   what is authorized and accepted.
+4. **Implementation claims require exact-surface checks.** The public Bee
+   revision supports related backlink mechanics but not the essay's named
+   `cited` command; design prose must not be promoted to implemented maturity
+   without that check.
+
+## Evaluation boundary
+
+No new radar item. Bidirectional artifact navigation overlaps the existing
+external-context-graph and cross-harness-continuity questions, while the
+worktree hierarchy overlaps AGF's existing worktree, coordination graph,
+independent-review, and Gate 2 surfaces. Reconsider only after a concrete AGF
+failure to find downstream references or to track and compare many parallel
+candidate trees. Do not install Bee/Beagle, adopt OKF, change worktree
+semantics, add a second authority store, or implement a new `agov` view from
+this source classification without separately authorized work.
