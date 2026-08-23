@@ -6,14 +6,15 @@ gate1_approved_by: ""
 gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      Not yet consulted at this first exact-head submission. This plan changes
-      contribution-audit routing and therefore requests a fresh independent
-      contribution-auditor review in the accompanying coordination handoff.
-      The draft-stage waiver records that consultation is outstanding; it is
-      not evidence that the plan is ready for Gate 1, and the governor should
-      not approve it before that review is resolved.
+      Independent audit
+      20260823T210538Z-contribution-auditor-qmdj reviewed the first frozen head
+      COMPLETE / BLOCK. This revision resolves CA-RMFP-1 with per-commit and
+      final-tree allowlist evidence, resolves CA-RMFP-2 with a fresh-target and
+      all-open-MR pre-Gate-2 collision scan, and corrects consultation metadata
+      per CA-RMFP-A1. A bounded exact-head re-review is requested through the
+      follow-up handoff; Gate 1 remains pending until it clears the corrections.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -91,10 +92,14 @@ cases; it is not evidence that every docs-only change is low-risk.
 
 A change qualifies only when every condition below is true:
 
-1. The complete target-branch diff changes only the existing files
-   `docs/sources.md` and/or `docs/radar.md`. No coordination, plan, TODO,
-   issue, changelog, rule, product-doc, generated, or executable file is in the
-   same MR.
+1. Both the complete commit range from the freshly resolved target merge base
+   through `HEAD` **and** the final aggregate tree diff change only the existing
+   files `docs/sources.md` and/or `docs/radar.md`. Every individual commit is
+   inspected. A merge commit, imported or cherry-picked commit touching any
+   other path, or temporarily added/removed or modify-then-revert non-allowed
+   path makes the candidate ineligible even when the final tree diff looks
+   clean. No coordination, plan, TODO, issue, changelog, rule, product-doc,
+   generated, or executable path occurs anywhere in the range.
 2. The change is research maintenance: adding or correcting a source
    classification, preserving an unverified stub, adding or refreshing a
    non-binding radar question, updating a `review-by` date with a reason, or
@@ -110,9 +115,13 @@ A change qualifies only when every condition below is true:
    limits rather than filling gaps by inference.
 5. The radar form remains intact: a controversy or open question, non-binding
    status, source cross-reference where applicable, and a `review-by` date.
-6. The implementer has checked current `origin/main`, open MRs, and the existing
-   source/radar text for duplicate entries and edit collisions before writing.
-7. None of the automatic disqualifiers below applies. Uncertainty means the
+6. The implementer has checked freshly fetched `origin/main`, every open MR
+   targeting it, and the existing source/radar text for duplicate entries,
+   batch/allocation conflicts, and edit collisions before writing.
+7. The same target and all-open-MR scan is repeated with fresh forge state in
+   the Gate 2 review cycle. Earlier evidence is not sufficient. A relevant
+   target or MR change must be resolved and evidenced before review continues.
+8. None of the automatic disqualifiers below applies. Uncertainty means the
    change does not qualify.
 
 Eligibility is semantic as well as path-based. A two-file diff is not safe
@@ -146,8 +155,10 @@ Gate 1 plan, and do not treat work already performed as retroactive approval.
 
 ## Fast-path workflow and evidence contract
 
-1. Fetch current remote state; check open MRs and the existing entries for
-   overlap; create a normal `docs/` branch from the intended target branch.
+1. Fetch current remote state; enumerate every open MR targeting the intended
+   target branch and inspect each MR's changed paths; check the relevant MRs and
+   existing entries for overlap; create a normal `docs/` branch from the
+   freshly fetched target.
 2. Edit only the eligible research artifact(s). No pre-change coordination MR,
    plan file, or contribution audit is required.
 3. Record the eligibility decision in the commit message, for example:
@@ -165,17 +176,89 @@ Gate 1 plan, and do not treat work already performed as retroactive approval.
      triggered; and
    - targeted validation and exact-head pipeline results.
 5. Run at least:
-   - `git diff --check origin/main...HEAD`;
-   - an exact allowlist check proving every changed path is
-     `docs/sources.md` or `docs/radar.md`;
+   - the deterministic full-range and final-tree procedure below, recording
+     target SHA, merge-base SHA, every inspected commit, and every path;
+   - `git diff --check <fresh-merge-base>...HEAD`;
    - manual duplicate-entry, registry-vocabulary, radar `review-by`, source
      attribution, and unsupported-claim checks; and
    - the MR pipeline configured for those paths, including
      `agov:governance:validate`.
-6. The governor-reviewer reviews the exact MR head, may request corrections or
+6. Immediately before Gate 2/exact-head review, the MR author or implementer
+   fetches the target again and obtains a fresh, complete forge inventory of
+   every open MR targeting it. For every open MR, record IID, head SHA,
+   `updated_at`, and changed paths; for every MR touching `docs/sources.md` or
+   `docs/radar.md`, recheck source URLs/canonical identities, batch allocation,
+   radar titles and cross-references, edit regions, registry vocabulary, and
+   `review-by` values against the freshly fetched target and candidate. Update
+   the MR evidence with the UTC scan time, target SHA, relevant MR inventory,
+   and a disposition for every possible overlap. The governor verifies this
+   evidence in the same review cycle. If target or relevant open-MR state
+   changes before merge, repeat the scan; stale evidence is never sufficient.
+7. If relevant target content changed, rebase or otherwise refresh the
+   candidate, rerun both allowlists and semantic checks, and obtain a new
+   exact-head pipeline. Any candidate-head change invalidates the earlier
+   exact-head pipeline and Gate 2 review. A duplicate, collision, unclear
+   allocation, or unresolved ownership question makes the candidate ineligible
+   and returns it to the ordinary governed route.
+8. The governor-reviewer reviews the exact MR head, may request corrections or
    additional factual advice, and alone decides Gate 2 and merge. The governor
    may escalate any candidate to full Gate 1 without treating path eligibility
    as a right to merge.
+
+### Deterministic full-range and final-tree allowlist
+
+The operator runs the following Bash procedure after fetching the target. It
+fails closed when the merge base cannot resolve, the range is empty, any merge
+commit exists, any individual commit touches a non-allowed path, or the final
+aggregate diff contains a non-allowed path. Inspecting commits separately is
+what catches a path added and later removed or reverted.
+
+```bash
+git fetch --prune origin
+research_target=origin/main
+research_base="$(git merge-base "$research_target" HEAD)"
+test -n "$research_base"
+test -n "$(git rev-list "$research_base"..HEAD)"
+test -z "$(git rev-list --merges "$research_base"..HEAD)"
+
+research_bad=0
+while IFS= read -r research_commit; do
+  while IFS= read -r -d '' research_path; do
+    case "$research_path" in
+      docs/sources.md|docs/radar.md) ;;
+      *) printf 'disallowed commit path: %s %s\n' \
+           "$research_commit" "$research_path" >&2
+         research_bad=1 ;;
+    esac
+  done < <(git diff-tree --no-commit-id --name-only -r -z \
+             "${research_commit}^" "$research_commit")
+done < <(git rev-list --reverse "$research_base"..HEAD)
+test "$research_bad" -eq 0
+
+research_bad=0
+while IFS= read -r -d '' research_path; do
+  case "$research_path" in
+    docs/sources.md|docs/radar.md) ;;
+    *) printf 'disallowed final-tree path: %s\n' "$research_path" >&2
+       research_bad=1 ;;
+  esac
+done < <(git diff --name-only -z "$research_base"...HEAD)
+test "$research_bad" -eq 0
+git diff --check "$research_base"...HEAD
+```
+
+The implementation MR must record deterministic acceptance transcripts for:
+
+- one allowed source-only range, one radar-only range, and one combined range
+  passing both checks;
+- a non-allowed path present in the final diff failing;
+- a non-allowed path added and reverted in a later commit failing even though
+  the final aggregate diff contains only allowed paths; and
+- a merge commit in the range failing.
+
+These are procedure acceptance tests, not new validator authority. Semantic
+eligibility, source fidelity, and collision dispositions remain human Gate 2
+judgment.
 
 No separate coordination record is required merely to start or submit an
 eligible research-maintenance MR. A coordination record remains required when
@@ -219,7 +302,7 @@ the implementation scope.
 | Adopter-facing explanation | **Updated:** `agf/docs/site/docs/operate/day-to-day.md` explains eligibility and retained Gate 2 evidence without copying the full rule. |
 | Runbook/situation map | **Updated:** `agf/docs/site/docs/operate/run-agf-in-real-situations.md` gains the exact sources/radar route; generic docs-only work remains sized normally. |
 | AI landing/loaders | **Updated:** root and template `AGENTS.md` plus the two foundry-local `.claude/rules/` projections. No `.claude/CLAUDE.md` exists. |
-| Validation/drift evidence | **Advisory/manual:** exact path allowlist is mechanically checkable, but semantic eligibility and source fidelity remain human Gate 2 judgment. No new validator or blocking authority is justified for this narrow process reduction. |
+| Validation/drift evidence | **Deterministic procedure plus human review:** the plan's per-commit range check and separate final-tree check fail closed on hidden/reverted non-allowed paths and merge commits; freshly fetched target plus all-open-MR inventory is repeated in the Gate 2 review cycle. Semantic eligibility, source fidelity, and collision dispositions remain human judgment. No new validator or blocking authority is justified for this narrow process reduction. |
 | Distribution | **Confirmed before Gate 2:** the canonical rules, template, and Pages explanation must resolve through existing `agf/dist/release-manifest.yaml` globs; root `AGENTS.md`, `.claude/rules/`, plan, and projection record remain foundry-local evidence. |
 
 Implementation must create and pass the structured projection manifest named
@@ -265,23 +348,37 @@ Adopter docs parity outcome required at Gate 2: **updated** through
    pipeline, human Gate 2 decision, and protected-branch merge remain
    mandatory.
 3. A source-only, radar-only, and combined sources+radar advisory maintenance
-   example each clearly qualifies.
+   test range each passes the per-commit and final-tree procedure.
 4. Negative examples for an extra file, rule/authority change, integration or
    dependency, implementation commitment, roadmap priority, sensitive/legal/
    security material, public product claim, and uncertain source inference
    each clearly return to full Gate 1.
-5. Generic documentation changes do not inherit this exception.
-6. The MR itself can carry the complete Gate 2 evidence without requiring a
+5. A non-allowed path added and later reverted fails range qualification even
+   when the aggregate final diff contains only allowed paths; a merge commit
+   and a non-allowed final-tree path also fail deterministically.
+6. Gate 2 evidence names the fresh target SHA, scan time, every open target-MR
+   IID/head SHA/update time/path set, and the duplicate, batch/allocation,
+   vocabulary, cross-reference, review-by, and edit-collision dispositions for
+   each relevant MR. A synthetic or live changed-target/open-MR scenario shows
+   the evidence is repeated and any changed candidate head requires a new
+   pipeline and review.
+7. Generic documentation changes do not inherit this exception.
+8. The MR itself can carry the complete Gate 2 evidence without requiring a
    separate coordination-only MR; separate obligations still use coordination.
-7. `agov plan projection-check`, `agov validate`, applicable documentation
+9. `agov plan projection-check`, `agov validate`, applicable documentation
    validation, `git diff --check`, and exact-head CI pass.
-8. No source/radar content, validator, schema, CI configuration, role status,
+10. No source/radar content, validator, schema, CI configuration, role status,
    version, release, tag, or deployment changes are included.
 
 ## Risks and rollback
 
-- **Path-only gaming:** mitigated by semantic criteria, enumerated
-  disqualifiers, and governor exact-head review.
+- **Path-only or net-diff gaming:** mitigated by the per-commit range check,
+  merge-commit rejection, separate final-tree check, semantic criteria,
+  enumerated disqualifiers, and governor exact-head review.
+- **Target/open-MR state going stale:** mitigated by naming the MR author or
+  implementer as refresh operator, recording target and all-open-MR state in
+  the MR, repeating it in the Gate 2 review cycle, and invalidating old
+  exact-head evidence whenever the candidate head changes.
 - **Source overclaim:** mitigated by the MR evidence contract learned from
   !1695; optional factual advice remains available when the governor needs it.
 - **Fast path becoming the default for all docs:** prevented by exact paths and
