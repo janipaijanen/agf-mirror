@@ -161,7 +161,7 @@ Default POC layout:
 | Tool provenance | `agov --version` / `agov version --format json` |
 
 The `agf/` distribution ships **48 governance rules**, **15 agent definitions**,
-and **7 skills**.
+and **8 skills**.
 
 The framework source archive is usable on its own. Adopters who want the
 current core validators can use a full checkout or the optional packaged
