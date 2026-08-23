@@ -39,6 +39,28 @@
    issue comments.
 6. Classify new items by urgency, current gate, role authority, ownership, and
    whether they create a downstream obligation.
+
+### Common pitfalls (both cause a poll to look complete while missing real work)
+
+- **Reading a stale local checkout instead of the fetched ref.**
+  `git fetch --prune origin` updates only remote-tracking refs; it does
+  not update a persistent working directory's checked-out files. A
+  local-file tool (`agov coord status`, `agov coord pending`, etc.) run
+  from that persistent checkout after a fetch still reads whatever
+  branch and commit the checkout happens to be on — which may be
+  unrelated to, or older than, what was just fetched. Run local-file
+  governance checks from a working tree freshly reset to the fetched
+  ref for that cycle (a disposable worktree checked out from
+  `origin/<branch>`, or `git reset --hard origin/<branch>` on a
+  dedicated poll checkout) — never assume a fetch alone is sufficient.
+- **Trusting a default-paginated MR/issue listing.** Many CLI tools
+  (e.g. `glab mr list`) cap results at a default page size (commonly 30)
+  with no truncation warning. Combined with sorting by recency and only
+  looking at the first few rows, this is structurally blind to a large,
+  slow-moving backlog — exactly the shape a stale-MR backlog takes.
+  Always fetch the true total count (an explicit large `--per-page`, or
+  `--paginate` against the API) before concluding "nothing new," and
+  never substitute a recency-sorted slice for a full count.
 7. Act inside the current gate. Split independent work into non-overlapping
    ownership, communicate material progress, and publish validated handoffs or
    blockers where the recipient can see them.
