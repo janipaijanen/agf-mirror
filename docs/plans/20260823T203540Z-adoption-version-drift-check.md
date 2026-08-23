@@ -65,6 +65,34 @@ repository's actual current content (not assumed) and fixed:
   in the revised "Downstream impact classification" and "Rollback"
   sections below.
 
+## Round 2 correction (fixes contribution-auditor's exact-head review, `rerj`)
+
+`20260823T213054Z-contribution-auditor-rerj.md` reviewed the round-1
+corrected head (`bc20a35c`) and recommended BLOCK, 1 critical + 1
+material finding. Verified and fixed:
+
+- **`CA-LRB-VER-R1-1`** (critical) — the round-1 fix made `checkout_role`
+  purely opt-in with no mechanism causing any real adopter's own live
+  record to ever gain the field, so the check the issue exists to
+  provide activates for nobody by default — the exact silent-failure
+  shape issue #112 reported in the first place, just moved one layer
+  down. Fixed: see the new "Deterministic live-record selection and
+  migration" subsection under Design below — a new, always-on advisory
+  finding fires whenever zero `checkout_role: live` records exist in
+  `agf/learnings/`, exactly one live record is required (2+ is a
+  blocking ambiguity finding), and both the commissioning walkthrough
+  (new adopters) and the upgrade skill (existing adopters) are given
+  concrete, decided touchpoints that set the field.
+- **`CA-LRB-VER-R1-2`** (material) — the adopter documentation path was
+  still deferred ("exact page confirmed at implementation time")
+  despite the round-1 "Adopter docs parity: updated" claim asserting it
+  was named. Fixed: the exact page and section are named now —
+  `agf/docs/site/docs/adopt/install-and-layouts.md`, "Step 7:
+  Initialise your evidence" (verified: this is the existing section
+  that already tells a new adopter to confirm
+  `agf/learnings/<your-codename>.yaml` exists — the natural, already-
+  read anchor point, not a new page).
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -136,6 +164,50 @@ merge time; otherwise the new check fails immediately on landing.
 checkout's own state) gets no `checkout_role` field and is skipped,
 unchanged, by design — see the regression fixture in "Test strategy."
 
+### Deterministic live-record selection and migration (fixes `CA-LRB-VER-R1-1`)
+
+Opt-in alone does not activate detection for anyone. Two complementary
+mechanisms close that gap without misclassifying imported evidence:
+
+- **A second, always-on advisory finding, independent of `checkout_role`
+  entirely.** Whenever `agf/learnings/` contains **zero** records with
+  `checkout_role: live`, `agov validate learnings` emits an advisory
+  (non-blocking) finding: "no live-marked adoption record found;
+  version-drift detection is inactive for this checkout — add
+  `checkout_role: live` to your own learning record (see
+  `install-and-layouts.md`, Step 7)." This finding cannot be silently
+  skipped the way the blocking check itself can, because it does not
+  depend on the field already being present — it is the field's own
+  absence that triggers it. It is advisory, not blocking, because an
+  adopter with only imported evidence records (this project's own
+  `harbor-workshop.yaml`, before `foundry.yaml` gains the field) is a
+  legitimate state, not an error.
+- **Exactly one live record is required.** Two or more records carrying
+  `checkout_role: live` in the same `agf/learnings/` directory is a
+  **blocking** ambiguity finding — the check cannot know which record
+  is authoritative for this checkout's own version. Zero live records
+  never blocks (advisory only, above); one live record runs the normal
+  version-comparison check from the previous subsection; two or more
+  blocks until the adopter resolves which record is actually live.
+- **Who sets the field, and when (both decided, not left to adopter
+  discovery):**
+  - **New adopters:** the commissioning walkthrough's existing Step 7
+    ("Initialise your evidence") is the first place a fresh
+    `agf/learnings/<your-codename>.yaml` is created — this plan adds an
+    instruction there to set `checkout_role: live` on that record at
+    creation time, so new adoptions are covered without any separate
+    migration step.
+  - **Existing adopters:** the upgrade skill's Step 4 (already touched
+    by this plan for `upgrade_in_progress` marker lifecycle) gets one
+    additional instruction: if the adopter's own record does not yet
+    carry `checkout_role: live`, add it now, as part of the same step
+    that already updates `adoption.framework_version`. This gives every
+    existing adopter a concrete, recurring touchpoint (their next
+    upgrade) rather than requiring them to independently learn about
+    the new field — combined with the always-on advisory finding above,
+    an adopter who skips this instruction still sees a persistent
+    signal on every `agov validate` run until they act.
+
 ### Mid-upgrade transient window: full lifecycle, decided (fixes `CA-LRB-VER-2`)
 
 Confirmed by reading the current `agf/skills/upgrade/SKILL.md`: Step 3
@@ -188,18 +260,24 @@ On the implementation branch, after Gate 1 approval:
   `adoption.upgrade_in_progress` / `adoption.upgrade_started_at`.
 - `tooling/rust/crates/agov-validators/src/learnings.rs` — new
   comparison against `agf/VERSION`, scoped to `checkout_role: live`
-  records, honoring the bounded in-progress suppression.
+  records, honoring the bounded in-progress suppression; plus the new
+  always-on zero-live-records advisory finding and the two-or-more-live-
+  records blocking ambiguity finding (round 2, fixes `CA-LRB-VER-R1-1`).
 - `agf/skills/upgrade/SKILL.md` Step 3 (set marker) and Step 4 (clear
-  marker, update version) — document the full lifecycle decided above.
+  marker, update version, **and set `checkout_role: live` on the
+  adopter's own record if not already present** — round 2 addition,
+  fixes `CA-LRB-VER-R1-1`) — document the full lifecycle decided above.
 - `agf/learnings/foundry.yaml` — add `checkout_role: live` and correct
   `framework_version` to match `agf/VERSION` at merge time (required so
   the new check does not fail immediately on this project's own live
   record).
-- `agf/docs/site/docs/adopt/` — adopter-facing explanation of
-  `checkout_role` and the upgrade-in-progress marker (exact page
-  confirmed at implementation time against current
-  `agf/docs/site/docs/adopt/` contents), satisfying the adopter-docs-
-  parity requirement below.
+- `agf/docs/site/docs/adopt/install-and-layouts.md`, "Step 7:
+  Initialise your evidence" (round 2: exact page and section named, not
+  deferred — fixes `CA-LRB-VER-R1-2`) — new instruction to set
+  `checkout_role: live` on the freshly-created record at commissioning
+  time, plus a short explanation of the field, the upgrade-in-progress
+  marker, and the always-on advisory finding, satisfying the adopter-
+  docs-parity requirement below.
 - `agf/templates/learning-record.yaml` — document the new optional
   fields in the shipped template.
 - Focused unit tests (see "Test strategy").
@@ -223,6 +301,18 @@ On the implementation branch, after Gate 1 approval:
   `upgrade_in_progress: true` with `upgrade_started_at` older than 24h
   — the version-mismatch finding fires anyway, plus the distinct
   "stale in-progress marker" finding.
+- Advisory (fixes `CA-LRB-VER-R1-1`): a `agf/learnings/` directory with
+  zero `checkout_role: live` records (including one containing only
+  `checkout_role: imported` records, or none of the field at all) — the
+  always-on advisory finding fires, no blocking finding, `agov validate`
+  exit code unaffected.
+- Blocking (fixes `CA-LRB-VER-R1-1`): a `agf/learnings/` directory with
+  two records both carrying `checkout_role: live` — the ambiguity
+  finding fires as blocking, naming both record files.
+- Positive (fixes `CA-LRB-VER-R1-1`): exactly one `checkout_role: live`
+  record present — the advisory zero-records finding does not fire, and
+  the ambiguity finding does not fire; only the normal version-
+  comparison check from the earlier positive/negative cases applies.
 - `agov plan validate` on this plan file: must pass.
 - `agov validate` (full umbrella): no new findings beyond pre-existing,
   unrelated warnings, once `foundry.yaml`'s own version is corrected as
@@ -259,10 +349,12 @@ Impact:
                      must mark checkout_role: live and correct
                      framework_version, or the check fails their
                      validation pipeline. Adopters who do not set
-                     checkout_role at all are unaffected (skipped,
-                     fixes CA-LRB-VER-1) — this is the deliberate
-                     fail-open default for the new field, not implicit
-                     opt-out of a mandatory check.
+                     checkout_role at all are not blocked (skipped by
+                     the blocking check, fixes CA-LRB-VER-1) but do see
+                     a new always-on advisory finding until they add the
+                     field (round 2, fixes CA-LRB-VER-R1-1) — the
+                     blocking behavior is opt-in, but visibility of the
+                     gap is not.
   Downstream:       No adopter-produced artifact shape changes for
                      adopters not opting into checkout_role: live; no
                      agent behavior toward an adopter's users changes.
@@ -271,20 +363,28 @@ Impact:
                      already-drifted framework_version. Migration note:
                      correct adoption.framework_version to match
                      agf/VERSION before or in the same commit as adding
-                     checkout_role: live; the check is opt-in via the
-                     new field, so no adopter is forced onto the new
-                     behavior without also opting in.
+                     checkout_role: live. The blocking check is opt-in
+                     via the new field, so no adopter is forced onto the
+                     blocking behavior without also opting in — but the
+                     upgrade skill's Step 4 (round 2) prompts every
+                     existing adopter to opt in at their next upgrade,
+                     and the always-on advisory finding (round 2) makes
+                     an unmarked live record visible on every
+                     `agov validate` run in the meantime.
   Evidence:          GitLab issue #112 (harbor-workshop, 2026-08-10 to
                      2026-08-21); this project's own foundry.yaml and
                      harbor-workshop.yaml verified as live evidence for
                      the live-vs-imported distinction (CA-LRB-VER-1).
 ```
 
-**Adopter docs parity:** `updated` — `agf/docs/site/docs/adopt/`
-(exact page named in "Files expected to change") explains
-`checkout_role`, that it is opt-in, and the upgrade-in-progress marker
-lifecycle; `agf/templates/learning-record.yaml` documents the new
-optional fields in the shipped template adopters copy from.
+**Adopter docs parity:** `updated` — `agf/docs/site/docs/adopt/
+install-and-layouts.md`, "Step 7: Initialise your evidence" (round 2:
+exact page and section, fixes `CA-LRB-VER-R1-2`) explains
+`checkout_role`, that the blocking check is opt-in but the zero-live-
+records finding is not, the exactly-one-live-record requirement, and
+the upgrade-in-progress marker lifecycle; `agf/templates/
+learning-record.yaml` documents the new optional fields in the shipped
+template adopters copy from.
 
 ## Rollback
 
