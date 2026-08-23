@@ -56,9 +56,21 @@ Current authority is internally inconsistent:
 
 Recent repository evidence shows both the useful control and the excess:
 
+- MR !1862 publishes the contribution-auditor's withdrawal of a mistaken
+  Batch 29 planning obligation. The record identifies the existing
+  `simplicity-rule.md` fast track as sufficient for a reversible, source-only
+  classification and measures the discarded route as a 102-line coordination
+  record, coordination MR and pipeline, followed by a still-unstarted
+  plan/audit/approval sequence.
+- MR !1863 is the corresponding live one-file fast-track candidate. Its MR
+  carries pinned upstream revisions, access evidence, claim limits, an exact
+  path-scope statement, and targeted validation; its exact-head pipeline
+  passed without a separate Gate 1 plan. This is the direct precedent for the
+  source-only half of the proposed rule.
 - MR !1779 changed only `docs/sources.md` and `docs/radar.md`, carried explicit
   verification and evidence limits in the MR, passed exact-head CI, and merged
-  without a separate plan or coordination chain.
+  without a separate plan or coordination chain. It is the direct combined-
+  file precedent whose policy basis the current rules do not state clearly.
 - MRs !1624 and !1626 likewise carried bounded source/radar classifications in
   the implementation MR itself.
 - MR !1241 used a separate approved plan, fact-check handoffs, specialist
@@ -236,8 +248,9 @@ runtime behavior.
   Gate 2 merge enabled, and ensure the loader summary points to the updated
   simplicity rule. Otherwise retain the prior full Gate 1 route. No file or
   data migration is required.
-- **Evidence:** repository precedents !1779, !1624, !1626, !1241, and !1695,
-  plus the governor's explicit request to reduce this ceremony.
+- **Evidence:** repository precedents !1862, !1863, !1779, !1624, !1626,
+  !1241, and !1695, plus the governor's explicit request to reduce this
+  ceremony.
 
 Adopter docs parity outcome required at Gate 2: **updated** through
 `day-to-day.md`, `run-agf-in-real-situations.md`, the template loader, and the
