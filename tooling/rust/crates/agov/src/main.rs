@@ -4533,6 +4533,10 @@ impl SessionGitStatus {
             }
         }
 
+        if let Some(message) = version_drift_warning() {
+            warnings.push(message);
+        }
+
         warnings
     }
 }
@@ -5817,6 +5821,7 @@ fn run_all_validators(args: &[String]) -> i32 {
         ),
         render_framework_config(&mut output),
         render_readme_stats(&mut output, &agov_core::repo_root()),
+        render_version_drift(&mut output),
     ];
 
     output.stdout("OK agov.validate.coverage: framework checks complete; for complete governance coverage, also run `agov plan validate` and `agov coord validate`; the umbrella command does not validate those records");
@@ -5855,6 +5860,49 @@ fn render_readme_stats(output: &mut OutputCounter, root: &std::path::Path) -> i3
             output.stdout(format!("WARN {label}: {} ({loc})", f.message));
         }
         0 // advisory only — never blocking
+    }
+}
+
+/// Compare the running `agov` binary's own build version against the
+/// commissioned `agf/VERSION` of the tree it is invoked against.
+/// Returns `Some(warning line)` on mismatch; `None` if `agf/VERSION` is
+/// absent or matches -- nothing to report either way.
+fn version_drift_warning() -> Option<String> {
+    let commissioned = agov_core::commissioned_version()?;
+    let running = env!("CARGO_PKG_VERSION");
+    if commissioned == running {
+        None
+    } else {
+        Some(format!(
+            "agov binary is v{running} but commissioned agf/ is v{commissioned} -- \
+             results may be inaccurate if schema, subcommands, or validation rules \
+             changed between versions"
+        ))
+    }
+}
+
+fn render_version_drift(output: &mut OutputCounter) -> i32 {
+    render_version_drift_result(output, version_drift_warning())
+}
+
+/// Pure rendering step, separated from `version_drift_warning()`'s own
+/// filesystem read so the advisory/never-blocking contract is directly
+/// unit-testable without needing a full validator-passing fixture (issue
+/// #114 round-1 review `2ggk`, finding I114-R1: the prior integration
+/// test asserted only that the WARN line appeared, never that the
+/// overall result stayed non-blocking, since its minimal fixture already
+/// failed unrelated validators for unrelated reasons).
+fn render_version_drift_result(output: &mut OutputCounter, warning: Option<String>) -> i32 {
+    let label = "agov.validate.version_drift";
+    match warning {
+        Some(message) => {
+            output.stdout(format!("WARN {label}: agf/VERSION: {message}"));
+            0 // advisory only — never blocking
+        }
+        None => {
+            output.stdout(format!("OK {label}"));
+            0
+        }
     }
 }
 
@@ -6679,5 +6727,25 @@ mod tests {
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0].file, "00010-coder-tester.md");
         assert_eq!(errors[0].value, "not-a-date");
+    }
+
+    /// Issue #114 round-1 review `2ggk`, finding I114-R1: the version-drift
+    /// check must remain advisory regardless of whether a mismatch is
+    /// present. Unit-tests `render_version_drift_result` directly (rather
+    /// than through a full-repo fixture that fails unrelated validators
+    /// for unrelated reasons) so a future edit that accidentally turned
+    /// this check blocking would fail this test specifically.
+    #[test]
+    fn version_drift_result_is_never_blocking() {
+        let mut output = OutputCounter::default();
+        let exit_on_mismatch = render_version_drift_result(
+            &mut output,
+            Some("agov binary is v0.0.1 but commissioned agf/ is v9.9.9".to_string()),
+        );
+        assert_eq!(exit_on_mismatch, 0, "mismatch must stay advisory, not blocking");
+
+        let mut output = OutputCounter::default();
+        let exit_on_match = render_version_drift_result(&mut output, None);
+        assert_eq!(exit_on_match, 0, "no-mismatch case must stay 0");
     }
 }
