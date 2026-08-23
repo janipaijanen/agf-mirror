@@ -3650,6 +3650,105 @@ learnings:
         - "v2.6.0 tag pipeline 2762930639 at 4890dfe9ef96abdbfc54f9e975080cedd0f280f6: release:create job 15917296084 failed on missing agov-2.6.0-linux-aarch64.tar.gz plus its SHA-256 and provenance sidecars after seventeen jobs passed; release:verify 15917296085 skipped; OCI job 15917296086 succeeded. Canonical diagnosis and public-state inventory: docs/coordination/20260815T193127Z-coder-tester-pj71.md; binding disposition and corrective-planning authority: docs/coordination/20260815T193735Z-governor-reviewer-spmj.md."
         - "v2.6.1 site-html-build pipeline 2764876752 (MR !1684, unrelated roadmap-docs change) failed on agf/docs/build/hooks/check_commissioning_links.py's hardcoded AGOV_SUPPORTED_PLATFORMS tuple expecting agov-2.6.1-linux-aarch64.tar.gz, which the original mandatory-target drop (2026-08-05, MR !1171, commit 3456c1fa, merge 5b4851e0) removed from the mandatory build loop, and which the later three-consumer corrective single-sourcing (2026-08-16, MR !1610, commit 9ad75651, merge adda2bac) removed from .gitlab-ci.yml/release-assets.sh/agov-oci-image.sh but missed as a fourth consumer. Same migration, fourth consumer, first release where the gap had nothing to find. Diagnosis and fix: MR !1686, docs/coordination/20260817T053404Z-planner-architect-gbtr.md."
 
+  - id: "20260823T081929Z-gkhn"
+    date: "2026-08-23"
+    category: gap
+    scope: framework
+    title: stale-local-checkout-and-list-pagination-caps-hid-a-real-handoff-and-a-90-plus-mr-backlog
+    status: proposed
+    description: >
+      During a multi-day period with the coder-tester role's usual session
+      unavailable, planner-architect ran scheduled coordination polls every
+      30 minutes for several hours. Two independent, compounding defects in
+      how those polls were executed hid real state for multiple consecutive
+      ticks, until the human governor asked directly why a coder-tester
+      handoff and a large stale-MR backlog had not been found.
+
+      First defect: `agov coord status --recent 5` was run from the agent's
+      persistent local working-directory checkout, on an unrelated
+      long-lived feature branch, after `git fetch --all --prune`. `git
+      fetch` updates only remote-tracking refs; it does not update the
+      working tree's checked-out files. `agov coord status` reads
+      `docs/coordination/` from the working tree, not from the fetched
+      ref, so every poll tick was silently reading stale, wrong-branch
+      coordination state. This is exactly the failure
+      `docs/reference/agent-cold-start-habits.md` already names ("a
+      checked-out `docs/coordination/` directory alone is not the shared
+      inbox") -- the guidance existed and was not followed. Re-running the
+      identical command from a disposable worktree checked out fresh from
+      `origin/main` immediately surfaced the real, several-hours-old
+      coder-tester handoff (`20260822T202031Z-coder-tester-rbqm`,
+      `issue-110-coordination-recovery-batch`) at the top of "Recent
+      messages."
+
+      Second, independent defect: open-MR checks used `glab mr list`
+      without an explicit `--per-page`, which silently caps at 30 with no
+      truncation warning. The poll script additionally sorted the returned
+      page by `updated_at` and printed only the top 8 rows. The actual open
+      MR count, confirmed via `glab api
+      .../merge_requests?state=opened --paginate`, was 97 -- a stale
+      backlog issue #110 exists specifically to track, invisible to a
+      view that only shows what changed most recently. This also violates
+      already-published guidance (same reference file: "every open merge
+      request, regardless of author").
+
+      Both defects independently produced the same outward symptom ("poll
+      tick found nothing new") across three consecutive 30-minute ticks,
+      which made the compound failure look like normal quiet backlog state
+      rather than a checking-process defect.
+    agents_involved:
+      - planner-architect
+    framework_section: >
+      `docs/reference/agent-cold-start-habits.md` ("Treat Timers As
+      Intake" and "Start From Governed Evidence" sections) already states
+      both correct behaviors this incident violated. The document's
+      existence did not prevent the failure across multiple ticks in the
+      same session that had read it at cold start -- the warnings are
+      present but not load-bearing enough to survive a busy multi-hour
+      polling session without a mechanical check.
+    business_impact:
+      type: cost_overhead
+      description: >
+        A real, addressed coordination handoff went unactioned for
+        multiple poll cycles, and a 97-MR backlog remained invisible to
+        routine polling the entire time. No incorrect action was taken on
+        stale information and no data was lost -- the cost was delay and
+        the human governor having to ask directly why the handoff and
+        backlog had not surfaced, rather than the poll process catching
+        its own gap.
+    recommendation: >
+      Make both already-documented behaviors mechanically checked rather
+      than relying on the agent remembering to comply with prose read at
+      cold start:
+
+      1. Any poll step that reads `docs/coordination/` or other
+      local-file governance state from a persistent working directory
+      must first confirm the working tree matches the fetched ref it
+      intends to check -- e.g., run the check from a disposable worktree
+      created fresh from `origin/<branch>` for that tick, or explicitly
+      `git reset --hard` a dedicated poll checkout to the fetched SHA
+      immediately before reading local files. `git fetch` alone is not
+      sufficient and should not be treated as such.
+
+      2. Any `glab mr list` (or equivalent paginated listing) call in a
+      poll must either pass an explicit `--per-page` large enough to
+      cover the real backlog, or use `--paginate` / an explicit total-count
+      check, and must not silently truncate to a recency-sorted slice
+      without also checking the true total open count against last-known
+      baseline.
+
+      3. Consider strengthening
+      `docs/reference/agent-cold-start-habits.md` with an explicit,
+      unmissable statement that `git fetch` does not update the working
+      tree, since the existing prose evidently did not prevent this
+      exact failure mode in the same session that had already read it.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "foundry:2026-08-23"
+
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
