@@ -93,6 +93,25 @@ material finding. Verified and fixed:
   `agf/learnings/<your-codename>.yaml` exists — the natural, already-
   read anchor point, not a new page).
 
+## Round 3 correction (fixes contribution-auditor's exact-head review, `nm4h`)
+
+`20260823T215731Z-contribution-auditor-nm4h.md` reviewed the round-2
+corrected head (`aa4bc3d1`) and recommended BLOCK, 1 critical finding:
+
+- **`CA-LRB-VER-R2-1`** — round 2's instruction to the upgrade skill
+  ("if the adopter's own record does not yet carry `checkout_role:
+  live`, add it now") named no mechanism for identifying *which* file is
+  "the adopter's own" when zero live records exist and more than one
+  candidate file is present — exactly this project's own current state
+  (`foundry.yaml` and `harbor-workshop.yaml`, both unmarked). The
+  zero-live advisory finding makes the gap visible but cannot itself
+  choose a record; nothing prevented an implementation from guessing (or
+  marking imported evidence) live. Fixed: see the revised "Existing
+  adopters" bullet under "Deterministic live-record selection and
+  migration" below — a concrete two-branch selection procedure (auto-
+  select when exactly one candidate exists; mandatory explicit operator
+  selection, never a heuristic guess, when more than one exists).
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -197,16 +216,36 @@ mechanisms close that gap without misclassifying imported evidence:
     instruction there to set `checkout_role: live` on that record at
     creation time, so new adoptions are covered without any separate
     migration step.
-  - **Existing adopters:** the upgrade skill's Step 4 (already touched
-    by this plan for `upgrade_in_progress` marker lifecycle) gets one
-    additional instruction: if the adopter's own record does not yet
-    carry `checkout_role: live`, add it now, as part of the same step
-    that already updates `adoption.framework_version`. This gives every
-    existing adopter a concrete, recurring touchpoint (their next
-    upgrade) rather than requiring them to independently learn about
-    the new field — combined with the always-on advisory finding above,
-    an adopter who skips this instruction still sees a persistent
-    signal on every `agov validate` run until they act.
+  - **Existing adopters — deterministic selection contract (round 3
+    correction, fixes `CA-LRB-VER-R2-1`):** round 2's instruction ("if
+    the adopter's own record does not yet carry `checkout_role: live`,
+    add it now") never specified how the skill identifies *which* file
+    is "the adopter's own" when `agf/learnings/` contains zero live
+    records but more than one candidate `.yaml` file — this project's
+    own `agf/learnings/` is exactly that case today (`foundry.yaml` and
+    `harbor-workshop.yaml`, both unmarked). Fixed: the upgrade skill's
+    Step 4 (already touched by this plan for `upgrade_in_progress`
+    marker lifecycle) gets a concrete, two-branch selection procedure,
+    run whenever zero live records exist:
+    - **Exactly one `.yaml` file exists in `agf/learnings/`:** no
+      ambiguity — the skill marks that file `checkout_role: live`
+      automatically, no operator prompt needed.
+    - **Two or more `.yaml` files exist:** the skill MUST enumerate
+      every candidate file and require the human operator to explicitly
+      name exactly one as "this checkout's own live record" before Step
+      4 can complete. The skill MUST NOT guess via any heuristic
+      (alphabetical order, most-recently-modified, filename matching a
+      git identity, or any other inference) — only an explicit operator
+      selection marks a file live. This is a mandatory, blocking gate
+      inside the skill itself (human-in-the-loop, the same discipline
+      as the companion plan's GATE 2.5), not a validator-level check —
+      the validator's zero-live advisory finding (above) only signals
+      the gap exists; it cannot safely resolve it.
+    This gives every existing adopter a concrete, recurring touchpoint
+    (their next upgrade) rather than requiring them to independently
+    learn about the new field — combined with the always-on advisory
+    finding above, an adopter who skips this instruction still sees a
+    persistent signal on every `agov validate` run until they act.
 
 ### Mid-upgrade transient window: full lifecycle, decided (fixes `CA-LRB-VER-2`)
 
@@ -313,6 +352,15 @@ On the implementation branch, after Gate 1 approval:
   record present — the advisory zero-records finding does not fire, and
   the ambiguity finding does not fire; only the normal version-
   comparison check from the earlier positive/negative cases applies.
+- Skill acceptance evidence (fixes `CA-LRB-VER-R2-1`): a checkout with
+  zero live records and exactly one candidate `.yaml` file in
+  `agf/learnings/` — the upgrade skill's Step 4 marks that file live
+  automatically, no operator prompt. A checkout with zero live records
+  and two or more candidate files (matching this project's own current
+  `foundry.yaml`/`harbor-workshop.yaml` state) — Step 4 halts and
+  presents the candidate list, requiring an explicit operator selection;
+  assert no heuristic (alphabetical, most-recently-modified, or any
+  other inference) ever auto-selects a file in this branch.
 - `agov plan validate` on this plan file: must pass.
 - `agov validate` (full umbrella): no new findings beyond pre-existing,
   unrelated warnings, once `foundry.yaml`'s own version is corrected as
