@@ -19,6 +19,38 @@ advisory_consultation:
 # the coordination poll cycle, plus two corrections to the canonical
 # adopter-facing procedure it operationalizes
 
+## Round 2 (fixes contribution-auditor's round-1 blocking findings, `dekp`)
+
+Round-1 review (`20260823T094611Z-contribution-auditor-dekp`) found two
+blocking findings against MR !1790's original skill text, both fixed in
+this round:
+
+- **PAC-R1** — the skill covered only one cycle's poll/act/stop steps,
+  not the full pause/rearm lifecycle the human governor actually asked
+  for ("stop timers; poll and take work; when ready, rearm timers"). Fix:
+  added an explicit `Inputs` table (cadence, idle window, cursor path), a
+  new Step 0 that pauses/checks any already-armed wake-up before the
+  cycle runs (with a stated safe fallback — idempotent actions — when the
+  surface can't inspect timers), a new Step 1 that loads a durable
+  project-local cursor, and a rewritten closing step that persists the
+  cursor and rearms only after a terminal outcome, using the real
+  assistant scheduler.
+- **PAC-R2** — the skill's local-file-check step offered `git reset
+  --hard origin/<branch>` on "a dedicated poll checkout" as an
+  alternative to a disposable worktree. That alternative is unsafe to
+  copy into an adopter project: a reset on a checkout the skill did not
+  itself just create can silently discard uncommitted work. Fix: removed
+  the reset alternative entirely; the skill now prescribes only a
+  freshly created, detached, disposable worktree at a unique path,
+  removed after the cycle's local-file checks. The canonical
+  `poll-and-coordinate.md` page had the same unsafe wording and is
+  corrected the same way, since the skill must not diverge from the
+  page it operationalizes.
+- **PAC-A1** (advisory, also resolved) — added explicit same-SHA
+  duplicate-pipeline avoidance to both the skill (Step 3.4) and the
+  canonical doc's pitfalls list, so the resource-pressure control the
+  governor has repeatedly required is stated, not silently dropped.
+
 Human governor requested this directly ("we need to make those an
 agf-level single skill or command") after this session repeatedly
 hand-wrote poll instructions inline in scheduled-wakeup prompts rather

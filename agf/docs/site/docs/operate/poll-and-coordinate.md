@@ -49,10 +49,12 @@
   from that persistent checkout after a fetch still reads whatever
   branch and commit the checkout happens to be on — which may be
   unrelated to, or older than, what was just fetched. Run local-file
-  governance checks from a working tree freshly reset to the fetched
-  ref for that cycle (a disposable worktree checked out from
-  `origin/<branch>`, or `git reset --hard origin/<branch>` on a
-  dedicated poll checkout) — never assume a fetch alone is sufficient.
+  governance checks from a freshly created, detached, disposable
+  worktree checked out at the fetched ref for that cycle — never assume
+  a fetch alone is sufficient, and never `git reset --hard` an existing
+  checkout to catch up, since a reset can silently discard uncommitted
+  work on a checkout that cycle did not create. Remove the disposable
+  worktree once the cycle's local-file checks are done.
 - **Trusting a default-paginated MR/issue listing.** Many CLI tools
   (e.g. `glab mr list`) cap results at a default page size (commonly 30)
   with no truncation warning. Combined with sorting by recency and only
@@ -61,6 +63,11 @@
   Always fetch the true total count (an explicit large `--per-page`, or
   `--paginate` against the API) before concluding "nothing new," and
   never substitute a recency-sorted slice for a full count.
+- **Triggering a duplicate pipeline against an unchanged head.** Before
+  triggering or waiting on CI for an MR, check whether a pipeline already
+  exists for the exact same source SHA and reuse or wait on that one.
+  Retriggering against an unchanged head burns paid CI minutes for no new
+  evidence.
 7. Act inside the current gate. Split independent work into non-overlapping
    ownership, communicate material progress, and publish validated handoffs or
    blockers where the recipient can see them.
