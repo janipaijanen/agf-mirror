@@ -1,9 +1,9 @@
 ---
 id: 20260823T205706Z-research-maintenance-fast-path
-status: pending-gate1
+status: approved
 topic: proportional-research-maintenance-fast-path
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: 20260823T213208Z-governor-reviewer-m6qg
+gate1_approved_at: 2026-08-23T21:32:08Z
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
