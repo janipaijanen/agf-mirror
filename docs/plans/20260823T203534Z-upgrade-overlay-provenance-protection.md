@@ -70,6 +70,54 @@ authorizes automated file deletion. Verified and fixed:
   revised "Downstream impact classification" and "Rollback" sections —
   the adopter documentation page is now named exactly, not deferred.
 
+## Round 2 correction (fixes contribution-auditor's exact-head review, `rerj`)
+
+`20260823T213054Z-contribution-auditor-rerj.md` reviewed the round-1
+corrected head (`3697d3ad`) and recommended BLOCK, 3 new critical
+findings — all implementation-boundary contradictions, not gaps in the
+16-row table or trust-boundary design themselves. Verified and fixed:
+
+- **`CA-LRB-UPG-R1-1`** — verified directly: `agov` is a `[[bin]]`-only
+  crate with no `[lib]` target and a private `mod dist;`, and it already
+  depends on `agov-coord`, so `agov-coord` cannot depend back on `agov`
+  without a cycle — the round-1 design's own instruction to reuse
+  `agov`'s `dist::validate_default()`/`DistSpec` from a subcommand placed
+  in `agov-coord` was not implementable as written. Separately, "the
+  three trees' relevant entries" never actually defined how local-only
+  paths (present on disk, named by no manifest) get enumerated. Fixed:
+  Design §1 moves `agov upgrade classify` into the `agov` crate itself
+  (same-crate sibling of `dist.rs`, matching the identical fix applied
+  to the companion `dist-path-ignore-protection` plan for the same
+  underlying reason), and explicitly defines local-tree enumeration as a
+  recursive filesystem walk of the local `agf/` root — never manifest-
+  derived — so local-only adopter files are captured by construction.
+- **`CA-LRB-UPG-R1-2`** — the round-1 trust-boundary design said both
+  release directories "MUST pass... release-provenance verification...
+  against their checksums" without specifying which provenance record
+  file is used for which directory, how an extracted directory is bound
+  to a specific verified archive, or what happens on a tampered,
+  wrong-version, or wrong-archive record. Fixed: Design §2 now requires
+  explicit `--previous-provenance`/`--new-provenance` record-file flags
+  and `--previous-version`/`--new-version` flags (mirroring how the
+  upgrade skill already knows both version identities at Steps 1–2),
+  specifies the exact `agov dist validate-provenance <record>
+  --artifact-dir <release-dir>` invocation per side, and defines the
+  version-agreement check and every named failure mode explicitly.
+- **`CA-LRB-UPG-R1-3`** — the round-1 output contract said `--strict`
+  exits non-zero only when a path fails to match any row or hits a type
+  mismatch — but rows 5, 9, 10, and 16 ("manual, fail-closed") **do**
+  match exactly one row with no type mismatch, so an upgrade with
+  unresolved manual conflicts on those rows could still exit 0, silently
+  contradicting the "fail-closed" label the design itself used. Fixed:
+  Design §1 now defines a stable machine-readable `status` field per
+  path (`clean`, `no-op`, `confirmation-required`, `manual-conflict`,
+  `invalid`) and a distinct overall exit-code contract (0 only when
+  every path is `clean` or `no-op`; 1 when any path is
+  `confirmation-required` or `manual-conflict`; 2 on any `invalid`/
+  trust-boundary failure), and Design §3 requires the skill to refuse
+  applying any change until every manual-conflict and
+  confirmation-required path has an explicit recorded disposition.
+
 Implements GitLab issues [#96](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/96)
 and [#111](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/111),
 two independently-submitted adopter learning records (`night-heron`,
@@ -123,18 +171,39 @@ had ever existed.
 
 ## Design
 
-### 1. New `agov` subcommand: three-way upgrade classification, exhaustive truth table (revised, fixes `CA-LRB-UPG-1`)
+### 1. New `agov` subcommand: three-way upgrade classification, exhaustive truth table (revised round 2, fixes `CA-LRB-UPG-1`, `CA-LRB-UPG-R1-1`, `CA-LRB-UPG-R1-3`)
 
 Add `agov upgrade classify --previous-release <dir> --new-release <dir>
---local <dir>` (crate `agov-coord`, wired in `agov/src/main.rs`
-alongside the existing `Dist`/`Plan`/`Coord` command groups — no
-existing subcommand does tree comparison today, verified via `grep -n
-"enum.*Command" tooling/rust/crates/agov/src/main.rs`). Reuse
-`agov`'s existing `dist::validate_default()` / `DistSpec` (the same
-manifest-expansion logic the companion `dist-path-ignore-protection`
-plan also reuses) to enumerate the distributed path set from each
-release's own `agf/dist/release-manifest.yaml` — do not invent a
-second enumeration.
+--local <dir> --previous-provenance <file> --new-provenance <file>
+--previous-version <X.Y.Z> --new-version <X.Y.Z>` (round 2: crate
+corrected from `agov-coord` to **`agov` itself** — fixes
+`CA-LRB-UPG-R1-1`. Verified directly: `agov` is a `[[bin]]`-only crate
+with no `[lib]` target and a private `mod dist;`, and it already depends
+on `agov-coord`; a reverse dependency from `agov-coord` back onto `agov`
+would be circular, and no accessor can make a private module of a
+binary-only crate importable from another crate regardless. Placing the
+subcommand in `agov` itself — a same-crate sibling of `dist.rs`, wired
+in `agov/src/main.rs` alongside the existing `Dist`/`Plan`/`Coord`
+command groups — sidesteps both problems, identically to the fix
+applied to the companion `dist-path-ignore-protection` plan for the same
+underlying reason). Reuse `agov`'s existing `dist::validate_default()` /
+`DistSpec` (the same manifest-expansion logic the companion
+`dist-path-ignore-protection` plan also reuses) to enumerate the
+distributed path set from each release's own `agf/dist/
+release-manifest.yaml` — do not invent a second enumeration. The
+provenance flags are specified in Design §2 below.
+
+**Local-tree enumeration, defined (fixes `CA-LRB-UPG-R1-1`'s second
+half — "the three trees' relevant entries" for local-only paths).** P
+and N enumerate via each release's own manifest, per above. L (the local
+tree) has no manifest of its own by definition — a local-only adopter
+file is exactly a file no manifest names. L is enumerated instead by a
+recursive filesystem walk of `--local <dir>`'s recognized `agf/` root
+(per `governance-file-layout-rule.md`'s conventions), excluding only
+version-control metadata (`.git/`) and any path the local root's own
+`.gitignore` would exclude — walking, not any manifest, is what
+guarantees a local-only rule file (row 1) is enumerated at all, since by
+definition no manifest names it.
 
 For every path in the union of the three trees' relevant entries,
 classify using this table. **P** = present in previous-release, **N** =
@@ -144,8 +213,7 @@ type mismatch between any two present sides is always its own
 fail-closed class regardless of content, checked *before* any content-
 equality comparison. Every state below is exhaustive over presence ×
 type × content-equality; there is no sixteenth "unclassified" bucket —
-`--strict` (default) exits non-zero if any path fails to match exactly
-one row.
+every path always matches exactly one row.
 
 | # | P | N | L | Condition | Class | Operation |
 |---|---|---|---|---|---|---|
@@ -176,9 +244,51 @@ classes) and the "customized side" ambiguity for overlapping files
 (now unambiguously row 16, always manual, with no dependency on any
 frontmatter marker).
 
-Output: the structured table above (human-readable and `--format json`
-for the skill to consume programmatically) plus exit code 0 only when
-every path resolves to exactly one row with no type mismatch.
+### Machine-readable status and exit-code contract (new, fixes `CA-LRB-UPG-R1-3`)
+
+Every path's row (per the table above) further resolves to exactly one
+of four **status** values — this is the field the skill and any CI
+caller actually branch on, not the row number itself:
+
+| Status | Rows | Meaning |
+|---|---|---|
+| `clean` | 2, 14 | auto-applies (copy from archive) |
+| `no-op` | 1, 4, 6, 12, 13, 15 | no action needed |
+| `confirmation-required` | 8 | GATE 2.5 — needs an explicit per-path or blanket confirmation before deletion |
+| `manual-conflict` | 3, 5, 7, 9, 10, 11, 16 | needs a human decision; never auto-resolved |
+
+Output: the structured table (human-readable and `--format json`, one
+object per path: `{"path", "row", "status", ...}`) for the skill to
+consume programmatically. **Exit-code contract, corrected (round 2,
+fixes `CA-LRB-UPG-R1-3`):**
+
+- **Exit 0** — every path is `clean` or `no-op`. Nothing outstanding.
+- **Exit 1** — at least one path is `confirmation-required` or
+  `manual-conflict` and has no recorded disposition yet. This is the
+  round-1 design's actual gap: the original contract exited 0 whenever
+  every path matched *some* row, even a `manual-conflict` row, which
+  silently contradicted the rows' own "fail-closed" label.
+  `manual-conflict` and `confirmation-required` now keep the command
+  exiting non-zero until resolved.
+- **Exit 2** — any trust-boundary failure from Design §2 (unverified
+  provenance, path-confinement violation, case collision) or any input
+  error. Classification does not proceed past this to produce row
+  output at all.
+
+**Disposition recording, so exit 0 is reachable without silently
+resolving anything:** a second invocation,
+`agov upgrade classify ... --dispositions <file>`, accepts a
+JSON/YAML file mapping each outstanding `confirmation-required` or
+`manual-conflict` path to an explicit recorded decision (`confirmed` for
+row 8; `resolved: "<description of how the operator resolved
+it>"` for rows 3/5/7/9/10/11/16, meaning the operator manually edited
+the local tree and is asserting the conflict no longer exists — the
+command re-checks the path against the table on this second invocation
+and errors if the recorded resolution does not actually match current
+tree state). Only with every outstanding path's disposition present and
+verified does the command exit 0. Design §3 requires the skill to use
+exactly this second-invocation contract — never to interpret exit 1 as
+"apply what you can and skip the rest."
 
 This directly implements #96's recommendation ("make the previous
 pristine release an explicit upgrade input... classify... before Gate
@@ -197,12 +307,47 @@ one:
   enumeration (the new release's manifest for the new tree; the
   previously-adopted release's own manifest, from when it was
   distributed, for the previous tree — not today's manifest applied
-  retroactively). Before classification runs, both release directories
-  MUST pass this project's existing release-provenance verification
-  (`agov dist validate-provenance`, already shipped) against their
-  checksums. An unverified or failed-verification release directory is
-  a fail-closed error — classification does not run against unverified
-  input.
+  retroactively).
+- **Provenance verification, fully specified (round 2, fixes
+  `CA-LRB-UPG-R1-2`).** Round 1 said both release directories "MUST
+  pass... verification... against their checksums" without naming which
+  provenance record file is checked against which directory. Fixed:
+  `agov upgrade classify` requires four additional flags —
+  `--previous-provenance <file>`, `--new-provenance <file>`,
+  `--previous-version <X.Y.Z>`, `--new-version <X.Y.Z>` (the upgrade
+  skill already knows both version identities from its own Steps 1–2, so
+  passing them explicitly costs the skill nothing new). Before
+  classification runs:
+  1. Run `agov dist validate-provenance <previous-provenance>
+     --artifact-dir <previous-release>` and the equivalent for `new`.
+     This is the existing, already-shipped command — schema validation
+     plus artifact-bytes/sha256/checksum-sidecar agreement against the
+     given directory. A failed or malformed record is a fail-closed
+     error (**tampered-record** case): classification does not proceed.
+  2. Cross-check each provenance record's own `version` field against
+     the corresponding `--previous-version`/`--new-version` flag. A
+     mismatch is a fail-closed error (**wrong-version** case) — the
+     operator's stated version identity disagrees with what the record
+     itself claims.
+  3. A `validate-provenance` pass against the *wrong* directory
+     (**wrong-archive** case, e.g. the new-release provenance record
+     checked against the previous-release directory) is caught by step 1
+     itself: `--artifact-dir`'s checksum/sidecar cross-check fails
+     against mismatched artifact bytes, which `validate-provenance`
+     already reports as a validation failure.
+  4. **Post-verification-tree-mutation:** verification and
+     classification run within the same `agov upgrade classify`
+     invocation, back to back — there is no separate, skippable
+     verification step a caller could bypass between the two. This
+     narrows, but does not eliminate, a true TOCTOU window (a directory
+     mutated by a concurrent process between step 1's read and
+     classification's own file reads moments later); that residual
+     window is accepted and documented here explicitly, not silently
+     assumed away — a stronger guarantee would require filesystem-level
+     locking, which is out of scope for this plan.
+  Any of these fail-closed errors is exit code 2 per the exit-code
+  contract in Design §1 — classification produces no row output at all
+  when the trust boundary itself fails.
 - **Canonical path confinement.** Every manifest-declared and archive-
   contained path is canonicalized and MUST resolve inside its own
   release-directory root (or the local root, for local-tree paths).
@@ -261,6 +406,17 @@ Rewrite `agf/skills/upgrade/SKILL.md` Step 3 to require
   "customized side" language entirely; there is no longer a frontmatter-
   marker-dependent branch, only the table's own row).
 
+**Refuse-until-resolved contract (round 2, fixes `CA-LRB-UPG-R1-3`).**
+The skill MUST treat `agov upgrade classify`'s exit code 1
+(`confirmation-required` or `manual-conflict` paths outstanding) as a
+hard stop, never as "apply the clean/no-op rows and leave the rest for
+later automatically." The skill presents every outstanding path
+individually (per the bullets above), collects the operator's explicit
+per-path decision, writes it to a dispositions file, and re-invokes
+`agov upgrade classify ... --dispositions <file>` to verify every
+recorded resolution actually holds before Step 3 is considered complete.
+Step 3 only proceeds to Step 4 once the command exits 0.
+
 This directly implements #111's recommendation 1 and folds
 recommendation 2's structural detection into the mechanism from Design
 §1, rather than treating them as alternatives.
@@ -316,10 +472,15 @@ This plan's own diff (Gate 1 candidate): only this plan file.
 
 On the implementation branch, after Gate 1 approval:
 
-- `tooling/rust/crates/agov-coord/src/upgrade_classify.rs` (new) — the
-  three-way classification logic.
+- `tooling/rust/crates/agov/src/upgrade_classify.rs` (new, round 2:
+  crate corrected from `agov-coord` to `agov` — fixes
+  `CA-LRB-UPG-R1-1`) — the three-way classification logic, including
+  local-tree filesystem-walk enumeration and the `status`/exit-code
+  contract from Design §1.
 - `tooling/rust/crates/agov/src/main.rs` — new `Command::Upgrade { sub:
-  UpgradeCommand::Classify { .. } }` wiring.
+  UpgradeCommand::Classify { .. } }` wiring, including the provenance
+  and version flags from Design §2 and the `--dispositions` second-
+  invocation mode.
 - `agf/skills/upgrade/SKILL.md` — Step 3 rewritten to an overlay
   (never-delete-by-default) using the new subcommand's output; new GATE
   2.5 for removal confirmation; Step 5 gains the governance-inventory
@@ -359,11 +520,31 @@ On the implementation branch, after Gate 1 approval:
   (checksum-mismatched) release directory — classification refuses to
   run; a case-colliding pair of manifest entries — rejected fail-closed
   before any per-path classification begins.
+- Provenance contract fixtures (fixes `CA-LRB-UPG-R1-2`): a tampered
+  provenance record (fails `validate-provenance`'s own checks) — exit 2,
+  no row output; a record whose `version` field disagrees with the
+  passed `--previous-version`/`--new-version` flag — exit 2, wrong-
+  version error naming both values; a valid new-release provenance
+  record checked against the previous-release directory (wrong-archive)
+  — exit 2, checksum/sidecar mismatch reported by `validate-provenance`
+  itself.
+- Exit-code and disposition fixtures (fixes `CA-LRB-UPG-R1-3`): an
+  all-clean/no-op tree — exit 0; a tree with one row-8
+  (`confirmation-required`) path and nothing else — exit 1 until a
+  `--dispositions` file records `confirmed` for that path, then exit 0;
+  a tree with one row-16 (`manual-conflict`) path — exit 1 until a
+  `--dispositions` file records a `resolved` entry whose claim the
+  command re-verifies against actual tree state, rejecting a resolution
+  that does not hold; a mixed tree with both a clean row and an
+  unresolved manual-conflict row — exit 1 (proving a single outstanding
+  manual row is sufficient to block, regardless of how many other paths
+  are clean).
 - `agov plan validate` on this plan file: must pass.
 - `agov validate` (full umbrella): no new findings beyond pre-existing,
   unrelated warnings.
-- `cargo test -p agov-coord` and `cargo test -p agov --bin agov`: must
-  pass, including the new tests.
+- `cargo test -p agov --bin agov`: must pass, including the new tests
+  (round 2: `upgrade_classify` moved from `agov-coord` to `agov`, so its
+  tests move with it).
 - **Gate 2 acceptance evidence, per `gate-self-test-rule.md`:** the Gate
   2 MR description MUST include a reproducible negative CLI
   demonstration — exact command, one adversarial fixture (e.g. the
