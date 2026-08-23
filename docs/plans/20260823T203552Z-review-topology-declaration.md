@@ -23,6 +23,49 @@ advisory_consultation:
 
 # Plan: require review-topology declaration and a source-identity preflight in external AI review guidance
 
+## Round 1 correction (fixes contribution-auditor's exact-head review, `pssr`)
+
+`20260823T205558Z-contribution-auditor-pssr.md` reviewed this plan
+alongside three others and recommended BLOCK, 2 material findings + 1
+advisory, on this plan specifically. Verified and fixed:
+
+- **`CA-LRB-TOP-1`** — the original design let "blinded independent
+  review" stand as if "did not see another reviewer's answer" were
+  sufficient for independence. It is not: two reviews can still share
+  the same implementing session, prompt, supplied framing, evidence
+  selection, or model lineage/vendor while neither has literally seen
+  the other's output. Calling that "independent" risks recreating the
+  exact overclaim this plan exists to prevent. Fixed: the field is
+  renamed `blinded-to-prior-answers` (narrower, accurate label for what
+  is actually being tested), and a separate, explicit independence-
+  disclosure requirement is added naming the material dimensions
+  (session, prompt/framing, model family/vendor, evidence selection).
+  Terminology deliberately kept distinct from issue #47's own "record
+  reviewer independence in the artifact" effort rather than silently
+  defining a second, weaker framework-wide meaning for "independence" —
+  see the revised Design §2 below.
+- **`CA-LRB-TOP-2`** — the original design said blinded reviews "count
+  as independent cross-model corroboration for the framework's own
+  evidence-confidence levels," which conflates two different things:
+  the External Review template's own text already says it is *not* an
+  adopter Learning Record, and `learning.schema.json`'s confidence
+  levels (`single-adopter`/`multi-adopter`/`longitudinal`/`industry-
+  corroborated`) describe adopter/event provenance, not model count
+  within one review exercise. As written, the plan could be read as
+  license to promote a single adopter's evidence to `multi-adopter` by
+  running several models in one sitting. Fixed: Design §2 now states
+  explicitly that review topology never changes which confidence level
+  an adopter/event's evidence sits at and does not by itself increment
+  `confidence.evidence_count` — it is orthogonal metadata about *how*
+  a review was conducted, not a lever on adopter-evidence strength. A
+  separate cross-model-corroboration contract, if wanted, is out of
+  scope for this plan and would need its own schema/invariant change.
+- **`CA-LRB-TOP-A1`** (advisory) — "required" overstated a documentation-
+  only, unenforced field as a guarantee. Fixed: "What this plan does
+  NOT do" now states plainly that omission is detectable only by manual
+  review (Level 2 guidance, per `implementation-honesty-rule.md`'s
+  maturity model), not a validated or universally-present declaration.
+
 Implements the actionable portion of GitLab issue
 [#82](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/82)
 ("mirror-review" evidence record, filed 2026-07-28).
@@ -91,26 +134,45 @@ canonical for the version under review, and require the reviewer to
 confirm they are not citing the other lineage's vocabulary or structure
 as authoritative.
 
-### 2. New required field in "Output Format": Review topology
+### 2. New required fields in "Output Format": review topology + independence disclosure (revised, fixes `CA-LRB-TOP-1`, `CA-LRB-TOP-2`)
 
-Add a required field to the existing "Output Format" section's bullet
-list (alongside "Scope reviewed" and "Identity confirmed"):
+Add two required fields to the existing "Output Format" section's
+bullet list (alongside "Scope reviewed" and "Identity confirmed"):
 
-- **Review topology** — declare one of: **blinded independent review**
-  (has not seen another reviewer's answer, ranking, or critique),
+- **Review topology** — declare one of: **blinded-to-prior-answers**
+  (has not seen another reviewer's answer, ranking, or critique —
+  deliberately *not* labelled "independent," since not having seen a
+  prior answer is necessary but not sufficient for independence),
   **sequential critique** (responds to an earlier answer or
   assessment), or **adjudicated synthesis** (compares competing answers
   against identified primary sources).
+- **Independence disclosure** (required whenever `blinded-to-prior-
+  answers` is declared) — state, for each of these dimensions, whether
+  it was shared with any other review in the same exercise: implementing
+  session, prompt/framing text, model family or vendor, and evidence
+  selection (which pages/files were provided vs. independently
+  retrieved). A review sharing any of these is not independent on that
+  dimension, regardless of its topology label.
 
-Add one sentence stating that only *blinded independent review* counts
-as independent cross-model corroboration for the framework's own
-evidence-confidence levels (`single-adopter` / `multi-adopter` /
-`longitudinal` / `industry-corroborated`, per
-`agf/schemas/learning.schema.json`); a sequential-critique round remains
-useful evidence about self-correction, defensiveness, and source
-discipline, but must not be counted as a second or third independent
-observation when a learning record's `confidence.evidence_count` is
-set.
+**This field is orthogonal to adopter evidence strength, not a lever on
+it (fixes `CA-LRB-TOP-2`).** The External Review issue template already
+states it produces something distinct from an adopter Learning Record.
+Review topology and the independence disclosure describe *how a given
+review was conducted*; they never change which `confidence` level
+(`single-adopter` / `multi-adopter` / `longitudinal` / `industry-
+corroborated`, per `agf/schemas/learning.schema.json`) an adopter's or
+event's own evidence sits at, and declaring `blinded-to-prior-answers`
+does **not** by itself increment a learning record's
+`confidence.evidence_count`. Running several models against the same
+material in one exercise is one event, not multiple adopters or
+multiple longitudinal observations, however many models were involved
+or how independently each was blinded. A genuine cross-model-
+corroboration contract that *does* affect adopter confidence levels is
+out of scope for this plan and would need its own schema/invariant
+change, not an informal attachment here — and terminology here is kept
+deliberately distinct from issue #47's own "record reviewer
+independence in the artifact" effort, which is a separate, broader
+mechanism this plan does not attempt to pre-empt or redefine.
 
 ### 3. `External Review` issue template: add the same field
 
@@ -134,6 +196,13 @@ prose.
   out a template, not a machine-checked artifact field. A future
   learning record's own schema-level `confidence` fields already exist
   for evidence-count enforcement; this plan does not add new schema.
+  **Correction (round 1, fixes `CA-LRB-TOP-A1`):** because nothing
+  mechanically enforces it, an omitted declaration is detectable only
+  by manual review, not guaranteed present — this is Level 2
+  (Surface-defined) guidance per `implementation-honesty-rule.md`'s
+  maturity model, not a validated or universally-enforced contract.
+  Do not describe the field elsewhere as "required" in a way that
+  implies mechanical enforcement.
 - Does not retroactively correct any past external review that lacked
   this declaration.
 
