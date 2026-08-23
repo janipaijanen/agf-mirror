@@ -27,6 +27,19 @@ advisory_consultation:
 Implements issue #114 (filed 2026-08-23). Human governor requested
 immediate implementation, targeted at the next release.
 
+**Round 1**: corrects the one blocking finding from contribution-auditor's
+round-1 review (`20260823T091420Z-contribution-auditor-2ggk.md`, "`2ggk`"):
+I114-R1 (the integration test never asserted the overall exit code stayed
+`0`, since its minimal fixture already fails unrelated validators for
+unrelated reasons — a later edit that made the check blocking would have
+stayed green). Fixed by separating `render_version_drift` into a pure
+`render_version_drift_result(output, warning)` and a direct unit test in
+`main.rs` asserting exit `0` for both the mismatch and match cases. Also
+addresses advisory A1 (plan/implementation test-coverage wording
+mismatch) by correcting the "Files expected to change" section below to
+match the actual, minimal test design rather than adding duplicate
+session-resume cases.
+
 ## Problem (verified by code search before writing this plan)
 
 `agov` never compares its own build version
@@ -120,13 +133,29 @@ logic exists in exactly one place.
 - `tooling/rust/crates/agov/src/main.rs` — add `version_drift_warning()`;
   wire into `run_all_validators` and `session_resume`.
 - `tooling/rust/crates/agov/tests/validate.rs` — new test(s): mismatch
-  produces the WARN line and exit code 0; match produces no WARN line;
-  missing `agf/VERSION` produces no WARN line and no error (existing
+  produces the WARN line; match produces no WARN line; missing
+  `agf/VERSION` produces no WARN line and no error (existing
   `temp_agf_repo()` fixture already omits `agf/VERSION`, so existing
   tests continue to pass unchanged — this is itself the missing-VERSION
-  negative case).
-- `tooling/rust/crates/agov/tests/session_resume.rs` — same three cases
-  for the `session resume` cold-start path.
+  negative case). These integration tests exercise the WARN-line
+  presence/absence contract; they do not assert the overall process
+  exit code, since the minimal fixture already fails unrelated
+  validators for unrelated reasons.
+- `tooling/rust/crates/agov/src/main.rs` (`#[cfg(test)] mod tests`) — a
+  direct unit test on `render_version_drift_result` (the pure rendering
+  step, separated from the filesystem read) asserting it returns exit
+  `0` for both the mismatch and match cases. This is what actually
+  proves the advisory/never-blocking contract, per round-1 review `2ggk`
+  finding I114-R1: an integration test that never asserts on exit code
+  would stay green even if a later edit made this check blocking.
+- `tooling/rust/crates/agov/tests/session_resume.rs` — one wiring test
+  confirming the shared comparison surfaces correctly in the cold-start
+  `Warnings:` section (the mismatch case). Match and missing-`agf/
+  VERSION` cases are not duplicated here — they exercise the same shared
+  `commissioned_version()`/`version_drift_warning()` functions already
+  covered by `validate.rs`, and `session_resume`'s own tests all run
+  against the real repo root's own `agf/VERSION` (matching, by
+  construction) and would fail if the shared function regressed.
 - `CHANGELOG.md` / `agf/CHANGELOG.md` — one `### Added` entry under the
   next release heading.
 
