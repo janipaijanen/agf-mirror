@@ -75,8 +75,25 @@ fn apply_corpus_checks(
     results: &mut Vec<(PathBuf, Result<serde_json::Value, Vec<Finding>>)>,
     dir: &Path,
 ) {
+    // `validate_file` returns `Err` whenever a file has *any* finding, not
+    // only when the file itself is unreadable -- a record with a purely
+    // advisory finding elsewhere (e.g. a bare-timestamp learning id) still
+    // returns `Err`, discarding the parsed data. The corpus check only
+    // needs to distrust a file that genuinely failed to parse; re-read any
+    // `Err` file directly for corpus purposes, using the re-read value only
+    // if that succeeds.
+    let corpus_data: Vec<(PathBuf, serde_json::Value)> = results
+        .iter()
+        .filter_map(|(path, result)| match result {
+            Ok(data) => Some((path.clone(), data.clone())),
+            Err(_) => crate::read_yaml_file(path)
+                .ok()
+                .map(|data| (path.clone(), data)),
+        })
+        .collect();
+
     let agf_version_path = dir.parent().map(|agf_dir| agf_dir.join("VERSION"));
-    let corpus_findings = corpus_errors(results, agf_version_path.as_deref());
+    let corpus_findings = corpus_errors(&corpus_data, agf_version_path.as_deref());
     merge_corpus_findings(results, dir, corpus_findings);
 }
 
@@ -92,16 +109,18 @@ fn apply_corpus_checks(
 ///   `adoption.framework_version` against `agf/VERSION`, honoring the
 ///   `upgrade_in_progress` suppression window (see `live_record_findings`).
 ///
-/// Only files that parsed and schema/semantic-validated cleanly
-/// (`Ok(data)`) participate -- a malformed record's `checkout_role` or
-/// `framework_version` cannot be trusted.
+/// Only files that could actually be read and parsed participate -- a
+/// record with other, unrelated advisory findings (e.g. a bare-timestamp
+/// learning id) still participates, since those findings say nothing about
+/// whether its `adoption` block can be trusted. A file that fails to parse
+/// at all is excluded; its own schema/parse errors are reported separately.
 fn corpus_errors(
-    results: &[(PathBuf, Result<serde_json::Value, Vec<Finding>>)],
+    corpus_data: &[(PathBuf, serde_json::Value)],
     agf_version_path: Option<&Path>,
 ) -> Vec<(Option<PathBuf>, Finding)> {
-    let live: Vec<(&PathBuf, &serde_json::Value)> = results
+    let live: Vec<(&PathBuf, &serde_json::Value)> = corpus_data
         .iter()
-        .filter_map(|(path, result)| result.as_ref().ok().map(|data| (path, data)))
+        .map(|(path, data)| (path, data))
         .filter(|(_, data)| {
             data.pointer("/adoption/checkout_role")
                 .and_then(serde_json::Value::as_str)
@@ -789,6 +808,51 @@ adoption:
 
         let result = validate_all(&dir);
         assert!(result.is_ok(), "expected no findings, got {:?}", result.file_errors.iter().flat_map(|e| e.findings.iter().map(|f| f.message.clone())).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn live_record_with_unrelated_advisory_finding_is_still_recognized() {
+        // Regression: validate_file() returns Err (discarding the parsed
+        // Value) whenever a file has ANY finding, including one unrelated
+        // to checkout_role/framework_version -- here, a bare-timestamp
+        // learning id elsewhere in the same document. The corpus-wide
+        // live-record scan must still see this record's checkout_role and
+        // framework_version rather than silently excluding it.
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.6.1"
+learnings:
+  - id: 20260621T150000Z
+    title: Bare timestamp id
+    description: Generic finding, unrelated to adoption version drift.
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert_eq!(result.file_errors.len(), 1, "expected only the bare-timestamp advisory to remain");
+        let findings = &result.file_errors[0].findings;
+        assert!(
+            findings.iter().all(|finding| finding.severity == agov_core::Severity::Advisory),
+            "expected no blocking findings, got {:?}",
+            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+        );
+        assert!(findings.iter().any(|finding| finding.message.contains("bare timestamp learning id")));
+        assert!(
+            !findings.iter().any(|finding| finding.message.contains("no live-marked adoption record found")),
+            "live record should have been recognized despite the unrelated advisory finding"
+        );
+        assert!(
+            !findings.iter().any(|finding| finding.message.contains("does not match agf/VERSION")),
+            "matching version should not produce a mismatch finding"
+        );
     }
 
     #[test]
