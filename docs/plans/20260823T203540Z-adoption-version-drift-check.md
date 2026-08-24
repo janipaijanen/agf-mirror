@@ -317,6 +317,34 @@ critical finding:
   change," Test strategy, and the Foundry impact row below — all
   updated to this single, consistent, executable sequence.
 
+## Round 11 correction (fixes contribution-auditor's exact-head review, `mgrs`)
+
+`20260824T055441Z-contribution-auditor-mgrs.md` reviewed the round-10
+corrected head (`3dcc4e76`) and confirmed `CA-LRB-VER-R9-1`'s
+mergeable-branch fix itself resolved, but recommended BLOCK on 1 new
+critical finding:
+
+- **`CA-LRB-VER-R10-1`** — round 10's "disclosure commit" was a
+  planner-architect-authored coordination-record draft, committed
+  locally on the implementation branch, that named "the governor's
+  disposition" of the historical gap — but a planner-architect record
+  cannot supply governor authority for itself; only an actual, published
+  `governor-reviewer` decision-record can accept a binding risk like
+  "this historical gap is disclosed and closed." Separately, the
+  acceptance evidence only checked *local* commit ordering within one
+  not-yet-pushed branch — that proves nothing about whether anyone else
+  could actually see the disclosure before the mutation, since local
+  commits can be authored, reordered, or backdated in any sequence
+  before the branch is ever pushed. Fixed: the procedure now requires
+  the *same* escalate-then-governor-decides-then-implement flow this
+  session has used for every other real governor decision in this
+  backlog (e.g. `dda7` → `1m61`, `trhq` → `am2p`) — a published,
+  merged-to-`main` `governor-reviewer` decision-record, not a local
+  draft standing in for one — and the acceptance evidence now verifies
+  that published record's id/timestamp/ancestry, not local commit
+  order. See the revised "One-time reconciliation" subsection and Test
+  strategy below.
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -555,7 +583,7 @@ every upgrade, unconditionally. Full lifecycle:
 - **Default failure behavior:** when neither marker is present (the
   normal, non-upgrading case), the check runs unconditionally.
 
-### One-time reconciliation for a pre-existing drifted record (round 9, revised round 10 — fixes `CA-LRB-VER-R8-1`, `CA-LRB-VER-R9-1`)
+### One-time reconciliation for a pre-existing drifted record (round 9, revised round 10, revised round 11 — fixes `CA-LRB-VER-R8-1`, `CA-LRB-VER-R9-1`, `CA-LRB-VER-R10-1`)
 
 This project's own `foundry.yaml` — and, structurally, any future
 adopter whose live record was already stale before this plan's check
@@ -571,55 +599,71 @@ retroactively instead of pre-emptively.
 **Round 9 got the principle right and the mechanics wrong.** It required
 the disclosure and the correction to be *separate commits merged at
 separate times*, with the correction explicitly out of this plan's Gate
-2 scope. That produced a Gate 2 implementation branch with a failing
-required check and no way to ever land the fix that would clear it — a
-dead end, per `CA-LRB-VER-R9-1`. The actual requirement is narrower and
-achievable: the disclosure must exist, on the record, **before the value
-changes** — not before some later, separately-merged branch changes it.
-Both can be sequenced commits inside the *same* Gate 2 implementation
-branch and MR, landing together once green.
+2 scope — a dead end, per `CA-LRB-VER-R9-1`: a branch with a failing
+required check cannot merge, so the later commit could never land.
+**Round 10 fixed the mergeability but not the authority.** It sequenced
+a disclosure commit before a correction commit inside one branch — but
+the "disclosure" was a planner-architect-authored coordination-record
+*draft*, committed locally, that named "the governor's disposition" as
+if authoring the record could also supply the authority it describes.
+Per `CA-LRB-VER-R10-1`: only a real, *published* `governor-reviewer`
+decision-record can accept a binding risk disposition, and a local
+commit's position within a not-yet-pushed branch proves nothing about
+whether that disclosure was actually visible to anyone before the
+mutation — commits can be authored, reordered, or backdated freely
+before a branch is ever pushed.
 
-**The governed repair procedure (round 10, replaces both silent
-correction and round 9's unmergeable split):**
+**The governed repair procedure (round 11, replaces round 10's local
+draft with the same escalate-then-governor-decides-then-implement flow
+this session has used for every other real governor decision in this
+backlog — e.g. `dda7` → `1m61`, `trhq` → `am2p`):**
 
-1. **First commit on the implementation branch:** file a coordination
-   record (or equivalent disclosed, auditable artifact for a
-   non-AGF-NG adopter) stating explicitly: the record's
-   `framework_version` is known-stale, naming both the recorded value
-   and the current `agf/VERSION`, and stating whether the full
-   changelog range between them has been reviewed retroactively or is
-   being explicitly accepted as an unreviewed historical gap (for this
-   project, expect the latter — retroactively reconstructing a full
-   line-by-line review of everything between `2.0.0-provisional` and
-   `2.6.1` is not realistic bootstrapping work, and pretending otherwise
-   would be its own kind of fabrication; the governor's explicit
-   acceptance of that gap as historical, disclosed, and closed is itself
-   the required disposition). This is the disclosed acknowledgment the
-   reviewer's resolution condition requires in place of a silent fix —
-   it does not fabricate a review that did not happen, and it does not
-   need to precede Gate 2 by any particular amount of time, only precede
-   the value actually changing.
-2. **Second commit on the same branch:** add `checkout_role: live` **and**
-   correct `framework_version` to the current `agf/VERSION` together,
-   now safe because step 1's disclosure already exists in the branch's
-   own history before this commit. `agov validate` now passes on the
-   exact head presented for Gate 2 — both the check and the disclosure
-   requirement are satisfied simultaneously, not traded off against each
-   other.
-3. Gate 2 review sees both commits and the disclosure they depend on;
-   the branch merges green, exactly like any other Gate 2 change.
+1. **Before the implementation branch's correction commit exists:**
+   planner-architect (or whoever implements) publishes a coordination
+   `note` to `main` (via the normal coordination-publication fast path,
+   not merely drafted locally) escalating the historical gap: naming
+   the record's stale `framework_version`, the current `agf/VERSION`,
+   and asking the governor to dispose it — either "accept as historical,
+   disclosed, unreviewed" or "requires an actual retroactive review
+   before correction." This step can happen any time before the
+   correction commit — during Gate 1, or as literally the first action
+   of Gate 2 implementation — but it must be **published**, not merely
+   committed to a private branch.
+2. **The governor reviews and publishes an actual `governor-reviewer`
+   `decision-record`** (also merged to `main`) disposing the gap. For
+   this project, expect acceptance as an unreviewed historical gap —
+   retroactively reconstructing a full line-by-line review of everything
+   between `2.0.0-provisional` and `2.6.1` is not realistic bootstrapping
+   work, and pretending otherwise would be its own kind of fabrication;
+   an explicit, disclosed, published acceptance of that gap as closed is
+   the honest disposition, not a fabricated review.
+3. **Only after that decision-record is published** does the
+   implementation branch's correction commit add `checkout_role: live`
+   **and** correct `framework_version` to the current `agf/VERSION`
+   together, referencing the published decision-record's id in the
+   commit message or the plan's own Gate 2 evidence. `agov validate`
+   passes on the exact head presented for Gate 2 — the check and the
+   now-*authoritative*, now-*visible* disclosure requirement are both
+   satisfied.
+4. Gate 2 review sees the correction commit, the published governor
+   decision-record it references, and confirms the decision-record's
+   timestamp actually precedes the correction commit's — not merely
+   local commit order within the branch. The branch merges green.
 
 This mirrors Step 0/1/3/4's own principle (identify and disclose before
-mutating) at the one-time-repair scale — it does not weaken it to make
-Gate 2 mergeable, it sequences it correctly instead.
+mutating) at the one-time-repair scale, using the same real-world
+publish-and-decide mechanism this project already uses for every other
+binding governor decision — not a shortcut invented for this one case.
 
 ## What this plan does NOT do
 
 - Does not correct `foundry.yaml`'s `framework_version` **without a
-  preceding disclosure commit in the same branch** (round 10, fixes
-  `CA-LRB-VER-R9-1`) — see "One-time reconciliation" above; the
-  correction itself *is* part of this Gate 2 implementation, sequenced
-  after the disclosure record.
+  preceding, published `governor-reviewer` decision-record** (round 11,
+  fixes `CA-LRB-VER-R10-1`: a locally-committed disclosure draft is not
+  itself governor authority, and local commit order proves nothing
+  about real visibility) — see "One-time reconciliation" above; the
+  correction itself *is* part of this Gate 2 implementation, but only
+  after that decision-record is published to `main`.
 - Does not change the upgrade skill's step ordering.
 - Does not touch the already-shipped `agov-version-drift-warning`
   (binary-vs-tree) check from issue #114 — different check, different
@@ -656,20 +700,28 @@ On the implementation branch, after Gate 1 approval:
   0 already identified, before any archive file is copied — Step 3
   performs no new selection. Step 4 (clear marker, update version) —
   document the full lifecycle decided above.
-- `docs/coordination/<timestamp>-planner-architect-<id>.md` (new, round
-  10, fixes `CA-LRB-VER-R9-1`) — the disclosure record from "One-time
-  reconciliation" step 1, committed first on the implementation branch,
-  naming `foundry.yaml`'s stale `2.0.0-provisional` against
-  `agf/VERSION`'s current value and the governor's disposition of the
-  unreviewed historical gap.
+- `docs/coordination/<timestamp>-planner-architect-<id>.md` (new,
+  published to `main` **before** implementation's correction commit —
+  round 11, fixes `CA-LRB-VER-R10-1`) — the escalation note from
+  "One-time reconciliation" step 1, naming `foundry.yaml`'s stale
+  `2.0.0-provisional` against `agf/VERSION`'s current value and
+  requesting the governor's disposition. Not part of the implementation
+  branch's own commit sequence — it must already be published before
+  that branch's correction commit is created.
+- `docs/coordination/<timestamp>-governor-reviewer-<id>.md` (new,
+  published to `main` — round 11, fixes `CA-LRB-VER-R10-1`) — the
+  actual governor decision-record disposing the historical gap
+  (expected: accept as unreviewed historical, disclosed, closed). Its
+  id is referenced by the correction commit below.
 - `agf/learnings/foundry.yaml` — add `checkout_role: live` **and**
-  correct `framework_version` to the current `agf/VERSION`, together,
-  in a commit sequenced *after* the disclosure record above (round 10,
-  fixes `CA-LRB-VER-R9-1`: round 9's split-commit, out-of-scope design
-  had no executable Gate 2 path — see "One-time reconciliation").
-  `agov validate` passes on the exact head presented for Gate 2 because
-  the correction and its preceding disclosure both land in the same
-  branch.
+  correct `framework_version` to the current `agf/VERSION`, together, in
+  a commit that references the published governor decision-record's id
+  (round 11, fixes `CA-LRB-VER-R10-1`: a locally-committed disclosure
+  draft is not governor authority, and local commit order alone does
+  not prove real visibility — see "One-time reconciliation"). `agov
+  validate` passes on the exact head presented for Gate 2 because the
+  correction follows a published, authoritative disposition, not merely
+  an earlier local commit.
 - `agf/docs/site/docs/adopt/install-and-layouts.md`, "Step 7:
   Initialise your evidence" (round 2: exact page and section named, not
   deferred — fixes `CA-LRB-VER-R1-2`) — new instruction to set
@@ -771,16 +823,21 @@ On the implementation branch, after Gate 1 approval:
   warnings. The branch is green and mergeable; round 9's design, where
   this run was expected to still be failing at the point Gate 2 review
   happens, is what round 10 replaces.
-- Acceptance evidence (fixes `CA-LRB-VER-R9-1`'s resolution condition):
-  assert the implementation branch's history contains the disclosure
-  commit (naming `foundry.yaml`'s stale and current versions) strictly
-  *before* the commit that corrects `framework_version` — a `git log`
-  ordering check, not merely a diff-content check — proving disclosure
-  precedes mutation even though both land in the same Gate 2 MR. Assert
-  the exact head's `agov validate` run is green (fixes the deadlock
-  `CA-LRB-VER-R9-1` found). Assert the Migration guidance below
-  (revised) contains no instruction to correct a version without a
-  preceding, referenced disclosure record.
+- Acceptance evidence (fixes `CA-LRB-VER-R10-1`'s resolution condition —
+  supersedes round 10's local-commit-order check, which proved neither
+  authority nor real visibility): assert a `governor-reviewer`
+  `decision-record` disposing `foundry.yaml`'s historical gap is
+  published on `main`, not merely drafted on the implementation branch.
+  Assert the correction commit's message (or the plan's own Gate 2
+  evidence) references that published record's id, and that the
+  decision-record's own timestamp/ancestry on `main` actually precedes
+  the correction commit — not merely a local commit position within the
+  not-yet-merged branch, which proves nothing about real visibility.
+  Assert the exact head's `agov validate` run is green (fixes the
+  deadlock `CA-LRB-VER-R9-1` found, still holds under this round's
+  authority fix). Assert the Migration guidance below (revised) contains
+  no instruction to correct a version without a preceding, published,
+  referenced governor decision-record.
 - `cargo test -p agov-validators`: must pass, including the new tests.
 - **Gate 2 acceptance evidence, per `gate-self-test-rule.md`:** the Gate
   2 MR description MUST include a reproducible negative CLI
@@ -803,16 +860,19 @@ BREAKING regardless of how well-justified the restriction is.
 ```
 Impact:
   Foundry:          Resolved within this change (round 10, fixes
-                     `CA-LRB-VER-R9-1`): foundry.yaml's version is
-                     corrected in the same Gate 2 implementation
-                     branch, sequenced after a disclosure commit — see
-                     "One-time reconciliation" and "Files expected to
-                     change." Not BREAKING for this repository's own
-                     Gate 2 path specifically, since the correction and
-                     its check both land together, green. ADDITIVE for
-                     the checkout_role/upgrade_in_progress schema
-                     fields themselves (optional, no existing record
-                     required to set them).
+                     `CA-LRB-VER-R9-1`; authority fixed round 11, fixes
+                     `CA-LRB-VER-R10-1`): foundry.yaml's version is
+                     corrected in the Gate 2 implementation branch,
+                     sequenced after a *published* governor-reviewer
+                     decision-record disposing the historical gap (not
+                     a local draft) — see "One-time reconciliation" and
+                     "Files expected to change." Not BREAKING for this
+                     repository's own Gate 2 path specifically, since
+                     the correction and its check both land together,
+                     green, following an actual authorized disposition.
+                     ADDITIVE for the checkout_role/upgrade_in_progress
+                     schema fields themselves (optional, no existing
+                     record required to set them).
   Direct adopters:  BREAKING. An adopter whose live record's version
                      has drifted (previously accepted, now rejected)
                      must mark checkout_role: live and correct
@@ -831,23 +891,26 @@ Impact:
                      record into checkout_role: live and (b) has an
                      already-drifted framework_version. Migration note
                      (round 9, fixes CA-LRB-VER-R8-1; retimed round 10,
-                     fixes CA-LRB-VER-R9-1): the original guidance —
+                     fixes CA-LRB-VER-R9-1; authority fixed round 11,
+                     fixes CA-LRB-VER-R10-1): the original guidance —
                      "correct the version before or in the same commit
                      as adding checkout_role: live" — silently erased
                      the historical baseline at adopter scale; round 9's
-                     fix then required the correction in an unmergeable
-                     separate-later-commit, which has no executable path
-                     for an adopter's own CI any more than it did for
-                     this project's. Corrected guidance: follow the
-                     "One-time reconciliation" procedure — a disclosure
-                     record (or equivalent auditable artifact) committed
-                     first on the same branch, then a commit correcting
-                     both checkout_role: live and framework_version
-                     together, sequenced after the disclosure. The
-                     adopter's own CI sees a green exact head, and the
-                     disclosure exists in the branch's history before
-                     the value changed. The blocking check is opt-in via
-                     the new field, so no adopter is forced onto the
+                     fix required an unmergeable separate-later-commit;
+                     round 10 fixed mergeability but let a local,
+                     self-authored draft stand in for real disposition
+                     authority. Corrected guidance: follow the
+                     "One-time reconciliation" procedure — escalate and
+                     publish the gap for the adopter's own authorized
+                     decision-maker to dispose (not merely draft a local
+                     commit), then correct checkout_role: live and
+                     framework_version together, referencing the
+                     published disposition. The adopter's own CI sees a
+                     green exact head, and the disclosure was actually
+                     visible, to an actual authority, before the value
+                     changed — not merely ordered first in an unpublished
+                     branch. The blocking check is opt-in via the new
+                     field, so no adopter is forced onto the
                      blocking behavior without also opting in — but the
                      upgrade skill's new Step 0 (round 5, retimed
                      identity-only round 7) identifies the candidate
