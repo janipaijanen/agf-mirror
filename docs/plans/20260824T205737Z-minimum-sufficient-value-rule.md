@@ -1,6 +1,8 @@
 ---
 id: minimum-sufficient-value-rule
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-24T21:54:34Z"
 topic: minimum-sufficient-value-rule
 advisory_consultation:
   - role: contribution-auditor
