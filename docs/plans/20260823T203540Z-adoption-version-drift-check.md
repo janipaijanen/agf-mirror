@@ -284,6 +284,39 @@ purge itself resolved, but recommended BLOCK on 1 new critical finding:
   procedure that replaces the silent merge-time fix, and the revised
   Migration clause for the adopter-scale equivalent.
 
+## Round 10 correction (fixes contribution-auditor's exact-head review, `p3dr`)
+
+`20260824T052603Z-contribution-auditor-p3dr.md` reviewed the round-9
+corrected head (`bb1a23a6`) and confirmed `CA-LRB-VER-R8-1`'s silent-
+correction removal itself resolved, but recommended BLOCK on 1 new
+critical finding:
+
+- **`CA-LRB-VER-R9-1`** — round 9 deliberately left `foundry.yaml`'s
+  stale version uncorrected in the Gate 2 implementation commit, so
+  `agov validate` — a required, blocking Gate 2 acceptance check per
+  this project's own gate discipline — fails on the implementation
+  branch itself. The design then required the actual correction in a
+  *separate, later* commit outside that implementation's scope. That
+  has no executable path: a branch with a failing required check cannot
+  merge, so the "later" commit that would clear the failure can never
+  land after a merge that never happens. The Foundry impact row also
+  still said "unless corrected in the same change," directly
+  contradicting the new scope that forbids exactly that. Fixed: round
+  9's premise was wrong, not just its wording. "Disclose before
+  mutating" does not require the disclosure and the correction to be
+  *separate commits merged at separate times* — it requires the
+  disclosure to exist, on the record, before the value changes. Both can
+  land in the same Gate 2 implementation branch, as two sequenced
+  commits in one MR: a coordination record disclosing the stale value,
+  the current value, and the missed-range disposition, followed by a
+  commit that corrects `checkout_role: live` and `framework_version`
+  together. Only the branch's final state is what the blocking check and
+  CI evaluate, so this sequence produces a green, mergeable Gate 2 path
+  while still never silently overwriting an undisclosed value. See the
+  revised "One-time reconciliation" subsection, "Files expected to
+  change," Test strategy, and the Foundry impact row below — all
+  updated to this single, consistent, executable sequence.
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -522,7 +555,7 @@ every upgrade, unconditionally. Full lifecycle:
 - **Default failure behavior:** when neither marker is present (the
   normal, non-upgrading case), the check runs unconditionally.
 
-### One-time reconciliation for a pre-existing drifted record (new, fixes `CA-LRB-VER-R8-1`)
+### One-time reconciliation for a pre-existing drifted record (round 9, revised round 10 — fixes `CA-LRB-VER-R8-1`, `CA-LRB-VER-R9-1`)
 
 This project's own `foundry.yaml` — and, structurally, any future
 adopter whose live record was already stale before this plan's check
@@ -530,52 +563,63 @@ existed — is a case the normal Step 0/1/3/4 lifecycle does not directly
 cover: there is no live "new release" being installed and no Gate 1
 changelog range being reviewed *right now*; the drift already happened,
 silently, in the past. Silently correcting the recorded version to
-match `agf/VERSION` — what rounds 1–8 (before this round) had this
-plan's own implementation and adopter migration guidance do — is
-exactly the same erasure the Step 0 fix exists to prevent, just applied
+match `agf/VERSION` — what rounds 1–8 (before round 9) had this plan's
+own implementation and adopter migration guidance do — is exactly the
+same erasure the Step 0 fix exists to prevent, just applied
 retroactively instead of pre-emptively.
 
-**The governed repair procedure (replaces silent correction):**
+**Round 9 got the principle right and the mechanics wrong.** It required
+the disclosure and the correction to be *separate commits merged at
+separate times*, with the correction explicitly out of this plan's Gate
+2 scope. That produced a Gate 2 implementation branch with a failing
+required check and no way to ever land the fix that would clear it — a
+dead end, per `CA-LRB-VER-R9-1`. The actual requirement is narrower and
+achievable: the disclosure must exist, on the record, **before the value
+changes** — not before some later, separately-merged branch changes it.
+Both can be sequenced commits inside the *same* Gate 2 implementation
+branch and MR, landing together once green.
 
-1. Add `checkout_role: live` to the drifted record **without** changing
-   `framework_version`. The new check now correctly, immediately fires
-   as a blocking finding on that record — this is not a bug to suppress,
-   it is the check doing its job on real, pre-existing drift.
-2. File a coordination record (or equivalent disclosed, auditable
-   artifact for a non-AGF-NG adopter) stating explicitly: the record's
+**The governed repair procedure (round 10, replaces both silent
+correction and round 9's unmergeable split):**
+
+1. **First commit on the implementation branch:** file a coordination
+   record (or equivalent disclosed, auditable artifact for a
+   non-AGF-NG adopter) stating explicitly: the record's
    `framework_version` is known-stale, naming both the recorded value
    and the current `agf/VERSION`, and stating whether the full
    changelog range between them has been reviewed retroactively or is
-   being explicitly accepted as an unreviewed historical gap. This is
-   the disclosed acknowledgment the reviewer's resolution condition
-   requires in place of a silent fix — it does not fabricate a review
-   that did not happen.
-3. Only after that record exists does a **separate**, later commit
-   update `framework_version` to the current value — never bundled into
-   the same commit that adds `checkout_role: live`, and never part of
-   this plan's own Gate 2 implementation commit. For this project, that
-   means `foundry.yaml`'s `framework_version` correction to `2.6.1` is
-   explicitly **out of scope for this plan's implementation.**
-
-**Timing, so this doesn't leave the project's own `agov validate` gate
-silently broken:** step 2's coordination record and step 3's correction
-commit should follow **promptly** after Gate 2 lands — the same working
-session or the immediate next one, not an open-ended backlog item. The
-new blocking finding on `foundry.yaml` is expected and correct for that
-short window, not a tolerated permanent CI break; it is the honest cost
-of not silently hiding real drift, and it clears as soon as the disclosed
-repair (steps 2–3) actually happens.
+   being explicitly accepted as an unreviewed historical gap (for this
+   project, expect the latter — retroactively reconstructing a full
+   line-by-line review of everything between `2.0.0-provisional` and
+   `2.6.1` is not realistic bootstrapping work, and pretending otherwise
+   would be its own kind of fabrication; the governor's explicit
+   acceptance of that gap as historical, disclosed, and closed is itself
+   the required disposition). This is the disclosed acknowledgment the
+   reviewer's resolution condition requires in place of a silent fix —
+   it does not fabricate a review that did not happen, and it does not
+   need to precede Gate 2 by any particular amount of time, only precede
+   the value actually changing.
+2. **Second commit on the same branch:** add `checkout_role: live` **and**
+   correct `framework_version` to the current `agf/VERSION` together,
+   now safe because step 1's disclosure already exists in the branch's
+   own history before this commit. `agov validate` now passes on the
+   exact head presented for Gate 2 — both the check and the disclosure
+   requirement are satisfied simultaneously, not traded off against each
+   other.
+3. Gate 2 review sees both commits and the disclosure they depend on;
+   the branch merges green, exactly like any other Gate 2 change.
 
 This mirrors Step 0/1/3/4's own principle (identify and disclose before
-mutating) at the one-time-repair scale, rather than inventing a second,
-weaker standard for pre-existing drift.
+mutating) at the one-time-repair scale — it does not weaken it to make
+Gate 2 mergeable, it sequences it correctly instead.
 
 ## What this plan does NOT do
 
-- Does not correct `foundry.yaml`'s `framework_version` as part of this
-  implementation (round 9, fixes `CA-LRB-VER-R8-1`) — see "One-time
-  reconciliation" above; that correction is separate, later, governed
-  follow-up work, not bundled into this Gate 2 commit.
+- Does not correct `foundry.yaml`'s `framework_version` **without a
+  preceding disclosure commit in the same branch** (round 10, fixes
+  `CA-LRB-VER-R9-1`) — see "One-time reconciliation" above; the
+  correction itself *is* part of this Gate 2 implementation, sequenced
+  after the disclosure record.
 - Does not change the upgrade skill's step ordering.
 - Does not touch the already-shipped `agov-version-drift-warning`
   (binary-vs-tree) check from issue #114 — different check, different
@@ -612,13 +656,20 @@ On the implementation branch, after Gate 1 approval:
   0 already identified, before any archive file is copied — Step 3
   performs no new selection. Step 4 (clear marker, update version) —
   document the full lifecycle decided above.
-- `agf/learnings/foundry.yaml` — add `checkout_role: live` **only**
-  (round 9, fixes `CA-LRB-VER-R8-1`: `framework_version` is deliberately
-  **not** corrected in this commit — it stays at its current recorded
-  value). This means the new check correctly fires as a blocking finding
-  on this project's own live record immediately after Gate 2 lands; see
-  "One-time reconciliation" above for the separate, later, governed
-  repair that follows, not bundled here.
+- `docs/coordination/<timestamp>-planner-architect-<id>.md` (new, round
+  10, fixes `CA-LRB-VER-R9-1`) — the disclosure record from "One-time
+  reconciliation" step 1, committed first on the implementation branch,
+  naming `foundry.yaml`'s stale `2.0.0-provisional` against
+  `agf/VERSION`'s current value and the governor's disposition of the
+  unreviewed historical gap.
+- `agf/learnings/foundry.yaml` — add `checkout_role: live` **and**
+  correct `framework_version` to the current `agf/VERSION`, together,
+  in a commit sequenced *after* the disclosure record above (round 10,
+  fixes `CA-LRB-VER-R9-1`: round 9's split-commit, out-of-scope design
+  had no executable Gate 2 path — see "One-time reconciliation").
+  `agov validate` passes on the exact head presented for Gate 2 because
+  the correction and its preceding disclosure both land in the same
+  branch.
 - `agf/docs/site/docs/adopt/install-and-layouts.md`, "Step 7:
   Initialise your evidence" (round 2: exact page and section named, not
   deferred — fixes `CA-LRB-VER-R1-2`) — new instruction to set
@@ -712,21 +763,24 @@ On the implementation branch, after Gate 1 approval:
   performs no new selection decision (it writes exactly the record Step
   0 identified, never re-derives it).
 - `agov plan validate` on this plan file: must pass.
-- `agov validate` (full umbrella), revised (round 9, fixes
-  `CA-LRB-VER-R8-1`): after implementation, this run produces **exactly
-  one new expected blocking finding** — `foundry.yaml`'s own
-  `checkout_role: live` record against its unchanged, still-drifted
-  `framework_version` — beyond pre-existing, unrelated warnings. This
-  finding is the intended, correct behavior of this plan's own check on
-  real pre-existing drift, not a regression to suppress; it clears only
-  once the separate "One-time reconciliation" repair (above) completes.
-- Acceptance evidence (fixes `CA-LRB-VER-R8-1`'s resolution condition):
-  assert the implementation diff itself never mutates
-  `foundry.yaml`'s `framework_version` field (only adds
-  `checkout_role: live`) — a diff review / grep check on the
-  implementation MR proving the stale value is untouched. Assert the
-  Migration guidance below (revised) contains no "correct the version
-  before or in the same commit" instruction for any adopter.
+- `agov validate` (full umbrella), revised (round 10, fixes
+  `CA-LRB-VER-R9-1`): at the exact head presented for Gate 2 — i.e.,
+  *after* both the disclosure commit and the correction commit from
+  "One-time reconciliation" have landed on the implementation branch —
+  this run produces **no new findings** beyond pre-existing, unrelated
+  warnings. The branch is green and mergeable; round 9's design, where
+  this run was expected to still be failing at the point Gate 2 review
+  happens, is what round 10 replaces.
+- Acceptance evidence (fixes `CA-LRB-VER-R9-1`'s resolution condition):
+  assert the implementation branch's history contains the disclosure
+  commit (naming `foundry.yaml`'s stale and current versions) strictly
+  *before* the commit that corrects `framework_version` — a `git log`
+  ordering check, not merely a diff-content check — proving disclosure
+  precedes mutation even though both land in the same Gate 2 MR. Assert
+  the exact head's `agov validate` run is green (fixes the deadlock
+  `CA-LRB-VER-R9-1` found). Assert the Migration guidance below
+  (revised) contains no instruction to correct a version without a
+  preceding, referenced disclosure record.
 - `cargo test -p agov-validators`: must pass, including the new tests.
 - **Gate 2 acceptance evidence, per `gate-self-test-rule.md`:** the Gate
   2 MR description MUST include a reproducible negative CLI
@@ -748,10 +802,15 @@ BREAKING regardless of how well-justified the restriction is.
 
 ```
 Impact:
-  Foundry:          BREAKING for this project's own live record
-                     (foundry.yaml) unless corrected in the same
-                     change — see "Files expected to change." ADDITIVE
-                     for the checkout_role/upgrade_in_progress schema
+  Foundry:          Resolved within this change (round 10, fixes
+                     `CA-LRB-VER-R9-1`): foundry.yaml's version is
+                     corrected in the same Gate 2 implementation
+                     branch, sequenced after a disclosure commit — see
+                     "One-time reconciliation" and "Files expected to
+                     change." Not BREAKING for this repository's own
+                     Gate 2 path specifically, since the correction and
+                     its check both land together, green. ADDITIVE for
+                     the checkout_role/upgrade_in_progress schema
                      fields themselves (optional, no existing record
                      required to set them).
   Direct adopters:  BREAKING. An adopter whose live record's version
@@ -771,18 +830,23 @@ Impact:
   Migration:        Required for any adopter who both (a) opts a
                      record into checkout_role: live and (b) has an
                      already-drifted framework_version. Migration note
-                     (round 9, fixes CA-LRB-VER-R8-1: the prior guidance
-                     here — "correct the version before or in the same
-                     commit as adding checkout_role: live" — silently
-                     erased exactly the historical baseline this plan
-                     exists to preserve, at adopter scale). Corrected
-                     guidance: add checkout_role: live with the version
-                     field UNCHANGED; the check then correctly fires,
-                     honestly, on the real pre-existing drift; follow
-                     the "One-time reconciliation" procedure (disclose,
-                     then correct in a separate later step) rather than
-                     silently overwriting the value in the same or an
-                     earlier commit. The blocking check is opt-in via
+                     (round 9, fixes CA-LRB-VER-R8-1; retimed round 10,
+                     fixes CA-LRB-VER-R9-1): the original guidance —
+                     "correct the version before or in the same commit
+                     as adding checkout_role: live" — silently erased
+                     the historical baseline at adopter scale; round 9's
+                     fix then required the correction in an unmergeable
+                     separate-later-commit, which has no executable path
+                     for an adopter's own CI any more than it did for
+                     this project's. Corrected guidance: follow the
+                     "One-time reconciliation" procedure — a disclosure
+                     record (or equivalent auditable artifact) committed
+                     first on the same branch, then a commit correcting
+                     both checkout_role: live and framework_version
+                     together, sequenced after the disclosure. The
+                     adopter's own CI sees a green exact head, and the
+                     disclosure exists in the branch's history before
+                     the value changed. The blocking check is opt-in via
                      the new field, so no adopter is forced onto the
                      blocking behavior without also opting in — but the
                      upgrade skill's new Step 0 (round 5, retimed
