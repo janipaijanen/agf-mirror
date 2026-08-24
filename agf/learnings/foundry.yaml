@@ -3750,6 +3750,114 @@ learnings:
         - "foundry:2026-08-23"
 
 
+  - id: "20260824T203051Z-loop"
+    date: "2026-08-24"
+    category: tension
+    scope: framework
+    title: locally-correct-review-without-a-convergence-bound-became-a-delivery-failure
+    status: proposed
+    description: >
+      MR !1847 reached fourteen review/correction rounds while repeatedly
+      refining one path-containment invariant. Individual findings were
+      often locally defensible, but the workflow had no mandatory point at
+      which repeated failure of the same invariant forced the team to discard
+      the brittle formulation and redesign the boundary. Exact-head review,
+      correction, coordination, and CI therefore repeated until the governor
+      supplied the simpler fail-closed rule: any existing symlink component
+      that cannot be canonicalized is invalid; only an absent non-symlink path
+      may be classified as contained-but-missing. The redesigned rule removed
+      the disputed state instead of adding another exception for it. From the
+      first correction loop through the eventual convergence and delivery
+      recovery, this journey consumed approximately eighteen elapsed hours.
+
+      The final semantic candidate then exposed a separate delivery failure.
+      Its canonical pipeline could not obtain the comparison history because
+      the branch was exactly twenty commits ahead and the CI clone depth was
+      twenty. A byte-identical rebase did not change that arithmetic. Rather
+      than first preserving the reviewed content in a shorter branch-local
+      history, work began on MR !2002 to make two governance jobs fetch full
+      history permanently. That proposal consumed CI and review attention
+      before a governor decision had authorized the broader recurring-cost CI
+      change. Contribution-auditor review correctly blocked it and recommended
+      a content-identical squash of !1847 instead.
+
+      The combined journey demonstrated that an auditable process can still
+      fail its purpose. The team produced many valid artifacts while delaying
+      the governed outcome, spending human attention on near-identical nuance,
+      and reducing operator trust. Coordination records are evidence of work;
+      their number is not evidence of progress. A green or failed pipeline is
+      transport evidence; it must not silently reopen settled semantics.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - contribution-auditor
+      - build-engineer
+      - governor-reviewer
+    framework_section: >
+      Review convergence, exact-head independent review, coordination routing,
+      gate authority, and CI acceptance-path design. The immediate corrective
+      proposal is MR !2003, `plan: bound review convergence and abstraction
+      reset`.
+    business_impact:
+      type: cost_overhead
+      description: >
+        Approximately eighteen elapsed hours and fourteen review/correction
+        rounds delayed a plan whose eventual solution was a smaller
+        fail-closed state model. The subsequent
+        unauthorized CI workaround started pipeline 2786979557 before being
+        stopped; recorded jobs consumed approximately 853 seconds in total,
+        including 428.65 seconds in a canceled Rust preview job, 373.26
+        seconds in a completed distribution preview, and 51.44 seconds in a
+        completed site build. More importantly, the governor had to repeatedly
+        redirect the agents from nuance and status production back to delivery.
+        This displaced issue, TODO, backlog, and downstream work and materially
+        damaged confidence that the governance system helps work converge.
+    recommendation: >
+      Make convergence a higher-order invariant than local review
+      completeness. For each `(series_id, invariant_id)`, allow at most two
+      material blocking correction attempts. A second failure MUST trigger an
+      abstraction reset: restate the required observable outcome, reduce the
+      state space, prefer a fail-closed design that eliminates the bug class,
+      and submit one redesigned candidate for one targeted review. If that
+      candidate still has a material blocker, route the alternatives and
+      evidence to the governor instead of starting another nuance round.
+
+      A finding may block only when it changes an approved acceptance
+      criterion, security or authority boundary, required artifact, or
+      observable operator/downstream behavior. Style preferences, speculative
+      generality, already-excluded states, and improvements outside the
+      approved scope are follow-up work, not reasons to mutate the exact head.
+      Reviewers must identify the acceptance criterion or governed boundary
+      affected by every blocker.
+
+      Keep semantic convergence separate from delivery transport. An unchanged
+      content digest after rebase, squash, or pipeline-environment correction
+      does not consume another semantic attempt. When CI lacks history or an
+      acceptance path fails for infrastructure reasons, first choose the
+      narrowest branch-local repair that preserves reviewed content and incurs
+      no permanent downstream cost. A repository-wide CI policy change needs
+      its own authority and cost decision; a handoff routes work but does not
+      grant Gate 1, Gate 2, or scope authority.
+
+      For assistants sharing one repository, publish one explicit owner,
+      invariant identifier, reviewed content digest, and canonical acceptance
+      path. Independent reviewers remain independent, but they read the same
+      bounded evidence and do not duplicate implementation or start competing
+      CI paths. Report progress in delivered state transitions -- issue closed,
+      accepted head, merged MR, shipped artifact -- alongside review rounds,
+      elapsed time, coordination count, and CI seconds. Audit trail without a
+      delivered state transition is overhead to minimize.
+    severity: critical
+    confidence:
+      level: single-adopter
+      evidence_count: 4
+      evidence_refs:
+        - "MR !1847: approximately eighteen elapsed hours and fourteen rounds of net-new projection path lifecycle review; final semantic CLEAR at exact head 40a63a95 with plan blob 76c241aea501e3ab7051bdbdacbb953672b8cd37 after governor decision a86h replaced repeated edge-case refinement with the fail-closed canonicalization rule. Elapsed duration confirmed directly by the governor-reviewer on 2026-08-24."
+        - "MR !1847 pipelines 2786892973 and 2786959838: commercial-corpus validation failed because the depth-20 clone lacked the comparison base while the candidate was twenty commits ahead; the plan content remained byte-identical across the rebase."
+        - "MR !2002 and pipeline 2786979557: permanent full-history CI proposal began without authority for the broader recurring-cost change; contribution-auditor review 20260824T202150Z-contribution-auditor-5g74 blocked it and directed a content-identical squash of !1847."
+        - "MR !2003 at exact head 17070f1c344fe7c6c658333dd0725045d5324411: green Gate 1 plan proposal for bounded review convergence, mandatory abstraction reset, and closed materiality categories."
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
