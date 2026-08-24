@@ -2,6 +2,8 @@ use crate::{split_results, validate_schema, yaml_files, CollectionResult};
 use agov_core::Finding;
 use regex::Regex;
 use std::path::{Path, PathBuf};
+use time::format_description::well_known::Rfc3339;
+use time::OffsetDateTime;
 
 const CONFIDENCE_LEVELS: &[&str] = &[
     "single-adopter",
@@ -14,32 +16,215 @@ const HISTORICAL_ID: &str = r#"^L\d{3}$"#;
 const BARE_TIMESTAMP_ID: &str = r#"^\d{8}T\d{6}Z$"#;
 const SUFFIXED_TIMESTAMP_ID: &str = r#"^\d{8}T\d{6}Z-[a-z0-9]{4}$"#;
 
+/// Bound on how long an `upgrade_in_progress` marker suppresses the
+/// version-drift check. Steps 1 and 2 of `agf/skills/upgrade/SKILL.md`
+/// both have explicit user-confirmation gates that can pause indefinitely,
+/// but 24 hours from Step 3's actual start is well past any single working
+/// session -- see the plan's "Mid-upgrade transient window" design.
+const UPGRADE_WINDOW_HOURS: i64 = 24;
+
 /// Validate all learning record YAML files in `dir`.
 ///
 /// Mirrors `Agov.ValidateLearnings.validate_all/1`. Each file is validated
-/// against `learning.schema.json`.
+/// against `learning.schema.json`. Also runs the corpus-wide
+/// `checkout_role: live` version-drift check (see `corpus_errors`) --
+/// `agf/VERSION` is read as `dir`'s sibling, i.e. `dir` is assumed to be
+/// `<repo_root>/agf/learnings`, matching `agov_core::learnings_dir()`.
 pub fn validate_all(dir: &Path) -> CollectionResult {
-    validate_paths(&[dir.to_path_buf()])
+    let mut results = validate_directory_files(dir);
+    apply_corpus_checks(&mut results, dir);
+    split_results(results)
 }
 
 /// Validate learning records from explicit files or directories.
+///
+/// Corpus-wide checks (see `corpus_errors`) apply per directory argument --
+/// a directory's full file set is corpus-aware (matching `validate_all`'s
+/// behavior for that same directory), but an individual explicit file
+/// argument is validated on its own, without corpus context, since the
+/// caller named a narrow subset rather than "the whole learnings corpus."
 pub fn validate_paths(paths: &[PathBuf]) -> CollectionResult {
-    let results = paths
-        .iter()
-        .flat_map(|path| {
-            if path.is_dir() {
-                learning_files(path)
-            } else {
-                vec![path.to_path_buf()]
-            }
-        })
+    let mut results = Vec::new();
+    for path in paths {
+        if path.is_dir() {
+            let mut dir_results = validate_directory_files(path);
+            apply_corpus_checks(&mut dir_results, path);
+            results.extend(dir_results);
+        } else {
+            let result = validate_file(path);
+            results.push((path.clone(), result));
+        }
+    }
+
+    split_results(results)
+}
+
+fn validate_directory_files(
+    dir: &Path,
+) -> Vec<(PathBuf, Result<serde_json::Value, Vec<Finding>>)> {
+    learning_files(dir)
+        .into_iter()
         .map(|file| {
             let result = validate_file(&file);
             (file, result)
         })
+        .collect()
+}
+
+fn apply_corpus_checks(
+    results: &mut Vec<(PathBuf, Result<serde_json::Value, Vec<Finding>>)>,
+    dir: &Path,
+) {
+    let agf_version_path = dir.parent().map(|agf_dir| agf_dir.join("VERSION"));
+    let corpus_findings = corpus_errors(results, agf_version_path.as_deref());
+    merge_corpus_findings(results, dir, corpus_findings);
+}
+
+/// Corpus-wide `checkout_role: live` version-drift check, per the plan's
+/// "Deterministic live-record selection and migration" design:
+///
+/// - Zero `checkout_role: live` records: always-on advisory finding,
+///   attached to the directory itself (never blocks).
+/// - Two or more `checkout_role: live` records: blocking ambiguity
+///   finding, naming every live record file, attached to the directory
+///   itself.
+/// - Exactly one `checkout_role: live` record: compare its
+///   `adoption.framework_version` against `agf/VERSION`, honoring the
+///   `upgrade_in_progress` suppression window (see `live_record_findings`).
+///
+/// Only files that parsed and schema/semantic-validated cleanly
+/// (`Ok(data)`) participate -- a malformed record's `checkout_role` or
+/// `framework_version` cannot be trusted.
+fn corpus_errors(
+    results: &[(PathBuf, Result<serde_json::Value, Vec<Finding>>)],
+    agf_version_path: Option<&Path>,
+) -> Vec<(Option<PathBuf>, Finding)> {
+    let live: Vec<(&PathBuf, &serde_json::Value)> = results
+        .iter()
+        .filter_map(|(path, result)| result.as_ref().ok().map(|data| (path, data)))
+        .filter(|(_, data)| {
+            data.pointer("/adoption/checkout_role")
+                .and_then(serde_json::Value::as_str)
+                == Some("live")
+        })
         .collect();
 
-    split_results(results)
+    match live.as_slice() {
+        [] => vec![(
+            None,
+            Finding::advisory(
+                "no live-marked adoption record found; version-drift detection is inactive \
+                 for this checkout -- add checkout_role: live to your own learning record \
+                 (see agf/docs/site/docs/adopt/install-and-layouts.md, Step 7)",
+            ),
+        )],
+        [(path, data)] => live_record_findings(data, agf_version_path)
+            .into_iter()
+            .map(|finding| (Some((*path).clone()), finding))
+            .collect(),
+        many => {
+            let names = many
+                .iter()
+                .map(|(path, _)| path.display().to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
+            vec![(
+                None,
+                Finding::blocking(format!(
+                    "multiple checkout_role: live records found ({names}); exactly one \
+                     record may be live at a time"
+                )),
+            )]
+        }
+    }
+}
+
+/// Version-drift comparison for the single identified `checkout_role: live`
+/// record, honoring the `upgrade_in_progress` suppression window.
+fn live_record_findings(
+    data: &serde_json::Value,
+    agf_version_path: Option<&Path>,
+) -> Vec<Finding> {
+    let mut findings = Vec::new();
+
+    let Some(recorded) = data
+        .pointer("/adoption/framework_version")
+        .and_then(serde_json::Value::as_str)
+    else {
+        return findings;
+    };
+    let Some(agf_version_path) = agf_version_path else {
+        return findings;
+    };
+    let Some(current) = read_agf_version(agf_version_path) else {
+        return findings;
+    };
+
+    let started_at = data
+        .pointer("/adoption/upgrade_started_at")
+        .and_then(serde_json::Value::as_str)
+        .and_then(|value| OffsetDateTime::parse(value, &Rfc3339).ok());
+    let in_progress = data
+        .pointer("/adoption/upgrade_in_progress")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+
+    let elapsed_hours = started_at.map(|started| (OffsetDateTime::now_utc() - started).whole_hours());
+    let within_window = in_progress && elapsed_hours.is_some_and(|hours| hours < UPGRADE_WINDOW_HOURS);
+    let stale_marker = in_progress && elapsed_hours.is_some_and(|hours| hours >= UPGRADE_WINDOW_HOURS);
+
+    if recorded != current && !within_window {
+        findings.push(Finding::blocking_at(
+            format!(
+                "adoption.framework_version {recorded:?} does not match agf/VERSION \
+                 {current:?}"
+            ),
+            "adoption/framework_version",
+        ));
+    }
+
+    if stale_marker {
+        findings.push(Finding::advisory(
+            "stale upgrade_in_progress marker -- upgrade did not complete Step 4 within the \
+             expected window; verify manually and clear the marker",
+        ));
+    }
+
+    findings
+}
+
+fn read_agf_version(path: &Path) -> Option<String> {
+    std::fs::read_to_string(path)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+/// Merge corpus-wide findings (see `corpus_errors`) into the per-file
+/// `results` list. A finding tied to a specific file (`Some(path)`) is
+/// appended to that file's entry, converting it from `Ok` to `Err` if
+/// needed. A directory-level finding (`None`, e.g. the zero-live advisory
+/// or the multi-live ambiguity finding) is attached to a synthetic entry
+/// at `dir` itself, since it describes the corpus as a whole, not one file.
+fn merge_corpus_findings(
+    results: &mut Vec<(PathBuf, Result<serde_json::Value, Vec<Finding>>)>,
+    dir: &Path,
+    corpus_findings: Vec<(Option<PathBuf>, Finding)>,
+) {
+    for (target, finding) in corpus_findings {
+        let target = target.unwrap_or_else(|| dir.to_path_buf());
+        match results.iter().position(|(path, _)| *path == target) {
+            Some(index) if results[index].1.is_ok() => {
+                results[index].1 = Err(vec![finding]);
+            }
+            Some(index) => {
+                if let Err(findings) = &mut results[index].1 {
+                    findings.push(finding);
+                }
+            }
+            None => results.push((target, Err(vec![finding]))),
+        }
+    }
 }
 
 fn learning_files(dir: &Path) -> Vec<std::path::PathBuf> {
@@ -557,9 +742,299 @@ learnings: []
 
         let result = validate_all(dir.path());
 
-        assert!(result.is_ok());
         assert!(result.ok_files.is_empty());
-        assert!(result.file_errors.is_empty());
+        // The template file is still skipped as a real record, but a
+        // learnings directory with zero checkout_role: live records
+        // (including zero real records at all) now emits the corpus-wide
+        // advisory finding -- this is the new version-drift check's
+        // always-on zero-live signal, not a per-file finding.
+        assert_eq!(result.file_errors.len(), 1);
+        let findings = &result.file_errors[0].findings;
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].severity, agov_core::Severity::Advisory);
+        assert!(findings[0].message.contains("no live-marked adoption record found"));
+    }
+
+    /// Build a fixture `<tmp>/agf/learnings/` directory (matching the real
+    /// `agov_core::learnings_dir()` layout) plus `<tmp>/agf/VERSION`, and
+    /// write each `(filename, content)` pair as a record inside it. Returns
+    /// the `TempDir` (keep it alive for the test's duration) and the
+    /// learnings directory path to pass to `validate_all`.
+    fn write_corpus(version: &str, files: &[(&str, &str)]) -> (tempfile::TempDir, PathBuf) {
+        let root = tempfile::tempdir().expect("create temp dir");
+        let learnings_dir = root.path().join("agf").join("learnings");
+        fs::create_dir_all(&learnings_dir).expect("create agf/learnings");
+        fs::write(root.path().join("agf").join("VERSION"), version).expect("write agf/VERSION");
+        for (name, content) in files {
+            fs::write(learnings_dir.join(name), content).expect("write learning record");
+        }
+        (root, learnings_dir)
+    }
+
+    #[test]
+    fn live_record_matching_version_passes() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.6.1"
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(result.is_ok(), "expected no findings, got {:?}", result.file_errors.iter().flat_map(|e| e.findings.iter().map(|f| f.message.clone())).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn live_record_mismatched_version_blocks_naming_both_values() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok());
+        assert_eq!(result.file_errors.len(), 1);
+        let findings = &result.file_errors[0].findings;
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Blocking
+                && f.message.contains("2.0.0-provisional")
+                && f.message.contains("2.6.1")));
+    }
+
+    #[test]
+    fn imported_record_mismatched_version_is_skipped() {
+        // Regression fixture: this repository's own harbor-workshop.yaml
+        // shape (framework_version 2.5.0 vs agf/VERSION 2.6.1), no
+        // checkout_role set -- proving the existing corpus is unaffected.
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "harbor-workshop.yaml",
+                r#"
+project:
+  codename: harbor-workshop
+adoption:
+  framework_version: "2.5.0"
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        // Zero live records -> the always-on advisory fires, but the
+        // mismatched imported/unmarked record itself is never flagged.
+        assert_eq!(result.file_errors.len(), 1);
+        let findings = &result.file_errors[0].findings;
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].severity, agov_core::Severity::Advisory);
+        assert!(findings[0].message.contains("no live-marked adoption record found"));
+    }
+
+    #[test]
+    fn explicitly_imported_record_mismatched_version_is_skipped() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "imported.yaml",
+                r#"
+project:
+  codename: imported-fixture
+adoption:
+  checkout_role: imported
+  framework_version: "1.0.0"
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert_eq!(result.file_errors.len(), 1);
+        assert!(result.file_errors[0].findings[0]
+            .message
+            .contains("no live-marked adoption record found"));
+    }
+
+    #[test]
+    fn live_record_with_fresh_upgrade_marker_suppresses_mismatch() {
+        let started_at = (time::OffsetDateTime::now_utc() - time::Duration::hours(1))
+            .format(&time::format_description::well_known::Rfc3339)
+            .expect("format timestamp");
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                &format!(
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+  upgrade_started_at: "{started_at}"
+"#
+                ),
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(result.is_ok(), "expected suppression, got {:?}", result.file_errors.iter().flat_map(|e| e.findings.iter().map(|f| f.message.clone())).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn live_record_with_stale_upgrade_marker_fires_both_findings() {
+        let started_at = (time::OffsetDateTime::now_utc() - time::Duration::hours(25))
+            .format(&time::format_description::well_known::Rfc3339)
+            .expect("format timestamp");
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                &format!(
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+  upgrade_started_at: "{started_at}"
+"#
+                ),
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok());
+        let findings = &result.file_errors[0].findings;
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Blocking
+                && f.message.contains("does not match")));
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Advisory
+                && f.message.contains("stale upgrade_in_progress marker")));
+    }
+
+    #[test]
+    fn zero_live_records_advisory_does_not_block() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[
+                (
+                    "foundry.yaml",
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  framework_version: "2.0.0-provisional"
+"#,
+                ),
+                (
+                    "harbor-workshop.yaml",
+                    r#"
+project:
+  codename: harbor-workshop
+adoption:
+  checkout_role: imported
+  framework_version: "2.5.0"
+"#,
+                ),
+            ],
+        );
+
+        let result = validate_all(&dir);
+        assert_eq!(result.file_errors.len(), 1);
+        assert_eq!(
+            result.file_errors[0].findings[0].severity,
+            agov_core::Severity::Advisory
+        );
+    }
+
+    #[test]
+    fn two_live_records_is_a_blocking_ambiguity() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[
+                (
+                    "first.yaml",
+                    r#"
+project:
+  codename: first-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.6.1"
+"#,
+                ),
+                (
+                    "second.yaml",
+                    r#"
+project:
+  codename: second-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.6.1"
+"#,
+                ),
+            ],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok());
+        assert_eq!(result.file_errors.len(), 1);
+        let findings = &result.file_errors[0].findings;
+        assert!(findings.iter().any(|f| f.severity == agov_core::Severity::Blocking
+            && f.message.contains("multiple checkout_role: live records")
+            && f.message.contains("first.yaml")
+            && f.message.contains("second.yaml")));
+    }
+
+    #[test]
+    fn exactly_one_live_record_skips_advisory_and_ambiguity() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[
+                (
+                    "foundry.yaml",
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.6.1"
+"#,
+                ),
+                (
+                    "harbor-workshop.yaml",
+                    r#"
+project:
+  codename: harbor-workshop
+adoption:
+  checkout_role: imported
+  framework_version: "2.5.0"
+"#,
+                ),
+            ],
+        );
+
+        let result = validate_all(&dir);
+        assert!(result.is_ok(), "expected no findings, got {:?}", result.file_errors.iter().flat_map(|e| e.findings.iter().map(|f| f.message.clone())).collect::<Vec<_>>());
     }
 
     fn write_fixture(name: &str, content: &str) -> PathBuf {

@@ -26,7 +26,20 @@
         "framework_version": {"type": "string"},
         "framework_commit": {"type": "string"},
         "agent_definitions": {"type": "array"},
-        "upgrade_history": {"type": "array"}
+        "upgrade_history": {"type": "array"},
+        "checkout_role": {
+          "type": "string",
+          "enum": ["live", "imported"],
+          "description": "Optional. 'live' marks this record as the checkout's own, currently-maintained adoption state -- the version-drift check (agov.validate.learnings) only compares framework_version against agf/VERSION for 'live' records. 'imported' marks a reference copy of another adopter's (or historical) submission. Absence means unknown -- treated the same as 'imported' for the drift check (never asserts a live-version claim). Docs: agf/docs/site/docs/adopt/install-and-layouts.md, Step 7."
+        },
+        "upgrade_in_progress": {
+          "type": "boolean",
+          "description": "Optional. Set true by agf/skills/upgrade/SKILL.md Step 3 at the start of an upgrade, on the record identified by Step 0, before any archive file is copied. Cleared (field removed) by Step 4 immediately after framework_version is updated. Suppresses the version-drift check for this exact record while upgrade_started_at is within the bounded window."
+        },
+        "upgrade_started_at": {
+          "type": "string",
+          "description": "Optional. RFC3339 timestamp set alongside upgrade_in_progress. If more than 24 hours old, the version-drift check stops honoring the suppression and additionally emits a 'stale upgrade_in_progress marker' finding."
+        }
       }
     },
     "learnings": {
