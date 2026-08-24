@@ -40,6 +40,16 @@
           "type": "string",
           "description": "Optional. RFC3339 timestamp set alongside upgrade_in_progress. If more than 24 hours old, the version-drift check stops honoring the suppression and additionally emits a 'stale upgrade_in_progress marker' finding."
         }
+      },
+      "if": {
+        "properties": {"checkout_role": {"const": "live"}},
+        "required": ["checkout_role"]
+      },
+      "then": {
+        "required": ["framework_version"],
+        "properties": {
+          "framework_version": {"type": "string", "minLength": 1}
+        }
       }
     },
     "learnings": {

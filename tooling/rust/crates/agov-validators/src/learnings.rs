@@ -166,30 +166,55 @@ fn live_record_findings(
 ) -> Vec<Finding> {
     let mut findings = Vec::new();
 
-    let Some(recorded) = data
+    let recorded = data
         .pointer("/adoption/framework_version")
-        .and_then(serde_json::Value::as_str)
-    else {
-        return findings;
-    };
-    let Some(agf_version_path) = agf_version_path else {
-        return findings;
-    };
-    let Some(current) = read_agf_version(agf_version_path) else {
+        .and_then(serde_json::Value::as_str);
+    let Some(recorded) = recorded else {
+        findings.push(Finding::blocking_at(
+            "adoption.framework_version is required when adoption.checkout_role is live",
+            "adoption/framework_version",
+        ));
         return findings;
     };
 
-    let started_at = data
-        .pointer("/adoption/upgrade_started_at")
-        .and_then(serde_json::Value::as_str)
-        .and_then(|value| OffsetDateTime::parse(value, &Rfc3339).ok());
+    let Some(agf_version_path) = agf_version_path else {
+        findings.push(Finding::blocking_at(
+            "could not determine agf/VERSION path for this checkout; version-drift \
+             detection cannot run",
+            "adoption/framework_version",
+        ));
+        return findings;
+    };
+    let Some(current) = read_agf_version(agf_version_path) else {
+        findings.push(Finding::blocking_at(
+            format!(
+                "could not read {} to compare against adoption.framework_version; \
+                 version-drift detection cannot run",
+                agf_version_path.display()
+            ),
+            "adoption/framework_version",
+        ));
+        return findings;
+    };
+
     let in_progress = data
         .pointer("/adoption/upgrade_in_progress")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false);
+    let started_at_raw = data
+        .pointer("/adoption/upgrade_started_at")
+        .and_then(serde_json::Value::as_str);
+    let started_at = started_at_raw.and_then(|value| OffsetDateTime::parse(value, &Rfc3339).ok());
 
+    // Only a marker with a valid, non-future timestamp inside the bounded
+    // window suppresses the mismatch. A missing/invalid/future timestamp on
+    // an in-progress marker is malformed -- it must never suppress, and is
+    // surfaced as its own advisory so it doesn't fail silently.
     let elapsed_hours = started_at.map(|started| (OffsetDateTime::now_utc() - started).whole_hours());
-    let within_window = in_progress && elapsed_hours.is_some_and(|hours| hours < UPGRADE_WINDOW_HOURS);
+    let malformed_marker = in_progress && (started_at_raw.is_none() || started_at.is_none());
+    let future_marker = in_progress && elapsed_hours.is_some_and(|hours| hours < 0);
+    let within_window =
+        in_progress && elapsed_hours.is_some_and(|hours| (0..UPGRADE_WINDOW_HOURS).contains(&hours));
     let stale_marker = in_progress && elapsed_hours.is_some_and(|hours| hours >= UPGRADE_WINDOW_HOURS);
 
     if recorded != current && !within_window {
@@ -206,6 +231,17 @@ fn live_record_findings(
         findings.push(Finding::advisory(
             "stale upgrade_in_progress marker -- upgrade did not complete Step 4 within the \
              expected window; verify manually and clear the marker",
+        ));
+    } else if future_marker {
+        findings.push(Finding::advisory(
+            "malformed upgrade_started_at marker -- timestamp is in the future and does not \
+             suppress version-drift detection; verify manually and clear the marker",
+        ));
+    } else if malformed_marker {
+        findings.push(Finding::advisory(
+            "malformed or missing upgrade_started_at marker -- upgrade_in_progress is set but \
+             upgrade_started_at is absent or not a valid RFC3339 timestamp, so it does not \
+             suppress version-drift detection; verify manually and clear the marker",
         ));
     }
 
@@ -994,6 +1030,174 @@ adoption:
             .iter()
             .any(|f| f.severity == agov_core::Severity::Advisory
                 && f.message.contains("stale upgrade_in_progress marker")));
+    }
+
+    #[test]
+    fn live_record_at_zero_hours_elapsed_is_within_window() {
+        // Boundary: elapsed_hours == 0 must still suppress (the window is
+        // [0, UPGRADE_WINDOW_HOURS)).
+        let started_at = time::OffsetDateTime::now_utc()
+            .format(&time::format_description::well_known::Rfc3339)
+            .expect("format timestamp");
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                &format!(
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+  upgrade_started_at: "{started_at}"
+"#
+                ),
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(result.is_ok(), "expected suppression at zero elapsed hours, got {:?}", result.file_errors.iter().flat_map(|e| e.findings.iter().map(|f| f.message.clone())).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn live_record_with_future_upgrade_marker_does_not_suppress_mismatch() {
+        // Regression (MR !1965 round-1 audit CA-ADV-R1-1): a future
+        // upgrade_started_at produced a negative elapsed-hours value that
+        // satisfied `hours < UPGRADE_WINDOW_HOURS`, silently suppressing a
+        // real version mismatch indefinitely.
+        let started_at = (time::OffsetDateTime::now_utc() + time::Duration::hours(48))
+            .format(&time::format_description::well_known::Rfc3339)
+            .expect("format timestamp");
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                &format!(
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+  upgrade_started_at: "{started_at}"
+"#
+                ),
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok(), "future timestamp must not suppress a real mismatch");
+        let findings = &result.file_errors[0].findings;
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.severity == agov_core::Severity::Blocking
+                    && f.message.contains("does not match")),
+            "expected the mismatch to still block, got {:?}",
+            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.severity == agov_core::Severity::Advisory
+                    && f.message.contains("malformed upgrade_started_at marker")
+                    && f.message.contains("future")),
+            "expected a malformed-future-marker advisory, got {:?}",
+            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn live_record_with_invalid_upgrade_started_at_does_not_suppress_mismatch() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+  upgrade_started_at: "not-a-timestamp"
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok(), "invalid timestamp must not suppress a real mismatch");
+        let findings = &result.file_errors[0].findings;
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Blocking
+                && f.message.contains("does not match")));
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Advisory
+                && f.message.contains("malformed or missing upgrade_started_at marker")));
+    }
+
+    #[test]
+    fn live_record_with_upgrade_in_progress_but_no_started_at_does_not_suppress_mismatch() {
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok(), "missing upgrade_started_at must not suppress a real mismatch");
+        let findings = &result.file_errors[0].findings;
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Blocking
+                && f.message.contains("does not match")));
+        assert!(findings
+            .iter()
+            .any(|f| f.severity == agov_core::Severity::Advisory
+                && f.message.contains("malformed or missing upgrade_started_at marker")));
+    }
+
+    #[test]
+    fn live_record_missing_framework_version_blocks() {
+        // Regression (MR !1965 round-1 audit CA-ADV-R1-2): a live record
+        // with no framework_version at all previously activated neither
+        // the zero-live advisory nor the drift comparison, and passed.
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+"#,
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(!result.is_ok(), "a live record with no framework_version must block");
+        let findings = &result.file_errors[0].findings;
+        assert!(
+            findings.iter().any(|f| f.severity == agov_core::Severity::Blocking
+                && f.message.contains("adoption.framework_version is required")),
+            "expected a required-field blocking finding, got {:?}",
+            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+        );
     }
 
     #[test]
