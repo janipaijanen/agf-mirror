@@ -226,6 +226,36 @@ finding:
   never Step 0's job to enforce, and trying to make it Step 0's job is
   what broke Gate 1's own baseline.
 
+## Round 8 correction (fixes contribution-auditor's exact-head review, `4581`)
+
+`20260824T043231Z-contribution-auditor-4581.md` reviewed the round-7
+corrected head (`a3614e4d`) and confirmed `CA-LRB-VER-R6-1`'s
+baseline-preservation behavior itself resolved, but recommended BLOCK on
+1 new critical finding:
+
+- **`CA-LRB-VER-R7-1`** — round 7 rewrote the main "Step 0" procedure
+  text correctly, but left three other current (not historical) clauses
+  still describing the removed behavior: the marker-lifecycle "Owner"
+  bullet said the record was "identified and version-verified by Step
+  0"; a Step-3 skill-acceptance-evidence bullet began "once Step 0 has
+  identified and verified a candidate"; and the Downstream Impact
+  Migration clause said Step 0 "identifies and version-verifies the
+  candidate record before Gate 1 even runs." All three are live owner,
+  acceptance, and migration instructions, not history — a full-plan
+  search also found the "New Step 0" subsection heading itself still
+  said "identify and verify." An implementer following any of these
+  four spots could reintroduce the exact pre-Gate-1 comparison round 7
+  removed, while an implementer following the corrected main procedure
+  text would violate these spots' stated contract — mutually exclusive
+  instructions in the same document. Fixed: all four updated to say
+  Step 0 identifies the record and reads its `framework_version`
+  unchanged — no comparison, no verification of equality, no write. A
+  full-plan search for Step-0 `verify`/`verified` language now finds
+  only explicitly historical round-summary text and unrelated uses (the
+  stale-marker advisory's "verify manually," and this session's own
+  "verified directly against the repository" meta-commentary while
+  drafting corrections).
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -348,9 +378,10 @@ mechanisms close that gap without misclassifying imported evidence:
     left Gate 1 reviewing a range built on an unverified guess. Fixed
     (round 5): the decision and the write are two different moments,
     not one:
-    - **New "Step 0" — identify and verify, before Step 1 reads
-      anything (round 6 correction, fixes `CA-LRB-VER-R5-1`,
-      `CA-LRB-VER-R5-2`):**
+    - **New "Step 0" — identify and read (identity only, no version
+      comparison — round 7 correction, fixes `CA-LRB-VER-R6-1`,
+      `CA-LRB-VER-R7-1`), before Step 1 reads anything (round 6
+      correction, fixes `CA-LRB-VER-R5-1`, `CA-LRB-VER-R5-2`):**
       - **Auto-selection requires an already-live record — never a bare
         file count (fixes `CA-LRB-VER-R5-1`).** If exactly one record in
         `agf/learnings/` already carries `checkout_role: live`, select
@@ -434,11 +465,14 @@ every upgrade, unconditionally. Full lifecycle:
   same live record.
 - **Owner:** the upgrade skill sets both fields at the *start* of Step
   3, before any archive file is copied, onto the record already
-  identified and version-verified by **Step 0** (round 5 correction,
-  fixes `CA-LRB-VER-R4-1`: identification and version verification
-  happen before Step 1/GATE 1 read or present anything; Step 3 only
-  writes the already-made decision — it performs no new selection).
-  It clears both fields (removes them) at the *end* of
+  identified by **Step 0** (round 5 correction, fixes
+  `CA-LRB-VER-R4-1`: identification happens before Step 1/GATE 1 read
+  or present anything; round 7 correction, fixes `CA-LRB-VER-R6-1`:
+  Step 0 identifies only — it reads the record's `framework_version` as
+  recorded but never compares it to `agf/VERSION` or writes anything;
+  Step 3 only writes the already-made identity decision — it performs
+  no new selection and no version comparison). It clears both fields
+  (removes them) at the *end* of
   Step 4, immediately after `adoption.framework_version` is updated to
   the new value.
 - **Suppression scope:** the version-drift check is suppressed only for
@@ -586,8 +620,9 @@ On the implementation branch, after Gate 1 approval:
   `2.0.0-provisional` immediately after Gate 1 completes — only Step 4
   (post-upgrade) may change it.
 - Skill acceptance evidence (fixes `CA-LRB-VER-R3-1`, unchanged
-  positioning from round 4): once Step 0 has identified and verified a
-  candidate, Step 3 writes `checkout_role: live` (if needed) and the
+  positioning from round 4): once Step 0 has identified a candidate
+  (identity only — no version comparison, per round 7), Step 3 writes
+  `checkout_role: live` (if needed) and the
   `upgrade_in_progress` marker onto that same already-selected record,
   strictly before any archive file is copied; assert `agf/VERSION` is
   unmodified while Step 3's write is outstanding, and assert Step 3
@@ -646,13 +681,15 @@ Impact:
                      checkout_role: live. The blocking check is opt-in
                      via the new field, so no adopter is forced onto the
                      blocking behavior without also opting in — but the
-                     upgrade skill's new Step 0 (round 5) identifies and
-                     version-verifies the candidate record before Gate 1
-                     even runs, Step 3 (round 4 timing unchanged) then
-                     writes the opt-in field before that upgrade mutates
-                     agf/VERSION, and the always-on advisory finding
-                     (round 2) makes an unmarked live record visible on
-                     every `agov validate` run in the meantime.
+                     upgrade skill's new Step 0 (round 5, retimed
+                     identity-only round 7) identifies the candidate
+                     record — without comparing its version — before
+                     Gate 1 even runs, Step 3 (round 4 timing unchanged)
+                     then writes the opt-in field before that upgrade
+                     mutates agf/VERSION, and the always-on advisory
+                     finding (round 2) makes an unmarked live record
+                     visible on every `agov validate` run in the
+                     meantime.
   Evidence:          GitLab issue #112 (harbor-workshop, 2026-08-10 to
                      2026-08-21); this project's own foundry.yaml and
                      harbor-workshop.yaml verified as live evidence for
