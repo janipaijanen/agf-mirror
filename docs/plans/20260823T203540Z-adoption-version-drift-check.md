@@ -256,6 +256,34 @@ baseline-preservation behavior itself resolved, but recommended BLOCK on
   "verified directly against the repository" meta-commentary while
   drafting corrections).
 
+## Round 9 correction (fixes contribution-auditor's exact-head review, `2g8e`)
+
+`20260824T044822Z-contribution-auditor-2g8e.md` reviewed the round-8
+corrected head (`f515d2a1`) and confirmed `CA-LRB-VER-R7-1`'s wording
+purge itself resolved, but recommended BLOCK on 1 new critical finding:
+
+- **`CA-LRB-VER-R8-1`** — the "Files expected to change" list still
+  said this project's own `foundry.yaml` gets `checkout_role: live`
+  added *and* `framework_version` directly corrected to `agf/VERSION`
+  "at merge time" — a silent, ungated write bypassing Step 0, Gate 1,
+  Step 3, and Step 4 entirely, for the exact same reason rounds 6–8
+  fixed the skill's own Step 0: it erases the historical baseline
+  (`2.0.0-provisional`) that would otherwise reveal this checkout's
+  adoption process never reviewed anything since that version. The
+  generic Downstream Impact Migration clause had the identical problem
+  at adopter scale: "correct `adoption.framework_version` to match
+  `agf/VERSION` before or in the same commit as adding `checkout_role:
+  live`" told every adopter to do exactly what the skill itself is now
+  forbidden from doing. Fixed: neither path silently corrects a stale
+  version anymore. `foundry.yaml` gets `checkout_role: live` added with
+  its `framework_version` left unchanged at `2.0.0-provisional` — the
+  new check then correctly, honestly fires on this project's own live
+  record immediately after Gate 2 lands, because the gap is real, not
+  fabricated compliance. See the new "One-time reconciliation" design
+  subsection below for the explicit, disclosed, auditable repair
+  procedure that replaces the silent merge-time fix, and the revised
+  Migration clause for the adopter-scale equivalent.
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -494,8 +522,60 @@ every upgrade, unconditionally. Full lifecycle:
 - **Default failure behavior:** when neither marker is present (the
   normal, non-upgrading case), the check runs unconditionally.
 
+### One-time reconciliation for a pre-existing drifted record (new, fixes `CA-LRB-VER-R8-1`)
+
+This project's own `foundry.yaml` — and, structurally, any future
+adopter whose live record was already stale before this plan's check
+existed — is a case the normal Step 0/1/3/4 lifecycle does not directly
+cover: there is no live "new release" being installed and no Gate 1
+changelog range being reviewed *right now*; the drift already happened,
+silently, in the past. Silently correcting the recorded version to
+match `agf/VERSION` — what rounds 1–8 (before this round) had this
+plan's own implementation and adopter migration guidance do — is
+exactly the same erasure the Step 0 fix exists to prevent, just applied
+retroactively instead of pre-emptively.
+
+**The governed repair procedure (replaces silent correction):**
+
+1. Add `checkout_role: live` to the drifted record **without** changing
+   `framework_version`. The new check now correctly, immediately fires
+   as a blocking finding on that record — this is not a bug to suppress,
+   it is the check doing its job on real, pre-existing drift.
+2. File a coordination record (or equivalent disclosed, auditable
+   artifact for a non-AGF-NG adopter) stating explicitly: the record's
+   `framework_version` is known-stale, naming both the recorded value
+   and the current `agf/VERSION`, and stating whether the full
+   changelog range between them has been reviewed retroactively or is
+   being explicitly accepted as an unreviewed historical gap. This is
+   the disclosed acknowledgment the reviewer's resolution condition
+   requires in place of a silent fix — it does not fabricate a review
+   that did not happen.
+3. Only after that record exists does a **separate**, later commit
+   update `framework_version` to the current value — never bundled into
+   the same commit that adds `checkout_role: live`, and never part of
+   this plan's own Gate 2 implementation commit. For this project, that
+   means `foundry.yaml`'s `framework_version` correction to `2.6.1` is
+   explicitly **out of scope for this plan's implementation.**
+
+**Timing, so this doesn't leave the project's own `agov validate` gate
+silently broken:** step 2's coordination record and step 3's correction
+commit should follow **promptly** after Gate 2 lands — the same working
+session or the immediate next one, not an open-ended backlog item. The
+new blocking finding on `foundry.yaml` is expected and correct for that
+short window, not a tolerated permanent CI break; it is the honest cost
+of not silently hiding real drift, and it clears as soon as the disclosed
+repair (steps 2–3) actually happens.
+
+This mirrors Step 0/1/3/4's own principle (identify and disclose before
+mutating) at the one-time-repair scale, rather than inventing a second,
+weaker standard for pre-existing drift.
+
 ## What this plan does NOT do
 
+- Does not correct `foundry.yaml`'s `framework_version` as part of this
+  implementation (round 9, fixes `CA-LRB-VER-R8-1`) — see "One-time
+  reconciliation" above; that correction is separate, later, governed
+  follow-up work, not bundled into this Gate 2 commit.
 - Does not change the upgrade skill's step ordering.
 - Does not touch the already-shipped `agov-version-drift-warning`
   (binary-vs-tree) check from issue #114 — different check, different
@@ -532,10 +612,13 @@ On the implementation branch, after Gate 1 approval:
   0 already identified, before any archive file is copied — Step 3
   performs no new selection. Step 4 (clear marker, update version) —
   document the full lifecycle decided above.
-- `agf/learnings/foundry.yaml` — add `checkout_role: live` and correct
-  `framework_version` to match `agf/VERSION` at merge time (required so
-  the new check does not fail immediately on this project's own live
-  record).
+- `agf/learnings/foundry.yaml` — add `checkout_role: live` **only**
+  (round 9, fixes `CA-LRB-VER-R8-1`: `framework_version` is deliberately
+  **not** corrected in this commit — it stays at its current recorded
+  value). This means the new check correctly fires as a blocking finding
+  on this project's own live record immediately after Gate 2 lands; see
+  "One-time reconciliation" above for the separate, later, governed
+  repair that follows, not bundled here.
 - `agf/docs/site/docs/adopt/install-and-layouts.md`, "Step 7:
   Initialise your evidence" (round 2: exact page and section named, not
   deferred — fixes `CA-LRB-VER-R1-2`) — new instruction to set
@@ -629,9 +712,21 @@ On the implementation branch, after Gate 1 approval:
   performs no new selection decision (it writes exactly the record Step
   0 identified, never re-derives it).
 - `agov plan validate` on this plan file: must pass.
-- `agov validate` (full umbrella): no new findings beyond pre-existing,
-  unrelated warnings, once `foundry.yaml`'s own version is corrected as
-  part of this implementation.
+- `agov validate` (full umbrella), revised (round 9, fixes
+  `CA-LRB-VER-R8-1`): after implementation, this run produces **exactly
+  one new expected blocking finding** — `foundry.yaml`'s own
+  `checkout_role: live` record against its unchanged, still-drifted
+  `framework_version` — beyond pre-existing, unrelated warnings. This
+  finding is the intended, correct behavior of this plan's own check on
+  real pre-existing drift, not a regression to suppress; it clears only
+  once the separate "One-time reconciliation" repair (above) completes.
+- Acceptance evidence (fixes `CA-LRB-VER-R8-1`'s resolution condition):
+  assert the implementation diff itself never mutates
+  `foundry.yaml`'s `framework_version` field (only adds
+  `checkout_role: live`) — a diff review / grep check on the
+  implementation MR proving the stale value is untouched. Assert the
+  Migration guidance below (revised) contains no "correct the version
+  before or in the same commit" instruction for any adopter.
 - `cargo test -p agov-validators`: must pass, including the new tests.
 - **Gate 2 acceptance evidence, per `gate-self-test-rule.md`:** the Gate
   2 MR description MUST include a reproducible negative CLI
@@ -675,11 +770,20 @@ Impact:
                      agent behavior toward an adopter's users changes.
   Migration:        Required for any adopter who both (a) opts a
                      record into checkout_role: live and (b) has an
-                     already-drifted framework_version. Migration note:
-                     correct adoption.framework_version to match
-                     agf/VERSION before or in the same commit as adding
-                     checkout_role: live. The blocking check is opt-in
-                     via the new field, so no adopter is forced onto the
+                     already-drifted framework_version. Migration note
+                     (round 9, fixes CA-LRB-VER-R8-1: the prior guidance
+                     here — "correct the version before or in the same
+                     commit as adding checkout_role: live" — silently
+                     erased exactly the historical baseline this plan
+                     exists to preserve, at adopter scale). Corrected
+                     guidance: add checkout_role: live with the version
+                     field UNCHANGED; the check then correctly fires,
+                     honestly, on the real pre-existing drift; follow
+                     the "One-time reconciliation" procedure (disclose,
+                     then correct in a separate later step) rather than
+                     silently overwriting the value in the same or an
+                     earlier commit. The blocking check is opt-in via
+                     the new field, so no adopter is forced onto the
                      blocking behavior without also opting in — but the
                      upgrade skill's new Step 0 (round 5, retimed
                      identity-only round 7) identifies the candidate
