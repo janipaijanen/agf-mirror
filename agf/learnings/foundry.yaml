@@ -26,7 +26,16 @@ project:
 
 adoption:
   framework_id: "agf"
-  framework_version: "2.0.0-provisional"
+  # checkout_role: live -- this is foundry's own, currently-maintained
+  # adoption record (issue #112). framework_version corrected below to
+  # match agf/VERSION per governor decision 20260824T142545Z-governor-
+  # reviewer-kqm3.md, which accepts the prior "2.0.0-provisional" ->
+  # "2.6.1" gap as a historical, disclosed, unreviewed jump -- not a
+  # claim that a retroactive changelog review occurred. See
+  # docs/plans/20260823T203540Z-adoption-version-drift-check.md's
+  # "One-time reconciliation" procedure.
+  checkout_role: live
+  framework_version: "2.6.1"
   framework_commit: ""
   agent_definitions:
     - id: "agf:planner-architect"
