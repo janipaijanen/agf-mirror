@@ -1,6 +1,8 @@
 ---
 id: pattern6-standing-delegation-reconciliation
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-24T21:54:34Z"
 topic: pattern6-standing-delegation-reconciliation
 advisory_consultation:
   - role: contribution-auditor
