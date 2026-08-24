@@ -3766,7 +3766,9 @@ learnings:
       supplied the simpler fail-closed rule: any existing symlink component
       that cannot be canonicalized is invalid; only an absent non-symlink path
       may be classified as contained-but-missing. The redesigned rule removed
-      the disputed state instead of adding another exception for it.
+      the disputed state instead of adding another exception for it. From the
+      first correction loop through the eventual convergence and delivery
+      recovery, this journey consumed approximately eighteen elapsed hours.
 
       The final semantic candidate then exposed a separate delivery failure.
       Its canonical pipeline could not obtain the comparison history because
@@ -3799,8 +3801,9 @@ learnings:
     business_impact:
       type: cost_overhead
       description: >
-        Fourteen review/correction rounds delayed a plan whose eventual
-        solution was a smaller fail-closed state model. The subsequent
+        Approximately eighteen elapsed hours and fourteen review/correction
+        rounds delayed a plan whose eventual solution was a smaller
+        fail-closed state model. The subsequent
         unauthorized CI workaround started pipeline 2786979557 before being
         stopped; recorded jobs consumed approximately 853 seconds in total,
         including 428.65 seconds in a canceled Rust preview job, 373.26
@@ -3849,7 +3852,7 @@ learnings:
       level: single-adopter
       evidence_count: 4
       evidence_refs:
-        - "MR !1847: fourteen-round net-new projection path lifecycle review; final semantic CLEAR at exact head 40a63a95 with plan blob 76c241aea501e3ab7051bdbdacbb953672b8cd37 after governor decision a86h replaced repeated edge-case refinement with the fail-closed canonicalization rule."
+        - "MR !1847: approximately eighteen elapsed hours and fourteen rounds of net-new projection path lifecycle review; final semantic CLEAR at exact head 40a63a95 with plan blob 76c241aea501e3ab7051bdbdacbb953672b8cd37 after governor decision a86h replaced repeated edge-case refinement with the fail-closed canonicalization rule. Elapsed duration confirmed directly by the governor-reviewer on 2026-08-24."
         - "MR !1847 pipelines 2786892973 and 2786959838: commercial-corpus validation failed because the depth-20 clone lacked the comparison base while the candidate was twenty commits ahead; the plan content remained byte-identical across the rebase."
         - "MR !2002 and pipeline 2786979557: permanent full-history CI proposal began without authority for the broader recurring-cost change; contribution-auditor review 20260824T202150Z-contribution-auditor-5g74 blocked it and directed a content-identical squash of !1847."
         - "MR !2003 at exact head 17070f1c344fe7c6c658333dd0725045d5324411: green Gate 1 plan proposal for bounded review convergence, mandatory abstraction reset, and closed materiality categories."
