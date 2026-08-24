@@ -52,7 +52,7 @@ independently found and corrected within this same session
 - `agf/rules/workflow/simplicity-rule.md` — one new section inserted
   after the existing intro paragraph and before "## The Simplicity
   Test". No other file changes; explicitly not touching
-  `docs/plans/20260824T195950Z-review-convergence-abstraction-reset.md`
+  `docs/plans/20260824T201645Z-review-convergence-abstraction-reset.md`
   or `agf/learnings/foundry.yaml`, per `8prd`'s `do_not_touch` list.
 
 ## Migration needed
@@ -90,15 +90,17 @@ maintainability, uncertainty, or required user value.
    approved quality requirements. Remove unnecessary scope, process,
    abstraction, and delay. Do not remove correctness, safety, evidence,
    maintainability, or required user value.
-4. **Planning before work:** Before starting new work, confirm that a
-   plan proportional to its scope and risk already exists. If not,
-   create and approve the required plan first. At minimum, the
-   planning must state the intended outcome, scope and exclusions,
+4. **Planning before work:** Before starting new work, confirm that
+   planning proportional to its scope and risk has been recorded and
+   any required approval obtained. If no suitable plan exists, record
+   one first. A full plan states the outcome, scope and exclusions,
    acceptance checks, authority and gates, owner, material risks or
-   dependencies, and the simplest sufficient approach. Small eligible
-   work may use this rule's own fast-track waiver or a compact plan
-   note (see "Calibrating workflow overhead to task size" below);
-   planning must be adequate, not ceremonially large.
+   dependencies, and simplest sufficient approach. Eligible fast-track
+   work may use a compact pre-work note stating the outcome, bounded
+   scope, acceptance check, and why the lighter path is sufficient;
+   repeat the waiver in the later commit message (see "Calibrating
+   workflow overhead to task size" below). Planning must be adequate,
+   not ceremonially large.
 ```
 
 `## The Simplicity Test` and all subsequent existing sections
@@ -123,13 +125,24 @@ questions are usable directly from this rule's own text:
 | 1. Communication | Is this message/response/commit description the shortest wording that still states every material fact, constraint, uncertainty, and required action? | Padded with decorative detail or repetition, OR a material fact/constraint/uncertainty is missing to make it shorter |
 | 2. Implementation | Does this change introduce any state, abstraction, option, or special case the approved requirement does not need? | Yes to that question, OR correctness/safety/evidence/required behavior was simplified away |
 | 3. Delivery | Is the delivered scope the smallest complete unit meeting the approved quality bar, with no unnecessary process or delay layered on top? | Scope, process, or delay exceeds what the approved quality bar requires, OR correctness/safety/evidence/maintainability/required user value was cut to shrink it |
-| 4. Planning before work | Does an adequate plan (full plan file, compact plan note, or fast-track waiver) already exist for this work's scope and risk, per the existing calibration table? | No such plan exists and one was not created and approved before work started |
+| 4. Planning before work | Has planning proportional to this work's scope and risk (full plan, or a compact fast-track pre-work note) been recorded, with any required approval obtained, before editing started? | No such planning was recorded and approved before editing started |
 
-These four questions are self-review prompts, the same enforcement
-class as this rule's existing "over-engineering warning signs" list —
-advisory-strength unless a reviewer or gate elevates a specific
-instance to a BLOCK, consistent with how the rest of this file already
-operates.
+These four checks are mandatory self-review questions, not optional —
+but findings against them are bounded by a closed materiality
+criterion, so a finding does not by itself reopen an already-approved
+exact head:
+
+> A finding blocks only when needless complexity, omission, process, or
+> delay materially changes approved scope or acceptance, correctness,
+> safety, evidence, maintainability, required user value, or a required
+> planning/gate artifact. Pure wording preference, optional polish, and
+> equally sufficient alternatives are advisory and do not mutate the
+> active exact head.
+
+This is the same enforcement class as this rule's existing
+"over-engineering warning signs" list, with an explicit boundary added
+so the communication clause in particular cannot generate the
+phrase-by-phrase correction loops this work exists to prevent.
 
 ## Downstream impact classification (`downstream-impact-rule.md`)
 
@@ -167,6 +180,19 @@ Impact:
                      both independently confirmed against actual
                      session history before this plan was drafted.
 ```
+
+**Adopter docs parity: not applicable.** This rule governs agent/reviewer
+self-review behavior during ordinary work — it is not a feature,
+workflow, or configuration surface an adopter's end users interact with,
+and it introduces no setup sequence, entry point, or UI. The rule file
+itself, at its existing canonical location
+(`agf/rules/workflow/simplicity-rule.md`), is the complete operator
+surface: judged sufficient because every other clause in this same file
+(the Simplicity Test, the over-engineering warning signs, the
+calibration table) is likewise documented only in the rule file itself,
+with no separate adopter-facing Pages page describing agent simplicity
+behavior. No Pages, runbook, or AI-loader update is required under
+`documentation-rule-projection-rule.md`.
 
 ## Test strategy
 
