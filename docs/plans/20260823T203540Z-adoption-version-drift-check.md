@@ -159,6 +159,41 @@ but recommended BLOCK on 1 new critical finding:
   after both user gates, consistent with round 1's "minimize mutation
   before gates pass" discipline.
 
+## Round 6 correction (fixes contribution-auditor's exact-head review, `krhb`)
+
+`20260824T005805Z-contribution-auditor-krhb.md` reviewed the round-5
+corrected head (`803e9cfc`) and confirmed `CA-LRB-VER-R4-1` resolved,
+but recommended BLOCK on 2 new critical findings:
+
+- **`CA-LRB-VER-R5-1`** — Step 0's "exactly one `.yaml` file selects
+  automatically" branch auto-selects *any* single candidate, including
+  one explicitly marked `checkout_role: imported` or carrying no
+  `checkout_role` at all. Per this plan's own round-1 design, absence of
+  the field means "unknown, do not assert a live-version claim," not
+  "definitely this checkout's own" — and a checkout with only imported
+  evidence is explicitly documented as a legitimate zero-live state. The
+  singleton-count heuristic contradicted that boundary: it would
+  silently promote a genuinely-imported record to `checkout_role: live`
+  at Step 3 for no reason other than being the only file present. Fixed:
+  see the revised Step 0 procedure below — auto-selection now requires
+  an *already-live* record, never a bare file count; zero live records
+  always requires explicit operator selection, regardless of how many
+  candidates exist.
+- **`CA-LRB-VER-R5-2`** — Step 0's mismatch handling offered two
+  branches ("the operator either corrects the record's version or
+  explicitly dispositions the mismatch") but only defined the first;
+  "dispositions" named no authority, no recorded shape, and no rule for
+  which version Step 1 then uses as its baseline — directly
+  contradicting Step 1's own clause requiring "the Step-0-*verified*
+  candidate's `framework_version`," since a dispositioned-but-unequal
+  value is not verified equal. Fixed, per the reviewer's own preferred
+  resolution and this project's simplicity-rule (no new governance
+  surface for an escape hatch this plan does not need): the disposition
+  branch is removed entirely. A mismatch is a hard block — the operator
+  corrects the record's `adoption.framework_version` to equal
+  `agf/VERSION` before Step 1 can proceed. One executable outcome, no
+  exception path.
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -282,23 +317,50 @@ mechanisms close that gap without misclassifying imported evidence:
     (round 5): the decision and the write are two different moments,
     not one:
     - **New "Step 0" — identify and verify, before Step 1 reads
-      anything:** run the same two-branch selection logic — exactly one
-      `.yaml` file in `agf/learnings/` (or exactly one already carrying
-      `checkout_role: live`) selects automatically, with no operator
-      prompt; two or more unmarked candidates require the human operator
-      to explicitly name exactly one as "this checkout's own live
-      record" before proceeding — the skill MUST NOT guess via any
-      heuristic (alphabetical order, most-recently-modified, filename
-      matching a git identity, or any other inference). Once a candidate
-      is identified (by either branch), read its
-      `adoption.framework_version` and compare it against the current
-      tree's `agf/VERSION`. A mismatch blocks Step 1 from constructing
-      or presenting any changelog range until the operator either
-      corrects the record's version or explicitly dispositions the
-      mismatch — this is the same comparison the validator check itself
-      performs, run here as a skill-level gate one step earlier than the
-      validator would otherwise catch it. **Step 0 identifies and
-      verifies; it does not write anything to the record.**
+      anything (round 6 correction, fixes `CA-LRB-VER-R5-1`,
+      `CA-LRB-VER-R5-2`):**
+      - **Auto-selection requires an already-live record — never a bare
+        file count (fixes `CA-LRB-VER-R5-1`).** If exactly one record in
+        `agf/learnings/` already carries `checkout_role: live`, select
+        it automatically, no operator prompt. This is the *only*
+        auto-select condition. A checkout whose zero-live state was
+        never resolved — including a checkout with exactly **one**
+        candidate file, whether that file carries `checkout_role:
+        imported` explicitly or carries no `checkout_role` at all —
+        does **not** auto-select. File count proves nothing about
+        identity: this plan's own round-1 design already states that an
+        absent `checkout_role` means "unknown," not "definitely this
+        checkout's own," and that a checkout with only imported evidence
+        is a legitimate zero-live state.
+      - **Zero live records — always explicit operator selection,
+        regardless of candidate count.** Whether one candidate or many,
+        the skill MUST enumerate every candidate file (with its
+        `checkout_role`, if any) and require the human operator to
+        explicitly name exactly one as "this checkout's own live
+        record" before proceeding — including the one-candidate case.
+        The skill MUST NOT guess via any heuristic (file count,
+        alphabetical order, most-recently-modified, filename matching a
+        git identity, or any other inference). If the operator selects
+        a candidate already marked `checkout_role: imported`, that is a
+        legitimate, explicit human override — Step 3 later overwrites it
+        to `live`, exactly as if it had been unmarked; the point of this
+        gate is that the change is explicit, not that `imported` records
+        can never become `live`.
+      - **Version verification, single executable outcome (fixes
+        `CA-LRB-VER-R5-2`).** Once a candidate is identified (by either
+        branch above), read its `adoption.framework_version` and compare
+        it against the current tree's `agf/VERSION`. On a mismatch, Step
+        1 is blocked from constructing or presenting any changelog range
+        — full stop. The operator corrects the record's
+        `adoption.framework_version` to equal `agf/VERSION` before Step
+        1 can proceed. There is no separate "disposition" path, no
+        recorded exception, and no authority to accept an unequal value
+        as a baseline — one executable outcome, matching exactly what
+        Step 1's "verified candidate" clause below already assumed. This
+        is the same comparison the validator check itself performs, run
+        here as a skill-level gate one step earlier than the validator
+        would otherwise catch it. **Step 0 identifies and verifies; it
+        does not write anything to the record.**
     - **Step 1 / GATE 1:** proceeds using the Step-0-verified candidate's
       `framework_version` as the changelog range's "current version" —
       no longer an unverified guess.
@@ -376,16 +438,18 @@ On the implementation branch, after Gate 1 approval:
   always-on zero-live-records advisory finding and the two-or-more-live-
   records blocking ambiguity finding (round 2, fixes `CA-LRB-VER-R1-1`).
 - `agf/skills/upgrade/SKILL.md` — new **Step 0** (round 5, fixes
-  `CA-LRB-VER-R4-1`), inserted before the existing Step 1: identify the
-  authoritative candidate record (auto-select if exactly one, else
-  mandatory operator selection) and verify its `framework_version`
-  against `agf/VERSION`, blocking Step 1's changelog-range construction
-  on a mismatch — no field write happens here. Step 3 (round 4 timing
-  unchanged, fixes `CA-LRB-VER-R3-1`): writes `checkout_role: live` (if
-  needed) and the marker onto the record Step 0 already identified,
-  before any archive file is copied — Step 3 performs no new selection.
-  Step 4 (clear marker, update version) — document the full lifecycle
-  decided above.
+  `CA-LRB-VER-R4-1`; round 6, fixes `CA-LRB-VER-R5-1`/`CA-LRB-VER-R5-2`),
+  inserted before the existing Step 1: identify the authoritative
+  candidate record (auto-select **only** if a record already carries
+  `checkout_role: live`; otherwise mandatory operator selection,
+  regardless of candidate count) and verify its `framework_version`
+  against `agf/VERSION` — a mismatch hard-blocks Step 1's changelog-range
+  construction until corrected, no exception path — no field write
+  happens here. Step 3 (round 4 timing unchanged, fixes
+  `CA-LRB-VER-R3-1`): writes `checkout_role: live` (if needed) and the
+  marker onto the record Step 0 already identified, before any archive
+  file is copied — Step 3 performs no new selection. Step 4 (clear
+  marker, update version) — document the full lifecycle decided above.
 - `agf/learnings/foundry.yaml` — add `checkout_role: live` and correct
   `framework_version` to match `agf/VERSION` at merge time (required so
   the new check does not fail immediately on this project's own live
@@ -433,24 +497,34 @@ On the implementation branch, after Gate 1 approval:
   the ambiguity finding does not fire; only the normal version-
   comparison check from the earlier positive/negative cases applies.
 - Skill acceptance evidence (fixes `CA-LRB-VER-R2-1`, retimed
-  `CA-LRB-VER-R3-1`, split `CA-LRB-VER-R4-1`): a checkout with zero
-  live records and exactly one candidate `.yaml` file in
-  `agf/learnings/` — the new Step 0 selects it automatically (no
-  operator prompt) *before* Step 1 constructs any changelog range. A
-  checkout with zero live records and two or more candidate files
-  (matching this project's own current `foundry.yaml`/`harbor-
-  workshop.yaml` state) — Step 0 halts and presents the candidate list,
-  requiring an explicit operator selection *before Step 1 runs at all*
-  — assert no heuristic (alphabetical, most-recently-modified, or any
-  other inference) ever auto-selects a file in this branch, and assert
-  Step 1 does not construct or present a changelog range while Step 0's
-  selection is outstanding (proving Gate 1 review is never based on an
-  unverified guess — the specific gap `CA-LRB-VER-R4-1` found).
-- Skill acceptance evidence (fixes `CA-LRB-VER-R4-1`'s version-agreement
-  half): Step 0 selects a candidate whose `framework_version` disagrees
-  with the current tree's `agf/VERSION` — Step 1 is blocked from
-  constructing a changelog range until the operator corrects the
-  record's version or explicitly dispositions the mismatch.
+  `CA-LRB-VER-R3-1`, split `CA-LRB-VER-R4-1`): a checkout with exactly
+  one record already carrying `checkout_role: live` — Step 0 selects it
+  automatically (no operator prompt) *before* Step 1 constructs any
+  changelog range. A checkout with zero live records and two or more
+  candidate files (matching this project's own current
+  `foundry.yaml`/`harbor-workshop.yaml` state) — Step 0 halts and
+  presents the candidate list, requiring an explicit operator selection
+  *before Step 1 runs at all* — assert no heuristic (alphabetical,
+  most-recently-modified, or any other inference) ever auto-selects a
+  file in this branch, and assert Step 1 does not construct or present a
+  changelog range while Step 0's selection is outstanding (proving Gate
+  1 review is never based on an unverified guess — the specific gap
+  `CA-LRB-VER-R4-1` found).
+- Skill acceptance evidence (fixes `CA-LRB-VER-R5-1`): a checkout with
+  zero live records and **exactly one** candidate `.yaml` file, that
+  file carrying `checkout_role: imported` — assert Step 0 does **not**
+  auto-select it; it halts and requires explicit operator selection
+  (either confirming this file despite its `imported` marking, or
+  creating/selecting a different live record), identical to the
+  multi-candidate case. Repeat with the sole candidate carrying no
+  `checkout_role` field at all — same assertion: no auto-select on file
+  count alone, in either sub-case.
+- Skill acceptance evidence (fixes `CA-LRB-VER-R5-2`): Step 0 selects a
+  candidate whose `framework_version` disagrees with the current tree's
+  `agf/VERSION` — Step 1 is blocked from constructing a changelog range
+  until the operator corrects the record's version to match exactly;
+  assert there is no path by which Step 1 proceeds with an unequal
+  value (no "disposition" branch exists to test against, by design).
 - Skill acceptance evidence (fixes `CA-LRB-VER-R3-1`, unchanged
   positioning from round 4): once Step 0 has identified and verified a
   candidate, Step 3 writes `checkout_role: live` (if needed) and the
