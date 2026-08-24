@@ -69,13 +69,66 @@ actual repository state (not accepted at face value) and fixed:
   `agf/templates/AGENTS.md` (the distributed adopter loader template),
   or `.claude/rules/workflow/development-workflow-rule.md` (the mirror
   of the canonical file this plan *does* reference). Fixed: all three
-  added to the verified inventory below, with their actual current
-  state recorded — `AGENTS.md` and `agf/templates/AGENTS.md` do not
-  mention the research-maintenance exception at all (nothing to
-  reconcile); `.claude/rules/workflow/development-workflow-rule.md`
-  describes it in different wording than its canonical source but is
-  substantively consistent (correctly names `simplicity-rule.md` as
-  owner, correctly keeps Gate 2 mandatory) — neither needs an edit.
+  added to the verified inventory below. (Round 2, fixes `CA-P6-R2-3`:
+  the round-1 fix recorded here originally claimed `AGENTS.md` and
+  `agf/templates/AGENTS.md` "do not mention the research-maintenance
+  exception at all" — that claim was false; direct inspection shows
+  both files do name the exception, both paths, and the owning rule.
+  See the corrected "Verified" section below for the accurate content
+  of all three files, including `.claude/rules/workflow/development-
+  workflow-rule.md`, which is substantively consistent and needs no
+  edit.)
+
+## Round 2 correction (fixes the COMPLETE isolated audit, `11s6`)
+
+A fresh isolated Codex session audited the round-1-corrected head:
+`20260824T093213Z-contribution-auditor-11s6.md`. Recommendation:
+COMPLETE BLOCK, 4 findings, all independently verified against the
+actual repository state (not accepted at face value) and fixed:
+
+- **`CA-P6-R2-1`** (uncertainty routed to another waiver instead of
+  full Gate 1) — the proposed subsection's uncertainty sentence said
+  uncertain work "returns to the ordinary ('who waived Gate 1')
+  ceremony above" — but that ceremony *is* Pattern 6's per-instance
+  fast-track waiver, itself a Gate-1-skipping mechanism, not the
+  ordinary plan-and-Gate-1 route. The canonical rule instead says
+  "Uncertainty means full Gate 1" (verified directly,
+  `simplicity-rule.md` line 119). Fixed: the sentence now returns
+  uncertain work to the full ordinary plan-and-Gate-1 route, quoting
+  the canonical rule's own line.
+- **`CA-P6-R2-2`** (problem statement still repeats the rejected
+  activation and mechanical-test model) — round 1's fix corrected the
+  proposed *design* subsection but left "The problem" section's own
+  narrative unchanged, still describing the mechanism as "already
+  approved once through ordinary Gate 1" and satisfied by "every
+  mechanical eligibility condition" — the exact two characterizations
+  round 1 said were false. Fixed: "The problem" section now states the
+  mechanism completed the full route (Gate 1, implementation, Gate 2,
+  merge) before becoming active, and is applied by satisfying semantic
+  eligibility and evidence conditions, with mechanical checks only
+  supplementing judgment — matching the corrected design text.
+- **`CA-P6-R2-3`** (loader inventory factually false; Gate 2 recheck
+  incomplete) — round 1's added `AGENTS.md` and `agf/templates/
+  AGENTS.md` entries claimed neither file mentions the research-
+  maintenance exception "at all." Direct inspection (root `AGENTS.md`
+  lines 189-204; `agf/templates/AGENTS.md` lines 141-151) proves both
+  files *do* name the exception, both paths, and the owning rule,
+  substantively consistently. The round-1 "verified byte-identical"
+  claim for the `.claude/rules/workflow/simplicity-rule.md` mirror was
+  also overbroad: the mirror omits the canonical section's 85-line
+  executable qualification script, though the surrounding eligibility
+  and disqualifier prose is substantively aligned. Fixed: both
+  inventory entries corrected to their accurate content; the
+  byte-identical claim narrowed to what's actually true; the Test
+  strategy's Gate 2 cross-check expanded to enumerate every surface in
+  the completed inventory (`AGENTS.md`, `agf/templates/AGENTS.md`, and
+  both `.claude/` mirrors), not only the two canonical rule files and
+  two Pages.
+- **`CA-P6-R2-4`** (live MR carrier names a superseded head) — the MR
+  description's Summary still named the pre-round-1 head as "Exact
+  head." Fixed: MR description refreshed to the round-2 candidate head,
+  finding state, and pending Gate 1 status as part of filing this
+  correction (see the coordination handoff for this round).
 
 ## The problem
 
@@ -91,14 +144,24 @@ issue:
    decide to use the fast track" and "The waiver decision must be
    recorded: what task, why it qualifies as low-risk, **who waived Gate
    1**." The shipped sources/radar fast path is a **different**
-   mechanism: a standing, narrowly-bounded delegation, itself already
-   approved once through ordinary Gate 1 (as a rule addition), which an
-   implementer *applies* by satisfying every mechanical eligibility
-   condition — not a fresh, individual governor decision naming a "who
-   waived Gate 1" actor each time. Pattern 6's current text has no
-   language describing this second mechanism at all, so the framework
-   document is internally contradictory the moment a reader compares it
-   against the rule that actually ships.
+   mechanism: a standing, narrowly-bounded delegation. Its defining
+   rule completed the full ordinary governed route — Gate 1 plan
+   approval, implementation, binding Gate 2 approval, and merge onto
+   the protected branch — before becoming active authority; an
+   implementer then *applies* that already-active rule by satisfying
+   every one of its semantic eligibility and evidence conditions
+   (source fidelity, materiality, scope, every named disqualifier),
+   with the rule's mechanical checks (paths touched, commit range)
+   supplementing that judgment, not replacing it — not a fresh,
+   individual governor decision naming a "who waived Gate 1" actor each
+   time. Pattern 6's current text has no language describing this
+   second mechanism at all, so the framework document is internally
+   contradictory the moment a reader compares it against the rule that
+   actually ships. (Round 2, fixes `CA-P6-R2-2`: this paragraph
+   previously said the mechanism was "already approved once through
+   ordinary Gate 1" and that the implementer satisfies "every
+   mechanical eligibility condition" — the exact two characterizations
+   round 1's own fixes below say are false. Corrected here to match.)
 2. **`CA-RMFP-C-A1`** (advisory, accepted as minor documentation risk) —
    no concrete negative example separates "a radar entry's lifecycle
    was advanced via the fast path" from "this topic is now on the
@@ -126,7 +189,15 @@ fixes `CA-P6-4`:
   correctly describes eligibility conditions and disqualifiers as a
   standing test, with no "governor decides case-by-case" framing.
 - `.claude/rules/workflow/simplicity-rule.md` (foundry's local mirror)
-  — verified byte-identical to the canonical file for this section.
+  — verified consistent in eligibility conditions and disqualifier
+  prose for this section (round 2, fixes `CA-P6-R2-3`, corrects an
+  overbroad round-1 "byte-identical" claim: the mirror omits the
+  canonical section's mandatory 85-line executable qualification
+  script, a real delta, though the surrounding normative prose is
+  substantively aligned). No edit needed for this plan's scope — the
+  mirror's own drift, if any is intended to be closed, is tracked by
+  the project's existing generic `.claude/rules` mirror-sync practice,
+  not by this plan.
 - `agf/rules/workflow/development-workflow-rule.md`'s "Exact
   research-maintenance exception" paragraph — correctly points to
   `simplicity-rule.md` as canonical, does not restate or contradict it.
@@ -136,13 +207,22 @@ fixes `CA-P6-4`:
   the canonical file but is substantively consistent: correctly names
   `simplicity-rule.md` as owner, correctly keeps "Gate 2 and the
   protected-branch MR remain mandatory." No edit needed.
-- `AGENTS.md` (round 1, fixes `CA-P6-4` — previously unchecked) —
-  verified directly: does not mention the research-maintenance
-  exception, `docs/sources.md`, or `docs/radar.md` at all. Absence is
-  not a contradiction — nothing here to reconcile.
-- `agf/templates/AGENTS.md` (round 1, fixes `CA-P6-4` — previously
-  unchecked) — same verification, same result: no mention, nothing to
-  reconcile.
+- `AGENTS.md` (round 1 checked this file; round 2, fixes `CA-P6-R2-3`,
+  corrects a false round-1 claim about its content) — direct inspection
+  (lines 189-204) shows this file **does** name the "Narrow
+  research-maintenance exception," names both `docs/sources.md` and
+  `docs/radar.md`, points to `simplicity-rule.md` as owner, retains the
+  exact-head pipeline and mandatory Gate 2, and explicitly returns
+  uncertainty or expanded scope to full Gate 1. Substantively
+  consistent with the shipped model. No edit needed — but the round-1
+  claim that this file "does not mention the research-maintenance
+  exception... at all" was false and is corrected here.
+- `agf/templates/AGENTS.md` (round 1 checked this file; round 2, fixes
+  `CA-P6-R2-3`, same correction) — direct inspection (lines 141-151)
+  shows this file likewise names both paths and the exact exception,
+  and preserves the ordinary Gate 1 route for ineligible or stricter
+  projects. Substantively consistent. No edit needed — the round-1
+  "no mention" claim was false for this file too and is corrected here.
 - `agf/docs/site/docs/operate/day-to-day.md` — "Fast track if it
   qualifies; plan + Gate 1 if not," describing the eligibility-test
   model correctly.
@@ -188,8 +268,10 @@ granted" numbered list and before "Anti-pattern," in
 > touches) supplement, but do not replace, judged evidence review
 > (source fidelity, whether a claim is material, whether text adopts a
 > practice, and every named disqualifier). Any uncertainty about
-> whether the test is satisfied returns the work to the ordinary ("who
-> waived Gate 1") ceremony above.
+> whether the test is satisfied returns the work to the full ordinary
+> plan-and-Gate-1 route — not to a per-instance Gate 1 waiver. The
+> canonical rule is explicit on this point: "Uncertainty means full
+> Gate 1."
 >
 > **A standing delegation is not itself active the moment its own
 > defining plan clears Gate 1.** Gate 1 approves a plan and authorizes
@@ -257,9 +339,13 @@ Documentation-only; no unit tests apply.
   would reduce operator ambiguity" request.
 - Cross-check (Gate 2 acceptance evidence): re-verify, at the exact
   implementation head, that `simplicity-rule.md`,
-  `development-workflow-rule.md`, and the two adopter Pages named above
-  still say what this plan's "Verified" section quotes them as saying
-  — confirming no drift occurred between Gate 1 and Gate 2.
+  `development-workflow-rule.md`, both `.claude/rules/workflow/`
+  mirrors, root `AGENTS.md`, `agf/templates/AGENTS.md`, and the two
+  adopter Pages named above still say what this plan's "Verified"
+  section records them as saying — confirming no drift occurred
+  between Gate 1 and Gate 2. (Round 2, fixes `CA-P6-R2-3`: this
+  cross-check previously enumerated only four of the eight verified
+  surfaces.)
 
 ## Downstream impact classification (`downstream-impact-rule.md`)
 
