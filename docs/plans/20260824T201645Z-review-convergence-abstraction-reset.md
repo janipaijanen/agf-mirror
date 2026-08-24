@@ -1,7 +1,9 @@
 ---
 id: 20260824T201645Z-review-convergence-abstraction-reset
-status: pending-gate1
+status: approved
 topic: review-convergence-abstraction-reset-rule
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-24T20:58:22Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -15,16 +17,18 @@ advisory_consultation:
     status: consulted
     reason: >-
       Consolidated consultation request
-      20260824T195950Z-planner-architect-dj1n is published. Its response is
-      still pending; this plan cannot be handed to the governor for Gate 1
-      until the response is incorporated or the governor explicitly waives it.
+      20260824T195950Z-planner-architect-dj1n is published. The governor's
+      Gate 1 decision 20260824T205822Z-governor-reviewer-8274, clarified by
+      20260824T210018Z-governor-reviewer-tjh5, explicitly waives the pending
+      advisory response as a Gate 1 blocker; it may still advise implementation.
   - role: build-engineer
     status: consulted
     reason: >-
       Consolidated consultation request
-      20260824T195950Z-planner-architect-dj1n is published. Its response is
-      still pending; this plan cannot be handed to the governor for Gate 1
-      until deterministic attempt evidence and CI-cost handling are confirmed.
+      20260824T195950Z-planner-architect-dj1n is published. The governor's
+      Gate 1 decision 20260824T205822Z-governor-reviewer-8274, clarified by
+      20260824T210018Z-governor-reviewer-tjh5, explicitly waives the pending
+      advisory response as a Gate 1 blocker; it may still advise implementation.
 ---
 
 # Plan: bounded review convergence and mandatory abstraction reset
@@ -243,6 +247,9 @@ explicit replacement rule rather than silent deletion.
 
 ## Gate 1 readiness
 
-Contribution-auditor consultation is CLEAR. Gate 1 handoff remains withheld
-until infosec-sentinel and build-engineer respond to `dj1n` and their material
-findings, if any, are incorporated into this exact plan branch.
+Gate 1 was approved by the governor-reviewer in
+`20260824T205822Z-governor-reviewer-8274`, with the pending advisory-response
+hold explicitly waived in `20260824T210018Z-governor-reviewer-tjh5`.
+Implementation may proceed within this plan's approved scope. Later infosec or
+build advice remains subject to its existing rule authority; the waiver does
+not let advisory tooling or roles approve gates or silently expand scope.
