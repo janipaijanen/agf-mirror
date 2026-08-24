@@ -131,6 +131,34 @@ for this plan (MR !1856) on 1 critical finding:
   now runs as the first sub-step of Step 3 itself, immediately before
   the marker is set, not at Step 4.
 
+## Round 5 correction (fixes contribution-auditor's exact-head review, `1j32`)
+
+`20260823T232454Z-contribution-auditor-1j32.md` reviewed the round-4
+corrected head (`0df76ebb`) and confirmed `CA-LRB-VER-R3-1` resolved,
+but recommended BLOCK on 1 new critical finding:
+
+- **`CA-LRB-VER-R4-1`** — round 4 correctly retimed the *marker write*
+  to before Step 3's archive mutation, but left the *record-selection
+  decision itself* at Step 3 — after Gate 1. Verified directly against
+  `agf/skills/upgrade/SKILL.md`'s current text: its own Prerequisites
+  state "the current framework version is recorded in the adoption
+  section of `learnings/<codename>.yaml`," and Step 1 uses that "current
+  version" to compute the changelog range presented at GATE 1 — both
+  happening before Step 3 runs. In the exact multi-candidate state this
+  plan exists to handle (this project's own current
+  `foundry.yaml`/`harbor-workshop.yaml` state), Gate 1 would present a
+  changelog range computed from an unverified guess at "current version"
+  before the operator ever selects which record is authoritative — a
+  human could approve a wrong changelog range at Gate 1, and the later
+  Step 3 selection cannot retroactively correct what was already
+  approved. Fixed: see the new "Step 0" subsection below — identity
+  selection (which record is authoritative) and version-agreement
+  verification against `agf/VERSION` both move to before Step 1 reads
+  or presents anything; only the actual field *write*
+  (`checkout_role: live` + the in-progress marker) stays at Step 3,
+  after both user gates, consistent with round 1's "minimize mutation
+  before gates pass" discipline.
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -235,43 +263,52 @@ mechanisms close that gap without misclassifying imported evidence:
     instruction there to set `checkout_role: live` on that record at
     creation time, so new adoptions are covered without any separate
     migration step.
-  - **Existing adopters — deterministic selection contract (round 3
+  - **Existing adopters — identification split from mutation (round 3
     correction, fixes `CA-LRB-VER-R2-1`; retimed round 4, fixes
-    `CA-LRB-VER-R3-1`):** round 2's instruction ("if the adopter's own
-    record does not yet carry `checkout_role: live`, add it now") never
-    specified how the skill identifies *which* file is "the adopter's
-    own" when `agf/learnings/` contains zero live records but more than
-    one candidate `.yaml` file — this project's own `agf/learnings/` is
+    `CA-LRB-VER-R3-1`; split round 5, fixes `CA-LRB-VER-R4-1`):** round
+    2's instruction ("if the adopter's own record does not yet carry
+    `checkout_role: live`, add it now") never specified how the skill
+    identifies *which* file is "the adopter's own" when
+    `agf/learnings/` contains zero live records but more than one
+    candidate `.yaml` file — this project's own `agf/learnings/` is
     exactly that case today (`foundry.yaml` and `harbor-workshop.yaml`,
     both unmarked). Round 3 fixed the selection mechanism but placed it
-    in Step 4 — too late: the marker lifecycle below requires the
-    *live* record to already be marked at the very **start of Step 3**,
-    before any archive file is copied, and on a first upgrade of an
-    unmarked adoption no live record exists yet at that point. Fixed
-    (round 4): the concrete, two-branch selection procedure below now
-    runs as the **first action of Step 3 itself, immediately before the
-    `upgrade_in_progress`/`upgrade_started_at` marker is set** — after
-    the upgrade skill's earlier user-confirmation gates (Steps 1–2), but
-    strictly before any marker or archive-file write:
-    - **Exactly one `.yaml` file exists in `agf/learnings/`:** no
-      ambiguity — the skill marks that file `checkout_role: live`
-      automatically, no operator prompt needed, then proceeds to set the
-      marker on it.
-    - **Two or more `.yaml` files exist:** the skill MUST enumerate
-      every candidate file and require the human operator to explicitly
-      name exactly one as "this checkout's own live record" before Step
-      3 can proceed any further — including before the marker is set.
-      The skill MUST NOT guess via any heuristic (alphabetical order,
-      most-recently-modified, filename matching a git identity, or any
-      other inference) — only an explicit operator selection marks a
-      file live. This is a mandatory, blocking gate inside the skill
-      itself (human-in-the-loop, the same discipline as the companion
-      plan's GATE 2.5), not a validator-level check — the validator's
-      zero-live advisory finding (above) only signals the gap exists; it
-      cannot safely resolve it.
-    - **Already exactly one live record exists:** selection is a no-op
-      — proceed directly to setting the marker on that record, as
-      before round 3.
+    in Step 4; round 4 retimed the *marker write* to the start of Step
+    3. Both left the *decision itself* after GATE 1 — but the skill's
+    own Prerequisites already require "the current framework version"
+    from `learnings/<codename>.yaml` to compute the changelog range
+    Step 1 presents at GATE 1, so an unresolved multi-candidate state
+    left Gate 1 reviewing a range built on an unverified guess. Fixed
+    (round 5): the decision and the write are two different moments,
+    not one:
+    - **New "Step 0" — identify and verify, before Step 1 reads
+      anything:** run the same two-branch selection logic — exactly one
+      `.yaml` file in `agf/learnings/` (or exactly one already carrying
+      `checkout_role: live`) selects automatically, with no operator
+      prompt; two or more unmarked candidates require the human operator
+      to explicitly name exactly one as "this checkout's own live
+      record" before proceeding — the skill MUST NOT guess via any
+      heuristic (alphabetical order, most-recently-modified, filename
+      matching a git identity, or any other inference). Once a candidate
+      is identified (by either branch), read its
+      `adoption.framework_version` and compare it against the current
+      tree's `agf/VERSION`. A mismatch blocks Step 1 from constructing
+      or presenting any changelog range until the operator either
+      corrects the record's version or explicitly dispositions the
+      mismatch — this is the same comparison the validator check itself
+      performs, run here as a skill-level gate one step earlier than the
+      validator would otherwise catch it. **Step 0 identifies and
+      verifies; it does not write anything to the record.**
+    - **Step 1 / GATE 1:** proceeds using the Step-0-verified candidate's
+      `framework_version` as the changelog range's "current version" —
+      no longer an unverified guess.
+    - **Step 3 (unchanged in position from round 4):** after both user
+      gates, the skill writes `checkout_role: live` (if not already set)
+      and the `upgrade_in_progress`/`upgrade_started_at` marker onto the
+      **already-selected, already-verified** record from Step 0 —
+      strictly before any archive-file write. Step 3 performs no new
+      selection decision; it only persists the decision Step 0 already
+      made and the user already implicitly relied on at Gate 1.
     This gives every existing adopter a concrete, recurring touchpoint
     (their next upgrade) rather than requiring them to independently
     learn about the new field — combined with the always-on advisory
@@ -289,12 +326,12 @@ every upgrade, unconditionally. Full lifecycle:
   `adoption.upgrade_started_at: "<RFC3339 timestamp>"`, both on the
   same live record.
 - **Owner:** the upgrade skill sets both fields at the *start* of Step
-  3, before any archive file is copied — **immediately after** the
-  live-record selection procedure above runs (round 4 correction, fixes
-  `CA-LRB-VER-R3-1`: selection must resolve which record is live before
-  the marker can be set on it, so selection is the first sub-step of
-  Step 3 and marker-setting is the second, both before any archive file
-  is touched). It clears both fields (removes them) at the *end* of
+  3, before any archive file is copied, onto the record already
+  identified and version-verified by **Step 0** (round 5 correction,
+  fixes `CA-LRB-VER-R4-1`: identification and version verification
+  happen before Step 1/GATE 1 read or present anything; Step 3 only
+  writes the already-made decision — it performs no new selection).
+  It clears both fields (removes them) at the *end* of
   Step 4, immediately after `adoption.framework_version` is updated to
   the new value.
 - **Suppression scope:** the version-drift check is suppressed only for
@@ -338,12 +375,17 @@ On the implementation branch, after Gate 1 approval:
   records, honoring the bounded in-progress suppression; plus the new
   always-on zero-live-records advisory finding and the two-or-more-live-
   records blocking ambiguity finding (round 2, fixes `CA-LRB-VER-R1-1`).
-- `agf/skills/upgrade/SKILL.md` Step 3 (round 4: **first sub-step is now
-  the live-record selection procedure** — auto-select if exactly one
-  candidate, else mandatory operator selection, fixes
-  `CA-LRB-VER-R3-1` — *then* set the marker, both before any archive
-  file is copied) and Step 4 (clear marker, update version) — document
-  the full lifecycle decided above.
+- `agf/skills/upgrade/SKILL.md` — new **Step 0** (round 5, fixes
+  `CA-LRB-VER-R4-1`), inserted before the existing Step 1: identify the
+  authoritative candidate record (auto-select if exactly one, else
+  mandatory operator selection) and verify its `framework_version`
+  against `agf/VERSION`, blocking Step 1's changelog-range construction
+  on a mismatch — no field write happens here. Step 3 (round 4 timing
+  unchanged, fixes `CA-LRB-VER-R3-1`): writes `checkout_role: live` (if
+  needed) and the marker onto the record Step 0 already identified,
+  before any archive file is copied — Step 3 performs no new selection.
+  Step 4 (clear marker, update version) — document the full lifecycle
+  decided above.
 - `agf/learnings/foundry.yaml` — add `checkout_role: live` and correct
   `framework_version` to match `agf/VERSION` at merge time (required so
   the new check does not fail immediately on this project's own live
@@ -390,21 +432,33 @@ On the implementation branch, after Gate 1 approval:
   record present — the advisory zero-records finding does not fire, and
   the ambiguity finding does not fire; only the normal version-
   comparison check from the earlier positive/negative cases applies.
-- Skill acceptance evidence (fixes `CA-LRB-VER-R2-1`, retimed fixes
-  `CA-LRB-VER-R3-1`): a checkout with zero live records and exactly one
-  candidate `.yaml` file in `agf/learnings/` — the upgrade skill's Step
-  3 marks that file live automatically (no operator prompt) as its
-  first sub-step, *before* setting the `upgrade_in_progress` marker or
-  copying any archive file. A checkout with zero live records and two or
-  more candidate files (matching this project's own current
-  `foundry.yaml`/`harbor-workshop.yaml` state) — Step 3 halts at its
-  first sub-step and presents the candidate list, requiring an explicit
-  operator selection before the marker is set or any archive file is
-  copied; assert no heuristic (alphabetical, most-recently-modified, or
-  any other inference) ever auto-selects a file in this branch, and
-  assert `agf/VERSION` is unmodified while the selection gate is
-  outstanding (proving the fix actually closes the round-3 ordering gap,
-  not just relocates the same race).
+- Skill acceptance evidence (fixes `CA-LRB-VER-R2-1`, retimed
+  `CA-LRB-VER-R3-1`, split `CA-LRB-VER-R4-1`): a checkout with zero
+  live records and exactly one candidate `.yaml` file in
+  `agf/learnings/` — the new Step 0 selects it automatically (no
+  operator prompt) *before* Step 1 constructs any changelog range. A
+  checkout with zero live records and two or more candidate files
+  (matching this project's own current `foundry.yaml`/`harbor-
+  workshop.yaml` state) — Step 0 halts and presents the candidate list,
+  requiring an explicit operator selection *before Step 1 runs at all*
+  — assert no heuristic (alphabetical, most-recently-modified, or any
+  other inference) ever auto-selects a file in this branch, and assert
+  Step 1 does not construct or present a changelog range while Step 0's
+  selection is outstanding (proving Gate 1 review is never based on an
+  unverified guess — the specific gap `CA-LRB-VER-R4-1` found).
+- Skill acceptance evidence (fixes `CA-LRB-VER-R4-1`'s version-agreement
+  half): Step 0 selects a candidate whose `framework_version` disagrees
+  with the current tree's `agf/VERSION` — Step 1 is blocked from
+  constructing a changelog range until the operator corrects the
+  record's version or explicitly dispositions the mismatch.
+- Skill acceptance evidence (fixes `CA-LRB-VER-R3-1`, unchanged
+  positioning from round 4): once Step 0 has identified and verified a
+  candidate, Step 3 writes `checkout_role: live` (if needed) and the
+  `upgrade_in_progress` marker onto that same already-selected record,
+  strictly before any archive file is copied; assert `agf/VERSION` is
+  unmodified while Step 3's write is outstanding, and assert Step 3
+  performs no new selection decision (it writes exactly the record Step
+  0 identified, never re-derives it).
 - `agov plan validate` on this plan file: must pass.
 - `agov validate` (full umbrella): no new findings beyond pre-existing,
   unrelated warnings, once `foundry.yaml`'s own version is corrected as
@@ -458,13 +512,13 @@ Impact:
                      checkout_role: live. The blocking check is opt-in
                      via the new field, so no adopter is forced onto the
                      blocking behavior without also opting in — but the
-                     upgrade skill's Step 3 (round 4: retimed from Step
-                     4) prompts every existing adopter to opt in at
-                     their next upgrade, before that upgrade mutates
+                     upgrade skill's new Step 0 (round 5) identifies and
+                     version-verifies the candidate record before Gate 1
+                     even runs, Step 3 (round 4 timing unchanged) then
+                     writes the opt-in field before that upgrade mutates
                      agf/VERSION, and the always-on advisory finding
-                     (round 2) makes
-                     an unmarked live record visible on every
-                     `agov validate` run in the meantime.
+                     (round 2) makes an unmarked live record visible on
+                     every `agov validate` run in the meantime.
   Evidence:          GitLab issue #112 (harbor-workshop, 2026-08-10 to
                      2026-08-21); this project's own foundry.yaml and
                      harbor-workshop.yaml verified as live evidence for
