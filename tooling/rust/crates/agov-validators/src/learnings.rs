@@ -210,9 +210,19 @@ fn live_record_findings(
     // window suppresses the mismatch. A missing/invalid/future timestamp on
     // an in-progress marker is malformed -- it must never suppress, and is
     // surfaced as its own advisory so it doesn't fail silently.
-    let elapsed_hours = started_at.map(|started| (OffsetDateTime::now_utc() - started).whole_hours());
+    //
+    // The future check MUST inspect the raw signed Duration, not
+    // `whole_hours()`: `Duration::whole_hours()` truncates toward zero, so
+    // a sub-hour future offset (e.g. 30 minutes) produces `0`, not a
+    // negative number, and would incorrectly satisfy the window check
+    // below if elapsed_hours were computed from a future duration at all
+    // (round 2 audit CA-ADV-R2-1).
+    let elapsed = started_at.map(|started| OffsetDateTime::now_utc() - started);
     let malformed_marker = in_progress && (started_at_raw.is_none() || started_at.is_none());
-    let future_marker = in_progress && elapsed_hours.is_some_and(|hours| hours < 0);
+    let future_marker = in_progress && elapsed.is_some_and(|duration| duration.is_negative());
+    let elapsed_hours = elapsed
+        .filter(|duration| !duration.is_negative())
+        .map(|duration| duration.whole_hours());
     let within_window =
         in_progress && elapsed_hours.is_some_and(|hours| (0..UPGRADE_WINDOW_HOURS).contains(&hours));
     let stale_marker = in_progress && elapsed_hours.is_some_and(|hours| hours >= UPGRADE_WINDOW_HOURS);
@@ -1090,6 +1100,60 @@ adoption:
 
         let result = validate_all(&dir);
         assert!(!result.is_ok(), "future timestamp must not suppress a real mismatch");
+        let findings = &result.file_errors[0].findings;
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.severity == agov_core::Severity::Blocking
+                    && f.message.contains("does not match")),
+            "expected the mismatch to still block, got {:?}",
+            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.severity == agov_core::Severity::Advisory
+                    && f.message.contains("malformed upgrade_started_at marker")
+                    && f.message.contains("future")),
+            "expected a malformed-future-marker advisory, got {:?}",
+            findings.iter().map(|f| f.message.clone()).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn live_record_with_sub_hour_future_upgrade_marker_does_not_suppress_mismatch() {
+        // Regression (MR !1965 round-2 audit CA-ADV-R2-1): `whole_hours()`
+        // truncates a signed duration toward zero, so a future timestamp
+        // less than one hour ahead produced elapsed_hours == 0 (not
+        // negative), which still satisfied `(0..24).contains(&hours)` and
+        // suppressed a real mismatch. The round-1 fix's own regression test
+        // used a 48-hour future offset and never exercised this boundary.
+        let started_at = (time::OffsetDateTime::now_utc() + time::Duration::minutes(30))
+            .format(&time::format_description::well_known::Rfc3339)
+            .expect("format timestamp");
+        let (_root, dir) = write_corpus(
+            "2.6.1",
+            &[(
+                "foundry.yaml",
+                &format!(
+                    r#"
+project:
+  codename: foundry-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+  upgrade_in_progress: true
+  upgrade_started_at: "{started_at}"
+"#
+                ),
+            )],
+        );
+
+        let result = validate_all(&dir);
+        assert!(
+            !result.is_ok(),
+            "sub-hour future timestamp must not suppress a real mismatch"
+        );
         let findings = &result.file_errors[0].findings;
         assert!(
             findings
