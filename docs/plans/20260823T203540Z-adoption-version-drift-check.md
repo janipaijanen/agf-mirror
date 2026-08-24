@@ -1,6 +1,6 @@
 ---
 id: adoption-version-drift-check
-status: pending-gate1
+status: approved
 topic: adoption-version-drift-check
 advisory_consultation:
   - role: contribution-auditor
