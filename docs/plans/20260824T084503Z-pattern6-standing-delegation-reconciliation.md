@@ -130,6 +130,29 @@ actual repository state (not accepted at face value) and fixed:
   finding state, and pending Gate 1 status as part of filing this
   correction (see the coordination handoff for this round).
 
+## Round 3 correction (fixes the COMPLETE isolated audit, `8brd`)
+
+A fresh isolated Codex session audited the round-2-corrected head:
+`20260824T101610Z-contribution-auditor-8brd.md`. Recommendation:
+COMPLETE BLOCK, 1 finding, independently verified against the live MR
+description (not accepted at face value) and fixed:
+
+- **`CA-P6-R3-1`** (live carrier denies the Gate 1 decision it says is
+  pending) — the MR description's Governance Trail said, unqualified,
+  "No open governor decision is required for this plan," while its
+  Review Notes correctly said the plan is "Still Gate 1 pending — not
+  ready for merge," and the plan's own front matter says
+  `status: pending-gate1`. Both statements cannot be true: a pending
+  Gate 1 plan necessarily requires the ordinary governor-reviewer Gate
+  1 decision before merge. Fixed: the MR description now says no
+  *additional* design or prior-disposition decision remains open
+  *beyond* the still-required ordinary Gate 1 review — matching what
+  the sentence has meant in this and the sibling MR !1817/!1847
+  descriptions all along (no `am2p`-analogous escalated waiver is
+  needed), without reading as a blanket claim that no governor
+  decision is needed at all. This is a live-carrier-only fix; the plan
+  file body required no change.
+
 ## The problem
 
 Governor decision `20260823T221311Z-governor-reviewer-nrpt.md` approved
