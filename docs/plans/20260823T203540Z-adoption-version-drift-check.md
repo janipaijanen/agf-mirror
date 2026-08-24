@@ -194,6 +194,38 @@ but recommended BLOCK on 2 new critical findings:
   `agf/VERSION` before Step 1 can proceed. One executable outcome, no
   exception path.
 
+## Round 7 correction (fixes contribution-auditor's exact-head review, `hhbe`)
+
+`20260824T035933Z-contribution-auditor-hhbe.md` reviewed the round-6
+corrected head (`9f168f89`) and confirmed `CA-LRB-VER-R5-1`/
+`CA-LRB-VER-R5-2` resolved, but recommended BLOCK on 1 new critical
+finding:
+
+- **`CA-LRB-VER-R6-1`** — round 6's mismatch handling ("the operator
+  corrects the record's `adoption.framework_version` to equal
+  `agf/VERSION`... before Step 1 can proceed") was itself a write,
+  directly contradicting the same paragraph's own "Step 0 identifies and
+  verifies; it does not write anything to the record." Worse than the
+  contradiction: forcing that correction **before** Step 1 destroys the
+  exact value Step 1 needs. Concretely, in this repository's own current
+  state, `foundry.yaml` is unmarked and records
+  `framework_version: "2.0.0-provisional"` while `agf/VERSION` is
+  `2.6.1` — selecting that record under round 6's Step 0 would force
+  "correcting" it to `2.6.1` before Step 1 runs, which discards the fact
+  that this checkout's adoption process never actually reviewed anything
+  between `2.0.0-provisional` and `2.6.1`. Gate 1 would then present
+  only the new release's own changelog, silently omitting the entire
+  unreviewed gap — the opposite of what Gate 1 exists to surface. Fixed:
+  Step 0 no longer verifies the candidate's version against
+  `agf/VERSION` or blocks on a mismatch at all — it identifies the
+  record and reads its `framework_version` exactly as recorded, however
+  stale, and Step 1 uses that raw value as the range's starting point.
+  Version-drift detection remains this plan's standing `agov validate`
+  check (unchanged, and already correctly suppressed during an active,
+  marker-tracked upgrade window per the round-1 lifecycle) — it was
+  never Step 0's job to enforce, and trying to make it Step 0's job is
+  what broke Gate 1's own baseline.
+
 Implements GitLab issue [#112](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/112),
 an adopter learning record (`harbor-workshop`, 2026-08-10 to
 2026-08-21) that has sat in the backlog with no plan since filing.
@@ -346,31 +378,44 @@ mechanisms close that gap without misclassifying imported evidence:
         to `live`, exactly as if it had been unmarked; the point of this
         gate is that the change is explicit, not that `imported` records
         can never become `live`.
-      - **Version verification, single executable outcome (fixes
-        `CA-LRB-VER-R5-2`).** Once a candidate is identified (by either
-        branch above), read its `adoption.framework_version` and compare
-        it against the current tree's `agf/VERSION`. On a mismatch, Step
-        1 is blocked from constructing or presenting any changelog range
-        — full stop. The operator corrects the record's
-        `adoption.framework_version` to equal `agf/VERSION` before Step
-        1 can proceed. There is no separate "disposition" path, no
-        recorded exception, and no authority to accept an unequal value
-        as a baseline — one executable outcome, matching exactly what
-        Step 1's "verified candidate" clause below already assumed. This
-        is the same comparison the validator check itself performs, run
-        here as a skill-level gate one step earlier than the validator
-        would otherwise catch it. **Step 0 identifies and verifies; it
-        does not write anything to the record.**
-    - **Step 1 / GATE 1:** proceeds using the Step-0-verified candidate's
-      `framework_version` as the changelog range's "current version" —
-      no longer an unverified guess.
+      - **Read the recorded version as-is — no comparison, no block, no
+        write (round 7 correction, fixes `CA-LRB-VER-R6-1`, supersedes
+        the round-5/6 "version verification" behavior entirely).** Once
+        a candidate is identified (by either branch above), Step 0 reads
+        its `adoption.framework_version` field and passes that value,
+        exactly as recorded, to Step 1 — **however stale it may be, and
+        without comparing it to `agf/VERSION` at all.** Round 6's design
+        compared the candidate's version against `agf/VERSION` and
+        blocked Step 1 until the operator corrected it to match — this
+        was simultaneously a write (contradicting "Step 0 does not write
+        anything," which round 6 also stated) and actively harmful: the
+        recorded value, however stale, *is* the correct starting point
+        for Step 1's changelog range, because it represents the last
+        version this checkout's adoption process actually reviewed — not
+        necessarily the version the tree happens to be sitting at today.
+        Forcing it to already equal `agf/VERSION` before Step 1 runs
+        would silently truncate the range, hiding exactly the gap Gate 1
+        exists to surface. Version-drift detection stays this plan's
+        separate, standing `agov validate` check (unchanged from earlier
+        rounds, including its existing suppression during a
+        marker-tracked upgrade window) — it is not Step 0's
+        responsibility, and folding it into Step 0 as a pre-Gate-1 block
+        is exactly the mistake this round removes. **Step 0 identifies
+        and reads; it performs no comparison and writes nothing.**
+    - **Step 1 / GATE 1:** proceeds using the Step-0-identified
+      candidate's `framework_version`, read exactly as recorded (round 7:
+      **not** cross-checked against `agf/VERSION` — see above), as the
+      changelog range's starting "current version" — no longer an
+      ambiguous-identity guess about *which file* to read, though the
+      value itself may legitimately be stale, and that staleness is what
+      makes the presented range complete rather than truncated.
     - **Step 3 (unchanged in position from round 4):** after both user
       gates, the skill writes `checkout_role: live` (if not already set)
       and the `upgrade_in_progress`/`upgrade_started_at` marker onto the
-      **already-selected, already-verified** record from Step 0 —
-      strictly before any archive-file write. Step 3 performs no new
-      selection decision; it only persists the decision Step 0 already
-      made and the user already implicitly relied on at Gate 1.
+      **already-selected** record from Step 0 — strictly before any
+      archive-file write. Step 3 performs no new selection decision; it
+      only persists the identity Step 0 already established and the user
+      already implicitly relied on at Gate 1.
     This gives every existing adopter a concrete, recurring touchpoint
     (their next upgrade) rather than requiring them to independently
     learn about the new field — combined with the always-on advisory
@@ -438,18 +483,21 @@ On the implementation branch, after Gate 1 approval:
   always-on zero-live-records advisory finding and the two-or-more-live-
   records blocking ambiguity finding (round 2, fixes `CA-LRB-VER-R1-1`).
 - `agf/skills/upgrade/SKILL.md` — new **Step 0** (round 5, fixes
-  `CA-LRB-VER-R4-1`; round 6, fixes `CA-LRB-VER-R5-1`/`CA-LRB-VER-R5-2`),
-  inserted before the existing Step 1: identify the authoritative
-  candidate record (auto-select **only** if a record already carries
-  `checkout_role: live`; otherwise mandatory operator selection,
-  regardless of candidate count) and verify its `framework_version`
-  against `agf/VERSION` — a mismatch hard-blocks Step 1's changelog-range
-  construction until corrected, no exception path — no field write
-  happens here. Step 3 (round 4 timing unchanged, fixes
-  `CA-LRB-VER-R3-1`): writes `checkout_role: live` (if needed) and the
-  marker onto the record Step 0 already identified, before any archive
-  file is copied — Step 3 performs no new selection. Step 4 (clear
-  marker, update version) — document the full lifecycle decided above.
+  `CA-LRB-VER-R4-1`; round 6, fixes `CA-LRB-VER-R5-1`/`CA-LRB-VER-R5-2`;
+  round 7, fixes `CA-LRB-VER-R6-1`), inserted before the existing Step
+  1: identify the authoritative candidate record (auto-select **only**
+  if a record already carries `checkout_role: live`; otherwise mandatory
+  operator selection, regardless of candidate count) and read its
+  `framework_version` exactly as recorded — **no comparison against
+  `agf/VERSION`, no blocking, no field write happens here at all**
+  (round 7: removed the version-comparison/mismatch-block behavior
+  entirely, since it both contradicted Step 0's own write-free
+  declaration and destroyed the historical baseline Step 1 needs). Step
+  3 (round 4 timing unchanged, fixes `CA-LRB-VER-R3-1`): writes
+  `checkout_role: live` (if needed) and the marker onto the record Step
+  0 already identified, before any archive file is copied — Step 3
+  performs no new selection. Step 4 (clear marker, update version) —
+  document the full lifecycle decided above.
 - `agf/learnings/foundry.yaml` — add `checkout_role: live` and correct
   `framework_version` to match `agf/VERSION` at merge time (required so
   the new check does not fail immediately on this project's own live
@@ -519,12 +567,24 @@ On the implementation branch, after Gate 1 approval:
   multi-candidate case. Repeat with the sole candidate carrying no
   `checkout_role` field at all — same assertion: no auto-select on file
   count alone, in either sub-case.
-- Skill acceptance evidence (fixes `CA-LRB-VER-R5-2`): Step 0 selects a
-  candidate whose `framework_version` disagrees with the current tree's
-  `agf/VERSION` — Step 1 is blocked from constructing a changelog range
-  until the operator corrects the record's version to match exactly;
-  assert there is no path by which Step 1 proceeds with an unequal
-  value (no "disposition" branch exists to test against, by design).
+- Skill acceptance evidence (fixes `CA-LRB-VER-R5-2`, **superseded by
+  round 7's `CA-LRB-VER-R6-1` fix — kept for history, see the next
+  bullet for the current behavior**): round 6 blocked Step 1 on a
+  version mismatch; round 7 removed that blocking behavior entirely, so
+  this specific acceptance case no longer applies as originally written.
+- Skill acceptance evidence (fixes `CA-LRB-VER-R6-1`): a checkout with
+  exactly one candidate record, unmarked, recording a stale
+  `framework_version` that disagrees with the current tree's
+  `agf/VERSION` (matching this repository's own current
+  `foundry.yaml`: recorded `2.0.0-provisional` against a tree at
+  `2.6.1`) — assert Step 0 performs **no** comparison against
+  `agf/VERSION` and writes nothing to the record; assert Step 1
+  constructs its changelog range using the stale recorded value
+  unchanged (proving the full missed-change range is surfaced at Gate 1,
+  not silently truncated to only the new release's own changelog);
+  assert the record's `framework_version` field is still
+  `2.0.0-provisional` immediately after Gate 1 completes — only Step 4
+  (post-upgrade) may change it.
 - Skill acceptance evidence (fixes `CA-LRB-VER-R3-1`, unchanged
   positioning from round 4): once Step 0 has identified and verified a
   candidate, Step 3 writes `checkout_role: live` (if needed) and the
