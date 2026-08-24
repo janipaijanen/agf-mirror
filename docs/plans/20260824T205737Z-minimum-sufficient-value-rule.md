@@ -77,6 +77,18 @@ unnecessary wording, scope, states, abstractions, options, process, and
 delay. Do not remove meaning, correctness, safety, evidence,
 maintainability, uncertainty, or required user value.
 
+**Completeness across affected value surfaces:** The smallest solution
+is complete only when every materially affected value surface has an
+explicit disposition. Relevant surfaces include product behavior and
+necessary development, end-user and adopter documentation, truthful
+public or marketing explanation and discoverability, `agov` and other
+operator-tooling quality, tests and maintainability, and release or
+operational readiness. A surface may be omitted only when it is not
+affected or when an authorized plan explicitly defers it. Simplicity
+must not shift avoidable complexity, risk, or missing information to
+users, adopters, operators, or later work. Not every change must touch
+every surface — only the ones a given change actually affects.
+
 1. **Communication:** Use the shortest clear wording that preserves
    necessary meaning. Remove jargon, repetition, and decorative detail.
    Do not omit material facts, constraints, uncertainty, or required
@@ -126,6 +138,7 @@ questions are usable directly from this rule's own text:
 | 2. Implementation | Does this change introduce any state, abstraction, option, or special case the approved requirement does not need? | Yes to that question, OR correctness/safety/evidence/required behavior was simplified away |
 | 3. Delivery | Is the delivered scope the smallest complete unit meeting the approved quality bar, with no unnecessary process or delay layered on top? | Scope, process, or delay exceeds what the approved quality bar requires, OR correctness/safety/evidence/maintainability/required user value was cut to shrink it |
 | 4. Planning before work | Has planning proportional to this work's scope and risk (full plan, or a compact fast-track pre-work note) been recorded, with any required approval obtained, before editing started? | No such planning was recorded and approved before editing started |
+| Completeness (all clauses) | Which value surfaces (product behavior, docs, public/marketing explanation, `agov`/tooling quality, tests, maintainability, release/operational readiness) are materially affected by this change, and what is the disposition of each? | A materially affected surface has no disposition — not included, not marked not-applicable with a reason, and not explicitly deferred by existing authority |
 
 These four checks are mandatory self-review questions, not optional —
 but findings against them are bounded by a closed materiality
