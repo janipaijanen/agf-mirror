@@ -52,6 +52,12 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_coord_post",
     "agov_coord_list",
     "agov_coord_pending",
+    "agov_coord_status",
+    "agov_coord_visibility",
+    "agov_coord_stale",
+    "agov_coord_graph_index",
+    "agov_coord_publication_check",
+    "agov_coord_brief",
 ];
 
 /// Environment marker names the trusted local `agov-mcp` adapter sets on

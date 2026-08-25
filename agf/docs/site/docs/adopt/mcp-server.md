@@ -98,6 +98,18 @@ The server advertises these tools:
 | `agov_coord_post` | `agov coord post ...` |
 | `agov_coord_list` | `agov coord list ...` |
 | `agov_coord_pending` | `agov coord pending ...` |
+| `agov_coord_status` | `agov coord status ...` |
+| `agov_coord_visibility` | `agov coord visibility ...` |
+| `agov_coord_stale` | `agov coord stale ...` |
+| `agov_coord_graph_index` | `agov coord graph-index` (stdout only; no `--output`) |
+| `agov_coord_publication_check` | `agov coord publication-check ...` |
+| `agov_coord_brief` | `agov coord brief ...` |
+
+Not exposed over MCP: `agov coord graph` (Graphviz/dot output stays
+CLI-only — `agov_coord_graph_index` is the compact machine/LLM-oriented
+result for the same underlying graph). `agov_coord_graph_index` never
+accepts the CLI's `--output` flag; it always returns the JSON body as the
+tool result, never writes to a caller-chosen filesystem path.
 
 ## Operating pattern
 
