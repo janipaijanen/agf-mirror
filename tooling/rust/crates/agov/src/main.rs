@@ -7,6 +7,7 @@ use agov_coord::coord_validator::{looks_like_coord_filename, normalize_coord_ref
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use time::format_description::well_known::Rfc3339;
@@ -274,6 +275,16 @@ enum CoordCommand {
         /// `--cutoff` always overrides this default explicitly.
         #[arg(long, default_value = "2026-08-02T22:01:54Z")]
         cutoff: String,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
+    /// Report the deterministic state of one opt-in review-convergence series.
+    Convergence {
+        /// Coordination id that opened the convergence series.
+        #[arg(long)]
+        series: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
     },
@@ -747,6 +758,14 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     format,
                 },
         } => coord_pending(dir, &cutoff, &format, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::Convergence {
+                    series,
+                    dir,
+                    format,
+                },
+        } => coord_convergence(&series, dir, &format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -2961,6 +2980,595 @@ fn coord_status(dir: PathBuf, recent: usize, roles: bool, args: &[String]) -> i3
 
     agov_core::roi::record_tool_output("agov", args, "coord-status", output.chars);
     0
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum ConvergencePhase {
+    #[default]
+    Open,
+    ReviewPending,
+    ResetRequired,
+    ResetRecorded,
+    GovernorReturnRequired,
+    Closed,
+    Conflict,
+}
+
+impl ConvergencePhase {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Open => "open",
+            Self::ReviewPending => "review-pending",
+            Self::ResetRequired => "reset-required",
+            Self::ResetRecorded => "reset-recorded",
+            Self::GovernorReturnRequired => "governor-return-required",
+            Self::Closed => "closed",
+            Self::Conflict => "conflict",
+        }
+    }
+
+    fn required_next_event(self) -> &'static str {
+        match self {
+            Self::Open | Self::ResetRecorded => "candidate",
+            Self::ReviewPending => "targeted-review",
+            Self::ResetRequired => "abstraction-reset",
+            Self::GovernorReturnRequired => "governor-disposition",
+            Self::Closed => "none",
+            Self::Conflict => "governor-resolution",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ConvergenceCandidateReport {
+    event_id: String,
+    attempt: u64,
+    candidate_sha: String,
+    scope_paths: Vec<String>,
+    scope_digest: String,
+}
+
+#[derive(Debug, Clone)]
+struct ConvergenceCandidate {
+    report: ConvergenceCandidateReport,
+    invariant_ids: BTreeSet<String>,
+    reviewable_invariants: BTreeSet<String>,
+    after_reset_invariants: BTreeSet<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct ConvergenceReviewIdentity {
+    invariant_id: String,
+    attempt: u64,
+    candidate_event: String,
+    candidate_sha: String,
+    scope_digest: String,
+}
+
+#[derive(Debug, Default)]
+struct ConvergenceInvariantState {
+    phase: ConvergencePhase,
+    consecutive_failures: u64,
+    last_attempt: u64,
+    last_scope_digest: Option<String>,
+    active_candidate: Option<String>,
+    canonical_candidate: Option<ConvergenceCandidateReport>,
+    reviews: BTreeMap<ConvergenceReviewIdentity, BTreeSet<String>>,
+}
+
+#[derive(Debug, Serialize)]
+struct ConvergenceInvariantReport {
+    invariant_id: String,
+    state: String,
+    consecutive_semantic_failures: u64,
+    required_next_event: String,
+    canonical_candidate: Option<ConvergenceCandidateReport>,
+    conflict: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct ConvergenceReport {
+    series_id: String,
+    status: String,
+    invariants: Vec<ConvergenceInvariantReport>,
+    errors: Vec<String>,
+}
+
+fn coord_convergence(series: &str, dir: PathBuf, format: &str, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(error) => {
+            output.stderr(format!("ERR  coordination directory unavailable: {error}"));
+            return 1;
+        }
+    };
+
+    let mut states: BTreeMap<String, ConvergenceInvariantState> = BTreeMap::new();
+    let mut candidates: BTreeMap<String, ConvergenceCandidate> = BTreeMap::new();
+    let mut errors = Vec::new();
+    let mut matching_events = 0_usize;
+
+    for message in &messages {
+        let Some(convergence) = message
+            .raw
+            .get("convergence")
+            .and_then(|value| value.as_object())
+        else {
+            continue;
+        };
+        if convergence
+            .get("series_id")
+            .and_then(|value| value.as_str())
+            != Some(series)
+        {
+            continue;
+        }
+        matching_events += 1;
+
+        let event_id = string_field(&message.raw, "id")
+            .unwrap_or(message.file.as_str())
+            .to_string();
+        let event = convergence
+            .get("event")
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        let invariant_ids = convergence_string_array(convergence, "invariant_ids");
+
+        match event {
+            "candidate" => process_convergence_candidate(
+                &event_id,
+                convergence,
+                &invariant_ids,
+                &mut states,
+                &mut candidates,
+                &mut errors,
+            ),
+            "targeted-review" => process_convergence_review(
+                &event_id,
+                convergence,
+                &invariant_ids,
+                &mut states,
+                &candidates,
+                &mut errors,
+            ),
+            "abstraction-reset" => process_convergence_reset(
+                &event_id,
+                convergence,
+                &invariant_ids,
+                &mut states,
+                &mut errors,
+            ),
+            "governor-disposition" => process_convergence_governor_disposition(
+                &event_id,
+                &invariant_ids,
+                &mut states,
+                &mut errors,
+            ),
+            _ => errors.push(format!(
+                "{event_id}: unsupported convergence event '{event}'"
+            )),
+        }
+    }
+
+    if matching_events == 0 {
+        errors.push(format!("series '{series}' has no convergence events"));
+    }
+
+    let has_conflict = states
+        .values()
+        .any(|state| state.phase == ConvergencePhase::Conflict);
+    let status = if !errors.is_empty() {
+        "invalid"
+    } else if has_conflict {
+        "conflict"
+    } else {
+        "ok"
+    };
+    let invariants = states
+        .into_iter()
+        .map(|(invariant_id, state)| ConvergenceInvariantReport {
+            invariant_id,
+            state: state.phase.label().to_string(),
+            consecutive_semantic_failures: state.consecutive_failures,
+            required_next_event: state.phase.required_next_event().to_string(),
+            canonical_candidate: state.canonical_candidate,
+            conflict: state.phase == ConvergencePhase::Conflict,
+        })
+        .collect();
+    let report = ConvergenceReport {
+        series_id: series.to_string(),
+        status: status.to_string(),
+        invariants,
+        errors,
+    };
+
+    if format == "json" {
+        match serde_json::to_string_pretty(&report) {
+            Ok(json) => output.stdout(json),
+            Err(error) => {
+                output.stderr(format!("ERR  failed to encode convergence report: {error}"));
+                return 1;
+            }
+        }
+    } else {
+        render_convergence_text(&mut output, &report);
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-convergence", output.chars);
+    if report.status == "ok" {
+        0
+    } else {
+        1
+    }
+}
+
+fn process_convergence_candidate(
+    event_id: &str,
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    candidates: &mut BTreeMap<String, ConvergenceCandidate>,
+    errors: &mut Vec<String>,
+) {
+    let Some(attempt) = convergence.get("attempt").and_then(|value| value.as_u64()) else {
+        errors.push(format!("{event_id}: candidate is missing attempt"));
+        return;
+    };
+    let Some(candidate_sha) = convergence_string(convergence, "candidate_sha") else {
+        errors.push(format!("{event_id}: candidate is missing candidate_sha"));
+        return;
+    };
+    let Some(scope_digest) = convergence_string(convergence, "scope_digest") else {
+        errors.push(format!("{event_id}: candidate is missing scope_digest"));
+        return;
+    };
+    let scope_paths = convergence_string_array(convergence, "scope_paths");
+    if !is_strictly_sorted(&scope_paths) {
+        errors.push(format!("{event_id}: scope_paths must be sorted and unique"));
+        return;
+    }
+    match convergence_scope_digest(candidate_sha, &scope_paths) {
+        Ok(actual) if actual == scope_digest => {}
+        Ok(actual) => {
+            errors.push(format!(
+                "{event_id}: scope_digest mismatch: declared {scope_digest}, computed {actual}"
+            ));
+            return;
+        }
+        Err(error) => {
+            errors.push(format!("{event_id}: {error}"));
+            return;
+        }
+    }
+
+    let report = ConvergenceCandidateReport {
+        event_id: event_id.to_string(),
+        attempt,
+        candidate_sha: candidate_sha.to_string(),
+        scope_paths,
+        scope_digest: scope_digest.to_string(),
+    };
+    let mut candidate = ConvergenceCandidate {
+        report: report.clone(),
+        invariant_ids: invariant_ids.iter().cloned().collect(),
+        reviewable_invariants: BTreeSet::new(),
+        after_reset_invariants: BTreeSet::new(),
+    };
+
+    for invariant_id in invariant_ids {
+        let state = states.entry(invariant_id.clone()).or_default();
+        if matches!(
+            state.phase,
+            ConvergencePhase::ResetRequired
+                | ConvergencePhase::GovernorReturnRequired
+                | ConvergencePhase::Closed
+                | ConvergencePhase::Conflict
+        ) {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow candidate in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+
+        let unchanged = state.last_scope_digest.as_deref() == Some(scope_digest);
+        if unchanged {
+            if attempt != state.last_attempt {
+                errors.push(format!(
+                    "{event_id}: invariant '{invariant_id}' unchanged digest must retain attempt {}, got {attempt}",
+                    state.last_attempt
+                ));
+                continue;
+            }
+            state.canonical_candidate = Some(report.clone());
+            if state.phase == ConvergencePhase::ReviewPending {
+                state.active_candidate = Some(event_id.to_string());
+                candidate.reviewable_invariants.insert(invariant_id.clone());
+            }
+            continue;
+        }
+
+        if !matches!(
+            state.phase,
+            ConvergencePhase::Open | ConvergencePhase::ResetRecorded
+        ) {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow a new semantic candidate in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+        if attempt <= state.last_attempt {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' new digest requires attempt greater than {}, got {attempt}",
+                state.last_attempt
+            ));
+            continue;
+        }
+
+        if state.phase == ConvergencePhase::ResetRecorded {
+            candidate
+                .after_reset_invariants
+                .insert(invariant_id.clone());
+        }
+        state.phase = ConvergencePhase::ReviewPending;
+        state.last_attempt = attempt;
+        state.last_scope_digest = Some(scope_digest.to_string());
+        state.active_candidate = Some(event_id.to_string());
+        state.canonical_candidate = Some(report.clone());
+        candidate.reviewable_invariants.insert(invariant_id.clone());
+    }
+
+    if candidates.insert(event_id.to_string(), candidate).is_some() {
+        errors.push(format!("{event_id}: duplicate candidate event id"));
+    }
+}
+
+fn process_convergence_review(
+    event_id: &str,
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    candidates: &BTreeMap<String, ConvergenceCandidate>,
+    errors: &mut Vec<String>,
+) {
+    let Some(candidate_event) = convergence_string(convergence, "candidate_event") else {
+        errors.push(format!(
+            "{event_id}: targeted review is missing candidate_event"
+        ));
+        return;
+    };
+    let Some(candidate) = candidates.get(candidate_event) else {
+        errors.push(format!(
+            "{event_id}: candidate_event '{candidate_event}' is not an earlier candidate in this series"
+        ));
+        return;
+    };
+    let attempt = convergence
+        .get("attempt")
+        .and_then(|value| value.as_u64())
+        .unwrap_or(0);
+    let candidate_sha = convergence_string(convergence, "candidate_sha").unwrap_or("");
+    let scope_digest = convergence_string(convergence, "scope_digest").unwrap_or("");
+    let scope_paths = convergence_string_array(convergence, "scope_paths");
+    if attempt != candidate.report.attempt
+        || candidate_sha != candidate.report.candidate_sha
+        || scope_digest != candidate.report.scope_digest
+        || scope_paths != candidate.report.scope_paths
+    {
+        errors.push(format!(
+            "{event_id}: targeted review fields do not match candidate_event '{candidate_event}'"
+        ));
+        return;
+    }
+    let outcome = convergence_string(convergence, "outcome").unwrap_or("");
+
+    for invariant_id in invariant_ids {
+        if !candidate.invariant_ids.contains(invariant_id) {
+            errors.push(format!(
+                "{event_id}: candidate_event '{candidate_event}' does not declare invariant '{invariant_id}'"
+            ));
+            continue;
+        }
+        let Some(state) = states.get_mut(invariant_id) else {
+            errors.push(format!("{event_id}: unknown invariant '{invariant_id}'"));
+            continue;
+        };
+        let identity = ConvergenceReviewIdentity {
+            invariant_id: invariant_id.clone(),
+            attempt,
+            candidate_event: candidate_event.to_string(),
+            candidate_sha: candidate_sha.to_string(),
+            scope_digest: scope_digest.to_string(),
+        };
+        let outcomes = state.reviews.entry(identity).or_default();
+        if outcomes.contains(outcome) {
+            continue;
+        }
+        let conflicting = (outcome == "clear" && outcomes.contains("block"))
+            || (outcome == "block" && outcomes.contains("clear"));
+        outcomes.insert(outcome.to_string());
+        if conflicting {
+            state.phase = ConvergencePhase::Conflict;
+            state.active_candidate = None;
+            continue;
+        }
+        if outcome == "advisory" {
+            continue;
+        }
+        if state.phase != ConvergencePhase::ReviewPending
+            || state.active_candidate.as_deref() != Some(candidate_event)
+            || !candidate.reviewable_invariants.contains(invariant_id)
+        {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' review is not for its canonical pending candidate"
+            ));
+            continue;
+        }
+
+        state.active_candidate = None;
+        match outcome {
+            "clear" => {
+                state.phase = ConvergencePhase::Closed;
+                state.consecutive_failures = 0;
+            }
+            "block" if candidate.after_reset_invariants.contains(invariant_id) => {
+                state.phase = ConvergencePhase::GovernorReturnRequired;
+                state.consecutive_failures += 1;
+            }
+            "block" => {
+                state.consecutive_failures += 1;
+                state.phase = if state.consecutive_failures >= 2 {
+                    ConvergencePhase::ResetRequired
+                } else {
+                    ConvergencePhase::Open
+                };
+            }
+            _ => errors.push(format!(
+                "{event_id}: unsupported review outcome '{outcome}'"
+            )),
+        }
+    }
+}
+
+fn process_convergence_reset(
+    event_id: &str,
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    errors: &mut Vec<String>,
+) {
+    let disposition = convergence_string(convergence, "disposition").unwrap_or("");
+    for invariant_id in invariant_ids {
+        let Some(state) = states.get_mut(invariant_id) else {
+            errors.push(format!("{event_id}: unknown invariant '{invariant_id}'"));
+            continue;
+        };
+        if state.phase != ConvergencePhase::ResetRequired {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow abstraction-reset in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+        match disposition {
+            "redesign" => {
+                state.phase = ConvergencePhase::ResetRecorded;
+                state.consecutive_failures = 0;
+            }
+            "accept" | "defer" | "stop" => state.phase = ConvergencePhase::Closed,
+            _ => errors.push(format!(
+                "{event_id}: unsupported abstraction-reset disposition '{disposition}'"
+            )),
+        }
+    }
+}
+
+fn process_convergence_governor_disposition(
+    event_id: &str,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    errors: &mut Vec<String>,
+) {
+    for invariant_id in invariant_ids {
+        let Some(state) = states.get_mut(invariant_id) else {
+            errors.push(format!("{event_id}: unknown invariant '{invariant_id}'"));
+            continue;
+        };
+        if state.phase != ConvergencePhase::GovernorReturnRequired {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow governor-disposition in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+        state.phase = ConvergencePhase::Closed;
+    }
+}
+
+fn convergence_scope_digest(sha: &str, paths: &[String]) -> Result<String, String> {
+    let mut hasher = Sha256::new();
+    for path in paths {
+        let object = format!("{sha}:{path}");
+        let output = std::process::Command::new("git")
+            .args(["show", "--no-textconv", object.as_str()])
+            .output()
+            .map_err(|error| format!("cannot read candidate scope '{object}': {error}"))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            return Err(format!(
+                "cannot read candidate scope '{object}': {}",
+                if stderr.is_empty() {
+                    output.status.to_string()
+                } else {
+                    stderr
+                }
+            ));
+        }
+        hasher.update(path.as_bytes());
+        hasher.update([0]);
+        hasher.update(&output.stdout);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn convergence_string<'a>(
+    convergence: &'a serde_json::Map<String, serde_json::Value>,
+    field: &str,
+) -> Option<&'a str> {
+    convergence.get(field).and_then(|value| value.as_str())
+}
+
+fn convergence_string_array(
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    field: &str,
+) -> Vec<String> {
+    convergence
+        .get(field)
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .map(str::to_string)
+        .collect()
+}
+
+fn is_strictly_sorted(values: &[String]) -> bool {
+    values.windows(2).all(|pair| pair[0] < pair[1])
+}
+
+fn render_convergence_text(output: &mut OutputCounter, report: &ConvergenceReport) {
+    output.stdout(format!("Series: {}", report.series_id));
+    output.stdout(format!("Status: {}", report.status));
+    for invariant in &report.invariants {
+        output.stdout(format!("Invariant: {}", invariant.invariant_id));
+        output.stdout(format!("  state: {}", invariant.state));
+        output.stdout(format!(
+            "  consecutive-semantic-failures: {}",
+            invariant.consecutive_semantic_failures
+        ));
+        output.stdout(format!(
+            "  required-next-event: {}",
+            invariant.required_next_event
+        ));
+        output.stdout(format!("  conflict: {}", invariant.conflict));
+        if let Some(candidate) = &invariant.canonical_candidate {
+            output.stdout(format!(
+                "  canonical-candidate: {} attempt={} sha={} digest={}",
+                candidate.event_id,
+                candidate.attempt,
+                candidate.candidate_sha,
+                candidate.scope_digest
+            ));
+        } else {
+            output.stdout("  canonical-candidate: none");
+        }
+    }
+    for error in &report.errors {
+        output.stderr(format!("ERR  {error}"));
+    }
 }
 
 fn display_coord_dir(dir: &Path) -> String {
@@ -6742,7 +7350,10 @@ mod tests {
             &mut output,
             Some("agov binary is v0.0.1 but commissioned agf/ is v9.9.9".to_string()),
         );
-        assert_eq!(exit_on_mismatch, 0, "mismatch must stay advisory, not blocking");
+        assert_eq!(
+            exit_on_mismatch, 0,
+            "mismatch must stay advisory, not blocking"
+        );
 
         let mut output = OutputCounter::default();
         let exit_on_match = render_version_drift_result(&mut output, None);

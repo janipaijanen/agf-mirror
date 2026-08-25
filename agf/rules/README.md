@@ -39,6 +39,7 @@ rules/
 │   ├── simplicity-rule.md               # Complexity governance, task-size calibration
 │   ├── feature-regression-guard-rule.md # No silent test deletion, characterisation tests
 │   ├── systematic-code-review-rule.md   # Pre-commit quality gate checklist
+│   ├── review-convergence-rule.md        # Bounded same-invariant review and abstraction reset
 │   ├── branch-and-worktree-rule.md      # Branch naming, pre-push gate, merge options
 │   ├── development-workflow-rule.md     # Five phases: clarify, plan, decompose, implement, review
 │   ├── immutable-tags-rule.md           # Tags immutable once pushed
@@ -64,6 +65,7 @@ rules/
 | simplicity-rule | Pattern 6: Fast Track + Principle 7: Technology Neutrality |
 | feature-regression-guard-rule | Pattern 1: Pipeline (test-as-contract) |
 | systematic-code-review-rule | Pattern 5: Cross-Cutting Review |
+| review-convergence-rule | Pattern 5: Bounded Review Convergence |
 | branch-and-worktree-rule | Principle 4: Pipeline Topology |
 | development-workflow-rule | Pattern 1: Pipeline |
 | immutable-tags-rule | Principle 3: The Immutability Constraint |

@@ -59,6 +59,15 @@ review rounds faster without weakening review substance: the fastest way
 to fix a defect is to already have a candidate fix in front of the person
 who owns the decision.
 
+For a series that opts into structured convergence, targeted reviews MUST also
+follow [review-convergence-rule.md](review-convergence-rule.md). A BLOCK must
+name one of that rule's four closed materiality categories and provide its
+authority, exact candidate identity, and concrete evidence. After two material
+same-invariant failures, another case-specific patch is not reviewable: the
+mandatory abstraction-reset disposition comes next. Conflicting CLEAR and
+BLOCK outcomes pause for an authorized resolution; neither a reviewer nor
+tooling chooses the winner.
+
 ---
 
 ### 1. Specification compliance

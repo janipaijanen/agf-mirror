@@ -26,6 +26,15 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ### Added
 
+- **Level 4 validated candidate — bounded review convergence:** optional
+  `convergence` metadata on coordination records, the normative
+  `review-convergence-rule`, and `agov coord convergence --series <id>` add a
+  per-invariant two-failure abstraction-reset boundary, one redesigned
+  candidate and targeted review, deterministic duplicate/conflict handling,
+  and a closed blocker-materiality vocabulary. The command validates declared
+  bytes and transitions but does not infer materiality, accept risk, approve a
+  gate, or merge. Historical records remain unchanged. This capability is not
+  Level 5 deployable until it ships in a supported release artifact.
 - `agov validate` and `agov session resume` now emit an advisory (never
   blocking) warning when the running `agov` binary's own build version
   differs from the commissioned `agf/VERSION` of the tree it is invoked

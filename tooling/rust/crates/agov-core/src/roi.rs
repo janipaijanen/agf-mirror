@@ -147,6 +147,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "visibility",
     "graph",
     "graph-index",
+    "convergence",
     "publication-check",
     "pending",
     // plan subcommands (validate shares the top-level "validate" token).
@@ -257,6 +258,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--ref",
     "--artifact",
     "--task",
+    "--series",
     "--since",
     "--recent",
     "--roles",
