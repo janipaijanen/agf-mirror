@@ -18,22 +18,25 @@ advisory_consultation:
       substantive contribution-auditor pass unless scope or reviewed
       substance changes.
   - role: infosec-sentinel
-    status: not-applicable
+    status: waived
     reason: >
-      Round 2 correction: the prior `consulted` status shared the same
-      self-contradictory pattern independently caught elsewhere this
-      session (v2.6.1's `mqka`/`hegm`; MR !806's `pghm`/`V27-MCP-4`) —
-      claiming a status whose own reason text only requests a future
-      check. infosec-sentinel has no configured human/AI player
-      (`played_by: "ci (agov validate infosec, on commit)"` per
-      `agf/agents/MANIFEST.yaml`). Per `pghm`'s `V27-LOAD-4`, the
-      review scope is also broader than originally framed — it must
-      cover the import-following resolver's path-safety bounds (Slice 1,
-      item 2 below), not only the shipped `.mcp.json` template's content
-      sanitization. An infosec-review-aid pass covering both surfaces is
-      requested separately, mirroring the established `2r8r`/`mdth`/
-      v2.6.1 `fq2w`/MR !806 `hzwc` precedent. **This plan is not ready
-      for Gate 1 while this entry is unresolved.**
+      Round 6: plan-specific waiver granted by binding governor decision
+      `20260825T192424Z-governor-reviewer-g5jj.md` ("Decision B — MR !807"),
+      transcribing "waivers approved. proceed" in response to
+      `20260825T165350Z-planner-architect-asm2.md`. The governor accepted
+      the bounded review-aid chain `87k8` -> `p371` -> `s3bq` and exact-head
+      continuity record `sq33` as sufficient plan-stage security evidence
+      covering both the import-following resolver's path-safety bounds and
+      the shipped `.mcp.json` template's content sanitization, since the
+      configured CI-only infosec-sentinel actor cannot provide semantic
+      review. No blocking finding, advisory finding, or accepted residual
+      risk remains in that review scope; the shipped `.mcp.json` surface is
+      minimal and contains no secrets, environment values, paths,
+      endpoints, arguments, credentials, or added runtime authority. This
+      is a plan-specific consultation waiver only — not a standing waiver,
+      role change, or finding suppression (`g5jj`'s own "Boundaries"
+      section). It does not authorize Gate 1, Gate 2, merge, tag, release,
+      or publication.
   - role: build-engineer
     status: consulted
     reason: >
@@ -55,7 +58,20 @@ advisory_consultation:
 
 ## Revision history
 
-**Round 5 (this revision): citation-only refresh.** Round 4's resolver/
+**Round 6 (this revision): infosec-sentinel consultation metadata updated to
+`waived`, per binding governor decision `g5jj`.** Per `g5jj`'s exact
+authorization, this round changes only the `advisory_consultation`
+frontmatter entry for `infosec-sentinel` from `not-applicable` (placeholder)
+to `waived`, citing the decision. No scope, design, resolver, packaging, or
+rollback change — the corrective design itself is unchanged from round 5.
+Per `g5jj`'s conditions, this new exact head still requires: (1) `agov plan
+validate` + exact-head CI green, (2) preserved contribution-auditor
+evidence (`n2j3` remains current — no reviewed substance changed), (3)
+fresh independent planner-architect ready and coder-tester CLEAR statements
+at this new head, and (4) a self-contained Gate 1 activation record before
+implementation, under `tgjs`.
+
+**Round 5: citation-only refresh.** Round 4's resolver/
 outcome-contract fixes were CLEAR per coder-tester
 (`20260816T000505Z-coder-tester-s3bq.md`) and per a fresh non-self
 contribution-auditor pass (`20260816T002624Z-contribution-auditor-n2j3.md`,
