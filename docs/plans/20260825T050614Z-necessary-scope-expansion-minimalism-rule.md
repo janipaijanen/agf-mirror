@@ -8,15 +8,24 @@ advisory_consultation:
   - role: contribution-auditor
     status: waived
     reason: >-
-      Single-agent Gate 1 planning session; no contribution-auditor
-      available to consult directly at plan-filing time. Review is
-      explicitly requested via a coordination handoff filed alongside
-      this plan, addressed to Codex (playing contribution-auditor). The
-      main risk this review should verify: that "necessary correction"
-      is bounded tightly enough that it cannot be read as a general
-      self-approval path for scope growth, consistent with the governor
-      handoff (`trms`) that commissioned this plan explicitly warning
-      against exactly that reading.
+      Round 2 correction (per coder-tester exact-head review `srhr`,
+      finding B-NSE-4): round 1's claim that a contribution-auditor
+      review had already been requested "alongside this plan" was false
+      — no such handoff existed. A genuine contribution-auditor review
+      request is now filed alongside this correction
+      (`20260826T055026Z-planner-architect-nseq`).
+      `status` stays `waived` only because the schema's enum has no
+      `pending`/`requested` value and no response has returned yet; this
+      is a provisional filing-time placeholder, not a final Gate 1
+      disposition. Gate 1 approval must not proceed while this still
+      reads `waived` for single-agent unavailability — the response must
+      either flip this to `consulted` with the response cited, or the
+      governor must issue a binding waiver decision-record cited here in
+      its place. The main risk this review should verify: that
+      "necessary correction" is bounded tightly enough that it cannot be
+      read as a general self-approval path for scope growth, consistent
+      with the governor handoff (`trms`) that commissioned this plan
+      explicitly warning against exactly that reading.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -72,6 +81,18 @@ approve any gate, or authorize implementation.
   review-convergence implementation branch or
   `docs/plans/20260824T201645Z-review-convergence-abstraction-reset.md`.
 
+**Implementation dependency (per coder-tester exact-head review `srhr`,
+finding B-NSE-3):** the "Minimum sufficient value" section this plan
+inserts into is not yet on `main` — it exists only on the still-open MR
+!2069 (`rule/minimum-sufficient-value`, exact head `29f083f7`, pipeline
+`2790700363` green). This plan's insertion point does not exist until
+!2069 merges. Implementation of this plan MUST NOT begin until !2069
+merges to `main`; once it has, this plan's diff must be refreshed
+against the resulting `main` and the exact insertion point and
+insertion-only diff rechecked before Gate 2. If !2069 changes
+materially before merging, or is declined, this plan returns for impact
+reassessment.
+
 Per this project's own `documentation-rule-projection-rule.md`, the
 normative owner is this rule file alone; no adopter-facing Pages page,
 runbook, or AI-loader references this level of internal agent
@@ -92,10 +113,20 @@ paragraph, before `## The Simplicity Test`:
 ### Necessary scope-estimate correction
 
 An approved plan's file list is an impact estimate and a control
-boundary — not a promise that no other file can ever be touched. When
-work already in progress under an approved plan discovers that the
-approved outcome cannot be completed correctly without touching a file
-outside that list, classify the discovery before acting:
+boundary — not a promise that no other file can ever be touched. This
+path applies only to work already governed by an approved, full Gate 1
+plan whose own file list is the boundary in question. It does not apply
+to either of this rule's existing fast paths: the fast-track waiver
+above (which already requires stopping and writing a full plan the
+moment work grows beyond its lighter process) or the sources/radar
+research-maintenance fast path (whose own disqualifier list already
+requires stopping before committing expanded scope and returning to
+ordinary Gate 1). Neither fast path gains a new self-approval route
+from this subsection — their existing stop-and-return-to-Gate-1
+conditions are unchanged. When work already in progress under an
+approved full Gate 1 plan discovers that the approved outcome cannot be
+completed correctly without touching a file outside that list, classify
+the discovery before acting:
 
 1. **Necessary correction.** An existing invariant, mandatory test, or
    required integration surface proves — with objective, checkable
@@ -165,25 +196,47 @@ This plan touches `agf/rules/**/*.md` — a trigger path.
 
 ```
 Impact:
-  Foundry:          ADDITIVE. Formalizes a judgment call this session
-                     already made correctly once (coder-tester's `5djr`
-                     request, governor's `mtms` approval); does not
-                     change any existing gate's authority, only the
-                     shape and speed of the request for this one
-                     narrow situation.
-  Direct adopters:  ADDITIVE for any adopter using this rule template.
-                     No existing obligation is removed or weakened; the
-                     rule adds a named, faster path for a case that
-                     previously had no explicit guidance and would
-                     otherwise default to either an ad hoc judgment call
-                     or an over-heavy full Gate 1 cycle for a one-file,
-                     evidence-backed correction.
+  Foundry:          BREAKING (per coder-tester exact-head review `srhr`,
+                     finding B-NSE-2). Formalizes a judgment call this
+                     session already made correctly once (coder-tester's
+                     `5djr` request, governor's `mtms` approval), but
+                     the formalization itself newly requires two
+                     actions that were not previously mandatory for
+                     every future occurrence of this situation: an
+                     authority decision-record before the correction is
+                     applied, and a proportionate post-stabilization
+                     learning record. "No authority is weakened" does
+                     not make these new required actions additive — the
+                     approved sibling minimum-sufficient-value plan
+                     classified its own new review obligations the same
+                     way, for the same reason.
+  Direct adopters:  BREAKING for any adopter using this rule template
+                     as shipped: agents following the template gain a
+                     newly-defined, narrower decision procedure the
+                     moment an out-of-list file is discovered mid-work,
+                     replacing whatever ad hoc judgment call they used
+                     before. ADDITIVE for an adopter who has already
+                     customized this rule file locally and does not
+                     pull the upstream update.
   Downstream:       No adopter-produced artifact shape changes. No
                      schema, CLI, or validator surface changes. No
                      change to who holds approval authority — see
                      `deputy-governor-rule.md` cross-reference in the
                      rule text itself.
-  Migration:        None required — prose guidance only.
+  Migration:        None required — no data, schema, or artifact needs
+                     updating. Adopters who pull this rule update must,
+                     going forward: (1) distinguish the three expansion
+                     classes (necessary correction / optional expansion
+                     / material expansion) the first time an out-of-list
+                     file is discovered mid-work; (2) continue routing
+                     the necessary-correction request through the same
+                     authority the governing gate already reserves —
+                     no new authority is granted; and (3) record a
+                     proportionate post-stabilization learning note
+                     after each necessary correction, escalating a
+                     recurring miss to the project's governed learning
+                     channel. No grace period is needed — this is
+                     process guidance, not a code or schema contract.
   Evidence:         `20260825T044258Z-coder-tester-5djr.md` (the
                      request), `20260825T045829Z-governor-reviewer-mtms.md`
                      (the approval actually granted), and
@@ -205,8 +258,9 @@ No automated test applies — prose guidance with no executable surface.
 2. Manual read-through confirming the inserted subsection renders
    correctly and every existing line below it is byte-identical
    (`git diff` shows only an insertion in the implementation commit).
-3. One consultation round from contribution-auditor (handoff filed
-   alongside this plan) before Gate 1 approval is requested.
+3. One consultation round from contribution-auditor (genuine request
+   filed alongside this correction — see frontmatter) before Gate 1
+   approval is requested.
 
 ## Risks
 
@@ -233,3 +287,24 @@ No automated test applies — prose guidance with no executable surface.
 Revert the single inserted subsection; every other line in the file is
 untouched, so a revert is a clean one-commit operation with no residual
 state, schema, or data to unwind.
+
+## Revision history
+
+**Round 2** (this correction), addressing coder-tester exact-head review
+`20260826T052933Z-coder-tester-srhr` at prior exact head `02226296`, four
+blocking findings, all resolved in this one consolidated revision:
+
+- `B-NSE-1`: added explicit exclusion of both the fast-track waiver and
+  the sources/radar fast path from the new subsection's scope, and
+  restricted it to work already governed by an approved full Gate 1
+  plan.
+- `B-NSE-2`: reclassified Foundry/direct-adopter downstream impact from
+  ADDITIVE to BREAKING and added the operational migration note.
+- `B-NSE-3`: named MR !2069 as an implementation dependency in
+  "Affected files" — this plan's insertion point does not exist on
+  `main` until !2069 merges.
+- `B-NSE-4`: corrected the false round-1 claim that a contribution-
+  auditor handoff had already been filed alongside the plan; a genuine
+  request is filed alongside this correction, and the frontmatter now
+  states plainly that `waived` is a provisional placeholder pending that
+  response, not a final disposition.
