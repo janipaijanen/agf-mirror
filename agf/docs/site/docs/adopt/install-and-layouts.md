@@ -249,6 +249,21 @@ merge.
   adoption run tells you, and upstream, whether the assistant understood the
   commissioning prompt, kept AGF-owned files inside `agf/`, created only a
   small loader if needed, and left the human with clear decisions.
+- Set `adoption.checkout_role: live` on this freshly-created record. This
+  marks it as your checkout's own, currently-maintained adoption state —
+  the only kind of record `agov validate learnings` checks against
+  `agf/VERSION` for version drift, and the mechanism that lets the check
+  tell your live record apart from any imported reference copy of another
+  adopter's (or historical) submission. Exactly one `checkout_role: live`
+  record is expected per checkout; if `agf/learnings/` has zero, every
+  `agov validate` run shows an advisory reminder (non-blocking) until you
+  set the field; if it ever finds two or more, that is a blocking
+  ambiguity you resolve by choosing one. During an upgrade, the framework's
+  own upgrade skill briefly marks the live record with
+  `adoption.upgrade_in_progress: true` and a timestamp while it applies
+  changes — this suppresses the drift check for that one record for up to
+  24 hours, clearing automatically once the upgrade's own version update
+  lands.
 - Confirm the coordination channel path you will use and file your first entry:
   a note recording the adoption decision and the governor. The POC default is
   `docs/coordination/`.

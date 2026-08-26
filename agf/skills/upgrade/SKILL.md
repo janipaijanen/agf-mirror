@@ -17,16 +17,51 @@ Follow every step in order. **Do not skip a gate.**
 ## Prerequisites
 
 - The new release archive (`.tar.gz` or `.zip`) is available locally.
-- The current framework version is recorded in the adoption section of
-  `learnings/<codename>.yaml`.
+- The current framework version will be identified by Step 0, below,
+  from the adoption section of `agf/learnings/<codename>.yaml`.
 
 <!-- CUSTOMIZE: adjust paths if your project uses Layout B (subdirectory) -->
+
+## Step 0 — Identify the authoritative adoption record
+
+Before Step 1 reads or presents anything. **This step identifies and
+reads only — it performs no version comparison and writes nothing to
+any record.**
+
+1. Look for exactly one `.yaml` file in `agf/learnings/` (excluding
+   `_template.yaml`) whose `adoption.checkout_role` is already `live`.
+   - **If exactly one such record exists:** select it automatically. No
+     operator prompt.
+   - **Otherwise (zero live records, regardless of how many candidate
+     files exist — including exactly one candidate file, whether it
+     carries `checkout_role: imported` explicitly or no `checkout_role`
+     at all):** enumerate every candidate `.yaml` file in
+     `agf/learnings/` (excluding `_template.yaml`), showing each file's
+     `checkout_role` if set, and require the human operator to
+     explicitly name exactly one as "this checkout's own live adoption
+     record." **Do not guess** via file count, alphabetical order,
+     most-recently-modified, filename matching a git identity, or any
+     other heuristic — even when only one candidate file exists. If the
+     operator selects a candidate already marked `checkout_role:
+     imported`, that is a legitimate explicit override — Step 3 later
+     overwrites it to `live`, exactly as if it had been unmarked.
+2. Read the selected record's `adoption.framework_version` field
+   exactly as recorded — however stale it may be. **Do not compare it
+   to `agf/VERSION`. Do not block on a mismatch. Do not write anything
+   to the record.** The recorded value, however stale, is the correct
+   starting point for Step 1's changelog range: it represents the last
+   version this checkout's adoption process actually reviewed, not
+   necessarily the version the tree happens to be at today. Comparing
+   or correcting it here would silently truncate the range Gate 1 is
+   about to present.
 
 ## Step 1 — Extract and inspect
 
 1. Extract the archive to a temporary directory.
-2. Read `CHANGELOG.md` in the archive — identify every entry between the
-   current version and the new version.
+2. Read `CHANGELOG.md` in the archive — identify every entry between
+   the Step-0-identified candidate's recorded `framework_version` (the
+   current version, read exactly as recorded — see Step 0; not
+   cross-checked against `agf/VERSION`) and the new version.
 3. Read `docs/governance/manifest.md` for the new version's provenance.
 
 Present the changelog entries to the user.
@@ -71,17 +106,24 @@ Present a summary table: files unchanged / updated / new / skipped.
 
 ## Step 3 — Apply changes
 
-1. Copy new and updated files from the archive to local paths.
-2. For new rule templates: add `origin: upstream` to frontmatter if not
+1. **First, before any archive file is copied:** on the record Step 0
+   already identified — never a new selection — write
+   `adoption.checkout_role: live` (if not already set) and
+   `adoption.upgrade_in_progress: true` plus
+   `adoption.upgrade_started_at: "<current RFC3339 timestamp>"`. This
+   step performs no new selection decision; it only persists the
+   identity Step 0 already established.
+2. Copy new and updated files from the archive to local paths.
+3. For new rule templates: add `origin: upstream` to frontmatter if not
    already present.
-3. For updated agent definitions (non-customized): overwrite in place.
-4. For updated agent definitions (customized): skip — user handles manually.
-5. Merge new fields from `_template.yaml` into the project's learning
+4. For updated agent definitions (non-customized): overwrite in place.
+5. For updated agent definitions (customized): skip — user handles manually.
+6. Merge new fields from `_template.yaml` into the project's learning
    record if applicable (append only, do not overwrite existing data).
 
 ## Step 4 — Update adoption record
 
-In `learnings/<codename>.yaml`, update:
+In the record Step 0 identified (`agf/learnings/<codename>.yaml`), update:
 
 ```yaml
 adoption:
@@ -95,6 +137,14 @@ upgrade_history:
     agent_changes: [<list of updated agent IDs>]
     notes: "<summary of what changed>"
 ```
+
+**Immediately after** `adoption.framework_version` is updated above,
+**remove** the `adoption.upgrade_in_progress` and
+`adoption.upgrade_started_at` fields Step 3 set — this closes the
+mid-upgrade suppression window `agov.validate.learnings`'s
+version-drift check honors while those fields are present (see
+`agf/docs/site/docs/adopt/install-and-layouts.md`, Step 7, for the
+full lifecycle and its 24-hour bound).
 
 ## Step 5 — Verify
 

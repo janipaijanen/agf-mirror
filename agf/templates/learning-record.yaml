@@ -7,6 +7,18 @@ adoption:
   framework_id: agf
   framework_version: "2.6.1"
   framework_commit: unknown
+  # checkout_role: live -- set this on your own checkout's record at
+  # commissioning time (see install-and-layouts.md, Step 7). Marks this
+  # as the record `agov validate learnings` checks against agf/VERSION
+  # for version drift. Omit (or use "imported") on a reference copy of
+  # another adopter's or historical submission -- absence means
+  # "unknown," never an implicit live claim, and is never checked.
+  checkout_role: live
+  # upgrade_in_progress / upgrade_started_at -- set only by
+  # agf/skills/upgrade/SKILL.md's Step 3, cleared by Step 4. Do not set
+  # these by hand; they suppress the version-drift check for up to 24
+  # hours while an upgrade is actively in progress. Omitted here because
+  # no upgrade is in progress at commissioning time.
   agent_definitions:
     - planner-architect
     - coder-tester

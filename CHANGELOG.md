@@ -23,6 +23,34 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   Adopters opt in only when both files are genuinely non-normative research
   artifacts; stricter local policy remains valid. No file or data migration is
   required.
+- **BREAKING: `agov validate learnings` now checks `checkout_role: live`
+  records against `agf/VERSION`** (issue #112). A learning record's
+  `adoption.framework_version` value that previously legitimately
+  differed from `agf/VERSION` is now a blocking finding if that record
+  is marked `adoption.checkout_role: live`. `checkout_role` is a new
+  optional field: `live` (this checkout's own, currently-maintained
+  adoption state) or `imported` (a reference copy of another adopter's
+  or historical submission); a record with the field absent, or set to
+  `imported`, is skipped by the drift check entirely — only an explicit
+  opt-in via `checkout_role: live` activates blocking behavior.
+  `agov validate learnings` also gains two always-on findings
+  independent of any single record's own drift: an advisory when
+  `agf/learnings/` has zero `checkout_role: live` records (detection is
+  inactive for this checkout), and a blocking ambiguity finding when it
+  has two or more. `agf/skills/upgrade/SKILL.md` gains a new Step 0 that
+  identifies (never guesses) the authoritative live record before any
+  changelog range is presented, and a bounded 24-hour
+  `upgrade_in_progress` suppression window around the mid-upgrade
+  version-mismatch that already existed on every upgrade. Migration: an
+  adopter who already opts a record into `checkout_role: live` and has
+  an already-drifted `framework_version` must escalate the historical
+  gap for their own authorized decision-maker to dispose, then correct
+  `checkout_role: live` and `framework_version` together, referencing
+  the published disposition — see
+  `docs/plans/20260823T203540Z-adoption-version-drift-check.md`'s
+  "One-time reconciliation" procedure. No adopter is forced onto the
+  blocking behavior without first opting a record into `checkout_role:
+  live`.
 
 ### Added
 
