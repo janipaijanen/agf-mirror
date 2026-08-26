@@ -48,12 +48,14 @@ workflow:
     # changes by construction). See
     # agf/rules/workflow/coordination-publication-rule.md and issue #72.
     #
-    # Suppress a redundant branch-push pipeline when this branch already has
-    # an open MR (the MR pipeline covers the same commit). Never matches the
-    # default branch (no MR sources from it), a tag push (CI_COMMIT_BRANCH is
-    # unset), or the MR pipeline itself (CI_PIPELINE_SOURCE != "push" there).
-    # See docs/plans/ci-pipeline-deduplication.md for the full acceptance
-    # matrix and rationale.
+    # Suppress a redundant branch-push pipeline when GitLab already exposes an
+    # open MR for this branch (the MR pipeline covers the same commit). The
+    # first push can start before the MR is registered, so this guard cannot
+    # suppress that initial push/MR pair; issue #53 tracks the deterministic
+    # replacement. Never matches the default branch (no MR sources from it), a
+    # tag push (CI_COMMIT_BRANCH is unset), or the MR pipeline itself
+    # (CI_PIPELINE_SOURCE != "push" there). See
+    # docs/plans/ci-pipeline-deduplication.md for the full acceptance matrix.
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
       when: never
     # The sole Rust-cache writer context: an ordinary default-branch push.
