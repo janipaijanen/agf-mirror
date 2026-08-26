@@ -990,6 +990,17 @@ rust:tooling:test:
   interruptible: true
   variables:
     RUST_CACHE_ROLE: "writer"
+    # commercial_corpus::tests::real_mr1712_generation_acceptance_is_142_
+    # included_plus_50_excluded reads historical repository state via
+    # `git show <revision>:<path>` against a commit that recedes further
+    # into history over time (461 commits behind HEAD at introduction).
+    # The project's default GIT_DEPTH (20, confirmed via the GitLab
+    # project API) truncates the checkout long before that commit,
+    # failing the test with a missing-object error unrelated to any
+    # actual code defect. Only this job exercises that test, so only
+    # this job needs the full clone (issue #112, MR !1965 round-1 audit
+    # `CA-ADV-R1-4`).
+    GIT_DEPTH: "0"
   cache:
     policy: $RUST_CACHE_WRITER_POLICY
   script:
@@ -997,6 +1008,36 @@ rust:tooling:test:
     - sh tests/agov-wrapper-freshness.sh
     - sh tests/tooling-provenance-verifier.sh
     - cargo test --workspace
+    # Gate 2 negative CLI demonstration (issue #112, MR !1965 round-2
+    # audit CA-ADV-R2-3): the passing integration test above asserts on
+    # captured output internally, which a reviewer cannot see in this
+    # job's own trace. Reproduce the exact scenario directly in the
+    # visible job log: a checkout_role: live record whose
+    # framework_version has drifted from agf/VERSION must be rejected.
+    - |
+      echo "=== Gate 2 negative CLI demonstration (issue #112) ==="
+      FIXTURE=$(mktemp -d)
+      mkdir -p "$FIXTURE/agf/learnings" "$FIXTURE/agf/schemas" "$FIXTURE/tooling"
+      cp ../../agf/schemas/learning.schema.json "$FIXTURE/agf/schemas/"
+      printf '2.6.1' > "$FIXTURE/agf/VERSION"
+      cat > "$FIXTURE/agf/learnings/mismatched.yaml" <<'FIXTURE_EOF'
+      project:
+        codename: gate2-demo-fixture
+      adoption:
+        checkout_role: live
+        framework_version: "2.0.0-provisional"
+      FIXTURE_EOF
+      echo "+ agov validate learnings $FIXTURE/agf/learnings"
+      set +e
+      ./target/debug/agov validate learnings "$FIXTURE/agf/learnings"
+      DEMO_EXIT=$?
+      set -e
+      echo "+ echo \$?"
+      echo "$DEMO_EXIT"
+      if [ "$DEMO_EXIT" -ne 1 ]; then
+        echo "FATAL: expected exit 1 (blocking), got $DEMO_EXIT -- the version-drift gate no longer blocks a known-bad input"
+        exit 1
+      fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes: &rust_tooling_test_paths
