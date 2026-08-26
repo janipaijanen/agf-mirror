@@ -6,32 +6,24 @@ gate1_approved_by: ""
 gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      Round 2 correction (per coder-tester exact-head review `srhr`,
-      finding B-NSE-4): round 1's claim that a contribution-auditor
-      review had already been requested "alongside this plan" was false
-      — no such handoff existed. A genuine contribution-auditor review
-      request is now filed alongside this correction
-      (`20260826T055026Z-planner-architect-nseq`).
-      `status` stays `waived` because no genuinely independent response
-      has returned. A disclosed-self-review contribution-audit
-      (`20260826T101446Z-contribution-auditor-nsev.md`) has since been
-      published, CLEAR on all findings — but per the same standard
-      applied in the sibling `ci-history-1-job-local-full-history` plan,
-      a disclosed self-review (same underlying model as this plan's
-      author, explicitly authorized and flagged as such by the Human
-      Governor) does not satisfy the independent-consultation bar this
-      field represents, so `status` correctly stays `waived` rather than
-      `consulted`. Status must become `consulted` only when a response
-      from a genuinely different reviewer — human or a different LLM
-      session — actually returns, or the governor issues a binding
-      waiver decision-record cited here in its place. The main risk any
-      such review should verify: that "necessary correction" is bounded
-      tightly enough that it cannot be read as a general self-approval
-      path for scope growth, consistent with the governor handoff
-      (`trms`) that commissioned this plan explicitly warning against
-      exactly that reading.
+      Round 3 correction: an isolated, fresh Claude session with no prior
+      context of this plan or its authorship independently reviewed it —
+      invoked under governor decision `6srq`'s same-LLM-family
+      isolated-session fallback (Codex was disqualified as material
+      co-author of the corrections under review). That review,
+      `20260826T112935Z-contribution-auditor-v4k9.md`, found 0 blocking
+      and 1 non-blocking advisory finding (BREAKING-vs-PREVENTIVE
+      downstream-impact classification is defensible either way; no
+      resolution required for Gate 1) — CLEAR. It explicitly disclosed
+      itself as context-isolation independence, not cross-vendor
+      independence. Round 2's disclosed same-session self-review
+      (`20260826T101446Z-contribution-auditor-nsev.md`) alone was
+      correctly held insufficient to satisfy this field; `v4k9` is a
+      meaningfully more independent pass (fresh context, formed its
+      findings before reading any prior review) and is treated as
+      satisfying the consultation requirement for Gate 1 purposes.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -320,3 +312,12 @@ coder-tester rereview `20260826T060407Z-coder-tester-4r25` advisory
 finding `A-NSE-R2-1`: corrected "the fast-track waiver above" to "the
 fast-track waiver elsewhere in this rule" — both existing fast paths are
 defined below the new subsection's insertion point, not above it.
+
+**Round 4**, per the Human Governor's request (`hh1q`) for a genuinely
+more independent pass: an isolated fresh Claude session (no prior
+context of this plan) independently reviewed it and published
+`20260826T112935Z-contribution-auditor-v4k9.md` — CLEAR, 0 blocking, 1
+non-blocking advisory (BREAKING-vs-PREVENTIVE classification, offered
+for awareness only, no change required). `contribution-auditor.status`
+is updated to `consulted`, citing `v4k9`. No plan-text change beyond the
+frontmatter.
