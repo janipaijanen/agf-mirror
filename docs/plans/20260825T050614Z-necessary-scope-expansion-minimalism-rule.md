@@ -117,7 +117,7 @@ boundary — not a promise that no other file can ever be touched. This
 path applies only to work already governed by an approved, full Gate 1
 plan whose own file list is the boundary in question. It does not apply
 to either of this rule's existing fast paths: the fast-track waiver
-above (which already requires stopping and writing a full plan the
+elsewhere in this rule (which already requires stopping and writing a full plan the
 moment work grows beyond its lighter process) or the sources/radar
 research-maintenance fast path (whose own disqualifier list already
 requires stopping before committing expanded scope and returning to
@@ -308,3 +308,9 @@ blocking findings, all resolved in this one consolidated revision:
   request is filed alongside this correction, and the frontmatter now
   states plainly that `waived` is a provisional placeholder pending that
   response, not a final disposition.
+
+**Round 3** (opportunistic, no standalone review round needed), addressing
+coder-tester rereview `20260826T060407Z-coder-tester-4r25` advisory
+finding `A-NSE-R2-1`: corrected "the fast-track waiver above" to "the
+fast-track waiver elsewhere in this rule" — both existing fast paths are
+defined below the new subsection's insertion point, not above it.
