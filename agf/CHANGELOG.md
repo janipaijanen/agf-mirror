@@ -12,9 +12,393 @@ distribution.
   requires source/ref/status/job-coverage comparison before cancellation and
   does not claim that CI behavior itself has changed.
 
-**Downstream impact: EDITORIAL.** The observable pipeline contract and existing
-cancellation obligation are unchanged; this makes the current limitation and
-safe comparison procedure explicit.
+**Downstream impact: PREVENTIVE.** Corrected from an earlier EDITORIAL
+classification per `agf/rules/always/downstream-impact-rule.md` — this
+change adds mandatory operational checks (source/ref/status/job-coverage
+comparison) and forbids same-SHA-alone cancellation, which is proactive
+hardening of an implicit constraint, not a wording-only change. Full
+three-circle impact statement in
+`docs/plans/ci-first-push-expectation-guidance.md`.
+
+### Changed
+
+- **BREAKING workflow relaxation:** projects that retain `docs/sources.md`
+  and/or `docs/radar.md` as non-normative research artifacts may let a narrowly
+  eligible advisory, reversible maintenance MR skip a separate Gate 1 plan,
+  contribution audit, and pre-change coordination MR. The canonical
+  `agf/rules/workflow/simplicity-rule.md` now owns exact path and semantic
+  eligibility, automatic disqualifiers, per-commit/final-tree evidence, fresh
+  target/open-MR collision scans, escalation, and the retained human Gate 2
+  boundary. Generic documentation does not inherit the exception. Before
+  enabling it, confirm both artifacts are non-normative, keep protected-branch
+  MR review and human Gate 2 enabled, and ensure assistant loaders point to the
+  updated rule; projects without the artifacts or wanting stricter governance
+  retain full Gate 1. No file or data migration is required. Adopter docs
+  parity: updated in the day-to-day guide, situation map, and AGENTS template.
+
+### Added
+
+- `agov validate` and `agov session resume` now emit an advisory (never
+  blocking) warning when the running `agov` binary's own build version
+  differs from the commissioned `agf/VERSION` of the tree it is invoked
+  against (issue #114). Neither an older binary run against a newer
+  tree nor a newer binary run against an older tree was previously
+  detectable — both could silently under- or over-validate. Absent
+  `agf/VERSION` (not every tree `agov` runs against is AGF-adopted)
+  produces no warning.
+
+## [2.6.1] — 2026-08-17
+
+**Minor release.** Corrects v2.6.0's incomplete publication: the release
+tooling now reads one validated `tooling/rust/release-targets.txt`
+manifest across the mandatory Linux build loop, release-asset contract,
+and OCI archive lookup, closing the stale-target-list gap that failed
+v2.6.0's `release:create` job after its OCI image had already published.
+Ships the same coordination-reliability functional scope v2.6.0 targeted
+(#76, #84, #85, #89), constructed directly from `main` rather than a
+frozen line, per `docs/plans/20260816T174141Z-v261-release-publication.md`.
+
+### Added
+
+- New `web-ux-reviewer` agent role (`agf/agents/web-ux-reviewer.yaml`),
+  activated in this foundry's `agf/agents/MANIFEST.yaml`. Reviews the
+  rendered public Pages site (`agf/docs/site/`) for responsive layout,
+  navigation/CTA correctness, dark/light theme rendering, WCAG AA
+  accessibility (in situ, complementing the existing token-pair-only
+  `check_palette_contrast.py`), typography, and overall visual
+  impression — independent of the session/model that implemented the
+  change under review. Distinct from `academic-visual-reviewer` (which
+  stays skipped; scoped to compiled academic PDF output, not web/Pages
+  content). Additive: no existing role, schema, or command behavior
+  changes; adopters without a public Pages site can leave the role
+  unstaffed or remove the definition file. See
+  `20260808T161743Z-planner-architect-kpdj.md` finding 4a for the
+  staffing-gap evidence that motivated this role.
+- New `independent-implementation-reviewer` agent role
+  (`agf/agents/independent-implementation-reviewer.yaml`), activated in
+  this foundry's `agf/agents/MANIFEST.yaml`. Read-only, advisory review
+  of a named implementation's exact Git head against its approved Gate 1
+  plan, acceptance criteria, tests, and CI evidence, by a session and
+  model distinct from the implementer. Named per non-trivial Gate 2
+  candidate, not a mandatory fourth gate; `CLEAR`/`BLOCK` is evidence for
+  `governor-reviewer`, never a Gate 2 approval or mechanically blocking
+  signal (`tool-authority-boundary-rule.md`). Distinct from
+  `contribution-auditor`, whose jurisdiction covers contribution/
+  governance-guidance integrity, not exact-head implementation-diff
+  review. Additive: no existing role, schema, or command behavior
+  changes; adopters may leave the role unstaffed or remove the
+  definition file. See `20260808T161743Z-planner-architect-kpdj.md`
+  finding 4b and `20260808T171050Z-contribution-auditor-q1ge.md` for the
+  audit-trail-ambiguity evidence that motivated this role.
+- Maintenance-line release exception in
+  `agf/rules/workflow/release-via-merge-request-rule.md`: an optional,
+  narrowly eligible path for shipping a previously published,
+  immutable release-candidate commit as a stable version after your
+  default branch has kept moving with unrelated work — without pulling
+  that work into the promoted release. Requires a binding governor
+  decision naming the exact candidate, its own separately Gate
+  1-approved release plan, Maintainer-level protection on the
+  maintenance branches, a matching protected-tag rule, and post-merge
+  proof that both refs survive the merge before anything is tagged.
+  The standard release workflow (branch from your default branch, tag
+  the merge commit) is unchanged and remains what every ordinary
+  release uses — this exception exists for the specific, evidenced
+  case where a shipped candidate must ship again exactly as-is, later.
+  See [Review and release](docs/site/docs/operate/review-and-release.md#releases-the-maintenance-line-exception)
+  for the adopter-facing explanation and the release skill's Step 0 for
+  the fail-closed selection procedure. Additive: no existing release
+  path changes; adopters who never need this exception see no
+  difference in their normal release flow. **Adopter docs parity:
+  updated.**
+- Frozen-scope reconstruction exception in
+  `agf/rules/workflow/release-via-merge-request-rule.md`: a second,
+  rarer optional path for shipping a governor-frozen, named subset of
+  already-approved work as its own immutable release when that work
+  was never combined into one reviewable commit and your default
+  branch has since kept moving with other, unrelated approved work
+  that must not enter the release. Requires a binding governor decision
+  naming the frozen scope and stable base, its own Gate 1-approved
+  release plan, an independently reproducible proof that the
+  reconstructed content is exactly the named scope, and post-merge
+  proof before anything is tagged. The standard release workflow and
+  the maintenance-line exception are both unchanged and remain the
+  default — this exception exists for the specific, evidenced case
+  where an approved-but-never-assembled scope must ship on its own.
+  See [Review and release](docs/site/docs/operate/review-and-release.md#releases-the-frozen-scope-reconstruction-exception)
+  for the adopter-facing explanation and the release skill's Step 0 for
+  the fail-closed selection procedure. Additive: no existing release
+  path changes; adopters who never need this exception see no
+  difference in their normal release flow. **Adopter docs parity:
+  updated.**
+
+### Fixed
+
+- Release tooling now reads one validated `tooling/rust/release-targets.txt`
+  manifest for the mandatory Linux build loop, release-asset contract, and
+  OCI archive lookup. Preview CI assembles real framework/tooling archives and
+  checks the pre-OCI set; tag CI runs the same check before any OCI push. This
+  prevents a target-list change from leaving the producer and mandatory-asset
+  verifier out of sync. The immutable `v2.6.0` tag is retained as a failed
+  publication attempt: no GitLab Release exists, while `agov:2.6.0` is
+  failed-publication OCI residue and must not be treated as a usable release.
+- `agov coord list --since` now accepts the compact filename-prefix
+  timestamp (`20260729T195431Z`, no punctuation) in addition to
+  RFC3339-with-punctuation and a full message id/filename (#84).
+- `agov coord visibility` no longer treats sequence collisions confined
+  to base-branch history, unrelated to the branch under inspection, as
+  blocking. They are reported as a `legacy_base_collisions` summary
+  (count + seqs) and no longer force a nonzero exit; a collision that
+  involves the branch under inspection still blocks, unchanged (#85).
+- `agov coord visibility`'s default (no `--branch`) scan now enumerates
+  local branches and remote-tracking branches, deduplicated by commit,
+  so a coordination file that exists only on a fetched-but-not-checked-
+  out remote branch is discovered without the caller needing to already
+  know to pass `--branch origin/<name>` explicitly. The base ref used
+  for comparison also prefers a configured upstream's OID over a
+  possibly-stale local ref when they diverge (#89).
+
+### Changed
+
+- `independent-implementation-reviewer` is **provisionally inactive
+  (suspended)** in this foundry's `agf/agents/MANIFEST.yaml`, effective
+  2026-08-09, per governor decision
+  `20260809T073516Z-governor-reviewer-2gbg.md` accepting review
+  `20260809T063108Z-independent-implementation-reviewer-12nr.md`'s six
+  blocking findings against the role definition (incomplete both-gates
+  prohibition, missing infosec-escalation route, and others). No work
+  may rely on or commission the role until a corrective MR resolves the
+  findings, an independent exact-head review returns COMPLETE/CLEAR, and
+  a fresh binding Gate 2 decision reactivates it. This is an authority/
+  status correction, not a rejection of the role program; see the same
+  decision record for the full corrective-work sequence.
+- **BREAKING**: `agov coord visibility`'s JSON output gains two
+  always-present fields (`effective_base_oid`, `effective_base_source`)
+  and one always-present summary object (`legacy_base_collisions`), and
+  narrows `sequence_collisions` to branch-relevant collisions only
+  (`base_duplicate_seq` entries move to `legacy_base_collisions`). Text
+  output gains an always-first `effective-base: <oid> (<source>)` line.
+  Any adopter script or CI job that branches on `agov coord
+  visibility`'s exit code (0/1/2) may see a different code for the same
+  repository state after this change — see `docs/plans/
+  agov-coordination-read-path-reliability.md`'s migration note. Full
+  field-by-field contract in `docs/reference/coord-visibility.md`.
+- **BREAKING (Phase 0, no deprecation cycle — zero known external
+  dependents on the aarch64-linux tooling archive today; see
+  `workflow/deprecation-policy-rule.md`):** `aarch64-unknown-linux-musl`
+  dropped from the mandatory Rust tooling target set in
+  `.gitlab-ci.yml`. Cross-compilation for this target via Docker/QEMU
+  repeatedly exhausted disk on the shared `saas-linux-small-amd64` CI
+  runner class (`docs/plans/20260805T084100Z-drop-aarch64-linux-required-target.md`).
+  Future tag releases publish only the `linux-x86_64` Rust tooling
+  archive until CI runner capacity for this target is sponsored.
+  Already-published `linux-aarch64` archives on releases v2.4.7 through
+  v2.5.0-rc.2 are unaffected. `agf/docs/site/reference/
+  release-artifacts.md` updated to match.
+
+### Performance
+
+- `agov coord visibility` reads coordination files for each candidate
+  branch via one batched `git cat-file --batch` process instead of one
+  `git show` process per file, cutting Git process count from O(branches
+  × files) to O(branches) (#76). A representative fixture with 15
+  branches, equal-OID aliases, a diverged remote ref, and 225+
+  coordination files dropped from ~500ms to ~95ms wall-clock in local
+  testing.
+
+Adopter docs: waived — `docs/reference/coord-visibility.md` was
+rewritten in full to cover the new default branch scope, base-ref
+freshness, legacy-collision handling, the exit-code table, and the JSON
+field contract; it is not under this validator's recognized
+`agf/docs/site/docs/{adopt,operate,advanced}/` paths, so it does not
+clear the automated check on its own, but adopter documentation for this
+change does exist.
+
+## [2.5.0] — 2026-08-09
+
+**Stable.** Metadata-only promotion of the exact `v2.5.0-rc.2` functional
+candidate (tag object `2bdcbb76716ba84ffa78e792b380b7befdd9340e`, peeled
+commit `3874a5b92b006fc867a4cedf359cfc17c6dfbae9`) to stable, published
+through the protected maintenance-line workflow
+(`agf/rules/workflow/release-via-merge-request-rule.md`'s maintenance-line
+exception). Zero functional, schema, documentation-content, migration,
+test, dependency, CI, or artifact-layout change from RC2 — only the current-
+version surfaces and this changelog changed. Independently re-run against
+the identical source tree: 340 passed, 0 failed, 3 ignored (matches RC2's
+own precedent exactly).
+
+**Adopter docs: not applicable — exact RC2 functional candidate;
+metadata-only promotion.**
+
+### Governance
+
+- Governor decision `20260809T171844Z-governor-reviewer-sq5j.md`'s external
+  evaluation disposition stands unchanged: `sjqm` findings 2 (unauthenticated
+  coordination `from:`), 3 (mutation-served-as-authentic / tamper-evidence
+  gap), and 4 (zero local technical Gate enforcement) remain unresolved and
+  are deferred through this stable release to separate post-2.5.0 hardening
+  work, per governor decision `rq2n`'s original disposition — a scope/timing
+  disposition, not an acceptance of the underlying risk, and not a defect
+  introduced by this promotion.
+- Plan `docs/plans/20260809T194404Z-v250-final-release-publication.md`,
+  Gate 1 approved by decision-record
+  `docs/coordination/20260809T200252Z-governor-reviewer-h4wn.md`.
+
+## [2.5.0-rc.2] — 2026-08-04
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.3`.
+
+**SemVer classification: Additive minor, documentation-only.** One new
+page (`agf/docs/site/acknowledgements.md`) crediting NASA's Lessons
+Learned Information System (LLIS) and other named design influences
+behind specific shipped AGF surfaces (the learning-record
+`supersedes`/`status` fields; the `downstream-impact-rule.md`
+classification model). No schema, command, or validator behavior
+changes.
+
+### Added
+
+- `agf/docs/site/acknowledgements.md`: new page attributing design
+  influences, most notably NASA LLIS, behind specific shipped AGF
+  surfaces (`docs/plans/nasa-llis-influence-attribution.md`, Gate 1
+  approved 2026-08-03 `ts77`, Gate 2 approved `k2bk` evidenced by
+  fact-checker `sppt`'s CLEAR verdict).
+- `agf/docs/build/mkdocs.yml`: nav entry for the new acknowledgements
+  page.
+- `agf/docs/site/docs/concepts/evidence-and-learnings.md`: cross-link
+  section referencing the new acknowledgements page.
+
+### Governance
+
+- `sjqm`'s external evaluation (Grok, Lumo) against published
+  `v2.5.0-rc.1` classified: findings 2 (unauthenticated coordination
+  `from:`), 3 (mutation-served-as-authentic / tamper-evidence gap), and
+  4 (zero local technical Gate enforcement) remain unresolved and are
+  deferred through stable `v2.5.0` to separate post-2.5.0 hardening
+  work, per governor decision `rq2n` — a scope/timing disposition, not
+  an acceptance of the underlying risk. None of the three is introduced
+  by, or remediable through, this candidate's shipped documentation
+  paths.
+
+## [2.5.0-rc.1] — 2026-08-03
+
+**RC checkpoint; not final.** `v2.5.0` final ships the same functional
+candidate as this release candidate unless a correction forces `rc.2`.
+
+**SemVer classification: Additive minor.** Two new optional learning-record
+schema fields, one new fail-closed adopter-role-authority default, one new
+non-`handoff` obligation-tracking command, one rules-document correction
+(inert content replaced with new operative guidance), and one new packaged
+CI tooling command. Existing command **syntax** is unchanged, and behavior
+for an adopter with a valid, present `agf/agents/MANIFEST.yaml` is
+unchanged. One existing command's **output** does change: with the
+default path and no `MANIFEST.yaml` present, `agov session resume` (#79)
+now reports the missing role-authority path and both remedies explicitly,
+in place of the prior generic "not found" message. No other existing
+command, schema field, or validator behavior changed for an adopter not
+opting into the new fields/commands.
+
+### Added
+
+- Learning-record `status` and `supersedes` fields
+  (`docs/plans/learning-supersession-status-fields.md`, Gate 1 approved
+  2026-08-03, Path B). `agf/schemas/learning.schema.json` gains two new
+  optional fields: `status` (`proposed | implemented`) and `supersedes`
+  (a stable learning id, set on the *new* superseding entry, never on the
+  entry being replaced). `supersedes` is enforced by `validate_learnings`
+  (`tooling/rust/crates/agov-validators/src/learnings.rs`): the
+  referenced id must exist in the same file and must precede the
+  referencing entry's position — both requirements were previously only
+  claimed by `agf/schemas/invariants.yaml`'s `learnings.append_only_supersession`
+  invariant, not actually implemented. The reverse view (what superseded
+  id X) is derived at read time, never stored, avoiding the
+  bidirectional-consistency drift AGF-C4 already identified for the
+  proposed `related_learnings` field. `status` is optional; existing
+  records with no `status` remain valid and are not rewritten.
+
+  `superseded_by` is now marked `x-deprecated: true` in its schema
+  description: it required editing already-published entries to
+  populate, contradicting append-only operation, and was never enforced
+  or actually used across the corpus. It remains schema-legal —
+  outright removal (Path A) requires a separate, future governor factual
+  determination that the field has zero external production dependents;
+  absent that, this is Path B (deprecate, don't remove), Additive.
+
+- Upgrade-safe adopter role authority (issue #79,
+  `docs/plans/v250-rc1-contract-core.md` work package 1). The shipped
+  release archive no longer contains `agf/agents/MANIFEST.yaml` — a plain
+  archive re-extraction over an adopter project could previously overwrite
+  an adopter's own divergent roster with the framework's dogfooding
+  manifest (reproduced concretely by issue #78: `coder-tester` and
+  `build-engineer` silently reactivated, `documentation-writer` and
+  `capability-developer` silently dropped). The archive now ships a
+  neutral `agf/agents/MANIFEST.example.yaml` template instead, matched by
+  the same include glob but excluded by an explicit packaging rule;
+  `agov` never reads it as adopter state. `AGOV_MANIFEST_PATH`'s existing
+  override precedence is unchanged. With the default path in effect and
+  `agf/agents/MANIFEST.yaml` absent, `agov session resume`'s cold-start
+  output now states the missing path explicitly and names both remedies
+  (copy the example, or set `AGOV_MANIFEST_PATH`) rather than a generic
+  "not found" message.
+
+Adopter docs: updated — `ADOPTING.md` §1.3 and
+`docs/site/docs/adopt/install-and-layouts.md` now describe copying
+`MANIFEST.example.yaml` to `MANIFEST.yaml` as the commissioning step,
+replacing the inline roster example.
+
+- `requires-ack` obligation semantics for non-handoff coordination records
+  (issue #80, `docs/plans/v250-rc1-contract-core.md` work package 2).
+  Previously, `requires-ack: true` was schema-legal on every message kind
+  but silently inert except on `handoff` — `find_pending()` only ever
+  considered `kind: handoff`, so a `requires-ack: true` `review`, `note`,
+  `claim`, `completion`, `decision-record`, `fast-track-waiver`, or
+  `lesson-proposal` created no tracked obligation at all (reproduced
+  independently twice: the original finding and again against the
+  published v2.4.5 archive). Two changes close this:
+  - The schema now rejects `kind: ack` records that also set
+    `requires-ack: true` — an acknowledgement cannot require its own
+    acknowledgement, so the combination is a schema error, not a silent
+    no-op.
+  - A new `agov coord pending` command lists pending (unresolved)
+    `requires-ack: true` records of every kind other than `handoff`
+    (unchanged, owned exclusively by `handoff next`/`take`/`complete`)
+    and `ack`. Resolution is a direct reference — a record is pending
+    until any later record's `references-to` names its file — not
+    `handoff`'s transitive descendant-chain resolution. Records published
+    before `2026-08-02T22:01:54Z` are grandfathered and never appear, so
+    the pre-existing non-handoff `requires-ack: true` records already
+    in this project's own coordination channel are not retroactively
+    treated as a pending backlog. **Correction (found while resolving
+    this merge, 2026-08-03): the cutoff stated here previously read
+    `2026-08-02T18:10:18Z`, an earlier draft default the governor
+    replaced before merge — see decision-record
+    `20260802T220154Z-governor-reviewer-sejb` — but this changelog entry
+    was never updated to match. The shipped default
+    (`tooling/rust/crates/agov/src/main.rs`) and the rule docs
+    (`docs/coordination/README.md`,
+    `agf/docs/site/docs/concepts/coordination-protocol.md`) already used
+    the corrected value; only this changelog entry had drifted.**
+  `handoff next`, `handoff take`, `handoff complete`, and `coord
+  graph-index` are unchanged — existing tests for all four pass unmodified.
+
+Adopter docs: updated — `docs/coordination/README.md` and
+`agf/docs/site/docs/concepts/coordination-protocol.md` both state the
+same permitted-kind matrix, cutoff, and resolution rule.
+
+- Added `agov ci cache-topology-check` (issue #101), a packaged tooling
+  command that statically validates a shared CI cache's writer/consumer
+  topology against GitLab CI Lint's merged YAML — confirming exactly one
+  authorized writer job and that every writer and consumer job references
+  the expected cache-policy CI variable. It was built for this project's
+  own CI cost problem and carries no documented adopter workflow today,
+  but is not adopter-inert: it accepts arbitrary merged CI YAML plus
+  configurable cache-key, writer-job, and policy-variable names as input,
+  so an adopter with a similar shared-cache topology could point it at
+  their own CI configuration. It has no `requires-ack`/obligation
+  semantic and does not participate in the coordination protocol.
+
+Adopter docs: not applicable — no dedicated how-to page exists yet; this
+entry is this feature's only current adopter-facing documentation.
 
 ### Fixed
 
@@ -39,6 +423,15 @@ Adopter docs: not applicable — the table's content already exists in
 `ADOPTING.md`'s "Confirm the layout" table (except the #79-pending row,
 which is explicitly marked as such); no new adopter doc, template, or
 behavior change as a result.
+
+### Validation
+
+- Rust workspace: 340 passed, 0 failed, 3 ignored. Clippy clean with
+  warnings denied.
+- Strict `mkdocs build`: passed, no broken links.
+- Framework-archive overlay tested against three published baselines:
+  `v2.4.5`, `v2.4.8` (substituted for unpublished `v2.4.6` per governor
+  decision `20260803T183732Z-governor-reviewer-rntt.md`), and `v2.4.11`.
 
 ## [2.4.11] — 2026-08-01
 

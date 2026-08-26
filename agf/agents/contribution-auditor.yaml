@@ -26,7 +26,7 @@ agent:
   name: "contribution-auditor"
   id: "agents-govern:contribution-auditor:0.2.0"
   version: "0.2.0"
-  framework_version: "2.4.11"
+  framework_version: "2.6.1"
   provenance: adapted-from-v1x
   tier: "cross-cutting"
   phase: 1
@@ -182,6 +182,32 @@ boundaries:
     - condition: "Contribution introduces ML / model / dataset / runtime-execution terminology in a scope-expanding way (in-scope artefacts, owned by an in-scope agent, or new pipeline steps) rather than in disambiguation / non-claims contexts"
       route_to: "Human (Governor-Reviewer)"
       reason: "Conceptual scope drift is a documented risk (three external-AI engagements independently raised scope misreads). The README's 'what this is not' block is the established boundary; modifications that erode it require explicit reasoning"
+
+  # Added 2026-08-16 per binding governor decisions
+  # 20260816T124942Z-governor-reviewer-pehh.md (path B2) and
+  # 20260816T131724Z-governor-reviewer-6srq.md (binding cross-LLM/
+  # session-independence policy, superseding an earlier record
+  # 20260816T130941Z-governor-reviewer-p4hk.md where that record required
+  # a different LLM with no availability fallback), when Codex was
+  # authorized as a second AI player for this role.
+  cross_llm_independence:
+    - "No AI agent or LLM may audit a contribution within the session that authored or materially co-authored it."
+    - "The preferred auditor uses a genuinely different underlying LLM or model family; product names alone do not prove different underlying models were used."
+    - "When no different LLM is available, a fresh isolated session may perform the audit. The audit record must disclose that the fallback used the same LLM or model family and identify the authoring and auditing sessions sufficiently to demonstrate session separation."
+    - "A role-label change inside the authoring session is not separation. The fallback requires a genuinely fresh context, without the authoring session's hidden scratch state or commitments."
+    - "Material or high-risk findings must be escalated to governor-reviewer. The governor may require another LLM, human review, or additional evidence before accepting the audit for a governed gate."
+
+  jurisdiction_boundary: >-
+    This role's jurisdiction is contributions and governance guidance --
+    learnings, rules, agent definitions, and MR descriptions -- never the
+    implementation diff, tests, or pipeline evidence an exact Gate 2
+    candidate head produces. That is
+    agf/agents/independent-implementation-reviewer.yaml's jurisdiction
+    specifically, a distinct role. Do not relabel exact-head
+    implementation/test/pipeline review as a contribution-auditor act,
+    regardless of which authorized player performs it; escalate per the
+    "jurisdiction overlap" trigger above if a contribution attempts to
+    blur this boundary.
 
 capabilities:
   tools:

@@ -18,6 +18,23 @@
 #   rust:tooling:*    — Rust tooling: validation, tests, clippy, parity, archives
 #   release:create    — upload archives to package registry; create GitLab release entry
 
+variables:
+  # Fail-safe default: every pipeline context is pull-only for the shared
+  # Rust cache unless the workflow rule below identifies an ordinary
+  # default-branch push. A context that fails to match that rule -- an
+  # unset/future CI_PIPELINE_SOURCE included -- must never accidentally
+  # resolve to a writer. See docs/plans/ci-rust-cache-policy-slice-a.md
+  # and issue #101 (child scope of #53).
+  #
+  # RUST_CACHE_POLICY governs every .rust-base consumer and is never
+  # overridden away from "pull" -- Slice B narrows the default-branch
+  # write path to a single designated writer via the separate
+  # RUST_CACHE_WRITER_POLICY variable below, so a new inheritor is
+  # pull-only by construction rather than by remembering to opt out.
+  # See docs/plans/ci-rust-cache-policy-slice-b.md.
+  RUST_CACHE_POLICY: "pull"
+  RUST_CACHE_WRITER_POLICY: "pull"
+
 workflow:
   rules:
     # Coordination-only candidates are NOT suppressed at the workflow level.
@@ -41,23 +58,57 @@ workflow:
     # docs/plans/ci-pipeline-deduplication.md for the full acceptance matrix.
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
       when: never
+    # The sole Rust-cache writer context: an ordinary default-branch push.
+    # The conjunction is intentional -- push excludes schedule/api/web/
+    # trigger/pipeline sources, a truthy branch excludes tag pipelines
+    # (CI_COMMIT_BRANCH is unset there), and equality selects only the
+    # default branch. Every other context falls through to the catch-all
+    # below and keeps the fail-safe "pull" default set above. This rule
+    # only ever overrides RUST_CACHE_WRITER_POLICY, never RUST_CACHE_POLICY
+    # -- Slice B's single designated writer (rust:tooling:test) is the only
+    # job that consumes RUST_CACHE_WRITER_POLICY; every other consumer stays
+    # on the fail-safe RUST_CACHE_POLICY="pull" set above regardless of
+    # context. See docs/plans/ci-rust-cache-policy-slice-b.md's context
+    # acceptance matrix and .gitlab/scripts/check-rust-cache-policy.sh.
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      variables:
+        RUST_CACHE_WRITER_POLICY: "pull-push"
     - when: always
 
 # ── Shared templates ──────────────────────────────────────────────────────────
 
 .rust-base:
-  image: rust:1
+  # Immutable image-index pin, not a floating tag -- a digest always
+  # resolves to exactly one manifest. Re-resolved live against the Docker
+  # Hub registry API at implementation time (2026-08-02): rust:1 and
+  # rust:1.97.1 both report this digest, whose linux/amd64 config declares
+  # RUST_VERSION=1.97.1. See docs/plans/ci-rust-cache-policy-slice-b.md.
+  image: rust:1.97.1@sha256:1bcff4befb740599103a2c7cb51058e14479b2e35e3a34a3f0dc4ede09927488
   variables:
     CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+    # Every .rust-base inheritor is a cache consumer by default. Only
+    # rust:tooling:test overrides this to "writer" -- see Slice B's plan
+    # for why a second override anywhere else is a plan violation, not a
+    # local judgment call.
+    RUST_CACHE_ROLE: "consumer"
   cache:
-    key: rust-$CI_COMMIT_REF_SLUG
+    # Versioned shared key: non-default consumers read the main-fed
+    # namespace directly instead of preferring a stale branch-specific
+    # cache they can no longer refresh. v2/legacy remain as fallbacks so
+    # the first post-Slice-B default-branch pipeline can still restore a
+    # prior generation while rust-v3-main populates under the pinned
+    # image. See docs/plans/ci-rust-cache-policy-slice-b.md.
+    key: rust-v3-main
     fallback_keys:
+      - rust-v2-main
       - rust-main
     paths:
       - .cargo/registry
       - .cargo/bin
       - tooling/rust/target
+    policy: $RUST_CACHE_POLICY
   before_script:
+    - sh .gitlab/scripts/check-rust-cache-policy.sh assert-current
     - cd tooling/rust
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
@@ -155,6 +206,8 @@ site-html-build:
     - python3 agf/docs/build/hooks/check_palette_contrast.py
     - python3 agf/docs/build/hooks/check_stale_version_labels.py --self-test
     - python3 agf/docs/build/hooks/check_stale_version_labels.py
+    - python3 agf/docs/build/hooks/check_commissioning_first_screen.py --self-test
+    - python3 agf/docs/build/hooks/check_commissioning_links.py --self-test
     - python3 -m unittest discover -s agf/docs/build/hooks -p 'test_*.py' -v
     - python3 -m unittest discover -s tooling/tests -p 'test_*.py' -v
     # Shallow checkouts do not fetch tags by default, and a depth-limited tag
@@ -172,6 +225,13 @@ site-html-build:
       fi
     - git fetch --force --tags origin
     - mkdocs build -f agf/docs/build/mkdocs.yml --strict
+    # These two run against agf/site-html/ (rendered DOM order, hero CTA
+    # resolution) -- they require the strict build above to have already
+    # run. See 20260808T140046Z-coder-tester-qnbd.md (GS-B-1, GS-B-3): an
+    # earlier version ran them before the build against Markdown source
+    # instead.
+    - python3 agf/docs/build/hooks/check_commissioning_first_screen.py
+    - python3 agf/docs/build/hooks/check_commissioning_links.py
   artifacts:
     name: "docs-$CI_COMMIT_SHORT_SHA"
     paths:
@@ -532,6 +592,7 @@ release:assets-selftest:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes: &release_assets_selftest_paths
         - tooling/rust/scripts/release-assets.sh
+        - tooling/rust/release-targets.txt
         - .gitlab-ci.yml
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       changes:
@@ -542,6 +603,53 @@ release:assets-selftest:
     - if: $CI_COMMIT_BRANCH
       changes: *release_assets_selftest_paths
     - if: $CI_COMMIT_TAG
+
+agov-oci-image:selftest:
+  image: alpine:3.22
+  stage: test
+  interruptible: true
+  script:
+    - tooling/rust/scripts/agov-oci-image.sh selftest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &agov_oci_image_selftest_paths
+        - tooling/rust/scripts/agov-oci-image.sh
+        - tooling/rust/release-targets.txt
+        - .gitlab-ci.yml
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agov_oci_image_selftest_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *agov_oci_image_selftest_paths
+    - if: $CI_COMMIT_TAG
+
+# Assemble the real preview artifacts from both producers and run the same
+# pre-OCI contract check used by the tag pipeline. This is the pre-tag proof
+# that the mandatory set matches what the builders actually emit.
+release:assets-verify-preview:
+  image: alpine:3.22
+  stage: test
+  interruptible: true
+  needs:
+    - job: agf:dist:preview
+      artifacts: true
+    - job: rust:tooling:preview
+      artifacts: true
+  script:
+    - VERSION="$(cat agf/VERSION)"
+    - tooling/rust/scripts/release-assets.sh verify-pre-oci dist "$VERSION"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - tooling/rust/**/*
+        - .gitlab-ci.yml
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - tooling/rust/**/*
+        - .gitlab-ci.yml
 
 release:elixir-exclusion-selftest:
   image: alpine:3.22
@@ -602,6 +710,40 @@ tooling:live-surface-validate:
       when: never
     - if: $CI_COMMIT_BRANCH
       changes: *live_tooling_surface_paths
+    - if: $CI_COMMIT_TAG
+
+# Pinned ShellCheck for the Rust cache-policy runtime contract script.
+# docs/plans/ci-rust-cache-policy-slice-b.md Gate 2 item 3: "shellcheck
+# passes when available; otherwise the handoff records the gap and CI uses
+# a pinned ShellCheck image before Gate 2." A local run
+# (docker.io/koalaman/shellcheck-alpine:v0.10.0) was clean at implementation
+# time; this job makes that check part of CI rather than a one-off local
+# run. Uses the -alpine variant, not the plain koalaman/shellcheck image --
+# the plain image ships only the statically-linked shellcheck binary with
+# no shell at all, so GitLab's script-execution wrapper cannot run inside
+# it (confirmed by a real CI failure at implementation time: "exec: \"sh\":
+# executable file not found in $PATH"). The -alpine variant has /bin/sh.
+tooling:rust-cache-policy-shellcheck:
+  image:
+    name: docker.io/koalaman/shellcheck-alpine:v0.10.0@sha256:5921d946dac740cbeec2fb1c898747b6105e585130cc7f0602eec9a10f7ddb63
+    entrypoint: [""]
+  stage: test
+  interruptible: true
+  script:
+    - shellcheck .gitlab/scripts/check-rust-cache-policy.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &rust_cache_policy_script_paths
+        - .gitlab-ci.yml
+        - .gitlab/scripts/check-rust-cache-policy.sh
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_cache_policy_script_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *rust_cache_policy_script_paths
     - if: $CI_COMMIT_TAG
 
 release:self-sufficiency-selftest:
@@ -700,7 +842,15 @@ agov:governance:validate:
         exit 0
       fi
 
+      # README.md and feedback-coordination-messages.md are documentation
+      # that lives in docs/coordination/ by convention, not coordination
+      # messages -- they carry no YAML front matter by design and must be
+      # excluded from the message-shape check, mirroring the MANIFEST.yaml
+      # filename exclusion already used for the analogous case in
+      # agov-validators (agents.rs, adoption.rs, readme_stats.rs).
       git diff --name-only -z "$base"...HEAD -- 'docs/coordination/*.md' \
+          ':!docs/coordination/README.md' \
+          ':!docs/coordination/feedback-coordination-messages.md' \
         | xargs -0r "$agov_bin" coord validate
       git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
         | xargs -0r "$agov_bin" plan validate
@@ -731,6 +881,19 @@ agov:governance:validate:
         - docs/coordination/*.md
         - docs/plans/*.md
         - docs/reviews/rule-projection/*.yaml
+        # Plain top-level docs files with no dedicated job path filter
+        # anywhere in this pipeline. Without this, a commit range
+        # touching only one of these matches zero job path filters in
+        # any trigger context, and GitLab creates no pipeline object at
+        # all for that ref/SHA -- not even a skipped one -- which this
+        # project's only_allow_merge_if_pipeline_succeeds +
+        # allow_merge_on_skipped_pipeline=false settings then turn into
+        # a hard, silent merge block. Confirmed on MR !962 and MR !954
+        # (both docs/sources.md/docs/radar.md-only changes). See
+        # 20260802T222231Z-coder-tester-62p5.md.
+        - docs/sources.md
+        - docs/radar.md
+        - docs/TODO.md
         - .gitlab-ci.yml
         - tooling/agov
         - tooling/rust/**/*
@@ -791,11 +954,44 @@ rust:tooling:deny:
       changes: *rust_tooling_deny_paths
     - if: $CI_COMMIT_TAG
 
+# Validate the active commercial-corpus manifest on every pipeline. Manifest
+# schema defects are blocking; content drift and numbered-path mutation are
+# advisory findings emitted by the command with exit 0.
+commercial-corpus:validate:
+  extends: .rust-base
+  stage: test
+  interruptible: true
+  script:
+    - |
+      set -eu
+      base_ref="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-HEAD^}"
+      cargo run --quiet -p agov -- commercial-corpus validate \
+        --repo-root "$CI_PROJECT_DIR" \
+        --base-ref "$base_ref"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
 # Compile and test the Rust workspace on tooling changes and release tags.
+#
+# The sole designated shared-cache writer (Slice B). Every other
+# .rust-base inheritor stays pull-only regardless of context; this is
+# the only job that overrides RUST_CACHE_ROLE and consumes
+# RUST_CACHE_WRITER_POLICY. Only the cache policy and role are
+# overridden here -- key, fallback_keys, and paths are inherited from
+# .rust-base via extends' hash-key deep-merge (verified empirically
+# against GitLab CI Lint's merged YAML at implementation time; extends
+# replaces array keys like before_script wholesale but deep-merges hash
+# keys like cache). See docs/plans/ci-rust-cache-policy-slice-b.md.
 rust:tooling:test:
   extends: .rust-base
   stage: test
   interruptible: true
+  variables:
+    RUST_CACHE_ROLE: "writer"
+  cache:
+    policy: $RUST_CACHE_WRITER_POLICY
   script:
     - apt-get update -qq && apt-get install -y -qq jq
     - sh tests/agov-wrapper-freshness.sh
@@ -896,8 +1092,12 @@ rust:tooling:clippy:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
+    # extends does not merge before_script arrays -- redefining this key
+    # here would otherwise silently drop .rust-base's cache-policy
+    # assertion for every job built on this template.
+    - !reference [.rust-base, before_script]
+    # .rust-base's referenced before_script already cd's into tooling/rust.
     - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
-    - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
   script:
@@ -905,6 +1105,35 @@ rust:tooling:clippy:
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
     - export AGOV_BUILD_DIRTY=false
     - export AGOV_BUILD_SOURCE_DIRTY=false
+    # Validate the complete manifest before any target build, staging, or
+    # archive write. Every later consumer can safely iterate it only after
+    # this fail-closed pass succeeds.
+    - |
+      awk '
+        function reject(message) {
+          printf "invalid release-target manifest %s:%d: %s\n", FILENAME, NR, message > "/dev/stderr"
+          failed = 1
+        }
+        function unsafe(value) {
+          return value ~ /[\\\/]/ || index(value, "..") || value ~ /^-/ || value ~ /[[:cntrl:]]/
+        }
+        /^[[:space:]]*$/ { next }
+        /^#/ { next }
+        {
+          if (NF != 2) { reject("expected exactly two fields: <rust-triple> <public-slug>"); next }
+          if (unsafe($1) || unsafe($2)) {
+            reject("fields must be safe path-component tokens (no slash, backslash, .., leading -, whitespace, or control characters)")
+            next
+          }
+          if (targets[$1]++) { reject("duplicate target: " $1); next }
+          if (slugs[$2]++) { reject("duplicate slug: " $2); next }
+          count++
+        }
+        END {
+          if (failed) exit 1
+          if (count == 0) { print "invalid release-target manifest: no target records" > "/dev/stderr"; exit 1 }
+        }
+      ' release-targets.txt
     - scripts/stage-tooling-runbook.sh selftest
     - scripts/check-release-self-sufficiency.sh selftest
     - |
@@ -924,15 +1153,12 @@ rust:tooling:clippy:
     - cargo build --quiet --release -p agov
     - AGOV_BIN="$PWD/target/release/agov"
     - |
-      for target in x86_64-unknown-linux-musl aarch64-unknown-linux-musl; do
-        # Public filename slug per the Workstream A naming decision (er5h):
-        # archives are named by platform slug; the real Rust triple stays in
-        # cross --target and the provenance record's target_platform field.
-        case "$target" in
-          x86_64-unknown-linux-musl) slug="linux-x86_64" ;;
-          aarch64-unknown-linux-musl) slug="linux-aarch64" ;;
-          *) echo "no public filename slug mapped for target $target" >&2; exit 1 ;;
-        esac
+      # The validated manifest is the sole mandatory Linux target/slug list.
+      # Reinstating aarch64 requires a governed one-line manifest change and
+      # adequate sponsored runner capacity; no hardcoded target arm lives here.
+      while IFS=' ' read -r target slug extra; do
+        [ -n "$target" ] || continue
+        case "$target" in \#*) continue ;; esac
         cargo clean --release --target "$target" -p agov -p agov-mcp
         cross build --release --target "$target" -p agov -p agov-mcp
         sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
@@ -960,7 +1186,7 @@ rust:tooling:clippy:
           --artifact "../../dist/${archive}" \
           --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
-      done
+      done < release-targets.txt
     # Windows packaging is optional preview evidence. It runs only on demand
     # via AGOV_PACKAGE_WINDOWS_PREVIEW=1 (the
     # rust:tooling:preview:windows-package manual job), never as part of a tag
@@ -1070,6 +1296,23 @@ rust:tooling:release:
   rules:
     - if: $CI_COMMIT_TAG
 
+# Phase 1 release gate: verify every framework and mandatory tooling artifact
+# before OCI publication is allowed to start. OCI provenance is necessarily
+# excluded here because it records the digest produced by the later push.
+release:assets-verify-pre-oci:
+  image: alpine:3.22
+  stage: deploy
+  needs:
+    - job: agf:dist:release
+      artifacts: true
+    - job: rust:tooling:release
+      artifacts: true
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - tooling/rust/scripts/release-assets.sh verify-pre-oci dist "$VERSION"
+  rules:
+    - if: $CI_COMMIT_TAG
+
 agov:oci:release:
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
@@ -1079,6 +1322,7 @@ agov:oci:release:
   needs:
     - job: rust:tooling:release
       artifacts: true
+    - job: release:assets-verify-pre-oci
   script:
     - export AGOV_VERSION="$(cat agf/VERSION)"
     - tooling/rust/scripts/agov-oci-image.sh check-tag
@@ -1108,8 +1352,12 @@ rust:tooling:build:windows:preview:
     DOCKER_TLS_CERTDIR: ""
     CROSS_REMOTE: "1"
   before_script:
+    # extends does not merge before_script arrays -- redefining this key
+    # here would otherwise silently drop .rust-base's cache-policy
+    # assertion.
+    - !reference [.rust-base, before_script]
+    # .rust-base's referenced before_script already cd's into tooling/rust.
     - apt-get update -qq && apt-get install -y -qq docker.io
-    - cd tooling/rust
     - export PATH="$CARGO_HOME/bin:$PATH"
     - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
   script:

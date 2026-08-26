@@ -196,6 +196,46 @@ the current-limitation wording remains accurate.
   exact-head pipeline because adjacency materially reduces future maintainer
   surprise; do not add an extra correction push for prose-only evidence.
 
+## Downstream impact classification (`downstream-impact-rule.md`)
+
+**Added per independent review `gmn7`, finding `CFG-R1`** — the original
+EDITORIAL classification was wrong: this change adds new mandatory
+operational checks, not just wording.
+
+```
+Impact:
+  Foundry:          PREVENTIVE. `AGENTS.md` and
+                     `docs/reference/agent-cold-start-habits.md` gain new
+                     mandatory checks: compare pipeline source, ref,
+                     status, and required-job coverage before
+                     cancelling a same-SHA push pipeline; matching SHA
+                     alone is explicitly forbidden as sufficient
+                     justification. This makes an implicit constraint
+                     (don't blindly cancel) explicit and mandatory going
+                     forward, without changing any actual CI behavior.
+  Direct adopters:  PREVENTIVE for any adopter using this rule/guidance
+                     template as shipped — the same new mandatory
+                     checks apply. Adopters who have already customized
+                     these files locally and do not pull the update are
+                     unaffected.
+  Downstream:       No adopter-produced artifact shape changes. No
+                     schema, CLI, or validator surface changes. No
+                     `.gitlab-ci.yml` behavior changes — only its
+                     existing comment is extended. The only behavior
+                     change is the new mandatory pre-cancellation
+                     comparison procedure for assistants and humans.
+  Migration:        None required — no grace period needed, this is
+                     process/documentation guidance, not a code or
+                     schema contract.
+  Evidence:         `docs/proposals/same-sha-ci-pipeline-dedup-
+                     consensus.md`,
+                     `docs/coordination/20260731T114916Z-contribution-
+                     auditor-h65h.md` (original race evidence);
+                     `20260823T175845Z-contribution-auditor-gmn7.md`
+                     (finding `CFG-R1` that corrected the
+                     classification).
+```
+
 ## Rollback
 
 Revert the documentation/comment commit. No schema, data, cache, runner, or CI

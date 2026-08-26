@@ -76,8 +76,11 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | build-engineer | claude (AI) | CI configuration, build automation, artifacts, caching, trigger rules, pipeline efficiency, and release-build stages |
 | fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
+| web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
 
-Suspended: capability-developer.
+Suspended: capability-developer, independent-implementation-reviewer (role
+definition has 6 unresolved findings from its own first exact-head review;
+see `agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
 Authoritative status: `agf/agents/MANIFEST.yaml`.
@@ -182,6 +185,20 @@ Every non-trivial task requires:
   Validation: `agov plan validate <file>`.
 - **Gate 2** (coder-tester → governor-reviewer): implementation on a feature
   branch, all tests green, governor-reviewer reviews diff and merges.
+
+**Narrow research-maintenance exception:** an advisory, reversible change
+limited in every commit and the final diff to the existing `docs/sources.md`
+and/or `docs/radar.md` may skip the separate Gate 1 plan, contribution audit,
+and pre-change coordination MR only when every eligibility, source-fidelity,
+fresh target/open-MR collision-scan, and disqualifier condition in
+`agf/rules/workflow/simplicity-rule.md` passes. Generic docs-only work does not
+inherit this exception. The normal branch/MR, commit-message waiver, exact-head
+pipeline, and binding governor-reviewer Gate 2 decision remain mandatory.
+Uncertainty or any rule/authority, implementation, integration/dependency,
+roadmap/resource, sensitive/legal/security/privacy, public AGF claim, governed
+decision, or extra-path scope returns to full Gate 1. A coordination record is
+not required merely to start or submit an eligible MR; separate obligations,
+escalations, accepted risks, and decisions still use coordination.
 
 Gate 1 approval comes from a governor-reviewer coordination message. Gate 2
 merge target and remote must be confirmed with the governor-reviewer before
@@ -332,10 +349,14 @@ Rust is the default operator path for supported commands:
 - `agov coord stale`
 - `agov coord visibility`
 - `agov coord list` — one line per coordination message after a given id,
-  filename, or RFC3339 timestamp; the designed answer to "what changed since
-  I last checked," not a full re-read of the channel
+  filename, RFC3339 timestamp, or the compact filename-prefix timestamp
+  (`20260729T195431Z`, no punctuation); the designed answer to "what changed
+  since I last checked," not a full re-read of the channel
 - `agov coord graph`
 - `agov coord graph-index`
+- `agov coord pending` — unresolved `requires-ack: true` records of any kind
+  other than `handoff` and `ack`; `handoff` obligations remain `agov handoff
+  next`'s surface
 - `agov handoff next`
 - `agov session resume`
 - `agov validate ...`

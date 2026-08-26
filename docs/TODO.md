@@ -181,6 +181,16 @@ Minimum documentation scope:
 - define canonical lifecycle ordering, including cold start, role-specific
   resume, task execution, validation/review, durable closeout,
   `compact-agf`, and `/compact` or session replacement;
+- assess an assistant-neutral portable session-transit skill, informed by the
+  AIHero `/handoff` source recorded in `docs/sources.md`, for work that must move
+  between Claude, Codex, another harness, another repository, a colleague, or a
+  forked side task. Keep it distinct from authoritative AGF coordination: the
+  transit document should reference durable artifacts instead of copying them,
+  identify role/branch/exact SHA/validation/next action, label observed versus
+  inferred or unverified claims, screen sensitive content, and require a normal
+  validated and published coordination record whenever it creates a downstream
+  obligation. Do not default delayed or cross-machine handoffs to an ephemeral
+  OS temporary directory;
 - distinguish first-class supported paths from legacy/reference surfaces and
   prevent documentation from silently recommending fallback implementations;
 - keep human manuals, AI cold-start/manual guidance, skill descriptions, MCP
@@ -200,6 +210,94 @@ Candidate output:
    or differently ordered instructions.
 4. Usage telemetry guidance that measures quality-adjusted cost without
    treating context occupancy as billing-grade evidence.
+5. A Gate 1 implementation recommendation for either an adopter-facing
+   `handoff-agf` skill or no new feature, including its boundary with
+   `compact-agf`, `agov session resume`, and coordination `kind: handoff`.
+
+## Historical Branch-Only Coordination Recovery and Prevention
+
+Status: open post-consolidation TODO. Owner: planner-architect for the forensic
+assessment and prevention design; coder-tester/build-engineer for `agov` and CI
+controls; contribution-auditor for independent root-cause review;
+governor-reviewer for the disposition of each historical record.
+
+MR !994 consolidated 79 immutable coordination records from the active
+2026-08-01 through 2026-08-03 backlog. The broader visibility scan also exposed
+older branch-only coordination records predating that bounded packet. Those
+older records still need a deliberate recovery and disposition pass; their
+continued presence on historical branches must not be mistaken for publication
+to `main`, acknowledgement, supersession, or harmless archival state.
+
+Minimum recovery and assessment scope:
+
+- fetch and scan all relevant remote-tracking refs before inventorying; include
+  local branches only as a secondary recovery source, not as proof that another
+  agent could see a record;
+- enumerate every coordination record absent from the current target branch,
+  recording its filename/id, blob hash, originating commit, branch, MR or other
+  publication route, sender, recipient, kind, `requires-ack` state, references,
+  and whether an identical or conflicting blob exists elsewhere;
+- determine why each record was created and then left branch-only, using Git,
+  MR, pipeline, discussion, bridge-note, and coordination evidence rather than
+  guessing. Candidate causes to test include skipped or missing pipelines,
+  abandoned/conflicted/closed MRs, records bundled with implementation work,
+  stale target branches, missing bridge notes, validation failures, duplicate
+  publication attempts, branch deletion or replacement, and manual workflow
+  interruption;
+- determine whether the record created a downstream obligation that is still
+  live, was acknowledged elsewhere, became moot, or was superseded by a later
+  binding record. Do not infer closure merely from age or from the associated
+  implementation having merged;
+- assign an explicit governed disposition to every record: preserve unchanged
+  on the target branch, preserve through a byte-identical consolidation,
+  superseded with the replacing record named, duplicate with the canonical blob
+  named, invalid with validation evidence, or intentionally excluded by a
+  governor decision. Never silently discard unique historical evidence;
+- separately assess the operational cost already incurred: invisible
+  obligations, repeated reviews, duplicate CI, misleading `agov` resume/status
+  results, governor reconstruction time, and any decisions made without the
+  expected record being visible.
+
+Prevention design must address introduction and detection, not only periodic
+cleanup:
+
+- define a mechanically checkable close/merge invariant: an MR that introduces
+  a coordination record cannot be treated as disposed until the identical blob
+  is visible on its target branch or an explicit governor disposition names the
+  replacement/exclusion;
+- make coordination-only publication failures visible and actionable when a
+  pipeline is skipped, absent, canceled, or no longer attached to the exact
+  head; do not let a successful bridge note substitute for publishing the
+  canonical record;
+- extend the supported `agov` visibility/poll path to scan fetched
+  remote-tracking branches deterministically, continue past legacy sequence
+  collisions with explicit diagnostics, and report newly introduced
+  branch-only records separately from acknowledged historical debt;
+- add a CI or repository check that detects coordination records present in an
+  MR/source branch but absent from the intended target, with tests for
+  coordination-only MRs, implementation MRs carrying a handoff, superseded
+  records, byte-identical consolidation, conflicting blobs, deleted branches,
+  skipped pipelines, and target-branch advancement;
+- require bridge notes to identify the record, exact source commit, branch/MR,
+  and intended publication path so recovery does not depend on session memory;
+- define one owner and cursor for recurring remote visibility polling, plus a
+  bounded escalation age for records that remain branch-only after their first
+  visible publication attempt;
+- ensure MR-close and worktree/branch-cleanup guidance checks for unpublished
+  coordination before declaring the work complete.
+
+Candidate outputs:
+
+1. A machine-readable inventory and human-readable root-cause report for all
+   pre-2026-08-01 branch-only records, with one governed disposition per record.
+2. A recovery MR or ordered set of MRs that preserves every record authorized
+   for publication unchanged and proves filename/blob collision handling.
+3. A Gate 1 prevention plan covering `agov`, CI, polling, MR closeout, and
+   operator documentation without giving tooling binding gate authority it
+   does not have.
+4. Fixture-driven tests demonstrating that a newly introduced branch-only
+   coordination record becomes visible before the originating task can be
+   reported as durably complete.
 
 ## Deterministic Academic Figure Source Generation
 
@@ -281,3 +379,161 @@ Minimum acceptance evidence:
 This TODO does not expand or block v2.4.0. Workstream D should correct and
 regenerate the existing sources under its approved release plan; generator
 implementation requires its own Gate 1 plan after the release priority clears.
+
+## Post-v2.5.0 Intelligence-Analysis Product Discipline Assessment
+
+Status: open post-v2.5.0 TODO (Level 1: Planned). Owner: planner-architect for
+the comparison and Gate 1 design; contribution-auditor for adversarial review;
+fact-checker for primary-source fidelity; governor-reviewer for scope and any
+binding adoption decision. Academic-peer-reviewer should review any formalized
+uncertainty vocabulary before it becomes a framework claim.
+
+Assess whether mature public intelligence-analysis product discipline can
+improve AGF's plans, reviews, coordination, and decision products without
+importing intelligence-community authority, institutional assumptions, or
+compliance claims. Start from Batch 15 of `docs/sources.md`: Luntta's secondary
+design synthesis and simulated Aurora prototype are discovery/design artifacts;
+ODNI ICD 203/206/208, ICS 206-01, and the UK government guidance/doctrine are
+the primary sources for any substantive comparison.
+
+Minimum assessment scope:
+
+- identify which AGF artifact types should explicitly state their intended
+  audience, decision/question served, time sensitivity, authority boundary,
+  and next action; distinguish a product being valid from it being useful and
+  visible in time;
+- test whether current review/coordination prose reliably distinguishes
+  observation, source information, assumption, inference/judgment,
+  alternative explanation, recommendation, and binding decision;
+- compare probability/likelihood, analytical confidence, AGF evidence status,
+  and capability maturity as separate axes. Do not create a composite score or
+  use confidence language without defining what its foundation is;
+- assess whether review artifacts should record plausible alternatives,
+  contrary evidence, key assumptions, information gaps, and indicators or new
+  evidence that would change the judgment;
+- audit source provenance beyond locators: currency, completeness, quality,
+  independence, access, validation, technical limits, possible bias/deception,
+  and which judgments each source can actually support;
+- audit AI-assistance provenance across coordination, plans, reviews, generated
+  artifacts, and tool telemetry. Compare model/system identity, version,
+  settings, prompt/parameters, performance/training-data limits, and date of
+  use against AGF's privacy, secret, reproducibility, and data-minimization
+  boundaries; do not persist sensitive prompts or ambient session metadata;
+- assess whether corrections and renewed reviews explain what evidence or
+  reasoning changed, rather than only replacing the verdict;
+- examine discoverability, recipient visibility, timeliness, feedback, and
+  consistency across alternate, summarized, sanitized, or exported versions of
+  the same facts, judgments, uncertainty, and decision status;
+- use Aurora only as a synthetic interface/protocol case study. Preserve its
+  stated limits (simulated data, heuristic confidence, deterministic
+  hypotheses, incomplete provenance, no operational user validation) and do
+  not present it as evidence that the mechanisms work in production;
+- map proposals onto existing AGF fields and rules before adding schema. Prefer
+  documentation guidance or derived views where they suffice, and preserve the
+  distinction between advisory analytic quality and governor authority.
+
+Candidate outputs:
+
+1. A crosswalk from each primary analytic standard/guidance concept to current
+   AGF support, gap, non-applicability, and evidence status.
+2. A small synthetic review packet demonstrating observation/assumption/
+   judgment/alternative/uncertainty/decision separation, including a corrected
+   judgment and a sanitized view whose meaning remains congruent.
+3. A decision on whether improvements belong in writing guidance, coordination
+   or review schemas, `agov` derived views/validation, or no AGF change.
+4. If structural changes remain justified, a separate Gate 1 plan with
+   negative tests against false precision, composite confidence scores,
+   unsupported source-quality claims, provenance leakage, and tooling that
+   accidentally acquires binding authority.
+
+This work must not expand or block v2.5.0. It begins only after the release's
+contracted work and publication path are complete.
+
+## Pages + README Visual Direction (v2.5.1) — Draft, Not Confirmed Final
+
+Status: open draft TODO. Direction proposed and liked by the human governor,
+explicitly not yet confirmed as final ("I like the approach, but I am not
+100% confident that's the final" — 2026-08-03). Owner: governor-reviewer for
+final disposition and sign-off; documentation-writer role for README
+implementation once confirmed.
+
+Four persona-briefed drafting passes (technical writing, developer
+experience/information architecture, marketing, UX/visual design) proposed a
+coordinated redesign of the public Pages site and README: palette, typography,
+flattened navigation, a real hero component, and a README restructure that
+relocates evidence/maturity hedging out of the pitch without deleting any
+claim. Inspired by a reference site's visual register (near-monochrome
+palette, confident minimal copy, flat navigation), adapted to AGF's own
+governed diagram palette rather than copied wholesale.
+
+Full synthesis, decisions, risks, and test strategy:
+`docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md`.
+Visual mockup: `docs/plans/assets/20260803T192952Z-pages-readme-visual-refresh-v251-mockup.html`.
+Drafting branch: `plan/pages-readme-visual-refresh-v251`.
+
+No implementation has started. `README.md`, `agf/docs/build/mkdocs.yml`, and
+the site CSS remain untouched.
+
+Open before implementation proceeds:
+
+- Confirm hero copy variant (plan recommends "Plans reviewed before code.
+  Code reviewed before merge."; two alternates are in the plan).
+- Resolve the dark-mode accent contrast gap with a real validated palette
+  token added to `reference/palette.md` and passed through
+  `check_palette_contrast.py` — the mockup's dark-mode accent is illustrative
+  only, not a proposed final value.
+- Decide whether `.claude/rules/docs/documentation-audience-rule.md`'s
+  "Public documentation site" row should be customized for this project — the
+  plan flags a mismatch (rule says business users; AGF's own site targets
+  developers/technical evaluators) but does not resolve it.
+- Sanity-check the proposed 7-tab navigation flattening against real adopter
+  feedback if any exists, rather than treating the drafting pass alone as
+  validation.
+- General re-review: the human governor has not yet confirmed this is the
+  final direction versus a strong starting point to iterate on further.
+
+Candidate next step once confirmed: implementation as two independently
+reviewable MRs (README restructure; Pages theme/nav/hero), sized so each
+answers one yes/no review question, per `branch-and-worktree-rule.md`.
+
+## Philosophical-lenses page: self-application gap, not yet actioned
+
+Status: open, uncaptured elsewhere. Owner: documentation-writer for the page
+edit; contribution-auditor or academic-peer-reviewer for review, given the
+page's evidence-citation discipline.
+
+A review of `agf/docs/site/docs/concepts/philosophical-lenses.md` against its
+actual source text (2026-08-03, same session as the v2.5.0-rc.1 three-track
+evaluation) found the page's evidence-status discipline is genuinely careful
+(each of the six lenses correctly scopes its own citation, e.g. the
+Bainbridge lens explicitly disclaims corroboration from literature it didn't
+cite), but every lens ends in a generic "design question" that the page never
+answers against AGF's own concrete mechanisms — despite the project's
+self-application motto ("the framework that cannot govern itself has no
+business governing anything else").
+
+This is no longer a hypothetical gap. The three-track evaluation
+(`docs/coordination/20260803T204257Z-planner-architect-sjqm.md`, learning
+`20260803T205236Z-gt3x`) already answers several of the page's own design
+questions for AGF specifically:
+
+- The **legibility critique** ("does producing the evidence the system wants
+  distort the work, and can a record be gamed while looking legitimate")
+  is exactly what the mutation-served-as-authentic finding demonstrates,
+  observed in this system, not hypothesized.
+- **Accountability sinks** ("is there a specific named person who could have
+  decided otherwise") has an honest current answer: `gate1_approved_by` can
+  be empty or a non-governor role and still validate as `approved`.
+
+Recommendation: add a concrete "applied to AGF" callout per lens (or at
+least for legibility and accountability sinks, the two with direct evidence
+already on record), citing the relevant coordination/learning record, rather
+than leaving all six design questions purely generic. Low effort — the
+evidence already exists and is already cited elsewhere in the repo; this is
+a linking/citation task, not new research.
+
+Not captured as a `learnings/` entry: this is a documentation-content gap on
+an already-published page, not operational evidence from running the
+framework's tooling (contrast with `t8mz`, which is the adjacent but
+distinct "no self-reported enforcement profile" finding). Recorded here in
+TODO.md for lack of a more specific tracked home.

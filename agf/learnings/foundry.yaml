@@ -2510,6 +2510,1440 @@ learnings:
       evidence_refs:
         - "MR !898 (branch coordination/mr894-review): corrupted commit e8b1f08a caught before governor review, corrected in 7ef4498f and again in b987dc75; docs/coordination/20260801T123434Z-contribution-auditor-6mkq.md"
 
+  - id: "20260802T230821Z-sv7q"
+    date: "2026-08-02"
+    category: gap
+    scope: framework
+    title: seven-of-nine-agf-schemas-have-no-per-record-schema-version-field-despite-a-known-working-precedent
+    description: >
+      Answering a user question about whether `learning.schema.json` and its
+      records carry version info (asked in the context of the NASA LLIS
+      comparison's proposed schema changes — `status` becoming a real
+      field, `superseded_by` switching from a title-pointer to an
+      id-pointer), the immediate answer was no: neither the schema's own
+      `$schema` field (a JSON-Schema meta-schema reference, not a content
+      version) nor any individual record in `agf/learnings/foundry.yaml`
+      carries a version marker.
+
+      Generalizing the check across all nine files in `agf/schemas/*.json`
+      surfaced a sharper finding than "one schema lacks versioning": this
+      project has already built, and requires, the exact pattern needed —
+      but only for one schema pair out of nine, and did not generalize it.
+      `release-provenance.schema.json` requires a `schema_version` field
+      (`const: "2.4"`) on every record in both its `fileRecord` and
+      `ociImageRecord` definitions, and a sibling file,
+      `release-provenance-legacy.schema.json`, exists specifically to
+      recognize pre-v2.4 records that lack `schema_version` — its own
+      description states such records are "handled by the validator's
+      legacy code path, never upgraded implicitly." **Correction
+      (contribution-auditor finding B-SV-2,
+      `20260802T231224Z-contribution-auditor-nhrq.md`):** this pair is a
+      real, shipped, working answer to *deterministic classification and
+      dispatch* between current and legacy record shapes — `schema_version`
+      present routes to the current schema, absent routes to the legacy
+      recognizer, and a record matching the legacy schema is never
+      reported as satisfying the current contract. It is **not** a
+      migration mechanism: `provenance::validate_record()` classifies and
+      validates, it does not transform a legacy-shaped record into a
+      current-shaped one. Safe migration additionally needs retained
+      versioned schemas/handlers, a defined transformation and
+      compatibility policy, source-to-target conversion tests, and an
+      explicit decision about whether historical records are ever
+      rewritten at all — none of that follows from stamping a field alone,
+      and this project has not built it for any schema, including
+      `release-provenance` itself.
+
+      **Correction (contribution-auditor finding B-SV-1, same review):**
+      the gap cohort is not "eight of nine" — `release-provenance-legacy.schema.json`
+      is not a gap alongside the others; it is the intentionally
+      unversioned *half of the working precedent itself* (its entire
+      purpose is recognizing records that lack `schema_version`), so
+      counting it as an eighth schema that should also gain a version
+      field contradicts its actual role. Excluding both halves of the
+      `release-provenance` pair leaves **seven current, non-legacy schema
+      files** without a dedicated per-record schema-version marker:
+      `agent.schema.json`, `coordination-message.schema.json` (the
+      highest-volume schema in the project, backing 1,600+ records in
+      `docs/coordination/`), `framework.schema.json`, `gate1-plan.schema.json`,
+      `learning.schema.json`, `rule-projection-manifest.schema.json`, and
+      `rule.schema.json`. `framework.schema.json` belongs in this list
+      despite having a `contract_version` property: per its own
+      description that value "equals the framework version" — the
+      framework's own semver echoed into the one `framework.yaml` record,
+      not a marker of which shape of `framework.schema.json` that record
+      was written against. It does not solve the same problem
+      `release-provenance`'s `schema_version` solves.
+
+      If any of these seven schemas changes shape — which
+      `learning.schema.json` is a live, concrete candidate for right now,
+      per the NASA LLIS comparison document
+      (`docs/plans/nasa-llis-lessons-learned-comparison.md`) — the record
+      itself contains no intrinsic, machine-readable discriminator of
+      which shape it was authored against (correction, advisory A-SV-1,
+      same review: git history, dates, or release boundaries may
+      sometimes let an operator *infer* the authoring schema version
+      externally; the gap is specifically the absence of a marker
+      *inside the record itself*, not an absolute inability to ever know).
+      Classifying old from new records would have to rely on heuristics
+      (field presence/absence, ID format) or external history instead of
+      a stamped version — and even with a stamped version, actually
+      migrating a record to a new shape remains a separate, unsolved
+      design problem this project has not built for any schema yet.
+
+      This finding was self-detected during a user Q&A, not surfaced by
+      any validator, review pass, or incident — the same "structurally
+      invisible until someone asks the specific question" pattern this
+      project's own `audit-log-completeness-rule.md` and
+      `concept-modelling-rule.md` document for other cross-cutting gaps.
+    agents_involved:
+      - coder-tester
+      - contribution-auditor
+    framework_section: "agf/schemas/*.json (all nine schema files); agf/schemas/release-provenance.schema.json and release-provenance-legacy.schema.json as the existing classification/dispatch precedent (not a migration precedent); agf/schemas/learning.schema.json as the schema with a concrete, currently-proposed shape change (docs/plans/nasa-llis-lessons-learned-comparison.md) that would land into a corpus with no per-record version marker"
+    business_impact:
+      type: neutral
+      description: >
+        This finding predates any migration attempt and any migration
+        failure — it is a proactive finding, not a realized cost. The
+        exposure is forward-looking: `learning.schema.json` has a
+        concrete, currently-proposed
+        shape change in flight (the NASA LLIS comparison's `status` field
+        and `superseded_by` id-vs-title correction) that would land into a
+        corpus with zero version markers, making future classification of
+        old-vs-new records heuristic-driven rather than deterministic, for
+        that schema and the six others in the same position.
+    recommendation: >
+      Generalize the `release-provenance.schema.json` pair's
+      classification/dispatch pattern, not a migration mechanism this
+      project has not built for any schema: for each of the seven current
+      schemas without per-record version info, decide (a) whether to
+      require a `schema_version` field going forward (const-pinned per
+      schema revision, matching `release-provenance`'s exact shape) and
+      (b) whether pre-versioning records need their own explicitly-named
+      legacy-shape schema (matching `release-provenance-legacy.schema.json`)
+      or whether "absence of `schema_version` implies legacy" is safe to
+      encode directly in the primary schema's validator logic instead,
+      schema by schema — `coordination-message.schema.json`'s 1,600+
+      existing records make an explicit legacy-schema split likely
+      necessary there specifically, the same shape of decision
+      `release-provenance` already made. Do not treat this as one
+      blanket change across all seven; each schema's own record volume,
+      churn rate, and change risk should independently decide whether it
+      needs a legacy-split schema or a lighter validator-side rule.
+      Actual record migration (transformation, compatibility policy,
+      tests) is a separate, harder design problem this learning does not
+      claim is solved by any existing AGF precedent, including
+      `release-provenance` — any future plan that assumes stamping
+      `schema_version` alone enables migration must design and test that
+      separately. `learning.schema.json` is the most time-sensitive of
+      the seven, given the NASA-LLIS-comparison shape change already
+      proposed against it. This recommendation has been adversarially
+      reviewed once (`nhrq`, findings B-SV-1/B-SV-2/A-SV-1/A-SV-2, all
+      addressed above); a bounded renewed review of the corrections is
+      requested before any schema change is proposed on the strength of
+      this learning alone.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "Direct inspection of all nine agf/schemas/*.json files, 2026-08-02: grep and python3 json.load() confirmed schema_version presence/absence and required-field status per schema, not inferred from documentation."
+
+  - id: "20260803T205236Z-gt3x"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: three-track-external-multi-model-review-of-v250-rc1-shows-gate1-gate2-authority-and-record-immutability-are-schema-unenforced
+    description: >
+      Following the project's own bounded three-track review methodology
+      (documentation, artifact/tooling, adversarial governance — per the
+      published ai-evaluation-dossier) against the real published
+      `v2.5.0-rc.1` release, two independent AI systems (Grok, running
+      real commands against downloaded release assets and a live
+      GitLab Container Registry check; and this session, orchestrating
+      sandboxed subagents that actually installed and exercised the
+      release, plus hand-reproducing the most consequential claims a
+      second time afterward) converged on the same structural finding
+      via different attack surfaces.
+
+      Grok's adversarial pass attacked the record/schema layer directly
+      and found: `gate1-plan.schema.json`'s `status: approved` validates
+      with an empty `gate1_approved_by`, and separately with
+      `gate1_approved_by` set to a non-governor AI role
+      (`coder-tester`) — both independently reproduced in this session
+      against the real schema. It also found that editing an existing
+      coordination record's body in place (leaving `id`, `timestamp`,
+      and `immutable: true` untouched) still validates `OK` and is
+      served live by `agov handoff next` as the current authoritative
+      content — also independently reproduced. This session's own
+      adversarial subagent attacked a different layer (raw git/CI) and
+      found no `agov`-related git hooks exist anywhere in the tracked
+      repository; a branch with zero Gate 1 plan and zero Gate 2
+      approval records merged instantly in a sandbox with **no CI
+      attached at all**. That sandbox condition shows the absence of any
+      local technical backstop; it does not by itself describe this
+      project's actual hosted configuration. Separating the three
+      layers precisely: human procedural authority (who is entitled to
+      approve a gate) is unaffected by either finding; this project's
+      hosted merge backstop (`coord publication-check`,
+      `only_allow_merge_if_pipeline_succeeds`) blocks merge on pipeline
+      success and validates record shape; neither layer authenticates a
+      governor, requires a Gate 1 plan or Gate 2 decision to exist for
+      every substantive MR, or proves a validated approval record is
+      binding. The two passes are complementary, not redundant: one
+      shows the schema layer accepts forged authority; the other shows
+      a workspace with zero local backstop and no CI attached would not
+      have stopped the underlying merge regardless.
+
+      A separate Track 1 (documentation) pass by a third model (Lumo)
+      contained fabricated technical specifics — schema filenames and
+      CLI flags that do not exist in the actual repository, plus
+      "governance-policy endpoint" language suggesting partial
+      conflation with an unrelated hosted-service product — verified
+      directly against the downloaded release archive and flagged
+      separately as a reviewer-reliability concern rather than a
+      documentation defect.
+
+      After this session raised the point that "a human will own Gate
+      1/Gate 2" is not one adoption checkbox among several but is
+      functionally the framework's entire enforcement mechanism given
+      the above, Grok independently revised its own initial framing to
+      match, producing the same corrected line from its own reasoning:
+      the tooling gives schema, vocabulary, and a place to put the
+      record, not identity binding or tamper-evidence. Cross-model
+      convergence on the corrected framing, reached collaboratively
+      rather than asserted unilaterally, is itself part of the evidence
+      here.
+    agents_involved:
+      - contribution-auditor
+      - governor-reviewer
+      - coder-tester
+      - fact-checker
+      - planner-architect
+    framework_section: "agf/schemas/gate1-plan.schema.json (gate1_approved_by not required non-empty or role-bound when status:approved); agf/schemas/coordination-message.schema.json (from: is unauthenticated free text; immutable:true is an asserted label, not a content-hash-enforced guarantee); tooling/rust agov handoff (to: all handoffs invisible to agov handoff next <role>, tested separately in the same review); .gitlab-ci.yml (structural checks — publication-check, pipeline-success-required merge — run in hosted CI and there is zero local git-hook backstop; this is a delivery-context observation, not a claim that CI itself authenticates or grants Gate 1/Gate 2 authority)"
+    business_impact:
+      type: prevented_loss
+      description: >
+        This finding directly corrected the "Evidence and maturity"
+        framing being actively drafted for the v2.5.1 README/Pages hero
+        copy in the same session
+        (docs/plans/20260803T192952Z-pages-readme-visual-refresh-v251.md)
+        before any of it shipped publicly — without this review, that
+        copy risked describing Gate 1/Gate 2 in language a reader could
+        reasonably take as mechanically enforced, when the published
+        tooling does not enforce approval identity, non-emptiness, or
+        record immutability. The correction was reached collaboratively
+        with an independent external AI reviewer, which also revised its
+        own initial framing after seeing the same evidence, rather than
+        being asserted unilaterally.
+    recommendation: >
+      Give the four Track 3 findings
+      (docs/coordination/20260803T204257Z-planner-architect-sjqm.md) an
+      explicit disposition rather than letting them sit as review output:
+      (1) require gate1-plan.schema.json's gate1_approved_by to be
+      non-empty and match an active governor-equivalent MANIFEST role
+      when status:approved — treated as structural hygiene against the
+      exact-role-string case, not as identity proof; the fix itself
+      needs a separately governed cross-record validator (a new check
+      alongside the existing advisory_consultation MANIFEST lookup in
+      agov-coord's plan validator) and a defined missing-MANIFEST
+      policy that fails closed (blocking, not silently skipped) for
+      this specific field, distinct from the existing
+      advisory_consultation check's current fail-open-on-missing-
+      MANIFEST behavior, plus an explicit migration path for existing
+      approved/active/complete plan records rather than an
+      undocumented breaking change; (2) decide whether
+      coordination-message from: identity binding is in scope for agov
+      at all, or explicitly document it as unauthenticated and
+      human/CI-trust-dependent everywhere the framework currently
+      implies an audit trail; (3) add at minimum a lightweight
+      content-hash-on-first-reference check so a record's body can't
+      silently diverge from what a later references-to pointed at —
+      this narrows but does not close the gap: it does not detect
+      mutation that happens before the first reference, and it does not
+      by itself identify which historical version is the canonical
+      trusted one, so it should be described as raising the cost of
+      undetected mutation, not as tamper-evidence; (4) state plainly, in
+      adopter-facing docs and not only inferable from source, that
+      agov's own enforcement boundary stops at schema shape and a small
+      number of cross-record invariants — real Gate 1/Gate 2 authority
+      is a human-and-CI-configuration property, not an agov validate
+      guarantee. Until these are dispositioned, public copy describing
+      Gate 1/Gate 2 should avoid language a reader could take as claiming
+      mechanical or tamper-evident enforcement.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "docs/coordination/20260803T204257Z-planner-architect-sjqm.md — consolidated three-track review recording all four findings, results, and the commands used by name; full command transcripts were not published and are available on request, not embedded in the record itself"
+        - "Independent hand-reproduction, 2026-08-03: agov plan validate against the real v2.5.0-rc.1 gate1-plan.schema.json with empty and non-governor gate1_approved_by, both status:approved, both exit 0"
+        - "Independent hand-reproduction, 2026-08-03: in-place mutation of a historical handoff record's task text, re-validated OK, served live and unmodified by agov handoff next"
+
+  - id: "20260803T212419Z-nq7p"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: multi-ai-review-relay-carries-the-same-unauthenticated-attribution-gap-track-3-found-in-from-field
+    status: proposed
+    description: >
+      Raised during a session running multi-model adversarial review of
+      v2.5.0-rc.1 (Grok, Codex, and this session's own execution). Grok
+      agreed with this finding when the specific point was put to it
+      through the relay — a relayed agreement, not independent
+      corroboration; see the correction below. The finding itself: the
+      review workflow carries the same class of gap Track 3 found
+      in `coordination-message.schema.json`'s `from:` field, one layer
+      up. `from: governor-reviewer` on a coordination record is an
+      unauthenticated string; a valid-looking record does not prove a
+      bound actor. The human relay carrying "Grok found X" or "Codex
+      said Y" between chat sessions into a governed coordination record
+      or learning entry has exactly the same property — no cryptographic
+      binding, no tool-attested transcript hash, no enforced role
+      activation.
+
+      Two concrete, non-hypothetical illustrations from the same
+      session: (1) Lumo (a third model, documentation-only) fabricated
+      specific schema filenames and CLI flags that read as plausible and
+      were wrong; caught only because this session had direct repository
+      access to check, not because the relay itself had any integrity
+      check. (2) **Correction (contribution-auditor qqj4, B-LRN-1):**
+      this illustration originally claimed the human governor never
+      formally activated `planner-architect` for this session. That
+      claim is false — `agf/agents/MANIFEST.yaml` marks
+      `planner-architect` `status: active`, `played_by: claude`, and
+      root `AGENTS.md` states the same; role activation is real and
+      pre-existing, not something this session's own conduct could
+      demonstrate absent or present. Role activation, authorization for
+      a specific task, and binding governor decision authority are three
+      different questions; only the first was ever in doubt here, and it
+      was never actually in doubt — it was already granted. The real
+      illustration is narrower: Codex's governor-authorized
+      gate-speed-acceleration synthesis (`4g1e`) was addressed back
+      `to: planner-architect` and instructed it to "author the Gate 1
+      candidate within planner-architect authority" — a specific
+      high-risk task (drafting a Gate 1 candidate for an
+      authority-enforcement fix) whose scope this session judged
+      ambiguous enough that it declined to proceed without an explicit,
+      separately-confirmed human instruction for that exact task,
+      distinct from the role's standing activation. That is a
+      task-scoping caution, not evidence that the relay broke identity
+      binding for the role itself.
+
+      Grok's own restatement: "Multi-AI adversarial review is only as
+      trustworthy as the human (or system) carrying the relay.
+      Unauthenticated chat attribution is the same class of failure as
+      an unauthenticated `from:` field — often worse, because it never
+      hits a schema."
+
+      **Correction (contribution-auditor qqj4, B-LRN-2):** the two
+      Lumo/Grok illustrations above conflate two different controls that
+      this entry should keep separate. *Attribution* is whether a claim
+      is correctly bound to the party who actually said it (a
+      provenance question). *Correctness* is whether the claim itself is
+      true (a truth question). A correctly-attributed model can still
+      hallucinate; a false attribution can still happen to carry a true
+      claim. Lumo's fabricated filenames are a correctness failure this
+      session could check directly against the repository — they say
+      nothing about whether Lumo's identity was itself misattributed.
+      Conversely, this entry cannot independently verify what Lumo or
+      Grok actually said in their own sessions, because no durable
+      primary transcript or digest of either exchange is published here
+      or elsewhere in this project; both should be read as
+      human/Claude-relayed content, not as authenticated statements from
+      those systems, until a primary artifact exists. Where this entry
+      (or its evidence_refs) describes Grok as "confirming" a finding, it
+      means Grok agreed with a specific point already put to it in this
+      relay, not that Grok reached the conclusion from a blinded or
+      independent starting position — no blinding protocol was used.
+    agents_involved:
+      - fact-checker
+      - contribution-auditor
+      - planner-architect
+    framework_section: "agf/schemas/coordination-message.schema.json (from: unauthenticated, same gap one layer up in any workflow relaying external model output into a coordination record or learning entry)"
+    business_impact:
+      type: neutral
+      description: >
+        Proactive, self-detected finding; no incident occurred. Forward-
+        looking exposure: this session's own consolidated review and
+        learning records are session outputs whose "two independent
+        models agree" framing could be read as stronger evidence than a
+        human relay with no integrity check can actually support.
+    recommendation: >
+      Per Grok's suggested mitigations, none requiring new cryptographic
+      infrastructure: cite primary artifacts (commands, exit codes, file
+      paths, commit/tag, schema snippets) rather than resting on model
+      attribution alone, as this session did for the AGF-side findings
+      themselves; treat model-named findings as claims until reproduced,
+      not as evidence on receipt; do not treat a role's standing
+      MANIFEST activation as authorization for a specific high-risk task
+      — require an explicit, separately-confirmed human instruction for
+      the task itself, distinct from role activation; consider an
+      optional field on learning/coordination records for "reproduced by
+      X at time T" to distinguish a relayed claim from an independently
+      reproduced one. Scope is this workflow's trust model, not a new
+      AGF schema defect — no schema change is proposed by this entry
+      alone.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "This session, 2026-08-03: Codex's 4g1e addressed a Gate-1-authoring instruction to planner-architect (a role this session confirmed is MANIFEST-active), and this session declined the specific task pending explicit human confirmation of task scope, distinct from role activation."
+        - "This session, 2026-08-03: Lumo's fabricated schema filenames and CLI syntax, caught only via direct repository access, not via any relay-level check."
+        - "Grok, 2026-08-03: agreed with this finding and its framing after this session put the point to it directly; not an independent or blinded confirmation."
+
+  - id: "20260803T212420Z-hv3k"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: naive-gate1-approved-by-non-empty-check-is-unsafe-without-fail-closed-manifest-and-lifecycle-scope
+    status: proposed
+    description: >
+      Follow-up red-team (Grok, 2026-08-03) of the P0 fix proposed against
+      finding `20260803T205236Z-gt3x` ("require non-empty
+      gate1_approved_by, constrained to governor-class roles, when
+      status: approved"). Attacking the fix design, not the original gap,
+      found a naive implementation is not safe:
+
+      (1) Migration: existing plan records with empty/non-governor
+      approvers become non-conforming the moment this ships as blocking,
+      with no grandfather or profile — a BREAKING change under this
+      project's own `downstream-impact-rule.md`, not additive, and needs
+      an explicit migration/grandfather design.
+
+      (2) MANIFEST-absent silent skip: reusing the existing advisory-role
+      cross-check pattern for the approver field inherits the same trap
+      independently reproduced against `gt3x` — in a workspace with no
+      `agf/agents/MANIFEST.yaml` at all, the check never runs, so empty
+      and non-governor approvers both still pass. **Correction
+      (contribution-auditor qqj4, B-LRN-4):** the no-MANIFEST condition
+      was reproduced directly in this project's own sandboxes; how
+      prevalent no-MANIFEST workspaces are across adopters was not
+      measured and is not claimed here. A naive reuse of the pattern
+      would be "fully bypassed" (Grok's words) whenever that condition
+      holds, regardless of how common it is.
+
+      (3) Exact-match requirement: today's advisory-role lookup is already
+      exact-match, case-sensitive, no fuzzy matching (confirmed:
+      `infosec-sentinels` plural is rejected as unknown). A new approver
+      check needs the same explicit exact-match-after-trim behavior
+      stated, not assumed, or near-miss role strings
+      (`governor-reviewers`, trailing whitespace, wrong case) would pass.
+
+      (4) Ten additional bypass attempts against a naive "non-empty +
+      looks like a role name" rule (full list in the review thread),
+      the two most load-bearing: a rule scoped only to `status: approved`
+      leaves `active`/`complete` plans with empty approvers unguarded
+      after the lifecycle moves past pending; and a schema-only
+      `minLength: 1` check without a MANIFEST bind still passes
+      `gate1_approved_by: "coder-tester"`.
+
+      Independently convergent with Codex's separate, governor-authorized
+      adversarial synthesis (`4g1e`, findings B-GS-3 and B-GS-5), reached
+      through a different specific proposal (gate-speed acceleration
+      tooling) without seeing this session's red-team output: same
+      MANIFEST-absent-silent-skip trap, same "record-shape, not
+      identity-proof" ceiling on what a field-level fix can guarantee.
+    agents_involved:
+      - contribution-auditor
+      - governor-reviewer
+      - coder-tester
+      - planner-architect
+    framework_section: "agf/schemas/gate1-plan.schema.json (gate1_approved_by contract); agf/agents/MANIFEST.yaml role-activation cross-check pattern, currently used only for advisory_consultation"
+    business_impact:
+      type: prevented_loss
+      description: >
+        Prevents shipping a fix that appears to close the
+        `gate1_approved_by` gap while remaining fully bypassed whenever a
+        workspace has no `MANIFEST.yaml` (adopter prevalence of that
+        condition not measured), and prevents an undocumented breaking
+        change to existing conforming plan records.
+    recommendation: >
+      Non-naive P0 shape, per the red-team: require gate1_approved_by
+      non-empty after trim and an exact-match key of an active
+      governor-class MANIFEST role (start with governor-reviewer only,
+      extend via MANIFEST metadata later) whenever
+      status in {approved, active, complete}; fail closed (blocking, not
+      skipped) when the relevant MANIFEST is missing on such a plan, not
+      only for this field but as the same policy for every role
+      cross-check; ship as BREAKING with an explicit migration path
+      (advisory window, strict-profile opt-in, or one-shot rewrite of
+      historical approved plans with an honest "migrated, authority not
+      re-attested" note) rather than a silent hard break. State plainly
+      in docs that this raises the cost of a fake approval in a
+      validated file; it does not authenticate a human or freeze history
+      — those remain separate, unresolved gaps (`gt3x`).
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "Grok, 2026-08-03: reproduced MANIFEST-present/absent behavior differences against the real v2.5.0-rc.1 gate1-plan.schema.json and advisory-role exact-match behavior."
+        - "Codex, 2026-08-03, docs/coordination/20260803T210104Z-contribution-auditor-4g1e.md, findings B-GS-3/B-GS-5: independently convergent conclusions from a different, governor-authorized proposal."
+
+  - id: "20260803T212421Z-t8mz"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: agf-maturity-and-evidence-status-vocabulary-not-yet-applied-to-its-own-gate-enforcement-claims
+    status: proposed
+    description: >
+      Strategic observation surfaced answering "what is AGF's missing
+      killer feature" (Grok, this session, 2026-08-03; independently
+      corroborated by this session's own Track 3 findings). AGF defines a
+      maturity/evidence-status vocabulary (Level 1 Planned through Level 5
+      Deployable; Theoretical / empirically informed / empirically
+      validated) and applies it to capability claims in the documentation
+      reviewed in this session, but has not turned that same discipline
+      on its own enforcement mechanism. **Correction (contribution-auditor
+      qqj4, B-LRN-4):** the claims below are bounded to this project's
+      own release and the configurations this session actually inspected,
+      not to adopter prevalence generally, which was not measured.
+      "Gate 1 approved" is currently asserted as one undifferentiated
+      thing, when what actually varies is the assurance different
+      configurations add. **Correction (contribution-auditor 3kae,
+      B-LRN-4-R2):** describing hosted CI as a stronger "enforcement
+      tier" than schema-shape validation reintroduces the exact
+      conflation corrected in `sjqm`/`gt3x` — this project's hosted
+      pipeline runs the same structural checks (record shape,
+      publication-check) merge-blocking rather than locally, which
+      changes the technical delivery context, not whether Gate 1/Gate 2
+      authority itself is authenticated; gate authority remains
+      procedurally asserted either way, per `sjqm` finding 4. If an
+      enforcement-tier taxonomy is retained at all, tiers should be
+      defined by the assurance actually added — for example: an
+      approval-record field is present (today, unenforced); the field
+      is constrained to a known role string (the fix proposed in
+      `gt3x`); the actor is authenticated, not just named (unresolved);
+      the record's provenance is protected and immutable in fact, not
+      only by label (unresolved, `gt3x` finding 3) — not by whether the
+      same shape check happens to run locally or in CI.
+    agents_involved:
+      - planner-architect
+      - governor-reviewer
+    framework_section: "agf/docs/site/reference/maturity-vocabulary.md; agf/schemas/gate1-plan.schema.json; public docs describing Gate 1/Gate 2 (currently state gate authority without a tier label)"
+    business_impact:
+      type: neutral
+      description: >
+        Strategic/positioning insight, not yet costed against a specific
+        incident. If adopted, directly closes part of the honesty gap
+        `gt3x` and the visual-refresh plan's evidence-and-maturity
+        section are already trying to address by other means.
+    recommendation: >
+      Extend the existing maturity vocabulary to describe enforcement
+      tiers, and let a given deployment self-report which tier its own
+      gates actually run at (schema-shape-only / CI-blocking-configured /
+      identity-bound), reusing the labeling discipline the project
+      already operates rather than building new cryptographic
+      infrastructure. Smaller lift than an opt-in signing profile;
+      directly addresses the "excellent process memory vs. enforced
+      governance" gap without overclaiming a fix that doesn't exist yet.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "This session, 2026-08-03: synthesis grounded in gt3x's four reproduced findings, not a new independent observation on its own."
+
+  - id: "20260803T223917Z-290f"
+    date: "2026-08-03"
+    category: gap
+    scope: framework
+    title: multi-model-review-relay-has-a-goodhart-risk-distinct-from-attribution-forgery
+    status: proposed
+    description: >
+      Split out of `20260803T212419Z-nq7p` per contribution-auditor
+      review `qqj4` (finding B-LRN-3): this is a distinct causal claim
+      from that entry's unauthenticated-attribution gap and needs its
+      own evidence boundary rather than being folded into the same
+      record as an addendum.
+
+      Raised by Grok during the same rc.1 multi-model review session:
+      attribution forgery (nq7p) is not the only risk in a
+      human-relayed multi-AI review workflow. A separate incentive-layer
+      risk sits on top of it — correction -> agreement -> integrate is
+      the comfortable rhythm for a multi-model review to fall into, and
+      once a session settles into that rhythm, disconfirming work tends
+      to stop early because convergence gets read as closure rather than
+      as one data point. This is a Goodhart-style concern about the
+      review *process* itself, not about any single finding's factual
+      correctness — it does not weaken or cast doubt on any finding in
+      this project's rc.1 review set that was independently reproduced
+      with commands (those stand on their own reproduction evidence,
+      unaffected by how the surrounding synthesis conversation was
+      paced).
+    agents_involved:
+      - fact-checker
+      - contribution-auditor
+      - planner-architect
+    framework_section: "review/synthesis process for multi-model coordination review sessions; no specific schema or code path — this is a process-discipline observation about how convergence is read during synthesis"
+    business_impact:
+      type: neutral
+      description: >
+        Proactive, self-detected process observation; no incident
+        occurred. Forward-looking exposure: a future multi-model
+        synthesis round could treat two-model agreement as sufficient
+        closure when an explicit open/unresolved check would have
+        caught a shared blind spot.
+    recommendation: >
+      When two or more models converge on a finding during a synthesis
+      round, treat convergence as one input, not the closure signal
+      itself: explicitly note what was NOT re-attacked after agreement
+      was reached, and prefer citing independently reproduced primary
+      evidence (commands, exit codes, file diffs) over citing that
+      multiple models agreed. No new tooling is proposed by this entry;
+      this is a synthesis-discipline note for future review rounds.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "This session's own rc.1 review synthesis, 2026-08-03: the correction -> agreement -> integrate pattern was observed directly across multiple rounds of this session's own Grok exchanges, and named by Grok during the same thread; not independently reproduced outside this one session."
+
+  - id: "20260809T065546Z-b3xj"
+    date: "2026-08-09"
+    category: gap
+    scope: framework
+    title: requesting-a-required-review-does-not-mechanically-block-merge-before-it-lands
+    status: proposed
+    description: >
+      coder-tester (this session) published a Gate 2 handoff (`qpp4`)
+      requesting contribution-auditor/independent-implementation-reviewer
+      review of MR !1265 (the independent-implementation-reviewer role
+      itself), then merged MR !1265 to `main` before any such review
+      existed for that exact head. The role went live on `main` with 6
+      unresolved blocking findings once the independent review did land
+      (`12nr`, Codex, post-merge) — including a real contract gap
+      (`forbidden_actions` covered only Gate 2, not both gates, contrary
+      to the approved plan) and a missing infosec-escalation route for
+      sensitive material a reviewer might encounter.
+
+      This is distinct from `coordination-sequence-guard-rule.md`'s
+      existing scope: that rule guards against a *human instruction*
+      asking the agent to skip a gate or break the sequence, requiring
+      the agent to name the break and ask for confirmation before
+      complying. Here no human instructed the skip — the agent's own
+      merge action outran a review it had itself just requested, with no
+      external prompt to catch. Nothing in the coordination protocol or
+      `agov coord publication-check` mechanically ties "a Gate 2 handoff
+      named next_agent: contribution-auditor with status: ready" to
+      "merge is blocked until a COMPLETE review exists for the same exact
+      head." The only gate was the agent's own discipline remembering not
+      to merge past its own open request, and on this occasion it did not
+      hold.
+
+      Self-reported in coordination record
+      `20260809T065546Z-coder-tester-smtj.md`, cross-referencing both
+      `12nr` (independent-implementation-reviewer, COMPLETE/BLOCK) and
+      `7pth` (contribution-auditor, COMPLETE/BLOCK on the unrelated but
+      concurrently-merged MR !1267 plan, for a different reason: plan
+      content, not sequence).
+    agents_involved:
+      - coder-tester
+      - independent-implementation-reviewer
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: "always/coordination-sequence-guard-rule.md (adjacent but distinct trigger: human-instructed breaks, not self-inflicted ones); workflow/coordination-publication-rule.md (publication-check's mechanical scope currently covers coordination-record range hygiene, not review-completeness gating)"
+    business_impact:
+      type: cost_overhead
+      description: >
+        A role definition with a real normative gap (incomplete
+        both-gates prohibition) and a missing safety escalation route
+        (infosec routing for sensitive material) went live on `main` at
+        2026-08-09T06:30:13Z. Detection (the independent review's
+        authorship timestamp) followed about 55 seconds later, at
+        06:31:08Z. Durable publication of that review to `main`
+        followed about 7 minutes 45 seconds after the merge, at
+        06:37:58Z. The implementer's acknowledgment of the finding
+        followed about 25 minutes 33 seconds after the merge, at
+        06:55:46Z — an acknowledgment interval, not the detection or
+        correction interval, and it must not be read as either. As of
+        this record, the deficient role definition remains live and
+        uncorrected on `main`; no end timestamp for the exposure window
+        exists yet, since correction requires its own governed MR and
+        fresh exact-head review. No externally visible harm occurred
+        and no sensitive material was actually mishandled during any
+        part of this window so far — the cost is rework: a corrective
+        governed MR and a fresh exact-head review are required before
+        governor-reviewer can issue a valid Gate 2 decision, work that
+        a mechanical block would have made unnecessary by preventing
+        the premature merge in the first place.
+    recommendation: >
+      Two independent layers, not one: (1) process discipline — an
+      agent that has published a handoff naming a required next-review
+      role should treat that handoff as a self-imposed hold and not
+      merge the same MR until a matching COMPLETE/CLEAR review for the
+      exact head is observed, exactly as if a human had instructed the
+      skip (apply coordination-sequence-guard-rule's "name the break,
+      ask before proceeding" discipline reflexively to the agent's own
+      pending requests, not only to external instructions). (2) tooling
+      — extend `agov coord publication-check` (or a sibling check) to
+      optionally verify, for a candidate merge, that any open Gate 2
+      handoff whose `next_agent` names a review role and whose `status`
+      is `ready` has a corresponding review record referencing the
+      exact candidate head before the merge is treated as clean. This
+      is scoped as a proposal, not yet designed or implemented — a
+      Gate 1 plan should size it (which merges it applies to, how it
+      finds the "matching" review record, what happens to handoffs with
+      no review role named) before any code changes.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "This session, 2026-08-09: MR !1265 merged as 75e2e0b7102989dd258bb6a19b82402ea5e6fbab before qpp4's requested review existed; 12nr (independent-implementation-reviewer, Codex codex-gpt-5) filed finding B6 post-merge; self-reported in 20260809T065546Z-coder-tester-smtj.md."
+        - "Same session, same agent, 2026-08-09: this very learning entry's own originating MR !1272 was merged (merge commit dafb6ebc, 07:15:27Z) without publishing any review request first and without checking for an existing one. Review v4nq was recorded at 07:11:39Z and committed to a shared review branch by 07:12:27Z, with a visible bridge note on MR !1272 at 07:13:25Z — about two minutes before the merge — but MR !1274 carrying v4nq had not yet merged to `main`, so the review had not landed on `main` before !1272 merged; it went unchecked/unacknowledged either way. This is a second recurrence of the same root cause within roughly 45 minutes, on the artifact created to document the first, not an independent instance or independent corroboration: same session, same agent."
+
+  - id: "20260809T082147Z-h4vx"
+    date: "2026-08-09"
+    category: gap
+    scope: framework
+    title: memory-derived-git-mr-identifiers-instead-of-authoritative-source-lookup
+    status: proposed
+    description: >
+      Three occurrences, one project, one day, across two
+      assistant/model-role contexts (Claude as coder-tester; Codex as
+      contribution-auditor): an agent asserted an exact Git/MR identity
+      field — a full 40-character commit SHA, or an MR source-branch
+      name — reconstructed from memory or pattern-completion instead of
+      fetched fresh from an authoritative source (git itself, or the
+      platform API) at publish time. Two of the three were published
+      defects; one was caught before publication.
+
+      Instance 1 (Claude, self-reported, no preserved artifact):
+      drafting a handoff for MR !1289, reportedly wrote
+      `ac5cf8384c4bab53c86e7a76470a99b3b0d1c789b`, hand-extended from
+      the correct 8-char prefix `ac5cf838` seen in an earlier `git
+      commit` confirmation, then caught and corrected to the real
+      `ac5cf838b85dc1e3f92ec52d153543ffb7d6c560` before publishing. This
+      is Claude's own attributed self-report
+      (`20260809T081915Z-coder-tester-qemk.md`); no preserved draft or
+      tool transcript proves the exact fabricated value quoted — treat
+      the specific wrong string as an illustrative self-report, not
+      independently verified evidence.
+
+      Instance 2 (Claude, published, NOT caught before publication):
+      handoff `tbdr` (published, merged via MR !1285) asserted
+      `ceb031843e650c6bf83d2fd8ec78ac81c96ae7d5e` as MR !1284's exact
+      head. The real head was `ceb031842b1ecf8081a6f9973c81e7ec98cee872`
+      — again a correct 8-char prefix (`ceb03184`) with the remaining 32
+      characters fabricated. Not independently re-verified before
+      publishing; caught only by Codex's contribution-auditor review
+      (`4mrt`, finding S2) after the fact. Corrected via a superseding
+      coordination record (`20260809T081915Z-coder-tester-qemk.md`) per
+      this project's append-only convention — `tbdr` itself was not
+      mutated. (`qemk` itself later required its own lifecycle
+      correction for an unrelated false "merged and immutable" claim —
+      see `20260809T085425Z-coder-tester-dbba.md` — which does not
+      affect the SHA-correction content of `qemk` cited here.)
+
+      Instance 3 (Codex, published, self-caught): during the MR !1284
+      review, Codex/contribution-auditor published GitLab note
+      `3663753831` naming MR !1292's source branch from memory as
+      `coordination/reviewer-role-fix-ack`. The authoritative MR !1292
+      API reported `coordination/suspend-role-corrections-s1-s3`. Codex
+      queried the API and published an append-only correction note
+      `3663754171` 23 seconds later. No gate, merge, or release action
+      used the wrong branch name.
+
+      These are three occurrences, two published defects, across two
+      assistant/model-role contexts, in one project, in one day — not
+      three independent adopters, and not longitudinal evidence.
+      Cross-model recurrence (Claude and Codex both exhibiting the same
+      failure shape) strengthens confidence that this is a real,
+      general failure mode rather than one model's quirk, but it does
+      not constitute multi-adopter evidence; confidence stays
+      single-adopter.
+    agents_involved:
+      - coder-tester
+      - contribution-auditor
+    framework_section: "always/verifiable-claims-rule.md (an exact Git/MR identifier asserted from memory is exactly the unverifiable-claim-presented-as-fact pattern that rule targets, applied to a git-object or branch identity rather than a prose claim); always/coordination-message-rule.md (the coordination record is the audit trail; a wrong identifier in it is a wrong audit trail, not a cosmetic typo). Neither rule currently states, as an explicit operational step, that exact Git/MR identity fields (SHA, branch name, MR IID) must be fetched from the authoritative source immediately before publication rather than recalled from earlier context in the same session — that specific operational gap is what this learning proposes to close."
+    business_impact:
+      type: cost_overhead
+      description: >
+        Instance 1: no external cost (self-caught pre-publish, and even
+        the self-report itself has no preserved artifact). Instance 2:
+        one finding (`4mrt` S2) surfaced inside a review round that was
+        already required for other reasons, plus one superseding
+        coordination record to correct the audit trail — not a whole
+        additional review round. Instance 3: one immediate,
+        self-authored correction note (23 seconds after the original).
+        In no instance did a gate, merge, or release decision actually
+        rely on the wrong identifier; the realized cost in all three
+        cases was reviewer/author attention and one extra artifact, not
+        a wrong decision. A wrong-head decision remains a risk
+        rationale for the recommendation below, not evidence of
+        realized harm.
+    recommendation: >
+      Never write an exact Git/MR identity field (a full 40-character
+      commit SHA, an MR source-branch name, an MR IID) into a
+      coordination record, commit message, or MR description/note from
+      memory or by extending/recalling a value seen earlier in the same
+      session — always fetch it fresh from the authoritative source
+      immediately before publication: `git rev-parse <ref>^{commit}`
+      (or the `git commit` confirmation line in full non-abbreviated
+      form) for a commit SHA, or the platform API's `.source_branch` /
+      `.sha` / `.iid` fields for an MR. Before publishing any record
+      that asserts such a field, compare it directly against that fresh
+      lookup, not against memory of an earlier tool call in the same
+      conversation. `git cat-file -e "${sha}^{commit}"` is a useful
+      secondary check (it proves the value names an existing commit)
+      but is NOT sufficient as the primary control — it cannot confirm
+      the commit is the intended ref, and it cannot validate a branch
+      name at all.
+
+      This is a real, if narrow, framework gap: neither
+      `verifiable-claims-rule.md` nor `coordination-message-rule.md`
+      currently states "fetch exact Git/MR identity fields from the
+      authoritative source immediately before publication" as an
+      explicit operational step — both rules cover the general
+      unverifiable-claim and audit-trail-integrity principles but stop
+      short of this specific, mechanically checkable sub-case. No
+      tooling/validator change is proposed here (a coordination-schema
+      validator cannot know which SHA or branch name is "real" without
+      re-deriving it from git/the platform itself, which is exactly
+      what the recommended habit already does at authoring time) — the
+      gap is in written operational guidance, not tooling.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "Claude, self-reported, 2026-08-09 ~08:13Z, no preserved artifact: attributed fabricated-SHA self-report in 20260809T081915Z-coder-tester-qemk.md, for a draft handoff for MR !1289."
+        - "Claude, published, 2026-08-09 08:00Z (published), caught 08:07Z: fabricated SHA in published/merged handoff tbdr for MR !1284, caught by contribution-auditor review 4mrt finding S2, corrected via superseding record 20260809T081915Z-coder-tester-qemk.md."
+        - "Codex, published, 2026-08-09: GitLab note 3663753831 named MR !1292's source branch from memory as coordination/reviewer-role-fix-ack; authoritative MR !1292 API reported coordination/suspend-role-corrections-s1-s3; self-corrected via append-only note 3663754171, 23 seconds later."
+
+  - id: "20260811T210748Z-h4rp"
+    date: "2026-08-11"
+    category: process
+    scope: framework
+    title: recurring-scope-bloat-in-review-cycles-must-be-jealously-prevented-not-merely-detected
+    agents_involved: [planner-architect, contribution-auditor, governor-reviewer]
+    summary: >
+      Detecting scope bloat with a check-in is necessary but proved
+      insufficient on its own: the check-in fired correctly, was
+      answered honestly, and the human Governor still reacted with
+      strong, genuine frustration when the growth was named a second
+      time — because naming the problem is not the same as stopping
+      it. The durable fix that actually worked was abandoning the
+      elaborate governed track for the parts that didn't need it (a
+      mechanical batch-close of already-agreed items, done directly)
+      rather than continuing to iterate the governed artifact toward
+      correctness. This is the second recurrence of the same failure
+      shape within one project in one week: a due-diligence plan that
+      required a Governor-ordered scope reset after a role-boundary
+      violation surfaced at review round 10, and a roadmap-document
+      episode that ran five review rounds building a
+      mechanically-specified sub-protocol for a triage that hadn't
+      started. Both occurred in the same foundry project on the same
+      day with overlapping agents and governance, so this is a
+      related/recurrent pair, not two independent occurrences — but
+      it is why detection alone is not enough: the pattern recurred
+      even though everyone involved already knew about it once, and
+      needs active, standing prevention from the start of a task, not
+      a reactive checklist partway through.
+    detail: >
+      Episode 1 (due-diligence plan, MR !1403): after multiple review
+      rounds, planner-architect self-reported a role-boundary
+      violation at round 10 — eleven shell/Python programs and a
+      `.gitlab-ci.yml` change committed under a role whose
+      `forbidden_actions` explicitly exclude writing source, tests, or
+      CI config
+      (`docs/coordination/20260811T085814Z-planner-architect-kjm5.md`).
+      The Governor's decision
+      (`docs/coordination/20260811T105210Z-governor-reviewer-mh8p.md`)
+      declined retroactive authorization, superseded the MR entirely,
+      and commissioned a minimal planner-only replacement plan — a
+      scope reset, not a further patch round, and did not perform a
+      round 11.
+
+      Episode 2 (roadmap/triage document, MR !1448): a document
+      originally requested as "draft a roadmap because I'm lost" grew,
+      across five review rounds (hmgq, dkp7, 732p, mdrg, r8kb), into a
+      mechanically-specified sub-protocol with frozen table grammars
+      and split pre/post-mutation ledgers. Each round found genuinely
+      new, narrowing defects — convergence, not circularity —
+      culminating in round 5's then-current CLEAR result; that result
+      did not preclude the arithmetic error (11 vs. 12 MRs) found next,
+      in under a minute of direct execution rather than a sixth review
+      round. planner-architect surfaced the growth as a check-in; the
+      Governor's response was direct frustration, not relief, and the
+      actual fix was to stop revising the document and instead
+      directly close the 20 MRs it already listed as having a real,
+      agreed disposition
+      (`docs/coordination/20260811T211945Z-planner-architect-kmgb.md`)
+      — a plain action, not the document's own five-round-built
+      phase-1a/1b protocol.
+
+      Realized cost and what was actually avoided: the 20-MR closure
+      was not zero process — each MR received an evidence comment
+      citing the deciding record, and the batch produced a validated
+      completion record, its own MR, a CI run, and a merge. What it
+      avoided was a new decision/review protocol: the phase-1a/1b
+      machinery the document had spent five rounds designing for
+      exactly this kind of action.
+
+      Relationship to existing guidance: `agf/rules/workflow/
+      simplicity-rule.md` already owns proportional workflow, the
+      simpler-way test, and "choose the lighter process; upgrade if
+      the task grows." Both episodes are not evidence that a new rule
+      is needed — they are evidence of failing to apply that existing
+      principle while a review artifact expanded past the operator's
+      immediate need, round by round, with no single round crossing a
+      visible line.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      One stop rule, layered on existing guidance rather than
+      replacing it: when an additional review round, procedure
+      requirement, or governance artifact stops changing the decision
+      or materially reducing risk, stop expanding it and return to the
+      smallest authorized action — apply `simplicity-rule.md`'s
+      existing "lighter process" default as a standing bias from the
+      first response to a task, not a checklist consulted after rounds
+      have already accumulated.
+
+      A fixed-round check-in (e.g., surfacing round count, new-vs-
+      recurring defect class, and scope growth at the 3rd consecutive
+      round on the same artifact) remains a proposed, advisory
+      experiment — extending hmgq's stop-loss operating principle
+      ("repeated review rounds that keep exposing new contract
+      classes... trigger a scope/decomposition review rather than
+      another patch round") so there is one owner for the idea, not
+      two — pending separate governed guidance. It is not established
+      as a mandatory obligation by this learning: episode 2 shows a
+      check-in alone did not prevent the growth it correctly detected.
+
+      Whether this generalizes beyond AI-assisted review cycles to
+      other iterative human review processes is a hypothesis to
+      validate against further evidence, not an observed conclusion —
+      both episodes are same-project, same-day, with overlapping
+      agents and governance.
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "Episode 1 (due-diligence plan, MR !1403): docs/coordination/20260811T085814Z-planner-architect-kjm5.md (round-10 role-boundary self-report), docs/coordination/20260811T105210Z-governor-reviewer-mh8p.md (Governor scope-reset decision; no round 11)"
+        - "Episode 2 (roadmap/triage document, MR !1448): docs/coordination/20260811T192217Z-contribution-auditor-hmgq.md (originating stop-loss operating principle), docs/coordination/20260811T203258Z-contribution-auditor-dkp7.md (round-2, 5 findings), docs/coordination/20260811T204632Z-contribution-auditor-732p.md (round-3, 3 findings), docs/coordination/20260811T205627Z-contribution-auditor-mdrg.md (round-4, 2 findings including a reproduced grep/namespace bug), docs/coordination/20260811T211454Z-contribution-auditor-r8kb.md (round-5, then-current CLEAR), docs/coordination/20260811T211945Z-planner-architect-kmgb.md (resolution: 20 MRs closed directly, bypassing the document's own protocol)"
+
+  - id: "20260814T041407Z-6j2m"
+    date: "2026-08-14"
+    category: gap
+    scope: framework
+    title: cherry-pick-content-faithfulness-scoped-to-one-narrow-exception
+    status: proposed
+    description: >
+      MR !1503 (the frozen-scope-reconstruction release exception,
+      `docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-
+      amendment.md`) required nine review rounds to converge on a correct
+      content-integrity proof for a Git cherry-pick sequence with manual
+      conflict resolution. The proof went through three distinct failure
+      shapes before landing on a genuinely closed one: (1) "the diff looks
+      like the union of the inputs" — not a defined, reproducible Git
+      operation, rejected at round 1 (`kpt5`); (2) path attribution plus a
+      deterministic-replay hash of the author's own recorded resolution —
+      proves the recorded result is reproducible, not that the recording
+      was faithful; a manually resolved conflict can stage arbitrary text
+      inside an allowlist-attributable file undetected (round 7, `adjp`'s
+      `B-FSR-R7-2`); (3) content faithfulness scoped only to the
+      conflict-marker regions Git itself flags — still incomplete, because
+      a paused cherry-pick lets an operator stage edits in a cleanly-
+      applied file or a non-conflicting region of a conflicted file,
+      passing every check undetected (round 9, `qk8s`'s `B-FSR-R8-1`). The
+      shape that finally closed the gap: a documented, written mechanical
+      resolution algorithm, applied by an independent party working only
+      from the stable base, the named commit hashes, and the algorithm
+      itself (never the author's already-resolved tree), under a binding
+      procedural constraint that only cherry-pick-flagged conflicts — and
+      only their marker-delimited regions — may be touched at all;
+      matching hashes from two independent from-scratch reproductions is
+      what proves the whole result, not just the conflicted parts.
+
+      This discipline currently exists only as text embedded inside one
+      narrow, rarely-invoked exception (`release-via-merge-request-rule.md`'s
+      frozen-scope reconstruction section, itself gated behind a governor
+      freeze and a separate release-publication plan). It is not a general,
+      independently discoverable rule, and nothing points an AI agent or
+      human contributor at it for an ordinary cherry-pick (e.g. a hotfix
+      backport) performed outside that narrow exception's eligibility
+      gate — the same three-round failure progression could recur there
+      with no review pressure forcing convergence.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+    framework_section: "workflow/migration-generation-rule.md is the closest existing precedent (tool-generated artifacts as source of truth, ripple-check discipline) but covers migrations specifically, not cherry-pick conflict resolution. No existing rule states that manual Git conflict resolution requires a documented algorithm plus independent from-scratch re-derivation as its content-integrity proof; the closest general rule (workflow/tdd-rule.md, boundary-shape-testing-rule.md) targets test-writing discipline, not Git-mechanics content integrity."
+    business_impact:
+      type: cost_overhead
+      description: >
+        Nine review rounds on one Gate 1 plan, three of which (rounds 7,
+        8, 9) were spent narrowing the same underlying content-integrity
+        gap in successive stages rather than closing it in one pass. No
+        realized harm — the gap was caught before Gate 1 approval in every
+        instance — but the repeated narrowing pattern (marker-scoped review
+        looked sufficient twice before a fresh-context or renewed review
+        found the next layer) is itself evidence that the correct shape of
+        this check is not obvious from first principles and is worth
+        stating as reusable guidance rather than re-deriving under review
+        pressure next time.
+    recommendation: >
+      Generalize the pattern discovered in MR !1503 into a standalone rule
+      (e.g. `agf/rules/workflow/cherry-pick-content-faithfulness-rule.md`,
+      mirrored to `.claude/rules/`) covering any manual Git cherry-pick
+      conflict resolution in this repository's workflow, not only the
+      frozen-scope-reconstruction exception. Core requirement: a documented,
+      written, mechanical conflict-resolution algorithm (specific enough
+      that a second independent party can follow it without consulting the
+      first), verified by an independent from-scratch reproduction that
+      never reads the author's already-resolved tree, under a binding
+      procedural constraint that only tool-flagged conflicts — and only
+      their marker-delimited regions — may be touched at all. Per
+      `documentation-rule-projection-rule.md`, project the new rule to
+      `AGENTS.md`/`.claude/CLAUDE.md` loaders so AI agents discover it at
+      cold start for any cherry-pick task, not only ones already inside the
+      frozen-scope exception's gate.
+
+      Not implemented here: single-incident evidence (one plan, one
+      application) is enough to preserve the pattern but not enough, by
+      this project's own established practice (see e.g. the neighboring
+      `20260809T082147Z-h4vx` record, and the cross-AI independent-review
+      proposal routed as an unnumbered backlog candidate in
+      `20260813T173540Z-planner-architect-2g4d.md`), to mint a MUST-strength
+      standing rule from a single occurrence. Promote to an actual rule
+      either on governor decision to invest directly, or after a second
+      real occurrence corroborates the pattern.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !1503, docs/plans/20260813T155743Z-frozen-scope-reconstruction-rule-amendment.md: three-stage content-faithfulness failure progression across rounds 1, 7, 8, and 9 of Gate 1 review (kpt5, adjp/B-FSR-R7-2, qk8s/B-FSR-R8-1), closed at exact head e63f20c681fec56101db730caada06a1c5b841b0 by a documented-algorithm-plus-independent-reproduction proof, itself independently re-verified twice with identical patch hash c7db9317f4e4bec130a916e97e54ab33f1f864632041b8b3c40fcb9e0de6147a and tree hash fbe16ab183373b461bc641dd192bfe386cf07d1e."
+
+  - id: "20260815T193807Z-2k22"
+    date: "2026-08-15"
+    category: gap
+    scope: framework
+    title: removing-a-release-target-requires-a-complete-contract-graph-change
+    status: proposed
+    description: >
+      The v2.6.0 release intentionally removed
+      `aarch64-unknown-linux-musl` from the mandatory Rust release build
+      loop after an explicit Governor product-policy decision. The change
+      updated `.gitlab-ci.yml` and the release narrative, but did not update
+      `tooling/rust/scripts/release-assets.sh`'s mandatory `expected()`
+      list. That list continued to require the aarch64 archive, checksum,
+      and provenance sidecar. Release-branch validation and the synthetic
+      `release:assets-selftest` passed because the self-test populated its
+      positive fixture from the same stale `expected()` function and used
+      the stale aarch64 provenance sidecar as its negative-case sentinel.
+      It therefore proved internal consistency of one list, not agreement
+      between the asset consumer and the build producer.
+
+      The mismatch became visible only after immutable annotated tag
+      `v2.6.0` was pushed at exact commit
+      `4890dfe9ef96abdbfc54f9e975080cedd0f280f6`. Tag pipeline
+      `2762930639` completed seventeen jobs successfully, including the
+      x86_64 tooling build, framework archives, Rust tests, distribution
+      checks, OCI publication, and OCI pull test. `release:create` job
+      `15917296084` then failed because the three aarch64 files were
+      absent, and `release:verify` was skipped. The GitLab Release and
+      generic package were never created, but OCI `agov:2.6.0` had already
+      become public. The protected immutable tag and partial OCI artifact
+      must now remain as an auditable failed publication; issues stayed
+      open and no metadata-forward sync occurred.
+
+      The immediate defect was three stale mandatory filenames. The
+      process defect was treating “drop aarch64 from mandatory targets” as
+      a local loop edit rather than a change to a release contract graph:
+      policy and documentation -> configured build targets -> produced
+      archives -> checksum/provenance sidecars -> mandatory asset manifest
+      -> self-test fixtures -> release creation -> post-publication
+      verification -> generic-package/OCI/Release claims. A target removal
+      is incomplete while any downstream consumer still requires its
+      outputs or any test derives its expected answer solely from the
+      consumer it is meant to check.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - governor-reviewer
+    framework_section: >
+      `release-via-merge-request-rule.md`, `gate-self-test-rule.md`, and the
+      release asset scripts/CI graph. Existing guidance requires release
+      validation and negative gate tests, but does not explicitly require a
+      producer-consumer bijection when a platform, target, artifact, or
+      requirement is removed, nor side-effect ordering that prevents one
+      publication namespace from becoming public before the complete asset
+      contract has passed.
+    business_impact:
+      type: cost_overhead
+      description: >
+        One immutable version tag was consumed by a deterministic release
+        failure. The project now needs a separately governed corrective
+        release, must preserve and explain a public OCI artifact that does
+        not correspond to a successful GitLab Release, and incurred a full
+        paid tag pipeline plus additional review and coordination work.
+        Users who inspect only the container registry could also mistake
+        the partial OCI tag for a completed release unless the failed state
+        remains explicit.
+    recommendation: >
+      Treat every request to remove, de-scope, make optional, rename, or
+      replace a release target/requirement/platform as a contract-graph
+      migration. Before editing, identify one authoritative target/artifact
+      manifest and inventory every producer and consumer with repository
+      search plus CI expanded-configuration inspection: build loops,
+      filename mappings, archive/checksum/provenance lists, package and
+      Release links, self-test fixtures, negative-test sentinels,
+      documentation, post-publication checks, and external namespace
+      claims. Record an explicit disposition for every former output:
+      mandatory, optional, replaced, or removed.
+
+      Mechanically check both directions before Gate 2: every mandatory
+      asset has exactly one configured producer, and every configured
+      producer output has an explicit consumer/disposition. The check must
+      compare independently derived surfaces or a single generated manifest;
+      a fixture populated from the same function under test is not
+      independent evidence. Negative tests should remove an element selected
+      from the current authoritative manifest, not name the platform being
+      removed.
+
+      Before an immutable tag, run the real release-creation verifier against
+      the exact artifacts produced by a tag-simulating pipeline, not only
+      synthetic placeholder files or source-branch unit checks. Structure the
+      pipeline so complete manifest/checksum/provenance verification succeeds
+      before any irreversible or externally visible OCI, generic-package, or
+      GitLab Release publication. When publication cannot be atomic, record
+      each namespace as a compensating-transaction boundary and define the
+      failed-partial-publication disposition in advance.
+
+      This is single-adopter evidence from one release incident, now with a
+      second observed consumer inside the same corrective arc (see the
+      second evidence_refs entry below). The v2.6.1 correction (MR !1610)
+      fixed three of the contract graph's consumers -- `.gitlab-ci.yml`,
+      `release-assets.sh`, and `agov-oci-image.sh` -- by single-sourcing them
+      from `tooling/rust/release-targets.txt`, but missed a fourth:
+      `agf/docs/build/hooks/check_commissioning_links.py` hardcoded its own
+      independent copy of the mandatory-platform list
+      (`AGOV_SUPPORTED_PLATFORMS = ("linux-x86_64", "linux-aarch64")`) and
+      kept passing silently because v2.5.0 (built before the drop) still had
+      aarch64 assets to find -- v2.6.1 was the first release published after
+      the drop with nothing for that check to find, so it failed for the
+      first time and blocked an unrelated docs MR's pipeline. Fixed in MR
+      !1686 by reading the same `release-targets.txt` manifest the producer
+      scripts use.
+
+      This second observation has predictive value -- it is exactly the
+      failure shape ("a target-removal migration missed a consumer") this
+      recommendation already named -- but it is not yet independent
+      corroboration. Both consumers were latent effects of the same
+      2026-08-05 aarch64-removal migration, discovered within the same
+      v2.6.0-to-v2.6.1 corrective arc, not recurrence across two separately
+      initiated migrations. `confidence.level` therefore stays
+      `single-adopter`: the producer-consumer and side-effect-ordering
+      recommendations remain proposed preventive guidance, not yet a
+      validated general rule. Promote to `longitudinal` only on recurrence
+      during a later, independently initiated target/platform/artifact/
+      requirement migration -- not on a second consumer of this same one.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "v2.6.0 tag pipeline 2762930639 at 4890dfe9ef96abdbfc54f9e975080cedd0f280f6: release:create job 15917296084 failed on missing agov-2.6.0-linux-aarch64.tar.gz plus its SHA-256 and provenance sidecars after seventeen jobs passed; release:verify 15917296085 skipped; OCI job 15917296086 succeeded. Canonical diagnosis and public-state inventory: docs/coordination/20260815T193127Z-coder-tester-pj71.md; binding disposition and corrective-planning authority: docs/coordination/20260815T193735Z-governor-reviewer-spmj.md."
+        - "v2.6.1 site-html-build pipeline 2764876752 (MR !1684, unrelated roadmap-docs change) failed on agf/docs/build/hooks/check_commissioning_links.py's hardcoded AGOV_SUPPORTED_PLATFORMS tuple expecting agov-2.6.1-linux-aarch64.tar.gz, which the original mandatory-target drop (2026-08-05, MR !1171, commit 3456c1fa, merge 5b4851e0) removed from the mandatory build loop, and which the later three-consumer corrective single-sourcing (2026-08-16, MR !1610, commit 9ad75651, merge adda2bac) removed from .gitlab-ci.yml/release-assets.sh/agov-oci-image.sh but missed as a fourth consumer. Same migration, fourth consumer, first release where the gap had nothing to find. Diagnosis and fix: MR !1686, docs/coordination/20260817T053404Z-planner-architect-gbtr.md."
+
+  - id: "20260823T081929Z-gkhn"
+    date: "2026-08-23"
+    category: gap
+    scope: framework
+    title: stale-local-checkout-and-list-pagination-caps-hid-a-real-handoff-and-a-90-plus-mr-backlog
+    status: proposed
+    description: >
+      During a multi-day period with the coder-tester role's usual session
+      unavailable, planner-architect ran scheduled coordination polls every
+      30 minutes for several hours. Two independent, compounding defects in
+      how those polls were executed hid real state for multiple consecutive
+      ticks, until the human governor asked directly why a coder-tester
+      handoff and a large stale-MR backlog had not been found.
+
+      First defect: `agov coord status --recent 5` was run from the agent's
+      persistent local working-directory checkout, on an unrelated
+      long-lived feature branch, after `git fetch --all --prune`. `git
+      fetch` updates only remote-tracking refs; it does not update the
+      working tree's checked-out files. `agov coord status` reads
+      `docs/coordination/` from the working tree, not from the fetched
+      ref, so every poll tick was silently reading stale, wrong-branch
+      coordination state. This is exactly the failure
+      `docs/reference/agent-cold-start-habits.md` already names ("a
+      checked-out `docs/coordination/` directory alone is not the shared
+      inbox") -- the guidance existed and was not followed. Re-running the
+      identical command from a disposable worktree checked out fresh from
+      `origin/main` immediately surfaced the real, several-hours-old
+      coder-tester handoff (`20260822T202031Z-coder-tester-rbqm`,
+      `issue-110-coordination-recovery-batch`) at the top of "Recent
+      messages."
+
+      Second, independent defect: open-MR checks used `glab mr list`
+      without an explicit `--per-page`, which silently caps at 30 with no
+      truncation warning. The poll script additionally sorted the returned
+      page by `updated_at` and printed only the top 8 rows. The actual open
+      MR count, confirmed via `glab api
+      .../merge_requests?state=opened --paginate`, was 97 -- a stale
+      backlog issue #110 exists specifically to track, invisible to a
+      view that only shows what changed most recently. This also violates
+      already-published guidance (same reference file: "every open merge
+      request, regardless of author").
+
+      Both defects independently produced the same outward symptom ("poll
+      tick found nothing new") across three consecutive 30-minute ticks,
+      which made the compound failure look like normal quiet backlog state
+      rather than a checking-process defect.
+    agents_involved:
+      - planner-architect
+    framework_section: >
+      `docs/reference/agent-cold-start-habits.md` ("Treat Timers As
+      Intake" and "Start From Governed Evidence" sections) already states
+      both correct behaviors this incident violated. The document's
+      existence did not prevent the failure across multiple ticks in the
+      same session that had read it at cold start -- the warnings are
+      present but not load-bearing enough to survive a busy multi-hour
+      polling session without a mechanical check.
+    business_impact:
+      type: cost_overhead
+      description: >
+        A real, addressed coordination handoff went unactioned for
+        multiple poll cycles, and a 97-MR backlog remained invisible to
+        routine polling the entire time. No incorrect action was taken on
+        stale information and no data was lost -- the cost was delay and
+        the human governor having to ask directly why the handoff and
+        backlog had not surfaced, rather than the poll process catching
+        its own gap.
+    recommendation: >
+      Make both already-documented behaviors mechanically checked rather
+      than relying on the agent remembering to comply with prose read at
+      cold start:
+
+      1. Any poll step that reads `docs/coordination/` or other
+      local-file governance state from a persistent working directory
+      must first confirm the working tree matches the fetched ref it
+      intends to check -- e.g., run the check from a disposable worktree
+      created fresh from `origin/<branch>` for that tick, or explicitly
+      `git reset --hard` a dedicated poll checkout to the fetched SHA
+      immediately before reading local files. `git fetch` alone is not
+      sufficient and should not be treated as such.
+
+      2. Any `glab mr list` (or equivalent paginated listing) call in a
+      poll must either pass an explicit `--per-page` large enough to
+      cover the real backlog, or use `--paginate` / an explicit total-count
+      check, and must not silently truncate to a recency-sorted slice
+      without also checking the true total open count against last-known
+      baseline.
+
+      3. Consider strengthening
+      `docs/reference/agent-cold-start-habits.md` with an explicit,
+      unmissable statement that `git fetch` does not update the working
+      tree, since the existing prose evidently did not prevent this
+      exact failure mode in the same session that had already read it.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "foundry:2026-08-23"
+
+
+  - id: "20260824T203051Z-loop"
+    date: "2026-08-24"
+    category: tension
+    scope: framework
+    title: locally-correct-review-without-a-convergence-bound-became-a-delivery-failure
+    status: proposed
+    description: >
+      MR !1847 reached fourteen review/correction rounds while repeatedly
+      refining one path-containment invariant. Individual findings were
+      often locally defensible, but the workflow had no mandatory point at
+      which repeated failure of the same invariant forced the team to discard
+      the brittle formulation and redesign the boundary. Exact-head review,
+      correction, coordination, and CI therefore repeated until the governor
+      supplied the simpler fail-closed rule: any existing symlink component
+      that cannot be canonicalized is invalid; only an absent non-symlink path
+      may be classified as contained-but-missing. The redesigned rule removed
+      the disputed state instead of adding another exception for it. From the
+      first correction loop through the eventual convergence and delivery
+      recovery, this journey consumed approximately eighteen elapsed hours.
+
+      The final semantic candidate then exposed a separate delivery failure.
+      Its canonical pipeline could not obtain the comparison history because
+      the branch was exactly twenty commits ahead and the CI clone depth was
+      twenty. A byte-identical rebase did not change that arithmetic. Rather
+      than first preserving the reviewed content in a shorter branch-local
+      history, work began on MR !2002 to make two governance jobs fetch full
+      history permanently. That proposal consumed CI and review attention
+      before a governor decision had authorized the broader recurring-cost CI
+      change. Contribution-auditor review correctly blocked it and recommended
+      a content-identical squash of !1847 instead.
+
+      The combined journey demonstrated that an auditable process can still
+      fail its purpose. The team produced many valid artifacts while delaying
+      the governed outcome, spending human attention on near-identical nuance,
+      and reducing operator trust. Coordination records are evidence of work;
+      their number is not evidence of progress. A green or failed pipeline is
+      transport evidence; it must not silently reopen settled semantics.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - contribution-auditor
+      - build-engineer
+      - governor-reviewer
+    framework_section: >
+      Review convergence, exact-head independent review, coordination routing,
+      gate authority, and CI acceptance-path design. The immediate corrective
+      proposal is MR !2003, `plan: bound review convergence and abstraction
+      reset`.
+    business_impact:
+      type: cost_overhead
+      description: >
+        Approximately eighteen elapsed hours and fourteen review/correction
+        rounds delayed a plan whose eventual solution was a smaller
+        fail-closed state model. The subsequent
+        unauthorized CI workaround started pipeline 2786979557 before being
+        stopped; recorded jobs consumed approximately 853 seconds in total,
+        including 428.65 seconds in a canceled Rust preview job, 373.26
+        seconds in a completed distribution preview, and 51.44 seconds in a
+        completed site build. More importantly, the governor had to repeatedly
+        redirect the agents from nuance and status production back to delivery.
+        This displaced issue, TODO, backlog, and downstream work and materially
+        damaged confidence that the governance system helps work converge.
+    recommendation: >
+      Make convergence a higher-order invariant than local review
+      completeness. For each `(series_id, invariant_id)`, allow at most two
+      material blocking correction attempts. A second failure MUST trigger an
+      abstraction reset: restate the required observable outcome, reduce the
+      state space, prefer a fail-closed design that eliminates the bug class,
+      and submit one redesigned candidate for one targeted review. If that
+      candidate still has a material blocker, route the alternatives and
+      evidence to the governor instead of starting another nuance round.
+
+      A finding may block only when it changes an approved acceptance
+      criterion, security or authority boundary, required artifact, or
+      observable operator/downstream behavior. Style preferences, speculative
+      generality, already-excluded states, and improvements outside the
+      approved scope are follow-up work, not reasons to mutate the exact head.
+      Reviewers must identify the acceptance criterion or governed boundary
+      affected by every blocker.
+
+      Keep semantic convergence separate from delivery transport. An unchanged
+      content digest after rebase, squash, or pipeline-environment correction
+      does not consume another semantic attempt. When CI lacks history or an
+      acceptance path fails for infrastructure reasons, first choose the
+      narrowest branch-local repair that preserves reviewed content and incurs
+      no permanent downstream cost. A repository-wide CI policy change needs
+      its own authority and cost decision; a handoff routes work but does not
+      grant Gate 1, Gate 2, or scope authority.
+
+      For assistants sharing one repository, publish one explicit owner,
+      invariant identifier, reviewed content digest, and canonical acceptance
+      path. Independent reviewers remain independent, but they read the same
+      bounded evidence and do not duplicate implementation or start competing
+      CI paths. Report progress in delivered state transitions -- issue closed,
+      accepted head, merged MR, shipped artifact -- alongside review rounds,
+      elapsed time, coordination count, and CI seconds. Audit trail without a
+      delivered state transition is overhead to minimize.
+    severity: critical
+    confidence:
+      level: single-adopter
+      evidence_count: 4
+      evidence_refs:
+        - "MR !1847: approximately eighteen elapsed hours and fourteen rounds of net-new projection path lifecycle review; final semantic CLEAR at exact head 40a63a95 with plan blob 76c241aea501e3ab7051bdbdacbb953672b8cd37 after governor decision a86h replaced repeated edge-case refinement with the fail-closed canonicalization rule. Elapsed duration confirmed directly by the governor-reviewer on 2026-08-24."
+        - "MR !1847 pipelines 2786892973 and 2786959838: commercial-corpus validation failed because the depth-20 clone lacked the comparison base while the candidate was twenty commits ahead; the plan content remained byte-identical across the rebase."
+        - "MR !2002 and pipeline 2786979557: permanent full-history CI proposal began without authority for the broader recurring-cost change; contribution-auditor review 20260824T202150Z-contribution-auditor-5g74 blocked it and directed a content-identical squash of !1847."
+        - "MR !2003 at exact head 17070f1c344fe7c6c658333dd0725045d5324411: green Gate 1 plan proposal for bounded review convergence, mandatory abstraction reset, and closed materiality categories."
+
+
+  - id: "20260825T081353Z-oty0"
+    date: "2026-08-25"
+    category: gap
+    scope: framework
+    title: gate1-cli-impact-assessment-missed-a-cross-crate-completeness-inventory
+    status: proposed
+    description: >
+      The approved review-convergence Gate 1 plan
+      (`docs/plans/20260824T201645Z-review-convergence-abstraction-reset.md`)
+      correctly named `tooling/rust/crates/agov/src/main.rs` as the CLI
+      implementation surface for the new `agov coord convergence --series`
+      command, but its impact assessment omitted
+      `tooling/rust/crates/agov-core/src/roi.rs`. That file owns an
+      exhaustive command-token and long-flag inventory enforced against the
+      live Clap tree by a mandatory redaction-parity test
+      (`roi_redaction_audit_matches_real_clap_surface`), so the new command
+      and `--series` flag left that audit failing until two matching
+      inventory entries were added.
+
+      The gap was caught by the full workspace test suite during
+      implementation (coder-tester, MR !2041), not by the original Gate 1
+      impact assessment. Coder-tester stopped, published the exact one-file,
+      two-entry correction with objective evidence
+      (`20260825T044258Z-coder-tester-5djr`), and governor approved the
+      minimum necessary addition
+      (`20260825T045829Z-governor-reviewer-mtms`) before it was applied; the
+      audit now passes. The immediate defect is already corrected. What
+      remains open is the process gap: Gate 1 impact assessment traced the
+      new surface by product-ownership decomposition (parser, schema, tests,
+      rule, docs) but did not trace it through cross-crate completeness
+      inventories that assert exhaustiveness over the same surface from a
+      different angle.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+      - planner-architect
+    framework_section: >
+      Gate 1 planning / impact assessment for CLI-surface changes. Related
+      to, but deliberately kept separate from, the necessary-scope-expansion
+      minimalism rule commissioned by the same incident
+      (`20260825T045831Z-governor-reviewer-trms`,
+      `docs/plans/20260825T050614Z-necessary-scope-expansion-minimalism-rule.md`)
+      — that rule governs how to *respond* when a plan's file list proves
+      incomplete mid-implementation; this entry is about *reducing how often
+      CLI-surface plans are incomplete in the first place*, per
+      coder-tester's own routing instruction not to fold the two together.
+    business_impact:
+      type: cost_overhead
+      description: >
+        One implementation pause and one narrow governor decision cycle to
+        approve a one-file, two-entry correction, caught late (during test
+        execution) rather than at plan-writing time. No incorrect behavior
+        shipped and the audit's own strictness is exactly what caught the
+        gap before merge — the cost is the avoidable delay, not a defect
+        that reached users.
+    recommendation: >
+      For every Gate 1 plan that adds, renames, or removes a CLI command,
+      subcommand, flag, or alias, the impact assessment should include an
+      exhaustive-consumer-closure check before the file list is frozen:
+      search the live Clap tree's command/flag names across the whole Rust
+      workspace (not just the crate implementing the command), inspect
+      `CommandFactory` and any other compiled-surface parity audits,
+      inspect telemetry/redaction, MCP-mapping, help/documentation,
+      packaging, and shell-completion inventories where present, and name
+      every resulting cross-crate path the plan touches — or explicitly
+      record why a given inventory is not affected. Running the narrow
+      exhaustive audit locally before freezing the file list, where
+      feasible, converts this from a late test-time discovery into a
+      plan-time one.
+
+      This entry stays proposed until the check above is actually added
+      to Gate 1 plan-writing guidance (e.g., a checklist item in the
+      relevant planning rule or a plan-template prompt) and used on at
+      least one subsequent CLI-surface plan — the immediate code defect
+      is already fixed, but the standing practice this recommendation
+      describes is not yet adopted.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "20260825T044258Z-coder-tester-5djr.md: exact one-file, two-entry scope-clarification request with objective test-failure evidence."
+        - "20260825T045829Z-governor-reviewer-mtms.md: governor approval of the minimum necessary correction; audit confirmed passing after the fix."
+        - "20260825T052316Z-coder-tester-3htr.md: coder-tester's own lesson-proposal naming the root cause and the exhaustive-consumer-closure recommendation this entry records."
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

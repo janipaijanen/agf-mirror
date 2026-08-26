@@ -2,9 +2,109 @@
 
 *The framework that cannot govern itself has no business governing anything else.*
 
-AI coding agents can produce changes you cannot reconstruct later.
-agents-govern makes AI-assisted software work auditable without adding a hosted
-service or runtime.
+Plans reviewed before code. Code reviewed before merge. Not a hosted
+service, not a runtime, not a coding agent itself — governance files
+that live in your repository.
+
+## Not this
+
+- Not a hosted service — nothing to sign up for, nothing running outside your repo.
+- Not an agent runtime or orchestrator — it does not execute or schedule agents.
+- Not a root of trust by itself — see "Fit" below for what that distinction means for you.
+- Not a CI/CD system — it governs decisions around your existing pipeline, not the pipeline itself.
+- Not a coding assistant — it governs the assistant you already use.
+
+## Fit
+
+Full five-minute filter: [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
+Check cost and reversibility before you start:
+[Downstream impact](agf/docs/site/docs/adopt/downstream-impact.md) and
+[Exit and decommission](agf/docs/site/docs/adopt/exit-and-decommission.md).
+
+Try AGF when:
+
+- AI assistants write or review a meaningful share of your code.
+- A human can serve as governor — approving plans before implementation and
+  reviews before merge.
+- Your project will live long enough for an audit trail to matter.
+
+Skip or wait when:
+
+- you need a tamper-proof, identity-bound root of trust as the product — AGF
+  is process scaffolding today, a different and weaker guarantee;
+- your forge's built-in AI code review already covers your risk appetite;
+- nobody can own gate decisions.
+
+## Quick install
+
+Pin a release and let your AI coding assistant do the mechanical work:
+
+1. Download a pinned release archive into a `tmp/` directory in your project:
+
+   ```bash
+   curl -LO https://gitlab.com/api/v4/projects/janipaijanen%2Fagents-govern-framework/packages/generic/agf/vX.Y.Z/agf-X.Y.Z.tar.gz
+   ```
+
+   Replace both `vX.Y.Z` (path) and `X.Y.Z` (filename, no `v`) with the
+   version shown on the
+   [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases) —
+   never fetch an unpinned or `latest` archive.
+2. Tell your coding assistant: *"There is a `.tar.gz` file in `tmp/`. Adopt
+   it into the project."* It unpacks the archive, wires `agf/`, and prepares
+   a diff for you to review — it does not commit or claim adoption is
+   complete on its own.
+
+Full mechanics, prerequisites, and the longer commissioning prompt:
+[Install the `agf/` directory](agf/docs/site/docs/adopt/install-and-layouts.md).
+Then run one valid example:
+[Your first governed change](agf/docs/site/docs/start/first-governed-change.md).
+First-run templates live in [agf/templates](agf/templates/).
+
+## AI assistants
+
+Read [`AGENTS.md`](AGENTS.md) before acting. The `agov` CLI is the universal
+supported path. Recommended for MCP-capable assistants: connect
+[agov MCP](agf/docs/site/docs/adopt/mcp-server.md) for structured access.
+
+## Evidence and maturity
+
+Every qualifier below still applies — this table only relocates them out of
+inline prose per AGF's own evidence-and-maturity practice.
+
+| Claim | Status | Basis |
+|---|---|---|
+| Mechanical installation | No more than ten minutes | Maintainer's own deployments — empirically informed, not yet independent-adopter validated |
+| Initial commissioning (review applicable rules, complete your first governed change) | Variable, no numeric estimate | Separate work from installation; duration depends on your project |
+| Governor attention per non-trivial change | Often 5–15 minutes | Maintainer-informed planning estimate, not a benchmark |
+| Exit duration | Unmeasured | Varies with your CI, hooks, and retained evidence — see [Exit and decommission](agf/docs/site/docs/adopt/exit-and-decommission.md) |
+
+See [Maturity vocabulary](agf/docs/site/reference/maturity-vocabulary.md) for
+the full label definitions (capability maturity levels and evidence-status
+labels) referenced throughout this project's documentation.
+
+## Map
+
+| Path | Meaning |
+|---|---|
+| `agf/` | The adopter-facing AGF v2 product: roles, rules, schemas, docs, templates |
+| `docs/` | This repository's own governed work: plans, coordination, proposals |
+| `tooling/` | Implementation tooling for validation, build, release, and conformance checks |
+| `AGENTS.md` | Contributor and agent orientation for this repository |
+
+For product evaluation, start in `agf/` — `tooling/` and `docs/` are this
+repository's own evidence and process, not the shipped product. The
+normative files live in `agf/`; binding decisions come from the roles and
+gates recorded in the coordination channel. Tool output is evidence; it
+becomes blocking only when a named AGF rule or governor decision makes that
+check blocking.
+
+## Deep dive
+
+Full narrative — audience routes, roles and gates, coordination protocol,
+adoption steps, and the complete reference catalog — lives on the
+[published docs site](https://janipaijanen.gitlab.io/agents-govern-framework/);
+the [roadmap](https://janipaijanen.gitlab.io/agents-govern-framework/roadmap/)
+tracks what's next.
 
 <!-- public-feature-summary:start -->
 ## What AGF gives you
@@ -31,135 +131,14 @@ service or runtime.
   is required neither to adopt nor to leave.
 <!-- public-feature-summary:end -->
 
-Your assistant can plan, patch, and test. Six months later, git history alone
-often cannot answer why a change was requested, who accepted the risk, or what
-the AI was supposed to do. agents-govern adds three file-based controls on top
-of your existing repository:
+![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
 
-For example, an assistant first records what it intends to change. A human
-decides whether implementation may start, the assistant makes and tests the
-change, and a human decides whether it may merge. AGF names and records that
-repeatable loop:
-
-- **Roles:** AI agents operate under named responsibilities; an agent cannot
-  approve its own work, and a human governor holds gate authority.
-- **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
-  the implementation before merge. CI validators provide evidence; the governor
-  decides.
-- **Decision log:** Plans, reviews, approvals, and handoffs are files in the
-  repository, so later readers can reconstruct the chain of decisions.
-
-No new accounts. No hosted service. No runtime. The framework is files in your
-repo, instructions your AI assistant reads, and optional validators your CI can
-run.
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ```text
 AI writes a plan -> Governor approves -> AI implements + CI validates -> Merge
        Gate 1                                      Gate 2
 ```
-
-Typical cost: mechanical installation has taken no more than ten minutes in
-the maintainer's own deployments — empirically informed maintainer evidence,
-not yet independent-adopter validation. Initial commissioning (reviewing
-applicable rules and completing your first governed change) is separate,
-variable work with no numeric estimate. Governor attention is often 5-15
-minutes for a non-trivial change, a maintainer-informed planning estimate,
-not a benchmark. Exit is documented: pause the gates, keep only the rules you
-still want, or remove the AGF files in one atomic cleanup commit — exit
-duration is unmeasured and varies with your CI, hooks, and retained
-evidence.
-
-Published docs: <https://janipaijanen.gitlab.io/agents-govern-framework/>
-Current roadmap: <https://janipaijanen.gitlab.io/agents-govern-framework/roadmap/>
-
-![AGF in a Nutshell — a one-page orientation covering roles, the two gates, and the coordination channel](agf/docs/figures/agf-nutshell-flyer.png)
-
-*AI-generated figure. Publication remains the responsibility of the human maintainer.*
-
-## Should you adopt?
-
-Start with [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
-It is the five-minute filter for deciding whether AGF is useful for your
-project now.
-
-Try AGF when:
-
-- AI assistants write or review a meaningful share of your code.
-- A human can serve as governor (approving plans before implementation and reviews before merge).
-- Your project will live long enough for an audit trail to matter.
-- Prompt-only discipline has not kept assistants consistently inside your
-  quality, security, or review boundaries.
-
-Wait or skip when:
-
-- you need a hosted runtime or agent orchestrator;
-- your project is disposable or exploratory;
-- nobody can own gate decisions;
-- you need every rule and extension point to be backed by multi-project evidence today.
-
-## Repository map
-
-| Path | Meaning |
-|---|---|
-| `agf/` | The adopter-facing AGF v2 product: roles, rules, schemas, docs, templates |
-| `tooling/` | Implementation tooling for validation, build, release, and conformance checks |
-| `docs/` | This repository's own governed work: plans, coordination, proposals |
-| `agents-govern/` | Legacy/bootstrap v1.x reference used to govern this repo; not the v2 product |
-| `AGENTS.md` | Contributor and agent orientation for this repository |
-
-For product evaluation, start in `agf/`, not `agents-govern/`.
-
-`tooling/` helps exercise the framework, but it is not the source of
-governance authority. The normative files live in `agf/` and the binding
-decisions come from the roles and gates recorded in the coordination channel.
-Tool output is evidence; it becomes blocking only when a named AGF rule or
-governor decision makes that check blocking.
-
-## Maturity and evidence labels
-
-AGF uses explicit labels so public claims do not overstate what exists or how
-well it is proven.
-
-Capability maturity answers "what exists?": Level 1 Planned, Level 2
-Surface-defined, Level 3 Instantiated, Level 4 Validated, and Level 5
-Deployable. A command implemented and tested in a branch is Level 4; it is not
-Level 5 for an operator path or release until that selected binary includes it
-and the documentation matches.
-
-Evidence status answers "how strong is the proof?": Empirically validated,
-Empirically informed, or Theoretical. Use both labels when a claim could
-otherwise sound stronger than the evidence supports. See
-[Maturity vocabulary](agf/docs/site/reference/maturity-vocabulary.md).
-
-## Adoption steps
-
-1. Read [Should you adopt?](agf/docs/site/docs/start/should-you-adopt.md).
-2. Check cost and reversibility:
-   [Downstream impact](agf/docs/site/docs/adopt/downstream-impact.md) and
-   [Exit and decommission](agf/docs/site/docs/adopt/exit-and-decommission.md).
-3. Install it — mechanical installation has taken no more than ten minutes in
-   the maintainer's deployments (not yet independently validated). Let your
-   AI coding assistant do the work:
-   1. Download `agf-<version>.tar.gz` (or `.zip`) from the
-      [GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-      into a `tmp/` directory in your project. Add the matching
-      `agov-<version>-<platform>.tar.gz`/`.zip` from the **same release** if
-      you want the `agov` validator without a full source checkout — both
-      archives ship from the same tag, so "matching version" just means
-      "same release page."
-   2. Tell your coding assistant: *"There is a `.tar.gz` file in `tmp/`.
-      Adopt it into the project."* It unpacks the archive, wires `agf/`,
-      and prepares a diff for you to review — it does not commit or claim
-      adoption is complete on its own.
-
-   Full mechanics, and the longer commissioning prompt if you want more
-   control over the first pass:
-   [Install the `agf/` directory](agf/docs/site/docs/adopt/install-and-layouts.md).
-4. Run one valid example — this is initial commissioning, not part of the
-   installation figure above, and its duration varies by project:
-   [Your first governed change](agf/docs/site/docs/start/first-governed-change.md).
-
-The first-run templates live in [agf/templates](agf/templates/).
 
 ## What a trial adds to your project
 
@@ -178,10 +157,11 @@ Default POC layout:
 | Communication map | `agov coord graph` — Graphviz dot map of role-to-role coordination flows |
 | Coordination index | `agov coord graph-index` — JSON index of handoffs and references |
 | Coordination updates | `agov coord list --since <id-or-timestamp>` |
+| Coordination obligations | `agov coord pending` — unresolved `requires-ack: true` records of any kind other than `handoff`/`ack` |
 | Tool provenance | `agov --version` / `agov version --format json` |
 
-The `agf/` distribution ships **46 governance rules**, **12 agent definitions**,
-and **7 skills**.
+The `agf/` distribution ships **48 governance rules**, **15 agent definitions**,
+and **8 skills**.
 
 The framework source archive is usable on its own. Adopters who want the
 current core validators can use a full checkout or the optional packaged
@@ -206,7 +186,7 @@ learning record, and how a pattern worth sharing travels upstream as a
 rule or agent proposal. Both are explained with an embedded figure on
 the published docs site, kept in sync with the text:
 
-- [Evidence and learnings](https://janipaijanen.gitlab.io/agents-govern-framework/concepts/evidence-and-learnings/)
+- [Evidence and learnings](https://janipaijanen.gitlab.io/agents-govern-framework/docs/concepts/evidence-and-learnings/)
   — the learning-loop diagram, and the ownership table distinguishing
   framework-owned learning records from your own
   `agf/learnings/<codename>.yaml` (never touched on upgrade).

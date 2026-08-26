@@ -51,6 +51,7 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_handoff_complete",
     "agov_coord_post",
     "agov_coord_list",
+    "agov_coord_pending",
 ];
 
 /// Environment marker names the trusted local `agov-mcp` adapter sets on
@@ -134,7 +135,9 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "session",
     "token",
     "dist",
+    "commercial-corpus",
     "usage",
+    "ci",
     // coord subcommands.
     "brief",
     "post",
@@ -145,6 +148,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "graph",
     "graph-index",
     "publication-check",
+    "pending",
     // plan subcommands (validate shares the top-level "validate" token).
     "projection-check",
     // validate subcommands.
@@ -173,9 +177,14 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "self-report-check",
     "post-publication-check",
     "provenance-record",
+    // commercial-corpus subcommands (validate shares the top-level token).
+    "generate",
+    "verify-version",
     // dist provenance-record subcommands.
     "file",
     "oci",
+    // ci subcommands.
+    "cache-topology-check",
 ];
 
 /// Flags whose *values* are closed vocabulary and may be retained.
@@ -238,6 +247,12 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--model",
     "--dir",
     "--base-ref",
+    "--repo-root",
+    "--inventory-ref",
+    "--inventory-path",
+    "--corpus-content-revision",
+    "--pointer",
+    "--schema",
     "--subject-prefix",
     "--ref",
     "--artifact",
@@ -275,6 +290,12 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--label-version",
     "--label-revision",
     "--last",
+    "--merged-yaml",
+    "--shared-key",
+    "--writer-job",
+    "--writer-policy-var",
+    "--consumer-policy-var",
+    "--cutoff",
 ];
 
 /// Default-deny redaction over the exact token stream received (v2.4.0

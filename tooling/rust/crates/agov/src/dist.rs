@@ -793,6 +793,139 @@ forbidden:
         assert!(outcome.is_valid(), "findings: {:?}", outcome.findings);
     }
 
+    /// Issue #79: a shipped archive must never contain a file at
+    /// agf/agents/MANIFEST.yaml -- that is what let a plain archive
+    /// re-extraction overwrite an adopter's own divergent roster (the
+    /// exact defect issue #78 reproduced). The template ships as
+    /// agf/agents/MANIFEST.example.yaml instead, matched by the same
+    /// include glob, and is not excluded.
+    #[test]
+    fn manifest_yaml_is_excluded_from_packaging_manifest_example_is_not() {
+        let temp = fixture_root();
+        write(temp.path(), "agf/VERSION", "2.0.0\n");
+        // An adopter's own divergent roster -- packaging must leave this
+        // exact content alone, which this test proves by never selecting
+        // the file for the archive at all.
+        write(
+            temp.path(),
+            "agf/agents/MANIFEST.yaml",
+            "agents:\n  a-divergent-adopter-roster:\n    status: active\n",
+        );
+        write(
+            temp.path(),
+            "agf/agents/MANIFEST.example.yaml",
+            "agents:\n  coder-tester:\n    status: skipped\n",
+        );
+        let manifest = write(
+            temp.path(),
+            "manifest.yaml",
+            r#"
+schema_version: 1
+package:
+  name: agf
+  version_file: agf/VERSION
+  output_dir: dist
+  basename: agf-{{version}}
+  formats: [tar.gz]
+include:
+  - glob: agf/agents/**
+exclude:
+  - agf/agents/MANIFEST.yaml
+"#,
+        );
+
+        let spec = validate(&manifest, temp.path()).expect("validate should succeed");
+
+        assert!(
+            !spec.contains("agf/agents/MANIFEST.yaml"),
+            "the adopter-owned roster must never be selected for packaging"
+        );
+        assert!(
+            spec.contains("agf/agents/MANIFEST.example.yaml"),
+            "the neutral template must still ship"
+        );
+    }
+
+    /// Gate 2 review `rtga` finding B1: `manifest_yaml_is_excluded_
+    /// from_packaging_manifest_example_is_not` above proves only that
+    /// `DistSpec::validate()` never *selects* `agf/agents/MANIFEST.yaml`
+    /// for packaging. The approved plan's Scope and Acceptance Criterion 1
+    /// require the stronger, real-world claim: build the actual governed
+    /// archive, extract it over an adopter project that already has its
+    /// own divergent `agf/agents/MANIFEST.yaml`, and prove that exact file
+    /// is byte-for-byte unchanged afterward -- the literal reproduction of
+    /// issue #78's defect, run end to end through real `build()` and real
+    /// tar extraction, not inferred from selection logic alone.
+    #[test]
+    fn archive_extraction_over_divergent_adopter_manifest_leaves_it_byte_for_byte_unchanged() {
+        // The framework source tree `build()` packages from.
+        let source = fixture_root();
+        write(source.path(), "agf/VERSION", "2.0.0\n");
+        write(
+            source.path(),
+            "agf/agents/MANIFEST.example.yaml",
+            "agents:\n  coder-tester:\n    status: skipped\n",
+        );
+        let manifest = write(
+            source.path(),
+            "agf/dist/release-manifest.yaml",
+            r#"
+schema_version: 1
+package:
+  name: agf
+  version_file: agf/VERSION
+  output_dir: dist
+  basename: agf-{{version}}
+  formats: [tar.gz]
+include:
+  - glob: agf/agents/**
+  - path: agf/VERSION
+exclude:
+  - agf/agents/MANIFEST.yaml
+"#,
+        );
+
+        let result = build(&manifest, source.path()).expect("build should succeed");
+        let tar_path = result.spec.outputs.get("tar.gz").unwrap().clone();
+        assert!(tar_path.is_file(), "archive was not written");
+
+        // A separate "adopter project" directory, simulating an existing
+        // installation with its own divergent roster -- not the source
+        // tree build() just packaged from.
+        let adopter = fixture_root();
+        let adopter_manifest_path = write(
+            adopter.path(),
+            "agf/agents/MANIFEST.yaml",
+            "agents:\n  a-divergent-adopter-roster:\n    status: active\n",
+        );
+        let before = fs::read(&adopter_manifest_path).unwrap();
+
+        // Real tar.gz extraction over the adopter directory, exactly what
+        // an adopter running `tar xzf` over their project root does.
+        let tar_gz = File::open(&tar_path).expect("open built archive");
+        let decoder = flate2::read::GzDecoder::new(tar_gz);
+        let mut archive = tar::Archive::new(decoder);
+        archive
+            .unpack(adopter.path())
+            .expect("extract archive over adopter directory");
+
+        let after = fs::read(&adopter_manifest_path)
+            .expect("adopter's agf/agents/MANIFEST.yaml must still exist after extraction");
+        assert_eq!(
+            before, after,
+            "adopter's divergent agf/agents/MANIFEST.yaml must be byte-for-byte \
+             unchanged by archive extraction -- the shipped archive must contain \
+             no file at that path"
+        );
+
+        // Positive control: the archive still shipped the neutral
+        // template alongside the adopter's untouched roster.
+        assert!(
+            adopter.path().join("agf/agents/MANIFEST.example.yaml").is_file(),
+            "the neutral template must still be extracted"
+        );
+    }
+
     fn fixture_root() -> TempDir {
         tempfile::tempdir().expect("tempdir")
     }

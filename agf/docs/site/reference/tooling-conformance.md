@@ -48,6 +48,7 @@ The table lists the adopter-facing command surface.
 | `agov coord visibility [args...]` | Detect coordination obligations hidden on non-base branches. | Release surface |
 | `agov coord graph [args...]` | Render role-to-role coordination flows as Graphviz dot or text. | Release surface |
 | `agov coord graph-index [args...]` | Emit the coordination graph as deterministic JSON for cold starts and tooling. See the [graph-index contract](coord-graph-index.md). | Release surface |
+| `agov coord pending [--cutoff <RFC3339>] [--format text\|json]` | Report unresolved non-`handoff` `requires-ack: true` coordination records. Exit `0` found / `2` none found — not a failure. | Release surface |
 | `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |
 | `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
 

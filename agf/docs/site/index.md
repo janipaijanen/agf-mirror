@@ -1,34 +1,28 @@
-# agents-govern
+<section class="agf-hero" aria-labelledby="agf-hero-title" markdown>
+<div class="agf-hero__copy" markdown>
 
-**AI coding with human accountability.**
+<div class="agf-hero__eyebrow">Two gates, one repo</div>
+
+<h1 id="agf-hero-title" class="agf-hero__headline">Plans reviewed before code.<br>Code reviewed before merge.</h1>
+
+<p class="agf-hero__subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every governed decision leaves a timestamped, append-only record in your repo.</p>
+
+<div class="agf-hero__actions">
+  <a class="agf-hero__action agf-hero__action--primary" href="docs/start/commission/" aria-label="Get started: commission AGF and AGOV in your repository">Get started</a>
+  <a class="agf-hero__action agf-hero__action--secondary" href="docs/" aria-label="See the agents-govern documentation overview">See the docs</a>
+</div>
+
+<div class="agf-hero__foot">No new accounts · No hosted service · No runtime — files in <code>your-repo/agf/</code></div>
+
+</div>
+
+<figure class="agf-hero__visual">
+  <a href="reference/figures/governed-change-flow.svg"><img src="reference/figures/governed-change-flow.svg" alt="Governed change flow from a written plan through human Gate 1, AI implementation, automated validation, human Gate 2, and merge"></a>
+  <figcaption>Human decisions, AI action, and automated checks remain visibly distinct. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
+</figure>
+</section>
 
 *The framework that cannot govern itself has no business governing anything else.*
-
-AI assistants can produce changes you cannot reconstruct later.
-agents-govern makes AI-assisted software work auditable without adding a hosted
-service or runtime.
-
-Your assistant can plan, patch, and test. Six months later, git history alone
-often cannot answer why a change was requested, who accepted the risk, or what
-the AI was supposed to do. agents-govern adds three file-based controls on top
-of your existing repository:
-
-For example, before an assistant changes a database migration, it writes down
-the intended change and risks. A human decides whether work may start, the
-assistant implements and tests it, and a human decides whether it may merge.
-AGF gives those two decisions names and keeps their evidence:
-
-- **Roles:** AI agents operate under named responsibilities. An agent cannot
-  approve its own work, and a human governor holds gate authority.
-- **Two gates:** Gate 1 approves a plan before implementation. Gate 2 approves
-  the implementation before merge. CI validators provide evidence; the governor
-  decides.
-- **Decision log:** Plans, reviews, approvals, and handoffs are files in the
-  repository, so later readers can reconstruct the chain of decisions.
-
-No new accounts. No hosted service. No runtime. The framework is files in your
-repo, instructions your AI assistant reads, and optional validators your CI can
-run.
 
 > AGF releases ship the complete governance library — every role, rule,
 > skill, schema, and template. In the maintainer's own deployments, the full
@@ -39,21 +33,6 @@ run.
 
 See [what ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate)
 before treating the complete distribution as a mandatory day-one configuration.
-
-Figure 1 compresses the whole page above into the five-step shape it
-keeps returning to: a plan is written, a human governor decides whether
-it proceeds, an AI implements only after that decision, CI validates the
-result, and a human governor decides again before merge. The point to
-retain: the two decision points (Gate 1, Gate 2) are marked distinctly
-from the AI-executed steps around them, because that separation —
-never both authoring and approving the same step — is the one property
-every other page on this site assumes you already understand.
-
-[![Governed change flow from plan through two human gates to merge](reference/figures/governed-change-flow.svg)](reference/figures/governed-change-flow.svg)
-
-*AI-generated figure. Publication remains the responsibility of the human maintainer.*
-
-[Open the full-size governed change flow (SVG)](reference/figures/governed-change-flow.svg)
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"
     A single-page overview of the roles, the two gates, and the

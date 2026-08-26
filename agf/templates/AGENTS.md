@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2026 <!-- CUSTOMIZE: your name --> -->
-<!-- AGF: 2.4.11 — update this comment after each framework upgrade to match agf/VERSION -->
+<!-- AGF: 2.6.1 — update this comment after each framework upgrade to match agf/VERSION -->
 # <!-- CUSTOMIZE: Project Name --> — Agent and Contributor Orientation
 
 <!-- CUSTOMIZE: brief description of the project -->
@@ -31,11 +31,20 @@ agov handoff next <agent-role>
 
 # Check for pending items across all branches visible from main
 agov coord visibility --base-branch main
+
+# List unresolved non-handoff acknowledgment obligations (claim, review,
+# note, decision-record, etc. with requires-ack: true) -- run this every
+# cold start when the installed release exposes it; session resume does
+# not surface this obligation class
+agov coord pending
 ```
 
 Run `session resume` before anything else — before reading coordination files,
 before `git log`, before any file inspection. It surfaces pending coordination
-messages, active decisions, and unresolved handoffs. Starting with reads before
+messages, active decisions, and unresolved handoffs, but **not** non-handoff
+`requires-ack: true` obligations of other kinds (claim, review, note,
+decision-record, fast-track-waiver, lesson-proposal) — those are `agov coord
+pending`'s surface, run separately as shown above. Starting with reads before
 the resume means acting on stale context.
 
 After the resume output, file a brief coordination `kind: note` for the current
@@ -129,6 +138,17 @@ Every non-trivial task requires two gates:
   approves before implementation starts.
 - **Gate 2** — coder-tester files a handoff; governor-reviewer reviews and merges.
 
+If this project retains `docs/sources.md` and/or `docs/radar.md` as strictly
+non-normative research artifacts, it may use the exact research-maintenance
+exception in `agf/rules/workflow/simplicity-rule.md`. Only an advisory,
+reversible change limited in every commit and the final diff to those existing
+paths may skip the separate Gate 1 plan, contribution audit, and pre-change
+coordination MR, and only when every source-fidelity, fresh collision-scan, and
+disqualifier condition in that rule passes. Generic documentation does not
+qualify. The normal branch/MR, exact-head pipeline, human Gate 2 decision, and
+protected-branch merge remain mandatory. Projects without those artifacts, or
+projects choosing stricter local policy, retain the ordinary Gate 1 route.
+
 Gate 1 approval is a governor-reviewer coordination message with `kind: decision-record`
 or `kind: handoff` referencing the plan file and stating `status: approved`.
 
@@ -155,6 +175,7 @@ agov handoff next <role>                       # your next pending task
 agov coord validate docs/coordination/<file>  # validate a coordination message
 agov plan validate docs/plans/<file>           # validate a Gate 1 plan
 agov coord graph-index                         # pending item scan
+agov coord pending                             # non-handoff requires-ack:true obligations
 agov coord brief --from <role>                 # generate a coordination ID
 agov usage report                              # recent coordination activity
 ```

@@ -34,10 +34,21 @@ Around the core pipeline sit supporting roles — build engineering,
 security sentinel, contribution auditing, and others. The shipped
 [quick reference](https://gitlab.com/janipaijanen/agents-govern-framework)
 (`docs/reference/quick-reference.md` in the distribution) lists all
-twelve with one-line responsibilities. The **human governor** sits above
+fourteen with one-line responsibilities. The **human governor** sits above
 all of them: every agent authority is delegated, revocable, and bounded
 by the red list in the deputy-governor rule (security boundaries,
 destructive operations, and meta-governance are never delegable).
+
+One of those fourteen, **independent-implementation-reviewer**, is worth
+naming here specifically: it performs a read-only, exact-head review of
+an implementation against its approved Gate 1 plan and evidence, by a
+session and model distinct from the implementer. It is not a fourth
+binding gate — its `CLEAR`/`BLOCK` recommendation is advisory evidence
+for the governor's Gate 2 decision, the same way any other domain
+reviewer's findings are, and it never approves or rejects either Gate 1
+or Gate 2 directly. A plan or the governor names it for a specific
+non-trivial Gate 2 candidate when additional independent-review
+separation is warranted; it is not activated for every change.
 
 Do not leave the governor role implicit. In a solo project, the maintainer can
 serve as governor, but the approval still needs to be a deliberate recorded

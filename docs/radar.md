@@ -39,6 +39,16 @@ Next review: 2026-10.
   approval-rate telemetry) are themselves surveillance-flavored — controversial. review-by:
   2026-10
 
+- **Outcome-metric interpretation risk in governance dashboards** — a governance metric moving
+  (e.g. Gate 2 BLOCK-finding count falling, coordination-trail volume rising) reveals nothing
+  about mechanism without knowing what actually shifted: quality improving, review rigor
+  relaxing, and submission volume changing can all produce the same directional reading.
+  Directly compounds the anti-rubber-stamping item above and the existing signal-gaming radar
+  work: a dashboard reader who infers cause from a metric's direction alone is exposed to the
+  same fallacy regardless of whether the underlying change was benign drift or deliberate
+  gaming. No AGF dashboard/metric currently states its own shift-vs-movement caveat explicitly.
+  sources: shonczinner Substack in `docs/sources.md` Batch 14 | review-by: 2026-10
+
 - **Verification independence tiers** — different-session < different-model < different-
   vendor; evidence-backed (LLM-as-judge unreliability) but raises cost and vendor-neutrality
   questions. review-by: 2026-10
@@ -64,6 +74,31 @@ Next review: 2026-10.
   principle (observation-only variant conceivable). Kept on radar because industry pressure
   toward runtime interposition keeps growing (ACS, Enforra, Tenure). review-by: 2027-01
 
+- **External context graph vs canonical repository trail** — Piyaz represents tasks,
+  dependencies, decisions, execution records, and activity in a live PostgreSQL-backed graph
+  shared through MCP and a web UI. That could complement AGF's compact repository records and
+  downstream-impact work, but it could also create split-brain authority when the graph and Git
+  disagree. A bounded evaluation must test export and deterministic reconstruction, immutable
+  history versus editable records, identity and authorization, concurrent claims and stale
+  writes, exact commit/MR/plan linkage, hosted-data privacy and retention, migration, and clean
+  removal. Any projection must leave AGF's repository trail and human gate decisions canonical;
+  a Piyaz status, hint, or review verdict acquires no AGF authority. source: Piyaz v0.4.13 in
+  `docs/sources.md` Batch 20 | status: evaluate, not adopt | review-by: 2026-11
+
+- **Renewable work leases vs repository-native claims** — AetherGrid uses
+  time-bounded renewable leases, explicit execution-start confirmation,
+  heartbeats, immutable lifecycle events, and reconciliation to preserve
+  exclusive job ownership across worker failure. AGF already has claims, stale
+  detection, completion, and Git-backed history, but not a continuously renewed
+  ownership lease. The candidate benefit is safer concurrent execution and
+  deterministic recovery from interrupted agents; the counter-risk is turning
+  a removable file-based framework into a scheduler-dependent runtime, plus
+  false reassignment when a healthy agent temporarily cannot renew. Evaluate
+  whether the useful invariants can remain repository-native and advisory, or
+  whether this belongs only in external orchestrator integrations. Do not infer
+  gate authority from lease ownership. source: AetherGrid in `docs/sources.md`
+  | status: compare mechanics, do not implement | review-by: 2026-11
+
 - **Repo-contained, model-replaceable agent package / deliberate self-cannibalization** —
   APSquared describes one self-contained marketing agent per repository: local instructions,
   activity logs, a human task queue, one activity per run, and Claude or Codex as a replaceable
@@ -72,6 +107,45 @@ Next review: 2026-10.
   separately incubated repository. Controversial: useful generalisation versus scope dilution;
   the source is a self-reported marketing case, not independent evidence. source: APSquared in
   `docs/sources.md` | status: joint Claude/Codex assessment requested | review-by: 2026-10
+
+- **Cross-harness session-digest layer vs. coordination-only continuity** — LLM Wiki's
+  session rehydration writes default-on, redacted digests to a `.sessions/` directory
+  (state JSON + Markdown, no full transcripts) that stay operational-only until explicitly
+  promoted into durable evidence, readable uniformly across Claude Code, Codex, OpenCode.
+  AGF handles the same cross-harness continuity problem differently: `agov session resume`
+  covers within-harness continuity, and durable coordination records
+  (`docs/coordination/*.md`) cover cross-agent state, but nothing sits between them as a
+  lighter-weight, redacted "what was I doing" pointer for a fresh session on a different
+  harness. Open question: does that gap cause real friction (a concrete cold-start failure
+  mode `agent-cold-start-habits.md`'s existing protocol doesn't already cover), or would a
+  digest layer just be a second, weaker memory channel competing with the coordination
+  channel's own authority — the exact risk `coordination-message-rule.md` and
+  `coordination-sequence-guard-rule.md` exist to prevent? Controversial: any answer other
+  than "no gap, coordination records already suffice" risks re-legitimizing an informal
+  parallel-authority channel, the same failure mode flagged when assessing AIHero's
+  `/handoff` pattern (`docs/coordination/20260816T115701Z-planner-architect-hrd1.md`).
+  source: LLM Wiki in `docs/sources.md` Batch 25 | status: evaluate, no implementation
+  proposed | review-by: 2026-11
+
+- **Stale-authorization / policy-state serializability at Gate 1→merge** — "Stateful
+  Governance for Concurrent Agentic Systems" formalizes the requirement that a committed
+  effect must be authorized against the policy state immediately before it occurs, not
+  merely at initial-request time. `coordination-publication-rule.md` already documents an
+  accepted, governed gap of exactly this shape: `only_allow_merge_if_pipeline_succeeds`
+  blocks a failed/skipped pipeline but does not force revalidation when the *target*
+  branch advances after a candidate's pipeline last passed, and GitLab merge-trains
+  (the feature that would close it) are confirmed absent from this project's plan tier.
+  The paper's prototype (MasuGate) is evaluated only on a scripted, LLM-free procurement
+  workflow — not evidence its specific mechanism transfers to a Git/CI setting — but the
+  formal correctness condition itself (policy-state serializability) is a candidate
+  vocabulary for naming and eventually closing this gap properly, rather than leaving it
+  as a documented narrowing. Controversial only in scope: is this worth a real mechanism
+  (e.g. binding a Gate 1 approval to an exact plan hash + forced re-check at merge time),
+  or does `agov coord publication-check`'s existing fresh-fetch-at-run-time behavior
+  already provide equivalent protection when actually invoked pre-merge, making this a
+  documentation gap rather than a mechanism gap? source: arXiv 2608.02764 in
+  `docs/sources.md` Batch 28 | status: evaluate against existing gap, no implementation
+  proposed | review-by: 2026-11
 
 ## Watch sources (checked at each review)
 

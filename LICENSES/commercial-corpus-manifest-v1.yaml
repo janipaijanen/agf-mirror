@@ -1,0 +1,446 @@
+schema_version: 1
+corpus_version: 1
+corpus_content_revision: 48049759dfd9c681863d510ac6f7971235c5b0fb
+provenance:
+  source_inventory_commit: d13bb9084fce9a9b1c7c08bb735e0fe6d08d7e98
+  cl3_decision: 20260818T054511Z-governor-reviewer-1gaj
+source_inventory:
+  path: docs/reviews/commercial-licensing/20260817T224900Z-rights-provenance-inventory/inventory.csv
+included:
+- path: .gitlab-ci.yml
+  sha256: 5bcbe89ce8e639d7ee113d590b21b3d150a61d78e5dfea0fe82e24d1cb5b4504
+- path: .gitlab/issue_templates/Bug Report.md
+  sha256: d911e6d39fdfe0883aac9c98430d97130aafd129559281d05d12e6de93ccf62c
+- path: .gitlab/issue_templates/External Review.md
+  sha256: 2967ce9d97f9d3069df3a387b563115f22f9098d46e2b84abf4fccb84e4e341c
+- path: .gitlab/issue_templates/Learning.md
+  sha256: 402636710fa770bfcabca7d417cc8985316ca2b0262731d173a8fc19ee567d48
+- path: .gitlab/issue_templates/Rule Proposal.md
+  sha256: 3887a8297ffe486d3b73672c05b0e6ebbd9aca92b128a375eacfa5479bab6dc0
+- path: .gitlab/merge_request_templates/Default.md
+  sha256: d549ecb040e9cbbb8a579fcdb2788bb3010cd88b0c37b19009fdee5313222639
+- path: .gitlab/merge_request_templates/Learning Record.md
+  sha256: a3fa112af6f0f86b1b527ba14705a676675eafdf22d40f304220458bfbaa50b0
+- path: .gitlab/merge_request_templates/Rule or Agent.md
+  sha256: 1210e79b53f0b56a1e06c2205f1aaaedc7e13bf20b766508e1a057fdc5a600e8
+- path: agents-govern/.gitlab/issue_templates/Bug Report.md
+  sha256: d4afdc72e8e61adc4beb428979e6179d0af46e1a49a81689986fad0448de3606
+- path: agents-govern/.gitlab/issue_templates/External Review.md
+  sha256: a6a4eea19a5ca268e32d1267b99115cc9869be2668d232a4fbe0e6add4fd7f9a
+- path: agents-govern/.gitlab/issue_templates/Learning.md
+  sha256: c4185a9073c9b22411fc4081a731e71c9bef6e9b86bbf5a4efd705367025398c
+- path: agents-govern/.gitlab/issue_templates/Rule Proposal.md
+  sha256: 126e2ca38f5f1523cb249a90bb90d43da9edadddfff32bf36d0850e50ebc89d0
+- path: agents-govern/.gitlab/merge_request_templates/Default.md
+  sha256: fe99507ed899f29d81d9503c04539d8b0b4be68f0e1b3d9d603a10be4b4531ed
+- path: agents-govern/.gitlab/merge_request_templates/Learning Record.md
+  sha256: 97a65e0cbc400ae3c5030ae6f331535b95980ee03c1d9cbe13ed58b8e5077de2
+- path: agents-govern/.gitlab/merge_request_templates/Rule or Agent.md
+  sha256: a2833eab2edd2b6459ced40253f4ca4df611a97abaa0f7d1e5826fffcbc47c73
+- path: agents-govern/.pre-commit-config.yaml
+  sha256: e9ce2edda4494875b779addd39069f2cee4a026e1f683c705f13237080500669
+- path: agents-govern/agents/academic-peer-reviewer.yaml
+  sha256: e9384ca0965183c5a5acff3f136db86720fe718ade580cf66cc56c3d9da00e38
+- path: agents-govern/agents/academic-visual-reviewer.yaml
+  sha256: acad43a241218fdd23e998fd80791d566a1e16f3f2e2d0f8bf4741cc887284ac
+- path: agents-govern/agents/build-engineer.yaml
+  sha256: b7425012539e71193b83ae2559a921d573988445e0555cd429b9cd885ab1aaa9
+- path: agents-govern/agents/capability-developer.yaml
+  sha256: ab8e67dfdd9a5a03b9dc4bf0a8db1a791566e76518b032e3eee6e57592c6a5b1
+- path: agents-govern/agents/coder-tester.yaml
+  sha256: b3fdb013a9de4aa141177fe591119e7118a13f9034bc8cd65a414f356cbdb8c7
+- path: agents-govern/agents/contribution-auditor.yaml
+  sha256: 28182e7d1f1ad212f5037c1da5ccb672fa4c765733d81a82cedd802e17285456
+- path: agents-govern/agents/deployment-engineer.yaml
+  sha256: 0cb3b49a6959a48ea0c482fd9f5adcf7ee742fa925d45881c24d08c6e0cec987
+- path: agents-govern/agents/documentation-writer.yaml
+  sha256: e8b801b18ef3ef9781f648efe7c15d63d77ea43b454800d7ac37e52edc9145d8
+- path: agents-govern/agents/fact-checker.yaml
+  sha256: ee6ddbf34edd01bc189d90f73c60cda5a27a8e7cb47c7f84e7afb072afdc3094
+- path: agents-govern/agents/governor-reviewer.yaml
+  sha256: e24df5701b162975f6db22be1b6297ea5d0e6064b45657106ef4f559e4419364
+- path: agents-govern/agents/infosec-sentinel.yaml
+  sha256: e0c66d8872ad398a94d7fbfa1006bbc7d329934ac0104d2686c172aed9f06859
+- path: agents-govern/agents/planner-architect.yaml
+  sha256: 4bb20fd897c27f53238c6ca5a1ecccaf4697816e97ca93e9abcb607ad1b46f67
+- path: agents-govern/rules-template/README.md
+  sha256: 8258d7ab5bf92effa1ebdbb98008322538718b240ac609bbad5642f8c67d13cf
+- path: agents-govern/rules-template/always/audit-log-completeness-rule.md
+  sha256: 60a0a4a6644eca19a85fe923274ab3816baa81e7c6885b82a5ac3aa231da6335
+- path: agents-govern/rules-template/always/environment-interrogation-rule.md
+  sha256: 901278f512596c3bf5d3448bc3515117dd26bb3559ff23b8c90ea8d024522092
+- path: agents-govern/rules-template/always/external-anonymization-rule.md
+  sha256: 0377f8337cae34b7f2605172d682ac3af75f0c86a4b619e19ec271debd280c00
+- path: agents-govern/rules-template/always/gate-self-test-rule.md
+  sha256: 9db1ac8decab3b8ce4619ba905765adc6dd879ea09f3ed1be97d0eae984d5def
+- path: agents-govern/rules-template/always/governance-file-layout-rule.md
+  sha256: 8a4b545a34a1e806852d168b20a6692d8077ed4d571125f43842cadf94bf0730
+- path: agents-govern/rules-template/always/high-risk-operations-rule.md
+  sha256: 62787e6222a04e0af7491210fc005e912b0add496c138169247fe386af18cd1b
+- path: agents-govern/rules-template/always/i18n-supported-locales-rule.md
+  sha256: 68923639c94c935f16ebb10829b2783fa087ff5f2e528b75f811295ac72a593a
+- path: agents-govern/rules-template/always/security-hardening-rule.md
+  sha256: bf509cb6b800ef7ffb9c6422c12a34e2717ee3b49b9395ebccdbab3bbbf79c37
+- path: agents-govern/rules-template/always/uncertainty-and-scope-rule.md
+  sha256: ac76af922d269e8c2319f5cb4e28da2468cff75a4044d67f4ab075d1a122f5a5
+- path: agents-govern/rules-template/always/verifiable-claims-rule.md
+  sha256: fa5bad2bd84e4399ff9476d58368c3157019304f3e4808eea8c31f225addfae2
+- path: agents-govern/rules-template/docs/documentation-audience-rule.md
+  sha256: a2d1fc474a819d59da01af5a5ca37e0424d68c3121ab0c929161b13364ab54a6
+- path: agents-govern/rules-template/docs/feature-flagged-docs-rule.md
+  sha256: 4de4a8897ba03b1833e45ffd361b0a386227383445b8ad7f3eac74596d2c39d3
+- path: agents-govern/rules-template/docs/implementation-honesty-rule.md
+  sha256: 266f1a46e9e8675e9d48badac07921c7fca80e40ce967e34d1c9b3c645ed721c
+- path: agents-govern/rules-template/docs/marketing-tone-rule.md
+  sha256: b7a24bc3b469b34d4a2b8dc000639b02628adab2a143a3f5ac8bb51184b2370b
+- path: agents-govern/rules-template/ui/accessibility-rule.md
+  sha256: c371fbb0d584ba2ce315283fb5788d2f1093e0ccd10fe665ba8c45741e1dee17
+- path: agents-govern/rules-template/workflow/agent-proactive-analysis-rule.md
+  sha256: 17f81783fe16ff242ff91ece7674291ed65cfd4d39ec0d7edcd6a589b0c5aa37
+- path: agents-govern/rules-template/workflow/boundary-shape-testing-rule.md
+  sha256: 8f91381ac5ed1f1c4f4afd66433ba10a2f6824b5267557cb506dab57686daac3
+- path: agents-govern/rules-template/workflow/branch-and-worktree-rule.md
+  sha256: 7a16088b6f4f054a168c4a87badb37e5d1b6d720488c9db9ab34d7d56ff3808d
+- path: agents-govern/rules-template/workflow/ci-trigger-scoping-rule.md
+  sha256: 36e77abbf5413a72463af8626b1ce9ca70ac53bb54882866e6f9b354b550bfe6
+- path: agents-govern/rules-template/workflow/commit-no-cursor-trailer.md
+  sha256: 0c7941cef0f4883303d1176b129eaaa0384e7b923449f7a0a86a52ccaf0f6f1c
+- path: agents-govern/rules-template/workflow/concept-modelling-rule.md
+  sha256: 33ea1895c0b595e56ad2a858c51239fed27a1784504de8430a3ba98511f1b68f
+- path: agents-govern/rules-template/workflow/debugging-rule.md
+  sha256: 43a2c2e7dc376e808c2070f3bfa232a984844c977a962c576ddb229178560b88
+- path: agents-govern/rules-template/workflow/deputy-governor-rule.md
+  sha256: 828cfb6343530391eb1fcf641330da46028dba4d46bb3e0a0b7f8af82c19d823
+- path: agents-govern/rules-template/workflow/destructive-op-preflight-rule.md
+  sha256: d3d8a6895dd3a65889819486e758f87c376bef5f6daa1ca014de64fa3469f938
+- path: agents-govern/rules-template/workflow/development-workflow-rule.md
+  sha256: 377b540c76e029067783840aff97ab72732b3332a5f1a644f8a6fe71c855f366
+- path: agents-govern/rules-template/workflow/feature-regression-guard-rule.md
+  sha256: 2e188c4d5ef35b0b4c720349b4f8bfdfda015c165290abd743a213d05691b647
+- path: agents-govern/rules-template/workflow/file-generator-rule.md
+  sha256: a9dcff0db7a13eecfca3dc6bfa189bf00df821f4534f18db7e5f5870d977b032
+- path: agents-govern/rules-template/workflow/immutable-tags-rule.md
+  sha256: b392c8feda50d0f08af9af0242231245e0af2b87ea7dc805b23028e095c0835f
+- path: agents-govern/rules-template/workflow/merge-request-workflow-rule.md
+  sha256: 925dcb40be094f152b09115c8f000dd4e69f2d476e49587e22078655d56922e5
+- path: agents-govern/rules-template/workflow/migration-generation-rule.md
+  sha256: 3bb395cb7f21f28ea5adcb5de402a9854a9932a89b5892efe793f420ad9f5c7a
+- path: agents-govern/rules-template/workflow/no-auto-package-update.md
+  sha256: 2b2eb3f425b7c0250bac74850b55393c6b3a3c80a42eac7f94feb6e994606838
+- path: agents-govern/rules-template/workflow/release-via-merge-request-rule.md
+  sha256: f2e6adedfafeb80be3e5852a1e6499b0fd8e907695a27f5d72eda66a54de380e
+- path: agents-govern/rules-template/workflow/semver-no-carry-rule.md
+  sha256: ec6c205a0f6c1e08fdf498d8626fc6a4f5a184fc7afb2f30c7e7575c4e053a2d
+- path: agents-govern/rules-template/workflow/simplicity-rule.md
+  sha256: 5c67231ddce299dd86ac3c6c291c2022511c86aa41e204001960a8b07fe56aef
+- path: agents-govern/rules-template/workflow/systematic-code-review-rule.md
+  sha256: 83a8d3982c23c790c657c456ee233c6342c25486adf646c10e2f8a9f10e6520b
+- path: agents-govern/rules-template/workflow/tdd-rule.md
+  sha256: eefdf3125ea415326ca8e8a3ed27884fd3426aae2bb89f9ed6adb2c90207dae0
+- path: agents-govern/rules-template/workflow/testing-environments-rule.md
+  sha256: 5c10d58749a7421d3ddcbee359c65952b5d3263586799eba7a540fbbaa205249
+- path: agents-govern/rules-template/workflow/visible-artifact-verification-rule.md
+  sha256: e3dd854b356a2bdd31c9e50d56bcb8ea9d68aac89715427330983d07f6f10762
+- path: agents-govern/skills/README.md
+  sha256: 3c3f47a14cc307b8483ef98630ec0f9ac8e59353d475c9bf2eeecc18b3ad9346
+- path: agents-govern/skills/capability-review/SKILL.md
+  sha256: 6f0bfc8bf8110b08131f995d2f01dccd0c1495b8982a3ef34b89efeccab2752f
+- path: agents-govern/skills/contribution-audit/SKILL.md
+  sha256: 4baeba30d5da30ce8a19aa0d0e6ec19b31cdee5316ad6918feff0214c8b90373
+- path: agents-govern/skills/health/SKILL.md
+  sha256: 46e8b6bb789606e71369b37a32e4c64a812a372bf7348e24cbc6cd0972e43b02
+- path: agents-govern/skills/infosec-screen/SKILL.md
+  sha256: c9ec1bcc89af9a8bf148cecb4f9455a3019e2f97aeb46a7a6cd8e84d390978dd
+- path: agents-govern/skills/learning/SKILL.md
+  sha256: d692537f19151e607f416e15291de059a2152907cb076878ed7a1b3e4b973673
+- path: agents-govern/skills/release/SKILL.md
+  sha256: 8bddb0d774fc2fe158bfae2020b780d9eca740038e600f70df4a2b8ea5fc9955
+- path: agents-govern/skills/upgrade/SKILL.md
+  sha256: 84a6148c10333fc0985b0ecd0684a1fe51658d4b1ca82bf63a49b538dbbd55d6
+- path: agf/agents/academic-peer-reviewer.yaml
+  sha256: 7cb83d04f2402e95c5c2c7fd078c8a9a6847192148fe2ecaa6adea20d676f798
+- path: agf/agents/academic-visual-reviewer.yaml
+  sha256: 151f39e2e5fdcf5eb906ab15a2ba130a83bb223acc60ffa6e1d60fb8a963e4df
+- path: agf/agents/build-engineer.yaml
+  sha256: aeb2cc445edf05b3ced967d58f1d5406e5311369eb7da32d208e5ca311b7ff9e
+- path: agf/agents/capability-developer.yaml
+  sha256: 6cab19b98d59a0012a18af0903c3e15d0d5a2c8cd106144925b7219186893d82
+- path: agf/agents/coder-tester.yaml
+  sha256: c9d1a9559644d8caea671c72f64657143456081a32691d504e59ed89ff25d5a1
+- path: agf/agents/contribution-auditor.yaml
+  sha256: 547f562b02617d959c1c3f2fc2369566b40d62be52ed9953c958469f90b9abe6
+- path: agf/agents/deployment-engineer.yaml
+  sha256: f162fc6c1864cac7f995b316b5c21fd2c7418a35a3070956f9e290f349896f16
+- path: agf/agents/documentation-writer.yaml
+  sha256: 7ca89452ef3cb80ab9e3cbfa4afabf2095ff58be675445e5fe89488c878fe324
+- path: agf/agents/fact-checker.yaml
+  sha256: 65993ceb706183232f8d14cfce822a8392721f281c727a938b639fcb680e0b63
+- path: agf/agents/governor-reviewer.yaml
+  sha256: 97fe35ed07a213d64c8ef567c6294602a1f21343fff5a9d7b6bbe18a781404da
+- path: agf/agents/independent-implementation-reviewer.yaml
+  sha256: 4e2835172222ff341a933650554990c7668fe50ffdc9cc9b17867a8e78f365e2
+- path: agf/agents/infosec-sentinel.yaml
+  sha256: 2af915314d141bf55d437a889116d8f02e64378c81ce6ab8ab1419e106cdfa38
+- path: agf/agents/planner-architect.yaml
+  sha256: c2b0735ccd87d7aab3b5ac47c1b979cebe01dac70085fc01b2d3219b9d1171cc
+- path: agf/agents/web-ux-reviewer.yaml
+  sha256: 913fef77e64b3cdc701f87e8b4d0ee9691672ae360bd61910a278b09860933c5
+- path: agf/docs/figures/src/agf-nutshell-flyer/build_flyer.py
+  sha256: f58ca8f3adabce1cefd9bb953870bd070af3d2752c8e2811686e56d902b46e29
+- path: agf/rules/README.md
+  sha256: dfe717639023edc4db7d35cc986ae0f91c098fdd6a0c3a4141cb381b923ef0f7
+- path: agf/rules/always/agent-improvement-proposal-rule.md
+  sha256: 9d22cbe223d4f20e64f3b391a3ad2c05ab1594fdc7b5d02c93f2bde4190b34cb
+- path: agf/rules/always/audit-log-completeness-rule.md
+  sha256: 8e5deec5b5e45105bcba7a72ed5b4bf0221592cb552dfa4b55a9589bfe76eefe
+- path: agf/rules/always/environment-interrogation-rule.md
+  sha256: 93d4dc9181e838ec2d28adf6ab83dd165a85ce1d29065bf89f62065fe6ec43ce
+- path: agf/rules/always/external-anonymization-rule.md
+  sha256: 94ddc068f91c658a03fe164eff48d3a79ad784eaf92a8b596450d95be4a48e1b
+- path: agf/rules/always/gate-self-test-rule.md
+  sha256: 3906f40551c3e6ac73728f085b61d98bbd61f540f3603d47bc23dad74b38ad85
+- path: agf/rules/always/governance-file-layout-rule.md
+  sha256: a62b2d0280439efededa564ce1f0c3864ac1464115d16bd36326965c6823a386
+- path: agf/rules/always/high-risk-operations-rule.md
+  sha256: e0d9dde080d3e28b13d01974ea8aad3c18ad84b8e6e969aefa00af190a5c3b0f
+- path: agf/rules/always/i18n-supported-locales-rule.md
+  sha256: fec4cfdfec739a80022c80d09db99b5f7cf0d771232265ee37d1c9544907ced4
+- path: agf/rules/always/tool-authority-boundary-rule.md
+  sha256: 3aa7d0bc8dfe9c414ea6a368a74bdb3414ef7013223e4fb34df0e2f1501e239f
+- path: agf/rules/always/uncertainty-and-scope-rule.md
+  sha256: 58c45d0d5ea2f203c8fc2b366b3c97758cf6b624f9ec2c993d66c82c8bb0617a
+- path: agf/rules/always/verifiable-claims-rule.md
+  sha256: 6e6a066266567edbee8267ddd0cfa9cb79f8425531582ebb9204031e82491ba6
+- path: agf/rules/docs/documentation-audience-rule.md
+  sha256: d5785074a6c391c324d5ed6fc1a0c16d56f5594c499bc47c71142fb324fbac30
+- path: agf/rules/docs/feature-flagged-docs-rule.md
+  sha256: 700a22a6ce4ce755b724e1529d5a8180e90db73a482d93147922a3d7e0ea04a9
+- path: agf/rules/docs/implementation-honesty-rule.md
+  sha256: 3851df3d58076943e1765517e93fce471a14c0e063061570cc4df5d7c1040f16
+- path: agf/rules/docs/marketing-tone-rule.md
+  sha256: 097c7ad8862ee16f4713a205b361ed256d1883e23326e7bbf82f6e657506a4c1
+- path: agf/rules/ui/accessibility-rule.md
+  sha256: 56d31327b934f3bf4e27fd8e45de4f2fc4b592bdee9954ffd48443a50306afdf
+- path: agf/rules/workflow/agent-proactive-analysis-rule.md
+  sha256: 4a69b1e0660ce5ab10c3f071c9d8f50043fadfc88619529ffe8f216cff8c791a
+- path: agf/rules/workflow/boundary-shape-testing-rule.md
+  sha256: f749186b12393358225281788242e25ce41ede7299c5fe982bd6685ed069bf02
+- path: agf/rules/workflow/branch-and-worktree-rule.md
+  sha256: 5f77c4b0652822e30819ff5e0e196258a957b4ad6a6bd0e0235def663331e1e1
+- path: agf/rules/workflow/ci-trigger-scoping-rule.md
+  sha256: e1d1edec68b11b19580d4b07541f6f3b1938ba6db4a32828f64562aef5f4c48a
+- path: agf/rules/workflow/commit-no-cursor-trailer.md
+  sha256: 14ed44baa788ca981644137979235e29ed8b265c7f211d8c9365ab02c525282b
+- path: agf/rules/workflow/concept-modelling-rule.md
+  sha256: a5a2d0c4469ada46648c7bbcb0acf4e5c21a60e45b0a8b7deb798c19a34587f0
+- path: agf/rules/workflow/coordination-id-rule.md
+  sha256: bb660cf5f1d8ed6b418312f08effaafd61a976001919de499a1e26bfa68b3a3f
+- path: agf/rules/workflow/coordination-publication-rule.md
+  sha256: 499f6211b9e44168e7577b70a6004556eb5aa5e12d5cb2c85ccffc106fa85880
+- path: agf/rules/workflow/debugging-rule.md
+  sha256: e28d2c6f1d5c871bd1fe0a1fd91e63209244f2c85fa14ba30c42de19c04ec19e
+- path: agf/rules/workflow/deputy-governor-rule.md
+  sha256: 1801c97d564e60490acb7715dc3209fdf55415cee0dc353fcc01cede8eafad6d
+- path: agf/rules/workflow/destructive-op-preflight-rule.md
+  sha256: d535ad2ea5af8293e6ece465a523c4b7836d1c9c1c6ad725bfffcc90c6b4d6e1
+- path: agf/rules/workflow/development-workflow-rule.md
+  sha256: 936486907ef101127c34054d7dc04b3ca2676e9b4f8226a0f87945a6c8cda9df
+- path: agf/rules/workflow/documentation-rule-projection-rule.md
+  sha256: 18e9fe0cf8fc13a50fac18dfd77d6a7f152f660793d0a6fa09b9735b1227a24c
+- path: agf/rules/workflow/feature-regression-guard-rule.md
+  sha256: 53b36d44c3f88d96e8b4556d3e0d1ecc294958942be86db11aed3a34c4ea7cec
+- path: agf/rules/workflow/file-generator-rule.md
+  sha256: 2ad19dbd295d2c1cdee36fb08c1aaea6b9920ac7479b1a0f3c15cbfaa5ca7d77
+- path: agf/rules/workflow/immutable-tags-rule.md
+  sha256: 71c5d0d99f2f3d43a4ae71e97f55dc7ce3889f1a96e9e64bd91ebe74839b5c6b
+- path: agf/rules/workflow/merge-request-description-rule.md
+  sha256: 22acc0497b72ce92b56222811c74772ec2471409b67af044091d4b25f21e5b3e
+- path: agf/rules/workflow/merge-request-workflow-rule.md
+  sha256: 7543f45226ba9d3485537a1e2710f029cc5edaf815ffbb40c5ff0e78f6399554
+- path: agf/rules/workflow/migration-generation-rule.md
+  sha256: ea9e55c3d3d4a6c19b639a3a569391a65e42f750fb6fb0cb2f6356528085e5bb
+- path: agf/rules/workflow/no-auto-package-update.md
+  sha256: f1f326796dee0ad81c80eca7718b2a9034b85799c7260b6c61a592a1d6a65d9f
+- path: agf/rules/workflow/release-via-merge-request-rule.md
+  sha256: e6701a4fb55109afe85d38f36ab8d0685bad67a3f669473a9f6cd35f8df9cc20
+- path: agf/rules/workflow/semver-no-carry-rule.md
+  sha256: 98c8082758f14b6499c8d2f30823a9a0e3bffa35f7ef01cf9b9681528d2cb68a
+- path: agf/rules/workflow/simplicity-rule.md
+  sha256: f04c10219ad19652932da90ac1b2bff07922783cd4ad9aacb010f3dabaae982f
+- path: agf/rules/workflow/systematic-code-review-rule.md
+  sha256: 49d94a28666b4d74fd79bb1e35542a587b444a75ab2fe2d58404aa121da60b6c
+- path: agf/rules/workflow/tdd-rule.md
+  sha256: 91be29c4083ae3a079efef8b86971be31509d85da9f8c6821535046316ac9543
+- path: agf/rules/workflow/testing-environments-rule.md
+  sha256: 80a71c00830dc2aacf8c0806b663119e8cf20517fb8aeb2f051f340399f10031
+- path: agf/rules/workflow/visible-artifact-verification-rule.md
+  sha256: 83909f1d137cbd9161f087fc2303735ef88680ad038ca978331e4c427e1f402b
+- path: agf/skills/README.md
+  sha256: b9e3b1829d6691daf5935c158352284fba5bb99cf2a8b8c2598bb40cb8ca612d
+- path: agf/skills/capability-review/SKILL.md
+  sha256: 97722c33a83e51c0d7755b4783a388b2f54dc4662a9d99ef56013f1d38f6ad21
+- path: agf/skills/contribution-audit/SKILL.md
+  sha256: 52e9169e42335db66fd09c78772e28c67b127e42fbe24d539fba349574befe20
+- path: agf/skills/health/SKILL.md
+  sha256: 540917d3dde4c9e493e25df44cd7962679b9ebf8eab95948e2d3916e2a7fa7a1
+- path: agf/skills/infosec-screen/SKILL.md
+  sha256: f319e99c67da86a53582e51cf24b0da1d6d7597882e17acc4ed0cd4978d9bb9f
+- path: agf/skills/learning/SKILL.md
+  sha256: d8c056ad338772b866ecc178c54335777964fa5ac9ffec7b2ce58b375b5e7183
+- path: agf/skills/release/SKILL.md
+  sha256: 98d2b1e2febcb6aac837dee23a48791d908c738b32a000f4e061deca634482a0
+- path: agf/skills/upgrade/SKILL.md
+  sha256: 8dc6f9bfcfafb0f752178af4e10b82867a1ececc4c240b17f7a841446e86521b
+excluded:
+- path: .claude/commands/capability-review.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/compact-agf.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/contribution-audit.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/health.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/infosec-screen.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/learning.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/release.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/commands/upgrade.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/README.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/audit-log-completeness-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/environment-interrogation-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/external-anonymization-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/gate-self-test-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/governance-file-layout-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/high-risk-operations-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/i18n-supported-locales-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/security-hardening-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/uncertainty-and-scope-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/always/verifiable-claims-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/docs/documentation-audience-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/docs/feature-flagged-docs-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/docs/implementation-honesty-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/docs/marketing-tone-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/ui/accessibility-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/agent-proactive-analysis-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/boundary-shape-testing-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/branch-and-worktree-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/ci-trigger-scoping-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/commit-no-cursor-trailer.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/concept-modelling-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/coordination-publication-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/debugging-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/deputy-governor-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/destructive-op-preflight-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/development-workflow-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/documentation-rule-projection-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/feature-regression-guard-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/file-generator-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/immutable-tags-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/merge-request-workflow-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/migration-generation-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/no-auto-package-update.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/release-via-merge-request-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/semver-no-carry-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/simplicity-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/systematic-code-review-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/tdd-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/testing-environments-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: .claude/rules/workflow/visible-artifact-verification-rule.md
+  reason: generated/vendor -- excluded pending qualified-counsel clearance (20260818T054511Z-governor-reviewer-1gaj)
+  source: inventory
+- path: LICENSES/LicenseRef-AgentsGovern-Commercial.txt
+  reason: licensing instrument, not Framework Content -- explicit post-inventory exclusion per governor decision 20260818T090855Z-governor-reviewer-7b2r
+  source: post-inventory-governor-decision
+  decision: 20260818T090855Z-governor-reviewer-7b2r
+corpus_set_digest: e0730e18716fe9b05ff4aeeb59b09c9e52ff1a97710c5054cc313ef9bc2ee479

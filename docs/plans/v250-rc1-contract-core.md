@@ -260,11 +260,28 @@ behavior, or callers.
 
 **(c) Historical cutoff — grandfather, do not backfill.** The new
 `--all-kinds` surface only considers records with a `timestamp` at or
-after this work package's own merge commit's date. The ~380 existing
-non-handoff `requires-ack: true` records are grandfathered — never appear
-in the new pending output, and are not retroactively reinterpreted. This
-directly avoids B2's "naive implementation would manufacture a very large
+after `2026-08-02T22:01:54Z`. The ~380 existing non-handoff
+`requires-ack: true` records are grandfathered — never appear in the new
+pending output, and are not retroactively reinterpreted. This directly
+avoids B2's "naive implementation would manufacture a very large
 historical pending queue."
+
+**Amendment (2026-08-02T22:01:54Z, governor-reviewer decision-record
+`20260802T220154Z-governor-reviewer-sejb`).** The clause originally read
+"this work package's own merge commit's date" — unimplementable pre-merge,
+since a commit cannot embed its own future merge timestamp. Two
+implementation attempts against that literal wording were correctly
+rejected (`20260802T193425Z-contribution-auditor-rtga.md` finding B2;
+renewed disposition `20260802T204834Z-contribution-auditor-ah7j.md`). The
+governor amended the clause to the fixed value above — the amendment
+decision-record's own timestamp — which is governed, known before
+implementation, and later than every pre-existing non-handoff
+`requires-ack: true` record at decision time, so it grandfathers that full
+set rather than narrowing it. See
+`20260802T210836Z-coder-tester-rmds.md` and
+`20260802T213118Z-coder-tester-d7tm.md` for the request and a math
+correction along the way (an earlier-timestamp option was proposed and
+retracted for inverting the grandfathering direction).
 
 ### Scope
 

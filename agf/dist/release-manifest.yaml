@@ -40,6 +40,12 @@ exclude:
   - agf/docs/site/reference/release-info.md
   - "**/__pycache__/**"
   - "**/*.pyc"
+  # This project's own live roster (issue #79, docs/plans/
+  # v250-rc1-contract-core.md). Shipping it collided with an adopter's own
+  # divergent agf/agents/MANIFEST.yaml on a plain archive re-extraction.
+  # agf/agents/MANIFEST.example.yaml (a neutral template, matched by the
+  # agf/agents/** include glob above) ships instead.
+  - agf/agents/MANIFEST.yaml
 
 forbidden:
   - .git/**

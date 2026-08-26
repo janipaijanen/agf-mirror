@@ -29,15 +29,15 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -76,6 +76,7 @@ nav:
       - 'Start':
           - Framework map: docs/start/framework-map.md
           - Should you adopt?: docs/start/should-you-adopt.md
+          - Commission AGF and AGOV: docs/start/commission.md
           - Adopter FAQ: docs/start/adopter-faq.md
       - 'Concepts':
           - AGF and agent runtimes: docs/concepts/position.md
@@ -92,6 +93,8 @@ nav:
           - Upgrade from v1 (agents-govern): docs/adopt/upgrade-from-v1.md
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
           - agov MCP server: docs/adopt/mcp-server.md
+          - Licensing: docs/adopt/licensing.md
+          - Commercial licensing: docs/adopt/commercial-licensing.md
           - Exit and decommission: docs/adopt/exit-and-decommission.md
       - 'Operate':
           - Operations runbook: docs/operate/runbook.md
@@ -113,4 +116,5 @@ nav:
       - Release information: reference/release-info.md
       - Disclaimer: reference/disclaimer.md
   - Contribute: contribute.md
+  - Influences and acknowledgements: acknowledgements.md
   - Evolution: future/evolution.md

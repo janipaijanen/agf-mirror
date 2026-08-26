@@ -1,9 +1,12 @@
 # Install the `agf/` directory
 
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: administrators and
-developers commissioning the framework with an AI assistant. After this page
-you have chosen the supported layout, asked the assistant to prepare the files,
-and reviewed the evidence.*
+developers who want the full layout, rule-customization, agent-definition,
+validator, and evidence reference. First-time commissioning starts at
+[commission AGF and AGOV](../start/commission.md) instead — it links back
+into this page for everything below. After this page you have chosen the
+supported layout, reviewed rule customization, adopted agent definitions,
+wired validators, and initialized your evidence.*
 
 ## Prerequisites
 
@@ -101,66 +104,14 @@ upgrade.
 
 ## Step 2: Commission the install with your assistant
 
-Do not turn installation into a manual copying exercise unless you have to.
-Ask your assistant to do the clerical work, then review the diff like any other
-change.
-
-Rule of thumb: let the AI act; make the human decide. The assistant should
-move files, create directories, install rules, and prepare skeleton evidence.
-The human reviews the diff, chooses the governor, accepts the codename, and
-owns risk-bearing rule choices.
-
-The prompt below tells the assistant to implement the layout you already chose
-above. It should not invent an alternative directory structure or treat its own
-output as approval.
-
-Paste this into your coding assistant:
-
-```text
-Commission AGF in this repository.
-
-Use the pinned AGF distribution I have made available in this repository,
-either as a release archive or an extracted `agf/` directory. Do not fetch
-or substitute a different version. Prepare the repository for a first
-governed change, but do not invent approvals or claim the framework is adopted
-until I review the diff.
-
-Create or update:
-- agf/ as the single framework directory
-- a small assistant loader file for this tool, if needed, that tells the
-  assistant to read the rules from agf/rules/
-- agf/learnings/<project-codename>.yaml from agf/templates/learning-record.yaml
-- docs/plans/
-- docs/coordination/
-
-Customize only the rule values that are obvious from this repository, such as
-test commands, migration commands, locale rules, and CI paths. Leave clear
-TODOs for anything that needs a human decision.
-
-After editing, show me:
-- files created or changed
-- CUSTOMIZE markers that remain
-- validation commands I should run
-- any decisions you need from the governor before the first governed change
-```
-
-The assistant should prepare the files and tell you what it changed. You still
-own the decision to adopt, the codename, the governor assignment, and any local
-rule choices that affect risk.
-
-Expected AI output:
-
-- `agf/` present as the only framework-owned directory;
-- `agf/learnings/<project-codename>.yaml` prepared from the learning template;
-- `docs/plans/` and `docs/coordination/` created for project-owned evidence;
-- a tiny tool-specific loader created only if your assistant needs one;
-- no copied `agf/rules/` tree under `.claude/rules/`, `.cursor/rules/`, or an
-  equivalent tool directory;
-- a short report listing changed files, remaining `CUSTOMIZE` markers, and
-  decisions still needed from the governor.
+The commissioning prompt lives on one page:
+[commission AGF and AGOV](../start/commission.md). That page covers both the
+AGF layout and the optional AGOV binary, and branches correctly for a new or
+existing project. Use it, then return here for Step 3 onward.
 
 If you are working without an assistant, copy the distribution manually into
-the visible `agf/` directory and then follow the same review checklist.
+the visible `agf/` directory and then follow the Step 3 review checklist
+below.
 
 ## Step 3: Review the prepared layout
 
@@ -209,11 +160,12 @@ roles only when the work warrants them — the
 model, and the shipped raw reference at `agf/docs/reference/quick-reference.md`
 lists which phase each role belongs to.
 
-The manifest file currently present in `agf/agents/MANIFEST.yaml` is the
-AGF-NG/foundry dogfooding manifest. Treat it as an example of role-status
-tracking, not as an adopter-ready roster. Before wiring manifest-driven
-tooling, create or document your own local role-status authority and point
-tooling at it explicitly.
+The shipped archive contains `agf/agents/MANIFEST.example.yaml`, a neutral
+template — not an adopter-ready roster. Copy it to `agf/agents/MANIFEST.yaml`
+and edit each role's `status` and `played_by` before wiring manifest-driven
+tooling (`agov` only ever reads `agf/agents/MANIFEST.yaml`, or the path set
+by `AGOV_MANIFEST_PATH`; it never falls back to the example file). See
+`ADOPTING.md` §1.3 for the full procedure.
 
 Minimum commissioning matrix:
 
@@ -222,6 +174,7 @@ Minimum commissioning matrix:
 | Solo trial | `coder-tester`, `governor-reviewer` | Human governor checks plans and merges; use fast track only when criteria fit |
 | Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` | `contribution-auditor` and `infosec-sentinel` are consulted for non-trivial plans |
 | CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed | CI runs validators; security-sensitive changes require explicit evidence |
+| Independent-review project | Standard or CI-conscious roles plus active `independent-implementation-reviewer`, named per non-trivial Gate 2 candidate | A session/model distinct from the implementer must review the exact head before Gate 2 on named changes |
 
 Assistant tools and automation runtimes are execution surfaces. They do not
 become AGF approval authorities unless a human governor explicitly changes the

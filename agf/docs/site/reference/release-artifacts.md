@@ -67,21 +67,28 @@ v2.4.8 or later for a complete release surface.
 | `dist/agov-X.Y.Z-linux-x86_64.tar.gz` | Mandatory Rust `agov` tooling archive for Linux x86_64 |
 | `dist/agov-X.Y.Z-linux-x86_64.tar.gz.sha256` | Tooling archive SHA-256 checksum |
 | `dist/agov-X.Y.Z-linux-x86_64.tar.gz-provenance.json` | Tooling archive provenance |
-| `dist/agov-X.Y.Z-linux-aarch64.tar.gz` | Mandatory Rust `agov` tooling archive for Linux arm64 |
-| `dist/agov-X.Y.Z-linux-aarch64.tar.gz.sha256` | Tooling archive SHA-256 checksum |
-| `dist/agov-X.Y.Z-linux-aarch64.tar.gz-provenance.json` | Tooling archive provenance |
 | `dist/agov-X.Y.Z-windows-x86_64.zip` | Optional manual-preview Rust `agov` tooling archive for Windows x64; not a mandatory tag-release asset |
 | `dist/agov-X.Y.Z-windows-x86_64.zip.sha256` | Optional Windows preview checksum |
 | `dist/agov-X.Y.Z-windows-x86_64.zip-provenance.json` | Optional Windows preview provenance |
 | `dist/agov-oci-X.Y.Z-provenance.json` | Provenance for the published `agov` container image |
 
 Tooling archive filenames use a short public platform slug
-(`linux-x86_64`, `linux-aarch64`, `windows-x86_64`). The provenance
-record's `target_platform` field keeps the full Rust target triple
-(`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`,
-`x86_64-pc-windows-gnu`) — the filename identifies the platform for a
-person downloading; the record identifies the exact build target for a
-verifier.
+(`linux-x86_64`, `windows-x86_64`). The provenance record's
+`target_platform` field keeps the full Rust target triple
+(`x86_64-unknown-linux-musl`, `x86_64-pc-windows-gnu`) — the filename
+identifies the platform for a person downloading; the record identifies
+the exact build target for a verifier.
+
+Linux arm64 (`aarch64-unknown-linux-musl`, published as `linux-aarch64`
+on releases v2.4.7 through v2.5.0-rc.2, and on `v2.5.0` itself as the
+exact metadata-only promotion of that same RC2 candidate under
+temporary provisioned runner capacity) is not currently built for
+releases derived from current `main`. The cross-compilation step
+requires more disk than the project's current shared CI runner tier
+provides; it will resume once CI runner capacity for this target is
+sponsored. Adopters needing arm64 Linux tooling in the meantime can
+build `agov` and `agov-mcp` from source for
+`aarch64-unknown-linux-musl` (or `aarch64-unknown-linux-gnu`).
 
 ### The unified release-provenance contract
 

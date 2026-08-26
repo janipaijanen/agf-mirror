@@ -45,6 +45,20 @@ threshold for text — use them for fills and strokes only, always paired
 with a dark label (`#1A1A1A`, ~10.1:1 on `blue-light` and ~10.8:1 on
 `grey-light` — both well clear of the 4.5:1 AA normal-text threshold).
 
+### Documentation theme pairings
+
+The Pages theme uses the governed palette without inventing a theme-only
+colour. MkDocs Material's slate background is
+`hsl(225deg 15% 14%)`, which resolves to `#1E2129` in the Material CSS shipped
+by the current build. The theme checker reads these rows and enforces the
+4.5:1 WCAG AA normal-text threshold.
+
+| Theme pairing | Foreground | Background | Measured contrast | Use |
+|---|---|---|---|---|
+| Light/dark primary chrome text | `#FFFFFF` | `blue-mid` `#0077BB` | 4.82:1 ✓ AA text | Header and primary hero action |
+| Light-theme accent | `blue-mid` `#0077BB` | `#FFFFFF` | 4.82:1 ✓ AA text | Links, focus, secondary action |
+| Dark-theme accent | `blue-light` `#99CCEE` | Material slate `#1E2129` | 9.37:1 ✓ AA text | Links, focus, secondary action |
+
 ## Usage rules
 
 1. Use `blue-mid` for primary structural elements (agents, gates,

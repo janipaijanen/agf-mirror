@@ -88,6 +88,19 @@ pub fn manifest_path() -> PathBuf {
         .unwrap_or_else(|| repo_root().join("agf").join("agents").join("MANIFEST.yaml"))
 }
 
+/// Resolve the commissioned agf/ tree's own VERSION file, if present.
+///
+/// Returns `None` if `agf/VERSION` does not exist -- absence is not a
+/// defect, since not every tree `agov` runs against is an AGF-adopted
+/// tree with a commissioned version (e.g. this repo itself, or a
+/// non-adopted project being inspected).
+pub fn commissioned_version() -> Option<String> {
+    std::fs::read_to_string(repo_root().join("agf").join("VERSION"))
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

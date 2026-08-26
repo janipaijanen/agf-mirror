@@ -2,6 +2,12 @@
 
 *Status: Released. Audience: operators and AI assistants responsible for advancing already-authorized work. A poll is complete only when all shared surfaces were checked and the highest-priority obligation was advanced, monitored, or concretely blocked.*
 
+**Shared surface** means repository/worktree state, published
+coordination records, and forge issues/MRs/pipelines — anything visible
+to concurrent AI assistants or operators sharing one repository. The
+term is used as shorthand for that set throughout this page and the
+`poll-and-coordinate` skill that operationalizes it.
+
 ## One complete cycle
 
 1. Record last-seen coordination IDs, timestamps, branch SHAs, pipeline IDs,
@@ -21,6 +27,17 @@
    `agov coord list --since <UTC timestamp>` may be used when the installed
    release exposes it. Check `agov coord list --help` rather than assuming
    version parity. `coord watch` is not a shipped command.
+
+   Run `agov coord pending` every cycle when the installed release exposes
+   it — it is the only surface that reports unresolved non-`handoff`
+   `requires-ack: true` records (claim, review, note, decision-record,
+   fast-track-waiver, lesson-proposal). Neither `session resume` nor
+   `coord graph-index` reports this class; skipping this command risks
+   missing an obligation none of the other listed commands surface.
+   `handoff` obligations remain `agov coord graph-index`'s and `agov
+   handoff next`'s surface, unchanged. The command only *reports* pending
+   obligations — a later coordination record's direct `references-to` is
+   what resolves one, not the `pending` command itself.
 4. Inspect every relevant change request/MR: source and target SHA, draft and
    merge state, approvals, exact-head pipeline and jobs, discussions, and
    comments/notes.
@@ -28,6 +45,35 @@
    issue comments.
 6. Classify new items by urgency, current gate, role authority, ownership, and
    whether they create a downstream obligation.
+
+### Common pitfalls (both cause a poll to look complete while missing real work)
+
+- **Reading a stale local checkout instead of the fetched ref.**
+  `git fetch --prune origin` updates only remote-tracking refs; it does
+  not update a persistent working directory's checked-out files. A
+  local-file tool (`agov coord status`, `agov coord pending`, etc.) run
+  from that persistent checkout after a fetch still reads whatever
+  branch and commit the checkout happens to be on — which may be
+  unrelated to, or older than, what was just fetched. Run local-file
+  governance checks from a freshly created, detached, disposable
+  worktree checked out at the fetched ref for that cycle — never assume
+  a fetch alone is sufficient, and never `git reset --hard` an existing
+  checkout to catch up, since a reset can silently discard uncommitted
+  work on a checkout that cycle did not create. Remove the disposable
+  worktree once the cycle's local-file checks are done.
+- **Trusting a default-paginated MR/issue listing.** Many CLI tools
+  (e.g. `glab mr list`) cap results at a default page size (commonly 30)
+  with no truncation warning. Combined with sorting by recency and only
+  looking at the first few rows, this is structurally blind to a large,
+  slow-moving backlog — exactly the shape a stale-MR backlog takes.
+  Always fetch the true total count (an explicit large `--per-page`, or
+  `--paginate` against the API) before concluding "nothing new," and
+  never substitute a recency-sorted slice for a full count.
+- **Triggering a duplicate pipeline against an unchanged head.** Before
+  triggering or waiting on CI for an MR, check whether a pipeline already
+  exists for the exact same source SHA and reuse or wait on that one.
+  Retriggering against an unchanged head burns paid CI minutes for no new
+  evidence.
 7. Act inside the current gate. Split independent work into non-overlapping
    ownership, communicate material progress, and publish validated handoffs or
    blockers where the recipient can see them.
