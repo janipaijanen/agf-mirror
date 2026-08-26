@@ -1,9 +1,9 @@
 ---
 id: issue109-runner-fleet-phasing
-status: pending-gate1
+status: approved
 topic: issue109-proxmox-runner-fleet-phasing
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-26T15:11:24Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -69,6 +69,12 @@ or provisioning before a binding governor decision").
 This is a Gate 1 plan only. It does not authorize implementation beyond
 Phase B, approve any later phase's Gate, merge, release, tag, or deploy
 anything.
+
+**Gate 1 status: approved, Phase B only** — governor decision
+`20260826T151124Z-governor-reviewer-g1i1.md`. The frontmatter's
+`status: approved` reflects this Phase-B-scoped approval; Phases A, C,
+and D remain unauthorized pending their own future Gate 1 submissions,
+exactly as this section already states.
 
 ## Problem and evidence boundary
 
