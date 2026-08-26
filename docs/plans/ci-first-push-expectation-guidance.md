@@ -3,7 +3,7 @@ id: ci-first-push-expectation-guidance
 status: approved
 topic: ci-first-push-expectation-guidance
 gate1_approved_by: governor-reviewer
-gate1_approved_at: "2026-08-02T08:11:41Z"
+gate1_approved_at: "2026-08-26T15:17:49Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -24,6 +24,17 @@ advisory_consultation:
 # Plan: make the first-push duplicate-pipeline race unsurprising
 
 **Tracking issue:** GitLab #53
+
+**Gate 1 correction (2026-08-26).** Coder-tester's exact-head review
+`20260823T181554Z-coder-tester-d14n.md` (finding `CFG-G1-AUTH-1`)
+correctly found no coordination record backing this plan's original
+`gate1_approved_at: "2026-08-02T08:11:41Z"` claim. A fresh binding Gate 1
+decision, `20260826T151749Z-governor-reviewer-g1cf.md`, supersedes it —
+the timestamp above now reflects that fresh decision, not the original
+unevidenced one. Independent review `gmn7`'s two implementation findings
+(`CFG-R1` PREVENTIVE classification + three-circle impact statement,
+`CFG-R2` reconciliation with current `main`) remain open follow-up work,
+tracked separately from Gate 1 authority.
 
 ## Intent
 
