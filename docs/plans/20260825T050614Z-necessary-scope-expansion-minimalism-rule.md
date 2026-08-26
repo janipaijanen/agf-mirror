@@ -1,9 +1,9 @@
 ---
 id: necessary-scope-expansion-minimalism-rule
-status: pending-gate1
+status: approved
 topic: necessary-scope-expansion-minimalism-rule
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-26T15:11:23Z"
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
