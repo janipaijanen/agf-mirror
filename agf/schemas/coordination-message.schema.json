@@ -99,6 +99,128 @@
         "do_not_touch": { "type": "array", "items": { "type": "string" } }
       },
       "additionalProperties": false
+    },
+    "convergence": {
+      "type": "object",
+      "required": ["series_id", "event", "invariant_ids"],
+      "properties": {
+        "series_id": {
+          "type": "string",
+          "pattern": "^([0-9A-HJKMNP-TV-Z]{26}|[0-9]{8}T[0-9]{6}Z-[a-z0-9][a-z0-9-]*-[a-z0-9]{4,6}|[A-Za-z0-9][A-Za-z0-9._:-]{3,127})$"
+        },
+        "event": {
+          "type": "string",
+          "enum": ["candidate", "targeted-review", "abstraction-reset", "governor-disposition"]
+        },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "invariant_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "candidate_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "scope_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*//).+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "scope_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "candidate_event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "enum": ["clear", "block", "advisory"]
+        },
+        "materiality_basis": {
+          "type": "string",
+          "enum": [
+            "mandatory-acceptance-criterion",
+            "security-privacy-integrity-boundary",
+            "compatibility-operator-safety-promise",
+            "required-governed-artifact"
+          ]
+        },
+        "authority_ref": { "type": "string", "minLength": 1 },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "disposition": {
+          "type": "string",
+          "enum": ["redesign", "accept", "rescope", "defer", "stop"]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "event": { "const": "candidate" } }, "required": ["event"] },
+          "then": {
+            "required": ["attempt", "candidate_sha", "scope_paths", "scope_digest"]
+          }
+        },
+        {
+          "if": { "properties": { "event": { "const": "targeted-review" } }, "required": ["event"] },
+          "then": {
+            "required": ["attempt", "candidate_sha", "scope_paths", "scope_digest", "candidate_event", "outcome"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": { "const": "targeted-review" },
+              "outcome": { "const": "block" }
+            },
+            "required": ["event", "outcome"]
+          },
+          "then": {
+            "required": ["materiality_basis", "authority_ref", "evidence_refs"]
+          }
+        },
+        {
+          "if": { "properties": { "event": { "const": "abstraction-reset" } }, "required": ["event"] },
+          "then": {
+            "required": ["disposition"],
+            "properties": {
+              "disposition": { "enum": ["redesign", "accept", "defer", "stop"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": { "const": "abstraction-reset" },
+              "disposition": { "enum": ["accept", "defer", "stop"] }
+            },
+            "required": ["event", "disposition"]
+          },
+          "then": { "required": ["authority_ref"] }
+        },
+        {
+          "if": { "properties": { "event": { "const": "governor-disposition" } }, "required": ["event"] },
+          "then": {
+            "required": ["disposition", "authority_ref"],
+            "properties": {
+              "disposition": { "enum": ["accept", "rescope", "defer", "stop"] }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
     }
   },
   "allOf": [
