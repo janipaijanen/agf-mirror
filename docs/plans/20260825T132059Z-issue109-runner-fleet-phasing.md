@@ -106,14 +106,18 @@ Human-Governor-led, outside this plan's authority.
 total execution order. A (hardware acquisition, Human-Governor-led) and
 B (Podman rootless feasibility reproduction) are independent lanes —
 neither depends on the other, and this plan authorizes B now precisely
-because it requires no purchased host. C requires A's provisioned host.
-D requires both B's accepted feasibility evidence and C's provisioned
-trust classes. Concretely: A and B may proceed in either order or in
-parallel; C cannot start before A completes; D cannot start before both
-B and C have independent acceptance evidence. Approving B here does not
-imply, authorize, or schedule A, C, or D — each still requires its own
-future Gate 1 submission naming its own exact scope, evidence, and
-rollback.
+because it requires no purchased host. C requires the host acquired
+under A — A authorizes acquisition only; provisioning that host remains
+Phase C's exclusive scope (per coder-tester rereview `gbgj`, finding
+B-I109-R2-1, correcting round 2's imprecise "A's provisioned host"
+wording, which would have reintroduced the scope leakage this
+dependency correction exists to remove). D requires both B's accepted
+feasibility evidence and C's provisioned trust classes. Concretely: A
+and B may proceed in either order or in parallel; C cannot start before
+A completes; D cannot start before both B and C have independent
+acceptance evidence. Approving B here does not imply, authorize, or
+schedule A, C, or D — each still requires its own future Gate 1
+submission naming its own exact scope, evidence, and rollback.
 
 **This plan authorizes Phase B's execution once approved.** Phases A, C,
 and D each require a separate future Gate 1 plan.
@@ -150,12 +154,18 @@ the same stop-and-authorize path as any other new paid or externally
 hosted resource.
 
 **What it produces (extended per coder-tester exact-head review `rbkh`,
-finding B-I109-4):** a single written feasibility record, checked into
-`docs/plans/` as a dated Phase B evidence appendix (the durable evidence
-carrier — not a coordination completion, which is not designed to hold
-this much pinned technical detail), containing enough pinned inputs to
-be reproducible from the record alone and useful for future host
-capacity/cost sizing:
+finding B-I109-4; evidence carrier corrected per coder-tester rereview
+`gbgj`, finding B-I109-R2-3):** a single written feasibility record,
+checked into `docs/reviews/issue109-phase-b-feasibility.md` (the
+durable non-plan evidence carrier — not `docs/plans/`, since
+`.gitlab-ci.yml` sends every changed `docs/plans/*.md` file through
+`agov plan validate`, and a technical completion report is neither a
+new Gate 1 plan nor a mutation of this approved plan's exact head; and
+not a coordination completion, which is not designed to hold this much
+pinned technical detail), containing enough pinned inputs to be
+reproducible from the record alone and useful for future host
+capacity/cost sizing. Phase B execution pairs this report with a
+concise coordination completion record that points to it once finished:
 
 - Pinned inputs: exact Podman version, exact `cross` version, the exact
   source revision built, the Rust toolchain version, host OS/kernel and
@@ -185,9 +195,11 @@ registration, any change to project CI variables or protected refs.
 ## Affected files
 
 - New: this plan file only, for Gate 1.
-- Phase B execution (once approved) produces a feasibility record under
-  `docs/plans/` as a dated appendix or follow-up note — no code, schema,
-  or CI file changes.
+- Phase B execution (once approved) produces a feasibility record at
+  `docs/reviews/issue109-phase-b-feasibility.md` (corrected per
+  coder-tester rereview `gbgj`, finding B-I109-R2-3 — not `docs/plans/`)
+  plus a concise coordination completion pointing to it — no code,
+  schema, or CI file changes.
 - No `.gitlab-ci.yml` change in this plan or in Phase B.
 
 ## Migration needed
@@ -213,17 +225,22 @@ cannot silently narrow issue #109's own requirement list:
 Commissioning handoff `6msk` requires measurable acceptance and stop
 conditions for seven named checks, plus issue #109's own requirement
 that hosted GitLab evidence remain available for independent
-corroboration. Every one is allocated to an owning phase below so none
-can silently disappear from a future phase's own Gate 1 plan; each
-future phase plan must define the actual measurable entry/exit evidence
-for the checks it owns — this table only allocates ownership, it does
-not itself supply that evidence.
+corroboration, plus (per coder-tester rereview `gbgj`, finding
+B-I109-R2-2) issue #109 discovery slice 4's explicit requirements for
+per-trust-class VM sizing and network egress control, which round 2's
+matrix omitted despite claiming completeness. Every one is allocated to
+an owning phase below so none can silently disappear from a future
+phase's own Gate 1 plan; each future phase plan must define the actual
+measurable entry/exit evidence for the checks it owns — this table only
+allocates ownership, it does not itself supply that evidence.
 
 | Commissioned check (source: `6msk`, issue #109) | Owning phase | Entry/exit evidence (defined by that phase's own future Gate 1 plan) |
 |---|---|---|
 | Clean-VM Podman cross-build equivalence | B (this plan) | Phase B's feasibility record, per the extended evidence contract above |
 | Power/storage economics | A | Phase A's Gate 1 plan must name the host's power draw, storage capacity, and ongoing cost before purchase |
 | VM isolation | C | Phase C's Gate 1 plan must define the trust-class VM isolation boundary and its verification |
+| Per-trust-class VM sizing (issue #109 discovery slice 4) | C | Phase C's Gate 1 plan must define measurable sizing rationale (CPU/RAM/disk) per trust class |
+| Network egress control (issue #109 discovery slice 4) | C | Phase C's Gate 1 plan must define egress isolation/control evidence per trust class before provisioning is accepted |
 | Cache and token containment | C | Phase C's Gate 1 plan must define how build caches and registration tokens are scoped and rotated per trust class |
 | Backup/rebuild | C | Phase C's Gate 1 plan must define VM snapshot/rebuild procedure and its test |
 | (monitoring and disk cleanup, implied by C's operational scope) | C | Phase C's Gate 1 plan must define ongoing host/VM monitoring and disk-cleanup procedure |
@@ -310,3 +327,20 @@ consolidated revision:
   a binding governor disposition is requested for infosec-sentinel
   (whose only current player is CI, incapable of the human-judgment
   threat-model review this plan needs).
+
+**Round 3**, addressing coder-tester rereview
+`20260826T060411Z-coder-tester-gbgj` at prior exact head `2a536309`,
+three blocking findings, all resolved in this one consolidated
+revision:
+
+- `B-I109-R2-1`: corrected "C requires A's provisioned host" to "C
+  requires the host acquired under A" — Phase A authorizes acquisition
+  only; provisioning stays exclusively Phase C's scope.
+- `B-I109-R2-2`: added per-trust-class VM sizing and network egress
+  control (issue #109 discovery slice 4) to the requirements-to-phase
+  matrix, both allocated to Phase C — round 2's matrix omitted them
+  despite claiming completeness.
+- `B-I109-R2-3`: moved the Phase B evidence carrier from `docs/plans/`
+  (the Gate 1 plan surface, validated by CI as a plan file) to
+  `docs/reviews/issue109-phase-b-feasibility.md`, paired with a concise
+  coordination completion pointing to it once Phase B finishes.
