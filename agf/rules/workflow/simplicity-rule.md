@@ -56,6 +56,68 @@ every surface — only the ones a given change actually affects.
    workflow overhead to task size" below). Planning must be adequate,
    not ceremonially large.
 
+### Necessary scope-estimate correction
+
+An approved plan's file list is an impact estimate and a control
+boundary — not a promise that no other file can ever be touched. This
+path applies only to work already governed by an approved, full Gate 1
+plan whose own file list is the boundary in question. It does not apply
+to either of this rule's existing fast paths: the fast-track waiver
+elsewhere in this rule (which already requires stopping and writing a full plan the
+moment work grows beyond its lighter process) or the sources/radar
+research-maintenance fast path (whose own disqualifier list already
+requires stopping before committing expanded scope and returning to
+ordinary Gate 1). Neither fast path gains a new self-approval route
+from this subsection — their existing stop-and-return-to-Gate-1
+conditions are unchanged. When work already in progress under an
+approved full Gate 1 plan discovers that the approved outcome cannot be
+completed correctly without touching a file outside that list, classify
+the discovery before acting:
+
+1. **Necessary correction.** An existing invariant, mandatory test, or
+   required integration surface proves — with objective, checkable
+   evidence (a failing test, a violated invariant, an audit that
+   demonstrably cannot pass) — that the approved outcome is incomplete
+   without the additional file. State the intent and the evidence,
+   request the smallest necessary expansion through the authority the
+   governing gate still reserves, and apply only the minimum change
+   once that authority responds. Do not wait for a full new Gate 1
+   planning cycle or a retrospective to make the correction — the
+   request itself is the lightweight artifact; a single scope-
+   clarification handoff, not a new plan file, is normally sufficient.
+   An agent may not label its own desired change "necessary" and skip
+   the request: the classification requires evidence a reviewer can
+   independently check, and applying the correction still requires a
+   decision-record from the authority the plan already names, never
+   the same agent's own say-so.
+2. **Optional expansion.** Cleanup, redesign, convenience refactoring,
+   or added capability that is not required to complete the approved
+   outcome remains out of scope regardless of how adjacent or
+   beneficial it looks. It follows normal planning — a fresh plan, or
+   an explicit amendment to the current one — not this path.
+3. **Material expansion.** Any change to the approved outcome,
+   interfaces, architecture, dependencies, authority, security or
+   privacy posture, cost, release scope, or other governed commitment
+   is never a "necessary correction," no matter how small the diff.
+   Material expansion stops work and returns to full Gate 1 review.
+   This path grants no exception to `deputy-governor-rule.md`'s red
+   list — a necessary correction that would touch a red-list area is
+   automatically material and stops here.
+4. **Learning after stabilization.** Once the correction is applied and
+   validated, record — proportionate to the miss, not ceremonially —
+   what the original impact estimate missed, where the gap was caught,
+   and one concrete improvement to future impact assessment. This
+   record follows the correction; it must never block it. A miss that
+   recurs across more than one plan should be promoted to the project's
+   governed learning channel rather than re-documented locally each
+   time.
+
+The default is deny: absent objective evidence and a decision-record
+from the authority the current gate already reserves, an out-of-list
+file stays out of scope. This subsection narrows how small an approved
+scope may still grow without a new Gate 1 cycle — it does not widen who
+may approve that growth.
+
 ## The Simplicity Test
 
 Before proposing any design, implementation, or abstraction, ask:
