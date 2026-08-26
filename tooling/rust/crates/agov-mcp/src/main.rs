@@ -35,9 +35,13 @@ const PROTOCOL_VERSION: &str = "2025-06-18";
 /// Comfortably larger than any real coordination message, plan file, or
 /// tool-call payload this project produces, while still bounding
 /// worst-case memory for a hostile or corrupted delimiter-free stream.
-/// This count does not include the trailing `\n`/`\r\n` itself — the
-/// newline byte is consumed from the stream but never appended to the
-/// line buffer or counted against the cap.
+/// This count does not include the terminating `\n` itself — it is
+/// consumed from the stream but never appended to the line buffer or
+/// counted against the cap. A CRLF line ending's `\r` is ordinary
+/// payload from this reader's point of view: it IS appended to the
+/// line buffer and IS counted against the cap, like any other byte
+/// before the `\n` (per `A-MR806-G2-1`; JSON's own grammar treats `\r`
+/// as insignificant whitespace, so this has no effect on parsing).
 const MAX_REQUEST_LINE_BYTES: usize = 8 * 1024 * 1024;
 
 // Kept as one contiguous string so release CI can verify provenance in the
@@ -266,7 +270,9 @@ struct ValidRequest<'a> {
 
 /// Validate `raw` against the JSON-RPC 2.0 / MCP request contract:
 /// `jsonrpc` must be exactly `"2.0"`; `method` must be present and a
-/// string; `params`, if present and non-null, must be an object or array;
+/// string; `params`, if present, must be an object or array (an explicit
+/// `null` is present, not absent, and is rejected the same as any other
+/// non-Structured value);
 /// `id`, if present, must be a string or a non-fractional number (an
 /// explicit `null` id, a boolean, an array, an object, or a fractional
 /// number are all invalid shapes — B3). Absence of the `id` key (not the
@@ -286,8 +292,12 @@ fn validate_request(raw: &Value) -> Result<ValidRequest<'_>, ()> {
     };
 
     match obj.get("params") {
-        None | Some(Value::Null) => {}
+        None => {}
         Some(Value::Object(_)) | Some(Value::Array(_)) => {}
+        // JSON-RPC 2.0 §4: if present, params MUST be a Structured value
+        // (Object or Array). An explicit `null` is present, not absent,
+        // and is not itself a Structured value -- reject it the same as
+        // a string/number/boolean, per B-MR806-G2-1.
         Some(_) => return Err(()),
     }
 
@@ -646,9 +656,14 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             Ok(cli)
         }
         "agov_coord_visibility" => {
+            // B-MR806-G2-2: the frozen Gate 1 contract specifies `branch`
+            // as a single string, not the CLI's repeatable array -- match
+            // the approved interface exactly rather than silently
+            // widening it. One string still maps to one `--branch` flag,
+            // which the CLI's Vec<String> accepts.
             let mut cli = vec!["coord".to_string(), "visibility".to_string()];
             push_optional_flag(args, "base_branch", "--base-branch", &mut cli)?;
-            push_repeated_flag(args, "branch", "--branch", &mut cli)?;
+            push_optional_flag(args, "branch", "--branch", &mut cli)?;
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
             push_optional_flag(args, "format", "--format", &mut cli)?;
             Ok(cli)
@@ -960,7 +975,7 @@ fn tools() -> Vec<Value> {
                 "type": "object",
                 "properties": {
                     "base_branch": { "type": "string" },
-                    "branch": { "type": "array", "items": { "type": "string" } },
+                    "branch": { "type": "string" },
                     "dir": { "type": "string" },
                     "format": { "type": "string", "enum": ["text", "json"] }
                 }
@@ -1462,7 +1477,9 @@ mod tests {
     #[test]
     fn params_must_be_structured_when_present() {
         let agov = dummy_agov();
-        for params_json in [r#""a string""#, "42", "true"] {
+        // B-MR806-G2-1: explicit `params: null` is present, not absent,
+        // and is not itself a Structured value -- must be rejected.
+        for params_json in [r#""a string""#, "42", "true", "null"] {
             let line = format!(
                 r#"{{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{params_json}}}"#
             );
@@ -1512,6 +1529,36 @@ mod tests {
         let line = read_line_from(&stream).unwrap();
         assert_eq!(line.len(), MAX_REQUEST_LINE_BYTES);
         assert_eq!(line, payload);
+    }
+
+    /// `A-MR806-G2-1`: a CRLF line ending's `\r` is ordinary payload --
+    /// retained in the returned line and counted against the cap, unlike
+    /// `\n`. A short CRLF line proves retention; an exactly-at-cap CRLF
+    /// line (content one byte short of the cap, so the `\r` itself lands
+    /// exactly on the boundary) proves it counts.
+    #[test]
+    fn bounded_line_read_retains_and_counts_crlf_carriage_return() {
+        let line = read_line_from(b"hello\r\n").unwrap();
+        assert_eq!(line, b"hello\r");
+
+        let content = vec![b'a'; MAX_REQUEST_LINE_BYTES - 1];
+        let mut stream = content.clone();
+        stream.push(b'\r');
+        stream.push(b'\n');
+        let line = read_line_from(&stream).unwrap();
+        assert_eq!(line.len(), MAX_REQUEST_LINE_BYTES);
+        assert_eq!(line.last(), Some(&b'\r'));
+
+        // One more content byte before the CRLF pushes the `\r` itself
+        // over the cap.
+        let mut oversized_stream = vec![b'a'; MAX_REQUEST_LINE_BYTES];
+        oversized_stream.push(b'\r');
+        oversized_stream.push(b'\n');
+        let mut cursor = std::io::Cursor::new(oversized_stream.as_slice());
+        assert!(matches!(
+            read_bounded_line(&mut cursor).unwrap(),
+            Some(BoundedLine::Oversized)
+        ));
     }
 
     #[test]

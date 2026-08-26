@@ -398,8 +398,18 @@ printf '\n'
         ),
         (
             "agov_coord_visibility",
-            json!({ "base_branch": "main", "branch": ["a", "b"], "format": "json" }),
-            "mock agov: [coord] [visibility] [--base-branch] [main] [--branch] [a] [--branch] [b] [--format] [json]\n",
+            json!({ "base_branch": "main", "branch": "a", "format": "json" }),
+            "mock agov: [coord] [visibility] [--base-branch] [main] [--branch] [a] [--format] [json]\n",
+        ),
+        (
+            "agov_coord_stale",
+            json!({ "dir": "docs/coordination" }),
+            "mock agov: [coord] [stale] [--dir] [docs/coordination]\n",
+        ),
+        (
+            "agov_coord_graph_index",
+            json!({ "dir": "docs/coordination" }),
+            "mock agov: [coord] [graph-index] [--dir] [docs/coordination]\n",
         ),
         (
             "agov_coord_publication_check",
@@ -629,4 +639,227 @@ fn stdio_server_fails_at_startup_when_agov_is_unresolvable() {
     assert!(stderr.contains("AGOV_MCP_AGOV_BIN"));
     assert!(stderr.contains("agov on PATH"));
     assert!(stderr.contains("cargo on PATH"));
+}
+
+fn build_real_agov_bin() -> std::path::PathBuf {
+    let test_exe = std::env::current_exe().unwrap();
+    let profile_dir = test_exe.parent().unwrap().parent().unwrap().to_path_buf();
+    let is_release = profile_dir
+        .file_name()
+        .is_some_and(|name| name == "release");
+    let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let mut build = Command::new(env!("CARGO"));
+    build.args(["build", "--quiet", "-p", "agov"]);
+    if is_release {
+        build.arg("--release");
+    }
+    let status = build.current_dir(&workspace_root).status().unwrap();
+    assert!(status.success(), "cargo build -p agov failed");
+    let bin = profile_dir.join("agov");
+    assert!(bin.is_file());
+    bin
+}
+
+fn workspace_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../..")
+}
+
+/// Item 12 (B-MR806-G2-3): the same input through the CLI and through the
+/// MCP tool call must produce the same output, for each of the six newly
+/// added tools -- against the real compiled `agov` binary, not a mock.
+///
+/// `status`/`visibility`/`stale`/`graph-index` run against a small,
+/// isolated fixture directory rather than the live `docs/coordination/`:
+/// this repository is actively written to by other concurrent sessions,
+/// so two separate process invocations a moment apart can legitimately
+/// observe different real state (a race, not a CLI/MCP divergence) --
+/// and `graph-index`'s edge list has no documented stable ordering
+/// guarantee across separate process runs even for identical input,
+/// which a two-file fixture with exactly one edge sidesteps entirely.
+/// `publication-check` and `brief` don't depend on `docs/coordination/`
+/// file contents (git history and pure generation, respectively), so
+/// they run against the real repository.
+#[test]
+fn real_cli_and_mcp_produce_equivalent_output_for_all_six_new_tools() {
+    let agov_bin = build_real_agov_bin();
+    let root = workspace_root();
+
+    let run_cli = |args: &[&str], cwd: &std::path::Path| -> String {
+        let output = Command::new(&agov_bin)
+            .args(args)
+            .current_dir(cwd)
+            .output()
+            .unwrap();
+        String::from_utf8_lossy(&output.stdout).to_string()
+    };
+
+    let run_mcp = |name: &str, arguments: Value, cwd: &std::path::Path| -> String {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+            .env("AGOV_MCP_AGOV_BIN", &agov_bin)
+            .current_dir(cwd)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        writeln!(
+            child.stdin.as_mut().unwrap(),
+            "{}",
+            json!({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": { "name": name, "arguments": arguments }
+            })
+        )
+        .unwrap();
+        drop(child.stdin.take());
+        let output = child.wait_with_output().unwrap();
+        let response: Value = serde_json::from_slice(&output.stdout).unwrap();
+        // Deliberately not asserting `isError == false`: a real-state
+        // read may legitimately exit non-zero (e.g. `coord stale`
+        // finding a genuine stale claim). `structuredContent.stdout` is
+        // the underlying command's real stdout regardless of exit
+        // status -- the equivalence claim is about stdout content.
+        response["result"]["structuredContent"]["stdout"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{name}: no structuredContent.stdout in {response}"))
+            .to_string()
+    };
+
+    // Isolated, two-file fixture: fixed content, one cross-reference (so
+    // `graph-index` has exactly one edge -- no ordering ambiguity).
+    let fixture = tempfile::tempdir().unwrap();
+    let coord_dir = fixture.path().join("docs").join("coordination");
+    std::fs::create_dir_all(&coord_dir).unwrap();
+    std::fs::write(
+        coord_dir.join("20260101T000000Z-coder-tester-fix1.md"),
+        "---\nkind: note\nfrom: coder-tester\nto: governor-reviewer\nid: 20260101T000000Z-coder-tester-fix1\nimmutable: true\nreferences-to: []\nrequires-ack: false\ntimestamp: 2026-01-01T00:00:00Z\ntopic: equivalence-fixture\n---\n\n# Fixture one\n",
+    )
+    .unwrap();
+    std::fs::write(
+        coord_dir.join("20260101T000100Z-governor-reviewer-fix2.md"),
+        "---\nkind: note\nfrom: governor-reviewer\nto: coder-tester\nid: 20260101T000100Z-governor-reviewer-fix2\nimmutable: true\nreferences-to:\n  - 20260101T000000Z-coder-tester-fix1\nrequires-ack: false\ntimestamp: 2026-01-01T00:01:00Z\ntopic: equivalence-fixture-response\n---\n\n# Fixture two, references fixture one\n",
+    )
+    .unwrap();
+    let coord_dir_str = coord_dir.to_str().unwrap();
+
+    let isolated_cases: &[(&str, Vec<&str>, Value)] = &[
+        (
+            "agov_coord_status",
+            vec!["coord", "status", "--dir", coord_dir_str, "--recent", "3"],
+            json!({ "dir": coord_dir_str, "recent": 3 }),
+        ),
+        (
+            "agov_coord_stale",
+            vec!["coord", "stale", "--dir", coord_dir_str],
+            json!({ "dir": coord_dir_str }),
+        ),
+        (
+            "agov_coord_graph_index",
+            vec!["coord", "graph-index", "--dir", coord_dir_str],
+            json!({ "dir": coord_dir_str }),
+        ),
+    ];
+    for (name, cli_args, mcp_arguments) in isolated_cases {
+        let cli_stdout = run_cli(cli_args, fixture.path());
+        let mcp_stdout = run_mcp(name, mcp_arguments.clone(), fixture.path());
+        assert_eq!(
+            cli_stdout, mcp_stdout,
+            "{name}: CLI and MCP output diverged"
+        );
+    }
+
+    // `visibility` additionally needs a real git repository (it enumerates
+    // branches); run it against the actual workspace checkout, but keep
+    // the risk of a concurrent-write race low by requesting only local,
+    // already-fetched ref state rather than triggering a fetch.
+    let cli_stdout = run_cli(
+        &[
+            "coord",
+            "visibility",
+            "--base-branch",
+            "main",
+            "--dir",
+            "docs/coordination",
+            "--format",
+            "text",
+        ],
+        &root,
+    );
+    let mcp_stdout = run_mcp(
+        "agov_coord_visibility",
+        json!({ "base_branch": "main", "dir": "docs/coordination", "format": "text" }),
+        &root,
+    );
+    assert_eq!(
+        cli_stdout, mcp_stdout,
+        "agov_coord_visibility: CLI and MCP output diverged"
+    );
+
+    // `publication-check` depends only on git commit history for the
+    // already-fetched `origin/main`, not on `docs/coordination/` file
+    // contents or any hash-ordered collection -- safe against the real
+    // repository.
+    let cli_stdout = run_cli(
+        &[
+            "coord",
+            "publication-check",
+            "--base-ref",
+            "origin/main",
+            "--dir",
+            "docs/coordination",
+        ],
+        &root,
+    );
+    let mcp_stdout = run_mcp(
+        "agov_coord_publication_check",
+        json!({ "base_ref": "origin/main", "dir": "docs/coordination" }),
+        &root,
+    );
+    assert_eq!(
+        cli_stdout, mcp_stdout,
+        "agov_coord_publication_check: CLI and MCP output diverged"
+    );
+
+    // `agov_coord_brief` generates a fresh id/timestamp on every
+    // invocation, so CLI and MCP calls cannot be byte-identical -- compare
+    // structurally instead: same echoed from/to/kind/topic fields.
+    let brief_args = [
+        "coord",
+        "brief",
+        "--from",
+        "coder-tester",
+        "--to",
+        "governor-reviewer",
+        "--kind",
+        "note",
+        "--topic",
+        "cli-mcp-equivalence-check",
+    ];
+    let cli_brief = run_cli(&brief_args, &root);
+    let mcp_brief = run_mcp(
+        "agov_coord_brief",
+        json!({
+            "from": "coder-tester",
+            "to": "governor-reviewer",
+            "kind": "note",
+            "topic": "cli-mcp-equivalence-check"
+        }),
+        &root,
+    );
+    for field in [
+        "from: coder-tester",
+        "to: governor-reviewer",
+        "kind: note",
+        "topic: cli-mcp-equivalence-check",
+    ] {
+        assert!(
+            cli_brief.contains(field),
+            "CLI brief output missing {field}: {cli_brief}"
+        );
+        assert!(
+            mcp_brief.contains(field),
+            "MCP brief output missing {field}: {mcp_brief}"
+        );
+    }
 }
