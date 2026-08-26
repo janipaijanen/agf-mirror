@@ -8,24 +8,40 @@ advisory_consultation:
   - role: contribution-auditor
     status: waived
     reason: >-
-      Single-agent Gate 1 planning session; no contribution-auditor
-      available to consult directly at plan-filing time. Review is
-      explicitly requested via a coordination handoff filed alongside
-      this plan. The main risk this review should verify: that no phase
-      grants itself authority to acquire hardware, provision
-      infrastructure, or change CI ahead of its own dedicated Gate 1,
-      per issue #109's explicit non-goals.
+      Round 2 correction (per coder-tester exact-head review `rbkh`,
+      finding B-I109-5): round 1's claim that a contribution-auditor
+      handoff had "already been requested via a coordination handoff
+      filed alongside this plan" was false — no such handoff existed.
+      A genuine request is now filed alongside this correction
+      (`20260826T055434Z-planner-architect-i9ca`, see coordination channel).
+      `status` stays `waived` only because the schema's enum has no
+      `pending`/`requested` value and no response has returned yet; this
+      is a provisional filing-time placeholder, not a final Gate 1
+      disposition — Gate 1 approval must not proceed while this still
+      reads `waived` for single-agent unavailability. The main risk this
+      review should verify: that no phase grants itself authority to
+      acquire hardware, provision infrastructure, or change CI ahead of
+      its own dedicated Gate 1, per issue #109's explicit non-goals.
   - role: infosec-sentinel
     status: waived
     reason: >-
-      Single-agent Gate 1 planning session; infosec-sentinel not
-      available to consult directly at plan-filing time. Review is
-      explicitly requested via the same coordination handoff. The main
-      risk this review should verify: that the runner trust-class
-      boundary (unprivileged / protected-ephemeral / hosted-retained)
-      and the threat-model checklist in Phase C are sufficient before
-      any privileged or secret-bearing job is ever scheduled on
-      self-managed infrastructure.
+      Round 2 correction (per coder-tester exact-head review `rbkh`,
+      finding B-I109-5): the current infosec-sentinel player is CI only
+      (`agov validate infosec`, per `agf/agents/MANIFEST.yaml`), which
+      enforces mechanical checks but cannot return the human-judgment
+      self-hosted-runner threat-model review this plan actually needs. A
+      green governance job is not that consultation. A binding governor
+      disposition is requested (see the coordination request filed
+      alongside this correction) to either activate an appropriate
+      advisory reviewer, waive this Phase B plan's consultation while
+      reserving mandatory review for Phase C, or accept another named
+      evidence path. `status` stays `waived` as a provisional
+      placeholder until that binding disposition is recorded and cited
+      here by reference. The main risk this review should verify: that
+      the runner trust-class boundary (unprivileged / protected-
+      ephemeral / hosted-retained) and the threat-model checklist in
+      Phase C are sufficient before any privileged or secret-bearing job
+      is ever scheduled on self-managed infrastructure.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -85,11 +101,19 @@ Human-Governor-led, outside this plan's authority.
 | C | Proxmox provisioning + runner trust classes | Installing Proxmox on the Phase A host, defining and provisioning the three trust classes issue #109 names (unprivileged/secret-free; protected/ephemeral packaging; hosted-retained release evidence), completing the Phase C threat model | Snapshot/rebuild or destroy the VMs; the Proxmox host reverts to unprovisioned; no `.gitlab-ci.yml` change has happened yet |
 | D | CI migration | Incrementally repointing named jobs from `docker:dind` to the Phase C runner classes, one job at a time, with hosted GitLab runners retained as the default until each swap has independent acceptance evidence | Revert the specific job's `tags:`/`services:` back to the prior hosted configuration; `docker:dind` definitions stay in the file, unused, until the whole migration is accepted |
 
-Phases run in this order because each later phase depends on the
-previous phase's evidence (C needs A's host; D needs both B's technical
-feasibility proof and C's provisioned trust classes). A phase's approval
-does not pre-approve the next phase — each requires its own Gate 1
-submission naming its own exact scope, evidence, and rollback.
+**Actual dependency graph (corrected per coder-tester exact-head review
+`rbkh`, finding B-I109-1):** the phase letters A-B-C-D are labels, not a
+total execution order. A (hardware acquisition, Human-Governor-led) and
+B (Podman rootless feasibility reproduction) are independent lanes —
+neither depends on the other, and this plan authorizes B now precisely
+because it requires no purchased host. C requires A's provisioned host.
+D requires both B's accepted feasibility evidence and C's provisioned
+trust classes. Concretely: A and B may proceed in either order or in
+parallel; C cannot start before A completes; D cannot start before both
+B and C have independent acceptance evidence. Approving B here does not
+imply, authorize, or schedule A, C, or D — each still requires its own
+future Gate 1 submission naming its own exact scope, evidence, and
+rollback.
 
 **This plan authorizes Phase B's execution once approved.** Phases A, C,
 and D each require a separate future Gate 1 plan.
@@ -107,22 +131,52 @@ same substitution if time and evidence quality allow; if Windows
 reproduction fails or is skipped, that is an explicit finding for the
 Phase D plan, not a Phase B blocker.
 
-**Where it runs:** Any available rootless-Podman-capable Linux
-environment reachable today — a disposable local VM, container, or cloud
-sandbox. Explicitly not the Phase A host (not yet purchased) and not a
-runner registered against this project's GitLab instance. No CI
-configuration changes; no runner registration; no project credentials
-beyond what a normal local build already needs (source checkout only —
-no protected CI variables).
+**Where it runs (bounded per coder-tester exact-head review `rbkh`,
+finding B-I109-3):** an already-available, no-additional-cost,
+non-production, disposable rootless-Podman-capable Linux environment
+under the operator's existing authority — a local VM or container on
+already-owned/already-provisioned hardware. Explicitly not the Phase A
+host (not yet purchased) and not a runner registered against this
+project's GitLab instance. Uses only public source and public
+dependencies; no project secrets or protected CI variables. Any of the
+following stops Phase B and requires separate authority before
+proceeding: creating a new account of any kind, provisioning or paying
+for external compute or storage, using a protected CI variable or any
+project credential beyond an ordinary local source checkout, using a
+private/paid dependency credential, or retaining a produced artifact
+outside this repository's own `docs/plans/` or coordination channel. A
+"cloud sandbox" is not a default option under this plan — it requires
+the same stop-and-authorize path as any other new paid or externally
+hosted resource.
 
-**What it produces:** A written feasibility record (a coordination
-completion or a short report checked into `docs/plans/` as a Phase B
-evidence appendix) stating: exact Podman version, exact `cross`
-version, exact command sequence, pass/fail per target
-(`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, and
-Windows if attempted), and any deviation from the Option D evidence
-already on record. This record is the acceptance evidence Phase C and D
-plans will cite — it does not itself authorize either.
+**What it produces (extended per coder-tester exact-head review `rbkh`,
+finding B-I109-4):** a single written feasibility record, checked into
+`docs/plans/` as a dated Phase B evidence appendix (the durable evidence
+carrier — not a coordination completion, which is not designed to hold
+this much pinned technical detail), containing enough pinned inputs to
+be reproducible from the record alone and useful for future host
+capacity/cost sizing:
+
+- Pinned inputs: exact Podman version, exact `cross` version, the exact
+  source revision built, the Rust toolchain version, host OS/kernel and
+  CPU architecture, the rootless-Podman configuration used, the
+  container image identity/digest pulled, and any environment variable
+  overrides from the committed `.rust-tooling-package` defaults.
+- Exact command sequence run, pass/fail per target
+  (`x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, and
+  Windows if attempted), and produced-artifact checks (e.g. checksums)
+  confirming the build output matches expectation.
+- Resource and time observations: wall-clock build time and peak
+  disk/RAM usage per target, with the measurement method and its known
+  limits stated (this reproduction environment's numbers are indicative
+  for future host sizing, not a controlled benchmark).
+- Explicit comparison against the Option D baseline evidence already on
+  record (`6tj3`, `es1p`), and any deviation from it.
+- Full failure logs for any target that fails, not merely a fail
+  marker.
+
+This record is the acceptance evidence Phase C and D plans will cite —
+it does not itself authorize either.
 
 **Explicitly out of scope for Phase B:** any hardware purchase, any
 Proxmox installation, any `.gitlab-ci.yml` edit, any GitLab runner
@@ -154,6 +208,29 @@ cannot silently narrow issue #109's own requirement list:
 - No personal AI credentials, developer SSH keys, or general-purpose PATs
   in any runner VM (issue #109's explicit hard constraint).
 
+## Requirements-to-phase matrix (added per coder-tester exact-head review `rbkh`, finding B-I109-2)
+
+Commissioning handoff `6msk` requires measurable acceptance and stop
+conditions for seven named checks, plus issue #109's own requirement
+that hosted GitLab evidence remain available for independent
+corroboration. Every one is allocated to an owning phase below so none
+can silently disappear from a future phase's own Gate 1 plan; each
+future phase plan must define the actual measurable entry/exit evidence
+for the checks it owns — this table only allocates ownership, it does
+not itself supply that evidence.
+
+| Commissioned check (source: `6msk`, issue #109) | Owning phase | Entry/exit evidence (defined by that phase's own future Gate 1 plan) |
+|---|---|---|
+| Clean-VM Podman cross-build equivalence | B (this plan) | Phase B's feasibility record, per the extended evidence contract above |
+| Power/storage economics | A | Phase A's Gate 1 plan must name the host's power draw, storage capacity, and ongoing cost before purchase |
+| VM isolation | C | Phase C's Gate 1 plan must define the trust-class VM isolation boundary and its verification |
+| Cache and token containment | C | Phase C's Gate 1 plan must define how build caches and registration tokens are scoped and rotated per trust class |
+| Backup/rebuild | C | Phase C's Gate 1 plan must define VM snapshot/rebuild procedure and its test |
+| (monitoring and disk cleanup, implied by C's operational scope) | C | Phase C's Gate 1 plan must define ongoing host/VM monitoring and disk-cleanup procedure |
+| Runner tags/protected-ref routing | D | Phase D's Gate 1 plan must define per-job tag/protected-ref routing before any job migrates |
+| Hosted-minute savings | D | Phase D's Gate 1 plan must define how savings are measured per migrated job |
+| Retained hosted-GitLab corroboration for release/security evidence | D | Phase D's Gate 1 plan must confirm hosted runners stay available for independent corroboration and rollback per migrated job, per issue #109's own requirement |
+
 ## Acceptance matrix
 
 | Phase | Reviewable question | Fails when |
@@ -161,6 +238,7 @@ cannot silently narrow issue #109's own requirement list:
 | B (this plan's scope) | Does the feasibility record name exact tool versions, exact commands, and a pass/fail per target, reproducible from the record alone? | Any target's result is asserted without the record, or the record silently reuses Option D's original evidence instead of a fresh reproduction |
 | Phase boundary (all) | Does any phase's execution touch a later phase's authorized scope (e.g., Phase B touching CI config, Phase C purchasing hardware)? | Yes — this plan is violated even if the touched action is individually reasonable |
 | Rollback (all) | Is the stated reversal for this phase actually sufficient to return to the pre-phase state with no residual CI, secret, or infrastructure exposure? | The rollback column above is wrong or incomplete for a phase once that phase is actually planned in detail |
+| Requirements allocation (all) | Does every check in the requirements-to-phase matrix above still have an owning phase in that phase's own future Gate 1 plan? | A future phase plan omits a check the matrix allocated to it, without an explicit, reasoned reallocation |
 
 ## Downstream impact classification (`downstream-impact-rule.md`)
 
@@ -203,3 +281,32 @@ approach is abandoned, no system state exists to unwind — discard the
 disposable reproduction environment. If the phase structure itself is
 later found wrong, a superseding plan replaces it; this plan is not
 self-implementing beyond Phase B.
+
+## Revision history
+
+**Round 2** (this correction), addressing coder-tester exact-head
+review `20260826T053324Z-coder-tester-rbkh` at prior exact head
+`f49a953e`, five blocking findings, all resolved in this one
+consolidated revision:
+
+- `B-I109-1`: replaced the contradictory total order (A->B->C->D) with
+  the actual dependency graph — A and B are independent lanes; C
+  requires A; D requires accepted B and C evidence.
+- `B-I109-2`: added the requirements-to-phase matrix allocating every
+  commissioned acceptance/stop condition from `6msk` and issue #109 to
+  an owning phase.
+- `B-I109-3`: bounded Phase B's execution environment and cost to an
+  already-available, no-additional-cost, non-production, disposable
+  environment under existing authority; named the specific triggers
+  (new account, paid resource, protected variable, private credential,
+  externally retained artifact) that stop for separate authority.
+- `B-I109-4`: extended the Phase B evidence contract with pinned
+  reproducibility inputs, resource/time observations, an explicit
+  Option D comparison, and a chosen durable evidence carrier
+  (`docs/plans/`, not a coordination completion).
+- `B-I109-5`: corrected the false round-1 claim that a contribution-
+  auditor/infosec handoff had already been filed; a genuine
+  contribution-auditor request is filed alongside this correction, and
+  a binding governor disposition is requested for infosec-sentinel
+  (whose only current player is CI, incapable of the human-judgment
+  threat-model review this plan needs).
