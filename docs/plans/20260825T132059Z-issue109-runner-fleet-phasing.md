@@ -6,51 +6,49 @@ gate1_approved_by: ""
 gate1_approved_at: ""
 advisory_consultation:
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      Round 2 correction (per coder-tester exact-head review `rbkh`,
-      finding B-I109-5): round 1's claim that a contribution-auditor
-      handoff had "already been requested via a coordination handoff
-      filed alongside this plan" was false — no such handoff existed.
-      A genuine request is now filed alongside this correction
-      (`20260826T055434Z-planner-architect-i9ca`, see coordination channel).
-      `status` stays `waived` because no genuinely independent response
-      has returned. A disclosed-self-review contribution-audit
-      (`20260826T101641Z-contribution-auditor-i9cv.md`) has since been
-      published, CLEAR on every finding within contribution-auditor's
-      technical scope — but per the same standard applied in the sibling
-      `ci-history-1-job-local-full-history` and
-      `necessary-scope-expansion-minimalism-rule` plans, a disclosed
-      self-review (same underlying model as this plan's author,
-      explicitly authorized and flagged as such by the Human Governor)
-      does not satisfy the independent-consultation bar this field
-      represents, so `status` correctly stays `waived` rather than
-      `consulted`. Gate 1 approval must not proceed on this field alone;
-      status becomes `consulted` only when a response from a genuinely
-      different reviewer actually returns. The main risk any such review
-      should verify: that no phase grants itself authority to acquire
-      hardware, provision infrastructure, or change CI ahead of its own
-      dedicated Gate 1, per issue #109's explicit non-goals.
+      Round 4 correction: an isolated, fresh Claude session with no prior
+      context of this plan or its authorship independently reviewed it —
+      invoked under governor decision `6srq`'s same-LLM-family
+      isolated-session fallback (Codex was disqualified as material
+      co-author of the corrections under review). That review,
+      `20260826T112936Z-contribution-auditor-b3n8.md`, found 0 blocking
+      and 1 non-blocking advisory finding (the infosec-sentinel entry
+      below was stale relative to the governor's already-published
+      waiver `2jq3`, now corrected) — CLEAR on Phase B's own scope. It
+      explicitly disclosed itself as context-isolation independence, not
+      cross-vendor independence. Round 2's disclosed same-session
+      self-review (`20260826T101641Z-contribution-auditor-i9cv.md`)
+      alone was correctly held insufficient to satisfy this field;
+      `b3n8` is a meaningfully more independent pass (fresh context,
+      formed its findings before reading any prior review) and is
+      treated as satisfying the consultation requirement for Gate 1
+      purposes.
   - role: infosec-sentinel
     status: waived
     reason: >-
-      Round 2 correction (per coder-tester exact-head review `rbkh`,
-      finding B-I109-5): the current infosec-sentinel player is CI only
-      (`agov validate infosec`, per `agf/agents/MANIFEST.yaml`), which
-      enforces mechanical checks but cannot return the human-judgment
-      self-hosted-runner threat-model review this plan actually needs. A
-      green governance job is not that consultation. A binding governor
-      disposition is requested (see the coordination request filed
-      alongside this correction) to either activate an appropriate
-      advisory reviewer, waive this Phase B plan's consultation while
-      reserving mandatory review for Phase C, or accept another named
-      evidence path. `status` stays `waived` as a provisional
-      placeholder until that binding disposition is recorded and cited
-      here by reference. The main risk this review should verify: that
-      the runner trust-class boundary (unprivileged / protected-
-      ephemeral / hosted-retained) and the threat-model checklist in
-      Phase C are sufficient before any privileged or secret-bearing job
-      is ever scheduled on self-managed infrastructure.
+      Round 4 correction, per independent contribution-audit
+      `20260826T112936Z-contribution-auditor-b3n8.md`, finding
+      `A-B3N8-1`: the round-2 reason text described the governor
+      disposition as still outstanding, but governor decision
+      `20260826T111710Z-governor-reviewer-2jq3.md` — published after
+      round 2's exact head — already approves a narrow waiver of the
+      separate human-judgment infosec consultation for this Phase B plan
+      specifically, conditioned on Phase B remaining bounded to
+      read-only local feasibility work (exactly what this plan's Phase B
+      section already defines). `status` stays `waived`, now correctly
+      citing `2jq3` as the binding authority rather than describing the
+      disposition as still pending. `2jq3` explicitly does not waive the
+      mechanical infosec-sentinel CI validation, and explicitly requires
+      a named independent human or advisory infosec review — covering
+      runner trust classes, protected-ref rules, privilege/secret
+      exposure, cache boundaries, credential/token rotation, network
+      egress, snapshot/rebuild, and untrusted/trusted workload
+      separation — before Phase C's own Gate 1 can be approved or any
+      provisioning begins. That Phase C review remains a fully open,
+      separate future obligation; this plan's own scope (Phase B only)
+      is fully covered by `2jq3`'s narrow waiver.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -353,3 +351,16 @@ revision:
   (the Gate 1 plan surface, validated by CI as a plan file) to
   `docs/reviews/issue109-phase-b-feasibility.md`, paired with a concise
   coordination completion pointing to it once Phase B finishes.
+
+**Round 4**, per the Human Governor's request (`hh1q`) for a genuinely
+more independent pass: an isolated fresh Claude session (no prior
+context of this plan) independently reviewed it and published
+`20260826T112936Z-contribution-auditor-b3n8.md` — CLEAR on Phase B's own
+scope, 0 blocking, 1 non-blocking advisory (`A-B3N8-1`: the
+infosec-sentinel frontmatter was stale relative to governor decision
+`2jq3`, published after round 2's exact head and already resolving the
+outstanding infosec disposition this plan's Phase B needs). Both
+`contribution-auditor.status` (now `consulted`, citing `b3n8`) and
+`infosec-sentinel`'s reason (now citing `2jq3`'s narrow waiver instead
+of describing it as pending) are corrected. No plan-text change beyond
+the frontmatter.
