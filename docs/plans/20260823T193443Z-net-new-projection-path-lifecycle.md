@@ -1,6 +1,8 @@
 ---
 id: net-new-projection-path-lifecycle
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-24T20:35:40Z"
 topic: net-new-projection-path-lifecycle
 advisory_consultation:
   - role: contribution-auditor
