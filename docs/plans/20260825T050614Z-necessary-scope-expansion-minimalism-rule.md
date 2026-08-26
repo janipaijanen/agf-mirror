@@ -14,18 +14,24 @@ advisory_consultation:
       — no such handoff existed. A genuine contribution-auditor review
       request is now filed alongside this correction
       (`20260826T055026Z-planner-architect-nseq`).
-      `status` stays `waived` only because the schema's enum has no
-      `pending`/`requested` value and no response has returned yet; this
-      is a provisional filing-time placeholder, not a final Gate 1
-      disposition. Gate 1 approval must not proceed while this still
-      reads `waived` for single-agent unavailability — the response must
-      either flip this to `consulted` with the response cited, or the
-      governor must issue a binding waiver decision-record cited here in
-      its place. The main risk this review should verify: that
-      "necessary correction" is bounded tightly enough that it cannot be
-      read as a general self-approval path for scope growth, consistent
-      with the governor handoff (`trms`) that commissioned this plan
-      explicitly warning against exactly that reading.
+      `status` stays `waived` because no genuinely independent response
+      has returned. A disclosed-self-review contribution-audit
+      (`20260826T101446Z-contribution-auditor-nsev.md`) has since been
+      published, CLEAR on all findings — but per the same standard
+      applied in the sibling `ci-history-1-job-local-full-history` plan,
+      a disclosed self-review (same underlying model as this plan's
+      author, explicitly authorized and flagged as such by the Human
+      Governor) does not satisfy the independent-consultation bar this
+      field represents, so `status` correctly stays `waived` rather than
+      `consulted`. Status must become `consulted` only when a response
+      from a genuinely different reviewer — human or a different LLM
+      session — actually returns, or the governor issues a binding
+      waiver decision-record cited here in its place. The main risk any
+      such review should verify: that "necessary correction" is bounded
+      tightly enough that it cannot be read as a general self-approval
+      path for scope growth, consistent with the governor handoff
+      (`trms`) that commissioned this plan explicitly warning against
+      exactly that reading.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
