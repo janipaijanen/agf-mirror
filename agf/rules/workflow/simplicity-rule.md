@@ -11,6 +11,51 @@ provenance: verified-agf-v2
 Complexity is the primary source of bugs, maintenance cost, and unreadable code.
 Every addition of complexity requires justification. Simplicity does not.
 
+## Minimum sufficient value
+
+Plan first, then say, build, and deliver the smallest complete solution
+that meets the approved requirements and quality standard. Remove
+unnecessary wording, scope, states, abstractions, options, process, and
+delay. Do not remove meaning, correctness, safety, evidence,
+maintainability, uncertainty, or required user value.
+
+**Completeness across affected value surfaces:** The smallest solution
+is complete only when every materially affected value surface has an
+explicit disposition. Relevant surfaces include product behavior and
+necessary development, end-user and adopter documentation, truthful
+public or marketing explanation and discoverability, `agov` and other
+operator-tooling quality, tests and maintainability, and release or
+operational readiness. A surface may be omitted only when it is not
+affected or when an authorized plan explicitly defers it. Simplicity
+must not shift avoidable complexity, risk, or missing information to
+users, adopters, operators, or later work. Not every change must touch
+every surface — only the ones a given change actually affects.
+
+1. **Communication:** Use the shortest clear wording that preserves
+   necessary meaning. Remove jargon, repetition, and decorative detail.
+   Do not omit material facts, constraints, uncertainty, or required
+   actions.
+2. **Implementation:** Implement the simplest solution that fully meets
+   the approved requirements. Remove unnecessary states, abstractions,
+   options, and special cases. Do not simplify away correctness,
+   safety, evidence, or required behavior. (See "The over-engineering
+   warning signs" below for concrete signals.)
+3. **Delivery:** Deliver the smallest complete solution that meets the
+   approved quality requirements. Remove unnecessary scope, process,
+   abstraction, and delay. Do not remove correctness, safety, evidence,
+   maintainability, or required user value.
+4. **Planning before work:** Before starting new work, confirm that
+   planning proportional to its scope and risk has been recorded and
+   any required approval obtained. If no suitable plan exists, record
+   one first. A full plan states the outcome, scope and exclusions,
+   acceptance checks, authority and gates, owner, material risks or
+   dependencies, and simplest sufficient approach. Eligible fast-track
+   work may use a compact pre-work note stating the outcome, bounded
+   scope, acceptance check, and why the lighter path is sufficient;
+   repeat the waiver in the later commit message (see "Calibrating
+   workflow overhead to task size" below). Planning must be adequate,
+   not ceremonially large.
+
 ## The Simplicity Test
 
 Before proposing any design, implementation, or abstraction, ask:

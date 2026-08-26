@@ -26,7 +26,16 @@ project:
 
 adoption:
   framework_id: "agf"
-  framework_version: "2.0.0-provisional"
+  # checkout_role: live -- this is foundry's own, currently-maintained
+  # adoption record (issue #112). framework_version corrected below to
+  # match agf/VERSION per governor decision 20260824T142545Z-governor-
+  # reviewer-kqm3.md, which accepts the prior "2.0.0-provisional" ->
+  # "2.6.1" gap as a historical, disclosed, unreviewed jump -- not a
+  # claim that a retroactive changelog review occurred. See
+  # docs/plans/20260823T203540Z-adoption-version-drift-check.md's
+  # "One-time reconciliation" procedure.
+  checkout_role: live
+  framework_version: "2.6.1"
   framework_commit: ""
   agent_definitions:
     - id: "agf:planner-architect"
@@ -3856,6 +3865,92 @@ learnings:
         - "MR !1847 pipelines 2786892973 and 2786959838: commercial-corpus validation failed because the depth-20 clone lacked the comparison base while the candidate was twenty commits ahead; the plan content remained byte-identical across the rebase."
         - "MR !2002 and pipeline 2786979557: permanent full-history CI proposal began without authority for the broader recurring-cost change; contribution-auditor review 20260824T202150Z-contribution-auditor-5g74 blocked it and directed a content-identical squash of !1847."
         - "MR !2003 at exact head 17070f1c344fe7c6c658333dd0725045d5324411: green Gate 1 plan proposal for bounded review convergence, mandatory abstraction reset, and closed materiality categories."
+
+
+  - id: "20260825T081353Z-oty0"
+    date: "2026-08-25"
+    category: gap
+    scope: framework
+    title: gate1-cli-impact-assessment-missed-a-cross-crate-completeness-inventory
+    status: proposed
+    description: >
+      The approved review-convergence Gate 1 plan
+      (`docs/plans/20260824T201645Z-review-convergence-abstraction-reset.md`)
+      correctly named `tooling/rust/crates/agov/src/main.rs` as the CLI
+      implementation surface for the new `agov coord convergence --series`
+      command, but its impact assessment omitted
+      `tooling/rust/crates/agov-core/src/roi.rs`. That file owns an
+      exhaustive command-token and long-flag inventory enforced against the
+      live Clap tree by a mandatory redaction-parity test
+      (`roi_redaction_audit_matches_real_clap_surface`), so the new command
+      and `--series` flag left that audit failing until two matching
+      inventory entries were added.
+
+      The gap was caught by the full workspace test suite during
+      implementation (coder-tester, MR !2041), not by the original Gate 1
+      impact assessment. Coder-tester stopped, published the exact one-file,
+      two-entry correction with objective evidence
+      (`20260825T044258Z-coder-tester-5djr`), and governor approved the
+      minimum necessary addition
+      (`20260825T045829Z-governor-reviewer-mtms`) before it was applied; the
+      audit now passes. The immediate defect is already corrected. What
+      remains open is the process gap: Gate 1 impact assessment traced the
+      new surface by product-ownership decomposition (parser, schema, tests,
+      rule, docs) but did not trace it through cross-crate completeness
+      inventories that assert exhaustiveness over the same surface from a
+      different angle.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+      - planner-architect
+    framework_section: >
+      Gate 1 planning / impact assessment for CLI-surface changes. Related
+      to, but deliberately kept separate from, the necessary-scope-expansion
+      minimalism rule commissioned by the same incident
+      (`20260825T045831Z-governor-reviewer-trms`,
+      `docs/plans/20260825T050614Z-necessary-scope-expansion-minimalism-rule.md`)
+      — that rule governs how to *respond* when a plan's file list proves
+      incomplete mid-implementation; this entry is about *reducing how often
+      CLI-surface plans are incomplete in the first place*, per
+      coder-tester's own routing instruction not to fold the two together.
+    business_impact:
+      type: cost_overhead
+      description: >
+        One implementation pause and one narrow governor decision cycle to
+        approve a one-file, two-entry correction, caught late (during test
+        execution) rather than at plan-writing time. No incorrect behavior
+        shipped and the audit's own strictness is exactly what caught the
+        gap before merge — the cost is the avoidable delay, not a defect
+        that reached users.
+    recommendation: >
+      For every Gate 1 plan that adds, renames, or removes a CLI command,
+      subcommand, flag, or alias, the impact assessment should include an
+      exhaustive-consumer-closure check before the file list is frozen:
+      search the live Clap tree's command/flag names across the whole Rust
+      workspace (not just the crate implementing the command), inspect
+      `CommandFactory` and any other compiled-surface parity audits,
+      inspect telemetry/redaction, MCP-mapping, help/documentation,
+      packaging, and shell-completion inventories where present, and name
+      every resulting cross-crate path the plan touches — or explicitly
+      record why a given inventory is not affected. Running the narrow
+      exhaustive audit locally before freezing the file list, where
+      feasible, converts this from a late test-time discovery into a
+      plan-time one.
+
+      This entry stays proposed until the check above is actually added
+      to Gate 1 plan-writing guidance (e.g., a checklist item in the
+      relevant planning rule or a plan-template prompt) and used on at
+      least one subsequent CLI-surface plan — the immediate code defect
+      is already fixed, but the standing practice this recommendation
+      describes is not yet adopted.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - "20260825T044258Z-coder-tester-5djr.md: exact one-file, two-entry scope-clarification request with objective test-failure evidence."
+        - "20260825T045829Z-governor-reviewer-mtms.md: governor approval of the minimum necessary correction; audit confirmed passing after the fix."
+        - "20260825T052316Z-coder-tester-3htr.md: coder-tester's own lesson-proposal naming the root cause and the exhaustive-consumer-closure recommendation this entry records."
 
 
 sentinel_ack:
