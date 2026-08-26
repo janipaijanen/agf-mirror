@@ -14,14 +14,23 @@ advisory_consultation:
       filed alongside this plan" was false — no such handoff existed.
       A genuine request is now filed alongside this correction
       (`20260826T055434Z-planner-architect-i9ca`, see coordination channel).
-      `status` stays `waived` only because the schema's enum has no
-      `pending`/`requested` value and no response has returned yet; this
-      is a provisional filing-time placeholder, not a final Gate 1
-      disposition — Gate 1 approval must not proceed while this still
-      reads `waived` for single-agent unavailability. The main risk this
-      review should verify: that no phase grants itself authority to
-      acquire hardware, provision infrastructure, or change CI ahead of
-      its own dedicated Gate 1, per issue #109's explicit non-goals.
+      `status` stays `waived` because no genuinely independent response
+      has returned. A disclosed-self-review contribution-audit
+      (`20260826T101641Z-contribution-auditor-i9cv.md`) has since been
+      published, CLEAR on every finding within contribution-auditor's
+      technical scope — but per the same standard applied in the sibling
+      `ci-history-1-job-local-full-history` and
+      `necessary-scope-expansion-minimalism-rule` plans, a disclosed
+      self-review (same underlying model as this plan's author,
+      explicitly authorized and flagged as such by the Human Governor)
+      does not satisfy the independent-consultation bar this field
+      represents, so `status` correctly stays `waived` rather than
+      `consulted`. Gate 1 approval must not proceed on this field alone;
+      status becomes `consulted` only when a response from a genuinely
+      different reviewer actually returns. The main risk any such review
+      should verify: that no phase grants itself authority to acquire
+      hardware, provision infrastructure, or change CI ahead of its own
+      dedicated Gate 1, per issue #109's explicit non-goals.
   - role: infosec-sentinel
     status: waived
     reason: >-
