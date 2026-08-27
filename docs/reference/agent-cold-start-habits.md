@@ -72,6 +72,30 @@ After each poll, read new messages addressed to your role or `all`, classify
 them, and choose the highest-priority obligation. `Poll` is an action loop: do
 not leave the human as the dispatcher for work your role can already see.
 
+## Predict First-Push CI
+
+In this GitLab project, an initial branch push can start before GitLab has
+registered the merge request. Creating the MR can then start a separate
+`merge_request_event` pipeline for the same commit. The existing
+`$CI_OPEN_MERGE_REQUESTS` guard normally suppresses later branch-push pipelines
+once the MR is visible, but it cannot guarantee a single pipeline for that
+first sequence. Seeing the pair is a known limitation, not evidence that the
+contributor pushed twice.
+
+Keep the MR pipeline as this project's canonical Gate 2 acceptance evidence.
+Do not cancel a pipeline merely because its SHA matches another pipeline.
+First record and compare:
+
+- pipeline source and ref;
+- current status;
+- job names and required-job coverage; and
+- pipeline/job IDs and runner time already consumed.
+
+Cancel only a demonstrably redundant `push` pipeline. API, web, scheduled,
+default-branch, tag, trigger, and downstream pipelines can intentionally share
+a SHA and are not presumed redundant. When the comparison is inconclusive,
+preserve both and report the uncertainty.
+
 Act without another human prompt when all three conditions hold: the action is
 inside the active role, it is already authorized by an approved plan or
 handoff, and it stays inside the current gate. Typical actions are:

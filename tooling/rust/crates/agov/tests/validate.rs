@@ -1,6 +1,50 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Gate 2 reproducible negative CLI demonstration, per
+/// `gate-self-test-rule.md` and `docs/plans/
+/// 20260823T203540Z-adoption-version-drift-check.md` (lines 842-846):
+/// the plan requires the exact command, expected/actual blocking output,
+/// and a CI pipeline job log link. This test IS that command, run for
+/// real through the compiled CLI binary (not the internal validator API),
+/// so this job's own CI trace is the required log.
+const LEARNING_SCHEMA: &str = include_str!("../../../../../agf/schemas/learning.schema.json");
+
+#[test]
+fn validate_learnings_blocks_live_record_version_drift_via_cli() {
+    let fixture = tempfile::tempdir().expect("tempdir");
+    write(&fixture, "tooling/.keep", "");
+    write(&fixture, "agf/schemas/learning.schema.json", LEARNING_SCHEMA);
+    write(&fixture, "agf/VERSION", "2.6.1");
+    write(
+        &fixture,
+        "agf/learnings/mismatched.yaml",
+        r#"project:
+  codename: gate2-demo-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+"#,
+    );
+
+    let output = agov_in(fixture.path(), &["validate", "learnings", "agf/learnings"]);
+
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "expected drifted live record to block; stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(
+            "adoption.framework_version \"2.0.0-provisional\" does not match agf/VERSION \"2.6.1\""
+        ),
+        "expected the exact drift message, got stderr: {stderr}"
+    );
+}
+
 #[test]
 fn validate_prints_coverage_note() {
     let output = agov(&["validate"]);

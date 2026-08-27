@@ -5,6 +5,21 @@ distribution.
 
 ## [Unreleased]
 
+### Added
+
+- Documented the GitLab first-push/MR-registration pipeline race at assistant,
+  contributor, CI-maintainer, and public operator points of use. The guidance
+  requires source/ref/status/job-coverage comparison before cancellation and
+  does not claim that CI behavior itself has changed.
+
+**Downstream impact: PREVENTIVE.** Corrected from an earlier EDITORIAL
+classification per `agf/rules/always/downstream-impact-rule.md` — this
+change adds mandatory operational checks (source/ref/status/job-coverage
+comparison) and forbids same-SHA-alone cancellation, which is proactive
+hardening of an implicit constraint, not a wording-only change. Full
+three-circle impact statement in
+`docs/plans/ci-first-push-expectation-guidance.md`.
+
 ### Changed
 
 - **BREAKING workflow relaxation:** projects that retain `docs/sources.md`

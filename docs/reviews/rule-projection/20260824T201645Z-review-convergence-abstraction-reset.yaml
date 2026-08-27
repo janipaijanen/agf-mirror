@@ -1,0 +1,78 @@
+# Six-surface projection evidence for bounded review convergence and the
+# mandatory abstraction-reset rule.
+# Plan: docs/plans/20260824T201645Z-review-convergence-abstraction-reset.md
+
+plan_id: 20260824T201645Z-review-convergence-abstraction-reset
+changed_pages_or_runbooks:
+  - agf/docs/site/reference/tooling-conformance.md
+  - agf/docs/site/reference/review-findings.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    paths:
+      - agf/rules/workflow/review-convergence-rule.md
+      - agf/rules/workflow/systematic-code-review-rule.md
+    reason: >-
+      The new review-convergence rule owns the opt-in per-invariant state
+      machine, semantic-attempt boundary, four-category blocker-materiality
+      boundary, duplicate/conflict behavior, and tool-authority limit. The
+      systematic review checklist points targeted reviews to that owner and
+      does not redefine the lifecycle.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/reference/review-findings.md
+    reason: >-
+      Explains when structured convergence applies, how blocking and advisory
+      findings differ, what happens after two same-invariant failures, and how
+      candidate/review metadata is authored without implying gate authority.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      This change extends the existing review-findings reference and command
+      contract rather than adding a new operational situation or release
+      procedure. The adopter-facing reference routes the relevant review case
+      directly to the canonical rule.
+
+  ai_landing_loaders:
+    disposition: confirmed
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      Both loaders already direct assistants to the canonical agf/rules tree
+      and to agov for coordination validation. Adding a rule within that tree
+      and a documented coord subcommand needs no duplicated loader text.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - agf/schemas/coordination-message.schema.json
+      - tooling/rust/crates/agov-core/src/roi.rs
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/tests/coord_convergence.rs
+    reason: >-
+      JSON Schema conditionals validate event-specific declared fields. The
+      Rust command recomputes scoped Git-byte digests and deterministically
+      checks ordering, transitions, duplicates, conflicts, and text/JSON state
+      parity. The core redaction inventory registers the new command token and
+      flag so the exhaustive live-CLI audit remains complete. Tooling explicitly
+      does not infer materiality or grant gate, risk, scope, or merge authority.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/rules/workflow/review-convergence-rule.md
+      - agf/rules/workflow/systematic-code-review-rule.md
+      - agf/rules/README.md
+      - agf/schemas/coordination-message.schema.json
+      - agf/docs/site/reference/tooling-conformance.md
+      - agf/docs/site/reference/review-findings.md
+    reason: >-
+      agf/dist/release-manifest.yaml ships agf/rules/**, agf/schemas/**, and
+      agf/docs/site/**. The Rust binary is packaged by the existing release
+      build. Root CHANGELOG.md, the approved plan, tests, and this projection
+      manifest are foundry-local implementation evidence rather than separate
+      adopter content.

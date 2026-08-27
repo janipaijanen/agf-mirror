@@ -982,6 +982,55 @@ Fast track:        Requirement →        (waived)  Implement → Verify → Gat
    stops, files a `kind: note` to governor-reviewer, and waits for a new
    Gate 1 plan before continuing.
 
+**A shipped standing, pre-approved delegation (as opposed to
+per-instance waivers).** The rules above describe the
+Governor-Reviewer deciding fast-track eligibility case by case, for
+one task at a time. AGF-NG has additionally shipped exactly one
+**standing, narrowly-bounded delegation** of a different shape: the
+sources/radar research-maintenance fast path
+(`agf/rules/workflow/simplicity-rule.md`, "Sources/radar
+research-maintenance fast path" section, the canonical owner). This
+paragraph *describes that shipped mechanism*; it is not a general
+framework permission inviting a project to define further standing
+delegations by analogy — a new one would need its own new canonical
+rule, carried through this same framework's full governed process
+(see below), not merely a citation of this paragraph.
+
+The shipped delegation lets a reversible `docs/sources.md` /
+`docs/radar.md` change skip the per-instance Gate 1 plan when every
+condition of that rule's own eligibility test holds — but that test
+is **semantic, not a mechanical filename allowlist** (the canonical
+rule's own words): its mechanical checks (which paths a commit range
+touches) supplement, but do not replace, judged evidence review
+(source fidelity, whether a claim is material, whether text adopts a
+practice, and every named disqualifier). Any uncertainty about
+whether the test is satisfied returns the work to the full ordinary
+plan-and-Gate-1 route — not to a per-instance Gate 1 waiver. The
+canonical rule is explicit on this point: "Uncertainty means full
+Gate 1."
+
+**A standing delegation is not itself active the moment its own
+defining plan clears Gate 1.** Gate 1 approves a plan and authorizes
+implementing it; it does not merge or activate anything. The
+sources/radar rule became real, binding, shipped authority only
+after its own implementation passed a binding governor-reviewer Gate
+2 decision and merged onto the protected branch — the same two-gate
+route as any other rule change. An implementer applying the shipped
+delegation is applying a rule that has *already completed* that full
+route, not one whose defining plan has merely been approved.
+
+A standing delegation does not relax Gate 2 for its own uses, does
+not authorize implementation of what the touched content merely
+discusses, and does not by itself change roadmap priority, staffing,
+or adoption status. **Negative example (fixes `CA-RMFP-C-A1`):** if
+the sources/radar fast path is used to advance a radar entry's
+lifecycle from "watch" to "candidate" with a refreshed `review-by`
+date, that action alone does not mean the topic is now roadmapped,
+assigned to anyone, adopted as a dependency, or authorized for
+implementation — those remain separate, later decisions through the
+project's ordinary planning process, exactly as the rule's own
+disqualifier list requires.
+
 **Anti-pattern:** If most tasks use the fast track, the pipeline is not being used — it's being bypassed. The fast track is for exceptions, not the default. If the team reaches for fast track on more than ~30% of tasks, either the tasks are genuinely small (which is fine) or the plan step is being avoided (which is a governance decay signal the Sentinel should flag).
 
 ### Pattern 7: Documentation Review Pipeline

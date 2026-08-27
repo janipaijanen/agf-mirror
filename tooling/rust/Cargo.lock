@@ -78,6 +78,7 @@ dependencies = [
  "serde_norway",
  "sha2",
  "tempfile",
+ "time",
 ]
 
 [[package]]

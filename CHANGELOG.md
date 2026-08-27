@@ -10,6 +10,22 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ### Changed
 
+- **BREAKING: rule-projection owner lifecycle and repository-contained path
+  validation.** `normative_owner.stage` is now restricted to `existing` or
+  `planned`; a planned entry must name at least one non-empty `path` or
+  `paths` member. `agov plan projection-check --allow-planned` permits only a
+  genuinely absent, repository-contained planned owner during Gate 1, while
+  the default command remains strict Gate 2 evidence and every invocation
+  rejects a stale planned marker once any declared owner exists. The new
+  `projection-check-all` CI safety net checks the full manifest tree on every
+  pipeline while keeping changed-page coverage diff-scoped. Migration is
+  required for four previously accepted shapes: non-enum `stage` values;
+  `stage: planned` on an already-existing owner; planned entries with neither
+  a non-empty `path` nor non-empty `paths`; and any surface path that is
+  absolute, contains `..`, or reaches outside the repository through a
+  symlink. Replace them with the defined lifecycle value, clear stale planned
+  metadata before Gate 2, name the proposed owner, and use repository-relative
+  contained paths respectively.
 - **BREAKING workflow relaxation:** an exact, advisory and reversible
   `docs/sources.md`/`docs/radar.md` research-maintenance class may skip the
   separate Gate 1 plan, contribution audit, and pre-change coordination MR.
@@ -23,9 +39,46 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   Adopters opt in only when both files are genuinely non-normative research
   artifacts; stricter local policy remains valid. No file or data migration is
   required.
+- **BREAKING: `agov validate learnings` now checks `checkout_role: live`
+  records against `agf/VERSION`** (issue #112). A learning record's
+  `adoption.framework_version` value that previously legitimately
+  differed from `agf/VERSION` is now a blocking finding if that record
+  is marked `adoption.checkout_role: live`. `checkout_role` is a new
+  optional field: `live` (this checkout's own, currently-maintained
+  adoption state) or `imported` (a reference copy of another adopter's
+  or historical submission); a record with the field absent, or set to
+  `imported`, is skipped by the drift check entirely — only an explicit
+  opt-in via `checkout_role: live` activates blocking behavior.
+  `agov validate learnings` also gains two always-on findings
+  independent of any single record's own drift: an advisory when
+  `agf/learnings/` has zero `checkout_role: live` records (detection is
+  inactive for this checkout), and a blocking ambiguity finding when it
+  has two or more. `agf/skills/upgrade/SKILL.md` gains a new Step 0 that
+  identifies (never guesses) the authoritative live record before any
+  changelog range is presented, and a bounded 24-hour
+  `upgrade_in_progress` suppression window around the mid-upgrade
+  version-mismatch that already existed on every upgrade. Migration: an
+  adopter who already opts a record into `checkout_role: live` and has
+  an already-drifted `framework_version` must escalate the historical
+  gap for their own authorized decision-maker to dispose, then correct
+  `checkout_role: live` and `framework_version` together, referencing
+  the published disposition — see
+  `docs/plans/20260823T203540Z-adoption-version-drift-check.md`'s
+  "One-time reconciliation" procedure. No adopter is forced onto the
+  blocking behavior without first opting a record into `checkout_role:
+  live`.
 
 ### Added
 
+- **Level 4 validated candidate — bounded review convergence:** optional
+  `convergence` metadata on coordination records, the normative
+  `review-convergence-rule`, and `agov coord convergence --series <id>` add a
+  per-invariant two-failure abstraction-reset boundary, one redesigned
+  candidate and targeted review, deterministic duplicate/conflict handling,
+  and a closed blocker-materiality vocabulary. The command validates declared
+  bytes and transitions but does not infer materiality, accept risk, approve a
+  gate, or merge. Historical records remain unchanged. This capability is not
+  Level 5 deployable until it ships in a supported release artifact.
 - `agov validate` and `agov session resume` now emit an advisory (never
   blocking) warning when the running `agov` binary's own build version
   differs from the commissioned `agf/VERSION` of the tree it is invoked

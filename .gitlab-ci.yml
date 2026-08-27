@@ -48,12 +48,14 @@ workflow:
     # changes by construction). See
     # agf/rules/workflow/coordination-publication-rule.md and issue #72.
     #
-    # Suppress a redundant branch-push pipeline when this branch already has
-    # an open MR (the MR pipeline covers the same commit). Never matches the
-    # default branch (no MR sources from it), a tag push (CI_COMMIT_BRANCH is
-    # unset), or the MR pipeline itself (CI_PIPELINE_SOURCE != "push" there).
-    # See docs/plans/ci-pipeline-deduplication.md for the full acceptance
-    # matrix and rationale.
+    # Suppress a redundant branch-push pipeline when GitLab already exposes an
+    # open MR for this branch (the MR pipeline covers the same commit). The
+    # first push can start before the MR is registered, so this guard cannot
+    # suppress that initial push/MR pair; issue #53 tracks the deterministic
+    # replacement. Never matches the default branch (no MR sources from it), a
+    # tag push (CI_COMMIT_BRANCH is unset), or the MR pipeline itself
+    # (CI_PIPELINE_SOURCE != "push" there). See
+    # docs/plans/ci-pipeline-deduplication.md for the full acceptance matrix.
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
       when: never
     # The sole Rust-cache writer context: an ordinary default-branch push.
@@ -787,9 +789,12 @@ release:paths-validate:
     - if: $CI_COMMIT_TAG
 
 # ── Rust tooling ───────────────────────────────────────────────────────────────
-# Path-scoped per ci-trigger-scoping-rule.md: only fire when relevant inputs change.
+# Jobs are path-scoped per ci-trigger-scoping-rule.md unless their own comment
+# records an approved full-tree safety-net reason.
 
-# Validate only changed coordination messages and Gate 1 plans.
+# Validate changed coordination messages and Gate 1 plans, and validate every
+# projection manifest's owner lifecycle. The latter makes this job deliberately
+# unconditional: a newly created owner can stale an unchanged manifest.
 agov:governance:validate:
   extends: .rust-base
   stage: test
@@ -853,15 +858,12 @@ agov:governance:validate:
       git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
         | xargs -0r "$agov_bin" plan validate
 
-      # Per agf/rules/workflow/documentation-rule-projection-rule.md: every
-      # changed structured six-surface evidence manifest is mechanically
-      # checked for schema shape and resolvable declared paths. This does
-      # NOT detect a Pages/runbook normative change with no manifest at all
-      # -- classifying whether a Pages diff is normative stays human/role
-      # judgment per the rule; only a changed, present manifest's own
-      # internal shape is mechanically enforced here.
-      git diff --name-only -z "$base"...HEAD -- 'docs/reviews/rule-projection/*.yaml' \
-        | xargs -0r "$agov_bin" plan projection-check --base-ref "$base"
+      # Per agf/rules/workflow/documentation-rule-projection-rule.md: check
+      # every manifest's repository-contained paths and planned-owner
+      # lifecycle on every pipeline. Changed-manifest Pages/runbook coverage
+      # stays diff-scoped inside the command; deciding whether a Pages change
+      # is normative remains human/role judgment under the rule.
+      "$agov_bin" plan projection-check-all --base-ref "$base"
 
       # Per agf/rules/workflow/coordination-publication-rule.md: a candidate
       # using the coordination fast-path commit convention gets its whole
@@ -875,36 +877,8 @@ agov:governance:validate:
       fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes: &agov_governance_validate_paths
-        - docs/coordination/*.md
-        - docs/plans/*.md
-        - docs/reviews/rule-projection/*.yaml
-        # Plain top-level docs files with no dedicated job path filter
-        # anywhere in this pipeline. Without this, a commit range
-        # touching only one of these matches zero job path filters in
-        # any trigger context, and GitLab creates no pipeline object at
-        # all for that ref/SHA -- not even a skipped one -- which this
-        # project's only_allow_merge_if_pipeline_succeeds +
-        # allow_merge_on_skipped_pipeline=false settings then turn into
-        # a hard, silent merge block. Confirmed on MR !962 and MR !954
-        # (both docs/sources.md/docs/radar.md-only changes). See
-        # 20260802T222231Z-coder-tester-62p5.md.
-        - docs/sources.md
-        - docs/radar.md
-        - docs/TODO.md
-        - .gitlab-ci.yml
-        - tooling/agov
-        - tooling/rust/**/*
-        - agf/schemas/**/*
-        - agf/agents/MANIFEST.yaml
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
-      changes:
-        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
-        paths: *agov_governance_validate_paths
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
-      when: never
     - if: $CI_COMMIT_BRANCH
-      changes: *agov_governance_validate_paths
+    - if: $CI_COMMIT_TAG
 
 # Validate AGF framework content with the Rust agov CLI.
 rust:agov:validate:
@@ -988,6 +962,17 @@ rust:tooling:test:
   interruptible: true
   variables:
     RUST_CACHE_ROLE: "writer"
+    # commercial_corpus::tests::real_mr1712_generation_acceptance_is_142_
+    # included_plus_50_excluded reads historical repository state via
+    # `git show <revision>:<path>` against a commit that recedes further
+    # into history over time (461 commits behind HEAD at introduction).
+    # The project's default GIT_DEPTH (20, confirmed via the GitLab
+    # project API) truncates the checkout long before that commit,
+    # failing the test with a missing-object error unrelated to any
+    # actual code defect. Only this job exercises that test, so only
+    # this job needs the full clone (issue #112, MR !1965 round-1 audit
+    # `CA-ADV-R1-4`).
+    GIT_DEPTH: "0"
   cache:
     policy: $RUST_CACHE_WRITER_POLICY
   script:
@@ -995,6 +980,36 @@ rust:tooling:test:
     - sh tests/agov-wrapper-freshness.sh
     - sh tests/tooling-provenance-verifier.sh
     - cargo test --workspace
+    # Gate 2 negative CLI demonstration (issue #112, MR !1965 round-2
+    # audit CA-ADV-R2-3): the passing integration test above asserts on
+    # captured output internally, which a reviewer cannot see in this
+    # job's own trace. Reproduce the exact scenario directly in the
+    # visible job log: a checkout_role: live record whose
+    # framework_version has drifted from agf/VERSION must be rejected.
+    - |
+      echo "=== Gate 2 negative CLI demonstration (issue #112) ==="
+      FIXTURE=$(mktemp -d)
+      mkdir -p "$FIXTURE/agf/learnings" "$FIXTURE/agf/schemas" "$FIXTURE/tooling"
+      cp ../../agf/schemas/learning.schema.json "$FIXTURE/agf/schemas/"
+      printf '2.6.1' > "$FIXTURE/agf/VERSION"
+      cat > "$FIXTURE/agf/learnings/mismatched.yaml" <<'FIXTURE_EOF'
+      project:
+        codename: gate2-demo-fixture
+      adoption:
+        checkout_role: live
+        framework_version: "2.0.0-provisional"
+      FIXTURE_EOF
+      echo "+ agov validate learnings $FIXTURE/agf/learnings"
+      set +e
+      ./target/debug/agov validate learnings "$FIXTURE/agf/learnings"
+      DEMO_EXIT=$?
+      set -e
+      echo "+ echo \$?"
+      echo "$DEMO_EXIT"
+      if [ "$DEMO_EXIT" -ne 1 ]; then
+        echo "FATAL: expected exit 1 (blocking), got $DEMO_EXIT -- the version-drift gate no longer blocks a known-bad input"
+        exit 1
+      fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes: &rust_tooling_test_paths

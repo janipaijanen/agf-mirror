@@ -36,7 +36,7 @@
         "distribution"
       ],
       "properties": {
-        "normative_owner": { "$ref": "#/definitions/surfaceEntry" },
+        "normative_owner": { "$ref": "#/definitions/normativeOwnerEntry" },
         "adopter_facing_explanation": { "$ref": "#/definitions/surfaceEntry" },
         "runbook_situation_map": { "$ref": "#/definitions/surfaceEntry" },
         "ai_landing_loaders": { "$ref": "#/definitions/surfaceEntry" },
@@ -47,6 +47,42 @@
     }
   },
   "definitions": {
+    "normativeOwnerEntry": {
+      "allOf": [
+        { "$ref": "#/definitions/surfaceEntry" },
+        {
+          "type": "object",
+          "properties": {
+            "stage": {
+              "type": "string",
+              "enum": ["existing", "planned"]
+            }
+          },
+          "if": {
+            "properties": { "stage": { "const": "planned" } },
+            "required": ["stage"]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": ["path"],
+                "properties": { "path": { "type": "string", "minLength": 1 } }
+              },
+              {
+                "required": ["paths"],
+                "properties": {
+                  "paths": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "minItems": 1
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
     "distributionEntry": {
       "allOf": [
         { "$ref": "#/definitions/surfaceEntry" },
