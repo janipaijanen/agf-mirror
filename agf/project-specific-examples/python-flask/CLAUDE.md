@@ -1,3 +1,5 @@
+@../AGENTS.md
+
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Example CLAUDE.md for Python + Flask/Django/FastAPI projects
@@ -5,7 +7,8 @@
 # Copy this to your project's `.claude/CLAUDE.md` and adapt.
 # See: agents-govern framework — ADOPTING.md, rules/
 
-Read all files under `.claude/rules/` before making changes.
+The imported root loader owns AGF rule loading. Apply the Python-specific
+project guidance below after reading it; do not duplicate AGF rules here.
 
 ## Rule groups
 

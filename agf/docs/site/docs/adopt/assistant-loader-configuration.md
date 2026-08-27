@@ -40,6 +40,33 @@ Keep the loader short. The canonical rules stay in `agf/` so upgrades replace
 one framework directory instead of chasing copied fragments across tool
 configuration paths.
 
+### Declare the supported surfaces
+
+Optionally add `supported_assistant_loaders` at the top level of
+`agf/agents/MANIFEST.yaml`:
+
+```yaml
+supported_assistant_loaders:
+  - codex
+  - claude-code
+
+agents:
+  # project roles follow
+```
+
+Accepted values are `codex`, `claude-code`, and `github-copilot`.
+`github-copilot` is an alias of `codex` because both use the root `AGENTS.md`
+surface in this contract. When the field is present, `agov validate` checks
+every declared loader and reports missing, unknown, stale, or unsafe loader
+configuration as advisory findings. These findings do not change the
+validator's exit status or grant a tool gate authority.
+
+When the field is absent, validation preserves the legacy behavior: any one
+recognized loader is sufficient. This compatibility path avoids forcing a
+Claude-specific file on a Codex-only project. New adopters should declare the
+surfaces they actually support so a working loader for one assistant cannot
+hide a missing loader for another.
+
 ## Authority and supported interfaces
 
 Tool-specific surfaces are lower in governance authority, but not necessarily
@@ -73,7 +100,7 @@ project's normal governance process.
 
 | Assistant surface | Loader pattern | Verification |
 |---|---|---|
-| Claude Code | Use project `CLAUDE.md` or `.claude/CLAUDE.md`. If you already use `AGENTS.md`, a `CLAUDE.md` file can import it with `@AGENTS.md`; Claude Code also supports `@path/to/import` for other files. | Run `/memory` and confirm the expected `CLAUDE.md` file is listed, then ask the assistant to name the AGF rules it will follow. |
+| Claude Code | Keep the shared loader at root `AGENTS.md`. Copy `agf/templates/CLAUDE.md` to `.claude/CLAUDE.md`; its single `@../AGENTS.md` line imports that root file. | Run `/context` and confirm `.claude/CLAUDE.md` and the imported `AGENTS.md` content appear under **Memory files**, then ask the assistant to name the AGF rules it will follow. |
 | Cursor | Use Project Rules or `AGENTS.md`, depending on your project convention. The loader should point to `agf/` rather than duplicate `agf/rules/`. | Ask Cursor which project rules or `AGENTS.md` instructions it loaded and which AGF paths it inspected. |
 | VS Code Copilot / GitHub Copilot | Use repository custom instructions such as `.github/copilot-instructions.md`; newer Copilot surfaces also support repository `AGENTS.md` files and path-specific instructions. | In VS Code, check the response references for the custom-instructions file; in GitHub, confirm the repository context includes the instruction file. |
 | Codex CLI and other `AGENTS.md` readers | Put a concise loader in the repository root `AGENTS.md` or adapt the existing one. | Ask the assistant to restate the worktree boundary, gate discipline, and AGF-owned paths before it edits. |
@@ -179,15 +206,15 @@ small loader instead. Intentional project-specific assistant instructions can
 stay local, but keep them outside copied AGF rule or skill trees so future
 upgrades do not mistake them for upstream framework content.
 
-For Claude Code, a project `CLAUDE.md` can import a shared `AGENTS.md`:
+For Claude Code, the shipped bridge imports the shared root loader from its
+`.claude/` directory:
 
 ```markdown
-@AGENTS.md
-
-## Claude Code
-
-Use the AGF loader instructions above before governed work.
+@../AGENTS.md
 ```
+
+Keep the bridge as that single line. Put project guidance in the shared
+`AGENTS.md` so the two assistant surfaces do not drift.
 
 For Copilot repository custom instructions, put the minimal loader text in
 `.github/copilot-instructions.md` or point that file to the canonical AGF

@@ -99,10 +99,14 @@ extracted as `agf/` in your existing project.
    without relying on files that exist only in the upstream repository.
 
 2. **Ask the assistant to wire rule loading** without copying the rules out of
-   `agf/`. If your tool needs a root file, create a small local loader such as
-   `CLAUDE.md`, `AGENTS.md`, or the tool's equivalent that tells the assistant
-   to read `agf/rules/` before acting. Keep the framework-owned rule files in
-   `agf/rules/`.
+   `agf/`. Start from `agf/templates/AGENTS.md` at the project root. For Claude
+   Code, also copy `agf/templates/CLAUDE.md` to `.claude/CLAUDE.md`; its exact
+   `@../AGENTS.md` line imports the shared root loader. Declare the loaders the
+   project supports in `agf/agents/MANIFEST.yaml` so validation checks every
+   intended assistant surface. Keep framework-owned rule files in `agf/rules/`.
+   See the
+   [assistant-loader configuration guide](docs/site/docs/adopt/assistant-loader-configuration.md)
+   for accepted manifest values and compatibility behavior.
 
 3. **Pick the minimum role set.**
 

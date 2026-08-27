@@ -16,6 +16,16 @@
 # Run: agov validate agents
 # =============================================================================
 
+# Optional: declare only the assistant loaders this project supports. The
+# assistant-loader validator then checks each declared surface instead of
+# accepting any one loader as sufficient. Accepted values are `codex`,
+# `claude-code`, and `github-copilot` (an alias of `codex`, because both use
+# root AGENTS.md here). Omitting the field preserves legacy any-loader
+# behavior. See agf/docs/site/docs/adopt/assistant-loader-configuration.md.
+# supported_assistant_loaders:
+#   - codex
+#   - claude-code
+
 agents:
   planner-architect:
     status: skipped

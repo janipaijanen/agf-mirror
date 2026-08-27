@@ -926,6 +926,73 @@ exclude:
         );
     }
 
+    #[test]
+    fn clean_framework_archive_can_configure_both_shipped_assistant_loaders() {
+        let source = fixture_root();
+        write(source.path(), "agf/VERSION", "2.6.1\n");
+        write(
+            source.path(),
+            "agf/templates/AGENTS.md",
+            "<!-- AGF: 2.6.1 -->\n# Shared loader\n",
+        );
+        write(source.path(), "agf/templates/CLAUDE.md", "@../AGENTS.md\n");
+        write(
+            source.path(),
+            "agf/agents/MANIFEST.example.yaml",
+            "supported_assistant_loaders: [codex, claude-code]\nagents: {}\n",
+        );
+        let manifest = write(
+            source.path(),
+            "agf/dist/release-manifest.yaml",
+            r#"
+schema_version: 1
+package:
+  name: agf
+  version_file: agf/VERSION
+  output_dir: dist
+  basename: agf-{{version}}
+  formats: [tar.gz]
+include:
+  - path: agf/VERSION
+  - path: agf/agents/MANIFEST.example.yaml
+  - glob: agf/templates/**
+"#,
+        );
+
+        let result = build(&manifest, source.path()).expect("build should succeed");
+        let tar_path = result.spec.outputs.get("tar.gz").unwrap();
+        let adopter = fixture_root();
+        let tar_gz = File::open(tar_path).expect("open built archive");
+        let decoder = flate2::read::GzDecoder::new(tar_gz);
+        tar::Archive::new(decoder)
+            .unpack(adopter.path())
+            .expect("extract clean framework archive");
+
+        fs::copy(
+            adopter.path().join("agf/agents/MANIFEST.example.yaml"),
+            adopter.path().join("agf/agents/MANIFEST.yaml"),
+        )
+        .expect("copy shipped manifest template");
+        fs::copy(
+            adopter.path().join("agf/templates/AGENTS.md"),
+            adopter.path().join("AGENTS.md"),
+        )
+        .expect("copy shipped AGENTS loader");
+        fs::create_dir_all(adopter.path().join(".claude")).unwrap();
+        fs::copy(
+            adopter.path().join("agf/templates/CLAUDE.md"),
+            adopter.path().join(".claude/CLAUDE.md"),
+        )
+        .expect("copy shipped Claude bridge");
+
+        let validation = agov_validators::assistant_loader::validate_all(adopter.path());
+        assert!(validation.is_ok(), "clean archive loaders should validate");
+        assert_eq!(
+            fs::read_to_string(adopter.path().join(".claude/CLAUDE.md")).unwrap(),
+            "@../AGENTS.md\n"
+        );
+    }
+
     fn fixture_root() -> TempDir {
         tempfile::tempdir().expect("tempdir")
     }
