@@ -305,8 +305,23 @@ enum PlanCommand {
         /// file is declared by the manifest.
         #[arg(long)]
         base_ref: String,
+        /// Allow an absent normative-owner path only when that manifest row
+        /// explicitly carries `stage: planned`. Repository escapes and stale
+        /// planned markers remain blocking.
+        #[arg(long)]
+        allow_planned: bool,
         #[arg(required = true)]
         files: Vec<std::path::PathBuf>,
+    },
+    /// Validate every rule-projection manifest's paths and lifecycle state,
+    /// plus diff-scoped Pages/runbook coverage for changed manifests.
+    ProjectionCheckAll {
+        #[arg(long)]
+        base_ref: String,
+        /// Repository whose Git history, manifests, schema, distribution, and
+        /// declared paths must be used. Defaults to the current repository.
+        #[arg(long)]
+        repo_root: Option<PathBuf>,
     },
 }
 
@@ -776,8 +791,20 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             "plan-validate",
         ),
         Command::Plan {
-            sub: PlanCommand::ProjectionCheck { base_ref, files },
-        } => plan_projection_check(&base_ref, files, &args),
+            sub:
+                PlanCommand::ProjectionCheck {
+                    base_ref,
+                    allow_planned,
+                    files,
+                },
+        } => plan_projection_check(&base_ref, allow_planned, files, &args),
+        Command::Plan {
+            sub:
+                PlanCommand::ProjectionCheckAll {
+                    base_ref,
+                    repo_root,
+                },
+        } => plan_projection_check_all(&base_ref, repo_root, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
@@ -5192,7 +5219,12 @@ fn branch_local_coord_files(base_branch: &str) -> BranchLocalResult {
 }
 
 fn git_output(args: &[&str]) -> Result<String, String> {
+    git_output_at(Path::new("."), args)
+}
+
+fn git_output_at(repo_root: &Path, args: &[&str]) -> Result<String, String> {
     let output = std::process::Command::new("git")
+        .current_dir(repo_root)
         .args(args)
         .output()
         .map_err(|err| err.to_string())?;
@@ -6215,7 +6247,12 @@ fn validate_files<T>(
     }
 }
 
-fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
+fn plan_projection_check(
+    base_ref: &str,
+    allow_planned: bool,
+    files: Vec<std::path::PathBuf>,
+    args: &[String],
+) -> i32 {
     let mut failed = false;
     let mut output = OutputCounter::default();
 
@@ -6247,6 +6284,7 @@ fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &
         .filter(|line| !line.is_empty())
         .map(str::to_owned)
         .collect::<std::collections::BTreeSet<_>>();
+    let schema_path = agov_core::schema_dir().join("rule-projection-manifest.schema.json");
     let distribution = match dist::validate_default() {
         Ok(spec) => spec,
         Err(errors) => {
@@ -6263,6 +6301,8 @@ fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &
         match agov_coord::projection_manifest::validate_file_against(
             &file,
             &repo_root,
+            &schema_path,
+            allow_planned,
             &changed_pages_or_runbooks,
             |path| distribution.contains(path),
         ) {
@@ -6278,6 +6318,161 @@ fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &
         1
     } else {
         agov_core::roi::record_tool_output("agov", args, "plan-projection-check", output.chars);
+        0
+    }
+}
+
+fn plan_projection_check_all(
+    base_ref: &str,
+    requested_repo_root: Option<PathBuf>,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let explicit_repo_root = requested_repo_root.is_some();
+    let repo_root = match requested_repo_root {
+        Some(path) => match path.canonicalize() {
+            Ok(path) => path,
+            Err(error) => {
+                output.stderr(format!(
+                    "ERR projection-check-all could not resolve repository root {}: {error}",
+                    path.display()
+                ));
+                return 2;
+            }
+        },
+        None => match git_output(&["rev-parse", "--show-toplevel"]) {
+            Ok(path) => PathBuf::from(path),
+            Err(reason) => {
+                output.stderr(format!("ERR projection-check-all failed: {reason}"));
+                return 2;
+            }
+        },
+    };
+
+    if let Err(reason) = git_output_at(&repo_root, &["rev-parse", "--show-toplevel"]) {
+        output.stderr(format!(
+            "ERR projection-check-all repository root {} is not a Git worktree: {reason}",
+            repo_root.display()
+        ));
+        return 2;
+    }
+
+    let schema_path = if explicit_repo_root {
+        repo_root.join("agf/schemas/rule-projection-manifest.schema.json")
+    } else {
+        agov_core::schema_dir().join("rule-projection-manifest.schema.json")
+    };
+    let distribution = match dist::validate(Path::new("agf/dist/release-manifest.yaml"), &repo_root)
+    {
+        Ok(spec) => spec,
+        Err(errors) => {
+            output.stderr(format!(
+                "ERR projection-check-all could not validate distribution manifest: {}",
+                errors.join("; ")
+            ));
+            return 2;
+        }
+    };
+
+    let changed_output = match git_output_at(
+        &repo_root,
+        &[
+            "diff",
+            "--name-only",
+            &format!("{base_ref}...HEAD"),
+            "--",
+            "agf/docs/site/docs/**/*.md",
+            "docs/reviews/rule-projection/*.yaml",
+        ],
+    ) {
+        Ok(output) => output,
+        Err(reason) => {
+            output.stderr(format!(
+                "ERR projection-check-all failed to resolve comparison base {base_ref}: {reason}"
+            ));
+            return 2;
+        }
+    };
+    let changed_paths = changed_output
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    let changed_pages_or_runbooks = changed_paths
+        .iter()
+        .filter(|path| path.starts_with("agf/docs/site/docs/") && path.ends_with(".md"))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+
+    let manifest_dir = repo_root.join("docs/reviews/rule-projection");
+    let entries = match std::fs::read_dir(&manifest_dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            output.stderr(format!(
+                "ERR projection-check-all manifest directory not found: {}",
+                manifest_dir.display()
+            ));
+            return 2;
+        }
+        Err(error) => {
+            output.stderr(format!(
+                "ERR projection-check-all could not read {}: {error}",
+                manifest_dir.display()
+            ));
+            return 2;
+        }
+    };
+    let mut manifests = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|value| value.to_str()) == Some("yaml"))
+        .collect::<Vec<_>>();
+    manifests.sort();
+
+    let mut failed = false;
+    for manifest in manifests {
+        let relative = manifest
+            .strip_prefix(&repo_root)
+            .unwrap_or(&manifest)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let full_tree_result = agov_coord::projection_manifest::validate_file(
+            &manifest,
+            &repo_root,
+            &schema_path,
+            true,
+        );
+        if let Err(errors) = full_tree_result {
+            failed = true;
+            render_coord_errors(
+                &mut output,
+                &format!("{relative} [full-tree path/lifecycle]"),
+                &errors,
+            );
+            continue;
+        }
+
+        if changed_paths.contains(&relative) {
+            if let Err(errors) = agov_coord::projection_manifest::validate_file_against(
+                &manifest,
+                &repo_root,
+                &schema_path,
+                true,
+                &changed_pages_or_runbooks,
+                |path| distribution.contains(path),
+            ) {
+                failed = true;
+                render_coord_errors(&mut output, &format!("{relative} [diff coverage]"), &errors);
+                continue;
+            }
+        }
+        output.coord_ok(&relative);
+    }
+
+    if failed {
+        1
+    } else {
+        agov_core::roi::record_tool_output("agov", args, "plan-projection-check-all", output.chars);
         0
     }
 }

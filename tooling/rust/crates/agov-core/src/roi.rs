@@ -152,6 +152,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "pending",
     // plan subcommands (validate shares the top-level "validate" token).
     "projection-check",
+    "projection-check-all",
     // validate subcommands.
     "adoption",
     "adopter-docs",
@@ -248,6 +249,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--model",
     "--dir",
     "--base-ref",
+    "--allow-planned",
     "--repo-root",
     "--inventory-ref",
     "--inventory-path",
