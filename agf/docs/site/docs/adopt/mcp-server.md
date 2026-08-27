@@ -98,6 +98,7 @@ The server advertises these tools:
 | `agov_coord_post` | `agov coord post ...` |
 | `agov_coord_list` | `agov coord list ...` |
 | `agov_coord_pending` | `agov coord pending ...` |
+| `agov_coord_convergence` | `agov coord convergence ...` |
 | `agov_coord_status` | `agov coord status ...` |
 | `agov_coord_visibility` | `agov coord visibility ...` |
 | `agov_coord_stale` | `agov coord stale ...` |

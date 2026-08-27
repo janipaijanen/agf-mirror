@@ -298,7 +298,7 @@ fn stdio_server_keeps_startup_resolution_after_path_candidate_disappears() {
 }
 
 #[test]
-fn tools_list_includes_all_six_new_coordination_tools_with_correct_schemas() {
+fn tools_list_includes_all_seven_new_coordination_tools_with_correct_schemas() {
     let fixture = tempfile::tempdir().unwrap();
     let mock = fixture.path().join("agov-mock");
     std::fs::write(
@@ -330,6 +330,7 @@ fn tools_list_includes_all_six_new_coordination_tools_with_correct_schemas() {
     let tools = response["result"]["tools"].as_array().unwrap();
 
     let expected = [
+        "agov_coord_convergence",
         "agov_coord_status",
         "agov_coord_visibility",
         "agov_coord_stale",
@@ -391,6 +392,11 @@ printf '\n'
     std::fs::set_permissions(&mock, permissions).unwrap();
 
     let cases: &[(&str, Value, &str)] = &[
+        (
+            "agov_coord_convergence",
+            json!({ "series": "series-id", "dir": "docs/coordination", "format": "json" }),
+            "mock agov: [coord] [convergence] [--series] [series-id] [--dir] [docs/coordination] [--format] [json]\n",
+        ),
         (
             "agov_coord_status",
             json!({ "recent": 3, "roles": true }),
@@ -665,7 +671,7 @@ fn workspace_root() -> std::path::PathBuf {
 }
 
 /// Item 12 (B-MR806-G2-3): the same input through the CLI and through the
-/// MCP tool call must produce the same output, for each of the six newly
+/// MCP tool call must produce the same output, for each of the seven newly
 /// added tools -- against the real compiled `agov` binary, not a mock.
 ///
 /// `status`/`visibility`/`stale`/`graph-index` run against a small,
@@ -680,7 +686,7 @@ fn workspace_root() -> std::path::PathBuf {
 /// file contents (git history and pure generation, respectively), so
 /// they run against the real repository.
 #[test]
-fn real_cli_and_mcp_produce_equivalent_output_for_all_six_new_tools() {
+fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
     let agov_bin = build_real_agov_bin();
     let root = workspace_root();
 
@@ -744,6 +750,20 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_six_new_tools() {
     let coord_dir_str = coord_dir.to_str().unwrap();
 
     let isolated_cases: &[(&str, Vec<&str>, Value)] = &[
+        (
+            "agov_coord_convergence",
+            vec![
+                "coord",
+                "convergence",
+                "--series",
+                "missing-series",
+                "--dir",
+                coord_dir_str,
+                "--format",
+                "json",
+            ],
+            json!({ "series": "missing-series", "dir": coord_dir_str, "format": "json" }),
+        ),
         (
             "agov_coord_status",
             vec!["coord", "status", "--dir", coord_dir_str, "--recent", "3"],

@@ -52,6 +52,7 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_coord_post",
     "agov_coord_list",
     "agov_coord_pending",
+    "agov_coord_convergence",
     "agov_coord_status",
     "agov_coord_visibility",
     "agov_coord_stale",

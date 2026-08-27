@@ -15,6 +15,7 @@
 //! | `agov_coord_post` | `agov coord post ...` |
 //! | `agov_coord_list` | `agov coord list ...` |
 //! | `agov_coord_pending` | `agov coord pending ...` |
+//! | `agov_coord_convergence` | `agov coord convergence ...` |
 //! | `agov_coord_status` | `agov coord status ...` |
 //! | `agov_coord_visibility` | `agov coord visibility ...` |
 //! | `agov_coord_stale` | `agov coord stale ...` |
@@ -648,6 +649,13 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             push_optional_flag(args, "format", "--format", &mut cli)?;
             Ok(cli)
         }
+        "agov_coord_convergence" => {
+            let mut cli = vec!["coord".to_string(), "convergence".to_string()];
+            push_required_flag(args, "series", "--series", &mut cli)?;
+            push_optional_flag(args, "dir", "--dir", &mut cli)?;
+            push_optional_flag(args, "format", "--format", &mut cli)?;
+            Ok(cli)
+        }
         "agov_coord_status" => {
             let mut cli = vec!["coord".to_string(), "status".to_string()];
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
@@ -957,6 +965,19 @@ fn tools() -> Vec<Value> {
             }),
         ),
         tool(
+            "agov_coord_convergence",
+            "Report deterministic state for one opt-in review-convergence series.",
+            json!({
+                "type": "object",
+                "required": ["series"],
+                "properties": {
+                    "series": { "type": "string" },
+                    "dir": { "type": "string" },
+                    "format": { "type": "string", "enum": ["text", "json"] }
+                }
+            }),
+        ),
+        tool(
             "agov_coord_status",
             "Print coordination channel overview.",
             json!({
@@ -1117,6 +1138,7 @@ mod tests {
                 "agov_coord_post",
                 "agov_coord_list",
                 "agov_coord_pending",
+                "agov_coord_convergence",
                 "agov_coord_status",
                 "agov_coord_visibility",
                 "agov_coord_stale",
@@ -1178,6 +1200,7 @@ mod tests {
             ),
             ("agov_coord_list", json!({})),
             ("agov_coord_pending", json!({})),
+            ("agov_coord_convergence", json!({ "series": "series-id" })),
             ("agov_coord_status", json!({})),
             ("agov_coord_visibility", json!({})),
             ("agov_coord_stale", json!({})),
