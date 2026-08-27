@@ -59,6 +59,13 @@ AGF governance files live under `agf/`. The active framework version is in
 `agf/VERSION`. After upgrading AGF, update the `<!-- AGF: ... -->` comment at
 the top of this file to match `agf/VERSION`.
 
+If this project also supports Claude Code, copy `agf/templates/CLAUDE.md` to
+`.claude/CLAUDE.md`. Its single `@../AGENTS.md` import keeps this file as the
+one shared loader. Declare the supported surfaces in
+`agf/agents/MANIFEST.yaml`; see
+`agf/docs/site/docs/adopt/assistant-loader-configuration.md` for the accepted
+values and compatibility behavior.
+
 ---
 
 ## Project layout

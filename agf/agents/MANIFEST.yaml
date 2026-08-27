@@ -13,6 +13,10 @@
 # Run: agov validate agents
 # =============================================================================
 
+supported_assistant_loaders:
+  - codex
+  - claude-code
+
 agents:
   planner-architect:
     status: active

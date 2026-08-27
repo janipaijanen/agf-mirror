@@ -9,6 +9,8 @@ evidence_one='docs/reviews/agf-framework-assessment-codex-sol-high.md'
 evidence_two='docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md'
 runbook='agf/docs/site/docs/operate/poll-and-coordinate.md'
 tooling_runbook='docs/poll-and-coordinate.md'
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+claude_template_source="$script_dir/../../../examples/claude/.mcp.json"
 
 fail() {
   echo "severity: blocking rule: ci-trigger-scoping-rule release self-sufficiency: $*" >&2
@@ -100,6 +102,38 @@ require_member() {
   printf '%s\n' "$members" | has_member "$required" || fail "$label is missing required local path $required"
 }
 
+check_claude_template() (
+  target=$1
+  members=$2
+  require_member "$members" 'examples/claude/.mcp.json' "tooling release" || exit 1
+  test -f "$claude_template_source" || {
+    fail "checked-in Claude MCP template is unavailable at $claude_template_source"
+    exit 1
+  }
+  template_member=$(printf '%s\n' "$members" | find_member 'examples/claude/.mcp.json')
+  extracted_template=$(mktemp)
+  trap 'rm -f "$extracted_template"' EXIT HUP INT TERM
+  read_member "$target" "$template_member" > "$extracted_template" || exit 1
+  cmp -s "$claude_template_source" "$extracted_template" || {
+    fail "tooling release examples/claude/.mcp.json differs from checked-in source"
+    exit 1
+  }
+  python3 - "$extracted_template" <<'PY'
+import json
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+data = json.loads(path.read_text(encoding="utf-8"))
+expected = {"mcpServers": {"agov": {"command": "agov-mcp"}}}
+if data != expected:
+    raise SystemExit(
+        "Claude MCP template must contain only the complete "
+        "mcpServers.agov command contract"
+    )
+PY
+)
+
 check_source_tree() {
   target=$1
   manifest="$target/agf/dist/release-manifest.yaml"
@@ -122,10 +156,22 @@ check_payload() {
     run_shipped_tests "$target" || return 1
   elif printf '%s\n' "$members" | awk '/(^|\/)agov(\.exe)?$/ { found = 1 } END { exit(found ? 0 : 1) }'; then
     require_member "$members" "$tooling_runbook" "tooling release" || return 1
+    if printf '%s\n' "$members" | has_member 'agov.exe'; then
+      require_member "$members" 'agov-mcp.exe' "Windows tooling release" || return 1
+    else
+      require_member "$members" 'agov-mcp' "Linux tooling release" || return 1
+    fi
+    check_claude_template "$target" "$members" || return 1
     readme_member=$(printf '%s\n' "$members" | find_member 'README.txt')
     test -n "$readme_member" || { fail "tooling release is missing README.txt"; return 1; }
     read_member "$target" "$readme_member" | grep -F "Operating runbook: $tooling_runbook" >/dev/null ||
       { fail "tooling README.txt does not reference included local path $tooling_runbook"; return 1; }
+    read_member "$target" "$readme_member" | grep -F 'examples/claude/.mcp.json' >/dev/null ||
+      { fail "tooling README.txt does not reference examples/claude/.mcp.json"; return 1; }
+    read_member "$target" "$readme_member" | grep -F 'project root as .mcp.json' >/dev/null ||
+      { fail "tooling README.txt does not explain where to copy the Claude template"; return 1; }
+    read_member "$target" "$readme_member" | grep -F 'approve the project-scoped agov server' >/dev/null ||
+      { fail "tooling README.txt does not explain the project-scoped server approval step"; return 1; }
   else
     fail "could not classify release payload: $target"
     return 1
@@ -168,13 +214,38 @@ selftest() {
   fi
 
   tooling="$fixture/agov-2.4.5-linux-x86_64"
-  mkdir -p "$tooling/docs"
+  mkdir -p "$tooling/docs" "$tooling/examples/claude"
   printf 'binary\n' > "$tooling/agov"
+  printf 'mcp binary\n' > "$tooling/agov-mcp"
+  cp "$claude_template_source" "$tooling/examples/claude/.mcp.json"
   printf 'runbook\n' > "$tooling/$tooling_runbook"
-  printf 'Operating runbook: %s (included in this archive).\n' "$tooling_runbook" > "$tooling/README.txt"
+  printf 'Place both agov and agov-mcp on PATH. Copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted.\nOperating runbook: %s (included in this archive).\n' "$tooling_runbook" > "$tooling/README.txt"
   tar -C "$fixture" -czf "$fixture/tooling-good.tar.gz" "$(basename "$tooling")"
   check_path "$fixture/tooling-good.tar.gz" >/dev/null
 
+  rm "$tooling/examples/claude/.mcp.json"
+  tar -C "$fixture" -czf "$fixture/tooling-missing-template.tar.gz" "$(basename "$tooling")"
+  if check_path "$fixture/tooling-missing-template.tar.gz" >/dev/null 2>&1; then
+    echo "selftest FAILED: tooling archive missing Claude template passed" >&2
+    return 1
+  fi
+
+  printf '{"mcpServers":{"agov":{"command":"stale-command"}}}\n' > "$tooling/examples/claude/.mcp.json"
+  tar -C "$fixture" -czf "$fixture/tooling-stale-template.tar.gz" "$(basename "$tooling")"
+  if check_path "$fixture/tooling-stale-template.tar.gz" >/dev/null 2>&1; then
+    echo "selftest FAILED: stale Claude template passed" >&2
+    return 1
+  fi
+
+  cp "$claude_template_source" "$tooling/examples/claude/.mcp.json"
+  printf 'Place both agov and agov-mcp on PATH.\nOperating runbook: %s (included in this archive).\n' "$tooling_runbook" > "$tooling/README.txt"
+  tar -C "$fixture" -czf "$fixture/tooling-unreferenced-template.tar.gz" "$(basename "$tooling")"
+  if check_path "$fixture/tooling-unreferenced-template.tar.gz" >/dev/null 2>&1; then
+    echo "selftest FAILED: unreferenced Claude template passed" >&2
+    return 1
+  fi
+
+  printf 'Place both agov and agov-mcp on PATH. Copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted.\nOperating runbook: %s (included in this archive).\n' "$tooling_runbook" > "$tooling/README.txt"
   rm "$tooling/$tooling_runbook"
   tar -C "$fixture" -czf "$fixture/tooling-bad.tar.gz" "$(basename "$tooling")"
   if check_path "$fixture/tooling-bad.tar.gz" >/dev/null 2>&1; then
@@ -182,7 +253,17 @@ selftest() {
     return 1
   fi
 
-  echo "selftest OK: clean archives pass and missing local evidence/runbook paths are blocked"
+  windows="$fixture/agov-2.4.5-windows-x86_64"
+  mkdir -p "$windows/docs" "$windows/examples/claude"
+  printf 'binary\n' > "$windows/agov.exe"
+  printf 'mcp binary\n' > "$windows/agov-mcp.exe"
+  printf 'runbook\n' > "$windows/$tooling_runbook"
+  cp "$claude_template_source" "$windows/examples/claude/.mcp.json"
+  printf 'Place both agov.exe and agov-mcp.exe on PATH. Copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted.\nOperating runbook: %s (included in this archive).\n' "$tooling_runbook" > "$windows/README.txt"
+  (cd "$fixture" && zip -qr "$fixture/tooling-windows-good.zip" "$(basename "$windows")")
+  check_path "$fixture/tooling-windows-good.zip" >/dev/null
+
+  echo "selftest OK: clean Linux/Windows archives pass; missing, stale, and unreferenced Claude templates are blocked"
 }
 
 case "${1:-}" in
