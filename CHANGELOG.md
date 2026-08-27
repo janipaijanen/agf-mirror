@@ -10,6 +10,22 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ### Changed
 
+- **BREAKING: rule-projection owner lifecycle and repository-contained path
+  validation.** `normative_owner.stage` is now restricted to `existing` or
+  `planned`; a planned entry must name at least one non-empty `path` or
+  `paths` member. `agov plan projection-check --allow-planned` permits only a
+  genuinely absent, repository-contained planned owner during Gate 1, while
+  the default command remains strict Gate 2 evidence and every invocation
+  rejects a stale planned marker once any declared owner exists. The new
+  `projection-check-all` CI safety net checks the full manifest tree on every
+  pipeline while keeping changed-page coverage diff-scoped. Migration is
+  required for four previously accepted shapes: non-enum `stage` values;
+  `stage: planned` on an already-existing owner; planned entries with neither
+  a non-empty `path` nor non-empty `paths`; and any surface path that is
+  absolute, contains `..`, or reaches outside the repository through a
+  symlink. Replace them with the defined lifecycle value, clear stale planned
+  metadata before Gate 2, name the proposed owner, and use repository-relative
+  contained paths respectively.
 - **BREAKING workflow relaxation:** an exact, advisory and reversible
   `docs/sources.md`/`docs/radar.md` research-maintenance class may skip the
   separate Gate 1 plan, contribution audit, and pre-change coordination MR.

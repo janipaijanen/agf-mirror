@@ -12,7 +12,7 @@
 
 use agov_core::{schema, yaml};
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path};
 
 #[derive(Debug, Clone)]
 pub struct ProjectionManifest {
@@ -24,6 +24,8 @@ pub struct ProjectionManifest {
 pub fn validate_file(
     path: &Path,
     repo_root: &Path,
+    schema_path: &Path,
+    allow_planned: bool,
 ) -> Result<ProjectionManifest, Vec<(String, String)>> {
     let raw = yaml::read_yaml_file_json(path).map_err(|err| match err {
         yaml::YamlError::Io(message) if message == "file not found" => {
@@ -32,8 +34,7 @@ pub fn validate_file(
         err => vec![(format!("{err:?}"), String::new())],
     })?;
 
-    let schema_path = agov_core::schema_dir().join("rule-projection-manifest.schema.json");
-    let compiled = schema::load_and_compile(&schema_path)
+    let compiled = schema::load_and_compile(schema_path)
         .map_err(|err| vec![(format!("{err:?}"), schema_path.display().to_string())])?;
     let mut errors: Vec<(String, String)> = schema::validate(&compiled, &raw)
         .into_iter()
@@ -41,7 +42,7 @@ pub fn validate_file(
         .collect();
 
     if errors.is_empty() {
-        errors.extend(validate_paths_resolve(&raw, repo_root));
+        errors.extend(validate_paths_resolve(&raw, repo_root, allow_planned));
     }
 
     if errors.is_empty() {
@@ -56,13 +57,15 @@ pub fn validate_file(
 pub fn validate_file_against<F>(
     path: &Path,
     repo_root: &Path,
+    schema_path: &Path,
+    allow_planned: bool,
     changed_pages_or_runbooks: &BTreeSet<String>,
     ships_in_distribution: F,
 ) -> Result<ProjectionManifest, Vec<(String, String)>>
 where
     F: Fn(&str) -> bool,
 {
-    let manifest = validate_file(path, repo_root)?;
+    let manifest = validate_file(path, repo_root, schema_path, allow_planned)?;
     let mut errors = validate_changed_files(&manifest.raw, changed_pages_or_runbooks);
     errors.extend(validate_distribution(&manifest.raw, &ships_in_distribution));
     errors.extend(validate_distribution_completeness(
@@ -167,7 +170,11 @@ where
         .collect()
 }
 
-fn validate_paths_resolve(raw: &serde_json::Value, repo_root: &Path) -> Vec<(String, String)> {
+fn validate_paths_resolve(
+    raw: &serde_json::Value,
+    repo_root: &Path,
+    allow_planned: bool,
+) -> Vec<(String, String)> {
     let mut errors = Vec::new();
 
     if let Some(changed) = raw
@@ -176,11 +183,17 @@ fn validate_paths_resolve(raw: &serde_json::Value, repo_root: &Path) -> Vec<(Str
     {
         for (index, entry) in changed.iter().enumerate() {
             if let Some(relative) = entry.as_str() {
-                if !resolves(repo_root, relative) {
-                    errors.push((
+                match classify(repo_root, relative) {
+                    PathClassification::ContainedExisting => {}
+                    PathClassification::ContainedMissing => errors.push((
                         format!("changed_pages_or_runbooks[{index}] does not resolve to a real file: {relative}"),
                         format!("/changed_pages_or_runbooks/{index}"),
-                    ));
+                    )),
+                    PathClassification::Invalid => errors.push(invalid_path_error(
+                        &format!("changed_pages_or_runbooks[{index}]"),
+                        relative,
+                        &format!("/changed_pages_or_runbooks/{index}"),
+                    )),
                 }
             }
         }
@@ -188,7 +201,7 @@ fn validate_paths_resolve(raw: &serde_json::Value, repo_root: &Path) -> Vec<(Str
 
     if let Some(surfaces) = raw.get("surfaces").and_then(|value| value.as_object()) {
         for (surface_name, entry) in surfaces {
-            check_surface_paths(surface_name, entry, repo_root, &mut errors);
+            check_surface_paths(surface_name, entry, repo_root, allow_planned, &mut errors);
         }
     }
 
@@ -199,28 +212,36 @@ fn check_surface_paths(
     surface_name: &str,
     entry: &serde_json::Value,
     repo_root: &Path,
+    allow_planned: bool,
     errors: &mut Vec<(String, String)>,
 ) {
+    let planned = surface_name == "normative_owner"
+        && entry.get("stage").and_then(serde_json::Value::as_str) == Some("planned");
+
     if let Some(path) = entry.get("path").and_then(|value| value.as_str()) {
-        if !resolves(repo_root, path) {
-            errors.push((
-                format!("surfaces.{surface_name}.path does not resolve to a real file: {path}"),
-                format!("/surfaces/{surface_name}/path"),
-            ));
-        }
+        check_declared_path(
+            surface_name,
+            "path",
+            path,
+            planned,
+            allow_planned,
+            repo_root,
+            errors,
+        );
     }
 
     if let Some(paths) = entry.get("paths").and_then(|value| value.as_array()) {
         for (index, path) in paths.iter().enumerate() {
             if let Some(path) = path.as_str() {
-                if !resolves(repo_root, path) {
-                    errors.push((
-                        format!(
-                            "surfaces.{surface_name}.paths[{index}] does not resolve to a real file: {path}"
-                        ),
-                        format!("/surfaces/{surface_name}/paths/{index}"),
-                    ));
-                }
+                check_declared_path(
+                    surface_name,
+                    &format!("paths[{index}]"),
+                    path,
+                    planned,
+                    allow_planned,
+                    repo_root,
+                    errors,
+                );
             }
         }
     }
@@ -231,14 +252,98 @@ fn check_surface_paths(
     // enforces `path`/`reason` presence; no existence check here.
 }
 
-fn resolves(repo_root: &Path, relative: &str) -> bool {
-    let candidate: PathBuf = repo_root.join(relative);
-    candidate.is_file()
+fn check_declared_path(
+    surface_name: &str,
+    field: &str,
+    path: &str,
+    planned: bool,
+    allow_planned: bool,
+    repo_root: &Path,
+    errors: &mut Vec<(String, String)>,
+) {
+    let pointer_field = field.replace('[', "/").replace(']', "");
+    let pointer = format!("/surfaces/{surface_name}/{pointer_field}");
+    match classify(repo_root, path) {
+        PathClassification::ContainedExisting if planned => errors.push((
+            format!(
+                "normative_owner.stage is `planned` but `{path}` already exists -- update to `stage: existing` or remove the field before Gate 2"
+            ),
+            pointer,
+        )),
+        PathClassification::ContainedExisting => {}
+        PathClassification::ContainedMissing if planned && allow_planned => {}
+        PathClassification::ContainedMissing => errors.push((
+            format!(
+                "surfaces.{surface_name}.{field} does not resolve to a real file: {path}"
+            ),
+            pointer,
+        )),
+        PathClassification::Invalid => errors.push(invalid_path_error(
+            &format!("surfaces.{surface_name}.{field}"),
+            path,
+            &pointer,
+        )),
+    }
+}
+
+fn invalid_path_error(label: &str, path: &str, pointer: &str) -> (String, String) {
+    (
+        format!(
+            "{label} is not a valid repository-contained path: {path} (absolute paths, `..`, and paths whose existing components resolve outside the repository are forbidden)"
+        ),
+        pointer.to_string(),
+    )
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PathClassification {
+    ContainedExisting,
+    ContainedMissing,
+    Invalid,
+}
+
+fn classify(repo_root: &Path, relative: &str) -> PathClassification {
+    let candidate = Path::new(relative);
+    if candidate.is_absolute()
+        || candidate
+            .components()
+            .any(|component| matches!(component, Component::ParentDir))
+    {
+        return PathClassification::Invalid;
+    }
+
+    let Ok(canonical_root) = repo_root.canonicalize() else {
+        return PathClassification::Invalid;
+    };
+    let joined = repo_root.join(candidate);
+
+    if joined.is_file() {
+        return match joined.canonicalize() {
+            Ok(real) if real.starts_with(&canonical_root) => PathClassification::ContainedExisting,
+            _ => PathClassification::Invalid,
+        };
+    }
+
+    let mut walked = repo_root.to_path_buf();
+    for component in candidate.components() {
+        walked.push(component);
+        match std::fs::symlink_metadata(&walked) {
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
+            Err(_) => return PathClassification::Invalid,
+        }
+        match walked.canonicalize() {
+            Ok(real) if real.starts_with(&canonical_root) => continue,
+            _ => return PathClassification::Invalid,
+        }
+    }
+    PathClassification::ContainedMissing
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     fn repo_root() -> PathBuf {
         // 4 levels up from this crate's manifest dir:
@@ -255,8 +360,277 @@ mod tests {
         path
     }
 
+    fn schema_path() -> PathBuf {
+        repo_root().join("agf/schemas/rule-projection-manifest.schema.json")
+    }
+
+    fn validate_manifest(manifest: &Path) -> Result<ProjectionManifest, Vec<(String, String)>> {
+        validate_file(manifest, &repo_root(), &schema_path(), false)
+    }
+
+    fn validate_manifest_against<F>(
+        manifest: &Path,
+        actual: &BTreeSet<String>,
+        ships: F,
+    ) -> Result<ProjectionManifest, Vec<(String, String)>>
+    where
+        F: Fn(&str) -> bool,
+    {
+        validate_file_against(manifest, &repo_root(), &schema_path(), false, actual, ships)
+    }
+
     fn surface(disposition: &str, path: &str) -> String {
         format!("disposition: {disposition}\n    path: {path}\n    reason: test reason")
+    }
+
+    fn manifest_with_owner(owner: &str) -> String {
+        format!(
+            r#"
+plan_id: test-plan
+changed_pages_or_runbooks:
+  - AGENTS.md
+surfaces:
+  normative_owner:
+{owner}
+  adopter_facing_explanation:
+    disposition: updated
+    path: AGENTS.md
+    reason: test reason
+  runbook_situation_map:
+    disposition: updated
+    path: AGENTS.md
+    reason: test reason
+  ai_landing_loaders:
+    disposition: updated
+    path: AGENTS.md
+    reason: test reason
+  validation_drift_evidence:
+    disposition: implemented
+    path: AGENTS.md
+    reason: test reason
+  distribution:
+    disposition: confirmed
+    paths:
+      - AGENTS.md
+    reason: test reason
+"#
+        )
+    }
+
+    fn fixture_repo() -> tempfile::TempDir {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::write(root.path().join("AGENTS.md"), "fixture").unwrap();
+        root
+    }
+
+    fn validate_fixture(
+        manifest: &Path,
+        fixture_root: &Path,
+        allow_planned: bool,
+    ) -> Result<ProjectionManifest, Vec<(String, String)>> {
+        validate_file(manifest, fixture_root, &schema_path(), allow_planned)
+    }
+
+    #[test]
+    fn planned_missing_normative_owner_passes_only_when_allowed() {
+        let root = fixture_repo();
+        let manifest = write_manifest(
+            root.path(),
+            &manifest_with_owner(
+                "    disposition: updated\n    stage: planned\n    path: agf/rules/workflow/future-rule.md\n    reason: proposed by this plan",
+            ),
+        );
+
+        assert!(validate_fixture(&manifest, root.path(), true).is_ok());
+        let errors = validate_fixture(&manifest, root.path(), false)
+            .expect_err("strict Gate 2 validation must reject an absent owner");
+        assert!(errors
+            .iter()
+            .any(|(message, _)| message.contains("does not resolve to a real file")));
+    }
+
+    #[test]
+    fn stale_planned_normative_owner_fails_with_or_without_relaxation() {
+        let root = fixture_repo();
+        let manifest = write_manifest(
+            root.path(),
+            &manifest_with_owner(
+                "    disposition: updated\n    stage: planned\n    path: AGENTS.md\n    reason: stale marker",
+            ),
+        );
+
+        for allow_planned in [false, true] {
+            let errors = validate_fixture(&manifest, root.path(), allow_planned)
+                .expect_err("an existing planned owner must be stale");
+            assert!(errors
+                .iter()
+                .any(|(message, _)| message.contains("lifecycle")
+                    || message.contains("already exists")));
+        }
+    }
+
+    #[test]
+    fn existing_stage_with_existing_owner_passes() {
+        let root = fixture_repo();
+        let manifest = write_manifest(
+            root.path(),
+            &manifest_with_owner(
+                "    disposition: updated\n    stage: existing\n    path: AGENTS.md\n    reason: existing owner",
+            ),
+        );
+
+        assert!(validate_fixture(&manifest, root.path(), false).is_ok());
+        assert!(validate_fixture(&manifest, root.path(), true).is_ok());
+    }
+
+    #[test]
+    fn planned_metadata_does_not_relax_another_surface() {
+        let root = fixture_repo();
+        let content = manifest_with_owner(
+            "    disposition: updated\n    path: AGENTS.md\n    reason: existing owner",
+        )
+        .replace(
+            "  ai_landing_loaders:\n    disposition: updated\n    path: AGENTS.md",
+            "  ai_landing_loaders:\n    disposition: updated\n    stage: planned\n    path: missing-loader.md",
+        );
+        let manifest = write_manifest(root.path(), &content);
+
+        let errors = validate_fixture(&manifest, root.path(), true)
+            .expect_err("planned metadata must not relax non-owner surfaces");
+        assert!(errors.iter().any(|(message, _)| {
+            message.contains("ai_landing_loaders")
+                && message.contains("does not resolve to a real file")
+        }));
+    }
+
+    #[test]
+    fn planned_paths_array_becomes_stale_when_any_member_exists() {
+        let root = fixture_repo();
+        let manifest = write_manifest(
+            root.path(),
+            &manifest_with_owner(
+                "    disposition: updated\n    stage: planned\n    paths:\n      - missing-owner.md\n      - AGENTS.md\n    reason: partially stale marker",
+            ),
+        );
+
+        let errors = validate_fixture(&manifest, root.path(), true)
+            .expect_err("one existing member must make the whole planned entry stale");
+        assert!(errors.iter().any(
+            |(message, _)| message.contains("AGENTS.md") && message.contains("already exists")
+        ));
+    }
+
+    #[test]
+    fn planned_paths_array_passes_only_while_every_member_is_missing() {
+        let root = fixture_repo();
+        let missing_manifest = write_manifest(
+            root.path(),
+            &manifest_with_owner(
+                "    disposition: updated\n    stage: planned\n    paths:\n      - first-missing.md\n      - second-missing.md\n    reason: both pending",
+            ),
+        );
+        assert!(validate_fixture(&missing_manifest, root.path(), true).is_ok());
+
+        std::fs::write(root.path().join("second-existing.md"), "existing").unwrap();
+        let existing_manifest = write_manifest(
+            root.path(),
+            &manifest_with_owner(
+                "    disposition: updated\n    stage: planned\n    paths:\n      - AGENTS.md\n      - second-existing.md\n    reason: both stale",
+            ),
+        );
+        let errors = validate_fixture(&existing_manifest, root.path(), true)
+            .expect_err("all-existing planned paths must be stale");
+        assert_eq!(
+            errors
+                .iter()
+                .filter(|(message, _)| message.contains("already exists"))
+                .count(),
+            2
+        );
+    }
+
+    #[test]
+    fn planned_relaxation_never_accepts_absolute_or_parent_paths() {
+        let root = fixture_repo();
+        for invalid in ["/etc/passwd", "../outside.md"] {
+            let manifest = write_manifest(
+                root.path(),
+                &manifest_with_owner(&format!(
+                    "    disposition: updated\n    stage: planned\n    path: {invalid}\n    reason: invalid path"
+                )),
+            );
+            for allow_planned in [false, true] {
+                let errors = validate_fixture(&manifest, root.path(), allow_planned)
+                    .expect_err("repository escape must always fail");
+                assert!(errors
+                    .iter()
+                    .any(|(message, _)| message.contains("repository-contained path")));
+            }
+        }
+    }
+
+    #[test]
+    fn planned_owner_requires_a_non_empty_path_or_paths_array() {
+        let root = fixture_repo();
+        for owner in [
+            "    disposition: updated\n    stage: planned\n    reason: missing path",
+            "    disposition: updated\n    stage: planned\n    paths: []\n    reason: empty paths",
+        ] {
+            let manifest = write_manifest(root.path(), &manifest_with_owner(owner));
+            let errors = validate_fixture(&manifest, root.path(), true)
+                .expect_err("schema must require a concrete planned owner path");
+            assert!(!errors.is_empty());
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn planned_relaxation_rejects_outside_and_dangling_symlink_paths() {
+        use std::os::unix::fs::symlink;
+
+        let root = fixture_repo();
+        let outside = tempfile::tempdir().unwrap();
+        std::fs::write(outside.path().join("owner.md"), "outside").unwrap();
+        symlink(
+            outside.path().join("owner.md"),
+            root.path().join("outside-owner"),
+        )
+        .unwrap();
+        symlink(outside.path(), root.path().join("outside-dir")).unwrap();
+        symlink(
+            outside.path().join("missing.md"),
+            root.path().join("dangling-outside"),
+        )
+        .unwrap();
+        symlink("chain-target", root.path().join("chain-start")).unwrap();
+        symlink(
+            outside.path().join("missing.md"),
+            root.path().join("chain-target"),
+        )
+        .unwrap();
+        symlink("internal-missing", root.path().join("internal-dangling")).unwrap();
+
+        for invalid in [
+            "outside-owner",
+            "outside-dir/future.md",
+            "dangling-outside",
+            "chain-start",
+            "internal-dangling",
+        ] {
+            let manifest = write_manifest(
+                root.path(),
+                &manifest_with_owner(&format!(
+                    "    disposition: updated\n    stage: planned\n    path: {invalid}\n    reason: invalid symlink path"
+                )),
+            );
+            for allow_planned in [false, true] {
+                let errors = validate_fixture(&manifest, root.path(), allow_planned)
+                    .expect_err("symlink escape or dangling chain must always fail");
+                assert!(errors
+                    .iter()
+                    .any(|(message, _)| message.contains("repository-contained path")));
+            }
+        }
     }
 
     #[test]
@@ -294,7 +668,7 @@ surfaces:
             ),
         );
 
-        let result = validate_file(&manifest, &repo_root());
+        let result = validate_manifest(&manifest);
         assert!(result.is_ok(), "expected pass, got: {:?}", result.err());
     }
 
@@ -324,7 +698,7 @@ surfaces:
 "#,
         );
 
-        let result = validate_file(&manifest, &repo_root());
+        let result = validate_manifest(&manifest);
         assert!(result.is_err());
     }
 
@@ -363,7 +737,7 @@ surfaces:
             ),
         );
 
-        let result = validate_file(&manifest, &repo_root());
+        let result = validate_manifest(&manifest);
         let errors = result.expect_err("expected an unresolvable-path error");
         assert!(errors
             .iter()
@@ -405,7 +779,7 @@ surfaces:
             ),
         );
 
-        let result = validate_file(&manifest, &repo_root());
+        let result = validate_manifest(&manifest);
         let errors = result.expect_err("expected an unresolvable changed-file error");
         assert!(errors
             .iter()
@@ -453,7 +827,7 @@ surfaces:
 "#,
         );
 
-        let result = validate_file(&manifest, &repo_root());
+        let result = validate_manifest(&manifest);
         assert!(result.is_ok(), "expected pass, got: {:?}", result.err());
     }
 
@@ -492,7 +866,7 @@ surfaces:
             ),
         );
         let actual = BTreeSet::from(["agf/docs/site/docs/omitted.md".to_string()]);
-        let errors = validate_file_against(&manifest, &repo_root(), &actual, |_| true)
+        let errors = validate_manifest_against(&manifest, &actual, |_| true)
             .expect_err("omitted changed page must fail");
         assert!(errors
             .iter()
@@ -533,7 +907,7 @@ surfaces:
                 surface("implemented", "AGENTS.md"),
             ),
         );
-        let errors = validate_file_against(&manifest, &repo_root(), &BTreeSet::new(), |_| false)
+        let errors = validate_manifest_against(&manifest, &BTreeSet::new(), |_| false)
             .expect_err("missing distribution member must fail");
         assert!(errors
             .iter()
@@ -579,7 +953,7 @@ surfaces:
         // Every path "ships" in this fixture -- simulates a real distribution
         // glob (e.g. agf/docs/site/**) covering the changed Pages file, which
         // the manifest above fails to declare or mark not_applicable.
-        let errors = validate_file_against(&manifest, &repo_root(), &actual, |_| true)
+        let errors = validate_manifest_against(&manifest, &actual, |_| true)
             .expect_err("shipped changed file omitted from distribution must fail");
         assert!(errors.iter().any(|(message, _)| message
             .contains("ships via a distribution glob but is absent from surfaces.distribution")));
@@ -624,7 +998,7 @@ surfaces:
         );
         let actual =
             BTreeSet::from(["agf/docs/site/docs/concepts/coordination-protocol.md".to_string()]);
-        let result = validate_file_against(&manifest, &repo_root(), &actual, |_| true);
+        let result = validate_manifest_against(&manifest, &actual, |_| true);
         assert!(result.is_ok(), "expected pass, got: {:?}", result.err());
     }
 }
