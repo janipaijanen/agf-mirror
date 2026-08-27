@@ -1,6 +1,8 @@
 ---
 id: assistant-discovery-archive-setup
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-25T20:02:20Z"
 topic: assistant-discovery-archive-setup
 advisory_consultation:
   - role: contribution-auditor
