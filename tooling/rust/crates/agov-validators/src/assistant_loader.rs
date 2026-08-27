@@ -535,21 +535,24 @@ mod tests {
         assert!(messages(&result)[0].contains("not a regular file"));
     }
 
-    #[cfg(unix)]
     #[test]
-    fn unreadable_import_is_visible_advisory() {
-        use std::os::unix::fs::PermissionsExt;
-
+    fn open_failure_after_resolution_is_reported_as_unreadable() {
         let temp = tempfile::tempdir().unwrap();
-        setup(temp.path());
-        manifest(temp.path(), Some("claude-code"));
-        write(temp.path().join(".claude/CLAUDE.md"), "@../AGENTS.md\n");
+        let importer = temp.path().join(".claude/CLAUDE.md");
         let target = temp.path().join("AGENTS.md");
+        write(importer.clone(), "@../AGENTS.md\n");
         write(target.clone(), "<!-- AGF: 2.2.0 -->\n");
-        std::fs::set_permissions(&target, std::fs::Permissions::from_mode(0o000)).unwrap();
-        let result = validate_all(temp.path());
-        std::fs::set_permissions(&target, std::fs::Permissions::from_mode(0o600)).unwrap();
-        assert!(messages(&result)[0].contains("import target is unreadable"));
+        let result = read_import_target_with_hook(
+            temp.path(),
+            &importer,
+            "../AGENTS.md",
+            || std::fs::remove_file(&target).unwrap(),
+        );
+        assert_eq!(result, Err(ImportError::Unreadable));
+        assert_eq!(
+            ImportError::Unreadable.message(".claude/CLAUDE.md"),
+            ".claude/CLAUDE.md: import target is unreadable"
+        );
     }
 
     #[test]
