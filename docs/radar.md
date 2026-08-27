@@ -147,6 +147,23 @@ Next review: 2026-10.
   `docs/sources.md` Batch 28 | status: evaluate against existing gap, no implementation
   proposed | review-by: 2026-11
 
+- **Named-standard prompt compression vs explicit instruction fidelity** —
+  SimplerEnglish reports that a one-line instruction naming ASD-STE100 can
+  approach a much longer skill's writing behavior on some Claude models while
+  using less prompt context. Its aggregate pre-registered criterion was not
+  met, however, and its one-run, Claude-only evaluation did not test human
+  comprehension or preservation of governed meaning. The open AGF question is
+  whether a model's latent knowledge of a named writing standard can safely
+  reduce repeated instruction text, or whether it imports an unknown,
+  model-specific and changing approximation that can erase modality,
+  negation, authority boundaries, exact identifiers, citations, or necessary
+  caveats. A future separately governed evaluation would need repeated
+  no-skill/compact/explicit arms across Claude and Codex, deterministic
+  semantic checks, blinded human readers from AGF's target audience, and
+  token/cost reporting separated from fidelity. source: SimplerEnglish in
+  `docs/sources.md` Batch 30 | status: testable hypothesis only; no skill
+  adoption or trial authorized | review-by: 2026-11
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu

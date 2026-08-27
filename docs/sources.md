@@ -2363,3 +2363,52 @@ failure to find downstream references or to track and compare many parallel
 candidate trees. Do not install Bee/Beagle, adopt OKF, change worktree
 semantics, add a second authority store, or implement a new `agov` view from
 this source classification without separately authorized work.
+
+# Batch 30 (2026-08-27) — compact named-standard writing-skill candidate
+
+## Classified
+
+- https://whoislewys.com/blog/2026/08/20/simpler-english/
+  source: https://github.com/whoislewys/SimplerEnglish/tree/a641c82e6ab7e12528c7c8651cbb77e974103130
+  type: practice, evaluation, tooling | relation: prior-art, evidence,
+  threat-model | action: watch, reproduce-before-cite
+  note: Luis Gomez, “SimplerEnglish - A skill that makes LLM outputs cheaper
+  and easier to read” (2026-08-20), reports an A/B evaluation of a full
+  Simplified Technical English skill, a one-line instruction naming
+  ASD-STE100, and a no-skill baseline. The pinned MIT-licensed repository
+  records 144 generations across six Claude models and eight scenarios. Its
+  aggregate deterministic-linter result was an 86.1% violation reduction for
+  the full skill and 78.6% for the one-line variant. The resulting 7.5
+  percentage-point gap did **not** meet the pre-registered within-five-point
+  criterion, even though the one-line variant stayed within that threshold on
+  the three newest Opus models considered separately. The same run reports
+  mean cost per cell of $0.1108 for the full skill, $0.0469 for the one-line
+  variant, and $0.0634 for the baseline.
+
+  The transferable hypothesis is narrower than the headline: naming a known
+  technical-writing standard may activate useful model knowledge with much
+  less prompt context than embedding a long restatement of the standard. The
+  source does not establish that the compact instruction is generally
+  equivalent, cheaper across providers, or better for human comprehension.
+  There was one generation per cell, the linter is an acknowledged incomplete
+  regex approximation, the blind pairwise evaluation used one Claude judge on
+  Claude outputs, and no OpenAI/Codex model, repeated-run variance, independent
+  human reader, or AGF artifact was tested. Dollar results are one run through
+  Claude Code billing and caching behavior, not a provider-neutral cost law.
+  ASD-STE100 conformance is not guaranteed.
+
+  AGF relevance is therefore an open prompt-economy and documentation-fidelity
+  question, not an adoption recommendation. Any later trial would need normal
+  Gate 1 authority and must test semantic preservation of normative modality,
+  negation, authority boundaries, exact identifiers/code, citations, and
+  evidence caveats alongside token cost and comprehension by AGF's target
+  reader. (article and pinned repository accessed 2026-08-27)
+
+## Evaluation boundary
+
+The matching radar item asks whether a compact named-standard instruction can
+reduce recurring documentation context without losing governed meaning. This
+classification does not add the external skill, make it a dependency, change
+AGF writing rules, claim ASD-STE100 compliance, or authorize a runtime trial.
+Do not cite the reported 58%/26% cost comparisons as AGF or cross-provider
+performance evidence without an independently governed reproduction.
