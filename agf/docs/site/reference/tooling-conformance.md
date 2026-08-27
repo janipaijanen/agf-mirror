@@ -36,7 +36,7 @@ The table lists the adopter-facing command surface.
 | Adopter command | Purpose | Status |
 |---|---|---|
 | `agov --version` | Print the binary version plus build commit SHA and dirty state. | Release surface |
-| `agov version --format json` | Print structured version, commit, and dirty-state provenance. | Release surface |
+| `agov version --format json` | Print structured version, commit, dirty-state, and deterministic tooling-source fingerprint provenance. | Release surface |
 | `agov coord validate <file>...` | Validate coordination messages against the schema. | Release surface |
 | `agov plan validate <file>...` | Validate Gate 1 plan front matter and advisory consultation metadata. | Release surface |
 | `agov validate [subcommand]` | Validate framework artifacts such as adoption, agents, learnings, infosec, contributions, or framework config. | Release surface |
@@ -48,6 +48,8 @@ The table lists the adopter-facing command surface.
 | `agov coord visibility [args...]` | Detect coordination obligations hidden on non-base branches. | Release surface |
 | `agov coord graph [args...]` | Render role-to-role coordination flows as Graphviz dot or text. | Release surface |
 | `agov coord graph-index [args...]` | Emit the coordination graph as deterministic JSON for cold starts and tooling. See the [graph-index contract](coord-graph-index.md). | Release surface |
+| `agov coord pending [--cutoff <RFC3339>] [--format text\|json]` | Report unresolved non-`handoff` `requires-ack: true` coordination records. Exit `0` found / `2` none found — not a failure. | Release surface |
+| `agov coord convergence --series <id> [--format text\|json]` | Verify and report the deterministic per-invariant state of an opt-in review-convergence series. Exit `1` for invalid transitions or unresolved CLEAR/BLOCK conflicts. | Level 4 validated candidate; not deployable until released |
 | `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |
 | `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
 
@@ -63,6 +65,13 @@ release-archive adopters.
 | `2` | No work found / clean negative result where that is the command contract. |
 | `3` | Reserved for cross-artifact invariant failure. |
 | `4` | Reserved for infrastructure or input/output failure. |
+
+For `coord convergence`, exit `0` means the declared event sequence is
+structurally coherent. It is not a review recommendation or gate approval.
+Exit `1` means the opted-in sequence is invalid or paused by conflicting CLEAR
+and BLOCK outcomes; the command never resolves that conflict or accepts risk.
+Candidate SHAs and scoped blobs must be locally available so the command can
+recompute the declared digest.
 
 ## Conformance suite
 
@@ -80,7 +89,7 @@ Initial fixture families should cover:
 | JSON output | `version --format json`, `coord graph-index`, usage reports, and other JSON outputs preserve field names, ordering expectations, and omission rules. |
 | Path handling | Relative paths, explicit `--dir` options, environment overrides, and release-archive layouts behave the same. |
 | Deterministic ordering | Status, graph, graph-index, handoff, and usage outputs sort records predictably across filesystems. |
-| Lifecycle behavior | Claims, handoffs, reviews, acks, completions, stale claims, and visibility checks resolve the same way across implementations. |
+| Lifecycle behavior | Claims, handoffs, reviews, acks, completions, stale claims, visibility checks, and opted-in convergence transitions resolve the same way across implementations. |
 
 Until those fixtures ship, only the Rust `agov` release binary should be
 described as the supported AGF v2 tooling implementation. Other language

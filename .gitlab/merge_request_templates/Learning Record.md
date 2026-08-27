@@ -13,8 +13,8 @@ Closes # <!-- Replace with the issue number, or delete this line -->
 - [ ] `project.codename` field set (not `project.name`)
 - [ ] No real project, product, or organisation names in any field
 - [ ] No internal URLs, hostnames, or infrastructure identifiers
-- [ ] `mix agov.validate.learnings agf/learnings/` passes (run from `tooling/elixir/`)
-- [ ] `mix agov.validate.infosec agf/learnings/` passes or all findings have `sentinel_ack` (run from `tooling/elixir/`)
+- [ ] `agov validate learnings agf/learnings/` passes
+- [ ] `agov validate infosec` passes or all findings have `sentinel_ack`
 - [ ] No credentials, connection strings, or secrets in any field
 - [ ] Cross-record references to other project codenames reviewed
 

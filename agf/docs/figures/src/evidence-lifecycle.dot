@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Evidence lifecycle
+// svg-desc: Evidence progresses from an incident or observation through a learning record and governed improvement, with independent corroboration required for promotion.
 // agents-govern: evidence lifecycle (incident → learning → improvement)
 // Generate: dot -Tsvg evidence-lifecycle.dot -o ../evidence-lifecycle.svg
 //

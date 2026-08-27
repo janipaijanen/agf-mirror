@@ -26,6 +26,9 @@ tooling/elixir/
 # Local/generated bootstrap artifacts
 agents-govern/uv.lock
 
+# poll-and-coordinate skill's durable cursor (runtime polling state, not source)
+.agov/
+
 # AGF docs pipeline config is tracked (root build/ pattern must not swallow it)
 !agf/docs/build/
 

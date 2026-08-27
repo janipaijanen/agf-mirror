@@ -51,6 +51,9 @@ NAMED_COLOURS = {"white": "#FFFFFF", "black": "#000000"}
 
 HEX_RE = re.compile(r"#([0-9A-Fa-f]{6})")
 TOKEN_ROW_RE = re.compile(r"^\|\s*`([\w-]+)`\s*\|\s*`(#[0-9A-Fa-f]{6})`\s*\|")
+THEME_ROW_RE = re.compile(
+    r"^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([0-9.]+):1"
+)
 ATTR_BLOCK_RE = re.compile(r"\[([^\[\]]*)\]", re.DOTALL)
 ATTR_RE = re.compile(r'(\w+)\s*=\s*("(?:[^"\\]|\\.)*"|[^,\]\s]+)', re.DOTALL)
 
@@ -142,6 +145,36 @@ def parse_responsibility_table(
             continue
         name, fill_ref, _border_ref, text_ref = cols[0], cols[1], cols[2], cols[3]
         rows.append((name, resolve_colour_ref(fill_ref, tokens), resolve_colour_ref(text_ref, tokens)))
+    return rows
+
+
+def parse_theme_pairings(
+    md_text: str, tokens: dict[str, str]
+) -> list[tuple[str, str, str]]:
+    """(pairing name, background, foreground) from the documentation-theme table."""
+    rows: list[tuple[str, str, str]] = []
+    in_section = False
+    for line in md_text.splitlines():
+        if line.startswith("### Documentation theme pairings"):
+            in_section = True
+            continue
+        if in_section and line.startswith("##"):
+            break
+        if not in_section or not line.startswith("|"):
+            continue
+        match = THEME_ROW_RE.match(line)
+        if not match or match.group(1).strip() in {"Theme pairing", "---"}:
+            continue
+        name, foreground_ref, background_ref, documented_ratio = match.groups()
+        foreground = resolve_colour_ref(foreground_ref, tokens)
+        background = resolve_colour_ref(background_ref, tokens)
+        measured = contrast_ratio(foreground, background)
+        if abs(measured - float(documented_ratio)) > 0.015:
+            raise ContrastCheckError(
+                f"{name.strip()}: documented contrast {documented_ratio}:1 "
+                f"does not match computed {measured:.2f}:1"
+            )
+        rows.append((name.strip(), background, foreground))
     return rows
 
 
@@ -317,7 +350,17 @@ def run_real_checks() -> int:
             "parser is broken or the section was renamed/removed"
         )
 
+    theme_pairings = parse_theme_pairings(md_text, tokens)
+    if not theme_pairings:
+        raise ContrastCheckError(
+            f"parsed zero documentation-theme pairings from {PALETTE_MD}"
+        )
+
     all_failures: list[tuple[str, str, float, float]] = []
+    all_failures += check_pairings(
+        theme_pairings,
+        "palette.md#documentation-theme-pairings",
+    )
     all_failures += check_pairings(
         [(name, fill, text) for name, fill, text in responsibility_rows],
         "palette.md#semantic-responsibility-palette",
@@ -346,7 +389,8 @@ def run_real_checks() -> int:
         return 1
 
     print(
-        f"\nAll {len(responsibility_rows)} responsibility pairing(s) and all DOT "
+        f"\nAll {len(theme_pairings)} documentation-theme pairing(s), "
+        f"{len(responsibility_rows)} responsibility pairing(s), and all DOT "
         f"figure text/fill pairings meet their WCAG target."
     )
     return 0
@@ -378,6 +422,28 @@ def _self_test() -> int:
     assert good_rows == [("Human decision", "#EE7700", "#1A1A1A")], good_rows
     good_failures = check_pairings(good_rows, "self-test/good")
     assert not good_failures, "conforming pairing was wrongly flagged as a failure"
+
+    theme_md = good_md.replace(
+        "## Next section",
+        """### Documentation theme pairings
+
+| Theme pairing | Foreground | Background | Measured contrast | Use |
+|---|---|---|---|---|
+| Dark-theme accent | `#99CCEE` | `#1E2129` | 9.37:1 ✓ AA text | Focus |
+
+## Next section""",
+    )
+    theme_rows = parse_theme_pairings(theme_md, tokens)
+    assert theme_rows == [("Dark-theme accent", "#1E2129", "#99CCEE")], theme_rows
+    assert not check_pairings(theme_rows, "self-test/theme-good")
+
+    bad_theme_md = theme_md.replace("`#99CCEE`", "`#0077BB`")
+    try:
+        parse_theme_pairings(bad_theme_md, tokens)
+    except ContrastCheckError:
+        pass
+    else:
+        raise AssertionError("stale documented theme contrast was not detected")
 
     bad_md = good_md.replace("`#1A1A1A`", "white")
     bad_tokens = parse_base_palette_table(bad_md)

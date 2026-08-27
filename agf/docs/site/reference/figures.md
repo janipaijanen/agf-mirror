@@ -32,7 +32,7 @@ does not shorten the cycle, it breaks the loop's only feedback path.
 
 <figure markdown>
 ![Closed governance cycle from planning through learning and back to planning](figures/governance-loop.svg)
-<figcaption>Figure 1. Governance work forms a closed evidence-feedback loop.</figcaption>
+<figcaption>Figure 1. Governance work forms a closed evidence-feedback loop. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/governance-loop.dot`
@@ -53,7 +53,7 @@ in the figure, not an exception to it.
 
 <figure markdown>
 ![Request path through plan approval, implementation review, and merge](figures/gate-pipeline.svg)
-<figcaption>Figure 2. Gate 1 governs the plan and Gate 2 governs the implementation.</figcaption>
+<figcaption>Figure 2. Gate 1 governs the plan and Gate 2 governs the implementation. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/gate-pipeline.dot`
@@ -76,7 +76,7 @@ regardless of how much detail it contains.
 <div class="figure-scroll" markdown>
 ![Coordination message kinds grouped by their routing and authority effects](figures/coordination-channel.svg)
 </div>
-<figcaption>Figure 3. Message kinds route work, record decisions, or preserve status.</figcaption>
+<figcaption>Figure 3. Message kinds route work, record decisions, or preserve status. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/coordination-channel.dot`
@@ -96,7 +96,7 @@ task into the human-only mode by approving it itself.
 
 <figure markdown>
 ![Human-only, AI-executed, and mixed responsibility modes separated by authority](figures/operating-responsibility-map.svg)
-<figcaption>Figure 4. Responsibility mode does not transfer human approval authority.</figcaption>
+<figcaption>Figure 4. Responsibility mode does not transfer human approval authority. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/operating-responsibility-map.dot`
@@ -118,7 +118,7 @@ for it.
 
 <figure markdown>
 ![Evidence progressing from observation through learning and governed promotion](figures/evidence-lifecycle.svg)
-<figcaption>Figure 5. Independent corroboration governs evidence promotion.</figcaption>
+<figcaption>Figure 5. Independent corroboration governs evidence promotion. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/evidence-lifecycle.dot`
@@ -140,7 +140,7 @@ that produced it.
 
 <figure markdown>
 ![Recurring learning cycle from governed work through system change and observed use](figures/learning-loop.svg)
-<figcaption>Figure 6. Observed use feeds the next learning cycle.</figcaption>
+<figcaption>Figure 6. Observed use feeds the next learning cycle. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/learning-loop.dot`
@@ -160,7 +160,7 @@ running, not what remains auditable.
 
 <figure markdown>
 ![Adoption timeline branching into freeze, replacement, and decommission exit paths](figures/adoption-exit-flow.svg)
-<figcaption>Figure 7. Every exit path preserves the coordination history.</figcaption>
+<figcaption>Figure 7. Every exit path preserves the coordination history. AI-generated figure; publication remains the responsibility of the human maintainer.</figcaption>
 </figure>
 
 **Source:** `docs/figures/src/adoption-exit-flow.dot`
@@ -183,8 +183,10 @@ patterns as their own governance model matures — a thin or absent edge
 here is evidence about the foundry's history, not a target topology.
 
 <div class="figure-scroll" markdown>
-![Example AGF Foundry coordination map](figures/coordination-map-example.svg)
+![AGF Foundry roles connected by coordination message kinds and sampled message counts](figures/coordination-map-example.svg)
 </div>
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 **Source:** `docs/figures/src/coordination-map-example.dot`
 
@@ -199,6 +201,8 @@ decision, and automated validation without relying on colour alone.
 
 [![Governed change flow from plan through two human gates to merge](figures/governed-change-flow.svg)](figures/governed-change-flow.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size governed change flow (SVG)](figures/governed-change-flow.svg)
 
 **Source:** `docs/figures/src/governed-change-flow.dot`
@@ -212,6 +216,8 @@ agents, tools, and memory or state; AGF defines roles, gates, artifacts, and
 the boundaries and learning records around that execution.
 
 [![Runtime execution alongside AGF governance boundaries](figures/runtime-governance-boundary.svg)](figures/runtime-governance-boundary.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 [Open the full-size runtime and governance boundary figure (SVG)](figures/runtime-governance-boundary.svg)
 
@@ -228,6 +234,8 @@ AI policy and ethics.
 
 [![AGF positioned relative to runtimes, CI/CD, SDLC, ML governance, and AI policy](figures/governance-scope-position.svg)](figures/governance-scope-position.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size AGF governance-position figure (SVG)](figures/governance-scope-position.svg)
 
 **Source:** `docs/figures/src/governance-scope-position.dot`
@@ -241,6 +249,8 @@ chain from the approved Gate 1 handoff through acknowledgement,
 implementation, Gate 2 handoff and decision, and final completion.
 
 [![Ordered coordination handoff from Gate 1 through Gate 2 to completion](figures/gate-handoff-sequence.svg)](figures/gate-handoff-sequence.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 [Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](figures/gate-handoff-sequence.svg)
 
@@ -257,6 +267,8 @@ routes each category to its detailed contract.
 
 [![AGF concept map grouping roles, gates, artifacts, tooling, adoption, boundaries, and evidence](figures/framework-map.svg)](figures/framework-map.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size AGF concept map (SVG)](figures/framework-map.svg)
 
 **Source:** `docs/figures/src/framework-map.dot`
@@ -267,6 +279,10 @@ routes each category to its detailed contract.
 
 - Embed SVG in Markdown with `![Alt text](figures/name.svg)` from this page,
   or with the full relative path from other pages.
+- Every AI-generated figure embed must use descriptive alt text and include the
+  visible disclosure "AI-generated figure. Publication remains the
+  responsibility of the human maintainer." Do not rely on image metadata or a
+  site-wide acknowledgement as the only disclosure.
 - Do not hand-edit generated SVG files — edit the DOT source and regenerate.
 - Every figure must include an embedded legend in the generated image. Do not
   rely on page prose or captions to explain color, shape, or line semantics.

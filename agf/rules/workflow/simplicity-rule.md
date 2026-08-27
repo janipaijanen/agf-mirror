@@ -11,6 +11,113 @@ provenance: verified-agf-v2
 Complexity is the primary source of bugs, maintenance cost, and unreadable code.
 Every addition of complexity requires justification. Simplicity does not.
 
+## Minimum sufficient value
+
+Plan first, then say, build, and deliver the smallest complete solution
+that meets the approved requirements and quality standard. Remove
+unnecessary wording, scope, states, abstractions, options, process, and
+delay. Do not remove meaning, correctness, safety, evidence,
+maintainability, uncertainty, or required user value.
+
+**Completeness across affected value surfaces:** The smallest solution
+is complete only when every materially affected value surface has an
+explicit disposition. Relevant surfaces include product behavior and
+necessary development, end-user and adopter documentation, truthful
+public or marketing explanation and discoverability, `agov` and other
+operator-tooling quality, tests and maintainability, and release or
+operational readiness. A surface may be omitted only when it is not
+affected or when an authorized plan explicitly defers it. Simplicity
+must not shift avoidable complexity, risk, or missing information to
+users, adopters, operators, or later work. Not every change must touch
+every surface — only the ones a given change actually affects.
+
+1. **Communication:** Use the shortest clear wording that preserves
+   necessary meaning. Remove jargon, repetition, and decorative detail.
+   Do not omit material facts, constraints, uncertainty, or required
+   actions.
+2. **Implementation:** Implement the simplest solution that fully meets
+   the approved requirements. Remove unnecessary states, abstractions,
+   options, and special cases. Do not simplify away correctness,
+   safety, evidence, or required behavior. (See "The over-engineering
+   warning signs" below for concrete signals.)
+3. **Delivery:** Deliver the smallest complete solution that meets the
+   approved quality requirements. Remove unnecessary scope, process,
+   abstraction, and delay. Do not remove correctness, safety, evidence,
+   maintainability, or required user value.
+4. **Planning before work:** Before starting new work, confirm that
+   planning proportional to its scope and risk has been recorded and
+   any required approval obtained. If no suitable plan exists, record
+   one first. A full plan states the outcome, scope and exclusions,
+   acceptance checks, authority and gates, owner, material risks or
+   dependencies, and simplest sufficient approach. Eligible fast-track
+   work may use a compact pre-work note stating the outcome, bounded
+   scope, acceptance check, and why the lighter path is sufficient;
+   repeat the waiver in the later commit message (see "Calibrating
+   workflow overhead to task size" below). Planning must be adequate,
+   not ceremonially large.
+
+### Necessary scope-estimate correction
+
+An approved plan's file list is an impact estimate and a control
+boundary — not a promise that no other file can ever be touched. This
+path applies only to work already governed by an approved, full Gate 1
+plan whose own file list is the boundary in question. It does not apply
+to either of this rule's existing fast paths: the fast-track waiver
+elsewhere in this rule (which already requires stopping and writing a full plan the
+moment work grows beyond its lighter process) or the sources/radar
+research-maintenance fast path (whose own disqualifier list already
+requires stopping before committing expanded scope and returning to
+ordinary Gate 1). Neither fast path gains a new self-approval route
+from this subsection — their existing stop-and-return-to-Gate-1
+conditions are unchanged. When work already in progress under an
+approved full Gate 1 plan discovers that the approved outcome cannot be
+completed correctly without touching a file outside that list, classify
+the discovery before acting:
+
+1. **Necessary correction.** An existing invariant, mandatory test, or
+   required integration surface proves — with objective, checkable
+   evidence (a failing test, a violated invariant, an audit that
+   demonstrably cannot pass) — that the approved outcome is incomplete
+   without the additional file. State the intent and the evidence,
+   request the smallest necessary expansion through the authority the
+   governing gate still reserves, and apply only the minimum change
+   once that authority responds. Do not wait for a full new Gate 1
+   planning cycle or a retrospective to make the correction — the
+   request itself is the lightweight artifact; a single scope-
+   clarification handoff, not a new plan file, is normally sufficient.
+   An agent may not label its own desired change "necessary" and skip
+   the request: the classification requires evidence a reviewer can
+   independently check, and applying the correction still requires a
+   decision-record from the authority the plan already names, never
+   the same agent's own say-so.
+2. **Optional expansion.** Cleanup, redesign, convenience refactoring,
+   or added capability that is not required to complete the approved
+   outcome remains out of scope regardless of how adjacent or
+   beneficial it looks. It follows normal planning — a fresh plan, or
+   an explicit amendment to the current one — not this path.
+3. **Material expansion.** Any change to the approved outcome,
+   interfaces, architecture, dependencies, authority, security or
+   privacy posture, cost, release scope, or other governed commitment
+   is never a "necessary correction," no matter how small the diff.
+   Material expansion stops work and returns to full Gate 1 review.
+   This path grants no exception to `deputy-governor-rule.md`'s red
+   list — a necessary correction that would touch a red-list area is
+   automatically material and stops here.
+4. **Learning after stabilization.** Once the correction is applied and
+   validated, record — proportionate to the miss, not ceremonially —
+   what the original impact estimate missed, where the gap was caught,
+   and one concrete improvement to future impact assessment. This
+   record follows the correction; it must never block it. A miss that
+   recurs across more than one plan should be promoted to the project's
+   governed learning channel rather than re-documented locally each
+   time.
+
+The default is deny: absent objective evidence and a decision-record
+from the authority the current gate already reserves, an out-of-list
+file stays out of scope. This subsection narrows how small an approved
+scope may still grow without a new Gate 1 cycle — it does not widen who
+may approve that growth.
+
 ## The Simplicity Test
 
 Before proposing any design, implementation, or abstraction, ask:
@@ -71,15 +178,190 @@ Not every task needs the full multi-phase workflow from development-workflow-rul
 
 | Task type | Workflow required |
 |-----------|------------------|
-| Typo, comment, doc update | Edit directly, commit |
+| Typo, comment, ordinary doc update | Branch, edit, test, merge request |
 | Single-file bug fix with obvious cause | Fix -> test -> commit |
 | New field on existing model | Plan note + migration + test + commit |
 | New route or service | Full plan file + TDD + review checklist |
 | Cross-cutting change (>3 modules) | Full workflow + worktree |
 | Refactor of existing code | Characterisation tests first, then refactor |
 
-When in doubt: choose the lighter process. Upgrade if the task grows.
+When in doubt: choose the lighter process that still satisfies the applicable
+branch and review rules. Upgrade if the task grows.
 
 **Fast-track waiver:** When using the lighter process (skipping the plan file), record the waiver in the commit message: what task, why low-risk. If the task turns out larger than expected, stop and write a plan -- do not continue without one. Not eligible: PII, security boundaries, architecture, data model changes.
 
 **Fast-track commits must not include a version bump, CHANGELOG entry, or git tag.** These are work commits -- they accumulate on the main branch until the next release. Tagging a fast-track commit causes version creep.
+
+## Sources/radar research-maintenance fast path
+
+A reversible research-maintenance change may skip a separate Gate 1 plan,
+contribution audit, and pre-change coordination MR only when **all** of these
+conditions hold:
+
+1. Every commit from the freshly resolved target merge base through `HEAD`,
+   and the final aggregate diff, changes only the existing files
+   `docs/sources.md` and/or `docs/radar.md`. Merge commits are ineligible.
+   A temporarily added, reverted, imported, or cherry-picked change to any
+   other path is ineligible even when absent from the final diff.
+2. The change only adds or corrects a source classification, preserves an
+   unverified stub, adds or refreshes a non-binding radar question, updates a
+   reasoned `review-by` date, or follows an existing promote/keep/retire radar
+   lifecycle.
+3. The text is advisory and reversible: it does not adopt a tool or practice,
+   promise implementation, assign work, select priority, or grant an external
+   source, tool, status, or verdict AGF authority.
+4. Material claims are traceable to named URLs or repository evidence. The MR
+   identifies pinned revisions and access dates where relevant, distinguishes
+   primary, secondary, self-reported, inferred, and unverified evidence, and
+   states material limits.
+5. A radar entry keeps its controversy or open question, non-binding status,
+   source cross-reference where applicable, and `review-by` date.
+6. Before writing, the implementer freshly fetches the target, inventories all
+   open MRs targeting it and their changed paths, and checks existing entries
+   for duplicate identities, batch/allocation conflicts, and edit collisions.
+7. The implementer repeats that target and all-open-MR scan immediately before
+   Gate 2. The MR records UTC scan time, target SHA, each open MR's IID, head
+   SHA, `updated_at`, changed paths, and a disposition for every possible
+   overlap. Any relevant state change invalidates the evidence until refreshed.
+8. No disqualifier below applies. Uncertainty means full Gate 1.
+
+The fast path is semantic, not merely a filename allowlist. It is automatically
+disqualified by any normative rule or authority change; gate, schema,
+validator, CI, merge, or release-policy change; implementation commitment;
+adoption, integration, dependency, plugin, account, hosted service, data flow,
+or runtime trial; roadmap, milestone, release, staffing, assignment, budget, or
+priority selection; security, credential, privacy, personal-data, legal,
+compliance, or regulatory material; public AGF product, marketing, competitive,
+performance, maturity, effectiveness, or compliance claim; governed-decision
+rewrite; any other changed path; or ambiguity about fidelity, reversibility,
+scope, or ownership.
+
+If the work grows into a disqualifier, stop before committing the expanded
+scope and return to the ordinary Gate 1 route. Do not treat work already done as
+retroactive approval.
+
+### Required branch, evidence, and review
+
+The fast path still requires a normal branch and MR to the protected target,
+the commit-message waiver, source-fidelity evidence, targeted validation, a
+green exact-head pipeline, and a binding governor-reviewer Gate 2 decision.
+The MR is the evidence carrier and must state the exact paths and head SHA;
+sources, revisions, access dates, evidence classes, and limits; the radar
+disposition; the eligibility checklist and disqualifier result; the fresh
+target/open-MR collision scan; and validation results.
+
+After fetching the target, qualify the complete range fail-closed. Record the
+target ref/SHA, merge-base SHA, exact range, every commit SHA, every path for
+each commit, every final-tree path, and the procedure exit code. The procedure
+must:
+
+1. resolve the target commit and merge base or fail;
+2. reject an empty range and every merge commit;
+3. run `git diff-tree --no-commit-id --name-only -r` separately for each commit
+   and reject every path except `docs/sources.md` and `docs/radar.md`;
+4. run `git diff --name-only <merge-base>...HEAD` and reject every other final
+   path; and
+5. run `git diff --check <merge-base>...HEAD` and print `result=PASS` only when
+   all earlier checks succeeded.
+
+Use this procedure after fetching the target:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+research_fail() {
+  printf 'FAIL: %s\n' "$1" >&2
+  exit 1
+}
+
+git fetch --prune origin || research_fail 'target fetch failed'
+research_target_ref="${1:-origin/main}"
+research_target_sha="$(git rev-parse --verify \
+  "${research_target_ref}^{commit}")" || research_fail 'target ref unresolved'
+research_base="$(git merge-base "$research_target_sha" HEAD)" || \
+  research_fail 'merge base unresolved'
+[[ -n "$research_base" ]] || research_fail 'merge base empty'
+
+research_commit_list="$(git rev-list --reverse "$research_base"..HEAD)" || \
+  research_fail 'commit range unresolved'
+[[ -n "$research_commit_list" ]] || research_fail 'commit range empty'
+research_merge_list="$(git rev-list --merges "$research_base"..HEAD)" || \
+  research_fail 'merge-commit scan failed'
+[[ -z "$research_merge_list" ]] || research_fail \
+  "merge commit in range: $research_merge_list"
+
+research_tmp="$(mktemp -d)" || research_fail 'temporary directory failed'
+trap 'rm -rf -- "$research_tmp"' EXIT
+
+printf 'target_ref=%s\n' "$research_target_ref"
+printf 'target_sha=%s\n' "$research_target_sha"
+printf 'merge_base_sha=%s\n' "$research_base"
+printf 'commit_range=%s..HEAD\n' "$research_base"
+
+research_bad=0
+research_index=0
+while IFS= read -r research_commit; do
+  [[ -n "$research_commit" ]] || research_fail 'empty commit id in range'
+  research_index=$((research_index + 1))
+  printf 'commit[%d]=%s\n' "$research_index" "$research_commit"
+  research_path_file="$research_tmp/commit-$research_index.paths"
+  git diff-tree --no-commit-id --name-only -r -z \
+    "${research_commit}^" "$research_commit" >"$research_path_file" || \
+    research_fail "path scan failed for $research_commit"
+  research_path_index=0
+  while IFS= read -r -d '' research_path; do
+    research_path_index=$((research_path_index + 1))
+    printf 'commit_path[%d,%d]=%s\n' \
+      "$research_index" "$research_path_index" "$research_path"
+    case "$research_path" in
+      docs/sources.md|docs/radar.md) ;;
+      *) printf 'disallowed commit path: %s %s\n' \
+           "$research_commit" "$research_path" >&2
+         research_bad=1 ;;
+    esac
+  done <"$research_path_file"
+  printf 'commit_path_count[%d]=%d\n' \
+    "$research_index" "$research_path_index"
+done <<<"$research_commit_list"
+(( research_bad == 0 )) || research_fail 'disallowed per-commit path found'
+
+research_final_file="$research_tmp/final.paths"
+git diff --name-only -z "$research_base"...HEAD >"$research_final_file" || \
+  research_fail 'final-tree path scan failed'
+research_bad=0
+research_final_index=0
+while IFS= read -r -d '' research_path; do
+  research_final_index=$((research_final_index + 1))
+  printf 'final_path[%d]=%s\n' "$research_final_index" "$research_path"
+  case "$research_path" in
+    docs/sources.md|docs/radar.md) ;;
+    *) printf 'disallowed final-tree path: %s\n' "$research_path" >&2
+       research_bad=1 ;;
+  esac
+done <"$research_final_file"
+printf 'final_path_count=%d\n' "$research_final_index"
+(( research_bad == 0 )) || research_fail 'disallowed final-tree path found'
+
+git diff --check "$research_base"...HEAD || \
+  research_fail 'whitespace validation failed'
+printf 'result=PASS\n'
+exit 0
+```
+
+Do not rely on a final-tree diff alone: it cannot reveal an extra path added and
+later reverted. Run the procedure under `set -euo pipefail` with explicit
+non-zero failure exits so a later successful command cannot hide a finding.
+
+Immediately before Gate 2, compare the fresh target and candidate against every
+open MR touching either allowed file. Recheck canonical source identities,
+batch allocation, radar titles/cross-references, edit regions, registry
+vocabulary, and `review-by` values. A duplicate, collision, unclear allocation,
+or unresolved owner makes the candidate ineligible. A changed candidate head
+requires new validation, pipeline, and exact-head review.
+
+The governor-reviewer may escalate any candidate to full Gate 1 and alone
+decides Gate 2 and merge. No separate coordination record is required merely
+to start or submit an eligible MR; use coordination when the work creates a
+separate downstream obligation, escalation, accepted risk, or decision the MR
+and merge do not fully carry.

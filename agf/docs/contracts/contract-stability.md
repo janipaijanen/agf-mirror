@@ -59,13 +59,11 @@ migration step.
 The contract is the machine-checkable surface — what an external
 CI engine consumes:
 
-- **Validator command names** for the current AGF-NG Elixir surface:
-  `mix agov.validate`, `mix agov.validate.agents`,
-  `mix agov.validate.learnings`, `mix agov.validate.infosec`,
-  `mix agov.validate.adoption`, `mix agov.validate.contributions`,
-  `mix agov.validate.framework_config`, `mix agov.dist.check_tag`,
-  and `mix agov.dist.build`. Binding, README stats, acronym, bump, and
-  health commands are deferred to E4.
+- **Validator command names** for the current AGF-NG Rust surface:
+  `agov validate`, `agov validate agents`, `agov validate learnings`,
+  `agov validate infosec`, `agov validate adoption`,
+  `agov validate contributions`, `agov validate framework-config`,
+  `agov dist check-tag`, and `agov dist build`.
 - **Exit code semantics** per the
   [v1.1.36 taxonomy](integration-contract.md#exit-codes):
   `0` pass, `1` validation failure, `2` configuration error,
@@ -76,7 +74,7 @@ CI engine consumes:
 - **Output format shape** per the
   [Output formats section](integration-contract.md#output-formats):
   the aggregate validator output shape. In v1.x this was
-  `agov-validate --json`; AGF-NG currently exposes human-readable Mix task
+  `agov-validate --json`; AGF-NG currently exposes human-readable Rust CLI
   output while JSON aggregation remains a contract item to preserve or
   reintroduce explicitly when the v2 CLI surface is finalized.
 - **Trigger set** documented in the

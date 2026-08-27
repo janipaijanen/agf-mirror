@@ -125,6 +125,71 @@ Apply these rules in order:
 Advisory findings and open findings with accepted risk remain visible under
 `CLEAR`. A reviewer recommendation never approves a gate.
 
+## Opt-in bounded convergence
+
+When a review series declares the optional `convergence` coordination object,
+the canonical [review-convergence rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/review-convergence-rule.md)
+adds a bounded per-invariant lifecycle. This is not inferred for historical or
+ordinary prose reviews.
+
+A targeted BLOCK in an opted-in series must use exactly one materiality basis:
+
+- `mandatory-acceptance-criterion`;
+- `security-privacy-integrity-boundary`;
+- `compatibility-operator-safety-promise`; or
+- `required-governed-artifact`.
+
+It must also record the authority reference, exact candidate event and SHA,
+scope digest, and concrete evidence references. The human-readable finding may
+retain the envelope above; the structured fields make its identity and state
+machine checkable.
+
+Two consecutive BLOCK outcomes for the same invariant require an
+`abstraction-reset` event. The owner then compares simplification, fail-closed
+restriction, a proven primitive, authorized risk acceptance, and deferral or
+stop. One redesigned candidate receives one targeted review. A further BLOCK
+returns to the governor once rather than beginning another correction loop.
+
+Rebases, publication-only commits, CI retries or infrastructure failures,
+administrative changes, and exact duplicate reviews do not consume attempts.
+`agov coord convergence --series <id>` checks declared bytes and transitions;
+it does not decide materiality, security, risk, or a gate.
+
+### Candidate and blocking-review example
+
+```yaml
+convergence:
+  series_id: 20260825T080000Z-coder-tester-a1b2
+  event: candidate
+  attempt: 1
+  invariant_ids: [PATH-CONTAINMENT]
+  candidate_sha: 0123456789abcdef0123456789abcdef01234567
+  scope_paths:
+    - tooling/rust/crates/agov/src/main.rs
+  scope_digest: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+```
+
+```yaml
+convergence:
+  series_id: 20260825T080000Z-coder-tester-a1b2
+  event: targeted-review
+  attempt: 1
+  invariant_ids: [PATH-CONTAINMENT]
+  candidate_event: 20260825T080100Z-coder-tester-c3d4
+  candidate_sha: 0123456789abcdef0123456789abcdef01234567
+  scope_paths:
+    - tooling/rust/crates/agov/src/main.rs
+  scope_digest: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  outcome: block
+  materiality_basis: security-privacy-integrity-boundary
+  authority_ref: agf/rules/always/security-hardening-rule.md
+  evidence_refs:
+    - tests/path_containment.rs::rejects_escape
+```
+
+The digest values above illustrate field shape only. A real candidate must use
+the digest recomputed from its named Git commit and sorted scope paths.
+
 ## Examples
 
 ### Complete review with no findings

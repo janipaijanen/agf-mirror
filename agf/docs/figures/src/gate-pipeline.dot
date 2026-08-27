@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Gate 1 and Gate 2 pipeline
+// svg-desc: A request passes through plan drafting, the human Gate 1 decision, AI implementation, automated validation, the human Gate 2 decision, and merge, with return and rejection paths at both gates.
 // agents-govern: Gate 1 / Gate 2 pipeline
 // Generate: dot -Tsvg gate-pipeline.dot -o ../gate-pipeline.svg
 //

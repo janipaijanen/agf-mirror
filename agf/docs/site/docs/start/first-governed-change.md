@@ -20,7 +20,9 @@ optional. The point to retain for this first run: the order in the
 figure is the order you are about to follow, with no stage collapsed or
 reordered for a first attempt.
 
-![Gate pipeline](../../reference/figures/gate-pipeline.svg)
+![Request path through plan approval, implementation review, and merge](../../reference/figures/gate-pipeline.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 Each step below is marked with who actually does it, using the same
 responsibility vocabulary as the rest of this site (see
@@ -34,21 +36,22 @@ names both, rather than being forced into one.
 
 ## 1. Know where the files will go
 
-**Who does this: Human decision — you choose whether to run this yourself
-or let step 2's assistant create the directories too; the execution may be
-delegated, but the choice is not.**
+**Who does this: AI action for the directories themselves — step 2's
+assistant prompt creates any that are missing. The human decision is the
+path, not the mkdir.**
 
 AGF itself lives in `agf/`. The POC default keeps project-owned gate evidence
-in root `docs/`:
+in root `docs/plans/` and `docs/coordination/`. If your project chooses
+another coordination path, decide and document it now, before agents start
+writing files — do not let agents split records across two channels.
+
+Step 2's assistant prompt below creates `docs/plans/`, `docs/coordination/`,
+and `agf/learnings/` for you as part of preparing the starter files. If you
+are working without an assistant for this step, create them yourself first:
 
 ```bash
 mkdir -p docs/plans docs/coordination agf/learnings
 ```
-
-You can run that command yourself, but the next step asks your assistant to
-create any missing directories. If your project chooses another coordination
-path, configure it before agents start writing files. Do not let agents split
-records across two channels.
 
 ## 2. Ask your assistant to prepare the starter files
 

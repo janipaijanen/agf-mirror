@@ -25,6 +25,22 @@ coordination helpers. It is a static binary (~5–12 MB) with no runtime
 dependency. See [How to set it up](#how-to-set-it-up) below for the
 recommended published-artifact install path.
 
+### Source-checkout wrapper for contributors
+
+Contributors working in an AGF source checkout should invoke that checkout's
+`tooling/agov` wrapper, usually by prepending `$PWD/tooling` to `PATH`. The
+wrapper delegates command parsing to the Rust binary, verifies a deterministic
+fingerprint of behavior-affecting tooling inputs, and performs one local
+release rebuild when no matching binary exists and Cargo is available. It
+fails closed if rebuilding is unavailable or does not produce matching
+provenance.
+
+Linked worktrees must use their own `tooling/agov` path. Invoking a wrapper
+owned by a different worktree exits with a diagnostic naming the correct path;
+this prevents a binary, schema directory, and agent manifest from being bound
+silently across checkouts. These repository-local checks do not alter the
+standalone published binary described below.
+
 ## Current command maturity
 
 Maturity levels follow the
@@ -34,9 +50,9 @@ deployable and in active use; Level 1 is planned.
 ### Level 5 — Deployable (in production use)
 
 This is the canonical command inventory. Each command below is implemented,
-tested, documented, and present in the supported v2.4.4 operator path. A future
-command that exists only in a branch or design must be listed separately at its
-actual maturity level rather than added to this table by analogy.
+tested, documented, and present in the supported released operator path. A
+future command that exists only in a branch or design must be listed separately
+at its actual maturity level rather than added to this table by analogy.
 
 | Command | What it replaces |
 |---|---|
@@ -53,6 +69,7 @@ actual maturity level rather than added to this table by analogy.
 | `agov coord visibility` | Agent compares branches for coordination obligations that exist off the base branch. |
 | `agov coord graph` | Agent reads coordination files to reconstruct which roles communicated with which, then manually renders a flow summary. The command produces a Graphviz dot map in one invocation. |
 | `agov coord graph-index` | Agent scans all coordination files to produce a structured JSON index of handoffs, references, and pending obligations — replaces ad-hoc mental reconstruction. |
+| `agov coord pending` | Agent scans the coordination channel by hand for unresolved non-`handoff` `requires-ack: true` records (claim, review, note, decision-record, fast-track-waiver, lesson-proposal). Reports; does not resolve — a later record's direct `references-to` resolves an entry. Exit code `2` means none found, not a failure. |
 | `agov token roi report` | Agent summarizes local deterministic-tool telemetry instead of estimating savings by hand. |
 | `agov usage report [--last <n>]` | Agent counts message kinds, active senders, inactive active-status agents, and unknown senders. |
 
@@ -71,8 +88,8 @@ Download the `agov` tooling archive — not the `agf-<version>.tar.gz`/`.zip`
 framework source archive, which is a different asset on the same release page
 — matching your OS, architecture, and adopted AGF version from the
 [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
-Published platforms as of v2.4.4: `linux-x86_64`, `linux-aarch64`, and
-`windows-x86_64`; no macOS archive is published yet.
+The archive assets attached to each release are the authoritative platform
+inventory; select the OS and architecture suffix that matches your system.
 
 Verify the adjacent `.sha256` checksum and `-provenance.json` file (both
 linked next to the archive on the Releases page) before trusting the binary.
@@ -84,7 +101,7 @@ the archive nor the checksum was substituted, and it is not a signature:
 # Linux (.tar.gz)
 sha256sum -c agov-<version>-linux-x86_64.tar.gz.sha256
 
-# Windows (.zip) — from PowerShell
+# Windows (.zip) — from PowerShell, only when the selected release provides it
 Get-FileHash agov-<version>-windows-x86_64.zip -Algorithm SHA256
 # then compare the hash against the contents of the adjacent .sha256 file
 ```
@@ -110,8 +127,8 @@ repository into the container:
 ```yaml
 validate-governance:
   image:
-    # Canonical version: agf/VERSION
-    name: registry.gitlab.com/janipaijanen/agents-govern-framework/agov:2.4.4
+    # Replace the placeholder with an exact version from the Releases page.
+    name: "registry.gitlab.com/janipaijanen/agents-govern-framework/agov:<version-from-release-page>"
     entrypoint: [""]
   script:
     - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
@@ -141,7 +158,7 @@ build the locked release profile — do not treat an ordinary full checkout as
 the recommended adopter path:
 
 ```bash
-git checkout <adopted-version>   # pin an exact release tag, e.g. v2.4.4
+git checkout <adopted-version>   # pin the exact release tag you adopted
 cargo build --release --locked --manifest-path tooling/rust/Cargo.toml -p agov
 ```
 
@@ -260,8 +277,10 @@ for the full list of telemetry controls.
 - Language/ecosystem registry publishing, such as crates.io, or code signing
   (a separate future decision) — the GitLab generic-package archives and the
   GitLab container registry OCI image described above are already published.
-- macOS tooling archive (not yet built or published; a Windows x64 archive
-  has been published since v2.1.5 — see Option A above).
+- macOS tooling archive (not yet built or published). Windows x64 packaging is
+  currently an optional manual preview/build-from-source path rather than a
+  mandatory release asset; consult the selected release page's actual assets
+  before using the conditional Windows checksum example in Option A.
 
 ## See also
 

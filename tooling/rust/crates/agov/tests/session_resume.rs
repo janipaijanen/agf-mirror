@@ -61,6 +61,99 @@ agents:
     assert!(stdout.contains("governor-reviewer:"));
 }
 
+/// Issue #79 fail-closed requirement: with the default manifest path in
+/// effect and MANIFEST.yaml absent, `agov` must never silently read a
+/// sibling MANIFEST.example.yaml as live adopter state. Places a real
+/// MANIFEST.example.yaml (with an active role) next to a *missing*
+/// MANIFEST.yaml at the exact real default relative layout
+/// (agf/agents/MANIFEST.yaml vs. agf/agents/MANIFEST.example.yaml) and
+/// asserts the example file's role never appears in the output.
+#[test]
+fn cold_start_never_substitutes_manifest_example_for_missing_manifest() {
+    let fixture = Fixture::new();
+    fixture.write_coord("agov-config.yaml", "from_aliases: {}\n");
+    let agents_dir = fixture.root.join("agf").join("agents");
+    fs::create_dir_all(&agents_dir).unwrap();
+    fs::write(
+        agents_dir.join("MANIFEST.example.yaml"),
+        "agents:\n  example-only-role:\n    status: active\n",
+    )
+    .unwrap();
+    let missing_manifest = agents_dir.join("MANIFEST.yaml");
+    assert!(!missing_manifest.exists());
+
+    let output = agov(&[
+        "session",
+        "resume",
+        "--dir",
+        fixture.coord_dir().to_str().unwrap(),
+        "--manifest",
+        missing_manifest.to_str().unwrap(),
+        "--base-branch",
+        "main",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("example-only-role"),
+        "the sibling MANIFEST.example.yaml's role leaked into cold-start \
+         output; the missing-manifest path must never read it as a \
+         substitute -- stdout:\n{stdout}"
+    );
+    assert!(stdout.contains("Active roles: unavailable"));
+    assert!(stdout.contains("MANIFEST.example.yaml"));
+}
+
+/// Wiring check for the version-drift warning in the cold-start path
+/// (issue #114): a fixture shaped like a real repo root (agf/schemas +
+/// tooling present, so agov_core::repo_root()'s discovery walk finds it)
+/// with a deliberately mismatched agf/VERSION must surface the warning
+/// in the "Warnings:" section, not just when running `agov validate`.
+/// The underlying comparison logic itself is covered by
+/// tests/validate.rs's dedicated mismatch/match/missing cases; this test
+/// only proves session_resume's rendering path actually includes it.
+#[test]
+fn cold_start_warns_on_version_drift() {
+    let fixture = Fixture::new();
+    fs::create_dir_all(fixture.root.join("agf").join("schemas")).unwrap();
+    fs::create_dir_all(fixture.root.join("tooling")).unwrap();
+    fs::write(
+        fixture.root.join("agf").join("VERSION"),
+        "0.0.1-not-the-running-version\n",
+    )
+    .unwrap();
+    fixture.write_coord("agov-config.yaml", "from_aliases: {}\n");
+    let manifest = fixture.write_file("MANIFEST.yaml", "agents: {}\n");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .env("AGOV_TOKEN_ROI", "0")
+        .args([
+            "session",
+            "resume",
+            "--dir",
+            fixture.coord_dir().to_str().unwrap(),
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--base-branch",
+            "main",
+        ])
+        .current_dir(&fixture.root)
+        .output()
+        .expect("run agov");
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("0.0.1-not-the-running-version"),
+        "expected the version-drift warning in cold-start Warnings, got: {stdout}"
+    );
+    assert!(
+        stdout.contains(env!("CARGO_PKG_VERSION")),
+        "expected the running binary's own version in the warning, got: {stdout}"
+    );
+}
+
 #[test]
 fn role_resume_shows_pending_handoffs_claims_decisions_and_must_read() {
     let fixture = Fixture::new();

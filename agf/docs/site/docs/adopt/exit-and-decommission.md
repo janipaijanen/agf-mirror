@@ -20,7 +20,9 @@ the same timeline as adoption, evaluated with the same governed-decision
 discipline — not an emergency procedure reached only after something has
 gone wrong.
 
-![Adoption and exit flow](../../reference/figures/adoption-exit-flow.svg)
+![Adoption timeline branching into freeze, replacement, and decommission exit paths](../../reference/figures/adoption-exit-flow.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ## Three exit modes
 

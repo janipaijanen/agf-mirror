@@ -20,6 +20,8 @@ agents under those boundaries.
 
 [![Runtime execution alongside AGF governance boundaries](../../reference/figures/runtime-governance-boundary.svg)](../../reference/figures/runtime-governance-boundary.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size runtime and governance boundary figure (SVG)](../../reference/figures/runtime-governance-boundary.svg)
 
 *Palette: runtime/orchestrator nodes (right) use the AI action treatment
@@ -51,13 +53,14 @@ Claude Code is the reference integration. The typical setup:
 - `agf/skills/` installs as `.claude/commands/` for slash-command access.
 - `agov` validators run in pre-commit hooks and CI.
 
-The framework's own development environment, codenamed *foundry*, uses both
-Claude Code and OpenAI Codex. They are therefore AGF's most evidence-backed
-assistant integrations today.
+The project author has developed AGF and AGOV through sustained use of both
+the Claude and Codex integrations in Visual Studio Code. The integrations
+have been used for governed planning, implementation, validation, review,
+and release work.
 
-### Codex CLI (OpenAI)
+### Codex (OpenAI)
 
-Codex CLI loads instructions from `AGENTS.md` at the repository root. The
+Codex loads instructions from `AGENTS.md` at the repository root. The
 AGF install creates an `AGENTS.md` that references role definitions and
 rules. Skills are Claude Code-specific slash commands; Codex adopters
 either adapt them as scripts or skip the skill layer.
@@ -100,6 +103,8 @@ adjacent categories prevents both over-scoping and under-scoping what
 adoption delivers.
 
 [![AGF positioned relative to runtimes, CI/CD, SDLC, ML governance, and AI policy](../../reference/figures/governance-scope-position.svg)](../../reference/figures/governance-scope-position.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 [Open the full-size AGF governance-position figure (SVG)](../../reference/figures/governance-scope-position.svg)
 

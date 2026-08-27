@@ -123,8 +123,10 @@ Evidence gaps where independent corroboration is most valuable:
   projects is suspicious; single-developer bias cannot be ruled out.
 - **Multi-person team dynamics** — does the Governor-Reviewer role work
   when it is a different person from the Coder-Tester?
-- **Non-Claude-Code tools** — does the rule and agent content work with
-  Cursor, Windsurf, Codex CLI, or other AI coding assistants?
+- **Independent assistant integrations** — beyond the project author's
+  sustained Claude and Codex use in Visual Studio Code, does the rule and
+  agent content work for independent adopters using Codex, Cursor, Windsurf,
+  or other AI coding assistants?
 - **Phase 2+ role splits** — has anyone needed to split the combined
   Planner-Architect or Coder-Tester roles into separate agents? What
   triggered it?

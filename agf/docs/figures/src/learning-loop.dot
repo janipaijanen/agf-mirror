@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Evidence-driven learning loop
+// svg-desc: Governed work produces observations that become learning records, pass through analysis and approval into system changes, and return through observed use to the next cycle.
 // agents-govern: evidence-driven learning loop
 // Generate: dot -Tsvg learning-loop.dot -o ../learning-loop.svg
 //

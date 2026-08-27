@@ -85,6 +85,39 @@ both read. See `docs/plans/rule-projection-screening.md` and
 `docs/reviews/rule-projection/coordination-independent-publication.yaml`
 for a worked example.
 
+### Net-new normative-owner lifecycle
+
+When the same Gate 1 plan proposes a normative-owner file that does not yet
+exist, its manifest MAY set `surfaces.normative_owner.stage: planned`. This
+marker is limited to `normative_owner`; it does not relax any other surface.
+It is appropriate only when creating the named owner before Gate 1 approval
+would itself violate Gate discipline. A planned owner MUST name at least one
+non-empty `path` or `paths` entry, and every path must remain contained within
+the repository.
+
+The lifecycle has two mandatory direct checks:
+
+1. During Gate 1 review, run `agov plan projection-check --allow-planned
+   --base-ref <ref> <manifest>`. The flag permits an absent planned owner while
+   preserving schema, containment, coverage, and distribution checks.
+2. Before requesting Gate 2, update `stage` to `existing` or remove it, then
+   run the same command **without** `--allow-planned` against the exact
+   manifest being handed off. Its passing output is required Gate 2 evidence.
+
+The tree-wide `agov plan projection-check-all --base-ref <ref>` CI command is
+a safety net: it permits legitimately absent planned owners but rejects a
+stale `stage: planned` marker as soon as any declared owner path exists. It is
+not a substitute for the direct, strict Gate 2 command above. `stage` records
+author intent; it is not a default exemption and does not itself authorize
+implementation.
+
+For example, a Gate 1 plan that proposes
+`agf/rules/workflow/unassigned-work-discovery-rule.md` may publish a manifest
+whose `normative_owner` names that path with `stage: planned`. The relaxed
+Gate 1 check may pass while the file is absent. Once implementation creates
+the rule, leaving the marker as `planned` is a blocking lifecycle error; the
+implementer must transition it before the strict Gate 2 check can pass.
+
 ## What mechanical validation MAY block on
 
 Only objective omissions in the structured artifact:

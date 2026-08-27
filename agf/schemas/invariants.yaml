@@ -92,14 +92,24 @@ invariants:
   - id: learnings.append_only_supersession
     scope: "learnings/*.yaml"
     type: append-only
-    parameters: {}
+    parameters:
+      field: supersedes
     severity: error
     enforced_by: validate_learnings
     introduced_in: "1.1.33"
     rationale: >
-      A learnings entry's 'superseded_by' field must reference a
-      later entry's title within the same file. Forward-only pointer;
-      never modifies older entry text. Implements L1 (issue #61).
+      A learnings entry's 'supersedes' field, set on the new/superseding
+      entry, must reference an earlier entry's stable id within the same
+      file, and that id must exist in the file. Forward-only by
+      construction: the referencing entry is always the one appended
+      later, so no edit to the superseded entry's text is ever required.
+      The reverse view (what superseded id X) is derived at read time,
+      not stored. Corrected 2026-08-03
+      (docs/plans/learning-supersession-status-fields.md, Gate 1
+      approved, Path B) from the original 'superseded_by' design, which
+      required editing older entry text to populate and was never
+      actually enforced despite this invariant's severity: error.
+      Implements L1 (issue #61).
 
   - id: learnings.confidence_corroboration
     scope: "learnings/*.yaml"

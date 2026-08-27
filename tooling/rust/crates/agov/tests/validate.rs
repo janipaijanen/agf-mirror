@@ -1,6 +1,50 @@
 use std::path::PathBuf;
 use std::process::Command;
 
+/// Gate 2 reproducible negative CLI demonstration, per
+/// `gate-self-test-rule.md` and `docs/plans/
+/// 20260823T203540Z-adoption-version-drift-check.md` (lines 842-846):
+/// the plan requires the exact command, expected/actual blocking output,
+/// and a CI pipeline job log link. This test IS that command, run for
+/// real through the compiled CLI binary (not the internal validator API),
+/// so this job's own CI trace is the required log.
+const LEARNING_SCHEMA: &str = include_str!("../../../../../agf/schemas/learning.schema.json");
+
+#[test]
+fn validate_learnings_blocks_live_record_version_drift_via_cli() {
+    let fixture = tempfile::tempdir().expect("tempdir");
+    write(&fixture, "tooling/.keep", "");
+    write(&fixture, "agf/schemas/learning.schema.json", LEARNING_SCHEMA);
+    write(&fixture, "agf/VERSION", "2.6.1");
+    write(
+        &fixture,
+        "agf/learnings/mismatched.yaml",
+        r#"project:
+  codename: gate2-demo-fixture
+adoption:
+  checkout_role: live
+  framework_version: "2.0.0-provisional"
+"#,
+    );
+
+    let output = agov_in(fixture.path(), &["validate", "learnings", "agf/learnings"]);
+
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "expected drifted live record to block; stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(
+            "adoption.framework_version \"2.0.0-provisional\" does not match agf/VERSION \"2.6.1\""
+        ),
+        "expected the exact drift message, got stderr: {stderr}"
+    );
+}
+
 #[test]
 fn validate_prints_coverage_note() {
     let output = agov(&["validate"]);
@@ -83,6 +127,75 @@ fn validate_adopter_docs_blocks_missing_downstream_docs() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("ERR agov.validate.adopter_docs"));
     assert!(stderr.contains("downstream-facing docs/templates"));
+}
+
+#[test]
+fn validate_warns_on_version_drift() {
+    let repo = temp_agf_repo();
+    write(&repo, "agf/VERSION", "0.0.1-not-the-running-version\n");
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-m", "commissioned at a different version"]);
+
+    let output = agov_in(repo.path(), &["validate"]);
+
+    // Do not assert on the overall exit code here: this minimal fixture
+    // fails unrelated validators (adoption, learnings dir) regardless of
+    // this check. Only the version-drift line's own behavior is under
+    // test -- it must appear as WARN (never ERR), so it never affects
+    // the exit code on its own.
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stdout.contains("WARN agov.validate.version_drift"),
+        "expected a version-drift WARN line on stdout, got stdout: {stdout}\nstderr: {stderr}"
+    );
+    assert!(
+        !stderr.contains("version_drift"),
+        "version-drift must never be an ERR/blocking line, got stderr: {stderr}"
+    );
+    assert!(
+        stdout.contains("0.0.1-not-the-running-version"),
+        "expected the commissioned version in the warning, got: {stdout}"
+    );
+    assert!(
+        stdout.contains(env!("CARGO_PKG_VERSION")),
+        "expected the running binary's own version in the warning, got: {stdout}"
+    );
+}
+
+#[test]
+fn validate_no_warning_when_version_matches() {
+    let repo = temp_agf_repo();
+    write(&repo, "agf/VERSION", &format!("{}\n", env!("CARGO_PKG_VERSION")));
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-m", "commissioned at the running version"]);
+
+    let output = agov_in(repo.path(), &["validate"]);
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("WARN agov.validate.version_drift"),
+        "expected no version-drift WARN when versions match, got: {stdout}"
+    );
+}
+
+#[test]
+fn validate_no_warning_when_agf_version_missing() {
+    // temp_agf_repo() deliberately omits agf/VERSION -- absence must not
+    // warn or error, since not every tree agov runs against is an
+    // AGF-adopted tree with a commissioned version.
+    let repo = temp_agf_repo();
+    write(&repo, "tooling/rust/src/main.rs", "fn main() {}\n");
+    git(&repo, &["add", "."]);
+    git(&repo, &["commit", "-m", "no agf/VERSION present"]);
+
+    let output = agov_in(repo.path(), &["validate"]);
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("WARN agov.validate.version_drift"),
+        "expected no version-drift WARN when agf/VERSION is absent, got: {stdout}"
+    );
 }
 
 #[test]

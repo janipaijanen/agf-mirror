@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Example AGF Foundry coordination map
+// svg-desc: AGF Foundry roles are connected by coordination message kinds, with edge labels reporting sampled message counts from the project's recorded history.
 // agents-govern: example AGF foundry coordination map
 // Generate: dot -Tsvg coordination-map-example.dot -o ../coordination-map-example.svg
 //

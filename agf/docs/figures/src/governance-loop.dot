@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Self-applied governance loop
+// svg-desc: Planning, human approval, implementation, validation, review, merge, and learning form a closed feedback cycle in which evidence informs the next plan.
 // agents-govern: self-applied governance loop
 // Generate: dot -Tsvg governance-loop.dot -o ../governance-loop.svg
 //

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
+// svg-title: Adoption and exit flow
+// svg-desc: Adoption progresses from risk assessment through installation and governed operation, then branches into freeze, replace-on-update, or full decommission paths that preserve coordination history.
 // agents-govern: adoption impact and exit/decommission flow
 // Generate: dot -Tsvg adoption-exit-flow.dot -o ../adoption-exit-flow.svg
 //

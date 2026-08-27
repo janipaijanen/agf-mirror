@@ -140,6 +140,8 @@ immediate.
 
 [![Ordered coordination handoff from Gate 1 through Gate 2 to completion](../../reference/figures/gate-handoff-sequence.svg)](../../reference/figures/gate-handoff-sequence.svg)
 
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
 [Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](../../reference/figures/gate-handoff-sequence.svg)
 
 *Palette note: AI actions and handoffs use rounded blue nodes, human Gate
@@ -247,8 +249,31 @@ Each `references-to:` field links backward; `agov session resume` and
 | `note` | any → any or `all` | Status update, polling cycle, broadcast |
 | `completion` | agent → all | Close a task; reference the Gate 2 decision |
 | `review` | reviewer → all | Gate 2 findings before the decision record |
-| `ack` | agent → agent | Acknowledge receipt of a `requires-ack` handoff |
+| `ack` | agent → agent | Acknowledge receipt of any eligible `requires-ack: true` record (handoff take/complete remains the separate resolution path for `handoff`-kind records specifically) |
 | `claim` | agent → all | Reserve ownership of an artifact |
+
+### `requires-ack` obligation semantics
+
+`requires-ack: true` may be set on any kind except `ack` — an
+acknowledgement cannot require its own acknowledgement, so the schema
+rejects that combination outright. A `requires-ack: true` handoff resolves
+through `agov handoff next` / `take` / `complete`, unchanged. Every other
+kind is *reported* by `agov coord pending` — the command only reports; it
+does not itself resolve anything. A record is pending until any later
+record's `references-to` names it directly — a direct reference, not a
+transitive chain — and that later record is the resolution event, not the
+`pending` command call that surfaced it.
+
+**Cutoff boundary.** The grandfathering cutoff is `2026-08-02T22:01:54Z` —
+the timestamp of governor-reviewer decision-record
+`20260802T220154Z-governor-reviewer-sejb`, which amended
+`docs/plans/v250-rc1-contract-core.md` decision (c) to use the amendment
+decision's own timestamp rather than a future merge-commit date (the
+original wording was unimplementable pre-merge; see
+`20260802T193425Z-contribution-auditor-rtga.md` finding B2 and its renewed
+disposition in `20260802T204834Z-contribution-auditor-ah7j.md`). This value
+matches the shipped default in `tooling/rust/crates/agov/src/main.rs`'s
+`Pending` command; `--cutoff` overrides it explicitly when needed.
 
 ### Review bodies
 
@@ -320,8 +345,10 @@ two roles in your own generated map is not a defect to fix, it just means
 those two roles haven't exchanged that kind of message yet.
 
 <div class="figure-scroll" markdown>
-![Example AGF Foundry coordination map](../../reference/figures/coordination-map-example.svg)
+![AGF Foundry roles connected by coordination message kinds and sampled message counts](../../reference/figures/coordination-map-example.svg)
 </div>
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 The matching dot output shows the representative subset of the busier edges:
 

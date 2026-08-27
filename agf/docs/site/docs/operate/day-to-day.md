@@ -30,7 +30,9 @@ to retain before reading Table 1: the figure's three columns are the
 answer key for "who does this," and the table below is that same answer
 key applied to specific artifacts.
 
-![Day-to-day responsibility modes](../../reference/figures/operating-responsibility-map.svg)
+![Human-only, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 Table 1 separates the work by authority mode so teams can see what remains
 human-only, what an AI agent may execute, and what both sides handle together.
@@ -59,7 +61,9 @@ what the next reader finds in step 1, which is why skipping the
 completion step (common under time pressure) breaks the cycle for
 whoever reads the channel next, not just for the current task.
 
-![Governance loop](../../reference/figures/governance-loop.svg)
+![Closed governance cycle from planning through learning and back to planning](../../reference/figures/governance-loop.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 1. **Read the channel.** New coordination entries since you last looked —
    pending handoffs addressed to your role, decision records that
@@ -87,6 +91,38 @@ A one-screen checklist for each working session:
 - [ ] File completion or learning record when work closes
 
 For AI agents specifically: run `agov session resume` before any manual reads or implementation — this is the first action after context compaction or cold start.
+
+### Proportional source and radar maintenance
+
+Projects that keep `docs/sources.md` and `docs/radar.md` as non-normative
+research artifacts may enable one exact fast path from the canonical
+[`simplicity-rule.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/simplicity-rule.md).
+An advisory, reversible source classification or radar-question update can
+skip a separate Gate 1 plan, contribution audit, and pre-change coordination
+MR when every commit and the final diff touch only those existing files and
+all semantic eligibility conditions pass.
+
+This is not a general docs shortcut. A rule or authority change,
+implementation or adoption commitment, integration or dependency, roadmap or
+resource choice, sensitive/legal/security/privacy material, public AGF claim,
+governed-decision rewrite, extra path, or uncertain source inference returns to
+full Gate 1.
+
+The retained controls move into the normal MR:
+
+- source URLs, pinned revisions/access dates where relevant, evidence class,
+  and material limits;
+- a fail-closed transcript covering the fresh target SHA, merge base, every
+  commit and per-commit path, final paths, and whitespace check;
+- a fresh inventory of every open target MR before writing and again in the
+  Gate 2 cycle, with duplicate, batch/allocation, vocabulary, cross-reference,
+  `review-by`, and edit-collision dispositions; and
+- a green exact-head pipeline followed by the human governor-reviewer's
+  binding Gate 2 decision.
+
+If the target, relevant open-MR state, or candidate head changes, refresh the
+evidence and pipeline. Adopters may retain a stricter local Gate 1 policy, and
+projects without these exact research artifacts have no eligible work.
 
 ## Coordination hygiene
 

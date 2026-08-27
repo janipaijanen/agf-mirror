@@ -21,7 +21,9 @@ The point to retain: because the loop closes, a rule that stops matching
 observed practice is itself evidence for the next cycle, not a fixed
 requirement exempt from the process that produced it.
 
-![Learning loop](../../reference/figures/learning-loop.svg)
+![Recurring learning cycle from governed work through system change and observed use](../../reference/figures/learning-loop.svg)
+
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
 ## Established foundations
 
@@ -57,6 +59,22 @@ or prove that an adopter's process is effective.
 These relationships are **theoretical and prior-art informed**. Evidence that
 AGF's particular loop improves outcomes must come from observed adopter use,
 independent evaluation, and learning records—not analogy alone.
+
+## Design provenance: NASA LLIS
+
+NASA's [Lessons Learned Information System](https://llis.nasa.gov/),
+particularly public [Lesson 30101](https://llis.nasa.gov/lesson/30101),
+prompted AGF's review of learning-record structure and lifecycle. AGF
+subsequently adopted its own append-safe `supersedes` field on the newer
+record, derives the reverse relationship instead of editing historical
+entries, and formalized its existing optional `proposed | implemented` status
+convention.
+
+This acknowledgement describes design influence—not protocol equivalence,
+NASA endorsement, or comparable assurance stakes. AGF did not adopt NASA's
+overall governance body, review workflow, classification model, or lessons
+protocol. See [Influences and acknowledgements](../../acknowledgements.md) for
+the project's credit policy and other material foundations.
 
 Rules shipped on single-adopter evidence carry a **Provisional** header
 naming the evidence and asking adopters who hit the rule to file a
@@ -161,3 +179,5 @@ retirement, not permanence.
   [day-to-day operation](../operate/day-to-day.md)
 - Wiring the validators that check them:
   [contracts and validators](../advanced/contracts-and-validators.md)
+- Design provenance and credit boundaries:
+  [Influences and acknowledgements](../../acknowledgements.md)

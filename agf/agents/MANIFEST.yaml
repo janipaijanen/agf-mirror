@@ -8,7 +8,7 @@
 # template. Adopters should create their own local role-status record before
 # relying on manifest-driven tooling.
 #
-# Framework version: 2.0.0  |  Layout: B
+# Framework version: 2.6.1  |  Layout: B
 # Governor-Reviewer approval required for all status changes.
 # Run: agov validate agents
 # =============================================================================
@@ -28,10 +28,23 @@ agents:
 
   contribution-auditor:
     status: active
-    played_by: "human (Jani) + claude (AI, at plan review)"
+    played_by: "human (Jani) + claude (AI, at plan review) + codex (AI, at plan review, only for contributions not authored or materially co-authored by codex in the auditing session; isolated-session fallback per 6srq when no different LLM is available)"
     notes: >
       Audits incoming proposals from AI assessment synthesis and future
       contributors. Also audits any upstream framework upgrade diffs.
+      Codex added 2026-08-16 per binding governor decisions
+      20260816T124942Z-governor-reviewer-pehh.md (path B2) and
+      20260816T131724Z-governor-reviewer-6srq.md (binding cross-LLM/
+      session-independence policy, superseding an earlier record
+      20260816T130941Z-governor-reviewer-p4hk.md; encoded in full in
+      agf/agents/contribution-auditor.yaml's boundaries section). Codex
+      may audit only a contribution not authored or materially
+      co-authored by Codex in the auditing session; when no genuinely
+      different LLM is available, an isolated fresh session of the same
+      LLM family may audit under 6srq's disclosed-fallback conditions.
+      See
+      docs/plans/20260816T130924Z-contribution-auditor-codex-staffing.md
+      for the full staffing plan and its jurisdiction-boundary rationale.
 
   infosec-sentinel:
     status: active
@@ -79,3 +92,64 @@ agents:
   academic-visual-reviewer:
     status: skipped
     reason: "no academic publications in this project"
+
+  web-ux-reviewer:
+    status: active
+    played_by: "human (Jani) + AI advisory (any model independent of the session that implemented the change under review), for public Pages site changes"
+    notes: >
+      Activated by governor-reviewer 2026-08-08, per
+      20260808T161743Z-planner-architect-kpdj.md finding 4a (Claude/
+      planner-architect Pages-rework staffing assessment): no active role
+      covered web-UX/visual review of the public GitLab Pages site
+      (agf/docs/site/), distinct from academic-visual-reviewer's
+      compiled-PDF scope. Independence from the implementing session is a
+      role requirement, not advisory -- see
+      agf/agents/web-ux-reviewer.yaml's boundaries.forbidden_actions.
+
+  independent-implementation-reviewer:
+    status: active
+    reason: >
+      Reactivation proposed 2026-08-16, closing the suspension opened
+      2026-08-09 by governor decision 20260809T073516Z-governor-reviewer-
+      2gbg.md over 20260809T063108Z-independent-implementation-reviewer-
+      12nr.md's six blocking findings (incomplete both-gates prohibition
+      at forbidden_actions; missing infosec detection/escalation route
+      for sensitive material; an unreproducible-as-written validation
+      claim; a Gate 2 handoff missing the mandatory adopter-docs-parity
+      outcome; a live MR description that violated the MUST description
+      rule; and a required-review-sequence bypass at merge time). Two of
+      the three resume_when conditions are satisfied: the corrective MR
+      (!1289, exact head 6940d4deb7ce02b0244cddd2fb44f9cbc263962f) fixed
+      the role definition; a fresh independent exact-head review returned
+      COMPLETE/CLEAR (20260816T130240Z-coder-tester-g1k1.md, performed
+      under the reviewer's own already-authorized coder-tester role per
+      binding governor decision 20260816T124942Z-governor-reviewer-
+      pehh.md path C1 -- not a contribution-auditor or self-reactivation
+      act). The third condition -- a fresh binding governor Gate 2
+      decision reactivating the role -- is what this MR is presented for;
+      `status: active` here reflects the proposed end state, not yet in
+      effect until that decision merges this change. `g1k1` also
+      disclosed, without relying on, a role-mislabeling defect in the
+      historical review that originally cleared !1289
+      (20260809T150324Z-contribution-auditor-sd8g.md was Codex-authored
+      under a role Codex was never authorized to hold) -- see
+      docs/plans/20260816T130924Z-independent-implementation-reviewer-
+      reactivation.md for the full reactivation plan.
+    played_by: "any model/session distinct from the implementer (Codex, codex-gpt-5, for Claude-implemented changes; the reverse when Codex implements), named by governor-reviewer or an approved plan for specific non-trivial Gate 2 candidates -- while active"
+    notes: >
+      Activated by governor-reviewer, Gate 1 approved
+      20260808T193155Z-governor-reviewer-get2.md, per
+      docs/plans/20260808T181423Z-independent-implementation-reviewer.md.
+      Evidence: 20260808T161743Z-planner-architect-kpdj.md finding 4b and
+      20260808T171050Z-contribution-auditor-q1ge.md's independent
+      concurrence identified that contribution-auditor's real jurisdiction
+      (agf/agents/contribution-auditor.yaml) covers contribution/governance
+      guidance, not exact-head implementation-diff review -- yet
+      contribution-auditor was repeatedly used for exactly that during MR
+      !1224's four review rounds. This role gives that function a distinct,
+      audit-legible identity. Not a mandatory gate for every change --
+      named per Gate 2 candidate when additional independent review
+      separation is warranted. Never approves Gate 2, merges, or holds
+      mechanical blocking authority; CLEAR/BLOCK is advisory evidence for
+      governor-reviewer, per tool-authority-boundary-rule.md. Suspended
+      2026-08-09; see `reason` above for the active corrective-work trail.

@@ -1,3 +1,5 @@
+mod ci_cache_topology;
+mod commercial_corpus;
 mod dist;
 mod provenance;
 
@@ -5,6 +7,7 @@ use agov_coord::coord_validator::{looks_like_coord_filename, normalize_coord_ref
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
 use clap::{Parser, Subcommand};
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use time::format_description::well_known::Rfc3339;
@@ -76,10 +79,54 @@ enum Command {
         #[command(subcommand)]
         sub: DistCommand,
     },
+    /// Restricted commercial-corpus manifest commands.
+    CommercialCorpus {
+        #[command(subcommand)]
+        sub: CommercialCorpusCommand,
+    },
     /// Coordination usage reporting commands.
     Usage {
         #[command(subcommand)]
         sub: UsageCommand,
+    },
+    /// CI pipeline configuration checks.
+    Ci {
+        #[command(subcommand)]
+        sub: CiCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum CiCommand {
+    /// Statically validate the shared Rust CI cache writer topology against
+    /// GitLab CI Lint's merged YAML (extends/anchors already resolved).
+    CacheTopologyCheck {
+        /// Path to a file containing the merged YAML text (the
+        /// `merged_yaml` field of a `POST /projects/:id/ci/lint` response
+        /// with `include_jobs=true`), or the full JSON response itself.
+        #[arg(long)]
+        merged_yaml: PathBuf,
+        /// The shared cache key that identifies the writer/consumer graph
+        /// under inspection.
+        #[arg(long, default_value = "rust-v3-main")]
+        shared_key: String,
+        /// The single job name authorized to hold the writer role.
+        #[arg(long, default_value = "rust:tooling:test")]
+        writer_job: String,
+        /// CI variable name the writer job's cache.policy must reference.
+        #[arg(long, default_value = "RUST_CACHE_WRITER_POLICY")]
+        writer_policy_var: String,
+        /// CI variable name every consumer job's cache.policy must reference.
+        #[arg(long, default_value = "RUST_CACHE_POLICY")]
+        consumer_policy_var: String,
+        /// "text" prints the OK/ERR summary. "dot" prints the resolved
+        /// writer/consumer graph as Graphviz DOT to stdout instead --
+        /// written regardless of pass/fail, so a second writer, an
+        /// unrecognised role, or a wrong policy variable are visible
+        /// directly in the graph shape. ERR lines from a failing check
+        /// still go to stderr in either format.
+        #[arg(long, default_value = "text", value_parser = ["text", "dot"])]
+        format: String,
     },
 }
 
@@ -202,6 +249,45 @@ enum CoordCommand {
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
     },
+    /// List pending (unresolved) requires-ack:true records of any kind other
+    /// than handoff (owned exclusively by `handoff next/take/complete`) and
+    /// ack. A record is resolved when any later record's references-to
+    /// lists its file -- direct reference, not handoff's transitive
+    /// descendant-chain resolution. Records older than the cutoff are
+    /// grandfathered and never appear. Issue #80,
+    /// docs/plans/v250-rc1-contract-core.md.
+    Pending {
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        /// RFC3339 timestamp; only records at or after this cutoff are
+        /// considered. Defaults to the governed introduction boundary set
+        /// by governor-reviewer decision-record
+        /// `20260802T220154Z-governor-reviewer-sejb` (amending
+        /// docs/plans/v250-rc1-contract-core.md decision (c)): the cutoff
+        /// is that decision-record's own timestamp, not a future
+        /// merge-commit date (unimplementable pre-merge, per Gate 2 review
+        /// `20260802T193425Z-contribution-auditor-rtga.md` finding B2 and
+        /// its renewed disposition in
+        /// `20260802T204834Z-contribution-auditor-ah7j.md`). This value is
+        /// later than every pre-existing non-handoff requires-ack:true
+        /// record at decision time, so it grandfathers that full set
+        /// rather than manufacturing a surprise pending backlog.
+        /// `--cutoff` always overrides this default explicitly.
+        #[arg(long, default_value = "2026-08-02T22:01:54Z")]
+        cutoff: String,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
+    /// Report the deterministic state of one opt-in review-convergence series.
+    Convergence {
+        /// Coordination id that opened the convergence series.
+        #[arg(long)]
+        series: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: PathBuf,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -219,8 +305,23 @@ enum PlanCommand {
         /// file is declared by the manifest.
         #[arg(long)]
         base_ref: String,
+        /// Allow an absent normative-owner path only when that manifest row
+        /// explicitly carries `stage: planned`. Repository escapes and stale
+        /// planned markers remain blocking.
+        #[arg(long)]
+        allow_planned: bool,
         #[arg(required = true)]
         files: Vec<std::path::PathBuf>,
+    },
+    /// Validate every rule-projection manifest's paths and lifecycle state,
+    /// plus diff-scoped Pages/runbook coverage for changed manifests.
+    ProjectionCheckAll {
+        #[arg(long)]
+        base_ref: String,
+        /// Repository whose Git history, manifests, schema, distribution, and
+        /// declared paths must be used. Defaults to the current repository.
+        #[arg(long)]
+        repo_root: Option<PathBuf>,
     },
 }
 
@@ -379,6 +480,68 @@ enum DistCommand {
     ProvenanceRecord {
         #[command(subcommand)]
         sub: Box<ProvenanceRecordCommand>,
+    },
+}
+
+#[derive(Subcommand)]
+enum CommercialCorpusCommand {
+    /// Generate a closed, versioned manifest from a reviewed inventory.
+    Generate {
+        #[arg(long, default_value = ".")]
+        repo_root: PathBuf,
+        /// Exact commit containing the reviewed inventory CSV.
+        #[arg(long)]
+        inventory_ref: String,
+        #[arg(
+            long,
+            default_value = "docs/reviews/commercial-licensing/20260817T224900Z-rights-provenance-inventory/inventory.csv"
+        )]
+        inventory_path: PathBuf,
+        /// Exact pre-implementation commit whose content bytes are hashed.
+        #[arg(long)]
+        corpus_content_revision: String,
+        #[arg(long, default_value = "LICENSES/commercial-corpus-manifest-v1.yaml")]
+        output: PathBuf,
+        #[arg(
+            long,
+            default_value = "LICENSES/commercial-corpus-manifest-current.yaml"
+        )]
+        pointer: PathBuf,
+        #[arg(
+            long,
+            default_value = "agf/schemas/commercial-corpus-manifest.schema.json"
+        )]
+        schema: PathBuf,
+    },
+    /// Validate the current manifest. Schema defects block; drift is advisory.
+    Validate {
+        #[arg(long, default_value = ".")]
+        repo_root: PathBuf,
+        #[arg(
+            long,
+            default_value = "LICENSES/commercial-corpus-manifest-current.yaml"
+        )]
+        pointer: PathBuf,
+        #[arg(
+            long,
+            default_value = "agf/schemas/commercial-corpus-manifest.schema.json"
+        )]
+        schema: PathBuf,
+        /// Optional comparison base for advisory numbered-manifest mutation checks.
+        #[arg(long)]
+        base_ref: Option<String>,
+    },
+    /// Verify one historical manifest against its own recorded Git revision.
+    VerifyVersion {
+        #[arg(long, default_value = ".")]
+        repo_root: PathBuf,
+        #[arg(long, default_value = "LICENSES/commercial-corpus-manifest-v1.yaml")]
+        manifest: PathBuf,
+        #[arg(
+            long,
+            default_value = "agf/schemas/commercial-corpus-manifest.schema.json"
+        )]
+        schema: PathBuf,
     },
 }
 
@@ -602,6 +765,22 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     format,
                 },
         } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::Pending {
+                    dir,
+                    cutoff,
+                    format,
+                },
+        } => coord_pending(dir, &cutoff, &format, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::Convergence {
+                    series,
+                    dir,
+                    format,
+                },
+        } => coord_convergence(&series, dir, &format, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
@@ -612,8 +791,20 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             "plan-validate",
         ),
         Command::Plan {
-            sub: PlanCommand::ProjectionCheck { base_ref, files },
-        } => plan_projection_check(&base_ref, files, &args),
+            sub:
+                PlanCommand::ProjectionCheck {
+                    base_ref,
+                    allow_planned,
+                    files,
+                },
+        } => plan_projection_check(&base_ref, allow_planned, files, &args),
+        Command::Plan {
+            sub:
+                PlanCommand::ProjectionCheckAll {
+                    base_ref,
+                    repo_root,
+                },
+        } => plan_projection_check_all(&base_ref, repo_root, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
@@ -640,6 +831,7 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => token_roi_report(log),
         Command::Dist { sub } => dist_command(sub, &args),
+        Command::CommercialCorpus { sub } => commercial_corpus_command(sub, &args),
         Command::Usage {
             sub:
                 UsageCommand::Report {
@@ -648,7 +840,133 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     last,
                 },
         } => usage_report(dir, manifest, last, &args),
+        Command::Ci {
+            sub:
+                CiCommand::CacheTopologyCheck {
+                    merged_yaml,
+                    shared_key,
+                    writer_job,
+                    writer_policy_var,
+                    consumer_policy_var,
+                    format,
+                },
+        } => ci_cache_topology_check_command(
+            &merged_yaml,
+            &shared_key,
+            &writer_job,
+            &writer_policy_var,
+            &consumer_policy_var,
+            &format,
+            &args,
+        ),
     }
+}
+
+fn ci_cache_topology_check_command(
+    merged_yaml_path: &Path,
+    shared_key: &str,
+    writer_job: &str,
+    writer_policy_var: &str,
+    consumer_policy_var: &str,
+    format: &str,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let content = match std::fs::read_to_string(merged_yaml_path) {
+        Ok(content) => content,
+        Err(err) => {
+            output.stderr(format!(
+                "ERR cannot read {}: {err}",
+                merged_yaml_path.display()
+            ));
+            agov_core::roi::record_tool_output(
+                "agov",
+                args,
+                "ci-cache-topology-check",
+                output.chars,
+            );
+            return 1;
+        }
+    };
+    // Accept either raw merged-YAML text or a full CI Lint JSON response
+    // (whose "merged_yaml" field holds the same text) -- both are valid
+    // inputs a caller might have saved to disk.
+    let doc: serde_json::Value = match serde_json::from_str::<serde_json::Value>(&content)
+        .ok()
+        .and_then(|v| {
+            v.get("merged_yaml")
+                .and_then(|m| m.as_str())
+                .map(str::to_string)
+        }) {
+        Some(inner) => match serde_norway::from_str::<serde_json::Value>(&inner) {
+            Ok(doc) => doc,
+            Err(err) => {
+                output.stderr(format!("ERR failed to parse merged_yaml field: {err}"));
+                agov_core::roi::record_tool_output(
+                    "agov",
+                    args,
+                    "ci-cache-topology-check",
+                    output.chars,
+                );
+                return 1;
+            }
+        },
+        None => match serde_norway::from_str::<serde_json::Value>(&content) {
+            Ok(doc) => doc,
+            Err(err) => {
+                output.stderr(format!(
+                    "ERR failed to parse {}: {err}",
+                    merged_yaml_path.display()
+                ));
+                agov_core::roi::record_tool_output(
+                    "agov",
+                    args,
+                    "ci-cache-topology-check",
+                    output.chars,
+                );
+                return 1;
+            }
+        },
+    };
+
+    if format == "dot" {
+        let jobs = ci_cache_topology::inventory_shared_cache_jobs(&doc, shared_key);
+        for line in ci_cache_topology::render_dot(&jobs, shared_key).lines() {
+            output.stdout(line);
+        }
+    }
+
+    let exit_code = match ci_cache_topology::check_topology(
+        &doc,
+        shared_key,
+        writer_job,
+        writer_policy_var,
+        consumer_policy_var,
+    ) {
+        Ok(report) => {
+            if format != "dot" {
+                let names: Vec<&str> = report
+                    .shared_key_jobs
+                    .iter()
+                    .map(|j| j.name.as_str())
+                    .collect();
+                output.stdout(format!(
+                    "OK cache-topology: key={shared_key} writer={writer_job} consumers={} total_shared_jobs={} jobs={names:?}",
+                    report.shared_key_jobs.len().saturating_sub(1),
+                    report.shared_key_jobs.len()
+                ));
+            }
+            0
+        }
+        Err(errors) => {
+            for error in errors {
+                output.stderr(format!("ERR {error}"));
+            }
+            1
+        }
+    };
+    agov_core::roi::record_tool_output("agov", args, "ci-cache-topology-check", output.chars);
+    exit_code
 }
 
 #[derive(Serialize)]
@@ -657,6 +975,7 @@ struct VersionInfo {
     commit: &'static str,
     dirty: bool,
     source_dirty: bool,
+    source_fingerprint: &'static str,
 }
 
 fn build_version_info() -> VersionInfo {
@@ -665,6 +984,7 @@ fn build_version_info() -> VersionInfo {
         commit: option_env!("AGOV_GIT_SHA").unwrap_or("unknown"),
         dirty: option_env!("AGOV_GIT_DIRTY").unwrap_or("false") == "true",
         source_dirty: option_env!("AGOV_SOURCE_DIRTY").unwrap_or("false") == "true",
+        source_fingerprint: option_env!("AGOV_SOURCE_FINGERPRINT").unwrap_or("unknown"),
     }
 }
 
@@ -757,6 +1077,68 @@ fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
 
     if exit_code == 0 {
         agov_core::roi::record_tool_output("agov", args, "dist", output.chars);
+    }
+    exit_code
+}
+
+fn commercial_corpus_command(sub: CommercialCorpusCommand, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let result = match sub {
+        CommercialCorpusCommand::Generate {
+            repo_root,
+            inventory_ref,
+            inventory_path,
+            corpus_content_revision,
+            output,
+            pointer,
+            schema,
+        } => commercial_corpus::generate(commercial_corpus::GenerateOptions {
+            repo_root,
+            inventory_ref,
+            inventory_path,
+            corpus_content_revision,
+            output,
+            pointer,
+            schema,
+        }),
+        CommercialCorpusCommand::Validate {
+            repo_root,
+            pointer,
+            schema,
+            base_ref,
+        } => commercial_corpus::validate_current(commercial_corpus::ValidateOptions {
+            repo_root,
+            pointer,
+            schema,
+            base_ref,
+        }),
+        CommercialCorpusCommand::VerifyVersion {
+            repo_root,
+            manifest,
+            schema,
+        } => commercial_corpus::verify_version(commercial_corpus::VerifyOptions {
+            repo_root,
+            manifest,
+            schema,
+        }),
+    };
+
+    let exit_code = match result {
+        Ok(report) => {
+            for line in report.lines {
+                output.stdout(line);
+            }
+            0
+        }
+        Err(errors) => {
+            for error in errors {
+                output.stderr(format!("ERR {error}"));
+            }
+            1
+        }
+    };
+    if exit_code == 0 {
+        agov_core::roi::record_tool_output("agov", args, "commercial-corpus", output.chars);
     }
     exit_code
 }
@@ -2496,6 +2878,9 @@ fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String
     if let Ok(timestamp) = time::OffsetDateTime::parse(since, &Rfc3339) {
         return Ok((iso_timestamp(timestamp), String::new()));
     }
+    if let Some(timestamp) = parse_compact_timestamp(since) {
+        return Ok((iso_timestamp(timestamp), String::new()));
+    }
 
     let normalized = normalize_coord_reference(since).unwrap_or_else(|| since.to_string());
     let stem = normalized.strip_suffix(".md").unwrap_or(&normalized);
@@ -2508,6 +2893,35 @@ fn coord_list_cursor(messages: &[HandoffMessage], since: &str) -> Result<(String
         })
         .map(|message| message.sort_key.clone())
         .ok_or_else(|| format!("--since did not match an RFC3339 timestamp or message id: {since}"))
+}
+
+/// Issue #84: the compact filename-prefix timestamp embedded as the
+/// literal first path segment of every coordination filename
+/// (`20260729T195431Z`) is exactly RFC3339 with `-` and `:` stripped.
+/// Requires an exact 16-character `YYYYMMDDTHHMMSSZ` match before
+/// attempting to parse -- a malformed or truncated digit string (e.g. a
+/// 13-digit string) must fall through to the id/filename match, not be
+/// silently accepted as a valid cursor.
+fn parse_compact_timestamp(value: &str) -> Option<time::OffsetDateTime> {
+    let bytes = value.as_bytes();
+    if bytes.len() != 16 || bytes[8] != b'T' || bytes[15] != b'Z' {
+        return None;
+    }
+    if !value[0..8].bytes().all(|b| b.is_ascii_digit())
+        || !value[9..15].bytes().all(|b| b.is_ascii_digit())
+    {
+        return None;
+    }
+    let rfc3339 = format!(
+        "{}-{}-{}T{}:{}:{}Z",
+        &value[0..4],
+        &value[4..6],
+        &value[6..8],
+        &value[9..11],
+        &value[11..13],
+        &value[13..15],
+    );
+    time::OffsetDateTime::parse(&rfc3339, &Rfc3339).ok()
 }
 
 #[derive(Clone)]
@@ -2593,6 +3007,595 @@ fn coord_status(dir: PathBuf, recent: usize, roles: bool, args: &[String]) -> i3
 
     agov_core::roi::record_tool_output("agov", args, "coord-status", output.chars);
     0
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum ConvergencePhase {
+    #[default]
+    Open,
+    ReviewPending,
+    ResetRequired,
+    ResetRecorded,
+    GovernorReturnRequired,
+    Closed,
+    Conflict,
+}
+
+impl ConvergencePhase {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Open => "open",
+            Self::ReviewPending => "review-pending",
+            Self::ResetRequired => "reset-required",
+            Self::ResetRecorded => "reset-recorded",
+            Self::GovernorReturnRequired => "governor-return-required",
+            Self::Closed => "closed",
+            Self::Conflict => "conflict",
+        }
+    }
+
+    fn required_next_event(self) -> &'static str {
+        match self {
+            Self::Open | Self::ResetRecorded => "candidate",
+            Self::ReviewPending => "targeted-review",
+            Self::ResetRequired => "abstraction-reset",
+            Self::GovernorReturnRequired => "governor-disposition",
+            Self::Closed => "none",
+            Self::Conflict => "governor-resolution",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ConvergenceCandidateReport {
+    event_id: String,
+    attempt: u64,
+    candidate_sha: String,
+    scope_paths: Vec<String>,
+    scope_digest: String,
+}
+
+#[derive(Debug, Clone)]
+struct ConvergenceCandidate {
+    report: ConvergenceCandidateReport,
+    invariant_ids: BTreeSet<String>,
+    reviewable_invariants: BTreeSet<String>,
+    after_reset_invariants: BTreeSet<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct ConvergenceReviewIdentity {
+    invariant_id: String,
+    attempt: u64,
+    candidate_event: String,
+    candidate_sha: String,
+    scope_digest: String,
+}
+
+#[derive(Debug, Default)]
+struct ConvergenceInvariantState {
+    phase: ConvergencePhase,
+    consecutive_failures: u64,
+    last_attempt: u64,
+    last_scope_digest: Option<String>,
+    active_candidate: Option<String>,
+    canonical_candidate: Option<ConvergenceCandidateReport>,
+    reviews: BTreeMap<ConvergenceReviewIdentity, BTreeSet<String>>,
+}
+
+#[derive(Debug, Serialize)]
+struct ConvergenceInvariantReport {
+    invariant_id: String,
+    state: String,
+    consecutive_semantic_failures: u64,
+    required_next_event: String,
+    canonical_candidate: Option<ConvergenceCandidateReport>,
+    conflict: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct ConvergenceReport {
+    series_id: String,
+    status: String,
+    invariants: Vec<ConvergenceInvariantReport>,
+    errors: Vec<String>,
+}
+
+fn coord_convergence(series: &str, dir: PathBuf, format: &str, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(error) => {
+            output.stderr(format!("ERR  coordination directory unavailable: {error}"));
+            return 1;
+        }
+    };
+
+    let mut states: BTreeMap<String, ConvergenceInvariantState> = BTreeMap::new();
+    let mut candidates: BTreeMap<String, ConvergenceCandidate> = BTreeMap::new();
+    let mut errors = Vec::new();
+    let mut matching_events = 0_usize;
+
+    for message in &messages {
+        let Some(convergence) = message
+            .raw
+            .get("convergence")
+            .and_then(|value| value.as_object())
+        else {
+            continue;
+        };
+        if convergence
+            .get("series_id")
+            .and_then(|value| value.as_str())
+            != Some(series)
+        {
+            continue;
+        }
+        matching_events += 1;
+
+        let event_id = string_field(&message.raw, "id")
+            .unwrap_or(message.file.as_str())
+            .to_string();
+        let event = convergence
+            .get("event")
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        let invariant_ids = convergence_string_array(convergence, "invariant_ids");
+
+        match event {
+            "candidate" => process_convergence_candidate(
+                &event_id,
+                convergence,
+                &invariant_ids,
+                &mut states,
+                &mut candidates,
+                &mut errors,
+            ),
+            "targeted-review" => process_convergence_review(
+                &event_id,
+                convergence,
+                &invariant_ids,
+                &mut states,
+                &candidates,
+                &mut errors,
+            ),
+            "abstraction-reset" => process_convergence_reset(
+                &event_id,
+                convergence,
+                &invariant_ids,
+                &mut states,
+                &mut errors,
+            ),
+            "governor-disposition" => process_convergence_governor_disposition(
+                &event_id,
+                &invariant_ids,
+                &mut states,
+                &mut errors,
+            ),
+            _ => errors.push(format!(
+                "{event_id}: unsupported convergence event '{event}'"
+            )),
+        }
+    }
+
+    if matching_events == 0 {
+        errors.push(format!("series '{series}' has no convergence events"));
+    }
+
+    let has_conflict = states
+        .values()
+        .any(|state| state.phase == ConvergencePhase::Conflict);
+    let status = if !errors.is_empty() {
+        "invalid"
+    } else if has_conflict {
+        "conflict"
+    } else {
+        "ok"
+    };
+    let invariants = states
+        .into_iter()
+        .map(|(invariant_id, state)| ConvergenceInvariantReport {
+            invariant_id,
+            state: state.phase.label().to_string(),
+            consecutive_semantic_failures: state.consecutive_failures,
+            required_next_event: state.phase.required_next_event().to_string(),
+            canonical_candidate: state.canonical_candidate,
+            conflict: state.phase == ConvergencePhase::Conflict,
+        })
+        .collect();
+    let report = ConvergenceReport {
+        series_id: series.to_string(),
+        status: status.to_string(),
+        invariants,
+        errors,
+    };
+
+    if format == "json" {
+        match serde_json::to_string_pretty(&report) {
+            Ok(json) => output.stdout(json),
+            Err(error) => {
+                output.stderr(format!("ERR  failed to encode convergence report: {error}"));
+                return 1;
+            }
+        }
+    } else {
+        render_convergence_text(&mut output, &report);
+    }
+
+    agov_core::roi::record_tool_output("agov", args, "coord-convergence", output.chars);
+    if report.status == "ok" {
+        0
+    } else {
+        1
+    }
+}
+
+fn process_convergence_candidate(
+    event_id: &str,
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    candidates: &mut BTreeMap<String, ConvergenceCandidate>,
+    errors: &mut Vec<String>,
+) {
+    let Some(attempt) = convergence.get("attempt").and_then(|value| value.as_u64()) else {
+        errors.push(format!("{event_id}: candidate is missing attempt"));
+        return;
+    };
+    let Some(candidate_sha) = convergence_string(convergence, "candidate_sha") else {
+        errors.push(format!("{event_id}: candidate is missing candidate_sha"));
+        return;
+    };
+    let Some(scope_digest) = convergence_string(convergence, "scope_digest") else {
+        errors.push(format!("{event_id}: candidate is missing scope_digest"));
+        return;
+    };
+    let scope_paths = convergence_string_array(convergence, "scope_paths");
+    if !is_strictly_sorted(&scope_paths) {
+        errors.push(format!("{event_id}: scope_paths must be sorted and unique"));
+        return;
+    }
+    match convergence_scope_digest(candidate_sha, &scope_paths) {
+        Ok(actual) if actual == scope_digest => {}
+        Ok(actual) => {
+            errors.push(format!(
+                "{event_id}: scope_digest mismatch: declared {scope_digest}, computed {actual}"
+            ));
+            return;
+        }
+        Err(error) => {
+            errors.push(format!("{event_id}: {error}"));
+            return;
+        }
+    }
+
+    let report = ConvergenceCandidateReport {
+        event_id: event_id.to_string(),
+        attempt,
+        candidate_sha: candidate_sha.to_string(),
+        scope_paths,
+        scope_digest: scope_digest.to_string(),
+    };
+    let mut candidate = ConvergenceCandidate {
+        report: report.clone(),
+        invariant_ids: invariant_ids.iter().cloned().collect(),
+        reviewable_invariants: BTreeSet::new(),
+        after_reset_invariants: BTreeSet::new(),
+    };
+
+    for invariant_id in invariant_ids {
+        let state = states.entry(invariant_id.clone()).or_default();
+        if matches!(
+            state.phase,
+            ConvergencePhase::ResetRequired
+                | ConvergencePhase::GovernorReturnRequired
+                | ConvergencePhase::Closed
+                | ConvergencePhase::Conflict
+        ) {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow candidate in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+
+        let unchanged = state.last_scope_digest.as_deref() == Some(scope_digest);
+        if unchanged {
+            if attempt != state.last_attempt {
+                errors.push(format!(
+                    "{event_id}: invariant '{invariant_id}' unchanged digest must retain attempt {}, got {attempt}",
+                    state.last_attempt
+                ));
+                continue;
+            }
+            state.canonical_candidate = Some(report.clone());
+            if state.phase == ConvergencePhase::ReviewPending {
+                state.active_candidate = Some(event_id.to_string());
+                candidate.reviewable_invariants.insert(invariant_id.clone());
+            }
+            continue;
+        }
+
+        if !matches!(
+            state.phase,
+            ConvergencePhase::Open | ConvergencePhase::ResetRecorded
+        ) {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow a new semantic candidate in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+        if attempt <= state.last_attempt {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' new digest requires attempt greater than {}, got {attempt}",
+                state.last_attempt
+            ));
+            continue;
+        }
+
+        if state.phase == ConvergencePhase::ResetRecorded {
+            candidate
+                .after_reset_invariants
+                .insert(invariant_id.clone());
+        }
+        state.phase = ConvergencePhase::ReviewPending;
+        state.last_attempt = attempt;
+        state.last_scope_digest = Some(scope_digest.to_string());
+        state.active_candidate = Some(event_id.to_string());
+        state.canonical_candidate = Some(report.clone());
+        candidate.reviewable_invariants.insert(invariant_id.clone());
+    }
+
+    if candidates.insert(event_id.to_string(), candidate).is_some() {
+        errors.push(format!("{event_id}: duplicate candidate event id"));
+    }
+}
+
+fn process_convergence_review(
+    event_id: &str,
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    candidates: &BTreeMap<String, ConvergenceCandidate>,
+    errors: &mut Vec<String>,
+) {
+    let Some(candidate_event) = convergence_string(convergence, "candidate_event") else {
+        errors.push(format!(
+            "{event_id}: targeted review is missing candidate_event"
+        ));
+        return;
+    };
+    let Some(candidate) = candidates.get(candidate_event) else {
+        errors.push(format!(
+            "{event_id}: candidate_event '{candidate_event}' is not an earlier candidate in this series"
+        ));
+        return;
+    };
+    let attempt = convergence
+        .get("attempt")
+        .and_then(|value| value.as_u64())
+        .unwrap_or(0);
+    let candidate_sha = convergence_string(convergence, "candidate_sha").unwrap_or("");
+    let scope_digest = convergence_string(convergence, "scope_digest").unwrap_or("");
+    let scope_paths = convergence_string_array(convergence, "scope_paths");
+    if attempt != candidate.report.attempt
+        || candidate_sha != candidate.report.candidate_sha
+        || scope_digest != candidate.report.scope_digest
+        || scope_paths != candidate.report.scope_paths
+    {
+        errors.push(format!(
+            "{event_id}: targeted review fields do not match candidate_event '{candidate_event}'"
+        ));
+        return;
+    }
+    let outcome = convergence_string(convergence, "outcome").unwrap_or("");
+
+    for invariant_id in invariant_ids {
+        if !candidate.invariant_ids.contains(invariant_id) {
+            errors.push(format!(
+                "{event_id}: candidate_event '{candidate_event}' does not declare invariant '{invariant_id}'"
+            ));
+            continue;
+        }
+        let Some(state) = states.get_mut(invariant_id) else {
+            errors.push(format!("{event_id}: unknown invariant '{invariant_id}'"));
+            continue;
+        };
+        let identity = ConvergenceReviewIdentity {
+            invariant_id: invariant_id.clone(),
+            attempt,
+            candidate_event: candidate_event.to_string(),
+            candidate_sha: candidate_sha.to_string(),
+            scope_digest: scope_digest.to_string(),
+        };
+        let outcomes = state.reviews.entry(identity).or_default();
+        if outcomes.contains(outcome) {
+            continue;
+        }
+        let conflicting = (outcome == "clear" && outcomes.contains("block"))
+            || (outcome == "block" && outcomes.contains("clear"));
+        outcomes.insert(outcome.to_string());
+        if conflicting {
+            state.phase = ConvergencePhase::Conflict;
+            state.active_candidate = None;
+            continue;
+        }
+        if outcome == "advisory" {
+            continue;
+        }
+        if state.phase != ConvergencePhase::ReviewPending
+            || state.active_candidate.as_deref() != Some(candidate_event)
+            || !candidate.reviewable_invariants.contains(invariant_id)
+        {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' review is not for its canonical pending candidate"
+            ));
+            continue;
+        }
+
+        state.active_candidate = None;
+        match outcome {
+            "clear" => {
+                state.phase = ConvergencePhase::Closed;
+                state.consecutive_failures = 0;
+            }
+            "block" if candidate.after_reset_invariants.contains(invariant_id) => {
+                state.phase = ConvergencePhase::GovernorReturnRequired;
+                state.consecutive_failures += 1;
+            }
+            "block" => {
+                state.consecutive_failures += 1;
+                state.phase = if state.consecutive_failures >= 2 {
+                    ConvergencePhase::ResetRequired
+                } else {
+                    ConvergencePhase::Open
+                };
+            }
+            _ => errors.push(format!(
+                "{event_id}: unsupported review outcome '{outcome}'"
+            )),
+        }
+    }
+}
+
+fn process_convergence_reset(
+    event_id: &str,
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    errors: &mut Vec<String>,
+) {
+    let disposition = convergence_string(convergence, "disposition").unwrap_or("");
+    for invariant_id in invariant_ids {
+        let Some(state) = states.get_mut(invariant_id) else {
+            errors.push(format!("{event_id}: unknown invariant '{invariant_id}'"));
+            continue;
+        };
+        if state.phase != ConvergencePhase::ResetRequired {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow abstraction-reset in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+        match disposition {
+            "redesign" => {
+                state.phase = ConvergencePhase::ResetRecorded;
+                state.consecutive_failures = 0;
+            }
+            "accept" | "defer" | "stop" => state.phase = ConvergencePhase::Closed,
+            _ => errors.push(format!(
+                "{event_id}: unsupported abstraction-reset disposition '{disposition}'"
+            )),
+        }
+    }
+}
+
+fn process_convergence_governor_disposition(
+    event_id: &str,
+    invariant_ids: &[String],
+    states: &mut BTreeMap<String, ConvergenceInvariantState>,
+    errors: &mut Vec<String>,
+) {
+    for invariant_id in invariant_ids {
+        let Some(state) = states.get_mut(invariant_id) else {
+            errors.push(format!("{event_id}: unknown invariant '{invariant_id}'"));
+            continue;
+        };
+        if state.phase != ConvergencePhase::GovernorReturnRequired {
+            errors.push(format!(
+                "{event_id}: invariant '{invariant_id}' does not allow governor-disposition in state {}",
+                state.phase.label()
+            ));
+            continue;
+        }
+        state.phase = ConvergencePhase::Closed;
+    }
+}
+
+fn convergence_scope_digest(sha: &str, paths: &[String]) -> Result<String, String> {
+    let mut hasher = Sha256::new();
+    for path in paths {
+        let object = format!("{sha}:{path}");
+        let output = std::process::Command::new("git")
+            .args(["show", "--no-textconv", object.as_str()])
+            .output()
+            .map_err(|error| format!("cannot read candidate scope '{object}': {error}"))?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            return Err(format!(
+                "cannot read candidate scope '{object}': {}",
+                if stderr.is_empty() {
+                    output.status.to_string()
+                } else {
+                    stderr
+                }
+            ));
+        }
+        hasher.update(path.as_bytes());
+        hasher.update([0]);
+        hasher.update(&output.stdout);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn convergence_string<'a>(
+    convergence: &'a serde_json::Map<String, serde_json::Value>,
+    field: &str,
+) -> Option<&'a str> {
+    convergence.get(field).and_then(|value| value.as_str())
+}
+
+fn convergence_string_array(
+    convergence: &serde_json::Map<String, serde_json::Value>,
+    field: &str,
+) -> Vec<String> {
+    convergence
+        .get(field)
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|value| value.as_str())
+        .map(str::to_string)
+        .collect()
+}
+
+fn is_strictly_sorted(values: &[String]) -> bool {
+    values.windows(2).all(|pair| pair[0] < pair[1])
+}
+
+fn render_convergence_text(output: &mut OutputCounter, report: &ConvergenceReport) {
+    output.stdout(format!("Series: {}", report.series_id));
+    output.stdout(format!("Status: {}", report.status));
+    for invariant in &report.invariants {
+        output.stdout(format!("Invariant: {}", invariant.invariant_id));
+        output.stdout(format!("  state: {}", invariant.state));
+        output.stdout(format!(
+            "  consecutive-semantic-failures: {}",
+            invariant.consecutive_semantic_failures
+        ));
+        output.stdout(format!(
+            "  required-next-event: {}",
+            invariant.required_next_event
+        ));
+        output.stdout(format!("  conflict: {}", invariant.conflict));
+        if let Some(candidate) = &invariant.canonical_candidate {
+            output.stdout(format!(
+                "  canonical-candidate: {} attempt={} sha={} digest={}",
+                candidate.event_id,
+                candidate.attempt,
+                candidate.candidate_sha,
+                candidate.scope_digest
+            ));
+        } else {
+            output.stdout("  canonical-candidate: none");
+        }
+    }
+    for error in &report.errors {
+        output.stderr(format!("ERR  {error}"));
+    }
 }
 
 fn display_coord_dir(dir: &Path) -> String {
@@ -2927,11 +3930,36 @@ struct VisibilityMessage {
 
 #[derive(Debug)]
 struct VisibilityReport {
+    /// The requested base branch name, exactly as given via
+    /// `--base-branch` (default `"main"`) -- unchanged meaning; never
+    /// repurposed to hold a resolved OID or ref name (issue #89).
     base_branch: String,
+    /// Full commit OID actually used as the comparison base after
+    /// freshness resolution (issue #89). Always populated -- the local
+    /// base branch's own OID when no upstream is configured or upstream
+    /// matches local.
+    effective_base_oid: String,
+    /// Which ref supplied `effective_base_oid`: `"local"` or `"upstream"`.
+    effective_base_source: String,
     scanned_branches: Vec<String>,
     unbridged_obligations: Vec<VisibilityObligation>,
-    sequence_collisions: Vec<VisibilityCollision>,
+    /// Branch-relevant collisions only (issue #85) -- a base-history-only
+    /// duplicate seq never appears here; see `legacy_base_collisions`.
+    sequence_collisions: Vec<BranchCollision>,
+    /// Issue #85: `seq` values of collisions confined to base-branch
+    /// history, unrelated to the branch under inspection. Always
+    /// present (never conflated with `sequence_collisions`); reported as
+    /// a summary count, never drives `exit_code` on its own.
+    legacy_base_collisions: Vec<i64>,
     errors: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct BranchCollision {
+    seq: i64,
+    branch: String,
+    branch_file: String,
+    base_file: String,
 }
 
 #[derive(Debug, Clone)]
@@ -2942,20 +3970,6 @@ struct VisibilityObligation {
     kind: String,
     to: String,
     topic: String,
-}
-
-#[derive(Debug, Clone)]
-enum VisibilityCollision {
-    BaseDuplicateSeq {
-        seq: i64,
-        files: Vec<String>,
-    },
-    BranchBaseSeq {
-        seq: i64,
-        branch: String,
-        branch_file: String,
-        base_file: String,
-    },
 }
 
 fn coord_graph(dir: PathBuf, format: String, args: &[String]) -> i32 {
@@ -3321,25 +4335,26 @@ fn visibility_scan(
     requested_branches: Vec<String>,
     coord_dir: &str,
 ) -> Result<VisibilityReport, String> {
-    let base_files = git_coord_files(base_branch, coord_dir)
+    let effective_base = resolve_effective_base(base_branch)
         .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
-    let base_messages = load_git_messages(base_branch, &base_files)?;
+
+    let base_files = git_coord_files(&effective_base.ref_for_scan, coord_dir)
+        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
+    let base_messages = load_git_messages(&effective_base.ref_for_scan, &base_files)?;
     let base_file_set: std::collections::BTreeSet<&str> = base_messages
         .iter()
         .map(|message| message.file.as_str())
         .collect();
 
     let branches = if requested_branches.is_empty() {
-        git_local_branches()?
-            .into_iter()
-            .filter(|branch| branch != base_branch)
-            .collect()
+        dedup_and_select_branches(&git_branch_refs()?, &effective_base.oid)
     } else {
         requested_branches
     };
 
     let mut unbridged_obligations = Vec::new();
-    let mut sequence_collisions = base_sequence_collisions_visibility(&base_messages);
+    let mut sequence_collisions: Vec<BranchCollision> = Vec::new();
+    let legacy_base_collisions = base_sequence_collisions_visibility(&base_messages);
 
     for branch in &branches {
         let branch_files = git_coord_files(branch, coord_dir)?;
@@ -3388,11 +4403,174 @@ fn visibility_scan(
 
     Ok(VisibilityReport {
         base_branch: base_branch.to_string(),
+        effective_base_oid: effective_base.oid,
+        effective_base_source: effective_base.source.to_string(),
         scanned_branches: branches,
         unbridged_obligations,
         sequence_collisions,
+        legacy_base_collisions,
         errors: Vec::new(),
     })
+}
+
+/// Issue #89 (B1): resolves the effective comparison base for
+/// `--base-branch <base_branch>`. When a configured upstream exists and
+/// its OID differs from the local base branch's OID, the upstream OID is
+/// preferred (and the upstream ref is what base content is actually read
+/// from) -- this makes the documented `git fetch` then `agov coord
+/// visibility --base-branch main` workflow correct without requiring the
+/// caller to separately fast-forward local `main`. When no upstream is
+/// configured, or upstream matches local, behavior is unchanged.
+struct EffectiveBase {
+    /// The ref git commands should read base content from -- the
+    /// requested `base_branch` name, or its upstream short name
+    /// (e.g. `origin/main`) when freshness resolution prefers it.
+    ref_for_scan: String,
+    oid: String,
+    source: &'static str,
+}
+
+fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
+    let local_oid = git_output(&[
+        "rev-parse",
+        "--verify",
+        &format!("{base_branch}^{{commit}}"),
+    ])?
+    .trim()
+    .to_string();
+
+    let upstream_short = git_output(&[
+        "for-each-ref",
+        "--format=%(upstream:short)",
+        &format!("refs/heads/{base_branch}"),
+    ])
+    .unwrap_or_default();
+    let upstream_short = upstream_short.trim();
+
+    if upstream_short.is_empty() {
+        return Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        });
+    }
+
+    let Ok(upstream_oid) = git_output(&[
+        "rev-parse",
+        "--verify",
+        &format!("{upstream_short}^{{commit}}"),
+    ]) else {
+        // Upstream configured but unresolvable (e.g. not fetched yet) --
+        // fall back to local, unchanged behavior.
+        return Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        });
+    };
+    let upstream_oid = upstream_oid.trim().to_string();
+
+    if upstream_oid != local_oid {
+        Ok(EffectiveBase {
+            ref_for_scan: upstream_short.to_string(),
+            oid: upstream_oid,
+            source: "upstream",
+        })
+    } else {
+        Ok(EffectiveBase {
+            ref_for_scan: base_branch.to_string(),
+            oid: local_oid,
+            source: "local",
+        })
+    }
+}
+
+/// Issue #89: a local or remote-tracking branch ref, as returned by
+/// `git_branch_refs`. `full_name` is the fully-qualified ref (used only
+/// to determine class and to sort within a class -- comparing full names
+/// and comparing `short_name`s produce the same relative order within a
+/// single class, since the prefix stripped by `short_name` is constant
+/// across all members of that class). `short_name` is the actual branch
+/// identifier used everywhere else (git ref argument, JSON/text output).
+struct BranchRef {
+    full_name: String,
+    short_name: String,
+    oid: String,
+}
+
+/// Enumerates every `refs/heads/*` and `refs/remotes/<remote>/*` ref that
+/// is not a symbolic ref (excludes `refs/remotes/<remote>/HEAD`).
+fn git_branch_refs() -> Result<Vec<BranchRef>, String> {
+    let output = git_output(&[
+        "for-each-ref",
+        "--format=%(refname)%09%(refname:short)%09%(objectname)%09%(symref)",
+        "refs/heads",
+        "refs/remotes",
+    ])?;
+    let mut refs = Vec::new();
+    for line in output.lines() {
+        let mut parts = line.splitn(4, '\t');
+        let (Some(full_name), Some(short_name), Some(oid), Some(symref)) =
+            (parts.next(), parts.next(), parts.next(), parts.next())
+        else {
+            continue;
+        };
+        if !symref.is_empty() {
+            continue;
+        }
+        refs.push(BranchRef {
+            full_name: full_name.to_string(),
+            short_name: short_name.to_string(),
+            oid: oid.to_string(),
+        });
+    }
+    Ok(refs)
+}
+
+/// Class 1 (local) < Class 2 (`origin/*`) < Class 3 (other remotes) --
+/// only reached in that priority order, per issue #89's Slice 3 spec.
+fn branch_ref_class(full_name: &str) -> u8 {
+    if full_name.starts_with("refs/heads/") {
+        0
+    } else if full_name.starts_with("refs/remotes/origin/") {
+        1
+    } else {
+        2
+    }
+}
+
+/// Groups refs by peeled commit OID (tracking configuration is not part
+/// of the equivalence test), excludes every ref at the effective base
+/// OID, and picks one display name per group: the lexicographically
+/// smallest fully-qualified ref name among refs in the first non-empty
+/// class. Returns a sorted, deterministic list of branch identifiers.
+fn dedup_and_select_branches(refs: &[BranchRef], effective_base_oid: &str) -> Vec<String> {
+    let mut by_oid: BTreeMap<&str, Vec<&BranchRef>> = BTreeMap::new();
+    for r in refs {
+        if r.oid == effective_base_oid {
+            continue;
+        }
+        by_oid.entry(r.oid.as_str()).or_default().push(r);
+    }
+
+    let mut names: Vec<String> = by_oid
+        .into_values()
+        .map(|group| {
+            let min_class = group
+                .iter()
+                .map(|r| branch_ref_class(&r.full_name))
+                .min()
+                .unwrap_or(2);
+            group
+                .into_iter()
+                .filter(|r| branch_ref_class(&r.full_name) == min_class)
+                .min_by(|left, right| left.full_name.cmp(&right.full_name))
+                .map(|r| r.short_name.clone())
+                .expect("each OID group has at least one member")
+        })
+        .collect();
+    names.sort();
+    names
 }
 
 fn git_coord_dir(dir: &Path) -> Result<String, String> {
@@ -3412,17 +4590,6 @@ fn git_coord_dir(dir: &Path) -> Result<String, String> {
         })
 }
 
-fn git_local_branches() -> Result<Vec<String>, String> {
-    let output = git_output(&["for-each-ref", "--format=%(refname:short)", "refs/heads"])?;
-    let mut branches: Vec<String> = output
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .map(str::to_string)
-        .collect();
-    branches.sort();
-    Ok(branches)
-}
-
 fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, String> {
     let output = git_output(&["ls-tree", "-r", "--name-only", ref_name, "--", coord_dir])?;
     let mut files: Vec<String> = output
@@ -3436,11 +4603,8 @@ fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, Strin
 
 fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityMessage>, String> {
     let mut messages = Vec::new();
-    for file in files {
-        let content = match git_output(&["show", &format!("{ref_name}:{file}")]) {
-            Ok(content) => content,
-            Err(_) => continue,
-        };
+    for (file, content) in git_cat_file_batch(ref_name, files)? {
+        let Some(content) = content else { continue };
         let Ok(mut raw) = agov_core::yaml::parse_frontmatter_json(&content) else {
             continue;
         };
@@ -3450,12 +4614,180 @@ fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityM
                 serde_json::Value::String(markdown_body(&content)),
             );
         }
-        messages.push(VisibilityMessage {
-            file: file.clone(),
-            raw,
-        });
+        messages.push(VisibilityMessage { file, raw });
     }
     Ok(messages)
+}
+
+/// Issue #76: reads all `files` at `ref_name` via a single long-lived
+/// `git cat-file --batch` subprocess (stdin/stdout streaming), instead of
+/// one `git show <ref>:<file>` process per file -- turns `1 + F`
+/// subprocess spawns per branch into `1 + 1` (one `ls-tree`, already
+/// done by the caller, plus this one `cat-file --batch`). `git cat-file
+/// --batch` accepts `<ref>:<path>` object specifiers directly on stdin,
+/// so no separate blob-OID resolution pass is needed.
+///
+/// Returns one `(file, Some(content))` per readable file and
+/// `(file, None)` for a file `cat-file` reports missing, preserving
+/// `files`' order and length.
+fn git_cat_file_batch(
+    ref_name: &str,
+    files: &[String],
+) -> Result<Vec<(String, Option<String>)>, String> {
+    use std::io::{BufRead, Read, Write};
+
+    if files.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let mut child = std::process::Command::new("git")
+        .args(["cat-file", "--batch"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|err| format!("git cat-file --batch: spawn failed: {err}"))?;
+
+    let mut stdin = child.stdin.take().ok_or("git cat-file --batch: no stdin")?;
+    let specifiers: Vec<String> = files
+        .iter()
+        .map(|file| format!("{ref_name}:{file}"))
+        .collect();
+    let writer_specifiers = specifiers.clone();
+    let writer = std::thread::spawn(move || -> Result<(), String> {
+        for specifier in &writer_specifiers {
+            writeln!(stdin, "{specifier}").map_err(|err| err.to_string())?;
+        }
+        // Dropping `stdin` here closes the pipe, signaling EOF so
+        // `git cat-file --batch` exits after answering the last request.
+        Ok(())
+    });
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or("git cat-file --batch: no stdout")?;
+    let mut stderr = child
+        .stderr
+        .take()
+        .ok_or("git cat-file --batch: no stderr")?;
+    let mut reader = std::io::BufReader::new(stdout);
+    let mut results = Vec::with_capacity(files.len());
+
+    // B-V26-G2-1: every early-exit path below sets `read_error` and
+    // breaks, rather than silently returning a short `results` -- the
+    // caller must never receive a shorter-than-requested response list
+    // as if it were a normal "some files missing" outcome.
+    let mut read_error: Option<String> = None;
+    for specifier in &specifiers {
+        let mut header = String::new();
+        let read_bytes = match reader.read_line(&mut header) {
+            Ok(n) => n,
+            Err(err) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: read failed for {specifier}: {err}"
+                ));
+                break;
+            }
+        };
+        if read_bytes == 0 {
+            read_error = Some(format!(
+                "git cat-file --batch: unexpected end of output before a response for \
+                 {specifier} ({} of {} responses received)",
+                results.len(),
+                specifiers.len()
+            ));
+            break;
+        }
+        let header = header.trim_end();
+        if header.ends_with(" missing") {
+            results.push(None);
+            continue;
+        }
+        // Header format: "<oid> <type> <size>".
+        let mut header_fields = header.rsplitn(3, ' ');
+        let size_field = header_fields.next();
+        let type_field = header_fields.next();
+        let oid_field = header_fields.next();
+        // B-V26-G2-R2-1: the object type must be checked, not merely
+        // parsed and discarded. A syntactically valid but non-blob
+        // header (e.g. `<oid> tree <size>`) must fail closed rather
+        // than have its bytes treated as coordination-file content.
+        let size: usize = match (
+            oid_field,
+            type_field,
+            size_field.and_then(|v| v.parse().ok()),
+        ) {
+            (Some(_), Some("blob"), Some(size)) => size,
+            (Some(_), Some(other_type), Some(_)) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: unexpected object type {other_type:?} \
+                     (expected blob) for {specifier}"
+                ));
+                break;
+            }
+            _ => {
+                read_error = Some(format!(
+                    "git cat-file --batch: malformed header for {specifier}: {header:?}"
+                ));
+                break;
+            }
+        };
+        let mut content = vec![0u8; size];
+        if let Err(err) = reader.read_exact(&mut content) {
+            read_error = Some(format!(
+                "git cat-file --batch: truncated content for {specifier} \
+                 (expected {size} bytes): {err}"
+            ));
+            break;
+        }
+        // `cat-file --batch` appends a trailing newline after each
+        // object's content, separate from the content itself.
+        let mut trailing = [0u8; 1];
+        if reader.read_exact(&mut trailing).is_err() {
+            read_error = Some(format!(
+                "git cat-file --batch: missing trailing separator for {specifier}"
+            ));
+            break;
+        }
+        results.push(Some(String::from_utf8_lossy(&content).to_string()));
+    }
+
+    let writer_result = writer
+        .join()
+        .map_err(|_| "git cat-file --batch: writer thread panicked".to_string())?;
+
+    let mut stderr_output = String::new();
+    let _ = stderr.read_to_string(&mut stderr_output);
+    let exit_status = child
+        .wait()
+        .map_err(|err| format!("git cat-file --batch: failed to wait on child: {err}"))?;
+
+    if let Some(err) = read_error {
+        return Err(err);
+    }
+    if let Err(err) = writer_result {
+        return Err(format!("git cat-file --batch: writer failed: {err}"));
+    }
+    if !exit_status.success() {
+        let stderr_note = if stderr_output.trim().is_empty() {
+            String::new()
+        } else {
+            format!(": {}", stderr_output.trim())
+        };
+        return Err(format!(
+            "git cat-file --batch: exited with {exit_status}{stderr_note}"
+        ));
+    }
+    if results.len() != specifiers.len() {
+        return Err(format!(
+            "git cat-file --batch: expected {} response(s), got {}",
+            specifiers.len(),
+            results.len()
+        ));
+    }
+
+    Ok(files.iter().cloned().zip(results).collect())
 }
 
 fn markdown_body(content: &str) -> String {
@@ -3530,9 +4862,12 @@ fn visibility_sort_key(message: &VisibilityMessage) -> (String, String) {
     )
 }
 
-fn base_sequence_collisions_visibility(
-    base_messages: &[VisibilityMessage],
-) -> Vec<VisibilityCollision> {
+/// Issue #85: seq values colliding purely within base-branch history,
+/// independent of which branch/base-branch pair is being compared.
+/// Returned as a sorted list of `seq` values (the `legacy_base_collisions`
+/// summary), not as blocking `VisibilityCollision` entries -- see
+/// `render_visibility_text`/`visibility_json`/`visibility_exit_code`.
+fn base_sequence_collisions_visibility(base_messages: &[VisibilityMessage]) -> Vec<i64> {
     let mut by_seq: BTreeMap<i64, Vec<String>> = BTreeMap::new();
     for message in base_messages {
         if visibility_modern_filename(&message.file) {
@@ -3546,13 +4881,8 @@ fn base_sequence_collisions_visibility(
 
     by_seq
         .into_iter()
-        .filter_map(|(seq, mut files)| {
-            if files.len() <= 1 {
-                return None;
-            }
-            files.sort();
-            Some(VisibilityCollision::BaseDuplicateSeq { seq, files })
-        })
+        .filter(|(_, files)| files.len() > 1)
+        .map(|(seq, _)| seq)
         .collect()
 }
 
@@ -3560,7 +4890,7 @@ fn branch_sequence_collisions(
     branch: &str,
     branch_messages: &[VisibilityMessage],
     base_messages: &[VisibilityMessage],
-) -> Vec<VisibilityCollision> {
+) -> Vec<BranchCollision> {
     let mut base_by_seq: BTreeMap<i64, Vec<&VisibilityMessage>> = BTreeMap::new();
     for message in base_messages {
         if visibility_modern_filename(&message.file) {
@@ -3584,7 +4914,7 @@ fn branch_sequence_collisions(
             if base.file == message.file {
                 continue;
             }
-            collisions.push(VisibilityCollision::BranchBaseSeq {
+            collisions.push(BranchCollision {
                 seq,
                 branch: branch.to_string(),
                 branch_file: message.file.clone(),
@@ -3593,25 +4923,13 @@ fn branch_sequence_collisions(
         }
     }
     collisions.sort_by(|left, right| {
-        visibility_collision_key(left).cmp(&visibility_collision_key(right))
+        (left.seq, left.branch.as_str(), left.branch_file.as_str()).cmp(&(
+            right.seq,
+            right.branch.as_str(),
+            right.branch_file.as_str(),
+        ))
     });
     collisions
-}
-
-fn visibility_collision_key(collision: &VisibilityCollision) -> (i64, String, String) {
-    match collision {
-        VisibilityCollision::BaseDuplicateSeq { seq, files } => (
-            *seq,
-            String::new(),
-            files.first().cloned().unwrap_or_default(),
-        ),
-        VisibilityCollision::BranchBaseSeq {
-            seq,
-            branch,
-            branch_file,
-            ..
-        } => (*seq, branch.clone(), branch_file.clone()),
-    }
 }
 
 fn visibility_modern_filename(file: &str) -> bool {
@@ -3636,7 +4954,17 @@ fn is_ulid_stem(value: &str) -> bool {
 }
 
 fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport) {
-    if report.sequence_collisions.is_empty() && report.unbridged_obligations.is_empty() {
+    // Issue #89: always first, every exit path -- states which OID was
+    // actually used as the comparison base.
+    output.stdout(format!(
+        "effective-base: {} ({})",
+        report.effective_base_oid, report.effective_base_source
+    ));
+
+    if report.sequence_collisions.is_empty()
+        && report.unbridged_obligations.is_empty()
+        && report.legacy_base_collisions.is_empty()
+    {
         output.stdout(format!(
             "OK coordination visibility clean relative to {}",
             report.base_branch
@@ -3647,25 +4975,10 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
     if !report.sequence_collisions.is_empty() {
         output.stdout("ERR sequence collision");
         for collision in &report.sequence_collisions {
-            match collision {
-                VisibilityCollision::BaseDuplicateSeq { seq, files } => {
-                    output.stdout(format!("  seq: {seq}"));
-                    for file in files {
-                        output.stdout(format!("  base-file: {file}"));
-                    }
-                }
-                VisibilityCollision::BranchBaseSeq {
-                    seq,
-                    branch,
-                    branch_file,
-                    base_file,
-                } => {
-                    output.stdout(format!("  seq: {seq}"));
-                    output.stdout(format!("  base: {base_file}"));
-                    output.stdout(format!("  branch: {branch}"));
-                    output.stdout(format!("  branch-file: {branch_file}"));
-                }
-            }
+            output.stdout(format!("  seq: {}", collision.seq));
+            output.stdout(format!("  base: {}", collision.base_file));
+            output.stdout(format!("  branch: {}", collision.branch));
+            output.stdout(format!("  branch-file: {}", collision.branch_file));
         }
     }
 
@@ -3686,6 +4999,17 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
             output.stdout(format!("  topic: {}", obligation.topic));
             output.stdout("  bridge: missing");
         }
+    }
+
+    // Issue #85: base-history-only legacy collisions are reported as a
+    // single summary count, matching `session resume`'s warn-once-and-
+    // continue pattern -- never a per-collision ERR block, and always
+    // rendered last so a genuine obligation is never buried under noise.
+    if !report.legacy_base_collisions.is_empty() {
+        output.stdout(format!(
+            "WARN {} legacy sequence collision group(s) confined to base branch history; run agov coord validate for detail",
+            report.legacy_base_collisions.len()
+        ));
     }
 }
 
@@ -3708,34 +5032,28 @@ fn visibility_json(report: &VisibilityReport) -> String {
     let collisions: Vec<serde_json::Value> = report
         .sequence_collisions
         .iter()
-        .map(|collision| match collision {
-            VisibilityCollision::BaseDuplicateSeq { seq, files } => {
-                serde_json::json!({
-                    "type": "base_duplicate_seq",
-                    "seq": seq,
-                    "files": files,
-                })
-            }
-            VisibilityCollision::BranchBaseSeq {
-                seq,
-                branch,
-                branch_file,
-                base_file,
-            } => serde_json::json!({
+        .map(|collision| {
+            serde_json::json!({
                 "type": "branch_base_seq_collision",
-                "seq": seq,
-                "branch": branch,
-                "branch_file": branch_file,
-                "base_file": base_file,
-            }),
+                "seq": collision.seq,
+                "branch": collision.branch,
+                "branch_file": collision.branch_file,
+                "base_file": collision.base_file,
+            })
         })
         .collect();
 
     serde_json::json!({
         "base_branch": report.base_branch,
+        "effective_base_oid": report.effective_base_oid,
+        "effective_base_source": report.effective_base_source,
         "scanned_branches": report.scanned_branches,
         "unbridged_obligations": obligations,
         "sequence_collisions": collisions,
+        "legacy_base_collisions": {
+            "count": report.legacy_base_collisions.len(),
+            "seqs": report.legacy_base_collisions,
+        },
         "errors": report.errors,
         "exit_code": visibility_exit_code(report),
     })
@@ -3850,6 +5168,10 @@ impl SessionGitStatus {
             }
         }
 
+        if let Some(message) = version_drift_warning() {
+            warnings.push(message);
+        }
+
         warnings
     }
 }
@@ -3897,7 +5219,12 @@ fn branch_local_coord_files(base_branch: &str) -> BranchLocalResult {
 }
 
 fn git_output(args: &[&str]) -> Result<String, String> {
+    git_output_at(Path::new("."), args)
+}
+
+fn git_output_at(repo_root: &Path, args: &[&str]) -> Result<String, String> {
     let output = std::process::Command::new("git")
+        .current_dir(repo_root)
         .args(args)
         .output()
         .map_err(|err| err.to_string())?;
@@ -4004,21 +5331,36 @@ fn render_invalid_files(output: &mut OutputCounter, invalid_files: &[String]) {
 }
 
 fn render_active_roles(output: &mut OutputCounter, manifest: &Path, base_branch: &str) {
+    // Fail-closed by construction, not by extra logic: this function only
+    // ever reads `manifest` (the resolved AGOV_MANIFEST_PATH-or-default
+    // path). It never falls back to reading MANIFEST.example.yaml as a
+    // substitute -- there is no code path here that does so. See issue #79
+    // / docs/plans/v250-rc1-contract-core.md.
     let Ok(content) = std::fs::read_to_string(manifest) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable");
+        if std::env::var_os("AGOV_MANIFEST_PATH").is_some() {
+            output.stdout(format!(
+                "No adopter manifest found at {} (from AGOV_MANIFEST_PATH).",
+                manifest.display()
+            ));
+        } else {
+            output.stdout(format!(
+                "No adopter manifest found at {}; copy agf/agents/MANIFEST.example.yaml or set AGOV_MANIFEST_PATH.",
+                manifest.display()
+            ));
+        }
         output.stdout("");
         return;
     };
     let Ok(data) = serde_norway::from_str::<serde_json::Value>(&content) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable (manifest is not valid YAML)");
+        output.stdout(format!("Fix {} and rerun.", manifest.display()));
         output.stdout("");
         return;
     };
     let Some(agents) = data.get("agents").and_then(|value| value.as_object()) else {
-        output.stdout("Active roles: unavailable (manifest not found)");
-        output.stdout("Choose a role from AGENTS.md or agf/agents/MANIFEST.yaml.");
+        output.stdout("Active roles: unavailable (manifest has no top-level 'agents' key)");
+        output.stdout(format!("Fix {} and rerun.", manifest.display()));
         output.stdout("");
         return;
     };
@@ -4291,6 +5633,87 @@ fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
         output.chars,
     );
     0
+}
+
+#[derive(Serialize)]
+struct PendingAckRow {
+    id: String,
+    file: String,
+    kind: String,
+    from: String,
+    to: String,
+    topic: String,
+    pending_since: String,
+}
+
+impl From<&agov_coord::handoff_tracker::PendingAck> for PendingAckRow {
+    fn from(p: &agov_coord::handoff_tracker::PendingAck) -> Self {
+        Self {
+            id: p.id.clone(),
+            file: p.file.clone(),
+            kind: p.kind.clone(),
+            from: p.from.clone(),
+            to: p.to.clone(),
+            topic: p.topic.clone(),
+            pending_since: p.pending_since.clone(),
+        }
+    }
+}
+
+fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let dir = repo_relative_path(dir);
+
+    let messages = match read_valid_coord_messages(&dir) {
+        Ok(messages) => messages,
+        Err(_) => {
+            output.stderr(format!(
+                "Coordination directory not found: {}",
+                dir.display()
+            ));
+            return 1;
+        }
+    };
+
+    let descriptors: Vec<agov_coord::handoff_tracker::MessageDescriptor> = messages
+        .iter()
+        .map(|m| agov_coord::handoff_tracker::MessageDescriptor {
+            file: m.file.clone(),
+            sort_key: format!("{}_{}", m.sort_key.0, m.sort_key.1),
+            refs: m.refs.clone(),
+            msg: agov_coord::coord_validator::CoordMessage { raw: m.raw.clone() },
+        })
+        .collect();
+
+    let pending = agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, cutoff);
+
+    if format == "json" {
+        let rows: Vec<PendingAckRow> = pending.iter().map(PendingAckRow::from).collect();
+        match serde_json::to_string_pretty(&rows) {
+            Ok(json) => output.stdout(json),
+            Err(err) => {
+                output.stderr(format!("ERR  could not render JSON: {err}"));
+                return 1;
+            }
+        }
+    } else if pending.is_empty() {
+        output.stdout(format!("No pending requires-ack records since {cutoff}"));
+    } else {
+        output.stdout(format!("Pending requires-ack records since {cutoff}:"));
+        for p in &pending {
+            output.stdout(format!(
+                "  {}  {}  {} -> {}  {}  {}",
+                p.pending_since, p.kind, p.from, p.to, p.topic, p.file
+            ));
+        }
+    }
+
+    agov_core::roi::record_tool_output("agov.coord.pending", args, "coord-pending", output.chars);
+    if pending.is_empty() {
+        2
+    } else {
+        0
+    }
 }
 
 fn handoff_take(id: &str, from: &str, dir: PathBuf, args: &[String]) -> i32 {
@@ -4824,7 +6247,12 @@ fn validate_files<T>(
     }
 }
 
-fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &[String]) -> i32 {
+fn plan_projection_check(
+    base_ref: &str,
+    allow_planned: bool,
+    files: Vec<std::path::PathBuf>,
+    args: &[String],
+) -> i32 {
     let mut failed = false;
     let mut output = OutputCounter::default();
 
@@ -4856,6 +6284,7 @@ fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &
         .filter(|line| !line.is_empty())
         .map(str::to_owned)
         .collect::<std::collections::BTreeSet<_>>();
+    let schema_path = agov_core::schema_dir().join("rule-projection-manifest.schema.json");
     let distribution = match dist::validate_default() {
         Ok(spec) => spec,
         Err(errors) => {
@@ -4872,6 +6301,8 @@ fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &
         match agov_coord::projection_manifest::validate_file_against(
             &file,
             &repo_root,
+            &schema_path,
+            allow_planned,
             &changed_pages_or_runbooks,
             |path| distribution.contains(path),
         ) {
@@ -4887,6 +6318,161 @@ fn plan_projection_check(base_ref: &str, files: Vec<std::path::PathBuf>, args: &
         1
     } else {
         agov_core::roi::record_tool_output("agov", args, "plan-projection-check", output.chars);
+        0
+    }
+}
+
+fn plan_projection_check_all(
+    base_ref: &str,
+    requested_repo_root: Option<PathBuf>,
+    args: &[String],
+) -> i32 {
+    let mut output = OutputCounter::default();
+    let explicit_repo_root = requested_repo_root.is_some();
+    let repo_root = match requested_repo_root {
+        Some(path) => match path.canonicalize() {
+            Ok(path) => path,
+            Err(error) => {
+                output.stderr(format!(
+                    "ERR projection-check-all could not resolve repository root {}: {error}",
+                    path.display()
+                ));
+                return 2;
+            }
+        },
+        None => match git_output(&["rev-parse", "--show-toplevel"]) {
+            Ok(path) => PathBuf::from(path),
+            Err(reason) => {
+                output.stderr(format!("ERR projection-check-all failed: {reason}"));
+                return 2;
+            }
+        },
+    };
+
+    if let Err(reason) = git_output_at(&repo_root, &["rev-parse", "--show-toplevel"]) {
+        output.stderr(format!(
+            "ERR projection-check-all repository root {} is not a Git worktree: {reason}",
+            repo_root.display()
+        ));
+        return 2;
+    }
+
+    let schema_path = if explicit_repo_root {
+        repo_root.join("agf/schemas/rule-projection-manifest.schema.json")
+    } else {
+        agov_core::schema_dir().join("rule-projection-manifest.schema.json")
+    };
+    let distribution = match dist::validate(Path::new("agf/dist/release-manifest.yaml"), &repo_root)
+    {
+        Ok(spec) => spec,
+        Err(errors) => {
+            output.stderr(format!(
+                "ERR projection-check-all could not validate distribution manifest: {}",
+                errors.join("; ")
+            ));
+            return 2;
+        }
+    };
+
+    let changed_output = match git_output_at(
+        &repo_root,
+        &[
+            "diff",
+            "--name-only",
+            &format!("{base_ref}...HEAD"),
+            "--",
+            "agf/docs/site/docs/**/*.md",
+            "docs/reviews/rule-projection/*.yaml",
+        ],
+    ) {
+        Ok(output) => output,
+        Err(reason) => {
+            output.stderr(format!(
+                "ERR projection-check-all failed to resolve comparison base {base_ref}: {reason}"
+            ));
+            return 2;
+        }
+    };
+    let changed_paths = changed_output
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    let changed_pages_or_runbooks = changed_paths
+        .iter()
+        .filter(|path| path.starts_with("agf/docs/site/docs/") && path.ends_with(".md"))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+
+    let manifest_dir = repo_root.join("docs/reviews/rule-projection");
+    let entries = match std::fs::read_dir(&manifest_dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            output.stderr(format!(
+                "ERR projection-check-all manifest directory not found: {}",
+                manifest_dir.display()
+            ));
+            return 2;
+        }
+        Err(error) => {
+            output.stderr(format!(
+                "ERR projection-check-all could not read {}: {error}",
+                manifest_dir.display()
+            ));
+            return 2;
+        }
+    };
+    let mut manifests = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|value| value.to_str()) == Some("yaml"))
+        .collect::<Vec<_>>();
+    manifests.sort();
+
+    let mut failed = false;
+    for manifest in manifests {
+        let relative = manifest
+            .strip_prefix(&repo_root)
+            .unwrap_or(&manifest)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let full_tree_result = agov_coord::projection_manifest::validate_file(
+            &manifest,
+            &repo_root,
+            &schema_path,
+            true,
+        );
+        if let Err(errors) = full_tree_result {
+            failed = true;
+            render_coord_errors(
+                &mut output,
+                &format!("{relative} [full-tree path/lifecycle]"),
+                &errors,
+            );
+            continue;
+        }
+
+        if changed_paths.contains(&relative) {
+            if let Err(errors) = agov_coord::projection_manifest::validate_file_against(
+                &manifest,
+                &repo_root,
+                &schema_path,
+                true,
+                &changed_pages_or_runbooks,
+                |path| distribution.contains(path),
+            ) {
+                failed = true;
+                render_coord_errors(&mut output, &format!("{relative} [diff coverage]"), &errors);
+                continue;
+            }
+        }
+        output.coord_ok(&relative);
+    }
+
+    if failed {
+        1
+    } else {
+        agov_core::roi::record_tool_output("agov", args, "plan-projection-check-all", output.chars);
         0
     }
 }
@@ -5038,6 +6624,7 @@ fn run_all_validators(args: &[String]) -> i32 {
         ),
         render_framework_config(&mut output),
         render_readme_stats(&mut output, &agov_core::repo_root()),
+        render_version_drift(&mut output),
     ];
 
     output.stdout("OK agov.validate.coverage: framework checks complete; for complete governance coverage, also run `agov plan validate` and `agov coord validate`; the umbrella command does not validate those records");
@@ -5076,6 +6663,49 @@ fn render_readme_stats(output: &mut OutputCounter, root: &std::path::Path) -> i3
             output.stdout(format!("WARN {label}: {} ({loc})", f.message));
         }
         0 // advisory only — never blocking
+    }
+}
+
+/// Compare the running `agov` binary's own build version against the
+/// commissioned `agf/VERSION` of the tree it is invoked against.
+/// Returns `Some(warning line)` on mismatch; `None` if `agf/VERSION` is
+/// absent or matches -- nothing to report either way.
+fn version_drift_warning() -> Option<String> {
+    let commissioned = agov_core::commissioned_version()?;
+    let running = env!("CARGO_PKG_VERSION");
+    if commissioned == running {
+        None
+    } else {
+        Some(format!(
+            "agov binary is v{running} but commissioned agf/ is v{commissioned} -- \
+             results may be inaccurate if schema, subcommands, or validation rules \
+             changed between versions"
+        ))
+    }
+}
+
+fn render_version_drift(output: &mut OutputCounter) -> i32 {
+    render_version_drift_result(output, version_drift_warning())
+}
+
+/// Pure rendering step, separated from `version_drift_warning()`'s own
+/// filesystem read so the advisory/never-blocking contract is directly
+/// unit-testable without needing a full validator-passing fixture (issue
+/// #114 round-1 review `2ggk`, finding I114-R1: the prior integration
+/// test asserted only that the WARN line appeared, never that the
+/// overall result stayed non-blocking, since its minimal fixture already
+/// failed unrelated validators for unrelated reasons).
+fn render_version_drift_result(output: &mut OutputCounter, warning: Option<String>) -> i32 {
+    let label = "agov.validate.version_drift";
+    match warning {
+        Some(message) => {
+            output.stdout(format!("WARN {label}: agf/VERSION: {message}"));
+            0 // advisory only — never blocking
+        }
+        None => {
+            output.stdout(format!("OK {label}"));
+            0
+        }
     }
 }
 
@@ -5900,5 +7530,28 @@ mod tests {
         assert_eq!(errors.len(), 1);
         assert_eq!(errors[0].file, "00010-coder-tester.md");
         assert_eq!(errors[0].value, "not-a-date");
+    }
+
+    /// Issue #114 round-1 review `2ggk`, finding I114-R1: the version-drift
+    /// check must remain advisory regardless of whether a mismatch is
+    /// present. Unit-tests `render_version_drift_result` directly (rather
+    /// than through a full-repo fixture that fails unrelated validators
+    /// for unrelated reasons) so a future edit that accidentally turned
+    /// this check blocking would fail this test specifically.
+    #[test]
+    fn version_drift_result_is_never_blocking() {
+        let mut output = OutputCounter::default();
+        let exit_on_mismatch = render_version_drift_result(
+            &mut output,
+            Some("agov binary is v0.0.1 but commissioned agf/ is v9.9.9".to_string()),
+        );
+        assert_eq!(
+            exit_on_mismatch, 0,
+            "mismatch must stay advisory, not blocking"
+        );
+
+        let mut output = OutputCounter::default();
+        let exit_on_match = render_version_drift_result(&mut output, None);
+        assert_eq!(exit_on_match, 0, "no-mismatch case must stay 0");
     }
 }

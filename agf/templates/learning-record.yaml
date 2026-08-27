@@ -5,8 +5,20 @@ project:
 
 adoption:
   framework_id: agf
-  framework_version: "2.0.0-provisional"
+  framework_version: "2.6.1"
   framework_commit: unknown
+  # checkout_role: live -- set this on your own checkout's record at
+  # commissioning time (see install-and-layouts.md, Step 7). Marks this
+  # as the record `agov validate learnings` checks against agf/VERSION
+  # for version drift. Omit (or use "imported") on a reference copy of
+  # another adopter's or historical submission -- absence means
+  # "unknown," never an implicit live claim, and is never checked.
+  checkout_role: live
+  # upgrade_in_progress / upgrade_started_at -- set only by
+  # agf/skills/upgrade/SKILL.md's Step 3, cleared by Step 4. Do not set
+  # these by hand; they suppress the version-drift check for up to 24
+  # hours while an upgrade is actively in progress. Omitted here because
+  # no upgrade is in progress at commissioning time.
   agent_definitions:
     - planner-architect
     - coder-tester
@@ -29,10 +41,38 @@ learnings:
       description: "Initial commissioning evidence only."
     recommendation: "Record whether the assistant kept AGF-owned files under agf/, created only a small loader if needed, and left clear governor decisions."
     severity: informational
+    status: implemented   # optional; proposed | implemented. Omit if not yet decided.
     confidence:
       level: single-adopter
       evidence_count: 1
       evidence_refs:
         - docs/coordination/<commissioning-note-id>.md
+
+  # Example of superseding an earlier entry: the NEW entry declares the
+  # relationship via `supersedes`, pointing at the earlier entry's id.
+  # Never edit the earlier entry to add `superseded_by` — that field is
+  # deprecated (agf/schemas/learning.schema.json) precisely because it
+  # required editing already-published entries.
+  - id: "20260615T093000Z-yyyy"
+    date: "2026-06-15"
+    category: adoption-friction
+    scope: project
+    title: agf-commissioning-completed-corrected
+    description: "Learned that the original commissioning evidence entry above was incomplete; this entry replaces it with the corrected finding."
+    agents_involved:
+      - coder-tester
+    framework_section: install-and-layouts
+    business_impact:
+      type: neutral
+      description: "Correction of prior commissioning evidence."
+    recommendation: "Same recommendation as the superseded entry, refined with the corrected evidence."
+    severity: informational
+    status: proposed
+    supersedes: "20260614T120000Z-xxxx"   # id of the entry this one replaces; must exist and precede this entry
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - docs/coordination/<correction-note-id>.md
 
 sentinel_ack: []

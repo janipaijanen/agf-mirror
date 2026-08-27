@@ -90,6 +90,164 @@ handoff:
     assert_eq!(next.status.code(), Some(2));
 }
 
+/// Issue #80 (a): an `ack` record requiring its own acknowledgement is not a
+/// meaningful obligation, so the schema forbids the combination outright.
+#[test]
+fn ack_kind_with_requires_ack_true_fails_schema_validation() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        r#"---
+kind: ack
+from: coder-tester
+to: governor-reviewer
+id: 20260720T100000Z-coder-tester-abcd
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to:
+  - 20260719T100000Z-governor-reviewer-wxyz.md
+topic: ack-requires-ack-negative-fixture
+requires-ack: true
+artifacts_owned: []
+---
+
+# Ack
+"#,
+    );
+
+    let validate = agov(&[
+        "coord",
+        "validate",
+        fixture
+            .path()
+            .join("20260720T100000Z-coder-tester-abcd.md")
+            .to_str()
+            .unwrap(),
+    ]);
+
+    assert_ne!(
+        validate.status.code(),
+        Some(0),
+        "an ack record with requires-ack: true must fail schema validation"
+    );
+}
+
+/// Positive control: `ack` with `requires-ack: false` (the normal case) is
+/// unaffected by the new constraint.
+#[test]
+fn ack_kind_with_requires_ack_false_passes_schema_validation() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        r#"---
+kind: ack
+from: coder-tester
+to: governor-reviewer
+id: 20260720T100000Z-coder-tester-abcd
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to:
+  - 20260719T100000Z-governor-reviewer-wxyz.md
+topic: ack-requires-ack-positive-fixture
+requires-ack: false
+artifacts_owned: []
+---
+
+# Ack
+"#,
+    );
+
+    let validate = agov(&[
+        "coord",
+        "validate",
+        fixture
+            .path()
+            .join("20260720T100000Z-coder-tester-abcd.md")
+            .to_str()
+            .unwrap(),
+    ]);
+
+    assert_eq!(
+        validate.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&validate.stderr)
+    );
+}
+
+/// Gate 2 review `rtga` finding B3: the plan requires positive fixtures for
+/// every permitted kind x `requires-ack` combination, not just `ack` (the
+/// one rejected combination, already covered above) and `review` (the one
+/// tracked kind exercised by the integration test below). Per Decision (a)
+/// in `docs/plans/v250-rc1-contract-core.md`, every kind except `ack`
+/// remains schema-eligible for `requires-ack: true`; this proves it for
+/// all eight, in both boolean states, via real `agov coord validate`
+/// fixture files -- not just the `find_pending_all_kinds` unit tests in
+/// `agov-coord` (which prove tracking behavior, not schema acceptance).
+#[test]
+fn every_permitted_kind_accepts_both_requires_ack_states() {
+    const PERMITTED_KINDS: &[&str] = &[
+        "claim",
+        "completion",
+        "review",
+        "handoff",
+        "decision-record",
+        "fast-track-waiver",
+        "lesson-proposal",
+        "note",
+    ];
+
+    for kind in PERMITTED_KINDS {
+        for requires_ack in [true, false] {
+            let fixture = tempfile::tempdir().unwrap();
+            let filename = format!("20260720T100000Z-coder-tester-{kind}-{requires_ack}.md");
+            let id = filename.trim_end_matches(".md");
+            let artifacts_owned = match *kind {
+                "claim" => "artifacts_owned:\n  - some/artifact.rs",
+                _ => "artifacts_owned: []",
+            };
+            let handoff_block = if *kind == "handoff" {
+                "\nhandoff:\n  next_agent: governor-reviewer\n  status: ready\n  task:\n    - do the thing\n  must_read: []\n  do_not_touch: []"
+            } else {
+                ""
+            };
+            let body = format!(
+                r#"---
+kind: {kind}
+from: coder-tester
+to: governor-reviewer
+id: {id}
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to: []
+topic: permitted-kind-matrix-fixture
+requires-ack: {requires_ack}
+{artifacts_owned}{handoff_block}
+---
+
+# Fixture
+"#
+            );
+            write_message(&fixture, &filename, &body);
+
+            let validate = agov(&[
+                "coord",
+                "validate",
+                fixture.path().join(&filename).to_str().unwrap(),
+            ]);
+
+            assert_eq!(
+                validate.status.code(),
+                Some(0),
+                "kind {kind} with requires-ack: {requires_ack} must pass schema validation:\n{}",
+                String::from_utf8_lossy(&validate.stderr)
+            );
+        }
+    }
+}
+
 #[test]
 fn coord_list_since_message_id_returns_later_messages() {
     let fixture = tempfile::tempdir().unwrap();
@@ -130,6 +288,100 @@ fn coord_list_since_message_id_returns_later_messages() {
     assert!(stdout.contains("20260720T110000Z-coder-tester-efgh"));
 }
 
+/// Issue #80: `coord pending` is a distinct surface from `handoff next` --
+/// a non-handoff, non-ack `requires-ack: true` record shows as pending
+/// until a later record's `references-to` names it directly, and a
+/// pre-cutoff record never appears regardless of resolution state.
+#[test]
+fn coord_pending_tracks_non_handoff_requires_ack_and_respects_cutoff() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T090000Z-contribution-auditor-0000.md",
+        r#"---
+kind: review
+from: contribution-auditor
+to: governor-reviewer
+id: 20260720T090000Z-contribution-auditor-0000
+timestamp: 2026-07-20T09:00:00Z
+immutable: true
+references-to: []
+topic: pre-cutoff-review
+requires-ack: true
+artifacts_owned: []
+---
+
+# Pre-cutoff review (must never appear, regardless of cutoff)
+"#,
+    );
+    write_message(
+        &fixture,
+        "20260720T100000Z-contribution-auditor-aaaa.md",
+        r#"---
+kind: review
+from: contribution-auditor
+to: governor-reviewer
+id: 20260720T100000Z-contribution-auditor-aaaa
+timestamp: 2026-07-20T10:00:00Z
+immutable: true
+references-to: []
+topic: post-cutoff-review
+requires-ack: true
+artifacts_owned: []
+---
+
+# Post-cutoff review
+"#,
+    );
+
+    let before_resolution = agov(&[
+        "coord",
+        "pending",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+        "--cutoff",
+        "2026-07-20T09:30:00Z",
+    ]);
+    assert_eq!(before_resolution.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&before_resolution.stdout);
+    assert!(stdout.contains("20260720T100000Z-contribution-auditor-aaaa.md"));
+    assert!(
+        !stdout.contains("20260720T090000Z-contribution-auditor-0000.md"),
+        "pre-cutoff record must never appear:\n{stdout}"
+    );
+
+    write_message(
+        &fixture,
+        "20260720T110000Z-governor-reviewer-bbbb.md",
+        r#"---
+kind: decision-record
+from: governor-reviewer
+to: contribution-auditor
+id: 20260720T110000Z-governor-reviewer-bbbb
+timestamp: 2026-07-20T11:00:00Z
+immutable: true
+references-to:
+  - 20260720T100000Z-contribution-auditor-aaaa.md
+topic: post-cutoff-review-resolution
+requires-ack: false
+artifacts_owned: []
+---
+
+# Resolves the post-cutoff review
+"#,
+    );
+
+    let after_resolution = agov(&[
+        "coord",
+        "pending",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+        "--cutoff",
+        "2026-07-20T09:30:00Z",
+    ]);
+    assert_eq!(after_resolution.status.code(), Some(2));
+}
+
 #[test]
 fn coord_list_returns_two_when_no_messages_match() {
     let fixture = tempfile::tempdir().unwrap();
@@ -144,6 +396,138 @@ fn coord_list_returns_two_when_no_messages_match() {
     ]);
 
     assert_eq!(output.status.code(), Some(2));
+}
+
+/// Issue #84: `--since` must accept the compact filename-prefix timestamp
+/// (no `-`/`:` punctuation), the literal form embedded as the first path
+/// segment of every coordination filename, not only RFC3339-with-
+/// punctuation or a full message id/filename.
+#[test]
+fn coord_list_since_compact_timestamp_matches_rfc3339_for_the_same_instant() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        note(
+            "20260720T100000Z-coder-tester-abcd",
+            "2026-07-20T10:00:00Z",
+            "first",
+        )
+        .as_str(),
+    );
+    write_message(
+        &fixture,
+        "20260720T110000Z-coder-tester-efgh.md",
+        note(
+            "20260720T110000Z-coder-tester-efgh",
+            "2026-07-20T11:00:00Z",
+            "second",
+        )
+        .as_str(),
+    );
+
+    let compact = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "20260720T100000Z",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+    let rfc3339 = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "2026-07-20T10:00:00Z",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(compact.status.code(), Some(0));
+    assert_eq!(compact.status.code(), rfc3339.status.code());
+    assert_eq!(
+        compact.stdout, rfc3339.stdout,
+        "compact and RFC3339 forms of the identical instant must take the \
+         same code path and produce byte-identical output"
+    );
+    let stdout = String::from_utf8_lossy(&compact.stdout);
+    assert!(stdout.contains("20260720T100000Z-coder-tester-abcd"));
+    assert!(stdout.contains("20260720T110000Z-coder-tester-efgh"));
+}
+
+/// Companion to `coord_list_since_message_id_returns_later_messages`:
+/// the compact-timestamp form of a message's own filename-prefix
+/// timestamp resolves and lists later messages, exactly like the
+/// existing RFC3339-with-punctuation and message-id forms.
+#[test]
+fn coord_list_since_compact_timestamp_lists_later_messages() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        note(
+            "20260720T100000Z-coder-tester-abcd",
+            "2026-07-20T10:00:00Z",
+            "first",
+        )
+        .as_str(),
+    );
+    write_message(
+        &fixture,
+        "20260720T110000Z-coder-tester-efgh.md",
+        note(
+            "20260720T110000Z-coder-tester-efgh",
+            "2026-07-20T11:00:00Z",
+            "second",
+        )
+        .as_str(),
+    );
+
+    let output = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "20260720T093000Z",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("first"));
+    assert!(stdout.contains("second"));
+}
+
+/// Negative case (`boundary-shape-testing-rule.md`): a 13-digit string is
+/// not a valid compact timestamp and must not be silently accepted as
+/// one -- it must fall through to (and fail) the id/filename match, not
+/// be misparsed as a truncated or malformed date.
+#[test]
+fn coord_list_since_rejects_malformed_compact_timestamp() {
+    let fixture = tempfile::tempdir().unwrap();
+    write_message(
+        &fixture,
+        "20260720T100000Z-coder-tester-abcd.md",
+        note(
+            "20260720T100000Z-coder-tester-abcd",
+            "2026-07-20T10:00:00Z",
+            "first",
+        )
+        .as_str(),
+    );
+
+    let output = agov(&[
+        "coord",
+        "list",
+        "--since",
+        "2026072010000",
+        "--dir",
+        fixture.path().to_str().unwrap(),
+    ]);
+
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("did not match an RFC3339 timestamp or message id"));
 }
 
 #[test]

@@ -3,6 +3,7 @@ pub mod adoption;
 pub mod agents;
 pub mod assistant_drift;
 pub mod assistant_loader;
+pub mod ci_rules;
 pub mod contributions;
 pub mod framework_config;
 pub mod infosec;

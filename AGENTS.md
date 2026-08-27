@@ -76,8 +76,11 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | build-engineer | claude (AI) | CI configuration, build automation, artifacts, caching, trigger rules, pipeline efficiency, and release-build stages |
 | fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
+| web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
 
-Suspended: capability-developer.
+Suspended: capability-developer, independent-implementation-reviewer (role
+definition has 6 unresolved findings from its own first exact-head review;
+see `agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
 Authoritative status: `agf/agents/MANIFEST.yaml`.
@@ -183,6 +186,20 @@ Every non-trivial task requires:
 - **Gate 2** (coder-tester → governor-reviewer): implementation on a feature
   branch, all tests green, governor-reviewer reviews diff and merges.
 
+**Narrow research-maintenance exception:** an advisory, reversible change
+limited in every commit and the final diff to the existing `docs/sources.md`
+and/or `docs/radar.md` may skip the separate Gate 1 plan, contribution audit,
+and pre-change coordination MR only when every eligibility, source-fidelity,
+fresh target/open-MR collision-scan, and disqualifier condition in
+`agf/rules/workflow/simplicity-rule.md` passes. Generic docs-only work does not
+inherit this exception. The normal branch/MR, commit-message waiver, exact-head
+pipeline, and binding governor-reviewer Gate 2 decision remain mandatory.
+Uncertainty or any rule/authority, implementation, integration/dependency,
+roadmap/resource, sensitive/legal/security/privacy, public AGF claim, governed
+decision, or extra-path scope returns to full Gate 1. A coordination record is
+not required merely to start or submit an eligible MR; separate obligations,
+escalations, accepted risks, and decisions still use coordination.
+
 Gate 1 approval comes from a governor-reviewer coordination message. Gate 2
 merge target and remote must be confirmed with the governor-reviewer before
 merging — the repository may be local-only or the target branch name may differ.
@@ -244,8 +261,8 @@ cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
 cargo build --manifest-path tooling/rust/Cargo.toml -p agov
 
 # Prepend tooling/ to PATH for this shell session.
-# tooling/agov prefers the local release build only after its embedded commit
-# and build-relevant source state pass the freshness gate.
+# tooling/agov verifies the checkout and source fingerprint. It performs one
+# release rebuild when no compatible local binary exists and Cargo is present.
 export PATH="$PWD/tooling:$PATH"
 
 # Verify the local build is in use
@@ -288,14 +305,21 @@ AI-specific filenames as the durable continuation points on future machines;
 do not rename them back to the shared default.
 
 The `tooling/agov` wrapper prefers (in order):
-1. `tooling/rust/target/release/agov` — when provenance-compatible
-2. `tooling/rust/target/debug/agov` — when provenance-compatible
+1. `tooling/rust/target/release/agov` — when source-compatible
+2. `tooling/rust/target/debug/agov` — when source-compatible
+3. one local release rebuild — when Cargo is available
 
-The wrapper fails closed instead of silently running or rebuilding when neither
-binary matches the checkout and, for `session resume`, the requested base
-branch. Rebuild from the intended checkout. `AGOV_ALLOW_STALE_LOCAL_BINARY=1`
-is an explicit local-debugging bypass, is forbidden in CI, and must never be
-used for packaging or release evidence.
+Compatibility uses deterministic build-input fingerprints rather than mtimes
+or repository-wide commit equality, so documentation-only changes do not force
+a rebuild and staged or unstaged tooling changes do. After rebuilding once, the
+wrapper verifies the result and fails closed rather than executing a mismatch.
+It also rejects a wrapper invoked from another linked worktree and prints the
+correct worktree-local path. `AGOV_ALLOW_STALE_LOCAL_BINARY=1` is an explicit
+local-debugging bypass, is forbidden in CI, and must never be used for
+packaging or release evidence.
+
+The Rust parser is the command authority. The wrapper forwards arguments
+unchanged and does not maintain a second command allowlist or help inventory.
 
 If a command is not available in the local Rust build, stop and report the gap;
 do not fall back to Elixir/Mix.
@@ -325,10 +349,14 @@ Rust is the default operator path for supported commands:
 - `agov coord stale`
 - `agov coord visibility`
 - `agov coord list` — one line per coordination message after a given id,
-  filename, or RFC3339 timestamp; the designed answer to "what changed since
-  I last checked," not a full re-read of the channel
+  filename, RFC3339 timestamp, or the compact filename-prefix timestamp
+  (`20260729T195431Z`, no punctuation); the designed answer to "what changed
+  since I last checked," not a full re-read of the channel
 - `agov coord graph`
 - `agov coord graph-index`
+- `agov coord pending` — unresolved `requires-ack: true` records of any kind
+  other than `handoff` and `ack`; `handoff` obligations remain `agov handoff
+  next`'s surface
 - `agov handoff next`
 - `agov session resume`
 - `agov validate ...`
@@ -399,10 +427,16 @@ new prompt, an assistant is expected to acknowledge or claim work, run
 read-only inspection and diagnostics, continue approved implementation, answer
 review findings within scope, update owned MR descriptions or notes, publish
 and bridge required coordination, batch and push corrections on its owned
-branch, and advance the next already-authorized handoff. If duplicate paid CI
-starts for the same SHA, preserve the canonical acceptance path and cancel a
-demonstrably redundant path promptly; record exact pipeline/job IDs and any
-runner time already consumed.
+branch, and advance the next already-authorized handoff. In this GitLab
+project, the initial branch push can start before the merge request is
+registered; opening the MR may then create a `push`/`merge_request_event` pair
+for the same SHA. This known first-push limitation does not mean the
+contributor pushed twice or that GitLab ignored the later-push guard. Preserve
+the MR pipeline as the canonical Gate 2 acceptance path. Before canceling
+anything, compare pipeline source, ref, status, and job-name/required-job
+coverage—matching SHA alone is not proof of redundancy. Cancel only the
+demonstrably redundant push path, and record exact pipeline/job IDs and runner
+time already consumed.
 
 The action loop does **not** enlarge authority. Stop and request the binding
 decision for Gate 1 approval, Gate 2 approval or merge, a release/tag/deploy,
@@ -412,10 +446,11 @@ retry a failed paid job merely to seek green status: inspect the failure,
 diagnose it, and use the next already-required corrected acceptance run unless
 the governing test policy specifically requires a retry.
 
-Legacy Elixir sources remain in `tooling/elixir/` as reference material. Do
-not use them for routine agent work, cold start, validation, release-page
-downloads, or missing-command fallback. Shipped `agov` tooling artifacts are
-Rust, with platform-specific archive names.
+No Elixir implementation is tracked. An ignored `tooling/elixir/` directory
+may remain in an old developer checkout as local residue; it is neither a
+reference implementation nor a fallback. Do not use local residue for routine
+agent work, cold start, validation, or release-page downloads. Shipped `agov`
+tooling artifacts are Rust, with platform-specific archive names.
 
 ```bash
 # Validate coordination messages
