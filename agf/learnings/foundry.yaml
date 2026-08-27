@@ -3953,6 +3953,71 @@ learnings:
         - "20260825T052316Z-coder-tester-3htr.md: coder-tester's own lesson-proposal naming the root cause and the exhaustive-consumer-closure recommendation this entry records."
 
 
+  - id: "20260827T091844Z-as7k"
+    date: "2026-08-27"
+    category: gap
+    scope: framework
+    title: acceptance-criteria-closure-exposed-four-assistant-loader-impact-omissions
+    status: proposed
+    description: >
+      The approved assistant-discovery and archive-setup plan had a detailed
+      acceptance strategy, but its affected-file list omitted four files that
+      implementation proved necessary. The archive's negative checks belong
+      in `tooling/rust/scripts/check-release-self-sufficiency.sh`; the real
+      clean-framework-archive test belongs in
+      `tooling/rust/crates/agov/src/dist.rs`; the plan separately mandated a
+      structured projection record under `docs/reviews/rule-projection/` but
+      did not include that record in the file list; and the plan stated that
+      root `AGENTS.md` already carried the version comment followed by the new
+      Claude bridge, although inspection showed that it did not.
+
+      Coder-tester did not omit the required behavior to preserve the original
+      file estimate. It disclosed each necessary expansion while implementing
+      it, kept each addition tied to an approved acceptance criterion, and
+      validated the expanded result. This avoided a structurally incomplete
+      implementation, but discovery during coding still added review and
+      communication cost that a complete impact assessment could have avoided.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: >
+      Gate 1 affected-file estimation, necessary scope expansion, acceptance
+      evidence ownership, documentation projection, and distribution testing.
+    business_impact:
+      type: cost_overhead
+      description: >
+        Four necessary paths were discovered after implementation started,
+        causing additional scope disclosures and review surface. No required
+        behavior was dropped and no incomplete result shipped.
+    recommendation: >
+      Before freezing an affected-file list, derive a path-closure table from
+      every acceptance criterion: map each required behavior, negative test,
+      archive assertion, documentation projection, and live verification to
+      the file that owns it. Verify every claim that a prerequisite file or
+      marker "already exists" against the current target tree rather than plan
+      memory. Then compare the union of those owner paths with the proposed
+      affected-file list and explain every omission explicitly.
+
+      When a necessary path is still discovered during implementation, keep
+      the current minimum-sufficient response: change the required file first
+      when delaying would leave the approved behavior incomplete, communicate
+      the exact expansion and acceptance criterion promptly, and record the
+      estimation miss separately from the implementation correction. Do not
+      treat the initial estimate as a hard boundary that justifies shipping an
+      incomplete feature.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 4
+      evidence_refs:
+        - "docs/plans/assistant-discovery-archive-setup.md: affected-file list and test strategy."
+        - "tooling/rust/scripts/check-release-self-sufficiency.sh: required Linux/Windows archive checks and negative fixtures."
+        - "tooling/rust/crates/agov/src/dist.rs: clean source-archive loader test."
+        - "AGENTS.md and docs/reviews/rule-projection/assistant-discovery-archive-setup.yaml: required live freshness marker and structured projection evidence."
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

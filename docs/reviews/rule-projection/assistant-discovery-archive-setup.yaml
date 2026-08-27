@@ -1,0 +1,112 @@
+# Six-surface projection evidence for assistant discovery and tooling-archive
+# setup. Plan: docs/plans/assistant-discovery-archive-setup.md
+
+plan_id: assistant-discovery-archive-setup
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+  - agf/docs/site/docs/adopt/mcp-server.md
+  - agf/ADOPTING.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: tooling/rust/crates/agov-validators/src/assistant_loader.rs
+    reason: >-
+      The validator owns the enforced supported-loader token, alias,
+      compatibility, bounded-import, and advisory-severity contract. The
+      manifest files configure that contract; they do not define tool or gate
+      authority.
+
+  adopter_facing_explanation:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+      - agf/docs/site/docs/adopt/mcp-server.md
+      - agf/ADOPTING.md
+    reason: >-
+      The adoption surfaces document manifest tokens, compatibility behavior,
+      the Claude import bridge, the packaged MCP example, and operator approval.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/ADOPTING.md
+    reason: >-
+      The adoption quickstart names the exact shared-loader and Claude bridge
+      setup without copying the detailed contract from the canonical guide.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - .claude/CLAUDE.md
+      - agf/templates/AGENTS.md
+      - agf/templates/CLAUDE.md
+      - agf/project-specific-examples/python-flask/CLAUDE.md
+    reason: >-
+      The live and adopter Claude loaders import the shared root AGENTS.md,
+      while the shared template explains how projects declare supported
+      surfaces without duplicating governance instructions.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/crates/agov-validators/src/assistant_loader.rs
+      - tooling/rust/crates/agov/src/dist.rs
+      - tooling/rust/scripts/check-release-self-sufficiency.sh
+    reason: >-
+      Unit tests cover surface declarations and bounded import following. A
+      clean archive test exercises shipped loader templates, and negative
+      self-tests reject missing, stale, or undocumented MCP examples.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/ADOPTING.md
+      - agf/agents/MANIFEST.example.yaml
+      - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+      - agf/docs/site/docs/adopt/mcp-server.md
+      - agf/project-specific-examples/python-flask/CLAUDE.md
+      - agf/templates/AGENTS.md
+      - agf/templates/CLAUDE.md
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          Foundry's live shared loader is project-local; adopters receive the
+          neutral agf/templates/AGENTS.md counterpart.
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Foundry's live bridge is project-local; adopters receive the neutral
+          agf/templates/CLAUDE.md counterpart.
+      - path: agf/agents/MANIFEST.yaml
+        reason: >-
+          The live foundry roster is deliberately excluded from framework
+          archives; adopters receive MANIFEST.example.yaml.
+      - path: .gitlab-ci.yml
+        reason: >-
+          Foundry CI performs platform-tooling staging and is not content in
+          the framework source archive.
+      - path: examples/claude/.mcp.json
+        reason: >-
+          This source file is staged into platform tooling archives by CI, not
+          selected by the framework source-archive manifest.
+      - path: tooling/rust/scripts/check-release-self-sufficiency.sh
+        reason: >-
+          This foundry build verifier checks platform archives and is not
+          adopter content in the framework source archive.
+      - path: tooling/rust/crates/agov-validators/src/assistant_loader.rs
+        reason: >-
+          The compiled validator ships in platform binaries rather than as
+          Rust source in the framework archive.
+      - path: tooling/rust/crates/agov/src/dist.rs
+        reason: >-
+          This build implementation and its tests are foundry tooling source,
+          not framework archive content.
+      - path: docs/reviews/rule-projection/assistant-discovery-archive-setup.yaml
+        reason: >-
+          Projection evidence is foundry-local review evidence, not adopter
+          content.
+    reason: >-
+      The framework manifest's existing globs ship the neutral manifest and
+      loader templates. Linux and Windows tooling staging now ship the exact
+      checked-in MCP example, with archive-local setup instructions and
+      self-sufficiency checks.
