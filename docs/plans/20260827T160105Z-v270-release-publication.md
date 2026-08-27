@@ -1,7 +1,9 @@
 ---
 id: v270-release-publication
-status: pending-gate1
+status: approved
 topic: v270-release-publication
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-27T19:29:14Z"
 advisory_consultation:
   - role: coder-tester
     status: consulted
