@@ -751,7 +751,7 @@ release:self-sufficiency-selftest:
   stage: test
   interruptible: true
   before_script:
-    - apk add --no-cache python3 tar gzip unzip
+    - apk add --no-cache python3 tar gzip unzip zip
   script:
     - tooling/rust/scripts/check-release-self-sufficiency.sh selftest
     - tooling/rust/scripts/check-release-self-sufficiency.sh check .
@@ -764,6 +764,7 @@ release:self-sufficiency-selftest:
         - docs/reviews/agf-framework-assessment-codex-sol-high.md
         - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
         - tooling/rust/scripts/check-release-self-sufficiency.sh
+        - examples/claude/.mcp.json
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       changes:
         compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
@@ -1185,7 +1186,10 @@ rust:tooling:clippy:
         cmp "target/${target}/release/agov-mcp" "$staging/agov-${VERSION}-${slug}/agov-mcp"
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov"
         chmod 0755 "$staging/agov-${VERSION}-${slug}/agov-mcp"
-        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp is the stdio MCP server for agov. Install by placing the agov and agov-mcp executables on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
+        mkdir -p "$staging/agov-${VERSION}-${slug}/examples/claude"
+        cp ../../examples/claude/.mcp.json "$staging/agov-${VERSION}-${slug}/examples/claude/.mcp.json"
+        cmp ../../examples/claude/.mcp.json "$staging/agov-${VERSION}-${slug}/examples/claude/.mcp.json"
+        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp is the stdio MCP server for agov. Install by placing both agov and agov-mcp on PATH. To configure Claude Code, copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
         scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
         tar -C "$staging" -czf "../../dist/${archive}" "agov-${VERSION}-${slug}"
@@ -1220,7 +1224,10 @@ rust:tooling:clippy:
         cp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
         cmp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
         cmp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
-        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp.exe is the stdio MCP server for agov.exe. Install by placing agov.exe and agov-mcp.exe on PATH. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
+        mkdir -p "$staging/agov-${VERSION}-${slug}/examples/claude"
+        cp ../../examples/claude/.mcp.json "$staging/agov-${VERSION}-${slug}/examples/claude/.mcp.json"
+        cmp ../../examples/claude/.mcp.json "$staging/agov-${VERSION}-${slug}/examples/claude/.mcp.json"
+        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp.exe is the stdio MCP server for agov.exe. Install by placing both agov.exe and agov-mcp.exe on PATH. To configure Claude Code, copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
           "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
         scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
         (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")
@@ -1264,11 +1271,13 @@ rust:tooling:preview:
         - tooling/rust/**/*
         - .gitlab-ci.yml
         - agf/docs/site/docs/operate/poll-and-coordinate.md
+        - examples/claude/.mcp.json
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
         - agf/docs/site/docs/operate/poll-and-coordinate.md
+        - examples/claude/.mcp.json
 
 # Manual evidence job: run the full .rust-tooling-package script including
 # the Windows packaging block (AGOV_PACKAGE_WINDOWS_PREVIEW=1) so the
@@ -1289,6 +1298,7 @@ rust:tooling:preview:windows-package:
         - tooling/rust/**/*
         - .gitlab-ci.yml
         - agf/docs/site/docs/operate/poll-and-coordinate.md
+        - examples/claude/.mcp.json
       when: manual
       allow_failure: true
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -1296,6 +1306,7 @@ rust:tooling:preview:windows-package:
         - tooling/rust/**/*
         - .gitlab-ci.yml
         - agf/docs/site/docs/operate/poll-and-coordinate.md
+        - examples/claude/.mcp.json
       when: manual
       allow_failure: true
 

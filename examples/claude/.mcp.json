@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "agov": {
+      "command": "agov-mcp"
+    }
+  }
+}
