@@ -5,8 +5,24 @@ distribution.
 
 ## [Unreleased]
 
+## [2.8.0] — 2026-08-28
+
+**Minor release.** Ships the complete current `main` line through
+`ca808607`, including issues #86, #87, #88, and #90 plus the post-v2.6.1
+framework, schema, tooling, and governance corrections. `v2.7.0` is retired
+unused; immutable `v2.7.0-rc.1` remains an abandoned failed candidate.
+**Adopter docs: updated.**
+
 ### Added
 
+- The `agov-mcp` server now exposes the coordination surfaces needed for
+  cold start and cross-branch visibility, validates JSON-RPC 2.0 request
+  versions and IDs before dispatch, and ships assistant-loader discovery plus
+  a ready-to-copy Claude MCP configuration in tooling archives (#86, #87,
+  #88, #90).
+- Commercial-corpus and rule-projection manifests provide machine-readable
+  ownership and projection contracts, with schema and CI validation across
+  their governed lifecycles.
 - Documented the GitLab first-push/MR-registration pipeline race at assistant,
   contributor, CI-maintainer, and public operator points of use. The guidance
   requires source/ref/status/job-coverage comparison before cancellation and

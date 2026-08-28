@@ -8,6 +8,14 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-08-28
+
+**Minor release.** Ships the complete current `main` line through
+`ca808607`, including issues #86, #87, #88, and #90 plus all repairs that
+made the earlier frozen v2.7.0 reconstruction unsafe to publish. `v2.7.0`
+is retired unused; immutable `v2.7.0-rc.1` remains an abandoned failed
+candidate. Adopter docs: updated.
+
 ### Changed
 
 - **BREAKING: rule-projection owner lifecycle and repository-contained path
@@ -70,6 +78,14 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ### Added
 
+- The `agov-mcp` server now exposes the coordination surfaces needed for
+  cold start and cross-branch visibility, validates JSON-RPC 2.0 request
+  versions and IDs before dispatch, and ships assistant-loader discovery plus
+  a ready-to-copy Claude MCP configuration in tooling archives (#86, #87,
+  #88, #90).
+- Commercial-corpus and rule-projection manifests provide machine-readable
+  ownership and projection contracts, with schema and CI validation across
+  their governed lifecycles.
 - **Level 4 validated candidate — bounded review convergence:** optional
   `convergence` metadata on coordination records, the normative
   `review-convergence-rule`, and `agov coord convergence --series <id>` add a
