@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Jani Päijänen
 
-# Digest-pinned to the current Alpine 3.22 patch (3.22.5, verified
-# 2026-07-21) after v2.3.0 release-readiness review found 19 fixed
-# HIGH/CRITICAL CVEs in the previously pinned 3.22.1. Re-pin the digest
-# (not just the tag) on future bumps: `podman manifest inspect
-# alpine:3.22 --format ...` and take the multi-arch list digest, not a
-# single-platform manifest digest.
+# Digest-pinned to the current Alpine 3.22 patch (3.22.5, re-verified
+# 2026-08-28 as still the tag's current resolution) after v2.3.0
+# release-readiness review found 19 fixed HIGH/CRITICAL CVEs in the
+# previously pinned 3.22.1. Re-pin the digest (not just the tag) on
+# future bumps: `podman manifest inspect alpine:3.22 --format ...` and
+# take the multi-arch list digest, not a single-platform manifest digest.
+# The digest pin fixes the base layer for reproducibility; the build-time
+# `apk upgrade` below is what patches packages the snapshot ships stale.
 FROM alpine:3.22.5@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
 
 ARG AGOV_VERSION
@@ -20,7 +22,17 @@ LABEL org.opencontainers.image.title="agov" \
       org.opencontainers.image.revision="${AGOV_REVISION}" \
       org.opencontainers.image.licenses="MIT"
 
-RUN apk add --no-cache ca-certificates git \
+# `apk upgrade` patches packages the pinned base-image snapshot ships
+# stale. It is deliberate, not incidental: v2.7.0-rc.1's tag pipeline
+# failed its blocking Trivy gate on CVE-2026-14456 (HIGH) in libcrypto3
+# and libssl3, installed 3.5.7-r0, fixed 3.5.8-r0. Verified 2026-08-28
+# that no Alpine image carries the fix yet -- 3.22.5, 3.23.5 and edge all
+# ship 3.5.7-r0 -- while the v3.22/main package repository already serves
+# 3.5.8-r0. Re-pinning the digest therefore cannot remediate this class
+# of finding; upgrading at build time can, and remains correct after
+# Alpine rebuilds its images.
+RUN apk upgrade --no-cache \
+    && apk add --no-cache ca-certificates git \
     && addgroup -S agov \
     && adduser -S -G agov agov
 
