@@ -5,10 +5,10 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | v2.4.11 published; v2.5.0 (stable) published; v2.6.0 tag constructed but incompletely published (OCI only — GitLab Release and package never created, `release:create` failed on a stale aarch64 asset contract); v2.6.1 **published**, correcting that failure |
-| Observed at | 2026-08-17T04:57:54Z |
-| Source revision | Portfolio reconciliation follows merged Gate 1 plan MR !858 at `20fc8925`; its approved exact head is `86fb6b3b`. The v2.4.11 release published via MR !903, Gate 1-approved by `docs/coordination/20260801T171157Z-governor-reviewer-hek5.md`. The v2.5.0 (stable) release published via approved publication-plan `docs/plans/20260809T194404Z-v250-final-release-publication.md` (MR !1349), Gate 1-approved by decision-record `docs/coordination/20260809T200252Z-governor-reviewer-h4wn.md`. The v2.6.0 release was constructed from a frozen `reconstruct/v2.6` line (not `main`) per `docs/plans/20260813T051840Z-v260-release-publication.md`; its tag object `445a3875` (peeled `4890dfe9`) exists and its OCI image published, but its `release:create` job failed — diagnosed in `20260815T193127Z-coder-tester-pj71.md` and fixed on `main` by MR !1610 (`9ad75651`). The v2.6.1 release corrected this by constructing directly from `main` (Path A), per `docs/plans/20260816T174141Z-v261-release-publication.md` (MR !1657), Gate 1-approved by decision-record `docs/coordination/20260817T034748Z-governor-reviewer-ps6t.md`, Gate 2-approved by `docs/coordination/20260817T041441Z-governor-reviewer-skrm.md`, published on merge commit `f780ac0e`, tag pipeline `2764786464` passed. Post-publication verification independently confirmed all four namespaces (Git tag, GitLab Release, generic package, OCI image) plus checksums and provenance records — `docs/coordination/20260817T045451Z-coder-tester-h584.md`. Issues #76, #84, #85, #89 closed citing v2.6.1. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
-| Governed source | [MR !755](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/755), merged at `27716f20`, places the Gate 1-approved SoW on `main`. MR !858 defines the approved portfolio reconciliation. `docs/plans/post-v248-release-batching-amendment.md` records the governor-approved smaller release batches. `docs/plans/20260816T174141Z-v261-release-publication.md` is the approved v2.6.1 publication plan. |
+| Status | v2.6.1 published; v2.7.0 retired unused after the abandoned immutable v2.7.0-rc.1 candidate and stopped rc.2 reconstruction; v2.8.0 standard release candidate in construction from `main` |
+| Observed at | 2026-08-28T09:05:14Z |
+| Source revision | v2.6.1 remains the latest fully published stable release. Binding governor decision `20260828T085508Z-governor-reviewer-j37k` retires v2.7.0, retains the abandoned v2.7 branches and rc.1 tag as evidence, and authorizes v2.8.0 through the standard current-`main` release workflow from exact base `ca808607`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
+| Governed source | `docs/coordination/20260828T085508Z-governor-reviewer-j37k.md` and handoff `20260828T085514Z-planner-architect-rmna.md` govern the v2.8.0 release construction. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
@@ -47,19 +47,12 @@ with Windows retained only as optional manual preview evidence.
 
 ## Active release train
 
-The v2.6.1 release is **published**, per
-`docs/plans/20260816T174141Z-v261-release-publication.md` (MR !1657,
-Gate 1 `ps6t`, Gate 2 `skrm`). It was constructed directly from `main`
-(Path A, per binding decision `ram5`), carrying every commit `main` had
-accumulated since peeled v2.5.0 — including the four v2.6.0-targeted
-feature commits (#76, #84, #85, #89, merged 2026-08-05) and the
-release-asset-contract fix (`9ad75651`, merged 2026-08-16) that v2.6.0's
-frozen construction line never received. Read the plan and its
-coordination trail directly rather than relying on a summary here — this
-page intentionally does not reproduce the release-construction stages to
-avoid a second copy that can drift from the plan. Post-publication
-verification independently confirmed all four namespaces plus checksums
-and provenance (`h584`); issues #76, #84, #85, #89 are closed.
+The v2.8.0 release candidate is being cut from current `main` through the
+standard release workflow. It includes #86, #87, #88, and #90 plus all
+post-v2.6.1 work and repairs already merged to `main`. The frozen v2.7.0
+reconstruction is abandoned because its stale base repeatedly excluded
+required repairs; v2.7.0 is retired unused. Publication remains subject to
+exact-head Gate 2 evidence and the mandatory pre-tag OCI build and Trivy scan.
 
 The remaining portfolio is deliberately split rather than accumulated into one
 large release:
@@ -72,7 +65,8 @@ large release:
 | v2.5.0 | Published stable release | Final stable promotion of the v2.5.0 release train |
 | v2.6.0 | Tag constructed, incompletely published (OCI only); superseded | #84, #85, #89, bounded #76 work; `release:create` failed on a stale aarch64 asset contract |
 | v2.6.1 | Published stable release | Same functional scope as v2.6.0, plus the asset-contract fix that let `release:create` succeed; issues #76/#84/#85/#89 closed |
-| v2.7.0 | MCP and assistant integration | #86-#88 and #90 |
+| v2.7.0 | Retired unused | Frozen reconstruction abandoned; rc.1 remains immutable and failed |
+| v2.8.0 | Candidate from current `main` | #86-#88/#90 plus all post-v2.6.1 work and required repairs |
 | Later minor | Separately gated work | #91, #94, and approved backlog themes |
 
 ## In scope now
@@ -92,8 +86,10 @@ large release:
 - **v2.6.1 coordination reliability — published, closed:** #84, #85,
   #89, and #76 shipped in v2.6.1 (published 2026-08-17, correcting
   v2.6.0's incomplete tag-only construction) and are independently
-  post-publication verified (`h584`) — Level 5 Deployable. #86-#88/#90
-  route to v2.7.0; #91/#94 remain later-minor candidates.
+  post-publication verified (`h584`) — Level 5 Deployable.
+- **v2.8.0 current-main release — candidate:** #86-#88/#90 and all other
+  post-v2.6.1 changes on `main`; exact-head Gate 2 and pre-tag OCI/Trivy
+  evidence remain required. #91/#94 remain later-minor candidates.
 - **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
   proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
   not yet approved.
