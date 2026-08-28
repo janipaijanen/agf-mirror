@@ -615,6 +615,17 @@ agov-oci-image:selftest:
       changes: &agov_oci_image_selftest_paths
         - tooling/rust/scripts/agov-oci-image.sh
         - tooling/rust/release-targets.txt
+        # The image definition itself. Previously absent, so a
+        # Containerfile-only change matched no job's path scope at all and
+        # produced an empty, failed MR pipeline (MR !2174). Per
+        # ci-trigger-scoping-rule.md's "when in doubt, include the path".
+        # NOTE: this selftest validates target resolution only -- it does
+        # not build or scan the image. Pre-tag CVE coverage for the
+        # Containerfile remains a known gap: agov:oci:release, which runs
+        # the Trivy scan, is `if: $CI_COMMIT_TAG` only, so a container CVE
+        # can still only surface after the tag is immutable. That is what
+        # burned v2.7.0-rc.1. Tracked separately for the v2.9.0 CI cluster.
+        - tooling/rust/Containerfile.agov
         - .gitlab-ci.yml
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       changes:
