@@ -92,6 +92,31 @@ by governor decision `20260829T202453Z-governor-reviewer-rm3k`:
 | **B2** A2 was optional detection, with no binding amendment permitting it | Upheld. A2 is amended by `rm3k`, recorded in A2 below. |
 | **B3** the `agf/CHANGELOG.md` third path was self-authorized | Upheld. The change is approved; the process nonconformance is recorded in `rm3k` and needs nothing from this plan. |
 
+## Response to review k5dq (second Gate 1 review, Codex host)
+
+Independent review `20260829T204615Z-coder-tester-k5dq` returned **BLOCK** on
+head `4a5d42ec` with one material finding. It is upheld and the anchor is
+re-derived.
+
+| Finding | Disposition |
+|---|---|
+| **B1 (k5dq)** the proposed authority does not govern the canonical packaged binary | **Upheld, derivation replaced.** The review downloaded the real cross-built artifact and proved `source_fingerprint` is `"unknown"` on the canonical packaging path, so the fingerprint script cannot govern the anchor. The anchor is re-derived from the shipped artifact and the CVE gate's purpose, as option (a): a safe over-approximation with `agf/VERSION` as the mandatory pre-release checkpoint. Option (b), byte identity, is unattainable by any path anchor because every commit changes image bytes through the embedded SHA. |
+| Internal contradiction on `agov-mcp/build.rs` | Corrected. Neither `build.rs` is cited as a reason for any path; both are covered by `tooling/rust/**/*` regardless. |
+| Producer anchor stated ambiguously | Corrected. Both final anchors are stated literally in a table in A1, including `agf/VERSION` and the fact that MR !2198 already added it. |
+
+The review confirmed the two candidate-path rejections, the
+producer/consumer invariant, the A2 amendment (**CLEAR**), artifact reuse,
+the scan budget, the unpublished `localhost` namespace, and the no-push
+separation. Those are unchanged.
+
+**What this cost, recorded rather than smoothed over.** The first submission
+enumerated and missed five paths. The second derived — better method — but
+from an unverified premise, and shipped three trigger paths that would each
+have fired a roughly ten-minute packaging job for no CVE-coverage reason. The
+corrected anchor is **three patterns**, fewer than either previous attempt,
+and requires no producer change beyond the `agf/VERSION` addition MR !2198
+already made.
+
 `status` returns to `pending-gate1` for the whole plan rather than only
 A1, because one document carries one status and A2's acceptance criterion
 also changed. A1's implementation from MR !2198 is otherwise unaffected and
@@ -137,69 +162,96 @@ Release, package, or image.
 
 Deliver an MR-stage build-and-scan job. Three contracts bind it.
 
-**Path anchor — the derived input closure, and how it was derived.**
+**Path anchor — re-derived after review `k5dq` disproved the previous premise.**
 
-The first submission of this plan enumerated eight paths and called them
-complete. Independent review `ngje` found five omissions, and the
-generalizable failure is recorded as learning
-`20260829T192500Z-4vn8`: fixing one instance of a defect class was
-mistaken for covering the class. Governor decision `rm3k` returned A1 to
-Gate 1 for this reason.
+The first submission enumerated eight paths and called them complete;
+review `ngje` found five omissions, recorded as learning
+`20260829T192500Z-4vn8`. The second submission replaced enumeration with a
+derivation from `agov-source-fingerprint.sh`. Independent review `k5dq`
+disproved that derivation **empirically**: it downloaded the canonical
+`rust:tooling:preview` artifact for MR !2198's reviewed head from pipeline
+`2802237900`, job `16185523532`, ran the packaged binary, and got
 
-The anchor below is therefore **derived from the artifact's input closure
-rather than enumerated from memory.** Derivation, reproducible by any
-reviewer:
+```json
+{"version":"2.8.0","commit":"01b3268c...","source_fingerprint":"unknown"}
+```
 
-1. The image is `Containerfile.agov` plus one file: the `agov` binary
-   extracted from `dist/agov-$VERSION-$SLUG.tar.gz`.
-2. That binary's bytes depend on every Rust source, both `build.rs` files
-   (`crates/agov/`, `crates/agov-mcp/`), every crate-embedded asset
-   reached by `include_str!`, and the workspace manifests and lockfile.
-3. `crates/agov/build.rs:51` invokes
-   `tooling/rust/scripts/agov-source-fingerprint.sh` and writes its output
-   into the binary as `AGOV_SOURCE_FINGERPRINT`.
-4. That script (lines 29–33) hashes `tooling/agov`, `tooling/rust`,
-   `agf/schemas` and `agf/agents/MANIFEST.yaml`. **Any tracked file under
-   those paths changes the binary's bytes**, which is what pulls three
-   paths outside `tooling/rust` into the closure.
-5. `agf/VERSION` names the archive and is read into `AGOV_VERSION`.
-6. `.gitlab-ci.yml` defines the job itself.
+`Cross.toml:12-17` passes only `AGOV_BUILD_COMMIT`, `AGOV_BUILD_DIRTY` and
+`AGOV_BUILD_SOURCE_DIRTY` into `cross build`, and the cross container has no
+Git checkout, so `agov/build.rs:41-46` falls back to `"unknown"`. **The
+fingerprint never reaches the packaged binary**, so it cannot govern what
+changes it.
 
-Resulting anchor — six patterns, not eight paths:
+The failure shape is worth naming: the second submission derived from the
+mechanism's *source* without checking that the mechanism *operates on the
+canonical packaging path*. That is the same shape as the retracted `r3ad`
+diagnosis. The correction is to derive from the shipped artifact and from
+the gate's actual purpose.
+
+**Which closure this anchor is.** `k5dq` names two definitions and warns
+against mixing them. Byte identity is unattainable by any path anchor: the
+packaged binary embeds `AGOV_BUILD_COMMIT=$CI_COMMIT_SHA` — proven by its own
+output above — and `Containerfile.agov:18-23` embeds the same SHA as
+`org.opencontainers.image.revision`, so **every** commit changes image bytes.
+This plan therefore adopts **(a): a safe over-approximation of CVE-relevant
+tracked inputs**, with `agf/VERSION` as the mandatory pre-release checkpoint.
+
+**What is CVE-relevant.** The scan's subject is the image: its base layer and
+the dependency set compiled into the binary. That surface is changed by the
+base image pin (`Containerfile.agov`), the dependency graph (`Cargo.lock` and
+every `Cargo.toml`), the toolchain pin (which lives in `.gitlab-ci.yml`; no
+`rust-toolchain.toml` exists in this workspace), and the job definition.
+
+Resulting anchor — three patterns:
 
 ```
 .gitlab-ci.yml
 agf/VERSION
-agf/schemas/**
-agf/agents/MANIFEST.yaml
-tooling/agov
 tooling/rust/**/*
 ```
 
-`tooling/rust/**/*` deliberately subsumes the Containerfile, the OCI
-script, `release-targets.txt`, `Cargo.lock`, every `Cargo.toml`, all crate
-sources, both `build.rs` files, crate-embedded schemas, and the fingerprint
-script itself. Enumerating those individually is what produced the
-omissions the first time; the broader pattern is both simpler and
-complete, and `ci-trigger-scoping-rule.md` says to include when in doubt.
+- `.gitlab-ci.yml` — the job itself, the Rust image pin, the packaging
+  topology.
+- `agf/VERSION` — the mandatory pre-release checkpoint `k5dq` requires, so the
+  scan runs before a release even when nothing else changed.
+- `tooling/rust/**/*` — the safe over-approximation. It already contains
+  `Containerfile.agov`, `Cargo.lock`, every `Cargo.toml`, the OCI script,
+  `release-targets.txt`, and all crate sources. Narrowing it to the dependency
+  files alone would assert a *tighter* claim than the evidence supports, and
+  `ci-trigger-scoping-rule.md` says to include when in doubt.
 
-**The producer must be widened with the consumer, in the same change.**
-`rust:tooling:preview` currently triggers on `tooling/rust/**/*`,
-`.gitlab-ci.yml`, and two docs paths. It does **not** trigger on
-`tooling/agov`, `agf/schemas`, or `agf/agents/MANIFEST.yaml`. Widening the
-scan job alone would leave its `needs` dependency unbuilt for exactly those
-inputs — reproducing the `agf/VERSION` defect that was found and fixed once
-during the first submission. Producer and consumer anchors are reconciled
-as one change, and both are stated here so a reviewer checks the pair.
+**Three paths are dropped, and this is a deliberate narrowing.**
+`agf/schemas/**`, `agf/agents/MANIFEST.yaml` and `tooling/agov` entered the
+previous anchor **solely** through the disproven fingerprint premise. None
+expresses a dependency, base image, or toolchain, so none is CVE-relevant.
+Retaining them would fire the roughly ten-minute canonical packaging job plus
+the scan on a premise the artifact disproves — the specific waste `k5dq`
+identified.
 
-**Two claims deliberately not made.** `crates/agov/tests/validate.rs`
-embeds `agf/schemas/learning.schema.json` via `include_str!`, but it is a
-test and does not change the shipped binary; `agf/schemas` is in the
-closure through the fingerprint script instead. Likewise
-`crates/agov-mcp/build.rs` does not affect the `agov` binary the image
-copies; it is inside `tooling/rust/**/*` and hashed by the fingerprint
-regardless. Both are recorded so a reviewer can see which justifications
-were checked and rejected, not only which were accepted.
+**Producer/consumer reconciliation, stated literally.** On `origin/main`,
+`rust:tooling:preview` triggers on `tooling/rust/**/*`, `.gitlab-ci.yml`, and
+two documentation paths (`.gitlab-ci.yml:1281-1285`). It does **not** trigger
+on `agf/VERSION`. MR !2198 has already added `agf/VERSION` to it. With the
+corrected three-pattern anchor that is the **only** producer change required:
+the previous anchor's three external paths are gone, so no further widening is
+needed in either job. Final state of both anchors, so a reviewer checks the
+pair rather than one side:
+
+| Job | Anchor after this change |
+|---|---|
+| consumer `agov:oci:mr-build-scan` | `.gitlab-ci.yml`, `agf/VERSION`, `tooling/rust/**/*` |
+| producer `rust:tooling:preview` | `tooling/rust/**/*`, `.gitlab-ci.yml`, `agf/VERSION`, plus its two existing documentation paths |
+
+**Two claims deliberately not made, and one contradiction corrected.**
+`crates/agov/tests/validate.rs` embeds `agf/schemas/learning.schema.json` via
+`include_str!`, but it is test-only and does not change the shipped binary;
+`crates/agov-mcp/build.rs` does not build the `agov` binary the image copies.
+`k5dq` confirms both judgments. Both files sit inside `tooling/rust/**/*` and
+are covered by the anchor regardless, so neither is cited as the *reason* for
+any path. This also removes the internal contradiction `k5dq` flagged, where
+the previous derivation's step 2 claimed both `build.rs` files affect the
+`agov` binary while a later paragraph correctly rejected that for
+`agov-mcp/build.rs`.
 
 **Artifact reuse is binding, not preferred.** The job MUST consume the
 existing `rust:tooling:preview` archive rather than compile a second copy.
@@ -429,11 +481,12 @@ for deferred items move with them to their own plans.
 3. Both negative-test transcripts are reviewer-visible and were produced
    without leaving the canonical exact-head acceptance pipeline red, per
    A3(a)–(d).
-4. The A1 anchor matches the derived closure in A1 exactly, **and**
-   `rust:tooling:preview`'s anchor covers every path the scan job triggers
-   on, so no input can start the scan job with its dependency unbuilt.
-   Verified by inspection of the merged `.gitlab-ci.yml`, both job rules
-   read together.
+4. Both job anchors match the two-row table in A1 **literally** — consumer
+   `.gitlab-ci.yml`, `agf/VERSION`, `tooling/rust/**/*`; producer those three
+   plus its two existing documentation paths — so no input can start the scan
+   job with its dependency unbuilt, and the three paths dropped after `k5dq`
+   are absent from both. Verified by inspection of the merged
+   `.gitlab-ci.yml`, both job rules read together.
 5. The A1 job consumes the `rust:tooling:preview` archive; no second Rust
    package build exists in the MR path.
 6. Measured incremental MR runner time is recorded in the Gate 2 evidence
