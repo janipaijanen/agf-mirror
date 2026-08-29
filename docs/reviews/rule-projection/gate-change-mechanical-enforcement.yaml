@@ -1,0 +1,129 @@
+# Six-surface projection evidence for the gate-change-mechanical-enforcement
+# plan (docs/plans/20260829T231900Z-gate-change-mechanical-enforcement.md),
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# This plan implements the mechanical check whose blocking authority is
+# granted by the parent plan's extension of gate-self-test-rule.md. It adds no
+# new normative obligation of its own.
+
+plan_id: gate-change-mechanical-enforcement
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/advanced/contracts-and-validators.md
+  - agf/docs/site/docs/operate/day-to-day.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: agf/rules/always/gate-self-test-rule.md
+    reason: >-
+      The obligation this check enforces -- that introducing or modifying a
+      gate carries a negative-test requirement -- is created by the parent
+      plan's slice A, which extends gate-self-test-rule.md and grants this
+      check its blocking authority per tool-authority-boundary-rule.md. This
+      plan implements that existing obligation and creates no new one, so no
+      normative owner changes here. Recording it as a pointer rather than
+      "not applicable" because the authority is real and named, just not
+      newly written.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/advanced/contracts-and-validators.md
+    reason: >-
+      This is the canonical page describing agov's validators to adopters. It
+      gains the agov gate change-check command, the registry schema, and a
+      pointer to the shipped neutral example at agf/examples/gates.yaml, plus
+      the stated limits: assertion 3 depends on GitLab's merged-configuration
+      API, so adopters on other forges get assertions 1 and 2 and a
+      documented gap rather than a silent partial check. It also states the
+      proxy boundary -- the check is a proxy for review attention, not proof
+      of test quality -- so the adopter-facing text cannot drift into
+      claiming more assurance than the parent plan's own reviews allowed.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      An operator meeting this check needs two situational answers the
+      concepts page does not give: what a failure means in practice (a gate
+      surface changed with no accompanying test), and how to retire a gate
+      correctly (an explicit retired: transition, never deleting the entry,
+      since deletion fails assertion 2). Both are short procedural notes
+      pointing at the rule and the concepts page rather than restating them.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      No new agent obligation is created here. The obligation an assistant
+      must know -- gate mechanics are not fast-track eligible, and modifying
+      a gate requires a negative test -- is the parent plan's slice A, which
+      is already projected into .claude/rules/always/gate-self-test-rule.md
+      and .claude/rules/workflow/simplicity-rule.md by that plan. Projecting
+      the same obligation again from this plan would create exactly the
+      competing-authority drift documentation-rule-projection-rule.md exists
+      to prevent. AGENTS.md and agf/templates/AGENTS.md route rule authority
+      to agf/rules/ generally and need no change.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      This plan is itself the mechanical check, so the drift evidence is the
+      check plus its negative fixtures. Per gate-self-test-rule.md applied to
+      itself, it ships demonstrating: assertion 1 blocking a registered-surface
+      change with no test change; assertion 2 blocking entry deletion and any
+      unresolvable path; assertion 3 blocking, against merged configuration,
+      each of job-absent, when: never, allow_failure: true, and
+      registered-script-no-longer-invoked, with at least one demonstrated
+      through extends or !reference indirection rather than a literal edit;
+      and the active-to-retired transition passing while deletion fails.
+
+      Two boundaries are stated as limits rather than omitted. Assertion 3
+      proves the job will run and is not neutralised by configuration; it does
+      NOT prove the script does useful work, since an early exit 0 inside the
+      script is invisible to it -- that is covered by assertion 1 plus human
+      review. And self-registration gives visibility, not tamper-resistance:
+      the candidate pipeline runs the candidate checker, so one merge request
+      can weaken the checker and satisfy assertion 1 with an empty or
+      unrelated test. Acceptance criterion 7 demonstrates that limit as a
+      passing case rather than hiding it.
+
+      The previous revision of this design claimed a literal invocation-string
+      check proved the gate runs. Review j1ht (GCD-R2) established that it
+      does not. That claim is withdrawn and replaced by merged-configuration
+      resolution, which is what GitLab actually executes.
+
+      Paths are omitted from a paths: array at Gate 1 because every artifact
+      is created by this plan's implementation and does not yet exist, and
+      stage: planned is limited to normative_owner. They are added at Gate 2
+      when the strict projection check must pass against them:
+        tooling/rust/crates/agov-validators/src/gate_change.rs
+        tooling/rust/crates/agov-validators/src/lib.rs
+        tooling/rust/crates/agov/src/main.rs
+        tooling/rust/crates/agov/tests/gate_change_check.rs
+        agf/schemas/gate-registry.schema.json
+        agf/examples/gates.yaml
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/advanced/contracts-and-validators.md
+      - agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      Both Pages surfaces live under agf/ and ship in the AGF distribution
+      artifact. The registry schema and the neutral example
+      (agf/examples/gates.yaml) are added to agf/dist/release-manifest.yaml
+      explicitly, because j1ht GCD-R1 established that adding a file under
+      agf/ does not make it ship -- the manifest selects specific root files
+      and directory globs. They are absent from the paths: array above only
+      because they do not exist yet; they are added at Gate 2, and acceptance
+      criterion 8 verifies them by inspecting a built archive rather than by
+      re-reading the manifest.
+
+      The live foundry registry is deliberately placed at .agf/gates.yaml,
+      outside agf/, and is not shipped. It names foundry-specific paths
+      (.gitlab-ci.yml, .gitlab/scripts/, tooling/rust/) that would be wrong
+      in an adopter's repository. Locating it outside the shipped tree
+      resolves that by construction rather than relying on a release-manifest
+      exclusion a future glob change could silently undo -- the same
+      collision already handled for agf/agents/MANIFEST.yaml, but closed
+      structurally instead.
