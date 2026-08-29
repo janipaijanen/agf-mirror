@@ -164,6 +164,51 @@ Next review: 2026-10.
   `docs/sources.md` Batch 30 | status: testable hypothesis only; no skill
   adoption or trial authorized | review-by: 2026-11
 
+- **Untrusted inbound content as an agent-context boundary** — AGF governs what
+  leaves the codebase (`external-anonymization-rule.md`) but has no rule for what
+  *enters* an agent's context from a source the project does not control: a fetched
+  web page, a downloaded archive, a dependency's files, or the contents of an
+  untrusted branch or merge request under review. Rehberger's demonstrated chain
+  against Claude Code shows the gap is exploitable rather than hypothetical — asking
+  an agent to summarise a website led to remote code execution via Python module
+  shadowing, at a reported 60–80% success rate — and the vendor's reported position
+  that the affected mode is "not a security guarantee" places the mitigation burden
+  at the adopter and framework layer, which is AGF's layer. Controversial in shape,
+  not in existence: candidate responses range from an advisory handling rule (treat
+  external content as data, never instruction; state the boundary before fetching)
+  to mechanical measures AGF may have no authority or means to enforce inside a
+  third-party harness, and an over-broad rule risks forbidding ordinary research
+  work this very file depends on. The open question is what an assistant-neutral,
+  removable framework can legitimately require here, given that the enforcement
+  point sits inside the harness rather than the repository. Note also that any
+  actual rule is a normative change requiring full Gate 1 — it is not eligible for
+  the research-maintenance fast path that created this entry. source: The Register /
+  embracethered in `docs/sources.md` Batch 31 | status: open question, no rule
+  proposed | review-by: 2026-10
+
+- **Machine-enforced write permission vs declared artifact ownership** —
+  EngineeringSpec proposes that a coding agent's writable and protected paths come
+  from a reviewed, version-controlled contract and are enforced at write time, with
+  boundary failures routed to human review. AGF already carries the same data:
+  `artifacts_owned` is a declared field on coordination records, and plans name
+  affected files. The difference is enforcement — AGF's is by review, not by
+  mechanism. The tempting inference is that AGF should mechanically block writes
+  outside `artifacts_owned`, and this project's own history is the strongest
+  argument against doing that naively: handoff `20260827T100251Z-coder-tester-7bkm`
+  records four approved-criterion owner paths that were absent from the plan's
+  affected-file estimate and had to be added mid-implementation because omitting
+  them would have left an approved criterion incomplete. A hard write gate would
+  have blocked legitimate, correct work; the actual defect was an estimate derived
+  from the wrong basis, which learning `20260827T091844Z-as7k` already addresses.
+  So the open question is narrower than "adopt path enforcement": is there a useful
+  advisory or reconciliation form — for example, reporting the divergence between
+  declared `artifacts_owned` and an MR's actual changed paths as review evidence
+  rather than as a block — and does that add anything Gate 2 review does not already
+  do? Treat the source as unevidenced: it is a release-candidate tool whose own
+  authors state they have no evidence it improves safety or correctness. source:
+  EngineeringSpec in `docs/sources.md` Batch 31 | status: evaluate mechanics, no
+  implementation proposed | review-by: 2026-11
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu

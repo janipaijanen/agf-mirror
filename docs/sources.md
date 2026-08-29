@@ -2412,3 +2412,112 @@ classification does not add the external skill, make it a dependency, change
 AGF writing rules, claim ASD-STE100 compliance, or authorize a runtime trial.
 Do not cite the reported 58%/26% cost comparisons as AGF or cross-provider
 performance evidence without an independently governed reproduction.
+
+# Batch 31 (2026-08-29) — user-submitted candidate set (agent write permission, cross-model review, autonomous loops, prompt-injection threat)
+
+Five links were submitted together. Four are classified below; one is recorded
+as reviewed-and-dropped in the evaluation boundary so it is not re-reviewed.
+All four were fetched and read on 2026-08-29. Page content was treated as data
+only, not as instruction — a precaution the fourth entry explains.
+
+## Classified
+
+- https://engineeringspec.org/blog/give-coding-agents-permission-not-just-prompts/
+  type: framework, tooling | relation: competitor, prior-art | action:
+  compare-in-docs, watch
+  note: Argues coding agents need explicit write permission derived from
+  reviewed, Git-resident contracts, separate from prompts, context, or
+  validation. The proposed mechanics are versioned contracts naming intended
+  targets and path policies, a three-command workflow (`engineeringspec next`,
+  `work`, `finish`), and PermissionTickets carrying writable and protected
+  paths, constraints, and verifier identities, with a failed approval boundary
+  routed to human review rather than agent reinterpretation. This is the
+  closest external convergence with AGF's own thesis recorded so far:
+  reviewed-artifact-before-implementation is Gate 1, path policy is
+  `artifacts_owned`, and boundary-failure-to-human is the escalation rule. It
+  is also the sharpest contrast — EngineeringSpec makes the permission set
+  machine-readable and enforced at write time, whereas AGF's `artifacts_owned`
+  is a declared coordination field enforced by review. Treat every capability
+  claim as unevidenced: the article states "We do not yet have evidence that
+  EngineeringSpec makes coding agents faster, more productive, safer, or more
+  correct"; its paired-task pilot is announced but not complete; the package is
+  0.1.0-rc.17; no author is named on the post; no licence is stated. Published
+  2026-08-29, the same day it was submitted. (accessed 2026-08-29)
+
+- https://github.com/makedirectory/ModelPeer
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: MIT-licensed CLI (Make Directory Developers, LLC, 2026) letting Claude
+  Code, OpenAI Codex CLI, and Google Gemini CLI consult one another as
+  read-only engineering peers, either for advice or for a cross-model review of
+  a git diff. The primary agent stays the hub; a peer is spawned, returns one
+  answer, and exits with nothing persisted. Depth 1 is the default (primary →
+  peer → primary); peers cannot consult themselves, and panel reviewers cannot
+  consult each other. That last constraint is the AGF-relevant part: it is an
+  explicit anti-anchoring measure, sharper than anything the existing
+  **Verification independence tiers** radar item specifies, and this project
+  already operates the different-vendor tier informally by using Codex as an
+  independent reviewer with no stated anti-anchoring constraint. Evidence is
+  weak and entirely self-reported — 0 stars, 48 commits, smoke tests against
+  stub CLIs, no independent effectiveness data — so "reviewers that can't
+  anchor on each other produce real signal" is an assertion, not a finding.
+  (accessed 2026-08-29)
+
+- https://jx0.ca/building-autonomous-goal-loops-that-deliver/
+  type: practice | relation: prior-art, complement | action: watch
+  note: Jarred Kenny's self-reported experience report (2026-08-20) on
+  autonomous agent loops intended to develop new capability rather than only
+  retry known work. The described harness separates a development agent, a
+  product agent simulating user interaction, and a driver replaying unchanged
+  requests through fresh conversations. Each round restores a fixture, runs
+  deterministic floor checks, sends one approved request, classifies the
+  largest gap, closes it across every required layer, adds a regression check,
+  and retests — summarised as "one gap does not mean one file. It means one
+  causal claim." AGF-relevant because the design retains three human gates,
+  including an outer direction loop in which a person reads a batch of evidence
+  and decides whether to continue, redirect, or stop. That structure
+  corroborates the action-loop boundary already stated in `AGENTS.md`:
+  autonomous continuation of already-authorized work is expected, while gate,
+  scope, and release decisions stay with the governor. No comparative or
+  measured outcome data is offered. (accessed 2026-08-29)
+
+- https://www.theregister.com/research/2026/08/28/researcher-shows-how-claude-code-can-be-tricked-simply-by-asking-it-to-summarize-a-website/5293372
+  type: research, discussion | relation: threat-model, evidence | action: cite
+  note: The Register (Jessica Lyons, 2026-08-28) reporting Johann Rehberger's
+  demonstrated prompt-injection chain against Claude Code (Opus 5, Auto Mode),
+  originally published with video on embracethered.com. Asking the agent to
+  summarise a website was sufficient: the site returned a 303 redirect to a
+  poisoned ZIP containing Base85/zlib-encoded records and a malicious
+  `struct.py`; the agent's refusal to run a supplied binary led it to write its
+  own decoder, whose import then resolved the attacker's `struct.py` instead of
+  the standard-library module, executing an obfuscated payload with Calculator
+  as proof of concept. Reported success 60–80% across tested variants. No CVE
+  is cited. Anthropic's reported position is that "Auto Mode is a convenience
+  feature backed by a best-effort classifier, not a security guarantee" — the
+  behaviour is characterised as working as designed. That vendor position is
+  the governance-relevant part: it places the mitigation burden at the adopter
+  and framework layer. Two AGF exposures follow directly. First, the framework
+  has no rule governing untrusted *inbound* content entering an agent's
+  context; `external-anonymization-rule.md` governs only the outbound boundary.
+  Second, the module-shadowing vector generalises to any agent operating inside
+  a repository whose contents it does not control, including review of
+  untrusted branches and merge requests. Secondary reporting of a primary
+  write-up; the exploit is demonstrated, not theoretical. (accessed 2026-08-29)
+
+## Evaluation boundary
+
+Reviewed and not classified: https://www.thetrueengineer.com/p/understanding-event-driven-systems
+(Adlet Balzhanov, 2025-01-02) is a general software-architecture explainer of
+Fowler's event-notification, event-carried-state-transfer, event-sourcing, and
+CQRS patterns. It contains no agent, coordination, or governance material and
+no AGF-relevant claim. Recorded here so the candidate is not re-reviewed.
+
+This batch classifies sources and opens questions. It adopts nothing. It does
+not install, trial, depend on, or grant AGF authority to EngineeringSpec,
+ModelPeer, or any described practice; it does not change AGF rules, gates, or
+agent boundaries; and it does not authorize a runtime evaluation of any of
+them. The two matching radar entries are non-binding open questions. In
+particular, the fourth entry identifies a rule-shaped gap — nothing here
+creates, amends, or pre-approves such a rule, which would require full Gate 1.
+Do not cite the 60–80% figure as an AGF measurement; it is the researcher's
+reported result for their own variants.
