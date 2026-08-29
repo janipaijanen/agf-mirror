@@ -1,6 +1,8 @@
 ---
 id: v290-release-integrity-and-tracker-truth
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-08-29T17:06:49Z"
 topic: v290-release-integrity-and-tracker-truth
 advisory_consultation:
   - role: coder-tester
@@ -43,7 +45,17 @@ advisory_consultation:
 
 # Plan: v2.9.0 — release integrity and tracker truth
 
-## Decision requested
+## Decision requested — APPROVED
+
+Binding Gate 1 approval granted by governor-reviewer at
+2026-08-29T17:06:49Z, recorded in
+`docs/coordination/20260829T170649Z-governor-reviewer-h3nb.md`, against
+exact head `05c9d07981d88627d0b9a46148d1d7358b0c4ffb`. Approved scope is
+**A1 and A2 only**, with A3 as their shared negative-test obligation, and
+the terminal-disposition table below as the governing disposition for
+everything else. The five implementation conditions in `h3nb` §1 are
+binding, including: if A1 or A2 grows during implementation, stop and
+return to Gate 1 rather than absorbing it.
 
 Authorize implementation of **A1 and A2 only** as the committed v2.9.0
 work order. Nothing else in this document is proposed for v2.9.0; every
