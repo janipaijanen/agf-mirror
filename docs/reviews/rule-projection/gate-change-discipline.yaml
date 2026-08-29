@@ -12,6 +12,8 @@ plan_id: gate-change-discipline
 changed_pages_or_runbooks:
   - agf/docs/site/docs/concepts/roles-and-gates.md
   - agf/docs/site/docs/operate/day-to-day.md
+  - agf/docs/site/docs/adopt/tooling-and-tokens.md
+  - agf/docs/site/docs/advanced/contracts-and-validators.md
 
 surfaces:
   normative_owner:
@@ -34,7 +36,10 @@ surfaces:
 
   adopter_facing_explanation:
     disposition: updated
-    path: agf/docs/site/docs/concepts/roles-and-gates.md
+    paths:
+      - agf/docs/site/docs/concepts/roles-and-gates.md
+      - agf/docs/site/docs/adopt/tooling-and-tokens.md
+      - agf/docs/site/docs/advanced/contracts-and-validators.md
     reason: >-
       Line 95 states fast-track eligibility to adopters in its own words --
       "small, low-risk work (<=3 files, no shared interface, data model, or
@@ -45,6 +50,25 @@ surfaces:
       documentation-rule-projection-rule.md exists to catch. The page gains
       gate mechanics in that list and points at the rule rather than
       restating its body.
+
+      Added after independent review finding GCD-4 (phe4): tooling-and-tokens.md
+      and contracts-and-validators.md publish four CI sketches that copy the
+      exact defective commands slice B fixes in foundry's own CI. Leaving them
+      unchanged would fix foundry while continuing to instruct adopters to
+      install the defect, so they are a direct impact of B rather than
+      unrelated documentation work. Verifying that finding surfaced a second,
+      more severe defect in the same lines that the review did not name: the
+      three GitLab sketches use an unguarded
+      "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA" as the diff base, which foundry's
+      own CI removed and documents at .gitlab-ci.yml:832-834 as empty in
+      common pipeline shapes. With an empty base the range degenerates to
+      HEAD...HEAD, xargs -0r declines to run, and the job exits 0 -- an
+      adopter governance gate that silently validates nothing and reports
+      success. Both defects are corrected in all four sketches.
+
+      Generated site output needs no disposition: agf/site-html/ is untracked
+      and rebuilt by the site-html-build job, so correcting the Markdown
+      source is sufficient and nothing generated is hand-edited.
 
   runbook_situation_map:
     disposition: updated
@@ -88,24 +112,66 @@ surfaces:
 
   validation_drift_evidence:
     disposition: implemented
+    # No paths: array at Gate 1. Every artifact below is created by this
+    # plan's implementation and does not exist yet, and
+    # documentation-rule-projection-rule.md limits the stage: planned marker
+    # to normative_owner -- it explicitly does not relax any other surface.
+    # Declaring unresolvable paths here would make the manifest assert
+    # evidence that is not there. The artifacts are named in prose instead,
+    # and the paths: array is added at Gate 2, when the strict
+    # projection-check (without --allow-planned) must pass against them:
+    #   agf/gates.yaml
+    #   agf/schemas/gate-registry.schema.json
+    #   tooling/rust/crates/agov-validators/src/gate_change.rs
+    #   tooling/rust/crates/agov/tests/gate_change_check.rs
+    #   .gitlab/scripts/governance-validate.sh
     reason: >-
-      Slice C is the mechanical check: a declared gate registry names
-      gate-mechanics paths and, for .gitlab-ci.yml, the named gate jobs; the
-      check blocks a merge request that changes a registered gate surface and
-      changes no declared test path. Blocking authority is granted by
-      gate-self-test-rule.md per tool-authority-boundary-rule.md, and is
-      deliberately narrow -- it may block only the objectively decidable
-      omission (gate surface changed, no test path changed). Whether a test
-      is a genuine negative test stays human judgment, mirroring this rule's
-      own mechanical/human split.
+      Slice C is the mechanical check, revised after independent review
+      findings GCD-1, GCD-2 and GCD-3 (phe4). A declared registry
+      (agf/gates.yaml, schema agf/schemas/gate-registry.schema.json) names
+      each gate's exact surface paths, exact test paths, and its invocation
+      (file, job name, required invocation string). The checker
+      (agov gate change-check --base-ref, implemented in
+      agov-validators/src/gate_change.rs) makes three assertions: a diff
+      touching a registered surface must also touch that gate's declared
+      tests; each registered job must still exist and still contain its
+      invocation string; and every registered path must resolve, with gate
+      retirement requiring an explicit retired: marker rather than deletion.
+
+      The first draft proposed mapping git diff -U0 hunks to registered
+      .gitlab-ci.yml job blocks. That is removed from blocking authority
+      entirely. GCD-2 established real bypasses in this repository, which
+      already uses extends, YAML anchors and aliases, !reference, hidden
+      jobs, and top-level variables, so effective gate behavior can change
+      with no hunk intersecting the registered block. Instead the inline
+      governance script is extracted to .gitlab/scripts/governance-validate.sh,
+      following the existing .gitlab/scripts/check-rust-cache-policy.sh
+      convention; the script path is the registered surface and .gitlab-ci.yml
+      keeps only a stable invocation covered by the invocation assertion. This
+      also resolves the over-blocking risk: routine CI edits touch no
+      registered surface.
+
+      Self-protection per GCD-3: the registry, its schema, the checker, and
+      the extracted script are themselves registered surfaces of a
+      gate-change-check entry, so weakening the detector or deregistering a
+      gate requires a test change and cannot be done silently.
+
+      Blocking authority is granted by gate-self-test-rule.md per
+      tool-authority-boundary-rule.md and is deliberately narrow: only the
+      objectively decidable omissions above. Whether a test is a genuine
+      negative test stays human judgment, mirroring this rule's own
+      mechanical/human split.
 
       Stated as a limit rather than overclaimed: the check is a proxy, not
-      proof. An author can write an empty test and pass it. What it removes
-      is the silent single-line path -- the bypass now requires deliberately
-      authoring a fake test, which is visible in review. Per
-      gate-self-test-rule.md applied to itself, slice C ships with its own
-      negative tests, including a demonstration that it does NOT block a gate
-      change accompanied by a test, nor a non-gate .gitlab-ci.yml change.
+      proof. An author can satisfy the test-accompaniment assertion with an
+      unrelated test-path touch, and acceptance criterion 9 requires that
+      exact case to be demonstrated as a known limit rather than hidden. What
+      it removes is the silent single-line path. Per gate-self-test-rule.md
+      applied to itself, slice C ships with its own negative fixtures for
+      deregistration, job rename, job deletion, checker mutation, and the
+      unrelated-test-touch limit, plus positive cases proving it does not
+      block a gate change accompanied by a real test nor a non-gate
+      .gitlab-ci.yml change.
 
       Slices A1 and A2 are rule-text changes with no mechanism to self-test;
       their proof is slice C's demonstrations plus slice B's negative tests.
@@ -117,10 +183,21 @@ surfaces:
       - agf/rules/workflow/simplicity-rule.md
       - agf/docs/site/docs/concepts/roles-and-gates.md
       - agf/docs/site/docs/operate/day-to-day.md
+      - agf/docs/site/docs/adopt/tooling-and-tokens.md
+      - agf/docs/site/docs/advanced/contracts-and-validators.md
     reason: >-
-      Both canonical rules and both Pages surfaces live under agf/ and ship
-      in the AGF distribution artifact, so an adopter receives the rule and
-      its explanation together. The gate registry and the slice-C check ship
-      with the Rust tooling under tooling/rust/. The .claude/rules/
-      projections are foundry-local by design and are not claimed as shipped
-      adopter content.
+      Both canonical rules and all four Pages surfaces live under agf/ and
+      ship in the AGF distribution artifact, so an adopter receives the rule,
+      its explanation, and the corrected CI examples together -- which is the
+      point of including B2 here rather than deferring it.
+
+      agf/gates.yaml and agf/schemas/gate-registry.schema.json will also ship
+      under agf/, but are deliberately absent from the paths: array above for
+      the same reason given on validation_drift_evidence: they do not exist
+      yet, and this manifest must not assert distribution evidence for files
+      that are not there. Both are added to paths: at Gate 2, when the strict
+      projection-check must pass against them. The slice-C checker ships with the
+      Rust tooling under tooling/rust/, and .gitlab/scripts/governance-validate.sh
+      is foundry CI infrastructure rather than shipped adopter content. The
+      .claude/rules/ projections are foundry-local by design and are not
+      claimed as shipped adopter content.
