@@ -25,13 +25,17 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Consulted and material. This plan changes gate mechanics and adds a
-      blocking check, which is a security-boundary-adjacent surface: the
-      failure mode it addresses is a gate being silently weakened. No
-      credential, personal-data, or access-control content is involved, and
-      the change adds no dependency or network path. The infosec-relevant
-      requirement is that the new check cannot be satisfied by an empty or
-      absent test, addressed in acceptance criteria 6 and 7.
+      Consulted and material. This plan changes gate mechanics, which is a
+      security-boundary-adjacent surface: the failure mode it addresses is a
+      governance gate silently reporting success. No credential,
+      personal-data, or access-control content is involved, and the change
+      adds no dependency or network path. The infosec-relevant requirement is
+      that the corrected changed-file path fails closed on every failure mode
+      rather than masking a failed diff, addressed in acceptance criteria 7
+      and 8. An earlier revision of this field claimed a mechanical check
+      "cannot be satisfied by an empty or absent test"; review j1ht (GCD-R3)
+      correctly identified that as contradicting slice C's own stated proxy
+      limit. Slice C is now split out, and no such claim is made here.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -40,9 +44,10 @@ advisory_consultation:
 
 ## Decision requested
 
-Approve **A, B and C** below as one Gate 1 scope. A is the governing rule
+Approve **A and B** as this plan's Gate 1 scope. A is the governing rule
 change; B is the defect that exposed the gap and the first change to ship
-under A; C is the mechanical enforcement without which A is prose only.
+under A. Slice C (mechanical enforcement) is split into its own Gate 1 plan —
+see the split section below for the reasoning and its honest cost.
 
 ## Evidence
 
@@ -152,9 +157,47 @@ gate silently validates nothing and reports success.** Deletion-blindness
 produces a false block, which is visible and annoying; this produces a false
 pass, which is invisible. It is the worse of the two and it is what we ship.
 
-B2 therefore corrects both defects in all four sketches, and gives the GitLab
-sketches the same deterministic fetch-and-resolve base the foundry job uses,
-failing closed when no base resolves.
+**B3 — the fail-closed changed-file contract, added after `j1ht` finding
+GCD-R4.** The first revision proposed giving the adopter sketches "the same
+deterministic fetch-and-resolve base the foundry job uses". `j1ht` showed that
+is insufficient, because foundry's own pattern does not fail closed *after*
+the base resolves. Reproduced here:
+
+```
+$ sh -c 'set -eu; git diff --name-only -z does-not-resolve...HEAD -- \
+    "docs/plans/*.md" | xargs -0r true; echo PIPELINE_EXITED_ZERO'
+fatal: bad revision 'does-not-resolve...HEAD'
+PIPELINE_EXITED_ZERO
+$ echo $?
+0
+```
+
+`set -e` observes only a pipeline's final exit status, so a failed `git diff`
+is masked by `xargs`. `.gitlab-ci.yml:866-871` has exactly this shape.
+
+**This is not only an adopter-documentation defect.** `agov:governance:validate`
+inherits the project's default `GIT_DEPTH` of 20 — stated in this repository at
+`.gitlab-ci.yml:981` and attributed there to the GitLab project API; only
+`commercial-corpus:validate` overrides it to `0`. A triple-dot diff requires a
+merge base, which a depth-20 shallow clone may not contain once a branch has
+diverged past roughly twenty commits. At this project's merge rate that is
+ordinary rather than contrived. Whether it is *currently firing* is under
+empirical verification (`argd`); the plan does not assert it is, and B3 is
+correct regardless because the masking is proven above.
+
+B therefore ships one **fail-closed changed-file contract**, applied to the
+extracted foundry script and to all four adopter sketches identically:
+
+1. resolve the target ref explicitly, failing closed when it is empty or the
+   fetch fails;
+2. prove a merge base exists, failing closed when it does not;
+3. capture the `git diff` result and check its status **before** any consumer
+   runs — writing the NUL-separated list to a temporary file only on success,
+   never piping diff directly into `xargs`;
+4. only then invoke the validator on that list.
+
+B2 corrects both defects in all four sketches using this contract, rather than
+copying foundry's current pattern — which is itself defective.
 
 **Generated site output is not a concern.** `agf/site-html/` is untracked and
 rebuilt by the `site-html-build` job; correcting the Markdown source is
@@ -165,98 +208,33 @@ Per A1, B ships with negative tests proving both validators still fire on a
 genuinely invalid added or modified file after the filter — otherwise the fix
 blinds the gate it repairs.
 
-## C — Mechanical enforcement
+## C is split out — and why that is not a retreat
 
-A is prose. `gate-self-test-rule.md`'s own opening argument is that "process
-discipline alone is at-will and breaks under speed", and this project has
-three documented incidents where a gate shipped broken because nobody
-verified it. Shipping A without C would repeat the pattern the rule exists to
-name.
+Slice C (mechanical enforcement) is **removed from this plan** and resubmitted
+as its own Gate 1 plan. This is the governor's scope decision, taken after
+`j1ht` returned the third consecutive BLOCK on this document, all of them
+against C's enforcement semantics while A and B were repeatedly cleared.
 
-**Design, revised after review findings GCD-1, GCD-2 and GCD-3 (`phe4`).**
-The first version registers **exact paths only**. Diff-hunk-to-YAML-job
-mapping is removed from blocking authority entirely — see "What was dropped
-and why" below.
+The case for splitting is not that C matters less. It is that:
 
-*Exact implementation boundary (GCD-1).*
+- A and B are agreed-good across two independent reviews and are blocking a
+  **live defect** — see B1 below, and the fail-open now suspected in
+  foundry's own `agov:governance:validate`.
+- C's remaining findings (GCD-R1's distribution and live-registry boundary,
+  GCD-R2's effective-execution semantics, GCD-R3's retirement state machine)
+  are genuine design work, not corrections. Each round of holding A and B
+  hostage to that design has cost a full cross-host review cycle.
+- MR !2206, a governor-ordered revert, has been blocked on B for this entire
+  period.
 
-| Artifact | Path |
-|---|---|
-| Registry | `agf/gates.yaml` |
-| Registry schema | `agf/schemas/gate-registry.schema.json` |
-| Checker | `tooling/rust/crates/agov-validators/src/gate_change.rs` |
-| Command | `agov gate change-check --base-ref <ref>` |
-| CI integration | existing `agov:governance:validate` job |
-| Integration tests | `tooling/rust/crates/agov/tests/gate_change_check.rs` |
-
-The command name follows the established `agov coord publication-check` /
-`agov plan projection-check` pattern rather than inventing a new family.
-
-*Registry shape.* Each entry declares a gate's `id`, its `surfaces` (exact
-paths), its `tests` (exact paths), and its `invocation` — the file, job name,
-and the string that job must contain to actually run the gate.
-
-*The check, three assertions.*
-
-1. **Test-accompaniment.** A diff touching any registered `surfaces` path must
-   also touch that gate's declared `tests` paths.
-2. **Invocation presence.** For each registered gate, the named job must still
-   exist in the named file and still contain the required invocation string.
-   Renaming or deleting the job fails here. This is a presence assertion, not
-   hunk mapping — objective, and it closes GCD-2's rename/delete bypass
-   without parsing YAML semantics.
-3. **Registry integrity.** Every registered path must resolve. A gate `id`
-   may not disappear: retiring one requires an explicit `retired:` marker
-   with a reason, mirroring the append-only discipline this project already
-   applies to coordination records and tags. Silent deletion fails.
-
-*Gate logic moves out of YAML (GCD-2).* The inline governance script becomes
-`.gitlab/scripts/governance-validate.sh`, following the existing
-`.gitlab/scripts/check-rust-cache-policy.sh` convention. The script path is
-the registered surface; `.gitlab-ci.yml` keeps only a stable invocation,
-covered by assertion 2. This is what makes registration precise **and**
-removes the noise objection — routine CI edits touch no registered surface,
-while the gate's actual logic is fully covered.
-
-*Self-protection (GCD-3).* `agf/gates.yaml`, the schema, the checker, and
-`.gitlab/scripts/governance-validate.sh` are themselves registered surfaces of
-a `gate-change-check` gate entry. Deregistering a gate, weakening the checker,
-or editing the registry all require a test change in that gate's declared
-tests, and assertion 3 blocks silent removal outright.
-
-**What was dropped and why.** The first draft proposed mapping `git diff -U0`
-hunks to registered `.gitlab-ci.yml` job blocks. GCD-2 is correct that this
-has real bypasses in this repository specifically — it already uses `extends`,
-YAML anchors and aliases, `!reference`, hidden jobs, and top-level variables,
-so a gate's effective behaviour can change with no hunk intersecting the
-registered block. The review also caught that the fallback I named was worse
-than useless: registering only validator crates and hooks would have left
-**B's own motivating change** — a gate job in `.gitlab-ci.yml` — mechanically
-uncovered. A fallback that fails to cover the plan's own case is not a
-fallback. Job-range classification may return later as advisory output; it
-does not carry blocking authority here.
-
-**Blocking authority is narrow and mechanical**, per
-`agf/rules/always/tool-authority-boundary-rule.md` (which requires a named
-rule to grant any check blocking authority — A1 grants this one):
-
-- **May block:** a diff touching a registered gate surface with no
-  accompanying change to any declared test path.
-- **Stays human judgment:** whether the test is a genuine negative test.
-
-This is honestly a **proxy, not proof**. A determined author can write an
-empty test. What it removes is the *silent* single-line path: the bypass now
-requires deliberately authoring a fake test, which is visible in review and
-is a materially higher bar than a one-liner nobody looks at.
-
-**Scope risk, addressed rather than accepted.** `.gitlab-ci.yml` changes are
-frequent and mostly not gate-related; blocking all of them on a test-path
-touch would invite routing around. Extracting the gate logic to a registered
-script resolves this without a fragile mapping: routine CI edits touch no
-registered surface, and the gate's logic is fully covered wherever it lives.
-
-Per A1 — and per `gate-self-test-rule.md` applied to itself — C ships with
-its own negative tests.
+**The honest cost of splitting, stated rather than buried.** A without C is
+prose-enforced discipline, which is precisely what
+`gate-self-test-rule.md` opens by arguing against: "process discipline alone
+is at-will and breaks under speed." Shipping A alone therefore leaves the
+governor's original concern — that a gate change could be slipped through as
+a one-file fix — addressed by rule but not by mechanism. That gap is real
+until C lands, and C is tracked as a named successor plan rather than an
+aspiration.
 
 ## Review disposition — `phe4` (independent Gate 1 review, Codex host)
 
@@ -283,6 +261,29 @@ the third instance this session of the failure recorded in learning
 `20260829T192500Z-4vn8`. The class was "every place this command shape is
 published", not "every place it runs".
 
+## Review disposition — `j1ht` (exact-head re-review, Codex host)
+
+Third consecutive BLOCK, four findings. Two are resolved here; two travel with
+slice C to its own plan, which is the governor's scope decision.
+
+| Finding | Disposition |
+|---|---|
+| **GCD-R1** implementation boundary incomplete | **Travels with C.** The missing `agov/src/main.rs` dispatch, `agov-validators/src/lib.rs` export, release-manifest entry, and the live-registry-versus-shipped-template boundary are all C's. The one part belonging here — B's shell negative-test path — is now acceptance criterion 9 and named in the manifest. |
+| **GCD-R2** invocation presence does not protect execution | **Upheld; the overclaim is withdrawn here and the design question travels with C.** The claim that the gate was "fully covered wherever it lives" was wrong: a job can keep the invocation string while neutralised by `rules: when: never`, `allow_failure: true`, an earlier `exit 0`, or inherited configuration. Acceptance criterion 10 now forbids any text in this plan or its shipped output from asserting a mechanical check proves a gate executes. |
+| **GCD-R3** retirement and self-check semantics incoherent | **Split.** The retirement state machine travels with C. The part that was this document's own error — a front-matter infosec rationale asserting the check "cannot be satisfied by an empty or absent test", contradicting C's stated proxy limit, with stale criteria references after renumbering — is corrected in the front matter above. |
+| **GCD-R4** B2's pattern still masks diff failures | **Upheld and materially widened.** See B3. The finding is correct, and following it into foundry's own configuration shows `.gitlab-ci.yml:866-871` shares the shape while running at `GIT_DEPTH` 20. B now ships a fail-closed contract rather than copying foundry's defective pattern. |
+
+The advisory projection-lifecycle reading is accepted: omitting not-yet-existing
+non-owner paths is correct at Gate 1, and `validation_drift_evidence` is
+rephrased below as prospective.
+
+**GCD-R2 is the finding I flagged against myself.** The `gh77` re-review
+request named this as the weakest point of the redesign and asked whether the
+invocation assertion closed the bypass or merely relocated it. It relocated
+it. Recording that the prediction was right does not make the design right —
+the plan still shipped the overclaim in its prose, and a reviewer had to
+remove it.
+
 ## Rule-projection screen
 
 Per `agf/rules/workflow/documentation-rule-projection-rule.md`. Structured
@@ -294,8 +295,8 @@ evidence: `docs/reviews/rule-projection/gate-change-discipline.yaml`.
 | Adopter explanation | **updated** — `agf/docs/site/docs/concepts/roles-and-gates.md:95` states fast-track eligibility to adopters as "no shared interface, data model, or security boundary change, no claim conflict". It carries the identical gap as the rule and must gain gate mechanics, or the page contradicts A2. Also `agf/docs/site/docs/adopt/tooling-and-tokens.md` and `agf/docs/site/docs/advanced/contracts-and-validators.md`, whose CI sketches ship both defects corrected in B2 |
 | Runbook / situation map | **updated** — `agf/docs/site/docs/operate/day-to-day.md:88` is the checklist line where an operator actually chooses fast track. A pointer is insufficient at the surface where the wrong decision gets made; it gains one short clause, not copied rule text |
 | AI landing / loaders | **updated** — `.claude/rules/` projections of both rules; `AGENTS.md` and `.claude/CLAUDE.md` need no change (`CLAUDE.md` is a pointer via `@../AGENTS.md`, and the rules load directly) |
-| Validation / drift evidence | **implemented** — C is the mechanical check; its limits are stated above rather than overclaimed |
-| Distribution | both rules ship in `agf/rules/`; the two corrected adopter pages ship under `agf/docs/site/`; `agf/gates.yaml` and its schema ship under `agf/`; the checker ships with the Rust tooling — all named in the manifest |
+| Validation / drift evidence | **advisory only** — this plan ships no mechanical check. B's corrections are covered by their own negative tests; mechanical gate-change enforcement is slice C's, in its own plan |
+| Distribution | both rules ship in `agf/rules/`; all four corrected Pages surfaces ship under `agf/docs/site/`. No registry, schema, or checker is claimed here — those travel with slice C, and `j1ht` GCD-R1 correctly noted `agf/dist/release-manifest.yaml` would not ship a root `agf/gates.yaml` anyway |
 
 ## Acceptance criteria
 
@@ -314,44 +315,39 @@ evidence: `docs/reviews/rule-projection/gate-change-discipline.yaml`.
 6. All four adopter CI sketches in B2 are corrected for **both** defects, and
    the GitLab sketches fail closed when no base resolves. A transcript shows
    the corrected sketch rejecting an unresolvable base rather than exiting 0.
-7. C blocks a merge request that changes a registered gate surface and no
-   declared test path, demonstrated on a known-bad input.
-8. C does **not** block a gate change accompanied by a test-path change, and
-   does not block a non-gate `.gitlab-ci.yml` change, both demonstrated.
-9. Negative fixtures required by GCD-3, each demonstrated failing: gate
-   deregistration from `agf/gates.yaml`; registered job rename; registered job
-   deletion; checker mutation; and a diff satisfying the test-accompaniment
-   assertion with an **unrelated** test-path touch — the last recorded as a
-   demonstration of the proxy's known limit, not as a pass.
-10. `agov gate change-check` rejects a registry entry whose declared surface,
-    test, or invocation path does not resolve.
+7. The fail-closed changed-file contract is applied identically to the
+   extracted foundry script and all four adopter sketches, and a transcript
+   demonstrates each of its four failure modes exiting non-zero: empty target
+   variable, fetch failure, missing merge base, and `git diff` failure.
+8. A shallow/diverged-history fixture — not only an empty-variable transcript
+   — demonstrates the contract failing closed where the current pattern
+   reports success, per `j1ht` GCD-R4.
+9. B's shell negative tests live at a named path recorded in the projection
+   manifest, and run in CI rather than only locally.
+10. No claim anywhere in the shipped rule, plan, or adopter text asserts that
+    a mechanical check proves a gate *executes*; that claim is deferred with
+    slice C.
 11. The projection manifest exists and `agov plan projection-check` passes
     without `--allow-planned` at Gate 2.
 12. MR !2206 re-runs green and the governor-ordered revert merges.
 
 ## Risks and rollback
 
-**Over-blocking.** C's registry could catch routine CI edits. Resolved by
-extracting gate logic to a registered script so routine `.gitlab-ci.yml`
-edits touch no registered surface.
+**Prose-only enforcement.** A is a rule change with no mechanism behind it
+until slice C ships separately. This is the split's real cost and is stated in
+the split section rather than left implied.
 
-**Proxy weakness.** C cannot tell a real negative test from an empty one, and
-acceptance criterion 9's last fixture demonstrates exactly that limit rather
-than hiding it. Stated in the rule text itself so no reader mistakes the
-check for proof.
+**Fix correctness.** A wrong fail-closed contract shipped to adopters is worse
+than the defect it replaces, since it would be copied into their pipelines.
+Acceptance criteria 7 and 8 require each failure mode demonstrated
+individually, including a shallow/diverged-history fixture rather than only an
+empty-variable transcript.
 
-**Bootstrapping.** This plan changes gates, so A1 applies to A1. B and C ship
-with negative tests; A1 and A2 are rule-text changes with no mechanism to
-self-test, and their proof is C's demonstrations.
-
-**Rollback — corrected after GCD-3.** The first draft said C could be rolled
-back by "removing entries from the registry — no code change". That
-contradicted A1 inside the same plan: under A1 a registry removal *is* a gate
-modification, and assertion 3 now blocks silent removal outright. Rollback of
-any slice follows the same Gate 1 and negative-test discipline as any other
-gate change — retiring a registry entry requires an explicit `retired:`
-marker with a reason, not a deletion. A and B revert cleanly as ordinary
-changes under that same discipline.
+**Rollback.** A and B revert as ordinary changes, under the same Gate 1 and
+negative-test discipline A itself establishes — a revert of a gate change is
+still a gate change. The registry-rollback contradiction `j1ht` GCD-R3
+identified travels with slice C to its own plan, where the retirement state
+machine is defined rather than asserted.
 
 ## Out of scope
 
