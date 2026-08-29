@@ -1,0 +1,126 @@
+# Six-surface projection evidence for the gate-change-discipline plan
+# (docs/plans/20260829T211252Z-gate-change-discipline.md), per
+# agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# The governed change: gate mechanics become ineligible for the general
+# fast-track waiver, and modifying a gate -- not only introducing one --
+# carries a negative-test obligation. Both extend existing rules rather than
+# adding a new owner.
+
+plan_id: gate-change-discipline
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/roles-and-gates.md
+  - agf/docs/site/docs/operate/day-to-day.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    paths:
+      - agf/rules/always/gate-self-test-rule.md
+      - agf/rules/workflow/simplicity-rule.md
+    reason: >-
+      Two existing owners are extended; no new rule is created, per the
+      standing preference for extending over adding ceremony.
+      gate-self-test-rule.md:12 currently fires only on "introducing a new
+      gate", so modifying an existing gate carries no negative-test
+      obligation -- the trigger widens to introduction OR modification, and
+      the same rule grants the slice-C check its blocking authority as
+      required by tool-authority-boundary-rule.md.
+      simplicity-rule.md:191's general fast-track waiver lists ineligibility
+      as "PII, security boundaries, architecture, data model changes", with
+      gate mechanics absent; it gains them, aligning it with the disqualifier
+      list the same rule already applies to its narrow research fast path.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/roles-and-gates.md
+    reason: >-
+      Line 95 states fast-track eligibility to adopters in its own words --
+      "small, low-risk work (<=3 files, no shared interface, data model, or
+      security boundary change, no claim conflict)". That list carries the
+      identical gap as simplicity-rule.md:191: gate mechanics are absent.
+      Leaving it unchanged would leave the adopter-facing page contradicting
+      the rule it explains, which is the exact drift
+      documentation-rule-projection-rule.md exists to catch. The page gains
+      gate mechanics in that list and points at the rule rather than
+      restating its body.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      Line 88 is the session checklist item where an operator actually
+      chooses between fast track and the full gate path. "Existing pointer
+      sufficient" was considered and rejected: this is the surface at which
+      the wrong decision gets made, so a pointer elsewhere does not reach the
+      reader in time. It gains one short clause naming gate mechanics as
+      never fast-track eligible, not a copy of the rule text.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - .claude/rules/always/gate-self-test-rule.md
+      - .claude/rules/workflow/simplicity-rule.md
+    reason: >-
+      Both foundry-local loader projections mirror their canonical owners in
+      agf/rules/ and are updated in step, so an assistant reading the
+      .claude/rules/ corpus sees the same obligation as a reader of the
+      canonical rule.
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          AGENTS.md already routes rule authority to agf/rules/ and states
+          the tool-authority boundary generally; it names no fast-track
+          eligibility list of its own, so there is nothing here to drift out
+          of sync and nothing to project.
+      - path: .claude/CLAUDE.md
+        reason: >-
+          This file exists but contains only "@../AGENTS.md" -- it is a
+          pointer, not a content surface. It inherits any AGENTS.md change
+          automatically and holds no independent statement to update.
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          The shipped adopter template routes rule authority the same way and
+          states no fast-track eligibility list of its own. The adopter-facing
+          statement of eligibility lives in the Pages explanation row above,
+          which is updated.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      Slice C is the mechanical check: a declared gate registry names
+      gate-mechanics paths and, for .gitlab-ci.yml, the named gate jobs; the
+      check blocks a merge request that changes a registered gate surface and
+      changes no declared test path. Blocking authority is granted by
+      gate-self-test-rule.md per tool-authority-boundary-rule.md, and is
+      deliberately narrow -- it may block only the objectively decidable
+      omission (gate surface changed, no test path changed). Whether a test
+      is a genuine negative test stays human judgment, mirroring this rule's
+      own mechanical/human split.
+
+      Stated as a limit rather than overclaimed: the check is a proxy, not
+      proof. An author can write an empty test and pass it. What it removes
+      is the silent single-line path -- the bypass now requires deliberately
+      authoring a fake test, which is visible in review. Per
+      gate-self-test-rule.md applied to itself, slice C ships with its own
+      negative tests, including a demonstration that it does NOT block a gate
+      change accompanied by a test, nor a non-gate .gitlab-ci.yml change.
+
+      Slices A1 and A2 are rule-text changes with no mechanism to self-test;
+      their proof is slice C's demonstrations plus slice B's negative tests.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/rules/always/gate-self-test-rule.md
+      - agf/rules/workflow/simplicity-rule.md
+      - agf/docs/site/docs/concepts/roles-and-gates.md
+      - agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      Both canonical rules and both Pages surfaces live under agf/ and ship
+      in the AGF distribution artifact, so an adopter receives the rule and
+      its explanation together. The gate registry and the slice-C check ship
+      with the Rust tooling under tooling/rust/. The .claude/rules/
+      projections are foundry-local by design and are not claimed as shipped
+      adopter content.
