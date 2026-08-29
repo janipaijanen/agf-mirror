@@ -619,12 +619,13 @@ agov-oci-image:selftest:
         # Containerfile-only change matched no job's path scope at all and
         # produced an empty, failed MR pipeline (MR !2174). Per
         # ci-trigger-scoping-rule.md's "when in doubt, include the path".
-        # NOTE: this selftest validates target resolution only -- it does
-        # not build or scan the image. Pre-tag CVE coverage for the
-        # Containerfile remains a known gap: agov:oci:release, which runs
-        # the Trivy scan, is `if: $CI_COMMIT_TAG` only, so a container CVE
-        # can still only surface after the tag is immutable. That is what
-        # burned v2.7.0-rc.1. Tracked separately for the v2.9.0 CI cluster.
+        # NOTE: this selftest validates target resolution and the OCI
+        # reference contract; it does not build or scan the image.
+        # Pre-tag CVE coverage is now provided by agov:oci:mr-build-scan
+        # below (v2.9.0 A1). Before that job existed, agov:oci:release --
+        # the only job running Trivy -- was `if: $CI_COMMIT_TAG` only, so a
+        # container CVE could surface only after the tag was immutable.
+        # That is what burned v2.7.0-rc.1.
         - tooling/rust/Containerfile.agov
         - .gitlab-ci.yml
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
@@ -636,6 +637,71 @@ agov-oci-image:selftest:
     - if: $CI_COMMIT_BRANCH
       changes: *agov_oci_image_selftest_paths
     - if: $CI_COMMIT_TAG
+
+# v2.9.0 A1: pre-tag container CVE coverage.
+#
+# Until this job existed, agov:oci:release was the only job that built and
+# Trivy-scanned the image, and it is `if: $CI_COMMIT_TAG` only -- so a
+# container CVE could only surface AFTER the tag was immutable. That is
+# exactly how v2.7.0-rc.1 burned: the tag published, the scan then failed on
+# CVE-2026-14456 (HIGH, libcrypto3/libssl3 3.5.7-r0, fixed 3.5.8-r0), and
+# release:create/release:verify were skipped, leaving a tag with no Release,
+# package, or image.
+#
+# Cost contract (h3nb sections 1.2-1.3, binding): this job REUSES the
+# rust:tooling:preview archive and must never build Rust a second time.
+# Measured on v2.8.0's own pipelines: the tag job agov:oci:release ran
+# 53.276s; rust:tooling:preview ran 491.072s and already triggers on this
+# path set. Reuse therefore adds ~1 minute to an already-running path,
+# where a second archive build would add ~8 and duplicate paid work --
+# material after CI quota exhaustion halted a release on 2026-08-28.
+# If the scan alone exceeds two minutes on a representative MR, stop and
+# investigate before widening.
+#
+# Namespace safety (h3nb section 1.4): this job calls build-unpublished and
+# scan-unpublished, which tag localhost/agov-unpublished:$VERSION. There is
+# no code path here that can name, reach, push to, or overwrite a release
+# namespace, and no registry credential is required or used.
+agov:oci:mr-build-scan:
+  image: quay.io/podman/stable:v5.6.0
+  stage: test
+  interruptible: true
+  variables:
+    STORAGE_DRIVER: vfs
+    BUILDAH_FORMAT: oci
+  needs:
+    - job: rust:tooling:preview
+      artifacts: true
+  script:
+    - export AGOV_VERSION="$(cat agf/VERSION)"
+    - tooling/rust/scripts/agov-oci-image.sh build-unpublished
+    - tooling/rust/scripts/agov-oci-image.sh scan-unpublished
+  rules:
+    # Complete image-affecting input set, per h3nb section 1.1. An
+    # incomplete anchor is the defect this job exists to fix -- 045e514c
+    # already showed a missing anchor silently produces no coverage.
+    # ci-trigger-scoping-rule.md: when in doubt, include the path.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &agov_oci_mr_scan_paths
+        - .gitlab-ci.yml
+        - agf/VERSION
+        - tooling/rust/Containerfile.agov
+        - tooling/rust/scripts/agov-oci-image.sh
+        - tooling/rust/release-targets.txt
+        - tooling/rust/Cargo.lock
+        - tooling/rust/**/Cargo.toml
+        - tooling/rust/crates/**/src/**
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *agov_oci_mr_scan_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *agov_oci_mr_scan_paths
+    # Deliberately no `if: $CI_COMMIT_TAG` rule: the tag pipeline already
+    # runs agov:oci:release, which builds and scans the same image with the
+    # same Trivy invocation. Adding one here would duplicate paid work.
 
 # Assemble the real preview artifacts from both producers and run the same
 # pre-OCI contract check used by the tag pipeline. This is the pre-tag proof
@@ -1281,12 +1347,22 @@ rust:tooling:preview:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
+        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
+        # here, a VERSION-only change would trigger that job while leaving
+        # its dependency unbuilt.
+        - agf/VERSION
         - agf/docs/site/docs/operate/poll-and-coordinate.md
         - examples/claude/.mcp.json
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
+        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
+        # here, a VERSION-only change would trigger that job while leaving
+        # its dependency unbuilt.
+        - agf/VERSION
         - agf/docs/site/docs/operate/poll-and-coordinate.md
         - examples/claude/.mcp.json
 
@@ -1308,6 +1384,11 @@ rust:tooling:preview:windows-package:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
+        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
+        # here, a VERSION-only change would trigger that job while leaving
+        # its dependency unbuilt.
+        - agf/VERSION
         - agf/docs/site/docs/operate/poll-and-coordinate.md
         - examples/claude/.mcp.json
       when: manual
@@ -1316,6 +1397,11 @@ rust:tooling:preview:windows-package:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
+        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
+        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
+        # here, a VERSION-only change would trigger that job while leaving
+        # its dependency unbuilt.
+        - agf/VERSION
         - agf/docs/site/docs/operate/poll-and-coordinate.md
         - examples/claude/.mcp.json
       when: manual
