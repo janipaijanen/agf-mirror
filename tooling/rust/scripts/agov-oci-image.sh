@@ -9,6 +9,8 @@ Usage:
   agov-oci-image.sh scan
   agov-oci-image.sh push
   agov-oci-image.sh provenance
+  agov-oci-image.sh image-ref
+  agov-oci-image.sh verify-ref <reference>
   agov-oci-image.sh selftest
 
 Environment:
@@ -161,11 +163,56 @@ EOF
     failed=1
   fi
 
+  # A2 negative proofs. These assert that a wrong OCI reference FAILS, so
+  # the gate is demonstrated to fire without the canonical acceptance
+  # pipeline going red (gate-self-test-rule.md; h3nb section 1.5).
+  ref_env='CI_REGISTRY_IMAGE=registry.example.com/group/project AGOV_VERSION=9.9.9'
+  canonical='registry.example.com/group/project/agov:9.9.9'
+
+  ok_output=$(env $ref_env "$0" verify-ref "$canonical" 2>&1 || true)
+  if ! env $ref_env "$0" verify-ref "$canonical" >/dev/null 2>&1; then
+    echo "verify-ref rejected the canonical reference: $ok_output" >&2
+    failed=1
+  fi
+
+  # The exact v2.8.0 defect: a leading `v` on the tag component.
+  bad_v='registry.example.com/group/project/agov:v9.9.9'
+  bad_v_output=$(env $ref_env "$0" verify-ref "$bad_v" 2>&1 || true)
+  if env $ref_env "$0" verify-ref "$bad_v" >/dev/null 2>&1 ||
+     ! printf '%s\n' "$bad_v_output" | grep -qF 'OCI reference mismatch'; then
+    echo "v-prefixed reference was not rejected (the v2.8.0 defect)" >&2
+    failed=1
+  fi
+
+  # A different repository component must also be rejected.
+  bad_repo='registry.example.com/group/project/agov-cli:9.9.9'
+  bad_repo_output=$(env $ref_env "$0" verify-ref "$bad_repo" 2>&1 || true)
+  if env $ref_env "$0" verify-ref "$bad_repo" >/dev/null 2>&1 ||
+     ! printf '%s\n' "$bad_repo_output" | grep -qF 'OCI reference mismatch'; then
+    echo "mismatched repository component was not rejected" >&2
+    failed=1
+  fi
+
+  # A missing environment must fail loudly rather than emit `/agov:`.
+  empty_output=$(env -u CI_REGISTRY_IMAGE AGOV_VERSION=9.9.9 "$0" image-ref 2>&1 || true)
+  if env -u CI_REGISTRY_IMAGE AGOV_VERSION=9.9.9 "$0" image-ref >/dev/null 2>&1 ||
+     ! printf '%s\n' "$empty_output" | grep -qF 'missing required environment variable: CI_REGISTRY_IMAGE'; then
+    echo "image-ref did not fail on missing CI_REGISTRY_IMAGE" >&2
+    failed=1
+  fi
+
+  # image-ref and verify-ref must agree, or the single-source claim is false.
+  emitted=$(env $ref_env "$0" image-ref)
+  if [ "$emitted" != "$canonical" ]; then
+    echo "image-ref emitted '$emitted', expected '$canonical'" >&2
+    failed=1
+  fi
+
   if [ "$failed" -ne 0 ]; then
     echo "selftest FAILED" >&2
     return 1
   fi
-  echo "selftest OK: canonical targets resolve; Windows, unknown, and malformed inputs are rejected"
+  echo "selftest OK: canonical targets resolve; Windows, unknown, and malformed inputs are rejected; OCI reference is single-sourced and mismatched spellings are rejected"
 }
 
 require_env() {
@@ -187,8 +234,61 @@ check_tag() {
   fi
 }
 
+# The single source of truth for the published OCI reference. Every path
+# that builds, scans, pushes, or *checks* the image must derive its name
+# from here rather than composing one independently.
+#
+# v2.8.0 shipped with exactly that divergence: the immediately-pre-tag
+# namespace absence check queried `v2.8.0` while this function publishes
+# `agov:$AGOV_VERSION` (no `v`). The correct namespace was therefore never
+# checked for absence, and because OCI tags are mutable a successful push
+# is not retrospective proof it was free. Disclosed in `q5mm`, accepted as
+# a process-evidence gap in `gs18`, and closed here by making the checked
+# name and the published name the same derivation.
+# Deliberately pure: no require_env here. Every caller invokes this inside
+# a command substitution, where `exit` from require_env would terminate only
+# the subshell and yield an empty reference to the parent -- silently
+# producing `/agov:` instead of failing. Callers validate the environment in
+# their own scope before substituting; see print_image_ref and verify_ref.
 image_ref() {
   printf '%s/agov:%s' "$CI_REGISTRY_IMAGE" "$AGOV_VERSION"
+}
+
+# Validate the environment in the caller's own scope, then emit the single
+# published reference. This is what the release runbook's pre-tag namespace
+# check consumes, so the name it queries for absence is by construction the
+# name publication will use.
+print_image_ref() {
+  require_env CI_REGISTRY_IMAGE
+  require_env AGOV_VERSION
+  image_ref
+  printf '\n'
+}
+
+# Operator-facing guard for the pre-tag namespace check. The runbook passes
+# whatever reference it is about to query; anything not byte-identical to
+# image_ref() is rejected.
+#
+# v2.8.0 shipped with exactly that divergence: the pre-tag absence check
+# queried `v2.8.0` while publication used `agov:$AGOV_VERSION` (no `v`), so
+# the correct namespace was never checked for absence. Because OCI tags are
+# mutable, a successful push is not retrospective proof the name was free.
+# Disclosed in `q5mm`, accepted as a process-evidence gap in `gs18`.
+verify_ref() {
+  require_env CI_REGISTRY_IMAGE
+  require_env AGOV_VERSION
+  candidate=${1:-}
+  if [ -z "$candidate" ]; then
+    echo "verify-ref requires the candidate reference as its argument" >&2
+    return 2
+  fi
+  expected=$(image_ref)
+  if [ "$candidate" != "$expected" ]; then
+    printf 'OCI reference mismatch: checked %s but publication uses %s\n' \
+      "$candidate" "$expected" >&2
+    return 1
+  fi
+  printf 'OCI reference OK: %s\n' "$expected"
 }
 
 podman_bin() {
@@ -318,6 +418,13 @@ case "${1:-}" in
     ;;
   provenance)
     provenance_record
+    ;;
+  image-ref)
+    print_image_ref
+    ;;
+  verify-ref)
+    shift
+    verify_ref "${1:-}"
     ;;
   selftest)
     selftest
