@@ -4315,6 +4315,18 @@ learnings:
       the meta-test -- without it, the meta-test can pass while the path it
       claims to exercise never runs.
 
+      The regress terminates here, and the reason is structural rather than a
+      matter of adding one more layer. Pair each mutation assertion with a
+      POSITIVE invocation of the same helper, in the same suite run. A broken
+      or always-failing helper makes its mutation assertion appear to pass,
+      but it simultaneously fails the paired positive assertion and raises the
+      suite's failure count, so it cannot leave the suite green. A helper that
+      always passes fails the mutation assertion. No state of a single helper
+      satisfies both, which is why the pair needs no meta-test of its own --
+      and why the answer is a pairing rather than another level of nesting.
+      This argument was supplied by the independent reviewer, not the author,
+      on the sixth round.
+
       Verify the controls in both directions: run the suite with the
       dependency broken and confirm the previously-passing assertions now
       fail. Here, breaking schema discovery moved the result from 21 passed /
