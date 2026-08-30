@@ -94,8 +94,17 @@ change, and nothing skips between them.
 plan, not code. Redirection here costs minutes; the same redirection
 after implementation costs the implementation. Gate 1 is waived by the
 fast track for small, low-risk work (≤3 files, no shared interface, data
-model, or security boundary change, no claim conflict) — the waiver is
-recorded, not silent.
+model, or security boundary change, no gate-mechanics change, no claim
+conflict) — the waiver is recorded, not silent.
+
+**Gate mechanics never take the fast track**, whatever the diff size. A
+change to a gate, schema, validator, CI check, merge policy, or release
+policy takes the full path, and — per the gate self-test rule — carries a
+negative test proving the gate still fires after the change, not only when
+it was first introduced. The reason is that at diff level a weakening and a
+fix look the same; the surviving negative test is the only thing that tells
+them apart. See `rules/workflow/simplicity-rule.md` and
+`rules/always/gate-self-test-rule.md` for the governing text.
 
 **Gate 2 — review before merge.** After implementation, before the merge
 request lands. Evidence-based: tests green, checklist run, diff scoped to

@@ -139,9 +139,12 @@ surfaces:
       and the earlier revision's "fully covered wherever it lives" wording is
       withdrawn.
 
-      Named paths for B's fail-closed contract and its negative tests, added
-      after review 8mar finding GDAB-2, which correctly caught that the plan
-      claimed these were "named in the manifest" when no path existed here:
+      Implemented at Gate 2. All three paths below now exist and the suite
+      runs in CI job `governance:changed-files:selftest` rather than only
+      locally, per gate-self-test-rule.md's reviewer-visible-transcript
+      requirement. Named originally after review 8mar finding GDAB-2, which
+      correctly caught that the plan claimed these were "named in the
+      manifest" when no path existed here:
 
         .gitlab/scripts/changed-files.sh
           the shared helper implementing the four-step contract -- resolve and
@@ -160,12 +163,175 @@ surfaces:
           fetch failure, missing merge base, and git diff failure -- plus the
           shallow/diverged-history case, constructed as review at74 constructed
           it (target and feature each 40 commits past a common base, cloned at
-          --depth 20, target fetched, common base absent).
+          --depth 20, target fetched, common base absent). Also carries a
+          valid coordination record and a valid plan, which the comparison
+          base needs in order for a modification to register as M rather
+          than A.
+
+      Two blocking findings from exact-head Gate 2 review 13rh are closed
+      here, both of the same class -- a green test reaching the intended
+      verdict for an unintended reason:
+
+        GCD-G2-1: the claimed MODIFY assertion was an ADD over its own
+        comparison range. The test branched from the base, added the record,
+        then edited it, and set the base to the branch point -- so Git
+        classified the net change as A. The corrected test puts valid
+        governed files in the BASE and breaks them on the candidate branch,
+        and an assert_status helper now proves what Git actually reports
+        over the range BEFORE any validator result is accepted. Both
+        coordination and plan modification are exercised, so the claim that
+        both validators still fire is direct rather than inferred from
+        shared helper wiring.
+
+        GCD-G2-2: the append-only guard used --diff-filter=D, which is blind
+        to rename-and-rewrite -- Git reports R, the deletion list comes back
+        empty, and a validly-shaped destination passes coord validate while
+        the original record is gone. cf_deleted_files now disables rename
+        detection so a rename decomposes into D(old) + A(new). Applied
+        identically to all four adopter sketches. --diff-filter=DR was
+        considered and rejected: an R entry emits both source and
+        destination into the NUL stream, which would hand the surviving
+        destination to the consumer as though it had been deleted.
+        Test section 9 asserts the range really reports R, reproduces the
+        old query returning empty, and proves the new one surfaces the
+        vanished path.
+
+        GCD-G2-3 (review 2shr): the required CI self-test lost schema
+        context. Validators discover schemas by walking up to an AGF root,
+        and this suite deliberately runs them inside throwaway repositories
+        that have none. The tooling/agov wrapper exports AGOV_SCHEMA_DIR
+        itself, so the documented local run passed while the CI job -- which
+        invokes the built binary directly -- failed. The suite now exports
+        AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}".
+
+        That instance fix is not the important half. Investigating it showed
+        the suite's own rejection assertions could not tell "the validator
+        rejected the content" from "the validator could not run": both exit
+        non-zero, so check_nonzero reported success either way. The suite
+        written to catch green-looking wrong evidence was itself green for
+        the wrong reason, in CI, at the previous head, and that CI transcript
+        was offered as Gate 2 evidence. Two class-level controls close it:
+
+          check_rejects  requires the failure to carry the SPECIFIC
+                         governed-content finding the fixture provokes
+                         (e.g. '#/kind: "not-a-real-kind"'). Positive
+                         evidence, not a blocklist -- see GCD-G2-4 below
+                         for why the first version of this control was
+                         itself an instance of the pattern.
+
+          a canary       proves the configured validator ACCEPTS two
+                         known-good files from a throwaway directory before
+                         any rejection assertion is trusted.
+
+        Demonstrated both directions: with schema context the suite reports
+        24 passed / 0 failed; with AGOV_SCHEMA_DIR deliberately broken it
+        reports 17 passed / 7 failed, where the same conditions previously
+        reported 21 passed / 1 failed. The four newly-failing assertions are
+        exactly the ones that used to pass while the validator was not
+        running.
+
+        GCD-G2-4 (review hna4): the class-level control claimed above was
+        itself a fourth instance. check_rejects originally inferred "content
+        was rejected" from a non-zero exit unless the output matched one of
+        three blocklisted infrastructure-error strings. Every assertion it
+        guards is a COMPOSITE command -- derive the changed-file feed, then
+        run the validator -- so a FEEDER failure exits non-zero before the
+        validator runs, matches none of those strings, and was reported as a
+        successful content rejection. Reproduced independently against the
+        previous implementation: VERDICT=PASS_AS_CONTENT_REJECTION.
+
+        Adding more strings would only relocate the blind spot, because the
+        set of ways a composite command can fail early is open. The control
+        is now positive: it passes only when the command exits non-zero AND
+        its output contains the specific schema finding that fixture must
+        provoke. No infrastructure failure can forge that string, since only
+        the validator emits it and only for that content.
+
+        Section 10 makes the control's own behavior reviewer-visible rather
+        than asserted in prose: it confirms the broken-feeder command really
+        does exit non-zero before reaching the validator, proves
+        check_rejects REFUSES it, and proves check_rejects still ACCEPTS a
+        genuine content rejection -- so the control is correct rather than
+        merely strict. Suite: 27 assertions.
+
+        GCD-G2-5 (review gme3): section 10 -- the meta-test of the control
+        that closed GCD-G2-4 -- was itself a fifth instance. It stored the
+        broken-feeder command as a STRING and ran it through eval, then
+        inferred both of its conclusions from bare non-zero exits. A missing
+        or malformed command produced the same non-zero result as the
+        intended feeder failure, so both meta-assertions passed while the
+        feeder path never ran. Reproduced independently against the previous
+        implementation with `command-that-does-not-exist`:
+        mutant_result=2_passed_0_failed.
+
+        Section 10 is rebuilt on the same principle the production control
+        already uses. The fixtures are real shell functions invoked directly,
+        not strings through eval, with subshell bodies so their cd does not
+        leak. The shape assertion requires the output to carry the specific
+        feeder diagnostic ("changed-files: git diff failed for base
+        'does-not-resolve'"). The refusal assertion requires the control to
+        refuse AND its captured output to show that feeder diagnostic while
+        LACKING the schema finding -- refused for the intended reason, not
+        merely refused. Two mutation assertions then prove a missing command
+        cannot satisfy either. Suite: 29 assertions.
+
+        The advisory question raised in zc4m is answered by gme3 and recorded
+        here: coupling the assertions to agov's exact diagnostic wording is an
+        acceptable trade, because the failure direction is closed, the CLI
+        exposes no structured validation result, and a pointer-plus-invalid-
+        value fragment is far more specific than a generic ERR marker. A
+        deliberate wording change must update these fixtures in the same
+        commit.
+
+      One advisory finding is also closed: a CI comment cited
+      agf/rules/always/coordination-message-rule.md, which does not exist
+      under agf/rules/ (only as a foundry-local .claude/rules/ projection).
+      The reference is removed; the runtime diagnostic already named the
+      correct authority.
 
       at74 verified that shallow case empirically against a constructed
       repository and against real runner evidence (job 16065719319 shows
       "git depth set to 20"), so the fixture reproduces a demonstrated
       condition rather than an invented one.
+
+      Three implementation decisions go beyond the plan's literal text and
+      are recorded here for the Gate 2 reviewer to accept or reject rather
+      than left to be discovered in the diff:
+
+        1. `GIT_DEPTH: "0"` is set on `agov:governance:validate`. The plan
+           requires the contract to fail closed on a missing merge base. On
+           the inherited default depth of 20 that would convert a latent
+           silent pass into a live block the first time a branch ran long --
+           a correct gate firing for an operational reason rather than a
+           governance one. Full depth is what keeps the fail-closed error
+           meaning "something is wrong" instead of "this branch got long".
+
+        2. The merge-base check fails closed for EVERY candidate, not only
+           coordination-titled ones. The existing skip-open branch for
+           non-coordination commits with no resolvable base is preserved
+           unchanged, because it is a separate governed decision; but once a
+           base HAS resolved, an absent merge base means the range cannot be
+           compared at all, and that is exactly the case that used to pass
+           silently.
+
+        3. A new CI job, `governance:changed-files:selftest`, runs the
+           negative suite. It is path-scoped per ci-trigger-scoping-rule.md
+           to the contract, its tests and fixtures, `.gitlab-ci.yml`, and
+           the validator crate -- `.gitlab-ci.yml` deliberately included,
+           because a change to the job consuming the contract must re-prove
+           the contract still fires.
+
+      Class searched for further copies of the defective command shape:
+      every place the `git diff ... | xargs -0r <validator>` shape is
+      PUBLISHED or EXECUTED -- not only where it runs, which was the scoping
+      error phe4 caught. Searched `*.md`, `*.yml`, `*.yaml`, `*.sh`, `*.rs`
+      across the tree, plus `.git-hooks/` (absent) and `.gitlab/scripts/`.
+      Found and corrected: one live CI job and four shipped adopter
+      sketches. Found and deliberately NOT changed: occurrences inside
+      historical plans and immutable coordination records, which describe
+      past state and are not executed or shipped. Treat this scoping claim
+      as unverified until a reviewer checks it -- two class claims from this
+      session have already been wrong.
 
   distribution:
     disposition: updated
