@@ -5,6 +5,38 @@ distribution.
 
 ## [Unreleased]
 
+**Adopter docs: not applicable.** The changes below are foundry CI plumbing
+for building and verifying AGF's own release container image.
+`tooling/rust/scripts/agov-oci-image.sh` is not part of any adopter
+distribution — it does not appear in the framework or tooling archive
+contents — and no adopter-facing interface, rule, schema, or template
+changes. Adopters receive a container image that is now CVE-scanned before
+the tag exists rather than after it, which is a strictly better artifact
+with no action required of them.
+
+### Added
+
+- Pre-tag container CVE coverage. `agov:oci:mr-build-scan` builds and
+  Trivy-scans the release image at merge-request stage, reusing the existing
+  `rust:tooling:preview` archive. Previously `agov:oci:release` was the only
+  job that built and scanned the image and ran on tags only, so a container
+  CVE could surface only after the tag was immutable — which is how
+  `v2.7.0-rc.1` was burned.
+- `agov-oci-image.sh image-ref`, `unpublished-ref`, and `verify-ref
+  <reference>` expose and check the single published OCI reference, so a
+  pre-tag namespace check cannot query a different name than publication
+  uses.
+
+### Changed
+
+- `agov-oci-image.sh` build and scan bodies are parameterised by image
+  reference. The published path keeps its tag guard; the new unpublished
+  path tags `localhost/agov-unpublished:$VERSION`, which is not a registry
+  namespace, so no merge-request-stage path can name, reach, or overwrite a
+  release namespace, and no registry credential is required.
+- `agf/VERSION` added to `rust:tooling:preview`'s trigger paths: it names the
+  produced archive that the new scan job consumes.
+
 ## [2.8.0] — 2026-08-28
 
 **Minor release.** Ships the complete current `main` line through

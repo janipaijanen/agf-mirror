@@ -1,12 +1,14 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
-# Gate Self-Test on Introduction
+# Gate Self-Test on Introduction or Modification
 #
 # Framework principle: Process discipline + environment enforcement = governance.
 # Process discipline alone is at-will and breaks under speed.
 # See: docs/position/index.md (Process vs enforcement)
 
-When introducing a new gate — git hook, validator, CI check, pre-commit script, MR-blocking rule, anything that's supposed to *prevent* a known failure mode — the same MR MUST include a deliberate negative test demonstrating that the gate fires on a known-bad input.
+When introducing **or modifying** a gate — git hook, validator, CI check, pre-commit script, MR-blocking rule, anything that's supposed to *prevent* a known failure mode — the same MR MUST include a deliberate negative test demonstrating that the gate fires on a known-bad input. For a modification, the test must demonstrate the gate still fires **after** the change, on the known-bad input the gate exists to catch.
+
+Gate mechanics are never eligible for the fast-track waiver. See [`workflow/simplicity-rule.md`](../workflow/simplicity-rule.md).
 
 ## Why this rule exists
 
@@ -22,13 +24,21 @@ All three are the same shape: gate ships, nobody negative-tests it, the gate doe
 
 ## The rule
 
-When this MR introduces a new gate, the MR MUST also include:
+When this MR introduces or modifies a gate, the MR MUST also include:
 
 1. **A negative test** — an explicit demonstration that the gate fires on a known-bad input. The test produces visible failure (error message, exit code, blocking output) and is reproducible.
 2. **Documentation of the negative test** in the MR description. State what bad input was used, what the gate did with it, what the expected output was, what the actual output was.
 3. **Verification the test ran** — pipeline log, command transcript, or screenshot. "I tested locally" is insufficient; the artifact must be visible to a reviewer.
 
-The rule fires at MR-introduction time, not at adoption time. The gate either gates on day one with proof, or it doesn't ship.
+The rule fires at MR time — introduction or modification — not at adoption time. The gate either gates with proof, or it doesn't ship.
+
+### Why modification is covered, not only introduction
+
+At diff level a weakening and a fix are indistinguishable. Both are small, both are plausible, both are described in the commit message as a correction. A reviewer reading the diff alone has nothing to separate them.
+
+The surviving negative test is the only thing that does. A genuine fix leaves the gate firing on its known-bad input; a weakening does not. Requiring the test to be re-demonstrated after the change is what makes the difference visible at review time rather than at the next incident.
+
+This is not hypothetical. A one-line `--diff-filter` change to this project's own `agov:governance:validate` job was proposed as a fast-track bug fix and would have been legitimate under the rule as previously written — a gate change, waived past Gate 1, merged with no record that a gate had changed at all. The governor rejected it and asked for the guardrail. This paragraph is that guardrail's reasoning.
 
 ## Concrete examples
 
@@ -87,6 +97,8 @@ $ echo $?  # commit was refused
 - **"I tested it locally" without artifact** — the failure must be reproducible from the MR description. A reviewer who clones the branch should be able to re-run the negative test.
 - **A passing-only test** — "I tested it on a good input and it passed" is not a negative test. The gate's *job* is to block bad inputs; that's what must be demonstrated.
 - **Deferring the negative test to a follow-up MR** — gates ship with proof or don't ship. The framework's release pattern produced three "ship-broken-then-patch" incidents (v0.25.x, v0.38.0, v0.41.x); this rule exists to break that pattern.
+- **Reusing the gate's original negative test unchanged as proof for a modification** — a transcript from before the change proves nothing about the gate after it. The test must be re-run against the modified gate and its result shown.
+- **Treating a gate change as a fast-track bug fix** — gate mechanics are ineligible for the fast-track waiver regardless of diff size, per `workflow/simplicity-rule.md`. A revert of a gate change is still a gate change.
 
 ## CUSTOMIZE
 
@@ -99,14 +111,15 @@ Adopters MAY:
 Adopters MUST NOT:
 
 - Skip the rule for "small" gates. Small gates fail the same way (v0.41.0's hook script was 12 lines).
+- Skip the rule for a one-line modification to an existing gate. That is the case the modification trigger exists for.
 
 ## Enforcement
 
 Per-MR: the contributor includes the negative test in the MR description; the reviewer verifies the test transcript before approving.
 
-Per-milestone: framework operators audit recent gate-introduction MRs; any that landed without a negative test are flagged and the gate is re-verified post-hoc.
+Per-milestone: framework operators audit recent MRs that introduce or modify a gate; any that landed without a negative test are flagged and the gate is re-verified post-hoc.
 
-Tooling (recommended, future): a CI check that scans MR descriptions for a `## Negative test` heading or similar marker, blocking merge if absent on MRs that touch known gate-introduction paths (`.git-hooks/`, `src/agents_govern/validate_*`, `.gitlab-ci.yml` rules blocks). Out of scope for the rule's introduction; track as a follow-up issue if adopted.
+Tooling (recommended, future): a CI check that scans MR descriptions for a `## Negative test` heading or similar marker, blocking merge if absent on MRs that touch known gate paths (`.git-hooks/`, `src/agents_govern/validate_*`, `.gitlab-ci.yml` rules blocks). Out of scope for the rule's introduction; track as a follow-up issue if adopted.
 
 ## Why MUST on three-source evidence
 

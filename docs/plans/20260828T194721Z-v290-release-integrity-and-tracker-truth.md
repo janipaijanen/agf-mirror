@@ -2,7 +2,7 @@
 id: v290-release-integrity-and-tracker-truth
 status: approved
 gate1_approved_by: governor-reviewer
-gate1_approved_at: "2026-08-29T17:06:49Z"
+gate1_approved_at: 2026-08-30T08:36:08Z
 topic: v290-release-integrity-and-tracker-truth
 advisory_consultation:
   - role: coder-tester
@@ -14,10 +14,14 @@ advisory_consultation:
       recommendation BLOCK, four blocking findings and one advisory.
       Both Slice-A CI premises were independently re-derived and
       confirmed at `origin/main` `475e91d7`. This revision resolves all
-      four findings; see "Response to review 58kk" below. Continuing the
-      practice used throughout the v2.7.0/v2.8.0 cycle, where five
-      consecutive independent reviews each found real defects in
-      self-authored release artifacts — this was the fifth.
+      four findings; see "Response to review 58kk" below. A second
+      bounded review of the resulting implementation
+      (`20260829T184713Z-coder-tester-ngje.md`, MR !2198 head
+      `01b3268c`) returned BLOCK with three further findings, all upheld
+      in `rm3k` and addressed by this resubmission. That was the sixth
+      consecutive independent review in the v2.7.0-v2.9.0 cycle to find
+      real defects in a self-authored artifact; a third review of the
+      corrected head is expected before Gate 2.
   - role: contribution-auditor
     status: waived
     reason: >-
@@ -45,17 +49,33 @@ advisory_consultation:
 
 # Plan: v2.9.0 — release integrity and tracker truth
 
-## Decision requested — APPROVED
+## Gate 1 decision — approved
 
-Binding Gate 1 approval granted by governor-reviewer at
-2026-08-29T17:06:49Z, recorded in
-`docs/coordination/20260829T170649Z-governor-reviewer-h3nb.md`, against
-exact head `05c9d07981d88627d0b9a46148d1d7358b0c4ffb`. Approved scope is
-**A1 and A2 only**, with A3 as their shared negative-test obligation, and
-the terminal-disposition table below as the governing disposition for
-everything else. The five implementation conditions in `h3nb` §1 are
-binding, including: if A1 or A2 grows during implementation, stop and
-return to Gate 1 rather than absorbing it.
+Binding governor-reviewer decision `20260830T083608Z-governor-reviewer-k1r2`
+approves Gate 1 for this plan at exact source head
+`80eaae90d2f36bbcf7c94506c0268e637beb5d48`, adopting the `8mar` CLEAR
+recommendation after `rjmb` confirmed canonical pipeline `2802531361`
+succeeded at that head.
+
+The decision does not approve implementation, Gate 2, a release, tag, or
+deployment, and does not decide MRs !2214 or !2222. Metadata is recorded in
+this plan's front matter in the same cycle as the approval, per AGENTS.md.
+
+## Decision requested (superseded by the approval above) — RESUBMITTED
+
+A prior binding Gate 1 approval was granted at 2026-08-29T17:06:49Z
+(`h3nb`) against head `05c9d079`. It was **consumed and returned** by
+governor decision `rm3k` after independent review `ngje` blocked the
+implementation; see the resubmission section below. This document is
+`pending-gate1` and carries no current approval.
+
+Requested scope is unchanged: **A1 and A2 only**, with A3 as their shared
+negative-test obligation, and the terminal-disposition table below
+governing everything else. `h3nb` §1's five implementation conditions
+remain the intended terms and are re-requested here, including its stop
+condition: if A1 or A2 grows during implementation, stop and return to
+Gate 1 rather than absorbing it. That condition is what routed B1 back
+here rather than allowing a silent widening, so it is working as intended.
 
 Authorize implementation of **A1 and A2 only** as the committed v2.9.0
 work order. Nothing else in this document is proposed for v2.9.0; every
@@ -72,6 +92,49 @@ Requested per the roadmap direction the governor approved in
 "tracker truth and release cost". That framing survives, narrowed: the
 release-cost half ships now; the tracker-truth half is dispositioned
 below rather than committed.
+
+## Gate 1 resubmission after review `ngje`
+
+This plan was approved once (`h3nb`, 2026-08-29T17:06:49Z) and is
+resubmitted. Independent review `20260829T184713Z-coder-tester-ngje`
+blocked MR !2198 at exact head `01b3268c` with three findings, all upheld
+by governor decision `20260829T202453Z-governor-reviewer-rm3k`:
+
+| Finding | Disposition |
+|---|---|
+| **B1** A1 trigger is not the complete image-input graph | Upheld. Closing it widens both the job's anchor and its producer's, so `h3nb`'s stop condition applied and A1 returns here. Addressed by the derived closure in A1 below. |
+| **B2** A2 was optional detection, with no binding amendment permitting it | Upheld. A2 is amended by `rm3k`, recorded in A2 below. |
+| **B3** the `agf/CHANGELOG.md` third path was self-authorized | Upheld. The change is approved; the process nonconformance is recorded in `rm3k` and needs nothing from this plan. |
+
+## Response to review k5dq (second Gate 1 review, Codex host)
+
+Independent review `20260829T204615Z-coder-tester-k5dq` returned **BLOCK** on
+head `4a5d42ec` with one material finding. It is upheld and the anchor is
+re-derived.
+
+| Finding | Disposition |
+|---|---|
+| **B1 (k5dq)** the proposed authority does not govern the canonical packaged binary | **Upheld, derivation replaced.** The review downloaded the real cross-built artifact and proved `source_fingerprint` is `"unknown"` on the canonical packaging path, so the fingerprint script cannot govern the anchor. The anchor is re-derived from the shipped artifact and the CVE gate's purpose, as option (a): a safe over-approximation with `agf/VERSION` as the mandatory pre-release checkpoint. Option (b), byte identity, is unattainable by any path anchor because every commit changes image bytes through the embedded SHA. |
+| Internal contradiction on `agov-mcp/build.rs` | Corrected. Neither `build.rs` is cited as a reason for any path; both are covered by `tooling/rust/**/*` regardless. |
+| Producer anchor stated ambiguously | Corrected. Both final anchors are stated literally in a table in A1, including `agf/VERSION` and the fact that MR !2198 already added it. |
+
+The review confirmed the two candidate-path rejections, the
+producer/consumer invariant, the A2 amendment (**CLEAR**), artifact reuse,
+the scan budget, the unpublished `localhost` namespace, and the no-push
+separation. Those are unchanged.
+
+**What this cost, recorded rather than smoothed over.** The first submission
+enumerated and missed five paths. The second derived — better method — but
+from an unverified premise, and shipped three trigger paths that would each
+have fired a roughly ten-minute packaging job for no CVE-coverage reason. The
+corrected anchor is **three patterns**, fewer than either previous attempt,
+and requires no producer change beyond the `agf/VERSION` addition MR !2198
+already made.
+
+`status` returns to `pending-gate1` for the whole plan rather than only
+A1, because one document carries one status and A2's acceptance criterion
+also changed. A1's implementation from MR !2198 is otherwise unaffected and
+is not discarded.
 
 ## Response to review 58kk
 
@@ -113,23 +176,96 @@ Release, package, or image.
 
 Deliver an MR-stage build-and-scan job. Three contracts bind it.
 
-**Path anchor — complete, not "at minimum".** The trigger must cover every
-input that can change image content:
+**Path anchor — re-derived after review `k5dq` disproved the previous premise.**
+
+The first submission enumerated eight paths and called them complete;
+review `ngje` found five omissions, recorded as learning
+`20260829T192500Z-4vn8`. The second submission replaced enumeration with a
+derivation from `agov-source-fingerprint.sh`. Independent review `k5dq`
+disproved that derivation **empirically**: it downloaded the canonical
+`rust:tooling:preview` artifact for MR !2198's reviewed head from pipeline
+`2802237900`, job `16185523532`, ran the packaged binary, and got
+
+```json
+{"version":"2.8.0","commit":"01b3268c...","source_fingerprint":"unknown"}
+```
+
+`Cross.toml:12-17` passes only `AGOV_BUILD_COMMIT`, `AGOV_BUILD_DIRTY` and
+`AGOV_BUILD_SOURCE_DIRTY` into `cross build`, and the cross container has no
+Git checkout, so `agov/build.rs:41-46` falls back to `"unknown"`. **The
+fingerprint never reaches the packaged binary**, so it cannot govern what
+changes it.
+
+The failure shape is worth naming: the second submission derived from the
+mechanism's *source* without checking that the mechanism *operates on the
+canonical packaging path*. That is the same shape as the retracted `r3ad`
+diagnosis. The correction is to derive from the shipped artifact and from
+the gate's actual purpose.
+
+**Which closure this anchor is.** `k5dq` names two definitions and warns
+against mixing them. Byte identity is unattainable by any path anchor: the
+packaged binary embeds `AGOV_BUILD_COMMIT=$CI_COMMIT_SHA` — proven by its own
+output above — and `Containerfile.agov:18-23` embeds the same SHA as
+`org.opencontainers.image.revision`, so **every** commit changes image bytes.
+This plan therefore adopts **(a): a safe over-approximation of CVE-relevant
+tracked inputs**, with `agf/VERSION` as the mandatory pre-release checkpoint.
+
+**What is CVE-relevant.** The scan's subject is the image: its base layer and
+the dependency set compiled into the binary. That surface is changed by the
+base image pin (`Containerfile.agov`), the dependency graph (`Cargo.lock` and
+every `Cargo.toml`), the toolchain pin (which lives in `.gitlab-ci.yml`; no
+`rust-toolchain.toml` exists in this workspace), and the job definition.
+
+Resulting anchor — three patterns:
 
 ```
 .gitlab-ci.yml
 agf/VERSION
-tooling/rust/Containerfile.agov
-tooling/rust/scripts/agov-oci-image.sh
-tooling/rust/release-targets.txt
-tooling/rust/Cargo.lock
-tooling/rust/**/Cargo.toml          # every workspace manifest
-tooling/rust/crates/**/src/**       # sources producing the embedded binary
+tooling/rust/**/*
 ```
 
-An incomplete anchor is the defect this item exists to fix; `045e514c`
-already demonstrated that a missing anchor silently produces no coverage.
-Per `ci-trigger-scoping-rule.md`, when in doubt the path is included.
+- `.gitlab-ci.yml` — the job itself, the Rust image pin, the packaging
+  topology.
+- `agf/VERSION` — the mandatory pre-release checkpoint `k5dq` requires, so the
+  scan runs before a release even when nothing else changed.
+- `tooling/rust/**/*` — the safe over-approximation. It already contains
+  `Containerfile.agov`, `Cargo.lock`, every `Cargo.toml`, the OCI script,
+  `release-targets.txt`, and all crate sources. Narrowing it to the dependency
+  files alone would assert a *tighter* claim than the evidence supports, and
+  `ci-trigger-scoping-rule.md` says to include when in doubt.
+
+**Three paths are dropped, and this is a deliberate narrowing.**
+`agf/schemas/**`, `agf/agents/MANIFEST.yaml` and `tooling/agov` entered the
+previous anchor **solely** through the disproven fingerprint premise. None
+expresses a dependency, base image, or toolchain, so none is CVE-relevant.
+Retaining them would fire the roughly ten-minute canonical packaging job plus
+the scan on a premise the artifact disproves — the specific waste `k5dq`
+identified.
+
+**Producer/consumer reconciliation, stated literally.** On `origin/main`,
+`rust:tooling:preview` triggers on `tooling/rust/**/*`, `.gitlab-ci.yml`, and
+two documentation paths (`.gitlab-ci.yml:1281-1285`). It does **not** trigger
+on `agf/VERSION`. MR !2198 has already added `agf/VERSION` to it. With the
+corrected three-pattern anchor that is the **only** producer change required:
+the previous anchor's three external paths are gone, so no further widening is
+needed in either job. Final state of both anchors, so a reviewer checks the
+pair rather than one side:
+
+| Job | Anchor after this change |
+|---|---|
+| consumer `agov:oci:mr-build-scan` | `.gitlab-ci.yml`, `agf/VERSION`, `tooling/rust/**/*` |
+| producer `rust:tooling:preview` | `tooling/rust/**/*`, `.gitlab-ci.yml`, `agf/VERSION`, plus its two existing documentation paths |
+
+**Two claims deliberately not made, and one contradiction corrected.**
+`crates/agov/tests/validate.rs` embeds `agf/schemas/learning.schema.json` via
+`include_str!`, but it is test-only and does not change the shipped binary;
+`crates/agov-mcp/build.rs` does not build the `agov` binary the image copies.
+`k5dq` confirms both judgments. Both files sit inside `tooling/rust/**/*` and
+are covered by the anchor regardless, so neither is cited as the *reason* for
+any path. This also removes the internal contradiction `k5dq` flagged, where
+the previous derivation's step 2 claimed both `build.rs` files affect the
+`agov` binary while a later paragraph correctly rejected that for
+`agov-mcp/build.rs`.
 
 **Artifact reuse is binding, not preferred.** The job MUST consume the
 existing `rust:tooling:preview` archive rather than compile a second copy.
@@ -164,8 +300,28 @@ namespace check queried `v2.8.0` while `image_ref()` publishes
 namespace was never checked for absence, and OCI tags are mutable, so the
 push is not retrospective proof. Disclosed in `q5mm`, accepted in `gs18`.
 
-Derive the checked name and the published name from one source so the
-divergence is impossible rather than merely detected.
+**Amended by governor decision `rm3k` (2026-08-29).** The original wording
+required deriving both names from one source *so the divergence is
+impossible*. For v2.9.0 that is amended to: derive the published reference
+from one source and make a divergent reference mechanically **detectable
+and rejectable**, with adoption of that check by the release path tracked
+separately.
+
+The reason, found while implementing: the pre-tag namespace check is
+operator-run, and
+`agf/rules/workflow/release-via-merge-request-rule.md` requires it **only**
+inside the maintenance-line and frozen-scope exceptions. Its `## What the
+MR MUST verify` checklist (lines 60–72), which governs the standard
+workflow every release now uses, contains no namespace item at all — so
+v2.8.0's botched check was one no rule required on its path, and there is
+currently no standard-path check for a name to diverge *from*. Making
+divergence impossible there means first creating that obligation, which is
+a new normative requirement triggering
+`documentation-rule-projection-rule.md`'s six-row screen. That is issue
+#120's work and its own Gate 1, not an absorbable amendment.
+
+Within this amendment, A2 still derives the checked and published names
+from a single source.
 
 **A3. Negative-test proof shape (applies to both A1 and A2).**
 `always/gate-self-test-rule.md` requires a demonstration that each gate
@@ -339,8 +495,12 @@ for deferred items move with them to their own plans.
 3. Both negative-test transcripts are reviewer-visible and were produced
    without leaving the canonical exact-head acceptance pipeline red, per
    A3(a)–(d).
-4. The A1 path anchor covers every input enumerated in A1, verified by
-   inspection of the merged `.gitlab-ci.yml`.
+4. Both job anchors match the two-row table in A1 **literally** — consumer
+   `.gitlab-ci.yml`, `agf/VERSION`, `tooling/rust/**/*`; producer those three
+   plus its two existing documentation paths — so no input can start the scan
+   job with its dependency unbuilt, and the three paths dropped after `k5dq`
+   are absent from both. Verified by inspection of the merged
+   `.gitlab-ci.yml`, both job rules read together.
 5. The A1 job consumes the `rust:tooling:preview` archive; no second Rust
    package build exists in the MR path.
 6. Measured incremental MR runner time is recorded in the Gate 2 evidence
@@ -348,8 +508,9 @@ for deferred items move with them to their own plans.
    explained before merge.
 7. The MR build-and-scan path performs no push to any release namespace,
    verified by inspection of the separated script paths.
-8. The checked and published OCI references derive from one source; the
-   divergence is impossible by construction, not merely detected.
+8. The checked and published OCI references derive from one source, and a
+   divergent reference is rejected with a clear diagnostic — per the `rm3k`
+   amendment, detectable-and-rejectable rather than impossible.
 9. No governed rule is weakened. Every check added is additive.
 
 ## Risks

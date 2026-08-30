@@ -6,9 +6,14 @@ usage() {
 Usage:
   agov-oci-image.sh check-tag
   agov-oci-image.sh build
+  agov-oci-image.sh build-unpublished
   agov-oci-image.sh scan
+  agov-oci-image.sh scan-unpublished
   agov-oci-image.sh push
   agov-oci-image.sh provenance
+  agov-oci-image.sh image-ref
+  agov-oci-image.sh unpublished-ref
+  agov-oci-image.sh verify-ref <reference>
   agov-oci-image.sh selftest
 
 Environment:
@@ -161,11 +166,94 @@ EOF
     failed=1
   fi
 
+  # A2 negative proofs. These assert that a wrong OCI reference FAILS, so
+  # the gate is demonstrated to fire without the canonical acceptance
+  # pipeline going red (gate-self-test-rule.md; h3nb section 1.5).
+  ref_env='CI_REGISTRY_IMAGE=registry.example.com/group/project AGOV_VERSION=9.9.9'
+  canonical='registry.example.com/group/project/agov:9.9.9'
+
+  ok_output=$(env $ref_env "$0" verify-ref "$canonical" 2>&1 || true)
+  if ! env $ref_env "$0" verify-ref "$canonical" >/dev/null 2>&1; then
+    echo "verify-ref rejected the canonical reference: $ok_output" >&2
+    failed=1
+  fi
+
+  # The exact v2.8.0 defect: a leading `v` on the tag component.
+  bad_v='registry.example.com/group/project/agov:v9.9.9'
+  bad_v_output=$(env $ref_env "$0" verify-ref "$bad_v" 2>&1 || true)
+  if env $ref_env "$0" verify-ref "$bad_v" >/dev/null 2>&1 ||
+     ! printf '%s\n' "$bad_v_output" | grep -qF 'OCI reference mismatch'; then
+    echo "v-prefixed reference was not rejected (the v2.8.0 defect)" >&2
+    failed=1
+  fi
+
+  # A different repository component must also be rejected.
+  bad_repo='registry.example.com/group/project/agov-cli:9.9.9'
+  bad_repo_output=$(env $ref_env "$0" verify-ref "$bad_repo" 2>&1 || true)
+  if env $ref_env "$0" verify-ref "$bad_repo" >/dev/null 2>&1 ||
+     ! printf '%s\n' "$bad_repo_output" | grep -qF 'OCI reference mismatch'; then
+    echo "mismatched repository component was not rejected" >&2
+    failed=1
+  fi
+
+  # A missing environment must fail loudly rather than emit `/agov:`.
+  empty_output=$(env -u CI_REGISTRY_IMAGE AGOV_VERSION=9.9.9 "$0" image-ref 2>&1 || true)
+  if env -u CI_REGISTRY_IMAGE AGOV_VERSION=9.9.9 "$0" image-ref >/dev/null 2>&1 ||
+     ! printf '%s\n' "$empty_output" | grep -qF 'missing required environment variable: CI_REGISTRY_IMAGE'; then
+    echo "image-ref did not fail on missing CI_REGISTRY_IMAGE" >&2
+    failed=1
+  fi
+
+  # image-ref and verify-ref must agree, or the single-source claim is false.
+  emitted=$(env $ref_env "$0" image-ref)
+  if [ "$emitted" != "$canonical" ]; then
+    echo "image-ref emitted '$emitted', expected '$canonical'" >&2
+    failed=1
+  fi
+
+  # A1 structural proofs. The MR-stage path must be usable without a tag,
+  # must not require a registry namespace, and must not be able to name one;
+  # the published path's tag guard must remain intact. All assert on error
+  # text, so none of them needs podman or a built archive.
+  mr_env='AGOV_VERSION=9.9.9 CI_COMMIT_SHA=deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+
+  # build-unpublished must get PAST the tag gate: it fails on the absent
+  # archive, not on a missing CI_COMMIT_TAG.
+  unpub_output=$(env -u CI_COMMIT_TAG -u CI_REGISTRY_IMAGE $mr_env "$0" build-unpublished 2>&1 || true)
+  if ! printf '%s\n' "$unpub_output" | grep -qF 'missing release archive'; then
+    echo "build-unpublished did not reach the archive stage: $unpub_output" >&2
+    failed=1
+  fi
+  if printf '%s\n' "$unpub_output" | grep -qE 'CI_COMMIT_TAG|CI_REGISTRY_IMAGE'; then
+    echo "build-unpublished still demands tag or registry environment" >&2
+    failed=1
+  fi
+
+  # The published path must still refuse to build without a tag.
+  pub_output=$(env -u CI_COMMIT_TAG $ref_env CI_COMMIT_SHA=deadbeef "$0" build 2>&1 || true)
+  if env -u CI_COMMIT_TAG $ref_env CI_COMMIT_SHA=deadbeef "$0" build >/dev/null 2>&1 ||
+     ! printf '%s\n' "$pub_output" | grep -qF 'missing required environment variable: CI_COMMIT_TAG'; then
+    echo "published build path lost its tag guard" >&2
+    failed=1
+  fi
+
+  # The unpublished reference must be local-only and must never collide with
+  # a registry namespace (h3nb section 1.4, enforced structurally).
+  unpub_ref=$(env -u CI_REGISTRY_IMAGE AGOV_VERSION=9.9.9 "$0" unpublished-ref)
+  case "$unpub_ref" in
+    localhost/*) ;;
+    *) echo "unpublished reference is not localhost-scoped: $unpub_ref" >&2; failed=1 ;;
+  esac
+  if [ "$unpub_ref" = "$canonical" ]; then
+    echo "unpublished reference collides with the published reference" >&2
+    failed=1
+  fi
+
   if [ "$failed" -ne 0 ]; then
     echo "selftest FAILED" >&2
     return 1
   fi
-  echo "selftest OK: canonical targets resolve; Windows, unknown, and malformed inputs are rejected"
+  echo "selftest OK: canonical targets resolve; Windows, unknown, and malformed inputs are rejected; OCI reference is single-sourced and mismatched spellings are rejected"
 }
 
 require_env() {
@@ -187,18 +275,89 @@ check_tag() {
   fi
 }
 
+# The single source of truth for the published OCI reference. Every path
+# that builds, scans, pushes, or *checks* the image must derive its name
+# from here rather than composing one independently.
+#
+# v2.8.0 shipped with exactly that divergence: the immediately-pre-tag
+# namespace absence check queried `v2.8.0` while this function publishes
+# `agov:$AGOV_VERSION` (no `v`). The correct namespace was therefore never
+# checked for absence, and because OCI tags are mutable a successful push
+# is not retrospective proof it was free. Disclosed in `q5mm`, accepted as
+# a process-evidence gap in `gs18`, and closed here by making the checked
+# name and the published name the same derivation.
+# Deliberately pure: no require_env here. Every caller invokes this inside
+# a command substitution, where `exit` from require_env would terminate only
+# the subshell and yield an empty reference to the parent -- silently
+# producing `/agov:` instead of failing. Callers validate the environment in
+# their own scope before substituting; see print_image_ref and verify_ref.
 image_ref() {
   printf '%s/agov:%s' "$CI_REGISTRY_IMAGE" "$AGOV_VERSION"
+}
+
+# Validate the environment in the caller's own scope, then emit the single
+# published reference. This is what the release runbook's pre-tag namespace
+# check consumes, so the name it queries for absence is by construction the
+# name publication will use.
+print_image_ref() {
+  require_env CI_REGISTRY_IMAGE
+  require_env AGOV_VERSION
+  image_ref
+  printf '\n'
+}
+
+# The unpublished counterpart, exposed so the selftest asserts against the
+# real derivation rather than a restatement of it.
+print_unpublished_ref() {
+  require_env AGOV_VERSION
+  local_image_ref
+  printf '\n'
+}
+
+# Operator-facing guard for the pre-tag namespace check. The runbook passes
+# whatever reference it is about to query; anything not byte-identical to
+# image_ref() is rejected.
+#
+# v2.8.0 shipped with exactly that divergence: the pre-tag absence check
+# queried `v2.8.0` while publication used `agov:$AGOV_VERSION` (no `v`), so
+# the correct namespace was never checked for absence. Because OCI tags are
+# mutable, a successful push is not retrospective proof the name was free.
+# Disclosed in `q5mm`, accepted as a process-evidence gap in `gs18`.
+verify_ref() {
+  require_env CI_REGISTRY_IMAGE
+  require_env AGOV_VERSION
+  candidate=${1:-}
+  if [ -z "$candidate" ]; then
+    echo "verify-ref requires the candidate reference as its argument" >&2
+    return 2
+  fi
+  expected=$(image_ref)
+  if [ "$candidate" != "$expected" ]; then
+    printf 'OCI reference mismatch: checked %s but publication uses %s\n' \
+      "$candidate" "$expected" >&2
+    return 1
+  fi
+  printf 'OCI reference OK: %s\n' "$expected"
 }
 
 podman_bin() {
   printf '%s' "${PODMAN:-podman}"
 }
 
-build_image() {
-  check_tag
+# Local-only reference for the unpublished MR-stage path. The `localhost/`
+# prefix is not a registry namespace, so no MR-stage code path can name,
+# reach, or overwrite a release namespace even if invoked wrongly. This is
+# h3nb section 1.4 enforced structurally rather than by convention.
+local_image_ref() {
+  printf 'localhost/agov-unpublished:%s' "$AGOV_VERSION"
+}
+
+# Shared build body. Takes the target reference so the published and
+# unpublished paths cannot drift apart, for the same single-source reason
+# A2 exists.
+build_with_ref() {
+  build_ref=$1
   require_env CI_COMMIT_SHA
-  require_env CI_REGISTRY_IMAGE
 
   target=${AGOV_TARGET:-x86_64-unknown-linux-musl}
   slug=$(target_slug "$target")
@@ -217,18 +376,40 @@ build_image() {
     --file tooling/rust/Containerfile.agov \
     --build-arg "AGOV_VERSION=$AGOV_VERSION" \
     --build-arg "AGOV_REVISION=$CI_COMMIT_SHA" \
-    --tag "$(image_ref)" \
+    --tag "$build_ref" \
     "$staging"
 }
 
-scan_image() {
+# Published path: tag-gated, unchanged in behavior.
+build_image() {
+  check_tag
   require_env CI_REGISTRY_IMAGE
   require_env AGOV_VERSION
+  build_with_ref "$(image_ref)"
+}
+
+# Unpublished MR-stage path (A1). No check_tag: CI_COMMIT_TAG does not exist
+# in a merge-request pipeline, which is exactly why the release path was not
+# reusable here -- the advisory finding in review 58kk. CI_REGISTRY_IMAGE is
+# deliberately not required: this path must not need, and must not be able to
+# use, a registry namespace.
+build_unpublished() {
+  require_env AGOV_VERSION
+  build_with_ref "$(local_image_ref)"
+}
+
+# Shared scan body, parameterised by reference for the same reason as
+# build_with_ref: the MR-stage gate and the tag-stage gate must be the
+# identical Trivy invocation, or the MR gate proves nothing about the
+# release. Same image, same severities, same --ignore-unfixed, same
+# digest-pinned scanner, same --exit-code 1.
+scan_with_ref() {
+  scan_ref=$1
   image_archive=$(mktemp)
   trap 'rm -f "$image_archive"' EXIT INT TERM
   # docker-archive, not oci-archive: Trivy 0.66's --input path cannot open
   # an oci-archive tar as either a Docker image or an OCI directory.
-  "$(podman_bin)" save --format docker-archive --output "$image_archive" "$(image_ref)"
+  "$(podman_bin)" save --format docker-archive --output "$image_archive" "$scan_ref"
   # Fully qualified + digest-pinned: an unqualified "aquasec/trivy:0.66.0"
   # is rejected by Podman in this environment, and a tag alone is mutable.
   # No trailing image-ref argument: with --input, Trivy scans the archive
@@ -242,6 +423,17 @@ scan_image() {
     --severity HIGH,CRITICAL \
     --ignore-unfixed \
     --exit-code 1
+}
+
+scan_image() {
+  require_env CI_REGISTRY_IMAGE
+  require_env AGOV_VERSION
+  scan_with_ref "$(image_ref)"
+}
+
+scan_unpublished() {
+  require_env AGOV_VERSION
+  scan_with_ref "$(local_image_ref)"
 }
 
 digest_file() {
@@ -310,14 +502,30 @@ case "${1:-}" in
   build)
     build_image
     ;;
+  build-unpublished)
+    build_unpublished
+    ;;
   scan)
     scan_image
+    ;;
+  scan-unpublished)
+    scan_unpublished
     ;;
   push)
     push_image
     ;;
   provenance)
     provenance_record
+    ;;
+  image-ref)
+    print_image_ref
+    ;;
+  unpublished-ref)
+    print_unpublished_ref
+    ;;
+  verify-ref)
+    shift
+    verify_ref "${1:-}"
     ;;
   selftest)
     selftest

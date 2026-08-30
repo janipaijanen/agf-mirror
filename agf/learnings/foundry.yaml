@@ -4018,6 +4018,175 @@ learnings:
         - "AGENTS.md and docs/reviews/rule-projection/assistant-discovery-archive-setup.yaml: required live freshness marker and structured projection evidence."
 
 
+  - id: 20260829T192500Z-4vn8
+    date: '2026-08-29'
+    category: process
+    scope: framework
+    title: single-instance-fix-without-class-generalization-left-input-graph-incomplete
+    status: proposed
+    description: >-
+      While implementing v2.9.0 A1 (an MR-stage OCI build-and-scan job),
+      coder-tester enumerated the paths that can change the container image
+      and, during implementation, found that `agf/VERSION` was in the new
+      job's trigger anchor but absent from its producer
+      `rust:tooling:preview`. A VERSION-only change would have started the
+      scan job with its `needs` dependency unbuilt. The gap was fixed and
+      recorded prominently in the commit and merge request as "one
+      dependency bug found and fixed".
+
+
+      The fix was correct and the disclosure was complete. The failure was
+      that finding one instance of the class did not trigger a search for
+      the class. The implementer did not then ask the general question the
+      instance implied: what else determines the bytes of the binary
+      embedded in this image, and does its producer trigger on those
+      inputs too?
+
+
+      Independent review `20260829T184713Z-coder-tester-ngje` answered that
+      question in minutes and found five further omissions:
+      `tooling/rust/crates/agov/build.rs` (outside both
+      `tooling/rust/**/Cargo.toml` and `tooling/rust/crates/**/src/**`),
+      two `tooling/rust/crates/agov/schemas/*.json` files embedded via
+      `include_str!`, and -- through `build.rs` invoking
+      `tooling/rust/scripts/agov-source-fingerprint.sh`, which hashes
+      `tooling/agov`, `tooling/rust`, `agf/schemas` and
+      `agf/agents/MANIFEST.yaml` into `AGOV_SOURCE_FINGERPRINT` -- three
+      further tracked inputs outside the anchor. `rust:tooling:preview`
+      triggers on none of the last three either, so widening the consumer
+      alone would have reproduced the exact `needs` defect that had just
+      been fixed once.
+
+
+      Prominent disclosure of a single fix can make a class-level gap look
+      handled. The commit message and merge request both drew a reviewer's
+      eye to the one instance that had been closed, which is honest but is
+      not the same as coverage. The reviewer nevertheless found the class,
+      which is why the independent review is the control that caught this
+      rather than self-review.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: workflow/ci-trigger-scoping-rule.md
+    business_impact:
+      type: prevented_loss
+      description: >-
+        A path anchor that misses image-affecting inputs silently provides
+        no CVE coverage for changes routed through those paths, which is
+        the exact defect the work item existed to close -- pre-tag
+        container CVE coverage, after `v2.7.0-rc.1` was burned by a CVE
+        that could only surface once the tag was immutable. An incomplete
+        anchor is worse than a visibly absent gate, because it reads as
+        coverage. The independent review caught this before merge, so the
+        loss was prevented rather than realised.
+    recommendation: >-
+      When a defect of the form "input X affects artifact Y but does not
+      trigger Y's producer or consumer" is found, do not fix the instance
+      and continue. Enumerate the complete input closure of the artifact
+      first -- for a compiled binary this means build scripts, embedded
+      assets referenced by macros such as `include_str!`, and any
+      fingerprint or codegen script together with every path that script
+      reads -- then reconcile producer and consumer triggers against that
+      closure as one change. State the closure and its derivation in the
+      merge request so a reviewer checks the class rather than the
+      instance. `ci-trigger-scoping-rule.md`'s existing "when in doubt,
+      include the path" guidance is necessary but insufficient: it governs
+      a path already under consideration, and says nothing about how to
+      discover the paths not yet considered.
+    severity: major
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - 'docs/coordination/20260829T184713Z-coder-tester-ngje.md: independent review finding B1, enumerating five omitted image-affecting inputs at exact head 01b3268c.'
+        - 'tooling/rust/crates/agov/build.rs and tooling/rust/scripts/agov-source-fingerprint.sh: build.rs invokes the fingerprint script, which hashes tooling/agov, tooling/rust, agf/schemas and agf/agents/MANIFEST.yaml into the compiled binary.'
+        - '.gitlab-ci.yml at merge request !2198 head: the A1 anchor and rust:tooling:preview trigger set, neither covering those inputs.'
+
+  - id: 20260830T085245Z-p2xk
+    date: '2026-08-30'
+    category: process
+    scope: framework
+    title: design-change-left-stale-prospective-instructions-in-projection-manifest
+    status: proposed
+    description: >-
+      Across three consecutive review rounds on two Gate 1 plans, the same
+      failure recurred: a design element was removed or renamed in the plan
+      prose, and the corresponding rule-projection manifest was updated only
+      in the row that motivated the change, leaving other rows still
+      describing the removed design. Each occurrence was caught by
+      independent review, never by the author or by `agov plan
+      projection-check`, which validates manifest shape and path resolution
+      but cannot detect a semantically stale row.
+
+
+      Occurrence 1 (`8mar` GDAB-1): slice C was split into its own plan; the
+      parent manifest's `paths:` array and the plan's screen table were
+      updated, but the distribution row's prose still claimed the slice-C
+      registry and schema would ship, including a path a prior review had
+      already rejected. Occurrence 2 (`br41` GME-R1): assertion 3 was
+      withdrawn; the manifest's adopter-facing row still instructed the page
+      to document the GitLab API dependency and cross-forge gap that belonged
+      only to that assertion. Occurrence 3, found while fixing occurrence 2:
+      splitting assertion 2 into 2a and 2b was applied to the plan and one
+      manifest row, while two further rows still referenced the undivided
+      assertion.
+
+
+      The reframing that makes this matter came from the reviewer in
+      occurrence 2. A projection manifest row is not a description of what was
+      done; it is prospective instruction for what an implementer will do. A
+      stale row therefore does not merely record obsolete history -- it
+      directs implementation to build the thing the design removed, and it
+      does so inside the structured artifact Gate 1 review treats as evidence.
+    roles_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: workflow/documentation-rule-projection-rule.md
+    business_impact:
+      type: prevented_loss
+      description: >-
+        Each stale row would have directed an implementer to build a removed
+        design: shipping a registry and schema assigned to a different plan,
+        or publishing an adopter page documenting an API dependency and a
+        cross-forge coverage gap that the approved design does not have. The
+        second is the more damaging, because adopter-facing pages are copied
+        into adopters' own repositories. All three were caught before
+        implementation, so the loss was prevented rather than realised, but
+        none was caught by the author or by mechanical validation.
+      details: >-
+        This record also corrects an evidence reference in learning
+        `20260829T192500Z-4vn8`. That record's second evidence_ref states that
+        `agov-source-fingerprint.sh` hashes `tooling/agov`, `tooling/rust`,
+        `agf/schemas` and `agf/agents/MANIFEST.yaml` "into the compiled
+        binary". Review `20260829T204615Z-coder-tester-k5dq` subsequently
+        disproved that on the canonical packaging path by downloading the
+        cross-built artifact and observing `source_fingerprint: unknown`:
+        `Cross.toml` does not pass the fingerprint variable into `cross
+        build`, and the container has no Git checkout. The lesson `4vn8`
+        records is unaffected; only that evidence reference is wrong, and it
+        is corrected here rather than by editing the append-only record.
+    recommendation: >-
+      When a design element is removed, renamed, or split, do not edit only
+      the artifact section and the manifest row that motivated the change.
+      Search every governed artifact for the element's name -- each of the six
+      projection rows, the acceptance criteria, the risks section, and the
+      front-matter consultation fields -- and reconcile them in the same
+      commit. Treat a projection row as an instruction to a future
+      implementer, not as a record of the past: the test is not "is this row
+      still true?" but "if someone implemented only from this row, would they
+      build the current design?" Mechanical projection checks validate shape,
+      path resolution, and row presence; they cannot answer that question, so
+      it stays an author obligation verified by review.
+    severity: major
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - 'docs/coordination/20260830T075132Z-coder-tester-8mar.md: finding GDAB-1, stale slice-C distribution claims surviving the plan split at head 0fa3a5cd.'
+        - 'docs/coordination/20260830T084415Z-coder-tester-br41.md: finding GME-R1, adopter-facing row still specifying the withdrawn assertion 3 at head 343e19ba.'
+        - 'docs/reviews/rule-projection/gate-change-mechanical-enforcement.yaml: two further rows referencing the undivided assertion 2 after the 2a/2b split, found by the author while fixing GME-R2 and corrected in the same commit.'
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"

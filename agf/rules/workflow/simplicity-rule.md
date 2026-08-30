@@ -188,7 +188,9 @@ Not every task needs the full multi-phase workflow from development-workflow-rul
 When in doubt: choose the lighter process that still satisfies the applicable
 branch and review rules. Upgrade if the task grows.
 
-**Fast-track waiver:** When using the lighter process (skipping the plan file), record the waiver in the commit message: what task, why low-risk. If the task turns out larger than expected, stop and write a plan -- do not continue without one. Not eligible: PII, security boundaries, architecture, data model changes.
+**Fast-track waiver:** When using the lighter process (skipping the plan file), record the waiver in the commit message: what task, why low-risk. If the task turns out larger than expected, stop and write a plan -- do not continue without one. Not eligible: PII, security boundaries, architecture, data model changes, or **gate mechanics** -- any change to a gate, schema, validator, CI check, merge policy, or release policy.
+
+**Gate mechanics are ineligible regardless of diff size.** A one-line change to a validator, a CI rule, or a hook is a gate change and takes the full path: Gate 1, and the negative test that [`always/gate-self-test-rule.md`](../always/gate-self-test-rule.md) requires for a modification as well as an introduction. This is deliberate and it is the one place where the size-calibration table above does not apply. At diff level a weakening and a fix look identical, so "it's one line" is not evidence that a gate change is low-risk -- it is exactly the shape a weakening takes. A revert of a gate change is still a gate change. This aligns the general waiver with the disqualifier list the narrow research fast path below already applies.
 
 **Fast-track commits must not include a version bump, CHANGELOG entry, or git tag.** These are work commits -- they accumulate on the main branch until the next release. Tagging a fast-track commit causes version creep.
 
