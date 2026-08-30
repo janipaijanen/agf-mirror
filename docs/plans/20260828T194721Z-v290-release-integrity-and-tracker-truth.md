@@ -1,6 +1,8 @@
 ---
 id: v290-release-integrity-and-tracker-truth
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-30T08:36:08Z
 topic: v290-release-integrity-and-tracker-truth
 advisory_consultation:
   - role: coder-tester
@@ -47,7 +49,19 @@ advisory_consultation:
 
 # Plan: v2.9.0 — release integrity and tracker truth
 
-## Decision requested — RESUBMITTED
+## Gate 1 decision — approved
+
+Binding governor-reviewer decision `20260830T083608Z-governor-reviewer-k1r2`
+approves Gate 1 for this plan at exact source head
+`80eaae90d2f36bbcf7c94506c0268e637beb5d48`, adopting the `8mar` CLEAR
+recommendation after `rjmb` confirmed canonical pipeline `2802531361`
+succeeded at that head.
+
+The decision does not approve implementation, Gate 2, a release, tag, or
+deployment, and does not decide MRs !2214 or !2222. Metadata is recorded in
+this plan's front matter in the same cycle as the approval, per AGENTS.md.
+
+## Decision requested (superseded by the approval above) — RESUBMITTED
 
 A prior binding Gate 1 approval was granted at 2026-08-29T17:06:49Z
 (`h3nb`) against head `05c9d079`. It was **consumed and returned** by
