@@ -1,6 +1,8 @@
 ---
 id: gate-change-mechanical-enforcement
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-30T17:02:04Z
 topic: gate-change-mechanical-enforcement
 advisory_consultation:
   - role: coder-tester
