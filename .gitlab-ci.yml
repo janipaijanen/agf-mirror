@@ -811,6 +811,16 @@ agov:governance:validate:
   extends: .rust-base
   stage: test
   interruptible: true
+  variables:
+    # This job compares a range against the target branch, which needs a
+    # real merge base. The project default is 20 (see the note on
+    # commercial-corpus:validate below); a branch more than ~20 commits past
+    # its base would have no merge base in a depth-20 checkout. Before the
+    # fail-closed contract that produced a SILENT PASS -- the failed
+    # `git diff` was masked by `xargs -0r`. The contract now fails closed on
+    # a missing merge base, so full depth is what keeps that failure meaning
+    # "something is wrong" rather than "this branch got long".
+    GIT_DEPTH: "0"
   script:
     - |
       set -eu
@@ -843,12 +853,22 @@ agov:governance:validate:
         target_ref="$CI_DEFAULT_BRANCH"
       fi
 
+      # The fail-closed changed-file contract. See
+      # .gitlab/scripts/changed-files.sh for the two silent-pass modes it
+      # closes, and tests/changed-files-failclosed.sh for the negative tests
+      # that prove each failure mode exits non-zero. This is gate mechanics:
+      # per agf/rules/always/gate-self-test-rule.md, modifying it requires
+      # Gate 1 and a re-run of those tests, not a one-line fix.
+      . "$CI_PROJECT_DIR/.gitlab/scripts/changed-files.sh"
+
       base=""
-      if git fetch --no-tags origin "$target_ref" 2>/dev/null; then
-        base="$(git rev-parse "origin/$target_ref" 2>/dev/null || true)"
+      if base="$(cf_resolve_base "$target_ref")"; then
+        :
+      else
+        base=""
       fi
 
-      if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+      if [ -z "$base" ]; then
         if [ "$is_coordination_candidate" -eq 1 ]; then
           echo "ERR: could not resolve comparison base against '$target_ref' for a coordination-titled candidate; failing closed (coordination-publication-rule.md condition 1)." >&2
           exit 1
@@ -857,18 +877,56 @@ agov:governance:validate:
         exit 0
       fi
 
+      # Step 2 of the contract, and it fails closed for EVERY candidate, not
+      # only coordination-titled ones. A missing merge base means this
+      # checkout cannot compare the range at all; the previous code let that
+      # pass silently because the failed `git diff` was masked by `xargs`.
+      # GIT_DEPTH is 0 for this job so a genuine merge base is present --
+      # reaching this error means something is actually wrong, not merely
+      # shallow.
+      cf_require_merge_base "$base"
+
+      changed_list="$(mktemp)"
+      deleted_list="$(mktemp)"
+      # shellcheck disable=SC2064
+      trap "rm -f '$changed_list' '$deleted_list'" EXIT
+
+      # Coordination records are append-only (see
+      # agf/rules/workflow/coordination-publication-rule.md condition 3 and
+      # agf/rules/always/coordination-message-rule.md). Deleting one was
+      # previously blocked only by accident -- `agov coord validate` reported
+      # `file not found` for the vanished path, which explains nothing. This
+      # replaces that accident with an intentional check and a diagnostic
+      # that names the rule.
+      cf_changed_files "$base" "$deleted_list" D 'docs/coordination/*.md' \
+          ':!docs/coordination/README.md' \
+          ':!docs/coordination/feedback-coordination-messages.md'
+      if [ -s "$deleted_list" ]; then
+        echo "ERR: this range deletes coordination records:" >&2
+        tr '\0' '\n' < "$deleted_list" | sed 's/^/  - /' >&2
+        echo "ERR: coordination records are append-only. Correct a stale, wrong, or superseded record by adding a NEW record that references and supersedes it -- never by deleting or rewriting the original (agf/rules/workflow/coordination-publication-rule.md, condition 3)." >&2
+        echo "ERR: if a record was committed onto the wrong branch, the fix is to rebuild the branch without that commit, not to add a deletion commit on top." >&2
+        exit 1
+      fi
+
       # README.md and feedback-coordination-messages.md are documentation
       # that lives in docs/coordination/ by convention, not coordination
       # messages -- they carry no YAML front matter by design and must be
       # excluded from the message-shape check, mirroring the MANIFEST.yaml
       # filename exclusion already used for the analogous case in
       # agov-validators (agents.rs, adoption.rs, readme_stats.rs).
-      git diff --name-only -z "$base"...HEAD -- 'docs/coordination/*.md' \
+      cf_changed_files "$base" "$changed_list" d 'docs/coordination/*.md' \
           ':!docs/coordination/README.md' \
-          ':!docs/coordination/feedback-coordination-messages.md' \
-        | xargs -0r "$agov_bin" coord validate
-      git diff --name-only -z "$base"...HEAD -- 'docs/plans/*.md' \
-        | xargs -0r "$agov_bin" plan validate
+          ':!docs/coordination/feedback-coordination-messages.md'
+      cf_run_on_list "$changed_list" "$agov_bin" coord validate
+
+      # Deletions are excluded here for the opposite reason to coordination:
+      # removing a plan file is legitimate (revert, supersession, cleanup),
+      # and feeding the deleted path to `agov plan validate` failed at
+      # blocking severity with `file not found` (plan_validator.rs:24). That
+      # is what blocked MR !2206, a governor-ordered revert.
+      cf_changed_files "$base" "$changed_list" d 'docs/plans/*.md'
+      cf_run_on_list "$changed_list" "$agov_bin" plan validate
 
       # Per agf/rules/workflow/documentation-rule-projection-rule.md: check
       # every manifest's repository-contained paths and planned-owner
@@ -890,6 +948,43 @@ agov:governance:validate:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# Negative-test suite for the fail-closed changed-file contract used by
+# agov:governance:validate. Required by
+# agf/rules/always/gate-self-test-rule.md: a gate ships with a
+# reviewer-visible transcript proving it fires on known-bad input, and --
+# since that rule now covers modification as well as introduction -- the
+# transcript must be reproduced on every later change to the contract.
+# "I tested it locally" is explicitly insufficient, which is why this runs
+# here rather than only in a developer shell.
+governance:changed-files:selftest:
+  extends: .rust-base
+  stage: test
+  interruptible: true
+  variables:
+    # The suite builds its own throwaway repositories; it needs no history
+    # from this one. The default depth is fine.
+    GIT_STRATEGY: fetch
+  script:
+    - |
+      set -eu
+      cargo build --quiet --release -p agov
+      agov_bin="$PWD/target/release/agov"
+      cd "$CI_PROJECT_DIR"
+      AGOV_BIN="$agov_bin" sh tests/changed-files-failclosed.sh
+  rules:
+    # Path-scoped per agf/rules/workflow/ci-trigger-scoping-rule.md. The CI
+    # configuration itself is included deliberately: a change to the job that
+    # consumes the contract must re-prove the contract still fires.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - ".gitlab/scripts/changed-files.sh"
+        - "tests/changed-files-failclosed.sh"
+        - "tests/fixtures/changed-files/**/*"
+        - ".gitlab-ci.yml"
+        - "tooling/rust/crates/agov-validators/**/*"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
 
 # Validate AGF framework content with the Rust agov CLI.

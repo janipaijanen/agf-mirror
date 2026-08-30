@@ -130,11 +130,55 @@ validate-governance:
     # Replace the placeholder with an exact version from the Releases page.
     name: "registry.gitlab.com/janipaijanen/agents-govern-framework/agov:<version-from-release-page>"
     entrypoint: [""]
+  variables:
+    # A three-dot range needs a merge base. GitLab's default GIT_DEPTH is
+    # shallow, so a branch that has moved past it has no merge base in the
+    # checkout and the comparison cannot be made at all.
+    GIT_DEPTH: "0"
   script:
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/coordination/*.md' |
-        xargs -0r agov coord validate
-    - git diff --name-only -z "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"...HEAD -- 'docs/plans/*.md' |
-        xargs -0r agov plan validate
+    - |
+      set -eu
+
+      # Resolve the base explicitly. Do NOT use
+      # CI_MERGE_REQUEST_TARGET_BRANCH_SHA: it is empty in common pipeline
+      # shapes (first pipeline on a branch, force-push, shallow clone), and
+      # an empty base degenerates "$base"...HEAD into HEAD...HEAD, which is
+      # legitimately empty -- so the job exits 0 having validated nothing.
+      target="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}"
+      git fetch --no-tags origin "$target"
+      BASE="$(git rev-parse --verify "refs/remotes/origin/$target")"
+      git merge-base "$BASE" HEAD >/dev/null
+
+      LIST="$(mktemp)"
+
+      # Capture the diff to a file and let its exit status stand. Never pipe
+      # `git diff` straight into `xargs`: `set -e` observes only a
+      # pipeline's LAST exit status, so a failed diff is masked by a
+      # successful `xargs -0r`, which on empty input simply declines to run.
+      changed() { filter="$1"; shift; : > "$LIST"; git diff --name-only -z "--diff-filter=$filter" "$BASE...HEAD" -- "$@" > "$LIST"; }
+      # `if`, not `[ -s ... ] && ...` -- under `set -e` a false `&&` list
+      # would exit the script.
+      run_on() { if [ -s "$LIST" ]; then xargs -0r "$@" < "$LIST"; fi; }
+
+      # Coordination records are append-only. Reject a deletion explicitly
+      # rather than letting the validator report "file not found", which
+      # explains nothing.
+      changed D 'docs/coordination/*.md'
+      if [ -s "$LIST" ]; then
+        echo "ERR: this range deletes coordination records; they are append-only." >&2
+        tr '\0' '\n' < "$LIST" >&2
+        exit 1
+      fi
+
+      changed d 'docs/coordination/*.md'
+      run_on agov coord validate
+
+      # Deleting a plan file is legitimate (revert, supersession, cleanup),
+      # so deletions are excluded here -- passing a deleted path to
+      # `agov plan validate` fails at blocking severity on a file that is
+      # supposed to be gone.
+      changed d 'docs/plans/*.md'
+      run_on agov plan validate
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```

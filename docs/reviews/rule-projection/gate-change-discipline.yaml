@@ -139,9 +139,12 @@ surfaces:
       and the earlier revision's "fully covered wherever it lives" wording is
       withdrawn.
 
-      Named paths for B's fail-closed contract and its negative tests, added
-      after review 8mar finding GDAB-2, which correctly caught that the plan
-      claimed these were "named in the manifest" when no path existed here:
+      Implemented at Gate 2. All three paths below now exist and the suite
+      runs in CI job `governance:changed-files:selftest` rather than only
+      locally, per gate-self-test-rule.md's reviewer-visible-transcript
+      requirement. Named originally after review 8mar finding GDAB-2, which
+      correctly caught that the plan claimed these were "named in the
+      manifest" when no path existed here:
 
         .gitlab/scripts/changed-files.sh
           the shared helper implementing the four-step contract -- resolve and
@@ -166,6 +169,45 @@ surfaces:
       repository and against real runner evidence (job 16065719319 shows
       "git depth set to 20"), so the fixture reproduces a demonstrated
       condition rather than an invented one.
+
+      Three implementation decisions go beyond the plan's literal text and
+      are recorded here for the Gate 2 reviewer to accept or reject rather
+      than left to be discovered in the diff:
+
+        1. `GIT_DEPTH: "0"` is set on `agov:governance:validate`. The plan
+           requires the contract to fail closed on a missing merge base. On
+           the inherited default depth of 20 that would convert a latent
+           silent pass into a live block the first time a branch ran long --
+           a correct gate firing for an operational reason rather than a
+           governance one. Full depth is what keeps the fail-closed error
+           meaning "something is wrong" instead of "this branch got long".
+
+        2. The merge-base check fails closed for EVERY candidate, not only
+           coordination-titled ones. The existing skip-open branch for
+           non-coordination commits with no resolvable base is preserved
+           unchanged, because it is a separate governed decision; but once a
+           base HAS resolved, an absent merge base means the range cannot be
+           compared at all, and that is exactly the case that used to pass
+           silently.
+
+        3. A new CI job, `governance:changed-files:selftest`, runs the
+           negative suite. It is path-scoped per ci-trigger-scoping-rule.md
+           to the contract, its tests and fixtures, `.gitlab-ci.yml`, and
+           the validator crate -- `.gitlab-ci.yml` deliberately included,
+           because a change to the job consuming the contract must re-prove
+           the contract still fires.
+
+      Class searched for further copies of the defective command shape:
+      every place the `git diff ... | xargs -0r <validator>` shape is
+      PUBLISHED or EXECUTED -- not only where it runs, which was the scoping
+      error phe4 caught. Searched `*.md`, `*.yml`, `*.yaml`, `*.sh`, `*.rs`
+      across the tree, plus `.git-hooks/` (absent) and `.gitlab/scripts/`.
+      Found and corrected: one live CI job and four shipped adopter
+      sketches. Found and deliberately NOT changed: occurrences inside
+      historical plans and immutable coordination records, which describe
+      past state and are not executed or shipped. Treat this scoping claim
+      as unverified until a reviewer checks it -- two class claims from this
+      session have already been wrong.
 
   distribution:
     disposition: updated

@@ -85,7 +85,7 @@ A one-screen checklist for each working session:
 
 - [ ] Read new coordination entries; acknowledge any that require a response
 - [ ] Claim pending work before starting (prevents collisions)
-- [ ] Choose fast track or full gate path; record fast-track waivers in the commit message
+- [ ] Choose fast track or full gate path; record fast-track waivers in the commit message — gate mechanics (gate, schema, validator, CI check, merge or release policy) are never fast-track eligible, whatever the diff size
 - [ ] Verify branch before any commit (`git branch --show-current` immediately before staging)
 - [ ] Externalize state before compacting, switching tasks, or handing off
 - [ ] File completion or learning record when work closes
