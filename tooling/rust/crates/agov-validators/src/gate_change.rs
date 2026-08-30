@@ -3,7 +3,7 @@ use regex::Regex;
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 #[derive(Debug, Deserialize)]
 struct Registry {
@@ -198,6 +198,8 @@ fn load_base_registry(
         .arg("-C")
         .arg(repo_root)
         .args(["cat-file", "-e", &object])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .status()
         .is_ok_and(|status| status.success());
     if !exists {
