@@ -55,6 +55,38 @@ discipline is at-will and breaks under speed. It also fails on evidence:
 A second failure the same night (`1tm5`) has the identical shape: a control
 that existed as an expectation rather than a mechanism.
 
+## A second instance, found while filing this plan
+
+The defect has two distinct sub-cases. Both were observed in this repository
+within one hour on 2026-08-30, and both are fixed by the same mechanism.
+
+**Sub-case A — resolving evidence is off the base branch.** The `ksq6` /
+`dmtn` incident above. Requires cross-branch resolution.
+
+**Sub-case B — resolving evidence is *on* the base branch and still ignored.**
+`agov handoff next governor-reviewer` currently reports:
+
+> Issue a fresh binding Gate 2 disposition for MR !2181 …
+
+MR !2181 merged on 2026-08-28T11:25:21Z, by `janipaijanen` — the governor
+directly, not an agent. Sixteen minutes earlier, governor decision-record
+`20260828T110944Z-governor-reviewer-prn4` ("Gate 2 reissued on corrected
+terms; v2.8.0 publication authorized") landed on `main`, and it names the
+originating handoff `rdm8` in its own `references-to`.
+
+So the resolving decision is on `main`, correctly authored, correctly linked —
+and the queue still reports the obligation as outstanding, because it does not
+treat a decision-record referencing a handoff as resolving that handoff.
+
+**Sub-case B is the cheaper fix and probably the more frequent failure.** It
+needs no cross-branch work at all: it is a graph walk over records already on
+the base branch. It is also previously known — resolution-awareness in handoff
+tooling was raised earlier in this project's history and not carried through.
+
+Both sub-cases are the same defect stated once: **a queue surface reports an
+obligation that evidence available to it already resolves.** Sub-case A is
+evidence it cannot see; sub-case B is evidence it can see and does not use.
+
 ## Scope of this plan
 
 **In scope — the correlation fix.** `agov handoff next`, `agov coord pending`,
@@ -65,6 +97,14 @@ and `agov session resume` must, by default:
 2. Correlate them to the obligations being reported, via the existing
    `references-to` graph that `agov coord graph-index` already builds — not by
    listing them separately for a reader to join by hand.
+
+2a. **Resolution-awareness on the base branch (sub-case B).** An obligation
+   MUST NOT be reported as outstanding when a later record on the base branch
+   references it and carries a resolving kind (`ack`, `completion`, or a
+   `decision-record` from an authorized role for that gate). Where resolution
+   is ambiguous — a referencing record that neither clearly resolves nor
+   clearly continues — report the obligation as `UNCERTAIN` and name the
+   referencing record, rather than silently choosing either reading.
 3. **Degrade the answer, not footnote it.** When a branch-local record
    references a reported obligation, the obligation is reported as
    `UNRELIABLE`, naming the branch, the record ID, its kind, and its `to`
@@ -137,6 +177,13 @@ Negative tests are the acceptance criterion, not an afterthought:
    bug in a new costume.
 5. **JSON parity.** The degraded state appears in `--format json`, not only in
    human output.
+6. **Sub-case B regression.** The exact `!2181` / `prn4` shape: a handoff on
+   the base branch, and a later `decision-record` from `governor-reviewer` on
+   the same branch naming it in `references-to`. The obligation MUST NOT be
+   reported as outstanding.
+7. **Resolution ambiguity.** A referencing record that neither resolves nor
+   continues MUST produce `UNCERTAIN`, not a silent resolve and not a silent
+   outstanding. Guessing in either direction is the defect, not the fix.
 
 Mutation requirement: removing the correlation logic MUST fail test 1 and only
 test 1, demonstrating the test binds to the defect rather than to incidental
