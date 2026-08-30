@@ -172,8 +172,8 @@ resolved merged YAML. Both were structurally better than their predecessor and
 both made the same overclaim. The correction is not a third mechanism — it is
 to stop making the claim.
 
-**What this plan asserts is therefore assertions 1 and 2 only.** Both are
-purely local: they read the registry and the repository working tree. No API,
+**What this plan asserts is therefore assertion 1 and assertion 2 (its parts
+2a and 2b) only.** All are purely local: they read the registry and the repository working tree. No API,
 no network, no credential, no pipeline context. GME-1 dissolves entirely
 rather than being mitigated, and the infosec consultation below is corrected
 to match what the check actually does.
@@ -212,8 +212,9 @@ gate's surface files can be deleted normally and its entry still cannot.
 an edit to the registry, and the registry is a registered surface of the
 `gate-change-check` entry itself. So the `active → retired` transition fires
 assertion 1 on *that* entry and demands an accompanying test change, visible
-in the diff. The entry itself may never be deleted — that fails assertion 2 —
-so a retired ID is a permanent record and cannot be silently reused.
+in the diff. The entry itself may never be deleted — that fails assertion 2b,
+which is never waived in any state — so a retired ID is a permanent record and
+cannot be silently reused.
 
 ### The proxy boundary, stated as a limit
 
@@ -250,7 +251,7 @@ upheld; the design is narrowed rather than defended.
 |---|---|
 | **GME-1** no authentication/input contract for the merged-config dependency | **Upheld; the dependency is removed rather than specified.** Naming a token, CI variable, and permission set would have made the check work, at the cost of adding a credential obligation to a governance validator. Withdrawing assertion 3 dissolves the requirement instead. The front-matter infosec claim that contradicted it is corrected. |
 | **GME-2** merged YAML does not close the execution bypass class | **Upheld, and it is the decisive one.** `rules` context omission and an earlier `exit 0` both survive merged-configuration checking. Static merged config is not pipeline simulation, and even simulation cannot prove a later script command is reachable. |
-| **GME-A1** retired entries permanently retain dead surfaces | **Upheld.** Retirement now waives assertions 1 and 2 for the retired entry, so obsolete files can be deleted. The transition still fires assertion 1 on the registry, and the entry may never be deleted, so retirement is not an escape hatch. |
+| **GME-A1** retired entries permanently retain dead surfaces | **Upheld.** Retirement waives assertions 1 and **2a** for the retired entry, so its obsolete surface files can be deleted; **2b remains enforced**, so the entry itself may never be deleted. The transition still fires assertion 1 on the registry, so retirement is not an escape hatch. |
 
 **The pattern worth naming.** This is the second consecutive design in this
 line to claim a mechanical check proves a gate *executes*, and the second to
@@ -271,7 +272,7 @@ findings, both upheld.
 
 | Finding | Disposition |
 |---|---|
-| **GME-R1** adopter projection still specified withdrawn assertion 3 | **Upheld.** The manifest's `adopter_facing_explanation` still instructed the page to document a GitLab merged-configuration dependency and a cross-forge gap, both of which belonged to the withdrawn assertion. Rewritten to describe assertions 1 and 2 only, with the removed text kept solely as labelled superseded history. |
+| **GME-R1** adopter projection still specified withdrawn assertion 3 | **Upheld.** The manifest's `adopter_facing_explanation` still instructed the page to document a GitLab merged-configuration dependency and a cross-forge gap, both of which belonged to the withdrawn assertion. Rewritten to describe assertion 1 and assertion 2's parts 2a and 2b only, with the removed text kept solely as labelled superseded history. |
 | **GME-R2** retirement waived assertion 2 while relying on it | **Upheld.** Assertion 2 conflated path resolution with entry permanence, so "waived when retired" contradicted "deletion still fails". Split into 2a (paths resolve, waived when retired) and 2b (entry may never be deleted, never waived). Acceptance criteria 4 and 6 updated to test them separately. |
 
 **The reframing in GME-R1 is worth keeping, beyond this fix.** `br41` points
@@ -282,6 +283,44 @@ removed. That is a stronger reason to keep manifests current than "tidiness",
 and it is the second time in two rounds that a stale manifest row survived a
 design change here (`8mar` GDAB-1 was the first). Recorded rather than treated
 as two unrelated slips.
+
+## Review disposition — `ps6n` (third bounded re-review)
+
+GME-R1 **CLOSED**. GME-R2-PROPAGATION upheld.
+
+The finding is that the assertion 2a/2b split reached the definitions,
+lifecycle table, acceptance criteria and adopter projection, but not the
+**GME-A1 disposition row** — which is current disposition, not labelled
+history, so an implementer reading it alone would receive the old
+contradictory contract. The lifecycle prose also attributed deletion to
+"assertion 2", ambiguous once 2 became an umbrella.
+
+Both corrected: retirement waives 1 and **2a** while **2b** stays enforced,
+and deletion is attributed to **2b** specifically.
+
+**A fifth instance, not named in the finding.** Running the exact-string scan
+`ps6n` asked for rather than patching the two lines it cited, the projection's
+`adopter_facing_explanation` still described "Assertion 2: every registered
+path must resolve while the entry is active, and a registry entry may never be
+deleted" — one assertion covering both halves, in the row that instructs the
+adopter-facing page. Split there too.
+
+**Classification of every remaining occurrence**, so this is checkable rather
+than asserted:
+
+| Location | Status |
+|---|---|
+| Definition heading, "Assertion 2 — registry integrity, in two separable parts" | Correct — the umbrella that introduces 2a and 2b |
+| Scope sentence, now "assertion 2 (its parts 2a and 2b)" | Made explicit |
+| GME-R2 row, and the projection's "previously stated as one check" paragraph | Correct — labelled history describing the contradiction being fixed |
+| Everything else | Split into 2a or 2b |
+
+**This was the fourth round of the same failure, and it landed inside the
+paragraph describing the fix for the third.** That is recorded in learning
+`20260830T085245Z-p2xk`, whose recommendation — run an exact-string and
+semantic-class scan across every governed artifact, and ask "if someone
+implemented only from this row, would they build the current design?" — is
+what produced the fifth instance above rather than another partial pass.
 
 ## Acceptance criteria
 

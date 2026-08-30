@@ -36,11 +36,12 @@ surfaces:
 
       The page describes exactly two assertions. Assertion 1: a change to a
       registered gate surface must be accompanied by a change to that gate's
-      declared test paths. Assertion 2: every registered path must resolve
-      while the entry is active, and a registry entry may never be deleted.
-      Both read only the registry and the working tree, so the check performs
-      no network request, needs no token, and behaves identically on any
-      forge.
+      declared test paths. Assertion 2a: every path registered by an active
+      entry must resolve, waived once that entry is retired so obsolete files
+      can be deleted. Assertion 2b: a registry entry may never be deleted, in
+      any state, so a retired ID stays a permanent record. All read only the
+      registry and the working tree, so the check performs no network request,
+      needs no token, and behaves identically on any forge.
 
       Two boundaries must be stated on the page, not implied. The check is a
       proxy for review attention rather than proof of test quality: an empty
