@@ -134,6 +134,27 @@ fn retirement_transition_requires_gate_checker_test_change() {
 }
 
 #[test]
+fn sole_gate_cannot_retire_itself_while_changing_its_surface_without_a_test_change() {
+    let fixture = Fixture::new();
+    fixture.write(".agf/gates.yaml", &gate_checker_only());
+    fixture.write("tests/gate_change.rs", "sole gate baseline\n");
+    fixture.commit("reduce registry to the sole self-checking gate");
+    let sole_gate_base = git_output(fixture.root.path(), &["rev-parse", "HEAD"]);
+
+    fixture.write(".agf/gates.yaml", &retired_gate_checker_only());
+    fixture.write("tooling/checker.rs", "fn check() { /* gutted */ }\n");
+    fixture.commit("retire the sole gate while gutting its checker");
+
+    let output = check_against(&fixture, &sole_gate_base);
+    assert_eq!(output.status.code(), Some(1), "{}", diagnostics(&output));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("gate-change-check"), "{stderr}");
+    assert!(stderr.contains("active in the comparison base"), "{stderr}");
+    assert!(stderr.contains("changed surface"), "{stderr}");
+    assert!(stderr.contains("no changed declared test path"), "{stderr}");
+}
+
+#[test]
 fn retired_gate_may_remove_obsolete_paths_but_keeps_entry() {
     let fixture = Fixture::new();
     fixture.write(".agf/gates.yaml", &retired_registry());
@@ -231,6 +252,14 @@ fn gate_checker_only() -> String {
         .next()
         .unwrap()
         .to_string()
+}
+
+fn retired_gate_checker_only() -> String {
+    gate_checker_only().replacen(
+        "  - id: gate-change-check\n    status: active",
+        "  - id: gate-change-check\n    status: retired",
+        1,
+    ) + "    retired:\n      reason: Replaced by a native check.\n      date: 2026-08-30\n"
 }
 
 fn assert_success(output: Output) {

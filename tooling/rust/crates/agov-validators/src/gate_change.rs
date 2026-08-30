@@ -135,6 +135,42 @@ pub fn change_check(
         }
     }
 
+    // A gate that was active at the comparison base must not evade its own
+    // accompaniment rule by retiring itself in the candidate registry. Use
+    // the base declaration for the transition: active-path resolution is
+    // intentionally waived after retirement, while a changed base surface
+    // still requires a changed base-declared test path.
+    for (id, gate) in base_by_id
+        .iter()
+        .filter(|(_, gate)| gate.status == GateStatus::Active)
+    {
+        if current_by_id
+            .get(id)
+            .is_some_and(|current| current.status == GateStatus::Active)
+        {
+            continue;
+        }
+
+        let surface_patterns =
+            compile_patterns(&gate.id, "surfaces", &gate.surfaces, &mut findings);
+        let test_patterns = compile_patterns(&gate.id, "tests", &gate.tests, &mut findings);
+        let surface_changed = surface_patterns
+            .iter()
+            .any(|(_, pattern)| changed.iter().any(|path| pattern.is_match(path)));
+        let test_changed = test_patterns
+            .iter()
+            .any(|(_, pattern)| changed.iter().any(|path| pattern.is_match(path)));
+        if surface_changed && !test_changed {
+            findings.push(Finding::blocking_at(
+                format!(
+                    "gate '{}' was active in the comparison base and has a changed surface but no changed declared test path",
+                    gate.id
+                ),
+                format!("gates.{}.tests", gate.id),
+            ));
+        }
+    }
+
     if findings.is_empty() {
         Ok(())
     } else {
