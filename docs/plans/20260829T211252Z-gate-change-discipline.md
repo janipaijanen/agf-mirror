@@ -1,6 +1,8 @@
 ---
 id: gate-change-discipline
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-30T08:58:34Z
 topic: gate-change-discipline
 advisory_consultation:
   - role: coder-tester
@@ -42,7 +44,19 @@ advisory_consultation:
 
 # Gate-change discipline, and the deletion-blind changed-file validators
 
-## Decision requested
+## Gate 1 decision — approved
+
+Binding governor-reviewer decision `20260830T085834Z-governor-reviewer-dq5a`
+approves Gate 1 for slices **A and B** at exact source head
+`cad33430fcc1ee7dca1e6e6127f8e7bdef56c811`, adopting `br41`'s CLEAR
+recommendation on the GDAB-1 and GDAB-2 closures.
+
+It does not approve implementation, Gate 2, a release, tag, or deployment, and
+does not decide MR !2222. The residual it accepts knowingly: until slice C
+lands, gate-change discipline is enforced by rule and human review, not by
+mechanism.
+
+## Decision requested (superseded by the approval above)
 
 Approve **A and B** as this plan's Gate 1 scope. A is the governing rule
 change; B is the defect that exposed the gap and the first change to ship
