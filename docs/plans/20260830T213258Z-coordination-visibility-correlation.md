@@ -231,7 +231,8 @@ across all three:
 
 ```
 "visibility": {
-  "status": "verified" | "unreliable" | "snapshot-not-verified",
+  "correlation": "clean" | "findings",
+  "freshness":   "verified" | "not-verified",
   "base_ref": "<string>",
   "base_sha": "<string>",
   "refs_scanned": <integer>,
@@ -243,17 +244,32 @@ across all three:
 }
 ```
 
-`findings` is empty when `status` is `verified`. No existing field is renamed,
-retyped, or removed on any surface.
+**Two independent dimensions, never collapsed into one (CVR-R3-2).** The
+previous revision used a single status enum of `verified` / `unreliable` /
+`snapshot-not-verified`. That cannot represent a result which both has a
+correlated off-base finding **and** comes from refs whose freshness cannot be
+established — picking `unreliable` loses the freshness limit, picking
+`snapshot-not-verified` loses the concrete finding.
+
+That is not an edge case: under this plan's own freshness contract,
+`not-verified` is the **normal default**, because remote-tracking refs carry no
+trustworthy fetch timestamp. So the collision is the common case, created by
+the previous revision's own correction. Both fields are therefore always
+present and independently valued.
+
+`findings` is empty exactly when `correlation` is `clean`, independently of
+`freshness`. No existing field is renamed, retyped, or removed on any surface.
 
 **Exit codes are unchanged on every surface**, including when `status` is
 `unreliable`. This is an advisory diagnostic surface: it degrades its answer,
 it does not acquire the power to fail a caller's script. A caller that wants
 to treat `unreliable` as fatal reads the field.
 
-**Text output** gains one leading line before existing output, of the form
-`VISIBILITY: <status> — <n> branch-local record(s) referencing reported
-obligations`. Existing lines are unchanged and keep their order.
+**Text output** gains one leading line before existing output, always emitted,
+carrying both dimensions:
+`VISIBILITY: correlation=<clean|findings> freshness=<verified|not-verified> —
+<n> branch-local record(s) referencing reported obligations`.
+Existing lines are unchanged and keep their order.
 
 **MCP**: `agov_handoff_next` gains `base_branch` and `format` input
 properties; `agov_coord_pending` gains `base_branch`; `agov_session_resume`
@@ -282,11 +298,23 @@ default-on implementation adds tens of seconds per cycle.
 three surfaces at this repository's current scale (≈600 refs, ≈3000 records),
 measured warm.
 
-**Design consequence — a shared snapshot, not three scans.** The scan is
-computed once per cycle and reused, via a cached snapshot keyed by the resolved
-ref set, invalidated when any contributing ref changes. Repeating the full
-ref-walk per command cannot meet the budget and is ruled out by this plan
-rather than left to implementation.
+**Design consequence — each command scans independently (CVR-R3-1).** The
+previous revision required "a shared snapshot computed once per cycle" while
+the freshness contract above withdrew the persisted cross-process cache. Those
+cannot both hold: these are three separately invoked CLI processes, and across
+independent processes "once per cycle" has no carrier other than exactly the
+persistence that was withdrawn. I patched one section and left the other
+stale — the same failure as the infosec metadata in the prior round.
+
+Resolved by taking the smaller contract: **each command performs a complete
+scan in its own process and must meet the ≤1.0 s median budget independently.**
+No shared snapshot, no cross-process reuse, no cache.
+
+If a complete per-process scan cannot meet that budget, the correct outcome is
+a **measured finding reported through Gate 1** — revise the budget or the
+algorithm — not a reintroduced cache. Reintroducing cross-process persistence
+would require the carrier, locking, invalidation, corruption, permissions,
+cleanup and infosec design this plan deliberately rejected.
 
 **Benchmark fixture must be representative.** A small synthetic repository will
 pass trivially and prove nothing. Acceptance requires a corpus at this
@@ -352,14 +380,24 @@ so the disagreement changes the label, not the work.
 Negative tests are the acceptance criterion, not an afterthought:
 
 1. **The exact `ksq6` shape.** Base branch reports an obligation; an unmerged
-   branch carries a record referencing it. The surface MUST report
-   `UNRELIABLE`. This is the regression test for the incident.
+   branch carries a record referencing it. `correlation` MUST be `findings`
+   and the finding MUST name the branch and record. This is the regression
+   test for the incident.
 2. **Correlation, not mere presence.** An unmerged branch carrying a record
-   that references *nothing* in the pending set MUST NOT degrade unrelated
-   obligations — otherwise every answer becomes unreliable and the signal is
-   worthless.
-3. **Clean case.** No branch-local records: answer is reported normally, with
-   no degradation text.
+   that references *nothing* in the pending set MUST leave `correlation` at
+   `clean` — otherwise every answer degrades and the signal is worthless.
+3. **Clean correlation, independent of freshness (CVR-R3-3).** No branch-local
+   records referencing the pending set: `correlation` MUST be `clean`, and
+   `freshness` MUST still report its own true value — which will normally be
+   `not-verified`. The leading visibility line is **always emitted**. The
+   previous revision's "no degradation text" wording is withdrawn: demanding
+   silence here would recreate the unqualified-answer defect this plan exists
+   to remove, since a clean correlation says nothing about whether the refs
+   were current.
+3a. **Cartesian overlap (CVR-R3-2).** Stale or unverifiable refs that *also*
+   contain a correlated record MUST report `correlation: findings` **and**
+   `freshness: not-verified` simultaneously, in CLI text, JSON, and the MCP
+   result. Neither fact may displace the other.
 4. **Unfetchable or absent remote.** MUST fail closed or state the limit
    explicitly; MUST NOT silently report a clean answer, which is the original
    bug in a new costume.
@@ -375,9 +413,10 @@ Negative tests are the acceptance criterion, not an afterthought:
 8. **JSON additivity (CVR-3).** `coord pending --format json` retains every
    existing field with its existing type. A consumer written against the
    current schema MUST still parse the new output.
-9. **Cost budget (CVR-4).** Benchmark at representative scale proving ≤1.0 s
-   added per surface, warm — and that the scan is computed once per cycle
-   rather than once per command.
+9. **Cost budget (CVR-4, CVR-R3-1).** Benchmark at representative scale
+   proving ≤1.0 s added per surface, as the median of at least five warm runs,
+   with each command measured **independently in its own process**. No
+   cross-process reuse is assumed or permitted.
 
 **Mutation-to-test matrix (CVR-R2-4).** The previous revision retained
 "removing the correlation logic MUST fail test 1 and only test 1" while adding
@@ -387,11 +426,22 @@ mutation, with expected failures and expected survivors:
 
 | Mutation | MUST fail | MUST stay green |
 |---|---|---|
-| Delete branch-local record discovery | 1, 2 | 3, 4, 6, 7, 8 |
-| Delete correlation (report all branch records, uncorrelated) | 2 | 1, 3, 6 |
-| Delete freshness degradation | 6 | 1, 2, 3, 7 |
+| Delete branch-local record discovery | 1, 3a | 2, 3, 4, 6 |
+| Delete correlation (report every branch record, uncorrelated) | 2 | 1, 3, 6 |
+| Delete freshness reporting | 3, 3a, 6 | 1, 2 |
 | Delete JSON propagation of `visibility` | 5, 8 | 1, 2, 3 |
 | Delete per-surface wiring on one surface | 7 | the other surfaces' cases |
+
+Row 1 corrected per CVR-R3-3: the previous revision expected deleting discovery
+to fail test 2, but test 2 supplies an *unrelated* branch-local record and
+asserts that unrelated obligations stay clean. Deleting discovery leaves them
+clean, so test 2 passes and does not bind discovery at all. Discovery is bound
+by tests 1 and 3a, which require a finding to appear.
+
+Every row above is stated against the fixture semantics as written, not
+inferred from test numbering. Re-verify the whole matrix against the fixtures
+whenever a test is added, renumbered, or reworded — a matrix that drifts from
+its fixtures asserts coverage it does not have, which is worse than no matrix.
 
 A mutation that fails nothing means the control is unbound. A mutation that
 fails everything means the tests are not independent. Both are defects in the
