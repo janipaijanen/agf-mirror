@@ -4187,6 +4187,108 @@ learnings:
         - 'docs/reviews/rule-projection/gate-change-mechanical-enforcement.yaml: two further rows referencing the undivided assertion 2 after the 2a/2b split, found by the author while fixing GME-R2 and corrected in the same commit.'
 
 
+  - id: 20260830T114500Z-tw3s
+    date: '2026-08-30'
+    category: process
+    scope: framework
+    title: negative-test-suite-passed-in-ci-while-its-validators-could-not-run
+    status: implemented
+    description: >-
+      A gate self-test suite, written specifically to prevent green-looking
+      wrong evidence, produced green-looking wrong evidence three times in
+      one session, and the third instance passed in CI and was cited as Gate
+      2 evidence. Each instance had a different surface cause and the same
+      shape: an assertion reached its intended verdict for an unintended
+      reason.
+
+      First, a shallow-clone fixture used `git clone --depth`, which implies
+      `--single-branch`; the remote-tracking ref was never created, so the
+      pattern under test failed on `rev-parse` rather than on the missing
+      merge base the test existed to demonstrate. Second, a "MODIFY"
+      assertion added a file and edited it within one comparison range, which
+      Git classifies as an addition, so it proved the ADD path twice. Third
+      -- and the reason this record exists -- every validator rejection
+      assertion used a bare non-zero exit check, which cannot distinguish
+      "the validator rejected the content" from "the validator could not
+      run". The suite ran validators inside throwaway repositories with no
+      AGF root, and the CI job invoked the built binary directly rather than
+      through the wrapper that exports AGOV_SCHEMA_DIR, so the validator
+      exited non-zero with `Io("No such file or directory")` on every input,
+      valid or invalid. Four assertions passed while nothing was validated.
+      The CI transcript reporting "17 passed" was offered as gate evidence.
+      The defect surfaced only because a later revision added a POSITIVE
+      assertion -- that a renamed destination must still be valid -- which a
+      non-functional validator cannot satisfy.
+    roles_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: always/gate-self-test-rule.md
+    business_impact:
+      type: prevented_loss
+      description: >-
+        The gate being tested was a governance validator feed that had been
+        silently reporting success without validating anything. Had the suite
+        shipped as it stood, the replacement gate would have carried a green
+        CI transcript asserting it fired correctly, while its own evidence was
+        produced by a validator that never ran -- a stronger false assurance
+        than the original defect, because it would have come with a passing
+        test. All three instances were caught by independent review before
+        merge, so the loss was prevented rather than realised. None was caught
+        by the author, and none by shell syntax checks, `git diff --check`,
+        projection validation, or the suite's own result line.
+      details: >-
+        Disclosing the pattern did not prevent its recurrence. The author
+        documented two instances of it in the Gate 2 handoff and explicitly
+        asked reviewers to assume more were present; review `13rh` then found
+        a third and fourth, and after a class-level control was claimed in
+        `vq7n`, review `2shr` found that the control itself rested on
+        assertions incapable of detecting the class. Self-disclosure and
+        author vigilance are therefore not mitigations for this failure mode.
+        Only an assertion that can fail for the specific wrong reason is.
+    recommendation: >-
+      A negative-test suite must be able to fail for the reason it claims to
+      test, and must prove it can still pass for the right one. Three
+      controls, all implemented in `tests/changed-files-failclosed.sh`:
+
+      (1) Assert the PRECONDITION mechanically before trusting the outcome.
+      Where a test depends on a specific state -- a Git status of M rather
+      than A, a rename reported as R, a remote-tracking ref existing -- assert
+      that state and fail loudly when it differs, rather than inferring it
+      from the setup commands.
+
+      (2) Never accept a bare non-zero exit as proof that a checker rejected
+      content. Require the failure to be a content judgment: inspect the
+      output and fail when it carries an infrastructure error such as
+      `Io(...)`, "No such file or directory", or "command not found". A tool
+      that cannot run fails identically to a tool that correctly refuses.
+
+      (3) Include a canary that proves the checker ACCEPTS known-good input
+      under the same environment the rejection assertions use. Every
+      rejection assertion is meaningless if the canary fails, and a canary is
+      the cheapest way to detect a broken harness before reading any other
+      result.
+
+      Verify the controls in both directions: run the suite with the
+      dependency broken and confirm the previously-passing assertions now
+      fail. Here, breaking schema discovery moved the result from 21 passed /
+      1 failed to 17 passed / 7 failed, and those four newly-failing
+      assertions are the ones that had been passing while the validator was
+      not running. A control that cannot be shown to fire is the same
+      category of unverified claim as the gate it protects.
+
+      Finally, run the suite with the EXACT invocation shape CI uses. The
+      local wrapper exported an environment variable the CI job did not, so
+      "passes locally" and "passes in CI" were testing different systems.
+    severity: critical
+    confidence:
+      level: single-adopter
+      evidence_count: 3
+      evidence_refs:
+        - 'docs/coordination/20260830T110754Z-coder-tester-13rh.md: findings GCD-G2-1 (a MODIFY assertion that was an ADD over its own range) and GCD-G2-2 (rename-and-rewrite bypassing a D-only append-only guard), at head 7ca76d71.'
+        - 'docs/coordination/20260830T113003Z-coder-tester-2shr.md: finding GCD-G2-3, the required self-test losing schema context in CI, reproduced deterministically in canonical job 16190308091 at head 37352cd6.'
+        - 'tests/changed-files-failclosed.sh: the shallow-clone fixture bug found by the author during authoring, where --depth implied --single-branch and the test failed on rev-parse rather than on the missing merge base.'
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
