@@ -1,0 +1,201 @@
+# Six-surface projection evidence for the gate-change-discipline plan
+# (docs/plans/20260829T211252Z-gate-change-discipline.md), per
+# agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# The governed change: gate mechanics become ineligible for the general
+# fast-track waiver, and modifying a gate -- not only introducing one --
+# carries a negative-test obligation. Both extend existing rules rather than
+# adding a new owner.
+
+plan_id: gate-change-discipline
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/roles-and-gates.md
+  - agf/docs/site/docs/operate/day-to-day.md
+  - agf/docs/site/docs/adopt/tooling-and-tokens.md
+  - agf/docs/site/docs/advanced/contracts-and-validators.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    paths:
+      - agf/rules/always/gate-self-test-rule.md
+      - agf/rules/workflow/simplicity-rule.md
+    reason: >-
+      Two existing owners are extended; no new rule is created, per the
+      standing preference for extending over adding ceremony.
+      gate-self-test-rule.md:12 currently fires only on "introducing a new
+      gate", so modifying an existing gate carries no negative-test
+      obligation -- the trigger widens to introduction OR modification, and
+      the same rule grants the slice-C check its blocking authority as
+      required by tool-authority-boundary-rule.md.
+      simplicity-rule.md:191's general fast-track waiver lists ineligibility
+      as "PII, security boundaries, architecture, data model changes", with
+      gate mechanics absent; it gains them, aligning it with the disqualifier
+      list the same rule already applies to its narrow research fast path.
+
+  adopter_facing_explanation:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/concepts/roles-and-gates.md
+      - agf/docs/site/docs/adopt/tooling-and-tokens.md
+      - agf/docs/site/docs/advanced/contracts-and-validators.md
+    reason: >-
+      Line 95 states fast-track eligibility to adopters in its own words --
+      "small, low-risk work (<=3 files, no shared interface, data model, or
+      security boundary change, no claim conflict)". That list carries the
+      identical gap as simplicity-rule.md:191: gate mechanics are absent.
+      Leaving it unchanged would leave the adopter-facing page contradicting
+      the rule it explains, which is the exact drift
+      documentation-rule-projection-rule.md exists to catch. The page gains
+      gate mechanics in that list and points at the rule rather than
+      restating its body.
+
+      Added after independent review finding GCD-4 (phe4): tooling-and-tokens.md
+      and contracts-and-validators.md publish four CI sketches that copy the
+      exact defective commands slice B fixes in foundry's own CI. Leaving them
+      unchanged would fix foundry while continuing to instruct adopters to
+      install the defect, so they are a direct impact of B rather than
+      unrelated documentation work. Verifying that finding surfaced a second,
+      more severe defect in the same lines that the review did not name: the
+      three GitLab sketches use an unguarded
+      "$CI_MERGE_REQUEST_TARGET_BRANCH_SHA" as the diff base, which foundry's
+      own CI removed and documents at .gitlab-ci.yml:832-834 as empty in
+      common pipeline shapes. With an empty base the range degenerates to
+      HEAD...HEAD, xargs -0r declines to run, and the job exits 0 -- an
+      adopter governance gate that silently validates nothing and reports
+      success. Both defects are corrected in all four sketches.
+
+      Generated site output needs no disposition: agf/site-html/ is untracked
+      and rebuilt by the site-html-build job, so correcting the Markdown
+      source is sufficient and nothing generated is hand-edited.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      Line 88 is the session checklist item where an operator actually
+      chooses between fast track and the full gate path. "Existing pointer
+      sufficient" was considered and rejected: this is the surface at which
+      the wrong decision gets made, so a pointer elsewhere does not reach the
+      reader in time. It gains one short clause naming gate mechanics as
+      never fast-track eligible, not a copy of the rule text.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - .claude/rules/always/gate-self-test-rule.md
+      - .claude/rules/workflow/simplicity-rule.md
+    reason: >-
+      Both foundry-local loader projections mirror their canonical owners in
+      agf/rules/ and are updated in step, so an assistant reading the
+      .claude/rules/ corpus sees the same obligation as a reader of the
+      canonical rule.
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          AGENTS.md already routes rule authority to agf/rules/ and states
+          the tool-authority boundary generally; it names no fast-track
+          eligibility list of its own, so there is nothing here to drift out
+          of sync and nothing to project.
+      - path: .claude/CLAUDE.md
+        reason: >-
+          This file exists but contains only "@../AGENTS.md" -- it is a
+          pointer, not a content surface. It inherits any AGENTS.md change
+          automatically and holds no independent statement to update.
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          The shipped adopter template routes rule authority the same way and
+          states no fast-track eligibility list of its own. The adopter-facing
+          statement of eligibility lives in the Pages explanation row above,
+          which is updated.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    reason: >-
+      This plan ships no mechanical gate-change check. Slice C, which proposed
+      one, is split into its own Gate 1 plan after independent review j1ht
+      returned the third consecutive BLOCK against its enforcement semantics
+      while slices A and B were repeatedly cleared.
+
+      What this plan ships instead is checkable but not by a new gate: A is
+      rule text, and B is a correction to two existing validator feeds plus
+      four adopter CI sketches, each covered by its own negative tests. Those
+      tests are the drift evidence for B -- add, modify and delete statuses
+      exercised independently, and a fail-closed contract whose four failure
+      modes (empty target variable, fetch failure, missing merge base, git
+      diff failure) are each demonstrated exiting non-zero, with a
+      shallow/diverged-history fixture rather than only an empty-variable
+      transcript.
+
+      Stated plainly so the split is not mistaken for closure: until slice C
+      lands, gate-change discipline is enforced by rule and human review, not
+      by mechanism. That is the cost of the split, recorded here as well as in
+      the plan.
+
+      No claim is made anywhere in this plan or its shipped output that a
+      mechanical check proves a gate executes. Review j1ht (GCD-R2)
+      established that invocation-string presence cannot support that claim,
+      and the earlier revision's "fully covered wherever it lives" wording is
+      withdrawn.
+
+      Named paths for B's fail-closed contract and its negative tests, added
+      after review 8mar finding GDAB-2, which correctly caught that the plan
+      claimed these were "named in the manifest" when no path existed here:
+
+        .gitlab/scripts/changed-files.sh
+          the shared helper implementing the four-step contract -- resolve and
+          fetch the target, prove a merge base, materialize the NUL-separated
+          list to a temporary file only after a successful git diff, then
+          invoke the consumer. Sourced by agov:governance:validate, replacing
+          the two inline piped diffs at .gitlab-ci.yml:866-871.
+
+        tests/changed-files-failclosed.sh
+          the negative-test script, run by a CI job rather than only locally,
+          per gate-self-test-rule.md's requirement that the transcript be
+          reviewer-visible.
+
+        tests/fixtures/changed-files/
+          fixture repositories for each failure mode: empty target variable,
+          fetch failure, missing merge base, and git diff failure -- plus the
+          shallow/diverged-history case, constructed as review at74 constructed
+          it (target and feature each 40 commits past a common base, cloned at
+          --depth 20, target fetched, common base absent).
+
+      at74 verified that shallow case empirically against a constructed
+      repository and against real runner evidence (job 16065719319 shows
+      "git depth set to 20"), so the fixture reproduces a demonstrated
+      condition rather than an invented one.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/rules/always/gate-self-test-rule.md
+      - agf/rules/workflow/simplicity-rule.md
+      - agf/docs/site/docs/concepts/roles-and-gates.md
+      - agf/docs/site/docs/operate/day-to-day.md
+      - agf/docs/site/docs/adopt/tooling-and-tokens.md
+      - agf/docs/site/docs/advanced/contracts-and-validators.md
+    reason: >-
+      Both canonical rules and all four Pages surfaces live under agf/ and
+      ship in the AGF distribution artifact, so an adopter receives the rule,
+      its explanation, and the corrected CI examples together -- which is the
+      point of including B2 here rather than deferring it.
+
+      No registry, schema, or checker is claimed by this plan. Those travel
+      with slice C to its own plan
+      (docs/plans/20260829T231900Z-gate-change-mechanical-enforcement.md), and
+      an earlier revision of this row wrongly retained them -- including a root
+      agf/gates.yaml path that review j1ht rejected and that slice C's plan
+      replaces with .agf/gates.yaml plus a neutral agf/examples/gates.yaml.
+      Review 8mar (GDAB-1) caught the overlap: a projection manifest is
+      structured Gate 1 evidence, so leaving it would have assigned the same
+      implementation and distribution scope to two plans at once.
+
+      The foundry helper .gitlab/scripts/changed-files.sh and its shell tests
+      are foundry CI infrastructure, not shipped adopter content, and are
+      recorded under validation_drift_evidence rather than here. The
+      .claude/rules/ projections are foundry-local by design and are likewise
+      not claimed as shipped adopter content. What ships from this plan is
+      exactly the two canonical rules and the four corrected Pages surfaces
+      listed above.
