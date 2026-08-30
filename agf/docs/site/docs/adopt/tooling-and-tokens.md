@@ -156,16 +156,23 @@ validate-governance:
       # pipeline's LAST exit status, so a failed diff is masked by a
       # successful `xargs -0r`, which on empty input simply declines to run.
       changed() { filter="$1"; shift; : > "$LIST"; git diff --name-only -z "--diff-filter=$filter" "$BASE...HEAD" -- "$@" > "$LIST"; }
+      # --no-renames is load-bearing. Git reports a rename as R, not D, so a
+      # plain --diff-filter=D is blind to rename-and-rewrite: the original
+      # record is gone, a validly-shaped destination passes the validator,
+      # and the append-only guard sees nothing. --no-renames decomposes the
+      # rename into D(old) + A(new) so the vanished path is visible.
+      deleted() { : > "$LIST"; git diff --no-renames --name-only -z --diff-filter=D "$BASE...HEAD" -- "$@" > "$LIST"; }
       # `if`, not `[ -s ... ] && ...` -- under `set -e` a false `&&` list
       # would exit the script.
       run_on() { if [ -s "$LIST" ]; then xargs -0r "$@" < "$LIST"; fi; }
 
-      # Coordination records are append-only. Reject a deletion explicitly
+      # Coordination records are append-only. Reject a removal explicitly
       # rather than letting the validator report "file not found", which
-      # explains nothing.
-      changed D 'docs/coordination/*.md'
+      # explains nothing. A rename counts: it removes the published path
+      # other records cite by name.
+      deleted 'docs/coordination/*.md'
       if [ -s "$LIST" ]; then
-        echo "ERR: this range deletes coordination records; they are append-only." >&2
+        echo "ERR: this range removes coordination records from their published paths; records are append-only, and a rename counts." >&2
         tr '\0' '\n' < "$LIST" >&2
         exit 1
       fi

@@ -97,6 +97,36 @@ cf_changed_files() {
   fi
 }
 
+# cf_deleted_files BASE OUTFILE PATHSPEC...
+# Writes the NUL-separated list of paths that DISAPPEAR over the range.
+#
+# --no-renames is load-bearing, not a style choice. Git classifies a rename
+# as R, not D, so `--diff-filter=D` alone reports an empty list for a
+# rename-and-rewrite: the old immutable record is gone, a validly-shaped new
+# one stands in its place, and an append-only guard built on D sees nothing.
+# Review 13rh (GCD-G2-2) demonstrated exactly that bypass against the first
+# version of this contract. --no-renames decomposes a rename into D(old) +
+# A(new), so the vanished path appears where the guard can see it.
+#
+# --diff-filter=DR was considered and rejected: with --name-only -z, an R
+# entry emits BOTH source and destination paths into the NUL stream, so the
+# consumer would receive the surviving destination as though it too had been
+# deleted. --no-renames keeps one path per record.
+cf_deleted_files() {
+  cf_base="${1:?cf_deleted_files: base required}"
+  cf_out="${2:?cf_deleted_files: output file required}"
+  shift 2
+
+  : > "$cf_out" || return 1
+
+  if ! git diff --no-renames --name-only -z --diff-filter=D \
+        "$cf_base...HEAD" -- "$@" > "$cf_out"; then
+    echo "changed-files: git diff failed while deriving the deletion list for base '$cf_base'; failing closed." >&2
+    : > "$cf_out"
+    return 1
+  fi
+}
+
 # cf_run_on_list OUTFILE COMMAND...
 # Invokes COMMAND once with the captured paths appended, only when the list
 # is non-empty. Separated from cf_changed_files so that a diff failure can

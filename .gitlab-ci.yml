@@ -892,20 +892,26 @@ agov:governance:validate:
       trap "rm -f '$changed_list' '$deleted_list'" EXIT
 
       # Coordination records are append-only (see
-      # agf/rules/workflow/coordination-publication-rule.md condition 3 and
-      # agf/rules/always/coordination-message-rule.md). Deleting one was
-      # previously blocked only by accident -- `agov coord validate` reported
-      # `file not found` for the vanished path, which explains nothing. This
-      # replaces that accident with an intentional check and a diagnostic
-      # that names the rule.
-      cf_changed_files "$base" "$deleted_list" D 'docs/coordination/*.md' \
+      # agf/rules/workflow/coordination-publication-rule.md, condition 3).
+      # Deleting one was previously blocked only by accident -- `agov coord
+      # validate` reported `file not found` for the vanished path, which
+      # explains nothing. This replaces that accident with an intentional
+      # check and a diagnostic that names the rule.
+      #
+      # cf_deleted_files disables rename detection deliberately. A plain
+      # --diff-filter=D is blind to rename-and-rewrite: Git reports R, the
+      # deletion list comes back empty, and a validly-shaped destination
+      # sails through `coord validate` while the original record is gone.
+      # Review 13rh (GCD-G2-2) demonstrated that bypass.
+      cf_deleted_files "$base" "$deleted_list" 'docs/coordination/*.md' \
           ':!docs/coordination/README.md' \
           ':!docs/coordination/feedback-coordination-messages.md'
       if [ -s "$deleted_list" ]; then
-        echo "ERR: this range deletes coordination records:" >&2
+        echo "ERR: this range removes coordination records from their published paths:" >&2
         tr '\0' '\n' < "$deleted_list" | sed 's/^/  - /' >&2
-        echo "ERR: coordination records are append-only. Correct a stale, wrong, or superseded record by adding a NEW record that references and supersedes it -- never by deleting or rewriting the original (agf/rules/workflow/coordination-publication-rule.md, condition 3)." >&2
-        echo "ERR: if a record was committed onto the wrong branch, the fix is to rebuild the branch without that commit, not to add a deletion commit on top." >&2
+        echo "ERR: coordination records are append-only. Correct a stale, wrong, or superseded record by adding a NEW record that references and supersedes it -- never by deleting, renaming, or rewriting the original (agf/rules/workflow/coordination-publication-rule.md, condition 3)." >&2
+        echo "ERR: renaming a record counts. A rename removes the published path other records cite by name, so it is reported here even when the destination file is itself valid." >&2
+        echo "ERR: if a record was committed onto the wrong branch, the fix is to rebuild the branch without that commit, not to add a deletion or rename commit on top." >&2
         exit 1
       fi
 

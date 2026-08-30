@@ -249,7 +249,10 @@ coord_base="$(cd "$coord_del" && git rev-parse main)"
 (
   cd "$coord_del"
   . "$contract"
-  cf_changed_files "$coord_base" "$work/coord.d" D 'docs/coordination/*.md' \
+  # cf_deleted_files, not cf_changed_files -- this must exercise the exact
+  # function the CI job calls, or the test proves something the gate does not
+  # actually do.
+  cf_deleted_files "$coord_base" "$work/coord.d" 'docs/coordination/*.md' \
       ':!docs/coordination/README.md' \
       ':!docs/coordination/feedback-coordination-messages.md'
   tr '\0' '\n' < "$work/coord.d" > "$work/coord.txt"
@@ -263,9 +266,28 @@ fi
 
 printf '\n== 8. The validators still FIRE after the filter ==\n'
 printf '   A filter that silences the validator is worse than the defect it\n'
-printf '   repairs. Add and modify are exercised independently.\n\n'
+printf '   repairs. ADD and MODIFY are exercised as genuinely distinct Git\n'
+printf '   statuses -- review 13rh (GCD-G2-1) caught the first version of this\n'
+printf '   section claiming a MODIFY it never performed.\n\n'
+
+# assert_status RANGE_BASE EXPECTED_STATUS PATH LABEL
+# Proves what Git ACTUALLY reports over the range before any conclusion is
+# drawn from a validator result. Without this, a test can add a file and edit
+# it in the same range, then report a MODIFY result that Git classifies as an
+# ADD -- passing for the wrong reason.
+assert_status() {
+  as_base=$1; as_want=$2; as_path=$3; as_label=$4
+  as_got="$(git diff --name-status "$as_base...HEAD" -- "$as_path" | cut -f1)"
+  if [ "$as_got" = "$as_want" ]; then
+    ok "$as_label (range reports $as_got)"
+  else
+    bad "$as_label (range reports '${as_got:-<none>}', expected $as_want -- the assertion below would prove the wrong thing)"
+  fi
+}
 
 if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
+
+  # ---- ADD: files absent from the base, added invalid on the branch ----
   val="$work/val"
   mkdir -p "$val"
   (
@@ -276,32 +298,107 @@ if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
     mkdir -p docs/coordination docs/plans
     cp "$fixtures/invalid-coordination.md" docs/coordination/invalid-coordination.md
     cp "$fixtures/invalid-plan.md" docs/plans/invalid-plan.md
-    cp "$fixtures/20260101T000000Z-coder-tester-fix1.md" docs/coordination/
     git_quiet add -A
-    git_quiet commit -q -m "add one invalid record, one invalid plan, one valid record"
+    git_quiet commit -q -m "add one invalid record and one invalid plan"
   ) >/dev/null 2>&1
   val_base="$(cd "$val" && git rev-parse main)"
+
+  ( cd "$val" && assert_status "$val_base" A docs/coordination/invalid-coordination.md \
+      "ADD: the range really reports an addition for the record" )
+  ( cd "$val" && assert_status "$val_base" A docs/plans/invalid-plan.md \
+      "ADD: the range really reports an addition for the plan" )
 
   check_nonzero "ADD: 'coord validate' still rejects an invalid ADDED record through the contract" \
     sh -c "cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/v1' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v1' '$AGOV_BIN' coord validate"
   check_nonzero "ADD: 'plan validate' still rejects an invalid ADDED plan through the contract" \
     sh -c "cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/v2' d 'docs/plans/*.md' && cf_run_on_list '$work/v2' '$AGOV_BIN' plan validate"
 
+  # ---- MODIFY: VALID files already in the base, broken on the branch ----
+  # The base must already carry them. Adding and then editing inside one
+  # range is still an ADD over that range.
+  mod="$work/mod"
+  mkdir -p "$mod"
   (
-    cd "$val"
-    git_quiet checkout -q -b modify main
+    cd "$mod"
+    git_quiet init -q .
+    mkdir -p docs/coordination docs/plans
+    cp "$fixtures/20260101T000000Z-coder-tester-fix1.md" docs/coordination/
+    cp "$fixtures/valid-plan.md" docs/plans/valid-plan.md
+    git_quiet add -A
+    git_quiet commit -q -m "base carries a valid record and a valid plan"
+    git_quiet checkout -q -b work
+    # Break FRONT MATTER in both. Appending to the body leaves a record
+    # valid, because the validator reads the front matter -- the first draft
+    # of this test made exactly that mistake.
+    sed -i 's/^kind: note$/kind: not-a-real-kind/' docs/coordination/20260101T000000Z-coder-tester-fix1.md
+    sed -i 's/^status: pending-gate1$/status: not-a-valid-status/' docs/plans/valid-plan.md
+    git_quiet add -A
+    git_quiet commit -q -m "break both into invalid files"
+  ) >/dev/null 2>&1
+  mod_base="$(cd "$mod" && git rev-parse main)"
+
+  ( cd "$mod" && assert_status "$mod_base" M docs/coordination/20260101T000000Z-coder-tester-fix1.md \
+      "MODIFY: the range really reports a modification for the record" )
+  ( cd "$mod" && assert_status "$mod_base" M docs/plans/valid-plan.md \
+      "MODIFY: the range really reports a modification for the plan" )
+
+  check_nonzero "MODIFY: 'coord validate' still rejects a record broken by MODIFICATION" \
+    sh -c "cd '$mod' && . '$contract' && cf_changed_files '$mod_base' '$work/v3' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v3' '$AGOV_BIN' coord validate"
+  check_nonzero "MODIFY: 'plan validate' still rejects a plan broken by MODIFICATION" \
+    sh -c "cd '$mod' && . '$contract' && cf_changed_files '$mod_base' '$work/v4' d 'docs/plans/*.md' && cf_run_on_list '$work/v4' '$AGOV_BIN' plan validate"
+
+  printf '\n== 9. Rename-and-rewrite must not bypass the append-only guard ==\n'
+  printf "   Git reports a rename as R, not D. A guard built on --diff-filter=D\n"
+  printf '   alone sees nothing while the original record disappears and a\n'
+  printf '   validly-shaped destination passes the validator. Review 13rh\n'
+  printf '   (GCD-G2-2) demonstrated this bypass.\n\n'
+
+  ren="$work/ren"
+  mkdir -p "$ren"
+  (
+    cd "$ren"
+    git_quiet init -q .
     mkdir -p docs/coordination
     cp "$fixtures/20260101T000000Z-coder-tester-fix1.md" docs/coordination/
-    git_quiet add -A && git_quiet commit -q -m "add a valid record"
-    # Break a FRONT MATTER field. Appending to the body leaves the record
-    # valid -- the first version of this test did exactly that and reported
-    # a false failure against the contract.
-    sed -i 's/^kind: note$/kind: not-a-real-kind/' docs/coordination/20260101T000000Z-coder-tester-fix1.md
-    git_quiet add -A && git_quiet commit -q -m "modify it into an invalid one"
+    git_quiet add -A
+    git_quiet commit -q -m "base carries a published record"
+    git_quiet checkout -q -b work
+    git_quiet mv docs/coordination/20260101T000000Z-coder-tester-fix1.md \
+                 docs/coordination/20260101T000001Z-coder-tester-fix2.md
+    # Make the DESTINATION independently valid, so nothing else objects.
+    sed -i 's/20260101T000000Z-coder-tester-fix1/20260101T000001Z-coder-tester-fix2/; s/2026-01-01T00:00:00Z/2026-01-01T00:00:01Z/' \
+      docs/coordination/20260101T000001Z-coder-tester-fix2.md
+    git_quiet add -A
+    git_quiet commit -q -m "rename the record and rewrite its identity"
   ) >/dev/null 2>&1
-  mod_base="$(cd "$val" && git rev-parse main)"
-  check_nonzero "MODIFY: 'coord validate' still rejects a record broken by MODIFICATION" \
-    sh -c "cd '$val' && git checkout -q modify && . '$contract' && cf_changed_files '$mod_base' '$work/v3' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v3' '$AGOV_BIN' coord validate"
+  ren_base="$(cd "$ren" && git rev-parse main)"
+
+  ren_status="$(cd "$ren" && git diff --name-status "$ren_base...HEAD" -- 'docs/coordination/*.md' | cut -f1 | cut -c1)"
+  if [ "$ren_status" = "R" ]; then
+    ok "the range really reports a rename (R), not a delete"
+  else
+    bad "fixture setup: range reports '${ren_status:-<none>}', not R -- the bypass below would not be the one under test"
+  fi
+
+  # The destination is valid on its own, which is what makes the bypass work.
+  check_zero "the renamed destination is itself valid, so nothing else objects" \
+    sh -c "cd '$ren' && '$AGOV_BIN' coord validate docs/coordination/20260101T000001Z-coder-tester-fix2.md"
+
+  # The OLD D-only query: reproduce the blindness.
+  ( cd "$ren" && git diff --name-only -z --diff-filter=D "$ren_base...HEAD" -- 'docs/coordination/*.md' > "$work/d-only" ) >/dev/null 2>&1
+  if [ -s "$work/d-only" ]; then
+    bad "OLD D-only query saw the rename -- the premise of GCD-G2-2 no longer holds; re-derive it"
+  else
+    ok "OLD D-only query returns EMPTY on a rename (the bypass, reproduced)"
+  fi
+
+  # The NEW rename-aware query must surface the vanished source path.
+  ( cd "$ren" && . "$contract" && cf_deleted_files "$ren_base" "$work/ren-del" 'docs/coordination/*.md' ) >/dev/null 2>&1
+  if grep -q 'coder-tester-fix1.md' "$work/ren-del" 2>/dev/null; then
+    ok "NEW cf_deleted_files surfaces the vanished source path, so the guard fires"
+  else
+    bad "NEW cf_deleted_files missed the rename -- the append-only guard is still bypassable"
+  fi
 else
   printf '  SKIP  validator tests: no agov binary at %s\n' "$AGOV_BIN"
   printf '        (set AGOV_BIN, or build with: cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov)\n'

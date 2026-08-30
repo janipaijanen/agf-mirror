@@ -163,7 +163,44 @@ surfaces:
           fetch failure, missing merge base, and git diff failure -- plus the
           shallow/diverged-history case, constructed as review at74 constructed
           it (target and feature each 40 commits past a common base, cloned at
-          --depth 20, target fetched, common base absent).
+          --depth 20, target fetched, common base absent). Also carries a
+          valid coordination record and a valid plan, which the comparison
+          base needs in order for a modification to register as M rather
+          than A.
+
+      Two blocking findings from exact-head Gate 2 review 13rh are closed
+      here, both of the same class -- a green test reaching the intended
+      verdict for an unintended reason:
+
+        GCD-G2-1: the claimed MODIFY assertion was an ADD over its own
+        comparison range. The test branched from the base, added the record,
+        then edited it, and set the base to the branch point -- so Git
+        classified the net change as A. The corrected test puts valid
+        governed files in the BASE and breaks them on the candidate branch,
+        and an assert_status helper now proves what Git actually reports
+        over the range BEFORE any validator result is accepted. Both
+        coordination and plan modification are exercised, so the claim that
+        both validators still fire is direct rather than inferred from
+        shared helper wiring.
+
+        GCD-G2-2: the append-only guard used --diff-filter=D, which is blind
+        to rename-and-rewrite -- Git reports R, the deletion list comes back
+        empty, and a validly-shaped destination passes coord validate while
+        the original record is gone. cf_deleted_files now disables rename
+        detection so a rename decomposes into D(old) + A(new). Applied
+        identically to all four adopter sketches. --diff-filter=DR was
+        considered and rejected: an R entry emits both source and
+        destination into the NUL stream, which would hand the surviving
+        destination to the consumer as though it had been deleted.
+        Test section 9 asserts the range really reports R, reproduces the
+        old query returning empty, and proves the new one surfaces the
+        vanished path.
+
+      One advisory finding is also closed: a CI comment cited
+      agf/rules/always/coordination-message-rule.md, which does not exist
+      under agf/rules/ (only as a foundry-local .claude/rules/ projection).
+      The reference is removed; the runtime diagnostic already named the
+      correct authority.
 
       at74 verified that shallow case empirically against a constructed
       repository and against real runner evidence (job 16065719319 shows
