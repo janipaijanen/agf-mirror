@@ -305,15 +305,30 @@ path must resolve while the entry is active, and a registry entry may never be
 deleted" — one assertion covering both halves, in the row that instructs the
 adopter-facing page. Split there too.
 
-**Classification of every remaining occurrence**, so this is checkable rather
-than asserted:
+**Classification of every remaining PROSPECTIVE occurrence** — every place
+that instructs an implementer — so this is checkable rather than asserted:
 
 | Location | Status |
 |---|---|
 | Definition heading, "Assertion 2 — registry integrity, in two separable parts" | Correct — the umbrella that introduces 2a and 2b |
 | Scope sentence, now "assertion 2 (its parts 2a and 2b)" | Made explicit |
-| GME-R2 row, and the projection's "previously stated as one check" paragraph | Correct — labelled history describing the contradiction being fixed |
-| Everything else | Split into 2a or 2b |
+| Everything else prospective | Split into 2a or 2b |
+
+Retrospective quotations of the superseded wording are deliberately left
+intact and are **not** classified above: the GME-R2 row, the projection's
+"previously stated as one check" paragraph, the retirement-state
+retrospective describing a prior revision's wholesale waiver, and the two
+`ps6n` discussion quotations of the former deletion attribution and the
+former adopter-projection sentence. Each is explicitly historical and none
+instructs implementation; rewriting them would erase the record of what was
+corrected.
+
+The heading previously read "every remaining occurrence", which review
+`mnqp` (GME-A2) correctly identified as an overclaim — it named two
+historical quotations while three others existed. The claim is narrowed to
+what it can actually support rather than the inventory being padded to match
+it, since the prospective/retrospective split is the distinction that
+matters to an implementer.
 
 **This was the fourth round of the same failure, and it landed inside the
 paragraph describing the fix for the third.** That is recorded in learning
