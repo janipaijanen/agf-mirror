@@ -1,0 +1,176 @@
+# Six-surface projection evidence for the gate-change-mechanical-enforcement
+# plan (docs/plans/20260829T231900Z-gate-change-mechanical-enforcement.md),
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# This plan implements the mechanical check whose blocking authority is
+# granted by the parent plan's extension of gate-self-test-rule.md. It adds no
+# new normative obligation of its own.
+
+plan_id: gate-change-mechanical-enforcement
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/advanced/contracts-and-validators.md
+  - agf/docs/site/docs/operate/day-to-day.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: agf/rules/always/gate-self-test-rule.md
+    reason: >-
+      The obligation this check enforces -- that introducing or modifying a
+      gate carries a negative-test requirement -- is created by the parent
+      plan's slice A, which extends gate-self-test-rule.md and grants this
+      check its blocking authority per tool-authority-boundary-rule.md. This
+      plan implements that existing obligation and creates no new one, so no
+      normative owner changes here. Recording it as a pointer rather than
+      "not applicable" because the authority is real and named, just not
+      newly written.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/advanced/contracts-and-validators.md
+    reason: >-
+      This is the canonical page describing agov's validators to adopters. It
+      gains the agov gate change-check command, the registry schema, and a
+      pointer to the shipped neutral example at agf/examples/gates.yaml.
+
+      The page describes exactly two assertions. Assertion 1: a change to a
+      registered gate surface must be accompanied by a change to that gate's
+      declared test paths. Assertion 2a: every path registered by an active
+      entry must resolve, waived once that entry is retired so obsolete files
+      can be deleted. Assertion 2b: a registry entry may never be deleted, in
+      any state, so a retired ID stays a permanent record. All read only the
+      registry and the working tree, so the check performs no network request,
+      needs no token, and behaves identically on any forge.
+
+      Two boundaries must be stated on the page, not implied. The check is a
+      proxy for review attention rather than proof of test quality: an empty
+      or unrelated test satisfies assertion 1, and the candidate pipeline runs
+      the candidate checker. And CI execution integrity -- whether a
+      registered job is reachable in its pipeline context and whether its
+      script does useful work -- is explicitly not covered, and is named as
+      Gate 2 reviewer responsibility.
+
+      Superseded review history, recorded so this row's own change is
+      traceable and NOT as instruction for the page: an earlier revision of
+      this row directed the page to document a GitLab merged-configuration API
+      dependency and a cross-forge gap. Both belonged to assertion 3, which
+      review 8mar blocked and this plan withdrew. Review br41 (GME-R1) caught
+      that the row still carried them after the withdrawal -- a projection row
+      is prospective instruction for implementation, not description, so
+      leaving it would have directed an implementer to publish a dependency
+      and a gap the design no longer has.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      An operator meeting this check needs two situational answers the
+      concepts page does not give: what a failure means in practice (a gate
+      surface changed with no accompanying test), and how to retire a gate
+      correctly (an explicit retired: transition, never deleting the entry,
+      since deletion fails assertion 2b, while its obsolete surface files may be
+      deleted because 2a is waived when retired). Both are short procedural
+      notes
+      pointing at the rule and the concepts page rather than restating them.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      No new agent obligation is created here. The obligation an assistant
+      must know -- gate mechanics are not fast-track eligible, and modifying
+      a gate requires a negative test -- is the parent plan's slice A, which
+      is already projected into .claude/rules/always/gate-self-test-rule.md
+      and .claude/rules/workflow/simplicity-rule.md by that plan. Projecting
+      the same obligation again from this plan would create exactly the
+      competing-authority drift documentation-rule-projection-rule.md exists
+      to prevent. AGENTS.md and agf/templates/AGENTS.md route rule authority
+      to agf/rules/ generally and need no change.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      This plan is itself the mechanical check, so the drift evidence is the
+      check plus its negative fixtures. Per gate-self-test-rule.md applied to
+      itself, it ships demonstrating: assertion 1 blocking a registered-surface
+      change with no accompanying test change, and not blocking either a gate
+      change that carries one or a change to any unregistered path; assertion
+      2a blocking an unresolvable path registered by an active entry; assertion
+      2b blocking outright deletion of any registry entry regardless of state;
+      and retirement waiving 1 and 2a but not 2b, so a retired gate can delete
+      its obsolete surface files while its entry remains permanent and the
+      active-to-retired transition still fires assertion 1 on the registry.
+
+      Assertion 2 was previously stated as one check covering both path
+      resolution and entry permanence. Review br41 (GME-R2) showed that made
+      the retirement waiver self-contradictory -- "assertion 2 is waived when
+      retired" alongside "deletion still fails assertion 2". The split is what
+      makes the lifecycle implementable rather than merely describable.
+
+      An earlier revision of this row claimed a third assertion proved the
+      registered job "will run", by resolving GitLab's merged configuration.
+      Review 8mar blocked that on two independent grounds and both are upheld.
+      GME-2: merged configuration is static, so rules-context omission and an
+      earlier exit 0 both survive it; GitLab documents dry_run separately as
+      pipeline creation simulation, and even simulation cannot prove a later
+      script command is reachable. GME-1: the assertion required an
+      authenticated request to a private project's API, which CI_JOB_TOKEN
+      does not cover, while this plan's own infosec consultation asserted no
+      credential content was involved.
+
+      Assertion 3 is therefore withdrawn rather than respecified. This is the
+      second design in this line to claim a mechanical check proves a gate
+      executes and the second to be wrong -- the first matched literal
+      invocation text, the second resolved merged YAML. The correction is to
+      stop making the claim.
+
+      What remains is fully local: both assertions read only the registry and
+      the working tree. No network request, no token, no pipeline context, and
+      no forge dependency, so adopters on any platform get the same check.
+      Acceptance criterion 5 verifies this by running the tests with no
+      credential available.
+
+      Two residuals are stated as limits rather than implied away. The check is
+      a proxy for review attention, not proof of test quality: the candidate
+      pipeline runs the candidate checker, so one merge request can weaken it
+      and satisfy assertion 1 with an empty or unrelated test, demonstrated as
+      a passing case in acceptance criterion 7. And CI execution integrity --
+      whether a registered job is reachable in context and whether its script
+      does useful work -- is named as Gate 2 reviewer responsibility, not
+      covered here.
+
+      Paths are omitted from a paths: array at Gate 1 because every artifact is
+      created by this plan's implementation and does not yet exist, and
+      stage: planned is limited to normative_owner. They are added at Gate 2
+      when the strict projection check must pass against them:
+        tooling/rust/crates/agov-validators/src/gate_change.rs
+        tooling/rust/crates/agov-validators/src/lib.rs
+        tooling/rust/crates/agov/src/main.rs
+        tooling/rust/crates/agov/tests/gate_change_check.rs
+        agf/schemas/gate-registry.schema.json
+        agf/examples/gates.yaml
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/advanced/contracts-and-validators.md
+      - agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      Both Pages surfaces live under agf/ and ship in the AGF distribution
+      artifact. The registry schema and the neutral example
+      (agf/examples/gates.yaml) are added to agf/dist/release-manifest.yaml
+      explicitly, because j1ht GCD-R1 established that adding a file under
+      agf/ does not make it ship -- the manifest selects specific root files
+      and directory globs. They are absent from the paths: array above only
+      because they do not exist yet; they are added at Gate 2, and acceptance
+      criterion 8 verifies them by inspecting a built archive rather than by
+      re-reading the manifest.
+
+      The live foundry registry is deliberately placed at .agf/gates.yaml,
+      outside agf/, and is not shipped. It names foundry-specific paths
+      (.gitlab-ci.yml, .gitlab/scripts/, tooling/rust/) that would be wrong
+      in an adopter's repository. Locating it outside the shipped tree
+      resolves that by construction rather than relying on a release-manifest
+      exclusion a future glob change could silently undo -- the same
+      collision already handled for agf/agents/MANIFEST.yaml, but closed
+      structurally instead.
