@@ -4187,6 +4187,169 @@ learnings:
         - 'docs/reviews/rule-projection/gate-change-mechanical-enforcement.yaml: two further rows referencing the undivided assertion 2 after the 2a/2b split, found by the author while fixing GME-R2 and corrected in the same commit.'
 
 
+  - id: 20260830T114500Z-tw3s
+    date: '2026-08-30'
+    category: process
+    scope: framework
+    title: negative-test-suite-passed-in-ci-while-its-validators-could-not-run
+    status: implemented
+    description: >-
+      A gate self-test suite, written specifically to prevent green-looking
+      wrong evidence, produced green-looking wrong evidence five times in one
+      session. The third instance passed in CI and was cited as Gate 2
+      evidence; the fourth was in the class-level control written to close
+      the third; the fifth was in the meta-test written to prove the fourth
+      control fires. Each fix was real and each was strictly stronger than
+      the last, yet every round of independent review found the next
+      instance one level further up. Each instance had a different surface cause and the same
+      shape: an assertion reached its intended verdict for an unintended
+      reason.
+
+      First, a shallow-clone fixture used `git clone --depth`, which implies
+      `--single-branch`; the remote-tracking ref was never created, so the
+      pattern under test failed on `rev-parse` rather than on the missing
+      merge base the test existed to demonstrate. Second, a "MODIFY"
+      assertion added a file and edited it within one comparison range, which
+      Git classifies as an addition, so it proved the ADD path twice. Third
+      -- and the reason this record exists -- every validator rejection
+      assertion used a bare non-zero exit check, which cannot distinguish
+      "the validator rejected the content" from "the validator could not
+      run". The suite ran validators inside throwaway repositories with no
+      AGF root, and the CI job invoked the built binary directly rather than
+      through the wrapper that exports AGOV_SCHEMA_DIR, so the validator
+      exited non-zero with `Io("No such file or directory")` on every input,
+      valid or invalid. Four assertions passed while nothing was validated.
+      The CI transcript reporting "17 passed" was offered as gate evidence.
+      The defect surfaced only because a later revision added a POSITIVE
+      assertion -- that a renamed destination must still be valid -- which a
+      non-functional validator cannot satisfy.
+
+      Fourth: the control written to close the third was itself an instance.
+      It inferred content rejection from a non-zero exit unless the output
+      matched one of three blocklisted infrastructure-error strings. Since
+      each guarded assertion is a composite command -- derive the input feed,
+      then run the validator -- a FEEDER failure exits non-zero before the
+      validator runs, matches none of those strings, and was reported as a
+      successful content rejection. Independent review constructed that case
+      and reproduced it; the author had flagged the blocklist as the weak
+      point in the same handoff that shipped it, and still shipped it.
+
+      Fifth: the meta-test proving the fourth control fires was itself an
+      instance. It stored its fixture command as a STRING and ran it through
+      `eval`, then inferred both of its conclusions from bare non-zero exits
+      -- so a missing or malformed command satisfied both assertions while
+      the intended path never ran. The mutation `command-that-does-not-exist`
+      produced 2 passed / 0 failed. The lesson is recursive: writing a test
+      for a control does not escape the pattern, because the test of the
+      control is itself a test and inherits the same failure mode. Only
+      positive, specific evidence terminates the regress -- an assertion that
+      names what it expects to see cannot be satisfied by an absence.
+    roles_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: always/gate-self-test-rule.md
+    business_impact:
+      type: prevented_loss
+      description: >-
+        The gate being tested was a governance validator feed that had been
+        silently reporting success without validating anything. Had the suite
+        shipped as it stood, the replacement gate would have carried a green
+        CI transcript asserting it fired correctly, while its own evidence was
+        produced by a validator that never ran -- a stronger false assurance
+        than the original defect, because it would have come with a passing
+        test. All three instances were caught by independent review before
+        merge, so the loss was prevented rather than realised. None was caught
+        by the author, and none by shell syntax checks, `git diff --check`,
+        projection validation, or the suite's own result line.
+      details: >-
+        Disclosing the pattern did not prevent its recurrence. The author
+        documented two instances of it in the Gate 2 handoff and explicitly
+        asked reviewers to assume more were present; review `13rh` then found
+        a third and fourth, and after a class-level control was claimed in
+        `vq7n`, review `2shr` found that the control itself rested on
+        assertions incapable of detecting the class. Self-disclosure and
+        author vigilance are therefore not mitigations for this failure mode.
+        Only an assertion that can fail for the specific wrong reason is.
+    recommendation: >-
+      A negative-test suite must be able to fail for the reason it claims to
+      test, and must prove it can still pass for the right one. Four
+      controls, all implemented in `tests/changed-files-failclosed.sh`:
+
+      (1) Assert the PRECONDITION mechanically before trusting the outcome.
+      Where a test depends on a specific state -- a Git status of M rather
+      than A, a rename reported as R, a remote-tracking ref existing -- assert
+      that state and fail loudly when it differs, rather than inferring it
+      from the setup commands.
+
+      (2) Never accept a bare non-zero exit as proof that a checker rejected
+      content, and do not try to fix this with a blocklist of
+      infrastructure-error strings. That was attempted here and became the
+      fourth instance of the very pattern: the assertions being guarded are
+      COMPOSITE commands -- derive an input feed, then run the checker -- so a
+      feeder failure exits non-zero before the checker runs, matches no
+      blocklisted string, and reads as a clean content rejection. The set of
+      ways a composite command can fail early is open, so enumeration
+      relocates the blind spot rather than closing it. Require POSITIVE,
+      fixture-specific evidence instead: the assertion passes only when the
+      command fails AND its output contains the specific finding that fixture
+      must provoke, such as a schema error naming the offending field. No
+      infrastructure failure can forge that string, because only the checker
+      emits it and only for that content.
+
+      (3) Include a canary that proves the checker ACCEPTS known-good input
+      under the same environment the rejection assertions use. Every
+      rejection assertion is meaningless if the canary fails, and a canary is
+      the cheapest way to detect a broken harness before reading any other
+      result.
+
+      (4) Test the CONTROL, not only the thing it guards -- and apply
+      controls (1) to (3) to that test too, because it is a test and inherits
+      the same failure mode. A control asserted in prose is an unverified
+      claim of exactly the kind it exists to prevent. Add assertions that the
+      control refuses a deliberately broken case AND still accepts a genuine
+      one; the second half matters, since a control that rejects everything is
+      useless rather than safe. Invoke fixtures as real functions, never as
+      strings through `eval`, and require the broken case to produce its own
+      specific diagnostic rather than merely a non-zero exit. Then add a
+      MUTATION assertion proving a missing or malformed fixture cannot satisfy
+      the meta-test -- without it, the meta-test can pass while the path it
+      claims to exercise never runs.
+
+      The regress terminates here, and the reason is structural rather than a
+      matter of adding one more layer. Pair each mutation assertion with a
+      POSITIVE invocation of the same helper, in the same suite run. A broken
+      or always-failing helper makes its mutation assertion appear to pass,
+      but it simultaneously fails the paired positive assertion and raises the
+      suite's failure count, so it cannot leave the suite green. A helper that
+      always passes fails the mutation assertion. No state of a single helper
+      satisfies both, which is why the pair needs no meta-test of its own --
+      and why the answer is a pairing rather than another level of nesting.
+      This argument was supplied by the independent reviewer, not the author,
+      on the sixth round.
+
+      Verify the controls in both directions: run the suite with the
+      dependency broken and confirm the previously-passing assertions now
+      fail. Here, breaking schema discovery moved the result from 21 passed /
+      1 failed to 17 passed / 7 failed, and those four newly-failing
+      assertions are the ones that had been passing while the validator was
+      not running. A control that cannot be shown to fire is the same
+      category of unverified claim as the gate it protects.
+
+      Finally, run the suite with the EXACT invocation shape CI uses. The
+      local wrapper exported an environment variable the CI job did not, so
+      "passes locally" and "passes in CI" were testing different systems.
+    severity: critical
+    confidence:
+      level: single-adopter
+      evidence_count: 5
+      evidence_refs:
+        - 'docs/coordination/20260830T125924Z-coder-tester-gme3.md: finding GCD-G2-5, the eval-based meta-test accepting a missing command as proof the control fired, at head 81346b25.'
+        - 'docs/coordination/20260830T120843Z-coder-tester-hna4.md: finding GCD-G2-4, the class-level rejection control accepting a feeder failure as a content judgment, at head 09e4e875.'
+        - 'docs/coordination/20260830T110754Z-coder-tester-13rh.md: findings GCD-G2-1 (a MODIFY assertion that was an ADD over its own range) and GCD-G2-2 (rename-and-rewrite bypassing a D-only append-only guard), at head 7ca76d71.'
+        - 'docs/coordination/20260830T113003Z-coder-tester-2shr.md: finding GCD-G2-3, the required self-test losing schema context in CI, reproduced deterministically in canonical job 16190308091 at head 37352cd6.'
+        - 'tests/changed-files-failclosed.sh: the shallow-clone fixture bug found by the author during authoring, where --depth implied --single-branch and the test failed on rev-parse rather than on the missing merge base.'
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
