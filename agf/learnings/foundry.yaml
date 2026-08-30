@@ -4195,9 +4195,10 @@ learnings:
     status: implemented
     description: >-
       A gate self-test suite, written specifically to prevent green-looking
-      wrong evidence, produced green-looking wrong evidence three times in
-      one session, and the third instance passed in CI and was cited as Gate
-      2 evidence. Each instance had a different surface cause and the same
+      wrong evidence, produced green-looking wrong evidence four times in one
+      session. The third instance passed in CI and was cited as Gate 2
+      evidence; the fourth was in the class-level control written to close
+      the third. Each instance had a different surface cause and the same
       shape: an assertion reached its intended verdict for an unintended
       reason.
 
@@ -4219,6 +4220,16 @@ learnings:
       The defect surfaced only because a later revision added a POSITIVE
       assertion -- that a renamed destination must still be valid -- which a
       non-functional validator cannot satisfy.
+
+      Fourth: the control written to close the third was itself an instance.
+      It inferred content rejection from a non-zero exit unless the output
+      matched one of three blocklisted infrastructure-error strings. Since
+      each guarded assertion is a composite command -- derive the input feed,
+      then run the validator -- a FEEDER failure exits non-zero before the
+      validator runs, matches none of those strings, and was reported as a
+      successful content rejection. Independent review constructed that case
+      and reproduced it; the author had flagged the blocklist as the weak
+      point in the same handoff that shipped it, and still shipped it.
     roles_involved:
       - coder-tester
       - governor-reviewer
@@ -4247,7 +4258,7 @@ learnings:
         Only an assertion that can fail for the specific wrong reason is.
     recommendation: >-
       A negative-test suite must be able to fail for the reason it claims to
-      test, and must prove it can still pass for the right one. Three
+      test, and must prove it can still pass for the right one. Four
       controls, all implemented in `tests/changed-files-failclosed.sh`:
 
       (1) Assert the PRECONDITION mechanically before trusting the outcome.
@@ -4257,16 +4268,31 @@ learnings:
       from the setup commands.
 
       (2) Never accept a bare non-zero exit as proof that a checker rejected
-      content. Require the failure to be a content judgment: inspect the
-      output and fail when it carries an infrastructure error such as
-      `Io(...)`, "No such file or directory", or "command not found". A tool
-      that cannot run fails identically to a tool that correctly refuses.
+      content, and do not try to fix this with a blocklist of
+      infrastructure-error strings. That was attempted here and became the
+      fourth instance of the very pattern: the assertions being guarded are
+      COMPOSITE commands -- derive an input feed, then run the checker -- so a
+      feeder failure exits non-zero before the checker runs, matches no
+      blocklisted string, and reads as a clean content rejection. The set of
+      ways a composite command can fail early is open, so enumeration
+      relocates the blind spot rather than closing it. Require POSITIVE,
+      fixture-specific evidence instead: the assertion passes only when the
+      command fails AND its output contains the specific finding that fixture
+      must provoke, such as a schema error naming the offending field. No
+      infrastructure failure can forge that string, because only the checker
+      emits it and only for that content.
 
       (3) Include a canary that proves the checker ACCEPTS known-good input
       under the same environment the rejection assertions use. Every
       rejection assertion is meaningless if the canary fails, and a canary is
       the cheapest way to detect a broken harness before reading any other
       result.
+
+      (4) Test the CONTROL, not only the thing it guards. A control asserted
+      in prose is an unverified claim of exactly the kind it exists to
+      prevent. Add assertions that the control refuses a deliberately broken
+      case AND still accepts a genuine one -- the second half matters, since a
+      control that rejects everything is useless rather than safe.
 
       Verify the controls in both directions: run the suite with the
       dependency broken and confirm the previously-passing assertions now
@@ -4282,8 +4308,9 @@ learnings:
     severity: critical
     confidence:
       level: single-adopter
-      evidence_count: 3
+      evidence_count: 4
       evidence_refs:
+        - 'docs/coordination/20260830T120843Z-coder-tester-hna4.md: finding GCD-G2-4, the class-level rejection control accepting a feeder failure as a content judgment, at head 09e4e875.'
         - 'docs/coordination/20260830T110754Z-coder-tester-13rh.md: findings GCD-G2-1 (a MODIFY assertion that was an ADD over its own range) and GCD-G2-2 (rename-and-rewrite bypassing a D-only append-only guard), at head 7ca76d71.'
         - 'docs/coordination/20260830T113003Z-coder-tester-2shr.md: finding GCD-G2-3, the required self-test losing schema context in CI, reproduced deterministically in canonical job 16190308091 at head 37352cd6.'
         - 'tests/changed-files-failclosed.sh: the shallow-clone fixture bug found by the author during authoring, where --depth implied --single-branch and the test failed on rev-parse rather than on the missing merge base.'
