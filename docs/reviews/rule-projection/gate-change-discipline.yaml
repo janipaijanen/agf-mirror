@@ -254,6 +254,35 @@ surfaces:
         genuine content rejection -- so the control is correct rather than
         merely strict. Suite: 27 assertions.
 
+        GCD-G2-5 (review gme3): section 10 -- the meta-test of the control
+        that closed GCD-G2-4 -- was itself a fifth instance. It stored the
+        broken-feeder command as a STRING and ran it through eval, then
+        inferred both of its conclusions from bare non-zero exits. A missing
+        or malformed command produced the same non-zero result as the
+        intended feeder failure, so both meta-assertions passed while the
+        feeder path never ran. Reproduced independently against the previous
+        implementation with `command-that-does-not-exist`:
+        mutant_result=2_passed_0_failed.
+
+        Section 10 is rebuilt on the same principle the production control
+        already uses. The fixtures are real shell functions invoked directly,
+        not strings through eval, with subshell bodies so their cd does not
+        leak. The shape assertion requires the output to carry the specific
+        feeder diagnostic ("changed-files: git diff failed for base
+        'does-not-resolve'"). The refusal assertion requires the control to
+        refuse AND its captured output to show that feeder diagnostic while
+        LACKING the schema finding -- refused for the intended reason, not
+        merely refused. Two mutation assertions then prove a missing command
+        cannot satisfy either. Suite: 29 assertions.
+
+        The advisory question raised in zc4m is answered by gme3 and recorded
+        here: coupling the assertions to agov's exact diagnostic wording is an
+        acceptable trade, because the failure direction is closed, the CLI
+        exposes no structured validation result, and a pointer-plus-invalid-
+        value fragment is far more specific than a generic ERR marker. A
+        deliberate wording change must update these fixtures in the same
+        commit.
+
       One advisory finding is also closed: a CI comment cited
       agf/rules/always/coordination-message-rule.md, which does not exist
       under agf/rules/ (only as a foundry-local .claude/rules/ projection).

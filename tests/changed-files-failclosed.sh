@@ -485,34 +485,107 @@ printf '   changed-file feed, then run the validator. If the feeder fails, the\n
 printf '   command exits non-zero before the validator ever runs. A control\n'
 printf '   that infers "content was rejected" from a non-zero exit reports that\n'
 printf '   infrastructure failure as a pass. Review hna4 (GCD-G2-4) constructed\n'
-printf '   exactly that case against the previous blocklist implementation.\n\n'
+printf '   that case; review gme3 (GCD-G2-5) then showed this section itself\n'
+printf '   accepted a MISSING COMMAND as proof of the same thing.\n\n'
 
 if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
-  # A composite assertion whose FEEDER fails: the base does not resolve, so
-  # cf_changed_files fails closed and the validator is never reached.
-  broken_feeder="sh -c \"cd '$val' && . '$contract' && cf_changed_files does-not-resolve '$work/mf' d 'docs/coordination/*.md' && cf_run_on_list '$work/mf' '$AGOV_BIN' coord validate\""
 
-  # Confirm the shape: it really does exit non-zero without reaching the
-  # validator. Without this the meta-test below could pass vacuously.
-  if eval "$broken_feeder" >/dev/null 2>&1; then
-    bad "meta: the broken-feeder command exited 0 -- it is not the case under test"
+  # Real shell functions, invoked directly. The previous version stored these
+  # as strings and ran them through `eval`, so a malformed or missing command
+  # produced the same non-zero exit as the intended feeder failure and both
+  # meta-assertions passed without the feeder path ever running (GCD-G2-5).
+  # Subshell bodies -- () not {} -- so the cd does not leak to the caller.
+  broken_feeder_cmd() (
+    cd "$val" && . "$contract" &&
+      cf_changed_files does-not-resolve "$work/mf" d 'docs/coordination/*.md' &&
+      cf_run_on_list "$work/mf" "$AGOV_BIN" coord validate
+  )
+
+  genuine_rejection_cmd() (
+    cd "$val" && . "$contract" &&
+      cf_changed_files "$val_base" "$work/mg" d 'docs/coordination/*.md' \
+        ':!docs/coordination/README.md' &&
+      cf_run_on_list "$work/mg" "$AGOV_BIN" coord validate
+  )
+
+  FEEDER_DIAG="changed-files: git diff failed for base 'does-not-resolve'"
+  SCHEMA_FINDING='#/kind: "not-a-real-kind"'
+
+  # meta_shape_holds COMMAND
+  # Positive assertion, not a bare exit check: the command must fail AND its
+  # output must carry the specific feeder diagnostic. A missing command, a
+  # syntax error, or any unrelated failure cannot satisfy this.
+  meta_shape_holds() {
+    if msh_out="$("$@" 2>&1)"; then
+      msh_reason="exited 0"
+      return 1
+    fi
+    case "$msh_out" in
+      *"$FEEDER_DIAG"*) return 0 ;;
+      *)
+        msh_reason="failed WITHOUT the feeder diagnostic; first line: $(printf '%s' "$msh_out" | head -n1)"
+        return 1
+        ;;
+    esac
+  }
+
+  # meta_control_refuses COMMAND
+  # The control must refuse the command AND its recorded output must show the
+  # feeder diagnostic while LACKING the schema finding -- i.e. it refused for
+  # the intended reason, not merely refused.
+  meta_control_refuses() {
+    if rejects_with "$SCHEMA_FINDING" "$@"; then
+      mcr_reason="the control ACCEPTED it as a content rejection"
+      return 1
+    fi
+    case "$rw_out" in
+      *"$SCHEMA_FINDING"*)
+        mcr_reason="the captured output contains the schema finding, so this is not a feeder failure"
+        return 1
+        ;;
+    esac
+    case "$rw_out" in
+      *"$FEEDER_DIAG"*) return 0 ;;
+      *)
+        mcr_reason="refused, but for an unidentified reason: $(printf '%s' "$rw_out" | head -n1)"
+        return 1
+        ;;
+    esac
+  }
+
+  if meta_shape_holds broken_feeder_cmd; then
+    ok "meta: the broken-feeder command fails WITH the feeder diagnostic, before the validator runs"
   else
-    ok "meta: the broken-feeder command exits non-zero before the validator runs"
+    bad "meta: broken-feeder fixture is not the case under test ($msh_reason)"
   fi
 
-  # THE CONTROL ITSELF must reject that as evidence of content rejection.
-  if eval "rejects_with '#/kind: \"not-a-real-kind\"' $broken_feeder"; then
-    bad "check_rejects ACCEPTED a feeder failure as a content rejection -- GCD-G2-4 is not closed"
+  if meta_control_refuses broken_feeder_cmd; then
+    ok "check_rejects REFUSES a feeder failure, and for the feeder's own reason (GCD-G2-4 closed)"
   else
-    ok "check_rejects REFUSES a feeder failure as a content rejection (GCD-G2-4 closed)"
+    bad "check_rejects did not refuse the feeder failure correctly ($mcr_reason)"
   fi
 
-  # And it must still accept a genuine rejection, or the control is merely
-  # strict rather than correct.
-  if eval "rejects_with '#/kind: \"not-a-real-kind\"' sh -c \"cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/mg' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/mg' '$AGOV_BIN' coord validate\""; then
+  if rejects_with "$SCHEMA_FINDING" genuine_rejection_cmd; then
     ok "check_rejects still ACCEPTS a genuine content rejection"
   else
-    bad "check_rejects rejected a genuine content rejection -- the control is too strict to be useful"
+    bad "check_rejects rejected a genuine content rejection ($rw_reason) -- too strict to be useful"
+  fi
+
+  # ---- Mutation: a missing command must NOT satisfy either meta-assertion --
+  # This is the guard GCD-G2-5 required. Under the previous eval-based
+  # implementation this exact input reported 3 passed / 0 failed.
+  mutant_cmd() { command-that-does-not-exist-4b7f; }
+
+  if meta_shape_holds mutant_cmd; then
+    bad "MUTATION: a missing command satisfied the broken-feeder shape assertion -- GCD-G2-5 is not closed"
+  else
+    ok "MUTATION: a missing command CANNOT satisfy the broken-feeder shape assertion"
+  fi
+
+  if meta_control_refuses mutant_cmd; then
+    bad "MUTATION: a missing command satisfied the control-refusal assertion -- GCD-G2-5 is not closed"
+  else
+    ok "MUTATION: a missing command CANNOT satisfy the control-refusal assertion"
   fi
 else
   bad "meta-tests for check_rejects require an agov binary"
