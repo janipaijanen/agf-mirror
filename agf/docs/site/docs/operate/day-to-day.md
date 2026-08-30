@@ -92,6 +92,23 @@ A one-screen checklist for each working session:
 
 For AI agents specifically: run `agov session resume` before any manual reads or implementation — this is the first action after context compaction or cold start.
 
+### When the gate-change check fails
+
+Run `agov gate change-check --base-ref <target-ref>` from the repository root.
+A “changed surface but no changed declared test path” failure means the diff
+changed a registered gate without making its expected negative-test evidence
+reviewable alongside it. Add or update the relevant test for the gate; do not
+silence the check or touch an unrelated test merely to obtain a pass.
+
+To retire a gate, keep its registry entry, set `status: retired`, and add a
+`retired` reason and date. Update the gate-change check's declared test in the
+same change because the registry is itself a registered surface. Once retired,
+the old gate's surface and test files may be removed, but deleting its registry
+entry is always an error. See
+[Contracts and validators](../advanced/contracts-and-validators.md) for the
+check's exact limits and `agf/rules/always/gate-self-test-rule.md` for its
+authority.
+
 ### Proportional source and radar maintenance
 
 Projects that keep `docs/sources.md` and `docs/radar.md` as non-normative

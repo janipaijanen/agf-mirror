@@ -15,6 +15,8 @@ include:
   - path: agf/CHANGELOG.md
   - path: agf/ADOPTING.md
   - path: agf/framework.md
+  - path: agf/examples/gates.yaml
+  - path: agf/schemas/gate-registry.schema.json
   - path: docs/reviews/agf-framework-assessment-codex-sol-high.md
   - path: docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
   - glob: agf/agents/**
