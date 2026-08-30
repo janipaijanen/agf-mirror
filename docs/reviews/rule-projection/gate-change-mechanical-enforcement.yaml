@@ -89,6 +89,14 @@ surfaces:
 
   validation_drift_evidence:
     disposition: implemented
+    paths:
+      - tooling/rust/crates/agov-validators/src/gate_change.rs
+      - tooling/rust/crates/agov-validators/src/lib.rs
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/tests/gate_change_check.rs
+      - tooling/rust/crates/agov/tests/fixtures/gate-change/base-registry.yaml
+      - agf/schemas/gate-registry.schema.json
+      - agf/examples/gates.yaml
     reason: >-
       This plan is itself the mechanical check, so the drift evidence is the
       check plus its negative fixtures. Per gate-self-test-rule.md applied to
@@ -155,6 +163,8 @@ surfaces:
     paths:
       - agf/docs/site/docs/advanced/contracts-and-validators.md
       - agf/docs/site/docs/operate/day-to-day.md
+      - agf/schemas/gate-registry.schema.json
+      - agf/examples/gates.yaml
     reason: >-
       Both Pages surfaces live under agf/ and ship in the AGF distribution
       artifact. The registry schema and the neutral example

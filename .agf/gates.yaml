@@ -1,0 +1,16 @@
+schema_version: 1
+gates:
+  - id: gate-change-check
+    status: active
+    surfaces:
+      - .agf/gates.yaml
+      - .gitlab-ci.yml
+      - agf/dist/release-manifest.yaml
+      - agf/examples/gates.yaml
+      - agf/schemas/gate-registry.schema.json
+      - tooling/rust/crates/agov-validators/src/gate_change.rs
+      - tooling/rust/crates/agov-validators/src/lib.rs
+      - tooling/rust/crates/agov/src/main.rs
+    tests:
+      - tooling/rust/crates/agov/tests/gate_change_check.rs
+      - tooling/rust/crates/agov/tests/fixtures/gate-change/**

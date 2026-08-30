@@ -1013,6 +1013,13 @@ agov:governance:validate:
       # is normative remains human/role judgment under the rule.
       "$agov_bin" plan projection-check-all --base-ref "$base"
 
+      # gate-self-test-rule.md grants this check blocking authority. A gate
+      # surface change must carry a declared test-path change; active
+      # registry paths must resolve; gate IDs remain permanent after
+      # retirement. This is a review-attention proxy, not proof that a CI job
+      # executes or that the changed test is substantively adequate.
+      "$agov_bin" gate change-check --base-ref "$base"
+
       # Per agf/rules/workflow/coordination-publication-rule.md: a candidate
       # using the coordination fast-path commit convention gets its whole
       # commit range mechanically verified as coordination-only, not merely

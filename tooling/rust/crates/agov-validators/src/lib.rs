@@ -6,6 +6,7 @@ pub mod assistant_loader;
 pub mod ci_rules;
 pub mod contributions;
 pub mod framework_config;
+pub mod gate_change;
 pub mod infosec;
 pub mod learnings;
 pub mod readme_stats;

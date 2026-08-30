@@ -1,0 +1,15 @@
+schema_version: 1
+gates:
+  - id: gate-change-check
+    status: active
+    surfaces:
+      - .agf/gates.yaml
+      - tooling/checker.rs
+    tests:
+      - tests/gate_change.rs
+  - id: feature-gate
+    status: active
+    surfaces:
+      - ci/feature.sh
+    tests:
+      - tests/feature/**

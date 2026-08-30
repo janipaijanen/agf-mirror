@@ -137,6 +137,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "version",
     "coord",
     "plan",
+    "gate",
     "validate",
     "handoff",
     "session",
@@ -160,6 +161,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     // plan subcommands (validate shares the top-level "validate" token).
     "projection-check",
     "projection-check-all",
+    "change-check",
     // validate subcommands.
     "adoption",
     "adopter-docs",
@@ -256,6 +258,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--model",
     "--dir",
     "--base-ref",
+    "--registry",
     "--allow-planned",
     "--repo-root",
     "--inventory-ref",

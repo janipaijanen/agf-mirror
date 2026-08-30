@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agents-govern.example/schemas/gate-registry.schema.json",
+  "title": "AGF gate registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "gates"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "gates": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/gate" }
+    }
+  },
+  "definitions": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "retirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "date"],
+      "properties": {
+        "reason": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "format": "date" }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "surfaces", "tests"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "status": { "enum": ["active", "retired"] },
+        "surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/path" }
+        },
+        "tests": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/path" }
+        },
+        "retired": { "$ref": "#/definitions/retirement" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "retired" } } },
+          "then": { "required": ["retired"] },
+          "else": { "not": { "required": ["retired"] } }
+        }
+      ]
+    }
+  }
+}

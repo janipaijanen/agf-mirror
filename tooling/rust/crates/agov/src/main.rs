@@ -54,6 +54,11 @@ enum Command {
         #[command(subcommand)]
         sub: PlanCommand,
     },
+    /// Mechanical gate-change checks.
+    Gate {
+        #[command(subcommand)]
+        sub: GateCommand,
+    },
     /// Run validators.
     Validate {
         #[command(subcommand)]
@@ -127,6 +132,19 @@ enum CiCommand {
         /// still go to stderr in either format.
         #[arg(long, default_value = "text", value_parser = ["text", "dot"])]
         format: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum GateCommand {
+    /// Require declared test accompaniment and preserve active gate paths and gate IDs.
+    ChangeCheck {
+        /// Git ref used as the comparison base.
+        #[arg(long)]
+        base_ref: String,
+        /// Repository-relative gate registry path.
+        #[arg(long, default_value = ".agf/gates.yaml")]
+        registry: PathBuf,
     },
 }
 
@@ -805,6 +823,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     repo_root,
                 },
         } => plan_projection_check_all(&base_ref, repo_root, &args),
+        Command::Gate {
+            sub: GateCommand::ChangeCheck { base_ref, registry },
+        } => gate_change_check_command(&base_ref, &registry, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
             sub: HandoffCommand::Next { agent_role, dir },
@@ -860,6 +881,34 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             &args,
         ),
     }
+}
+
+fn gate_change_check_command(base_ref: &str, registry: &Path, args: &[String]) -> i32 {
+    let mut output = OutputCounter::default();
+    let repo_root = match git_output(&["rev-parse", "--show-toplevel"]) {
+        Ok(path) => PathBuf::from(path),
+        Err(reason) => {
+            output.stderr(format!("ERR gate change-check failed: {reason}"));
+            return 2;
+        }
+    };
+    let label = registry.display().to_string();
+    let exit_code = match agov_validators::gate_change::change_check(&repo_root, base_ref, registry)
+    {
+        Ok(()) => {
+            output.validate_ok(&format!("gate change-check {label}"));
+            0
+        }
+        Err(findings) => {
+            for finding in findings {
+                let location = finding.location.as_deref().unwrap_or(&label);
+                output.validate_err("gate change-check", location, &finding.message);
+            }
+            1
+        }
+    };
+    agov_core::roi::record_tool_output("agov", args, "gate-change-check", output.chars);
+    exit_code
 }
 
 fn ci_cache_topology_check_command(

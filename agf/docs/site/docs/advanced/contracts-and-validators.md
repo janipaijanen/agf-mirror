@@ -24,6 +24,7 @@ script authority the framework never granted.
 |---|---|---|
 | Coordination messages (`docs/coordination/*.md` by default) | JSON schema: front matter shape, message kind, required handoff fields | `agov coord validate` |
 | Gate 1 plans (`docs/plans/*.md` by default) | JSON schema: plan front matter and required advisory consultation fields | `agov plan validate` |
+| Gate registry (`.agf/gates.yaml` by default) | Registered active surfaces resolve and carry a declared test-path change; gate IDs cannot be deleted | `agov gate change-check --base-ref <ref>` |
 | Hidden coordination obligations | Branch visibility scan against a base branch | `agov coord visibility` |
 | Adoption structure | Directory layout, required files, version pin | `agov validate adoption` |
 | Agent definitions (`agf/agents/*.yaml`) | JSON schema: required fields, role shape, version pin | `agov validate agents` |
@@ -57,6 +58,30 @@ claim references a substantively valid decision record. They validate file
 shape, selected path-level evidence, and configured release checks. The
 governor-reviewer still judges plan-to-diff fit, scope drift, and whether the
 evidence is good enough to merge or release.
+
+### Gate-change accompaniment
+
+`agov gate change-check --base-ref <ref>` reads `.agf/gates.yaml` by default;
+use `--registry <path>` for a project-specific location. The shipped neutral
+example is `agf/examples/gates.yaml`, and
+`agf/schemas/gate-registry.schema.json` defines the registry shape.
+
+For each `active` entry, the check requires every declared `surfaces` and
+`tests` path pattern to resolve. If the comparison diff touches a surface, it
+must also touch at least one declared test path. A gate ID may never disappear
+from the registry. Retirement is therefore an explicit `status: retired`
+transition with a reason and date: it waives path resolution and accompaniment
+for that retired entry so obsolete files can be removed, but the entry remains
+as a permanent record.
+
+The check is intentionally narrow. Any touch inside a declared test path —
+including an empty or unrelated change — satisfies the mechanical
+accompaniment condition. The candidate pipeline also runs the candidate
+checker. The result is a proxy that makes gate and test changes visible for
+review; it is not proof of test quality, CI-job reachability, or script
+execution. Gate 2 review remains responsible for those judgments. The command
+uses only the local registry, Git history, and working tree: it performs no
+network request and needs no forge token.
 
 The distinction matters: a schema can be binding before every validator is
 implemented, but the documentation must not present future checks as shipped

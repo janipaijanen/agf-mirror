@@ -1,0 +1,19 @@
+schema_version: 1
+gates:
+  - id: example-policy-check
+    status: active
+    surfaces:
+      - .ci/policy-check.sh
+      - .ci/pipeline.yaml
+    tests:
+      - tests/policy-check/**
+
+  - id: retired-example
+    status: retired
+    surfaces:
+      - .ci/retired-check.sh
+    tests:
+      - tests/retired-check/**
+    retired:
+      reason: Replaced by example-policy-check.
+      date: 2026-08-30
