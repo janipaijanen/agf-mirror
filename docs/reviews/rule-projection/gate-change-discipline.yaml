@@ -196,6 +196,39 @@ surfaces:
         old query returning empty, and proves the new one surfaces the
         vanished path.
 
+        GCD-G2-3 (review 2shr): the required CI self-test lost schema
+        context. Validators discover schemas by walking up to an AGF root,
+        and this suite deliberately runs them inside throwaway repositories
+        that have none. The tooling/agov wrapper exports AGOV_SCHEMA_DIR
+        itself, so the documented local run passed while the CI job -- which
+        invokes the built binary directly -- failed. The suite now exports
+        AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}".
+
+        That instance fix is not the important half. Investigating it showed
+        the suite's own rejection assertions could not tell "the validator
+        rejected the content" from "the validator could not run": both exit
+        non-zero, so check_nonzero reported success either way. The suite
+        written to catch green-looking wrong evidence was itself green for
+        the wrong reason, in CI, at the previous head, and that CI transcript
+        was offered as Gate 2 evidence. Two class-level controls close it:
+
+          check_rejects  requires the failure to be a CONTENT judgment,
+                         failing loudly when output carries an
+                         infrastructure error such as Io(...) or
+                         "No such file or directory". Every validator
+                         rejection assertion routes through it.
+
+          a canary       proves the configured validator ACCEPTS two
+                         known-good files from a throwaway directory before
+                         any rejection assertion is trusted.
+
+        Demonstrated both directions: with schema context the suite reports
+        24 passed / 0 failed; with AGOV_SCHEMA_DIR deliberately broken it
+        reports 17 passed / 7 failed, where the same conditions previously
+        reported 21 passed / 1 failed. The four newly-failing assertions are
+        exactly the ones that used to pass while the validator was not
+        running.
+
       One advisory finding is also closed: a CI comment cited
       agf/rules/always/coordination-message-rule.md, which does not exist
       under agf/rules/ (only as a foundry-local .claude/rules/ projection).

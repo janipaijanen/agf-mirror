@@ -24,6 +24,15 @@ contract="$repo_root/.gitlab/scripts/changed-files.sh"
 fixtures="$repo_root/tests/fixtures/changed-files"
 AGOV_BIN="${AGOV_BIN:-$repo_root/tooling/agov}"
 
+# Schema discovery walks up from the current directory to find an AGF root.
+# This suite deliberately runs validators inside throwaway repositories that
+# have no agf/ tree, so without an explicit path the validator fails with
+# Io("No such file or directory") instead of judging content. The default
+# tooling/agov wrapper exports this itself, which is why the wrapper-based
+# local run passed while the CI job -- which invokes the built binary
+# directly -- did not. Review 2shr (GCD-G2-3).
+export AGOV_SCHEMA_DIR="${AGOV_SCHEMA_DIR:-$repo_root/agf/schemas}"
+
 # shellcheck source=/dev/null
 . "$contract"
 
@@ -55,6 +64,33 @@ check_zero() {
   else
     bad "$label (expected 0, got non-zero)"
   fi
+}
+
+# check_rejects LABEL COMMAND...
+# For validator assertions specifically. A bare non-zero exit is NOT enough:
+# a validator that cannot find its schema also exits non-zero, so
+# check_nonzero would report success even against a perfectly valid fixture.
+# That is precisely how this suite reported "17 passed" in CI at the previous
+# head while its schema context was broken -- the suite written to catch
+# green-for-the-wrong-reason was itself green for the wrong reason.
+# This requires the failure to be a CONTENT judgment, not an infrastructure
+# error.
+check_rejects() {
+  label=$1
+  shift
+  cr_out="$(  "$@" 2>&1  )" && {
+    bad "$label (expected rejection, got exit 0)"
+    return
+  }
+  case "$cr_out" in
+    *'No such file or directory'*|*'Io('*|*'command not found'*)
+      bad "$label (validator FAILED TO RUN rather than rejecting content: ${cr_out%%
+*})"
+      ;;
+    *)
+      ok "$label"
+      ;;
+  esac
 }
 
 git_quiet() { git -c init.defaultBranch=main -c user.email=t@example.invalid -c user.name=test "$@"; }
@@ -287,6 +323,19 @@ assert_status() {
 
 if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
 
+  # ---- Canary: can the configured validator judge a KNOWN-GOOD file? ----
+  # Every rejection assertion below is meaningless if the answer is no. Run
+  # it from a throwaway directory, the same context the assertions use, so
+  # the canary shares their environment rather than the repo root's.
+  canary="$work/canary"
+  mkdir -p "$canary"
+  cp "$fixtures/20260101T000000Z-coder-tester-fix1.md" "$canary/"
+  cp "$fixtures/valid-plan.md" "$canary/"
+  check_zero "CANARY: the configured validator accepts a known-good record outside the repo" \
+    sh -c "cd '$canary' && '$AGOV_BIN' coord validate 20260101T000000Z-coder-tester-fix1.md"
+  check_zero "CANARY: the configured validator accepts a known-good plan outside the repo" \
+    sh -c "cd '$canary' && '$AGOV_BIN' plan validate valid-plan.md"
+
   # ---- ADD: files absent from the base, added invalid on the branch ----
   val="$work/val"
   mkdir -p "$val"
@@ -308,9 +357,9 @@ if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
   ( cd "$val" && assert_status "$val_base" A docs/plans/invalid-plan.md \
       "ADD: the range really reports an addition for the plan" )
 
-  check_nonzero "ADD: 'coord validate' still rejects an invalid ADDED record through the contract" \
+  check_rejects "ADD: 'coord validate' still rejects an invalid ADDED record through the contract" \
     sh -c "cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/v1' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v1' '$AGOV_BIN' coord validate"
-  check_nonzero "ADD: 'plan validate' still rejects an invalid ADDED plan through the contract" \
+  check_rejects "ADD: 'plan validate' still rejects an invalid ADDED plan through the contract" \
     sh -c "cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/v2' d 'docs/plans/*.md' && cf_run_on_list '$work/v2' '$AGOV_BIN' plan validate"
 
   # ---- MODIFY: VALID files already in the base, broken on the branch ----
@@ -342,9 +391,9 @@ if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
   ( cd "$mod" && assert_status "$mod_base" M docs/plans/valid-plan.md \
       "MODIFY: the range really reports a modification for the plan" )
 
-  check_nonzero "MODIFY: 'coord validate' still rejects a record broken by MODIFICATION" \
+  check_rejects "MODIFY: 'coord validate' still rejects a record broken by MODIFICATION" \
     sh -c "cd '$mod' && . '$contract' && cf_changed_files '$mod_base' '$work/v3' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v3' '$AGOV_BIN' coord validate"
-  check_nonzero "MODIFY: 'plan validate' still rejects a plan broken by MODIFICATION" \
+  check_rejects "MODIFY: 'plan validate' still rejects a plan broken by MODIFICATION" \
     sh -c "cd '$mod' && . '$contract' && cf_changed_files '$mod_base' '$work/v4' d 'docs/plans/*.md' && cf_run_on_list '$work/v4' '$AGOV_BIN' plan validate"
 
   printf '\n== 9. Rename-and-rewrite must not bypass the append-only guard ==\n'
