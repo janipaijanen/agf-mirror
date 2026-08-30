@@ -11,12 +11,16 @@ advisory_consultation:
       the repository and already readable by every agent, and adds no network
       access, no new file writes, and no new external input.
   - role: contribution-auditor
-    status: consulted
+    status: waived
     reason: >-
-      The motivating incident and its evidence are recorded in
-      docs/coordination/20260830T210228Z-coder-tester-1tm5.md and the stranded
-      record 20260828T052452Z-governor-reviewer-dmtn.md. Routed for audit of
-      whether the proposed severity and scope match the evidence.
+      Routed for audit, but no contribution-auditor disposition exists yet and
+      the governed enum has no pending state. Recording waived rather than
+      consulted so the metadata does not assert an audit that has not
+      happened (CVR-A1). The governor may hold Gate 1 for the disposition;
+      this plan does not claim it as obtained. Motivating evidence:
+      docs/coordination/20260830T210228Z-coder-tester-1tm5.md, corrected by
+      20260830T215221Z-coder-tester-8pga.md, and stranded record
+      20260828T052452Z-governor-reviewer-dmtn.md.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -63,25 +67,41 @@ within one hour on 2026-08-30, and both are fixed by the same mechanism.
 **Sub-case A — resolving evidence is off the base branch.** The `ksq6` /
 `dmtn` incident above. Requires cross-branch resolution.
 
-**Sub-case B — resolving evidence is *on* the base branch and still ignored.**
-`agov handoff next governor-reviewer` currently reports:
+**Sub-case B — an obligation survives the decision that ended its thread.**
 
-> Issue a fresh binding Gate 2 disposition for MR !2181 …
+The first revision of this plan described sub-case B as "a handoff directly
+referenced by a later governor decision." **That description was wrong**, and
+review `6j2h` (CVR-1) caught it. Corrected here, with the real topology
+verified against `agov coord graph-index`:
 
-MR !2181 merged on 2026-08-28T11:25:21Z, by `janipaijanen` — the governor
-directly, not an agent. Sixteen minutes earlier, governor decision-record
-`20260828T110944Z-governor-reviewer-prn4` ("Gate 2 reissued on corrected
-terms; v2.8.0 publication authorized") landed on `main`, and it names the
-originating handoff `rdm8` in its own `references-to`.
+- `rdm8` (handoff) is referenced directly by `prn4` (governor decision-record)
+  and is already reported `resolved: true`. The current implementation handles
+  that shape correctly.
+- The obligation that actually stays open is `pjst`, a **continuation
+  handoff**. `pjst` references `rdm8` and `ed75`. `prn4` references `rdm8`,
+  `ed75` and `j37k`.
+- **`pjst` and `prn4` never reference each other.** They are siblings
+  descending from a common ancestor.
 
-So the resolving decision is on `main`, correctly authored, correctly linked —
-and the queue still reports the obligation as outstanding, because it does not
-treat a decision-record referencing a handoff as resolving that handoff.
+So the defect is not "a decision naming a handoff is ignored." It is: *a
+governor decision ends a thread by naming its ancestor, while a continuation
+handoff on that same thread remains open and is never named by anything.*
 
-**Sub-case B is the cheaper fix and probably the more frequent failure.** It
-needs no cross-branch work at all: it is a graph walk over records already on
-the base branch. It is also previously known — resolution-awareness in handoff
-tooling was raised earlier in this project's history and not carried through.
+Had the original test 6 been implemented as written, it would have passed
+against unmodified code and bound to nothing — the precise failure I raised
+against Slice C's two-gate fixture, committed here in my own plan.
+
+**Required semantics — do not infer resolution from siblinghood.** A
+continuation handoff whose thread carries a later authorized decision that does
+not name it MUST be reported `UNCERTAIN`, never silently resolved. Silent
+sibling closure would let one decision close obligations nobody read. Silent
+non-resolution is the current bug. `UNCERTAIN` is the only honest third answer,
+and it is why this plan refuses to pick either.
+
+**Sub-case B needs no cross-branch work** — it is a graph walk over records
+already on the base branch — but it is *not* the cheap fix the first revision
+claimed. Getting it right means defining thread-lifecycle semantics that the
+current model does not express.
 
 Both sub-cases are the same defect stated once: **a queue surface reports an
 obligation that evidence available to it already resolves.** Sub-case A is
@@ -128,6 +148,94 @@ and `agov session resume` must, by default:
 Splitting these is deliberate. Bundling a query-surface fix with a merge-policy
 change would drag gate mechanics into a slice that does not otherwise touch a
 gate.
+
+## Freshness contract (CVR-2)
+
+`agov coord visibility` enumerates **local remote-tracking refs**. It does not
+fetch, and git cannot prove a remote-tracking ref is current. So a clone that
+has not fetched since a resolving record was pushed still returns the same
+definite false-clean answer this plan exists to eliminate — the original bug,
+relocated rather than fixed.
+
+Every result MUST therefore be bound to a named snapshot:
+
+- The output states the snapshot it was computed from: the resolved base ref
+  and its SHA, plus the fetch time of `refs/remotes/<remote>` where the
+  transport records one.
+- When freshness cannot be established, the answer degrades to
+  `snapshot-not-verified` and says so on its first line. A caller reading only
+  the first line must not receive an unqualified answer.
+- An explicit opt-in fetch mode (`--fetch`) may establish freshness. It is
+  **not** the default: a network call on the hot path is its own failure mode,
+  and a fetch failure MUST degrade rather than silently fall back to stale
+  refs.
+
+Test 4 (absent/unfetchable remote) is **not** a substitute and is retained
+separately. A new test covers the ordinary stale case: remote advanced with a
+resolving record, local remote-tracking refs not updated. The answer MUST
+degrade; reporting clean is a failure.
+
+## Per-surface contract (CVR-3)
+
+The first revision applied one resolving rule and one JSON requirement across
+three surfaces whose contracts already differ. That is not an implementation
+detail — it decides whether existing obligations silently reopen.
+
+| | `handoff next` | `coord pending` | `session resume` |
+|---|---|---|---|
+| Current resolution rule | transitive descendants; resolving kinds `ack`, `completion`, `decision-record` | **direct** reference of **any** later kind, per the governed v2.5.0-rc.1 contract | inherits its queue sources |
+| Change to that rule | none — correlation adds `UNRELIABLE`/`UNCERTAIN`, it does not alter which records resolve | **none. Preserved exactly.** | none |
+| `--format json` today | absent | present | absent |
+| JSON change | add, additive only | **additive only**; no existing field renamed, retyped, or removed | add, additive only |
+| Exit codes | unchanged | unchanged | unchanged |
+| MCP parity | wrapper gains the new fields | wrapper gains the new fields | wrapper gains the new fields |
+
+**`coord pending`'s existing resolution rule is preserved, not unified.**
+Changing a governed v2.5.0-rc.1 contract is a separate governed change with its
+own downstream-impact classification; folding it into this plan would reopen or
+close obligations as a side effect of a diagnostics improvement. If unification
+is desirable, it is a follow-up.
+
+Degradation is **additive** on every surface: new fields and new leading text,
+no removal or retyping. Under `always/downstream-impact-rule.md` this is
+ADDITIVE, not BREAKING — provided the table above holds, which the tests must
+prove per surface with named fixtures.
+
+## Cost budget (CVR-4)
+
+The first revision said cost "needs a measured cost check" and set no
+threshold. That is not an acceptance criterion. Measured:
+
+| Measurement | Value |
+|---|---|
+| `origin/*` remote-tracking refs, this checkout | 606 |
+| `coord visibility --base-branch main` (review `6j2h`, cold) | 23.85 s |
+| `coord visibility --base-branch main` (this author, warm) | 9.64 s |
+| `handoff next governor-reviewer` today | 4.60 s |
+
+The two visibility figures differ by cache state; both are far too slow to add
+to a hot path. A poll cycle can invoke these surfaces three times, so a naive
+default-on implementation adds tens of seconds per cycle.
+
+**Budget:** the correlation work MUST add **no more than 1.0 s** to any of the
+three surfaces at this repository's current scale (≈600 refs, ≈3000 records),
+measured warm.
+
+**Design consequence — a shared snapshot, not three scans.** The scan is
+computed once per cycle and reused, via a cached snapshot keyed by the resolved
+ref set, invalidated when any contributing ref changes. Repeating the full
+ref-walk per command cannot meet the budget and is ruled out by this plan
+rather than left to implementation.
+
+**Benchmark fixture must be representative.** A small synthetic repository will
+pass trivially and prove nothing. Acceptance requires a corpus at this
+repository's stale-and-active branch population.
+
+**Silently dropping branches to meet the budget is forbidden.** If the budget
+cannot be met while scanning everything, the answer degrades explicitly
+(`snapshot-not-verified`, or a stated partial scope) — it never quietly narrows
+and reports clean. That would recreate the original defect while appearing to
+fix it.
 
 ## Honest limit
 
@@ -177,13 +285,31 @@ Negative tests are the acceptance criterion, not an afterthought:
    bug in a new costume.
 5. **JSON parity.** The degraded state appears in `--format json`, not only in
    human output.
-6. **Sub-case B regression.** The exact `!2181` / `prn4` shape: a handoff on
-   the base branch, and a later `decision-record` from `governor-reviewer` on
-   the same branch naming it in `references-to`. The obligation MUST NOT be
-   reported as outstanding.
-7. **Resolution ambiguity.** A referencing record that neither resolves nor
-   continues MUST produce `UNCERTAIN`, not a silent resolve and not a silent
-   outstanding. Guessing in either direction is the defect, not the fix.
+6. **Sub-case B regression — the real topology.** Reproduce `rdm8` /
+   `pjst` / `prn4`: a handoff, a continuation handoff referencing it, and a
+   later governor decision-record referencing the *first* handoff and the
+   common ancestor but **not** the continuation. The continuation MUST be
+   reported `UNCERTAIN`. The **unmodified implementation MUST fail this test** —
+   if it passes today, the test does not bind to the defect and must be
+   rewritten. This replaces the first revision's test 6, which described the
+   already-working `rdm8`←`prn4` shape.
+7. **No false sibling closure.** An unrelated sibling on the same thread MUST
+   NOT be closed by a decision that does not name it. Silent closure is a
+   worse failure than the bug being fixed, because it discards obligations
+   without anyone reading them.
+8. **Stale remote-tracking refs (CVR-2).** Remote advanced with a resolving
+   record; local refs not fetched. The answer MUST degrade to
+   `snapshot-not-verified`. Reporting clean is a failure. Distinct from test 4.
+9. **Per-surface contract preservation (CVR-3).** For each of the three
+   surfaces, a fixture proving its documented resolution rule is unchanged —
+   in particular that `coord pending` still resolves on a direct reference of
+   any later kind.
+10. **JSON additivity (CVR-3).** `coord pending --format json` retains every
+   existing field with its existing type. A consumer written against the
+   current schema MUST still parse the new output.
+11. **Cost budget (CVR-4).** Benchmark at representative scale proving ≤1.0 s
+   added per surface, warm — and that the scan is computed once per cycle
+   rather than once per command.
 
 Mutation requirement: removing the correlation logic MUST fail test 1 and only
 test 1, demonstrating the test binds to the defect rather than to incidental
