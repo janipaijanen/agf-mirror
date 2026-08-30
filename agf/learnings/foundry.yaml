@@ -4195,10 +4195,13 @@ learnings:
     status: implemented
     description: >-
       A gate self-test suite, written specifically to prevent green-looking
-      wrong evidence, produced green-looking wrong evidence four times in one
+      wrong evidence, produced green-looking wrong evidence five times in one
       session. The third instance passed in CI and was cited as Gate 2
       evidence; the fourth was in the class-level control written to close
-      the third. Each instance had a different surface cause and the same
+      the third; the fifth was in the meta-test written to prove the fourth
+      control fires. Each fix was real and each was strictly stronger than
+      the last, yet every round of independent review found the next
+      instance one level further up. Each instance had a different surface cause and the same
       shape: an assertion reached its intended verdict for an unintended
       reason.
 
@@ -4230,6 +4233,17 @@ learnings:
       successful content rejection. Independent review constructed that case
       and reproduced it; the author had flagged the blocklist as the weak
       point in the same handoff that shipped it, and still shipped it.
+
+      Fifth: the meta-test proving the fourth control fires was itself an
+      instance. It stored its fixture command as a STRING and ran it through
+      `eval`, then inferred both of its conclusions from bare non-zero exits
+      -- so a missing or malformed command satisfied both assertions while
+      the intended path never ran. The mutation `command-that-does-not-exist`
+      produced 2 passed / 0 failed. The lesson is recursive: writing a test
+      for a control does not escape the pattern, because the test of the
+      control is itself a test and inherits the same failure mode. Only
+      positive, specific evidence terminates the regress -- an assertion that
+      names what it expects to see cannot be satisfied by an absence.
     roles_involved:
       - coder-tester
       - governor-reviewer
@@ -4288,11 +4302,18 @@ learnings:
       the cheapest way to detect a broken harness before reading any other
       result.
 
-      (4) Test the CONTROL, not only the thing it guards. A control asserted
-      in prose is an unverified claim of exactly the kind it exists to
-      prevent. Add assertions that the control refuses a deliberately broken
-      case AND still accepts a genuine one -- the second half matters, since a
-      control that rejects everything is useless rather than safe.
+      (4) Test the CONTROL, not only the thing it guards -- and apply
+      controls (1) to (3) to that test too, because it is a test and inherits
+      the same failure mode. A control asserted in prose is an unverified
+      claim of exactly the kind it exists to prevent. Add assertions that the
+      control refuses a deliberately broken case AND still accepts a genuine
+      one; the second half matters, since a control that rejects everything is
+      useless rather than safe. Invoke fixtures as real functions, never as
+      strings through `eval`, and require the broken case to produce its own
+      specific diagnostic rather than merely a non-zero exit. Then add a
+      MUTATION assertion proving a missing or malformed fixture cannot satisfy
+      the meta-test -- without it, the meta-test can pass while the path it
+      claims to exercise never runs.
 
       Verify the controls in both directions: run the suite with the
       dependency broken and confirm the previously-passing assertions now
@@ -4308,8 +4329,9 @@ learnings:
     severity: critical
     confidence:
       level: single-adopter
-      evidence_count: 4
+      evidence_count: 5
       evidence_refs:
+        - 'docs/coordination/20260830T125924Z-coder-tester-gme3.md: finding GCD-G2-5, the eval-based meta-test accepting a missing command as proof the control fired, at head 81346b25.'
         - 'docs/coordination/20260830T120843Z-coder-tester-hna4.md: finding GCD-G2-4, the class-level rejection control accepting a feeder failure as a content judgment, at head 09e4e875.'
         - 'docs/coordination/20260830T110754Z-coder-tester-13rh.md: findings GCD-G2-1 (a MODIFY assertion that was an ADD over its own range) and GCD-G2-2 (rename-and-rewrite bypassing a D-only append-only guard), at head 7ca76d71.'
         - 'docs/coordination/20260830T113003Z-coder-tester-2shr.md: finding GCD-G2-3, the required self-test losing schema context in CI, reproduced deterministically in canonical job 16190308091 at head 37352cd6.'
