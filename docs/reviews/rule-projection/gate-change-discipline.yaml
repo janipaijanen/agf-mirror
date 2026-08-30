@@ -212,11 +212,12 @@ surfaces:
         the wrong reason, in CI, at the previous head, and that CI transcript
         was offered as Gate 2 evidence. Two class-level controls close it:
 
-          check_rejects  requires the failure to be a CONTENT judgment,
-                         failing loudly when output carries an
-                         infrastructure error such as Io(...) or
-                         "No such file or directory". Every validator
-                         rejection assertion routes through it.
+          check_rejects  requires the failure to carry the SPECIFIC
+                         governed-content finding the fixture provokes
+                         (e.g. '#/kind: "not-a-real-kind"'). Positive
+                         evidence, not a blocklist -- see GCD-G2-4 below
+                         for why the first version of this control was
+                         itself an instance of the pattern.
 
           a canary       proves the configured validator ACCEPTS two
                          known-good files from a throwaway directory before
@@ -228,6 +229,30 @@ surfaces:
         reported 21 passed / 1 failed. The four newly-failing assertions are
         exactly the ones that used to pass while the validator was not
         running.
+
+        GCD-G2-4 (review hna4): the class-level control claimed above was
+        itself a fourth instance. check_rejects originally inferred "content
+        was rejected" from a non-zero exit unless the output matched one of
+        three blocklisted infrastructure-error strings. Every assertion it
+        guards is a COMPOSITE command -- derive the changed-file feed, then
+        run the validator -- so a FEEDER failure exits non-zero before the
+        validator runs, matches none of those strings, and was reported as a
+        successful content rejection. Reproduced independently against the
+        previous implementation: VERDICT=PASS_AS_CONTENT_REJECTION.
+
+        Adding more strings would only relocate the blind spot, because the
+        set of ways a composite command can fail early is open. The control
+        is now positive: it passes only when the command exits non-zero AND
+        its output contains the specific schema finding that fixture must
+        provoke. No infrastructure failure can forge that string, since only
+        the validator emits it and only for that content.
+
+        Section 10 makes the control's own behavior reviewer-visible rather
+        than asserted in prose: it confirms the broken-feeder command really
+        does exit non-zero before reaching the validator, proves
+        check_rejects REFUSES it, and proves check_rejects still ACCEPTS a
+        genuine content rejection -- so the control is correct rather than
+        merely strict. Suite: 27 assertions.
 
       One advisory finding is also closed: a CI comment cited
       agf/rules/always/coordination-message-rule.md, which does not exist

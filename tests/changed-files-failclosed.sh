@@ -66,31 +66,51 @@ check_zero() {
   fi
 }
 
-# check_rejects LABEL COMMAND...
-# For validator assertions specifically. A bare non-zero exit is NOT enough:
-# a validator that cannot find its schema also exits non-zero, so
-# check_nonzero would report success even against a perfectly valid fixture.
-# That is precisely how this suite reported "17 passed" in CI at the previous
-# head while its schema context was broken -- the suite written to catch
-# green-for-the-wrong-reason was itself green for the wrong reason.
-# This requires the failure to be a CONTENT judgment, not an infrastructure
-# error.
-check_rejects() {
-  label=$1
+# rejects_with EXPECTED COMMAND...
+# Returns 0 only when COMMAND exits non-zero AND its output contains
+# EXPECTED -- a specific governed-content finding emitted by the validator,
+# such as a schema violation naming the offending field.
+#
+# Positive evidence, not a blocklist. Three earlier revisions of this suite
+# accepted a bare non-zero exit as proof that a checker rejected content, and
+# each time something else was failing instead:
+#
+#   - a validator that could not find its schema (GCD-G2-3), and
+#   - the FEEDER failing before the validator ran at all (GCD-G2-4), which
+#     produced no blocklisted string and so read as a clean content
+#     rejection.
+#
+# Enumerating more infrastructure-error strings only relocates the blind
+# spot, because the set of ways a composite command can fail early is open.
+# Requiring the specific finding the fixture is supposed to provoke closes
+# it: no infrastructure failure can forge that string, because only the
+# validator emits it, and only for that content.
+rejects_with() {
+  rw_expect=$1
   shift
-  cr_out="$(  "$@" 2>&1  )" && {
-    bad "$label (expected rejection, got exit 0)"
-    return
-  }
-  case "$cr_out" in
-    *'No such file or directory'*|*'Io('*|*'command not found'*)
-      bad "$label (validator FAILED TO RUN rather than rejecting content: ${cr_out%%
-*})"
-      ;;
+  if rw_out="$("$@" 2>&1)"; then
+    rw_reason="exited 0"
+    return 1
+  fi
+  case "$rw_out" in
+    *"$rw_expect"*) return 0 ;;
     *)
-      ok "$label"
+      rw_reason="exited non-zero WITHOUT the expected finding '$rw_expect'; first line: $(printf '%s' "$rw_out" | head -n1)"
+      return 1
       ;;
   esac
+}
+
+# check_rejects LABEL EXPECTED COMMAND...
+check_rejects() {
+  label=$1
+  expect=$2
+  shift 2
+  if rejects_with "$expect" "$@"; then
+    ok "$label"
+  else
+    bad "$label ($rw_reason)"
+  fi
 }
 
 git_quiet() { git -c init.defaultBranch=main -c user.email=t@example.invalid -c user.name=test "$@"; }
@@ -358,8 +378,10 @@ if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
       "ADD: the range really reports an addition for the plan" )
 
   check_rejects "ADD: 'coord validate' still rejects an invalid ADDED record through the contract" \
+    '#/kind: "not-a-real-kind"' \
     sh -c "cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/v1' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v1' '$AGOV_BIN' coord validate"
   check_rejects "ADD: 'plan validate' still rejects an invalid ADDED plan through the contract" \
+    '#/status: "not-a-valid-status"' \
     sh -c "cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/v2' d 'docs/plans/*.md' && cf_run_on_list '$work/v2' '$AGOV_BIN' plan validate"
 
   # ---- MODIFY: VALID files already in the base, broken on the branch ----
@@ -392,8 +414,10 @@ if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
       "MODIFY: the range really reports a modification for the plan" )
 
   check_rejects "MODIFY: 'coord validate' still rejects a record broken by MODIFICATION" \
+    '#/kind: "not-a-real-kind"' \
     sh -c "cd '$mod' && . '$contract' && cf_changed_files '$mod_base' '$work/v3' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/v3' '$AGOV_BIN' coord validate"
   check_rejects "MODIFY: 'plan validate' still rejects a plan broken by MODIFICATION" \
+    '#/status: "not-a-valid-status"' \
     sh -c "cd '$mod' && . '$contract' && cf_changed_files '$mod_base' '$work/v4' d 'docs/plans/*.md' && cf_run_on_list '$work/v4' '$AGOV_BIN' plan validate"
 
   printf '\n== 9. Rename-and-rewrite must not bypass the append-only guard ==\n'
@@ -453,6 +477,45 @@ else
   printf '        (set AGOV_BIN, or build with: cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov)\n'
   fail=$((fail + 1))
   printf '  FAIL  validator tests are REQUIRED evidence and cannot be skipped in CI\n'
+fi
+
+printf '\n== 10. The rejection control must itself fail on a feeder failure ==\n'
+printf '   Every assertion in section 8 is a COMPOSITE command: derive the\n'
+printf '   changed-file feed, then run the validator. If the feeder fails, the\n'
+printf '   command exits non-zero before the validator ever runs. A control\n'
+printf '   that infers "content was rejected" from a non-zero exit reports that\n'
+printf '   infrastructure failure as a pass. Review hna4 (GCD-G2-4) constructed\n'
+printf '   exactly that case against the previous blocklist implementation.\n\n'
+
+if [ -x "$AGOV_BIN" ] || command -v "$AGOV_BIN" >/dev/null 2>&1; then
+  # A composite assertion whose FEEDER fails: the base does not resolve, so
+  # cf_changed_files fails closed and the validator is never reached.
+  broken_feeder="sh -c \"cd '$val' && . '$contract' && cf_changed_files does-not-resolve '$work/mf' d 'docs/coordination/*.md' && cf_run_on_list '$work/mf' '$AGOV_BIN' coord validate\""
+
+  # Confirm the shape: it really does exit non-zero without reaching the
+  # validator. Without this the meta-test below could pass vacuously.
+  if eval "$broken_feeder" >/dev/null 2>&1; then
+    bad "meta: the broken-feeder command exited 0 -- it is not the case under test"
+  else
+    ok "meta: the broken-feeder command exits non-zero before the validator runs"
+  fi
+
+  # THE CONTROL ITSELF must reject that as evidence of content rejection.
+  if eval "rejects_with '#/kind: \"not-a-real-kind\"' $broken_feeder"; then
+    bad "check_rejects ACCEPTED a feeder failure as a content rejection -- GCD-G2-4 is not closed"
+  else
+    ok "check_rejects REFUSES a feeder failure as a content rejection (GCD-G2-4 closed)"
+  fi
+
+  # And it must still accept a genuine rejection, or the control is merely
+  # strict rather than correct.
+  if eval "rejects_with '#/kind: \"not-a-real-kind\"' sh -c \"cd '$val' && . '$contract' && cf_changed_files '$val_base' '$work/mg' d 'docs/coordination/*.md' ':!docs/coordination/README.md' && cf_run_on_list '$work/mg' '$AGOV_BIN' coord validate\""; then
+    ok "check_rejects still ACCEPTS a genuine content rejection"
+  else
+    bad "check_rejects rejected a genuine content rejection -- the control is too strict to be useful"
+  fi
+else
+  bad "meta-tests for check_rejects require an agov binary"
 fi
 
 printf '\n== Result ==\n'
