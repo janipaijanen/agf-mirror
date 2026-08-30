@@ -139,6 +139,34 @@ surfaces:
       and the earlier revision's "fully covered wherever it lives" wording is
       withdrawn.
 
+      Named paths for B's fail-closed contract and its negative tests, added
+      after review 8mar finding GDAB-2, which correctly caught that the plan
+      claimed these were "named in the manifest" when no path existed here:
+
+        .gitlab/scripts/changed-files.sh
+          the shared helper implementing the four-step contract -- resolve and
+          fetch the target, prove a merge base, materialize the NUL-separated
+          list to a temporary file only after a successful git diff, then
+          invoke the consumer. Sourced by agov:governance:validate, replacing
+          the two inline piped diffs at .gitlab-ci.yml:866-871.
+
+        tests/changed-files-failclosed.sh
+          the negative-test script, run by a CI job rather than only locally,
+          per gate-self-test-rule.md's requirement that the transcript be
+          reviewer-visible.
+
+        tests/fixtures/changed-files/
+          fixture repositories for each failure mode: empty target variable,
+          fetch failure, missing merge base, and git diff failure -- plus the
+          shallow/diverged-history case, constructed as review at74 constructed
+          it (target and feature each 40 commits past a common base, cloned at
+          --depth 20, target fetched, common base absent).
+
+      at74 verified that shallow case empirically against a constructed
+      repository and against real runner evidence (job 16065719319 shows
+      "git depth set to 20"), so the fixture reproduces a demonstrated
+      condition rather than an invented one.
+
   distribution:
     disposition: updated
     paths:
@@ -154,13 +182,20 @@ surfaces:
       its explanation, and the corrected CI examples together -- which is the
       point of including B2 here rather than deferring it.
 
-      agf/gates.yaml and agf/schemas/gate-registry.schema.json will also ship
-      under agf/, but are deliberately absent from the paths: array above for
-      the same reason given on validation_drift_evidence: they do not exist
-      yet, and this manifest must not assert distribution evidence for files
-      that are not there. Both are added to paths: at Gate 2, when the strict
-      projection-check must pass against them. The slice-C checker ships with the
-      Rust tooling under tooling/rust/, and .gitlab/scripts/governance-validate.sh
-      is foundry CI infrastructure rather than shipped adopter content. The
-      .claude/rules/ projections are foundry-local by design and are not
-      claimed as shipped adopter content.
+      No registry, schema, or checker is claimed by this plan. Those travel
+      with slice C to its own plan
+      (docs/plans/20260829T231900Z-gate-change-mechanical-enforcement.md), and
+      an earlier revision of this row wrongly retained them -- including a root
+      agf/gates.yaml path that review j1ht rejected and that slice C's plan
+      replaces with .agf/gates.yaml plus a neutral agf/examples/gates.yaml.
+      Review 8mar (GDAB-1) caught the overlap: a projection manifest is
+      structured Gate 1 evidence, so leaving it would have assigned the same
+      implementation and distribution scope to two plans at once.
+
+      The foundry helper .gitlab/scripts/changed-files.sh and its shell tests
+      are foundry CI infrastructure, not shipped adopter content, and are
+      recorded under validation_drift_evidence rather than here. The
+      .claude/rules/ projections are foundry-local by design and are likewise
+      not claimed as shipped adopter content. What ships from this plan is
+      exactly the two canonical rules and the four corrected Pages surfaces
+      listed above.

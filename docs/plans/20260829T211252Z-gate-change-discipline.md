@@ -284,6 +284,43 @@ it. Recording that the prediction was right does not make the design right —
 the plan still shipped the overclaim in its prose, and a reviewer had to
 remove it.
 
+## Review disposition — `8mar` and `at74`
+
+`8mar` returned **BLOCK** on this plan with two findings. Both were my own
+bookkeeping errors rather than design faults, and both are corrected.
+
+| Finding | Disposition |
+|---|---|
+| **GDAB-1** projection still claimed slice-C distribution | **Upheld.** The distribution row retained a paragraph claiming `agf/gates.yaml` and the registry schema would ship — including the root path `j1ht` had already rejected. I updated the row's `paths:` array and the plan's screen table but left that prose behind. A projection manifest is structured Gate 1 evidence, so this assigned overlapping scope to two plans at once. Removed. |
+| **GDAB-2** B's shell-test path unnamed | **Upheld.** The plan asserted the path was "named in the manifest" when nothing was there — a claim about itself that was simply false. `.gitlab/scripts/changed-files.sh`, `tests/changed-files-failclosed.sh`, and `tests/fixtures/changed-files/` are now named in both the manifest and acceptance criterion 9. |
+
+`8mar` confirms the four-step contract itself is sound.
+
+**`at74` verified the mechanism and corrected my urgency claim.** It built a
+repository with target and feature branches each 40 commits past a common
+base, cloned at `--depth 20`, fetched the target, and reproduced the silent
+pass:
+
+```
+git merge-base origin/main HEAD   # exit 1
+git diff --name-only -z origin/main...HEAD -- 'docs/plans/*.md' | xargs -0r true
+fatal: origin/main...HEAD: no merge base
+pipeline exit=0
+```
+
+Runner job `16065719319` independently confirms `git depth set to 20` on the
+real governance runner.
+
+It also **refuted** the urgency claim in `argd`: a fully paginated scan of all
+60 open merge requests found a maximum source-commit count of **19**, with the
+next largest 11 and 9. My statement that several open MRs qualify was wrong.
+This is a reachable latent fail-open at the current depth, not one currently
+firing — which is why `argd` framed it as a hypothesis for verification rather
+than a finding, and why that framing was worth the caution.
+
+`at74` recommends keeping the correction inside slice B rather than opening a
+parallel work order on the same CI hunk. Adopted: B3 stays here.
+
 ## Rule-projection screen
 
 Per `agf/rules/workflow/documentation-rule-projection-rule.md`. Structured
@@ -322,8 +359,12 @@ evidence: `docs/reviews/rule-projection/gate-change-discipline.yaml`.
 8. A shallow/diverged-history fixture — not only an empty-variable transcript
    — demonstrates the contract failing closed where the current pattern
    reports success, per `j1ht` GCD-R4.
-9. B's shell negative tests live at a named path recorded in the projection
-   manifest, and run in CI rather than only locally.
+9. B's fail-closed contract ships as the shared helper
+   `.gitlab/scripts/changed-files.sh`, replacing both inline piped diffs at
+   `.gitlab-ci.yml:866-871`; its negative tests live at
+   `tests/changed-files-failclosed.sh` with fixtures under
+   `tests/fixtures/changed-files/`, and run in a CI job rather than only
+   locally.
 10. No claim anywhere in the shipped rule, plan, or adopter text asserts that
     a mechanical check proves a gate *executes*; that claim is deferred with
     slice C.
