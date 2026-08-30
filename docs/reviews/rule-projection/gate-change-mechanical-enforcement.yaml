@@ -32,13 +32,33 @@ surfaces:
     reason: >-
       This is the canonical page describing agov's validators to adopters. It
       gains the agov gate change-check command, the registry schema, and a
-      pointer to the shipped neutral example at agf/examples/gates.yaml, plus
-      the stated limits: assertion 3 depends on GitLab's merged-configuration
-      API, so adopters on other forges get assertions 1 and 2 and a
-      documented gap rather than a silent partial check. It also states the
-      proxy boundary -- the check is a proxy for review attention, not proof
-      of test quality -- so the adopter-facing text cannot drift into
-      claiming more assurance than the parent plan's own reviews allowed.
+      pointer to the shipped neutral example at agf/examples/gates.yaml.
+
+      The page describes exactly two assertions. Assertion 1: a change to a
+      registered gate surface must be accompanied by a change to that gate's
+      declared test paths. Assertion 2: every registered path must resolve
+      while the entry is active, and a registry entry may never be deleted.
+      Both read only the registry and the working tree, so the check performs
+      no network request, needs no token, and behaves identically on any
+      forge.
+
+      Two boundaries must be stated on the page, not implied. The check is a
+      proxy for review attention rather than proof of test quality: an empty
+      or unrelated test satisfies assertion 1, and the candidate pipeline runs
+      the candidate checker. And CI execution integrity -- whether a
+      registered job is reachable in its pipeline context and whether its
+      script does useful work -- is explicitly not covered, and is named as
+      Gate 2 reviewer responsibility.
+
+      Superseded review history, recorded so this row's own change is
+      traceable and NOT as instruction for the page: an earlier revision of
+      this row directed the page to document a GitLab merged-configuration API
+      dependency and a cross-forge gap. Both belonged to assertion 3, which
+      review 8mar blocked and this plan withdrew. Review br41 (GME-R1) caught
+      that the row still carried them after the withdrawal -- a projection row
+      is prospective instruction for implementation, not description, so
+      leaving it would have directed an implementer to publish a dependency
+      and a gap the design no longer has.
 
   runbook_situation_map:
     disposition: updated
@@ -48,7 +68,9 @@ surfaces:
       concepts page does not give: what a failure means in practice (a gate
       surface changed with no accompanying test), and how to retire a gate
       correctly (an explicit retired: transition, never deleting the entry,
-      since deletion fails assertion 2). Both are short procedural notes
+      since deletion fails assertion 2b, while its obsolete surface files may be
+      deleted because 2a is waived when retired). Both are short procedural
+      notes
       pointing at the rule and the concepts page rather than restating them.
 
   ai_landing_loaders:
@@ -71,11 +93,18 @@ surfaces:
       check plus its negative fixtures. Per gate-self-test-rule.md applied to
       itself, it ships demonstrating: assertion 1 blocking a registered-surface
       change with no accompanying test change, and not blocking either a gate
-      change that carries one or a change to any unregistered path; assertion 2
-      blocking outright deletion of a registry entry and any unresolvable
-      registered path; retirement waiving both assertions for the retired entry
-      so its obsolete files can be deleted, while the active-to-retired
-      transition still fires assertion 1 on the registry.
+      change that carries one or a change to any unregistered path; assertion
+      2a blocking an unresolvable path registered by an active entry; assertion
+      2b blocking outright deletion of any registry entry regardless of state;
+      and retirement waiving 1 and 2a but not 2b, so a retired gate can delete
+      its obsolete surface files while its entry remains permanent and the
+      active-to-retired transition still fires assertion 1 on the registry.
+
+      Assertion 2 was previously stated as one check covering both path
+      resolution and entry permanence. Review br41 (GME-R2) showed that made
+      the retirement waiver self-contradictory -- "assertion 2 is waived when
+      retired" alongside "deletion still fails assertion 2". The split is what
+      makes the lifecycle implementable rather than merely describable.
 
       An earlier revision of this row claimed a third assertion proved the
       registered job "will run", by resolving GitLab's merged configuration.

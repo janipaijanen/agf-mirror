@@ -132,8 +132,17 @@ The command reads `.agf/gates.yaml` by default and accepts
 **Assertion 1 — test accompaniment.** A diff touching any registered
 `surfaces` path must also touch that gate's declared `tests` paths.
 
-**Assertion 2 — registry integrity.** Every registered path must resolve. An
-entry may not disappear: retirement is a state transition, not a deletion.
+**Assertion 2 — registry integrity, in two separable parts.** Review `br41`
+(GME-R2) established that stating this as one assertion makes the retirement
+waiver incoherent, because the two halves have opposite lifecycle behaviour:
+
+- **2a — path resolution.** Every path registered by an *active* entry must
+  resolve.
+- **2b — entry permanence.** A registry entry may never be deleted, in any
+  state. Retirement is a transition, not a removal.
+
+Splitting them is what lets a retired gate delete its obsolete files (2a
+waived) while its ID remains a permanent record (2b never waived).
 
 **Assertion 3 is withdrawn.** The previous revision proposed resolving
 GitLab's merged configuration and asserting the named job exists, is not
@@ -187,14 +196,17 @@ An entry is `active` or `retired`. Retirement requires an explicit
 | | `active` | `retired` |
 |---|---|---|
 | Assertion 1 — test accompaniment on that entry's surfaces | enforced | **waived** |
-| Assertion 2 — that entry's paths resolve | enforced | **waived** |
-| Deleting the entry outright | fails | fails |
+| Assertion 2a — that entry's paths resolve | enforced | **waived** |
+| Assertion 2b — the entry may not be deleted | enforced | **enforced** |
 
-**Waiving both for retired entries answers `8mar` GME-A1.** The previous
-revision enforced assertions 1 and 2 on retired entries, which meant a retired
-gate could remove its CI job but never its obsolete script or fixtures without
-failing the registry — permanent tombstone files as an unintended lifecycle
-cost. Waived, a retired gate's surfaces can be deleted normally.
+**Waiving 1 and 2a for retired entries answers `8mar` GME-A1**, and splitting
+2b out of 2a answers `br41` GME-R2. The revision before last enforced both on
+retired entries, so a retired gate could remove its CI job but never its
+obsolete script or fixtures without failing the registry — permanent tombstone
+files as an unintended lifecycle cost. The revision after that waived
+"assertion 2" wholesale while still requiring deletion to fail, which is a
+contradiction rather than a lifecycle. With 2a and 2b separated, a retired
+gate's surface files can be deleted normally and its entry still cannot.
 
 **What stops retirement being used as an escape hatch.** Retiring an entry is
 an edit to the registry, and the registry is a registered surface of the
@@ -252,6 +264,25 @@ What survives is smaller and, unlike its predecessors, fully local: two
 assertions over the registry and the working tree, no network, no credential,
 no forge dependency.
 
+## Review disposition — `br41`
+
+Bounded re-review. **CLEAR** on the parent plan !2214; **BLOCK** here, two
+findings, both upheld.
+
+| Finding | Disposition |
+|---|---|
+| **GME-R1** adopter projection still specified withdrawn assertion 3 | **Upheld.** The manifest's `adopter_facing_explanation` still instructed the page to document a GitLab merged-configuration dependency and a cross-forge gap, both of which belonged to the withdrawn assertion. Rewritten to describe assertions 1 and 2 only, with the removed text kept solely as labelled superseded history. |
+| **GME-R2** retirement waived assertion 2 while relying on it | **Upheld.** Assertion 2 conflated path resolution with entry permanence, so "waived when retired" contradicted "deletion still fails". Split into 2a (paths resolve, waived when retired) and 2b (entry may never be deleted, never waived). Acceptance criteria 4 and 6 updated to test them separately. |
+
+**The reframing in GME-R1 is worth keeping, beyond this fix.** `br41` points
+out that a projection row is *prospective instruction* for implementation, not
+description of it — so a row left stale after a design change does not merely
+record history, it actively directs an implementer to build the thing that was
+removed. That is a stronger reason to keep manifests current than "tidiness",
+and it is the second time in two rounds that a stale manifest row survived a
+design change here (`8mar` GDAB-1 was the first). Recorded rather than treated
+as two unrelated slips.
+
 ## Acceptance criteria
 
 1. `agov gate change-check` exists, is dispatched from `agov/src/main.rs`,
@@ -261,15 +292,18 @@ no forge dependency.
    test-path change, demonstrated.
 3. Assertion 1 does **not** block a gate change accompanied by a test change,
    nor a non-gate change to any unregistered path, both demonstrated.
-4. Assertion 2 blocks outright deletion of a registry entry and blocks any
-   unresolvable registered path, each demonstrated.
+4. Assertion 2a blocks an unresolvable path registered by an active entry,
+   and assertion 2b blocks outright deletion of any registry entry regardless
+   of state — each demonstrated separately, since `br41` GME-R2 showed that
+   stating them as one assertion makes the retirement waiver contradictory.
 5. No code path in the checker performs a network request, reads a token, or
    requires pipeline context — verified by inspection, and by the tests
    passing with no credential available.
-6. Retirement waives assertions 1 and 2 for the retired entry, while the
-   `active → retired` transition itself is demonstrated firing assertion 1 on
-   the registry, and outright entry deletion demonstrated failing. A retired
-   gate is demonstrated able to delete its obsolete surface files.
+6. Retirement waives assertions 1 and 2a for the retired entry while 2b stays
+   enforced: a retired gate is demonstrated able to delete its obsolete
+   surface files, deletion of the retired entry itself is demonstrated
+   failing, and the `active → retired` transition is demonstrated firing
+   assertion 1 on the registry.
 7. The known proxy limit — an unrelated or empty test satisfying assertion 1 —
    is demonstrated as a **passing** case and recorded as a limit, not hidden.
 8. `agf/dist/release-manifest.yaml` ships the schema and the neutral example;
