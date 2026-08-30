@@ -70,30 +70,47 @@ surfaces:
       This plan is itself the mechanical check, so the drift evidence is the
       check plus its negative fixtures. Per gate-self-test-rule.md applied to
       itself, it ships demonstrating: assertion 1 blocking a registered-surface
-      change with no test change; assertion 2 blocking entry deletion and any
-      unresolvable path; assertion 3 blocking, against merged configuration,
-      each of job-absent, when: never, allow_failure: true, and
-      registered-script-no-longer-invoked, with at least one demonstrated
-      through extends or !reference indirection rather than a literal edit;
-      and the active-to-retired transition passing while deletion fails.
+      change with no accompanying test change, and not blocking either a gate
+      change that carries one or a change to any unregistered path; assertion 2
+      blocking outright deletion of a registry entry and any unresolvable
+      registered path; retirement waiving both assertions for the retired entry
+      so its obsolete files can be deleted, while the active-to-retired
+      transition still fires assertion 1 on the registry.
 
-      Two boundaries are stated as limits rather than omitted. Assertion 3
-      proves the job will run and is not neutralised by configuration; it does
-      NOT prove the script does useful work, since an early exit 0 inside the
-      script is invisible to it -- that is covered by assertion 1 plus human
-      review. And self-registration gives visibility, not tamper-resistance:
-      the candidate pipeline runs the candidate checker, so one merge request
-      can weaken the checker and satisfy assertion 1 with an empty or
-      unrelated test. Acceptance criterion 7 demonstrates that limit as a
-      passing case rather than hiding it.
+      An earlier revision of this row claimed a third assertion proved the
+      registered job "will run", by resolving GitLab's merged configuration.
+      Review 8mar blocked that on two independent grounds and both are upheld.
+      GME-2: merged configuration is static, so rules-context omission and an
+      earlier exit 0 both survive it; GitLab documents dry_run separately as
+      pipeline creation simulation, and even simulation cannot prove a later
+      script command is reachable. GME-1: the assertion required an
+      authenticated request to a private project's API, which CI_JOB_TOKEN
+      does not cover, while this plan's own infosec consultation asserted no
+      credential content was involved.
 
-      The previous revision of this design claimed a literal invocation-string
-      check proved the gate runs. Review j1ht (GCD-R2) established that it
-      does not. That claim is withdrawn and replaced by merged-configuration
-      resolution, which is what GitLab actually executes.
+      Assertion 3 is therefore withdrawn rather than respecified. This is the
+      second design in this line to claim a mechanical check proves a gate
+      executes and the second to be wrong -- the first matched literal
+      invocation text, the second resolved merged YAML. The correction is to
+      stop making the claim.
 
-      Paths are omitted from a paths: array at Gate 1 because every artifact
-      is created by this plan's implementation and does not yet exist, and
+      What remains is fully local: both assertions read only the registry and
+      the working tree. No network request, no token, no pipeline context, and
+      no forge dependency, so adopters on any platform get the same check.
+      Acceptance criterion 5 verifies this by running the tests with no
+      credential available.
+
+      Two residuals are stated as limits rather than implied away. The check is
+      a proxy for review attention, not proof of test quality: the candidate
+      pipeline runs the candidate checker, so one merge request can weaken it
+      and satisfy assertion 1 with an empty or unrelated test, demonstrated as
+      a passing case in acceptance criterion 7. And CI execution integrity --
+      whether a registered job is reachable in context and whether its script
+      does useful work -- is named as Gate 2 reviewer responsibility, not
+      covered here.
+
+      Paths are omitted from a paths: array at Gate 1 because every artifact is
+      created by this plan's implementation and does not yet exist, and
       stage: planned is limited to normative_owner. They are added at Gate 2
       when the strict projection check must pass against them:
         tooling/rust/crates/agov-validators/src/gate_change.rs

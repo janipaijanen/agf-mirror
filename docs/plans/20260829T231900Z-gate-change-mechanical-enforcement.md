@@ -22,13 +22,21 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Consulted and material. This plan proposes a check with blocking
-      authority over gate changes, so its own failure modes are
-      security-relevant: a check that can be silently disabled, or that
-      claims more assurance than it delivers, is worse than none. The design
-      below states its proxy boundary explicitly rather than implying
-      tamper-resistance it does not have. No credential, personal-data, or
-      access-control content is involved.
+      Consulted and material, and re-consulted after review 8mar. This plan
+      proposes a check with blocking authority over gate changes, so its own
+      failure modes are security-relevant: a check that can be silently
+      disabled, or that claims more assurance than it delivers, is worse than
+      none. The design states its proxy boundary explicitly rather than
+      implying tamper-resistance it does not have.
+
+      An earlier revision asserted here that no credential or access-control
+      content was involved while its assertion 3 required an authenticated
+      request to a private project's GitLab API. Finding GME-1 caught that
+      contradiction. Assertion 3 is withdrawn, and the check is now purely
+      local -- it reads the registry and the working tree, performs no network
+      request, and needs no token. The claim is true as written now rather
+      than aspirational, and acceptance criterion 5 verifies it by running the
+      tests with no credential available.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -127,40 +135,73 @@ The command reads `.agf/gates.yaml` by default and accepts
 **Assertion 2 — registry integrity.** Every registered path must resolve. An
 entry may not disappear: retirement is a state transition, not a deletion.
 
-**Assertion 3 — effective configuration, replacing the withdrawn invocation
-check.** For each registered gate, the checker resolves the pipeline's
-**merged** configuration (GitLab's `ci/lint` with `include_merged_yaml`, or
-the project CI-config endpoint) and asserts the named job exists in it, is not
+**Assertion 3 is withdrawn.** The previous revision proposed resolving
+GitLab's merged configuration and asserting the named job exists, is not
 `when: never`, is not `allow_failure: true`, and still invokes the registered
-script.
+script. Review `8mar` blocked it on two independent grounds, both correct:
 
-Merged configuration is the right authority because it is what GitLab will
-actually run: it resolves `extends`, anchors, `!reference`, hidden jobs, and
-top-level `workflow`/`default`/`variables`. That closes the bypass class
-GCD-R2 named, which a text check cannot.
+- **GME-1 — no credential contract.** The command signature named only
+  `--base-ref` and `--registry`, while the assertion requires an authenticated
+  request to a private project's API. CI Lint is not in GitLab's documented
+  job-token endpoint list, so `CI_JOB_TOKEN` cannot be assumed and a
+  project/access token would be required. The plan's own infosec consultation
+  said "no credential... content is involved" while its core check needed
+  exactly that — the same species of self-contradiction `j1ht` GCD-R3 caught
+  in the parent plan's front matter.
+- **GME-2 — it still would not have closed the bypass class.** Merged
+  configuration is static. `rules` can omit the job in the relevant context,
+  and an earlier `exit 0` leaves the registered invocation unreachable — the
+  precise bypass `j1ht` named. Resolving `extends`, anchors and `!reference`
+  makes the evidence easier to read; it performs no control-flow or
+  pipeline-context proof. GitLab documents `dry_run` separately as pipeline
+  *creation* simulation, and even that cannot prove a later script command is
+  reachable.
 
-**What assertion 3 still does not prove.** It does not prove the *script* does
-useful work — an early `exit 0` inside
-`.gitlab/scripts/governance-validate.sh` is invisible to it. That is covered
-by assertion 1 (the script is a registered surface, so changing it demands a
-test change) plus human review, not by assertion 3. Stating this boundary is
-the point: the previous revision's failure was claiming coverage it did not
-have.
+**This is the second design in a row that claimed to prove a gate executes,
+and the second to be wrong.** The first matched literal text; the second
+resolved merged YAML. Both were structurally better than their predecessor and
+both made the same overclaim. The correction is not a third mechanism — it is
+to stop making the claim.
+
+**What this plan asserts is therefore assertions 1 and 2 only.** Both are
+purely local: they read the registry and the repository working tree. No API,
+no network, no credential, no pipeline context. GME-1 dissolves entirely
+rather than being mitigated, and the infosec consultation below is corrected
+to match what the check actually does.
+
+**CI execution integrity is explicitly human review, and is named as such.**
+Whether a registered gate's job is actually reachable in the relevant pipeline
+context, and whether its script does useful work, is a reviewer's
+responsibility at Gate 2. That is a real residual, stated here rather than
+implied by a mechanism that does not deliver it. A future plan may revisit it
+if a proof mechanism exists that survives GME-2; none is proposed now, and
+"advisory output" is deliberately not offered as a consolation, because
+advisory output that looks like a gate is how the last two revisions went
+wrong.
 
 ### Retirement state machine
 
 An entry is `active` or `retired`. Retirement requires an explicit
 `retired: {reason, date}`.
 
-| Assertion | `active` | `retired` |
+| | `active` | `retired` |
 |---|---|---|
-| 1 — test accompaniment | enforced | enforced (surfaces still registered) |
-| 2 — paths resolve | enforced | enforced |
-| 3 — effective config | enforced | **waived** — a retired gate has no job |
+| Assertion 1 — test accompaniment on that entry's surfaces | enforced | **waived** |
+| Assertion 2 — that entry's paths resolve | enforced | **waived** |
+| Deleting the entry outright | fails | fails |
 
-Deleting an entry outright, rather than retiring it, fails assertion 2. The
-`active → retired` transition is itself a registry change and therefore
-subject to assertion 1.
+**Waiving both for retired entries answers `8mar` GME-A1.** The previous
+revision enforced assertions 1 and 2 on retired entries, which meant a retired
+gate could remove its CI job but never its obsolete script or fixtures without
+failing the registry — permanent tombstone files as an unintended lifecycle
+cost. Waived, a retired gate's surfaces can be deleted normally.
+
+**What stops retirement being used as an escape hatch.** Retiring an entry is
+an edit to the registry, and the registry is a registered surface of the
+`gate-change-check` entry itself. So the `active → retired` transition fires
+assertion 1 on *that* entry and demands an accompanying test change, visible
+in the diff. The entry itself may never be deleted — that fails assertion 2 —
+so a retired ID is a permanent record and cannot be silently reused.
 
 ### The proxy boundary, stated as a limit
 
@@ -182,11 +223,34 @@ Structured evidence:
 | Surface | Disposition |
 |---|---|
 | Normative owner | **existing pointer sufficient** — `agf/rules/always/gate-self-test-rule.md` already grants this check its blocking authority via the parent plan's slice A; this plan implements it and adds no new obligation |
-| Adopter explanation | **updated** — the Pages page describing validators gains the command and the registry example, named in the manifest |
+| Adopter explanation | **updated** — the Pages page describing validators gains the command and the registry example, named in the manifest, and states plainly what the check does not cover |
 | Runbook / situation map | **updated** — the operator-facing checklist gains the failure's meaning and the retirement procedure |
 | AI landing / loaders | **not applicable** — no new agent obligation beyond slice A's, which is already projected |
-| Validation / drift evidence | **implemented** — this plan *is* the mechanical check; its proxy boundary is stated above rather than overclaimed |
+| Validation / drift evidence | **implemented** — this plan *is* the mechanical check. Two boundaries are stated as limits, not implied: it is a proxy for review attention rather than proof of test quality, and it makes no claim about CI execution integrity, which is named as Gate 2 reviewer responsibility |
 | Distribution | schema and neutral example added to `agf/dist/release-manifest.yaml` explicitly; live registry deliberately outside `agf/` and not shipped |
+
+## Review disposition — `8mar`
+
+Returned **BLOCK** with two blocking findings and one advisory. All three are
+upheld; the design is narrowed rather than defended.
+
+| Finding | Disposition |
+|---|---|
+| **GME-1** no authentication/input contract for the merged-config dependency | **Upheld; the dependency is removed rather than specified.** Naming a token, CI variable, and permission set would have made the check work, at the cost of adding a credential obligation to a governance validator. Withdrawing assertion 3 dissolves the requirement instead. The front-matter infosec claim that contradicted it is corrected. |
+| **GME-2** merged YAML does not close the execution bypass class | **Upheld, and it is the decisive one.** `rules` context omission and an earlier `exit 0` both survive merged-configuration checking. Static merged config is not pipeline simulation, and even simulation cannot prove a later script command is reachable. |
+| **GME-A1** retired entries permanently retain dead surfaces | **Upheld.** Retirement now waives assertions 1 and 2 for the retired entry, so obsolete files can be deleted. The transition still fires assertion 1 on the registry, and the entry may never be deleted, so retirement is not an escape hatch. |
+
+**The pattern worth naming.** This is the second consecutive design in this
+line to claim a mechanical check proves a gate *executes*, and the second to
+be wrong. The first matched literal invocation text; the second resolved
+merged YAML. Each was structurally better than its predecessor and each made
+the same overclaim about what its evidence supports. The correction is not a
+third mechanism — it is to stop making the claim and name the residual as
+human review.
+
+What survives is smaller and, unlike its predecessors, fully local: two
+assertions over the registry and the working tree, no network, no credential,
+no forge dependency.
 
 ## Acceptance criteria
 
@@ -199,13 +263,13 @@ Structured evidence:
    nor a non-gate change to any unregistered path, both demonstrated.
 4. Assertion 2 blocks outright deletion of a registry entry and blocks any
    unresolvable registered path, each demonstrated.
-5. Assertion 3 blocks, against **merged** configuration, each of: job absent,
-   `when: never`, `allow_failure: true`, and registered script no longer
-   invoked — each demonstrated separately, and at least one demonstrated via
-   `extends` or `!reference` indirection rather than a literal edit.
-6. Assertion 3 is waived for `retired` entries and enforced for `active`
-   ones; the `active → retired` transition is demonstrated passing and
-   entry deletion demonstrated failing.
+5. No code path in the checker performs a network request, reads a token, or
+   requires pipeline context — verified by inspection, and by the tests
+   passing with no credential available.
+6. Retirement waives assertions 1 and 2 for the retired entry, while the
+   `active → retired` transition itself is demonstrated firing assertion 1 on
+   the registry, and outright entry deletion demonstrated failing. A retired
+   gate is demonstrated able to delete its obsolete surface files.
 7. The known proxy limit — an unrelated or empty test satisfying assertion 1 —
    is demonstrated as a **passing** case and recorded as a limit, not hidden.
 8. `agf/dist/release-manifest.yaml` ships the schema and the neutral example;
@@ -215,11 +279,19 @@ Structured evidence:
 
 ## Risks
 
-**Merged-config dependency.** Assertion 3 needs GitLab's lint/CI-config API.
-If unavailable or rate-limited, the check must fail closed with a clear
-diagnostic, never skip open. A forge-neutral fallback is not attempted here;
-adopters on other platforms get assertions 1 and 2 and a documented gap,
-stated rather than papered over.
+**Unenforced CI execution integrity.** This is the plan's real residual, and
+it is not mitigated by anything mechanical here. A gate's job can be made
+unreachable by `rules` context, or its script neutralised by an early
+`exit 0`, without touching a registered surface. Assertion 1 covers *changes*
+to the registered script; it does not prove the script runs or does useful
+work. That is Gate 2 reviewer responsibility, named in the rule rather than
+left to be discovered. Two successive designs claimed to close this
+mechanically and both were wrong; a third is not attempted on the strength of
+wanting it to exist.
+
+**Forge neutrality, now by construction.** Withdrawing assertion 3 removes the
+GitLab API dependency entirely, so adopters on any platform get the same check
+rather than a documented gap.
 
 **Over-blocking.** Registering `.gitlab/scripts/governance-validate.sh` rather
 than `.gitlab-ci.yml` keeps routine CI edits out of scope. If the registry
