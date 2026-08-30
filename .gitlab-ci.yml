@@ -677,20 +677,26 @@ agov:oci:mr-build-scan:
     - tooling/rust/scripts/agov-oci-image.sh build-unpublished
     - tooling/rust/scripts/agov-oci-image.sh scan-unpublished
   rules:
-    # Complete image-affecting input set, per h3nb section 1.1. An
-    # incomplete anchor is the defect this job exists to fix -- 045e514c
-    # already showed a missing anchor silently produces no coverage.
+    # Deliberate over-approximation, not an enumeration. The approved plan
+    # (docs/plans/20260828T194721Z-v290-release-integrity-and-tracker-truth.md)
+    # re-derived this anchor to exactly three patterns after k5dq disproved
+    # the premise the earlier eight-path set rested on -- the packaged
+    # container carries {"source_fingerprint":"unknown"}, because Cross.toml
+    # passes only three build variables and the build container has no Git
+    # checkout, so nothing downstream can detect an input the anchor missed.
+    #
+    # Enumerating "image-affecting" paths was the error. Against this tree
+    # the eight-path set missed 37 of 84 files under tooling/rust/,
+    # including Cross.toml and both crates' build.rs -- files that change
+    # the shipped binary while leaving the CVE scan unrun. An incomplete
+    # anchor is the exact defect this job exists to fix; 045e514c already
+    # showed a missing anchor silently produces no coverage.
     # ci-trigger-scoping-rule.md: when in doubt, include the path.
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes: &agov_oci_mr_scan_paths
         - .gitlab-ci.yml
         - agf/VERSION
-        - tooling/rust/Containerfile.agov
-        - tooling/rust/scripts/agov-oci-image.sh
-        - tooling/rust/release-targets.txt
-        - tooling/rust/Cargo.lock
-        - tooling/rust/**/Cargo.toml
-        - tooling/rust/crates/**/src/**
+        - tooling/rust/**/*
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       changes:
         compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
