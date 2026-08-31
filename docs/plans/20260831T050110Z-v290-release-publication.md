@@ -55,7 +55,7 @@ that decision; this plan exists partly to avoid repeating it.
 | Item | Evidence found | Strength |
 |---|---|---|
 | **A1** — MR-stage container build-and-scan | `agov:oci:mr-build-scan` exists in `.gitlab-ci.yml:665`, and `:624-628` documents it as "(v2.9.0 A1)"; the job ran and passed in pipeline `2803731939` | Strong: observed executing |
-| **A2** — single-sourced OCI reference | `tooling/rust/scripts/agov-oci-image.sh` rejects with `OCI reference mismatch` (`:185`, `:194`); its selftest asserts "OCI reference is single-sourced and mismatched spellings are rejected" (`:256`) | Moderate: code and selftest present, **selftest not run by me** |
+| **A2** — single-sourced OCI reference | Selftest **run and mutation-tested locally** — see transcript below | **Strong: the check is proven to bind** |
 
 **Deliberately stated as incomplete evidence.** Review `1mqg` VRW-4 found that
 three `--help` invocations had been presented as proof that an issue was
@@ -65,10 +65,44 @@ their nine acceptance criteria.
 
 Gate 2 for this release requires binding each of those criteria to its actual
 evidence — in particular criteria 1 and 2, which demand **negative-test
-transcripts**: a knowingly vulnerable base failing at MR stage, and a
-deliberately mismatched OCI spelling failing the pre-tag check. Neither
-transcript is in hand. If those tests were produced during A1/A2 implementation,
-this plan cites them; if not, it produces them before the tag.
+transcripts**.
+
+### Criterion 2 is discharged here
+
+`agov-oci-image.sh`'s A2 proofs need no podman and no CI, so they were run
+directly. A passing test is not proof that a test binds, so the check was
+mutated as well:
+
+```
+$ sh tooling/rust/scripts/agov-oci-image.sh selftest
+exit=0
+selftest OK: canonical targets resolve; Windows, unknown, and malformed
+inputs are rejected; OCI reference is single-sourced and mismatched
+spellings are rejected
+
+# mutation: verify_ref's comparison replaced with `if false`
+$ sh tooling/rust/scripts/agov-oci-image.sh selftest
+exit=1
+v-prefixed reference was not rejected (the v2.8.0 defect)
+mismatched repository component was not rejected
+selftest FAILED
+```
+
+The mutation names the v2.8.0 defect specifically, which is the incident A2
+exists to prevent. Mutation reverted; working tree verified clean afterwards.
+
+This satisfies criterion 2, and criterion 3 for A2's half: the negative
+transcript is reviewer-visible and reproducible, and it is produced by a
+selftest that **passes** in the acceptance pipeline while internally asserting
+the negatives — so demonstrating the gate fires does not require leaving the
+canonical pipeline red.
+
+### Criterion 1 is not discharged
+
+A1's negative test — a knowingly vulnerable base failing at MR stage — needs a
+container build and therefore CI. It cannot be produced while the quota is
+exhausted. If that transcript was produced during A1 implementation, this plan
+cites it at Gate 2; if not, it is produced before the tag.
 
 ## Blocked precondition, stated first
 
