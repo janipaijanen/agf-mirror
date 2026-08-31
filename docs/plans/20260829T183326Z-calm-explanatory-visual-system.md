@@ -69,7 +69,8 @@ specified before implementation, none of which this pilot carries. That is a
 separate work order.
 
 If the governor prefers the current figures, the grammar is dropped at a cost
-of three files.
+of the ten authorized files enumerated in Deliverable 2 — all additive, none
+replacing an existing artifact.
 
 ## Origin and what is actually being asked
 
@@ -244,6 +245,23 @@ format-selection decision record names which one was taken; the other's paths
 are never created. Rendered output is SVG in both options, so the committed
 output paths are identical either way and the choice changes only the source.
 
+**Maximum authorized artifact count: ten unique files (review `sstp` CVR-V5).**
+Counted explicitly, because two earlier revisions of this plan gave three
+different answers:
+
+| Group | Count | Paths |
+|---|---|---|
+| Grammar page (Deliverable 1) | 1 | `agf/docs/figures/grammar.md` |
+| Comparison page | 1 | `agf/docs/site/reference/figures/pilot-comparison.md` |
+| Canonical sources | 3 | the three in the table above, counting the chosen `evidence-lifecycle-pilot` option only |
+| Distinct mirror outputs | 5 | `gate-pipeline-pilot.svg` ×2, `evidence-lifecycle-pilot.svg` ×2, `operating-responsibility-map-pilot.svg` ×1 |
+| **Total** | **10** | |
+
+`agf/docs/figures/operating-responsibility-map-pilot.svg` is **counted once**:
+it is simultaneously that pilot's canonical source and its committed figure, so
+the mirror group contains only its `site/reference/figures/` copy. My previous
+revision claimed eleven by counting that single path twice.
+
 **Source-of-truth and drift contract.** Every alternative declares one
 canonical source. Where an output is generated, regeneration must be
 deterministic and the two committed copies must be byte-identical; where the
@@ -324,8 +342,11 @@ CHANGELOG entry, tag, or release.
    the paths enumerated in Deliverable 2, including canonical sources and both
    committed output copies; the two committed copies of each generated figure
    are byte-identical; no existing figure or SVG is replaced or deleted; and
-   no path outside that table plus
-   `agf/docs/site/reference/figures/pilot-comparison.md` is touched.
+   no path outside that table, plus
+   `agf/docs/site/reference/figures/pilot-comparison.md` and the Deliverable 1
+   grammar page `agf/docs/figures/grammar.md`, is touched. (The grammar page
+   was accidentally excluded by the previous wording, which would have
+   prohibited the plan's own first deliverable.)
 3. Every pilot figure uses only `palette.md` tokens under their **governed
    semantic assignments** — `blue-mid` for primary structure, `grey-mid` only
    for deferred/out-of-scope/not-applicable — within the existing "at most
@@ -364,9 +385,10 @@ CHANGELOG entry, tag, or release.
    reproducible by a reviewer, and labelled pilot preference rather than
    evidence of clarity.
 9c. Every created file matches one of the exact paths enumerated in
-   Deliverable 2; the mutually exclusive `evidence-lifecycle-pilot` option not
-   taken has no files; and the total does not exceed the eleven authorized
-   artifacts.
+   Deliverable 2, or is `agf/docs/figures/grammar.md` or
+   `agf/docs/site/reference/figures/pilot-comparison.md`; the mutually
+   exclusive `evidence-lifecycle-pilot` option not taken has no files; and the
+   total does not exceed the **ten** authorized artifacts.
 10. A drift check confirms the two committed copies of each generated figure
    are byte-identical, and each alternative's declared source-of-truth and
    regeneration (or explicit hand-maintained) status is recorded.
