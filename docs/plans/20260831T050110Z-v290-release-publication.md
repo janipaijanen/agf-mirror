@@ -154,7 +154,7 @@ from current `main`.
    The exclusions are append-only history that must never be rewritten. At the
    reviewed base this returns **47 occurrences across 26 files**.
 
-   **Group A — authored current-version cells. All must become 2.9.0 (33).**
+   **Group A — authored current-version cells. All must become 2.9.0 (32).**
 
    | Path | Count | Field |
    |---|---|---|
@@ -169,12 +169,12 @@ from current `main`.
    | `tooling/rust/Cargo.lock` | 5 | workspace packages; regenerate, never hand-edit |
    | `agf/docs/governance/manifest.md` | 3 | lines 11, 38, 76 — current-version cells |
 
-   **Group B — live release-status prose. Must be rewritten, not version-bumped (7).**
+   **Group B — live release-status prose. Must be rewritten, not version-bumped (8).**
 
    | Path | Count | Why it cannot stand |
    |---|---|---|
    | `agf/docs/governance/manifest.md:18-21` | 2 | says v2.8.0 "is being prepared" and directs adopters to install v2.6.1. **The previous revision classified this as historical and required it byte-identical — that was wrong.** It is a live claim that becomes false the moment v2.9.0 publishes. |
-   | `agf/docs/site/roadmap.md` | 5 | publicly states v2.8.0 is "in construction" and v2.6.1 is the latest fully published stable release |
+   | `agf/docs/site/roadmap.md` | **6** — lines **8, 10, 11, 50, 69, 90** | publicly states v2.8.0 is "in construction" and v2.6.1 is the latest fully published stable release |
 
    Group B is the finding worth naming: **a version-bump substitution would
    leave both files internally consistent and factually false.** They need
@@ -188,14 +188,30 @@ from current `main`.
    | `tooling/rust/scripts/agov-oci-image.sh` | 6 | incident references — "the exact v2.8.0 defect", and the selftest's own assertion string `v-prefixed reference was not rejected (the v2.8.0 defect)`. **Changing these would break the A2 selftest that discharges criterion 2.** |
    | `.gitlab-ci.yml:653` | 1 | "Measured on v2.8.0's own pipelines" — a measurement note |
 
-   33 + 7 + 7 = 47, reconciling to the audit count.
+   **32 + 8 + 7 = 47.**
 
-   **Acceptance — exhaustiveness proven, not asserted.** After the release
-   edit, re-run the audit command. Every remaining `2.8.0` occurrence must be
-   in Group C, matched line-for-line against the table above. A survivor
-   outside Group C means the allowlist was incomplete for a third time and the
-   release stops. Additionally: `agov validate assistant_loader` passes, the
-   built binary reports 2.9.0, and the A2 selftest still passes.
+   The previous revision said 33 + 7 + 7 and also totalled 47 — because two
+   one-count errors cancelled (Group A over by one, Group B under by one,
+   from misreading my own audit's `6 agf/docs/site/roadmap.md` line as 5).
+   Review `V29P-1-R3` caught it. **A total that reconciles is not proof the
+   categories do**, and here the coincidence would have left roadmap line 90
+   outside the edit set for an implementer working from the table.
+
+   Because of that, acceptance below cross-checks **per-file counts, category
+   counts, and total independently** — not the total alone.
+
+   **Acceptance — exhaustiveness proven by three independent agreements.**
+   Before the edit, re-run the audit at the frozen base and require all three
+   to agree: **per-file counts** match the tables; **category counts** are
+   32 / 8 / 7; and the **total** is 47. Any one disagreeing stops the release,
+   including when the total happens to be right — that is the exact failure
+   mode `V29P-1-R3` found.
+
+   After the edit, re-run it again: every surviving `2.8.0` must be in Group C,
+   matched line-for-line. A survivor outside Group C means the allowlist was
+   incomplete for a fourth time. Additionally: `agov validate
+   assistant_loader` passes, the built binary reports 2.9.0, and the A2
+   selftest still passes.
 
 4. **MR to `main`**, diff limited to those files, exact-head pipeline green,
    binding governor Gate 2.
