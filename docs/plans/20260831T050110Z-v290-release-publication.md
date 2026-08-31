@@ -54,7 +54,7 @@ that decision; this plan exists partly to avoid repeating it.
 
 | Item | Evidence found | Strength |
 |---|---|---|
-| **A1** — MR-stage container build-and-scan | `agov:oci:mr-build-scan` exists in `.gitlab-ci.yml:665`, and `:624-628` documents it as "(v2.9.0 A1)"; the job ran and passed in pipeline `2803731939` | Strong: observed executing |
+| **A1** — MR-stage container build-and-scan | `agov:oci:mr-build-scan` exists in `.gitlab-ci.yml:665`, and `:624-628` documents it as "(v2.9.0 A1)"; the job ran and passed in pipeline `2803731939` | **Existence and execution: strong. Gating: unproven** — a job passing proves it ran on a clean base, not that a vulnerable base would fail it |
 | **A2** — single-sourced OCI reference | Selftest **run and mutation-tested locally** — see transcript below | **Strong: the check is proven to bind** |
 
 **Deliberately stated as incomplete evidence.** Review `1mqg` VRW-4 found that
