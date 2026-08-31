@@ -121,7 +121,7 @@ and `agov session resume` must, by default:
 
 3. **Degrade the answer, not footnote it.** When a branch-local record
    references a reported obligation, the obligation is reported as
-   `UNRELIABLE`, naming the branch, the record ID, its kind, and its `to`
+   `correlation: findings`, naming the branch, the record ID, its kind and `to`
    field. A caller that reads only the first line must not receive a clean
    answer.
 4. Emit a machine-readable equivalent in `--format json` so agent surfaces and
@@ -159,9 +159,8 @@ Every result MUST therefore be bound to a named snapshot:
 
 - The output states the snapshot it was computed from: the resolved base ref
   and its SHA, and the exact ref set scanned.
-- When freshness cannot be established, the answer degrades to
-  `snapshot-not-verified` and says so on its first line. A caller reading only
-  the first line must not receive an unqualified answer.
+- The answer always reports `freshness` on its first line. A caller reading
+  only that line must never receive an unqualified answer.
 - **No fetch, and no persisted cache (CVR-R2-2).** The previous revision added
   an opt-in `--fetch` and a shared cross-process snapshot. Both are withdrawn.
   They made the plan's own front-matter claim — "no network access, no new
@@ -169,7 +168,8 @@ Every result MUST therefore be bound to a named snapshot:
   needs a carrier, locking, invalidation, corruption handling, permissions and
   cleanup design that this slice has no business inventing. Freshness is a
   **caller precondition**, surfaced in output, never established by the tool.
-- Consequently the **default answer is `snapshot-not-verified`** whenever the
+- Consequently the **only producible value in this slice is
+  `freshness: not-verified`** whenever the
   transport supplies no trustworthy fetch timestamp. This is deliberately
   conservative: git remote-tracking refs carry no reliable per-remote fetch
   time, `FETCH_HEAD` and filesystem mtimes can be absent, selective, or set by
@@ -192,7 +192,7 @@ detail — it decides whether existing obligations silently reopen.
 | | `handoff next` | `coord pending` | `session resume` |
 |---|---|---|---|
 | Current resolution rule | transitive descendants; resolving kinds `ack`, `completion`, `decision-record` | **direct** reference of **any** later kind, per the governed v2.5.0-rc.1 contract | inherits its queue sources |
-| Change to that rule | none — correlation adds `UNRELIABLE`/`UNCERTAIN`, it does not alter which records resolve | **none. Preserved exactly.** | none |
+| Change to that rule | none — correlation adds the `visibility` object, it does not alter which records resolve | **none. Preserved exactly.** | none |
 | `--format json` today | absent | present | absent |
 | JSON change | add, additive only | **additive only**; no existing field renamed, retyped, or removed | add, additive only |
 | Exit codes | unchanged | unchanged | unchanged |
@@ -232,10 +232,11 @@ across all three:
 ```
 "visibility": {
   "correlation": "clean" | "findings",
-  "freshness":   "verified" | "not-verified",
+  "freshness":   "not-verified",
   "base_ref": "<string>",
   "base_sha": "<string>",
   "refs_scanned": <integer>,
+  "snapshot_id": "<hex digest>",
   "findings": [
     { "branch": "<string>", "record_id": "<string>",
       "record_kind": "<string>", "record_to": "<string>",
@@ -252,7 +253,8 @@ established — picking `unreliable` loses the freshness limit, picking
 `snapshot-not-verified` loses the concrete finding.
 
 That is not an edge case: under this plan's own freshness contract,
-`not-verified` is the **normal default**, because remote-tracking refs carry no
+`not-verified` is the **only producible value**, because remote-tracking refs
+carry no
 trustworthy fetch timestamp. So the collision is the common case, created by
 the previous revision's own correction. Both fields are therefore always
 present and independently valued.
@@ -260,14 +262,39 @@ present and independently valued.
 `findings` is empty exactly when `correlation` is `clean`, independently of
 `freshness`. No existing field is renamed, retyped, or removed on any surface.
 
-**Exit codes are unchanged on every surface**, including when `status` is
-`unreliable`. This is an advisory diagnostic surface: it degrades its answer,
-it does not acquire the power to fail a caller's script. A caller that wants
-to treat `unreliable` as fatal reads the field.
+**Snapshot identity, not a count (CVR-R4-2).** `refs_scanned` is telemetry: two
+entirely different remote-tracking states with the same ref count would produce
+the same claimed binding, so a count cannot identify the snapshot an answer was
+derived from. `snapshot_id` is therefore a SHA-256 digest over the scanned refs
+serialized as sorted `<refname> <oid>` lines, one per line, LF-terminated, in
+byte order of refname. It appears in CLI text, JSON, and the MCP result. A test
+changes exactly one ref's OID **without changing the count** and requires
+`snapshot_id` to change.
+
+**`freshness: verified` is removed, not merely unlikely (CVR-R4-2).** With
+fetch and transport timestamps withdrawn, this slice has **no observable input
+that could produce it**, and shipping an enum value nothing can reach is a
+promise the contract cannot keep. `freshness` therefore has exactly one value
+here, `not-verified`, and the field exists to state a limit rather than to
+carry information: the output never claims freshness it cannot prove. The value
+`verified` is reserved for a future slice that introduces an authorized
+freshness source, which can add it additively.
+
+A consequence to state plainly rather than leave implied: test 3a's Cartesian
+overlap is degenerate in this slice, because one axis has a single value. What
+3a still binds — and what CVR-R3-2 actually found — is that the two dimensions
+are **separately represented and neither displaces the other**. The full
+product becomes testable when `verified` becomes producible.
+
+**Exit codes are unchanged on every surface**, whatever `correlation` and
+`freshness` report. This is an advisory diagnostic surface: it degrades its
+answer, it does not acquire the power to fail a caller's script. A caller that
+wants to treat `correlation: findings` as fatal reads that field.
 
 **Text output** gains one leading line before existing output, always emitted,
 carrying both dimensions:
-`VISIBILITY: correlation=<clean|findings> freshness=<verified|not-verified> —
+`VISIBILITY: correlation=<clean|findings> freshness=not-verified
+snapshot=<hex digest> —
 <n> branch-local record(s) referencing reported obligations`.
 Existing lines are unchanged and keep their order.
 
@@ -332,7 +359,8 @@ the argument for this metadata.
 
 **Silently dropping branches to meet the budget is forbidden.** If the budget
 cannot be met while scanning everything, the answer degrades explicitly
-(`snapshot-not-verified`, or a stated partial scope) — it never quietly narrows
+(a stated partial scope, reported in the `visibility` object) — it never
+quietly narrows
 and reports clean. That would recreate the original defect while appearing to
 fix it.
 
@@ -388,8 +416,8 @@ Negative tests are the acceptance criterion, not an afterthought:
    `clean` — otherwise every answer degrades and the signal is worthless.
 3. **Clean correlation, independent of freshness (CVR-R3-3).** No branch-local
    records referencing the pending set: `correlation` MUST be `clean`, and
-   `freshness` MUST still report its own true value — which will normally be
-   `not-verified`. The leading visibility line is **always emitted**. The
+   `freshness` MUST still be reported independently — `not-verified` in this
+   slice. The leading visibility line is **always emitted**. The
    previous revision's "no degradation text" wording is withdrawn: demanding
    silence here would recreate the unqualified-answer defect this plan exists
    to remove, since a clean correlation says nothing about whether the refs
@@ -397,7 +425,9 @@ Negative tests are the acceptance criterion, not an afterthought:
 3a. **Cartesian overlap (CVR-R3-2).** Stale or unverifiable refs that *also*
    contain a correlated record MUST report `correlation: findings` **and**
    `freshness: not-verified` simultaneously, in CLI text, JSON, and the MCP
-   result. Neither fact may displace the other.
+   result. Neither fact may displace the other. (Degenerate on the freshness
+   axis in this slice — see the interface contract — but it binds the
+   no-collapse property that CVR-R3-2 found missing.)
 4. **Unfetchable or absent remote.** MUST fail closed or state the limit
    explicitly; MUST NOT silently report a clean answer, which is the original
    bug in a new costume.
@@ -405,7 +435,9 @@ Negative tests are the acceptance criterion, not an afterthought:
    human output.
 6. **Stale remote-tracking refs (CVR-2).** Remote advanced with a resolving
    record; local refs not fetched. The answer MUST degrade to
-   `snapshot-not-verified`. Reporting clean is a failure. Distinct from test 4.
+   `freshness: not-verified` and, where the remote record correlates, also
+   `correlation: findings`. Reporting `correlation: clean` is a failure.
+   Distinct from test 4.
 7. **Per-surface contract preservation (CVR-3).** For each of the three
    surfaces, a fixture proving its documented resolution rule is unchanged —
    in particular that `coord pending` still resolves on a direct reference of
@@ -413,7 +445,10 @@ Negative tests are the acceptance criterion, not an afterthought:
 8. **JSON additivity (CVR-3).** `coord pending --format json` retains every
    existing field with its existing type. A consumer written against the
    current schema MUST still parse the new output.
-9. **Cost budget (CVR-4, CVR-R3-1).** Benchmark at representative scale
+9a. **Snapshot identity (CVR-R4-2).** Change exactly one scanned ref's OID
+   while keeping `refs_scanned` identical; `snapshot_id` MUST change. A test
+   asserting only the count would pass here and prove nothing.
+10. **Cost budget (CVR-4, CVR-R3-1).** Benchmark at representative scale
    proving ≤1.0 s added per surface, as the median of at least five warm runs,
    with each command measured **independently in its own process**. No
    cross-process reuse is assumed or permitted.
@@ -431,6 +466,7 @@ mutation, with expected failures and expected survivors:
 | Delete freshness reporting | 3, 3a, 6 | 1, 2 |
 | Delete JSON propagation of `visibility` | 5, 8 | 1, 2, 3 |
 | Delete per-surface wiring on one surface | 7 | the other surfaces' cases |
+| Replace `snapshot_id` with the ref count | 9a | 1, 2, 3 |
 
 Row 1 corrected per CVR-R3-3: the previous revision expected deleting discovery
 to fail test 2, but test 2 supplies an *unrelated* branch-local record and
