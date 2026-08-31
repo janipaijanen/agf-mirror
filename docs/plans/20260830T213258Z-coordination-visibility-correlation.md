@@ -422,8 +422,9 @@ Negative tests are the acceptance criterion, not an afterthought:
    silence here would recreate the unqualified-answer defect this plan exists
    to remove, since a clean correlation says nothing about whether the refs
    were current.
-3a. **Cartesian overlap (CVR-R3-2).** Stale or unverifiable refs that *also*
-   contain a correlated record MUST report `correlation: findings` **and**
+3a. **Cartesian overlap (CVR-R3-2).** Refs whose freshness is unverifiable
+   that **do contain, in the locally scanned snapshot,** a correlated record
+   MUST report `correlation: findings` **and**
    `freshness: not-verified` simultaneously, in CLI text, JSON, and the MCP
    result. Neither fact may displace the other. (Degenerate on the freshness
    axis in this slice — see the interface contract — but it binds the
@@ -435,9 +436,24 @@ Negative tests are the acceptance criterion, not an afterthought:
    human output.
 6. **Stale remote-tracking refs (CVR-2).** Remote advanced with a resolving
    record; local refs not fetched. The answer MUST degrade to
-   `freshness: not-verified` and, where the remote record correlates, also
-   `correlation: findings`. Reporting `correlation: clean` is a failure.
-   Distinct from test 4.
+   `freshness: not-verified` and the `snapshot_id` of the refs actually
+   scanned. **`correlation: clean` is the expected and correct result here**,
+   because the resolving record exists only in the unfetched remote state and
+   is therefore absent from the scanned snapshot. Correlation is computed only
+   from records present in that snapshot.
+
+   The previous revision required `correlation: findings` in this fixture,
+   which would have forced the tool to fabricate a finding for a record it
+   cannot see — it performs no network I/O by design. `clean` here means "no
+   finding in the scanned snapshot", never "the remote is known clean"; the
+   independent `freshness: not-verified` is precisely what stops the combined
+   answer from claiming the latter.
+
+   This is the no-collapse boundary in the opposite direction to CVR-R3-2:
+   freshness uncertainty must not be converted into an invented correlation
+   finding, just as a real finding must not erase freshness uncertainty.
+   Distinct from test 4, and distinct from test 3a — where the correlated
+   record **is** present in the scanned refs.
 7. **Per-surface contract preservation (CVR-3).** For each of the three
    surfaces, a fixture proving its documented resolution rule is unchanged —
    in particular that `coord pending` still resolves on a direct reference of
@@ -464,6 +480,12 @@ mutation, with expected failures and expected survivors:
 | Delete branch-local record discovery | 1, 3a | 2, 3, 4, 6 |
 | Delete correlation (report every branch record, uncorrelated) | 2 | 1, 3, 6 |
 | Delete freshness reporting | 3, 3a, 6 | 1, 2 |
+
+Test 6 binds freshness only. It cannot bind discovery or correlation, because
+its fixture deliberately places the resolving record outside the scanned
+snapshot — a mutation deleting discovery leaves test 6's expected
+`correlation: clean` unchanged. Discovery is bound by tests 1 and 3a, where the
+record is locally present.
 | Delete JSON propagation of `visibility` | 5, 8 | 1, 2, 3 |
 | Delete per-surface wiring on one surface | 7 | the other surfaces' cases |
 | Replace `snapshot_id` with the ref count | 9a | 1, 2, 3 |
