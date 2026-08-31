@@ -132,15 +132,91 @@ from current `main`.
 2. **Confirm `main` is releasable.** Green pipeline on the exact release base,
    with the three stranded records (`jsjk`, the plan metadata correction, and
    the outstanding review responses) landed first so the audit trail is whole.
-3. **Release branch.** `release-2.9.0` from `main`; commit only `agf/VERSION`
-   2.8.0 → 2.9.0 and the `CHANGELOG.md` / `agf/CHANGELOG.md` entries. No other
-   file.
+3. **Release branch.** `release-2.9.0` from `main`, carrying the exact
+   release-metadata allowlist below and nothing else.
+
+   **The three-file allowlist in the first revision was wrong (review `thmr`
+   V29P-1).** It named only `agf/VERSION` and the two changelogs. Following it
+   would have packaged a binary reporting **2.8.0** inside assets named 2.9.0,
+   and would have failed `agov.validate.assistant_loader`, which enforces that
+   `AGENTS.md`'s marker equals `agf/VERSION`. Audited against the current tree:
+
+   | Path | Occurrences | Why release-coupled |
+   |---|---|---|
+   | `agf/VERSION` | 1 | the version itself |
+   | `AGENTS.md:1` | 1 | `<!-- AGF: … -->` marker; **validator-enforced equality** |
+   | `agf/templates/AGENTS.md:3` | 1 | same marker in the shipped adopter template |
+   | `agf/templates/learning-record.yaml:8` | 1 | `framework_version` field |
+   | `agf/agents/MANIFEST.yaml:11` | 1 | `Framework version:` header |
+   | `agf/docs/governance/manifest.md` | 3 of 5 | lines 11, 38, 76 are current-version cells; **lines 18-19 are historical prose about v2.8.0 preparation and must not change** |
+   | `tooling/rust/Cargo.toml` | 4 | workspace version + three path-dependency version constraints |
+   | `tooling/rust/Cargo.lock` | 5 | workspace package versions; regenerate, do not hand-edit |
+   | `CHANGELOG.md`, `agf/CHANGELOG.md` | new entry | additive; existing v2.8.0 entries unchanged |
+
+   **Explicitly excluded, though they contain the string `2.8.0`:**
+   `.gitlab-ci.yml:653` ("Measured on v2.8.0's own pipelines") is a historical
+   measurement note; every `docs/coordination/**` and `docs/plans/**` mention;
+   and all existing changelog entries. A naive tree-wide substitution would
+   corrupt each of them. **The distinction is authored-current-version-cell
+   versus historical-reference, not string match.**
+
+   Acceptance: after the edit, no authored current-version cell reads 2.8.0;
+   every excluded historical reference is byte-identical; `agov validate
+   assistant_loader` passes; and the built binary reports 2.9.0.
 4. **MR to `main`**, diff limited to those files, exact-head pipeline green,
    binding governor Gate 2.
-5. **Tag `v2.9.0` on the merge commit and push immediately.** Per the rule,
-   the merged MR is the authorization; this step needs no further confirmation.
-6. **Verify publication anonymously**: Release object, generic package, OCI
-   digest, checksums — on the downloaded bytes, not on the build's own claims.
+5. **Fail-closed pre-tag proof (review `thmr` V29P-3).** Immediately before the
+   irreversible tag, and stopping the release on any non-absence or ambiguity:
+
+   a. Authoritative **absence** reads for the Git tag, the GitLab Release, the
+      generic package version across every status with full pagination, and
+      **the OCI reference as derived by `agov-oci-image.sh image-ref`** — not a
+      hand-written guess at the namespace. *This specific omission is what
+      went wrong at v2.8.0: the pre-tag check queried `v2.8.0` while
+      publication used `agov:$AGOV_VERSION`. The first revision of this plan
+      cited that incident as motivation and then left the derived-namespace
+      read out of its own steps.*
+   b. The exact protected-tag rule exists and matches the intended tag; read
+      the rule object back and record it.
+   c. Frozen source and target: re-read both heads and require them to equal
+      the reviewed SHAs; verify the merge commit's parents and tree against the
+      reviewed values. Any drift stops here, before the tag.
+
+6. **Tag `v2.9.0` on the proven merge commit and push immediately.** The merged
+   MR is the authorization and this needs no further confirmation — but only
+   once step 5 has passed in full.
+
+7. **Post-publication binding and anonymous verification.** Bind the tag object
+   and its peeled commit to every archive, checksum, provenance record, package
+   identity and OCI digest; re-read each namespace; then verify **on
+   anonymously downloaded bytes**, not on the build's own claims.
+
+## Shipment inventory (review `thmr` V29P-2)
+
+The first revision said the committed work order is A1/A2 while its changelog
+scope also promised gate-change enforcement — and used "48 non-coordination
+commits" as if a count were an inventory. Both are wrong in the same way: **a
+standard release tags the whole selected tree.** Merged adopter-visible work
+does not become repository history by being called that, and a count changes
+whenever `main` advances.
+
+At the **frozen release base** — recorded by SHA, not by "current main" — every
+tag-to-base non-coordination commit is enumerated and classified as exactly
+one of:
+
+- **adopter-visible included content** — bound to its plan, its Gate 2 or merge
+  evidence, and its changelog entry;
+- **internal governance or history** — plans, learnings, coordination records,
+  review artifacts; present in the tree, absent from the changelog;
+- **expressly excluded** — absent from the frozen tree.
+
+The release *objective* stays A1/A2. The release *contents* are whatever the
+frozen tree holds, stated honestly.
+
+**If the target advances before merge, the inventory is invalidated** and
+re-derived at the new frozen base, together with a fresh pipeline and a fresh
+exact-head Gate 2 — the same drift discipline the release rule applies to
+everything else.
 
 ## CHANGELOG scope
 
