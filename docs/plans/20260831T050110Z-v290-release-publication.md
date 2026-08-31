@@ -135,34 +135,68 @@ from current `main`.
 3. **Release branch.** `release-2.9.0` from `main`, carrying the exact
    release-metadata allowlist below and nothing else.
 
-   **The three-file allowlist in the first revision was wrong (review `thmr`
-   V29P-1).** It named only `agf/VERSION` and the two changelogs. Following it
-   would have packaged a binary reporting **2.8.0** inside assets named 2.9.0,
-   and would have failed `agov.validate.assistant_loader`, which enforces that
-   `AGENTS.md`'s marker equals `agf/VERSION`. Audited against the current tree:
+   **Two prior revisions of this allowlist were wrong (`thmr` V29P-1, then
+   `1c75fb51` V29P-1-R2).** The first named three files. The second added
+   eight but still omitted fourteen role definitions, `agf/ADOPTING.md`, and
+   the live release-status blocks — and, worse, *misclassified* one of them as
+   historical. Both revisions asserted exhaustiveness from a hand-built list.
+   This one derives it.
 
-   | Path | Occurrences | Why release-coupled |
+   **Audit command** — run at the frozen release base; its output is Gate 2
+   evidence:
+
+   ```sh
+   git grep -n -F '2.8.0' -- \
+     ':!docs/coordination' ':!docs/plans' ':!docs/reviews' \
+     ':!CHANGELOG.md' ':!agf/CHANGELOG.md' ':!agf/learnings'
+   ```
+
+   The exclusions are append-only history that must never be rewritten. At the
+   reviewed base this returns **47 occurrences across 26 files**.
+
+   **Group A — authored current-version cells. All must become 2.9.0 (33).**
+
+   | Path | Count | Field |
    |---|---|---|
-   | `agf/VERSION` | 1 | the version itself |
-   | `AGENTS.md:1` | 1 | `<!-- AGF: … -->` marker; **validator-enforced equality** |
-   | `agf/templates/AGENTS.md:3` | 1 | same marker in the shipped adopter template |
-   | `agf/templates/learning-record.yaml:8` | 1 | `framework_version` field |
-   | `agf/agents/MANIFEST.yaml:11` | 1 | `Framework version:` header |
-   | `agf/docs/governance/manifest.md` | 3 of 5 | lines 11, 38, 76 are current-version cells; **lines 18-19 are historical prose about v2.8.0 preparation and must not change** |
-   | `tooling/rust/Cargo.toml` | 4 | workspace version + three path-dependency version constraints |
-   | `tooling/rust/Cargo.lock` | 5 | workspace package versions; regenerate, do not hand-edit |
-   | `CHANGELOG.md`, `agf/CHANGELOG.md` | new entry | additive; existing v2.8.0 entries unchanged |
+   | `agf/VERSION` | 1 | the version |
+   | `AGENTS.md:1` | 1 | `<!-- AGF: … -->`; **validator-enforced** against `agf/VERSION` |
+   | `agf/templates/AGENTS.md:3` | 1 | same marker, shipped template |
+   | `agf/templates/learning-record.yaml:8` | 1 | `framework_version` |
+   | `agf/agents/MANIFEST.yaml:11` | 1 | `Framework version:` |
+   | **`agf/agents/*.yaml` role definitions** | **14** | `framework_version: "2.8.0"` — one per shipped role |
+   | `agf/ADOPTING.md:333` | 1 | adopter example `framework_version` |
+   | `tooling/rust/Cargo.toml` | 4 | workspace version + three path-dep constraints |
+   | `tooling/rust/Cargo.lock` | 5 | workspace packages; regenerate, never hand-edit |
+   | `agf/docs/governance/manifest.md` | 3 | lines 11, 38, 76 — current-version cells |
 
-   **Explicitly excluded, though they contain the string `2.8.0`:**
-   `.gitlab-ci.yml:653` ("Measured on v2.8.0's own pipelines") is a historical
-   measurement note; every `docs/coordination/**` and `docs/plans/**` mention;
-   and all existing changelog entries. A naive tree-wide substitution would
-   corrupt each of them. **The distinction is authored-current-version-cell
-   versus historical-reference, not string match.**
+   **Group B — live release-status prose. Must be rewritten, not version-bumped (7).**
 
-   Acceptance: after the edit, no authored current-version cell reads 2.8.0;
-   every excluded historical reference is byte-identical; `agov validate
-   assistant_loader` passes; and the built binary reports 2.9.0.
+   | Path | Count | Why it cannot stand |
+   |---|---|---|
+   | `agf/docs/governance/manifest.md:18-21` | 2 | says v2.8.0 "is being prepared" and directs adopters to install v2.6.1. **The previous revision classified this as historical and required it byte-identical — that was wrong.** It is a live claim that becomes false the moment v2.9.0 publishes. |
+   | `agf/docs/site/roadmap.md` | 5 | publicly states v2.8.0 is "in construction" and v2.6.1 is the latest fully published stable release |
+
+   Group B is the finding worth naming: **a version-bump substitution would
+   leave both files internally consistent and factually false.** They need
+   rewritten status text, and their new content is adopter-facing, so it is
+   Gate 2 review material rather than mechanical.
+
+   **Group C — genuinely historical. Must remain byte-identical (7).**
+
+   | Path | Count | Nature |
+   |---|---|---|
+   | `tooling/rust/scripts/agov-oci-image.sh` | 6 | incident references — "the exact v2.8.0 defect", and the selftest's own assertion string `v-prefixed reference was not rejected (the v2.8.0 defect)`. **Changing these would break the A2 selftest that discharges criterion 2.** |
+   | `.gitlab-ci.yml:653` | 1 | "Measured on v2.8.0's own pipelines" — a measurement note |
+
+   33 + 7 + 7 = 47, reconciling to the audit count.
+
+   **Acceptance — exhaustiveness proven, not asserted.** After the release
+   edit, re-run the audit command. Every remaining `2.8.0` occurrence must be
+   in Group C, matched line-for-line against the table above. A survivor
+   outside Group C means the allowlist was incomplete for a third time and the
+   release stops. Additionally: `agov validate assistant_loader` passes, the
+   built binary reports 2.9.0, and the A2 selftest still passes.
+
 4. **MR to `main`**, diff limited to those files, exact-head pipeline green,
    binding governor Gate 2.
 5. **Fail-closed pre-tag proof (review `thmr` V29P-3).** Immediately before the
@@ -176,8 +210,15 @@ from current `main`.
       publication used `agov:$AGOV_VERSION`. The first revision of this plan
       cited that incident as motivation and then left the derived-namespace
       read out of its own steps.*
-   b. The exact protected-tag rule exists and matches the intended tag; read
-      the rule object back and record it.
+   b. **Protected-tag rule with an explicit expected policy (`V29P-3-R2`).**
+      "Matches the intended tag" was underspecified — a rule named `v2.9.0`
+      permitting broad creation would have satisfied those words while
+      supplying no protection. The required configuration, following the
+      established v2.8.0 shape, is: **exact tag `v2.9.0`** (not a wildcard),
+      with **creation restricted to Maintainers, access level 40**. Prove it
+      by authoritative API read **before the tag exists**, and record the
+      returned object. Any other policy needs an explicit governor
+      disposition, not an implementer's judgment.
    c. Frozen source and target: re-read both heads and require them to equal
       the reviewed SHAs; verify the merge commit's parents and tree against the
       reviewed values. Any drift stops here, before the tag.
