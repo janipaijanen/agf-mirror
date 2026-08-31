@@ -480,15 +480,15 @@ mutation, with expected failures and expected survivors:
 | Delete branch-local record discovery | 1, 3a | 2, 3, 4, 6 |
 | Delete correlation (report every branch record, uncorrelated) | 2 | 1, 3, 6 |
 | Delete freshness reporting | 3, 3a, 6 | 1, 2 |
+| Delete JSON propagation of `visibility` | 5, 8 | 1, 2, 3 |
+| Delete per-surface wiring on one surface | 7 | the other surfaces' cases |
+| Replace `snapshot_id` with the ref count | 9a | 1, 2, 3 |
 
 Test 6 binds freshness only. It cannot bind discovery or correlation, because
 its fixture deliberately places the resolving record outside the scanned
 snapshot — a mutation deleting discovery leaves test 6's expected
 `correlation: clean` unchanged. Discovery is bound by tests 1 and 3a, where the
 record is locally present.
-| Delete JSON propagation of `visibility` | 5, 8 | 1, 2, 3 |
-| Delete per-surface wiring on one surface | 7 | the other surfaces' cases |
-| Replace `snapshot_id` with the ref count | 9a | 1, 2, 3 |
 
 Row 1 corrected per CVR-R3-3: the previous revision expected deleting discovery
 to fail test 2, but test 2 supplies an *unrelated* branch-local record and
