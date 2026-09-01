@@ -1,6 +1,8 @@
 ---
 id: 20260830T213258Z-coordination-visibility-correlation
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-08-31T03:57:43Z
 topic: coordination-visibility-correlation-in-queue-surfaces
 advisory_consultation:
   - role: infosec-sentinel
