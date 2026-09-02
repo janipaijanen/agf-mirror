@@ -1,6 +1,8 @@
 ---
 id: 20260831T050110Z-v290-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-02T08:44:39Z
 topic: v290-release-publication
 candidate_release: v2.9.0
 advisory_consultation:
