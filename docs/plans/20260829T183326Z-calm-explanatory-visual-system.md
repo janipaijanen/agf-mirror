@@ -1,6 +1,8 @@
 ---
 id: calm-explanatory-visual-system
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-02T08:44:39Z
 topic: calm-explanatory-visual-system
 advisory_consultation:
   - role: coder-tester
