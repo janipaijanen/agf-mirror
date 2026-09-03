@@ -1,0 +1,13 @@
+consumer	producer
+release:create	agf:dist:release
+release:create	rust:tooling:release
+release:create	agov:oci:release
+release:verify	release:create
+release:verify	rust:tooling:release
+agov:oci:mr-build-scan	rust:tooling:preview
+release:assets-verify-preview	agf:dist:preview
+release:assets-verify-preview	rust:tooling:preview
+release:assets-verify-pre-oci	agf:dist:release
+release:assets-verify-pre-oci	rust:tooling:release
+agov:oci:release	rust:tooling:release
+agov:oci:release	release:assets-verify-pre-oci
