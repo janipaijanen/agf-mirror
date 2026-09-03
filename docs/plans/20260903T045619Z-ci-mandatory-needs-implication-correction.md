@@ -5,16 +5,17 @@ topic: ci-mandatory-needs-implication-correction
 candidate_release: v2.9.0
 advisory_consultation:
   - role: infosec-sentinel
-    status: consulted
+    status: waived
     reason: >-
-      This correction exists to restore a security control. A1's pre-tag
-      container CVE scan currently cannot run on the change class it was
-      built for, because pipeline creation fails before any rule is
-      evaluated. The defect is therefore a silent absence of vulnerability
-      coverage, not a cosmetic CI issue. The correction adds no credential,
-      network, or data-flow surface; it changes job eligibility so an
-      existing scan can execute. If the restored scan then reports a CVE,
-      the release stops rather than proceeding.
+      Recorded as waived, not consulted. No infosec-sentinel review of this
+      plan exists, and describing a change as security-relevant does not
+      establish that a consultation happened. The first version of this plan
+      applied that provenance distinction correctly to contribution-auditor
+      below and incorrectly claimed consultation here; Codex raised it as
+      CNI-G1-A1. The substance is unchanged and belongs in the body, not in
+      a metadata field asserting a review that did not occur: this
+      correction restores a security control whose absence is silent,
+      because pipeline creation fails before the CVE scan is ever evaluated.
   - role: contribution-auditor
     status: waived
     reason: >-
@@ -105,22 +106,107 @@ correcting it.
 
 `needs: optional: true` is rejected for both defects, and the reason is
 semantic rather than stylistic. Both consumers declare `artifacts: true` and
-consume the producer's artifact —`agov-oci-image.sh build-unpublished`
+consume the producer's artifact — `agov-oci-image.sh build-unpublished`
 requires the packaged Rust archive; `release-assets.sh verify-pre-oci`
 requires the complete AGF **and** Rust artifact set. An optional missing
 producer would let the graph build and then fail on absent inputs, converting
 a loud creation error into a quieter runtime one. A lint returning
 `valid: true` would prove the graph coheres, not that the consumer functions.
 
-| Defect | Correction | Basis |
-|---|---|---|
-| NRI-1 | Extend `rust:tooling:preview`'s rules to cover every branch context in which `agov:oci:mr-build-scan` is intended to run | Producer inclusion becomes a superset of intended consumer inclusion |
-| NRI-2 | Add `tooling/rust/**/*` to `agf:dist:preview`'s `changes:` in both its MR and default-branch rules | Corrects that job's own anchor; NRI-2 parity follows |
+### NRI-1 source matrix
 
-If NRI-1's cost proves disproportionate, the alternative is to **narrow the
-consumer's contexts deliberately**, with an explicit written statement of what
-scan coverage is given up. Silently dropping coverage is not an option — that
-is the defect, not the fix.
+The consumer's fourth rule is `if: $CI_COMMIT_BRANCH` with no source guard and
+no `compare_to` (`.gitlab-ci.yml:706-707`). GitLab evaluates `rules:changes`
+without `compare_to` as **true** when there is no Git push event
+(<https://docs.gitlab.com/ci/yaml/#ruleschanges>), so that rule silently
+includes the consumer in every no-push branch context. The first version of
+this plan described these only as "later branch contexts with matching
+changes", which was wrong. Codex raised it as CNI-G1-2.
+
+C = `agov:oci:mr-build-scan`, P = `rust:tooling:preview`. "Changed paths from"
+states what supplies the `changes:` comparison.
+
+| Pipeline source | Branch | C today | P today | Changed paths from | Result today |
+|---|---|---|---|---|---|
+| `merge_request_event` | any | in (r1) | in | MR diff | coherent |
+| `push`, first push (`BEFORE_SHA` all-zero) | non-default | in (r2) | **out** | `compare_to` default branch | **FAIL** |
+| `push`, first push, no matching change | non-default | out (r3 `never`) | out | — | coherent |
+| `push`, later | non-default | in (r4) | **out** | previous commit | **FAIL** |
+| `push` | default | in (r4) | in | previous commit | coherent |
+| `schedule` | default | in (r4) | in | **nothing — evaluates true** | coherent, but unintended |
+| `schedule` | non-default | in (r4) | **out** | **nothing — evaluates true** | **FAIL** |
+| `web`, `api`, `trigger`, `pipeline`, `parent_pipeline` | default | in (r4) | in | **nothing — evaluates true** | coherent, but unintended |
+| `web`, `api`, `trigger`, `pipeline`, `parent_pipeline` | non-default | in (r4) | **out** | **nothing — evaluates true** | **FAIL** |
+| tag | — | out (no tag rule) | out | — | coherent; `agov:oci:release` scans instead |
+
+### Selected NRI-1 design: narrow the consumer, then align the producer
+
+Both halves are chosen here, at Gate 1, because they decide security coverage
+and runner cost.
+
+1. **Add an explicit `push` source guard to the consumer's fourth rule**, so
+   it no longer matches `schedule`, `web`, `api`, `trigger`, `pipeline`, or
+   `parent_pipeline`.
+2. **Extend `rust:tooling:preview` to the non-default-branch `push` context**
+   the consumer legitimately needs, with the same `compare_to` the consumer's
+   first-push rule already uses.
+
+**Why narrowing rather than widening.** The mandatory CVE coverage is
+merge-request pipelines and default-branch pushes, because every path to a tag
+passes through one of them; the first-push rule exists only to cover the
+MR-registration race. A scheduled or web-triggered pipeline on a feature
+branch is not on the release path, and a `changes:` clause that is
+unconditionally true there would schedule an 8.5-minute Rust build plus a
+container build on every such run for no security gain.
+
+**This gives up no observed coverage.** Across the 300 most recent pipelines
+(2026-08-29 to 2026-09-03) the only sources present are
+`merge_request_event` (154) and `push` (146). **Zero** scheduled, web, API,
+trigger, pipeline, or parent-pipeline runs exist in that window, so the
+narrowed contexts are currently unexercised. If that changes, the guard is one
+line to revisit — and it would then be a deliberate decision with a stated
+security reason, which is exactly what the current source-agnostic rule
+prevents.
+
+### NRI-2 correction
+
+Add `tooling/rust/**/*` to `agf:dist:preview`'s `changes:` in both its
+merge-request and default-branch rules. Justified on that job's own terms by
+the anchor finding above, not merely as graph parity.
+
+### Measured cost, and the stop condition
+
+Medians from the 400 most recent successful jobs, read from the jobs API — not
+estimated:
+
+| Job | n | Median | Max |
+|---|---|---|---|
+| `rust:tooling:preview` | 5 | 510s | 513s |
+| `agf:dist:preview` | 9 | 510s | 541s |
+| `agov:oci:mr-build-scan` | 3 | 48s | 48s |
+| `release:assets-verify-preview` | 5 | 12s | 13s |
+
+NRI-2 dominates: `agf:dist:preview` newly runs on every merge-request and
+default-branch pipeline touching `tooling/rust/**/*`. In the sampled ~5-day
+window, five pipelines ran `rust:tooling:preview`, so the added load is
+approximately 5 x 510s ≈ 42 minutes per 5 days, or **under 10 minutes of
+additional runner time per day at observed frequency**.
+
+NRI-1 adds `rust:tooling:preview` (510s) plus the scan (48s) on
+non-default-branch pushes that touch the scan's paths and have no open merge
+request — the workflow dedup rule already suppresses branch pushes once an MR
+exists. 31 of the 300 sampled pipelines were non-default-branch pushes, and
+only those touching `.gitlab-ci.yml`, `agf/VERSION`, or `tooling/rust/**/*`
+qualify. These contexts were already *attempting* the scan and failing at
+graph creation, so this converts a broken pipeline into a working one rather
+than adding a new trigger class.
+
+**Pre-approved ceiling.** 30 minutes of additional runner time per day,
+averaged over any rolling 7-day window — roughly three times the estimate.
+**Stop condition:** if the measured addition exceeds that ceiling, stop and
+return to Gate 1 to split `release:assets-verify-preview` into independently
+meaningful AGF and Rust artifact checks, rather than silently absorbing the
+cost or quietly dropping full-set proof.
 
 ## Zero-cost preflight
 
@@ -144,6 +230,56 @@ the same content at `ref=main` returns `valid: true` with 24 jobs.
 This is the preflight, not the acceptance evidence. It cannot discharge the
 semantic question above, and it cannot reproduce merge-request context.
 
+## Gate registry ownership
+
+The first version of this plan listed its affected files as `.gitlab-ci.yml`
+plus one new test, and that was wrong. `.agf/gates.yaml:3-16` registers
+`.gitlab-ci.yml` as an active `gate-change-check` surface whose **declared**
+tests are only `tooling/rust/crates/agov/tests/gate_change_check.rs` and
+`tooling/rust/crates/agov/tests/fixtures/gate-change/**`. The checker at
+`tooling/rust/crates/agov-validators/src/gate_change.rs:120-135` raises a
+blocking finding when an active surface changes and no changed path matches
+that gate's declared tests. A new test at
+`tooling/rust/crates/agov/tests/ci_needs_implication.rs` matches neither
+pattern, so **the implementation this plan describes would have been blocked
+by the project's own gate-change discipline.** Codex raised it as CNI-G1-1;
+it is a real defect in the plan, not a technicality.
+
+### The design, and the option rejected
+
+`.agf/gates.yaml` gains a **second gate entry**:
+
+```yaml
+  - id: ci-needs-implication
+    status: active
+    surfaces:
+      - .agf/gates.yaml
+      - .gitlab-ci.yml
+    tests:
+      - tooling/rust/crates/agov/tests/ci_needs_implication.rs
+      - tooling/rust/crates/agov/tests/fixtures/ci-needs/**
+```
+
+**Rejected: adding `ci_needs_implication.rs` to the existing
+`gate-change-check` entry's test list.** It is the smaller diff and it would
+satisfy the checker, but it weakens an existing gate. Accompaniment is
+satisfied by *any* declared test changing, so a future change to
+`gate_change.rs` could be accompanied by an edit to `ci_needs_implication.rs`
+— which proves nothing about gate-change-check. Making one gate's diff smaller
+by widening what counts as proof for another gate is the exact shape
+`gate-self-test-rule.md` exists to prevent, and it is indistinguishable at
+diff level from a deliberate weakening.
+
+**The disclosed cost.** Accompaniment is evaluated per gate, so with two
+active gates naming `.gitlab-ci.yml`, every future edit to that file must
+change a declared test of *both*. That is a real ongoing burden and it is
+stated rather than discovered later. The `fixtures/ci-needs/**` glob is what
+keeps it honest: a substantive CI change lands a fixture describing the new
+job shape, so the accompaniment is evidence rather than a token edit. If the
+governor judges the doubled burden unacceptable, the alternative is to merge
+the two entries and accept the weakening above explicitly — that is a
+governor decision, not one to make quietly inside an implementation.
+
 ## The negative test
 
 Per `gate-self-test-rule.md`, the gate must be shown firing on known-bad input
@@ -151,25 +287,32 @@ Per `gate-self-test-rule.md`, the gate must be shown firing on known-bad input
 forbidden by that rule.
 
 A deterministic checker asserts `consumer inclusion => producer inclusion`
-across all twelve mandatory edges and every supported pipeline-source and
-path class. It lives as a Rust test at
+across all twelve mandatory edges, bound to the finite source matrix above
+rather than to an open-ended "supported pipeline sources". It lives at
 `tooling/rust/crates/agov/tests/ci_needs_implication.rs`, following the
-existing precedent of `roi_redaction_audit_matches_real_clap_surface`, which
-asserts an invariant against the real artifact rather than a copy of it. No
-new tool, script convention, or CI job type is introduced.
+existing `roi_redaction_audit_matches_real_clap_surface` precedent of
+asserting against the real parsed artifact rather than a copy. No new tool,
+script convention, or CI job type is introduced.
 
-Required transcripts, all four visible in the MR description:
+Four transcripts, all visible in the MR description:
 
-1. **NRI-1 mutation** — revert `rust:tooling:preview`'s branch coverage; the
-   checker must fail naming that edge.
-2. **NRI-2 mutation** — remove `tooling/rust/**/*` from `agf:dist:preview`;
-   the checker must fail naming that edge.
-3. **Unmutated tree** — the checker passes.
-4. **A mutation the checker must *not* flag** — an unrelated coherent edge
-   left alone, proving the checker is not simply always-failing.
+| # | Input | Required result |
+|---|---|---|
+| 1 | Revert `rust:tooling:preview`'s non-default-branch push coverage | Checker **fails**, naming the NRI-1 edge |
+| 2 | Remove `tooling/rust/**/*` from `agf:dist:preview` | Checker **fails**, naming the NRI-2 edge |
+| 3 | Restore the consumer's source-agnostic fourth rule (drop the `push` guard) | Checker **fails** on a no-push context, naming `schedule` |
+| 4 | Reorder two entries within a `changes:` list, changing no semantics | Checker **passes** |
 
-Transcript 4 exists because a checker that fails on everything satisfies
-transcripts 1-3 while being worthless.
+Transcript 3 is new: it binds the checker to the source matrix, so a future
+edit that reintroduces the no-push hazard is caught rather than merely
+described in prose.
+
+Transcript 4 replaces the first version's fourth case, which called itself a
+mutation and then said the coherent edge was "left alone" — ambiguous, and
+already covered by the unmutated tree passing. Codex raised it as CNI-G1-A2.
+A semantics-preserving reordering is a real mutation with a reproducible
+expected result, and it proves the checker discriminates rather than failing
+on any CI edit at all.
 
 ## Acceptance for A1
 
@@ -198,7 +341,8 @@ input wrongly scoped out costs a missed regression, and its own guidance is
 
 ## Scope boundary
 
-Touches `.gitlab-ci.yml` and adds one test file. Does not touch
+Touches `.gitlab-ci.yml` and `.agf/gates.yaml`, and adds one test file plus
+its fixture directory. Does not touch
 `tooling/rust/scripts/agov-oci-image.sh`, `refs/tags/v2.8.0`, or
 `release-2.9.0`, all of which `tk2n` places off limits.
 
@@ -211,21 +355,40 @@ that reading is wrong, this plan stops at Gate 1.
 ## Test and validation strategy
 
 1. `agov plan validate` on this plan — passing at submission.
-2. CI Lint preflight for every candidate, in both MR and branch contexts, with
-   no pipeline created.
-3. The four negative-test transcripts above.
-4. One canonical exact-head pipeline on the correction MR.
-5. The vulnerable-base MR discharging A1 acceptance criterion 1.
-6. Cost measurement recorded in the MR description.
+2. **`agov gate change-check --base-ref origin/main` — passing on the
+   implementation MR.** This is the check the first version of this plan
+   would have failed; it is now explicit acceptance evidence, not an
+   assumption.
+3. CI Lint preflight for every candidate, in both MR and branch contexts,
+   with no pipeline created.
+4. The four negative-test transcripts above.
+5. One canonical exact-head pipeline on the correction MR.
+6. The vulnerable-base MR discharging A1 acceptance criterion 1.
+7. Measured cost against the pre-approved ceiling, recorded in the MR
+   description — verifying the Gate 1 estimate, not making a first design
+   decision.
 
 ## Risks
 
 - **Broader producer rules raise CI cost while quota is constrained.**
-  Mitigated by the zero-cost preflight absorbing iteration, and by measuring
-  before Gate 2 rather than asserting.
+  Bounded by the measured estimate and the pre-approved 30-minute daily
+  ceiling above, with a named stop condition rather than an open-ended
+  acceptance. The zero-cost preflight absorbs iteration so paid pipelines are
+  spent only on acceptance.
 - **The checker encodes today's twelve edges and silently rots.** Mitigated by
   asserting against the real parsed `.gitlab-ci.yml`, so a thirteenth edge is
   seen rather than missed. Transcript 4 guards the opposite failure.
+- **Two active gates now name `.gitlab-ci.yml`, doubling accompaniment cost.**
+  Disclosed above rather than discovered later. The `fixtures/ci-needs/**`
+  glob channels the burden into substantive fixture cases; if it still proves
+  too heavy, merging the entries is a governor decision with a stated
+  weakening, not a quiet implementation choice.
+- **The narrowed source guard removes coverage that is currently unexercised
+  but might matter later.** Zero scheduled, web, or API pipelines exist in the
+  300-pipeline sample, so nothing observed is lost — but "unexercised today"
+  is not "never needed". Reversing the guard is one line and would then be a
+  deliberate decision with a security reason attached, which the present
+  source-agnostic rule does not require of anyone.
 - **Correcting `agf:dist:preview`'s anchor surfaces pre-existing failures.**
   Possible, and would be a real finding rather than a regression — the job has
   not been running on Rust changes that affect its output. Any such failure
@@ -233,8 +396,12 @@ that reading is wrong, this plan stops at Gate 1.
 
 ## Rollback
 
-Revert the `.gitlab-ci.yml` rules changes and delete the test file. No schema,
-tag, release artifact, or external state is mutated.
+Revert the `.gitlab-ci.yml` rules changes, revert the `.agf/gates.yaml`
+registry entry, and delete the test file and its fixtures. Reverting the
+registry entry and the CI change together keeps `agov gate change-check`
+coherent at every point in the rollback; reverting only one would leave an
+active gate naming a surface with no declared test present. No schema, tag,
+release artifact, or external state is mutated.
 
 ## Evidence
 
@@ -246,4 +413,7 @@ tag, release artifact, or external state is mutated.
 - `docs/coordination/20260902T192529Z-coder-tester-b8ja.md` — no-runner preflight and acceptance shape
 - `docs/coordination/20260902T193228Z-planner-architect-ersd.md` — POST /ci/lint content+ref, verified
 - `docs/coordination/20260903T040339Z-coder-tester-tk2n.md` — ordering constraint
-- `.gitlab-ci.yml:418-449, 665-700, 715-736, 1453-1478` — the four jobs, read at `013c4a04`
+- `docs/coordination/20260903T053215Z-coder-tester-kjs7.md` — Codex's Gate 1 review; CNI-G1-1, CNI-G1-2, CNI-G1-A1, CNI-G1-A2 are all applied in this revision
+- `.gitlab-ci.yml:418-449, 665-700, 706-707, 715-736, 1453-1478` — the four jobs and the source-agnostic consumer rule, read at `013c4a04`
+- `.agf/gates.yaml:3-16` and `tooling/rust/crates/agov-validators/src/gate_change.rs:120-135` — the active registry entry and the accompaniment check the first version would have failed
+- GitLab jobs and pipelines API, read 2026-09-03 — job medians over the 400 most recent successful jobs; pipeline-source frequency over the 300 most recent pipelines (2026-08-29 to 2026-09-03)
