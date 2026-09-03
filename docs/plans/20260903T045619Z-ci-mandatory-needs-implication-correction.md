@@ -270,6 +270,41 @@ by widening what counts as proof for another gate is the exact shape
 `gate-self-test-rule.md` exists to prevent, and it is indistinguishable at
 diff level from a deliberate weakening.
 
+### Verified by execution, and it corrected the file set
+
+The claim that the original plan would be blocked was an inference, made by
+me and repeated by Codex. Neither of us had run it, so I ran all three cases
+locally against `origin/main` — read-only, no pipeline:
+
+| Simulation | Changed paths | `agov gate change-check` |
+|---|---|---|
+| **A** — plan as first written | `.gitlab-ci.yml`, `ci_needs_implication.rs` | **exit 1** — `active gate 'gate-change-check' has a changed surface but no changed declared test path` |
+| **B** — plus the new registry entry and its fixtures | A + `.agf/gates.yaml`, `fixtures/ci-needs/**` | **exit 1** — same finding |
+| **C** — plus a real `fixtures/gate-change/**` case | B + `fixtures/gate-change/probe-multi-gate.yaml` | **exit 0** — `OK gate change-check .agf/gates.yaml` |
+
+Simulation A confirms the inference. **Simulation B falsifies the first
+version of this section**, which implied the second registry entry was
+sufficient. It is not: adding the entry *changes `.agf/gates.yaml`*, which is
+itself a `gate-change-check` surface, so that gate demands one of **its own**
+declared tests change too.
+
+The corrected implementation file set is therefore five paths, not four:
+
+1. `.gitlab-ci.yml` — the CI correction
+2. `.agf/gates.yaml` — the new registry entry
+3. `tooling/rust/crates/agov/tests/ci_needs_implication.rs` — the new invariant
+4. `tooling/rust/crates/agov/tests/fixtures/ci-needs/**` — its fixtures
+5. `tooling/rust/crates/agov/tests/fixtures/gate-change/**` — a real case
+   covering a **two-gate registry that shares a surface**
+
+Item 5 is not the token edit Codex's correction warns against. A registry
+that has only ever held one gate is now growing a second that shares
+`.gitlab-ci.yml`, and `gate-change-check` has no existing case for that shape.
+Writing one is exactly the accompaniment the rule is asking for. Had this
+been discovered at implementation instead, the tempting move would have been
+to touch an existing gate-change fixture to make the check go green — the
+precise failure mode Codex named.
+
 **The disclosed cost.** Accompaniment is evaluated per gate, so with two
 active gates naming `.gitlab-ci.yml`, every future edit to that file must
 change a declared test of *both*. That is a real ongoing burden and it is
@@ -341,8 +376,10 @@ input wrongly scoped out costs a missed regression, and its own guidance is
 
 ## Scope boundary
 
-Touches `.gitlab-ci.yml` and `.agf/gates.yaml`, and adds one test file plus
-its fixture directory. Does not touch
+Touches `.gitlab-ci.yml`, `.agf/gates.yaml`, and
+`tooling/rust/crates/agov/tests/fixtures/gate-change/**`, and adds one test
+file plus its fixture directory — the five-path set verified as simulation C
+above. Does not touch
 `tooling/rust/scripts/agov-oci-image.sh`, `refs/tags/v2.8.0`, or
 `release-2.9.0`, all of which `tk2n` places off limits.
 
@@ -356,9 +393,10 @@ that reading is wrong, this plan stops at Gate 1.
 
 1. `agov plan validate` on this plan — passing at submission.
 2. **`agov gate change-check --base-ref origin/main` — passing on the
-   implementation MR.** This is the check the first version of this plan
-   would have failed; it is now explicit acceptance evidence, not an
-   assumption.
+   implementation MR.** No longer an assumption: simulations A, B and C above
+   were executed locally, and C is the exact five-path set the implementation
+   must reproduce. A run that passes with fewer than those five paths means
+   the registry changed underneath this plan and it returns to Gate 1.
 3. CI Lint preflight for every candidate, in both MR and branch contexts,
    with no pipeline created.
 4. The four negative-test transcripts above.
@@ -396,8 +434,9 @@ that reading is wrong, this plan stops at Gate 1.
 
 ## Rollback
 
-Revert the `.gitlab-ci.yml` rules changes, revert the `.agf/gates.yaml`
-registry entry, and delete the test file and its fixtures. Reverting the
+Revert all five paths together: the `.gitlab-ci.yml` rules changes, the
+`.agf/gates.yaml` registry entry, the new test and its fixtures, and the added
+`fixtures/gate-change/**` case. Reverting the
 registry entry and the CI change together keeps `agov gate change-check`
 coherent at every point in the rollback; reverting only one would leave an
 active gate naming a surface with no declared test present. No schema, tag,
