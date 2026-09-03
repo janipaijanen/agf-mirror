@@ -1,6 +1,8 @@
 ---
 id: 20260903T043752Z-queue-convergence-and-roadmap-authority
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-03T04:52:55Z
 topic: queue-convergence-and-roadmap-authority
 candidate_release: v2.10.0
 advisory_consultation:
