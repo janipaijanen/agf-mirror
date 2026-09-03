@@ -1,6 +1,6 @@
 ---
 id: 20260830T214452Z-v290-governed-roadmap-and-work-order
-status: pending-gate1
+status: approved
 topic: v290-governed-roadmap-and-release-work-order
 advisory_consultation:
   - role: infosec-sentinel
