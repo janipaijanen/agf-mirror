@@ -1,8 +1,10 @@
 ---
 id: 20260903T045619Z-ci-mandatory-needs-implication-correction
-status: pending-gate1
+status: approved
 topic: ci-mandatory-needs-implication-correction
 candidate_release: v2.9.0
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-03T13:47:09Z
 advisory_consultation:
   - role: infosec-sentinel
     status: waived
