@@ -437,6 +437,7 @@ agf:dist:preview:
       changes:
         - agf/**/*
         - .gitlab-ci.yml
+        - tooling/rust/**/*
         - docs/reviews/agf-framework-assessment-codex-sol-high.md
         - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
         - tooling/rust/scripts/check-release-self-sufficiency.sh
@@ -444,6 +445,7 @@ agf:dist:preview:
       changes:
         - agf/**/*
         - .gitlab-ci.yml
+        - tooling/rust/**/*
         - docs/reviews/agf-framework-assessment-codex-sol-high.md
         - docs/reviews/todo-and-sol-high-synthesis-prioritized-actions.md
         - tooling/rust/scripts/check-release-self-sufficiency.sh
@@ -703,7 +705,7 @@ agov:oci:mr-build-scan:
         paths: *agov_oci_mr_scan_paths
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
       when: never
-    - if: $CI_COMMIT_BRANCH
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH'
       changes: *agov_oci_mr_scan_paths
     # Deliberately no `if: $CI_COMMIT_TAG` rule: the tag pipeline already
     # runs agov:oci:release, which builds and scans the same image with the
@@ -1458,7 +1460,7 @@ rust:tooling:preview:
     expire_in: 1 day
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
+      changes: &rust_tooling_preview_paths
         - tooling/rust/**/*
         - .gitlab-ci.yml
         # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
@@ -1468,17 +1470,12 @@ rust:tooling:preview:
         - agf/VERSION
         - agf/docs/site/docs/operate/poll-and-coordinate.md
         - examples/claude/.mcp.json
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *rust_tooling_preview_paths
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
-        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
-        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
-        # here, a VERSION-only change would trigger that job while leaving
-        # its dependency unbuilt.
-        - agf/VERSION
-        - agf/docs/site/docs/operate/poll-and-coordinate.md
-        - examples/claude/.mcp.json
+      changes: *rust_tooling_preview_paths
 
 # Manual evidence job: run the full .rust-tooling-package script including
 # the Windows packaging block (AGOV_PACKAGE_WINDOWS_PREVIEW=1) so the

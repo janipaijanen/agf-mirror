@@ -1,0 +1,16 @@
+schema_version: 1
+gates:
+  - id: gate-change-check
+    status: active
+    surfaces:
+      - .agf/gates.yaml
+      - .gitlab-ci.yml
+    tests:
+      - tests/gate_change/**
+  - id: ci-needs-implication
+    status: active
+    surfaces:
+      - .agf/gates.yaml
+      - .gitlab-ci.yml
+    tests:
+      - tests/ci-needs/**

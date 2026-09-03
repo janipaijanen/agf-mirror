@@ -14,3 +14,11 @@ gates:
     tests:
       - tooling/rust/crates/agov/tests/gate_change_check.rs
       - tooling/rust/crates/agov/tests/fixtures/gate-change/**
+  - id: ci-needs-implication
+    status: active
+    surfaces:
+      - .agf/gates.yaml
+      - .gitlab-ci.yml
+    tests:
+      - tooling/rust/crates/agov/tests/ci_needs_implication.rs
+      - tooling/rust/crates/agov/tests/fixtures/ci-needs/**
