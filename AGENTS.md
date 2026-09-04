@@ -254,9 +254,18 @@ read, plan check, or validation is a token cost avoided. For routine
 agent/operator work, prefer the local **release** build; use the debug build
 only when actively debugging Rust internals.
 
+The `tooling/rust` workspace ships two binaries: `agov` (the CLI) and
+`agov-mcp` (a stdio MCP adapter whose tools map 1:1 onto `agov` subcommands —
+see "Supported commands" below and `agf/docs/site/docs/adopt/mcp-server.md`).
+Build `agov` always; also build `agov-mcp` when this session will use the
+structured MCP tools rather than shelling out to the CLI.
+
 ```bash
 # Preferred: local release build for normal agent/operator work
 cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov
+
+# Also build the MCP adapter if this session will use the agov-mcp server
+cargo build --release --manifest-path tooling/rust/Cargo.toml -p agov-mcp
 
 # Optional: debug build for active Rust development/debugging
 cargo build --manifest-path tooling/rust/Cargo.toml -p agov
@@ -272,6 +281,13 @@ agov coord graph-index --help   # should print usage for graph-index if built fr
 
 Add the `export PATH=…` line to your shell profile (`.bashrc`, `.zshrc`) for
 the repo, or use a per-directory tool like `direnv` to set it automatically.
+
+To use the local `agov-mcp` build, register it as a stdio MCP server in the
+assistant runtime's config (Claude Code: `.mcp.json` or settings), pointing
+`command` at `tooling/rust/target/release/agov-mcp` and, if needed, setting
+`AGOV_MCP_AGOV_BIN` to the matching local `agov`. Restart the assistant so the
+`mcp__agov__*` tools load. Full client-config, `agov`-resolution-order, and
+known-limitation details are in `agf/docs/site/docs/adopt/mcp-server.md`.
 
 Live token ROI telemetry belongs under `tmp/` using a stable per-assistant
 filename:
