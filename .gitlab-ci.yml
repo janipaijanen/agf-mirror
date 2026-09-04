@@ -75,6 +75,35 @@ workflow:
         RUST_CACHE_WRITER_POLICY: "pull-push"
     - when: always
 
+# Route every job to the dedicated project runner (#55908035, tags
+# podman/linux/amd64) instead of racing it against the shared-runner fleet.
+# No job in this file sets its own `tags:`, so this single `default:` block
+# governs routing for all of them; a job that ever needs a different runner
+# can override it locally with its own `tags:` key.
+#
+# Governor-directed change, 2026-09-04: shared runners stay enabled
+# (shared_runners_enabled: true, unchanged) but GitLab has no "prefer this
+# runner" mechanism between two eligible runners for an untagged job -- it is
+# a race, and the always-on shared fleet was consistently winning it, so the
+# dedicated runner had executed zero jobs despite being online and
+# authenticating (see docs/coordination/20260904T113400Z-coder-tester-vq9r.md
+# and docs/coordination/20260904T135635Z-coder-tester-x4tv.md for the
+# diagnosis: failed jobs showed `runner: none`, `ci_quota_exceeded`, before
+# the dedicated runner was ever offered them).
+#
+# BREAKING (downstream-impact-rule.md): this removes shared-runner
+# eligibility for every job -- it is not merely additive. Accepted
+# single-point-of-failure trade-off: if the dedicated runner goes offline,
+# every job stays pending indefinitely (no shared-runner fallback) until this
+# `default:` block is removed or narrowed. Migration if that happens: delete
+# this block (or its `tags:` key) in a fast-track commit to restore the prior
+# untagged-race behaviour; no other file changes to revert.
+default:
+  tags:
+    - podman
+    - linux
+    - amd64
+
 # ── Shared templates ──────────────────────────────────────────────────────────
 
 .rust-base:
