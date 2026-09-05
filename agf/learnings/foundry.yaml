@@ -4349,6 +4349,125 @@ learnings:
         - 'docs/coordination/20260830T113003Z-coder-tester-2shr.md: finding GCD-G2-3, the required self-test losing schema context in CI, reproduced deterministically in canonical job 16190308091 at head 37352cd6.'
         - 'tests/changed-files-failclosed.sh: the shallow-clone fixture bug found by the author during authoring, where --depth implied --single-branch and the test failed on rev-parse rather than on the missing merge base.'
 
+  - id: 20260905T194427Z-wq4k
+    date: '2026-09-05'
+    category: gap
+    scope: framework
+    title: coordination-work-orders-address-roles-not-sessions-and-supersession-is-convention-only
+    status: proposed
+    description: >-
+      A critical self-assessment of the agentic work orders operative in one
+      long multi-thread session (handoffs, plans, the AGENTS.md polling
+      contract, gate discipline) found the primitives sound but three
+      structural gaps that recurred and produced near-misses.
+
+
+      (1) Addressing is by role, not session. `planner-architect` was played
+      concurrently by a Claude session and a Codex session (`esr1`, `2s3a`
+      filed as planner-architect by `model: codex-gpt-5` while this Claude
+      session was also resumed as planner-architect); `coder-tester` likewise.
+      A record `to: <role>` does not say which session should act. On resume
+      this session had to infer its queue ownership from branch and commit
+      history. The entire `7sjq`/`8k1s` exchange existed only to decide, in
+      prose, which session plays an already-active role for one incident.
+
+
+      (2) Supersession is convention, not mechanism. A stale claim is
+      corrected by a new record that references and supersedes the old one,
+      but the old record carries no marker and reads as live when found
+      alone. `th6m` (merged to `main`) relayed an operator ask to enable
+      privileged runner services; ~1h later `mhq1` explicitly withheld that
+      and routed the fix to code, yet `th6m` still reads as an open
+      instruction. An agent acting on it in good faith would apply a change
+      the governor had declined.
+
+
+      (3) Binding instructions travelled off-channel. The governor's "pause
+      OTGR expansion" direction arrived as a comment on MR !2375, invisible
+      to `agov coord list`; this session missed it for two poll cycles while
+      OTGR handoffs were live.
+
+
+      Two consequences compound the gaps. Approved plans collided unnoticed:
+      MR !2373 and MR !2389 were both Gate-1-approved to modify the same two
+      Rust test files, caught only by a later independent review. And every
+      record is written long and self-contained because a reader cannot trust
+      that an earlier referenced record still stands — the supersession gap is
+      a direct structural cause of channel verbosity.
+
+
+      A related model-behaviour failure surfaced in the same session and is
+      recorded separately as Claude Code feedback: the agent identified that
+      gate items lacked independent review and repeatedly offered to perform
+      it rather than doing it, until the user pointed out that independent
+      review of in-scope items is the default the polling contract already
+      authorises. Whether the contract needs an explicit "independent review
+      of gate items is default-authorised, do not ask" line, or this was pure
+      execution failure, is itself worth deciding.
+    roles_involved:
+      - planner-architect
+      - coder-tester
+      - build-engineer
+      - governor-reviewer
+      - contribution-auditor
+    framework_section: >
+      Coordination protocol and the AGENTS.md polling/action-loop contract;
+      workflow/coordination-publication-rule.md (append-only supersession);
+      always/coordination-message-rule.md.
+    business_impact:
+      type: cost_overhead
+      description: >-
+        No loss was realised — the plan collision and the contradicted runner
+        instruction were both caught before acting. The cost is recurring
+        overhead and near-miss exposure: manual session-ownership inference on
+        resume, an in-prose role-assignment negotiation for a routine
+        incident, a merged operator instruction that a later decision
+        reversed, a two-cycle miss of an out-of-band pause, an undetected
+        collision between two approved plans, and systematic over-length
+        coordination records. Each is individually small and structurally
+        persistent; together they erode the channel's value as a place a
+        cold-starting agent can act from without re-deriving context.
+    recommendation: >-
+      Pursue three changes, each Gate 1 with a gate-self-test since they touch
+      the coordination schema, `agov`, and AGENTS.md.
+
+
+      Session-level addressing (issue #121): an optional session/assistant
+      identifier addressable alongside the role, falling back to role when
+      absent; `agov coord status --roles` and `agov handoff next` surface when
+      a role has more than one active session-holder and flag queue items
+      another session has claimed.
+
+
+      Mechanical supersession (issue #122): a `supersedes:` / `superseded_by:`
+      field pair that `agov` populates without editing the original; `agov
+      coord list` / `pending` / `status` flag or hide superseded records; a
+      lint surfaces an approval or decision-record that a later
+      decision-record reverses.
+
+
+      On-channel binding instructions: a rule that a pause, gate disposition,
+      scope change, or other binding instruction MUST be a coordination
+      record, with any MR/issue comment acting only as a bridge pointer to it.
+
+
+      Separately, decide whether the agentic work orders — or their improved
+      form — should be assessed on a fixed cadence (proposed: quarterly or per
+      minor release, matching the radar cadence) against a short rubric
+      (understandable, session-unambiguous, non-conflicting, operable, minimal
+      but not shorter), reporting drift. The gaps above accreted silently
+      because nothing currently looks.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 6
+      evidence_refs:
+        - 'docs/coordination/20260905T145235Z-planner-architect-esr1.md and 20260905T144657Z-planner-architect-2s3a.md: planner-architect records filed by a Codex session concurrent with this Claude planner-architect session.'
+        - 'docs/coordination/20260905T152636Z-planner-architect-7sjq.md and 20260905T153502Z-governor-reviewer-8k1s.md: an in-prose negotiation to assign an already-active role to one of two same-role sessions.'
+        - 'docs/coordination/20260905T171349Z-planner-architect-th6m.md vs 20260905T180719Z-governor-reviewer-mhq1.md: a merged operator instruction contradicted ~1h later with no marker on the original.'
+        - 'MR !2375 governor comment (2026-09-05T15:06Z) "pause OTGR expansion": a binding instruction delivered off-channel, missed for two poll cycles.'
+        - 'docs/coordination/20260905T193012Z-contribution-auditor-4ghp.md finding A3: MR !2373 and MR !2389 both Gate-1-approved to edit ci_needs_implication.rs and gate_change_check.rs; collision undetected until independent review.'
+        - 'This session''s own coordination records (4ghp, hm61, brgs, sgg6, prb8): 40-90 lines each for ~5-10 lines of signal, self-contained because earlier referenced records cannot be trusted to still stand.'
 
   - id: 20260906T104942Z-ev5m
     date: '2026-09-06'
