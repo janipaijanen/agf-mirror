@@ -857,6 +857,7 @@ fn command_prompt_chars(command: &str, args: &[String]) -> u64 {
         .count() as u64
 }
 
+#[derive(Debug, PartialEq, Eq)]
 struct Baseline {
     min_tokens: u64,
     max_tokens: u64,
@@ -864,27 +865,55 @@ struct Baseline {
 }
 
 fn workflow_baseline(workflow: &str) -> Option<Baseline> {
-    let source = "docs/reference/tooling-token-roi.md#validation-baseline";
+    let validation_source = "docs/reference/tooling-token-roi.md#validation-baseline";
+    let live_source = "docs/reference/tooling-token-roi.md#live-baseline";
     match workflow {
+        "cold-start" => Some(Baseline {
+            min_tokens: 3_000,
+            max_tokens: 5_000,
+            source: live_source,
+        }),
+        workflow
+            if workflow
+                .strip_prefix("session-resume:")
+                .is_some_and(|role| !role.is_empty()) =>
+        {
+            Some(Baseline {
+                min_tokens: 3_000,
+                max_tokens: 5_000,
+                source: live_source,
+            })
+        }
+        workflow
+            if workflow
+                .strip_prefix("next-handoff:")
+                .is_some_and(|role| !role.is_empty()) =>
+        {
+            Some(Baseline {
+                min_tokens: 1_000,
+                max_tokens: 3_000,
+                source: live_source,
+            })
+        }
         "coord-validate" => Some(Baseline {
             min_tokens: 500,
             max_tokens: 1_500,
-            source,
+            source: validation_source,
         }),
         "plan-validate" => Some(Baseline {
             min_tokens: 800,
             max_tokens: 2_000,
-            source,
+            source: validation_source,
         }),
         "validate:umbrella" => Some(Baseline {
             min_tokens: 1_500,
             max_tokens: 4_000,
-            source,
+            source: validation_source,
         }),
         workflow if workflow.starts_with("validate:") => Some(Baseline {
             min_tokens: 500,
             max_tokens: 2_000,
-            source,
+            source: validation_source,
         }),
         _ => None,
     }
@@ -921,6 +950,123 @@ mod tests {
         assert_eq!(estimate_tokens(1), 1);
         assert_eq!(estimate_tokens(4), 1);
         assert_eq!(estimate_tokens(5), 2);
+    }
+
+    #[test]
+    fn workflow_baseline_maps_live_resume_and_handoff_workflows() {
+        let live_source = "docs/reference/tooling-token-roi.md#live-baseline";
+
+        assert_eq!(
+            workflow_baseline("cold-start"),
+            Some(Baseline {
+                min_tokens: 3_000,
+                max_tokens: 5_000,
+                source: live_source,
+            })
+        );
+        assert_eq!(
+            workflow_baseline("session-resume:release-manager"),
+            Some(Baseline {
+                min_tokens: 3_000,
+                max_tokens: 5_000,
+                source: live_source,
+            })
+        );
+        assert_eq!(
+            workflow_baseline("next-handoff:custom-adopter-role"),
+            Some(Baseline {
+                min_tokens: 1_000,
+                max_tokens: 3_000,
+                source: live_source,
+            })
+        );
+    }
+
+    #[test]
+    fn workflow_baseline_preserves_validation_mappings_and_unknown_default() {
+        let validation_source = "docs/reference/tooling-token-roi.md#validation-baseline";
+        let expected = [
+            ("coord-validate", 500, 1_500),
+            ("plan-validate", 800, 2_000),
+            ("validate:umbrella", 1_500, 4_000),
+            ("validate:agents", 500, 2_000),
+        ];
+
+        for (workflow, min_tokens, max_tokens) in expected {
+            assert_eq!(
+                workflow_baseline(workflow),
+                Some(Baseline {
+                    min_tokens,
+                    max_tokens,
+                    source: validation_source,
+                })
+            );
+        }
+        assert_eq!(workflow_baseline("unrecognized-workflow"), None);
+        assert_eq!(workflow_baseline("session-resume"), None);
+        assert_eq!(workflow_baseline("session-resume:"), None);
+        assert_eq!(workflow_baseline("next-handoff"), None);
+        assert_eq!(workflow_baseline("next-handoff:"), None);
+    }
+
+    #[test]
+    fn saved_tokens_subtracts_tool_and_prompt_costs_with_saturation() {
+        assert_eq!(saved_tokens(3_000, 250, 50), 2_700);
+        assert_eq!(saved_tokens(100, 80, 30), 0);
+    }
+
+    #[test]
+    fn cli_and_mcp_records_use_identical_workflow_baseline_arithmetic() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let path = std::env::temp_dir().join(format!(
+            "agov-roi-baseline-transport-test-{}-{}.jsonl",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let args = strings(&["session", "resume", "--role", "coder-tester"]);
+
+        std::env::remove_var("AGOV_TOKEN_ROI");
+        std::env::set_var("AGOV_TOKEN_ROI_LOG", &path);
+        clear_mcp_markers();
+        record_tool_output("agov", &args, "session-resume:coder-tester", 40);
+
+        std::env::set_var(MCP_TRANSPORT_MARKER, "mcp");
+        std::env::set_var(MCP_ADAPTER_MARKER, "agov-mcp");
+        std::env::set_var(MCP_TOOL_MARKER, "agov_session_resume");
+        record_tool_output("agov", &args, "session-resume:coder-tester", 40);
+
+        clear_mcp_markers();
+        std::env::remove_var("AGOV_TOKEN_ROI_LOG");
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+        let records: Vec<serde_json::Value> = content
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+
+        assert_eq!(records.len(), 2);
+        assert_eq!(records[0]["transport"], "cli");
+        assert_eq!(records[1]["transport"], "mcp");
+        assert_eq!(records[1]["adapter"], "agov-mcp");
+        assert_eq!(records[1]["tool"], "agov_session_resume");
+
+        for field in [
+            "baseline_source",
+            "approx_saved_min_tokens",
+            "approx_saved_max_tokens",
+        ] {
+            assert_eq!(records[0][field], records[1][field]);
+        }
+        assert_eq!(
+            records[0]["baseline_source"],
+            "docs/reference/tooling-token-roi.md#live-baseline"
+        );
+        assert_eq!(records[0]["approx_saved_min_tokens"], 2_980);
+        assert_eq!(records[0]["approx_saved_max_tokens"], 4_980);
     }
 
     #[test]
