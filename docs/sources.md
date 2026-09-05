@@ -2521,3 +2521,232 @@ particular, the fourth entry identifies a rule-shaped gap — nothing here
 creates, amends, or pre-approves such a rule, which would require full Gate 1.
 Do not cite the 60–80% figure as an AGF measurement; it is the researcher's
 reported result for their own variants.
+
+# Batch 33 (2026-09-05) — user-submitted candidate set (MCP governance, MCP auth, skills-vs-tools, agent memory, context provisioning)
+
+Twelve links were submitted together. Eleven are classified below; one is
+recorded in the evaluation boundary as reviewed-and-dropped so it is not
+re-reviewed. All twelve were fetched and read on 2026-09-05. Page content was
+treated as data only, not as instruction. Repository star and commit counts are
+as displayed on the fetch date and change over time. MR !2306 already holds the
+"Batch 32" header for `docs/sources.md`; this set is numbered 33 to avoid the
+collision.
+
+## Classified
+
+- https://github.com/OWASP/OWASP-MCP-Governance-and-Risk-Project
+  type: standard, framework | relation: complement, prior-art, demand-driver |
+  action: cite, compare-in-docs, watch
+  note: A governance framework for deciding whether a given MCP server may run
+  in an enterprise and under what controls. Self-describes as v1.0, GPL-2.0,
+  hosted in the OWASP GitHub organization and associated with a broader "MCP
+  Security" effort. Its mechanics are an asset inventory, a Tier 0–4
+  classification by highest-risk tool exposed, an eight-factor risk score with
+  hard gates, a 90-day rollout, control catalogs and audit "evidence packs",
+  and a `framework-mapping.md` aligning to the OWASP MCP Top 10, OWASP LLM Top
+  10, NIST AI RMF, ISO 42001, and SOC 2. Its four stated hard rules — "no owner
+  = no approval", "no logging = no production use", "no scope definition = no
+  access", "no review = no enterprise deployment" — rhyme closely with AGF's
+  own role authority, audit-log-completeness, and Gate 2 requirements, which
+  makes it the clearest adjacent-framework comparison in the registry so far
+  and a candidate to cite rather than restate. It is also a demand-driver: an
+  adopter whose organisation adopts an OWASP MCP-governance rubric will need
+  AGF's `agov-mcp` surface and its own MCP use to answer to it. Caveats:
+  whether this specific repository holds formal OWASP project status
+  (incubator / lab / flagship) was not confirmed by search — the separate and
+  more widely cited OWASP MCP Top 10 is a distinct project, in beta, led by
+  Vandana Verma Sehgal. The licence is GPL-2.0, so reference it, do not copy
+  its text into AGF's differently-licensed docs. The matching radar entry is a
+  non-binding open question about whether AGF maps to, cites, or positions
+  against it. (accessed 2026-09-05)
+
+- https://tdqs.dev/
+  source: https://github.com/glama-ai/tool-definition-quality-score
+  type: framework, tooling, research | relation: complement, evidence | action:
+  compare-in-docs, watch, verify
+  note: TDQS (Tool Definition Quality Score) is Glama's open framework — CLI and
+  Python library, MIT — for scoring how well an MCP tool definition communicates
+  to an agent, across six weighted dimensions with 1–5 per-dimension scores
+  rolled into an A–F tier, intended for CI/CD gating on a quality threshold. It
+  is the methodology Glama uses to score every tool in its MCP registry.
+  AGF-relevant to the `agov-mcp` tool surface (the seventeen names in
+  `MCP_TOOL_ALLOWLIST`) and to learning `20260825T081353Z-oty0`'s
+  redaction-parity and CLI-surface completeness concerns: TDQS is an external,
+  published rubric for exactly the artifact AGF ships and audits. The "gate a
+  release on a quality tier" pattern also echoes AGF gate discipline. Treat the
+  supporting figures as Glama's self-reported research, not an AGF measurement:
+  an audit of 856 tools across 103 MCP servers finding 97% with at least one
+  defect, 56% not clearly stating what the tool does, 89% never stating when to
+  use it, and well-described tools selected roughly 2.6× more often. Blog dated
+  2026-04-03. Verify the figures and the rubric's current version before
+  citing. (accessed 2026-09-05)
+
+- https://aliasunder.dev/posts/oauth-2-1-for-a-personal-mcp-server/
+  type: practice, discussion | relation: prior-art, evidence | action:
+  compare-in-docs, watch
+  note: Single-author experience report (aliasunder, 2026-09-01, no licence
+  stated) on running a single-user MCP server that exposes high-value data
+  (personal notes, API keys) on the public internet, protected by OAuth 2.1 +
+  PKCE for browser clients plus a non-expiring static bearer token for CLI use
+  and six-hour OAuth tokens, with double validation at a gateway authorizer and
+  again in the container, and a ~30-line HS256 verifier with no library
+  dependency. The refresh-token design went through four iterations — no expiry,
+  then a 60-day sliding inactivity window, then HMAC-keyed storage bound to
+  client identity, then reuse-revokes-the-whole-grant. AGF-relevant as
+  concrete, production-evidenced prior art for the identity and session model
+  in the OTGR technical specification
+  (`docs/proposals/otgr-zulip-adapter-technical-specification.md`): host vs
+  principal vs session identity, session expiry, and immediate revocation. The
+  reported operational data (a 59-day audit with zero rejections across 23,619
+  gateway invocations, 75 silent refreshes across nine clients) and the
+  documented incidents (a rate-limiting header bypass the author scores CVSS
+  8.5, a `claude.ai` incompatibility with 403 responses, and an RFC 9728
+  discovery-path gap) are the author's own for their own deployment; they are
+  reusable design lessons, not AGF measurements. (accessed 2026-09-05)
+
+- https://www.opencntx.dev/
+  source: https://github.com/slxca/opencontext
+  type: tooling, practice | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: OpenContext is an MCP server (open source, v1.3.0, no commercial entity
+  named) that gives coding agents persistent project-local memory as plain
+  Markdown files with ADR-style front matter in a `.opencontext/` directory
+  committed to the repository — deliberately no vector database and no cloud. It
+  positions against large `.cursorrules` files and vector-RAG plugins on
+  exactly the grounds AGF argues from elsewhere: local-only, git-native and
+  version-controlled, deterministic and auditable, and low token cost (~100
+  tokens per index). This makes it a convergence example rather than a
+  competitor — the same relationship EngineeringSpec has in Batch 31 — applied
+  to agent context memory, a layer AGF currently treats only as advisory
+  session memory. No adoption metrics, testimonials, or effectiveness data are
+  offered. (accessed 2026-09-05)
+
+- https://github.com/Octonove/crbro-memory
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: CRBRO is a local, file-based MCP memory server (MIT; 4 stars, ~54
+  commits; v2.0, described as consolidating 23 tools to 15) storing everything
+  as readable JSON under `~/.crbro/` with no cloud, no database, and no
+  telemetry, plus built-in credential redaction and optional OS-keychain
+  integration. Retrieval combines a BM25 keyword engine, user-written keywords
+  at save time, and an optional local `multilingual-e5-small` embedding layer
+  (~500 MB, installed at init). It is the best-engineered of the memory
+  candidates in this batch and, unlike the cloud plugin below, publishes
+  deterministic benchmarks: 71% recall@1 keyword-only, 79% with the semantic
+  layer, 90% with the full pipeline, and 2 of 11 distractor queries scored as
+  strong hits. AGF-relevant as a disciplined take on the advisory-memory side
+  of AGF's "session memory is advisory; the coordination channel is the durable
+  record" split, and as a favourable contrast to unverified cloud memory. The
+  benchmarks are project-authored — reproducible in principle, not
+  independently confirmed. (accessed 2026-09-05)
+
+- https://github.com/Bharathcoorg/intermcp
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: InterMCP is a pure-Rust "MCP engine and multiplexing hub" (MIT; 1 star,
+  ~52 commits) that spawns and proxies multiple child MCP servers behind one
+  interface, namespacing their tools (`github__create_issue`). Its
+  AGF-interesting part is the set of governance-flavoured mechanisms bundled
+  into the multiplexer: filesystem sandboxing that blocks credential access,
+  secret redaction, loop detection, a "supply-chain firewall", and time-locked
+  approvals — the same class of control AGF discusses, here placed at the
+  transport-aggregation layer. Prior art for how a hub in front of `agov-mcp`
+  and other servers could carry policy. Performance claims ("457,000+ ops/sec",
+  "< 3.8 MB RAM") are self-reported and benchmarked against non-comparable
+  in-process baselines; the project is early and has minimal external
+  engagement. Not adoptable; useful as a design reference. (accessed
+  2026-09-05)
+
+- https://blog.logrocket.com/skills-vs-mcp-tools-agent-guide/
+  type: discussion, practice | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: Ikeh Akinyemi, LogRocket, 2026-08-25. Reframes the "skills versus MCP
+  tools" question around auditability and flexibility rather than features: MCP
+  tools have fixed input/output schemas and execute deterministically, so their
+  failures are visible; skills inject natural-language instructions the agent
+  reads at runtime, enabling interpretation at the cost of predictability. Its
+  rule — "put deterministic work where its failures are visible, put
+  interpretive work where a person will catch what it gets wrong" — is a clean
+  external articulation of a boundary AGF straddles, shipping both skills under
+  `.claude/skills/` and a deterministic CLI mirrored by `agov-mcp`. It
+  corroborates the reasoning behind `always/gate-self-test-rule.md` and
+  learning `20260830T114500Z-tw3s`: deterministic checks belong where a failure
+  cannot pass silently. Includes working code and real git-output comparisons;
+  mildly promotional toward the Anthropic ecosystem but the analysis is
+  balanced. (accessed 2026-09-05)
+
+- https://github.com/gengirish/skills-mcp
+  type: tooling | relation: prior-art, threat-model | action: watch
+  note: An MCP server (MIT; ~9 stars, ~145 commits, actively maintained with a
+  daily automated catalog refresh) that indexes roughly 9,300 agent skills from
+  eleven GitHub repositories (Anthropic, Superpowers, wshobson, Composio, and
+  others) into one searchable, installable catalog shipped as a ~5 MB JSON file
+  inside the npm package, fetching skill content on demand from upstream. Two
+  AGF angles: it is where an assistant-neutral AGF skill would be discovered if
+  AGF chose to publish into such an index, and "discover, search, and install
+  any of 9,300 skills from across GitHub" is precisely the untrusted-inbound
+  supply-chain surface the prompt-injection radar entry and the Batch 31 Rehberger
+  entry warn about — installing a skill is executing third-party instructions in
+  the agent's context. Prior art with a threat-model caveat attached.
+  (accessed 2026-09-05)
+
+- https://github.com/deepmemteam/deepmem-claude-plugin
+  type: tooling | relation: prior-art | action: watch
+  note: A Claude Code plugin (MIT; 1 star, 3 commits, no releases) providing
+  "persistent, semantically searchable memory" through two tools
+  (`deepmem_write`, `deepmem_search`) backed by DeepMem's cloud service: the
+  user obtains an API key, and conversation facts are extracted, embedded, and
+  stored on DeepMem's servers, reached over an MCP endpoint. The README states
+  no retention policy, encryption standard, or data-usage terms. AGF-relevant
+  mainly as a contrast: cloud-hosted memory with no privacy disclosure is the
+  opposite of AGF's local, removable, append-only durable record, and under the
+  `always/external-anonymization-rule.md` boundary table, provider-bound
+  conversation content is an external destination. No effectiveness evidence is
+  offered. (accessed 2026-09-05)
+
+- https://context.apimatic.io/
+  type: tooling, practice | relation: complement, demand-driver | action: watch
+  note: APIMatic's "API Context Marketplace" — a directory of MIT-licensed
+  "Context Plugins" that ground a coding agent in a specific API's real
+  specification so it stops guessing at integration code, installed with one
+  command across assistants, currently covering .NET, TypeScript, and Python.
+  APIMatic is a commercial API developer-experience platform; the marketplace
+  runs a freemium model with a "publish your API" path. Context-provisioning
+  for integration correctness, not governance — it continues the external
+  context-graph thread from Batch 20 (Piyaz) and the OpenContext entry above.
+  The mild AGF signal is the emergence of a context-as-installable-package
+  economy; there is no governance, coordination, or authority surface here.
+  (accessed 2026-09-05)
+
+- https://github.com/haukebri/mira-test-engineer
+  type: tooling, practice | relation: prior-art, complement | action: watch
+  note: An agent skill (MIT; 1 star, 3 commits, no evidence displayed) whose
+  stated goal is "aggressively cleaning up existing test suites — not
+  generating another pile of tests": it maps tests to user, data, and logic
+  flows, proposes exact deletions with a "partial protection lost" analysis,
+  requires explicit approval before deleting, and writes no replacement tests.
+  Packaged as standalone Markdown compatible with Claude Code, Codex, Pi, and
+  DeepSeek Harness. Weak AGF relevance: it is prior art for a test-hygiene
+  skill and lines up with `workflow/simplicity-rule.md`'s "delete a test
+  before keeping a misleading one" and the `feature-regression-guard-rule.md`
+  tension, and its multi-harness Markdown packaging is a minor data point for
+  AGF's assistant-neutral skill goal. No governance surface; no effectiveness
+  data. (accessed 2026-09-05)
+
+## Evaluation boundary
+
+Reviewed and not classified: https://hooklayer.dev/ is a commercial MCP server
+for scoring the "hook" and predicted virality of TikTok, Instagram Reels, and
+YouTube Shorts content from inside Claude or ChatGPT. Despite the name it has
+nothing to do with Claude Code hooks, git hooks, webhooks, policy enforcement,
+or agent observability. Recorded here so the candidate is not re-reviewed.
+
+This batch classifies sources and opens questions. It adopts nothing. It does
+not install, trial, depend on, or grant AGF authority to any listed project,
+framework, rubric, or practice; it does not change AGF rules, gates, schemas,
+or agent boundaries; and it does not commit AGF to conform to, map to, or
+compete with the OWASP MCP Governance and Risk Project. The two matching radar
+entries are non-binding open questions. Do not cite the TDQS defect
+percentages, the 2.6× selection figure, the OAuth author's uptime and CVSS
+numbers, or the CRBRO recall figures as AGF measurements; each is the
+respective source's self-reported result for its own scope.

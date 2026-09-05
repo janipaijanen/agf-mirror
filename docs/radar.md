@@ -209,6 +209,40 @@ Next review: 2026-10.
   EngineeringSpec in `docs/sources.md` Batch 31 | status: evaluate mechanics, no
   implementation proposed | review-by: 2026-11
 
+- **Adjacent MCP-governance framework (OWASP MCP Governance and Risk)** — an
+  external, v1.0, GPL-2.0 framework for deciding whether an MCP server may run
+  in an enterprise, with hard gates ("no owner = no approval", "no logging = no
+  production", "no scope = no access", "no review = no deployment") that overlap
+  AGF's role authority, audit-log-completeness, and Gate 2 requirements, plus
+  mappings to the OWASP MCP/LLM Top 10, NIST AI RMF, ISO 42001, and SOC 2.
+  Unresolved: does AGF cite it as the enterprise-MCP-admission layer beneath its
+  own agent-development governance, map its own controls to it, position against
+  it, or ignore it? Compounds the existing **Agent identity standards race**
+  item — an adopter's organisation adopting an OWASP MCP-governance rubric would
+  make `agov-mcp` and AGF's own MCP use answerable to it. Trigger to act: this
+  repository gaining formal OWASP project status, a released mapping an adopter
+  asks AGF to satisfy, or an adopter requiring conformance. Whether the
+  comparison is even apt (enterprise server-admission vs. agent-development
+  governance are different scopes) is itself part of the open question. sources:
+  OWASP MCP Governance and Risk Project in `docs/sources.md` Batch 33 |
+  review-by: 2027-01
+
+- **Local git-resident agent memory as a design pattern** — OpenContext and
+  CRBRO (Batch 33) join Beagle (Batch 21) and the Replicated Live / worktree
+  family (Batch 29) as a converging cluster: agent context memory kept as
+  plain, version-controlled, auditable, removable files in the repository rather
+  than in a vector database or a cloud service — the same properties AGF argues
+  for in its removability and plain-file principles, applied to a layer AGF
+  currently treats only as "advisory session memory" with no structural
+  guidance. Unresolved and possibly out of scope: does AGF say anything
+  normative about how advisory memory should be structured (so it does not
+  quietly accrete authority the coordination channel is supposed to hold), or
+  is silence correct because the durable record already has a defined home?
+  Controversial because any AGF statement here risks over-reaching into
+  assistant-internal concerns. status: does-AGF-have-a-position | sources:
+  OpenContext and CRBRO in `docs/sources.md` Batch 33, cross-referencing Batch
+  21 and Batch 29 | review-by: 2026-12
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
@@ -216,6 +250,7 @@ Next review: 2026-10.
 - Microsoft ACS / Agent Governance Toolkit releases
 - OpenSSF + Eclipse ORC WG (CRA for OSS)
 - CycloneDX Agent-BOM proposal (#895); OWASP AI Exchange
+- OWASP MCP Top 10 (beta) and OWASP MCP Governance and Risk Project (v1.0)
 - IETF AIMS/WIMSE drafts
 - arXiv: multi-agent SE governance, LLM-as-judge reliability, provenance for agents
 - Competitor repos: CORE, MAREF, agentops, Enforra, Cruxible
