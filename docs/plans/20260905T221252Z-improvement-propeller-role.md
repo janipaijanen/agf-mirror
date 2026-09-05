@@ -34,7 +34,7 @@ to plan or execute them.
 
 The role also looks for places where the framework “sucks or smells”: excess
 ceremony, rules that cost more than they protect, inconsistent/unclear/
-overlapping/conflicting rules, stale activation conditions, duplicate guidance,
+overlapping/conflicting rules, duplicate guidance,
 repeated handoff loops, avoidable CI consumption, and documentation that causes
 agents or humans to make the same mistake repeatedly.
 
@@ -68,9 +68,11 @@ independent sessions within it; not yet multi-adopter empirical validation.
 build-engineer, contribution-auditor, governor-reviewer, and every active AI
 assistant consuming the universal polling/spare-capacity loop.
 
-**Change:** add one proactive advisory role with two bounded cadences, make its
-proposal schema and authority explicit, and add an all-assistant trigger for
-periodic capability review.
+**Change:** add one proactive advisory role with two bounded cadences and make
+its proposal schema and authority explicit. The all-assistant trigger for
+periodic capability review is owned separately by MR !2405's
+`universal-polling-and-autonomous-continuation-rule.md`; this role consumes and
+may satisfy that trigger but does not define it.
 
 **Migration:** adopters do not activate the role automatically. They may keep
 it absent/suspended, assign an AI or human, choose a cadence, and map repository
@@ -84,6 +86,16 @@ unaccountable priority setter. The rule below constrains each failure mode.
 
 Capability maturity is Level 1 Planned. Evidence status is Empirically
 informed, not Empirically validated.
+
+The project precedent in `concept-modelling-rule.md` normally waits for two or
+more adopters before adding a full agent because agents carry durable
+jurisdiction, communication, and manifest cost. This plan claims a narrow
+human-directed exception, not a new precedent: the governor explicitly asked
+for the dedicated role in the 2026-09-05 chat, bridged by
+`20260905T222844Z-planner-architect-5q4s`. Binding Gate 1 must explicitly accept
+or reject that exception. If it is rejected, the fallback is a Provisional
+discipline attached to an existing role until a second adopter corroborates
+the need; the planner cannot silently choose that material scope change.
 
 ## Role boundary
 
@@ -118,6 +130,12 @@ release, or implement its own proposal.
    cost, the protection supplied by the current mechanism, the smallest
    correction or deletion, and a falsification/reevaluation condition.
 
+Agent definitions, role-boundary changes, manifest activation state, and role
+maturity are capability-developer territory. Propeller may observe evidence in
+those paths and route it as input to capability-developer, but it does not turn
+that evidence into its own budgeted friction finding or propose the role change
+itself.
+
 The slow lane must not repeatedly re-read the full channel. Cold start, cursor
 loss/corruption, or evidence of missed records triggers conservative
 reconciliation through `agov`; normal runs use incremental IDs/timestamps.
@@ -145,37 +163,31 @@ reconciliation through `agov`; normal runs use incremental IDs/timestamps.
   lightest valid documentation/coordination path and batch related records to
   avoid CI noise.
 
-## All-assistant capability-review threshold
+## Dependency: universal capability-review threshold
 
-Every active AI assistant checks the learning cursor/count recorded by the last
-completed capability review. At 10 new valid learning records, an assistant
-MUST propose running capability-developer at the next complete poll or safe
-spare-capacity boundary. If no review has launched by 15 new records, the next
-active assistant MUST hand off the baseline, count, recurring themes, and
-proposed assignment to the governor-reviewer.
+MR !2405 is the sole plan and normative owner for the all-assistant
+capability-review threshold requested by the governor. Its canonical
+`universal-polling-and-autonomous-continuation-rule.md` requires every active AI
+assistant to check the last completed capability-review cursor/count, propose a
+run at 10 new valid learning records, and publish a governor handoff by 15 when
+no review has launched.
 
-The range is measured since the last completed review, not against lifetime
-total. Before filing, the assistant deduplicates against coordination, issues,
-plans, MRs, and claims. One current visible proposal satisfies the duty for all
-assistants. The threshold grants proposal authority only: it does not activate
-a suspended role, assign a reviewer, approve the proposal, or authorize
-implementation. A completed capability review records its terminal learning
-cursor and count.
+That rule, not `improvement-propeller-rule.md`, owns the range semantics,
+deduplication, startup projection, authority boundary, and completed-review
+baseline. Propeller may be the actor that notices or satisfies the trigger, but
+its rule carries only a pointer to the universal owner. This resolves the
+collision identified by issue #123 and contribution-audit finding B1.
 
 Human request, an agent-changing release, or a material recurring escalation
 may trigger a review before 10.
 
-### Startup projection into every specialist definition
+### Startup projection owned by MR !2405
 
-This duty must be visible before work selection, not discoverable only after an
-assistant happens to read the Propeller rule. Add a compact, identical startup
-obligation and canonical-rule pointer to root `AGENTS.md`, the distributable
-`agf/templates/AGENTS.md`, and every shipped specialist definition under
-`agf/agents/*.yaml` (excluding the two manifest files). The specialist text
-does not duplicate the full algorithm. It states: read the last completed
-capability-review baseline at startup; propose a run at 10 new learnings;
-publish the governor handoff no later than 15; deduplicate first; and never
-infer role activation or implementation authority from the count.
+The governor explicitly requires this duty in root `AGENTS.md`, the
+distributable `agf/templates/AGENTS.md`, and every shipped specialist definition
+under `agf/agents/*.yaml` (excluding manifest files). MR !2405 owns those edits
+and the compact identical wording. This plan neither duplicates those file
+edits nor creates a second normative statement.
 
 Claude's loader imports root `AGENTS.md`, so `.claude/CLAUDE.md` and
 `agf/templates/CLAUDE.md` keep their one-line imports rather than copying the
@@ -190,8 +202,8 @@ applicable disposition.
 
 1. Validate this plan.
 2. Obtain independent contribution-auditor and infosec-sentinel reviews.
-3. Reconcile any finding with open MRs/issues and MR !2405's universal polling
-   plan; name one canonical owner for the all-assistant threshold.
+3. Reconcile findings with open MRs/issues. MR !2405 is the named sole owner of
+   the all-assistant threshold; this plan retains only a dependency pointer.
 4. Obtain a binding governor-reviewer Gate 1 record for the exact plan.
 
 ### Stage 2 — reconstruct capability-developer activation
@@ -204,7 +216,10 @@ current governor direction. Do not carry the unrelated learning, threshold-
 validator plan, changelog edits, or build-engineer/fact-checker version changes
 without their own fresh disposition.
 
-The activation change receives current validation and a fresh Gate 2 decision.
+The governor must freshly reaffirm that activation itself still holds in the
+current agent landscape; validating or approving the reconstructed diff alone
+is not treated as that reaffirmation. The activation change then receives
+current validation and a fresh Gate 2 decision.
 Once active, capability-developer runs the skill-defined analysis over this
 exact proposal and current evidence, records proposals/accepted/rejected/
 deferred outcomes, and names the next review trigger. Its result is advisory;
@@ -219,12 +234,12 @@ Implement #126 and #127 on one branch or coordinated atomic merge unit:
   quality checks, proposal budget, and split signals;
 - new canonical
   `agf/rules/always/improvement-propeller-rule.md` owning cadence,
-  deduplication, output contract, all-assistant capability-review trigger, and
-  authority limits;
+  deduplication, output contract, authority limits, and a pointer to !2405's
+  separately owned all-assistant capability-review trigger;
 - project and example manifest entries, initially `planned`/inactive until the
   governor activation decision;
-- root and distributable `AGENTS.md` projection plus a concise pointer/trigger
-  in every shipped specialist role definition, without copying the full rule;
+- root and distributable `AGENTS.md` role-discovery pointers; the universal
+  10/15 trigger and every-specialist projection remain exclusively in !2405;
 - adopter role/applicability documentation, day-to-day operation, runbook, and
   capability-review skill alignment;
 - six-surface rule-projection manifest and any necessary validator fixtures.
@@ -261,20 +276,6 @@ Stage 3 implementation, subject to capability-developer review:
 
 - `AGENTS.md`
 - `agf/agents/improvement-propeller.yaml`
-- `agf/agents/academic-peer-reviewer.yaml`
-- `agf/agents/academic-visual-reviewer.yaml`
-- `agf/agents/build-engineer.yaml`
-- `agf/agents/capability-developer.yaml`
-- `agf/agents/coder-tester.yaml`
-- `agf/agents/contribution-auditor.yaml`
-- `agf/agents/deployment-engineer.yaml`
-- `agf/agents/documentation-writer.yaml`
-- `agf/agents/fact-checker.yaml`
-- `agf/agents/governor-reviewer.yaml`
-- `agf/agents/independent-implementation-reviewer.yaml`
-- `agf/agents/infosec-sentinel.yaml`
-- `agf/agents/planner-architect.yaml`
-- `agf/agents/web-ux-reviewer.yaml`
 - `agf/agents/MANIFEST.yaml`
 - `agf/agents/MANIFEST.example.yaml`
 - `agf/rules/always/improvement-propeller-rule.md`
@@ -304,8 +305,9 @@ by this plan.
    structured proposals, overlap analysis, migration, risks, dispositions, and
    next trigger before Propeller implementation begins.
 5. Agent validation proves unique verb/identity, valid communications, and no
-   forbidden ownership overlap. It also checks that every shipped specialist
-   definition contains the compact capability-review startup pointer.
+   forbidden ownership overlap. MR !2405 separately proves that every shipped
+   specialist definition contains the compact capability-review startup
+   pointer.
 6. Rule projection validation covers canonical rule, Claude projection,
    template, adopter docs, runbook/skill, and project manifest.
 7. Table-top tests cover:
@@ -316,11 +318,6 @@ by this plan.
      rejected;
    - a valid recurring rule conflict routes to contribution-auditor and
      planner/governor without self-implementation;
-   - the tenth new learning creates one capability-review proposal;
-   - concurrent assistants see it and do not duplicate it;
-   - by the fifteenth new learning, absence of a launched review creates the
-     mandatory governor handoff;
-   - lifetime learning count is not confused with records since last review;
    - the weekly wake coalesces during active work and stays quiet on no material
      change;
    - a monthly/post-release synthesis uses accumulated bounded samples rather
@@ -334,28 +331,23 @@ by this plan.
 
 ## Downstream impact and migration
 
-Classification: **BREAKING + ADDITIVE**. The optional Propeller role is
-additive, but imposing a new startup/10–15-learning proposal duty on every
-existing AI specialist changes observable required behavior and is therefore
-BREAKING.
+Classification: **ADDITIVE**. This plan adds an optional advisory role and its
+projections without changing existing specialist duties. MR !2405 separately
+classifies and migrates the BREAKING universal 10/15-learning startup duty.
 
 Impact:
 
-- **Foundry:** breaking behavior update. Every active AI specialist gains the
-  bounded count/dedup/proposal duty; no role gains activation, gate, priority,
-  or implementation authority.
-- **Direct adopters:** BREAKING when upgrading specialist definitions or the
-  AGENTS template. They must establish a last-completed-review baseline or use
-  the migration default below.
+- **Foundry:** additive optional role. No role gains activation, gate, priority,
+  or implementation authority merely because the files exist.
+- **Direct adopters:** additive optional role; adopting it requires choosing a
+  player, cadence, and project-equivalent evidence paths.
 - **Downstream:** adopter-produced coordination may gain one deduplicated
   capability-review proposal/handoff per threshold window; product/runtime
   interfaces do not change.
-- **Migration:** on upgrade, record the newest completed capability-review
-  learning cursor/count. If none exists, use the current valid learning count
-  as baseline and schedule one initial human-requested review rather than
-  emitting 10–15 retroactive proposals. Add the canonical pointer to any local
-  custom specialist/startup files. Suspended roles remain suspended until an
-  explicit manifest/governor decision.
+- **Migration:** adopters may leave the role absent/suspended. When activating,
+  initialize its evidence cursors and cadence; suspended roles remain suspended
+  until an explicit manifest/governor decision. MR !2405 owns learning-baseline
+  migration for the universal threshold.
 - **Evidence:** the current manifest's capability-developer activation threshold
   remained unnoticed after the project grew from fewer than 10 to 61 learning
   records; prior outcome `20260726T223933Z-planner-architect-gqbk`; current
@@ -392,9 +384,9 @@ dispositioned.
 
 ## Dependencies and collisions
 
-- MR !2405 proposes universal polling, spare-capacity work, and the same
-  all-assistant 10–15 learning trigger. Before either Gate 1, choose one
-  canonical normative owner and make the other a reference/projection.
+- MR !2405 is the sole owner of universal polling, spare-capacity work, and the
+  all-assistant 10–15 learning trigger. This plan and the future Propeller rule
+  reference that owner and must not duplicate its specialist-file edits.
 - MR !658 is evidence only; it is stale/conflicted and must not be merged.
 - Issues #121–#123 improve addressing, supersession, and collision detection;
   Propeller consumes their eventual mechanisms but does not depend on them for

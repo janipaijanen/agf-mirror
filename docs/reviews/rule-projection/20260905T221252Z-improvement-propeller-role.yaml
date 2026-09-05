@@ -15,10 +15,12 @@ surfaces:
     stage: planned
     path: agf/rules/always/improvement-propeller-rule.md
     reason: >-
-      One new rule owns both the improvement-propeller operating contract and
-      the universal 10-to-15-new-learning capability-review trigger. The role
-      definition, startup loaders, specialist definitions, Pages, runbook, and
-      skill point to this owner and do not become competing authorities. The
+      One new rule owns the improvement-propeller operating contract. MR
+      !2405's universal-polling-and-autonomous-continuation rule separately
+      owns the all-assistant 10-to-15-new-learning capability-review trigger;
+      the Propeller rule carries only a pointer to it. The role definition,
+      startup loaders, Pages, runbook, and skill point to this owner and do not
+      become competing authorities. The
       owner does not exist before Gate 1, so its lifecycle is explicitly
       planned and must transition to existing before strict Gate 2 validation.
 
@@ -51,28 +53,14 @@ surfaces:
     paths:
       - AGENTS.md
       - agf/templates/AGENTS.md
-      - agf/agents/academic-peer-reviewer.yaml
-      - agf/agents/academic-visual-reviewer.yaml
-      - agf/agents/build-engineer.yaml
-      - agf/agents/capability-developer.yaml
-      - agf/agents/coder-tester.yaml
-      - agf/agents/contribution-auditor.yaml
-      - agf/agents/deployment-engineer.yaml
-      - agf/agents/documentation-writer.yaml
-      - agf/agents/fact-checker.yaml
-      - agf/agents/governor-reviewer.yaml
-      - agf/agents/independent-implementation-reviewer.yaml
-      - agf/agents/infosec-sentinel.yaml
-      - agf/agents/planner-architect.yaml
-      - agf/agents/web-ux-reviewer.yaml
     reason: >-
-      Root and adopter AGENTS.md plus every shipped specialist definition must
-      expose the same compact startup duty: read the last completed review
-      baseline, deduplicate, propose at 10 new learnings, hand off by 15, and
-      infer no activation or implementation authority. The new propeller role
-      and its Claude rule projection do not yet exist and therefore are added
-      to this paths list only at Gate 2, when strict projection validation must
-      resolve them.
+      Root and adopter AGENTS.md gain concise role-discovery pointers to the
+      canonical Propeller rule. MR !2405 exclusively owns the separate compact
+      10/15-learning startup duty in both AGENTS.md files and every shipped
+      specialist definition; this manifest deliberately does not duplicate
+      those specialist paths. The new propeller role and its Claude rule
+      projection do not yet exist and therefore are added to this paths list
+      only at Gate 2, when strict projection validation must resolve them.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
@@ -88,37 +76,23 @@ surfaces:
     reason: >-
       Existing assistant-loader and strict agent validation are the named
       mechanical authorities for loader integrity, role identity, verb
-      uniqueness, and communications. The implementation must extend their
-      fixtures only if they cannot prove that every shipped specialist contains
-      the compact pointer. Proposal quality, deduplication, anti-ceremony
+      uniqueness, and communications. MR !2405 separately owns any fixture
+      needed to prove that every shipped specialist contains its compact
+      learning-trigger pointer. Proposal quality, deduplication, anti-ceremony
       reasoning, and whether a learning is valid remain human-review judgments
-      exercised by the plan's table-top cases, not new blocking heuristics.
+      exercised by this plan's table-top cases, not new blocking heuristics.
 
   distribution:
     disposition: updated
     paths:
       - agf/templates/AGENTS.md
-      - agf/agents/academic-peer-reviewer.yaml
-      - agf/agents/academic-visual-reviewer.yaml
-      - agf/agents/build-engineer.yaml
-      - agf/agents/capability-developer.yaml
-      - agf/agents/coder-tester.yaml
-      - agf/agents/contribution-auditor.yaml
-      - agf/agents/deployment-engineer.yaml
-      - agf/agents/documentation-writer.yaml
-      - agf/agents/fact-checker.yaml
-      - agf/agents/governor-reviewer.yaml
-      - agf/agents/independent-implementation-reviewer.yaml
-      - agf/agents/infosec-sentinel.yaml
-      - agf/agents/planner-architect.yaml
-      - agf/agents/web-ux-reviewer.yaml
       - agf/docs/site/docs/adopt/applicability-catalog.md
       - agf/docs/site/docs/operate/day-to-day.md
       - agf/docs/site/docs/operate/runbook.md
       - agf/skills/capability-review/SKILL.md
     reason: >-
-      The listed adopter-facing template, specialist definitions, Pages,
-      runbook, and skill already ship under the AGF distribution manifest and
+      The listed adopter-facing template, Pages, runbook, and skill already
+      ship under the AGF distribution manifest and
       will be changed in place. Before Gate 2 this row must also name and prove
       distribution of the newly created role, canonical rule, and Claude rule
       projection. Root AGENTS.md is project-local and intentionally does not
