@@ -118,6 +118,15 @@ Every active agent performs a complete poll:
 - before claiming an item when its last complete poll is stale relative to a
   newly observed coordination or forge event.
 
+Scheduled polling is explicitly **non-reentrant**. A wake that becomes due
+while the same agent/session is actively executing an authorized work item
+MUST NOT interrupt that work or start a concurrent poll cycle. The runtime
+coalesces one or more such wakes into a single pending poll. Immediately after
+the active item reaches its next safe completion, handoff, gate, or evidenced
+blocker boundary, the agent runs one complete poll before selecting or resuming
+further work. “Deferred while busy” is not “skipped,” and accumulated timer
+ticks never create parallel poll loops.
+
 ### 2. Complete observation surface with bounded cost
 
 Each cycle fetches/prunes shared refs, then performs a cursor-based delta scan
@@ -290,6 +299,13 @@ appears. A project may configure a different governed cadence and idle window.
 New activity or an explicit resume rearms the window. This is not an indefinite
 background-work mandate.
 
+Cadence measures when a poll becomes due, not permission to preempt active
+work. A due tick during active execution sets one pending-poll latch; later
+ticks coalesce into it. The pending poll runs immediately at the next safe work
+boundary and then cadence continues from that completed cycle. The 180-minute
+idle calculation uses relevant observed activity, not the number of coalesced
+ticks.
+
 Unchanged, healthy, pending, or otherwise non-actionable state stays quiet
 unless periodic reports were explicitly requested. Agents notify on meaningful
 completion, failure, material state change, or required human action. Universal
@@ -411,6 +427,9 @@ After implementation:
      and the agent advances another item rather than thrashing or stopping;
    - 180 idle minutes suspend the default window and a new relevant event
      rearms it;
+   - a 15-minute tick arrives during active implementation; no overlapping
+     poll starts, repeated ticks coalesce, and exactly one complete poll runs
+     immediately when the implementation reaches its next safe boundary;
    - unchanged healthy state produces no notification spam; and
    - a claimed item remains visible to every agent but is not executed twice;
    - Claude and Codex both start as planner-architect for a coder-tester
