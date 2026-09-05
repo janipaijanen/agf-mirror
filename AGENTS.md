@@ -396,6 +396,10 @@ instructions, and it cannot replace published coordination for anything another
 agent or human must see. The file is gitignored by default; adopters may track
 a template or pointer separately if their project needs one.
 
+For a concise project-development checklist, see
+`docs/reference/agf-development-starter.md`. It is a non-normative projection;
+this file and the applicable governed owners remain authoritative.
+
 ### Polling timer notation
 
 When the governor asks for a polling timer such as `15mins/180min`, interpret
