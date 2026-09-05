@@ -2,6 +2,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 const BASE_REGISTRY: &str = include_str!("fixtures/gate-change/base-registry.yaml");
+const SHARED_CI_SURFACE_REGISTRY: &str =
+    include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
 
 struct Fixture {
     root: tempfile::TempDir,
@@ -175,6 +177,57 @@ fn unrelated_touch_inside_declared_test_path_satisfies_proxy_by_design() {
     fixture.write("tests/feature/negative.txt", "comment-only touch\n");
     fixture.commit("demonstrate review-attention proxy limit");
     assert_success(fixture.check());
+}
+
+#[test]
+fn shared_ci_change_still_requires_gate_change_checks_own_evidence() {
+    let root = tempfile::tempdir().expect("temp repository");
+    git(root.path(), &["init"]);
+    git(
+        root.path(),
+        &["config", "user.email", "test@example.invalid"],
+    );
+    git(root.path(), &["config", "user.name", "Gate Test"]);
+    write(root.path(), ".agf/gates.yaml", SHARED_CI_SURFACE_REGISTRY);
+    write(root.path(), ".gitlab-ci.yml", "workflow: baseline\n");
+    write(
+        root.path(),
+        "tests/gate_change/shared-surface.txt",
+        "baseline gate evidence\n",
+    );
+    write(
+        root.path(),
+        "tests/ci-needs/native-package.txt",
+        "baseline packaging evidence\n",
+    );
+    git(root.path(), &["add", "."]);
+    git(root.path(), &["commit", "-m", "baseline"]);
+    let base = git_output(root.path(), &["rev-parse", "HEAD"]);
+
+    write(root.path(), ".gitlab-ci.yml", "workflow: native package\n");
+    write(
+        root.path(),
+        "tests/ci-needs/native-package.txt",
+        "container-free packaging evidence\n",
+    );
+    git(root.path(), &["add", "."]);
+    git(
+        root.path(),
+        &["commit", "-m", "change CI with one gates evidence"],
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .current_dir(root.path())
+        .env("AGOV_TOKEN_ROI", "0")
+        .env("AGOV_SCHEMA_DIR", repo_root().join("agf/schemas"))
+        .args(["gate", "change-check", "--base-ref", &base])
+        .output()
+        .expect("run gate change-check");
+    assert_eq!(output.status.code(), Some(1), "{}", diagnostics(&output));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("gate-change-check"), "{stderr}");
+    assert!(stderr.contains("no changed declared test path"), "{stderr}");
+    assert!(!stderr.contains("ci-needs-implication"), "{stderr}");
 }
 
 #[test]
