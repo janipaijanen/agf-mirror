@@ -275,7 +275,39 @@ work since the decomposition was filed. If another actor has responded or
 worked it, the agent observes that state, avoids duplication, and selects the
 next eligible item. A stale local decomposition is never execution authority.
 
-### 7. Exhaustive stop boundary
+### 7. All-agent capability-review trigger
+
+Every active AI assistant tracks the learning-record cursor from the most
+recent completed capability-review outcome and counts valid learning entries
+added after it. At **10 new learnings**, the next complete poll or safe
+spare-capacity cycle MUST propose running the capability-developer review. If
+no review has been launched by **15 new learnings**, the assistant MUST publish
+a visible handoff to the governor-reviewer naming the count, baseline review,
+recurring themes observed, and proposed reviewer/role assignment.
+
+The threshold is 10–15 **new** records since the last completed review, not the
+repository's lifetime total. Human request, a release that changes agents, or a
+material recurring escalation may trigger a review earlier. Before filing, the
+assistant scans coordination, issues, plans, MRs, and active claims for an
+existing capability-review proposal or run. One visible current proposal
+satisfies every assistant's duty; other assistants acknowledge/observe it
+instead of producing duplicates.
+
+Crossing the threshold grants proposal authority only. It does not activate a
+suspended role, assign a reviewer, approve a capability proposal, or authorize
+implementation. Those remain manifest/governor decisions. A completed review
+records its terminal learning cursor/count so the next 10–15 window is
+deterministic.
+
+The trigger must be startup-visible. Root `AGENTS.md`, the distributable
+`agf/templates/AGENTS.md`, and every shipped specialist definition under
+`agf/agents/*.yaml` (excluding manifests) receive the same compact obligation
+and a pointer to this canonical rule. Specialist files do not duplicate the
+algorithm. Claude continues to inherit root `AGENTS.md` through its one-line
+loader; supported loaders must prove that path during assistant-loader
+validation.
+
+### 8. Exhaustive stop boundary
 
 The rule uses “stop” to mean stop autonomous mutation and request or await the
 named authority. The allowed stops are:
@@ -311,7 +343,7 @@ the same failed action without changed evidence does not count. After that
 bound, record exact evidence and an owner, pause the item, and continue the
 queue; do not thrash indefinitely.
 
-### 8. Empty authorized queue
+### 9. Empty authorized queue
 
 If the complete poll proves there is no claimable authorized work, the agent
 does not manufacture implementation authority. It records or proposes a small,
@@ -324,7 +356,7 @@ This subsumes the useful behavior proposed by pending MR !1817
 this plan should authorize closing !1817 as superseded; it is not closed before
 that decision. Its evidence and safeguards remain cited as design input.
 
-### 9. Scheduling honesty and quiet notifications
+### 10. Scheduling honesty and quiet notifications
 
 A real assistant/orchestrator wake mechanism may implement the cadence. Shell
 `sleep`, cron, detached processes, or timers the assistant cannot observe do
@@ -359,6 +391,10 @@ polling must not become universal notification spam.
 - `agf/rules/README.md` — add the rule to the directory and principle maps.
 - `agf/templates/AGENTS.md` — make the universal duty discoverable at cold
   start without copying the full rule.
+- every shipped specialist role definition under `agf/agents/*.yaml`
+  (excluding `MANIFEST.yaml` and `MANIFEST.example.yaml`) — add the compact
+  startup pointer for the 10–15-learning capability-review trigger; no role
+  receives new gate, activation, assignment, or implementation authority.
 - `agf/docs/site/docs/operate/poll-and-coordinate.md` — change applicability
   from “relevant” work to every active agent/all open items; add collision-safe
   execution, temporary role-allocation consensus, and exhaustive stop
@@ -386,6 +422,15 @@ No schema, Rust code, `agov-mcp` surface, CI gate, release metadata, version,
 tag, or migration is changed. Any mechanical enforcement proposal is a new
 gate/mechanism and returns to Gate 1 with explicit blocking authority and
 negative tests.
+
+The role-file/startup-trigger addition changes required assistant behavior and
+is therefore BREAKING under `downstream-impact-rule.md`, even though the new
+polling mechanism itself is additive. Migration: adopters record the latest
+completed capability-review learning cursor/count; when none exists, use the
+current valid count as baseline and schedule one initial human-requested review
+instead of emitting retroactive duplicate proposals. Local specialist files
+receive the canonical pointer; suspended roles remain suspended until an
+explicit manifest/governor decision.
 
 ## Dependency and collision disposition
 
@@ -470,6 +515,18 @@ After implementation:
      unit is preserved;
    - a session already has a primary and spare lane; it does not claim a third
      item merely to appear active;
+   - the tenth new learning since the last completed capability review causes
+     one assistant to publish a review proposal; other assistants find it and
+     do not duplicate it;
+   - no review has launched by the fifteenth new learning, so the next active
+     assistant publishes the mandatory governor handoff with the baseline,
+     count, recurring themes, and proposed assignment;
+   - an assistant attempts to treat the threshold as permission to activate a
+     suspended capability-developer or implement its proposal; the action is
+     rejected because the trigger grants proposal authority only;
+   - a completed capability review stores its terminal learning cursor/count,
+     and the next threshold calculation begins after that baseline rather than
+     using the lifetime total;
    - an implementation reaches Gate 2 and the agent stops mutation for the
      governor decision while continuing read-only monitoring;
    - a role discovers an issue outside its authority and routes it without
