@@ -28,6 +28,22 @@ advisory_consultation:
 
 # Universal agent polling and autonomous continuation
 
+## Claude design challenge disposition (2026-09-05)
+
+Claude planner review `20260905T210846Z-planner-architect-gp1b` returned
+REVISE with four blocking and four advisory findings. This revision accepts
+B1-B4 and A2-A4. A1 is narrowed without exempting the governor: every active
+development role still observes current shared state, including a governor
+about to make a binding decision, while work selection and execution remain
+role-specific. This preserves the governor's explicit “every agent must poll”
+instruction without turning the governor into an implementation dispatcher.
+
+The governor then added a second binding design requirement: when concurrent
+Claude/Codex sessions' current roles do not fit the work requested by a durable
+record, the affected sessions MUST reach durable consensus on a temporary role
+allocation before mutation. Section 4 below specifies that handshake without
+allowing peer consensus to manufacture new authority.
+
 ## Outcome
 
 Make complete polling and autonomous continuation a normative obligation for
@@ -35,7 +51,8 @@ Make complete polling and autonomous continuation a normative obligation for
 word “poll,” a foundry-only habit, or a duty limited to the agent that opened a
 particular MR.
 
-Every active agent observes the complete shared work surface. Execution remains
+Every active agent observes changes across the complete shared work surface,
+with periodic full reconciliation. Execution remains
 collision-safe and role-scoped: an agent acts only inside its existing role,
 approved plan or handoff, current gate, and explicit ownership. It does not ask
 the governor to redispatch visible authorized work or to say “proceed.” It
@@ -85,10 +102,13 @@ The rule will define these invariants.
 
 ### 1. Applicability
 
-The rule applies to every **active** human or AI development agent/session in an
-AGF-governed project. “Active” means the session is executing, has resumed, or
-has a real configured wake-up. It does not claim that an exited process or an
-assistant surface without a scheduler continues running.
+The rule applies to every **active** human or AI development role/session in an
+AGF-governed project, including an active governor-reviewer before a binding
+decision. “Active” means the session is executing, has resumed, or has a real
+configured wake-up. It does not claim that an exited process or an assistant
+surface without a scheduler continues running. Observation is universal;
+selection and execution remain role-specific, so a governor observing current
+state is not obliged or authorized to claim implementation work.
 
 Every active agent performs a complete poll:
 
@@ -98,15 +118,32 @@ Every active agent performs a complete poll:
 - before claiming an item when its last complete poll is stale relative to a
   newly observed coordination or forge event.
 
-### 2. Complete observation surface
+### 2. Complete observation surface with bounded cost
 
-Each cycle fetches/prunes shared refs, then inspects remote-aware coordination,
-**all open** forge merge requests/change requests and issues regardless of
-author or apparent relevance, new notes and discussions, assignments, labels,
-draft/approval/merge state, exact source and target SHAs, exact-head pipelines
-and jobs, and every branch/tag/release/runner or other exact external state the
-agent started or awaits. True pagination and durable UTC/ID/SHA cursors are
-required so “nothing new” is evidence-backed.
+Each cycle fetches/prunes shared refs, then performs a cursor-based delta scan
+across the **whole** remote-aware surface: coordination, all forge merge
+requests/change requests and issues regardless of author or apparent
+relevance, notes and discussions, assignments, labels, draft/approval/merge
+state, source and target SHAs, pipeline/job changes, and every
+branch/tag/release/runner or other exact external state the agent started or
+awaits. “Delta” narrows transferred records by a durable last-seen timestamp,
+ID, or SHA; it does not narrow which classes, authors, projects, or roles are
+observed. APIs without reliable changed-since semantics must be paginated in
+full.
+
+A full paginated reconciliation of every currently open MR/issue and each
+monitored exact head/pipeline/job is mandatory on cold start, post-compaction
+resume, cursor loss or corruption, evidence of missed events, and at least once
+per UTC day while the session remains active. This bounds routine work at
+O(changed items) while making cursor blindness temporary and detectable. A
+project may configure a shorter deep-sweep interval; it may not omit the daily
+maximum without a governed local override that states the accepted risk.
+
+Durable UTC/ID/SHA cursors are required so “nothing new” is evidence-backed.
+The cursor lives in a verified git-ignored runtime path. Before compaction or
+handoff, an agent records the cursor through the shipped `compact-agf` skill
+when available, or an equivalent durable session-handoff note plus ignored
+cursor file; the next session validates or conservatively discards it.
 
 All agents observe everything; they do not all claim everything.
 
@@ -114,7 +151,14 @@ All agents observe everything; they do not all claim everything.
 
 After observation, each agent classifies visible items by priority, authority,
 current gate, dependencies, and ownership. It checks for existing claims and
-overlapping plans/MRs immediately before claiming or writing. It then advances
+overlapping plans/MRs immediately before claiming or writing. Before the first
+mutating action on an item, it MUST publish a `kind: claim` coordination record
+that names the exact issue/MR/plan/artifact, branch or lane, and intended file
+ownership. If another unresolved claim covers the same item or overlapping
+artifacts, it MUST abort mutation and coordinate ownership. An existing
+explicit handoff or claim to that exact lane may satisfy this requirement when
+it is already visible and current; a chat statement or local-only file may not.
+It then advances
 the highest-priority item that is:
 
 1. inside the active role's authority;
@@ -135,16 +179,55 @@ scheduled watcher/notification responsibility, but that designation is not an
 exemption from any active agent's complete poll. Non-owners stay collision-safe
 by observing and deferring claimed execution, not by narrowing their scan.
 
-### 4. Monitoring is work
+### 4. Temporary role-allocation consensus
+
+Before acting on a durable request, each session compares the record's
+recipient and requested work with its currently declared role and the role
+authority in `agf/agents/MANIFEST.yaml`. This section triggers when concurrent
+sessions share an ambiguous role, the requested work fits a different already-
+active role better, or their current allocation would create overlapping or
+ownerless execution.
+
+The affected sessions MUST agree on a temporary role allocation before either
+performs the first mutating action. The handshake is:
+
+1. one session publishes a `kind: note` or `kind: claim` referencing the
+   triggering record and proposing the temporary role, exact task/item,
+   artifacts or lane, authority basis, start condition, end condition, and
+   role to resume afterward;
+2. every affected concurrent session publishes an explicit `kind: ack`
+   referencing that proposal and either accepts the same allocation or records
+   a conflicting proposal;
+3. the allocation becomes operative only when all affected sessions' visible
+   acknowledgements agree and no unresolved overlapping claim exists; and
+4. the temporary assignee publishes completion, handoff, or withdrawal when
+   the end condition occurs, after which each session resumes its prior role.
+
+“Consensus” means unanimous agreement among the affected execution sessions,
+not silent non-response and not a same-session self-ack. If they disagree or an
+affected session cannot be identified, mutation pauses and the conflict is
+routed to the governor-reviewer with both proposals and the exact artifact
+overlap. Read-only polling and evidence collection continue.
+
+The handshake may allocate work only among roles already active in the
+manifest and only within those roles' existing authority. It cannot activate a
+suspended/skipped role, change manifest status, create a role, grant a gate or
+merge/release power, or override the original record. Any such authority
+change requires a governor decision. A direct governor assignment may settle
+the allocation, but the affected sessions still acknowledge it so the
+execution lane is unambiguous.
+
+### 5. Monitoring is work
 
 An agent that starts or depends on a pipeline, review, MR, release, or external
 operation remains responsible for following the exact state to a reviewable or
 terminal outcome. A pending/running healthy state is not a reason to ask the
 human what to do next. Between complete broad polls, the agent may perform
 narrow checks of already-monitored exact identifiers to reduce cost, but the
-next scheduled complete cycle still scans every shared surface.
+next scheduled delta cycle still covers every shared-surface class and the next
+daily reconciliation remains mandatory.
 
-### 5. Exhaustive stop boundary
+### 6. Exhaustive stop boundary
 
 The rule uses “stop” to mean stop autonomous mutation and request or await the
 named authority. The allowed stops are:
@@ -160,13 +243,27 @@ named authority. The allowed stops are:
 - a concrete external blocker after safe in-scope diagnostics and reasonable
   alternatives are exhausted, with evidence and an owner recorded.
 
+Before pausing mutation on any item, the agent MUST name which boundary above
+applies and cite the missing decision, authority, conflict, or blocker evidence.
+If it cannot name and evidence one, it MUST continue the next authorized action.
+The pause applies to that item; unless a binding instruction stops the whole
+session, the agent returns to the ranked queue and advances another authorized
+item.
+
 These are “genuine gates or equivalent authority boundaries.” Ordinary
 uncertainty, waiting CI, an empty chat inbox, task difficulty, a desire for
 confirmation, or the absence of another prompt are not stop conditions.
 Polling never grants approval, merge, release, destructive-action, secrets, or
 scope-expansion authority.
 
-### 6. Empty authorized queue
+A concrete blocker requires one bounded diagnostic pass: reproduce or inspect
+the current evidence, identify the failing boundary, and check at least one safe
+in-scope alternative (or the task plan's stricter diagnostic budget). Repeating
+the same failed action without changed evidence does not count. After that
+bound, record exact evidence and an owner, pause the item, and continue the
+queue; do not thrash indefinitely.
+
+### 7. Empty authorized queue
 
 If the complete poll proves there is no claimable authorized work, the agent
 does not manufacture implementation authority. It records or proposes a small,
@@ -179,12 +276,19 @@ This subsumes the useful behavior proposed by pending MR !1817
 this plan should authorize closing !1817 as superseded; it is not closed before
 that decision. Its evidence and safeguards remain cited as design input.
 
-### 7. Scheduling honesty and quiet notifications
+### 8. Scheduling honesty and quiet notifications
 
 A real assistant/orchestrator wake mechanism may implement the cadence. Shell
 `sleep`, cron, detached processes, or timers the assistant cannot observe do
 not count. A surface without a wake mechanism polls on activation/resume and
 states that limitation.
+
+The default armed window is `15mins/180min`: run a delta cycle every 15 minutes
+and suspend the window after 180 continuous minutes without relevant activity,
+resetting that idle window whenever relevant coordination or forge activity
+appears. A project may configure a different governed cadence and idle window.
+New activity or an explicit resume rearms the window. This is not an indefinite
+background-work mandate.
 
 Unchanged, healthy, pending, or otherwise non-actionable state stays quiet
 unless periodic reports were explicitly requested. Agents notify on meaningful
@@ -202,7 +306,8 @@ polling must not become universal notification spam.
   start without copying the full rule.
 - `agf/docs/site/docs/operate/poll-and-coordinate.md` — change applicability
   from “relevant” work to every active agent/all open items; add collision-safe
-  execution and exhaustive stop semantics.
+  execution, temporary role-allocation consensus, and exhaustive stop
+  semantics.
 - `agf/docs/site/docs/operate/runbook.md` — replace the prompt-triggered “Asked
   to poll” entry with an always-on active-session situation.
 - `agf/skills/poll-and-coordinate/SKILL.md` — align invocation behavior with
@@ -211,7 +316,8 @@ polling must not become universal notification spam.
 - `agf/rules/workflow/branch-and-worktree-rule.md` — reconcile primary watcher
   ownership with universal observation.
 - `AGENTS.md` — project-local projection and pointer to the canonical shipped
-  rule; preserve foundry's stricter complete GitLab loop.
+  rule; preserve foundry's stricter GitLab loop and add the Claude/Codex
+  temporary-role handshake.
 - `docs/reference/agent-cold-start-habits.md` — align terminal and collision
   examples.
 - `docs/reference/agf-development-starter.md` — strengthen the non-normative
@@ -236,11 +342,18 @@ negative tests.
   decision authorizes supersession.
 - **MR !2027 / issues #121-#123:** session addressing, supersession fields,
   and collision discovery are complementary future mechanisms. This plan uses
-  today's role addressing plus explicit session prose and manual collision
-  checks; it does not assume those features exist.
+  today's role addressing plus explicit session prose and the mandatory
+  pre-mutation published claim and temporary-role consensus disciplines; it
+  does not assume those features exist. When #121 lands, the claim and
+  acknowledgement lane identities migrate to that mechanism.
 - **v2.9 release chain:** remains the product-release priority. This governance
   plan may be reviewed while release pipelines/reviews run, but implementation
   must not take ownership of or delay the release branches.
+- **`20260905T202547Z-planner-architect-mmm3`:** its post-v2.9 sequencing is
+  superseded for this universal-polling item only by the governor's later
+  explicit high-priority instruction. It continues to govern the remaining
+  coordination-protocol/status-machine work. This plan does not silently treat
+  the earlier instruction as absent.
 
 ## Projection screen
 
@@ -280,7 +393,8 @@ After implementation:
    skill validator, and `git diff --check` pass at the exact head.
 3. Exact-head review checks at least these table-top cases:
    - every agent sees an unowned failing release pipeline; only the authorized
-     release/build owner claims the fix, while the others avoid duplicate work;
+     release/build owner publishes the exact-item claim and mutates, while the
+     others observe the claim and avoid duplicate work;
    - an agent waiting on CI monitors it and continues at the next authorized
      state without asking “proceed?”;
    - an implementation reaches Gate 2 and the agent stops mutation for the
@@ -289,14 +403,39 @@ After implementation:
      implementing it;
    - an empty authorized queue yields sourced candidates, not invented work;
    - a surface without a scheduler states the limitation and polls on resume;
+   - a routine cycle uses whole-surface deltas while a cold start and daily deep
+     sweep reconcile all currently open items and monitored exact heads;
+   - a proposed pause without a named/evidenced boundary is rejected and the
+     agent continues the next authorized action;
+   - after one bounded diagnostic/alternative pass, a blocked item is recorded
+     and the agent advances another item rather than thrashing or stopping;
+   - 180 idle minutes suspend the default window and a new relevant event
+     rearms it;
    - unchanged healthy state produces no notification spam; and
-   - a claimed item remains visible to every agent but is not executed twice.
+   - a claimed item remains visible to every agent but is not executed twice;
+   - Claude and Codex both start as planner-architect for a coder-tester
+     implementation request; they publish one proposed temporary allocation,
+     both acknowledge it, only the agreed coder-tester lane mutates, and both
+     resume their prior roles at the recorded end condition;
+   - two sessions disagree on the temporary allocation; neither mutates, both
+     keep polling read-only, and the exact conflict is routed to the governor;
+   - two peer sessions agree to use a suspended or unauthorized role; the
+     handshake is rejected because consensus cannot create authority; and
+   - a governor directly assigns an already-active temporary role; affected
+     sessions acknowledge the binding allocation rather than negotiating a
+     conflicting one.
 4. Gate 2 evidence names the exact SHA and canonical pipeline.
 
 ## Risks and controls
 
 - **Universal observation becomes universal execution.** Control: four-part
   authority/plan/gate/ownership eligibility test and immediate collision scan.
+- **Peer consensus manufactures authority.** Control: temporary allocation is
+  limited to already-active roles and existing authority; manifest/status or
+  gate-power changes still require the governor.
+- **Temporary roles become permanent or ambiguous.** Control: every proposal
+  names exact scope, start, end, and resume role; completion/handoff/withdrawal
+  closes the allocation.
 - **Authority inflation from “only stop at gates.”** Control: define equivalent
   authority boundaries and concrete blockers exhaustively; polling grants no
   new power.
@@ -304,8 +443,9 @@ After implementation:
   idempotency checks, one execution owner, and quiet unchanged-state policy.
 - **Impossible scheduling claim.** Control: active-session definition and real
   wake-mechanism requirement.
-- **Expensive full scans.** Control: compact cursors and narrow interim checks
-  are allowed, but not as replacements for complete scheduled cycles.
+- **Expensive full scans.** Control: whole-surface delta cycles, full
+  reconciliation at cold start/resume/cursor failure and at least daily, true
+  pagination where delta semantics are unavailable.
 - **Competing normative owners.** Control: one new `always/` rule, explicit
   supersession proposal for !1817, and projections that point back to the
   owner.
