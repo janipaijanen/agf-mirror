@@ -1,7 +1,9 @@
 ---
 id: 20260904T094827Z-agf-development-starter-guideline
-status: pending-gate1
+status: approved
 topic: agf-development-starter-guideline
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-05T12:53:00Z
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
