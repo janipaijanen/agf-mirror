@@ -1,6 +1,8 @@
 ---
 id: 20260905T175920Z-native-musl-release-build
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-05T18:07:19Z
 topic: native-musl-release-build
 advisory_consultation:
   - role: infosec-sentinel
@@ -31,9 +33,10 @@ optional Windows preview on a separately isolated Cross/DinD template and do
 not retry MR !2383's known-broken pipeline before either the runner is repaired
 or this approved correction is applied to its exact head.
 
-This is a Gate 1 plan only. It does not authorize implementation, merge,
-release, tag, deployment, runner reconfiguration, or enabling privileged
-services.
+**Gate 1 approved:** governor-reviewer decision
+`20260905T180719Z-governor-reviewer-mhq1.md` authorizes the implementation
+scope below. It does not approve Gate 2, merge, release, tag, deployment,
+runner reconfiguration, or enabling privileged services.
 
 ## Release blocker and evidence
 
@@ -180,4 +183,3 @@ dependency is known operational.
 - `.agf/gates.yaml` and `agf/rules/always/gate-self-test-rule.md` — required
   gate accompaniment and negative-test evidence.
 - `tooling/rust/release-targets.txt` — mandatory target authority.
-
