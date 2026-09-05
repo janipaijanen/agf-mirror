@@ -4637,6 +4637,86 @@ learnings:
         - 'docs/coordination/20260907T045703Z-coder-tester-jqrm.md and MR !2474: Codex assumed a concurrent Claude session held planner-architect, then escalated the non-reply as an unreachable peer.'
         - 'docs/coordination/20260907T061351Z-planner-architect-232s.md, 20260907T061356Z-planner-architect-s1kq.md, 20260907T061400Z-planner-architect-6hqm.md: build/capability/infosec reviews of MR !2478 routed to "Claude" without a communicate-back or explicit temporary-allocation step, unblocked only by a direct governor assignment.'
 
+  - id: 20260905T130115Z-0p97
+    date: '2026-09-05'
+    category: gap
+    scope: framework
+    title: solution-proposals-presented-without-running-a-controlled-verification-test
+    status: proposed
+    description: >-
+      Twice in one session, a clear, specific fix was proposed for a
+      technical problem without actually running a controlled test to
+      verify it worked. First: rootless Podman on a GitLab Runner host
+      failed to pull the runner-helper image with "potentially insufficient
+      UIDs or GIDs available in user namespace" against the container's
+      shadow file. The diagnosis (empty subuid and subgid allocation
+      entries for the runner's user) and remediation (add a subuid/subgid
+      range, run `podman system migrate`, retry) were both correct in
+      shape, but were handed to the user as instructions with no attempt to
+      verify them against the actual host -- the assistant does not have
+      direct access to that host, but did not say so explicitly as the
+      reason verification was skipped, either. Second: a CI job
+      (`rust:tooling:build:windows:preview`) uses `docker:dind` purely as
+      `cross`'s (cross-rs) execution backend for Windows cross-compilation,
+      not to build an OCI image. Asked whether dropping `docker:dind` in
+      favor of Podman-based alternatives (a pattern already applied
+      elsewhere in this same `.gitlab-ci.yml`, e.g.
+      `agov:oci:mr-build-scan`'s `quay.io/podman/stable` image) would fix
+      it, the assistant identified the real, narrower parallel fix --
+      `cross`'s native `CROSS_CONTAINER_ENGINE=podman` support -- but
+      presented it with an unverified caveat (whether nested rootless
+      Podman inside the job's own container would hit the same
+      user-namespace class of failure just diagnosed at the
+      runner-executor level) instead of running a scratch job or local
+      reproduction to check before recommending it. **Correction
+      (independent review, MR !2368 discussion): this record originally
+      claimed a controlled test "was runnable in at least the second
+      case." No durable evidence identifies an available scratch runner,
+      an authorized job mutation, or a local environment that could
+      actually reproduce the nested Windows/Podman topology from the
+      assistant's session -- the claim of runnability is withdrawn as
+      unsubstantiated, and the record is narrowed to what actually
+      happened: an unverified caveat was presented instead of either
+      running a test or stating explicitly that no test was runnable from
+      this position.** The user's own words when raising this: "I would
+      really much appreciate you to try controlled tests to problems you
+      have clearly solution proposals."
+    roles_involved:
+      - coder-tester
+      - planner-architect
+    framework_section: always/environment-interrogation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        An unverified fix presented with confidence-appropriate hedging
+        still costs the human an extra round trip if it turns out wrong --
+        applying it, discovering the failure, and coming back -- exactly
+        the cost class environment-interrogation-rule.md was written to
+        avoid for deployment instructions generated from assumptions rather
+        than read state. Neither instance here caused actual damage in this
+        session; both fixes remain unapplied and unconfirmed at the time of
+        this record.
+    recommendation: >-
+      When a controlled test of a proposed fix is actually runnable --
+      a local reproduction, a scratch CI job, a sandboxed command -- run it
+      and report the verified result, rather than presenting the fix with
+      an unverified caveat and asking whether to proceed. This is a
+      candidate extension of `always/environment-interrogation-rule.md`,
+      which today covers reading target-environment state before
+      generating deployment instructions but stops short of requiring that
+      a runnable test of the fix itself be executed before the fix is
+      recommended. When no test is actually runnable from the assistant's
+      position (no host access, no scratch CI slot, destructive/costly to
+      trial), say so explicitly as the reason, rather than presenting an
+      untested recommendation with only a caveat and no stated access
+      constraint.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - "Transcript-only, no durable reference (independent review, MR !2368: neither event has a GitLab job, pipeline, MR, or coordination record a cold-start reviewer can check): GitLab Runner subuid/subgid diagnosis for the podman pull failure (registry.gitlab.com/gitlab-org/gitlab-runner/gitlab-runner-helper:x86_64-v19.3.1), remediation proposed but not run against the actual runner host."
+        - "Transcript-only, no durable reference (independent review, MR !2368: neither event has a GitLab job, pipeline, MR, or coordination record a cold-start reviewer can check): rust:tooling:build:windows:preview docker:dind-to-CROSS_CONTAINER_ENGINE=podman analysis, proposed with an unverified nested-user-namespace caveat instead of a controlled test."
 
   - id: 20260906T124236Z-8487
     date: '2026-09-06'
