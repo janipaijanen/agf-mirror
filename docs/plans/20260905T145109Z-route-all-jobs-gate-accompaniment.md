@@ -67,10 +67,36 @@ recent deliberate governor decision under pressure from a blocked MR.
 
 ## The design
 
+### Precondition: the `dind` runner must be tag-isolated (operator change, not `.gitlab-ci.yml`)
+
+Read-only check of the GitLab runner API on 2026-09-05T20:54Z (correcting
+`83nk`'s assumed config, per `environment-interrogation-rule`):
+
+| Runner | id | `tag_list` | `run_untagged` |
+|---|---|---|---|
+| `priv runner` | `55908035` | `['podman', 'linux', 'amd64']` (assumed; API did not expose) | — |
+| `dind` | `55975189` | **`['podman', 'linux', 'amd64', 'dind']`** | **`true`** |
+
+The `dind` runner currently carries the *ordinary* tag tuple as well as
+`dind`, and runs untagged jobs. So MR !2362's global
+`default: tags: [podman, linux, amd64]` matches **both** runners, and an
+ordinary job can still race onto `55975189` — the exact failure MR !2362
+exists to remove, just between `priv runner` and `dind` instead of shared vs
+dedicated.
+
+**Precondition for Gate 1 / implementation:** the operator reconfigures
+runner `55975189` to `tag_list: ['dind']` and `run_untagged: false`, so
+`[dind]` is the *only* way to select it and ordinary/untagged jobs cannot.
+`priv runner` keeps `['podman', 'linux', 'amd64']`. This is a runner-host
+config change, outside `.gitlab-ci.yml`; the plan's `.gitlab-ci.yml` design
+below assumes it is done. Acceptance criterion 4 re-verifies the tag lists
+from the API at implementation time and fails closed if `55975189` still
+carries an ordinary tag or `run_untagged: true`.
+
 ### Two runner classes
 
-1. **Ordinary jobs** run on the ordinary private runner via MR !2362's
-   existing global default, unchanged:
+1. **Ordinary jobs** run on the ordinary private runner (`55908035`) via
+   MR !2362's existing global default, unchanged:
 
    ```yaml
    default:
@@ -162,21 +188,27 @@ combined implementation branch.
    stays unchanged and green.
 3. `cargo test --manifest-path tooling/rust/Cargo.toml -p agov` — full local
    suite green.
-4. One canonical exact-head MR pipeline in which:
+4. **Runner tag isolation re-verified at implementation time.** An
+   authenticated GitLab runner API read shows `55975189` with
+   `tag_list: ['dind']` and `run_untagged: false`, and `55908035`
+   (`priv runner`) still with the ordinary tuple. Fail closed if `55975189`
+   still carries `podman`/`linux`/`amd64` or `run_untagged: true` — the split
+   is not real until the precondition above is applied.
+5. One canonical exact-head MR pipeline in which:
    - the MR-pipeline `dind` jobs (`agov:oci:mr-build-scan`,
      `rust:tooling:oci-pull-test`) demonstrably **select runner `55975189`**
      — shown from the job log's runner line, not from API-reported
      availability — **and** their previously failing nested steps now
      succeed (nested Trivy runs; the rootless-Podman pull completes);
-   - ordinary jobs still run on the ordinary runner;
+   - ordinary jobs still run on `priv runner` (`55908035`);
    - no ordinary job is observed selecting the `dind` runner.
-5. `agov:oci:release`, `release:verify`, `rust:tooling:preview:windows-package`,
+6. `agov:oci:release`, `release:verify`, `rust:tooling:preview:windows-package`,
    and `rust:tooling:build:windows:preview` run only in the tag pipeline or as
    manual/allowed-failure jobs, so their `dind` routing cannot be proven in
    this MR pipeline. It is covered by test 2 (live-config assertion) and
    **deferred to the next release's tag pipeline for execution proof**. This
    deferral is explicit and must be stated in the implementation MR.
-6. No paid failed job is retried merely to seek green; the accepted run
+7. No paid failed job is retried merely to seek green; the accepted run
    contains the correction.
 
 ## Negative test (per `gate-self-test-rule.md`)
@@ -200,13 +232,17 @@ source change in `agov` / `agov-mcp`.
 
 ## Risks
 
-- **Runner state is volatile.** `55975189` registered mid-session and its
-  `dind` tag is governor-asserted config, not API-verified. Per
-  `environment-interrogation-rule`, the running system is the source of
-  truth: criterion 4's tagged-selection-plus-nested-success proof is the real
-  gate, and the governor should confirm `55975189`'s configuration (tag list,
-  privileged/nested support, isolation) is stable before Gate 1 rather than
-  approving against config that changed twice today.
+- **Runner state is volatile, and `55975189`'s live config does not match
+  `83nk`'s assumption.** An API read on 2026-09-05T20:54Z showed it with
+  `tag_list: ['podman', 'linux', 'amd64', 'dind']` and `run_untagged: true` —
+  it is *not* tag-isolated, so the split is not real until the precondition
+  (reconfigure to `tag_list: ['dind']`, `run_untagged: false`) is applied.
+  Per `environment-interrogation-rule`, the running system is the source of
+  truth: criterion 4 (API re-verification, fail-closed) plus criterion 5
+  (demonstrated selection + nested success) are the real gate. The governor
+  should not approve Gate 1 until `55975189` is tag-isolated, and should also
+  confirm its privileged/nested support and isolation are stable rather than
+  approving against config that changed several times today.
 - **`tags: [dind]` moves the failure if the runner cannot actually run
   nested workloads.** Criterion 4 requires demonstrated nested success, not
   merely selection, precisely to catch this.
