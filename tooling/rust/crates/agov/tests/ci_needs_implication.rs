@@ -154,6 +154,90 @@ fn shared_surface_requires_each_active_gates_own_test_evidence() {
     assert!(passed.status.success(), "{}", diagnostics(&passed));
 }
 
+#[test]
+fn live_mandatory_linux_packaging_is_native_and_container_free() {
+    let configuration = read_live_configuration();
+    assert_native_linux_packaging(&configuration);
+}
+
+#[test]
+fn detects_reintroduced_container_build_on_the_mandatory_linux_path() {
+    let configuration = read_live_configuration();
+    let package = top_level_block(&configuration, ".rust-tooling-package")
+        .expect("mandatory Rust packaging template");
+    let native = "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n";
+    assert_eq!(
+        package.matches(native).count(),
+        1,
+        "expected native build line"
+    );
+    let mutated_package = package.replacen(
+        native,
+        "        cross build --release --target \"$target\" -p agov -p agov-mcp\n",
+        1,
+    );
+    let mutated =
+        replace_top_level_block(&configuration, ".rust-tooling-package", &mutated_package);
+
+    let errors = native_linux_packaging_errors(&mutated);
+    assert!(
+        errors.iter().any(|error| error.contains("cargo build")),
+        "{}",
+        errors.join("\n")
+    );
+}
+
+fn assert_native_linux_packaging(configuration: &str) {
+    let errors = native_linux_packaging_errors(configuration);
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+fn native_linux_packaging_errors(configuration: &str) -> Vec<String> {
+    let Some(package) = top_level_block(configuration, ".rust-tooling-package") else {
+        return vec!["mandatory Rust packaging template is missing".to_string()];
+    };
+    let mut errors = Vec::new();
+    for forbidden in [
+        "    - docker:dind\n",
+        "    DOCKER_HOST:",
+        "    DOCKER_DRIVER:",
+        "    DOCKER_TLS_CERTDIR:",
+        "    CROSS_REMOTE:",
+        "docker.io",
+        "cargo install cross",
+    ] {
+        if package.contains(forbidden) {
+            errors.push(format!(
+                "mandatory Rust packaging template retains forbidden container dependency `{}`",
+                forbidden.trim()
+            ));
+        }
+    }
+    for required in [
+        "        rustup target add \"$target\"\n",
+        "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n",
+    ] {
+        if package.matches(required).count() != 1 {
+            errors.push(format!(
+                "mandatory Rust packaging template must contain exactly one `{}`",
+                required.trim()
+            ));
+        }
+    }
+    for consumer in ["rust:tooling:preview", "rust:tooling:release"] {
+        let Some(block) = top_level_block(configuration, consumer) else {
+            errors.push(format!("mandatory consumer `{consumer}` is missing"));
+            continue;
+        };
+        if !block.contains("  extends: .rust-tooling-package\n") {
+            errors.push(format!(
+                "mandatory consumer `{consumer}` no longer extends the native packaging template"
+            ));
+        }
+    }
+    errors
+}
+
 fn implication_errors(configuration: &str) -> Result<Vec<String>, String> {
     let actual_edges = mandatory_edges(configuration)?;
     let expected_edges = fixture_edges();
