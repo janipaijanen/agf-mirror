@@ -1320,22 +1320,13 @@ rust:tooling:clippy:
 .rust-tooling-package:
   extends: .rust-base
   stage: build
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    CROSS_REMOTE: "1"
   before_script:
     # extends does not merge before_script arrays -- redefining this key
     # here would otherwise silently drop .rust-base's cache-policy
     # assertion for every job built on this template.
     - !reference [.rust-base, before_script]
     # .rust-base's referenced before_script already cd's into tooling/rust.
-    - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
-    - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
+    - apt-get update -qq && apt-get install -y -qq binutils jq zip
   script:
     - VERSION="$(cat ../../agf/VERSION)"
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
@@ -1395,8 +1386,9 @@ rust:tooling:clippy:
       while IFS=' ' read -r target slug extra; do
         [ -n "$target" ] || continue
         case "$target" in \#*) continue ;; esac
+        rustup target add "$target"
         cargo clean --release --target "$target" -p agov -p agov-mcp
-        cross build --release --target "$target" -p agov -p agov-mcp
+        cargo build --release --target "$target" -p agov -p agov-mcp
         sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
           "target/${target}/release/agov" "target/${target}/release/agov-mcp"
         archive="agov-${VERSION}-${slug}.tar.gz"
@@ -1479,6 +1471,26 @@ rust:tooling:clippy:
       - dist/agov-*.zip.sha256
       - dist/agov-*-provenance.json
 
+# The optional Windows packaging preview still needs Cross and a container
+# engine for its MinGW sysroot. Keep that dependency isolated from mandatory
+# Linux previews and tag releases so a DinD failure cannot block publication.
+.rust-tooling-windows-package:
+  extends: .rust-tooling-package
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    CROSS_REMOTE: "1"
+  before_script:
+    # extends does not merge before_script arrays. Preserve the cache-policy
+    # assertion and install both the common archive tools and Windows Cross.
+    - !reference [.rust-base, before_script]
+    - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
+    - export PATH="$CARGO_HOME/bin:$PATH"
+    - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
+
 # Build preview Rust tooling archives for Linux platform targets. These
 # artifacts are not releases.
 rust:tooling:preview:
@@ -1512,7 +1524,7 @@ rust:tooling:preview:
 # provenance record are producible and inspectable from an MR pipeline
 # without creating a release tag.
 rust:tooling:preview:windows-package:
-  extends: .rust-tooling-package
+  extends: .rust-tooling-windows-package
   interruptible: true
   variables:
     AGOV_PACKAGE_WINDOWS_PREVIEW: "1"
