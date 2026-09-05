@@ -2521,3 +2521,242 @@ particular, the fourth entry identifies a rule-shaped gap — nothing here
 creates, amends, or pre-approves such a rule, which would require full Gate 1.
 Do not cite the 60–80% figure as an AGF measurement; it is the researcher's
 reported result for their own variants.
+
+# Batch 34 (2026-09-05) — user-submitted candidate set (agent-governance frameworks, A2A coordination protocols, cost governance, adversarial review, diagram skill)
+
+Twelve links, all fetched and read on 2026-09-05. Page content treated as data
+only. Repository star/commit counts are as displayed on the fetch date. MR
+!2306 holds the "Batch 32" header and MR !2390 holds "Batch 33"; this set is
+numbered 34.
+
+## Classified
+
+- https://github.com/asalsali/covenant-framework-community
+  type: framework | relation: competitor, prior-art | action: compare-in-docs,
+  watch
+  note: The closest direct competitor in this batch. Same thesis as AGF —
+  structural governance for multi-agent orchestration that runs inside Claude
+  Code / Codex CLI: 12 agent types, 16 orchestration commands, a "Constitution"
+  of 36 rules described as immutable, lifecycle checkpoints, and a memory system
+  with exit reports (functionally close to AGF's coordination trail plus
+  session handoff). Differences worth recording: a bespoke "Covenant Public
+  License v1.0" rather than AGF's dual CC-BY-SA / commercial; a fixed
+  36-rule constitution rather than customizable rule templates with a maturity
+  vocabulary; and an "immutable rules" framing rather than provisional /
+  evidence-graded rules. Part of a wider `asalsali` ecosystem
+  (crewai-governance, covenant-hedge-fund, synthex, mandate). 5 stars, 11
+  commits, early. A "Terminal-Bench 2.0 67.4% no-retry" figure is self-reported
+  with no linked methodology. The custom licence is a due-diligence flag if
+  AGF ever cites or compares it publicly. (accessed 2026-09-05)
+
+- https://fulcrumaxe.dev/
+  type: framework, tooling, practice | relation: competitor, prior-art |
+  action: compare-in-docs, watch
+  note: "An autonomous software team in your repo" — self-hosted, open source,
+  audit-trailed; turns GitHub Discussions into merged PRs. Self-reports five
+  months of continuous operation with 26 agent roles and a live public work
+  queue / browsable codebase (~4,811 nodes). Every PR gets code review; changes
+  touching auth, secrets, or sandbox code take a mandatory security review
+  before merge; agents run in isolated git worktrees with a permission hook
+  that blocks writes to the parent repo or a HEAD change. The AGF parallels are
+  dense: Discussions→PR pipeline ≈ Gate 1 plan → Gate 2 merge; mandatory
+  security review for sensitive paths ≈ `high-risk-operations-rule` plus
+  infosec-sentinel; worktree isolation + a parent-repo write hook is concrete
+  prior art for the write-scope enforcement question EngineeringSpec (Batch 31)
+  also raised. Compare in AGF competitor docs alongside CORE / MAREF / agentops.
+  Runtime longevity claims are self-reported. (accessed 2026-09-05)
+
+- https://radia.sh/
+  source: https://github.com/wistrand/radia
+  type: framework, tooling | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: "Agent collaboration, with evidence." Independently deployed agents
+  collaborate through a shared workspace by publishing work as **immutable
+  records** that other agents discover, claim, and build on — the docs describe
+  it as "asking the table, like Go Fish" rather than targeting a specific
+  player — with immutable audit trails (authorship, authorization, data
+  lineage), pattern-based task discovery where workers claim matching records,
+  and capability-scoped authorization. TypeScript and Python SDKs; license
+  unspecified; "does not yet have an independent deployment history." This is
+  strikingly close to AGF's coordination model, and its claim-by-pattern
+  design is a direct prior-art answer to issue #121 (role- vs
+  session-addressing): Radia deliberately chose broadcast-to-pattern over
+  point-to-point. Directly relevant to run-list item 2 (the coordination-
+  protocol redesign, issues #121-#123) — should be studied before that Gate 1,
+  not after. License-unspecified is a flag. (accessed 2026-09-05)
+
+- https://www.bridle.network/
+  type: standard, tooling | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: "Tailscale, but for agents" — a peer-to-peer networking and governance
+  protocol for AI coding agents by the studio "Shape", Apache-2.0, spec
+  published and self-hostable, pre-release with a live cloud (self-reported ~53
+  bridles, 400+ envelopes/day internally). Four typed actions: `context.push`
+  (share files/links/decisions), `task.queue` (hand off idle work),
+  `run.request` (ask another agent to execute — requires approval),
+  `state.read` (read another agent's status, with redaction). Governance
+  features: dual consent (both agents opt in), default-deny escalation for
+  high-risk operations, policy evaluated before an action reaches the agent,
+  and replayable audit logging on both sides. Complements rather than competes
+  with AGF — its scope is cross-team / cross-org agent-to-agent interaction,
+  not within-project development governance — but `run.request`-needs-approval
+  ≈ gate discipline, policy-before-agent ≈ authority boundaries, and
+  both-sides replayable audit ≈ append-only coordination. Also relevant to the
+  OTGR adapter's consent/identity model and the "Agent identity standards
+  race" radar item. Published spec + Apache-2.0 = citable. (accessed
+  2026-09-05)
+
+- https://machinetestimony.org/census/2026-09/
+  type: research, standard | relation: prior-art, evidence, demand-driver |
+  action: cite, compare-in-docs, watch
+  note: "Machine Testimony" is a research programme (operator: Garnet Taurus
+  Ltd.), explicitly "not a registered institute or a certification body." Its
+  first census (2026-09-04) assesses eight agent frameworks — AutoGen, CrewAI,
+  Graphiti, LangGraph, Letta, mem0, OMEM, OpenAI SDK — against a "Testimony
+  Record" specification: do they capture who approved gated actions, document
+  data deletion, and keep evidence trails. Findings: no system records who
+  approved a gated action; most do not properly document data destruction;
+  only the reference implementation (OMEM) meets "Level 4 verifiability." Every
+  verdict cites a file location at a pinned commit, and the author discloses a
+  conflict of interest (they wrote both the spec and its reference
+  implementation). AGF-relevant because the assessed dimensions —
+  approval attribution, evidence trails, verifiable record-keeping — are AGF's
+  own thesis, and AGF would likely score well on the gaps this census reports
+  as universal. The "Testimony Record" spec is a candidate to compare against
+  AGF's `coordination-message.schema.json`. Cite as this programme's
+  self-referential assessment, not an established standard; the pinned-commit
+  citation discipline is itself a model of `verifiable-claims-rule`. (accessed
+  2026-09-05)
+
+- https://github.com/alpbahadur/interns-review-plugin
+  type: tooling, practice | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: A Claude Code plugin: "adversarial review for every solution your
+  coding agent proposes." It spawns 1-3 independent reviewer subagents (Fable
+  model) to critique a proposal *before* implementation, auto-triggered when
+  the lead forms a proposal or via `/consensus`. Reviewers take different
+  lenses (correctness, edge cases, over-engineering); the lead verifies each
+  finding against the actual code and emits a structured receipt of
+  accepted/rejected findings with reasons; reviewer count scales 1/2/3 by
+  risk. MIT, 2 stars, 9 commits, early. This is a concrete implementation of
+  the exact discipline recorded across AGF's own history — independent review
+  of your own proposal, do not self-review (learnings `20260824T203051Z-loop`,
+  `20260829T192500Z-4vn8`; the suspended independent-implementation-reviewer
+  role; ModelPeer in Batch 31). "1/2/3 reviewers scaled by risk" mirrors AGF's
+  proportional-review calibration; "verify each finding against actual code"
+  is `systematic-code-review-rule`'s finding-verification step; the structured
+  receipt ≈ the review-evidence envelope. Strong convergence prior art despite
+  being tiny and early. (accessed 2026-09-05)
+
+- https://github.com/theagentplane/tokenops
+  type: tooling, framework | relation: complement, prior-art | action: watch,
+  compare-in-docs
+  note: TokenOps is a Python framework (MIT; 52 stars, ~180 commits, active,
+  with runnable benchmarks) for "run-aware token governance in multi-agent AI
+  systems": it enforces spend budgets *in-path before every model call* rather
+  than monitoring after the fact, via an SDK wrapper, an HTTP control plane
+  with a shared SQLite ledger, and ten configurable policies (stop, throttle,
+  mutate, ...). "Cuts wasted agent spend by up to 65%" is self-reported.
+  AGF-relevant as the enforcement counterpart to AGF's cost *measurement*
+  (`agov token roi`): AGF has no spend-governance surface and no stated
+  position on whether it should have one. It is the clearest example so far of
+  a cost gate, and it compounds the "Governance proxy / LLM-gateway layer" and
+  "Outcome-metric interpretation" radar items. Complement, not competitor —
+  it governs per-run spend, not the development process. (accessed 2026-09-05)
+
+- https://github.com/actradeck/actradeck
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: "A local safety cockpit for AI coding agents (Claude Code and Codex)":
+  approval gates that hold risky agent actions for human review, pattern-based
+  secret redaction before local storage, and replayable multi-agent audit
+  trails. Apache-2.0, 0 stars, ~351 commits, TypeScript monorepo, pre-1.0. The
+  authors state plainly that "detection is best-effort, not a sandbox or an
+  absolute security boundary." AGF-relevant as a concrete instance of the
+  runtime-interception approach AGF has deliberately kept at arm's length —
+  the "Governance proxy / LLM-gateway layer" radar item, rejected 2026-07
+  under the removability principle. Prior art with a clear "AGF chose not to
+  do this at runtime" framing; its approval-gate and audit-trail concerns map
+  onto `high-risk-operations-rule` and `destructive-op-preflight-rule` which
+  AGF enforces at review time instead. (accessed 2026-09-05)
+
+- https://github.com/bob-codedaptive/fleet-generator
+  type: tooling | relation: prior-art, complement | action: watch
+  note: A single-HTML-file browser wizard that generates a multi-agent coding
+  fleet — agent role definitions, on-demand skills, shell hooks for scope
+  enforcement and logging, slash commands, settings, and install scripts — as
+  a `.claude/` directory or `AGENTS.md`. Three roles: orchestrator
+  (decompose/delegate), workers (implement units), reviewer (validate before
+  merge), mirroring planner / coder / governor. MIT, 6 stars, ~32 commits,
+  active. AGF-relevant as a *generator* for the same artifact class AGF ships
+  by hand (`agf/agents/`, `.claude/`, skills, hooks); prior art for packaging
+  a governed agent team as installable config (the assistant-neutral packaging
+  thread — `skills-mcp` Batch 33, EngineeringSpec Batch 31). Its self-reported
+  "orchestrators ran ~64% of tokens in subagents" is a datapoint for AGF's own
+  subagent-cost guidance. (accessed 2026-09-05)
+
+- https://github.com/bybit-exchange/svg-diagram
+  type: tooling | relation: prior-art, complement | action: watch
+  note: An agent skill (MIT; 229 stars — notable traction for this batch — 12
+  commits) that has coding agents "draw architecture, flowchart, sequence,
+  data-flow and lifecycle diagrams as hand-placed SVG, to one linted house
+  style." Ships `SKILL.md` (layout rules, typography, colour, coordinate
+  arithmetic) and `svg-lint`, a zero-dependency Node linter enforcing 12+
+  house-style checks that reads finished SVGs and reports specific fixes.
+  AGF-relevant to its own `artifact-diagramming` skill and the visual-identity
+  / `agf/docs/figures/` work, and as prior art for
+  `visible-artifact-verification-rule`'s output-level-invariant pattern — a
+  linter that inspects the produced artifact and names concrete corrections is
+  exactly that rule's discipline applied to diagrams. Hand-placed +
+  plain-text-reviewable + linted is a defensible model for how AGF ships its
+  own diagram guidance. (accessed 2026-09-05)
+
+- https://github.com/franciscocarloserra/local-multi-agent-swarm
+  type: tooling, research | relation: prior-art | action: watch
+  note: A local multi-agent orchestration harness built to *study* delegation
+  in local models — how deep task trees grow, where bottlenecks form, when
+  agents conflict. Visual dashboard (agent inspector, topology graph, runtime
+  metrics), a command vocabulary (SPAWN / SEND / KILL / WRITE / READ / STATUS /
+  DONE / WAIT / RUN), a supervisor that periodically scores agent health and
+  can intervene, a bounded-retry mechanism with a judge validating output
+  against the original goal, persistent state, and optional bubblewrap
+  sandboxing with shell disabled by default. Targets OpenAI-compatible
+  servers. 6 stars, 2 commits, no license. AGF-relevant mainly as a research
+  instrument for the "how do concurrent agents actually collide" question that
+  issues #121-#123 and the universal-polling plan are wrestling with; the
+  supervisor-scoring and judge-against-goal patterns echo AGF's review
+  discipline. No license = not adoptable. (accessed 2026-09-05)
+
+- https://conversion.ai/blog/text-to-query-agent/
+  type: practice, discussion | relation: prior-art | action: watch
+  note: Levi Kline, Conversion Labs, 2026-09-02. A technical case study of a
+  text-to-query agent (natural-language audience descriptions → executable DB
+  filter statements). Architecture: a tool-using agent that searches
+  fields/assets/relationships rather than working from one large prompt; an
+  intermediate representation that reduces the production format to minimal
+  JSON; and a semantic benchmark ("Statement Bench", 100 cases) that validates
+  *meaning*, not just syntactic validity. Framing: "models are good at
+  resolving ambiguity, code is good at enforcing precision, and most failures
+  came from asking the model to do both." Reported results: 45s → 2.3s median
+  latency, ~1/20th cost, 97% semantic correctness on GLM 5.3 Flash. Weak AGF
+  fit — not governance — but the eval-driven loop and the
+  split-ambiguity-from-precision principle continue the eval-methodology
+  thread (Airbnb eval-driven guide, MR !1527; LogRocket skills-vs-tools, Batch
+  33) and rhyme with `gate-self-test-rule` / learning `20260830T114500Z-tw3s`
+  (deterministic checks where failure is visible). All figures self-reported.
+  (accessed 2026-09-05)
+
+## Evaluation boundary
+
+All twelve are classified; none is recorded as reviewed-and-dropped.
+
+This batch classifies sources and opens questions. It adopts nothing. It does
+not install, trial, depend on, or grant AGF authority to any listed project,
+framework, protocol, or practice; it does not change AGF rules, gates,
+schemas, or agent boundaries; and it does not commit AGF to compare against or
+compete with Covenant, FULCRUMAXE, Radia, Bridle, or the Machine Testimony
+census. The two matching radar entries are non-binding open questions. Do not
+cite TokenOps' 65% figure, Covenant's Terminal-Bench figure, FULCRUMAXE's
+uptime claims, fleet-generator's 64% figure, or the text-to-query latency /
+correctness numbers as AGF measurements; each is the respective source's
+self-reported result for its own scope.

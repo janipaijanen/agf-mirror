@@ -209,6 +209,32 @@ Next review: 2026-10.
   EngineeringSpec in `docs/sources.md` Batch 31 | status: evaluate mechanics, no
   implementation proposed | review-by: 2026-11
 
+- **Agent-to-agent coordination protocols converging on immutable-record +
+  claim-by-pattern** — Radia ("ask the table, like Go Fish, not a specific
+  player"; immutable records agents discover/claim/build on; capability-scoped
+  authorization) and Bridle ("Tailscale for agents"; typed A2A actions with
+  dual consent and policy-before-agent) are independent 2026 designs solving
+  the same problem AGF's coordination channel solves, and Radia's
+  broadcast-to-pattern is a direct design answer to issue #121 (role- vs
+  session-addressing). Also related: AetherGrid's renewable-lease claims
+  (existing radar item). Open question, load-bearing for run-list item 2 (the
+  #121-#123 coordination-protocol redesign): should AGF adopt claim-by-pattern
+  / capability-scoped discovery from this prior art rather than inventing
+  session addressing from first principles? Study before that Gate 1, not
+  after. sources: Radia and Bridle in `docs/sources.md` Batch 34,
+  cross-referencing AetherGrid | review-by: 2026-11
+
+- **Cost / spend governance as a gate** — TokenOps (Batch 34) enforces per-run
+  token budgets in-path before every model call, with stop/throttle/mutate
+  policies. AGF has cost *measurement* (`agov token roi`) but no enforcement
+  surface and no stated position on whether it should have one. Controversial:
+  a spend gate is a runtime interposition, which the "Governance proxy /
+  LLM-gateway layer" item rejected in 2026-07 under the removability
+  principle — but an *advisory* spend signal (report, not block) might fit the
+  same way the observation-only proxy variant was left conceivable. Compounds
+  the outcome-metric-interpretation item. sources: TokenOps in
+  `docs/sources.md` Batch 34 | review-by: 2026-12
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
@@ -218,7 +244,8 @@ Next review: 2026-10.
 - CycloneDX Agent-BOM proposal (#895); OWASP AI Exchange
 - IETF AIMS/WIMSE drafts
 - arXiv: multi-agent SE governance, LLM-as-judge reliability, provenance for agents
-- Competitor repos: CORE, MAREF, agentops, Enforra, Cruxible
+- Competitor repos: CORE, MAREF, agentops, Enforra, Cruxible; Covenant, FULCRUMAXE, Radia, Bridle (Batch 34)
+- Machine Testimony census (agent record-keeping conformance assessments)
 
 ## Retired
 
