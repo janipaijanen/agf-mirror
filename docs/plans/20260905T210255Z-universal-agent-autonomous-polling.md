@@ -236,7 +236,46 @@ narrow checks of already-monitored exact identifiers to reduce cost, but the
 next scheduled delta cycle still covers every shared-surface class and the next
 daily reconciliation remains mandatory.
 
-### 6. Exhaustive stop boundary
+### 6. Spare-capacity loop and visible decomposition
+
+At every safe wait boundary — including a healthy pipeline, external review,
+or another agent's claimed execution — the agent asks:
+
+> What is the highest-priority authorized small item I can advance now without
+> delaying, invalidating, or colliding with the work already in flight?
+
+The question is a continuing loop, not a one-time cold-start prompt. The agent
+must inspect the ranked queue and either claim one bounded item or record the
+specific gate, authority boundary, collision, or absence of feasible work that
+prevents it. Waiting on the primary item alone is not a stop condition.
+
+The spare item must be independently reviewable, fit the role and current gate,
+avoid the active branch/head and its acceptance pipeline, and not create a new
+dependency for the primary item. Release-critical defect removal and already
+approved roadmap work outrank unrelated research or polish. By default a
+session carries at most one primary execution lane and one spare lane; it
+finishes, hands off, or withdraws one before claiming another. This prevents
+“stay busy” from becoming unbounded work-in-progress or pipeline spam.
+
+When the highest-value authorized item is too large for the available window,
+decomposition is itself the small work item. Before creating anything, scan the
+issue board, open MRs, plans, and coordination for an existing decomposition.
+If none exists, create or update the parent issue and a small set of linked,
+ordered child issues/tasks on the issue board, and publish a coordination note
+that references the parent and children. Each child states a concrete outcome,
+bounded artifact scope, dependencies/current gate, acceptance evidence, and
+whether it is unclaimed or already owned. Decomposition grants no implementation
+or gate authority and must not fragment one atomic safety/release change into
+invalid intermediate states.
+
+On the next feasible poll cycle, the agent re-reads the remote issue/coordination
+state. It may claim one child only if the child is still open, authorized,
+unclaimed, and no other AI or human has responded with ownership or overlapping
+work since the decomposition was filed. If another actor has responded or
+worked it, the agent observes that state, avoids duplication, and selects the
+next eligible item. A stale local decomposition is never execution authority.
+
+### 7. Exhaustive stop boundary
 
 The rule uses “stop” to mean stop autonomous mutation and request or await the
 named authority. The allowed stops are:
@@ -272,7 +311,7 @@ the same failed action without changed evidence does not count. After that
 bound, record exact evidence and an owner, pause the item, and continue the
 queue; do not thrash indefinitely.
 
-### 7. Empty authorized queue
+### 8. Empty authorized queue
 
 If the complete poll proves there is no claimable authorized work, the agent
 does not manufacture implementation authority. It records or proposes a small,
@@ -285,7 +324,7 @@ This subsumes the useful behavior proposed by pending MR !1817
 this plan should authorize closing !1817 as superseded; it is not closed before
 that decision. Its evidence and safeguards remain cited as design input.
 
-### 8. Scheduling honesty and quiet notifications
+### 9. Scheduling honesty and quiet notifications
 
 A real assistant/orchestrator wake mechanism may implement the cadence. Shell
 `sleep`, cron, detached processes, or timers the assistant cannot observe do
@@ -325,10 +364,12 @@ polling must not become universal notification spam.
   execution, temporary role-allocation consensus, and exhaustive stop
   semantics.
 - `agf/docs/site/docs/operate/runbook.md` — replace the prompt-triggered “Asked
-  to poll” entry with an always-on active-session situation.
+  to poll” entry with an always-on active-session situation and the recurring
+  spare-capacity question at safe wait boundaries.
 - `agf/skills/poll-and-coordinate/SKILL.md` — align invocation behavior with
-  the canonical rule and make clear that a named primary watcher does not
-  narrow other agents' scans.
+  the canonical rule; make clear that a named primary watcher does not narrow
+  other agents' scans; and require remote revalidation before claiming a
+  decomposed child item.
 - `agf/rules/workflow/branch-and-worktree-rule.md` — reconcile primary watcher
   ownership with universal observation.
 - `AGENTS.md` — project-local projection and pointer to the canonical shipped
@@ -412,7 +453,23 @@ After implementation:
      release/build owner publishes the exact-item claim and mutates, while the
      others observe the claim and avoid duplicate work;
    - an agent waiting on CI monitors it and continues at the next authorized
-     state without asking “proceed?”;
+     state without asking “proceed?”, while using a safe wait boundary to ask
+     and answer the recurring spare-capacity question;
+   - a primary pipeline remains in flight while the agent claims one unrelated,
+     bounded, authorized spare item on a separate lane; it neither amends the
+     pipeline's exact head nor starts duplicative acceptance CI;
+   - a large top-ranked item cannot fit the current window, so the agent first
+     collision-scans and then creates a linked parent/child issue-board
+     decomposition plus coordination note; each child has scope, dependency,
+     gate, acceptance, and ownership fields;
+   - on the next feasible cycle another AI has responded to or claimed one
+     child; the agent does not execute it and selects the next still-open,
+     authorized, unclaimed child instead;
+   - proposed decomposition would split an atomic release/safety correction
+     into invalid intermediate states; the split is rejected and the atomic
+     unit is preserved;
+   - a session already has a primary and spare lane; it does not claim a third
+     item merely to appear active;
    - an implementation reaches Gate 2 and the agent stops mutation for the
      governor decision while continuing read-only monitoring;
    - a role discovers an issue outside its authority and routes it without
