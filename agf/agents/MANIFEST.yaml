@@ -74,9 +74,19 @@ agents:
       explicit factual review before Gate 2.
 
   capability-developer:
-    status: suspended
-    reason: "fewer than 10 learnings; activate when patterns emerge"
-    resume_when: "10+ learnings with recurring themes in foundry.yaml"
+    status: active
+    played_by: "AI advisory (explicitly assigned for each capability-review invocation)"
+    notes: >
+      Reactivated by the governor-reviewer on 2026-09-05 after foundry.yaml
+      reached 61 learning records and recurring coordination, validation, and
+      agent-boundary themes, far beyond the prior 10+ learning resume signal.
+      This freshly reaffirms the earlier 2026-07-26 capability-review outcome
+      without importing unrelated changes from stale MR !658. First assignment:
+      run the canonical capability-review skill over the proposed Improvement
+      Propeller role and current evidence, then submit proposals for human
+      disposition before Propeller implementation. See coordination records
+      20260726T223933Z-planner-architect-gqbk.md and
+      20260905T224802Z-governor-reviewer-ksbs.md.
 
   documentation-writer:
     status: skipped
