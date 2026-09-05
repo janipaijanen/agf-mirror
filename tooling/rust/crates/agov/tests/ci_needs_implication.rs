@@ -214,6 +214,8 @@ fn native_linux_packaging_errors(configuration: &str) -> Vec<String> {
         }
     }
     for required in [
+        "apt-get install -y -qq binutils jq musl-tools zip\n",
+        "    - export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc\n",
         "        rustup target add \"$target\"\n",
         "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n",
     ] {

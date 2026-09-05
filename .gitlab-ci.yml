@@ -1297,7 +1297,11 @@ rust:tooling:clippy:
     # assertion for every job built on this template.
     - !reference [.rust-base, before_script]
     # .rust-base's referenced before_script already cd's into tooling/rust.
-    - apt-get update -qq && apt-get install -y -qq binutils jq zip
+    - apt-get update -qq && apt-get install -y -qq binutils jq musl-tools zip
+    # The repository config preserves Cross's prefixed linker name. Debian's
+    # musl-tools package exposes the native wrapper as musl-gcc, so override
+    # only the mandatory native x86_64 target in this job environment.
+    - export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc
   script:
     - VERSION="$(cat ../../agf/VERSION)"
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
