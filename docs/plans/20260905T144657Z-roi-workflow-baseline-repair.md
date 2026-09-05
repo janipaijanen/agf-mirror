@@ -1,6 +1,8 @@
 ---
 id: 20260905T144657Z-roi-workflow-baseline-repair
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-05T15:45:55Z
 topic: roi-workflow-baseline-repair
 candidate_release: v2.9.0
 advisory_consultation:
@@ -11,12 +13,13 @@ advisory_consultation:
       local aggregate telemetry. It adds no collected field, raw prompt,
       credential, network request, or persistence destination.
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      The authoritative repository documentation already defines the three
-      missing mappings. This repair makes implementation match that governed
-      local contract and introduces no external contribution or generalized
-      policy claim.
+      Claude-backed contribution-auditor review
+      `20260905T154555Z-contribution-auditor-3tbq` covered MR !2372 at exact
+      head `38d027dcc2280c1bfbfba92103c52144dea1a3d8` and returned COMPLETE/CLEAR
+      with zero blocking findings. Its two advisory wording observations do
+      not change the bounded implementation scope.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
