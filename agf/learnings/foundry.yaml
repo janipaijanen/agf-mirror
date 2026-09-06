@@ -4569,6 +4569,143 @@ learnings:
       evidence_refs:
         - 'docs/plans/20260831T050110Z-v290-release-publication.md: the v2.9.0 metadata audit excluded agf/learnings wholesale and therefore omitted its live adoption.framework_version field.'
         - 'docs/coordination/20260828T061002Z-coder-tester-eqq3.md: v2.7.0-rc.1 publication stopped after the immutable tag because the OCI scan found a fixed HIGH vulnerability.'
+  - id: "20260728T082825Z-m969"
+    date: "2026-07-28"
+    category: gap
+    scope: framework
+    title: prose-mention-of-ci-skip-marker-in-commit-message-triggers-the-same-platform-skip-as-using-it
+    description: >
+      Re-appended 2026-09-06 from closed MR !739 (governor-directed
+      "close and re-append"). MR !737 (release v2.4.5 prep) got a real,
+      mechanical pipeline every time it was pushed for MR !719, but its own
+      release-prep commit produced four consecutive zero-job "skipped"
+      GitLab pipelines across manual retriggers. Each was diagnosed as a
+      transient GitLab platform flake. It was not a flake: the commit
+      message body described the CI-skip directive prohibition using the
+      literal bracketed strings themselves, and GitLab recognizes the
+      marker anywhere in the commit message body and does not exempt
+      quoted or descriptive prose. The before/after case proved it: the
+      amended commit had an identical Git tree (only the message changed),
+      so the marker's presence in the message text was the only variable
+      between a skipped and a real pipeline. GitLab does not distinguish
+      "this commit uses the marker as a directive" from "this commit's
+      prose quotes or discusses the marker." The fix was to reword the
+      commit message to avoid the literal substrings entirely and
+      force-push with lease; a real pipeline was created immediately on
+      the next push. (Recurred live on 2026-09-06: agov coord
+      publication-check blocked a contribution-auditor commit that quoted
+      the marker while describing this very record.)
+    agents_involved:
+      - coder-tester
+    framework_section: "agf/rules/workflow/coordination-publication-rule.md marker prohibition section"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Fact-checker-verified from GitLab pipeline timestamps
+        (20260728T084610Z-fact-checker-jsqt): about 7 minutes 24 seconds
+        elapsed from the first automatic MR pipeline through the last of
+        four manual retriggers, all producing the same zero-job "skipped"
+        result, before the commit message was corrected. No merge or
+        release was blocked incorrectly (only_allow_merge_if_pipeline_
+        succeeds correctly refused the pipeline-less MR), but the
+        diagnostic time was avoidable, and a future agent without a human
+        catching this could retry indefinitely or fall back to a broader
+        CI suppression that reintroduces the gap this governance work
+        closed.
+    framework_impact: minor
+    status: proposed
+    recommendation: >
+      When any commit message needs to describe, cite, or discuss the
+      CI-skip directive prohibition, do not reproduce the literal
+      bracketed marker substring; use a paraphrase. This applies to the
+      commit message specifically; file content (rule docs, CHANGELOG,
+      coordination records) is unaffected because GitLab's platform-level
+      skip only scans the commit message. Before treating a zero-job
+      "skipped" pipeline as a transient flake and retrying, first grep the
+      exact commit message for the two marker substrings
+      (case-insensitive). Recommended follow-up, not yet landed (the rule
+      edit bundled in the original MR !739 did not merge): the
+      coordination-publication-rule marker section should state explicitly
+      that the prohibition covers the substring appearing anywhere in a
+      commit message, including in prose describing or citing the rule
+      itself, not only when used as a directive. Routed to
+      planner-architect as a separate small Gate 1 item.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !737 four zero-job pipelines (GitLab pipeline IDs 2709894713, 2709895485, 2709896093, 2709903266) followed by a real pipeline (2711130008) immediately after the commit message was reworded and force-pushed with --force-with-lease"
+        - "Live recurrence 2026-09-06: agov coord publication-check BLOCK on a commit message quoting the marker while documenting this record"
+
+  - id: "20260729T105346Z-rp7x"
+    date: "2026-07-29"
+    category: validation
+    scope: framework
+    title: release-agent-trusted-inherited-checkout-over-assigned-project-identity
+    description: >
+      Re-appended 2026-09-06 from closed MR !776 (governor-directed
+      "close and re-append"). A Codex session assigned to bake canonical
+      AGF and agov releases started inside a promotional adopter checkout.
+      The assistant treated that inherited working directory as the
+      assignment boundary, performed downstream polling and coordination
+      there, and then classified the canonical agents-govern-framework
+      project and its release MRs as an external "upstream" requiring a
+      fresh scope grant. It went far enough to advise the governor how to
+      authorize access to the very project the session existed to operate.
+      The failure survived repeated boundary reminders because the
+      assistant had learned a locally correct rule in the promotional
+      adopter and applied it outside the context that made it correct. It
+      never reconciled three facts before acting: the human assignment
+      named AGF/agov release work, the inherited checkout identified itself
+      as the promotional adopter, and that checkout's origin was not the
+      canonical framework remote. The governor stopped the inversion
+      explicitly; a fresh canonical checkout then confirmed identity via
+      AGENTS.md (codename foundry, surfaces agf/ and tooling/) and
+      git remote -v.
+    agents_involved:
+      - fact-checker
+      - governor-reviewer
+    framework_section: "AGENTS.md cold start, project identity, and polling action loop"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Release review was delayed while the assistant created and
+        reviewed unrelated downstream coordination artifacts, comments,
+        and merge-request state. The governor had to correct the same
+        project-boundary inversion multiple times. No canonical release
+        branch, version, tag, or artifact was changed during the mistaken
+        work.
+    framework_impact: high
+    status: proposed
+    recommendation: >
+      Add a project-identity reconciliation preflight before any poll,
+      fetch beyond orientation, coordination write, MR comment, or release
+      action. Compare: (1) the project and product surfaces named by the
+      human assignment; (2) the repository identity and codename declared
+      by the root AGENTS.md/cold-start overlay; (3) the normalized fetch
+      and push remotes from git remote get-url origin. All three must
+      describe the same intended operational target; if not, stop before
+      external or durable writes, report the mismatch, and locate or clone
+      the assigned repository. Never use an inherited cwd as implicit
+      authorization. Before saying an "upstream" project needs separate
+      authorization, name the exact namespace and check it against the
+      assignment target: upstream, downstream, adopter, and canonical are
+      relationships between repositories, not authority labels. This
+      boundary applies identically to every assistant and vendor instance.
+      Cross-agent coordination does not enlarge the canonical release
+      assignment. This is a proposed framework guardrail from one severe
+      incident; the learning does not itself authorize a rule or tooling
+      change.
+    severity: critical
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "Governor correction in the active Codex release session, 2026-07-29"
+        - "AGENTS.md project identity and product-surface declarations"
+        - "Canonical origin verified as janipaijanen/agents-govern-framework after recovery"
+
 
   - id: 20260907T073424Z-rl9k
     date: '2026-09-07'
