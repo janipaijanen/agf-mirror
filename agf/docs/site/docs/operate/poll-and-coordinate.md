@@ -1,12 +1,26 @@
 # Poll and coordinate
 
-*Status: Released. Audience: operators and AI assistants responsible for advancing already-authorized work. A poll is complete only when all shared surfaces were checked and the highest-priority obligation was advanced, monitored, or concretely blocked.*
+*Status: Released. Audience: every active operator or AI development
+agent/session in an AGF-governed project — not only the agent that opened a
+particular MR, and not only when someone types "poll". A poll is complete
+only when all shared surfaces were checked and the highest-priority
+authorized obligation was advanced, monitored, or concretely blocked.*
+
+This page explains and situates the obligation. The normative contract — who
+must poll, the complete observation surface, collision-safe selection,
+temporary role-allocation consensus, the exhaustive stop boundary, and the
+empty-queue behavior — is owned by
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`.
+Where this page and that rule differ, the rule governs.
 
 **Shared surface** means repository/worktree state, published
 coordination records, and forge issues/MRs/pipelines — anything visible
 to concurrent AI assistants or operators sharing one repository. The
 term is used as shorthand for that set throughout this page and the
-`poll-and-coordinate` skill that operationalizes it.
+`poll-and-coordinate` skill that operationalizes it. Observation covers the
+**whole** shared surface inside the governed project scope; work selection
+and execution stay role-scoped — every active agent observes everything, but
+they do not all claim everything.
 
 ## One complete cycle
 
@@ -38,13 +52,24 @@ term is used as shorthand for that set throughout this page and the
    handoff next`'s surface, unchanged. The command only *reports* pending
    obligations — a later coordination record's direct `references-to` is
    what resolves one, not the `pending` command itself.
-4. Inspect every relevant change request/MR: source and target SHA, draft and
-   merge state, approvals, exact-head pipeline and jobs, discussions, and
-   comments/notes.
-5. Inspect relevant tickets/issues: new issues, state and label changes, and
-   issue comments.
-6. Classify new items by urgency, current gate, role authority, ownership, and
+4. Inspect **every** open change request/MR — regardless of author or apparent
+   relevance: source and target SHA, draft and merge state, approvals,
+   exact-head pipeline and jobs, discussions, and comments/notes. A
+   cursor-based delta narrows how many records transfer; it never narrows
+   which authors, roles, or classes are observed. APIs without reliable
+   changed-since semantics are paginated in full.
+5. Inspect **every** open ticket/issue: new issues, state and label changes,
+   and issue comments.
+6. Recheck every exact external state (branch, tag, release, runner,
+   pipeline, job) the agent started or awaits.
+7. Classify new items by urgency, current gate, role authority, ownership, and
    whether they create a downstream obligation.
+
+A full paginated reconciliation of every currently open MR/issue and each
+monitored exact head is mandatory on cold start, post-compaction resume,
+cursor loss, evidence of missed events, and at least once per UTC day while
+the session stays active. Between those, the delta cycle bounds routine cost
+at the number of changed items.
 
 ### Common pitfalls (both cause a poll to look complete while missing real work)
 
@@ -74,15 +99,45 @@ term is used as shorthand for that set throughout this page and the
   exists for the exact same source SHA and reuse or wait on that one.
   Retriggering against an unchanged head burns paid CI minutes for no new
   evidence.
-7. Act inside the current gate. Split independent work into non-overlapping
-   ownership, communicate material progress, and publish validated handoffs or
-   blockers where the recipient can see them.
-8. Monitor running work until it reaches a reviewable terminal point or a
+8. Select and act inside the current gate, using the priority order in the
+   canonical rule (screened security → in-role obligation → gate-ready item →
+   next-release readiness → existing-feature quality → approved features).
+   Split independent work into non-overlapping ownership, communicate material
+   progress, and publish validated handoffs or blockers where the recipient
+   can see them. Advance the durable cursor only after the selected action is
+   completed, actively running and monitored, or concretely blocked.
+9. Monitor running work until it reaches a reviewable terminal point or a
    concrete blocker. Update last-seen markers.
 
 **Poll** means observe. **Coordinate** means act, assign, record, and make the
 result visible. **Approve, merge, and release** remain reserved decisions;
 polling never grants them.
+
+### Collision-safe selection, role consensus, and stopping
+
+- **Before the first mutation**, check for an existing claim or an
+  overlapping plan/MR on the same item or artifacts. Publish a `kind: claim`
+  naming the exact item, branch/lane, and file ownership when one is needed to
+  prevent collision; an existing current handoff or claim to that lane
+  satisfies it, and small related mutations may share one bounded batch claim.
+  Work under a trivial-change waiver or the `simplicity-rule.md`
+  research-maintenance fast path keeps its own branch/MR collision scan but
+  acquires no separate claim ceremony.
+- **Concurrent sessions with an ambiguous or mismatched role** reach durable
+  consensus on a temporary role allocation before either mutates — a proposal,
+  explicit acknowledgements from every affected session, and a resume role.
+  Consensus cannot activate a suspended role or create authority; an
+  unreachable peer is routed to the governor, not waited on indefinitely.
+- **Stopping** means stop autonomous mutation and request or await a named
+  authority: Gate 1 or Gate 2 approval; tag/release/deploy authorization;
+  scope expansion or conflicting instructions; destructive/irreversible action;
+  new role or permission authority; secrets/security/privacy/legal ambiguity;
+  or a concrete external blocker after one bounded diagnostic pass. Ordinary
+  uncertainty, waiting CI, an empty chat inbox, or the absence of another
+  prompt are not stop conditions. Name the boundary and cite the missing
+  decision; if you cannot, continue the next authorized action.
+
+The full definitions of each of the three are in the canonical rule.
 
 **Publishing a coordination-only handoff:** publish it promptly — do not wait
 for the implementation artifact's Gate 2 to merge first. Branch it from the
@@ -136,6 +191,15 @@ of inactivity, resetting the idle window after relevant activity. Use a real
 assistant/orchestrator wake-up. A background shell timer, `sleep`, cron job, or
 detached process does not ensure an assistant will resume. If the surface
 cannot wake itself, say polling continues when the session is active.
+
+Scheduled polling is **non-reentrant**. A wake that becomes due while the same
+session is executing an authorized work item does not interrupt that work or
+start a concurrent poll — it sets one pending-poll latch, and repeated ticks
+coalesce into it. Exactly one complete poll runs immediately after the active
+item reaches its next safe completion, handoff, gate, or blocker boundary, and
+cadence then continues from that cycle. "Deferred while busy" is not
+"skipped." The 180-minute idle calculation uses observed relevant activity,
+not the number of coalesced ticks.
 
 ## Terminal outcomes
 

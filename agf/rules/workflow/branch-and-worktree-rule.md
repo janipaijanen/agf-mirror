@@ -98,10 +98,12 @@ This subsection is **MUST**-strength for any adopter using AI coding assistants 
 
 When more than one agent is running coordination polling loops, branch-watch state must be explicit. Silent divergence — two agents each confident they are watching the right branch, neither aware of the other — causes missed messages and duplicated effort.
 
+**The primary-watcher designation is a scheduled-notification role, not an observation exemption.** Every active agent still runs its own complete poll over the whole shared surface per [`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`](../always/universal-polling-and-autonomous-continuation-rule.md). A "passive" or non-primary watcher stays collision-safe by observing and deferring *claimed execution* on the watched branch — never by narrowing what it scans. Only one agent per branch holds the named primary-watcher / notification responsibility; all of them retain the full observation duty.
+
 When an agent starts or changes a polling timer:
 
 - File a coordination `kind: note` recording: branch being watched, polling interval, expected duration, and agent role (the watcher).
-- Mark additional watchers as passive in their own notes; only one agent per branch should be the named primary watcher.
+- Name exactly one primary watcher per branch; additional agents record themselves as non-primary in their own notes, and their scan stays complete.
 - Every "no new coordination" status reply must name the branch checked, so the absence claim is unambiguous.
 - When handing off to another agent, include the branch-watch note in the handoff so the new agent knows what was being watched and why.
 
