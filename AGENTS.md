@@ -75,13 +75,14 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | contribution-auditor | Jani + claude | Reviews plans and proposals; filed as coordination messages |
 | infosec-sentinel | CI (agov-validate-infosec) | Mechanically blocks configured checks on credential or cross-record leaks in learnings; governor-reviewer resolves the finding |
 | build-engineer | claude (AI) | CI configuration, build automation, artifacts, caching, trigger rules, pipeline efficiency, and release-build stages |
+| capability-developer | AI advisory (explicitly assigned per review) | Evidence-triggered agent evolution, maturity, phase, and boundary proposals |
 | fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
 | web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
 
-Suspended: capability-developer, independent-implementation-reviewer (role
-definition has 6 unresolved findings from its own first exact-head review;
-see `agf/agents/MANIFEST.yaml` for the corrective-work trail).
+Suspended: independent-implementation-reviewer (role definition has 6
+unresolved findings from its own first exact-head review; see
+`agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
 Authoritative status: `agf/agents/MANIFEST.yaml`.
