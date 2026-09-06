@@ -8,136 +8,159 @@ Reference material, not a plan. Lives under docs/reference/ (not docs/plans/)
 because it is an advisory contribution-auditor inventory, not a schema-valid
 Gate 1 plan. id: post-v290-release-scope-inventory | status: draft |
 authored_by: contribution-auditor | authored_at: 2026-09-06T12:52:34Z |
-gate: none.
+last_recut: 2026-09-06T18:10Z against the v2.9.0 tag | gate: none.
 -->
 
-
 **Status: DRAFT / advisory.** Authored by contribution-auditor at the
-operator's request, 2026-09-06, during idle poll capacity. **This is not a
-Gate 1 plan and grants no approval.** A planner-architect converts it into
-the actual Gate 1 release plan once the post-v2.9.0 window opens — i.e. once
-`v2.9.0` is tagged and its scope boundary is fixed. Until then every
-disposition below is a candidate, not a decision.
+operator's request. **Not a Gate 1 plan; grants no approval.** Every
+disposition is a candidate. A planner-architect converts it into the Gate 1
+release plan (handoff `mjqa` / MR !2442). Re-cut 2026-09-06T18:10Z against
+the now-existing `v2.9.0` tag.
 
-## Accepted caveats
+## Caveats
 
-- **Scope cannot be frozen until v2.9.0 is tagged.** The "since" boundary is
-  that tag. Everything here is measured from `v2.8.0..main` and will be
-  re-cut against the v2.9.0 tag when it exists.
-- **The post-v2.9.0 window will add items.** Propeller's first
-  friction-mining pass and capability-developer's one-shot review are
-  expected to surface new candidates. Several current backlog items are
-  explicitly parked for that window and must **not** be pulled forward
-  (Part D).
-- **Version number is downstream.** 2.9.1 vs 2.10.0 is the governor's / the
-  `release` skill's call. Evidence points to **2.10.0** (MINOR): `v2.8.0..main`
-  already carries a new schema (`agf/schemas/gate-registry.schema.json`), a
-  MANIFEST role addition (capability-developer, improvement-propeller), and a
-  gate-mechanic rule change (`gate-self-test-rule.md`) — none PATCH-class.
-
----
-
-## Part A — Already on `main` since v2.8.0 (auto-included; needs changelog authoring)
-
-215 merges `v2.8.0..main`; ~150 are `coordination:` audit-trail commits with
-no release-content diff. Substantive clusters:
-
-| Cluster | Representative merges | Nature |
-|---|---|---|
-| **CI / release integrity** | `7f66bb0a` ci-mandatory-needs-implication fix; `02be60d5`/`77832439` v2.9.0 vulnerable-proof + autocancel; `8d71eca5` native-musl-release-build plan; `3572854f` v290 atomic runner routing; `5aaacff1`/`04432e95` ROI workflow baselines; pre-tag OCI CVE scan (`agf/CHANGELOG.md` Unreleased) | fix + build; low adopter impact |
-| **Governance capability** | `2f78c907` capability-developer activation; `b034dbbb` improvement-propeller Gate 1 (plan approved — *not implemented*); `9ed176de`/`0344fe99` agf-development-starter guideline | MINOR (MANIFEST role additions) |
-| **Rules / schema** | `agf/schemas/gate-registry.schema.json` (new, +60); `gate-self-test-rule.md` (+25 — gate-mechanic; confirm it shipped with its own negative test); `simplicity-rule.md` (+4) | MINOR + one gate-mechanic change to confirm |
-| **Docs / sources / radar** | OTGR Zulip-adapter spec + charter; queue-convergence & plan-status work; deliberation guide | docs |
-| **Learnings** | release-preflight version reservation (`cab3c0d6`), + others | learnings |
-
-**Action for the real plan:** author the `v2.8.0..<v2.9.0 tag>` changelog;
-this section then becomes "everything after the v2.9.0 tag."
+- **Scope boundary is fixed:** `v2.9.0` = tag `ee27978b`, 2026-09-06
+  13:13:29Z. The next release's content is `v2.9.0..main` plus whatever
+  merges before its own cut.
+- **The delta is currently tiny** (see Part A). It grows as the queued
+  rule / schema / Propeller / polling-model work merges.
+- **Version is downstream and currently PATCH-shaped.** `v2.9.0..main`
+  today is one fix (ROI baseline repair) → `2.9.1`. It becomes MINOR
+  (`2.10.0`) only when a queued item that adds a rule, schema, MANIFEST
+  role, or CLI surface actually merges. The earlier "MINOR → 2.10.0" claim
+  was premature — it was measuring `v2.8.0..main`, which is v2.9.0's own
+  content.
+- **The post-v2.9.0 window adds items.** Propeller's first friction-mining
+  pass and capability-developer's one-shot review will surface candidates.
+  Part D items are parked for that window and must not be pulled forward.
+- **Operating model:** governor decision `mskd` (2026-09-06, merged
+  `34b9c650`) adopts the layered autonomous poll/action model for all AGF
+  development AIs and directs planner-architect to revise MR !2405 as its
+  canonical normative owner with the six-row projection matrix. That !2405
+  revision is now a named release-relevant workstream.
 
 ---
 
-## Part B — Open MRs (77 at authoring time), dispositioned with cause
+## Part A — `v2.9.0..main` (auto-included; needs changelog authoring)
 
-### B1 — Coordination-only: drain before the cut, not "content" (~20)
+The non-coordination delta since the `v2.9.0` tag is **one change**:
+
+| Change | Merges | Files | Nature | Recorded |
+|---|---|---|---|---|
+| **ROI workflow baseline repair** (MR !2383) | `be62df46` `fix/roi-workflow-baselines`; Gate 2 chain `9be5a113`/`558d6b0d` (`gmm7`/`j53q`) | `tooling/rust/crates/agov-core/src/roi.rs` (+156), `CHANGELOG.md` (+7), `agf/CHANGELOG.md` (+11) | `fix` — restores automatic token-saving estimates for `cold-start` / `session-resume` / `next-handoff`; parity preserved | `## [Unreleased]` in both changelogs |
+
+Plus one coordination-only merge with a release-planning consequence:
+
+| Merge | Effect |
+|---|---|
+| `34b9c650` `coordination/layered-poll-guidance` (`mskd`) | Not release content itself. Establishes the operating objective and a **planning obligation on MR !2405** (planner-architect revises it as the polling model's normative owner). Any rule/loader/AGENTS.md diff from that work is future release content once `!2405` clears Gate 1. |
+
+**Everything else previously listed here shipped IN v2.9.0**, not after it:
+the `gate-registry.schema.json` addition, `capability-developer` activation,
+`improvement-propeller` Gate 1, `agf-development-starter`, native-musl plan,
+`ci-mandatory-needs-implication` fix, and the `gate-self-test-rule.md`
+broadening (commit `7ca76d71`, merged 2026-08-30).
+
+### Resolved: the `gate-self-test-rule.md` flag was a false alarm
+
+Verified this session. `7ca76d71` shipped in v2.9.0 under Gate-1-approved
+plan `gate-change-discipline` (decision `20260830T085834Z-governor-reviewer-dq5a`).
+The gate mechanic it carried (`.gitlab/scripts/changed-files.sh`) shipped
+with a proper negative test: `tests/changed-files-failclosed.sh`, 17
+assertions, CI job `governance:changed-files:selftest`, demonstrating both
+new-code-fails-on-bad-input and old-code-passed-on-same-input. The rule-prose
+broadening itself introduces no mechanism, so needs no self-test. Not a
+release concern.
+
+**Action for the Gate 1 plan:** author the `v2.9.0..<next tag>` changelog
+section from Part A; it currently contains one `Fixed` entry.
+
+---
+
+## Part B — Open MRs, dispositioned with cause and priority
+
+Priority uses the `mskd` Layer 2 order (screened-security → in-role
+obligation → advance-ready → next-release readiness → quality unit →
+approved features). "Ready" = required pipeline green, findings resolved,
+exact head confirmed.
+
+### B1 — Coordination-only: drain before the cut, not content (~20)
 
 !2352, !2353, !2361, !2363, !2366, !2370, !2376, !2377, !2378, !2382,
-!2399, !2400, !2403, !2407, !2409, !2410, !2411, !2417, !2437
+!2399, !2400, !2403, !2407, !2409, !2410, !2411, !2417, !2437, !2442,
+!2443, !2445
 
 **Cause:** each publishes an audit-trail record or routes a review; no
-release diff. Merge (or close if superseded) so `main` is clean at the
-v2.9.0 cut, but they are not content line-items. !2400/!2409 (run-list
-consolidation) and !2399 should merge **first** — the canonical run-list is
-currently branch-local (`bridge: missing` in `coord visibility`).
+release diff. **Priority within B1:** !2400/!2409 (canonical run-list) and
+!2399 merge **first** — the run-list is branch-local (`bridge: missing`),
+and several later dispositions cite it. Then the rest drain in any order.
 
-### B2 — Substantive, near-ready: include if Gate 2 clears in the window
+### B2 — Substantive, near-ready content (priority order)
 
-| MR | Cause to include | Watch-out |
-|---|---|---|
-| !2383 fix: restore ROI workflow baselines | Gate 1 approved; small fix | — |
-| !2392 build: remove DinD from mandatory Linux packaging | native-musl release-build; unblocks packaging | ties to #109 runner migration |
-| !2362 build: route every CI job to dedicated runner | pairs with v290 atomic routing | **gate-blocked** per !2366 — needs the accompanying gate |
-| !2368 learning: controlled test before fix | audited clean this session | low-risk |
-| !2394 learnings: coordination work-order gaps | audited clean; feeds #121-#123 | — |
-| !2412 learning: non-reentrant polling | audited clean | — |
-| !2390 / !2408 docs: sources Batch 33 / 34 | audited clean; research-maintenance fast-path style | !2410 wants Batch 34 redirected release-first |
-| !2306 docs: classify AgentConnect radar | audited clean | — |
-| !2375 docs: OTGR Zulip-adapter spec v0.1 | consolidation review routed to governor (!2376) | proposal, not a commitment |
-| !2434 learning: release-metadata preflight | audited clean; at Gate 2 now (`rgkp`) | — |
+| Pri | MR | Readiness | Cause / dependency |
+|---|---|---|---|
+| 1 | !2405 universal polling plan | **not ready** — `p6j5` CHANGES REQUESTED (C1 simplicity-rule collision) | `mskd` names it the polling-model normative owner; planner-architect MUST revise (not replace). Blocks the polling-model rule/loader diffs. |
+| 2 | !2362 build: route CI jobs to dedicated runner | **not ready** — gate-blocked per !2366 | needs the accompanying gate; pairs with the merged v290 atomic routing |
+| 3 | !2392 build: remove DinD from mandatory Linux packaging | near-ready | unblocks native-musl packaging; **blocked-by** #109 runner-migration direction |
+| 4 | !2434 learning: release-metadata preflight | at Gate 2 (`rgkp`) | audited clean this session |
+| 5 | !2368 / !2394 / !2412 learnings | near-ready | all audited clean; !2394 feeds #121-#123 |
+| 6 | !2390 / !2408 / !2306 docs sources+radar | near-ready | audited clean; research-maintenance fast-path style; !2410 wants Batch 34 release-first |
+| 7 | !2375 docs: OTGR Zulip-adapter spec v0.1 | proposal | routed to governor (!2376); not a commitment |
+| — | ~~!2383 ROI baseline repair~~ | **MERGED** `be62df46` | now Part A |
 
-### B3 — Gate-1-pending plans: NOT release content unless approved + implemented + merged in-window
+### B3 — Gate-1-pending plans: not content unless approved + implemented + merged
 
-!1817, !2027, !2038, !2275, !2405 (draft), !2416 (draft), !918, !923,
-!745, !654, !658, !998, !459, !1451, !1617, !1659
+!1817, !2027, !2038, !2275, !2416 (draft), !918, !923, !745, !654, !658,
+!998, !459, !1451, !1617, !1659
 
-**Cause:** plan-only. Each needs Gate 1 approval, then a separate
-implementation cycle, before any diff reaches `main`. Run-list items, not
-release line-items. Sub-notes:
-- !2416 (Propeller) / !2405 (universal polling) — Gate 1 effective;
-  *implementation* is the post-v2.9.0 window (#124-#127). Land in the next
-  release only if built in the window.
-- !2038 stale-worktree-pruning — Gate 1 review `eb87` = CHANGES REQUESTED
-  (2 blocking). Not ready.
-- !1817, !2027 — see Part D.
-- !654, !658, !745, !998, !459 — July/early-Aug plans; **verify not
-  superseded** before carrying forward.
+**Cause:** plan-only; each needs Gate 1 → a separate implementation cycle
+before any diff reaches `main`. Sub-notes:
+- **!2416 Propeller** — Gate 1 *effective* at `4a267765` (`ksbs` D3). Needs
+  mechanical closure (pipeline, un-draft, publish binding Gate 1 handoff —
+  `6pss` item 1). Implementation (#126/#127) **blocked-by** the
+  capability-developer `capability-review` pass (`skr6` / MR !2443).
+- **!2038** stale-worktree rule — `eb87` CHANGES REQUESTED (2 blocking). Not
+  ready.
+- **!1817, !2027** — see Part D.
+- !654, !658, !745, !998, !459, !1451, !1617, !1659 — July/Aug plans;
+  **verify not superseded** before carry-forward (own pass needed).
 
 ### B4 — Stale / superseded: close, do not include
 
-| MR | Cause |
-|---|---|
-| !1723, !1750 | commercial-licensing; CL-4 shipped separately, umbrella needs reconciliation — see digest `52nt` / MR !2437 |
-| !1492 | plan: publish v2.6.0 release — obsolete (project at v2.9.0 construction) |
-| !1657 | plan: v2.6.1 release-only correction — obsolete |
-| !1444 | plan: mark diligence plan ABANDONED — merge the abandonment note or close |
-| !341, !349, !407, !430, !461, !465, !739, !776, !829, !850, !932 | July learnings/rule proposals, 6-8 weeks stale; **verify each** vs merged work — most likely superseded |
-| !1446, !1691, !1718, !1722 | v2.5.0-era external due-diligence artifacts; historical, not next-release content |
-| !915 | frozen-release two-AI evaluation proposal; tied to an abandoned line |
+| MR | Confidence | Cause |
+|---|---|---|
+| !1492 plan: publish v2.6.0 release | **close** (high) | project is at v2.9.0; the v2.6.0 line is historical |
+| !1657 plan: v2.6.1 release-only correction | **close** (high) | same |
+| !1444 mark diligence plan ABANDONED | **close/merge the note** (high) | housekeeping; abandonment already effective |
+| !1723, !1750 commercial-licensing | reconcile | CL-4 shipped separately — see digest `52nt` / MR !2437 |
+| !341, !349, !407, !430, !461(draft), !465, !739, !776, !829, !850, !932 | **verify each** (own pass) | July learnings/rule proposals, 6–10 weeks stale; most themes plausibly covered in `foundry.yaml`'s 61 records — but each needs an individual content check before close |
+| !1446, !1691, !1718, !1722 | historical | v2.5.0-era external due-diligence artifacts; not next-release content |
+| !915 | close | frozen-release two-AI evaluation, tied to an abandoned line |
 
-### B5 — The release chain itself
+### B5 — Release chain
 
-!2435 (Release v2.9.0) — the *predecessor*, not next-release content.
-!2437 — the stale-plan digest filed 2026-09-06.
+!2435 (Release v2.9.0) — merged predecessor, not next-release content.
 
 ---
 
-## Part C — Issues selected for the next release, with cause
+## Part C — Issues selected for the next release, with cause and priority
 
-61 open at authoring time; ~50 carry `release::unmilestoned-backlog`
-(already triaged as *not* release-bound). Selecting **in**, with cause:
+~50 of 61 carry `release::unmilestoned-backlog` (already triaged as not
+release-bound). Selecting **in**:
 
-| # | Title | Cause to include in the next release |
+| Pri | # | Cause |
 |---|---|---|
-| **#120** | Release workflow has no pre-tag namespace-absence obligation | `bug`; release-integrity gap reinforced twice (v2.7.0-rc.1 burn; `ev5m` preflight learning). Cheap, self-contained; should land before the *following* release relies on the same workflow. |
-| **#119** | Static context cost: rule corpus ~91k tokens/session | `governance`; largest adopter-facing cost item. **Candidate but needs its own Gate 1** — include only if a scoped slice is planned in-window. |
-| **#116** | Measure AI token ROI: direct CLI vs agov-mcp | ROI baseline work (!2383) is the enabler and is in-flight; the measurement is a small follow-on. |
-| **#124–#127** | Improvement-propeller role | Gate 1 approved; implementation *is* the post-v2.9.0 window. Lands in the next release if built there. |
-| **#67** | v2.4.4 commissioning: 5 doc defects | `bug,documentation`; **verify still reproducible** on current docs — close if fixed, else cheap doc fix. |
-| **#111 / #113** | Upgrade can silently delete adopter governance / ignore rules exclude `agf/` | `learning`; real provenance risk, no release binding yet. Candidate — needs a plan for the detecting gate. |
-| **#101 / #102 / #106** | CI cache writers / Elixir exclusion / cancelled-pipeline frequency | build-engineer lane; include a batch only if build-engineer is active in-window. |
+| 1 | **#120** pre-tag namespace-absence obligation | `bug`; release-integrity gap reinforced twice (v2.7.0-rc.1 burn; `ev5m` learning). Cheap, self-contained. Should land before the *following* release runs the same workflow. |
+| 2 | **#124–#127** improvement-propeller | Gate 1 approved. Sequence: planner-architect revises !2405 (polling-model owner, per `mskd`) → capability-developer `capability-review` pass → Propeller role/rule implementation (#126/#127). Lands in the next release only if that chain completes in-window. |
+| 3 | **#116** token ROI CLI vs agov-mcp | enabler (!2383 baseline repair) **now merged** (Part A); the measurement is a small follow-on. |
+| 4 | **#67** v2.4.4 commissioning doc defects | `bug,documentation`; **verify still reproducible** — close if fixed, else cheap doc fix. |
+| 5 | **#111 / #113** upgrade deletes adopter governance / ignore rules exclude `agf/` | `learning`; real provenance risk. Candidate — needs a plan for the detecting gate. |
+| 6 | **#101 / #102 / #106** CI cache / Elixir exclusion / cancelled-pipeline | build-engineer lane; batch only if build-engineer is active in-window. |
+| — | **#119** static context cost (~91k tokens/session) | high impact but **needs its own Gate 1**; include only if a scoped slice is planned in-window. |
 
-Everything else (radar items #59–#62, #83, #98, #99, #104; compliance/CRA
-#40–#49; #17–#19, #31–#39; #75, #77, #82, #91, #94, #96, #103, #105,
-#107–#109, #117, #118) — **stays deferred.** Cause: not release-bound, each
-needs its own Gate 1, or explicitly parked.
+Everything else (radar #59–#62/#83/#98/#99/#104; compliance/CRA #40–#49;
+#17–#19/#31–#39; #75/#77/#82/#91/#94/#96/#103/#105/#107–#109/#117/#118) —
+**deferred.** Cause: not release-bound, each needs its own Gate 1, or parked.
 
 ---
 
@@ -146,18 +169,43 @@ needs its own Gate 1, or explicitly parked.
 | Item | Cause |
 |---|---|
 | **#121 / #122 / #123** coordination-protocol redesign | Run-list item 2; prior-art study (Radia claim-by-pattern, Batch 34 radar) is required *before* its Gate 1. Pre-planning locks a design the study should inform. |
-| **#128** cadence register | `33hj`: parked for the post-v2.9.0 window as a Propeller lane-2 friction-mining target; pre-authoring locks the design. |
-| **!2027** coordination priority field | Partial answer to #121-#123; defer with the redesign rather than ship a stopgap it then has to unwind. |
-| **!1817** unassigned-work-discovery-rule | Overlaps the now-approved Propeller remit; governor scope-reconciliation call first. |
+| **#128** cadence register | `33hj`: parked for the post-v2.9.0 window as a Propeller lane-2 target; pre-authoring locks the design. |
+| **!2027** coordination priority field | Partial answer to #121-#123; defer with the redesign, don't ship a stopgap it must unwind. |
+| **!1817** unassigned-work-discovery-rule | Overlaps the approved Propeller remit; needs a governor scope-reconciliation call. |
+
+---
+
+## Dependency map (blocks → blocked)
+
+```
+v2.9.0 tag (done) ──► scope boundary fixed; Part A = v2.9.0..main
+
+!2400/!2409 run-list merge ──► unblocks citing many B1 dispositions
+
+mskd (merged) ──► planner-architect revises !2405 (resolve p6j5 C1)
+  !2405 Gate 1 clear ──► polling-model rule + loader/AGENTS.md diffs
+                          (six-row projection matrix required)
+  !2405 canonical rule ──► must merge before/atomically with Propeller
+                            impl (ksbs D4)
+
+!2416 pipeline @4a267765 + un-draft + Gate 1 handoff ──► Propeller Gate 1 closed
+capability-developer assignment (skr6 → governor) ──► capability-review pass
+  capability-review + governor disposition ──► Propeller impl (#126/#127)
+
+#109 runner-migration direction ──► !2392 (remove DinD) ──► native-musl packaging
+!2366 accompanying gate ──► !2362 (route CI jobs to dedicated runner)
+```
 
 ---
 
 ## Next steps
 
-1. v2.9.0 tags → re-cut Part A against the tag.
-2. planner-architect (or a governor-authorized Codex session, with an
-   explicit session-scoped coordination claim) converts this into the Gate 1
-   release plan for the post-v2.9.0 window.
-3. governor decides the version number from the final Part A/B content.
-4. contribution-auditor maintains the Part B open-MR disposition column as
+1. **Done:** v2.9.0 tagged; Part A re-cut against it (one `Fixed` entry).
+2. planner-architect converts this into the Gate 1 release plan (`mjqa`),
+   with build-engineer + capability-developer consultations; the polling
+   model piece is the `mskd`-directed !2405 revision.
+3. governor sets the version number from the final Part A content (PATCH
+   until a MINOR-class item merges).
+4. contribution-auditor: run the dedicated B4 verify-each pass on the 11
+   stale July learning/rule MRs; maintain the Part B disposition column as
    MRs merge/close.
