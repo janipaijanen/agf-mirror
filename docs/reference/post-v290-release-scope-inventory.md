@@ -133,9 +133,33 @@ before any diff reaches `main`. Sub-notes:
 | !1657 plan: v2.6.1 release-only correction | **close** (high) | same |
 | !1444 mark diligence plan ABANDONED | **close/merge the note** (high) | housekeeping; abandonment already effective |
 | !1723, !1750 commercial-licensing | reconcile | CL-4 shipped separately — see digest `52nt` / MR !2437 |
-| !341, !349, !407, !430, !461(draft), !465, !739, !776, !829, !850, !932 | **verify each** (own pass) | July learnings/rule proposals, 6–10 weeks stale; most themes plausibly covered in `foundry.yaml`'s 61 records — but each needs an individual content check before close |
+| (11 July MRs — verify-each pass done 2026-09-06T18:5x, see sub-table below) | mixed | 7 close-recommend, 3 need-decision, 1 close-or-refile |
 | !1446, !1691, !1718, !1722 | historical | v2.5.0-era external due-diligence artifacts; not next-release content |
 | !915 | close | frozen-release two-AI evaluation, tied to an abandoned line |
+
+#### B4 verify-each pass — 11 stale July learning/rule MRs (2026-09-06)
+
+Method: `glab api .../changes` for each MR's changed paths + grep of current
+`agf/learnings/foundry.yaml` (62 records), `downstream-impact-rule.md`,
+`coordination-publication-rule.md`, and `AGENTS.md` for the theme. Not
+implemented — dispositions are recommendations for the MR owner.
+
+| MR | Changed | Finding | Recommend |
+|---|---|---|---|
+| !341 roadmap/tracker coexistence | new Pages page + position/faq edits | target page absent on main; title says "per Gate 2 BLOCK" (already bounced once); relates to issue #118 | **need-decision** — revive under #118 or close with cause |
+| !349 coordination-before-bridge-notes | learning → **bootstrap** `agents-govern/learnings/` | bridge-note discipline is live (`coordination-publication-rule`, visibility rule); record targets the non-canonical dir | **close or re-file** against `agf/learnings/foundry.yaml` if the record is still wanted |
+| !407 CI-cost-aware push cadence | `agf/learnings/foundry.yaml` | no matching theme on main; adjacent to issue #106 + `ci-trigger-scoping-rule` | **need-decision** — fold into #106 or land as a learning; not auto-close |
+| !430 tooling doc-impact assessment | `downstream-impact-rule.md` + new plan | rule goal met — `downstream-impact-rule.md` already covers `tooling/` on main; plan file stale | **close**; salvage learning portion only if novel |
+| !461 assistive-tech boundary (DRAFT) | `agf/learnings/foundry.yaml` | draft, 6+ wk stale, no theme on main | **close** as abandoned draft unless author revives |
+| !465 autonomous-polling cross-branch gap | `agf/learnings/foundry.yaml` | cross-branch visibility scanning is now core to the poll contract (AGENTS.md, `mskd`) | **close**; salvage learning if novel |
+| !739 commit-message CI-skip-substring FP | `coordination-publication-rule.md` + learning | rule heavily addresses `[ci skip]`/`[skip ci]` (incl. forbidden-in-coordination-commits); verify the exact false-positive nuance is caught | **close** (likely) after nuance check |
+| !776 release agent verify canonical identity | `agf/learnings/foundry.yaml` | no matching theme; `external-anonymization-rule` adjacent but different | **need-decision** — land as a learning or close with cause |
+| !829 atomic MR ≠ pipeline dedup | `agf/learnings/foundry.yaml` | derived operational guidance IS on main (AGENTS.md first-push paragraph); record itself not in foundry.yaml | **close** — guidance already shipped |
+| !850 release-transition duplicate matrix | `agf/learnings/foundry.yaml` | no matching theme; release-transition dup handling had heavy v2.7/v2.8 work | **close** (likely) after a spot check vs the release rules |
+| !932 coordination-title-per-commit mistake | `agf/learnings/foundry.yaml` | `coordination-publication-rule` addresses `coordination:` title semantics extensively | **close**; salvage if novel |
+
+Summary: **close-recommend** !430, !461, !465, !739, !829, !850, !932 (7);
+**need-decision** !341, !407, !776 (3); **close-or-refile** !349 (1).
 
 ### B5 — Release chain
 
