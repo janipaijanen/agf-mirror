@@ -1,26 +1,28 @@
 ---
 id: 20260905T210255Z-universal-agent-autonomous-polling
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-06T19:51:49Z
 topic: universal-agent-autonomous-polling
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Review 20260906T071046Z-infosec-sentinel-pmsp found no blocker at the
-      prior head. This revision incorporates its four advisories by naming the
-      governed shared-surface configuration, limiting compaction state to
-      metadata, treating forge content as untrusted evidence, and preserving
-      external anonymization. A renewed exact-head review remains required
-      before Gate 1.
+      Renewed exact-head review
+      20260906T195531Z-infosec-sentinel-p74g found no blocking issue at
+      approved plan head 30ed1f71 and confirmed that the four prior advisories
+      were resolved. Its one minor reachability-evidence refinement is
+      mandatory Gate 2 work under governor decision
+      20260906T195149Z-governor-reviewer-56bh.
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Review 20260906T071102Z-contribution-auditor-p6j5 requested changes at
-      the prior head. This revision resolves C1 by preserving the governed
-      trivial and research-maintenance fast paths, A1 with an atomic bounded
-      specialist projection, and A2 with a governor route for an identified
-      but unreachable peer. A renewed independent exact-head audit remains
-      required before Gate 1.
+      Renewed independent exact-head audit
+      20260906T194557Z-contribution-auditor-6mk1 cleared approved plan head
+      30ed1f71 with zero blockers and confirmed that the prior C1, A1, and A2
+      findings were resolved. Its AV1-AV4 refinements are mandatory Gate 2
+      work under governor decision
+      20260906T195149Z-governor-reviewer-56bh.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
