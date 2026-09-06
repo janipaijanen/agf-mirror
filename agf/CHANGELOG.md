@@ -5,6 +5,17 @@ distribution.
 
 ## [Unreleased]
 
+### Fixed
+
+- Restored the documented automatic token-ROI baselines for `cold-start`,
+  `session-resume:<role>`, and `next-handoff:<role>`. Direct CLI and
+  `agov-mcp` calls now use the same savings arithmetic; transport affects
+  attribution only. Existing telemetry is not rewritten, so the estimates
+  appear only for successful calls recorded by a build containing this fix.
+  **Adopter docs: not applicable** — the repair makes implementation match the
+  existing documented baseline model and requires no operator or configuration
+  change.
+
 ## [2.9.0] — 2026-09-06
 
 **Minor release.** Adds mechanical gate-change accompaniment and strengthens
