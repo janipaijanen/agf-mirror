@@ -5,17 +5,21 @@ distribution.
 
 ## [Unreleased]
 
-**Adopter docs: not applicable.** The changes below are foundry CI plumbing
-for building and verifying AGF's own release container image.
-`tooling/rust/scripts/agov-oci-image.sh` is not part of any adopter
-distribution — it does not appear in the framework or tooling archive
-contents — and no adopter-facing interface, rule, schema, or template
-changes. Adopters receive a container image that is now CVE-scanned before
-the tag exists rather than after it, which is a strictly better artifact
-with no action required of them.
+## [2.9.0] — 2026-09-06
+
+**Minor release.** Adds mechanical gate-change accompaniment and strengthens
+the foundry release path so required checks, changed-file discovery, OCI
+namespace verification, and vulnerability scanning fail closed before an
+immutable release tag is created. **Adopter docs: updated.**
 
 ### Added
 
+- A shipped gate registry contract: `schemas/gate-registry.schema.json`, a
+  neutral `examples/gates.yaml`, and `agov gate change-check --base-ref
+  <ref>`. For each active registry entry, declared surfaces and tests must
+  resolve; changing a surface requires a paired declared test-path change;
+  and a gate ID cannot disappear. Retirement is explicit and retains the ID,
+  reason, and date while permitting obsolete paths to be removed.
 - Pre-tag container CVE coverage. `agov:oci:mr-build-scan` builds and
   Trivy-scans the release image at merge-request stage, reusing the existing
   `rust:tooling:preview` archive. Previously `agov:oci:release` was the only
@@ -29,6 +33,18 @@ with no action required of them.
 
 ### Changed
 
+- `gate-self-test-rule.md` now applies to modification and retirement as well
+  as gate introduction. Gate mechanics are explicitly excluded from the
+  fast-track waiver, regardless of diff size. Existing projects that adopt
+  the new mechanical command must create `.agf/gates.yaml`; the registry is
+  not inferred automatically.
+- Foundry CI now derives changed files through a fail-closed helper: absent,
+  malformed, or ambiguous comparison inputs stop validation instead of
+  appearing as an empty change set. Mandatory CI `needs` edges are also
+  implication-tested across supported pipeline contexts.
+- The capability-developer role is active again after the project learning
+  corpus exceeded its governed evidence threshold. Activation remains
+  assignment-bound and advisory; it does not gain gate authority.
 - `agov-oci-image.sh` build and scan bodies are parameterised by image
   reference. The published path keeps its tag guard; the new unpublished
   path tags `localhost/agov-unpublished:$VERSION`, which is not a registry
