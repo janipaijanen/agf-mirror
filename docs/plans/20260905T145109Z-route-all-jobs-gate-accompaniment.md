@@ -1,6 +1,8 @@
 ---
 id: 20260905T145109Z-route-all-jobs-gate-accompaniment
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-06T07:56:04Z
 topic: route-all-jobs-gate-accompaniment
 advisory_consultation:
   - role: infosec-sentinel
