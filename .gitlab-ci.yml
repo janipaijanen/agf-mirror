@@ -75,6 +75,35 @@ workflow:
         RUST_CACHE_WRITER_POLICY: "pull-push"
     - when: always
 
+# Route every job to the dedicated project runner (#55908035, tags
+# podman/linux/amd64) instead of racing it against the shared-runner fleet.
+# This `default:` block governs ordinary jobs. The six jobs that require
+# nested containers override it locally with the dedicated `dind` tag; the
+# ci-needs implication regression test keeps that split routing exhaustive.
+#
+# Governor-directed change, 2026-09-04: shared runners stay enabled
+# (shared_runners_enabled: true, unchanged) but GitLab has no "prefer this
+# runner" mechanism between two eligible runners for an untagged job -- it is
+# a race, and the always-on shared fleet was consistently winning it, so the
+# dedicated runner had executed zero jobs despite being online and
+# authenticating (see docs/coordination/20260904T113400Z-coder-tester-vq9r.md
+# and docs/coordination/20260904T135635Z-coder-tester-x4tv.md for the
+# diagnosis: failed jobs showed `runner: none`, `ci_quota_exceeded`, before
+# the dedicated runner was ever offered them).
+#
+# BREAKING (downstream-impact-rule.md): this removes shared-runner
+# eligibility for every job -- it is not merely additive. Accepted
+# single-point-of-failure trade-off: if the dedicated runner goes offline,
+# every job stays pending indefinitely (no shared-runner fallback) until this
+# `default:` block is removed or narrowed. Migration if that happens: delete
+# this block (or its `tags:` key) in a fast-track commit to restore the prior
+# untagged-race behaviour; no other file changes to revert.
+default:
+  tags:
+    - podman
+    - linux
+    - amd64
+
 # ── Shared templates ──────────────────────────────────────────────────────────
 
 .rust-base:
@@ -556,6 +585,8 @@ release:create:
 # podman image so the OCI pull-by-digest evidence check has a real
 # `podman` to shell out to, matching `agov:oci:release`'s own image choice.
 release:verify:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:
@@ -665,6 +696,8 @@ agov-oci-image:selftest:
 # no code path here that can name, reach, push to, or overwrite a release
 # namespace, and no registry credential is required or used.
 agov:oci:mr-build-scan:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
@@ -1228,6 +1261,8 @@ rust:tooling:test:
 # BLOCK B (a green generic pipeline must not be able to claim OCI evidence
 # it never actually gathered).
 rust:tooling:oci-pull-test:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
@@ -1291,22 +1326,17 @@ rust:tooling:clippy:
 .rust-tooling-package:
   extends: .rust-base
   stage: build
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    CROSS_REMOTE: "1"
   before_script:
     # extends does not merge before_script arrays -- redefining this key
     # here would otherwise silently drop .rust-base's cache-policy
     # assertion for every job built on this template.
     - !reference [.rust-base, before_script]
     # .rust-base's referenced before_script already cd's into tooling/rust.
-    - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
-    - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
+    - apt-get update -qq && apt-get install -y -qq binutils jq musl-tools zip
+    # The repository config preserves Cross's prefixed linker name. Debian's
+    # musl-tools package exposes the native wrapper as musl-gcc, so override
+    # only the mandatory native x86_64 target in this job environment.
+    - export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc
   script:
     - VERSION="$(cat ../../agf/VERSION)"
     - export AGOV_BUILD_COMMIT="${CI_COMMIT_SHA:-unknown}"
@@ -1366,8 +1396,9 @@ rust:tooling:clippy:
       while IFS=' ' read -r target slug extra; do
         [ -n "$target" ] || continue
         case "$target" in \#*) continue ;; esac
+        rustup target add "$target"
         cargo clean --release --target "$target" -p agov -p agov-mcp
-        cross build --release --target "$target" -p agov -p agov-mcp
+        cargo build --release --target "$target" -p agov -p agov-mcp
         sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
           "target/${target}/release/agov" "target/${target}/release/agov-mcp"
         archive="agov-${VERSION}-${slug}.tar.gz"
@@ -1450,6 +1481,26 @@ rust:tooling:clippy:
       - dist/agov-*.zip.sha256
       - dist/agov-*-provenance.json
 
+# The optional Windows packaging preview still needs Cross and a container
+# engine for its MinGW sysroot. Keep that dependency isolated from mandatory
+# Linux previews and tag releases so a DinD failure cannot block publication.
+.rust-tooling-windows-package:
+  extends: .rust-tooling-package
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    CROSS_REMOTE: "1"
+  before_script:
+    # extends does not merge before_script arrays. Preserve the cache-policy
+    # assertion and install both the common archive tools and Windows Cross.
+    - !reference [.rust-base, before_script]
+    - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
+    - export PATH="$CARGO_HOME/bin:$PATH"
+    - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
+
 # Build preview Rust tooling archives for Linux platform targets. These
 # artifacts are not releases.
 rust:tooling:preview:
@@ -1483,7 +1534,9 @@ rust:tooling:preview:
 # provenance record are producible and inspectable from an MR pipeline
 # without creating a release tag.
 rust:tooling:preview:windows-package:
-  extends: .rust-tooling-package
+  tags:
+    - dind
+  extends: .rust-tooling-windows-package
   interruptible: true
   variables:
     AGOV_PACKAGE_WINDOWS_PREVIEW: "1"
@@ -1546,6 +1599,8 @@ release:assets-verify-pre-oci:
     - if: $CI_COMMIT_TAG
 
 agov:oci:release:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:
@@ -1573,6 +1628,8 @@ agov:oci:release:
 # default Rust preview job so ordinary MRs do not pay the Windows cross-build
 # cost, while release preparation can still request Windows artifacts.
 rust:tooling:build:windows:preview:
+  tags:
+    - dind
   extends: .rust-base
   stage: build
   interruptible: true

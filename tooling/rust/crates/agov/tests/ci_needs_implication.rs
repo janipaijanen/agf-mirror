@@ -8,6 +8,14 @@ const EDGE_FIXTURE: &str = include_str!("fixtures/ci-needs/mandatory-edges.tsv")
 const CONTEXT_FIXTURE: &str = include_str!("fixtures/ci-needs/context-matrix.tsv");
 const SHARED_SURFACE_REGISTRY: &str =
     include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
+const DIND_JOBS: [&str; 6] = [
+    "agov:oci:mr-build-scan",
+    "rust:tooling:oci-pull-test",
+    "agov:oci:release",
+    "release:verify",
+    "rust:tooling:preview:windows-package",
+    "rust:tooling:build:windows:preview",
+];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct Edge {
@@ -30,6 +38,35 @@ fn live_configuration_preserves_every_mandatory_needs_implication() {
     let configuration = read_live_configuration();
     let errors = implication_errors(&configuration).expect("evaluate live CI configuration");
     assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+#[test]
+fn live_configuration_declares_split_runner_routing() {
+    let configuration = read_live_configuration();
+    let errors = split_runner_routing_errors(&configuration);
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+#[test]
+fn detects_a_dind_override_on_an_ordinary_job() {
+    let configuration = read_live_configuration();
+    let ordinary =
+        top_level_block(&configuration, "rust:tooling:test").expect("ordinary Rust test job block");
+    let mutated_ordinary = ordinary.replacen(
+        "rust:tooling:test:\n",
+        "rust:tooling:test:\n  tags:\n    - dind\n",
+        1,
+    );
+    let mutated = replace_top_level_block(&configuration, "rust:tooling:test", &mutated_ordinary);
+
+    let errors = split_runner_routing_errors(&mutated);
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.contains("rust:tooling:test") && error.contains("unexpected")),
+        "{}",
+        errors.join("\n")
+    );
 }
 
 #[test]
@@ -152,6 +189,144 @@ fn shared_surface_requires_each_active_gates_own_test_evidence() {
     fixture.commit("add the other active gate's own evidence");
     let passed = fixture.check();
     assert!(passed.status.success(), "{}", diagnostics(&passed));
+}
+
+#[test]
+fn live_mandatory_linux_packaging_is_native_and_container_free() {
+    let configuration = read_live_configuration();
+    assert_native_linux_packaging(&configuration);
+}
+
+#[test]
+fn detects_reintroduced_container_build_on_the_mandatory_linux_path() {
+    let configuration = read_live_configuration();
+    let package = top_level_block(&configuration, ".rust-tooling-package")
+        .expect("mandatory Rust packaging template");
+    let native = "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n";
+    assert_eq!(
+        package.matches(native).count(),
+        1,
+        "expected native build line"
+    );
+    let mutated_package = package.replacen(
+        native,
+        "        cross build --release --target \"$target\" -p agov -p agov-mcp\n",
+        1,
+    );
+    let mutated =
+        replace_top_level_block(&configuration, ".rust-tooling-package", &mutated_package);
+
+    let errors = native_linux_packaging_errors(&mutated);
+    assert!(
+        errors.iter().any(|error| error.contains("cargo build")),
+        "{}",
+        errors.join("\n")
+    );
+}
+
+fn assert_native_linux_packaging(configuration: &str) {
+    let errors = native_linux_packaging_errors(configuration);
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+fn split_runner_routing_errors(configuration: &str) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    let expected_default = ["podman", "linux", "amd64"].map(str::to_string);
+    let actual_default = top_level_block(configuration, "default")
+        .as_deref()
+        .and_then(top_level_tags);
+    if actual_default.as_deref() != Some(expected_default.as_slice()) {
+        errors.push(format!(
+            "default runner tags must be exactly {:?}, found {:?}",
+            expected_default, actual_default
+        ));
+    }
+
+    for job in DIND_JOBS {
+        let actual = top_level_block(configuration, job)
+            .as_deref()
+            .and_then(top_level_tags);
+        if actual != Some(vec!["dind".to_string()]) {
+            errors.push(format!(
+                "DinD job `{job}` must override runner tags with exactly [dind], found {:?}",
+                actual
+            ));
+        }
+    }
+
+    let allowed = DIND_JOBS.into_iter().collect::<BTreeSet<_>>();
+    for (name, block) in top_level_blocks(configuration) {
+        if name == "default" || allowed.contains(name.as_str()) {
+            continue;
+        }
+        if top_level_tags(&block).is_some() {
+            errors.push(format!(
+                "top-level CI entry `{name}` has an unexpected runner tags override"
+            ));
+        }
+    }
+    errors
+}
+
+fn top_level_tags(block: &str) -> Option<Vec<String>> {
+    let mut lines = block.lines();
+    lines.find(|line| *line == "  tags:")?;
+    Some(
+        lines
+            .take_while(|line| line.starts_with("    "))
+            .filter_map(|line| line.strip_prefix("    - "))
+            .map(str::to_string)
+            .collect(),
+    )
+}
+
+fn native_linux_packaging_errors(configuration: &str) -> Vec<String> {
+    let Some(package) = top_level_block(configuration, ".rust-tooling-package") else {
+        return vec!["mandatory Rust packaging template is missing".to_string()];
+    };
+    let mut errors = Vec::new();
+    for forbidden in [
+        "    - docker:dind\n",
+        "    DOCKER_HOST:",
+        "    DOCKER_DRIVER:",
+        "    DOCKER_TLS_CERTDIR:",
+        "    CROSS_REMOTE:",
+        "docker.io",
+        "cargo install cross",
+    ] {
+        if package.contains(forbidden) {
+            errors.push(format!(
+                "mandatory Rust packaging template retains forbidden container dependency `{}`",
+                forbidden.trim()
+            ));
+        }
+    }
+    for required in [
+        "apt-get install -y -qq binutils jq musl-tools zip\n",
+        "    - export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc\n",
+        "        rustup target add \"$target\"\n",
+        "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n",
+    ] {
+        if package.matches(required).count() != 1 {
+            errors.push(format!(
+                "mandatory Rust packaging template must contain exactly one `{}`",
+                required.trim()
+            ));
+        }
+    }
+    for consumer in ["rust:tooling:preview", "rust:tooling:release"] {
+        let Some(block) = top_level_block(configuration, consumer) else {
+            errors.push(format!("mandatory consumer `{consumer}` is missing"));
+            continue;
+        };
+        if !block.contains("  extends: .rust-tooling-package\n") {
+            errors.push(format!(
+                "mandatory consumer `{consumer}` no longer extends the native packaging template"
+            ));
+        }
+    }
+    errors
 }
 
 fn implication_errors(configuration: &str) -> Result<Vec<String>, String> {

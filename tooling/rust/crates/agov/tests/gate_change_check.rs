@@ -1,7 +1,11 @@
+use serde_json::Value;
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 const BASE_REGISTRY: &str = include_str!("fixtures/gate-change/base-registry.yaml");
+const SHARED_CI_SURFACE_REGISTRY: &str =
+    include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
 
 struct Fixture {
     root: tempfile::TempDir,
@@ -178,6 +182,92 @@ fn unrelated_touch_inside_declared_test_path_satisfies_proxy_by_design() {
 }
 
 #[test]
+fn shared_ci_change_still_requires_gate_change_checks_own_evidence() {
+    let root = tempfile::tempdir().expect("temp repository");
+    git(root.path(), &["init"]);
+    git(
+        root.path(),
+        &["config", "user.email", "test@example.invalid"],
+    );
+    git(root.path(), &["config", "user.name", "Gate Test"]);
+    write(root.path(), ".agf/gates.yaml", SHARED_CI_SURFACE_REGISTRY);
+    write(root.path(), ".gitlab-ci.yml", "workflow: baseline\n");
+    write(
+        root.path(),
+        "tests/gate_change/shared-surface.txt",
+        "baseline gate evidence\n",
+    );
+    write(
+        root.path(),
+        "tests/ci-needs/native-package.txt",
+        "baseline packaging evidence\n",
+    );
+    git(root.path(), &["add", "."]);
+    git(root.path(), &["commit", "-m", "baseline"]);
+    let base = git_output(root.path(), &["rev-parse", "HEAD"]);
+
+    write(root.path(), ".gitlab-ci.yml", "workflow: native package\n");
+    write(
+        root.path(),
+        "tests/ci-needs/native-package.txt",
+        "container-free packaging evidence\n",
+    );
+    git(root.path(), &["add", "."]);
+    git(
+        root.path(),
+        &["commit", "-m", "change CI with one gates evidence"],
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .current_dir(root.path())
+        .env("AGOV_TOKEN_ROI", "0")
+        .env("AGOV_SCHEMA_DIR", repo_root().join("agf/schemas"))
+        .args(["gate", "change-check", "--base-ref", &base])
+        .output()
+        .expect("run gate change-check");
+    assert_eq!(output.status.code(), Some(1), "{}", diagnostics(&output));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("gate-change-check"), "{stderr}");
+    assert!(stderr.contains("no changed declared test path"), "{stderr}");
+    assert!(!stderr.contains("ci-needs-implication"), "{stderr}");
+}
+
+#[test]
+fn live_registry_assigns_shared_ci_surface_to_both_active_gates() {
+    let registry_path = repo_root().join(".agf/gates.yaml");
+    let registry = std::fs::read_to_string(&registry_path).expect("read live gate registry");
+    let (owners, unresolved) = live_registry_errors(&registry);
+    assert_eq!(
+        owners,
+        BTreeSet::from([
+            "ci-needs-implication".to_string(),
+            "gate-change-check".to_string(),
+        ]),
+        ".gitlab-ci.yml must remain registered to exactly both active gates"
+    );
+    assert!(unresolved.is_empty(), "{}", unresolved.join("\n"));
+}
+
+#[test]
+fn live_registry_guard_detects_an_unresolved_declared_path() {
+    let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
+        .expect("read live gate registry");
+    let mutated = registry.replacen(
+        "      - tooling/rust/crates/agov/tests/gate_change_check.rs",
+        "      - tooling/rust/crates/agov/tests/does-not-exist.rs",
+        1,
+    );
+    let (_, unresolved) = live_registry_errors(&mutated);
+    assert!(
+        unresolved
+            .iter()
+            .any(|error| error.contains("does-not-exist.rs")),
+        "{}",
+        unresolved.join("\n")
+    );
+}
+
+#[test]
 fn override_registry_path_is_supported() {
     let fixture = Fixture::new();
     fixture.write("config/gates.yaml", BASE_REGISTRY);
@@ -197,6 +287,45 @@ fn override_registry_path_is_supported() {
         .output()
         .expect("run alternate registry check");
     assert_success(output);
+}
+
+fn live_registry_errors(registry: &str) -> (BTreeSet<String>, Vec<String>) {
+    let document = serde_norway::from_str::<Value>(registry).expect("parse live gate registry");
+    let gates = document["gates"]
+        .as_array()
+        .expect("gate registry contains gates array");
+    let mut owners = BTreeSet::new();
+    let mut unresolved = Vec::new();
+
+    for gate in gates {
+        if gate["status"].as_str() != Some("active") {
+            continue;
+        }
+        let id = gate["id"].as_str().expect("active gate id");
+        let surfaces = gate["surfaces"].as_array().expect("active gate surfaces");
+        if surfaces
+            .iter()
+            .any(|path| path.as_str() == Some(".gitlab-ci.yml"))
+        {
+            owners.insert(id.to_string());
+        }
+        for field in ["surfaces", "tests"] {
+            for declared in gate[field].as_array().expect("active gate path list") {
+                let declared = declared.as_str().expect("declared gate path");
+                let resolved = if let Some(prefix) = declared.strip_suffix("/**") {
+                    repo_root().join(prefix).is_dir()
+                } else {
+                    repo_root().join(declared).exists()
+                };
+                if !resolved {
+                    unresolved.push(format!(
+                        "active gate `{id}` declares {field} path `{declared}` that does not resolve"
+                    ));
+                }
+            }
+        }
+    }
+    (owners, unresolved)
 }
 
 fn assert_entry_deletion_blocks(retired_first: bool) {
