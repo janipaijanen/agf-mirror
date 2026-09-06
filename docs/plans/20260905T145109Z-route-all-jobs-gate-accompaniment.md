@@ -4,26 +4,19 @@ status: pending-gate1
 topic: route-all-jobs-gate-accompaniment
 advisory_consultation:
   - role: infosec-sentinel
-    status: waived
+    status: consulted
     reason: >-
-      No infosec-sentinel review of this plan exists. Recorded as waived, not
-      consulted. The revised scope moves the OCI build/scan and release-verify
-      jobs, and the Windows Cross/DinD jobs, onto a separate privileged-nested
-      runner. That is a routing and trust-boundary change, not merely test
-      coverage, so an independent infosec pass covering runner isolation,
-      privileged-nested execution, and release-pipeline job placement is
-      required before binding Gate 1.
+      Exact-head review 20260906T073655Z-infosec-sentinel-kkph returned NO
+      OBJECTION at 9e2a0ea8. Its four advisory controls for isolation posture,
+      anonymous post-publication verification, secret scope, and supervised
+      first-tag execution are incorporated below.
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      No contribution-auditor disposition exists for this revised plan. The
-      prior narrow version received an advisory CLEAR
-      (`20260905T193012Z-contribution-auditor-4ghp`); that review is
-      SUPERSEDED because the scope now includes a substantive `.gitlab-ci.yml`
-      routing change (six `tags:` additions) and release-pipeline job
-      placement, not just two additive tests. An independent re-review of this
-      revised plan — not by the planner-architect session that wrote it — is
-      required before binding Gate 1.
+      Exact-head review
+      20260906T073638Z-contribution-auditor-4sb8 returned NO OBJECTION at
+      9e2a0ea8 and confirmed p37b B1/B2/A2 resolved by the atomic unit. Its
+      three documentation-consistency advisories are incorporated below.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -80,6 +73,15 @@ before the first acceptance pipeline and fails closed on drift. The operator
 also reports the duplicate `/cache` target fixed. No post-fix `[dind]` job
 has proved that claim, so executor preparation plus nested workload success
 remain acceptance evidence, not a presumed fact.
+
+The expected host posture is a Docker executor that permits the pinned
+`docker:dind` service through `services_privileged` plus an exact
+`allowed_privileged_services` entry; ordinary job containers do not gain
+blanket privileged mode. Before the first acceptance run, the operator records
+the effective executor privilege setting, allowed-service image/digest,
+network-egress policy, and whether runner 55975189 shares the same managed
+host/trust boundary as runner 55908035. Unknown or broader-than-declared
+privilege/egress fails closed to governor and infosec disposition.
 
 ### Two runner classes
 
@@ -198,6 +200,13 @@ combined implementation branch.
    eventual release-job result.
 7. No paid failed job is retried merely to seek green; the accepted run
    contains the correction.
+8. Registry-push/signing variables are protected, masked where applicable,
+   and scoped only to jobs that require them—preferably
+   `agov:oci:release`—rather than inherited by every `[dind]` job.
+9. `release:verify` is explicitly not an independent verification leg
+   because it runs on the same runner that pushes. The download-based,
+   anonymous `agov dist post-publication-check` remains unchanged and is the
+   independent published-bytes check.
 
 ## Negative test (per `gate-self-test-rule.md`)
 
@@ -220,6 +229,15 @@ description, plus the canonical exact-head pipeline log.
 No schema, migration, or release-metadata change. No new dependency. No
 source change in `agov` / `agov-mcp`.
 
+## Downstream impact
+
+Classification: **BREAKING** for foundry CI because observable runner
+placement and mandatory Linux packaging change atomically. Foundry migrates
+through the one integration diff and its atomic rollback; direct adopters and
+downstream consumers receive no shipped `agf/` contract or migration change.
+Evidence is pipeline `2823154949`, the `gpss` atomic-unit analysis, and
+binding decision `jmsq`.
+
 ## Risks
 
 - **Runner state is volatile.** Current API evidence satisfies tag isolation,
@@ -235,10 +253,16 @@ source change in `agov` / `agov-mcp`.
 - **Release-pipeline job placement.** Moving `agov:oci:release` and
   `release:verify` to a different runner is release-integrity-relevant and is
   the reason infosec review is required (see `advisory_consultation`).
+  Because both run on runner 55975189, a compromise there is treated as a
+  release-integrity incident, not merely a CI failure; same-runner
+  `release:verify` cannot clear that incident.
 - **Deferred tag-pipeline verification** (criterion 5) means a
   mis-configuration on `55975189` affecting only the release jobs would not
   surface until the next tag pipeline. Accepted, stated, and bounded by test
-  2.
+  2. The first v2.9 tag pipeline is supervised: runner selection,
+  provenance/scan output, registry push, and the later anonymous
+  post-publication check are watched to terminal state before the release is
+  trusted.
 
 ## Rollback
 
@@ -257,8 +281,8 @@ decision.
   now-superseded sequencing ahead of MR !2392.
 - `docs/coordination/20260905T193012Z-contribution-auditor-4ghp.md` — the
   now-superseded CLEAR of the prior narrow scope; findings A1 (registry
-  literal brittleness) and A2 (a fresh exact-head Gate 2 handoff for MR !2362
-  is owed after its branch is amended) still apply.
+  literal brittleness) remains incorporated, while A2 is resolved by
+  superseding rather than amending or merging MR !2362.
 - `docs/coordination/20260905T200607Z-coder-tester-hqps.md` and issue #123 —
   the plan/workstream collision-detection gap this plan hits three ways.
 - `docs/plans/20260903T045619Z-ci-mandatory-needs-implication-correction.md`
