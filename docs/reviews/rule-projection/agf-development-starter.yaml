@@ -1,0 +1,71 @@
+# Six-surface projection evidence for the project-local AGF development
+# starter. Plan: docs/plans/20260904T094827Z-agf-development-starter-guideline.md
+
+plan_id: 20260904T094827Z-agf-development-starter-guideline
+changed_pages_or_runbooks:
+  - docs/reference/agf-development-starter.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: AGENTS.md
+    reason: >-
+      AGENTS.md remains the project operating authority and already owns the
+      cold-start, polling, release-priority, coordination, and gate boundaries.
+      The new document labels itself a non-normative projection and resolves
+      conflicts in favor of the governed owners.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      This is a foundry development-session checklist, not adopter-facing AGF
+      product guidance. It does not change agf/ADOPTING.md or the public Pages
+      documentation.
+
+  runbook_situation_map:
+    disposition: updated
+    path: docs/reference/agf-development-starter.md
+    reason: >-
+      The starter maps cold start, complete polling, verified-impact priority,
+      agent redirection, gate boundaries, and durable closeout into one compact
+      situation-oriented sequence.
+
+  ai_landing_loaders:
+    disposition: updated
+    path: AGENTS.md
+    reason: >-
+      The canonical shared loader gains one short pointer. Claude's loader
+      imports AGENTS.md, so duplicating the checklist there would create a
+      competing projection.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    paths:
+      - docs/reference/agf-development-starter.md
+      - docs/reviews/rule-projection/agf-development-starter.yaml
+    reason: >-
+      The guide includes three tabletop cases covering release-integrity
+      priority, preservation of required evidence work, and absence of implied
+      merge/tag/publication authority. Projection validation checks the six
+      dispositions; semantic quality remains Gate 2 judgment.
+
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          Foundry's live shared loader is project-local and is not selected by
+          the adopter framework or platform-tooling distribution manifests.
+      - path: docs/reference/agf-development-starter.md
+        reason: >-
+          The starter is deliberately limited to foundry development and is
+          not adopter-facing release content under the approved plan.
+      - path: docs/reviews/rule-projection/agf-development-starter.yaml
+        reason: >-
+          Projection evidence is foundry-local review evidence and is not part
+          of the adopter framework or platform-tooling archives.
+    reason: >-
+      The files remain available in the foundry repository checkout, while the
+      approved plan intentionally excludes adopter templates, public Pages
+      navigation, and release-archive manifests.
