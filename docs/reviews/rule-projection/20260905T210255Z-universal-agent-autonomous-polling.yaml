@@ -36,6 +36,7 @@ surfaces:
     paths:
       - agf/docs/site/docs/operate/runbook.md
       - agf/skills/poll-and-coordinate/SKILL.md
+      - agf/rules/workflow/branch-and-worktree-rule.md
       - docs/reference/agent-cold-start-habits.md
       - docs/reference/agf-development-starter.md
     reason: >-
@@ -67,7 +68,9 @@ surfaces:
       Root and adopter AGENTS.md make the universal duty discoverable. Every
       shipped specialist definition receives the same compact capability-
       review threshold pointer without receiving new gate, assignment,
-      activation, or implementation authority.
+      activation, or implementation authority. At Gate 2 the manifest adds
+      the newly created foundry Claude rule projection, which points back to
+      the canonical owner rather than duplicating it.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
