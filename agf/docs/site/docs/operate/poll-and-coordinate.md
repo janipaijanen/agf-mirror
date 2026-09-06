@@ -58,8 +58,8 @@ they do not all claim everything.
    cursor-based delta narrows how many records transfer; it never narrows
    which authors, roles, or classes are observed. APIs without reliable
    changed-since semantics are paginated in full.
-5. Inspect **every** open ticket/issue: new issues, state and label changes,
-   and issue comments.
+5. Inspect **every** open item in tickets/issues, regardless of assignee or
+   apparent relevance: new issues, state and label changes, and issue comments.
 6. Recheck every exact external state (branch, tag, release, runner,
    pipeline, job) the agent started or awaits.
 7. Classify new items by urgency, current gate, role authority, ownership, and
