@@ -4350,6 +4350,66 @@ learnings:
         - 'tests/changed-files-failclosed.sh: the shallow-clone fixture bug found by the author during authoring, where --depth implied --single-branch and the test failed on rev-parse rather than on the missing merge base.'
 
 
+  - id: 20260906T104942Z-ev5m
+    date: '2026-09-06'
+    category: gap
+    scope: framework
+    title: release-metadata-closure-must-precede-version-namespace-allocation
+    status: proposed
+    description: >-
+      The v2.9.0 release draft reached changelog approval before its exact
+      release-metadata closure had been validated. The approved plan derived
+      current-version references with a grep that deliberately excluded the
+      entire learning corpus so append-only learning entries would remain
+      untouched. That exclusion also hid the live top-level
+      adoption.framework_version field in agf/learnings/foundry.yaml. When the
+      release draft changed agf/VERSION to 2.9.0 but preserved that field at
+      2.8.0, the umbrella Rust validator correctly rejected the mismatch.
+      The field is mutable adoption metadata rather than a learning entry, but
+      the plan's path-level exclusion could not distinguish the two.
+
+      This was caught before a release branch commit, tag, or public artifact,
+      so v2.9.0 remains usable. The same class of late discovery previously had
+      a higher cost: v2.7.0-rc.1 was tagged before its OCI vulnerability scan
+      completed, the scan found a fixed HIGH-severity vulnerability, and the
+      immutable candidate had to be abandoned permanently. A version or RC
+      namespace should not be consumed merely to discover a failure that a
+      reversible preflight could have found first.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: workflow/release-via-merge-request-rule.md
+    business_impact:
+      type: prevented_loss
+      description: >-
+        The current mismatch was found before committing or publishing v2.9.0,
+        preserving the intended stable version. Moving complete metadata,
+        validation, build, security, and immutable-namespace checks ahead of
+        tag creation prevents avoidable abandoned RCs, skipped stable version
+        numbers, misleading release pages, and repeated operator work.
+    recommendation: >-
+      Add a release preflight phase that runs before an RC or stable version is
+      treated as allocated and before any immutable tag is created. In a clean
+      disposable worktree, apply the proposed version only as an uncommitted
+      draft; derive current-version fields by schema/validator semantics rather
+      than blanket path exclusions; run the umbrella validator, release asset
+      build, negative security checks, and full tests; and author the changelog
+      from the frozen candidate inventory. Require authoritative absence reads
+      for the Git tag, GitLab Release, generic package, and derived OCI
+      reference during this reversible phase. Only after that preflight is
+      green should the governed release branch be committed and reviewed, and
+      only after exact-head Gate 2 should the immutable tag be created. A
+      failed preflight returns to an unversioned draft state and never burns an
+      RC tag or stable version number.
+    severity: significant
+    confidence:
+      level: longitudinal
+      evidence_count: 2
+      evidence_refs:
+        - 'docs/plans/20260831T050110Z-v290-release-publication.md: the v2.9.0 metadata audit excluded agf/learnings wholesale and therefore omitted its live adoption.framework_version field.'
+        - 'docs/coordination/20260828T061002Z-coder-tester-eqq3.md: v2.7.0-rc.1 publication stopped after the immutable tag because the OCI scan found a fixed HIGH vulnerability.'
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
