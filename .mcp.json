@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "agov": {
+      "command": "/home/dev/s/agents-govern-framework/tooling/rust/target/release/agov-mcp"
+    }
+  }
+}
