@@ -8,6 +8,13 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Fixed
+
+- Restored automatic saved-token estimates for the documented `cold-start`,
+  `session-resume:<role>`, and `next-handoff:<role>` workflows. CLI and MCP
+  invocations share the same baseline arithmetic, and historical telemetry
+  remains unchanged.
+
 ## [2.9.0] - 2026-09-06
 
 **Minor release.** Ships the reviewed `main` line through `cab3c0d6`, adding
