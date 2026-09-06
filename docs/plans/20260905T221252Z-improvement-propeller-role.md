@@ -1,7 +1,9 @@
 ---
 id: 20260905T221252Z-improvement-propeller-role
-status: pending-gate1
+status: approved
 topic: improvement-propeller-role
+gate1_approved_by: "governor-reviewer; decision 20260906T182331Z-governor-reviewer-q8m5"
+gate1_approved_at: "2026-09-06T18:23:31Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
