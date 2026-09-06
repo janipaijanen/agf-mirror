@@ -77,9 +77,9 @@ workflow:
 
 # Route every job to the dedicated project runner (#55908035, tags
 # podman/linux/amd64) instead of racing it against the shared-runner fleet.
-# No job in this file sets its own `tags:`, so this single `default:` block
-# governs routing for all of them; a job that ever needs a different runner
-# can override it locally with its own `tags:` key.
+# This `default:` block governs ordinary jobs. The six jobs that require
+# nested containers override it locally with the dedicated `dind` tag; the
+# ci-needs implication regression test keeps that split routing exhaustive.
 #
 # Governor-directed change, 2026-09-04: shared runners stay enabled
 # (shared_runners_enabled: true, unchanged) but GitLab has no "prefer this
@@ -585,6 +585,8 @@ release:create:
 # podman image so the OCI pull-by-digest evidence check has a real
 # `podman` to shell out to, matching `agov:oci:release`'s own image choice.
 release:verify:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:
@@ -694,6 +696,8 @@ agov-oci-image:selftest:
 # no code path here that can name, reach, push to, or overwrite a release
 # namespace, and no registry credential is required or used.
 agov:oci:mr-build-scan:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
@@ -1257,6 +1261,8 @@ rust:tooling:test:
 # BLOCK B (a green generic pipeline must not be able to claim OCI evidence
 # it never actually gathered).
 rust:tooling:oci-pull-test:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
@@ -1528,6 +1534,8 @@ rust:tooling:preview:
 # provenance record are producible and inspectable from an MR pipeline
 # without creating a release tag.
 rust:tooling:preview:windows-package:
+  tags:
+    - dind
   extends: .rust-tooling-windows-package
   interruptible: true
   variables:
@@ -1591,6 +1599,8 @@ release:assets-verify-pre-oci:
     - if: $CI_COMMIT_TAG
 
 agov:oci:release:
+  tags:
+    - dind
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:
@@ -1618,6 +1628,8 @@ agov:oci:release:
 # default Rust preview job so ordinary MRs do not pay the Windows cross-build
 # cost, while release preparation can still request Windows artifacts.
 rust:tooling:build:windows:preview:
+  tags:
+    - dind
   extends: .rust-base
   stage: build
   interruptible: true

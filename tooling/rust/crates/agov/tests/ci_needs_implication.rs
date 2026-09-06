@@ -8,6 +8,14 @@ const EDGE_FIXTURE: &str = include_str!("fixtures/ci-needs/mandatory-edges.tsv")
 const CONTEXT_FIXTURE: &str = include_str!("fixtures/ci-needs/context-matrix.tsv");
 const SHARED_SURFACE_REGISTRY: &str =
     include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
+const DIND_JOBS: [&str; 6] = [
+    "agov:oci:mr-build-scan",
+    "rust:tooling:oci-pull-test",
+    "agov:oci:release",
+    "release:verify",
+    "rust:tooling:preview:windows-package",
+    "rust:tooling:build:windows:preview",
+];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct Edge {
@@ -30,6 +38,35 @@ fn live_configuration_preserves_every_mandatory_needs_implication() {
     let configuration = read_live_configuration();
     let errors = implication_errors(&configuration).expect("evaluate live CI configuration");
     assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+#[test]
+fn live_configuration_declares_split_runner_routing() {
+    let configuration = read_live_configuration();
+    let errors = split_runner_routing_errors(&configuration);
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+#[test]
+fn detects_a_dind_override_on_an_ordinary_job() {
+    let configuration = read_live_configuration();
+    let ordinary =
+        top_level_block(&configuration, "rust:tooling:test").expect("ordinary Rust test job block");
+    let mutated_ordinary = ordinary.replacen(
+        "rust:tooling:test:\n",
+        "rust:tooling:test:\n  tags:\n    - dind\n",
+        1,
+    );
+    let mutated = replace_top_level_block(&configuration, "rust:tooling:test", &mutated_ordinary);
+
+    let errors = split_runner_routing_errors(&mutated);
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.contains("rust:tooling:test") && error.contains("unexpected")),
+        "{}",
+        errors.join("\n")
+    );
 }
 
 #[test]
@@ -190,6 +227,58 @@ fn detects_reintroduced_container_build_on_the_mandatory_linux_path() {
 fn assert_native_linux_packaging(configuration: &str) {
     let errors = native_linux_packaging_errors(configuration);
     assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+fn split_runner_routing_errors(configuration: &str) -> Vec<String> {
+    let mut errors = Vec::new();
+
+    let expected_default = ["podman", "linux", "amd64"].map(str::to_string);
+    let actual_default = top_level_block(configuration, "default")
+        .as_deref()
+        .and_then(top_level_tags);
+    if actual_default.as_deref() != Some(expected_default.as_slice()) {
+        errors.push(format!(
+            "default runner tags must be exactly {:?}, found {:?}",
+            expected_default, actual_default
+        ));
+    }
+
+    for job in DIND_JOBS {
+        let actual = top_level_block(configuration, job)
+            .as_deref()
+            .and_then(top_level_tags);
+        if actual != Some(vec!["dind".to_string()]) {
+            errors.push(format!(
+                "DinD job `{job}` must override runner tags with exactly [dind], found {:?}",
+                actual
+            ));
+        }
+    }
+
+    let allowed = DIND_JOBS.into_iter().collect::<BTreeSet<_>>();
+    for (name, block) in top_level_blocks(configuration) {
+        if name == "default" || allowed.contains(name.as_str()) {
+            continue;
+        }
+        if top_level_tags(&block).is_some() {
+            errors.push(format!(
+                "top-level CI entry `{name}` has an unexpected runner tags override"
+            ));
+        }
+    }
+    errors
+}
+
+fn top_level_tags(block: &str) -> Option<Vec<String>> {
+    let mut lines = block.lines();
+    lines.find(|line| *line == "  tags:")?;
+    Some(
+        lines
+            .take_while(|line| line.starts_with("    "))
+            .filter_map(|line| line.strip_prefix("    - "))
+            .map(str::to_string)
+            .collect(),
+    )
 }
 
 fn native_linux_packaging_errors(configuration: &str) -> Vec<String> {

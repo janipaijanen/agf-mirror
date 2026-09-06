@@ -1,3 +1,5 @@
+use serde_json::Value;
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
@@ -231,6 +233,41 @@ fn shared_ci_change_still_requires_gate_change_checks_own_evidence() {
 }
 
 #[test]
+fn live_registry_assigns_shared_ci_surface_to_both_active_gates() {
+    let registry_path = repo_root().join(".agf/gates.yaml");
+    let registry = std::fs::read_to_string(&registry_path).expect("read live gate registry");
+    let (owners, unresolved) = live_registry_errors(&registry);
+    assert_eq!(
+        owners,
+        BTreeSet::from([
+            "ci-needs-implication".to_string(),
+            "gate-change-check".to_string(),
+        ]),
+        ".gitlab-ci.yml must remain registered to exactly both active gates"
+    );
+    assert!(unresolved.is_empty(), "{}", unresolved.join("\n"));
+}
+
+#[test]
+fn live_registry_guard_detects_an_unresolved_declared_path() {
+    let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
+        .expect("read live gate registry");
+    let mutated = registry.replacen(
+        "      - tooling/rust/crates/agov/tests/gate_change_check.rs",
+        "      - tooling/rust/crates/agov/tests/does-not-exist.rs",
+        1,
+    );
+    let (_, unresolved) = live_registry_errors(&mutated);
+    assert!(
+        unresolved
+            .iter()
+            .any(|error| error.contains("does-not-exist.rs")),
+        "{}",
+        unresolved.join("\n")
+    );
+}
+
+#[test]
 fn override_registry_path_is_supported() {
     let fixture = Fixture::new();
     fixture.write("config/gates.yaml", BASE_REGISTRY);
@@ -250,6 +287,45 @@ fn override_registry_path_is_supported() {
         .output()
         .expect("run alternate registry check");
     assert_success(output);
+}
+
+fn live_registry_errors(registry: &str) -> (BTreeSet<String>, Vec<String>) {
+    let document = serde_norway::from_str::<Value>(registry).expect("parse live gate registry");
+    let gates = document["gates"]
+        .as_array()
+        .expect("gate registry contains gates array");
+    let mut owners = BTreeSet::new();
+    let mut unresolved = Vec::new();
+
+    for gate in gates {
+        if gate["status"].as_str() != Some("active") {
+            continue;
+        }
+        let id = gate["id"].as_str().expect("active gate id");
+        let surfaces = gate["surfaces"].as_array().expect("active gate surfaces");
+        if surfaces
+            .iter()
+            .any(|path| path.as_str() == Some(".gitlab-ci.yml"))
+        {
+            owners.insert(id.to_string());
+        }
+        for field in ["surfaces", "tests"] {
+            for declared in gate[field].as_array().expect("active gate path list") {
+                let declared = declared.as_str().expect("declared gate path");
+                let resolved = if let Some(prefix) = declared.strip_suffix("/**") {
+                    repo_root().join(prefix).is_dir()
+                } else {
+                    repo_root().join(declared).exists()
+                };
+                if !resolved {
+                    unresolved.push(format!(
+                        "active gate `{id}` declares {field} path `{declared}` that does not resolve"
+                    ));
+                }
+            }
+        }
+    }
+    (owners, unresolved)
 }
 
 fn assert_entry_deletion_blocks(retired_first: bool) {
