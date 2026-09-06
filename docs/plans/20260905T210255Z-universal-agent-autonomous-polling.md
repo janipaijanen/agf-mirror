@@ -140,6 +140,13 @@ ID, or SHA; it does not narrow which classes, authors, projects, or roles are
 observed. APIs without reliable changed-since semantics must be paginated in
 full.
 
+“Whole” means every configured shared-surface class inside the governed
+project/adoption scope, not every project, group, repository, account, or chat
+the operator can access. Polling inherits existing read authorization and data
+classification; it does not request broader credentials, bypass visibility,
+fetch raw private discussion exports, or copy restricted evidence into a more
+public issue or coordination record.
+
 A full paginated reconciliation of every currently open MR/issue and each
 monitored exact head/pipeline/job is mandatory on cold start, post-compaction
 resume, cursor loss or corruption, evidence of missed events, and at least once
@@ -149,10 +156,13 @@ project may configure a shorter deep-sweep interval; it may not omit the daily
 maximum without a governed local override that states the accepted risk.
 
 Durable UTC/ID/SHA cursors are required so “nothing new” is evidence-backed.
-The cursor lives in a verified git-ignored runtime path. Before compaction or
-handoff, an agent records the cursor through the shipped `compact-agf` skill
-when available, or an equivalent durable session-handoff note plus ignored
-cursor file; the next session validates or conservatively discards it.
+They contain identifiers, timestamps, SHAs, counts, and state hashes only—not
+record bodies, note text, credentials, tokens, personal data, or response
+payloads. The cursor lives in a verified git-ignored runtime path. Before
+compaction or handoff, an agent records the cursor through the shipped
+`compact-agf` skill when available, or an equivalent durable session-handoff
+note plus ignored cursor file; the next session validates or conservatively
+discards it.
 
 All agents observe everything; they do not all claim everything.
 
@@ -580,6 +590,10 @@ After implementation:
 - **Expensive full scans.** Control: whole-surface delta cycles, full
   reconciliation at cold start/resume/cursor failure and at least daily, true
   pagination where delta semantics are unavailable.
+- **Privilege or disclosure expansion.** Control: the complete scan is bounded
+  to configured governed-project surfaces, inherits existing authorization and
+  classification, stores metadata-only cursors, and never republishes
+  restricted source content into a broader audience.
 - **Competing normative owners.** Control: one new `always/` rule, explicit
   supersession proposal for !1817, and projections that point back to the
   owner.
