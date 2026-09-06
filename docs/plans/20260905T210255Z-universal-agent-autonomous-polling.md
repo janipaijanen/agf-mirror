@@ -434,10 +434,10 @@ explicit manifest/governor decision.
 
 ## Dependency and collision disposition
 
-- **MR !2369:** owns the starter guide and is already Gate-2-ready. This plan
-  depends on !2369 merging first, then changes that file from fresh `main`.
-  It must not edit or commandeer !2369's branch. If !2369 is rejected, this
-  plan is revised before Gate 1 to remove or replace that projection.
+- **MR !2369:** merged as `9ed176de7a7f2c6d379dc327f8c7708acfb8bbc8`.
+  This branch incorporated that merge before adding its structured projection
+  evidence. The later implementation changes the starter guide from fresh
+  `main`; it does not edit or commandeer !2369's historical branch.
 - **MR !1817:** overlaps the empty-queue fallback. This plan proposes one
   broader canonical owner and preserves !1817's sourced-candidate/no-invented-
   authority safeguards. !1817 remains untouched until a binding Gate 1
@@ -468,11 +468,11 @@ explicit manifest/governor decision.
 | Validation/drift evidence | **Advisory only:** projection validation and assistant-drift validation check paths/surfaces; table-top cases test meaning. No validator claims to prove that an inactive external assistant actually wakes or acts. |
 | Distribution | **Updated/verified:** canonical rule, template, skill, and Pages files must be present in the appropriate AGF distribution manifests; foundry-only projections are marked local. |
 
-The structured projection manifest is intentionally not filed in this first
-draft because its required starter-guide path does not exist on `main` until
-!2369 merges. Before Gate 1, rebase onto that merge, add the manifest with all
-six rows, and run the direct check without hiding a missing path. Gate 1 must
-not be requested while this dependency or manifest remains unresolved.
+The structured projection manifest is filed at
+`docs/reviews/rule-projection/20260905T210255Z-universal-agent-autonomous-polling.yaml`
+after incorporating !2369. Gate 1 evidence must include the direct
+`--allow-planned` projection check; Gate 2 transitions the new owner from
+`planned` to `existing` and runs the strict check.
 
 ## Test and acceptance strategy
 
@@ -482,7 +482,8 @@ Before Gate 1:
    blocking findings are resolved or explicitly escalated.
 2. Fresh contribution-auditor and infosec-sentinel reviews cover the exact
    plan head; `advisory_consultation` is updated honestly.
-3. MR !2369 is merged (or the affected-file/projection design is revised).
+3. MR !2369 is merged and incorporated before the structured projection
+   manifest is validated.
 4. The structured six-surface manifest exists and `agov plan projection-check
    --allow-planned --base-ref origin/main <manifest>` passes.
 5. `agov plan validate <plan>` and `git diff --check` pass.

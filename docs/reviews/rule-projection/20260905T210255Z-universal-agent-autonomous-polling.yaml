@@ -1,0 +1,101 @@
+# Six-surface projection evidence for the universal agent polling and
+# autonomous continuation plan, per
+# agf/rules/workflow/documentation-rule-projection-rule.md.
+
+plan_id: 20260905T210255Z-universal-agent-autonomous-polling
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+  - agf/docs/site/docs/operate/runbook.md
+  - docs/reference/agent-cold-start-habits.md
+  - docs/reference/agf-development-starter.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    stage: planned
+    path: agf/rules/always/universal-polling-and-autonomous-continuation-rule.md
+    reason: >-
+      One new always rule owns universal observation, collision-safe
+      autonomous continuation, non-reentrant scheduling, bounded spare work,
+      temporary role-allocation consensus, the 10-to-15-new-learning review
+      trigger, and the exhaustive stop boundary. Existing workflow rules and
+      guides point to it instead of restating a competing contract.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      The operator page explains applicability to every active development
+      agent, whole-surface observation, role-scoped execution, cursor-based
+      cost control, and quiet notifications, with the canonical rule as its
+      authority.
+
+  runbook_situation_map:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/operate/runbook.md
+      - agf/skills/poll-and-coordinate/SKILL.md
+      - docs/reference/agent-cold-start-habits.md
+      - docs/reference/agf-development-starter.md
+    reason: >-
+      The runbook and skill cover cold start, resume, scheduled wakes, active
+      work coalescing, safe wait boundaries, decomposition, monitoring, and
+      genuine gate or blocker stops. The project-local references align
+      examples without becoming normative owners.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - agf/agents/academic-peer-reviewer.yaml
+      - agf/agents/academic-visual-reviewer.yaml
+      - agf/agents/build-engineer.yaml
+      - agf/agents/capability-developer.yaml
+      - agf/agents/coder-tester.yaml
+      - agf/agents/contribution-auditor.yaml
+      - agf/agents/deployment-engineer.yaml
+      - agf/agents/documentation-writer.yaml
+      - agf/agents/fact-checker.yaml
+      - agf/agents/governor-reviewer.yaml
+      - agf/agents/independent-implementation-reviewer.yaml
+      - agf/agents/infosec-sentinel.yaml
+      - agf/agents/planner-architect.yaml
+      - agf/agents/web-ux-reviewer.yaml
+    reason: >-
+      Root and adopter AGENTS.md make the universal duty discoverable. Every
+      shipped specialist definition receives the same compact capability-
+      review threshold pointer without receiving new gate, assignment,
+      activation, or implementation authority.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          The project Claude loader imports root AGENTS.md and therefore
+          inherits the project projection without copied prose.
+      - path: agf/templates/CLAUDE.md
+        reason: >-
+          The adopter Claude template imports its sibling AGENTS.md and
+          inherits the distributable projection.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    reason: >-
+      Projection, assistant-loader, adopter-doc, agent, and skill validation
+      check the declared files and pointers. Table-top review checks behavior.
+      No validator claims an inactive external assistant actually wakes,
+      observes, or continues work.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/templates/AGENTS.md
+      - agf/skills/poll-and-coordinate/SKILL.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/docs/site/docs/operate/runbook.md
+    reason: >-
+      The adopter loader, shipped skill, and operator pages already resolve
+      through the AGF distribution. At Gate 2 this row must add and prove the
+      newly created canonical rule before strict projection validation.
+      Project-local AGENTS.md, Claude projection, cold-start reference, starter
+      guide, and review evidence remain foundry-only.
