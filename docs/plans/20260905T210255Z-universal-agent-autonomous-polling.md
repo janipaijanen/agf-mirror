@@ -363,6 +363,12 @@ implementation. Those remain manifest/governor decisions. A completed review
 records its terminal learning cursor/count so the next 10–15 window is
 deterministic.
 
+For foundry's first implemented window, completed capability review
+`20260906T185444Z-capability-developer-m4hr` establishes the baseline as **62
+valid live learning records through `20260906T104942Z-ev5m`**. The next count
+therefore begins after that record, rather than at the repository lifetime
+total or the prior review's 40-record input.
+
 The trigger must be startup-visible. Root `AGENTS.md`, the distributable
 `agf/templates/AGENTS.md`, and every shipped specialist definition under
 `agf/agents/*.yaml` (excluding manifests) receive the same compact obligation
@@ -506,6 +512,30 @@ instead of emitting retroactive duplicate proposals. Local specialist files
 receive the canonical pointer; suspended roles remain suspended until an
 explicit manifest/governor decision.
 
+Impact:
+  Foundry:          BREAKING. Every active foundry development session gains a
+                    whole-surface poll/action duty, a non-reentrant wake rule,
+                    temporary-role allocation discipline, and the 10-to-15
+                    learning capability-review trigger.
+  Direct adopters:  BREAKING. Upgrading projects receive the same required
+                    assistant behavior through the canonical rule, adopter
+                    loader, skill, operator guidance, and specialist pointers.
+  Downstream:       No application data or end-user artifact format changes.
+                    Development-agent behavior and the volume/timing of
+                    coordination proposals may change within existing role and
+                    gate authority.
+  Migration:        Record the most recent completed capability-review learning
+                    cursor/count. If none exists, use the current valid count as
+                    baseline and schedule one initial human-requested review;
+                    do not emit retroactive duplicate proposals. Configure a
+                    real wake mechanism or state that polling occurs on resume.
+  Evidence:         Governor direction
+                    `20260906T180143Z-governor-reviewer-mskd`; foundry learning
+                    records `20260811T210748Z-h4rp`,
+                    `20260824T203051Z-loop`, and
+                    `20260830T114500Z-tw3s`; exact-head audit
+                    `20260906T194557Z-contribution-auditor-6mk1`.
+
 ## Dependency and collision disposition
 
 - **MR !2369:** merged as `9ed176de7a7f2c6d379dc327f8c7708acfb8bbc8`.
@@ -552,7 +582,8 @@ after incorporating !2369. Gate 1 evidence must include the direct
 
 Before Gate 1:
 
-1. Claude planner returns a durable design challenge referencing `pm6m`; all
+1. Claude planner returns durable design challenge
+   `20260905T210846Z-planner-architect-gp1b`; all
    blocking findings are resolved or explicitly escalated.
 2. Fresh contribution-auditor and infosec-sentinel reviews cover the exact
    plan head; `advisory_consultation` is updated honestly.
