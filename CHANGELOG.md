@@ -8,6 +8,43 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-09-06
+
+**Minor release.** Ships the reviewed `main` line through `cab3c0d6`, adding
+mechanical protection for changes to governance gates and strengthening the
+release path against skipped checks, ambiguous changed-file ranges, OCI
+reference drift, and vulnerabilities discovered only after tagging. Adopter
+docs: updated.
+
+### Added
+
+- A versioned gate-registry schema, neutral example, and `agov gate
+  change-check --base-ref <ref>` command. Registered gate surfaces now require
+  a paired test-path change, gate IDs cannot silently disappear, and explicit
+  retirement preserves the audit record.
+- Merge-request-stage construction and Trivy scanning of the release OCI image,
+  before an immutable release tag can be created.
+- Single-source OCI reference commands and mismatch checks for release
+  namespace reads and publication.
+
+### Changed
+
+- Gate self-test discipline now covers modifications and retirement as well as
+  introductions; gate mechanics are ineligible for the fast-track waiver.
+- Changed-file discovery fails closed on missing, malformed, or ambiguous
+  comparison inputs instead of reporting an empty diff, with a repository test
+  corpus covering its CI contract.
+- Mandatory CI `needs` relationships are implication-tested across pipeline
+  contexts so an acceptance job cannot be enabled while its prerequisite is
+  skipped.
+- Foundry orientation now documents building and registering the local
+  `agov-mcp` binary alongside `agov`.
+- Foundry CI now routes ordinary and nested-container workloads to their
+  dedicated runners, and mandatory Linux release packaging uses native musl
+  tooling instead of Docker-in-Docker.
+- The capability-developer role is active again after the learning corpus
+  exceeded its governed evidence threshold.
+
 ## [2.8.0] - 2026-08-28
 
 **Minor release.** Ships the complete current `main` line through

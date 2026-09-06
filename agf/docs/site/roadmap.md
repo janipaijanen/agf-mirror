@@ -5,15 +5,19 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | v2.6.1 published; v2.7.0 retired unused after the abandoned immutable v2.7.0-rc.1 candidate and stopped rc.2 reconstruction; v2.8.0 standard release candidate in construction from `main` |
-| Observed at | 2026-08-28T09:05:14Z |
-| Source revision | v2.6.1 remains the latest fully published stable release. Binding governor decision `20260828T085508Z-governor-reviewer-j37k` retires v2.7.0, retains the abandoned v2.7 branches and rc.1 tag as evidence, and authorizes v2.8.0 through the standard current-`main` release workflow from exact base `ca808607`. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
-| Governed source | `docs/coordination/20260828T085508Z-governor-reviewer-j37k.md` and handoff `20260828T085514Z-planner-architect-rmna.md` govern the v2.8.0 release construction. |
+| Status | v2.9.0 published as the current stable release |
+| Observed at | 2026-09-06T10:23:19Z |
+| Source revision | v2.9.0 was constructed through the standard current-`main` workflow from frozen base `cab3c0d6`; its immutable tag and release artifacts are the publication authority. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
+| Governed source | `docs/plans/20260831T050110Z-v290-release-publication.md`, governor approval `docs/coordination/20260902T084517Z-governor-reviewer-jqdd.md`, and the exact-head release Gate 2 record govern the v2.9.0 publication. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
 
-**Latest fully published stable release: `v2.6.1`** — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.6.1), tag `v2.6.1` (`f780ac0e`), released 2026-08-17. Constructed directly from `main`'s then-current tip (Path A) rather than a frozen line, correcting v2.6.0's incomplete publication. `v2.5.0` — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.5.0), tag `v2.5.0` (`b9215bd6`), released 2026-08-10 — was the prior fully published stable release. `v2.4.11` — [release page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.4.11), tag `v2.4.11`, released 2026-08-01. `v2.6.0`'s tag exists and its OCI image published, but its GitLab Release and generic package were never created — it is not counted as a fully published release and remains superseded by v2.6.1 for adoption.
+**Latest fully published stable release: `v2.9.0`** — use the
+[GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.9.0)
+for its verified artifacts. v2.7.0 was retired unused after its abandoned
+release candidate; the immediately preceding version was the prior stable
+release.
 
 v2.4.10 retains the complete v2.4.9 baseline and resolves issue #92 by making
 the repository-local `tooling/agov` wrapper source-compatible with its
@@ -47,12 +51,9 @@ with Windows retained only as optional manual preview evidence.
 
 ## Active release train
 
-The v2.8.0 release candidate is being cut from current `main` through the
-standard release workflow. It includes #86, #87, #88, and #90 plus all
-post-v2.6.1 work and repairs already merged to `main`. The frozen v2.7.0
-reconstruction is abandoned because its stale base repeatedly excluded
-required repairs; v2.7.0 is retired unused. Publication remains subject to
-exact-head Gate 2 evidence and the mandatory pre-tag OCI build and Trivy scan.
+v2.9.0 was cut from reviewed current `main` through the standard release
+workflow. It includes all reviewed work merged after the preceding release and passed the
+required exact-head Gate 2 and pre-tag OCI/Trivy evidence checks.
 
 The remaining portfolio is deliberately split rather than accumulated into one
 large release:
@@ -66,7 +67,8 @@ large release:
 | v2.6.0 | Tag constructed, incompletely published (OCI only); superseded | #84, #85, #89, bounded #76 work; `release:create` failed on a stale aarch64 asset contract |
 | v2.6.1 | Published stable release | Same functional scope as v2.6.0, plus the asset-contract fix that let `release:create` succeed; issues #76/#84/#85/#89 closed |
 | v2.7.0 | Retired unused | Frozen reconstruction abandoned; rc.1 remains immutable and failed |
-| v2.8.0 | Candidate from current `main` | #86-#88/#90 plus all post-v2.6.1 work and required repairs |
+| Previous stable | Published stable release | Gate-change enforcement and the first integrated A1/A2 release-safety work |
+| v2.9.0 | Published stable release | All reviewed work merged after the preceding release, including release-safety and runner-routing improvements |
 | Later minor | Separately gated work | #91, #94, and approved backlog themes |
 
 ## In scope now
@@ -87,9 +89,11 @@ large release:
   #89, and #76 shipped in v2.6.1 (published 2026-08-17, correcting
   v2.6.0's incomplete tag-only construction) and are independently
   post-publication verified (`h584`) — Level 5 Deployable.
-- **v2.8.0 current-main release — candidate:** #86-#88/#90 and all other
-  post-v2.6.1 changes on `main`; exact-head Gate 2 and pre-tag OCI/Trivy
-  evidence remain required. #91/#94 remain later-minor candidates.
+- **Previous current-main release — published:** #86-#88/#90 and all other
+  post-v2.6.1 changes in that release are Level 5 Deployable.
+- **v2.9.0 current-main release — published:** all reviewed changes merged
+  after the preceding release, with exact-head Gate 2 and pre-tag OCI/Trivy evidence.
+  #91/#94 remain later-minor candidates.
 - **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
   proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
   not yet approved.
