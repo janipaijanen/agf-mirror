@@ -99,13 +99,14 @@ and several later dispositions cite it. Then the rest drain in any order.
 
 | Pri | MR | Readiness | Cause / dependency |
 |---|---|---|---|
-| 1 | !2405 universal polling plan | **not ready** — `p6j5` CHANGES REQUESTED (C1 simplicity-rule collision) | `mskd` names it the polling-model normative owner; planner-architect MUST revise (not replace). Blocks the polling-model rule/loader diffs. |
-| 2 | !2362 build: route CI jobs to dedicated runner | **not ready** — gate-blocked per !2366 | needs the accompanying gate; pairs with the merged v290 atomic routing |
-| 3 | !2392 build: remove DinD from mandatory Linux packaging | near-ready | unblocks native-musl packaging; **blocked-by** #109 runner-migration direction |
-| 4 | !2434 learning: release-metadata preflight | at Gate 2 (`rgkp`) | audited clean this session |
-| 5 | !2368 / !2394 / !2412 learnings | near-ready | all audited clean; !2394 feeds #121-#123 |
-| 6 | !2390 / !2408 / !2306 docs sources+radar | near-ready | audited clean; research-maintenance fast-path style; !2410 wants Batch 34 release-first |
-| 7 | !2375 docs: OTGR Zulip-adapter spec v0.1 | proposal | routed to governor (!2376); not a commitment |
+| 1 | !2405 universal polling plan | **conditionally Gate 1 approved at `30ed1f71`** — renewed contribution audit CLEAR; renewed InfoSec review and canonical pipeline pending | `mskd` names it the polling-model normative owner. Governor decision `56bh` authorizes the Codex/Claude implementation after those objective preconditions clear. Blocks the polling-model rule/loader diffs and Propeller implementation. |
+| 2 | !2438 learning: require end-to-end `agov-mcp` readiness | **included in RUW by governor; not acceptance-ready** — exact-head MR pipeline was canceled | Records the configured-but-not-callable MCP failure and assistant-specific telemetry requirement. Requires a fresh canonical pipeline and Gate 2 before merge; inclusion does not claim the underlying readiness defect is fixed. |
+| 3 | !2362 build: route CI jobs to dedicated runner | **not ready** — gate-blocked per !2366 | needs the accompanying gate; pairs with the merged v290 atomic routing |
+| 4 | !2392 build: remove DinD from mandatory Linux packaging | near-ready | unblocks native-musl packaging; **blocked-by** #109 runner-migration direction |
+| 5 | !2434 learning: release-metadata preflight | at Gate 2 (`rgkp`) | audited clean this session |
+| 6 | !2368 / !2394 / !2412 learnings | near-ready | all audited clean; !2394 feeds #121-#123 |
+| 7 | !2390 / !2408 / !2306 docs sources+radar | near-ready | audited clean; research-maintenance fast-path style; !2410 wants Batch 34 release-first |
+| 8 | !2375 docs: OTGR Zulip-adapter spec v0.1 | proposal | routed to governor (!2376); not a commitment |
 | — | ~~!2383 ROI baseline repair~~ | **MERGED** `be62df46` | now Part A |
 
 ### B3 — Gate-1-pending plans: not content unless approved + implemented + merged
@@ -212,6 +213,9 @@ mskd (merged) ──► planner-architect revises !2405 (resolve p6j5 C1)
   !2405 canonical rule ──► must merge before/atomically with Propeller
                             impl (ksbs D4)
 
+governor RUW inclusion ──► !2438 fresh canonical pipeline + Gate 2
+                          ──► MCP-readiness learning enters the next release
+
 !2416 pipeline @4a267765 + un-draft + Gate 1 handoff ──► Propeller Gate 1 closed
 capability-developer assignment (skr6 → governor) ──► capability-review pass
   capability-review + governor disposition ──► Propeller impl (#126/#127)
@@ -228,8 +232,10 @@ capability-developer assignment (skr6 → governor) ──► capability-review 
 2. planner-architect converts this into the Gate 1 release plan (`mjqa`),
    with build-engineer + capability-developer consultations; the polling
    model piece is the `mskd`-directed !2405 revision.
-3. governor sets the version number from the final Part A content (PATCH
+3. Obtain a fresh canonical pipeline and Gate 2 for RUW-selected learning
+   !2438; do not equate landing the learning with fixing MCP exposure.
+4. governor sets the version number from the final Part A content (PATCH
    until a MINOR-class item merges).
-4. contribution-auditor: run the dedicated B4 verify-each pass on the 11
+5. contribution-auditor: run the dedicated B4 verify-each pass on the 11
    stale July learning/rule MRs; maintain the Part B disposition column as
    MRs merge/close.
