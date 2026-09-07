@@ -45,6 +45,7 @@ surfaces:
     disposition: updated
     paths:
       - AGENTS.md
+      - .claude/rules/always/universal-polling-and-autonomous-continuation-rule.md
       - agf/templates/AGENTS.md
       - agf/agents/academic-peer-reviewer.yaml
       - agf/agents/academic-visual-reviewer.yaml
@@ -61,15 +62,18 @@ surfaces:
       - agf/agents/planner-architect.yaml
       - agf/agents/web-ux-reviewer.yaml
     reason: >-
-      Root and adopter AGENTS.md expose the universal duty at cold start.
-      Every shipped specialist definition carries one identical compact
-      pointer to the canonical owner and the 10-to-15-learning trigger without
-      receiving new authority, status, or ownership.
+      Root and adopter AGENTS.md expose the universal duty at cold start. The
+      foundry Claude rule file points directly to the canonical owner rather
+      than copying normative prose. Every shipped specialist definition
+      carries one identical compact pointer to the canonical owner and the
+      10-to-15-learning trigger without receiving new authority, status, or
+      ownership.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
           The project Claude loader imports root AGENTS.md and therefore
-          inherits the project projection without copied prose.
+          inherits the project projection without copied prose; the dedicated
+          foundry discovery pointer is enumerated above.
       - path: agf/templates/CLAUDE.md
         reason: >-
           The adopter Claude template imports its sibling AGENTS.md and
