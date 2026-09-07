@@ -113,23 +113,45 @@ re-derivation parties, tree-hash replay proofs). It inherits the
 The plan defines a single authoritative check, invoked from one place, so
 "we checked" is reproducible:
 
-- **Git tag:** `glab api projects/:id/repository/tags/v<X.Y.Z>` — a 200 is
-  non-absence (fail); a 404 is absence.
-- **GitLab Release:** `glab api projects/:id/releases/v<X.Y.Z>` — same.
-- **Generic package:** `glab api "projects/:id/packages?package_type=generic&package_name=<name>&package_version=v<X.Y.Z>"`
-  paged in full, then repeated for **every** status that can occupy the
-  name — `default, hidden, processing, error, pending_destruction,
-  deprecated` — via `&status=<s>`. Any non-empty result at any status is
-  non-absence.
-- **OCI reference:** the reference comes from `agov-oci-image.sh image-ref`
-  (never a hand-typed name; `verify-ref` from v2.9.0 A2 already rejects a
-  non-byte-identical name). The registry is queried for that exact
-  reference with the repository ID resolved fresh at check time.
+Concrete bindings for this project (confirmed by the build-engineer lens,
+`j3qp`): project id `11946773`; generic release package name is exactly
+`agf` with `v`-prefixed versions; OCI repository path is exactly
+`janipaijanen/agents-govern-framework/agov` with **un**-prefixed tags
+(`<X.Y.Z>`, no `v`).
 
-**Fail-closed:** an unavailable status, an incomplete page walk, an
-unenumerable state, a non-200/404 response, or any policy/API ambiguity is
-treated as **failure, not absence**. The check prints `result=ABSENT` only
-when every one of the four namespaces returned an unambiguous absence.
+- **Git tag:** `GET /projects/:id/repository/tags/v<X.Y.Z>` — HTTP 200 is
+  non-absence (fail); 404 is absence.
+- **GitLab Release:** `GET /projects/:id/releases/v<X.Y.Z>` — same.
+- **Generic package:** `package_name` in GitLab's Packages API is a **fuzzy
+  substring filter**, so a non-empty response is *not* by itself
+  occupation — it can match a similarly-named package. The check queries
+  `GET /projects/:id/packages?package_type=generic&package_name=agf`,
+  **fully paginates** the result, then repeats for **every** status that can
+  occupy the name — `default, hidden, processing, error,
+  pending_destruction, deprecated` — via `&status=<s>`. Occupation requires
+  an **exact match** on the returned `name == "agf"` **and**
+  `version == "v<X.Y.Z>"` **and** `package_type == "generic"`. A fuzzy-only
+  match is not occupation.
+- **OCI reference:** the reference comes from `agov-oci-image.sh image-ref`
+  (never hand-typed; `verify-ref` from v2.9.0 A2 rejects a non-byte-
+  identical name). It is parsed into the exact repository path
+  `janipaijanen/agents-govern-framework/agov` and tag `<X.Y.Z>`. The check
+  paginates registry repository discovery, **exact-matches** the returned
+  repository `path`/`location`, then queries that freshly resolved
+  repository id for tag `<X.Y.Z>`. **Zero** exact-path repositories is
+  unambiguous OCI-tag absence; a present tag is occupation; **multiple**
+  exact-path matches or an inaccessible repository list is *ambiguity*.
+
+**Authentication (CI):** the same-project ephemeral `CI_JOB_TOKEN`, sent
+only in the `JOB-TOKEN` header. No PAT, project access token, or
+query-string credential; no shell tracing (`set -x`) around the calls; no
+token-bearing job artifact.
+
+**Fail-closed:** any of — an unavailable/unenumerable status, an incomplete
+page walk, a `401/403/429/5xx`, a timeout, malformed JSON, pagination
+ambiguity, multiple exact OCI-path matches, or any policy/API ambiguity —
+is treated as **failure, not absence**. The check prints `result=ABSENT`
+only when all four namespaces returned an unambiguous absence.
 
 ### 3. Operator preflight **and** a mechanically blocking CI check, correctly placed on the pipeline topology
 
@@ -143,13 +165,25 @@ split is therefore:
 - **Mechanically blocking CI check — release-metadata MR / pre-tag path
   only.** A new job (provisionally `release:namespace-check`) runs on the
   release-metadata MR pipeline (the last CI pipeline that precedes the tag
-  push), invokes the single authoritative check above against the exact
-  intended tag and the exact merge commit/tree the release MR produces, and
-  **blocks** merge on any non-absence or ambiguity across all four
-  namespaces. Its blocking authority is granted by an explicit clause in
-  `release-via-merge-request-rule.md` (per
-  `always/tool-authority-boundary-rule.md` — a check may only block when a
-  named rule grants it that authority).
+  push) and **blocks** merge on any non-absence or ambiguity across all
+  four namespaces. Its blocking authority is granted by an explicit clause
+  in `release-via-merge-request-rule.md` (per
+  `always/tool-authority-boundary-rule.md`). Constraints the plan binds
+  (build-engineer lens, `j3qp` RUW4-BE1):
+  - This project runs **detached** MR pipelines
+    (`refs/merge-requests/<iid>/head`), not merged-results pipelines, so
+    the eventual three-way merge commit does not exist at job time. The job
+    binds its evidence to the exact release-MR **source SHA, target SHA,
+    candidate version, and canonical pipeline id** — never a nonexistent
+    future merge commit. The operator's by-hand pre-push recheck (below)
+    binds the resulting `main` merge commit after merge.
+  - Trigger predicate: `merge_request_event` **and** a change to
+    `agf/VERSION` (or an equally deterministic release-metadata predicate).
+  - No second Rust build: the job **consumes the already-required
+    `rust:tooling:preview` artifact** containing `agov` — no `cargo build`,
+    no second archive build.
+  - Ordinary non-DinD job on the default dedicated runner (the namespace
+    queries need no container service).
 - **Operator preflight and immediate pre-push recheck.** The standard
   `## What the MR MUST verify` checklist gains one item — "namespace-absence
   proof (`agov release namespace-check` / equivalent) attached,
@@ -161,10 +195,11 @@ split is therefore:
   push.
 - **Optional post-tag CI job — consistency, not absence.** If a tag-pipeline
   job is kept at all, it is defined as post-tag *consistency / non-overwrite*
-  verification: the pushed tag points at the reviewed merge commit, and the
-  GitLab Release / generic-package / OCI artifacts the tag pipeline is about
-  to publish do not already exist at a *different* digest or content than
-  this pipeline produces. It never asserts Git-tag-namespace absence.
+  verification: the pushed tag points at the `main` merge commit that
+  carries the reviewed release-MR source SHA, and the GitLab Release /
+  generic-package / OCI artifacts the tag pipeline is about to publish do
+  not already exist at a *different* digest or content than this pipeline
+  produces. It never asserts Git-tag-namespace absence.
 
 The forge-neutral canonical implementation is a named command
 (provisionally `agov release namespace-check`); the CI wiring is a
@@ -173,10 +208,18 @@ publication-check`).
 
 ### 4. `agov-oci-image.sh` single-sourcing
 
-The OCI namespace check consumes `agov-oci-image.sh image-ref` for the name
-and relies on the existing `verify-ref` mutation-tested guard (v2.9.0 A2,
-MR !2198). No hand-typed OCI name enters the check. The repository ID is
-resolved fresh at check time, not cached.
+The OCI namespace check consumes `agov-oci-image.sh image-ref` for the
+reference and relies on the existing `verify-ref` mutation-tested guard
+(v2.9.0 A2, MR !2198). No hand-typed OCI name enters the check. The
+reference is parsed into the exact repository path
+`janipaijanen/agents-govern-framework/agov` and the **un**-prefixed tag
+`<X.Y.Z>` (the generic package uses `v<X.Y.Z>`; the OCI tag does not — a
+divergence the check must not paper over). Registry repository discovery is
+paginated in full, the returned repository `path`/`location` is
+exact-matched, and only then is that freshly resolved repository id queried
+for the tag — never a cached id. Zero exact-path repositories is
+unambiguous tag absence; multiple exact-path matches or an inaccessible
+list fails closed.
 
 ### 5. Required negative evidence (the `gate-self-test-rule` obligation)
 
@@ -224,12 +267,19 @@ that this plan closes it. That record is a `governor-reviewer` /
   clause.
 - `agf/skills/release/SKILL.md` — the check step.
 - `agf/docs/site/docs/operate/review-and-release.md` — adopter explanation.
-- `.gitlab-ci.yml` — the `release:namespace-check` blocking job on the
-  release-metadata MR / pre-tag path only; plus, if kept, a separate
-  `release:namespace-consistency` post-tag job (consistency/non-overwrite,
-  never absence). Trigger-scoped, path-scoped.
+- `.gitlab-ci.yml` — the `release:namespace-check` blocking job
+  (`merge_request_event` + `agf/VERSION` change; consumes the
+  `rust:tooling:preview` `agov` artifact; non-DinD, default dedicated
+  runner; `JOB-TOKEN: $CI_JOB_TOKEN` only, no shell tracing); plus, if
+  kept, a separate `release:namespace-consistency` post-tag job
+  (consistency/non-overwrite, never absence). Trigger-scoped, path-scoped.
 - the canonical command implementation under `tooling/` (provisionally
-  `agov release namespace-check`) + its unit tests.
+  `agov release namespace-check`) + its unit tests — exact-match semantics
+  for the generic package (`name == "agf"`, `version == "v<X.Y.Z>"`,
+  `package_type == "generic"`) and OCI (repository path
+  `janipaijanen/agents-govern-framework/agov`, tag `<X.Y.Z>` un-prefixed),
+  fail-closed on `401/403/429/5xx`/timeout/malformed JSON/pagination or
+  multi-match ambiguity.
 - `tooling/rust/scripts/agov-oci-image.sh` — only if a thin `image-ref`
   consumer hook is needed; preferably no change (consume as-is).
 - `docs/reviews/rule-projection/20260907T172745Z-issue120-standard-path-namespace-absence.yaml`
@@ -248,7 +298,9 @@ change. No change to the maintenance-line or reconstruction exceptions
 - `docs/reviews/rule-projection/` has no existing `issue120` manifest.
 - `.gitlab-ci.yml` `release:*` jobs: the new job is additive and
   path/trigger-scoped; it does not modify `release:paths-validate`,
-  `release:self-sufficiency-selftest`, or `agov:oci:release`.
+  `release:self-sufficiency-selftest`, or `agov:oci:release`. It adds a
+  read-only `needs:` on the existing `rust:tooling:preview` artifact (no
+  change to that job).
 
 ## Dependency and sequencing
 
