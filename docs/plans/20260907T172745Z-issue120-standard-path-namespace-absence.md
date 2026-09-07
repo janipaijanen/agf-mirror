@@ -113,45 +113,76 @@ re-derivation parties, tree-hash replay proofs). It inherits the
 The plan defines a single authoritative check, invoked from one place, so
 "we checked" is reproducible:
 
-Concrete bindings for this project (confirmed by the build-engineer lens,
-`j3qp`): project id `11946773`; generic release package name is exactly
-`agf` with `v`-prefixed versions; OCI repository path is exactly
-`janipaijanen/agents-govern-framework/agov` with **un**-prefixed tags
-(`<X.Y.Z>`, no `v`).
+**Identity is derived at runtime, never hard-coded** (build-engineer
+`r126` RUW4-BE2-R1, contribution audit `3dkt` RUW4-CA1). The canonical
+command and the operator both bind to the **same** configured release
+target:
 
-- **Git tag:** `GET /projects/:id/repository/tags/v<X.Y.Z>` — HTTP 200 is
-  non-absence (fail); 404 is absence.
-- **GitLab Release:** `GET /projects/:id/releases/v<X.Y.Z>` — same.
-- **Generic package:** `package_name` in GitLab's Packages API is a **fuzzy
-  substring filter**, so a non-empty response is *not* by itself
-  occupation — it can match a similarly-named package. The check queries
-  `GET /projects/:id/packages?package_type=generic&package_name=agf`,
-  **fully paginates** the result, then repeats for **every** status that can
-  occupy the name — `default, hidden, processing, error,
-  pending_destruction, deprecated` — via `&status=<s>`. Occupation requires
-  an **exact match** on the returned `name == "agf"` **and**
-  `version == "v<X.Y.Z>"` **and** `package_type == "generic"`. A fuzzy-only
-  match is not occupation.
-- **OCI reference:** the reference comes from `agov-oci-image.sh image-ref`
-  (never hand-typed; `verify-ref` from v2.9.0 A2 rejects a non-byte-
-  identical name). It is parsed into the exact repository path
-  `janipaijanen/agents-govern-framework/agov` and tag `<X.Y.Z>`. The check
-  paginates registry repository discovery, **exact-matches** the returned
-  repository `path`/`location`, then queries that freshly resolved
-  repository id for tag `<X.Y.Z>`. **Zero** exact-path repositories is
-  unambiguous OCI-tag absence; a present tag is occupation; **multiple**
-  exact-path matches or an inaccessible repository list is *ambiguity*.
+- **GitLab project:** the same-project CI context — `$CI_PROJECT_ID` in CI,
+  the configured release-target project for an operator run — and the check
+  first verifies that project's `path_with_namespace` equals the expected
+  canonical path before any namespace query. (Observed evidence only, not a
+  command literal: this project is currently id `83321848`,
+  `janipaijanen/agents-govern-framework`. The earlier draft and `pmqg`
+  wrongly stated `11946773` as the project id — that value is the current
+  *container-registry repository id*, not a project id; see the correction
+  record referenced below.)
+- **Generic package name:** read from the validated release manifest
+  `agf/dist/release-manifest.yaml` `package.name` (currently `agf`), or
+  passed to the command as that manifest-derived value. Not a literal.
+- **OCI repository path and tag:** derived **exclusively** from the
+  `agov-oci-image.sh image-ref` output (guarded by `verify-ref`, v2.9.0 A2)
+  plus runtime `$CI_REGISTRY_IMAGE`. The current path
+  `janipaijanen/agents-govern-framework/agov` and the un-prefixed tag form
+  `<X.Y.Z>` (the generic package keeps `v<X.Y.Z>` — the divergence is real
+  and the check must not paper over it) appear in the plan only as an
+  **expected test fixture**, never in the command contract.
+
+**Positive access before accepting absence** (infosec `qjhj` RUW4-IS1):
+GitLab documents that an HTTP 404 also means *the caller cannot access the
+resource*, not only *the resource is absent*. A successful package
+enumeration does not prove tag or Release visibility — feature and
+endpoint permissions differ. So for **each** namespace the check first
+establishes positive authenticated access by successfully listing that
+namespace's parent collection under the same credential
+(`GET …/repository/tags?per_page=…` paginated, `GET …/releases` paginated,
+`GET …/packages` paginated, registry `GET …/registry/repositories`
+paginated). Only after that listing succeeds is a 404 on the specific
+`v<X.Y.Z>` / `<X.Y.Z>` object interpreted as **absence**. If the listing
+itself fails or is inaccessible, the namespace result is **ambiguity**, not
+absence.
+
+- **Git tag:** list tags (paginated) → then `GET
+  …/repository/tags/v<X.Y.Z>`. 200 = occupation; 404 *after a successful
+  listing* = absence.
+- **GitLab Release:** list releases (paginated) → then `GET
+  …/releases/v<X.Y.Z>`. Same.
+- **Generic package:** `package_name` in the Packages API is a **fuzzy
+  substring filter**, so a non-empty response is not by itself occupation.
+  Query `…/packages?package_type=generic&package_name=<manifest name>`,
+  **fully paginate**, repeat for **every** status — `default, hidden,
+  processing, error, pending_destruction, deprecated` — via `&status=<s>`.
+  Occupation requires an **exact match** on `name == <manifest name>` **and**
+  `version == "v<X.Y.Z>"` **and** `package_type == "generic"`.
+- **OCI reference:** paginate registry repository discovery, **exact-match**
+  the returned repository `path`/`location` against the `image-ref`-derived
+  path, then query that freshly resolved repository id for the derived tag.
+  Zero exact-path repositories *after a successful listing* = absence; a
+  present tag = occupation; multiple exact-path matches or an inaccessible
+  list = ambiguity.
 
 **Authentication (CI):** the same-project ephemeral `CI_JOB_TOKEN`, sent
 only in the `JOB-TOKEN` header. No PAT, project access token, or
 query-string credential; no shell tracing (`set -x`) around the calls; no
 token-bearing job artifact.
 
-**Fail-closed:** any of — an unavailable/unenumerable status, an incomplete
-page walk, a `401/403/429/5xx`, a timeout, malformed JSON, pagination
-ambiguity, multiple exact OCI-path matches, or any policy/API ambiguity —
-is treated as **failure, not absence**. The check prints `result=ABSENT`
-only when all four namespaces returned an unambiguous absence.
+**Fail-closed:** any of — a project whose `path_with_namespace` does not
+match the expected canonical path, a failed or inaccessible namespace
+listing, an unavailable/unenumerable package status, an incomplete page
+walk, a `401/403/429/5xx`, a timeout, malformed JSON, pagination ambiguity,
+multiple exact OCI-path matches, or any policy/API ambiguity — is treated
+as **failure, not absence**. The check prints `result=ABSENT` only when all
+four namespaces returned an unambiguous, positively-accessed absence.
 
 ### 3. Operator preflight **and** a mechanically blocking CI check, correctly placed on the pipeline topology
 
@@ -184,15 +215,21 @@ split is therefore:
     no second archive build.
   - Ordinary non-DinD job on the default dedicated runner (the namespace
     queries need no container service).
-- **Operator preflight and immediate pre-push recheck.** The standard
-  `## What the MR MUST verify` checklist gains one item — "namespace-absence
-  proof (`agov release namespace-check` / equivalent) attached,
-  `result=ABSENT` for all four namespaces at the exact intended tag." The
-  operator runs it in the reversible preflight and **again by hand
-  immediately before `git push` of the tag** — this hand recheck, not a CI
-  job, is the final absence gate, mirroring the recheck the maintenance-line
-  and reconstruction exceptions already require immediately before their tag
-  push.
+- **Operator preflight and immediate pre-push recheck — both mandatory.**
+  The standard `## What the MR MUST verify` checklist gains one item —
+  "namespace-absence proof (`agov release namespace-check` / equivalent)
+  attached, `result=ABSENT` for all four namespaces at the exact intended
+  tag." The operator runs it **twice**: once in the reversible preflight,
+  and **again immediately before `git push` of the tag**. Both runs are
+  **required workflow obligations**; a non-absence or ambiguity result at
+  either **stops tag publication**. The immediate pre-push run is the final
+  absence gate (the CI job ran earlier, against the pre-merge state, and
+  cannot establish absence at the later tag push), mirroring the recheck the
+  maintenance-line and reconstruction exceptions already require immediately
+  before their tag push. "No *automated* enforcement exists at the tag-push
+  moment" is a statement about mechanism, **not** about requirement
+  strength: the operator check is mandatory, not advisory (`3dkt`
+  RUW4-CA2).
 - **Optional post-tag CI job — consistency, not absence.** If a tag-pipeline
   job is kept at all, it is defined as post-tag *consistency / non-overwrite*
   verification: the pushed tag points at the `main` merge commit that
@@ -210,16 +247,19 @@ publication-check`).
 
 The OCI namespace check consumes `agov-oci-image.sh image-ref` for the
 reference and relies on the existing `verify-ref` mutation-tested guard
-(v2.9.0 A2, MR !2198). No hand-typed OCI name enters the check. The
-reference is parsed into the exact repository path
-`janipaijanen/agents-govern-framework/agov` and the **un**-prefixed tag
-`<X.Y.Z>` (the generic package uses `v<X.Y.Z>`; the OCI tag does not — a
-divergence the check must not paper over). Registry repository discovery is
-paginated in full, the returned repository `path`/`location` is
-exact-matched, and only then is that freshly resolved repository id queried
-for the tag — never a cached id. Zero exact-path repositories is
-unambiguous tag absence; multiple exact-path matches or an inaccessible
-list fails closed.
+(v2.9.0 A2, MR !2198). **No OCI name — literal or otherwise — is written
+into the command contract.** The repository path and the **un**-prefixed
+tag `<X.Y.Z>` (the generic package uses `v<X.Y.Z>`; the OCI tag does not —
+a divergence the check must not paper over) are parsed solely from the
+`image-ref` output plus runtime `$CI_REGISTRY_IMAGE`. Registry repository
+discovery is paginated in full, the returned repository `path`/`location`
+is exact-matched against that derived path, and only then is the freshly
+resolved repository id queried for the tag — never a cached id. Zero
+exact-path repositories *after a successful repository listing* is
+unambiguous tag absence; multiple exact-path matches, an inaccessible
+list, or a failed listing fails closed. The current namespace
+(`janipaijanen/agents-govern-framework/agov`) appears in the plan only as
+an expected test fixture.
 
 ### 5. Required negative evidence (the `gate-self-test-rule` obligation)
 
@@ -236,6 +276,25 @@ standard path before any immutable tag:
 - capture the transcript / CI job log in the MR description under a
   `## Negative test` heading.
 
+Additional required negative and positive cases (from the exact-head
+reviews):
+
+- **Wrong project / mismatched path** (`3dkt` RUW4-CA1) — point the check
+  at a project id whose `path_with_namespace` is not the expected canonical
+  path; assert it fails closed *before* any namespace query, not "absent".
+- **Hidden / unauthorized 404** (`qjhj` RUW4-IS1) — a namespace whose
+  parent-collection listing returns 403/404 (no access); assert the result
+  is *ambiguity → fail closed*, never absence.
+- **Positive authorized-absence** — a namespace with a successful parent
+  listing and a genuine 404 on the specific version; assert `ABSENT` for
+  that namespace.
+- **Fuzzy-only package match** (`j3qp` RUW4-BE2) — a similarly-named generic
+  package present but no exact `name`/`version`/`type` match; assert not
+  occupation.
+- **Operator pre-push stop** (`3dkt` RUW4-CA2) — the runbook/negative
+  evidence exercises the by-hand immediate pre-push run stopping a tag push
+  on a non-absence result, not only the CI job.
+
 A passing-only test ("checked an absent name, it passed") is explicitly
 insufficient.
 
@@ -249,7 +308,7 @@ insufficient.
 | Adopter-facing explanation | **Updated:** `agf/docs/site/docs/operate/review-and-release.md` (or the release Pages page) explains the obligation and links the owner. |
 | Runbook / situation map | **Updated:** `agf/skills/release/SKILL.md` gains the check step; runbook "preparing a release" row points at it. |
 | AI landing / loaders | **Not applicable (reasoned):** the obligation is operator/CI procedure, not assistant startup behavior; no `AGENTS.md` / specialist-loader change. |
-| Validation / drift evidence | **Implemented:** the `release:namespace-check` CI job + the `gate-self-test` negative test are the mechanical evidence; advisory where the check is operator-run in the reversible preflight. |
+| Validation / drift evidence | **Implemented (CI) + required-manual (operator):** the `release:namespace-check` CI job + the `gate-self-test` negative test are the mechanical evidence on the pre-tag path. The operator's reversible-preflight run **and** immediate pre-push recheck are **mandatory workflow obligations** (not advisory) whose non-absence/ambiguity result stops tag publication — there is simply no *automated* enforcement at the tag-push moment, which is a mechanism gap, not a strength downgrade. The negative test exercises the operator stop as well as the CI stop. |
 | Distribution | **Confirmed:** the rule ships via `agf/rules/**`; the release skill ships via `agf/skills/**`; the canonical command ships in the tooling. Root docs are project-local where applicable. |
 
 ### Issue-#120 open question 3 — superseding `gs18`
@@ -274,12 +333,16 @@ that this plan closes it. That record is a `governor-reviewer` /
   kept, a separate `release:namespace-consistency` post-tag job
   (consistency/non-overwrite, never absence). Trigger-scoped, path-scoped.
 - the canonical command implementation under `tooling/` (provisionally
-  `agov release namespace-check`) + its unit tests — exact-match semantics
-  for the generic package (`name == "agf"`, `version == "v<X.Y.Z>"`,
-  `package_type == "generic"`) and OCI (repository path
-  `janipaijanen/agents-govern-framework/agov`, tag `<X.Y.Z>` un-prefixed),
-  fail-closed on `401/403/429/5xx`/timeout/malformed JSON/pagination or
-  multi-match ambiguity.
+  `agov release namespace-check`) + its unit tests — runtime-derived
+  identity (`$CI_PROJECT_ID` / configured release target with canonical
+  `path_with_namespace` verification; package name from
+  `agf/dist/release-manifest.yaml` `package.name`; OCI path/tag from
+  `agov-oci-image.sh image-ref` + `$CI_REGISTRY_IMAGE`), exact-match
+  semantics (`name`/`version == "v<X.Y.Z>"`/`package_type == "generic"`;
+  OCI tag `<X.Y.Z>` un-prefixed), positive-access-before-absence per
+  namespace, fail-closed on wrong-path / failed listing / `401/403/429/5xx`
+  / timeout / malformed JSON / pagination or multi-match ambiguity. No
+  namespace literal in the command contract.
 - `tooling/rust/scripts/agov-oci-image.sh` — only if a thin `image-ref`
   consumer hook is needed; preferably no change (consume as-is).
 - `docs/reviews/rule-projection/20260907T172745Z-issue120-standard-path-namespace-absence.yaml`

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
 # Six-surface projection evidence for issue #120: a pre-tag
 # namespace-absence obligation on the standard release path.
 
@@ -78,11 +81,16 @@ surfaces:
       mechanically enforces the obligation and is the primary drift
       evidence. The gate-self-test-rule negative test in the implementation
       MR proves a pre-existing object in each governed namespace stops the
-      standard path before any immutable tag. The operator's reversible-
-      preflight run and the by-hand immediate pre-push recheck are advisory
-      where run by hand. Any post-tag CI job verifies consistency /
-      non-overwrite, not namespace absence. Named authority: the CI check's
-      blocking clause added to release-via-merge-request-rule.md.
+      standard path before any immutable tag, and exercises the operator
+      pre-push stop as well as the CI stop. The operator's reversible-
+      preflight run AND immediate pre-push recheck are MANDATORY workflow
+      obligations, not advisory — a non-absence or ambiguity result at
+      either stops tag publication (3dkt RUW4-CA2). There is no automated
+      enforcement at the tag-push moment, which is a mechanism gap, not a
+      requirement-strength downgrade. Any post-tag CI job verifies
+      consistency / non-overwrite, not namespace absence. Named authority:
+      the CI check's blocking clause added to
+      release-via-merge-request-rule.md.
 
   distribution:
     disposition: updated
