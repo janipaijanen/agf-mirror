@@ -4409,6 +4409,73 @@ learnings:
         - 'docs/plans/20260831T050110Z-v290-release-publication.md: the v2.9.0 metadata audit excluded agf/learnings wholesale and therefore omitted its live adoption.framework_version field.'
         - 'docs/coordination/20260828T061002Z-coder-tester-eqq3.md: v2.7.0-rc.1 publication stopped after the immutable tag because the OCI scan found a fixed HIGH vulnerability.'
 
+  - id: 20260907T073424Z-rl9k
+    date: '2026-09-07'
+    category: gap
+    scope: framework
+    title: role-assumption-without-a-communicate-back-step-escalates-a-busy-peer-as-unreachable
+    status: proposed
+    description: >-
+      The universal-polling rule's concurrent-session role-allocation
+      handshake specifies proposal -> unanimous ack -> act, and routes an
+      unreachable or disagreeing peer to the governor. It does not require the
+      receiving assistant to say "I do not hold that role," and it lets the
+      initiator treat a non-reply as an unreachable peer. A Codex session,
+      assigned RUW/v2.10 planner work by the governor, published a
+      temporary-allocation proposal (jqrm) that assumed a concurrent Claude
+      session held planner-architect. That Claude session was active as
+      contribution-auditor, jqrm was not addressed to that role, and it did
+      not reply. Codex then escalated an "unreachable peer" via MR !2474 and
+      asked the governor to authorize proceeding without the acknowledgement.
+      The same shape recurred immediately afterward when the build-engineer,
+      capability-developer, and infosec-sentinel reviews of MR !2478 were
+      routed to "Claude" (232s, s1kq, 6hqm) and were only unblocked by a
+      direct governor "proceed as proposed" assignment. In every case the
+      missing steps were: the receiver explicitly communicating the role it
+      actually holds, and the initiator then explicitly requesting a
+      temporary allocation with a real accept/decline/counter window before
+      escalating. The governor closed the gap with an immediate AGF-wide
+      design decision (s5gs) and a Gate 1 rule/loader projection handoff
+      (r3wc).
+    agents_involved:
+      - coder-tester
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        A reviewer session that was simply busy in another role was
+        misclassified as an unreachable peer, producing an escalation MR and a
+        governor decision where a one-line "not my role" reply plus an explicit
+        temporary-allocation request would have resolved it. The governor had
+        to manually short-circuit the same pattern a second time for the
+        !2478 review routing. No unsafe merge, release, or data loss resulted;
+        the cost is avoidable coordination volume and governor attention.
+    recommendation: >-
+      Add two steps to the concurrent-session role-allocation handshake, as
+      decided in governor record s5gs and effective immediately: (1) a
+      receiving assistant that does not recognize holding an assumed role MUST
+      communicate that back through coordination, and silence or being busy in
+      another role MUST NOT be treated as an unreachable peer; (2) the
+      initiator MUST then explicitly propose a temporary allocation and give
+      the receiver a real chance to accept, decline, or counter before
+      escalating an unreachable-peer or disagreement to the governor. A direct
+      governor assignment may still settle the allocation, with the affected
+      sessions still acknowledging it. The canonical home is the
+      universal-polling rule's Concurrent-session role allocation section,
+      with a compact cold-start pointer in root and template AGENTS.md and
+      every shipped specialist definition; the durable projection is Gate 1
+      work order r3wc. Underlying session-level addressing is tracked in
+      issue #121.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 2
+      evidence_refs:
+        - 'docs/coordination/20260907T045703Z-coder-tester-jqrm.md and MR !2474: Codex assumed a concurrent Claude session held planner-architect, then escalated the non-reply as an unreachable peer.'
+        - 'docs/coordination/20260907T061351Z-planner-architect-232s.md, 20260907T061356Z-planner-architect-s1kq.md, 20260907T061400Z-planner-architect-6hqm.md: build/capability/infosec reviews of MR !2478 routed to "Claude" without a communicate-back or explicit temporary-allocation step, unblocked only by a direct governor assignment.'
+
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
