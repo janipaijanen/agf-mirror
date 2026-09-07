@@ -69,6 +69,11 @@ surfaces:
       10-to-15-learning trigger without receiving new authority, status, or
       ownership.
     not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          The project Claude loader imports root AGENTS.md and therefore
+          inherits the project projection without copied prose; the dedicated
+          foundry discovery pointer is enumerated above.
       - path: agf/templates/CLAUDE.md
         reason: >-
           The adopter Claude template imports its sibling AGENTS.md and
