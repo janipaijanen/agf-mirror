@@ -8,6 +8,24 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+### Added
+
+- Universal polling and autonomous continuation now applies to every active
+  development role: sessions discover the complete coordination, merge-request,
+  issue, and awaited-state surface, then act only within their role, authority,
+  approved scope, current gate, and collision-safe claim. The same rule adds
+  bounded spare-work decomposition and the proposal-only capability-review
+  trigger after 10 new valid learnings, with escalation by 15. Adopter docs:
+  updated.
+
+### Changed
+
+- Poll scheduling is explicitly non-reentrant and truthful. A real supported
+  wake that arrives during active work coalesces into one cycle at the next safe
+  boundary; the default 15-minute cadence expires after 180 quiet minutes, and
+  unchanged state stays quiet. Assistants without a real wake path poll on
+  activation or resume rather than claiming background execution.
+
 ### Fixed
 
 - Restored automatic saved-token estimates for the documented `cold-start`,
