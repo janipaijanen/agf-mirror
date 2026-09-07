@@ -1,6 +1,8 @@
 ---
 id: 20260907T172745Z-issue120-standard-path-namespace-absence
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260907T191930Z-governor-reviewer-qqbh
+gate1_approved_at: 2026-09-07T19:19:30Z
 topic: issue120-standard-release-path-namespace-absence-obligation
 candidate_release: v2.10.0
 advisory_consultation:
