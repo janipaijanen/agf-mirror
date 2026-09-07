@@ -5,32 +5,31 @@ topic: issue120-standard-release-path-namespace-absence-obligation
 candidate_release: v2.10.0
 advisory_consultation:
   - role: infosec-sentinel
-    status: waived
+    status: consulted
     reason: >-
-      Pending exact-head review. The schema has no `pending` value; `waived`
-      is used only while this draft is in review. Gate 1 is not eligible
-      until a fresh infosec review of the namespace-query / credential /
-      protected-tag / disclosure surface is incorporated and this row
-      becomes `consulted`.
+      Exact-head infosec screen at `bf62f357` (`20260907T184803Z-infosec-sentinel-qjhj`,
+      BLOCK: RUW4-IS1 hidden-vs-absent 404, RUW4-IS2 SPDX) and re-review at
+      `4ca47e13` (`20260907T190533Z-infosec-sentinel-rm1g`, CLEAR — both
+      findings resolved). Performed by a non-author Codex/GPT-6 session
+      under direct governor assignment (disclosed in `3dkt`/`qjhj`).
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      Pending independent exact-head audit. The schema has no `pending`
-      value; `waived` is used only while this draft is in review. This plan
-      is authored by a Claude session temporarily allocated to
-      planner-architect by governor direction (2026-09-07, "create gate1
-      plan for #120"); the independent contribution audit MUST come from a
-      non-author session (e.g. Codex as contribution-auditor, or another
-      session named by the governor) — the authoring session cannot supply
-      it. Gate 1 is not eligible until that audit is incorporated and this
-      row becomes `consulted`.
+      Independent exact-head audit at `bf62f357`
+      (`20260907T184721Z-contribution-auditor-3dkt`, BLOCK: RUW4-CA1 wrong
+      project id, RUW4-CA2 operator-gate strength) and re-review at
+      `4ca47e13` (`20260907T190524Z-contribution-auditor-5bqa`, CLEAR —
+      supersedes the `3dkt` BLOCK for the new head). Performed by a fresh
+      non-author Codex/GPT-6 session under direct governor assignment; the
+      authoring Claude session did not supply it.
   - role: build-engineer
-    status: waived
+    status: consulted
     reason: >-
-      Pending exact-head review of the CI job shape, `agov-oci-image.sh`
-      single-sourcing, runner/tag coverage, and the one-tagged-build
-      budget. Gate 1 is not eligible until incorporated and this row
-      becomes `consulted`.
+      Exact-head reviews by a Codex session under governor allocation `44jn`:
+      `20260907T182936Z-build-engineer-j3qp` (BLOCK: RUW4-BE1, RUW4-BE2) at
+      `6f18e36f`, `20260907T185026Z-build-engineer-r126` (BLOCK: RUW4-BE2-R1)
+      at `bf62f357`, and `20260907T190930Z-build-engineer-gpm5` (CLEAR — all
+      findings closed) at `4ca47e13`.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -44,12 +43,14 @@ governor direction (2026-09-07, "create gate1 plan for #120"), after the
 `pgm4` handoff to planner-architect went unactioned for ~2.5 hours and the
 release-cut critical path was blocked on it. Per the `s5gs` role-assumption
 handshake, this is a direct governor assignment; it is acknowledged inline
-here. **The independent contribution audit of this plan must come from a
+here. **The independent contribution audit of this plan came from a
 non-author session** — this session (which normally plays
-contribution-auditor) is disqualified from auditing its own plan. Codex is
-the RUW-4 *implementation* lane owner (`pgm4`) and authored the parent v2.10
-plan, so a fully independent reviewer is preferable; the governor names the
-auditor.
+contribution-auditor) is disqualified from auditing its own plan. The
+governor assigned the independent contribution audit and the infosec screen
+to a fresh non-author Codex/GPT-6 session (`3dkt`/`qjhj` → re-reviews
+`5bqa`/`rm1g`), and the build-engineer lens to a Codex session under
+allocation `44jn` (`j3qp`/`r126` → `gpm5`). All three are CLEAR at exact
+head `4ca47e13`; see `advisory_consultation` above.
 
 ## Decision requested at Gate 1
 
