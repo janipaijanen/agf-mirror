@@ -4477,6 +4477,60 @@ learnings:
         - 'docs/coordination/20260907T061351Z-planner-architect-232s.md, 20260907T061356Z-planner-architect-s1kq.md, 20260907T061400Z-planner-architect-6hqm.md: build/capability/infosec reviews of MR !2478 routed to "Claude" without a communicate-back or explicit temporary-allocation step, unblocked only by a direct governor assignment.'
 
 
+  - id: 20260906T124236Z-8487
+    date: '2026-09-06'
+    category: gap
+    scope: framework
+    title: mcp-startup-is-not-complete-until-the-active-agent-can-call-a-tool
+    status: proposed
+    description: >-
+      A long-running AGF development session performed coordination and
+      validation work through the agov CLI even though the repository-local
+      agov-mcp server was configured and enabled in the Codex host. The
+      configured server process was running, both release binaries existed,
+      `codex mcp list` reported the server enabled, and a direct JSON-RPC
+      initialize plus tools/list smoke test returned the expected tool catalog.
+      Nevertheless, the active task had no callable `mcp__agov__*` tools. Its
+      tool catalog had not acquired the server, so the session silently kept
+      using shell calls. The configured binary was also repository-local but
+      built from a root checkout 96 commits behind origin/main, showing that a
+      path under tooling does not by itself prove a bleeding-edge build.
+
+      The problem was detected only after the token ROI report showed little
+      MCP use. Configuration presence, an enabled listing, a live process, and
+      server protocol health therefore do not establish end-to-end capability
+      in the agent that is expected to use it.
+    agents_involved:
+      - coder-tester
+      - governor-reviewer
+    framework_section: tooling/build-agov-first-and-use-it-heavily
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The session spent avoidable context and operator attention on generic
+        shell invocations and discovered the missing structured capability
+        late in release work. Split telemetry and the absence of MCP transport
+        attribution also made the resulting token ROI evidence incomplete.
+    recommendation: >-
+      Make AGF development cold start an end-to-end capability check. Build the
+      repository-root release binaries from a source-compatible current
+      checkout; register agov-mcp with an absolute command path and the matching
+      AGOV_MCP_AGOV_BIN; configure the assistant-specific AGOV_TOKEN_ROI_LOG;
+      restart or recreate the client/task surface as required; and call one
+      read-only `mcp__agov__*` tool from the actual active task. Fail the MCP
+      readiness check when only configuration, process, protocol-smoke, or
+      `codex mcp list` evidence exists. Fall back visibly to the CLI when the
+      callable-tool check fails, and record the gap rather than implying MCP
+      use. Reverify source fingerprint or rebuild after the durable checkout
+      advances so a repository-local path cannot mask a stale binary.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '2026-09-06 Codex AGF release session: enabled repo-local agov-mcp passed initialize/tools-list while the active task exposed no mcp__agov__ tools.'
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
