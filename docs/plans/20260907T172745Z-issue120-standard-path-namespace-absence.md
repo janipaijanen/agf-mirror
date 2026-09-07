@@ -131,23 +131,40 @@ unenumerable state, a non-200/404 response, or any policy/API ambiguity is
 treated as **failure, not absence**. The check prints `result=ABSENT` only
 when every one of the four namespaces returned an unambiguous absence.
 
-### 3. Operator preflight **and** a mechanically blocking CI check
+### 3. Operator preflight **and** a mechanically blocking CI check, correctly placed on the pipeline topology
 
 Both, because the v2.8.0 defect was a hand-typed name with nothing invoking
-the check:
+the check. The **placement** matters: an absence check is only meaningful
+*before* the immutable tag exists, so it cannot run as a blocking gate on
+the tag pipeline itself (the tag push is what triggers that pipeline, so by
+then the Git-tag namespace is necessarily occupied — `7dba` RUW4-F1). The
+split is therefore:
 
-- **Operator preflight:** the standard `## What the MR MUST verify`
-  checklist gains one item — "namespace-absence proof (`agov release
-  namespace-check` / equivalent) attached, `result=ABSENT` for all four
-  namespaces at the exact intended tag." Runs in the reversible preflight
-  and again immediately before the tag push.
-- **Mechanical CI check:** a new job (provisionally `release:namespace-check`)
-  runs on the release-metadata MR pipeline and the tag pipeline, invokes
-  the single authoritative check above, and **blocks** on any non-absence
-  or ambiguity. Its blocking authority is granted by an explicit clause in
+- **Mechanically blocking CI check — release-metadata MR / pre-tag path
+  only.** A new job (provisionally `release:namespace-check`) runs on the
+  release-metadata MR pipeline (the last CI pipeline that precedes the tag
+  push), invokes the single authoritative check above against the exact
+  intended tag and the exact merge commit/tree the release MR produces, and
+  **blocks** merge on any non-absence or ambiguity across all four
+  namespaces. Its blocking authority is granted by an explicit clause in
   `release-via-merge-request-rule.md` (per
   `always/tool-authority-boundary-rule.md` — a check may only block when a
   named rule grants it that authority).
+- **Operator preflight and immediate pre-push recheck.** The standard
+  `## What the MR MUST verify` checklist gains one item — "namespace-absence
+  proof (`agov release namespace-check` / equivalent) attached,
+  `result=ABSENT` for all four namespaces at the exact intended tag." The
+  operator runs it in the reversible preflight and **again by hand
+  immediately before `git push` of the tag** — this hand recheck, not a CI
+  job, is the final absence gate, mirroring the recheck the maintenance-line
+  and reconstruction exceptions already require immediately before their tag
+  push.
+- **Optional post-tag CI job — consistency, not absence.** If a tag-pipeline
+  job is kept at all, it is defined as post-tag *consistency / non-overwrite*
+  verification: the pushed tag points at the reviewed merge commit, and the
+  GitLab Release / generic-package / OCI artifacts the tag pipeline is about
+  to publish do not already exist at a *different* digest or content than
+  this pipeline produces. It never asserts Git-tag-namespace absence.
 
 The forge-neutral canonical implementation is a named command
 (provisionally `agov release namespace-check`); the CI wiring is a
@@ -207,8 +224,10 @@ that this plan closes it. That record is a `governor-reviewer` /
   clause.
 - `agf/skills/release/SKILL.md` — the check step.
 - `agf/docs/site/docs/operate/review-and-release.md` — adopter explanation.
-- `.gitlab-ci.yml` — the `release:namespace-check` job (release-metadata MR
-  + tag pipeline triggers only; path-scoped).
+- `.gitlab-ci.yml` — the `release:namespace-check` blocking job on the
+  release-metadata MR / pre-tag path only; plus, if kept, a separate
+  `release:namespace-consistency` post-tag job (consistency/non-overwrite,
+  never absence). Trigger-scoped, path-scoped.
 - the canonical command implementation under `tooling/` (provisionally
   `agov release namespace-check`) + its unit tests.
 - `tooling/rust/scripts/agov-oci-image.sh` — only if a thin `image-ref`
@@ -261,9 +280,10 @@ After implementation:
    passes with the normative-owner row confirmed (no new owner file — the
    existing rule is the owner, so no `planned → existing` transition; the
    manifest declares it `updated`/`existing pointer sufficient`).
-2. The `release:namespace-check` job appears in the release-metadata MR /
-   tag pipelines and **fails** on the negative input; a `## Negative test`
-   section with a reproducible transcript is in the MR.
+2. The `release:namespace-check` blocking job appears on the
+   release-metadata MR / pre-tag pipeline and **fails** on the negative
+   input; a `## Negative test` section with a reproducible transcript is in
+   the MR. Any post-tag consistency job asserts consistency, not absence.
 3. `agov validate` umbrella, adopter-docs, the shipped skill validator, and
    `git diff --check` pass at the exact head.
 4. A table-top pass over: (a) all four namespaces absent → `result=ABSENT`,

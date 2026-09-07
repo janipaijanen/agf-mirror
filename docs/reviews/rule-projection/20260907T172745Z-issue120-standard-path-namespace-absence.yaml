@@ -72,13 +72,16 @@ surfaces:
   validation_drift_evidence:
     disposition: implemented
     reason: >-
-      The new release:namespace-check CI job (release-metadata MR and tag
-      pipelines) mechanically enforces the obligation and is the primary
-      drift evidence. The gate-self-test-rule negative test in the
-      implementation MR proves a pre-existing object in each governed
-      namespace stops the standard path before any immutable tag. The
-      operator preflight run of the same check in the reversible preflight
-      is advisory where run by hand. Named authority: the CI check's
+      The new release:namespace-check CI job, placed on the
+      release-metadata MR / pre-tag pipeline only (an absence check cannot
+      block the tag pipeline it is itself triggered by — 7dba RUW4-F1),
+      mechanically enforces the obligation and is the primary drift
+      evidence. The gate-self-test-rule negative test in the implementation
+      MR proves a pre-existing object in each governed namespace stops the
+      standard path before any immutable tag. The operator's reversible-
+      preflight run and the by-hand immediate pre-push recheck are advisory
+      where run by hand. Any post-tag CI job verifies consistency /
+      non-overwrite, not namespace absence. Named authority: the CI check's
       blocking clause added to release-via-merge-request-rule.md.
 
   distribution:
