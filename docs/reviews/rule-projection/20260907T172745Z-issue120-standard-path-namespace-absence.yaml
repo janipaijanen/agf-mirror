@@ -1,0 +1,107 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for issue #120: a pre-tag
+# namespace-absence obligation on the standard release path.
+
+plan_id: 20260907T172745Z-issue120-standard-path-namespace-absence
+issue: 120
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/review-and-release.md
+  - agf/skills/release/SKILL.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    stage: existing
+    path: agf/rules/workflow/release-via-merge-request-rule.md
+    reason: >-
+      The existing release rule is the single owner. The change adds one
+      checklist item to "## What the MR MUST verify" and a new
+      "Pre-tag namespace-absence obligation (standard path)" subsection
+      stating the four-namespace absence-proof set (Git tag, GitLab
+      Release, generic package across every status paginated fully, exact
+      helper-derived OCI reference), its fail-closed semantics, and the
+      explicit clause granting the new CI check blocking authority per
+      always/tool-authority-boundary-rule.md. No new owner file is
+      created; the maintenance-line and frozen-scope-reconstruction
+      exceptions are unchanged.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/operate/review-and-release.md
+    reason: >-
+      The operator release page gains a short paragraph explaining that
+      every release now proves the four target namespaces are unoccupied
+      before an immutable tag is pushed, that a pre-existing object stops
+      the release, and links the owner rule. It does not restate the
+      normative requirement in rule language.
+
+  runbook_situation_map:
+    disposition: updated
+    paths:
+      - agf/skills/release/SKILL.md
+    reason: >-
+      The release skill gains one step: run the namespace-absence check
+      in the reversible preflight and again immediately before the tag
+      push, expecting result=ABSENT for all four namespaces. Expressed as
+      a pointer-plus-step, not copied rule text.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      The obligation is operator and CI release procedure, not assistant
+      cold-start behavior. No AGENTS.md, agf/templates/AGENTS.md,
+      .claude/CLAUDE.md, or specialist agent definition changes. An
+      assistant performing a release already reaches the owner rule and
+      the release skill through the existing release workflow pointers;
+      this change adds no new authority or duty an assistant must be told
+      about at landing.
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          No cold-start behavior change; the release workflow is reached
+          through the existing skill and rule, which are updated in place.
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          Same; the adopter loader inherits the updated owner rule and
+          release skill without new landing prose.
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Imports root AGENTS.md; no copied prose and no new pointer
+          needed for an operator/CI procedure.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      The new release:namespace-check CI job, placed on the
+      release-metadata MR / pre-tag pipeline only (an absence check cannot
+      block the tag pipeline it is itself triggered by — 7dba RUW4-F1),
+      mechanically enforces the obligation and is the primary drift
+      evidence. The gate-self-test-rule negative test in the implementation
+      MR proves a pre-existing object in each governed namespace stops the
+      standard path before any immutable tag, and exercises the operator
+      pre-push stop as well as the CI stop. The operator's reversible-
+      preflight run AND immediate pre-push recheck are MANDATORY workflow
+      obligations, not advisory — a non-absence or ambiguity result at
+      either stops tag publication (3dkt RUW4-CA2). There is no automated
+      enforcement at the tag-push moment, which is a mechanism gap, not a
+      requirement-strength downgrade. Any post-tag CI job verifies
+      consistency / non-overwrite, not namespace absence. Named authority:
+      the CI check's blocking clause added to
+      release-via-merge-request-rule.md.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+      - agf/skills/release/SKILL.md
+      - agf/docs/site/docs/operate/review-and-release.md
+    reason: >-
+      The owner rule, the release skill, and the operator release page all
+      resolve through the AGF distribution. The .gitlab-ci.yml job and the
+      canonical namespace-check command implementation are foundry tooling
+      (the CI wiring is a removable adapter invoking the named command).
+      Project-local review evidence under docs/reviews/rule-projection/
+      remains foundry-only.
