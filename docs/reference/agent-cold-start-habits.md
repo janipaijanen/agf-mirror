@@ -7,6 +7,12 @@ records. The adopter-facing canonical procedures are the public
 `agf/docs/site/docs/operate/runbook.md`, `session-continuity.md`, and
 `poll-and-coordinate.md`; do not copy this foundry checklist downstream.
 
+The normative contract these habits follow — every active agent polls, the
+whole observation surface, collision-safe selection, temporary role-allocation
+consensus, non-reentrant scheduling, and the exhaustive stop boundary — is
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`. This
+page is a foundry projection of it; where they differ, the rule governs.
+
 ## Start From Governed Evidence
 
 Use repository state and pushed coordination records as the source of truth.
@@ -68,9 +74,16 @@ background `sleep`, or detached process: the assistant will not reliably notice
 that process. If no internal timer exists, say so and scan when active or after
 resume.
 
+Scheduling is non-reentrant: a wake that comes due while you are still
+executing an authorized item does not preempt it or start a second cycle —
+coalesce the ticks and run one complete poll at the item's next safe boundary.
+
 After each poll, read new messages addressed to your role or `all`, classify
-them, and choose the highest-priority obligation. `Poll` is an action loop: do
-not leave the human as the dispatcher for work your role can already see.
+them, and choose the highest-priority obligation. Before the first mutation on
+an item, re-check for an existing claim or an overlapping plan/MR on the same
+artifacts, and publish a `kind: claim` when one is needed to prevent
+collision. `Poll` is an action loop: do not leave the human as the dispatcher
+for work your role can already see.
 
 ## Predict First-Push CI
 

@@ -16,6 +16,22 @@ Canonical operating, interruption, recovery, and polling procedures are in
 `agf/docs/site/docs/operate/runbook.md`. This loader points there; it must not
 grow a competing copy of those procedures.
 
+Every active development role/session follows
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`:
+observe the complete configured project surface, choose the highest-priority
+authorized action, monitor work already started, and stop mutation only at a
+named gate, authority boundary, conflict, or evidenced blocker. Scheduled wakes
+are non-reentrant and coalesce while authorized work is active. Observation is
+universal; execution remains role-, authority-, gate-, and claim-scoped.
+
+Concurrent sessions whose roles would overlap or leave requested work
+ownerless publish and acknowledge one temporary allocation before mutation;
+consensus cannot create authority. Every active AI also tracks valid learnings
+after the last completed capability review: propose one review at 10 new
+records after checking for an existing proposal, and hand the baseline/count
+to the governor if none has launched by 15. This trigger grants proposal
+authority only and never activates a suspended role.
+
 Run these commands at the start of every session before acting or writing any
 durable files:
 

@@ -14,7 +14,8 @@ must not change the core workflow or role authority.
 | New or returning session | [Session continuity](session-continuity.md#start-or-resume) | Run the unscoped and role-specific resume steps before acting |
 | Planned `/compact`, IDE update, reboot, model switch, or pause | [Graceful checkpoint](session-continuity.md#graceful-checkpoint) | Validate and publish the record before leaving |
 | Crash, unexpected reboot, context loss, or another machine | [Abrupt-loss recovery](session-continuity.md#abrupt-loss-recovery) | Reconstruct from Git, coordination, and forge evidence without inventing state |
-| Asked to poll or coordinate | [Poll and coordinate](poll-and-coordinate.md) | Scan all shared surfaces, act inside the current gate, and leave a visible result |
+| Active session — cold start, resume, or a configured wake (no prompt needed) | [Poll and coordinate](poll-and-coordinate.md) | Run one complete cycle over the whole shared surface, select and advance the highest-priority authorized item, and leave a visible result — this is a standing obligation of every active agent, not a response to being asked |
+| At a safe wait boundary (healthy pipeline, external review, another agent's claimed work) | [Poll and coordinate](poll-and-coordinate.md#collision-safe-selection-role-consensus-and-stopping) | Ask the recurring question: what is the highest-priority authorized small item I can advance now without delaying or colliding with the work in flight? Claim one bounded item or record the specific blocker |
 | Beginning ordinary governed work | [Day-to-day operation](day-to-day.md) | Claim, implement, validate, and hand off within the approved scope |
 | Need a prompt for a real situation | [Run AGF in real situations](run-agf-in-real-situations.md) | Use the prompt as direction, never as authority |
 | Reviewing, blocked, or preparing a release | [Review and release](review-and-release.md) | Preserve exact-head evidence and human gate decisions |
