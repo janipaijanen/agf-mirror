@@ -4,12 +4,12 @@
 deciding what to activate, deactivate, or remove.*
 
 !!! warning "Incomplete classification pilot"
-    This page classifies **8 of 58 governed artifacts** (46 rules under
+    This page classifies **9 of 66 governed artifacts** (51 rules under
     `agf/rules/` — `agf/rules/README.md` is an index, not itself a rule, and
-    is not counted — plus 12 agent role definitions under `agf/agents/`). It
+    is not counted — plus 15 agent role definitions under `agf/agents/`). It
     is a first representative slice, not a complete adopter-facing removal
     guide. See [Tracked completion](#tracked-completion) below for the
-    remaining 50 artifacts and how that work is tracked.
+    remaining 57 artifacts and how that work is tracked.
 
 ## Why this page exists
 
@@ -39,7 +39,7 @@ project* — is neither answered here nor by any framework-shipped field. That
 is project-local state and belongs in your own `MANIFEST.yaml` or
 equivalent, not in framework metadata that's identical across every adopter.
 
-## The eight classified artifacts
+## The nine classified artifacts
 
 ### Agent roles
 
@@ -48,6 +48,7 @@ equivalent, not in framework metadata that's identical across every adopter.
 | **Build Engineer** | Production, Phase 1 | Project has a CI pipeline | Coder-Tester resumes owning CI/build config — the default before Build Engineer is introduced | Any other project sharing this framework checkout loses the reference definition and must restore it from the framework's own release archive |
 | **Contribution Auditor** | Cross-cutting, Phase 1 | First contribution to the framework or an adopter project | Contribution review reverts to whatever ad hoc process existed before — no structural check remains against adversarial or unsound incoming contributions | Loses the framework's own reference implementation of adversarial-contribution screening |
 | **InfoSec Sentinel** | Cross-cutting, Phase 1 | Project submits learning records | Externally-bound artifacts (learning records, upstream contributions) are no longer screened for information leaks before publication | Loses the framework's own reference implementation of the anonymization/leak-screening boundary |
+| **Improvement Propeller** | Meta, Phase 4 | Optional: a governor names a player, configured local evidence, real wake mechanism, cadence, and cursor state | Pause its wake schedule and retain history; ordinary agents still perform universal polling and the 10/15-learning capability-review trigger | Loses the bounded weekly opportunity and slow governance-friction proposal contract; capability-developer and planner-architect keep their distinct authorities |
 | **Planner-Architect** | Production, Phase 1 | Always | Not meaningfully deactivatable while still using AGF's gate model — Gate 1 authorship has no other owner in the minimum system | Removes a load-bearing piece of the governed-change pipeline itself |
 | **Coder-Tester** | Production, Phase 1 | Always | Not meaningfully deactivatable while still using AGF's gate model — Gate 2 implementation has no other owner in the minimum system | Removes a load-bearing piece of the governed-change pipeline itself |
 | **Governor-Reviewer** | Governance, Phase 1 | Always | Not meaningfully deactivatable while still using AGF's gate model — gate approval authority has no other owner in the minimum system | Removes a load-bearing piece of the governed-change pipeline itself |
@@ -73,9 +74,10 @@ prior knowledge of this framework's "upstream/downstream" vocabulary.
 
 ## Tracked completion
 
-The remaining 50 governed artifacts (44 rules plus 6 agent roles:
+The remaining 57 governed artifacts (49 rules plus 8 agent roles:
 fact-checker, capability-developer, documentation-writer,
-deployment-engineer, academic-peer-reviewer, academic-visual-reviewer) are
+deployment-engineer, academic-peer-reviewer, academic-visual-reviewer,
+web-ux-reviewer, independent-implementation-reviewer) are
 not yet classified. Completing the classification is real editorial
 judgment per rule and role — it belongs in a follow-up plan sized so a
 reviewer can answer one yes/no question per batch, per this project's own

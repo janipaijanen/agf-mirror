@@ -92,6 +92,21 @@ A one-screen checklist for each working session:
 
 For AI agents specifically: run `agov session resume` before any manual reads or implementation — this is the first action after context compaction or cold start.
 
+### Optional Improvement Propeller cycle
+
+When the local manifest and a governor decision activate
+`improvement-propeller`, its real weekly wake runs at a safe boundary after the
+universal poll. It deduplicates against issues, plans, MRs, roadmap items,
+coordination, and active claims, then proposes at most three evidence-backed
+opportunities or stays quiet. Its slower lane samples only bounded coordination
+deltas and may synthesize at most three governance-friction findings monthly
+and after a release.
+
+Propeller proposes and routes; it does not assign, prioritize, plan,
+implement, approve, merge, or release. Cursor recovery, control-weakening
+proposals, and activation requirements are governed by the canonical
+[`improvement-propeller-rule.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/improvement-propeller-rule.md).
+
 ### When the gate-change check fails
 
 Run `agov gate change-check --base-ref <target-ref>` from the repository root.

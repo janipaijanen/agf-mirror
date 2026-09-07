@@ -33,6 +33,7 @@ rules/
 │   ├── uncertainty-and-scope-rule.md    # Scope boundaries, conflict escalation
 │   ├── high-risk-operations-rule.md     # Stop-and-plan for audit, auth, security
 │   ├── security-hardening-rule.md       # Secrets, supply chain, CSRF, containers
+│   ├── improvement-propeller-rule.md    # Optional bounded opportunity and friction proposals
 │   └── universal-polling-and-autonomous-continuation-rule.md
 │                                           # Whole-surface polling, ranked continuation
 ├── workflow/                        # Process rules — commits, testing, releases
@@ -62,6 +63,7 @@ rules/
 | uncertainty-and-scope-rule | Principle 5: Escalation over Improvisation |
 | high-risk-operations-rule | Principle 5 + Pattern 3: Escalation |
 | security-hardening-rule | ADOPTING.md Step 3.2: Security checklist |
+| improvement-propeller-rule | Principle 6: Continuous Adaptation + Principle 5: Escalation over Improvisation |
 | universal-polling-and-autonomous-continuation-rule | Principle 4: Pipeline Topology + Principle 5: Escalation over Improvisation |
 | tdd-rule | Pattern 1: Pipeline (quality gate) |
 | debugging-rule | Principle 5: Escalation over Improvisation |
