@@ -9,6 +9,12 @@ development session quickly. If this guide and a governed owner disagree, the
 owner, applicable AGF rules, approved plan, and durable coordination records
 control.
 
+Complete polling and autonomous continuation are a standing obligation of
+**every active development session**, not a response to being asked to "poll".
+The normative contract is
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`; this
+guide projects it.
+
 ## Start the session
 
 1. Read `AGENTS.md` and any repository-root `ai-cold-start.md` overlay.
@@ -37,7 +43,9 @@ control.
 Polling is an action loop. Classify new obligations addressed to the active
 role or `all`, select the highest-priority authorized one, and act until it is
 complete, actively running and monitored, or blocked with a concrete owner and
-reason.
+reason. Scheduling is non-reentrant — a wake due during active work coalesces
+into one pending poll that runs at the next safe boundary; it never preempts
+or overlaps.
 
 ## Select work by verified impact
 

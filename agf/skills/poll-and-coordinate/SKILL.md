@@ -22,6 +22,12 @@ exactly; it does not restate them. Read that page first if this is your
 first time running the cycle; it defines what "poll" and "coordinate"
 mean and the terminal-outcome contract this skill's Step 6 enforces.
 
+The normative contract behind both — every active agent polls, the whole
+observation surface, collision-safe selection, temporary role-allocation
+consensus, non-reentrant scheduling, and the exhaustive stop boundary — is
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`.
+Where any wording here differs from that rule, the rule governs.
+
 <!-- CUSTOMIZE: adjust the GitLab-specific commands in Step 3 if your
      project hosts on GitHub or another forge. Adjust the cursor path
      and default cadence/idle-window values in Inputs for your project. -->
@@ -50,6 +56,12 @@ If a wake-up, timer, or scheduled continuation for this same poll loop is
 already armed on the current assistant surface, cancel or update it
 *before* running this cycle's checks. Two cycles racing against the same
 coordination/MR state can both act on the same finding.
+
+Scheduling is **non-reentrant**: if a wake becomes due while you are still
+executing an authorized work item from a previous cycle, do not preempt that
+work or start a second cycle. Coalesce every such tick into a single pending
+poll and run one complete cycle at the item's next safe completion, handoff,
+gate, or blocker boundary.
 
 **Safe fallback when the surface has no programmatic way to inspect or
 cancel an existing wake-up:** proceed anyway, but treat every action in
@@ -101,6 +113,13 @@ and note that no prior cursor was found.
 
 ## Step 3 — Inspect every shared surface at true scope
 
+Observe **every** open MR and issue regardless of author or apparent
+relevance. When more than one agent monitors the same branch or pipeline,
+one may hold the named primary-watcher / notification role — but that
+designation is **not** an exemption from this step. A non-primary watcher
+stays collision-safe by observing and deferring claimed execution, never by
+narrowing its own scan.
+
 1. Merge requests: fetch the **true total open count**, not a
    default-paginated or recency-sorted slice.
 
@@ -147,6 +166,18 @@ blocker — do not leave "found work" unrecorded and unaddressed. Every
 action here must be safe to repeat (see Step 0's fallback) — check
 current state immediately before acting, not just at the start of the
 cycle.
+
+Before the first mutation on an item, re-check for an existing claim or an
+overlapping plan/MR on the same artifacts, and publish a `kind: claim` when
+one is needed to prevent collision (an existing handoff/claim to that lane,
+or a bounded batch claim for several small related mutations, satisfies it).
+
+If a prior cycle filed a decomposition (a parent issue plus ordered child
+items), **re-read the remote issue/coordination state before claiming a
+child**. Claim one only if it is still open, authorized, unclaimed, and no
+other agent or human has responded with ownership or overlapping work since
+the decomposition was filed. A stale local decomposition is never execution
+authority.
 
 ## Step 6 — Persist the cursor, then rearm or stop
 

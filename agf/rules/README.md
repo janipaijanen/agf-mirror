@@ -32,7 +32,9 @@ rules/
 ├── always/                          # Core constraints — apply to every change
 │   ├── uncertainty-and-scope-rule.md    # Scope boundaries, conflict escalation
 │   ├── high-risk-operations-rule.md     # Stop-and-plan for audit, auth, security
-│   └── security-hardening-rule.md       # Secrets, supply chain, CSRF, containers
+│   ├── security-hardening-rule.md       # Secrets, supply chain, CSRF, containers
+│   └── universal-polling-and-autonomous-continuation-rule.md
+│                                           # Whole-surface polling, ranked continuation
 ├── workflow/                        # Process rules — commits, testing, releases
 │   ├── tdd-rule.md                      # RED-GREEN-REFACTOR, anti-patterns
 │   ├── debugging-rule.md                # Four-phase root-cause analysis
@@ -60,6 +62,7 @@ rules/
 | uncertainty-and-scope-rule | Principle 5: Escalation over Improvisation |
 | high-risk-operations-rule | Principle 5 + Pattern 3: Escalation |
 | security-hardening-rule | ADOPTING.md Step 3.2: Security checklist |
+| universal-polling-and-autonomous-continuation-rule | Principle 4: Pipeline Topology + Principle 5: Escalation over Improvisation |
 | tdd-rule | Pattern 1: Pipeline (quality gate) |
 | debugging-rule | Principle 5: Escalation over Improvisation |
 | simplicity-rule | Pattern 6: Fast Track + Principle 7: Technology Neutrality |

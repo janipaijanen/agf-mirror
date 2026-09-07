@@ -401,6 +401,14 @@ For a concise project-development checklist, see
 `docs/reference/agf-development-starter.md`. It is a non-normative projection;
 this file and the applicable governed owners remain authoritative.
 
+Every active AGF development role/session MUST follow
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`.
+The detailed loop below is foundry's stricter project projection: observation
+is whole-surface and universal, while selection and mutation remain role-,
+authority-, gate-, and claim-scoped. Concurrent sessions whose roles would
+overlap or leave requested work ownerless must publish and acknowledge one
+temporary allocation before mutation; peer consensus cannot create authority.
+
 ### Polling timer notation
 
 When the governor asks for a polling timer such as `15mins/180min`, interpret
@@ -442,6 +450,12 @@ each cycle, unless the governor explicitly narrows the scope:
    choose the highest-priority authorized obligation, and act immediately.
    End the cycle only when that obligation is completed, actively running and
    monitored, or blocked with the concrete blocker recorded.
+
+Every active AI also tracks new valid learning records after the most recent
+completed capability review. At 10 new learnings it proposes one review after
+checking for an existing proposal; if none has launched by 15, it hands the
+baseline, count, recurring themes, and proposed assignment to the governor.
+This grants proposal authority only and never activates a suspended role.
 
 Do not ask the governor to redispatch work that is already visible and within
 the active role, an approved plan or handoff, and the current gate. Without a

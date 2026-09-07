@@ -50,6 +50,15 @@ agent:
       definition; loses the framework's own reference implementation of
       adversarial-contribution screening.
 
+startup_obligations:
+  universal_polling_and_capability_review: >-
+    Every active AI session follows
+    agf/rules/always/universal-polling-and-autonomous-continuation-rule.md,
+    including its complete poll/action loop and its proposal-only trigger at
+    10 new valid learnings since the last completed capability review, with a
+    governor handoff if no review has launched by 15. This pointer changes no
+    role authority, gate authority, activation status, or artifact ownership.
+
 identity:
   purpose: >
     Audit contributions (learning records, rule templates, agent definitions,
