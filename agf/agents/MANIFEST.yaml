@@ -88,6 +88,14 @@ agents:
       20260726T223933Z-planner-architect-gqbk.md and
       20260905T224802Z-governor-reviewer-ksbs.md.
 
+  improvement-propeller:
+    status: planned
+    reason: >
+      Stage 3 introduces the reference role and its operating contract without
+      activating it. Stage 4 requires a separate governor decision naming the
+      player, configured evidence surfaces, real non-reentrant weekly wake
+      mechanism, cadence, and initialized cursor state.
+
   documentation-writer:
     status: skipped
     reason: "coder-tester owns framework docs in Phase 1"

@@ -12,7 +12,7 @@ changed_pages_or_runbooks:
 surfaces:
   normative_owner:
     disposition: updated
-    stage: planned
+    stage: existing
     path: agf/rules/always/improvement-propeller-rule.md
     reason: >-
       One new rule owns the improvement-propeller operating contract. MR
@@ -20,9 +20,8 @@ surfaces:
       owns the all-assistant 10-to-15-new-learning capability-review trigger;
       the Propeller rule carries only a pointer to it. The role definition,
       startup loaders, Pages, runbook, and skill point to this owner and do not
-      become competing authorities. The
-      owner does not exist before Gate 1, so its lifecycle is explicitly
-      planned and must transition to existing before strict Gate 2 validation.
+      become competing authorities. The owner now exists on the implementation
+      branch and is exercised before strict Gate 2 validation.
 
   adopter_facing_explanation:
     disposition: updated
@@ -53,14 +52,16 @@ surfaces:
     paths:
       - AGENTS.md
       - agf/templates/AGENTS.md
+      - agf/agents/improvement-propeller.yaml
+      - .claude/rules/always/improvement-propeller-rule.md
     reason: >-
       Root and adopter AGENTS.md gain concise role-discovery pointers to the
       canonical Propeller rule. MR !2405 exclusively owns the separate compact
       10/15-learning startup duty in both AGENTS.md files and every shipped
       specialist definition; this manifest deliberately does not duplicate
-      those specialist paths. The new propeller role and its Claude rule
-      projection do not yet exist and therefore are added to this paths list
-      only at Gate 2, when strict projection validation must resolve them.
+      those specialist paths. The new Propeller role and its concise Claude
+      pointer are included so strict projection validation resolves every AI
+      landing surface.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
@@ -86,6 +87,9 @@ surfaces:
     disposition: updated
     paths:
       - agf/templates/AGENTS.md
+      - agf/agents/improvement-propeller.yaml
+      - agf/agents/MANIFEST.example.yaml
+      - agf/rules/always/improvement-propeller-rule.md
       - agf/docs/site/docs/adopt/applicability-catalog.md
       - agf/docs/site/docs/operate/day-to-day.md
       - agf/docs/site/docs/operate/runbook.md
@@ -93,7 +97,7 @@ surfaces:
     reason: >-
       The listed adopter-facing template, Pages, runbook, and skill already
       ship under the AGF distribution manifest and
-      will be changed in place. Before Gate 2 this row must also name and prove
-      distribution of the newly created role, canonical rule, and Claude rule
-      projection. Root AGENTS.md is project-local and intentionally does not
-      ship; it is validated as an AI landing surface above.
+      will be changed in place and include the newly created role and canonical
+      rule. The Claude pointer and root AGENTS.md are project-local and
+      intentionally do not ship; they are validated as AI landing surfaces
+      above.

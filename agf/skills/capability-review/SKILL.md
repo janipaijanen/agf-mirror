@@ -18,10 +18,20 @@ when evidence accumulates.
 
 ## When to run
 
-- After accumulating 5+ new learnings since last review
+- Proposal trigger: 10 new valid learnings after the terminal learning cursor
+  and count recorded by the last completed review, after checking for an
+  existing proposal
+- Governor handoff: 15 new valid learnings if no review has launched, including
+  the baseline, count, recurring themes, and proposed assignment
 - After a release that introduced or modified agents
 - When recurring escalation patterns suggest agent gaps
 - Quarterly (minimum cadence for active projects)
+
+The 10-to-15 trigger is owned by
+`agf/rules/always/universal-polling-and-autonomous-continuation-rule.md` and
+applies to every active AI. An active Improvement Propeller may detect or
+satisfy the trigger, but capability-developer owns this review and the
+Propeller gains no implementation or activation authority.
 
 ## Step 1 — Gather evidence
 
@@ -106,10 +116,12 @@ Document the review outcomes:
 
 - Date of review
 - Evidence analyzed (counts)
+- Terminal learning cursor and total valid-learning count used as the next
+  threshold baseline
 - Proposals made (accepted/rejected/deferred)
 - Agent changes implemented
 - Next review trigger (what evidence threshold)
 
-<!-- CUSTOMIZE: adjust evidence thresholds to your project's scale.
-Small projects (1-5 agents) may review after every 3 learnings.
-Large projects (20+ agents) may review quarterly with higher thresholds. -->
+<!-- CUSTOMIZE: projects may add earlier human, release, or escalation-based
+review triggers. Do not weaken the universal 10/15 proposal-and-handoff
+backstop without a governed rule change. -->

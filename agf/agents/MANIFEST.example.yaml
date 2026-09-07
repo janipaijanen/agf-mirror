@@ -59,6 +59,10 @@ agents:
     status: skipped
     reason: "copy this file to MANIFEST.yaml and set your project's real roles"
 
+  improvement-propeller:
+    status: skipped
+    reason: "optional; activate only with a named player, evidence surfaces, real wake mechanism, cadence, and cursor state"
+
   documentation-writer:
     status: skipped
     reason: "copy this file to MANIFEST.yaml and set your project's real roles"

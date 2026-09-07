@@ -32,6 +32,14 @@ records after checking for an existing proposal, and hand the baseline/count
 to the governor if none has launched by 15. This trigger grants proposal
 authority only and never activates a suspended role.
 
+Projects may optionally activate the `improvement-propeller` reference role
+for bounded weekly opportunity proposals and slower governance-friction
+synthesis. Its canonical contract is
+`agf/rules/always/improvement-propeller-rule.md`. Merely shipping that role and
+rule does not activate them; local activation requires a governor decision
+naming a player, evidence surfaces, real wake mechanism, cadence, and cursor
+state.
+
 Run these commands at the start of every session before acting or writing any
 durable files:
 

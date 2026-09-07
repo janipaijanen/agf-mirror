@@ -85,6 +85,12 @@ unresolved findings from its own first exact-head review; see
 `agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
+Planned/inactive: improvement-propeller. Its optional weekly opportunity and
+slow governance-friction lanes are defined by
+`agf/rules/always/improvement-propeller-rule.md`; shipping the definition does
+not activate it. Activation requires a separate governor decision naming the
+player, evidence surfaces, real wake mechanism, cadence, and cursor state.
+
 Authoritative status: `agf/agents/MANIFEST.yaml`.
 
 Tooling and CI may block progress mechanically when configured to do so, but
