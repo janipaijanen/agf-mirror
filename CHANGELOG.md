@@ -18,7 +18,8 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   trigger after 10 new valid learnings, with escalation by 15. Adopter docs:
   updated. **Downstream impact: BREAKING** for direct adopters because this adds
   a new MUST-level assistant duty, while the framework's backward-compatible
-  functionality remains SemVer MINOR-shaped. Migration: project the universal
+  functionality remains SemVer MINOR-shaped. Migration: record the last
+  completed capability-review learning cursor and count, project the universal
   rule through assistant startup surfaces, configure a real wake schedule where
   supported, and document activation/resume polling where it is not.
 
