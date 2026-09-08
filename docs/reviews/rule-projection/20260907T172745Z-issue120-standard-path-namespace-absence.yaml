@@ -74,8 +74,16 @@ surfaces:
 
   validation_drift_evidence:
     disposition: implemented
+    paths:
+      - tooling/rust/crates/agov/src/release_namespace.rs
+      - tooling/rust/crates/agov/tests/release_namespace.rs
+      - tooling/rust/crates/agov/tests/ci_needs_implication.rs
+      - tooling/rust/scripts/release-namespace-check.sh
     reason: >-
-      The new release:namespace-check CI job, placed on the
+      The canonical agov release namespace-check CLI and its read-only CI
+      adapter share all namespace logic. The CLI tests use the actual OCI
+      helper and an HTTP stub to prove the operator stop without live tags.
+      The release:namespace-check CI job, placed on the
       release-metadata MR / pre-tag pipeline only (an absence check cannot
       block the tag pipeline it is itself triggered by — 7dba RUW4-F1),
       mechanically enforces the obligation and is the primary drift

@@ -95,6 +95,28 @@ Two rules interlock:
 The order is load-bearing: bump-on-main-first produces an empty,
 unreviewable MR; tag-before-merge produces an ungated release.
 
+### Check that the release names are free
+
+The standard path requires fresh absence evidence for the Git tag, Release,
+generic package version, and the exact OCI publication tag. Run
+`agov release namespace-check --phase preflight` from a clean release checkout,
+then repeat with `--phase pre-push` immediately before the authorized tag push.
+Both runs are mandatory: an occupied name, inaccessible collection, incomplete
+pagination, or other ambiguity stops publication. The release-metadata MR's
+`release:namespace-check` job also blocks on failure and reuses the existing
+tooling preview artifact. It cannot replace the later operator check.
+
+The command reads the version/package from the release manifest and uses the
+verified OCI helper, so the checked names agree with publication. Its JSON
+records the checkpoint time, project, source and live target commits, version,
+and (in CI) pipeline ID. Exit 0 and `result: "ABSENT"` are required; success
+does not reserve a name or authorize a release. For credential setup and the
+guarded operator command, use the [release skill](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/skills/release/SKILL.md#standard-path-namespace-preflight).
+The [release rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/release-via-merge-request-rule.md#pre-tag-namespace-absence-obligation-standard-path)
+owns the requirement. The implementation MR must include deliberate failing
+cases; tests and branch availability establish Level 4 Validated only after
+they pass, while Level 5 Deployable requires a matching supported release.
+
 Before a release MR is approved, run `agov validate adopter-docs`. The check
 blocks releases where adopter-relevant framework or tooling changes have only
 reference/internal documentation and no downstream-facing docs, templates, or

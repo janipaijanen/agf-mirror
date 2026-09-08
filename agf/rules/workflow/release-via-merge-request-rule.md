@@ -69,6 +69,63 @@ The cost of a merge request is minutes. The cost of a broken immutable tag is a 
 - [ ] `agov dist validate` and `agov dist build` pass (if applicable).
 - [ ] CI pipeline configuration is correct for the release.
 - [ ] SPDX headers and license are correct across all files.
+- [ ] Standard-path namespace-absence evidence is attached for the intended
+      tag: all four namespaces report `ABSENT`, with project identity, version,
+      source/target commits, checkpoint time, and the canonical MR pipeline ID.
+
+## Pre-tag namespace-absence obligation (standard path)
+
+Before a standard-path release is merged or tagged, the Git tag, GitLab
+Release, generic-package version, and exact publication OCI tag MUST be
+unoccupied. A pre-existing object or ambiguous result MUST stop the release.
+This obligation does not replace the stricter exception checklists below.
+
+Use one canonical check, `agov release namespace-check`, from the clean,
+committed release checkout. Derive project identity from the configured release
+target (same-project CI context in CI) and verify its canonical path; derive
+the package name from the validated release manifest; derive the OCI reference
+from `agov-oci-image.sh image-ref` and require `verify-ref` to agree. Never
+substitute a cached registry repository ID for the project ID or hand-type the
+OCI tag. Resolve the registry repository ID fresh after full discovery.
+
+The check MUST establish positive authenticated access for each namespace
+before interpreting a candidate-object 404 as absence. Enumerate collections
+completely and fail closed on missing/contradictory pagination, inaccessible
+collections, malformed responses, timeouts, HTTP errors, identity mismatch,
+or multiple exact OCI repository matches. Generic packages require exact
+name/version/type matching after complete pagination of every status
+(`default`, `hidden`, `processing`, `error`, `pending_destruction`,
+`deprecated`); the API's fuzzy name filter is not an exact-match proof.
+Empty OCI discovery proves absence only after successful authenticated listing.
+
+**Named mechanical blocking authority:** `release:namespace-check` MUST run
+on the release-metadata MR pipeline when `agf/VERSION` changes and MAY block
+merge for any failed identity/access/absence check described above. It MUST
+not allow failure. It binds the detached MR source SHA, live target SHA,
+candidate version, and canonical pipeline ID; it does not claim knowledge of
+a future merge commit. The job consumes the existing `rust:tooling:preview`
+artifact, uses the default non-DinD runner, and performs no second Rust build.
+CI uses only the same-project ephemeral `CI_JOB_TOKEN` in a `JOB-TOKEN` header;
+no PAT/project-token addition, query-string credential, tracing, or credential
+artifact is permitted. Tool success is evidence, never a governor gate decision.
+
+**Both operator runs are mandatory:** run the same check at reversible
+preflight (`--phase preflight`) and again immediately before the tag push
+(`--phase pre-push`). The final run MUST bind the resulting release-target
+merge commit and stop publication on any failure. A prior CI result cannot
+replace this fresh check. Operator credentials must already be authorized to
+read all four namespaces; do not print them or place them in command arguments.
+The check does not reserve namespaces or eliminate the check-to-push race;
+publication still follows protected-tag controls and the authorized release
+sequence. Any retained post-tag verification checks consistency/non-overwrite,
+never Git-tag absence.
+
+Per `gate-self-test-rule`, changes to this gate require negative evidence for
+an occupied object in each namespace, a later-page/non-default-status package,
+wrong project/path, inaccessible 404, malformed/incomplete responses, and the
+operator pre-push stop. Also prove authorized absence and a fuzzy-only package
+match behave correctly. Keep the reproducible transcript in the implementation
+MR's `## Negative test` section; no real release objects are created for tests.
 
 ## Maintenance-line exception (optional, narrowly eligible)
 
