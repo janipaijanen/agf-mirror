@@ -51,6 +51,10 @@ governor confirmation
 | Issue #132 | Blocked | Do not export the Propeller method as a skill until #131 has genuine Level 5 wake evidence. |
 | `release-v2.7.0-rc.2` | `awaiting-governor` | Its fate remains undecided after rc.1 was abandoned. It does not block the current sequence. |
 
+Absence from this roadmap summary is not a terminal disposition. Individual
+issues, merge requests, TODOs, and plan artifacts remain unexamined until an
+evidence-bearing disposition ledger row or binding decision says otherwise.
+
 ## Collision and ownership boundaries
 
 - `qbka` owns plan-file lifecycle states, transition semantics, supersession

@@ -6,7 +6,9 @@ assistants looking for current release and development status.*
 This page is the public projection of the governed internal
 [foundry roadmap](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/docs/roadmap.md).
 It summarizes current state without creating release scope or authority of its
-own.
+own. That owner is foundry repository governance and is not included in the
+adopter archive; adopters maintain their own project roadmap rather than
+inheriting foundry's development commitments.
 
 | Field | Value |
 |---|---|
