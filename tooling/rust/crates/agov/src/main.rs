@@ -2,6 +2,7 @@ mod ci_cache_topology;
 mod commercial_corpus;
 mod dist;
 mod provenance;
+mod release_namespace;
 
 use agov_coord::coord_validator::{looks_like_coord_filename, normalize_coord_reference};
 use agov_coord::readable_id::{is_readable_id, iso_timestamp, readable_id};
@@ -39,6 +40,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Read-only release preflight checks.
+    Release {
+        #[command(subcommand)]
+        sub: release_namespace::ReleaseCommand,
+    },
     /// Print agov version and build provenance.
     Version {
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
@@ -694,6 +700,7 @@ fn normalized_args() -> Vec<String> {
 
 fn run(cli: Cli, args: Vec<String>) -> i32 {
     match cli.command {
+        Command::Release { sub } => release_namespace::run(sub),
         Command::Version { format } => version_command(&format, &args),
         Command::Coord {
             sub: CoordCommand::Validate { files },

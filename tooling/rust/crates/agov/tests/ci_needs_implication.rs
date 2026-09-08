@@ -41,6 +41,28 @@ fn live_configuration_preserves_every_mandatory_needs_implication() {
 }
 
 #[test]
+fn namespace_gate_is_pre_tag_only_and_reuses_the_preview_producer() {
+    let yaml: serde_norway::Value = serde_norway::from_str(&read_live_configuration()).unwrap();
+    let rules = &yaml["release:namespace-check"]["rules"];
+    let rules: Value = serde_json::to_value(rules).unwrap();
+    for (source, changed, selected) in [
+        ("merge_request_event", "agf/VERSION", true),
+        ("merge_request_event", "README.md", false),
+        ("push", "agf/VERSION", false),
+        ("schedule", "agf/VERSION", false),
+    ] {
+        let context = CiContext::new()
+            .with_variable("CI_PIPELINE_SOURCE", source)
+            .with_changed_path(changed);
+        assert_eq!(job_selected(&rules, &context).unwrap(), selected);
+    }
+    let block = top_level_block(&read_live_configuration(), "release:namespace-check").unwrap();
+    assert!(block.contains("allow_failure: false"));
+    assert!(block.contains("job: rust:tooling:preview"));
+    assert!(!block.contains("cargo build") && !block.contains("dind"));
+}
+
+#[test]
 fn live_configuration_declares_split_runner_routing() {
     let configuration = read_live_configuration();
     let errors = split_runner_routing_errors(&configuration);

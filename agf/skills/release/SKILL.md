@@ -137,13 +137,53 @@ Create a merge request targeting `main` with:
 
 > **Wait for CI pipeline and human review before merging.**
 
+### Standard-path namespace preflight
+
+Follow the [owner rule's namespace obligation](../../rules/workflow/release-via-merge-request-rule.md#pre-tag-namespace-absence-obligation-standard-path).
+The release-metadata MR must pass `release:namespace-check`. From the clean,
+committed release checkout, also run the operator preflight below and attach
+its JSON evidence. The checkout must contain the OCI helper; `git`, `curl`,
+and a POSIX `sh` must be available. Use the configured release project's ID/path and registry
+base, not a registry repository ID. `AGOV_RELEASE_TOKEN` is an already-authorized
+operator API credential supplied through the environment; never echo it or
+enable shell tracing. CI instead supplies its ephemeral `CI_JOB_TOKEN`.
+
+For a local operator run, explicitly export `CI_API_V4_URL` (the GitLab API
+v4 base URL), `CI_PROJECT_ID` (the numeric release project ID),
+`CI_PROJECT_PATH` (its full namespace/project path), and `CI_REGISTRY_IMAGE`
+(the release project registry base) from your configured release project first.
+These names are inputs to the examples below; a local shell does not populate
+them automatically. Supply the existing authorized `AGOV_RELEASE_TOKEN` through
+your credential environment without printing it. Both operator checkpoints
+use these same values.
+
+```bash
+agov release namespace-check --phase preflight \
+  --api-url "$CI_API_V4_URL" --project-id "$CI_PROJECT_ID" \
+  --project-path "$CI_PROJECT_PATH" --registry-image "$CI_REGISTRY_IMAGE" \
+  --target-branch main
+```
+
+Only exit 0 with JSON `result: "ABSENT"` for all four namespaces passes.
+Any failure stops the release; do not reinterpret 404 or an empty error response
+by hand. The command reads the candidate version and package from the release
+checkout and derives the OCI reference using the existing verified helper.
+
 ## Step 6 — After merge: tag and push
 
 ```bash
-git checkout main && git pull
-git tag v<version>
+git checkout main && git pull &&
+agov release namespace-check --phase pre-push \
+  --api-url "$CI_API_V4_URL" --project-id "$CI_PROJECT_ID" \
+  --project-path "$CI_PROJECT_PATH" --registry-image "$CI_REGISTRY_IMAGE" \
+  --target-branch main &&
+git tag v<version> &&
 git push origin v<version>
 ```
+
+The pre-push run is mandatory and must be immediately followed by the authorized
+tag operation. It requires HEAD to equal the live release-target commit. Stop
+if it fails; a successful preflight or MR check does not substitute for it.
 
 The tag push triggers the CI release pipeline (build-dist → create-release).
 

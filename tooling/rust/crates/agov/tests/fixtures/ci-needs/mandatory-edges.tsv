@@ -11,3 +11,4 @@ release:assets-verify-pre-oci	agf:dist:release
 release:assets-verify-pre-oci	rust:tooling:release
 agov:oci:release	rust:tooling:release
 agov:oci:release	release:assets-verify-pre-oci
+release:namespace-check	rust:tooling:preview

@@ -92,6 +92,25 @@ fn passes_surface_change_with_declared_test_change() {
 }
 
 #[test]
+fn new_namespace_command_does_not_bypass_shared_gate_test_accompaniment() {
+    let fixture = Fixture::new();
+    fixture.write(
+        "tooling/checker.rs",
+        "fn namespace_check() -> bool { false }\n",
+    );
+    // A new feature test alone is not a substitute for the already-declared
+    // companion of a shared CLI gate surface.
+    fixture.write("tests/new_namespace_check.rs", "negative namespace cases\n");
+    fixture.commit("add a command on the existing gate surface");
+    let output = fixture.check();
+    assert_eq!(output.status.code(), Some(1), "{}", diagnostics(&output));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("no changed declared test path"));
+    fixture.write("tests/gate_change.rs", "shared CLI surface reviewed\n");
+    fixture.commit("include the declared companion");
+    assert_success(fixture.check());
+}
+
+#[test]
 fn passes_unregistered_change() {
     let fixture = Fixture::new();
     fixture.write("README.md", "unregistered change\n");

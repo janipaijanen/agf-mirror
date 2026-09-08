@@ -747,6 +747,27 @@ agov:oci:mr-build-scan:
 # Assemble the real preview artifacts from both producers and run the same
 # pre-OCI contract check used by the tag pipeline. This is the pre-tag proof
 # that the mandatory set matches what the builders actually emit.
+release:namespace-check:
+  image: alpine:3.22
+  stage: test
+  interruptible: true
+  allow_failure: false
+  needs:
+    - job: rust:tooling:preview
+      artifacts: true
+  before_script:
+    - apk add --no-cache curl git
+  script:
+    - sh tooling/rust/scripts/release-namespace-check.sh
+  artifacts:
+    paths:
+      - dist/release-namespace-absence.json
+  rules:
+    # This is the pre-tag gate. A tag pipeline is too late to assert absence.
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - agf/VERSION
+
 release:assets-verify-preview:
   image: alpine:3.22
   stage: test

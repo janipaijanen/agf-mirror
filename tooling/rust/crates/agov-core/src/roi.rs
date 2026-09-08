@@ -133,6 +133,8 @@ pub const REDACTED: &str = "[redacted]";
 /// either direction (missing token or stale/dead token) — this comment
 /// describes intent; that test is the enforcement.
 pub const COMMAND_PATH_TOKENS: &[&str] = &[
+    "release",
+    "namespace-check",
     // Top-level commands.
     "version",
     "coord",
@@ -249,6 +251,12 @@ pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 /// Enforced against the live clap surface by the parity test in
 /// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
 pub const KNOWN_FLAG_NAMES: &[&str] = &[
+    "--phase",
+    "--api-url",
+    "--project-id",
+    "--project-path",
+    "--registry-image",
+    "--target-branch",
     "--format",
     "--id-format",
     "--from",
