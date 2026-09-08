@@ -12,7 +12,7 @@ own.
 |---|---|
 | Status | v2.10.0 is published and independently verified. Post-v2.10 work is proceeding through separately gated, review-sized batches. |
 | Observed at | 2026-09-08T19:02:54Z |
-| Source revision | `13fe97382ee338cba8f049bb138ef2e3a65169a1` (`main`) |
+| Observation baseline | `main` at `13fe97382ee338cba8f049bb138ef2e3a65169a1`, before the B1 diff |
 | Governed source | `docs/roadmap.md`, the approved queue-convergence plan, and the governor decisions cited there |
 | Authority | Informational projection. The internal roadmap, binding plans and decisions, exact tags, and release evidence are authoritative. |
 

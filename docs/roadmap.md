@@ -9,7 +9,7 @@ views or inputs; they do not create roadmap commitments independently.
 |---|---|
 | Status | v2.10.0 is published and independently verified. Post-v2.10 work is proceeding through the approved queue-convergence plan and separately gated follow-ups. |
 | Observed at | 2026-09-08T19:02:54Z |
-| Source revision | `13fe97382ee338cba8f049bb138ef2e3a65169a1` (`main`) |
+| Observation baseline | `main` at `13fe97382ee338cba8f049bb138ef2e3a65169a1`, before the B1 diff |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
@@ -39,7 +39,7 @@ governor confirmation
 
 | Workstream | State | Next authorized boundary |
 |---|---|---|
-| Queue convergence B1 | In implementation | Create this owner, correct its public projection, and record MR !2269 as superseded; then return the exact head for Gate 2. |
+| Queue convergence B1 | Authorized current batch | This batch creates the owner, corrects its public projection, and records MR !2269 as superseded; its exact head returns for Gate 2. |
 | Queue convergence B2-B3 | Sequenced after B1 | Re-observe and disposition TODOs, then issues, in separate review-sized batches. |
 | Queue convergence B4-B7 | Partly blocked | Non-plan cohorts remain later batches. Plan-MR dispositions wait for the `qbka` Slice A provenance contract. |
 | Queue convergence B8 | Sequenced later | Record the advisory intake bound in this owner as its own review-sized batch. It is not part of B1. |
@@ -49,6 +49,7 @@ governor confirmation
 | Issue #123 | Needs own Gate 1 plan | Add collision-detection tooling only after the current manual collision pass. |
 | Issue #131 | Needs own Stage 4 Gate 1 plan | Activate and prove the Improvement Propeller through a genuine scheduled wake. |
 | Issue #132 | Blocked | Do not export the Propeller method as a skill until #131 has genuine Level 5 wake evidence. |
+| `release-v2.7.0-rc.2` | `awaiting-governor` | Its fate remains undecided after rc.1 was abandoned. It does not block the current sequence. |
 
 ## Collision and ownership boundaries
 

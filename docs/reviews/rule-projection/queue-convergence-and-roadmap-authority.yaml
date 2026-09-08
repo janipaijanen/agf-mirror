@@ -56,7 +56,7 @@ surfaces:
       declared and all six surfaces are disposed. Semantic owner/projection
       equivalence remains a Gate 2 review judgment: every commitment in the
       public table must be present in the internal owner, and the observation
-      timestamp and source revision must match.
+      timestamp and observation baseline must match.
 
   distribution:
     disposition: confirmed
