@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for queue-convergence batch B1.
+
+plan_id: 20260903T043752Z-queue-convergence-and-roadmap-authority
+
+changed_pages_or_runbooks:
+  - agf/docs/site/roadmap.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    stage: existing
+    path: docs/roadmap.md
+    reason: >-
+      The new project-local roadmap is the single owner for foundry roadmap
+      status, workstream sequencing, projection precedence, and update
+      discipline. It cites the approved queue-convergence plan and binding
+      decisions rather than creating release or gate authority. No AGF rule,
+      adopter contract, or reduced-ceremony maintenance path is introduced.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/roadmap.md
+    reason: >-
+      The public roadmap is reduced to a current projection of the internal
+      owner: v2.10.0 is the verified stable baseline, later releases remain
+      separately gated, and post-v2.10 workstreams are described at their
+      actual maturity and gate state. It links to the owner and does not claim
+      independent authority.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      Batch B1 changes project roadmap ownership and its public status
+      projection. It adds no operator procedure or situation-specific runbook
+      step.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      The change adds no assistant cold-start duty or adopter-facing operating
+      rule. Root AGENTS.md already owns polling, gate, role, and authority
+      behavior; duplicating roadmap status into AGENTS.md, the adopter loader,
+      or Claude's importing loader would create another stale projection.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    paths:
+      - docs/roadmap.md
+      - agf/docs/site/roadmap.md
+      - docs/reviews/rule-projection/queue-convergence-and-roadmap-authority.yaml
+    reason: >-
+      The strict projection checker proves that this changed Pages file is
+      declared and all six surfaces are disposed. Semantic owner/projection
+      equivalence remains a Gate 2 review judgment: every commitment in the
+      public table must be present in the internal owner, and the observation
+      timestamp and source revision must match.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/docs/site/roadmap.md
+    reason: >-
+      The public projection ships through the existing agf/docs/site/**
+      distribution path. The internal owner and this manifest are foundry
+      governance and review evidence; they remain repository-local and are
+      deliberately linked rather than copied into the adopter archive.
