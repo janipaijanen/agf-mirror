@@ -35,7 +35,7 @@ adoption:
   # docs/plans/20260823T203540Z-adoption-version-drift-check.md's
   # "One-time reconciliation" procedure.
   checkout_role: live
-  framework_version: "2.9.0"
+  framework_version: "2.10.0"
   framework_commit: ""
   agent_definitions:
     - id: "agf:planner-architect"
