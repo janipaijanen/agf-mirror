@@ -10,7 +10,7 @@ distribution.
 **Minor release.** Delivers autonomous AGF development operation through the
 universal polling contract, the bounded Improvement Propeller, restored token
 ROI estimates, and a fail-closed four-namespace release guard. The release
-content is frozen from reviewed `main` at `2d0fdc00`. Reversible preflight
+content is frozen from reviewed `main` at `fb118b89`. Reversible preflight
 passed 506 Rust tests with 3 intentionally ignored network/podman tests; each
 built framework archive also passed its 28 shipped tests. **Adopter docs:
 updated.**
@@ -32,15 +32,17 @@ updated.**
   where it is not.
 - The Improvement Propeller role, canonical rule, documentation, and projection
   evidence provide a bounded weekly opportunity and governance-friction scan.
-  It ships planned/inactive at **Level 4 Validated**; post-release issue #132
-  owns skill export, activation, a genuine scheduler wake, and any later Level
-  5 maturity claim. It cannot assign, prioritize, approve, implement, merge, or
-  release work. **Adopter docs: updated.**
+  It ships planned/inactive at **Level 4 Validated**; post-release issue #131
+  owns activation, a genuine scheduler wake, and any later Level 5 maturity
+  claim, while #132 owns the subsequent skill export. It cannot assign,
+  prioritize, approve, implement, merge, or release work. **Adopter docs:
+  updated.**
 - `agov release namespace-check` and the mandatory
   `release:namespace-check` merge-request job verify authoritative absence of
   the candidate Git tag, GitLab Release, generic-package version, and derived
   OCI reference. Collection access, full package-status pagination, project
-  identity, protected-tag policy, and target-head ambiguity all fail closed.
+  identity, and target-head ambiguity all fail closed. The unchanged mandatory
+  operator preflight separately verifies the exact protected-tag policy.
   **Adopter docs: updated. Downstream impact: BREAKING** for direct adopters
   because the standard release path gains mandatory operator preflight and
   immediate pre-push checks. Migration: configure the release-project inputs
