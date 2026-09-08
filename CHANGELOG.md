@@ -8,6 +8,15 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-09-08
+
+**Minor release.** Delivers autonomous AGF development operation through the
+universal polling contract, the bounded Improvement Propeller, restored token
+ROI estimates, and a fail-closed four-namespace release guard. The release
+content is frozen from reviewed `main` at `fb118b89`. Reversible preflight
+passed 506 Rust tests with 3 intentionally ignored network/podman tests; each
+built framework archive also passed its 28 shipped tests. Adopter docs: updated.
+
 ### Added
 
 - Universal polling and autonomous continuation now applies to every active
@@ -22,6 +31,23 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   completed capability-review learning cursor and count, project the universal
   rule through assistant startup surfaces, configure a real wake schedule where
   supported, and document activation/resume polling where it is not.
+- The Improvement Propeller role, canonical rule, documentation, and projection
+  evidence provide a bounded weekly opportunity and governance-friction scan.
+  It ships planned/inactive at **Level 4 Validated**; post-release issue #131
+  owns activation, a genuine scheduler wake, and any later Level 5 maturity
+  claim, while #132 owns the subsequent skill export. It cannot assign,
+  prioritize, approve, implement, merge, or release work. Adopter docs: updated.
+- `agov release namespace-check` and the mandatory
+  `release:namespace-check` merge-request job verify authoritative absence of
+  the candidate Git tag, GitLab Release, generic-package version, and derived
+  OCI reference. Collection access, full package-status pagination, project
+  identity, and target-head ambiguity all fail closed. The unchanged mandatory
+  operator preflight separately verifies the exact protected-tag policy.
+  Adopter docs: updated. **Downstream impact: BREAKING** for direct adopters
+  because the standard release path gains mandatory operator preflight and
+  immediate pre-push checks. Migration: configure the release-project inputs
+  and authorized token described by the release skill, adopt the CI job, and
+  retain its JSON evidence.
 
 ### Changed
 
@@ -30,6 +56,11 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
   boundary; the default 15-minute cadence expires after 180 quiet minutes, and
   unchanged state stays quiet. Assistants without a real wake path poll on
   activation or resume rather than claiming background execution.
+- The foundry learning corpus now records the end-to-end MCP-readiness failure:
+  installing or building `agov-mcp` is not sufficient unless the assistant
+  runtime actually loads the structured tools and a smoke test proves them
+  callable. This is evidence for follow-up issue #116, not a claim that every
+  runtime exposes MCP today.
 
 ### Fixed
 

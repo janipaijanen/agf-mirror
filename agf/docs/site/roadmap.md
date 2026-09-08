@@ -5,10 +5,10 @@ assistants locating the authoritative plan and evidence.*
 
 | Field | Value |
 |---|---|
-| Status | v2.9.0 published as the current stable release |
-| Observed at | 2026-09-06T10:23:19Z |
-| Source revision | v2.9.0 was constructed through the standard current-`main` workflow from frozen base `cab3c0d6`; its immutable tag and release artifacts are the publication authority. This page's own revision is whatever this file's Git/GitLab history shows as its latest commit. |
-| Governed source | `docs/plans/20260831T050110Z-v290-release-publication.md`, governor approval `docs/coordination/20260902T084517Z-governor-reviewer-jqdd.md`, and the exact-head release Gate 2 record govern the v2.9.0 publication. |
+| Status | v2.10.0 prepared as the next stable release; v2.9.0 remains the latest published release until tag verification completes |
+| Observed at | 2026-09-08T08:47:49Z |
+| Source revision | v2.10.0 is being constructed through the standard current-`main` workflow from frozen content base `fb118b89`; the future immutable tag and verified release artifacts become publication authority only after the release MR passes Gate 2 and the tag pipeline succeeds. |
+| Governed source | `docs/plans/20260907T045703Z-v210-release-plan.md`, governor approval `docs/coordination/20260907T082727Z-governor-reviewer-kg6s.md`, scope amendment `docs/coordination/20260907T151325Z-governor-reviewer-2emq.md`, and preflight-sequence amendment `docs/coordination/20260908T083406Z-governor-reviewer-rg6k.md` govern v2.10.0 publication together with the future exact-head release Gate 2 record. |
 | Authority | Informational projection. Governed plans, recorded gate decisions, changelogs, tags, and release artifacts are authoritative. This page is neither. |
 
 ## Current released baseline
@@ -51,9 +51,12 @@ with Windows retained only as optional manual preview evidence.
 
 ## Active release train
 
-v2.9.0 was cut from reviewed current `main` through the standard release
-workflow. It includes all reviewed work merged after the preceding release and passed the
-required exact-head Gate 2 and pre-tag OCI/Trivy evidence checks.
+v2.10.0 is the active standard-path release candidate from reviewed current
+`main`. Its content base is `fb118b89`: universal polling, the token-ROI repair,
+the planned/inactive Level 4 Improvement Propeller, and the four-namespace
+release guard. v2.9.0 remains the published stable baseline until v2.10.0's
+release MR, immediate pre-push namespace check, tag pipeline, and anonymous
+artifact verification all succeed.
 
 The remaining portfolio is deliberately split rather than accumulated into one
 large release:
@@ -69,6 +72,7 @@ large release:
 | v2.7.0 | Retired unused | Frozen reconstruction abandoned; rc.1 remains immutable and failed |
 | Previous stable | Published stable release | Gate-change enforcement and the first integrated A1/A2 release-safety work |
 | v2.9.0 | Published stable release | All reviewed work merged after the preceding release, including release-safety and runner-routing improvements |
+| v2.10.0 | Active release candidate | Autonomous development operation: universal polling, ROI repair, Level 4 Improvement Propeller, and fail-closed release namespace proof |
 | Later minor | Separately gated work | #91, #94, and approved backlog themes |
 
 ## In scope now
@@ -94,6 +98,12 @@ large release:
 - **v2.9.0 current-main release — published:** all reviewed changes merged
   after the preceding release, with exact-head Gate 2 and pre-tag OCI/Trivy evidence.
   #91/#94 remain later-minor candidates.
+- **v2.10.0 autonomous-development release — publication pending:** the four
+  mandatory RUW packages are merged. Improvement Propeller is deliberately
+  Level 4 and inactive; issue #131 owns post-release activation and genuine
+  wake-path proof, while #132 owns the later skill export. Release metadata,
+  exact-head Gate 2, the tag, and public artifact verification remain
+  outstanding.
 - **Issue-board workflow** ([issue #75](https://gitlab.com/janipaijanen/agents-govern-framework/-/issues/75)) —
   proposed, Gate 1 plan open in [MR !745](https://gitlab.com/janipaijanen/agents-govern-framework/-/merge_requests/745),
   not yet approved.

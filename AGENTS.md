@@ -1,4 +1,4 @@
-<!-- AGF: 2.9.0 — update this comment after each framework upgrade to match agf/VERSION -->
+<!-- AGF: 2.10.0 — update this comment after each framework upgrade to match agf/VERSION -->
 # AGF-NG — Agent and Contributor Orientation
 
 **Project codename:** foundry
