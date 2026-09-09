@@ -21,7 +21,8 @@ advisory_consultation:
     reason: >-
       Consultation requested at this Gate 1, not yet on record.
       Contribution-auditor must confirm the derived-not-asserted metadata
-      allowlist method (audit command + three independent agreements),
+      allowlist method (two audit commands + three reconciliation views:
+      per-file, per-category, and total),
       that Group B live-status prose is treated as Gate 2 review material
       rather than a mechanical bump, that the CHANGELOG states
       adopter-visible change rather than a commit count, and that
@@ -145,10 +146,22 @@ outside them**.
   `agf/learnings/foundry.yaml` adoption `framework_version:` line. Record
   the exact `path:line` for each at the frozen base.
 - **Group B — live release-status prose → rewritten, not bumped. Gate 2
-  review material.** Discovered **deterministically**, not by eye: at the
-  frozen base run
-  `git grep -nE 'latest (fully )?published|is being prepared|in construction|install v2\.[0-9]' -- agf/docs/governance/manifest.md agf/docs/site/roadmap.md docs/roadmap.md`
-  and enumerate each hit as a bounded cell with its replacement text.
+  review material.** Audit (a) is the **completeness authority**: every
+  version token it surfaces in `agf/docs/governance/manifest.md`,
+  `agf/docs/site/roadmap.md`, and `docs/roadmap.md` is triaged into A / B
+  / C. Group B is the subset whose surrounding sentence makes a
+  **release-status claim** ("latest / published / stable / in
+  preparation / in construction", "install v2.x", "pending reviewed
+  release"). A `git grep -nE` phrase list is a triage **aid**, not the
+  authority — every hit of audit (a) in these three files must still be
+  classified. The frozen-base triage MUST cover, at minimum, these known
+  current cells (verify + extend at the base, never shrink):
+  `agf/docs/governance/manifest.md` lines ~18 and ~20; the
+  `agf/docs/site/roadmap.md` **Status** row and its "Latest fully
+  published" cell; the `docs/roadmap.md` **Status** row and its "Latest
+  stable" cell. Each Group B cell is enumerated with its exact replacement
+  text; the replacements are adopter-facing and are Gate 2 review
+  material.
   **Separately**, the **#129 status-only correction**: the `docs/roadmap.md`
   and `agf/docs/site/roadmap.md` rows that still describe #129 as an
   active/blocking workstream must state the withdrawal (`6sj1` / the parent
@@ -179,10 +192,14 @@ The validations must test **the bytes that get committed**, not the old
 3. Run every reversible validation against that **dirty draft**: full Rust
    workspace test suite; each built framework archive's shipped tests;
    `agov dist validate` / `agov dist build`; `agov validate
-   assistant_loader`. Record the draft **tree hash** and `git diff` output.
+   assistant_loader`. Record the draft **tree hash** reproducibly, without
+   touching the operator's ordinary index:
+   `GIT_INDEX_FILE=$(mktemp) git add -A && GIT_INDEX_FILE=<that> git write-tree`
+   → record that OID and the `git diff` output.
 4. **Commit exactly those already-tested bytes.** Then prove: `git status`
-   is clean and the commit's tree hash **equals** the recorded draft tree
-   hash; `git diff --name-only <base>..HEAD` is inside the allowlist.
+   is clean; `git rev-parse HEAD^{tree}` **equals** the recorded
+   `write-tree` OID; `git diff --name-only <base>..HEAD` is inside the
+   allowlist.
 5. With that clean, unpublished commit as `HEAD`, run the operator
    preflight:
    `agov release namespace-check --phase preflight --api-url "$CI_API_V4_URL"
@@ -249,17 +266,22 @@ Completion is conditional on **both**:
 
 1. **Tag-pipeline side** — CI job `release:verify` passes on the tag
    pipeline (its own counterpart to the operator check).
-2. **Independent anonymous side** — `agov dist post-publication-check`
-   run by an operator against the published tag, with an explicit
-   download directory, fetching the release assets **over anonymous
-   (unauthenticated) HTTP** and verifying: every archive's SHA-256 against
-   its published checksum sidecar; every provenance record against its
-   artifact and checksum; the OCI digest (via the `agov-oci-image.sh`
-   derived reference) against the manifest; and the Git tag object's
-   peeled commit against the reviewed merge commit.
+2. **Independent anonymous side** — an operator runs
+   `agov dist post-publication-check --releases-url <the anonymous HTTPS
+   releases API URL for this project> --download-dir "$(mktemp -d)"`
+   against the published tag. That command fetches the release assets over
+   **anonymous (unauthenticated) HTTP** into the fresh directory and
+   validates: every archive's SHA-256 vs its published checksum sidecar;
+   every provenance record vs its artifact and checksum; the published OCI
+   image chain (via the `agov-oci-image.sh` derived reference); and the
+   built executable's self-reported version.
+3. **Git tag-object check (separate, explicit).** The command above does
+   **not** resolve the Git tag object. Separately verify:
+   `git rev-parse v2.11.0^{commit}` equals the reviewed merge commit SHA,
+   and the annotated tag object's tagger/message are as intended.
 
 `glab release view v2.11.0` is an **authenticated metadata view only** —
-it is not the verification and does not substitute for step 2.
+it is not the verification and does not substitute for the checks above.
 
 The **completion record** names: the tag object SHA + peeled commit, every
 archive filename + SHA-256, every provenance record identity, the
@@ -308,9 +330,10 @@ and coordination records are repository history, not shipped change.
 
 - **A precondition turns out incomplete.** v2.11 waits, or the governor
   cuts scope by decision. The release does not ship on assumed evidence.
-- **The allowlist is derived wrong a fourth time.** Control: three
-  independent agreements (per-file, category, total), pre- and
-  post-edit; a survivor outside Group C stops the release.
+- **The allowlist is derived wrong a fourth time.** Control: the three
+  reconciliation views (per-file, per-category, total) computed from the
+  one audit, pre- and post-edit; a survivor outside Group C stops the
+  release.
 - **Tag pipeline capacity is thin.** Control: Step 5d confirms capacity
   before the tag; the tag pipeline is the release mechanism and must not
   fail midway.
