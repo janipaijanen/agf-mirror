@@ -1,6 +1,8 @@
 ---
 id: 20260909T133651Z-cpb-coordination-publication-efficiency
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-09T16:34:09Z
 topic: cpb-coordination-publication-efficiency
 candidate_release: v2.11.0
 advisory_consultation:
