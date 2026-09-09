@@ -7,9 +7,9 @@ individually tracked rows; those rows are preserved below as closeout evidence.
 Re-observed 2026-09-09 against `main` at `8d165c8b8547`, after v2.10.0:
 76 MRs were open. The first refreshed cohort below covers 24 coordination
 carrier MRs and preserves their 47 unique immutable records in the inert
-`docs/coordination/archive/20260909-b4/` archive. The live channel reader is
-deliberately top-level-only, so archival publication cannot reactivate stale
-handoffs. Later cohorts add learning,
+`docs/coordination-archive/20260909-b4/` archive. The archive is outside the
+live `docs/coordination/` tree, so channel and Git-based visibility readers do
+not reactivate stale handoffs. Later cohorts add learning,
 radar/source, plan, and other documentation/governance MRs after their own
 evidence review; absence from this first cohort is not a disposition.
 
@@ -140,10 +140,11 @@ stale obligations, so the source carrier can close after the batch lands?**
 
 Disposition for every row is `close-superseded`, conditional on this batch
 merging. The canonical replacement is the listed record under
-`docs/coordination/archive/20260909-b4/` on `main`; the source head is recorded
-so preservation can be checked exactly. `agov coord list`, `coord pending`,
-and `handoff next` read only top-level Markdown files, so the archive preserves
-evidence without presenting historical work as current. Several source MRs
+`docs/coordination-archive/20260909-b4/` on `main`; the source head is recorded
+so preservation can be checked exactly. Keeping the archive outside
+`docs/coordination/` makes it inert to both the flat channel readers and the
+recursive Git-based visibility readers, preserving evidence without presenting
+historical work as current. Several source MRs
 overlap because !2409 consolidated earlier carriers. Each listed record is
 included once in this batch, and every duplicate copy was byte-identical. MRs
 !2409, !2410, and !2452 are excluded:
@@ -189,7 +190,7 @@ own exact-head Gate 2 before any forge closure.
 
 The digest is SHA-256 over each record's exact file bytes as imported from the
 audited source head. Every filename below is relative to
-`docs/coordination/archive/20260909-b4/`. Terminal blank lines present in eight
+`docs/coordination-archive/20260909-b4/`. Terminal blank lines present in eight
 source records are therefore retained rather than normalized.
 
 | Canonical record filename | SHA-256 |
