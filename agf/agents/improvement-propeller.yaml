@@ -3,8 +3,8 @@
 
 agent:
   name: "improvement-propeller"
-  id: "agents-govern:improvement-propeller:0.1.0"
-  version: "0.1.0"
+  id: "agents-govern:improvement-propeller:0.2.0"
+  version: "0.2.0"
   framework_version: "2.10.0"
   provenance: foundry-native
   tier: "meta"
