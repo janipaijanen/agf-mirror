@@ -1,6 +1,8 @@
 ---
 id: 20260909T015237Z-propeller-stage4-activation
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260909T043713Z-governor-reviewer-djh1
+gate1_approved_at: 2026-09-09T04:37:13Z
 topic: improvement-propeller-stage4-activation-execution
 candidate_release: v2.11.0
 advisory_consultation:
@@ -11,8 +13,8 @@ advisory_consultation:
       blockers in 13f928bd: the executable heartbeat prompt was absent and the
       state contract was underconstrained. This revision incorporates the
       prompt, strict state field/value bounds, safe-file contract, and
-      fail-closed behavior. A fresh exact-head rereview is required before
-      Gate 1.
+      fail-closed behavior. Final exact-head rereview `2anr` is CLEAR with no
+      blockers or advisories.
   - role: contribution-auditor
     status: consulted
     reason: >-
@@ -21,7 +23,7 @@ advisory_consultation:
       13f928bd. This revision incorporates the missing P-1 evidence, removes
       the false gate-self-test claim, corrects validation maturity, adds
       AGENTS.md to scope, and requests a fresh exact-head Gate 1 decision.
-      A fresh exact-head rereview is required before Gate 1.
+      Final exact-head rereview `edjm` is CLEAR with no blockers or advisories.
   - role: capability-developer
     status: consulted
     reason: >-
@@ -35,7 +37,8 @@ advisory_consultation:
       Codex-app thread heartbeat is feasible but found five execution-design
       blockers in 13f928bd. This revision supplies the exact prompt, state
       machine, coalescing/failure behavior, verified creation sequence, and
-      governance-aware rollback. A fresh exact-head rereview is required.
+      governance-aware rollback. Final exact-head rereview `ptt6` is CLEAR
+      with no blockers or advisories.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
