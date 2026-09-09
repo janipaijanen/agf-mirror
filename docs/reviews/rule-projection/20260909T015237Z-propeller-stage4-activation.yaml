@@ -1,0 +1,93 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for the Improvement Propeller Stage 4
+# activation execution (issue #131).
+
+plan_id: 20260909T015237Z-propeller-stage4-activation
+issue: 131
+
+changed_pages_or_runbooks:
+  - agf/docs/site/roadmap.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    path: agf/rules/always/improvement-propeller-rule.md
+    reason: >-
+      The Propeller rule already owns activation semantics and every
+      operative clause is already conditioned on activation ("Shipping this
+      rule or role definition does not activate either one"). Stage 4
+      execution flips the manifest status the rule already refers to; it
+      changes no rule text. The manifest entry
+      (agf/agents/MANIFEST.yaml improvement-propeller.status) and the agent
+      definition (agf/agents/improvement-propeller.yaml) are the governed
+      contracts that change, both under governor-approval authority per
+      AGENTS.md and qkj2/2emq.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/roadmap.md
+    reason: >-
+      The roadmap maturity row moves from "Level 4 Validated, deliberately
+      inactive" to "activated; Level 5 Deployable pending the first genuine
+      unattended scheduled wake". Factual status correction, not a new
+      commitment or adopter obligation. The page states adopters opt in
+      separately per the rule's Scope line.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      Activation adds no operator procedure. The player runs the weekly
+      cycle per the rule's already-shipped opportunity and friction lanes;
+      no runbook step changes.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      AGENTS.md already carries the "Planned/inactive: improvement-propeller"
+      note and the pointer to the rule. On merge, that one-line status note
+      updates to "active" as part of the manifest change unit, not as a new
+      landing surface. No AGENTS.md/template/CLAUDE.md behavioural rule is
+      added.
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          The active-agents section's Planned/inactive line updates to
+          reflect the flipped status; this is a status projection, not new
+          cold-start behaviour.
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          The adopter template does not activate the role; adopters opt in
+          via a their own governor decision per the rule Scope.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - agf/agents/MANIFEST.yaml
+      - agf/agents/improvement-propeller.yaml
+    reason: >-
+      agov validate agents is the mechanical check on manifest/agent-def
+      consistency. The gate-self-test in the implementation MR demonstrates
+      the pre-flip inert state, rejection of a malformed activation, and
+      that the rule's post-flip guards (non-reentrant latch, no self-review,
+      control-weakening escalation, no URL dereference) are in force. The
+      genuine-first-wake Level 5 proof is explicitly out of scope for this
+      plan's Gate 2 and is a separate follow-up.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/agents/improvement-propeller.yaml
+      - agf/rules/always/improvement-propeller-rule.md
+      - agf/docs/site/roadmap.md
+    reason: >-
+      The agent definition, the rule, and the adopter roadmap ship through
+      the agf/** distribution. agf/agents/MANIFEST.yaml is foundry's project
+      role authority and is NOT shipped (MANIFEST.example.yaml is the
+      adopter template); docs/roadmap.md (the internal roadmap owner) and
+      this projection manifest are likewise foundry-local governance/review
+      evidence. The status flip therefore changes one shipped agent
+      definition and one shipped adopter roadmap row; adopters opt in
+      separately per the rule Scope.
