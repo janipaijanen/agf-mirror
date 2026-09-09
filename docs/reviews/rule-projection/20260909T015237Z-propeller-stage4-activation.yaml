@@ -39,42 +39,39 @@ surfaces:
   runbook_situation_map:
     disposition: not applicable
     reason: >-
-      Activation adds no operator procedure. The player runs the weekly
-      cycle per the rule's already-shipped opportunity and friction lanes;
-      no runbook step changes.
+      The project-local schedule/state creation procedure and the exact saved
+      heartbeat prompt are reviewable in the durable Gate 1 plan. They are
+      foundry activation evidence, not an adopter runbook: adopters must make
+      their own governor decision and choose their supported wake mechanism.
 
   ai_landing_loaders:
-    disposition: not applicable
+    disposition: updated
+    path: AGENTS.md
     reason: >-
-      AGENTS.md already carries the "Planned/inactive: improvement-propeller"
-      note and the pointer to the rule. On merge, that one-line status note
-      updates to "active" as part of the manifest change unit, not as a new
-      landing surface. No AGENTS.md/template/CLAUDE.md behavioural rule is
-      added.
+      Root AGENTS.md is a foundry startup loader and currently says the role is
+      planned/inactive. The implementation updates that status projection in
+      the same atomic unit as the manifest flip; otherwise fresh sessions get
+      stale role state. No new behavioral authority is added.
     not_applicable:
-      - path: AGENTS.md
-        reason: >-
-          The active-agents section's Planned/inactive line updates to
-          reflect the flipped status; this is a status projection, not new
-          cold-start behaviour.
       - path: agf/templates/AGENTS.md
         reason: >-
-          The adopter template does not activate the role; adopters opt in
-          via a their own governor decision per the rule Scope.
+          The adopter template must not mirror foundry's activation; adopters
+          opt in through their own governor decision per the rule Scope.
 
   validation_drift_evidence:
-    disposition: implemented
+    disposition: required manual
     paths:
       - agf/agents/MANIFEST.yaml
       - agf/agents/improvement-propeller.yaml
+      - AGENTS.md
     reason: >-
-      agov validate agents is the mechanical check on manifest/agent-def
-      consistency. The gate-self-test in the implementation MR demonstrates
-      the pre-flip inert state, rejection of a malformed activation, and
-      that the rule's post-flip guards (non-reentrant latch, no self-review,
-      control-weakening escalation, no URL dereference) are in force. The
-      genuine-first-wake Level 5 proof is explicitly out of scope for this
-      plan's Gate 2 and is a separate follow-up.
+      agov validate agents validates agent-definition schema and tier but
+      explicitly excludes MANIFEST.yaml; it does not enforce the activation
+      contract. This plan therefore makes no mechanical-consistency claim.
+      Gate 2 instead verifies the exact manifest reason, loader projection,
+      state contract, heartbeat prompt, and the canonical Propeller table-top
+      cases. A real validator would be a separately planned gate change with
+      its own negative evidence. Genuine-wake Level 5 proof remains separate.
 
   distribution:
     disposition: confirmed
