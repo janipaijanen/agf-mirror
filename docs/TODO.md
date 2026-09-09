@@ -526,7 +526,6 @@ Status: `awaiting-governor` (Queue Convergence B2, 2026-09-09). Exact question:
 should the still-unimplemented, Gate-1-approved
 `docs/plans/philosophical-lenses-learning-additions.md` remain authorized for a
 fresh future implementation, or be retired under the current documentation and
-source-evidence expectations? The plan, decision `20260721T002215Z-governor-
 source-evidence expectations? The plan, decision
 `20260721T002215Z-governor-reviewer-7mg5`, and handoff
 `20260721T075914Z-planner-architect-qkte` establish that the work is real but
