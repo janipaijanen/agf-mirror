@@ -6,8 +6,10 @@ individually tracked rows; those rows are preserved below as closeout evidence.
 
 Re-observed 2026-09-09 against `main` at `8d165c8b8547`, after v2.10.0:
 76 MRs were open. The first refreshed cohort below covers 24 coordination
-carrier MRs and preserves their 47 unique immutable records directly in the
-canonical `docs/coordination/` directory. Later cohorts add learning,
+carrier MRs and preserves their 47 unique immutable records in the inert
+`docs/coordination/archive/20260909-b4/` archive. The live channel reader is
+deliberately top-level-only, so archival publication cannot reactivate stale
+handoffs. Later cohorts add learning,
 radar/source, plan, and other documentation/governance MRs after their own
 evidence review; absence from this first cohort is not a disposition.
 
@@ -133,15 +135,18 @@ rewriting it. A final live query must add later MRs before each cohort's Gate
 ## 2026-09-09 refresh — B4 coordination carriers
 
 Review question: **Does this fresh-main batch preserve every unique immutable
-coordination record from each source MR byte-for-byte, so the source carrier
-can close after the batch lands?**
+coordination record from each source MR byte-for-byte, without reactivating
+stale obligations, so the source carrier can close after the batch lands?**
 
 Disposition for every row is `close-superseded`, conditional on this batch
-merging. The canonical replacement is the listed record in
-`docs/coordination/` on `main`; the source head is recorded so preservation
-can be checked exactly. Several source MRs overlap because !2409 consolidated
-earlier carriers. Each listed record is included once in this batch, and every
-duplicate copy was byte-identical. MRs !2409, !2410, and !2452 are excluded:
+merging. The canonical replacement is the listed record under
+`docs/coordination/archive/20260909-b4/` on `main`; the source head is recorded
+so preservation can be checked exactly. `agov coord list`, `coord pending`,
+and `handoff next` read only top-level Markdown files, so the archive preserves
+evidence without presenting historical work as current. Several source MRs
+overlap because !2409 consolidated earlier carriers. Each listed record is
+included once in this batch, and every duplicate copy was byte-identical. MRs
+!2409, !2410, and !2452 are excluded:
 publishing their unresolved `requires-ack` records would regress the live
 pending queue, so they remain open until an acknowledgement or mechanical
 supersession can be preserved with them. No source MR is closed before this
@@ -153,7 +158,7 @@ Terminal-disposition authority is the governor decision
 authorizes preparation of this non-plan cohort but still requires this batch's
 own exact-head Gate 2 before any forge closure.
 
-| MR | Audited source head | Canonical records preserved by this batch |
+| MR | Audited source head | Canonical archived records preserved by this batch |
 |---|---|---|
 | !2352 | `ad05d4c3bd3c` | `20260903T221839Z-planner-architect-r4kd`, `20260903T222400Z-planner-architect-h8vn`, `20260903T223100Z-planner-architect-c3wm`, `20260903T223101Z-planner-architect-q7bd` |
 | !2353 | `e54b73a4b963` | `20260904T042925Z-coder-tester-ksqa` |
@@ -183,8 +188,9 @@ own exact-head Gate 2 before any forge closure.
 ### B4 content-hash manifest
 
 The digest is SHA-256 over each record's exact file bytes as imported from the
-audited source head. Terminal blank lines present in eight source records are
-therefore retained rather than normalized.
+audited source head. Every filename below is relative to
+`docs/coordination/archive/20260909-b4/`. Terminal blank lines present in eight
+source records are therefore retained rather than normalized.
 
 | Canonical record filename | SHA-256 |
 |---|---|
@@ -239,8 +245,9 @@ therefore retained rather than normalized.
 ### B4 closure execution
 
 After this batch lands on `main`, close the 24 source MRs with one concise
-note naming this ledger path, the batch MR and merge commit, and the preserved
-record IDs. Do not delete source branches as part of the close. Re-observe MR
+note naming this ledger path, the archive directory, the batch MR and merge
+commit, and the preserved record IDs. Do not delete source branches as part
+of the close. Re-observe MR
 state immediately before mutation; any new commit, unresolved discussion, or
 record-content mismatch removes that MR from the close set and returns it for
 review.
