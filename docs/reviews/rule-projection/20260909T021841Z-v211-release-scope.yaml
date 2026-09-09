@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for the v2.11 release scope and sequence
+# plan.
+
+plan_id: 20260909T021841Z-v211-release-scope
+
+changed_pages_or_runbooks:
+  - agf/docs/site/roadmap.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    path: docs/roadmap.md
+    reason: >-
+      The governed roadmap owner (merged in queue-convergence B1) already
+      owns roadmap sequencing and the "Active post-v2.10 sequence" table.
+      This plan refines that sequence into a bounded v2.11 IN/CANDIDATE/
+      DEFER scope with the lifecycle freeze as its spine; on Gate 1 the
+      owner's sequence table is updated to point at this plan as the v2.11
+      scope authority. No AGF rule text changes. Each admitted workstream
+      keeps its own normative owner and gates.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/roadmap.md
+    reason: >-
+      The adopter roadmap's "Active post-v2.10 work" table is refreshed to
+      the v2.11 scope: the queue-convergence batches, Propeller activation,
+      the #129 freeze slice, qbka lifecycle, and the coordination-protocol
+      workstream as IN; #123 / CP-B / #132 as candidates; linked-data
+      implementation as deferred to v2.13. Status projection of the owner,
+      not a new commitment.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      This is a scope/sequence plan. It adds no operator procedure. The
+      v2.11 release cut follows the existing release skill / runbook plus
+      the rg6k amended preflight sequence and the issue-#120
+      release:namespace-check gate, all already documented.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      No assistant cold-start duty or operating rule changes. AGENTS.md
+      already points sessions at the roadmap owner and the poll/gate
+      contract; duplicating v2.11 scope into a loader would create another
+      stale projection.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    paths:
+      - docs/plans/20260909T021841Z-v211-release-scope.md
+      - docs/roadmap.md
+      - agf/docs/site/roadmap.md
+    reason: >-
+      Strict agov plan projection-check proves the changed Pages file is
+      declared and all six surfaces disposed. Whether the IN/CANDIDATE/
+      DEFER lines and the freeze ordering are correct is a Gate 1 review
+      judgment, not a mechanical check. Each workstream's own gates carry
+      its own validation evidence.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/docs/site/roadmap.md
+    reason: >-
+      The adopter roadmap projection ships through agf/docs/site/**.
+      docs/roadmap.md (the internal owner), this plan, and this manifest
+      are foundry-local governance/review evidence and are deliberately not
+      copied into the adopter archive.
