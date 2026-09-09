@@ -34,6 +34,23 @@ convention is not a safety mechanism — it is an unverified claim. This rule
 grants the fast path real, narrow, tool-enforced authority in place of that
 unverified claim.
 
+### Multi-record publication
+
+A coordination-only merge request MAY add any number of new coordination
+records. The fast path remains valid only when every change in the full commit
+range is a pure addition under `docs/coordination/*.md`; all six blocking
+conditions below apply unchanged to the whole range.
+
+Records produced in the same session or work cycle SHOULD be published
+together when no individual record has an independent visibility obligation.
+Batching reduces merge-request churn without weakening validation. A record
+that another agent or human is waiting on to act — including a live
+obligation, security or gate finding, escalation, or blocking review — MUST
+publish independently and immediately rather than wait for a batch.
+
+This permission changes neither coordination lifecycle and supersession
+semantics nor the protected title convention or the `[ci skip]` prohibition.
+
 ### What the fast path may mechanically verify (blocking authority)
 
 A coordination-publication check MAY block a merge request when, and only
@@ -186,9 +203,15 @@ it fires on known-bad input:
    *aggregate* diff may look coordination-only, but the range still
    contains non-coordination commits. Must fail (the rule inspects every
    commit in the range, not only the net diff).
-3. **A clean, coordination-only range against current target history.**
-   Must pass.
-4. **A stale or unfetchable base ref.** Must fail closed, not pass open.
+3. **Modification, deletion, or rename of an existing coordination record.**
+   Each must fail as a non-pure addition.
+4. **A multi-record batch with any non-coordination file.** Must fail even
+   when all added coordination records are valid.
+5. **A clean range adding two or more valid coordination records against
+   current target history.** Must pass.
+6. **A stale or unfetchable base ref.** Must fail closed, not pass open.
+7. **A `[ci skip]` or `[skip ci]` marker in any coordination commit.** Must
+   fail locally even though the forge would suppress pipeline creation.
 
 ## Why this exists
 

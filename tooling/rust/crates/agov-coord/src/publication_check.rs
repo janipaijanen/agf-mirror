@@ -282,6 +282,70 @@ mod tests {
     }
 
     #[test]
+    fn multi_record_coordination_only_range_passes() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/base.md", "# base\n");
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        repo.write(
+            "docs/coordination/20260727T000010Z-a.md",
+            &coord_message("20260727T000010Z-a"),
+        );
+        repo.write(
+            "docs/coordination/20260727T000011Z-b.md",
+            &coord_message("20260727T000011Z-b"),
+        );
+        repo.commit("coordination: add same-cycle records");
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(
+            report.ok,
+            "expected multi-record range to pass, got: {:?}",
+            report.reasons
+        );
+        assert_eq!(
+            report.added_files,
+            vec![
+                "docs/coordination/20260727T000010Z-a.md",
+                "docs/coordination/20260727T000011Z-b.md",
+            ]
+        );
+    }
+
+    #[test]
+    fn multi_record_batch_with_non_coordination_file_fails() {
+        let repo = TempRepo::new();
+        repo.write("README.md", "base\n");
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        repo.write(
+            "docs/coordination/20260727T000020Z-a.md",
+            &coord_message("20260727T000020Z-a"),
+        );
+        repo.write(
+            "docs/coordination/20260727T000021Z-b.md",
+            &coord_message("20260727T000021Z-b"),
+        );
+        repo.write("README.md", "changed\n");
+        repo.commit("coordination: smuggle a non-coordination change");
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(
+            report
+                .reasons
+                .iter()
+                .any(|reason| reason.contains("README.md")),
+            "expected a reason naming README.md, got: {:?}",
+            report.reasons
+        );
+    }
+
+    #[test]
     fn mr692_shape_fails_even_though_tip_diff_looks_coordination_only() {
         let repo = TempRepo::new();
         repo.write("README.md", "base\n");
@@ -343,6 +407,54 @@ mod tests {
     }
 
     #[test]
+    fn merge_commit_in_coordination_range_fails() {
+        let repo = TempRepo::new();
+        repo.write("README.md", "base\n");
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        run(repo.path(), &["checkout", "-q", "-b", "side"]);
+        repo.write(
+            "docs/coordination/20260727T000210Z-a.md",
+            &coord_message("20260727T000210Z-a"),
+        );
+        repo.commit("coordination: add side record");
+
+        run(
+            repo.path(),
+            &["checkout", "-q", "-b", "candidate", "target"],
+        );
+        repo.write(
+            "docs/coordination/20260727T000211Z-b.md",
+            &coord_message("20260727T000211Z-b"),
+        );
+        repo.commit("coordination: add candidate record");
+        run(
+            repo.path(),
+            &[
+                "merge",
+                "--no-ff",
+                "-q",
+                "side",
+                "-m",
+                "coordination: merge imported history",
+            ],
+        );
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(
+            report
+                .reasons
+                .iter()
+                .any(|reason| reason.contains("merge commit")),
+            "expected a merge-commit reason, got: {:?}",
+            report.reasons
+        );
+    }
+
+    #[test]
     fn modification_of_existing_coordination_file_fails() {
         let repo = TempRepo::new();
         repo.write("docs/coordination/base.md", &coord_message("base"));
@@ -352,6 +464,45 @@ mod tests {
 
         repo.write("docs/coordination/base.md", &coord_message("base-edited"));
         repo.commit("coordination: edit base");
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(report.reasons.iter().any(|r| r.contains("non-addition")));
+    }
+
+    #[test]
+    fn deletion_of_existing_coordination_file_fails() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/base.md", &coord_message("base"));
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        std::fs::remove_file(repo.path().join("docs/coordination/base.md")).unwrap();
+        repo.commit("coordination: delete base");
+
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(report.reasons.iter().any(|r| r.contains("non-addition")));
+    }
+
+    #[test]
+    fn rename_of_existing_coordination_file_fails() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/base.md", &coord_message("base"));
+        repo.commit("chore: base");
+        let base = repo.head();
+        run(repo.path(), &["branch", "target", &base]);
+
+        run(
+            repo.path(),
+            &[
+                "mv",
+                "docs/coordination/base.md",
+                "docs/coordination/renamed.md",
+            ],
+        );
+        repo.commit("coordination: rename base");
 
         let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
         assert!(!report.ok);

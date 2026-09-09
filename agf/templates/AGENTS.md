@@ -154,7 +154,9 @@ independently of the Gate 2 approval of the work it describes — see
 wired mechanical verification for that fast path (e.g. `agov coord
 publication-check` in CI), branch coordination-only commits from the target
 branch, not from an implementation branch's tip — a title alone is not what
-makes a candidate safe to fast-track. Never add `[ci skip]`/`[skip ci]` to a
+makes a candidate safe to fast-track. Batch same-cycle records when none is
+independently blocking another actor; publish an urgent or waiting obligation
+alone immediately. Never add `[ci skip]`/`[skip ci]` to a
 coordination-only commit message: that marker skips pipeline creation
 entirely at the platform level, before any CI configuration runs, so the
 mechanical check would never get a chance to run.

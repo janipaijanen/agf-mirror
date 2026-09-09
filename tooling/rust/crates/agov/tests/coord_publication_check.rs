@@ -15,8 +15,12 @@ fn clean_coordination_range_passes_and_reports_added_files() {
         "docs/coordination/20260727T000000Z-a.md",
         &coord("20260727T000000Z-a"),
     );
+    repo.write(
+        "docs/coordination/20260727T000001Z-b.md",
+        &coord("20260727T000001Z-b"),
+    );
     repo.git(&["add", "."]);
-    repo.git(&["commit", "-q", "-m", "coordination: add a"]);
+    repo.git(&["commit", "-q", "-m", "coordination: add same-cycle records"]);
 
     let output = repo.agov(&[
         "coord",
@@ -37,6 +41,7 @@ fn clean_coordination_range_passes_and_reports_added_files() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("\"ok\":true"));
     assert!(stdout.contains("20260727T000000Z-a.md"));
+    assert!(stdout.contains("20260727T000001Z-b.md"));
 }
 
 #[test]
