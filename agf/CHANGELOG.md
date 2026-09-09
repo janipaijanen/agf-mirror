@@ -5,6 +5,10 @@ distribution.
 
 ## [Unreleased]
 
+Adopter docs: not applicable — this MR activates the already-documented
+optional Improvement Propeller only for foundry; adopter projects remain
+inactive until their own governor supplies the activation contract.
+
 ## [2.10.0] — 2026-09-08
 
 **Minor release.** Delivers autonomous AGF development operation through the
