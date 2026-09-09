@@ -53,13 +53,18 @@ surfaces:
       the same atomic unit as the manifest flip; otherwise fresh sessions get
       stale role state. No new behavioral authority is added.
     not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          The Claude loader imports root AGENTS.md by reference, so the root
+          status correction reaches Claude without duplicating or changing the
+          loader file.
       - path: agf/templates/AGENTS.md
         reason: >-
           The adopter template must not mirror foundry's activation; adopters
           opt in through their own governor decision per the rule Scope.
 
   validation_drift_evidence:
-    disposition: required manual
+    disposition: not mechanically decidable
     paths:
       - agf/agents/MANIFEST.yaml
       - agf/agents/improvement-propeller.yaml
@@ -87,4 +92,6 @@ surfaces:
       this projection manifest are likewise foundry-local governance/review
       evidence. The status flip therefore changes one shipped agent
       definition and one shipped adopter roadmap row; adopters opt in
-      separately per the rule Scope.
+      separately per the rule Scope. Root AGENTS.md and .claude/CLAUDE.md are
+      foundry-local startup surfaces and are not adopter-distribution files;
+      the former changes, while the latter imports it and needs no direct edit.

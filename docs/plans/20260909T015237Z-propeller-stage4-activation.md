@@ -194,8 +194,11 @@ Post-create sequence:
 1. Verify the exact Gate-2-approved implementation head is merged into fresh
    `origin/main`; do not create from an implementation branch.
 2. Inspect existing automations by stable name/prompt. Update the resolved
-   existing ID rather than create a duplicate; coexist with the temporary
-   release poll without overlapping work because both use the latch.
+   existing Propeller ID rather than create a duplicate. Before arming it,
+   verify the temporary `agf-release-and-coordination-poll` has expired and
+   been deleted, or pause it with its resolved ID and full preserved fields.
+   Do not claim that separate automations share the Propeller JSON latch;
+   platform turn serialization plus the Propeller pending bit are distinct.
 3. Create and validate the state with `automation_id=null`.
 4. Create exactly one heartbeat, view it back, and verify returned ID, kind,
    name, ACTIVE state, schedule, target task, notification policy, and exact
