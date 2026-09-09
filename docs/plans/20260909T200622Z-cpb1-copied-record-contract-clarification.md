@@ -68,38 +68,65 @@ copies of unrelated existing ones. Rejected.
 Condition 3's parenthetical already lists "copies". Add one sentence to the
 "### Multi-record publication" subsection and to condition 3's wording:
 
-> A copy is detected by **exact content identity**, not by similarity: an
+> A copy is detected by **exact byte identity**, not by similarity: an
 > added `docs/coordination/*.md` file whose full byte content equals that
-> of any existing coordination record on the target branch is a copy and
-> is rejected as a non-pure addition. Records with unique `id:` /
-> `timestamp:` frontmatter can never be byte-identical, so this never
-> misclassifies a legitimate new record.
+> of any coordination record already present at the resolved merge base,
+> **or** of any coordination record added earlier in the same candidate
+> range, is a copy and is rejected as a non-pure addition. The check
+> compares actual bytes, so it also catches a mis-authored duplicate that
+> reuses an `id:` — it does not rely on the unique-`id`/`timestamp`
+> authoring convention. It never misclassifies a genuinely distinct new
+> record, because it is identity, not similarity.
 
 ### `agov coord publication-check` (`publication_check.rs`)
 
-After a path passes the `A`-status check, and only for paths under
-`docs/coordination/*.md`: compute a content hash (e.g. SHA-256) of each
-**added** file and of each **existing** target-branch coordination record;
-if any added file's hash matches an existing record's hash, fail with
-`"commit <c> adds a byte-identical copy of an existing coordination
-record: <path> == <existing path>"`. This is O(added + base) hashing, no
-similarity computation.
+The contract (per review `1r5a` findings CPB1-COPY-1 / -2):
+
+1. **Source of base records — pinned to the merge base, not the tip.**
+   Enumerate the coordination records present at the **already-resolved
+   merge base** via `git ls-tree -r <merge-base> -- docs/coordination`
+   (the same merge base condition 1 resolves). Do not read the target
+   branch tip (avoids target-tip drift) and do not read working-tree
+   paths (avoids working-tree races).
+2. **Source of candidate blobs — the exact Git object at its introducing
+   commit.** For each `A`-status `docs/coordination/*.md` path, read the
+   added blob with `git cat-file blob <commit>:<path>` at the commit where
+   it appears.
+3. **Hash is only a candidate index.** Compute a content hash (e.g.
+   SHA-256) of each base blob and each candidate blob. On a hash match,
+   **compare the two blob objects byte-for-byte** and classify as a copy
+   only on exact byte equality. A hash match alone never decides.
+4. **Running seen-content set.** Process candidate additions in range
+   order; the seen set is `{merge-base records} ∪ {candidate additions
+   already processed}`. A new addition whose bytes equal anything in the
+   seen set is a copy — this catches two identical new records within one
+   commit or one candidate range, which neither existed at the merge base.
+5. **Fail closed.** Any `ls-tree` or `cat-file` enumeration/object-read
+   error fails the check (never pass-open), consistent with condition 1.
+6. On a copy, fail with
+   `"commit <c> adds a byte-identical copy of an existing coordination
+   record: <path> == <existing path>"` (existing path is the merge-base
+   path or the earlier candidate path).
 
 ### Gate-self-test additions (the CP-B-1 implementing MR, MR !2636)
 
-Add to `publication_check.rs` tests:
+Add to `publication_check.rs` tests (per `1r5a` CPB1-COPY-2):
 
-1. **Copied record fails** — base branch has `A.md`; the candidate range
-   adds `B.md` whose bytes equal `A.md`. `publication-check` must fail with
-   a reason naming both paths. (This is the case `hpms` found missing.)
-2. **Template-similar new record passes** — base has a valid record; the
-   candidate adds a new record that shares the SPDX header, frontmatter
-   keys, and section headings but has a distinct `id:`, `timestamp:`,
-   `topic:`, and body. Must **pass** — proving the check is identity-based,
-   not similarity-based.
+1. **Copy of a merge-base record fails** — merge base has `A.md`; the
+   candidate range adds `B.md` whose bytes equal `A.md`. Must fail with a
+   reason naming **both** paths.
+2. **Candidate-internal duplicate fails** — neither exists at the merge
+   base; the candidate range adds `B.md` and `C.md` with identical bytes.
+   Must fail (the seen-content set catches the second).
+3. **Template-similar distinct record passes** — base has a valid record;
+   the candidate adds a new record sharing the SPDX header, frontmatter
+   keys, and section headings but with a distinct `id:`, `timestamp:`,
+   `topic:`, and body. Must **pass** — identity, not similarity.
+4. **Object/enumeration read failure fails closed** — a simulated
+   `ls-tree` / `cat-file` failure must fail the check, not pass it.
 
 The rule's "Required negative self-tests" list gains an explicit
-copied-record item (making it 8), matching condition 3's full wording.
+copied-record item, matching condition 3's full wording.
 
 ## Scope boundary
 
@@ -115,8 +142,10 @@ copied-record item (making it 8), matching condition 3's full wording.
 
 Classification: **ADDITIVE / clarifying**. Condition 3 already forbids
 copies; this makes the detector and the test match the rule. No existing
-coordination MR becomes invalid (unique IDs mean no two real records are
-byte-identical). `agov coord publication-check` output is unchanged for
+coordination MR becomes invalid (two genuinely distinct records differ in
+`id:` / `timestamp:` / body, so they are never byte-identical; the check
+compares bytes, so it neither depends on that convention nor flags a
+distinct record). `agov coord publication-check` output is unchanged for
 every input that is not an exact-copy attempt.
 
 ## Validation before Gate 1
