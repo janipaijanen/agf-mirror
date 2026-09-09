@@ -4531,6 +4531,70 @@ learnings:
         - '2026-09-06 Codex AGF release session: enabled repo-local agov-mcp passed initialize/tools-list while the active task exposed no mcp__agov__ tools.'
 
 
+  - id: 20260909T021145Z-cd7k
+    date: '2026-09-09'
+    category: process
+    scope: framework
+    title: agent-advancement-proposal-reproposed-a-step-a-prior-governor-decision-had-already-completed
+    status: proposed
+    description: >-
+      Asked as capability-developer to "propose propeller advancement
+      steps", a Claude session authored an ordered path (drtp) whose first
+      step P-0 was "the governor confirms or revises the Stage 4 activation
+      parameter set". At authoring time the session had read the Propeller
+      rule, the agent definition, the current manifest status, issue #131's
+      title, and a companion coordination-protocol analysis, but had not
+      fully read governor decision 20260907T151325Z-governor-reviewer-2emq.
+      One message later, authoring the follow-on directive transcription
+      (ssae), the session read 2emq in full and found its section 2b had
+      already "confirmed and held ready" that exact parameter set weeks
+      earlier, and had amended Stage 4 launch to a named v2.11 follow-up.
+      P-0 was therefore already done; the proposal re-proposed a completed
+      governor decision as pending. The header framing of P-2 as "Level 4
+      to Level 5" was also loose against qkj2 and 2emq, which are explicit
+      that only a genuine unattended scheduled wake after activation proves
+      Level 5. No downstream effect: drtp was advisory, the error was
+      corrected within the same session before any plan or manifest change,
+      and issue #131 already carried the accurate picture. The structural
+      enabler is the same coordination staleness this session filed
+      separately (jprj CP references, issue #122): a reader of the current
+      manifest and the immediate prompt cannot see that a prior decision
+      already settled the question without walking the full decision chain.
+    agents_involved:
+      - capability-developer
+      - planner-architect
+      - governor-reviewer
+    framework_section: agents/capability-developer.yaml
+    business_impact:
+      type: cost_overhead
+      description: >-
+        One advisory record proposed a step already taken, and the
+        correction consumed part of the next work cycle. No wrong plan,
+        manifest flip, gate, or release resulted because the proposal was
+        advisory and self-corrected before execution. The cost is avoidable
+        rework and a proposal that briefly misrepresented the governance
+        state of an agent's activation.
+    recommendation: >-
+      Before authoring an agent evolution, maturity, phase, activation, or
+      boundary proposal, the capability-developer session should walk the
+      complete governor-decision and capability-review chain for that
+      specific agent, not only its current manifest state plus the
+      immediate prompt. In practice: resolve every governor decision-record
+      and capability-review that names the agent, and confirm which
+      required steps each already completed, before proposing a next-step
+      path. This is cheap when the agent's decision history is short and
+      necessary when it is not. It also strengthens the case for the
+      self-announcing-supersession and decision-status tooling already
+      tracked in issue #122 and jprj, which would let a reader see a
+      settled question without reconstructing the chain by hand.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'docs/coordination/20260909T014426Z-capability-developer-drtp.md vs docs/coordination/20260907T151325Z-governor-reviewer-2emq.md section 2b: drtp P-0 proposed governor confirmation of Stage 4 parameters that 2emq had already confirmed; corrected in docs/coordination/20260909T015104Z-governor-reviewer-ssae.md.'
+
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
