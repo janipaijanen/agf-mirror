@@ -58,9 +58,12 @@ surfaces:
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
-          Not present in this repository. Foundry's assistant-loading path
-          is AGENTS.md plus .claude/rules/ loaded directly by the tool; the
-          adopter-facing loader this project ships is agf/templates/AGENTS.md.
+          Present in this repository, but its entire content is the single
+          import line `@../AGENTS.md`. It carries no prose of its own, so the
+          sentence added to AGENTS.md's Coordination-channel section (in this
+          row's `paths`) propagates through it automatically; there is
+          nothing to edit in .claude/CLAUDE.md directly. It is an existing
+          sufficient pointer, not an absent surface.
 
   validation_drift_evidence:
     disposition: implemented

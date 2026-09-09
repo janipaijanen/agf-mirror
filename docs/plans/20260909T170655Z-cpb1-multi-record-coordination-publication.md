@@ -5,27 +5,30 @@ topic: cpb1-multi-record-coordination-publication
 candidate_release: v2.11.0
 advisory_consultation:
   - role: infosec-sentinel
-    status: consulted
+    status: waived
     reason: >-
-      This modifies a gate (`coordination-publication-rule` /
-      `agov coord publication-check`). InfoSec must confirm at this Gate 1
-      that making multi-record coordination MRs explicit does not weaken any
-      existing negative condition — in particular that a batch range still
-      cannot smuggle a non-coordination file (condition 2), a non-pure
-      change (condition 3), a merge commit (condition 4), an invalid record
-      (condition 5), or a `[ci skip]` marker — and adds no channel for
-      hidden implementation history. The implementing MR gets its own
-      exact-head InfoSec review; this row covers the rule-direction
-      decision.
+      Consultation is requested at this Gate 1 but not yet on record —
+      handoff `8d8e` asks the governor to route the plan to InfoSec first if
+      exact-head input is wanted before deciding. This row flips to
+      `consulted` once that review is durable. What InfoSec must confirm:
+      making multi-record coordination MRs explicit weakens no existing
+      negative condition — a batch range still cannot smuggle a
+      non-coordination file (condition 2), a non-pure change (condition 3),
+      a merge commit (condition 4), an invalid record (condition 5), or a
+      `[ci skip]` marker — and adds no channel for hidden implementation
+      history. The implementing MR gets its own exact-head InfoSec review.
   - role: contribution-auditor
-    status: consulted
+    status: waived
     reason: >-
-      Rule-direction change with a six-row projection manifest. Contribution
-      auditor must confirm the batching allowance sets no false precedent
-      for "release work overrides audit-trail timeliness", that
-      per-record `agov coord validate`, causal `references-to`, immutable
-      append-only authorship, and full-range checking are all preserved, and
-      that the projection surfaces are complete and non-duplicative.
+      Consultation is requested at this Gate 1 but not yet on record (see
+      `8d8e`). Flips to `consulted` once durable. What contribution-auditor
+      must confirm: the batching allowance sets no false precedent for
+      "release work overrides audit-trail timeliness"; per-record `agov
+      coord validate`, causal `references-to`, immutable append-only
+      authorship, and full-range checking are all preserved; the projection
+      surfaces are complete and non-duplicative. (Codex Gate 1 review
+      `1rtj` was a build/planning-mechanics review, not the
+      contribution-auditor consultation.)
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -146,14 +149,35 @@ for the implementing MR.
 ## Collision check — MR !2038
 
 `eghq` asked for a collision check before fixing the affected-file set.
-**MR !2038** is `plan+add: stale worktree and branch pruning rule` — it
-touches `agf/rules/workflow/stale-worktree-and-branch-pruning-rule.md`,
-`.claude/rules/workflow/stale-worktree-and-branch-pruning-rule.md`, and
-`agf/rules/workflow/branch-and-worktree-rule.md`. **No overlap** with
-`coordination-publication-rule.md`, its Claude projection, the
-coordination-protocol concept page, the poll-and-coordinate operator page,
-`publication_check.rs`, or the AGENTS loaders' coordination sections.
-CP-B-1 and MR !2038 are independent; no sequencing constraint.
+**MR !2038** (`plan+add: stale worktree and branch pruning rule`) changes,
+per its `/changes` API list:
+`agf/rules/workflow/stale-worktree-and-branch-pruning-rule.md`,
+`.claude/rules/workflow/stale-worktree-and-branch-pruning-rule.md`,
+`agf/rules/workflow/branch-and-worktree-rule.md`,
+`docs/plans/20260825T044054Z-stale-worktree-branch-pruning-rule.md`,
+`docs/reviews/rule-projection/20260825T044054Z-stale-worktree-branch-pruning-rule.yaml`,
+`docs/reference/agent-cold-start-habits.md`, and **`AGENTS.md`**.
+
+**File-level overlap: `AGENTS.md`.** Both MR !2038 and CP-B-1's projection
+touch the repository-root `AGENTS.md`. The edits are in disjoint sections —
+MR !2038 in the branch/worktree-discipline area, CP-B-1 in the
+Coordination-channel section (one sentence about batching same-cycle
+records) — so the semantic collision risk is low, but the file-level
+collision and its sequencing obligation are real.
+
+**Sequencing:** whichever of MR !2038 or the CP-B-1 implementing MR merges
+first, the other rebases onto the new `main` tip before its exact-head
+review and re-runs `git diff` against `main` to confirm its `AGENTS.md`
+hunk still applies cleanly to the untouched Coordination-channel /
+branch-worktree section respectively. A conflict (only if the sections
+turn out to abut) is resolved by keeping both edits. The CP-B-1 implementing
+MR's exact-head evidence must record MR !2038's then-current state (open /
+merged / head SHA) and the rebase/recheck result.
+
+No overlap on any other CP-B-1 surface: `coordination-publication-rule.md`,
+its `.claude/` projection, the coordination-protocol concept page, the
+poll-and-coordinate operator page, and `publication_check.rs` are untouched
+by MR !2038.
 
 ## Out of scope (explicit, per `eghq`)
 
@@ -167,17 +191,27 @@ CP-B-1 and MR !2038 are independent; no sequencing constraint.
 
 ## Downstream impact
 
-Classification: **BREAKING** for `coordination-publication-rule` (adopters
-following it gain an explicit batching allowance and a "publish urgent
-alone" obligation) and **EDITORIAL→ADDITIVE** for `agov` (a new passing
-test; logic unchanged unless a test surfaces a defect).
+Classification: **ADDITIVE** for `coordination-publication-rule` and
+**EDITORIAL→ADDITIVE** for `agov`. Per `always/downstream-impact-rule.md`'s
+EDITORIAL test — "the set of actions the rule *requires*, *forbids*, or
+*permits* is unchanged" — CP-B-1 does not remove or narrow any existing
+obligation: one-record-per-MR stays fully valid, every blocking condition
+and negative self-test keeps its force, and no existing coordination MR
+becomes invalid. It *adds* a permission (batching same-cycle records) and
+makes explicit an obligation that was already implicit under
+`coordination-message-rule` / `coordination-sequence-guard-rule` (an urgent
+record another actor is waiting on publishes promptly). New permission +
+newly-explicit existing obligation with no contract removed and no
+migration = ADDITIVE, not BREAKING. The `agov` side adds one passing test;
+logic is unchanged unless a test surfaces a single-file assumption.
 
 ```
 Impact:
   Foundry:          Yes — batching becomes the explicit default for
                     same-cycle records; urgent records still publish alone.
-  Direct adopters:  BREAKING (rule) — one new subsection to read; no
-                    existing coordination MR becomes invalid.
+  Direct adopters:  ADDITIVE (rule) — one new subsection to read; a new
+                    permission, not a removed contract; no existing
+                    coordination MR becomes invalid.
   Downstream:       No adopter artifact shape changes. `agov coord
                     publication-check` output is unchanged for existing
                     inputs.
