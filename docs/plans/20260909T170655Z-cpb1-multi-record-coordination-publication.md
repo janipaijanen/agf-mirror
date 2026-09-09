@@ -1,6 +1,8 @@
 ---
 id: 20260909T170655Z-cpb1-multi-record-coordination-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260909T184019Z-governor-reviewer-st83
+gate1_approved_at: 2026-09-09T18:40:19Z
 topic: cpb1-multi-record-coordination-publication
 candidate_release: v2.11.0
 advisory_consultation:
