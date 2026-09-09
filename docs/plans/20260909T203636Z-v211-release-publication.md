@@ -193,9 +193,19 @@ The validations must test **the bytes that get committed**, not the old
    workspace test suite; each built framework archive's shipped tests;
    `agov dist validate` / `agov dist build`; `agov validate
    assistant_loader`. Record the draft **tree hash** reproducibly, without
-   touching the operator's ordinary index:
-   `GIT_INDEX_FILE=$(mktemp) git add -A && GIT_INDEX_FILE=<that> git write-tree`
-   → record that OID and the `git diff` output.
+   touching the operator's ordinary index — a fresh dedicated index seeded
+   from `HEAD` (`rjqj` adv 2 / `2pgh` V211-RP-R3: `$(mktemp)` alone is a
+   zero-byte file Git rejects as an index):
+
+   ```sh
+   tmpdir=$(mktemp -d); index_path="$tmpdir/index"
+   GIT_INDEX_FILE="$index_path" git read-tree HEAD
+   GIT_INDEX_FILE="$index_path" git add -A
+   GIT_INDEX_FILE="$index_path" git write-tree   # → record this OID
+   rm -rf "$tmpdir"
+   ```
+
+   Also record the `git diff` output.
 4. **Commit exactly those already-tested bytes.** Then prove: `git status`
    is clean; `git rev-parse HEAD^{tree}` **equals** the recorded
    `write-tree` OID; `git diff --name-only <base>..HEAD` is inside the
