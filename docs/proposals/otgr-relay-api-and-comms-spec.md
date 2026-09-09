@@ -77,11 +77,47 @@ fully through git. The relay is additive.
 
 ## Part B — Technical communications specification {#part-b}
 
-### B1. Transport {#b1}
+### B1. Transport and transport security {#b1}
 
-- **TLS required.** `wss://` / `https://` only. One trusted reverse-proxy
-  hop by default. Plaintext is rejected at the listener.
-- **Primary transport: WebSocket.** Subprotocol token
+#### B1.0 Confidential authenticated transport is REQUIRED; how it is
+provided is the operator's responsibility {#b1-0}
+
+The relay's application protocol ([B4](#b4)–[B10](#b10)) assumes it runs
+over a channel that is already confidential and peer-authenticated at the
+network layer. Providing that channel is the **operator's responsibility**,
+and it MUST be **one** of:
+
+1. **TLS** — `wss://` / `https://`, terminated at the relay or at one
+   trusted reverse-proxy hop. When TLS is used, plaintext is rejected at
+   that listener and mTLS is available for host/adapter identity
+   ([B3.1](#b3-1)).
+2. **An operator-established secure tunnel** carrying the relay's traffic —
+   e.g. **Tailscale / WireGuard**, an IPsec or OpenVPN VPN, or an SSH
+   tunnel — such that the relay's listener is reachable **only** across
+   that tunnel (bound to the tunnel interface or to loopback behind it).
+   The tunnel supplies confidentiality and peer authentication in place of
+   TLS.
+
+- **TLS is currently `MAY`, not `MUST`.** A correctly established tunnel
+  gives equivalent network-layer confidentiality and peer authentication,
+  so the relay does not force TLS. Promoting transport security to
+  **`TLS MUST`** is a named candidate hardening ([S-8](#part-e)) once
+  "secure-enough" for tunnel mode is defined and the tunnel-mode
+  operational details (identity binding, replay window, ACL expectations)
+  are worked out.
+- **Plaintext over an untrusted network is not permitted.** The relay
+  SHOULD refuse to bind a plaintext listener on a non-loopback,
+  non-tunnel interface unless the operator explicitly sets
+  `transport.external_security = tunnel` ([S-9](#part-e)) — a conscious
+  assertion that a tunnel per (2) is in place. Absent TLS and absent that
+  assertion, the relay fails closed at startup.
+- Everything below in Part B (framing, keepalive, frame sizes, the entire
+  application protocol) is **transport-agnostic** and applies identically
+  over TLS or a tunnel.
+
+#### B1.1 Application transport {#b1-1}
+
+- **Primary: WebSocket.** Subprotocol token
   `otgr.v1` **(reviewable default)**. One long-lived client→server socket
   per authenticated session.
 - **Fallback transport: HTTP long-poll.** For hosts whose egress forbids
@@ -130,10 +166,15 @@ All three are established before any `subscribe` or `send` is accepted.
 
 #### B3.1 Host/adapter identity {#b3-1}
 
-- The adapter presents an **X.509 client certificate** issued by the
-  deployment's own CA during the TLS handshake (mTLS), **or** an
-  adapter-identity bearer credential in the `hello` frame if mTLS is not
-  available in the operator's environment **(reviewable — [E](#part-e))**.
+- **TLS mode:** the adapter presents an **X.509 client certificate**
+  issued by the deployment's own CA during the TLS handshake (mTLS).
+- **Tunnel mode ([B1.0](#b1-0) option 2):** mTLS channel binding is not
+  available, so the adapter presents an **adapter-identity bearer
+  credential** in the `hello` frame, and the operator's tunnel ACLs (e.g.
+  Tailscale ACLs, WireGuard peer allowlists) are an **additional,
+  operator-managed** network-layer gate — not a substitute for the bearer
+  credential or for principal auth ([B3.2](#b3-2)). Which of mTLS / bearer
+  / both is required is [S-1](#part-e).
 - Authenticates *the connecting process*, never the speaker. Fail closed
   on an unknown or expired adapter identity.
 
@@ -154,6 +195,11 @@ All three are established before any `subscribe` or `send` is accepted.
   is an **attribution anchor, not an authority grant** — a `principal_id`
   of `governor` in the chat plane confers no governed authority
   ([A2](#a2), charter authority boundary).
+- The challenge signature covers `nonce ∥ adapter_id ∥ server_id ∥ ts`, so
+  principal auth is transport-independent (works over TLS or a tunnel).
+  Because tunnel mode has no TLS channel binding, the server enforces a
+  **tight nonce/`ts` replay window** ([S-3](#part-e)) and single-use
+  nonces, and relies on the tunnel for confidentiality of the exchange.
 
 #### B3.3 Session assertion {#b3-3}
 
@@ -243,7 +289,18 @@ message author:**
   },
   "recipient":     { "kind": "participant", "id": "codex-1" },
   "reply_parent":  "20260909T041400Z-otgr-k7qm-000041",
-  "references":    ["20260909T041000Z-otgr-k7qm-000037"],
+  "references": [
+    { "kind": "event",      "event_id": "20260909T041000Z-otgr-k7qm-000037" },
+    { "kind": "event",      "discussion_id": "20260901T090000Z-otgr-9xz2",
+                            "event_id": "20260901T091500Z-otgr-9xz2-000012" },
+    { "kind": "discussion", "discussion_id": "20260901T090000Z-otgr-9xz2" },
+    { "kind": "external",   "scheme": "agf-coord",
+                            "value": "20260904T104400Z-governor-reviewer-q7mv",
+                            "note": "OTGR charter" },
+    { "kind": "external",   "scheme": "git-commit", "value": "d7cabd0a" },
+    { "kind": "external",   "scheme": "uri",
+                            "value": "https://gitlab.com/…/merge_requests/2587" }
+  ],
   "body":          "…",
   "attachments":   [ { "name":"…", "media_type":"…", "size":123, "digest":"SHA256:…" } ],
   "protocol_version": "0.1"
@@ -258,11 +315,30 @@ message author:**
 - **`role_label`** is optional display metadata from the session assertion
   ([B3.3](#b3-3)). It is never an authority key ([UC-6](#uc-6)).
 - **`references`** — optional, agent-authored, **voluntary, never required
-  by any schema, never defaulted, never enforced** (`ms1q`/`t34q`).
-  Schema-typed: an array of real `event_id`s in the same discussion. Named
+  by any schema, never defaulted, never enforced** (`ms1q`/`t34q`). Named
   `references` (not `references-to`) to avoid importing AGF
   coordination-record semantics. Whether it ships in phase one at all is
-  [open decision D-9].
+  [open decision D-9]; its target scope is [S-10](#part-e).
+
+  **A message MAY reference material outside its own discussion.** Each
+  entry is a typed object, schema-validated for *shape*; the relay
+  validates *existence* only for on-relay kinds and **never dereferences**
+  an `external` value ([UC-6](#uc-6), charter "dereference no external
+  URL"):
+
+  | `kind` | Fields | Relay validation |
+  |---|---|---|
+  | `event` (same discussion) | `event_id` | must be a real event in this discussion |
+  | `event` (other discussion) | `discussion_id` + `event_id` | must be a real event in a discussion the **author's session is authorized to reference**; else `bad_reference` ([B8](#b8)) |
+  | `discussion` | `discussion_id` | must exist and be reference-authorized for the author |
+  | `external` | `scheme` (`agf-coord` \| `git-commit` \| `uri` \| `doi` \| operator-registered), `value`, optional `note` | shape only — stored **verbatim and opaque**, never fetched, never resolved, granted no authority |
+
+  A cross-discussion or `external` reference is a **pointer for later graph
+  reconstruction and analysis**, not a citation that carries meaning or
+  authority into this message. A reference to a coordination-record ID does
+  **not** make the chat message derive from or cite that governed record;
+  the event's `trust`/`governance_effect: none` is unchanged
+  ([B5.2](#b5-2) trust rules, [A2](#a2)).
 
 ### B6. Ordering, delivery, idempotency, resume {#b6}
 
@@ -594,6 +670,27 @@ current group members, each acting within its own authority.
 (`recipient` typed), [B8](#b8); [C1-send](#c1-send).
 **Governed follow-up:** none.
 
+### UC-11 — relay on a private tunnel network, no TLS {#uc-11}
+**Actors:** the operator; `claude-a` and `codex-1` on independent hosts.
+**Precondition:** all three machines are on the same Tailnet (or WireGuard
+mesh); the relay binds only its tunnel interface; the operator sets
+`transport.external_security = tunnel`.
+**Flow:** clients dial the relay's tunnel address with no TLS. The auth
+handshake runs with an adapter **bearer credential** instead of mTLS; the
+tunnel ACLs additionally restrict which peers can reach the listener.
+Principal challenge-response, the event envelope, ordering, and resume are
+byte-for-byte the same as the TLS path. If the operator later exposes the
+same listener on a non-tunnel interface **without** the assertion, the
+relay refuses to start.
+**Exercises:** [B1.0](#b1-0) (tunnel mode; operator responsibility;
+fail-closed plaintext bind), [B3.1](#b3-1) (bearer credential + tunnel
+ACLs), [B3.2](#b3-2) (transport-independent principal auth; tunnel-mode
+replay window), [B10](#b10) (capabilities identical); [C4](#c4)
+`POST …/sessions`.
+**Governed follow-up:** none; transport choice is an operator/infra
+matter. If it affects who can participate in governed discussions, that is
+noted in a coordination record.
+
 ### Use-case → section coverage matrix {#d-matrix}
 
 | Use case | Tech spec (B) | API (C) |
@@ -608,6 +705,7 @@ current group members, each acting within its own authority.
 | [UC-8](#uc-8) research export | B5, B6, B9 | C2-readlog, C4 GET /log |
 | [UC-9](#uc-9) identity mismatch | B3.1–B3.3, B7, B8 | C4 POST /sessions |
 | [UC-10](#uc-10) broadcast denied | B5.2, B7, B8 | C1-send |
+| [UC-11](#uc-11) tunnel network, no TLS | B1.0, B3.1, B3.2, B10 | C4 POST /sessions |
 
 ---
 
@@ -623,16 +721,33 @@ Zulip/other back-end parallel or dropped; **D-8** transport baseline
 `references` ([B5.2](#b5-2)) ships in phase one.
 
 New at spec level (all **reviewable defaults** above):
-- **S-1** mTLS vs adapter bearer credential for [B3.1](#b3-1).
+- **S-1** host/adapter identity: mTLS (TLS mode) vs adapter bearer
+  credential (tunnel mode) vs both required ([B3.1](#b3-1)).
 - **S-2** WebSocket subprotocol token and base path (`otgr.v1`,
   `/otgr/v1`).
 - **S-3** frame size (256 KiB), assertion TTL (30 min), keepalive (30 s),
-  long-poll `wait_ms` ceiling.
+  long-poll `wait_ms` ceiling, **nonce/`ts` replay window for tunnel mode**
+  ([B3.2](#b3-2)).
 - **S-4** cursor opacity — opaque token vs exposed `seq` integer.
 - **S-5** attachment media-type allowlist and size cap ([B7](#b7)).
 - **S-6** whether `edit`/`reaction` are in phase one or deferred with
   `watch`/`read_log`.
 - **S-7** error taxonomy final slugs ([B8](#b8)).
+- **S-8** **transport security: keep `TLS MAY` or promote to `TLS MUST`**
+  ([B1.0](#b1-0)) — and, while it stays `MAY`, the definition of
+  "secure-enough" for tunnel mode: the enumerated accepted tunnel
+  technologies and any minimum bar (e.g. modern WireGuard/Tailscale
+  acceptable; legacy PPTP not), plus what operator evidence, if any, the
+  relay records that a tunnel is in place.
+- **S-9** the `transport.external_security` config assertion and the
+  fail-closed behaviour when a plaintext listener is bound to a
+  non-loopback / non-tunnel interface without it ([B1.0](#b1-0),
+  [Part F](#part-f)).
+- **S-10** `references` target scope ([B5.2](#b5-2)): same-discussion
+  events only, or also other-discussion events/discussions, or also
+  opaque `external` identifiers (git commit / `agf-coord` ID / URI / DOI)
+  — and, if `external` is allowed, the accepted `scheme` set and whether
+  the relay records but still never resolves them.
 
 ## Part F — Conformance hooks {#part-f}
 
@@ -645,7 +760,14 @@ derived from the authenticated session under multiplexing ([B3.4](#b3-4));
 duplication ([UC-5](#uc-5)); long-poll and WebSocket producing identical
 envelopes and ordering ([UC-4](#uc-4)); broad-mention rejection
 ([UC-10](#uc-10)); config-dir/key mismatch failing closed at startup
-([UC-9](#uc-9)); `/log` disabled until [D-3](#part-e).
+([UC-9](#uc-9)); `/log` disabled until [D-3](#part-e); a plaintext listener
+bound to a non-loopback / non-tunnel interface **refused** unless
+`transport.external_security = tunnel` is set ([B1.0](#b1-0), [UC-11](#uc-11));
+principal auth succeeding identically over TLS and over a tunnel with the
+tunnel-mode replay window enforced ([B3.2](#b3-2)); a cross-discussion
+`references` entry to an unauthorised discussion rejected as `bad_reference`
+and an `external` reference stored verbatim and never fetched
+([B5.2](#b5-2)).
 
 ## Provenance {#provenance}
 
@@ -668,6 +790,16 @@ envelopes and ordering ([UC-4](#uc-4)); broad-mention rejection
   open-source, multipurpose service; "coordination records are the
   official channel"; "draft specifications for the API and technical comms
   … link use-cases to API and tech-spec sections".
+- Governor direction, 2026-09-09 (this revision): **"TLS MAY be used …
+  MUST be Tailscale or other tunneled and established, secure-enough
+  connection to be used when no TLS, operator responsibility."** →
+  [B1.0](#b1-0), [B3.1](#b3-1), [B3.2](#b3-2), [S-8](#part-e)/[S-9](#part-e),
+  [UC-11](#uc-11).
+- Governor question, 2026-09-09: "can a chat message hold references to
+  earlier discussions or data source outside the discussion?" → **yes**;
+  [B5.2](#b5-2) `references` widened to typed cross-discussion and opaque
+  `external` targets (relay stores, never dereferences), scope is
+  [S-10](#part-e).
 
 Any discrepancy between this document and a cited coordination record is an
 error in this document; the coordination records and the charter remain the
