@@ -7,9 +7,9 @@ views or inputs; they do not create roadmap commitments independently.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.0 is published and independently verified. Post-v2.10 work is proceeding through the approved queue-convergence plan and separately gated follow-ups. |
-| Observed at | 2026-09-08T19:02:54Z |
-| Observation baseline | `main` at `13fe97382ee338cba8f049bb138ef2e3a65169a1`, before the B1 diff |
+| Status | v2.10.0 is published and independently verified. Post-v2.10 work includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
+| Observed at | 2026-09-09T05:10:00Z |
+| Observation baseline | `main` at `d0674e3fbacfc6fd87ffed0207ad54b08d7dc383`, before the Stage 4 activation diff |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
@@ -47,7 +47,7 @@ governor confirmation
 | `qbka` plan lifecycle | Needs its own Gate 1 plan | A separate planner owns the schema, validator, transition semantics, provenance contract, and legacy-plan migration work order. |
 | Issues #121, #122, MR !2027 | Needs own Gate 1 workstream | Treat as coordination-protocol semantics; #122 must align with the `qbka` provenance shape. |
 | Issue #123 | Needs own Gate 1 plan | Add collision-detection tooling only after the current manual collision pass. |
-| Issue #131 | Needs own Stage 4 Gate 1 plan | Activate and prove the Improvement Propeller through a genuine scheduled wake. |
+| Issue #131 | Stage 4 Gate 1 approved; tracked activation in progress | Foundry activation is Level 4 Validated under plan `20260909T015237Z-propeller-stage4-activation` and decision `djh1`. After the tracked activation reaches Gate 2 and merges, initialize the guarded local state and one verified Monday 09:00 UTC heartbeat. Only its first genuine unattended conforming wake can supply separate Level 5 evidence. |
 | Issue #132 | Blocked | Do not export the Propeller method as a skill until #131 has genuine Level 5 wake evidence. |
 | `release-v2.7.0-rc.2` | `awaiting-governor` | Its fate remains undecided after rc.1 was abandoned. It does not block the current sequence. |
 

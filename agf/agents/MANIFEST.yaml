@@ -89,12 +89,19 @@ agents:
       20260905T224802Z-governor-reviewer-ksbs.md.
 
   improvement-propeller:
-    status: planned
+    status: active
+    played_by: "Codex, under governor decision 20260909T043713Z-governor-reviewer-djh1"
     reason: >
-      Stage 3 introduces the reference role and its operating contract without
-      activating it. Stage 4 requires a separate governor decision naming the
-      player, configured evidence surfaces, real non-reentrant weekly wake
-      mechanism, cadence, and initialized cursor state.
+      Stage 4 activation is approved by plan
+      20260909T015237Z-propeller-stage4-activation and governor decision djh1.
+      Codex runs the two bounded lanes over the plan's configured repository
+      and GitLab evidence every Monday at 09:00 UTC. Local state is fixed at
+      tmp/codex-improvement-propeller-state.json with learning baseline 62
+      through 20260906T104942Z-ev5m, coordination lower bound
+      20260907T143711Z-contribution-auditor-dt4s, and release baseline v2.9.0
+      peeled ee27978b218de47b062ab4ac2afee090b2c48ff8. Activation is Level 4
+      Validated until one genuine unattended scheduled wake supplies separate
+      Level 5 evidence.
 
   documentation-writer:
     status: skipped

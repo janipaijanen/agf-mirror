@@ -12,9 +12,9 @@ inheriting foundry's development commitments.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.0 is published and independently verified. Post-v2.10 work is proceeding through separately gated, review-sized batches. |
-| Observed at | 2026-09-08T19:02:54Z |
-| Observation baseline | `main` at `13fe97382ee338cba8f049bb138ef2e3a65169a1`, before the B1 diff |
+| Status | v2.10.0 is published and independently verified. Foundry's Improvement Propeller is active at Level 4 Validated; Level 5 awaits a genuine unattended scheduled wake. |
+| Observed at | 2026-09-09T05:10:00Z |
+| Observation baseline | `main` at `d0674e3fbacfc6fd87ffed0207ad54b08d7dc383`, before the Stage 4 activation diff |
 | Governed source | `docs/roadmap.md`, the approved queue-convergence plan, and the governor decisions cited there |
 | Authority | Informational projection. The internal roadmap, binding plans and decisions, exact tags, and release evidence are authoritative. |
 
@@ -40,7 +40,7 @@ tag/publication authorization.
 | Linked-data/evidence assessment (#129) | Assessment precedes the plan-lifecycle provenance freeze; it does not authorize linked-data implementation. |
 | Coordination semantics (#121, #122, !2027) | Requires a separate Gate 1 workstream aligned with the plan-lifecycle provenance model. |
 | Collision detection (#123) | Requires its own Gate 1 plan. |
-| Improvement Propeller activation (#131) | Requires its own Stage 4 Gate 1 plan and a genuine scheduled-wake proof. |
+| Improvement Propeller activation (#131) | Foundry activation is approved and active at Level 4 Validated. After the tracked activation merges, one guarded Monday 09:00 UTC heartbeat is initialized. A genuine unattended conforming wake, recorded separately, is required before any Level 5 claim. Adopters remain inactive unless their own governor activates the optional role. |
 | Improvement Propeller skill export (#132) | Blocked until #131 reaches genuine Level 5 wake evidence. |
 
 The internal roadmap records the complete sequencing and collision boundaries.

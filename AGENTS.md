@@ -85,11 +85,14 @@ unresolved findings from its own first exact-head review; see
 `agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
 
-Planned/inactive: improvement-propeller. Its optional weekly opportunity and
-slow governance-friction lanes are defined by
-`agf/rules/always/improvement-propeller-rule.md`; shipping the definition does
-not activate it. Activation requires a separate governor decision naming the
-player, evidence surfaces, real wake mechanism, cadence, and cursor state.
+Active for foundry: improvement-propeller, played by Codex under approved plan
+`20260909T015237Z-propeller-stage4-activation` and governor decision `djh1`.
+Its weekly opportunity and slow governance-friction lanes are defined by
+`agf/rules/always/improvement-propeller-rule.md`; current activation is Level 4
+Validated pending a genuine unattended scheduled-wake proof. Shipping the
+definition still does not activate it for adopters: each adopter requires its
+own governor decision naming the player, evidence surfaces, real wake
+mechanism, cadence, and cursor state.
 
 Authoritative status: `agf/agents/MANIFEST.yaml`.
 
