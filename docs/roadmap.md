@@ -8,8 +8,8 @@ views or inputs; they do not create roadmap commitments independently.
 | Field | Value |
 |---|---|
 | Status | v2.10.0 is published and independently verified. Post-v2.10 work includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
-| Observed at | 2026-09-09T05:10:00Z |
-| Observation baseline | `main` at `d0674e3fbacfc6fd87ffed0207ad54b08d7dc383`, before the Stage 4 activation diff |
+| Observed at | 2026-09-09T17:10:00Z for the B8 intake-bound addition; this does not silently reclassify other workstream rows |
+| Observation baseline | `main` at `684bf461b9732a3971dd4d456438e150b569df63`, immediately before the B8 diff |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
@@ -42,7 +42,7 @@ governor confirmation
 | Queue convergence B1 | Authorized current batch | This batch creates the owner, corrects its public projection, and records MR !2269 as superseded; its exact head returns for Gate 2. |
 | Queue convergence B2-B3 | Sequenced after B1 | Re-observe and disposition TODOs, then issues, in separate review-sized batches. |
 | Queue convergence B4-B7 | Partly blocked | Non-plan cohorts remain later batches. Plan-MR dispositions wait for the `qbka` Slice A provenance contract. |
-| Queue convergence B8 | Sequenced later | Record the advisory intake bound in this owner as its own review-sized batch. It is not part of B1. |
+| Queue convergence B8 | Advisory bound defined below | Apply the bound during discovery and selection; promotion to a blocking gate requires separate evidence, planning, and approval. |
 | Issue #129 | Assessment required | Complete and review the linked-data/evidence-model assessment before `qbka` Slice A freezes provenance semantics. This is assessment-first, not linked-data implementation. |
 | `qbka` plan lifecycle | Needs its own Gate 1 plan | A separate planner owns the schema, validator, transition semantics, provenance contract, and legacy-plan migration work order. |
 | Issues #121, #122, MR !2027 | Needs own Gate 1 workstream | Treat as coordination-protocol semantics; #122 must align with the `qbka` provenance shape. |
@@ -54,6 +54,28 @@ governor confirmation
 Absence from this roadmap summary is not a terminal disposition. Individual
 issues, merge requests, TODOs, and plan artifacts remain unexamined until an
 evidence-bearing disposition ledger row or binding decision says otherwise.
+
+## Advisory intake bound
+
+The queue-convergence plan observed that the merge-request queue regrew after
+an earlier disposition pass. Foundry therefore adopts this project-local
+working agreement:
+
+- at most **five open non-coordination implementation merge requests**;
+- at most **three open Gate 1 plan merge requests awaiting a decision**; and
+- coordination-only merge requests are not counted, because their audit-trail
+  publication is expected to remain prompt and independent.
+
+While a class is above its bound, do not open new work in that class. The only
+exceptions are work needed for the active release, a correction to an already
+open item, or an explicit governor override recorded in coordination. The
+bound does not authorize any of those actions; their existing scope, role,
+gate, and approval requirements still apply.
+
+This is an advisory working agreement, not a validator, CI gate, merge-policy
+change, or adopter-facing AGF rule. Each poll observes the queue before
+selecting work. Evidence that the advisory bound is insufficient must return
+through a separate Gate 1 plan before any mechanical enforcement is added.
 
 ## Collision and ownership boundaries
 
