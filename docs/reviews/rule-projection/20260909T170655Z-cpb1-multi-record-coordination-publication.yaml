@@ -1,0 +1,96 @@
+# Six-surface projection evidence for CP-B-1 (explicit multi-record
+# coordination publication), per
+# agf/rules/workflow/documentation-rule-projection-rule.md.
+# One evidence file per governed change; this is the structured record
+# validation tooling and reviewers read.
+
+plan_id: 20260909T170655Z-cpb1-multi-record-coordination-publication
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Adds a "Multi-record coordination MRs" subsection: a range of N pure
+      docs/coordination/*.md additions is a valid coordination-only MR; the
+      six blocking conditions apply unchanged to the full range; same-cycle
+      records with no independent-visibility obligation SHOULD batch; an
+      urgent record (live obligation with a waiting actor, security or gate
+      finding, escalation, blocking review) still publishes alone. No change
+      to conditions 1-6, lifecycle/supersession semantics, the [ci skip]
+      prohibition, or the coordination: fast-path routing.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      Adds batching guidance to the existing publication-independence
+      section: why batching same-cycle records is safe (every blocking
+      condition is range-wide, not per-file), and the one carve-out that an
+      urgent record publishes independently. Points at the rule rather than
+      restating conditions 1-6. This is the canonical explanatory page.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      One line added to the existing "publishing a coordination-only
+      handoff" note: "batch same-cycle records into one MR; publish an
+      urgent obligation on its own." Links to the concept page and the
+      rule; no duplicated rule text.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - .claude/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      One sentence in each AGENTS Coordination-channel section noting that
+      same-cycle coordination records may be batched into one MR while an
+      urgent record publishes alone, pointing at coordination-publication-rule.md.
+      .claude/rules/workflow/coordination-publication-rule.md is the Claude
+      projection of the canonical rule and is updated verbatim-in-substance
+      so the two do not drift (assistant-drift validator covers this).
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Not present in this repository. Foundry's assistant-loading path
+          is AGENTS.md plus .claude/rules/ loaded directly by the tool; the
+          adopter-facing loader this project ships is agf/templates/AGENTS.md.
+
+  validation_drift_evidence:
+    disposition: implemented
+    path: tooling/rust/crates/agov-coord/src/publication_check.rs
+    reason: >-
+      The implementing MR (CP-B-1 implementation, separate from this plan)
+      re-runs the existing negative self-tests (MR !692 shape,
+      impl-then-revert range, non-pure change, smuggled non-coordination
+      file in a batch range, stale/unfetchable base) and adds one positive
+      test: a range adding two or more valid docs/coordination/*.md records
+      and nothing else passes. agov coord publication-check already inspects
+      the full range and permits N additions, so a logic change is expected
+      only if a test surfaces a single-file assumption; any such fix is in
+      that MR's scope with its own review. Strict `agov plan
+      projection-check` (no --allow-planned) on this manifest is required
+      Gate 2 evidence for that MR.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/templates/AGENTS.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      agf/rules/workflow/coordination-publication-rule.md and
+      agf/templates/AGENTS.md ship in the AGF framework source archive
+      (agf/ tree). agf/docs/site/docs/concepts/coordination-protocol.md and
+      agf/docs/site/docs/operate/poll-and-coordinate.md ship in the Pages
+      build. .claude/rules/workflow/coordination-publication-rule.md and the
+      repository-root AGENTS.md are foundry project-local (not distributed)
+      and are updated for foundry's own use and drift-consistency with the
+      canonical rule.
