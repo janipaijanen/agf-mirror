@@ -1,8 +1,15 @@
-# Post-v2.4.8 merge-request disposition ledger
+# Post-v2.10.0 merge-request disposition ledger
 
-Observed: 2026-07-31. Baseline snapshot: 93 open MRs before plan MR !858.
-The ledger also includes !858-!861, for 97 individually tracked rows; merged
-items remain as closeout evidence.
+Originally observed 2026-07-31 against the post-v2.4.8 baseline: 93 open MRs
+before plan MR !858. The historical ledger also includes !858-!861, for 97
+individually tracked rows; those rows are preserved below as closeout evidence.
+
+Re-observed 2026-09-09 against `main` at `8d165c8b8547`, after v2.10.0:
+76 MRs were open. The first refreshed cohort below covers 24 coordination
+carrier MRs and preserves their 47 unique immutable records directly in the
+canonical `docs/coordination/` directory. Later cohorts add learning,
+radar/source, plan, and other documentation/governance MRs after their own
+evidence review; absence from this first cohort is not a disposition.
 
 Disposition meanings:
 
@@ -119,4 +126,60 @@ Disposition meanings:
 
 This table has one row for each of the 93 pre-!858 open MRs plus !858-!861.
 The archive precondition was satisfied before the 68 archive-source MRs were
-closed. A final live query must add any later MR before Gate 2.
+closed. The refreshed cohorts below preserve that history rather than
+rewriting it. A final live query must add later MRs before each cohort's Gate
+2.
+
+## 2026-09-09 refresh — B4 coordination carriers
+
+Review question: **Does this fresh-main batch preserve every unique immutable
+coordination record from each source MR byte-for-byte, so the source carrier
+can close after the batch lands?**
+
+Disposition for every row is `close-superseded`, conditional on this batch
+merging. The canonical replacement is the listed record in
+`docs/coordination/` on `main`; the source head is recorded so preservation
+can be checked exactly. Several source MRs overlap because !2409 consolidated
+earlier carriers. Each listed record is included once in this batch, and every
+duplicate copy was byte-identical. MRs !2409, !2410, and !2452 are excluded:
+publishing their unresolved `requires-ack` records would regress the live
+pending queue, so they remain open until an acknowledgement or mechanical
+supersession can be preserved with them. No source MR is closed before this
+batch's exact-head Gate 2 approval and merge. Source branches and discussions
+are retained.
+
+| MR | Audited source head | Canonical records preserved by this batch |
+|---|---|---|
+| !2352 | `ad05d4c3bd3c` | `20260903T221839Z-planner-architect-r4kd`, `20260903T222400Z-planner-architect-h8vn`, `20260903T223100Z-planner-architect-c3wm`, `20260903T223101Z-planner-architect-q7bd` |
+| !2353 | `e54b73a4b963` | `20260904T042925Z-coder-tester-ksqa` |
+| !2361 | `9afb420442ba` | `20260904T113400Z-coder-tester-vq9r` |
+| !2363 | `dc5c00404243` | `20260904T164815Z-coder-tester-lunk`, `20260904T170512Z-planner-architect-h8vq` |
+| !2366 | `c77eda5b2fb9` | `20260905T123338Z-coder-tester-6bkq` |
+| !2370 | `ca59e1017111` | `20260905T135552Z-coder-tester-kp3t` |
+| !2376 | `6325116551f0` | `20260905T150142Z-planner-architect-g328` |
+| !2377 | `fc472bb0c46d` | `20260905T150157Z-planner-architect-esqr` |
+| !2378 | `14a4c55d93d2` | `20260905T152636Z-planner-architect-7sjq` |
+| !2382 | `247925fefa0e` | `20260905T154753Z-governor-reviewer-phh7` |
+| !2399 | `72b62895ea65` | `20260905T202153Z-planner-architect-hr6j` |
+| !2400 | `c5feb07fe9a8` | `20260905T202547Z-planner-architect-mmm3` |
+| !2403 | `3a2bd14f5f77` | `20260905T205921Z-planner-architect-pm6m`, `20260905T215754Z-planner-architect-gprk`, `20260905T223331Z-planner-architect-dta3` |
+| !2407 | `ac47cff36622` | `20260905T212944Z-planner-architect-4pem` |
+| !2411 | `95db7c09d136` | `20260905T214045Z-planner-architect-rek8`, `20260905T215114Z-planner-architect-gpss`, `20260906T072233Z-governor-reviewer-jmsq`, `20260906T073033Z-planner-architect-7npp`, `20260906T073051Z-planner-architect-gra5`, `20260906T080210Z-governor-reviewer-sgdd` |
+| !2417 | `79ef54578c81` | `20260905T221657Z-planner-architect-n6ke`, `20260905T221756Z-planner-architect-jja6`, `20260905T221801Z-planner-architect-3mkj`, `20260905T222459Z-planner-architect-g16r`, `20260905T222513Z-planner-architect-p4qt`, `20260905T222844Z-planner-architect-5q4s`, `20260905T223113Z-planner-architect-jp6s`, `20260905T223122Z-planner-architect-8k43`, `20260905T231203Z-planner-architect-hamq`, `20260905T233121Z-coder-tester-bs3m`, `20260905T234835Z-coder-tester-hh5m` |
+| !2443 | `aea1ac59e2e9` | `20260906T160520Z-contribution-auditor-skr6` |
+| !2445 | `051f0b35d103` | `20260906T173031Z-contribution-auditor-6pss` |
+| !2447 | `6dd0e363108f` | `20260906T181223Z-contribution-auditor-ngka` |
+| !2456 | `49af21187c56` | `20260906T194557Z-contribution-auditor-6mk1` |
+| !2457 | `c660b9dc6fa9` | `20260906T195149Z-governor-reviewer-56bh`, `20260906T195800Z-planner-architect-4mk8` |
+| !2458 | `bb422cce5026` | `20260906T195531Z-infosec-sentinel-p74g`, `20260906T195537Z-contribution-auditor-mmmp` |
+| !2459 | `80cda0fbef3e` | `20260906T201345Z-planner-architect-b7jd` |
+| !2462 | `d24e675f4875` | `20260906T203744Z-planner-architect-jrkh` |
+
+### B4 closure execution
+
+After this batch lands on `main`, close the 24 source MRs with one concise
+note naming this ledger path, the batch MR and merge commit, and the preserved
+record IDs. Do not delete source branches as part of the close. Re-observe MR
+state immediately before mutation; any new commit, unresolved discussion, or
+record-content mismatch removes that MR from the close set and returns it for
+review.
