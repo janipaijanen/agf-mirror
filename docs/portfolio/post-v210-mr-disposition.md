@@ -148,6 +148,11 @@ supersession can be preserved with them. No source MR is closed before this
 batch's exact-head Gate 2 approval and merge. Source branches and discussions
 are retained.
 
+Terminal-disposition authority is the governor decision
+`20260909T015949Z-governor-reviewer-sgbh` in MR !2575. That decision
+authorizes preparation of this non-plan cohort but still requires this batch's
+own exact-head Gate 2 before any forge closure.
+
 | MR | Audited source head | Canonical records preserved by this batch |
 |---|---|---|
 | !2352 | `ad05d4c3bd3c` | `20260903T221839Z-planner-architect-r4kd`, `20260903T222400Z-planner-architect-h8vn`, `20260903T223100Z-planner-architect-c3wm`, `20260903T223101Z-planner-architect-q7bd` |
@@ -174,6 +179,62 @@ are retained.
 | !2458 | `bb422cce5026` | `20260906T195531Z-infosec-sentinel-p74g`, `20260906T195537Z-contribution-auditor-mmmp` |
 | !2459 | `80cda0fbef3e` | `20260906T201345Z-planner-architect-b7jd` |
 | !2462 | `d24e675f4875` | `20260906T203744Z-planner-architect-jrkh` |
+
+### B4 content-hash manifest
+
+The digest is SHA-256 over each record's exact file bytes as imported from the
+audited source head. Terminal blank lines present in eight source records are
+therefore retained rather than normalized.
+
+| Canonical record filename | SHA-256 |
+|---|---|
+| `20260903T221839Z-planner-architect-r4kd.md` | `13b2f5efe3716efe47ad2031d07bd93b442b67536173d58bc4b45f759087cf9d` |
+| `20260903T222400Z-planner-architect-h8vn.md` | `49a31b437e04f59770f8951603823584bde5f609b7a8deadb77414e85de545b4` |
+| `20260903T223100Z-planner-architect-c3wm.md` | `40a1894ff295ace7003656365fd8f85cc1c4aa6ad66c0ddd866cf7aeb81c3179` |
+| `20260903T223101Z-planner-architect-q7bd.md` | `53507c60d2dbade33d4dcdead9752ee659a13fa845dbb086429d252417bff810` |
+| `20260904T042925Z-coder-tester-ksqa.md` | `69cc0e734dd7d8fec1895503f6171afeb23a11b77733b784e2e4d13c08f079d8` |
+| `20260904T113400Z-coder-tester-vq9r.md` | `9b3a94da3c9aacb8ccbdb603977648d51be29c88d4dbefb5de6fceca6066a238` |
+| `20260904T164815Z-coder-tester-lunk.md` | `df5bd8f53127c23fa7660ca90ac4830b2687d10ddf7a5650fc7486ceb31613e1` |
+| `20260904T170512Z-planner-architect-h8vq.md` | `3746d7317eaa6ff94e5fd1267583276993b65b9be7f4a955e957f2f18e428307` |
+| `20260905T123338Z-coder-tester-6bkq.md` | `d6da3e842b73f621855258c7ab5ff7b5328fe1994eb4859c6e33c7fa2443b1ba` |
+| `20260905T135552Z-coder-tester-kp3t.md` | `ccf0fd2b18bf5821116151b8ebd9d6155c7446748fd219e6df8251a5815426af` |
+| `20260905T150142Z-planner-architect-g328.md` | `0316133c453f687e09023f8a4095b7b5e8597abd7b01b5520e20c44d938e0110` |
+| `20260905T150157Z-planner-architect-esqr.md` | `899e92aaf660961546f35f6bcde92387595a5b29a3198aa4ed82f0215e9a66d2` |
+| `20260905T152636Z-planner-architect-7sjq.md` | `27caead1d44072a709c2b9f4e43677df6558369358bf3f07febad27e871af88b` |
+| `20260905T154753Z-governor-reviewer-phh7.md` | `600dcdee376b7f4dd1f01a7567b1b577bd5c7f6cc6570f889d764fac8cfdce42` |
+| `20260905T202153Z-planner-architect-hr6j.md` | `9ec81a5b5f0c80cc6ae676dce0c23abd1b505ae47ffda4b5e790c45387d54976` |
+| `20260905T202547Z-planner-architect-mmm3.md` | `da85e118e5e8451f70e6417c9bc80fa6fde51fdb6a9e9baf9ef6176d8d7fe71b` |
+| `20260905T205921Z-planner-architect-pm6m.md` | `fda61753aeff2145d805443da7d7f0200adca2249931b973a0fd514833eb33f1` |
+| `20260905T212944Z-planner-architect-4pem.md` | `2cd433dc1e5b96de6f7b5507457c24fde5c4a08baf32b2e56bca9ce7076727a7` |
+| `20260905T214045Z-planner-architect-rek8.md` | `16be54b0dac26cde1266c9e61586555ca5fe49dbcd39d888f57d7ae2fd27a6c8` |
+| `20260905T215114Z-planner-architect-gpss.md` | `5cc534403379ca4e74f531b471f1bb22a8c34f2925a21bfa972565144b91ef93` |
+| `20260905T215754Z-planner-architect-gprk.md` | `16d7cabc9d9746242d4808728431122ff8db7708342cc2c93eac48a3397d008a` |
+| `20260905T221657Z-planner-architect-n6ke.md` | `49d1c6d235a27c2e5485bbd349149ef6145a95daf6933735d031c465b9d2723f` |
+| `20260905T221756Z-planner-architect-jja6.md` | `cc823262542b0e01f8b5c073a5059b6f0f3f021cc80dac14d97e0583cfb7e799` |
+| `20260905T221801Z-planner-architect-3mkj.md` | `03e8ada07ee9611a19168caf56c3db0d26832a0d7115a9836aa69bd8e024519b` |
+| `20260905T222459Z-planner-architect-g16r.md` | `2f0415c4946c622900b12fc63aea4d182d5e6a76a719abe997916efa987abb60` |
+| `20260905T222513Z-planner-architect-p4qt.md` | `0cd10366c4bf8efb529b522e2d20626502821629b8421a89616fabd51783b9b9` |
+| `20260905T222844Z-planner-architect-5q4s.md` | `3c4d2a0efdc3a3306577886724a13ae23e710ab84630899b17c3c9fe88e6f4e6` |
+| `20260905T223113Z-planner-architect-jp6s.md` | `ec17ee33d73453960538677e35627117e69f4656582e7423087e0090896f98ae` |
+| `20260905T223122Z-planner-architect-8k43.md` | `07b81ffad458569916cf04c17f1eb2657e7275cf782046e9977b75b9de859834` |
+| `20260905T223331Z-planner-architect-dta3.md` | `0045636b6b206b4501641f2fbc5075f2cd42f88f2325ee3a0820aeb12b33605f` |
+| `20260905T231203Z-planner-architect-hamq.md` | `09c858082b6a924c6127dcb6a8a2f7b76a7cd35b791c66a5c8ca3e276db6ef00` |
+| `20260905T233121Z-coder-tester-bs3m.md` | `a156fec97f750f21a884ed07dd79f6e00b4da027a997b2a2006839a8dd48bca0` |
+| `20260905T234835Z-coder-tester-hh5m.md` | `cdbd22dc62a4a7de1e4eeef636352bb21643db4973047e95eaf0ab818b5a8fb8` |
+| `20260906T072233Z-governor-reviewer-jmsq.md` | `d2e78a3653328967fc953d73a1d1384064345b90082da1d67dd7b5cb05f9b6e4` |
+| `20260906T073033Z-planner-architect-7npp.md` | `f46d09af474bce41c7840c22a16367f333791553ee0d92c1df627debf1d98a4e` |
+| `20260906T073051Z-planner-architect-gra5.md` | `d76e5db35ce8d7c4fdd9b035463327f842f04151fe280a6bd09d0c63e09f9301` |
+| `20260906T080210Z-governor-reviewer-sgdd.md` | `b27b5afd342cf83cb6eb4267c9e7ac768aa26fc737eb84d8cd7bc0da6d6422a4` |
+| `20260906T160520Z-contribution-auditor-skr6.md` | `886af207c589523687f933f9b41673db0ecd8f225507e792545cbe5b9b4bc174` |
+| `20260906T173031Z-contribution-auditor-6pss.md` | `a6c8818be05c426f04a0d01ea6f5899b19d71a915cce8a4070961541bbccfc06` |
+| `20260906T181223Z-contribution-auditor-ngka.md` | `ce435dc5cf3a664ec86d079d1bff5a2274b6df1dd11245483258e27ce5f19127` |
+| `20260906T194557Z-contribution-auditor-6mk1.md` | `a7cbf00ea63474de442bbb0db53b4eeedfd79778b8e30d9b0fa6ea6a0564083f` |
+| `20260906T195149Z-governor-reviewer-56bh.md` | `33234b9c0b48c2f26a5c7fc5b0f2657386f8a2df2413fd24c961d5fb97f31cf6` |
+| `20260906T195531Z-infosec-sentinel-p74g.md` | `a87b1aab10a271e98c149de30659908ad9a224bf6bb898a655a675a6e4c6b54c` |
+| `20260906T195537Z-contribution-auditor-mmmp.md` | `af8553e066d8e441f4e8fba94921612ddb4e8ae1ef5d7ed9c5c95e7efbed31a6` |
+| `20260906T195800Z-planner-architect-4mk8.md` | `e404562d04511ce6156f2c134fc3d29024135cfd243b0d5141638ef2fd391a29` |
+| `20260906T201345Z-planner-architect-b7jd.md` | `e2c3e83dcfae9493906fe533e39d5e850e1d6b3b3fac5c80ef8f3dde9b2540eb` |
+| `20260906T203744Z-planner-architect-jrkh.md` | `54ed46fae1836b9d174902c59325464138e05ae344caff4d9f980cec49f0b682` |
 
 ### B4 closure execution
 
