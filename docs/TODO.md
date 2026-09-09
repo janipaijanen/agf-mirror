@@ -1,8 +1,12 @@
 # TODO: AGF v2 Verification Audit
 
-Status: active TODO. Owner: governor-reviewer for final disposition; planner-architect
-and contribution-auditor should critique the policy before it becomes a release
-gate.
+Status: `close-superseded` (Queue Convergence B2, 2026-09-09). The staged
+provenance mechanism and release audits replaced this proposed blanket gate:
+`agf/schemas/agent-role.schema.json` and `agf/schemas/rule.schema.json` carry
+the current provenance vocabulary, while `docs/audits/rc1-readiness-audit.md`
+records the high-risk-path audit and its explicitly deferred residual risk.
+Future targeted provenance findings need their own current issue or plan; this
+TODO is no longer a parallel backlog owner.
 
 ## Problem
 
@@ -75,8 +79,13 @@ Before AGF v2 is promoted beyond Provisional:
 
 ## Rust Implementation Health Assessment
 
-Status: open TODO. Owner: planner-architect for assessment shape; coder-tester
-for implementation evidence; governor-reviewer for urgency and release impact.
+Status: `close-superseded` (Queue Convergence B2, 2026-09-09). Decision-record
+`20260623T203039Z-planner-architect-mrjh` completed the requested assessment:
+full modularisation was deferred, readable-ID extraction was made the targeted
+prerequisite, and message-loading extraction was made opportunistic. The
+readable-ID implementation now lives in
+`tooling/rust/crates/agov-coord/src/readable_id.rs`; a new structural concern
+needs fresh evidence and a new work item rather than reopening this assessment.
 
 Assess the current Rust `agov` implementation before AGF v2 release hardening,
 with special attention to whether refactoring/modularization has become urgent.
@@ -123,9 +132,11 @@ pages.
 
 ## Token ROI Zero-Savings Workflow Assessment
 
-Status: open TODO. Owner: coder-tester for investigation; planner-architect for
-modeling guidance; governor-reviewer for whether the result affects public
-claims.
+Status: `close-superseded` (Queue Convergence B2, 2026-09-09). MR !2383
+(`fix/roi-workflow-baselines`) shipped the missing workflow baselines, tests,
+and unreleased changelog evidence; its implementation commits are `672d1b88`
+and `bc438bd5`. Issue #116 remains the distinct direct-CLI-versus-MCP
+measurement question and is the canonical home for that comparison.
 
 Assess why some workflow rows report zero saved tokens in:
 
@@ -160,9 +171,14 @@ Candidate output:
 
 ## First-Class AGF Skills and Commands: Usage and Ordering
 
-Status: open any-agent TODO. Owner: planner-architect for the information
-architecture; coder-tester for command/skill inventory and executable evidence;
-governor-reviewer for authority and release treatment.
+Status: `close-superseded` (Queue Convergence B2, 2026-09-09). MR !2369
+shipped the AGF development starter, and the current supported lifecycle is
+split deliberately across `docs/reference/agf-development-starter.md`,
+`docs/reference/session-resume.md`,
+`agf/docs/site/docs/operate/session-continuity.md`,
+`agf/docs/site/docs/adopt/assistant-loader-configuration.md`, and
+`agf/skills/README.md`. New skills or cross-surface drift require their own
+bounded issue or conformance plan.
 
 Treat AGF-related skills and commands as first-class operator interfaces, not
 incidental shortcuts. Document their purpose, prerequisites, authority
@@ -216,10 +232,13 @@ Candidate output:
 
 ## Historical Branch-Only Coordination Recovery and Prevention
 
-Status: open post-consolidation TODO. Owner: planner-architect for the forensic
-assessment and prevention design; coder-tester/build-engineer for `agov` and CI
-controls; contribution-auditor for independent root-cause review;
-governor-reviewer for the disposition of each historical record.
+Status: `close-superseded` (Queue Convergence B2, 2026-09-09). MR !1010
+delivered the approved forensic inventory and prevention design in
+`docs/plans/historical-branch-only-coordination-recovery.md` and
+`docs/reviews/historical-branch-only-coordination-inventory.yaml`. The later
+Queue Convergence B4 carrier archive and CP-C visibility/collision lane own the
+remaining publication and tooling work; this narrative TODO must not compete
+with those governed owners.
 
 MR !994 consolidated 79 immutable coordination records from the active
 2026-08-01 through 2026-08-03 backlog. The broader visibility scan also exposed
@@ -301,11 +320,13 @@ Candidate outputs:
 
 ## Deterministic Academic Figure Source Generation
 
-Status: open post-v2.4.0 TODO (Level 1: Planned). Owner: planner-architect for
-the Gate 1 design; coder-tester and build-engineer for implementation and
-reproducible-build evidence; governor-reviewer for scope and merge authority.
-Academic-peer-reviewer should review any claim that generated topology
-represents observed project evidence.
+Status: `park-radar` (Queue Convergence B2, 2026-09-09; Level 1: Planned).
+The authoritative academic targets moved to the separate `agf-promotional`
+repository, while foundry's generic `agov coord graph` remains only a partial
+precursor. Review by **2027-01-15**, or earlier if `agf-promotional` requests a
+generator contract or a second academic figure update exposes repeatable
+manual-source drift. Promotion requires a cross-repository Gate 1 plan naming
+the target owner, evidence window, and reproducibility contract.
 
 Teach Rust `agov` to generate the DOT source for these currently hand-authored
 academic figures. The "Governing the Governors" paper and its figures
@@ -382,11 +403,12 @@ implementation requires its own Gate 1 plan after the release priority clears.
 
 ## Post-v2.5.0 Intelligence-Analysis Product Discipline Assessment
 
-Status: open post-v2.5.0 TODO (Level 1: Planned). Owner: planner-architect for
-the comparison and Gate 1 design; contribution-auditor for adversarial review;
-fact-checker for primary-source fidelity; governor-reviewer for scope and any
-binding adoption decision. Academic-peer-reviewer should review any formalized
-uncertainty vocabulary before it becomes a framework claim.
+Status: `park-radar` (Queue Convergence B2, 2026-09-09; Level 1: Planned).
+No release, issue, or approved child plan currently owns this assessment.
+Review by **2027-01-15**, or earlier after two material review defects show the
+same observation/assumption/judgment ambiguity, or an adopter asks for a
+formal analytic-product contract. Promotion remains a proposal through the
+issue board and Gate 1; it is not latent v2.11 scope.
 
 Assess whether mature public intelligence-analysis product discipline can
 improve AGF's plans, reviews, coordination, and decision products without
@@ -451,11 +473,13 @@ contracted work and publication path are complete.
 
 ## Pages + README Visual Direction (v2.5.1) — Draft, Not Confirmed Final
 
-Status: open draft TODO. Direction proposed and liked by the human governor,
-explicitly not yet confirmed as final ("I like the approach, but I am not
-100% confident that's the final" — 2026-08-03). Owner: governor-reviewer for
-final disposition and sign-off; documentation-writer role for README
-implementation once confirmed.
+Status: `close-superseded` (Queue Convergence B2, 2026-09-09). The bounded plan
+landed in MR !1082; README slice 1 landed in MR !1193 and Pages theme/hero
+slice 2 in MR !1205. Governor decision
+`20260806T105215Z-governor-reviewer-djmq` accepted slice 2 and explicitly left
+navigation slice 3 unauthorized.
+Any navigation revival requires its own fresh scoped Gate 1 plan, so this
+pre-implementation draft is not a live work owner.
 
 Four persona-briefed drafting passes (technical writing, developer
 experience/information architecture, marketing, UX/visual design) proposed a
@@ -498,9 +522,16 @@ answers one yes/no review question, per `branch-and-worktree-rule.md`.
 
 ## Philosophical-lenses page: self-application gap, not yet actioned
 
-Status: open, uncaptured elsewhere. Owner: documentation-writer for the page
-edit; contribution-auditor or academic-peer-reviewer for review, given the
-page's evidence-citation discipline.
+Status: `awaiting-governor` (Queue Convergence B2, 2026-09-09). Exact question:
+should the still-unimplemented, Gate-1-approved
+`docs/plans/philosophical-lenses-learning-additions.md` remain authorized for a
+fresh future implementation, or be retired under the current documentation and
+source-evidence expectations? The plan, decision `20260721T002215Z-governor-
+source-evidence expectations? The plan, decision
+`20260721T002215Z-governor-reviewer-7mg5`, and handoff
+`20260721T075914Z-planner-architect-qkte` establish that the work is real but
+do not assign it to v2.11; only the governor can change release scope or retire
+that approval.
 
 A review of `agf/docs/site/docs/concepts/philosophical-lenses.md` against its
 actual source text (2026-08-03, same session as the v2.5.0-rc.1 three-track
