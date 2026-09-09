@@ -89,79 +89,126 @@ Green pipeline on the exact release base. Every IN-workstream Gate 2 record
 and the Propeller Level-5 record are on `main`. No unmerged review/ack
 coordination records that belong in the audit trail for shipped work.
 
-### 2. Derive the metadata allowlist at the frozen base (not a hand list)
+### 2. Protected-tag policy — established and recorded first (`rjqj` V211-RP-1)
 
-**Audit command**, run at the frozen release base; its output is Gate 2
-evidence:
+**Before any versioned draft or namespace preflight.** The parent scope
+plan's "Protected-tag policy checkpoints" require the exact rule to exist
+and match before preflight, then be re-read before push. Live API at
+review: a `v2.10.0` rule exists; `v2.11.0` is absent.
+
+- Configure a protected-tag rule for the **exact** tag `v2.11.0` (not a
+  wildcard), **creation restricted to Maintainers (access level 40)**.
+- Read it back via the authoritative API **while the tag does not yet
+  exist**; record the returned object verbatim as Gate 2 evidence.
+- Any other policy shape needs an explicit governor disposition, not an
+  implementer's judgment.
+- Step 5b re-reads this exact object immediately before the tag push.
+
+### 3. Derive the exact metadata allowlist at the frozen base
+
+**Two audit commands**, run at the frozen release base; their combined
+output is Gate 2 evidence. The result is an **exact allowlist of paths and
+bounded cells** — not "expected members" and not an open-ended "any text"
+(`rjqj` V211-RP-3).
 
 ```sh
+# (a) tree-wide, excluding only append-only history that must never change
 git grep -n -F '2.10.0' -- \
   ':!docs/coordination' ':!docs/plans' ':!docs/reviews' \
   ':!CHANGELOG.md' ':!agf/CHANGELOG.md' ':!agf/learnings'
+
+# (b) the one live cell inside the otherwise-historical learnings tree:
+#     the adoption record's framework_version in agf/learnings/foundry.yaml
+git grep -n -F '2.10.0' -- agf/learnings/foundry.yaml
 ```
 
-The exclusions are append-only history that must never be rewritten.
-Classify every occurrence into exactly one group:
+Audit (b) exists because the v2.10 release updated the top-level adoption
+`framework_version:` in `agf/learnings/foundry.yaml` (the `checkout_role:
+live` block) **without** rewriting the historical `learnings:` entries — so
+the tree-wide exclusion of `agf/learnings` hides a live cell that must
+bump.
 
-- **Group A — authored current-version cells → become `2.11.0`.**
-  Expected members (verify counts at the base, do not assume): `agf/VERSION`;
-  `AGENTS.md:1` and `agf/templates/AGENTS.md:3` (`<!-- AGF: … -->` marker,
-  validator-enforced against `agf/VERSION`); `agf/templates/learning-record.yaml`
-  `framework_version`; `agf/agents/MANIFEST.yaml` `Framework version:`; every
-  `agf/agents/*.yaml` role definition `framework_version:` (one per shipped
-  role); `agf/ADOPTING.md` adopter example; `tooling/rust/Cargo.toml`
-  (workspace version + path-dep constraints); `tooling/rust/Cargo.lock`
-  (regenerate, never hand-edit); `agf/docs/governance/manifest.md`
-  current-version cells.
+Classify every occurrence into exactly one group. The derived tables ARE
+the allowlist; the Step 4 final-diff check **fails on any path or cell
+outside them**.
+
+- **Group A — authored current-version cells → `2.11.0`.** Derived from
+  audit (a) + the single adoption `framework_version:` cell from audit (b).
+  Typically: `agf/VERSION`; the `<!-- AGF: … -->` marker at `AGENTS.md:1`
+  and `agf/templates/AGENTS.md:3` (validator-enforced against `agf/VERSION`);
+  `agf/templates/learning-record.yaml` `framework_version`;
+  `agf/agents/MANIFEST.yaml` `Framework version:`; every `agf/agents/*.yaml`
+  role `framework_version:` (one per shipped role); `agf/ADOPTING.md`
+  adopter example; `tooling/rust/Cargo.toml` (workspace + path-dep
+  constraints); `tooling/rust/Cargo.lock` (regenerated, never hand-edited);
+  `agf/docs/governance/manifest.md` current-version cells; the
+  `agf/learnings/foundry.yaml` adoption `framework_version:` line. Record
+  the exact `path:line` for each at the frozen base.
 - **Group B — live release-status prose → rewritten, not bumped. Gate 2
-  review material.** Any text asserting v2.10.0 is "latest / published /
-  in preparation" and directing adopters to an older install, in
-  `agf/docs/governance/manifest.md` and `agf/docs/site/roadmap.md` — plus
-  **the stale #129 roadmap-owner row correction** (`nj1j` advisory): the
-  `docs/roadmap.md` / `agf/docs/site/roadmap.md` #129 rows must reflect the
-  withdrawal (`6sj1`), and that edit rides this metadata MR.
+  review material.** Discovered **deterministically**, not by eye: at the
+  frozen base run
+  `git grep -nE 'latest (fully )?published|is being prepared|in construction|install v2\.[0-9]' -- agf/docs/governance/manifest.md agf/docs/site/roadmap.md docs/roadmap.md`
+  and enumerate each hit as a bounded cell with its replacement text.
+  **Separately**, the **#129 status-only correction**: the `docs/roadmap.md`
+  and `agf/docs/site/roadmap.md` rows that still describe #129 as an
+  active/blocking workstream must state the withdrawal (`6sj1` / the parent
+  amendment) — an enumerated, status-only cell set, no scope change.
 - **Group C — genuinely historical → byte-identical.** Incident
   references, measurement notes, selftest assertion strings (changing them
-  breaks the selftests that discharge other criteria).
+  breaks the selftests that discharge other release criteria).
 
-**Acceptance — three independent agreements** (per `nj1j` and v2.9.0
-review `V29P-1-R3`): before the edit, re-run the audit at the frozen base
-and require **per-file counts**, **category counts**, and **total** to all
-agree with the derived tables. Any one disagreeing stops the release, even
-when the total happens to be right. After the edit, re-run: every
-surviving `2.10.0` must be in Group C, matched line-for-line; `agov
-validate assistant_loader` passes; the built binary reports `2.11.0`.
+**Cross-checks (`rjqj` V211-RP-A1 — these are three views of one audit, not
+independent evidence).** Before the edit, at the frozen base: **per-file
+counts**, **per-category counts**, and **total** must all reconcile with
+the derived tables. A reconciling total is not proof the categories do, so
+all three are checked; any one disagreeing stops the release. After the
+edit: every surviving `2.10.0` is in Group C, matched line-for-line;
+`agov validate assistant_loader` passes; the built binary reports
+`2.11.0`; and `git diff --name-only <base>..HEAD` contains **only**
+allowlisted paths.
 
-### 3. Release branch and disposable validations
+### 4. Draft-bound validations, then the clean commit, then preflight (`rjqj` V211-RP-2)
 
-- Branch **`release/v2.11.0`** from `main` (resolving the `release-2.X.Y`
-  vs `release/vX.Y.Z` inconsistency in favour of the rule's
-  `release/<tag>` form; v2.9.0's `release-2.9.0` was the older shape).
-- Run the reversible / disposable preflight from a clean checkout: full
-  Rust workspace test suite; each built framework archive's shipped tests;
-  `agov dist validate` / `agov dist build`. Record counts. These
-  validations are disposable — they leave no commit.
-- Only then create the **metadata commit**, containing exactly the Group A
-  bumps + Group B rewrites + the CHANGELOG entry and nothing else. Keep it
-  **local-only / unpublished** until Step 4 (`nj1j` V211-P2: the
-  preflighted local commit is retained as the MR head).
+The validations must test **the bytes that get committed**, not the old
+`2.10` tree:
 
-### 4. Namespace preflight on the clean metadata commit, then the MR
+1. Branch **`release/v2.11.0`** from `main` (rule form `release/<tag>`;
+   v2.9.0's `release-2.9.0` was the older shape — resolved here).
+2. **Apply the exact Group A + Group B allowlisted metadata edits to the
+   working tree without committing.** Regenerate `Cargo.lock`.
+3. Run every reversible validation against that **dirty draft**: full Rust
+   workspace test suite; each built framework archive's shipped tests;
+   `agov dist validate` / `agov dist build`; `agov validate
+   assistant_loader`. Record the draft **tree hash** and `git diff` output.
+4. **Commit exactly those already-tested bytes.** Then prove: `git status`
+   is clean and the commit's tree hash **equals** the recorded draft tree
+   hash; `git diff --name-only <base>..HEAD` is inside the allowlist.
+5. With that clean, unpublished commit as `HEAD`, run the operator
+   preflight:
+   `agov release namespace-check --phase preflight --api-url "$CI_API_V4_URL"
+   --project-id "$CI_PROJECT_ID" --project-path "$CI_PROJECT_PATH"
+   --registry-image "$CI_REGISTRY_IMAGE" --target-branch main`.
+   Only exit 0 with `result: "ABSENT"` for all four namespaces (Git tag,
+   GitLab Release, generic package, derived OCI reference) proceeds.
+6. Push `release/v2.11.0` (the preflighted commit is the MR head, unchanged);
+   open the MR to `main`.
 
-- With the metadata commit as `HEAD` on `release/v2.11.0`, run the
-  operator preflight:
-  `agov release namespace-check --phase preflight --api-url "$CI_API_V4_URL"
-  --project-id "$CI_PROJECT_ID" --project-path "$CI_PROJECT_PATH"
-  --registry-image "$CI_REGISTRY_IMAGE" --target-branch main`.
-  Only exit 0 with `result: "ABSENT"` for all four namespaces (Git tag,
-  GitLab Release, generic package, derived OCI reference) proceeds.
-- Push `release/v2.11.0`; open the MR to `main`. Diff limited to the
-  allowlist files. The MR job `release:namespace-check` must pass;
-  exact-head pipeline green (`agf:dist:validate`, `agf:dist:preview`,
-  `release:paths-validate`, `release:self-sufficiency-selftest`,
-  `tooling:live-surface-validate`, `commercial-corpus:validate`,
-  `agov:governance:validate`, `rust:tooling:*`).
-- Binding governor **Gate 2** on the metadata MR.
+**Exact-head acceptance job matrix (`rjqj` V211-RP-4).** Derive the
+mandatory non-manual set from current CI `rules:` for a version-only diff,
+using the last release MR pipeline `2829685860` as the regression
+baseline; at review that required set was: `agf:dist:validate`,
+`agf:dist:preview`, `site-html-build`, `agf:flyer:verify`,
+`agov:governance:validate`, `agov:oci:mr-build-scan`,
+`commercial-corpus:validate`, `dependency:cve-scan`,
+`release:assets-verify-preview`, `release:namespace-check`,
+`release:paths-validate`, `rust:agov:validate`, `rust:tooling:clippy`,
+`rust:tooling:deny`, `rust:tooling:test`, `rust:tooling:preview`,
+`tooling:live-surface-validate`. **Tag-only / optional / manual** jobs
+(`agf:dist:release`, `rust:tooling:release`, `agov:oci:release`,
+`release:create`, `release:verify`, Windows preview/package) are
+identified separately and are **not** MR-gate jobs. Re-derive the exact
+matrix at cut time and require every expected job green at the exact MR
+head. Binding governor **Gate 2** on the metadata MR.
 
 ### 5. Fail-closed pre-tag proof (after merge, before the tag)
 
@@ -175,11 +222,10 @@ a. **Authoritative absence** for: the Git tag `v2.11.0`; the GitLab
    `agov-oci-image.sh image-ref`** (never a hand-written namespace — the
    v2.8.0 defect). `agov release namespace-check --phase pre-push` is the
    mandatory check and must immediately precede the tag op.
-b. **Protected-tag rule with an explicit expected policy**: exact tag
-   `v2.11.0` (not a wildcard), creation restricted to Maintainers
-   (access level 40). Prove by authoritative API read **before the tag
-   exists**; record the returned object. Any other policy needs an
-   explicit governor disposition.
+b. **Protected-tag rule re-read**: read the exact `v2.11.0`
+   Maintainers-only rule established and recorded in Step 2 **again**,
+   immediately before the tag op, while the tag still does not exist;
+   require it byte-identical to the Step 2 record. Any change stops here.
 c. **Frozen source/target**: re-read `main`'s tip and the merged metadata
    commit; require them to equal the reviewed SHAs; verify the merge
    commit's parents and tree against the reviewed values. Any drift stops
@@ -197,12 +243,28 @@ single action (the merged MR + the tag decision are the authorization;
 no further confirmation). Never move, delete, or recreate it
 (`immutable-tags-rule`).
 
-### 7. Post-publication binding and anonymous verification
+### 7. Post-publication binding and anonymous verification (`rjqj` V211-RP-5)
 
-Bind the tag object and its peeled commit to every archive, checksum,
-provenance record, package identity, and OCI digest. Re-read each
-namespace. Then verify **on anonymously downloaded bytes** — not on the
-build's own claims. `glab release view v2.11.0` shows the archives.
+Completion is conditional on **both**:
+
+1. **Tag-pipeline side** — CI job `release:verify` passes on the tag
+   pipeline (its own counterpart to the operator check).
+2. **Independent anonymous side** — `agov dist post-publication-check`
+   run by an operator against the published tag, with an explicit
+   download directory, fetching the release assets **over anonymous
+   (unauthenticated) HTTP** and verifying: every archive's SHA-256 against
+   its published checksum sidecar; every provenance record against its
+   artifact and checksum; the OCI digest (via the `agov-oci-image.sh`
+   derived reference) against the manifest; and the Git tag object's
+   peeled commit against the reviewed merge commit.
+
+`glab release view v2.11.0` is an **authenticated metadata view only** —
+it is not the verification and does not substitute for step 2.
+
+The **completion record** names: the tag object SHA + peeled commit, every
+archive filename + SHA-256, every provenance record identity, the
+generic-package version identity, the OCI digest, the `release:verify`
+job ID, and the `agov dist post-publication-check` transcript location.
 
 ## CHANGELOG scope
 
@@ -274,12 +336,19 @@ no normative rule text.
 ## Decision requested at Gate 1
 
 Approve (a) the precondition set as the binding gate before a metadata MR
-opens, (b) the derived-not-asserted allowlist method with three
-independent agreements, (c) the Group A/B/C classification approach incl.
-Group B as Gate 2 review material and the #129 roadmap-row correction
-riding this MR, (d) the Step 3–4 ordering (disposable validations →
-local-only metadata commit retained as MR head → clean-commit namespace
-preflight → MR), (e) the Step 5 fail-closed pre-tag proof incl. the
-explicit protected-tag policy and the derived OCI namespace read, (f)
-Step 6 as a separate post-merge governor tag decision, and (g) the
+opens; (b) **Step 2** — the exact `v2.11.0` Maintainers-only protected-tag
+rule established and recorded **before** any versioned draft or preflight;
+(c) **Step 3** — the two-command derived exact allowlist (incl. the
+`agf/learnings/foundry.yaml` adoption cell), deterministic Group B / #129
+discovery, and the per-file/per-category/total cross-checks as three views
+of one audit; (d) **Step 4** — draft-bound validations (edit working tree,
+validate the dirty draft, commit exactly the tested bytes, prove
+tree-hash equality + allowlist-only diff, then preflight the clean
+unpublished commit as MR head) and the exact-head acceptance job matrix
+derived from CI rules with pipeline `2829685860` as baseline; (e) **Step
+5** — the fail-closed pre-tag proof incl. the derived-OCI namespace read
+and the Step 2 protected-tag re-read; (f) **Step 6** as a separate
+post-merge governor tag decision; (g) **Step 7** — completion conditional
+on both `release:verify` and an operator `agov dist
+post-publication-check` on anonymously downloaded bytes; and (h) the
 CHANGELOG-scope and out-of-scope boundaries.
