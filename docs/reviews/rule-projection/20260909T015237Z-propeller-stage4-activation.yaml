@@ -1,0 +1,97 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for the Improvement Propeller Stage 4
+# activation execution (issue #131).
+
+plan_id: 20260909T015237Z-propeller-stage4-activation
+issue: 131
+
+changed_pages_or_runbooks:
+  - agf/docs/site/roadmap.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    path: agf/rules/always/improvement-propeller-rule.md
+    reason: >-
+      The Propeller rule already owns activation semantics and every
+      operative clause is already conditioned on activation ("Shipping this
+      rule or role definition does not activate either one"). Stage 4
+      execution flips the manifest status the rule already refers to; it
+      changes no rule text. The manifest entry
+      (agf/agents/MANIFEST.yaml improvement-propeller.status) and the agent
+      definition (agf/agents/improvement-propeller.yaml) are the governed
+      contracts that change, both under governor-approval authority per
+      AGENTS.md and qkj2/2emq.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/roadmap.md
+    reason: >-
+      The roadmap maturity row moves from "Level 4 Validated, deliberately
+      inactive" to "activated; Level 5 Deployable pending the first genuine
+      unattended scheduled wake". Factual status correction, not a new
+      commitment or adopter obligation. The page states adopters opt in
+      separately per the rule's Scope line.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      The project-local schedule/state creation procedure and the exact saved
+      heartbeat prompt are reviewable in the durable Gate 1 plan. They are
+      foundry activation evidence, not an adopter runbook: adopters must make
+      their own governor decision and choose their supported wake mechanism.
+
+  ai_landing_loaders:
+    disposition: updated
+    path: AGENTS.md
+    reason: >-
+      Root AGENTS.md is a foundry startup loader and currently says the role is
+      planned/inactive. The implementation updates that status projection in
+      the same atomic unit as the manifest flip; otherwise fresh sessions get
+      stale role state. No new behavioral authority is added.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          The Claude loader imports root AGENTS.md by reference, so the root
+          status correction reaches Claude without duplicating or changing the
+          loader file.
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          The adopter template must not mirror foundry's activation; adopters
+          opt in through their own governor decision per the rule Scope.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    paths:
+      - agf/agents/MANIFEST.yaml
+      - agf/agents/improvement-propeller.yaml
+      - AGENTS.md
+    reason: >-
+      agov validate agents validates agent-definition schema and tier but
+      explicitly excludes MANIFEST.yaml; it does not enforce the activation
+      contract. This plan therefore makes no mechanical-consistency claim.
+      Gate 2 instead verifies the exact manifest reason, loader projection,
+      state contract, heartbeat prompt, and the canonical Propeller table-top
+      cases. A real validator would be a separately planned gate change with
+      its own negative evidence. Genuine-wake Level 5 proof remains separate.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/agents/improvement-propeller.yaml
+      - agf/rules/always/improvement-propeller-rule.md
+      - agf/docs/site/roadmap.md
+    reason: >-
+      The agent definition, the rule, and the adopter roadmap ship through
+      the agf/** distribution. agf/agents/MANIFEST.yaml is foundry's project
+      role authority and is NOT shipped (MANIFEST.example.yaml is the
+      adopter template); docs/roadmap.md (the internal roadmap owner) and
+      this projection manifest are likewise foundry-local governance/review
+      evidence. The status flip therefore changes one shipped agent
+      definition and one shipped adopter roadmap row; adopters opt in
+      separately per the rule Scope. Root AGENTS.md and .claude/CLAUDE.md are
+      foundry-local startup surfaces and are not adopter-distribution files;
+      the former changes, while the latter imports it and needs no direct edit.
