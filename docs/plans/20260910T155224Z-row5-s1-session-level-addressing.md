@@ -52,8 +52,8 @@ must never be interpreted as the recipient.
 | File | Change |
 |---|---|
 | `agf/schemas/coordination-message.schema.json` | Keep top-level `session` unchanged as emitting-session provenance. Add optional `handoff.for_session` (string, UUIDv7; **not** in `handoff.required`) — the session a handoff is addressed to, when narrower than `next_agent`'s role. |
-| `agf/rules/always/coordination-message-rule.md` | One paragraph: role addressing remains the default; only `handoff.for_session` narrows the intended recipient. Sender `session` never narrows the recipient. Routing grants no authority and never overrides existing claims, temporary allocations, independence or gates. An uncertain recipient observes and records ambiguity, and follows the existing claim/allocation procedure before mutation. |
-| `agov handoff next <role>` (`tooling/rust/crates/agov/src/main.rs`) | New optional `--session <token>`. Without it: unchanged. With it: a handoff whose `for_session` matches → normal; `for_session` set to a *different* token → shown as `addressed elsewhere` (still listed, de-prioritised, not hidden); `for_session` absent → shown normally (role-wide). |
+| `agf/rules/workflow/coordination-publication-rule.md` | One paragraph: role addressing remains the default; only `handoff.for_session` narrows the intended recipient. Sender `session` never narrows the recipient. Routing grants no authority and never overrides existing claims, temporary allocations, independence or gates. An uncertain recipient observes and records ambiguity, and follows the existing claim/allocation procedure before mutation. |
+| `agov handoff next <role>` (`tooling/rust/crates/agov/src/main.rs`) | New optional `--session <token>`. Without it: unchanged. With it: a handoff whose `for_session` matches → normal; `for_session` set to a *different* token → shown as `addressed elsewhere` (still listed, same position and existing state, not hidden); `for_session` absent → shown normally (role-wide). |
 | `agov coord visibility` | Same `--session <token>` filter, same "still listed, re-labelled" semantics for handoffs carrying `handoff.for_session`; notes/reviews and sender-only `session` remain role-wide. |
 | `AGENTS.md` "Coordination channel" + `agf/templates/AGENTS.md` | One-line pointer: role addressing is the default; `handoff.for_session` narrows to a session; `agov handoff next --session <token>` filters. |
 
@@ -67,27 +67,28 @@ positive/negative fixture pair below is ordinary test discipline.
 
 1. **Backward compatible.** A handoff with no `for_session`: `agov handoff
    next <role>` output identical with and without `--session`.
-2. **Scoped to me.** `for_session` == my token → `ready` for me,
-   `addressed elsewhere` for another token.
+2. **Scoped to me.** `for_session` == my token → preserve its existing ready/blocked state;
+   another token adds `addressed elsewhere` without replacing that state.
 3. **Scoped to another, still visible.** `for_session` == another token →
    my `agov handoff next <role>` (no `--session`) still lists it (role
    fallback); with my `--session` it is `addressed elsewhere`, **never
    absent**.
 4. **Sender is not recipient.** A legacy handoff or note emitted by session A with top-level `session=A` and no `for_session` remains role-wide for B. A handoff authored by A with `for_session=B` is addressed normally to B. No session-token filter permits mutation over another active claim.
-5. Schema round-trip: record with/without `session`, handoff with/without
+5. **Mixed order and blocked state.** Role-wide, matching and elsewhere items retain exactly the baseline order, status, blocking reasons and exit code. A matching blocked handoff stays blocked; an elsewhere ready handoff stays ready with an annotation. CLI/MCP evidence must agree.
+6. Schema round-trip: record with/without `session`, handoff with/without
    `for_session`, all valid.
 
 ## Rule-projection screen
 
-`docs/reviews/rule-projection/20260910T155224Z-row5-s1-session-level-addressing.yaml`
-— owner `always/coordination-message-rule.md` (`updated`); adopter
-explanation the coordination-protocol Pages page (`existing pointer
-sufficient` — addressing is already described; add the session note if the
-reviewer judges it needed); runbook `not applicable`; AI loaders
-`AGENTS.md` + `agf/templates/AGENTS.md` (`updated`, one-line pointer),
-`.claude/CLAUDE.md` `not applicable`; validation/drift `advisory only`;
-distribution — schema + `coordination-message-rule.md` +
-`agf/templates/AGENTS.md` ship in the AGF artifact.
+The structured six-surface manifest is included with this Gate 1 candidate:
+`docs/reviews/rule-projection/20260910T155224Z-row5-s1-session-level-addressing.yaml`.
+All dispositions are planned implementation obligations, not claims that
+changes have already shipped. Use the existing coordination-publication rule
+as normative owner; the previously cited coordination-message-rule path does
+not exist in this tree. Update the adopter coordination-protocol page and
+loader pointers together with implementation. Root loaders and this manifest
+are project-local; the rule, schema, protocol page and adopter template ship.
+No owner/rule implementation is made by this plan revision.
 
 ## Rollback
 
@@ -101,7 +102,7 @@ existing record rewritten.
 Approve (a) retaining `session` as author provenance and adding
 optional recipient-only `handoff.for_session`, (b) the "still listed, only re-labelled"
 filter semantics (a session-scoped item is never hidden), (c) the
-`coordination-message-rule.md` paragraph and loader pointers. Then
+`coordination-publication-rule.md` paragraph and loader pointers. Then
 coder-tester (Codex) implements; own Gate 2.
 
 ## Revision evidence
@@ -111,3 +112,9 @@ The prior review is not independent clearance of this revision. Re-review
 and Gate 1 remain pending. MCP handoff-next and visibility adapters must
 expose the same optional recipient selection and unchanged default result;
 CLI/MCP parity fixtures are part of acceptance. No new role activation.
+
+## ssms correction round
+
+IR-1: included the structured projection evidence at Gate 1. IR-2: recipient
+selection is annotation-only; order, underlying state and exit code remain
+unchanged. No independent clearance claimed by this author correction.
