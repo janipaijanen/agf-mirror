@@ -524,3 +524,29 @@ fn mixed_session_queue_keeps_newest_blocked_handoff_for_every_session() {
         );
     }
 }
+
+#[test]
+fn elsewhere_ready_handoff_stays_ready_and_visible() {
+    let fixture = Fixture::new();
+    let id = "20260621T000000Z-planner-architect-a001";
+    fixture.write_coord(
+        &format!("{id}.md"),
+        &handoff(id, "coder-tester", "ready session", &[])
+            .replace("handoff:", "handoff:\n  for_session: recipient-B"),
+    );
+    let dir = fixture.coord_dir();
+    let out = agov(&[
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+        "--session",
+        "recipient-C",
+    ]);
+    assert_eq!(out.status.code(), Some(0));
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(text.contains("Status:      ready"));
+    assert!(text.contains("Addressed elsewhere: recipient-B"));
+    assert!(text.contains(&format!("Source: {id}.md")));
+}

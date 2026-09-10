@@ -692,6 +692,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
 
     let run_cli = |args: &[&str], cwd: &std::path::Path| -> String {
         let output = Command::new(&agov_bin)
+            .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
             .args(args)
             .current_dir(cwd)
             .output()
@@ -702,6 +703,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
     let run_mcp = |name: &str, arguments: Value, cwd: &std::path::Path| -> String {
         let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
             .env("AGOV_MCP_AGOV_BIN", &agov_bin)
+            .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
             .current_dir(cwd)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -789,27 +791,61 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         );
     }
 
-    // `visibility` additionally needs a real git repository (it enumerates
-    // branches); run it against the actual workspace checkout, but keep
-    // the risk of a concurrent-write race low by requesting only local,
-    // already-fetched ref state rather than triggering a fetch.
+    // Visibility needs Git state as well as fixed files. Use an isolated
+    // repository so concurrent branch/coordination publication cannot race
+    // the two invocations or turn this parity check into an estate scan.
+    let git_fixture = tempfile::tempdir().unwrap();
+    let git_root = git_fixture.path();
+    for argv in [
+        vec!["init", "-b", "main"],
+        vec!["config", "user.name", "Parity Test"],
+        vec!["config", "user.email", "parity@example.invalid"],
+        vec!["commit", "--allow-empty", "-m", "base"],
+        vec!["checkout", "-b", "parity"],
+    ] {
+        assert!(Command::new("git")
+            .args(argv)
+            .current_dir(git_root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    }
+    std::fs::create_dir_all(git_root.join("docs/coordination")).unwrap();
+    for entry in std::fs::read_dir(&coord_dir).unwrap() {
+        let entry = entry.unwrap();
+        std::fs::copy(
+            entry.path(),
+            git_root.join("docs/coordination").join(entry.file_name()),
+        )
+        .unwrap();
+    }
+    for argv in [vec!["add", "docs"], vec!["commit", "-m", "fixture"]] {
+        assert!(Command::new("git")
+            .args(argv)
+            .current_dir(git_root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    }
     let cli_stdout = run_cli(
         &[
             "coord",
             "visibility",
             "--base-branch",
             "main",
-            "--dir",
-            "docs/coordination",
+            "--branch",
+            "parity",
             "--format",
             "text",
         ],
-        &root,
+        git_root,
     );
     let mcp_stdout = run_mcp(
         "agov_coord_visibility",
-        json!({ "base_branch": "main", "dir": "docs/coordination", "format": "text" }),
-        &root,
+        json!({"base_branch":"main","branch":"parity","format":"text"}),
+        git_root,
     );
     assert_eq!(
         cli_stdout, mcp_stdout,
