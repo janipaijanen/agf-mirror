@@ -4595,6 +4595,62 @@ learnings:
         - 'docs/coordination/20260909T014426Z-capability-developer-drtp.md vs docs/coordination/20260907T151325Z-governor-reviewer-2emq.md section 2b: drtp P-0 proposed governor confirmation of Stage 4 parameters that 2emq had already confirmed; corrected in docs/coordination/20260909T015104Z-governor-reviewer-ssae.md.'
 
 
+  - id: 20260910T044404Z-rejw
+    date: '2026-09-10'
+    category: gap
+    scope: framework
+    title: poll-summary-exhaustion-was-mistaken-for-standing-obligation-completion
+    status: proposed
+    description: >-
+      During a foundry Codex session, repeated governor requests to poll were
+      answered as searches for new handoffs. The session used compact agov
+      summaries from a checkout behind the fetched target and encountered
+      ignored-record warnings. Later remote and current-target checks improved
+      discovery coverage, but the session still reported no ready action without
+      resolving standing role obligations. It had seen the title of learning
+      20260907T073424Z-rl9k without reading its linked binding governor decision
+      20260907T072913Z-governor-reviewer-s5gs, which requires every active session
+      to acknowledge on its next poll. The acknowledgement remained undone until
+      the governor challenged the omission. The observable failure was a false
+      completion criterion: no newly listed handoff was treated as no outstanding
+      duty. This does not establish a defect in agov's query contract, a hidden
+      model motive, or that every ignored historical record was actionable.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: rules/always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        A required coordination acknowledgement was missed and repeated status
+        replies consumed governor attention without resolving it. This session
+        provides no measured token or time savings, no demonstrated unsafe
+        merge, and no cross-adopter corroboration.
+    recommendation: >-
+      Use compact summaries as discovery indexes whose query, revision, role,
+      cursor, and coverage limits must be understood. Before declaring a cold
+      start or resumed poll complete, reconcile applicable standing decisions,
+      current role allocation, and unresolved obligations against the fetched
+      target and relevant remote branches. Trace relevant learning references
+      to binding decisions; distinguish proposed learning advice from effective
+      authority. Investigate warnings enough to bound their impact, or report
+      incomplete coverage instead of an empty queue. Complete or explicitly
+      disposition required acknowledgements and authorized actions before
+      advancing a completed-poll cursor. Incremental discovery is appropriate
+      after this baseline, not a substitute for it. This is an empirically
+      informed proposal from one session to improve application of existing
+      duties, not a new blocking gate or a demand to reread the whole corpus on
+      every poll. Any tooling or rule change needs its normal governed plan.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '2026-09-10 foundry Codex session: poll and repoll reported no new ready handoff; governor follow-up exposed the unacknowledged s5gs decision and requested this learning.'
+        - 'docs/coordination/20260910T044300Z-coder-tester-gsma.md: delayed acknowledgement and bounded corrective scope; self-reported evidence, not independent corroboration.'
+        - 'docs/coordination/20260907T072913Z-governor-reviewer-s5gs.md: effective role handshake and every-active-session next-poll acknowledgement duty; related learning 20260907T073424Z-rl9k.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
