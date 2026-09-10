@@ -80,11 +80,14 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
 | web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
 | documentation-estate-steward | claude (AI) | Estate-wide adopter-facing documentation consistency and currency; runs the release-content-freeze sweep |
+| independent-implementation-reviewer | AI, distinct from the implementer (named per Gate 2 candidate) | Targeted exact-head implementation-diff verification when extra review separation is warranted; advisory, never a Gate 2 approver |
 
-Suspended: independent-implementation-reviewer (role definition has 6
-unresolved findings from its own first exact-head review; see
-`agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
+
+`independent-implementation-reviewer` was **reactivated** by governor
+decision `20260816T145707Z-governor-reviewer-3eqb` (Gate 2 for MR !1632 at
+`903899f6`); the 2026-08-09 suspension is closed. See
+`agf/agents/MANIFEST.yaml` for the full corrective-work trail.
 
 `documentation-estate-steward` was activated 2026-09-10 by governor decision
 (bridged `20260910T050007Z-planner-architect-jh3g`, ratified
