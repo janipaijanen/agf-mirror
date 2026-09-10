@@ -1,6 +1,8 @@
 ---
 id: 20260909T203636Z-v211-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T052328Z-planner-architect-771h
+gate1_approved_at: 2026-09-10T05:23:28Z
 topic: v211-release-publication-child-plan
 candidate_release: v2.11.0
 advisory_consultation:
