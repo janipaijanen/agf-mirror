@@ -4651,6 +4651,63 @@ learnings:
         - 'docs/coordination/20260910T044300Z-coder-tester-gsma.md: delayed acknowledgement and bounded corrective scope; self-reported evidence, not independent corroboration.'
         - 'docs/coordination/20260907T072913Z-governor-reviewer-s5gs.md: effective role handshake and every-active-session next-poll acknowledgement duty; related learning 20260907T073424Z-rl9k.'
 
+  - id: 20260910T045334Z-wbgq
+    date: '2026-09-10'
+    category: gap
+    scope: framework
+    title: delayed-post-publication-pipeline-reconciliation-wasted-runner-time
+    status: proposed
+    description: >-
+      A foundry Codex session pushed three new branches and then opened MRs
+      !2652, !2653 and !2654. Each initial push created a branch pipeline before
+      the MR existed, followed by an MR pipeline for the same head. The CI
+      workflow already documents this first-push limitation. The assistant
+      monitored only the MR head pipelines and deferred reconciliation to a
+      future timer despite AGENTS.md requiring source/ref/job comparison and
+      cancellation of proven redundant push paths. The governor detected the
+      duplicates. After comparing exact SHAs and coverage, Codex canceled push
+      pipelines 2835783684 and 2835789358, retaining canonical MR pipelines
+      2835785098 and 2835790058. Push pipeline 2835783651 had already completed;
+      canonical MR pipeline 2835785113 was retained. Same SHA alone was not
+      used as proof: the learning MR had additional required MR-only jobs.
+    agents_involved:
+      - coder-tester
+      - build-engineer
+      - governor-reviewer
+    framework_section: rules/always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The completed Codex push pipeline consumed 186.647445 summed job
+        seconds. The canceled learning push job consumed 126.053821 seconds;
+        the other canceled push pipeline had no started jobs. Total observed
+        duplicate job duration for these three Codex publications was
+        312.701266 seconds (about 5.21 runner-minutes), not a monetary charge
+        or wall-clock release-delay estimate. The governor had to intervene.
+    recommendation: >-
+      Treat publish, MR registration, exact-head pipeline reconciliation and
+      monitoring as one foreground operation. Before leaving that operation,
+      compare all pipeline sources, refs, statuses and required job coverage;
+      preserve GitLab's canonical MR head pipeline and immediately cancel only
+      proven redundant active paths, verifying terminal cancellation. Do not
+      defer this to a 30-minute timer or repeat it for several new branches
+      before checking. Prefer already-open owned branches for bounded related
+      additions; verify their push guard actually suppresses redundant runs.
+      A zero-duplicate-creation guarantee needs a separately governed and
+      validated first-publication path, not a claim that prompt cancellation
+      prevents creation. Route that design through the existing issue #53 and
+      duplicate-cost issue #106 rather than a new competing task. Never use
+      commit-level CI-skip markers or discard required MR coverage to save cost.
+      This is empirically informed, single-session evidence; cancellation was
+      observed, permanent prevention was not implemented by this learning.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'docs/coordination/20260910T045221Z-coder-tester-rpqq.md: exact source/head pipeline pairs, job IDs, durations and verified cancellation states.'
+        - '.gitlab-ci.yml workflow rules document the initial push/MR pair and the existing open-MR push guard; AGENTS.md requires immediate evidence-based cancellation of proven redundant push paths.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
