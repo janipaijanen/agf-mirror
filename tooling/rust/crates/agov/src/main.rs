@@ -5463,7 +5463,7 @@ fn render_pending_handoffs_for_role(
         output.stdout(format!("Pending handoffs for {role}:"));
         for message in pending.iter().rev() {
             output.stdout(format_pending_handoff(message));
-            render_reply_evidence(output, message, messages);
+            render_reply_evidence(output, message, messages, "  ");
         }
     }
     output.stdout("");
@@ -5485,7 +5485,7 @@ fn render_pending_handoffs_by_role(output: &mut OutputCounter, messages: &[Hando
             items.sort_by_key(|message| message.sort_key.clone());
             for message in items.iter().rev() {
                 output.stdout(format!("    - {}", pending_handoff_label(message)));
-                render_reply_evidence(output, message, messages);
+                render_reply_evidence(output, message, messages, "      ");
             }
         }
     }
@@ -5684,7 +5684,7 @@ fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
     };
 
     render_handoff_summary(&mut output, &message);
-    render_reply_evidence(&mut output, &message, &messages);
+    render_reply_evidence(&mut output, &message, &messages, "  ");
     agov_core::roi::record_tool_output(
         "agov.handoff.next",
         args,
@@ -6113,11 +6113,12 @@ fn render_reply_evidence(
     output: &mut OutputCounter,
     handoff: &HandoffMessage,
     messages: &[HandoffMessage],
+    indent: &str,
 ) {
     let evidence = reply_evidence(handoff, messages);
     if !evidence.is_empty() {
         output.stdout(format!(
-            "  reply present — acknowledgement unconfirmed; reply_evidence: {}",
+            "{indent}reply present — acknowledgement unconfirmed; reply_evidence: {}",
             serde_json::to_string(&evidence).expect("reply evidence serializes")
         ));
     }

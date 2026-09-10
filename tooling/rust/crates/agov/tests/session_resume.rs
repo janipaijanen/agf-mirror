@@ -475,6 +475,10 @@ fn reply_evidence_preserves_handoff_output_and_pending_separation() {
     ]);
     assert!(String::from_utf8_lossy(&resume.stdout)
         .contains("reply present — acknowledgement unconfirmed"));
+    let bootstrap = agov(&["session", "resume", "--dir", dir.to_str().unwrap()]);
+    assert_eq!(bootstrap.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&bootstrap.stdout)
+        .contains("reply present — acknowledgement unconfirmed"));
     let pending = agov(&[
         "coord",
         "pending",
