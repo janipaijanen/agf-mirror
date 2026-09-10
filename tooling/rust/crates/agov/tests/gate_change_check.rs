@@ -461,3 +461,28 @@ fn git_output(root: &Path, args: &[&str]) -> String {
     assert!(output.status.success(), "{}", diagnostics(&output));
     String::from_utf8(output.stdout).unwrap().trim().to_string()
 }
+
+#[test]
+fn advisory_coordination_changes_still_require_shared_cli_gate_evidence() {
+    for feature in ["session_addressing", "reply_evidence", "channel_membership"] {
+        let fixture = Fixture::new();
+        fixture.write(
+            "tooling/checker.rs",
+            &format!("fn {feature}() {{ /* advisory display */ }}\n"),
+        );
+        fixture.write(
+            &format!("tests/{feature}.rs"),
+            "new feature regression coverage\n",
+        );
+        fixture.commit("change advisory coordination behavior on shared CLI surface");
+        let blocked = fixture.check();
+        assert_eq!(blocked.status.code(), Some(1), "{}", diagnostics(&blocked));
+        assert!(String::from_utf8_lossy(&blocked.stderr).contains("no changed declared test path"));
+        fixture.write(
+            "tests/gate_change.rs",
+            "shared CLI negative control reviewed\n",
+        );
+        fixture.commit("include declared gate companion evidence");
+        assert_success(fixture.check());
+    }
+}
