@@ -1,6 +1,8 @@
 ---
 id: 20260909T200622Z-cpb1-copied-record-contract-clarification
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T052328Z-planner-architect-771h
+gate1_approved_at: 2026-09-10T05:23:28Z
 topic: cpb1-copied-record-contract-clarification
 candidate_release: v2.11.0
 advisory_consultation:
