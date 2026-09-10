@@ -1,6 +1,8 @@
 ---
 id: 20260910T154030Z-row6-s1-coordination-channel-path-contract
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T190854Z-governor-reviewer-kr4b
+gate1_approved_at: "2026-09-10T19:08:54Z"
 topic: row6-s1-coordination-channel-path-contract
 candidate_release: v2.11.0
 advisory_consultation:
@@ -70,3 +72,7 @@ Approve the separate membership, misplaced-candidate and unassessed-baseline sur
 IR-1: six-surface evidence is now part of this Gate 1 candidate, before
 implementation. IR-3: removed the nonexistent filename exclusions and added
 README prose/valid-record fixtures. Independent recheck remains pending.
+
+## Gate 1 approval recorded
+
+Governor decision `20260910T190854Z-governor-reviewer-kr4b` approves the corrected scope following independent recheck `6r12`, with its disclosed advisory limits. Earlier pending-review language above is historical; this approval authorizes implementation, while exact-head implementation review and Gate 2 remain required. Decision published in MR !2678.
