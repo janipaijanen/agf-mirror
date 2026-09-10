@@ -1,6 +1,8 @@
 ---
 id: 20260909T195116Z-post-v211-queue-closeout-work-order
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T052328Z-planner-architect-771h
+gate1_approved_at: 2026-09-10T05:23:28Z
 topic: post-v211-queue-closeout-work-order
 advisory_consultation:
   - role: infosec-sentinel
