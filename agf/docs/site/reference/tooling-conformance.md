@@ -97,3 +97,11 @@ implementations may be useful experiments, but they are not AGF-compatible for
 a claimed version until they pass the conformance suite for that version.
 
 The contract source lives in `agf/docs/contracts/tooling-conformance.md`.
+
+### Coordination visibility scope
+
+The channel is lowercase `.md` files directly in `docs/coordination`, including README.md; invalid records are diagnosed normally. Visibility also inspects the complete channel subtree, direct docs siblings named `coordination*.md`, and `docs/coordination-archive`. With a custom `--dir`, these scopes are relative to that channel's parent/name. This is bounded discovery, not a whole-repository inbox.
+
+JSON adds `scanned_refs` (ref to exact commit SHA), `scanned_scopes`, `coverage`, `candidate_diagnostics`, `invalid_channel_records`, and `archive_baseline` (count, records, lifecycle). Candidates include exact path/blob, ref SHA and valid record metadata, without a second lifecycle resolver. The matching text output exposes the same evidence; MCP returns CLI stdout and status unchanged. Archive baseline means exact target path/blob equality and always says lifecycle/closure unassessed. New, changed and moved archive records warn; target-present nonarchive nested records also warn. Ordinary prose outside the channel is not automatically a candidate; recognizable invalid front matter is diagnosed.
+
+Exit 0 indicates no advisory warnings within the declared complete scan; exit 1 reports misplaced/invalid candidates, invalid channel records or unbridged obligations; exit 2 retains collision/error semantics and includes incomplete coverage on unavailable targets/schemas/blobs. A nonzero diagnostic does not grant this tool governance authority. See the coordination publication rule for the governing contract.

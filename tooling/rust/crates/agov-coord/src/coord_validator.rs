@@ -130,7 +130,23 @@ pub fn validate_file(path: &Path) -> Result<CoordMessage, Vec<(String, String)>>
         Err(err) => return Err(vec![(format!("{err:?}"), String::new())]),
     };
 
-    let raw = match yaml::parse_frontmatter_json(&content) {
+    validate_content(&content)
+}
+
+/// Validate Git blob or file contents through the same channel schema.
+pub fn validate_content(content: &str) -> Result<CoordMessage, Vec<(String, String)>> {
+    let schema_path = agov_core::schema_dir().join("coordination-message.schema.json");
+    let compiled = schema::load_and_compile(&schema_path)
+        .map_err(|err| vec![(format!("{err:?}"), schema_path.display().to_string())])?;
+    validate_content_with_schema(content, &compiled)
+}
+
+/// Reuse a compiled channel schema for a bounded Git snapshot scan.
+pub fn validate_content_with_schema(
+    content: &str,
+    compiled: &schema::CompiledSchema,
+) -> Result<CoordMessage, Vec<(String, String)>> {
+    let raw = match yaml::parse_frontmatter_json(content) {
         Ok(value) => value,
         Err(yaml::YamlError::NoFrontmatter) => {
             return Err(vec![(
@@ -141,10 +157,7 @@ pub fn validate_file(path: &Path) -> Result<CoordMessage, Vec<(String, String)>>
         Err(err) => return Err(vec![(format!("{err:?}"), String::new())]),
     };
 
-    let schema_path = agov_core::schema_dir().join("coordination-message.schema.json");
-    let compiled = schema::load_and_compile(&schema_path)
-        .map_err(|err| vec![(format!("{err:?}"), schema_path.display().to_string())])?;
-    let errors = schema::validate(&compiled, &raw);
+    let errors = schema::validate(compiled, &raw);
 
     if errors.is_empty() {
         Ok(CoordMessage { raw })
@@ -386,7 +399,9 @@ mod tests {
             Some("01KVK7J9N2AW8DJZQAG2-planner-architect.md".to_string())
         );
         assert_eq!(
-            normalize_coord_reference("docs/coordination/01KVK7J9N2AW8DJZQAG2-planner-architect.md"),
+            normalize_coord_reference(
+                "docs/coordination/01KVK7J9N2AW8DJZQAG2-planner-architect.md"
+            ),
             Some("01KVK7J9N2AW8DJZQAG2-planner-architect.md".to_string())
         );
     }
@@ -394,18 +409,30 @@ mod tests {
     #[test]
     fn near_length_20_char_variants_are_rejected() {
         // 19 chars — one short.
-        assert!(!looks_like_coord_filename("1KVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        assert!(!looks_like_coord_filename(
+            "1KVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
         // 21 chars — one long.
-        assert!(!looks_like_coord_filename("001KVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        assert!(!looks_like_coord_filename(
+            "001KVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
     }
 
     #[test]
     fn non_crockford_20_char_first_segment_is_rejected() {
         // 'I', 'L', 'O', 'U' are excluded from the Crockford base32 alphabet.
-        assert!(!looks_like_coord_filename("0IKVK7J9N2AW8DJZQAG2-planner-architect.md"));
-        assert!(!looks_like_coord_filename("0LKVK7J9N2AW8DJZQAG2-planner-architect.md"));
-        assert!(!looks_like_coord_filename("0OKVK7J9N2AW8DJZQAG2-planner-architect.md"));
-        assert!(!looks_like_coord_filename("0UKVK7J9N2AW8DJZQAG2-planner-architect.md"));
+        assert!(!looks_like_coord_filename(
+            "0IKVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
+        assert!(!looks_like_coord_filename(
+            "0LKVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
+        assert!(!looks_like_coord_filename(
+            "0OKVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
+        assert!(!looks_like_coord_filename(
+            "0UKVK7J9N2AW8DJZQAG2-planner-architect.md"
+        ));
     }
 
     #[test]

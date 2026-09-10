@@ -76,3 +76,18 @@ README prose/valid-record fixtures. Independent recheck remains pending.
 ## Gate 1 approval recorded
 
 Governor decision `20260910T190854Z-governor-reviewer-kr4b` approves the corrected scope following independent recheck `6r12`, with its disclosed advisory limits. Earlier pending-review language above is historical; this approval authorizes implementation, while exact-head implementation review and Gate 2 remain required. Decision published in MR !2678.
+
+## Implementation impact and migration assessment
+
+The approved channel-membership correction changes previously recursive Git-reader behavior; this is BREAKING under downstream-impact-rule, even though the added diagnostics are advisory.
+
+```text
+Impact:
+  Foundry: Yes — visibility now validates direct channel records and separates nested/sibling/archive evidence. Historical invalid records remain diagnostic and can produce advisory exit 1.
+  Direct adopters: BREAKING — direct lowercase Markdown is the channel; nested records no longer enter its obligation list. Bounded candidate/archive fields and coverage are separately reported.
+  Downstream: Coordination files are not mutated; output consumers must distinguish channel obligations, unassessed candidates and archive inventory. No gate authority is added.
+  Migration: Read the coordination-protocol migration note; preserve existing records, route malformed or misplaced records for governed correction and update output consumers before relying on the revised scanner. No bulk archive move is authorized.
+  Evidence: msq8 R56-E3 identified mismatched recursive/nonrecursive discovery and false archive closure; corrected contract approved by kr4b. Positive and negative path/blob/coverage fixtures and real CLI/MCP parity verify this bounded change.
+```
+
+Adopter docs parity: updated — protocol migration note, command scope reference and shipped template pointer explain the changed discovery contract.

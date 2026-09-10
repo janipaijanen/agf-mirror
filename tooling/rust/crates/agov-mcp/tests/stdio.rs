@@ -883,3 +883,75 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         );
     }
 }
+
+#[test]
+fn channel_candidate_evidence_matches_real_cli_and_mcp() {
+    let bin = build_real_agov_bin();
+    let schema = workspace_root().join("agf/schemas");
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let git = |args: &[&str]| {
+        assert!(Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.name", "Test"]);
+    git(&["config", "user.email", "test@example.invalid"]);
+    std::fs::create_dir_all(root.join("docs/coordination-archive")).unwrap();
+    let record = "---\nkind: handoff\nfrom: planner-architect\nto: coder-tester\nid: fixture-handoff\ntimestamp: 2026-09-10T10:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: true\nhandoff:\n  next_agent: coder-tester\n  status: blocked\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n";
+    std::fs::write(root.join("docs/coordination-archive/old.md"), record).unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "base"]);
+    git(&["checkout", "-b", "feat/candidate"]);
+    std::fs::write(
+        root.join("docs/coordination-typo.md"),
+        record.replace("fixture-handoff", "fixture-sibling"),
+    )
+    .unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "candidate"]);
+    let direct = Command::new(&bin)
+        .args([
+            "coord",
+            "visibility",
+            "--base-branch",
+            "main",
+            "--branch",
+            "feat/candidate",
+            "--format",
+            "json",
+        ])
+        .env("AGOV_SCHEMA_DIR", &schema)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert_eq!(direct.status.code(), Some(1));
+    let stdout = String::from_utf8(direct.stdout).unwrap();
+    let evidence: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(evidence["archive_baseline"]["count"], 1);
+    assert_eq!(evidence["archive_baseline"]["lifecycle"], "unassessed");
+    assert_eq!(
+        evidence["candidate_diagnostics"][0]["path"],
+        "docs/coordination-typo.md"
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", &bin)
+        .env("AGOV_SCHEMA_DIR", &schema)
+        .current_dir(root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"agov_coord_visibility","arguments":{"base_branch":"main","branch":"feat/candidate","format":"json"}}})).unwrap();
+    drop(child.stdin.take());
+    let out = child.wait_with_output().unwrap();
+    let value: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(value["result"]["structuredContent"]["stdout"], stdout);
+    assert_eq!(value["result"]["structuredContent"]["status"], 1);
+    assert_eq!(value["result"]["isError"], true); // existing warning-envelope convention
+}

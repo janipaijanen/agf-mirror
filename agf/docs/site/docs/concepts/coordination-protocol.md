@@ -386,3 +386,13 @@ handoffs passing approved plans to implementation.
 - [Poll and coordinate](../operate/poll-and-coordinate.md) — the operating
   loop that puts this protocol into practice, including where
   coordination-only publication fits in one cycle
+
+### Channel paths and archive evidence
+
+Channel membership is direct lowercase Markdown under `docs/coordination`, without README exemptions. Visibility has a separate bounded misplaced-candidate scan and an exact-target archive inventory whose lifecycle is **unassessed**. Exclusion from the channel never establishes closure. See [visibility scope and output](../../reference/tooling-conformance.md#coordination-visibility-scope) and the [coordination publication rule](../../../../rules/workflow/coordination-publication-rule.md).
+
+#### Migrating visibility consumers
+
+The Git visibility reader previously treated recursive channel-subdirectory records as channel entries and parsed front matter without the channel schema. The revised reader agrees with the local depth-one reader and reports invalid direct records explicitly. Before relying on its results, update scripts to distinguish `unbridged_obligations`, `candidate_diagnostics`, `invalid_channel_records` and the unassessed `archive_baseline`; do not interpret an empty obligation list as an empty inbox. Advisory exit 1 may now reflect invalid or misplaced records as well as missing bridges. Missing schema/target/blob coverage produces exit 2.
+
+Keep existing immutable records intact. Route invalid or misplaced records through the established coordination/governor workflow for a separately scoped correction; author new channel records directly in the channel directory. The change performs no archive migration and does not authorize moving or deleting historical files.

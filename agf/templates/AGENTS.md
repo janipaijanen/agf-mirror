@@ -123,6 +123,8 @@ apply per task type.
 
 ## Coordination channel
 
+Channel membership, bounded misplaced-record discovery and unassessed archive inventory are defined by `agf/rules/workflow/coordination-publication-rule.md`. Only direct lowercase `.md` files are channel members; archive exclusion never proves closure. Consult the visibility command reference for its explicit scan scopes and coverage limits.
+
 All inter-agent communication is recorded in `docs/coordination/` as immutable
 Markdown files. Use the AGF tooling to generate IDs and validate files.
 
