@@ -1,6 +1,8 @@
 ---
 id: 20260910T115843Z-documentation-estate-steward-role
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T122454Z-planner-architect-tsbh
+gate1_approved_at: 2026-09-10T12:24:54Z
 topic: instantiate-documentation-estate-steward-standing-role
 candidate_release: v2.11.0
 advisory_consultation:
