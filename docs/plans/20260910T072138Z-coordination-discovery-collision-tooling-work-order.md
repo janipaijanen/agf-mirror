@@ -1,6 +1,8 @@
 ---
 id: 20260910T072138Z-coordination-discovery-collision-tooling-work-order
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T122454Z-planner-architect-tsbh
+gate1_approved_at: 2026-09-10T12:24:54Z
 topic: coordination-discovery-collision-tooling-work-order-v211-row6
 candidate_release: v2.11.0
 advisory_consultation:
