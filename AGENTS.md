@@ -79,11 +79,17 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
 | web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
+| documentation-estate-steward | claude (AI) | Estate-wide adopter-facing documentation consistency and currency; runs the release-content-freeze sweep |
 
 Suspended: independent-implementation-reviewer (role definition has 6
 unresolved findings from its own first exact-head review; see
 `agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
+
+`documentation-estate-steward` was activated 2026-09-10 by governor decision
+(bridged `20260910T050007Z-planner-architect-jh3g`, ratified
+`20260910T133145Z-governor-reviewer-q862`); see
+`agf/agents/documentation-estate-steward.yaml`.
 
 Active for foundry: improvement-propeller, played by Codex under approved plan
 `20260909T015237Z-propeller-stage4-activation` and governor decision `djh1`.

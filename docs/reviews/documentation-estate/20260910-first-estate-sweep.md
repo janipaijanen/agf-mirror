@@ -35,7 +35,9 @@ dimensions, or explicitly excluded with a reason.
 
 | ID | Surface | Dim | Finding | Recommended disposition | Actual disposition | Authority |
 |---|---|---|---|---|---|---|
-| **DES-1** | `agf/docs/governance/manifest.md` L16-19 | 1 currency + 3 consistency | Stated "AGF v2.10.0 is the **pending reviewed release**" and "**v2.9.0 remains the latest published stable release**". Contradicted by `agf/docs/site/roadmap.md` L15/L23 and `docs/roadmap.md` L17 (both: v2.10.0 published & verified), by `agf/VERSION` (2.10.0), and by `CHANGELOG.md` (`## [2.10.0] - 2026-09-08`, a dated entry). Classic stale live-status prose cell — the `qvzj` / V29P failure class. | Fix: rewrite to "v2.10.0 is the latest published, independently verified stable release (tagged 2026-09-08)". | **FIXED** on this branch (mechanical currency correction, in scope). | steward |
+| **DES-1** | `agf/docs/governance/manifest.md` L16-19 | 1 currency + 3 consistency | Stated "AGF v2.10.0 is the **pending reviewed release**" and "**v2.9.0 remains the latest published stable release**". Contradicted by `agf/docs/site/roadmap.md` L15/L23 and `docs/roadmap.md` L17 (both: v2.10.0 published & verified), by `agf/VERSION` (2.10.0), and by `CHANGELOG.md` (`## [2.10.0] - 2026-09-08`, a dated entry). Classic stale live-status prose cell — the `qvzj` / V29P failure class. | Fix: rewrite to "v2.10.0 is the latest published, independently verified stable release (tagged 2026-09-08)". | **FIXED** (MR !2663, on `main`) — mechanical currency correction, in scope. | steward |
+| **DES-2** | `AGENTS.md` "Active agents" section | 3 consistency + 5 projection | `documentation-estate-steward` is `status: active` in `agf/agents/MANIFEST.yaml` (the authoritative source AGENTS.md itself names) since MR !2661, but the AGENTS.md "Active agents" table and prose do not list it. A governed normative change (new standing role) that did not propagate to the loader touchpoint — MR !2661 changed the YAML + MANIFEST but not AGENTS.md. | Fix: add the role row to the "Active agents" table + a one-line activation note. | **FIXED** on this branch (mechanical currency correction — the role's active status is not in question; the loader just lagged). | steward |
+| **DES-3** | `AGENTS.md` "Suspended:" line vs `agf/agents/MANIFEST.yaml` | 3 consistency | AGENTS.md lists `independent-implementation-reviewer` as **Suspended**; MANIFEST.yaml shows `status: active` with a note that this "reflects the proposed end state, not yet in effect until that decision merges". The two disagree on the reader's face; whether AGENTS.md is correct depends on whether the reactivation Gate 2 decision has merged. | **VERIFY, then reconcile.** Not a mechanical fix — needs confirming the reactivation decision's state. | **referred** — routed to governor: has the `independent-implementation-reviewer` reactivation (MR !1289 trail) received its binding Gate 2 decision? If yes, both surfaces say active; if no, MANIFEST's `status:` is the misleading cell. | governor |
 
 ## Dimensions swept so far
 
@@ -58,13 +60,19 @@ dimensions, or explicitly excluded with a reason.
 - `coordination-protocol.md:183` → `docs/plans/add-export-feature.md`, `first-governed-change.md` → `docs/plans/sample-login-error-message.md` — **intentional tutorial samples**, not real-file references; OK by context.
 - No broken `docs/plans/` pointer found in this pass.
 
+### 2. Capability / maturity-level currency — first pass
+- `agf/docs/site/reference/maturity-vocabulary.md` — Level 1-5 + evidence-status (Empirically validated / informed / Theoretical) defined and internally consistent; the `agov token roi report` and `agov coord convergence` worked examples correctly state "Level 4 in a branch; Level 5 only after the released binary contains it". OK.
+- `agf/docs/site/reference/tooling-conformance.md:52` — `agov coord convergence` listed "Level 4 validated candidate; not deployable until released". **VERIFY next cycle**: confirm this command is still not in a shipped release (if v2.10.0's `agov` includes it, this cell is stale → DES finding).
+- `agf/docs/site/docs/adopt/tooling-and-tokens.md:47` — cites the maturity vocabulary correctly. OK.
+- Not yet swept: the homepage / `index.md` `agov` capability summary vs the authoritative tooling inventory (the drift incident `qvzj` cites). **Next cycle.**
+
 ## Pending (next cycles)
 
-- **Dim 2** — capability / maturity-level currency across the Pages site (every capability claim carries a Level + evidence status; no Level contradicted by the shipped operator path). High-value: the `agov` command inventory (homepage vs tooling page drift is a known past incident).
+- **Dim 2** — finish: homepage/`index.md` `agov` summary vs tooling inventory; `tooling-conformance.md:52` release-state verify; every Level claim in `docs/adopt/` and `reference/`.
 - **Dim 4** — remaining pointer classes: `agf/rules/**` cross-references, `agov` command/flag names, `see <rule>` owner pointers.
-- **Dim 5** — projection-manifest completeness: every merged normative change since the last sweep (there is no prior sweep — so: since the estate baseline) has a `docs/reviews/rule-projection/<plan-id>.yaml`; each names a resolving owner + paths. The recent Row 5 / Row 6 / PMM-role changes are the immediate check.
+- **Dim 5** — projection-manifest completeness: the Row 5 / Row 6 / PMM-role / this-sweep changes each need a `docs/reviews/rule-projection/<plan-id>.yaml` check; DES-2 is itself a projection miss (MR !2661 → AGENTS.md).
 - **Dim 6** — finalise the touchpoint manifest; classify every file under the adopter-facing `reads` paths as in-manifest or excluded-with-reason.
 
 ## Escalations to governor
 
-None yet.
+- **DES-3** — `independent-implementation-reviewer` shows Suspended in AGENTS.md but `status: active` in MANIFEST.yaml. Needs confirmation of whether the reactivation Gate 2 decision merged, then both surfaces reconciled. Referred to governor (not a mechanical currency fix).
