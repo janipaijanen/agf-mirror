@@ -9,18 +9,18 @@ advisory_consultation:
     reason: >-
       This work order commits schema and `agov` changes to the coordination
       channel: a session-identity field (#121), a self-announcing
-      supersession field pair (#122), an urgency/priority field and a
+      supersession field pair (#122), priority-ordering behaviour plus a
       challenge-response obligation type (!2027), and a queue-state change
-      to `agov handoff next` for CP-A. InfoSec must confirm at this Gate 1
-      that: none of the new fields is a channel for credentials or
-      cross-record leakage; a session-identity field cannot be spoofed to
-      redirect another session's obligations; the urgency field is not
-      author-gameable (this field is defined here and consumed by CP-B-2's
-      release-lane hold, so a wrong value there suppresses or force-publishes
-      real evidence); and the CP-A ack-satisfaction path cannot let an
-      unauthorized role clear a `requires-ack` obligation. Each
-      implementation slice returns for its own exact-head InfoSec review;
-      this row covers the design decision, which is not deferrable.
+      to `agov handoff next` for CP-A. The `urgency` enum field itself is
+      **not** defined here — CP-B-2 owns it (see dedup below). InfoSec must
+      confirm at this Gate 1 that: none of the new fields is a channel for
+      credentials or cross-record leakage; a session-identity field cannot
+      be spoofed to redirect another session's obligations; S3's
+      priority-ordering cannot be gamed to bury a lower-`urgency` but
+      security-relevant obligation; and the CP-A ack-satisfaction path
+      cannot let an unauthorized role clear a `requires-ack` obligation.
+      Each implementation slice returns for its own exact-head InfoSec
+      review; this row covers the design decision, which is not deferrable.
   - role: contribution-auditor
     status: consulted
     reason: >-
@@ -97,10 +97,14 @@ Required by the handoff. My independent read, not a restatement of `jprj`:
 3. **No member is rejected or deferred out of v2.11.** All four proceed;
    the sequencing below is the only constraint added.
 4. **Dedup with adjacent work:**
-   - The **urgency/priority field** (#! 2027 / S3) and CP-B-2's
-     "urgent-publication bypass / non-urgent hold" want the *same* field.
-     This work order **owns** the field's definition; CP-B-2 **consumes**
-     it. Neither defines its own.
+   - **The `urgency` enum field is owned by CP-B-2**, not this work order.
+     The CP-B work order `20260909T133651Z` decomposition already assigns
+     `agf/schemas/coordination-message.schema.json` `urgency` (enum,
+     optional, default `normal`) to CP-B-2. S3 here **consumes** that
+     field for priority-ordering and does **not** define it — S3 depends
+     on CP-B-2 landing first (see sequence). The correction to this
+     work order's earlier draft, which had the ownership reversed, is
+     recorded in `docs/coordination/20260910T070211Z-planner-architect-p2rk.md`.
    - **#122's field pair** must not predate `qbka` Slice A — see sequence.
    - **CP-C** stays in #123 (row 6); this work order does not touch
      `agov handoff next`'s branch coverage.
@@ -111,14 +115,16 @@ Required by the handoff. My independent read, not a restatement of `jprj`:
 qbka Slice A (provenance-bound `superseded` schema + validator)
     └── S2 (#122 self-announcing supersession field pair)   [HARD predecessor]
 
+CP-B-2 (`urgency` enum field on the coordination schema)
+    └── S3 (!2027 priority-ordering over `urgency` + challenge-response)  [HARD predecessor]
+
 S1 (#121 session identity)   — independent; may start immediately
-S3 (!2027 priority/urgency + challenge-response)  — independent; field
-     shape must be published before CP-B-2 consumes it
 S4 (CP-A ack display)   — independent; `agov`-only for the first slice
 ```
 
-Only **S2 → qbka Slice A** is a hard predecessor. S1, S3, S4 may proceed in
-any order or in parallel, each on its own branch, each its own Gate 2.
+Two hard predecessors: **S2 → qbka Slice A** and **S3 → CP-B-2**. S1 and S4
+are independent and may proceed in parallel, each on its own branch, each
+its own Gate 2.
 
 ## Implementation slices (each its own Gate 1 detail + exact-head reviews + Gate 2)
 
@@ -156,15 +162,19 @@ any order or in parallel, each on its own branch, each its own Gate 2.
   ("Lifecycle and supersession semantics") is the normative owner; this
   slice adds the mechanical half. Six-surface manifest owed at Gate 1.
 
-### S3 — !2027 priority + bounded material challenge-response
-- **Change:** add an **optional** `urgency` (or `priority`) enum field to
-  the coordination schema — **the single definition** consumed by CP-B-2 —
-  and a `challenge-response` obligation type (or a `kind: review` subtype)
-  that a disputed finding can raise, with a bounded response window and a
-  fail-state (unanswered by the window → escalates to governor, never
-  silently drops the finding).
-- **`agov`:** `agov coord pending` / `agov handoff next` order by urgency
-  where set; `agov coord` surfaces an open challenge-response distinctly.
+### S3 — !2027 priority-ordering + bounded material challenge-response  *(predecessor: CP-B-2)*
+- **Not in this slice:** the `urgency` enum field itself. CP-B-2 defines it
+  on `coordination-message.schema.json` (enum, optional, default `normal`).
+  S3 starts only after CP-B-2 has landed that field.
+- **Change:** (a) `agov` reads CP-B-2's `urgency` field to **order**
+  `agov coord pending` / `agov handoff next` output (highest urgency first);
+  (b) add a `challenge-response` obligation type (or a `kind: review`
+  subtype) that a disputed finding can raise, with a bounded response
+  window and a fail-state (unanswered by the window → escalates to
+  governor, never silently drops the finding). Only (b) may touch the
+  schema.
+- **`agov`:** `agov coord pending` / `agov handoff next` order by
+  `urgency`; `agov coord` surfaces an open challenge-response distinctly.
 - **gate-self-test:** if the challenge-response window is enforced by a
   blocking check (e.g. CI refusing a Gate 2 while an unanswered
   challenge-response is open), that check is a gate and ships with a
@@ -205,7 +215,7 @@ any order or in parallel, each on its own branch, each its own Gate 2.
 |---|---|---|
 | S1 | #121 session identity: schema field + `agov` filter + fixtures | own Gate 1 → exact-head reviews → Gate 2 |
 | S2 | #122 supersession field pair (matches `qbka` shape) + `agov` live-obligation filtering + fixtures | **after `qbka` Slice A** → own Gate 1 → Gate 2 |
-| S3 | !2027 urgency field (single owner) + challenge-response obligation + fixtures | own Gate 1 → Gate 2; gate-self-test if any blocking check |
+| S3 | !2027 priority-ordering over CP-B-2's `urgency` + challenge-response obligation + fixtures | **after CP-B-2** → own Gate 1 → Gate 2; gate-self-test if any blocking check |
 | S4 | CP-A `answered — ack pending` display + positive/negative fixtures | own Gate 1 → Gate 2 |
 
 ## Risks and controls
@@ -213,9 +223,12 @@ any order or in parallel, each on its own branch, each its own Gate 2.
 - **Two divergent `superseded` shapes.** Control: S2 is hard-blocked on
   `qbka` Slice A and must reuse its vocabulary and provenance fields
   verbatim; contribution-auditor confirms at S2 Gate 1.
-- **Urgency field defined twice** (here and in CP-B-2). Control: this work
-  order owns it; CP-B-2's plan is amended to consume, not define. Flagged
-  to the CP-B-2 author.
+- **`urgency` field defined twice.** Real risk — this work order's first
+  draft claimed ownership the Gate-1-approved CP-B work order had already
+  assigned to CP-B-2. Control: CP-B-2 is the sole definer; S3 consumes and
+  is hard-blocked on CP-B-2; the reversal is corrected in this revision and
+  recorded in `p2rk`. This is itself a #123-class plan collision, caught by
+  hand — evidence for the row-6 tooling.
 - **Challenge-response used to stall a valid finding.** Control: bounded
   window + mandatory governor escalation on expiry; never a silent drop.
 - **Session-identity field spoofed to steal/redirect obligations.**
@@ -253,11 +266,11 @@ for this parent plan, with that reason.
 
 ## Decision requested at Gate 1
 
-Approve (a) the four-member bounded set with **no demotion**, (b) the
-single hard predecessor (`S2 → qbka Slice A`) and otherwise-parallel
-slices, (c) the slice boundaries S1–S4 and that each retains its own
+Approve (a) the four-member bounded set with **no demotion**, (b) the two
+hard predecessors (`S2 → qbka Slice A`, `S3 → CP-B-2`) with S1 and S4
+parallel, (c) the slice boundaries S1–S4 and that each retains its own
 Gate 1 detail and binding Gate 2, (d) the `5jde` challenge-response
 conclusion (CP-A ships display-only first; auto-ack deferred; nothing
-rejected), and (e) that the urgency field is defined here once and
-consumed by CP-B-2. This work order grants no schema/`agov`/rule change
-authority on its own.
+rejected), and (e) that the `urgency` enum field is owned by CP-B-2 and
+S3 only consumes it for priority-ordering. This work order grants no
+schema/`agov`/rule change authority on its own.
