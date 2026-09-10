@@ -7,97 +7,54 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      This slice is `agov`-display-only: `agov handoff next` shows a
-      `requires-ack` handoff that has a later authorized-role record
-      `references-to`-ing it as `answered — ack pending`, distinct from
-      `ready`. No schema change, no automatic ack, no authority change.
-      InfoSec confirms the "authorized role" check for the answering
-      record cannot be satisfied by an unauthorized role, and that the
-      display state never causes an obligation to disappear.
+      Inherited schema marker from the original Claude plan, not a new
+      attestation. No exact-revision independent InfoSec clearance is
+      established here. Renewed consultation is outstanding; this plan
+      must not advance to Gate 1 on the strength of this marker. The
+      schema cannot represent pending consultation (issue 130).
   - role: contribution-auditor
     status: consulted
     reason: >-
-      CP-A is the weakest-evidenced member of row 5 (planner's `5jde`
-      challenge-response); this slice is deliberately the minimal
-      display-only change with auto-ack **deferred** to its own later
-      decision. Contribution-auditor confirms the slice does not
-      auto-clear the handoff, does not treat the answering record as a
-      binding ack, and that `answered — ack pending` is visually and
-      exit-code-distinct from both `ready` and cleared.
+      Actual bounded consultation: msq8 identified material contract
+      findings in the original revision. Codex now authors corrections
+      under eetd/mb8k and cannot independently clear them. A fresh
+      independent review of this revision remains outstanding.
+
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-# Row 5 S4 — CP-A: a substantive answer surfaces distinctly from `ready` (Gate 1)
+# Row 5 S4 — show reply evidence without changing lifecycle resolution
 
-## Provenance
+## Provenance and corrected baseline
 
-- Parent work order `docs/plans/20260910T065635Z-…` slice **S4**; governor
-  "Keep all in v2.11" (2026-09-10) keeps row 5 a hard cut precondition.
-- `jprj` CP-A: a `handoff` with `requires-ack: true` stays `ready` in
-  `agov handoff next <role>` until a `kind: ack` references it. A
-  `review`/`completion`/`note` that *substantively answers* it does not
-  clear it → duplicate work (a second session redoes it) **or** ack-only
-  MRs filed just to clear the queue (`rkbk`, `mhq3`).
-- `5jde` challenge-response (in the work order): CP-A is real but partly
-  self-inflicted; **ship display-only first, defer auto-ack.**
+Parent: docs/plans/20260910T065635Z-coordination-lifecycle-semantics-work-order.md, S4. Codex author revision after eetd/mb8k, addressing msq8 R56-E1. This supersedes the previous plan body's inaccurate assertion that only ack resolves a handoff. The actual `handoff_tracker::is_resolved` resolves a later ack, completion OR decision-record in the transitive descendant graph. This slice preserves that baseline; its limitations are evidence for separate lifecycle work, not silently fixed here.
 
-## Change (display-only, no schema change)
+## Bounded change
 
-`agov handoff next <role>` (and the same surface in `agov coord pending` /
-`agov session resume` where they list ack-pending handoffs) classifies a
-`requires-ack: true` handoff into three states instead of two:
+For handoffs that the existing resolver leaves unresolved, show an optional evidence annotation `reply present — acknowledgement unconfirmed` when a strictly later review or note directly references the handoff through structured references-to and is authored by its next_agent role or governor-reviewer. A note can be a progress report, question or refusal: do not label it answered, complete, authorized, approved or probably handled. Include the matching record ID and author role so a reader can inspect it. This predicate identifies a reply candidate only; role text is not authenticated identity or gate authority.
 
-| State | Condition |
-|---|---|
-| `ready` | no later record references this handoff |
-| **`answered — ack pending`** (new) | a later record `references-to`s this handoff **and** is `from` a role **authorized to answer it** (the handoff's `next_agent`, or `governor-reviewer`), **and** its kind is `review` / `completion` / `note` (a substantive answer) — but no `kind: ack` yet |
-| cleared (not listed) | a `kind: ack` references it (unchanged) |
+Do not change ready/unresolved status, result membership, ordering, scheduling priority, exit codes, gate authority or automatic ack behaviour. Absent, malformed, unauthorized-role, indirect-only and prose-only references do not create the annotation. Ignore timestamp ties rather than infer later activity. Cleared items remain cleared under the current resolver, including completion and decision-record descendants. Do not duplicate or reinterpret that resolver in display code.
 
-`answered — ack pending` sorts **below** `ready` and contributes a
-distinct (lower) weight to any exit code, so a polling session sees "this
-is probably handled, confirm before redoing" rather than "do this now".
+The handoff-next and session-resume handoff surfaces share the annotation. `coord pending` currently excludes handoffs: preserve that separation rather than adding a new handoff queue there. MCP tools must expose equivalent evidence and retain existing execution/status behaviour. Adding a machine-readable optional evidence field is preferable to requiring clients to parse the label; final field naming must be specified in implementation documentation.
 
-**Explicitly deferred to its own later decision:** auto-satisfying the ack
-from that record. That changes ack *semantics* (who clears an obligation)
-and needs its own evidence + Gate 1.
+## Required fixtures
 
-## Not a gate — but a required fixture pair
+1. No reply: same unresolved membership, order, status and exit code as baseline; no annotation.
+2. Direct later recipient-role note and review: annotation plus exact evidence ID, unchanged unresolved status. A progress note and clarification question get only the neutral annotation, never completion/answer inference.
+3. Other role, same-time record, indirect-only reference and prose-only reference: no annotation.
+4. Current completion and decision-record descendant resolution remains identical. A subsequent ack clears the item exactly as before. Existing historical graph fixtures retain their results, including known weak resolution semantics which this slice does not claim to repair.
+5. Mixed ready and annotated records preserve previous order and process exit code. No polling priority can be lowered based on reply metadata.
+6. CLI/MCP parity for annotation evidence and baseline status; coord pending continues to exclude handoffs.
 
-`agov handoff next` is advisory. The fixture pair (ordinary discipline,
-and the thing `5jde` asks be proven):
+## Scope and projection
 
-1. **Genuinely unanswered stays `ready`.** A `requires-ack` handoff with
-   no referencing record → `ready`. A referencing record from an
-   **unauthorized** role, or a `kind` that is not review/completion/note
-   → still `ready` (does not flip).
-2. **Real answer flips it.** A `review` from the handoff's `next_agent`
-   that `references-to`s it → `answered — ack pending`, sorted below
-   `ready`, distinct in text and exit weight.
-3. **Ack clears it.** A subsequent `kind: ack` → not listed (unchanged).
+No schema/rule authority change, auto-ack, reprioritization or migration. A later proposal to change resolver semantics must separately define recipient authority, direct/transitive evidence, compatibility, and governor approval. Provide accurate operator help explaining the neutral annotation; include an adopter-facing command reference note because the behaviour is not self-explanatory from its label alone. Complete the six-surface projection screen before implementation submission, identifying the existing coordination rule as authority and the annotation as advisory evidence.
 
-## Rule-projection screen
+## Validation and rollback
 
-`docs/reviews/rule-projection/20260910T155225Z-row5-s4-cpa-answered-ack-pending.yaml`
-— owner: `always/coordination-message-rule.md` (`existing pointer
-sufficient` — it already governs ack discipline; S4 adds a display state,
-not a new obligation) **or** `not normative` if the reviewer judges a
-display label carries no MUST/SHOULD; adopter explanation / runbook `not
-applicable`; AI loaders `not applicable` (no loader text changes — the
-behaviour is discoverable in `agov handoff next --help`); validation/drift
-`advisory only`; distribution — `agov` ships in the tooling artifact.
-(The parent work order flagged S1/S3 as the likely projection triggers,
-not S4.)
+Unit/integration fixtures above; plan schema validation; exact-head independent contribution and InfoSec review as applicable to the approved scope; required CI. Revert annotation code/help to restore prior display without changing any record or lifecycle state. This document remains pending Gate 1. The inherited consultation fields record earlier planning consultation, not a fresh clearance; renewed consultation on this revised contract is outstanding. Codex authors cannot self-clear it.
 
-## Rollback
+## Gate 1 decision requested after independent review
 
-Pure `agov` display logic. Revert the MR → two-state `ready` / cleared.
-No schema, no rule text, no migration.
-
-## Decision requested at Gate 1
-
-Approve (a) the three-state classification with `answered — ack pending`
-as a distinct display + sort + exit-weight state, (b) the "authorized
-role + substantive kind" condition for the flip, (c) that auto-ack stays
-deferred to its own decision, (d) the fixture pair. Then coder-tester
-(Codex) implements; own Gate 2.
+Approve neutral reply evidence for already-unresolved handoffs with unchanged membership, lifecycle, ordering and exit codes. This deliberately narrows the original proposal: no semantic "answered" claim and no lower exit weight. No implementation begins before the governor approves this corrected scope.

@@ -7,25 +7,19 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      This slice promotes the coordination schema's existing `session`
-      field from "audit only" to an optional routing key and adds
-      `handoff.for_session`. InfoSec must confirm at Gate 1 that a
-      session token is advisory routing only — it never grants authority,
-      never gates a decision, and cannot be spoofed to steal or redirect
-      another session's obligation (a wrong `for_session` value at worst
-      makes an item show as "addressed elsewhere"; the item is still
-      visible without the `--session` filter). No credential surface; the
-      token is an opaque UUIDv7 the assistant already writes.
+      Inherited schema marker from the original Claude plan, not a new
+      attestation. No exact-revision independent InfoSec clearance is
+      established here. Renewed consultation is outstanding; this plan
+      must not advance to Gate 1 on the strength of this marker. The
+      schema cannot represent pending consultation (issue 130).
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Coordination-protocol addressing change. Contribution-auditor
-      confirms the field stays optional (absent = current role-only
-      behaviour, fully backward compatible), that `agov handoff next` and
-      `agov coord visibility` default behaviour is unchanged without
-      `--session`, and that a session-scoped item is never *hidden* — only
-      re-labelled — so a cold-starting session cannot miss work by not
-      passing a token.
+      Actual bounded consultation: msq8 identified material contract
+      findings in the original revision. Codex now authors corrections
+      under eetd/mb8k and cannot independently clear them. A fresh
+      independent review of this revision remains outstanding.
+
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -49,17 +43,18 @@ advisory_consultation:
 `agf/schemas/coordination-message.schema.json` already has a top-level
 **`session`** property (`UUIDv7 … Optional. Audit only.`). It records
 provenance but is **not** a routing key, and there is no way to address a
-`handoff` to a session. S1 makes `session` routable and adds the handoff
-side.
+`handoff` to a session. S1 leaves `session` as author provenance and adds recipient addressing
+only for handoffs. Routing notes/reviews is deferred; their author session
+must never be interpreted as the recipient.
 
 ## Change
 
 | File | Change |
 |---|---|
-| `agf/schemas/coordination-message.schema.json` | `session` description updated: "Optional. Audit, **and an advisory routing key** — see `handoff.for_session`." Add optional `handoff.for_session` (string, UUIDv7; **not** in `handoff.required`) — the session a handoff is addressed to, when narrower than `next_agent`'s role. |
-| `agf/rules/always/coordination-message-rule.md` | One paragraph: a role-addressed record is answerable by any holder of that role unless `for_session` (handoff) or `session` (as an addressing hint on a `note`/`review` reply) narrows it; a session that cannot confirm an item is "theirs" still may act, but SHOULD note the ambiguity (the current `rkbk`/`mhq3` pattern). Advisory, not blocking. |
+| `agf/schemas/coordination-message.schema.json` | Keep top-level `session` unchanged as emitting-session provenance. Add optional `handoff.for_session` (string, UUIDv7; **not** in `handoff.required`) — the session a handoff is addressed to, when narrower than `next_agent`'s role. |
+| `agf/rules/always/coordination-message-rule.md` | One paragraph: role addressing remains the default; only `handoff.for_session` narrows the intended recipient. Sender `session` never narrows the recipient. Routing grants no authority and never overrides existing claims, temporary allocations, independence or gates. An uncertain recipient observes and records ambiguity, and follows the existing claim/allocation procedure before mutation. |
 | `agov handoff next <role>` (`tooling/rust/crates/agov/src/main.rs`) | New optional `--session <token>`. Without it: unchanged. With it: a handoff whose `for_session` matches → normal; `for_session` set to a *different* token → shown as `addressed elsewhere` (still listed, de-prioritised, not hidden); `for_session` absent → shown normally (role-wide). |
-| `agov coord visibility` | Same `--session <token>` filter, same "still listed, re-labelled" semantics for records carrying a `session`/`for_session` hint. |
+| `agov coord visibility` | Same `--session <token>` filter, same "still listed, re-labelled" semantics for handoffs carrying `handoff.for_session`; notes/reviews and sender-only `session` remain role-wide. |
 | `AGENTS.md` "Coordination channel" + `agf/templates/AGENTS.md` | One-line pointer: role addressing is the default; `handoff.for_session` narrows to a session; `agov handoff next --session <token>` filters. |
 
 ## Not a gate
@@ -78,7 +73,8 @@ positive/negative fixture pair below is ordinary test discipline.
    my `agov handoff next <role>` (no `--session`) still lists it (role
    fallback); with my `--session` it is `addressed elsewhere`, **never
    absent**.
-4. Schema round-trip: record with/without `session`, handoff with/without
+4. **Sender is not recipient.** A legacy handoff or note emitted by session A with top-level `session=A` and no `for_session` remains role-wide for B. A handoff authored by A with `for_session=B` is addressed normally to B. No session-token filter permits mutation over another active claim.
+5. Schema round-trip: record with/without `session`, handoff with/without
    `for_session`, all valid.
 
 ## Rule-projection screen
@@ -96,14 +92,22 @@ distribution — schema + `coordination-message-rule.md` +
 ## Rollback
 
 Optional-field-additive on the schema; `--session` is opt-in on two
-commands. Revert the MR → role-only addressing, `session` back to
-audit-only wording. Absent fields = current semantics. No migration; no
+commands. Revert the MR → role-only addressing, `session` remains
+author provenance throughout. Absent fields = current semantics. No migration; no
 existing record rewritten.
 
 ## Decision requested at Gate 1
 
-Approve (a) promoting `session` to an advisory routing key and adding
-optional `handoff.for_session`, (b) the "still listed, only re-labelled"
+Approve (a) retaining `session` as author provenance and adding
+optional recipient-only `handoff.for_session`, (b) the "still listed, only re-labelled"
 filter semantics (a session-scoped item is never hidden), (c) the
 `coordination-message-rule.md` paragraph and loader pointers. Then
 coder-tester (Codex) implements; own Gate 2.
+
+## Revision evidence
+
+Codex author revision after transfer eetd/mb8k, addressing msq8 R56-E2.
+The prior review is not independent clearance of this revision. Re-review
+and Gate 1 remain pending. MCP handoff-next and visibility adapters must
+expose the same optional recipient selection and unchanged default result;
+CLI/MCP parity fixtures are part of acceptance. No new role activation.
