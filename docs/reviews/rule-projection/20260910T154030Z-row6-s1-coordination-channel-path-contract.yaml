@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+# Gate 1 projection plan: dispositions below are obligations for implementation, not completed changes.
+plan_id: 20260910T154030Z-row6-s1-coordination-channel-path-contract
+issue: 123
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+surfaces:
+  normative_owner:
+    disposition: planned update at implementation
+    stage: existing
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Depth-1 channel membership and explicit misplaced/archive-baseline coverage; no lifecycle inference.
+      The existing publication/channel rule owns the added contract. This
+      Gate 1 manifest records the intended change; it does not edit the rule.
+  adopter_facing_explanation:
+    disposition: planned update at implementation
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      Explain the new advisory behaviour, limitations and unchanged gate
+      authority alongside the channel protocol so adopter guidance matches
+      the implementing CLI and MCP surfaces.
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: docs/reference/session-resume.md
+    reason: >-
+      Existing session-resume procedure remains in force; these advisory
+      annotations and membership diagnostics do not grant mutation authority.
+      The implementation review will verify the pointer remains accurate.
+  ai_landing_loaders:
+    disposition: planned update at implementation
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      Root and adopter-template coordination sections will point to the new
+      contract. Root AGENTS.md is foundry-local; the template is shipped.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: Imports root AGENTS.md and requires no duplicate direct change.
+  validation_drift_evidence:
+    disposition: planned tests and advisory help at implementation
+    paths:
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov-coord/src/channel_reader.rs
+      - tooling/rust/crates/agov-mcp/src/main.rs
+    reason: >-
+      Implement the plan's positive and negative fixtures and CLI/MCP parity
+      checks. These paths identify existing code/test containers, not new
+      files asserted to exist. Required fixtures prove the declared boundary;
+      this manifest itself is no runtime parity test and adds no gate authority.
+  distribution:
+    disposition: existing shipped paths to update at implementation
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      These existing paths are selected by the AGF distribution manifest.
+      Root AGENTS.md, .claude/CLAUDE.md, docs/reference/session-resume.md,
+      the plan and this projection manifest are foundry-local and are not
+      claimed as adopter archive files. Rust source tests are local; CLI/MCP
+      functionality ships via separately built tooling artifacts, not by
+      pretending the Rust sources are included in the framework archive.

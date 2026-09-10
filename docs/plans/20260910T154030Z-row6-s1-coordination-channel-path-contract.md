@@ -31,7 +31,7 @@ The current visibility Git reader uses recursive paths while read_channel uses o
 
 ## Three separate outputs
 
-1. **Channel records:** Markdown files directly beneath docs/coordination, excluding the existing documented README/non-record exclusions. Both readers use this membership rule. This says where a record belongs, not whether it is valid, live, acknowledged or approved. Existing parse/validation diagnostics remain visible.
+1. **Channel records:** Files with lowercase `.md` extension directly beneath docs/coordination, with no filename-based README or non-record exclusion. Both readers use this membership rule. This says where a record belongs, not whether it is valid, live, acknowledged or approved. Existing parse/validation diagnostics remain visible.
 2. **Misplaced candidate diagnostics:** inspect Git-tracked Markdown under the full docs/coordination subtree, plus direct docs siblings whose basename starts with coordination (for example docs/coordination-typo.md), and the docs/coordination-archive subtree. This finite path scope is explicit; no whole-repository or external filesystem search. A schema-valid coordination record outside the channel is an out-of-channel candidate, not automatically a live obligation. Any requires-ack/handoff fields are shown as evidence, not reinterpreted by a second resolver. A new or changed candidate must warn, including under the archive prefix. A malformed Markdown file with recognizable coordination front matter must produce an invalid-candidate diagnostic rather than silently disappear; ordinary prose is not automatically classified as coordination.
 3. **Baseline archive inventory:** exact (path, Git blob ID) entries already present beneath docs/coordination-archive in the fetched target commit are summarized separately as existing out-of-channel archive records. Matching entries at the same path in a candidate ref do not become branch-local hidden obligations or new misplaced warnings. The summary must state that lifecycle/closure is not assessed. A path move, new file or changed bytes never qualifies through prefix alone. This baseline comparison is a noise-suppression boundary, not approval, closure proof or a general archiving mechanism. Existing potentially unresolved archived work remains a separate visible audit question, never reported as cleared.
 
@@ -39,11 +39,11 @@ Nested non-archive candidates remain misplaced even if already on target. The ar
 
 ## Implementation boundary
 
-- Shared depth-1 membership predicate for visibility and read_channel, preserving current non-record exclusions and validation errors.
+- Shared depth-1 membership predicate for visibility and read_channel, preserving current validation errors with no unsupported filename exclusion.
 - Visibility obtains a bounded candidate path inventory from Git trees and compares exact target/ref blobs; expand the pathspec beyond docs/coordination so the sibling fixture can actually be discovered. Do not infer sibling coverage from a filtered recursive channel-only query.
 - Read_channel remains the local channel reader; no remote/misplaced/archive scan is added to it. Explain that agreement covers channel membership, while visibility has additional diagnostic surfaces.
 - Report ref/SHA and the scanned scopes, archive baseline count and incomplete/error states. Keep existing exit conventions; any added diagnostic exit behaviour must use the existing advisory warning convention, documented and tested, without granting new MR-blocking authority.
-- Normative depth/membership contract in coordination-publication-rule.md; operator description in the coordination-protocol page and command reference; matching AGENTS.md and adopter-template pointers. Document unchanged archive inventory as unassessed, not cleared. Complete the six-surface projection manifest before implementation submission.
+- Normative depth/membership contract in coordination-publication-rule.md; operator description in the coordination-protocol page and command reference; matching AGENTS.md and adopter-template pointers. Document unchanged archive inventory as unassessed, not cleared. The structured six-surface manifest is included in this Gate 1 candidate at `docs/reviews/rule-projection/20260910T154030Z-row6-s1-coordination-channel-path-contract.yaml`; its dispositions are planned obligations, not completed changes.
 - CLI/MCP visibility results preserve equivalent candidate evidence and coverage; no extra database or relay authority.
 
 ## Required acceptance fixtures
@@ -54,7 +54,8 @@ Nested non-archive candidates remain misplaced even if already on target. The ar
 4. New unresolved handoff or changed record under that archive prefix: must warn. Moving a known ID to a new path or altering bytes cannot inherit baseline exemption. A baseline archive record with requires-ack is never asserted resolved merely because it is baseline content.
 5. Malformed coordination-like candidate: invalid-candidate evidence; ordinary sibling documentation does not become an obligation. Non-Markdown files are outside this scanner's declared coverage.
 6. Missing base, unreadable blob, wrong repo or incomplete ref scan: explicit incomplete result, no clean-empty claim. Test both branch-added and target-present nested candidates.
-7. CLI/MCP evidence parity; normal channel validation and prior lifecycle tests stay green. These fixtures fulfill the parent mandatory negative-test intent without authorizing a new blocking gate.
+7. README.md with ordinary prose is passed to normal validation and retains its invalid-record diagnostics; README.md with valid coordination front matter is included normally. Uppercase .MD and non-Markdown files retain the existing excluded membership. No silent prose/filename exemption is added to the direct channel.
+8. CLI/MCP evidence parity; normal channel validation and prior lifecycle tests stay green. These fixtures fulfill the parent mandatory negative-test intent without authorizing a new blocking gate.
 
 ## Validation, rollout and rollback
 
@@ -63,3 +64,9 @@ Plan validation; independent contribution/InfoSec contract review; implementatio
 ## Gate 1 decision after re-review
 
 Approve the separate membership, misplaced-candidate and unassessed-baseline surfaces, the precise search scope and blob-equality exemption, the fail-explicit coverage behaviour, and projections/fixtures. This is a revised scope requiring independent consultation; Codex's prior finding is not self-clearance. Implementation waits for the governor's decision on this corrected contract.
+
+## ssms correction round
+
+IR-1: six-surface evidence is now part of this Gate 1 candidate, before
+implementation. IR-3: removed the nonexistent filename exclusions and added
+README prose/valid-record fixtures. Independent recheck remains pending.
