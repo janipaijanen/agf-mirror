@@ -253,6 +253,29 @@ updating a plan's own metadata in the same review cycle as its approval, so
 this correction is not needed at all — it recurred three times in one session
 (2026-07-21) precisely because it was deferred.
 
+**Conversational decisions and bridge records.** When the governor delivers a
+gate or scope decision in a live session rather than as a coordination record,
+the receiving assistant transcribes it into a role `note` (a *bridge record*).
+A bridge record is **not binding authority on its own**: it must state that it
+is provisional until a `governor-reviewer` record (an `ack`, a
+`decision-record`, or a ratification decision-record) references it. Until
+that governor record exists:
+
+- a plan's `status` MAY transition to `approved` ahead of it (reversible), but
+  the transition commit cites the bridge record and notes the pending
+  confirmation;
+- **irreversible** actions — a merge to a protected branch, a tag, a forge
+  closure — wait for the governor record, **unless** the governor authorizes
+  that specific action in the same session ("merge now"), in which case that
+  authorization is itself captured in the next `governor-reviewer`
+  bridge/ratification record.
+
+A bridge record still unreferenced by any `governor-reviewer` record after the
+session is a gap; `agov coord pending` surfaces it (bridge records are
+`requires-ack: true`). Worked example:
+`docs/coordination/20260910T133145Z-governor-reviewer-q862.md` ratifies a
+session's bridge records in one append-only decision-record.
+
 ---
 
 ## Tooling quick reference
