@@ -7,123 +7,59 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      This slice changes `agov coord visibility`'s path scan and states the
-      coordination-channel path contract normatively. InfoSec must confirm
-      at Gate 1 that narrowing the scan to depth-1 `docs/coordination/*.md`
-      cannot hide a live obligation an attacker or a careless author places
-      just outside that set — the mandatory gate-self-test (a valid live
-      record at a nested path still flagged as misplaced) is the control.
-      No credential or protected-content surface.
+      Inherited marker from the original plan, not a fresh consultation
+      attestation. Exact-revision independent review remains outstanding.
+      The schema cannot express pending consultation (issue 130); do
+      not use this marker as evidence that Gate 1 prerequisites are met.
   - role: contribution-auditor
     status: consulted
     reason: >-
-      The two channel readers (`agov coord visibility` via `git ls-tree -r`
-      and `agov-coord::channel_reader::read_channel` via `std::fs::read_dir`)
-      currently disagree on what "the channel" is. This slice makes them
-      agree and writes the contract down. Contribution-auditor confirms the
-      contract is "directly under `docs/coordination/`", not "anything not
-      in the archive", and that `read_channel`'s existing behaviour is the
-      reference (no behaviour change there), and that the gate-self-test
-      proves the narrowing does not swallow a genuinely mislocated record.
+      Bounded review msq8 raised R56-E3 against the original plan.
+      Codex now authors this correction under eetd/mb8k; that review
+      does not independently clear this revision. Re-review is pending.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-# Row 6 S1 — coordination-channel path contract (Gate 1)
+# Row 6 S1 — channel membership and bounded misplaced-record discovery
 
-## Provenance
+## Provenance and scope
 
-- Parent: `docs/plans/20260910T072138Z-coordination-discovery-collision-tooling-work-order.md`
-  (v2.11 IN row 6, Gate 1 approved `tsbh` / ratified `q862`), slice **S1**.
-- Evidence: `agov coord visibility` scans **recursively**
-  (`tooling/rust/crates/agov/src/main.rs:4650`:
-  `git ls-tree -r --name-only <ref> -- docs/coordination`, plus the
-  range-diff scan), while `agov-coord::channel_reader::read_channel`
-  (`channel_reader.rs:13`: `std::fs::read_dir`) scans **one directory,
-  non-recursively**. The B4 archive at `docs/coordination-archive/` was
-  the visible instance (39 false hidden-obligation results, `3jh6`); the
-  divergence is general and still latent for any nested path.
+Parent: docs/plans/20260910T072138Z-coordination-discovery-collision-tooling-work-order.md, slice S1. This Codex author revision addresses msq8 R56-E3 after the Claude workload handoff. Gate 1 remains pending. It changes the reader contract and diagnostic coverage, not archive storage or record lifecycle.
 
-## The contract (normative, this slice writes it down)
+The current visibility Git reader uses recursive paths while read_channel uses one directory. Fix membership consistently without claiming that excluding a file proves its obligation was resolved. No move, deletion, rename, archive migration or new archive format is authorized. Any future archive product remains a separate release proposal.
 
-**"The coordination channel" is exactly the set of `*.md` files directly
-under `docs/coordination/` — non-recursive.** Nested subdirectories
-(`docs/coordination/<anything>/…`) and sibling paths
-(`docs/coordination-archive/…`, etc.) are **not** the channel. Both
-`agov coord visibility` and `agov-coord::channel_reader::read_channel`
-apply this definition identically.
+## Three separate outputs
 
-## Change
+1. **Channel records:** Markdown files directly beneath docs/coordination, excluding the existing documented README/non-record exclusions. Both readers use this membership rule. This says where a record belongs, not whether it is valid, live, acknowledged or approved. Existing parse/validation diagnostics remain visible.
+2. **Misplaced candidate diagnostics:** inspect Git-tracked Markdown under the full docs/coordination subtree, plus direct docs siblings whose basename starts with coordination (for example docs/coordination-typo.md), and the docs/coordination-archive subtree. This finite path scope is explicit; no whole-repository or external filesystem search. A schema-valid coordination record outside the channel is an out-of-channel candidate, not automatically a live obligation. Any requires-ack/handoff fields are shown as evidence, not reinterpreted by a second resolver. A new or changed candidate must warn, including under the archive prefix. A malformed Markdown file with recognizable coordination front matter must produce an invalid-candidate diagnostic rather than silently disappear; ordinary prose is not automatically classified as coordination.
+3. **Baseline archive inventory:** exact (path, Git blob ID) entries already present beneath docs/coordination-archive in the fetched target commit are summarized separately as existing out-of-channel archive records. Matching entries at the same path in a candidate ref do not become branch-local hidden obligations or new misplaced warnings. The summary must state that lifecycle/closure is not assessed. A path move, new file or changed bytes never qualifies through prefix alone. This baseline comparison is a noise-suppression boundary, not approval, closure proof or a general archiving mechanism. Existing potentially unresolved archived work remains a separate visible audit question, never reported as cleared.
 
-| File | Change |
-|---|---|
-| `tooling/rust/crates/agov/src/main.rs` (`visibility_scan` and its helpers, ~L4640-4700) | Filter the `ls-tree -r --name-only` output and the range-diff path list to entries whose path is `docs/coordination/<name>.md` with **no further `/`** after the coord-dir prefix. Non-`.md` and nested entries are dropped from the channel set — but a nested entry that parses as a **valid live coordination record** is retained on a separate "misplaced" list and surfaced as a warning (see gate-self-test). |
-| `agov-coord::channel_reader::read_channel` | **No change** — it is already the reference behaviour (depth-1, `.md` only). Add a doc-comment pointing at the contract. |
-| `agf/rules/workflow/coordination-publication-rule.md` | Add one sentence stating the path contract explicitly (it already says coordination records are append-only `docs/coordination/*.md`; make the *depth* explicit and name it the shared contract both readers honour). |
-| `AGENTS.md` "Coordination channel" section + `agf/templates/AGENTS.md` | One-line pointer: "the channel is `*.md` directly under `docs/coordination/`; nested paths and `docs/coordination-archive/` are not the channel." |
+Nested non-archive candidates remain misplaced even if already on target. The archive baseline exception is explicitly limited to unchanged inventory at the fetched target, not arbitrary nested paths. Without a resolvable target SHA or complete required blob reads, report incomplete coverage and do not claim zero misplaced/hidden records or apply baseline suppression.
 
-## Gate-self-test (mandatory — parent work order, `gate-self-test-rule`)
+## Implementation boundary
 
-The implementing MR includes and shows the output of:
+- Shared depth-1 membership predicate for visibility and read_channel, preserving current non-record exclusions and validation errors.
+- Visibility obtains a bounded candidate path inventory from Git trees and compares exact target/ref blobs; expand the pathspec beyond docs/coordination so the sibling fixture can actually be discovered. Do not infer sibling coverage from a filtered recursive channel-only query.
+- Read_channel remains the local channel reader; no remote/misplaced/archive scan is added to it. Explain that agreement covers channel membership, while visibility has additional diagnostic surfaces.
+- Report ref/SHA and the scanned scopes, archive baseline count and incomplete/error states. Keep existing exit conventions; any added diagnostic exit behaviour must use the existing advisory warning convention, documented and tested, without granting new MR-blocking authority.
+- Normative depth/membership contract in coordination-publication-rule.md; operator description in the coordination-protocol page and command reference; matching AGENTS.md and adopter-template pointers. Document unchanged archive inventory as unassessed, not cleared. Complete the six-surface projection manifest before implementation submission.
+- CLI/MCP visibility results preserve equivalent candidate evidence and coverage; no extra database or relay authority.
 
-1. **Misplaced live record still flagged.** A schema-valid, live
-   coordination record (a `handoff` with `requires-ack: true`) committed
-   at `docs/coordination/sub/20260101T000000Z-planner-architect-test.md`
-   (nested) and at `docs/coordination-typo.md` (sibling). `agov coord
-   visibility` must **still report each as a misplaced live obligation**
-   (a distinct warning line + non-zero contribution to the exit code),
-   not silently drop it. Proves the narrowing is "depth-1 is the
-   channel", not "ignore anything not top-level".
-2. **Correctly-placed record: both readers agree.** A record at
-   `docs/coordination/<ts>-<role>-<sfx>.md` is seen identically by
-   `agov coord visibility` and `read_channel` (same id, same
-   live/superseded classification).
-3. **Archive excluded, no false positive.** With the B4 archive present
-   at `docs/coordination-archive/20260909-b4/`, `agov coord visibility`
-   reports **zero** hidden obligations from it (the `3jh6` regression
-   shape), and the misplaced-record list is empty for that path.
+## Required acceptance fixtures
 
-## Not a gate
+1. Directly placed valid record: both readers agree on membership; normal validation and existing lifecycle behaviour are unchanged.
+2. Valid handoff with requires-ack at docs/coordination/sub/record.md and docs/coordination-typo.md: each produces a misplaced-candidate diagnostic, with its exact location and acknowledgement requirement. No claim of whole-repository coverage.
+3. Existing archive entry with the same target/ref path and blob: no branch-local hidden obligation or new misplaced warning, but counted in the unassessed baseline archive inventory. This replaces the original misleading requirement for an unqualified empty archive result.
+4. New unresolved handoff or changed record under that archive prefix: must warn. Moving a known ID to a new path or altering bytes cannot inherit baseline exemption. A baseline archive record with requires-ack is never asserted resolved merely because it is baseline content.
+5. Malformed coordination-like candidate: invalid-candidate evidence; ordinary sibling documentation does not become an obligation. Non-Markdown files are outside this scanner's declared coverage.
+6. Missing base, unreadable blob, wrong repo or incomplete ref scan: explicit incomplete result, no clean-empty claim. Test both branch-added and target-present nested candidates.
+7. CLI/MCP evidence parity; normal channel validation and prior lifecycle tests stay green. These fixtures fulfill the parent mandatory negative-test intent without authorizing a new blocking gate.
 
-`agov coord visibility` is advisory discovery output, not an MR-blocking
-check — but it feeds the poll contract, and S3's `collision-check` is a
-sibling. The gate-self-test above is required because the parent work
-order names it, not because `visibility` blocks a merge.
+## Validation, rollout and rollback
 
-## Rule-projection screen
+Plan validation; independent contribution/InfoSec contract review; implementation unit/integration fixtures above and required exact-head CI. No mutation of existing coordination/archive records. Revert reader/help/rule changes together to roll back; no migration is required. Do not reduce required checks or reinterpret lifecycle outcomes to make the scan pass.
 
-`docs/reviews/rule-projection/20260910T154030Z-row6-s1-coordination-channel-path-contract.yaml`
-— six rows: **normative owner** `coordination-publication-rule.md`
-(`updated`); **adopter explanation** the coordination-protocol Pages page
-(`existing pointer sufficient` — it already describes the channel;
-one-line depth note if the reviewer judges it needed); **runbook** `not
-applicable` (no procedure changes); **AI loaders** `AGENTS.md` +
-`agf/templates/AGENTS.md` (`updated`, the one-line pointer), `.claude/CLAUDE.md`
-`not applicable` (`@../AGENTS.md` import); **validation/drift** `advisory
-only` — the gate-self-test is the enforcement, no standing mechanical
-check; **distribution** `coordination-publication-rule.md` and
-`agf/templates/AGENTS.md` ship in the AGF artifact; `AGENTS.md` is
-foundry-local.
+## Gate 1 decision after re-review
 
-## Test and acceptance
-
-- Rust unit tests for the depth-1 path filter (top-level `.md` kept;
-  nested `.md` moved to misplaced list; sibling path excluded;
-  non-`.md` ignored).
-- `agov coord visibility` integration test reproducing gate-self-tests 1-3.
-- `read_channel` tests unchanged and still green (no behaviour change).
-- Exact-head contribution + InfoSec review; binding Gate 2.
-
-## Rollback
-
-Revert the MR: `visibility_scan` returns to the over-broad recursive
-scan. `read_channel` unaffected. The rule sentence and loader pointers
-revert with it. No migration.
-
-## Decision requested at Gate 1
-
-Approve (a) the path contract as stated ("depth-1 `*.md` under
-`docs/coordination/`, both readers"), (b) the misplaced-live-record
-warning behaviour (narrowing, not blanket exclusion), (c) the three
-mandatory gate-self-tests, and (d) the rule + loader projection. Then
-this slice goes to coder-tester for implementation and its own Gate 2.
+Approve the separate membership, misplaced-candidate and unassessed-baseline surfaces, the precise search scope and blob-equality exemption, the fail-explicit coverage behaviour, and projections/fixtures. This is a revised scope requiring independent consultation; Codex's prior finding is not self-clearance. Implementation waits for the governor's decision on this corrected contract.
