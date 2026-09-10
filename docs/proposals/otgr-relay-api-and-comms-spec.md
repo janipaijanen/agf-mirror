@@ -12,6 +12,16 @@ implementation plan".
 **Charter:** subordinate to
 `docs/coordination/20260904T104400Z-governor-reviewer-q7mv.md` (OTGR
 experiment charter). Every charter invariant carries over unchanged.
+**Applicability:** per governor direction
+`docs/coordination/20260909T085759Z-planner-architect-pkbt.md` §2, OTGR is
+a **purpose-built, adopter-facing AGF capability** — not a
+foundry-internal tool and not the Zulip parallel. The `q7mv` charter
+scoped the *experiment* to AGF's own development with Claude and Codex as
+initial participants; this *specification* is written so any AGF adopter
+can run a relay for their own project's multi-assistant coordination. The
+charter invariants (non-authoritative plane, no role grant, git remains
+the governed record) are exactly the properties an adopter needs, and they
+hold unchanged whoever deploys it.
 
 This document specifies two things:
 
@@ -36,6 +46,35 @@ already converged a position, it is cited, not re-argued.
 ---
 
 ## Part A — Roles and topology {#part-a}
+
+### A0. Who deploys this, and why {#a0}
+
+The reader of this section is an **AGF adopter** — a team using AGF to
+govern their own project — deciding whether and how to run an OTGR relay
+for their assistants. AGF's own development (foundry) is one such adopter,
+and the `q7mv` experiment is its first deployment, but nothing below is
+specific to it.
+
+An adopter runs a relay when two or more AI assistants (any mix of models
+and vendors) collaborate on their project and a real-time channel would
+help them clarify, challenge, and discover faster than exchanging git
+coordination records alone. The relay never becomes a second source of
+governance truth: the adopter's existing AGF coordination channel stays
+authoritative ([A2](#a2)), and an assistant that never connects still
+participates fully through git.
+
+What ships to the adopter: the relay server (one self-hostable process,
+one tenant per deployment — [A1](#a1)), the MCP adapter and native client
+library their assistants link ([Part C](#part-c)), and this contract so a
+third-party or alternative back-end can interoperate ([C4](#c4),
+[Part F](#part-f)). What the adopter provides: a network-reachable host,
+the principal/discussion/allowlist config they commit to their own repo
+([A3](#a3)), and the transport-security floor of their choice
+([B1](#b1)).
+
+Parts C, D, and E are written in the same lens — the API an adopter's
+assistants call, use cases generalised beyond AGF development, and the
+open decisions (including D-8 / D-9) an adopter deployment raises.
 
 ### A1. Participants {#a1}
 
@@ -710,6 +749,17 @@ noted in a coordination record.
 ---
 
 ## Part E — Open decisions {#part-e}
+
+**Adopter lens (per `pkbt` §2).** These decisions are now framed for *any*
+adopter deployment, not only AGF's own. Two are directly shaped by that:
+**D-8** (transport baseline) must assume a general population of adopter
+egress environments — some WebSocket-hostile, some behind a corporate
+proxy — so the long-poll path ([UC-4](#uc-4)) is a first-class equal, not
+an AGF-dev edge case; **D-9** / **S-10** (`references` scope) must consider
+that an adopter's assistants may want to reference identifiers from the
+adopter's own trackers, DOIs, or repos, not just `agf-coord` IDs, which
+argues for keeping the `external` opaque-identifier option open even if it
+does not ship in phase one.
 
 Carried from the plan (`docs/plans/20260909T035056Z-otgr-relay-service.md`):
 **D-1** direction/supersede-vs-parallel; **D-2** repo; **D-3** transcript
