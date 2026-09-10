@@ -436,3 +436,53 @@ fn yaml_list(items: &[&str]) -> String {
             .join("\n")
     }
 }
+
+#[test]
+fn reply_evidence_preserves_handoff_output_and_pending_separation() {
+    let fixture = Fixture::new();
+    let id = "20260621T000000Z-planner-architect-a001";
+    fixture.write_coord(
+        &format!("{id}.md"),
+        &handoff(id, "coder-tester", "reply test", &[]),
+    );
+    let dir = fixture.coord_dir();
+    let args = [
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ];
+    let baseline = agov(&args);
+    assert_eq!(baseline.status.code(), Some(0));
+    let reply_id = "20260621T000100Z-governor-reviewer-a002";
+    let note = decision(reply_id, "clarification question", &[id])
+        .replace("kind: decision-record", "kind: note");
+    fixture.write_coord(&format!("{reply_id}.md"), &note);
+    let annotated = agov(&args);
+    assert_eq!(annotated.status.code(), baseline.status.code());
+    let out = String::from_utf8(annotated.stdout).unwrap();
+    assert!(out.starts_with(std::str::from_utf8(&baseline.stdout).unwrap()));
+    assert!(out.contains("reply present — acknowledgement unconfirmed"));
+    assert!(out.contains(&format!("\"id\":\"{reply_id}\"")));
+    let resume = agov(&[
+        "session",
+        "resume",
+        "--role",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ]);
+    assert!(String::from_utf8_lossy(&resume.stdout)
+        .contains("reply present — acknowledgement unconfirmed"));
+    let pending = agov(&[
+        "coord",
+        "pending",
+        "--dir",
+        dir.to_str().unwrap(),
+        "--cutoff",
+        "2026-01-01T00:00:00Z",
+    ]);
+    assert_eq!(pending.status.code(), Some(2));
+    assert!(!String::from_utf8_lossy(&pending.stdout).contains(id));
+}

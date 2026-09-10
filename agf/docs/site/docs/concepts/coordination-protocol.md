@@ -386,3 +386,5 @@ handoffs passing approved plans to implementation.
 - [Poll and coordinate](../operate/poll-and-coordinate.md) — the operating
   loop that puts this protocol into practice, including where
   coordination-only publication fits in one cycle
+
+Handoff reply annotations are advisory evidence with unchanged lifecycle and gate authority. See [the command reference](../../reference/tooling-conformance.md#unresolved-handoff-reply-evidence) for the predicate and CLI/MCP representation.

@@ -97,3 +97,24 @@ implementations may be useful experiments, but they are not AGF-compatible for
 a claimed version until they pass the conformance suite for that version.
 
 The contract source lives in `agf/docs/contracts/tooling-conformance.md`.
+
+### Unresolved handoff reply evidence
+
+`handoff next` and both `session resume` views can show
+`reply present — acknowledgement unconfirmed` followed by `reply_evidence:`,
+a JSON array of objects with `id` and `from` strings. The same text is returned
+unchanged in MCP `structuredContent.stdout`; the execution envelope is unchanged.
+The line is omitted when no qualifying evidence exists.
+
+Evidence is a strictly later, valid `note` or `review` directly naming the handoff
+in structured `references-to`, from its `handoff.next_agent` role or the
+governor-reviewer role. Timestamp ties, indirect links and prose references do
+not qualify. Role text is not authenticated identity. A progress report, question
+or refusal can qualify: this annotation does not mean answered, approved or
+complete. It changes no queue membership, ordering, status or exit code.
+
+The existing resolver still clears handoffs when a later ack, completion or
+decision-record appears in their transitive descendant graph. Reply evidence
+applies only to handoffs that resolver leaves unresolved. `coord pending`
+continues to exclude handoffs. This is advisory tooling evidence under the
+existing coordination publication contract, not a new gate or lifecycle rule.
