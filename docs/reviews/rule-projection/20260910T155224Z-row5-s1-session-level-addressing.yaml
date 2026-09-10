@@ -1,21 +1,20 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
 # Copyright (c) 2026 Jani Päijänen
-# Gate 1 projection plan: dispositions below are obligations for implementation, not completed changes.
+# Implementation projection evidence for approved Gate 1 scope.
 plan_id: 20260910T155224Z-row5-s1-session-level-addressing
 issue: 121
 changed_pages_or_runbooks:
   - agf/docs/site/docs/concepts/coordination-protocol.md
 surfaces:
   normative_owner:
-    disposition: planned update at implementation
+    disposition: updated
     stage: existing
     path: agf/rules/workflow/coordination-publication-rule.md
     reason: >-
       Recipient-only handoff routing; sender provenance and existing order/state stay unchanged.
-      The existing publication/channel rule owns the added contract. This
-      Gate 1 manifest records the intended change; it does not edit the rule.
+      The existing publication/channel rule owns the added contract. The existing owner now defines the bounded advisory contract.
   adopter_facing_explanation:
-    disposition: planned update at implementation
+    disposition: updated
     path: agf/docs/site/docs/concepts/coordination-protocol.md
     reason: >-
       Explain the new advisory behaviour, limitations and unchanged gate
@@ -27,9 +26,9 @@ surfaces:
     reason: >-
       Existing session-resume procedure remains in force; these advisory
       annotations and membership diagnostics do not grant mutation authority.
-      The implementation review will verify the pointer remains accurate.
+      The existing pointer remains accurate.
   ai_landing_loaders:
-    disposition: planned update at implementation
+    disposition: updated
     paths:
       - AGENTS.md
       - agf/templates/AGENTS.md
@@ -40,7 +39,7 @@ surfaces:
       - path: .claude/CLAUDE.md
         reason: Imports root AGENTS.md and requires no duplicate direct change.
   validation_drift_evidence:
-    disposition: planned tests and advisory help at implementation
+    disposition: implemented
     paths:
       - tooling/rust/crates/agov/src/main.rs
       - tooling/rust/crates/agov-coord/src/channel_reader.rs
@@ -51,7 +50,7 @@ surfaces:
       files asserted to exist. Required fixtures prove the declared boundary;
       this manifest itself is no runtime parity test and adds no gate authority.
   distribution:
-    disposition: existing shipped paths to update at implementation
+    disposition: existing shipped paths
     paths:
       - agf/rules/workflow/coordination-publication-rule.md
       - agf/docs/site/docs/concepts/coordination-protocol.md

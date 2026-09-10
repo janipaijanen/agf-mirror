@@ -233,3 +233,5 @@ checkout; do not bypass the check for routine governed work.
   never comes
 
 <!-- CUSTOMIZE: add any project-specific prohibitions -->
+
+Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.

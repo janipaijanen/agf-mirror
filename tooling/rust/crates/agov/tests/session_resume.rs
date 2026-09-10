@@ -436,3 +436,41 @@ fn yaml_list(items: &[&str]) -> String {
             .join("\n")
     }
 }
+
+#[test]
+fn recipient_session_annotation_never_changes_selection_or_status() {
+    let fixture = Fixture::new();
+    let id = "20260621T000000Z-planner-architect-a001";
+    let dir = fixture.coord_dir();
+    let base = handoff(id, "coder-tester", "session test", &[])
+        .replace("status: ready", "status: blocked");
+    fixture.write_coord(&format!("{id}.md"), &base);
+    let args = [
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ];
+    let baseline = agov(&args);
+    assert_eq!(baseline.status.code(), Some(0));
+    let mut scoped_args = args.to_vec();
+    scoped_args.extend(["--session", "recipient-B"]);
+    assert_eq!(agov(&scoped_args).stdout, baseline.stdout);
+    fixture.write_coord(
+        &format!("{id}.md"),
+        &base.replace(
+            "handoff:",
+            "session: author-A\nhandoff:\n  for_session: recipient-B",
+        ),
+    );
+    assert_eq!(agov(&args).stdout, baseline.stdout);
+    assert_eq!(agov(&scoped_args).stdout, baseline.stdout);
+    *scoped_args.last_mut().unwrap() = "author-A";
+    let elsewhere = agov(&scoped_args);
+    assert_eq!(elsewhere.status.code(), baseline.status.code());
+    let text = String::from_utf8(elsewhere.stdout).unwrap();
+    assert!(text.starts_with(std::str::from_utf8(&baseline.stdout).unwrap()));
+    assert!(text.contains("Status:      blocked"));
+    assert!(text.contains("Addressed elsewhere: recipient-B"));
+}
