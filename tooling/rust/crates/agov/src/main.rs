@@ -4401,7 +4401,7 @@ fn visibility_scan(
     coord_dir: &str,
 ) -> Result<VisibilityReport, String> {
     let effective_base = resolve_effective_base(base_branch)
-        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
+        .map_err(|reason| format!("base_branch_unavailable: {base_branch}: {reason}"))?;
 
     let base_inventory = git_candidate_inventory(&effective_base.oid, coord_dir)?;
     let mut diagnostics = Vec::new();
@@ -4533,8 +4533,7 @@ fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
         "for-each-ref",
         "--format=%(upstream:short)",
         &format!("refs/heads/{base_branch}"),
-    ])
-    .unwrap_or_default();
+    ])?;
     let upstream_short = upstream_short.trim();
 
     if upstream_short.is_empty() {
@@ -4549,12 +4548,7 @@ fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
         "--verify",
         &format!("{upstream_short}^{{commit}}"),
     ]) else {
-        // Upstream configured but unresolvable (e.g. not fetched yet) --
-        // fall back to local, unchanged behavior.
-        return Ok(EffectiveBase {
-            oid: local_oid,
-            source: "local",
-        });
+        return Err(format!("configured upstream unavailable: {upstream_short}; fetch the target before applying archive baseline suppression"));
     };
     let upstream_oid = upstream_oid.trim().to_string();
 
@@ -4753,7 +4747,21 @@ fn load_visibility_snapshot(
         &agov_core::schema_dir().join("coordination-message.schema.json"),
     )
     .map_err(|err| format!("incomplete coverage: channel schema unavailable: {err}"))?;
-    let files: Vec<_> = inventory.keys().cloned().collect();
+    // Base channel entries are already validated/reported. Reusing exact
+    // path/blob identity avoids repeating baseline invalid-record diagnostics
+    // for every branch, while changed bytes and new paths are still inspected.
+    let files: Vec<_> = inventory
+        .iter()
+        .filter(|(path, blob)| {
+            is_base
+                || !agov_coord::channel_reader::is_channel_path(
+                    Path::new(path),
+                    Path::new(coord_dir),
+                )
+                || base.get(*path) != Some(*blob)
+        })
+        .map(|(path, _)| path.clone())
+        .collect();
     let mut messages = Vec::new();
     for (file, content) in git_cat_file_batch(oid, &files)? {
         let content =

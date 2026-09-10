@@ -1483,3 +1483,35 @@ fn missing_schema_is_incomplete_coverage_not_invalid_record_inventory() {
     assert!(String::from_utf8_lossy(&out.stderr).contains("coverage incomplete"));
     assert!(!String::from_utf8_lossy(&out.stdout).contains("clean"));
 }
+
+#[test]
+fn configured_unavailable_upstream_never_suppresses_local_archive() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination-archive/old.md",
+        &handoff(100, "governor-reviewer", "unassessed local archive"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "local archive"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&[
+        "remote",
+        "add",
+        "origin",
+        "file:///nonexistent-parity-remote",
+    ]);
+    repo.git(&["config", "branch.main.remote", "origin"]);
+    repo.git(&["config", "branch.main.merge", "refs/heads/main"]);
+    let out = repo.agov(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--format",
+        "json",
+    ]);
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("configured upstream unavailable"));
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("archive_baseline"));
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("clean"));
+}

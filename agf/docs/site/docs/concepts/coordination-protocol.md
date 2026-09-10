@@ -389,7 +389,7 @@ handoffs passing approved plans to implementation.
 
 ### Channel paths and archive evidence
 
-Channel membership is direct lowercase Markdown under `docs/coordination`, without README exemptions. Visibility has a separate bounded misplaced-candidate scan and an exact-target archive inventory whose lifecycle is **unassessed**. Exclusion from the channel never establishes closure. See [visibility scope and output](../../reference/tooling-conformance.md#coordination-visibility-scope) and the [coordination publication rule](../../../../rules/workflow/coordination-publication-rule.md).
+Channel membership is direct lowercase Markdown under `docs/coordination`, without README exemptions. Visibility has a separate bounded misplaced-candidate scan and an exact-target archive inventory whose lifecycle is **unassessed**. Exclusion from the channel never establishes closure. See [visibility scope and output](../../reference/tooling-conformance.md#coordination-visibility-scope) and the [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md).
 
 #### Migrating visibility consumers
 
