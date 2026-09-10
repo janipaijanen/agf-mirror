@@ -252,3 +252,172 @@ of the close. Re-observe MR
 state immediately before mutation; any new commit, unresolved discussion, or
 record-content mismatch removes that MR from the close set and returns it for
 review.
+
+## 2026-09-10 refresh — QC-1 remaining open-MR dispositioning
+
+**Authority.** Governor decision 2026-09-10 ("Vacuum MRs into this release")
+bridged by `docs/coordination/20260910T061534Z-planner-architect-k8bh`, which
+(a) added a v2.11 release-cut precondition that every disposition-eligible
+open MR carry a governor-recorded terminal disposition, (b) re-sequenced the
+queue-closeout work order (`20260909T195116Z`) to run concurrent with the RUW
+drive, and (c) approved the 62-MR triage digest this section formalises. This
+is decomposition item **QC-1** of that work order: ledger rows for every
+remaining open MR. It writes ledger rows only — no forge mutation. Each
+disposition then executes per the work order's "Per-disposition execution
+rules" and "Batch mechanism"; `merge-now` / `ship-in` items are never batched
+and take their own gate.
+
+**Re-observed** against `main` at `76c095fb` on 2026-09-10: **59 open MRs**
+(after !2643/!2644/!2646/!2656 merged). Five IIDs (!459, !654, !745, !800,
+!810) already carry historical "Refresh candidate" rows above; the rows below
+**supersede** those with the current disposition and state the change
+explicitly. B4-excluded !2409/!2410/!2452 are dispositioned `merge-now` here
+(publish their coordination records through the normal path rather than
+archive-close). !2460 is the `6sj1` semantic-data carve-out.
+
+Disposition tally (revised per `gsat` QC1-E1 and `qsmq` QC1-E2): `ship-in` 5 ·
+`merge-now` 20 · `close-superseded` 5 · `park-radar` 20 ·
+`awaiting-governor` 9. Total 59. (`close-invalid` not used — no row has
+premise-falsifying evidence.)
+
+| MR | Class | Disposition and closure condition |
+|---|---|---|
+| !2636 | CP-B-1 implementation (`feat`) | **ship-in** (v2.11). Active workstream; hard v2.11 precondition. Folds in the !2644 copy-clarification (rule sentence + byte-identity detector + 4 gate-self-tests), then its own exact-head contribution/InfoSec/build reviews + Gate 2. Not batched. |
+| !2027 | Gate 1 plan (coordination priority + material challenge, CP-A / `mbg6` lane) | **ship-in** (v2.11). Active IN workstream. Proceeds through its own Gate 1 (or folds into the CP-A coordination-semantics Gate 1 plan); not closed here. |
+| !2587 | Gate 1 plan (OTGR relay service) | **ship-in** (v2.11). Adopter-facing OTGR workstream per governor ("purpose-built … AGF by adopters"). Own Gate 1. |
+| !2592 | Proposal (OTGR relay API/comms spec v0.1) | **ship-in** (v2.11). Adopter-facing reframe owed per `pkbt` before Gate 1; kept open as the OTGR spec carrier. |
+| !2593 | Coordination (OTGR spec routing) | **ship-in** support. `coordination:` MR — publishes independently; reconcile with `6n4q` / !2596 first. |
+| !2651 | Learning + routing (`qvzj` docs-estate gap; steward directive) | **merge-now**. Own Gate 2; not batched. |
+| !2655 | Coordination (non-author review of Codex `rejw`) | **merge-now**. `coordination:` fast-path. |
+| !2652 | Coordination (role-handshake ack; Codex lane) | **merge-now**. `coordination:` fast-path. |
+| !2653 | Learning (poll discovery vs obligation completion — `rejw`/`wbgq`) | **merge-now**. Reviewed CLEAR (`mp2e`/`dst6`). Own Gate 2. |
+| !2654 | Coordination (review of docs-estate learning + routing) | **merge-now**. `coordination:` fast-path. |
+| !2582 | Coordination (handled-MR learning ready for Gate 2) | **merge-now** or archive-close if fully carried by !2574; successor check. |
+| !2574 | Learning (handled-MR queue regrowth) | **merge-now**. Own Gate 2. |
+| !2368 | Learning (verify proposed fixes with a controlled test) | **merge-now**. Own Gate 2. |
+| !2394 | Learning (coordination work-order gaps) | **merge-now**. Own Gate 2. |
+| !2455 | Learning re-append (`m969` + `rp7x` from closed !739/!776) | **merge-now**. Append-only path; own Gate 2. |
+| !2452 | Coordination (B4 stale-MR disposition executed) | **merge-now**. Records completed B4 work; publish through the normal path (B4-excluded from archive-close). |
+| !2412 | Learning (non-reentrant polling) | **merge-now**, unless review finds it fully duplicated by !2653/!2574 → then `close-superseded` naming the successor. |
+| !2596 | Coordination (OTGR review invite; Propeller ack) | **merge-now** after reconcile with !2593 / `6n4q`. `coordination:` fast-path. |
+| !2590 | Coordination (route OTGR plan CI failure) | **merge-now**, or `close-superseded` if the CI failure it routes is already resolved on `main`. |
+| !2410 | Coordination (redirect Batch 34 to release-first queue) | **merge-now**, or `close-superseded` if the redirect is spent. `coordination:` fast-path. |
+| !2437 | Coordination (triage digest of 4 stale Gate-1 plan MRs) | **merge-now** as historical, or `close-superseded` by this QC-1 section (which subsumes it). Successor = this ledger section. |
+| !2409 | Coordination (consolidate 10 unmerged session records) | **merge-now**. Publish the session records through the normal path. |
+| !1444 | Plan housekeeping (mark baseline-pinned DD plan ABANDONED) | **merge-now**. One-line status doc; own Gate 2. |
+| !1492 | Plan (publish v2.6.0 coordination-reliability release) | **close-superseded**. Release line is at v2.11; no v2.6.0 cut will occur. Closing note names the v2.11 scope plan. |
+| !1657 | Plan (v2.6.1 release-only correction of failed v2.6.0) | **close-superseded**. Same reason; the failed-v2.6.0 correction path is moot. |
+| !1617 | Plan (open-MR hygiene disposition, issue #110) | **close-superseded** by `j4rg` queue-convergence + `20260909T195116Z` queue-closeout work order + this QC-1 section. Verify no unique content first. |
+| !2375 | Docs (OTGR Zulip-adapter spec) | **close-superseded**. Governor dropped the Zulip parallel; OTGR is purpose-built. Closing note names the OTGR relay plan (!2587) / spec (!2592). |
+| !1446 | Docs (second Grok run, v2.5.0-pinned) | **merge-now** (revised per `gsat` QC1-E1: no named successor DD artifact on `main`, so not `close-superseded`). It is a dated, fact-checked evidence dossier; merging preserves it in-tree as historical evidence. Own Gate 2. |
+| !973 | Docs (post-v2.5.0 regulatory re-assessment TODO) | **park-radar** — governor chose `park-radar` over `reconstruct` (2026-09-10, "proceed as proposed" on `pnmm`'s recommendation: no committed intent to run the reassessment, so the lighter option). **Carrier:** the retained regulatory-reassessment contract in Codex MR !2670 (`docs/proposals/reconstruct/973-regulatory-reassessment.md`, source SHA-256 independently verified in `pnmm`) — linked from one `docs/radar.md` entry "regulatory / AI-governance requirements landscape re-assessment" with a `review-by` set at QC-4. **MR !2670 must merge to `main` before !973 closes.** The source TODO names role owners (per `pnmm`), so it is un-sponsored, not un-owned; `close-invalid` is not used (`qsmq` QC1-E2). |
+| !965 | Docs (Internet landscape scan TODO) | **park-radar** — governor confirmed (2026-09-10, "proceed as proposed" on `pnmm`). **Carrier:** the retained ecosystem-landscape contract in Codex MR !2670 (`docs/proposals/radar/965-ecosystem-landscape.md`, source SHA-256 verified in `pnmm`) — linked from one `docs/radar.md` entry "periodic internet / AI-ecosystem landscape scan" with a `review-by` set at QC-4. **MR !2670 must merge to `main` before !965 closes.** Source TODO names role owners (`pnmm`) — un-sponsored, not un-owned. |
+| !1691 | Docs (external simulated due-diligence, Aug) | **merge-now** (revised per `gsat`: no named later DD artifact on `main` identified). It is a dated external-DD evidence artifact; merging preserves it in-tree. Own Gate 2. |
+| !952 | Docs (governance-signal gaming radar TODO) | **close-superseded** by !954 (the actual radar entry). Closing note names !954. |
+| !459 | Plan + measurement evidence (#53 latency) | **park-radar** (supersedes the historical "Refresh candidate" row). Preserve any normalized data; keep #53 open with `radar` label + `review-by`. |
+| !745 | Gate 1 plan (issue-board workflow #75) | **awaiting-governor** (revised per `gsat`: "stale since Aug" is age, not evidence). Named anchor: **issue #75 is open** with no Gate 1 on this plan and no sponsor. Governor-only question: *defer #75 to a later milestone, reassign the plan, or close #75?* |
+| !800 | Draft proposal (coordination timeline visualizer) | **park-radar** (supersedes historical row). Unsponsored draft; `radar/` record, close. |
+| !810 | Docs (longitudinal CI cost/latency assessment) | **park-radar** (supersedes historical row). Preserve causal-limits evidence; fold the #53 question into radar. |
+| !918 | Plan (classify AgentCouch live-transport radar, #99) | **park-radar**. Classification belongs on radar; `radar/` record, close, keep #99. |
+| !923 | Proposal (test expectation-signals foundation, #100) | **park-radar**. Unsponsored; `radar/` record, keep #100 open with `review-by`. |
+| !954 | Docs (governance-signal gaming radar entry) | **park-radar** — this is the radar entry itself; land it via the research-maintenance fast path (`docs/radar.md` only) or close with the question retained on radar. |
+| !967 | Docs (AI regulation/governance gap analysis) | **park-radar**. Fold into radar with a `review-by`; no v2.11 scope. |
+| !998 | Plan (audit learning-record field enforcement) | **park-radar**. Keep the audit question on radar; `radar/` record, close. |
+| !1000 | Docs (deferred LLIS learning candidates) | **park-radar**. Candidate list belongs on radar; close with retention. |
+| !1061 | Docs (classify Swatch; defer palette audit) | **park-radar**. Classification + deferred audit → radar; close. |
+| !1451 | Plan (queue deferred strategic candidate comparison) | **park-radar**. Explicitly deferred work; keep the trigger on radar, close. |
+| !1527 | Docs (classify Airbnb eval-driven dev guide) | **park-radar**. Source classification → radar/sources fast path or close with retention. |
+| !1659 | Docs (classify Kungfu durable-work prior art) | **park-radar**. Same; radar/sources. |
+| !1718 | Learning (operational-debt backlog gap; SLO response) | **park-radar**. The proposed collaborative SLO response needs a sponsor; keep the question on radar with `review-by`. |
+| !1722 | Learning (supply-chain signing/SBOM gap) | **park-radar**. Security-relevant but no v2.11 scope; radar with `review-by`; revisit at the deprecation/​supply-chain review. |
+| !2275 | Plan (calm explanatory-visual system revision) | **awaiting-governor** (revised per `gsat`). Named anchor: the plan carries an **`s8ks` review (V1-V3)** but no Gate 1 decision. Governor-only question: *approve, defer, or close the calm-visual-system plan?* |
+| !2306 | Docs (classify AgentConnect operator plane) | **park-radar**. radar/sources. |
+| !2390 | Docs (classify Batch 33 sources) | **park-radar** via the `docs/sources.md` research-maintenance fast path (its own eligible MR), else close with retention. |
+| !2408 | Docs (classify Batch 34 sources) | **park-radar** — !2410 already redirected Batch 34 to the release-first queue; land via the sources fast path post-cut or close with the batch retained on radar. |
+| !2460 | Proposal (record-evidence + linked-data cluster for RUW: role-map, PROV-O, SKOS) | **awaiting-governor** — **hard `6sj1` carve-out**. Governor-only question: *does v2.11 (or a later release) pursue any semantic/linked-data evidence model, and if so under what scope?* No closure, analysis, carrier, or reconstruction without a fresh governor decision. Label `awaiting-governor`. |
+| !1723 | Plan (commercial-licensing Gate 1 recovery, `ngmj` CL-1..CL-7) | **awaiting-governor**. Legal/licensing-sensitive. Governor-only question: *is commercial-licensing Gate 1 recovery in v2.11 scope, deferred, or closed?* Label `awaiting-governor`. |
+| !1750 | Plan (CL-4 immutable corpus binding Gate 1) | **awaiting-governor**. Ties !1723; same governor-only question. Label `awaiting-governor`. |
+| !915 | Proposal (frozen-release two-AI AGF evaluation) | **awaiting-governor**. External-review programme decision. Governor-only question: *proceed with a frozen-release two-AI external evaluation, and on which tag?* Label `awaiting-governor` + `external-review`. |
+| !654 | Gate 1 plan (claude-rules canonicalization) | **awaiting-governor** (supersedes the historical "supersession audit" row). Collides with !2038 on `AGENTS.md` / loader layout. Governor-only question: *which of {!654 rules-canonicalization, !2038 stale-branch rule} owns the loader/rules-layout change, and in what order?* Label `awaiting-governor`. |
+| !2038 | Gate 1 plan (stale worktree + branch pruning rule) | **awaiting-governor**. Same collision pair as !654; same governor-only question. Label `awaiting-governor`. |
+| !1817 | Gate 1 plan (unassigned-work-discovery-rule) | **awaiting-governor**. Named as a `stage: planned` normative owner by a shipped rule (`documentation-rule-projection-rule`), so it cannot be freely parked. Governor-only question: *approve, defer, or reassign the planned owner?* Label `awaiting-governor`. |
+
+### QC-1 execution routing (per the work order's per-disposition rules)
+
+- **`ship-in` (5):** no ledger closure. Tracked as v2.11 IN workstreams in
+  `20260909T021841Z-v211-release-scope`; each merges at its own Gate 2.
+- **`merge-now` (20):** never batched. Each takes its own exact-head review +
+  current gate + Gate 2. `coordination:`-titled ones use the publication
+  fast path. This ledger row is not authorization to merge. Includes the
+  two dated evidence dossiers !1446 and !1691 (merged in-tree, no named
+  successor on `main`).
+- **`close-superseded` (5):** !1492, !1657, !1617, !2375, !952. QC-4
+  batch-eligible. Before each close, a successor-on-`main` check; the
+  closing note names the successor (the first four are digest-staged in
+  `gj1e`).
+- **`park-radar` (20):** for each, add the `radar` label, a `review-by`
+  date, and a trigger to the issue where one exists; where the content is a
+  `docs/radar.md` / `docs/sources.md` entry, prefer landing it through the
+  research-maintenance fast path. Then close the MR with a `radar/` record.
+  QC-4 batch-eligible once each radar destination exists.
+- **`awaiting-governor` (9):** keep open, add the `awaiting-governor` label,
+  leave the governor-only question in the row above. Not batch-eligible; not
+  counted against the §3c intake bound for the advisory board-size check.
+
+(Routing counts above reconcile to the revised tally: `ship-in` 5 ·
+`merge-now` 20 · `close-superseded` 5 · `park-radar` 20 ·
+`awaiting-governor` 9 = 59.)
+
+### QC-1 disposition evidence (response to `6pms` QC1-E1)
+
+Codex review `20260910T130819Z-contribution-auditor-6pms` (QC1-E1): some
+rows above rest on **age** or an **unnamed successor**, and "age is not
+evidence" under the work order's "each row cites named evidence" bar.
+Correction:
+
+- **Each current row cites named evidence** (the work order bar; age is not
+  evidence). The earlier draft of this section reinterpreted that as "the
+  verb now, evidence at QC-4" — that reinterpretation was a governance
+  relaxation and is **withdrawn** (`sjnk`). QC-4's independent
+  pre-execution revalidation, per-item digest, and fail-closed
+  `awaiting-governor` conversion remain as **additional** safeguards, not a
+  substitute for row-level evidence. `close-superseded` named-successor
+  evidence for the four successor-on-`main` MRs (!1492, !1657, !1617,
+  !2375) is staged with per-item digests in
+  `docs/coordination/20260910T083233Z-planner-architect-gj1e.md`.
+- **`park-radar` destinations are concrete, not "somewhere on radar":**
+  the **radar-question** sub-class (!459, !745, !800, !810, !918, !923,
+  !967, !998, !1000, !1451, !1718, !1722, !2275) lands its retained
+  question in `docs/radar.md` with a `review-by` date set at QC-4
+  execution; the **source-classification** sub-class (!954, !1061, !1527,
+  !1659, !2306, !2390, !2408) lands via the `docs/sources.md` /
+  `docs/radar.md` research-maintenance fast path (each its own eligible
+  MR). No source MR closes until its destination entry is on `main`.
+- **Age-only / unnamed-successor rows corrected in place** (`gsat`
+  QC1-E1, not deferred to QC-4): !1446 and !1691 → `merge-now` (dated
+  evidence dossiers, no named successor on `main`, preserved in-tree);
+  !973 and !965 → `park-radar` (legitimate unactioned questions, no
+  premise-falsifying evidence for `close-invalid`; each retained as one
+  `docs/radar.md` entry);
+  !745 → `awaiting-governor` (anchor: open issue #75); !2275 →
+  `awaiting-governor` (anchor: the `s8ks` review, no Gate 1). Age is no
+  longer cited as evidence in any terminal row.
+- **Any row that cannot produce its named-evidence artifact at QC-4
+  execution converts to `awaiting-governor`** with the exact question, and
+  is dropped from that batch — it is never closed on a weak basis.
+
+### QC-1 completeness
+
+Every one of the 59 MRs open against `main` at `76c095fb` on 2026-09-10 has a
+row above. 58 carry a terminal disposition verb; !2460 is the `6sj1`
+carve-out and carries `awaiting-governor` with its governor-only question,
+which satisfies the k8bh release-cut precondition ("carries a recorded
+disposition"). A fresh live query immediately before any QC-4 execution batch
+re-confirms state and drops changed items. **POLL-G1 (`6pms`) — resolved:**
+the `k8bh` / `tsbh` bridge records were planner-architect transcriptions of
+in-session governor decisions; per AGENTS.md gate discipline they are not
+themselves governor-reviewer records. Governor decision-record
+`docs/coordination/20260910T133145Z-governor-reviewer-q862.md` (on `main`
+via MR !2665) ratifies those bridge records, supplying the durable
+governor authority `6pms` asked for. This ledger's re-sequencing and
+hygiene-precondition authority rests on `q862`.
