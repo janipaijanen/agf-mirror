@@ -124,3 +124,18 @@ unchanged. No independent clearance claimed by this author correction.
 ## Gate 1 approval recorded
 
 Governor decision `20260910T190854Z-governor-reviewer-kr4b` approves the corrected scope following independent recheck `6r12`, with its disclosed advisory limits. Earlier pending-review language above is historical; this approval authorizes implementation, while exact-head implementation review and Gate 2 remain required. Decision published in MR !2678.
+
+## Implementation impact assessment
+
+This records the downstream impact of the approved scope without expanding it.
+
+```text
+Impact:
+  Foundry: No default output, queue order, state or exit-code change; explicit session callers see mismatched recipients.
+  Direct adopters: ADDITIVE — optional handoff.for_session and session query flags; top-level session remains author provenance.
+  Downstream: Adopter-authored handoffs may add the optional recipient field; notes/reviews and authority remain unchanged.
+  Migration: None required; omitted fields/flags preserve existing behavior.
+  Evidence: Approved S1 contract; baseline/matching/mismatched CLI and real MCP fixtures.
+```
+
+Adopter docs parity: updated — coordination-protocol guidance and the applicable command reference/template projections explain the advisory behavior.

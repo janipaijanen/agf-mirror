@@ -474,3 +474,53 @@ fn recipient_session_annotation_never_changes_selection_or_status() {
     assert!(text.contains("Status:      blocked"));
     assert!(text.contains("Addressed elsewhere: recipient-B"));
 }
+
+#[test]
+fn mixed_session_queue_keeps_newest_blocked_handoff_for_every_session() {
+    let fixture = Fixture::new();
+    let dir = fixture.coord_dir();
+    for (id, session, status) in [
+        ("20260621T000000Z-planner-architect-a001", None, "ready"),
+        (
+            "20260621T000100Z-planner-architect-a002",
+            Some("recipient-B"),
+            "ready",
+        ),
+        (
+            "20260621T000200Z-planner-architect-a003",
+            Some("recipient-C"),
+            "blocked",
+        ),
+    ] {
+        let mut content = handoff(id, "coder-tester", "mixed session queue", &[])
+            .replace("status: ready", &format!("status: {status}"));
+        if let Some(session) = session {
+            content = content.replace("handoff:", &format!("handoff:\n  for_session: {session}"));
+        }
+        fixture.write_coord(&format!("{id}.md"), &content);
+    }
+    let args = [
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ];
+    let base = agov(&args);
+    assert_eq!(base.status.code(), Some(0));
+    let baseline = String::from_utf8(base.stdout).unwrap();
+    assert!(baseline.contains("a003.md"));
+    assert!(baseline.contains("Status:      blocked"));
+    for session in ["recipient-B", "recipient-C", "unassigned"] {
+        let mut scoped = args.to_vec();
+        scoped.extend(["--session", session]);
+        let out = agov(&scoped);
+        assert_eq!(out.status.code(), Some(0));
+        let out = String::from_utf8(out.stdout).unwrap();
+        assert!(out.starts_with(&baseline));
+        assert_eq!(
+            out.contains("Addressed elsewhere"),
+            session != "recipient-C"
+        );
+    }
+}

@@ -123,6 +123,8 @@ apply per task type.
 
 ## Coordination channel
 
+Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.
+
 All inter-agent communication is recorded in `docs/coordination/` as immutable
 Markdown files. Use the AGF tooling to generate IDs and validate files.
 
@@ -233,5 +235,3 @@ checkout; do not bypass the check for routine governed work.
   never comes
 
 <!-- CUSTOMIZE: add any project-specific prohibitions -->
-
-Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.
