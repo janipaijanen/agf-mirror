@@ -1,6 +1,8 @@
 ---
 id: 20260910T155224Z-row5-s1-session-level-addressing
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260910T190854Z-governor-reviewer-kr4b
+gate1_approved_at: "2026-09-10T19:08:54Z"
 topic: row5-s1-session-level-addressing
 candidate_release: v2.11.0
 advisory_consultation:
@@ -118,3 +120,7 @@ CLI/MCP parity fixtures are part of acceptance. No new role activation.
 IR-1: included the structured projection evidence at Gate 1. IR-2: recipient
 selection is annotation-only; order, underlying state and exit code remain
 unchanged. No independent clearance claimed by this author correction.
+
+## Gate 1 approval recorded
+
+Governor decision `20260910T190854Z-governor-reviewer-kr4b` approves the corrected scope following independent recheck `6r12`, with its disclosed advisory limits. Earlier pending-review language above is historical; this approval authorizes implementation, while exact-head implementation review and Gate 2 remain required. Decision published in MR !2678.
