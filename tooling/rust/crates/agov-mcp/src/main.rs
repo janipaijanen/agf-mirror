@@ -1138,6 +1138,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn collision_mcp_rejects_forge_even_when_false() {
+        for value in [json!(false), json!(true), Value::Null] {
+            let error = tool_cli_args("agov_plan_collision_check", &json!({"include_forge":value})).unwrap_err();
+            assert!(error.contains("CLI-only"));
+        }
+        assert_eq!(tool_cli_args("agov_plan_collision_check", &json!({"base_ref":"origin/main"})).unwrap(),
+            vec!["plan", "collision-check", "--base-ref", "origin/main"]);
+    }
+
+    #[test]
     fn handoff_branch_flag_schema_and_cli_parity() {
         let tool = tools().into_iter().find(|t| t["name"] == "agov_handoff_next").unwrap();
         assert_eq!(tool["inputSchema"]["properties"]["include_branch_local"]["type"], "boolean");

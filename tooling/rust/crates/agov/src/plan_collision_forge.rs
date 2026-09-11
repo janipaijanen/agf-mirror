@@ -243,6 +243,7 @@ fn scan_with(api: &mut impl Api, base: &str) -> Report {
     };
     let mut number = 1;
     let mut seen = BTreeSet::new();
+    let mut inventory_complete = true;
     loop {
         let (rows, next) = match page(
             api,
@@ -251,6 +252,7 @@ fn scan_with(api: &mut impl Api, base: &str) -> Report {
         ) {
             Ok(page) => page,
             Err(e) => {
+                inventory_complete = false;
                 report
                     .unavailable
                     .push(format!("MR inventory page {number}: {e}"));
@@ -259,12 +261,14 @@ fn scan_with(api: &mut impl Api, base: &str) -> Report {
         };
         for row in rows {
             let Some(iid) = row["iid"].as_u64().filter(|id| *id > 0) else {
+                inventory_complete = false;
                 report
                     .unavailable
                     .push("MR inventory contains malformed IID".into());
                 continue;
             };
             if !seen.insert(iid) {
+                inventory_complete = false;
                 report
                     .unavailable
                     .push(format!("MR inventory repeated !{iid}; pagination unstable"));
@@ -281,7 +285,45 @@ fn scan_with(api: &mut impl Api, base: &str) -> Report {
             None => break,
         }
     }
+    if inventory_complete {
+        if let Err(error) = verify_inventory(api, &seen) {
+            report
+                .unavailable
+                .push(format!("MR inventory consistency: {error}"));
+        }
+    }
     report
+}
+
+fn verify_inventory(api: &mut impl Api, original: &BTreeSet<u64>) -> Result<(), String> {
+    // Offset pagination can skip a row when an earlier MR closes mid-scan.
+    // A second complete walk detects that shift rather than certifying clean.
+    let mut current = BTreeSet::new();
+    let mut number = 1;
+    loop {
+        let (rows, next) = page(
+            api,
+            "projects/:id/merge_requests?state=opened&scope=all&order_by=created_at&sort=asc",
+            number,
+        )?;
+        for row in rows {
+            let iid = row["iid"]
+                .as_u64()
+                .filter(|id| *id > 0)
+                .ok_or("malformed IID in inventory recheck")?;
+            if !current.insert(iid) {
+                return Err("duplicate IID in inventory recheck".into());
+            }
+        }
+        match next {
+            Some(n) => number = n,
+            None => break,
+        }
+    }
+    if &current != original {
+        return Err("open MR set changed during pagination; coverage is incomplete".into());
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -345,6 +387,8 @@ mod tests {
         }
         replies.push(response(json!([{"iid":101,"sha":HEAD}]), Some("")));
         replies.extend(happy(HEAD));
+        replies.push(response(json!(first), Some("2")));
+        replies.push(response(json!([{"iid":101,"sha":HEAD}]), Some("")));
         let mut api = mock(replies);
         let report = scan_with(&mut api, BASE);
         assert_eq!(report.inspected, 101);
@@ -372,6 +416,10 @@ mod tests {
         )];
         replies.extend(happy(HEAD));
         replies.push(Err("timeout".into()));
+        replies.push(response(
+            json!([{"iid":1,"sha":HEAD},{"iid":2,"sha":HEAD}]),
+            Some(""),
+        ));
         let mut api = mock(replies);
         let report = scan_with(&mut api, BASE);
         assert_eq!(report.sources.len(), 1);
@@ -379,6 +427,31 @@ mod tests {
         assert!(report.unavailable[0].contains("MR !2: timeout"));
         let mut api = mock(vec![response(json!([]), None)]);
         assert!(scan_with(&mut api, BASE).unavailable[0].contains("pagination"));
+    }
+
+    #[test]
+    fn deletion_at_page_boundary_cannot_silently_skip_an_open_mr() {
+        let first = (1..=100)
+            .map(|iid| json!({"iid":iid,"sha":HEAD}))
+            .collect::<Vec<_>>();
+        let mut replies = vec![response(json!(first), Some("2"))];
+        for _ in 0..100 {
+            replies.extend(happy(HEAD));
+        }
+        // !1 closes: !101 moves onto page 1, so page 2 now looks empty.
+        replies.push(response(json!([]), Some("")));
+        let current = (2..=101)
+            .map(|iid| json!({"iid":iid,"sha":HEAD}))
+            .collect::<Vec<_>>();
+        replies.push(response(json!(current), Some("")));
+        let mut api = mock(replies);
+        let report = scan_with(&mut api, BASE);
+        assert_eq!(report.inspected, 100);
+        assert!(report
+            .unavailable
+            .iter()
+            .any(|s| s.contains("open MR set changed")));
+        assert!(api.replies.is_empty());
     }
 
     #[test]

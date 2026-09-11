@@ -179,3 +179,26 @@ fn unreadable_ref_is_named_without_losing_known_overlap() {
     r.plan("b", "affected_paths: ['a']");
     assert_eq!(r.check().0, 1);
 }
+
+#[test]
+fn equivalent_relative_spellings_cannot_hide_a_real_branch_overlap() {
+    let r = Repo::new();
+    r.git(&["checkout", "-b", "edit"]);
+    r.write("old.txt", "modified\n");
+    r.write("a/b", "new\n");
+    r.commit();
+    r.git(&["checkout", "main"]);
+    for pattern in ["./old.txt", "old.txt/", "a/./b", "a//b", "./", "."] {
+        r.plan("alias", &format!("affected_paths: ['{pattern}']"));
+        assert_eq!(r.run(&["plan", "validate", "docs/plans/alias.md"]).0, 0);
+        let (code, text) = r.check();
+        assert_eq!(code, 1, "{pattern}: {text}");
+        assert!(text.contains("ref refs/heads/edit"));
+    }
+    r.git(&["branch", "-D", "edit"]);
+    r.plan("alias", "affected_paths: ['./future//file.rs']");
+    r.plan("canonical", "affected_paths: ['future/file.rs']");
+    let (code, text) = r.check();
+    assert_eq!(code, 1, "{text}");
+    assert!(text.contains("plan docs/plans/alias.md <-> plan docs/plans/canonical.md"));
+}

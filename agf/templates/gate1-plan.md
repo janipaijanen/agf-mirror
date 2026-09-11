@@ -26,7 +26,8 @@ exists.
 
 A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
 
-The default check is local-only. CLI `--include-forge` adds fresh GitLab reads
+Relative paths normalize `.` and redundant separators before comparison;
+`**` is allowed only as a whole segment. The default check is local-only. CLI `--include-forge` adds fresh GitLab reads
 using configured `glab` authentication; `--base-ref` defaults to `main`.
 Exit `0` means full coverage and no overlap; `1` means a possible overlap;
 `2` means no overlap found with incomplete coverage. MCP supports local mode only.

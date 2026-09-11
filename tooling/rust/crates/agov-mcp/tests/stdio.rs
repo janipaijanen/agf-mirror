@@ -37,6 +37,7 @@ fn branch_handoff_and_local_collision_match_real_cli() {
         let stdout = String::from_utf8(direct.stdout).unwrap();
         assert_eq!(result["result"]["structuredContent"]["stdout"], stdout);
         assert_eq!(result["result"]["structuredContent"]["status"], expected);
+        assert_eq!(result["result"]["isError"], expected != 0);
         stdout
     };
     let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local","--session","codex"], json!({"role":"coder-tester","include_branch_local":true,"session":"codex"}), 0);

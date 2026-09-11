@@ -13,8 +13,20 @@ pub(super) struct Source {
 /// Conservative intersection over the validated whole-segment-** dialect.
 /// Wildcard segments may over-report; future files require no enumeration.
 fn overlaps(left: &str, right: &str) -> bool {
-    let mut left = left.split('/');
-    let mut right = right.split('/');
+    // Git emits canonical paths. Preserve equivalent user spellings without
+    // turning ./file or repeated separators into false evidence of no overlap.
+    let mut left = left
+        .split('/')
+        .filter(|s| !s.is_empty() && *s != ".")
+        .peekable();
+    let mut right = right
+        .split('/')
+        .filter(|s| !s.is_empty() && *s != ".")
+        .peekable();
+    // A repository-root declaration is conservatively whole-repository scope.
+    if left.peek().is_none() || right.peek().is_none() {
+        return true;
+    }
     loop {
         match (left.next(), right.next()) {
             (Some("**"), _) | (_, Some("**")) => return true,
