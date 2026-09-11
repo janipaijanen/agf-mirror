@@ -4873,19 +4873,33 @@ learnings:
         AGENTS.md; the gap was execution discipline, not missing
         guidance.
     recommendation: >-
-      Immediately after every `git push -u origin <new-branch>` +
-      `glab mr create` pair, check for a live (`pending`/`running`) push-
-      sourced pipeline at the same SHA as the newly created MR's pipeline
-      and cancel it if the MR pipeline's job set covers it -- do not wait
-      for a reviewer to flag the waste. Treat this as a mandatory step of
-      "open a new MR", not an optional cleanup. Separately, build-engineer
-      should evaluate whether a lightweight, automated first-push
-      suppression is feasible (e.g. a very short scheduled check that
-      cancels a `push`-sourced pipeline within N seconds of the
-      corresponding MR being registered, rather than relying on each
-      session to remember), since the current mitigation depends entirely
-      on session discipline that this evidence shows is not reliable
-      without an explicit habit.
+      Refined 2026-09-11 per build-engineer's `atkm` note
+      (`docs/coordination/20260911T051355Z-build-engineer-atkm.md`) and
+      Gate 1 plan `20260911T052932Z-ci-first-push-publication-guard`:
+      prevention at publication time is the primary fix, not reactive
+      cancellation. For the "push a brand-new branch, then immediately
+      open its MR" sequence, publish the first push with
+      `git push -o ci.skip -u origin <new-branch>` (a GitLab push option,
+      not a commit-message marker -- the commit-message `[ci skip]`/
+      `[skip ci]` prohibition is unchanged), immediately register the MR,
+      and verify exactly one non-`skipped` pipeline exists at the SHA.
+      Empirically confirmed on that plan's own publishing MR (!2692):
+      GitLab still creates a pipeline record for the skipped push, but it
+      never runs jobs (`status: skipped`), so no runner time is wasted.
+      The original recommendation below is retained as the documented
+      *fallback* for paths the new procedure does not cover (`ci.skip`
+      unavailable or forgotten, manual UI pushes, or a failed MR
+      registration after `ci.skip`): immediately after every
+      `git push -u origin <new-branch>` + `glab mr create` pair without
+      `ci.skip`, check for a live (`pending`/`running`) push-sourced
+      pipeline at the same SHA as the newly created MR's pipeline and
+      cancel it if the MR pipeline's job set covers it -- do not wait for
+      a reviewer to flag the waste. Build-engineer's evaluation of an
+      automated first-push suppression remains open; the new plan defers
+      that tooling until procedural discipline is itself evidenced,
+      consistent with `atkm`'s observation that polling-based
+      cancellation alone cannot reliably beat these short-lived pipelines
+      to completion.
     severity: minor
     confidence:
       level: single-adopter
