@@ -251,6 +251,7 @@ pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 /// Enforced against the live clap surface by the parity test in
 /// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
 pub const KNOWN_FLAG_NAMES: &[&str] = &[
+    "--session",
     "--phase",
     "--api-url",
     "--project-id",
@@ -1513,6 +1514,33 @@ mod tests {
     /// itself (not just its value) to `[redacted]`. The name must survive
     /// like any other recognized flag; the value still redacts, same as
     /// the primary `--base-branch` spelling (neither is closed-vocabulary).
+    #[test]
+    fn recipient_session_identifier_is_redacted_in_both_argument_forms() {
+        assert_eq!(
+            redact_args(&strings(&[
+                "coord",
+                "visibility",
+                "--session",
+                "01999999-aaaa-7000-8000-aaaaaaaaaaaa"
+            ])),
+            strings(&["coord", "visibility", "--session", REDACTED])
+        );
+        assert_eq!(
+            redact_args(&strings(&[
+                "handoff",
+                "next",
+                "coder-tester",
+                "--session=01999999-aaaa-7000-8000-aaaaaaaaaaaa"
+            ])),
+            strings(&[
+                "handoff",
+                "next",
+                REDACTED,
+                &format!("--session={REDACTED}")
+            ])
+        );
+    }
+
     #[test]
     fn redact_args_retains_base_branch_alias_name() {
         assert_eq!(
