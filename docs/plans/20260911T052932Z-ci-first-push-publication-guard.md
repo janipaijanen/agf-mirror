@@ -6,18 +6,20 @@ advisory_consultation:
   - role: contribution-auditor
     status: waived
     reason: >
-      Not synchronously consulted before drafting, under the governor's
-      explicit CI-priority sequencing (`p7tr`: no new RUW branch work
-      starts ahead of this fix; advance a bounded Gate 1 plan). Waived
-      rather than blocked because the change is narrow and additive by
-      construction: it adds a publication *procedure* and refines one
-      learning-record recommendation field, touches no `.gitlab-ci.yml`
-      logic, and does not narrow `ci-pipeline-deduplication`'s approved
-      scope (Scope section above states this explicitly — that plan's
-      rule is relied on, not modified). Contribution-auditor drove that
-      sibling plan (2026-07-22) and remains free to review this one at
-      or before Gate 2; any finding narrows or blocks implementation,
-      not this Gate 1 filing.
+      Not synchronously consulted before drafting. This is waived on the
+      plan's own narrow, additive-by-construction scope (adds a
+      publication *procedure* and refines one learning-record
+      recommendation field; touches no `.gitlab-ci.yml` logic; does not
+      narrow `ci-pipeline-deduplication`'s approved scope) — not on
+      `p7tr`'s sequencing priority alone, which build-engineer's `e1jt`
+      review correctly notes cannot by itself waive advisory
+      consultation. Contribution-auditor drove the sibling
+      `ci-pipeline-deduplication` plan (2026-07-22) and remains free to
+      review this one at or before Gate 2; any finding narrows or blocks
+      implementation, not this Gate 1 filing. Build-engineer's `e1jt`
+      review already supplied a bounded diagnostic pass (3 blocking
+      findings, corrected in this revision) but explicitly does not
+      substitute for a full contribution audit.
   - role: infosec-sentinel
     status: not-applicable
     reason: >
@@ -36,6 +38,23 @@ advisory_consultation:
 
 # Plan: prevent the first-push CI pipeline duplicate at publication time
 
+**Revision note (2026-09-11T05:5x):** build-engineer's independent review
+(`e1jt`, `docs/coordination/20260911T054827Z-build-engineer-e1jt.md`)
+returned BLOCK with 3 findings, all corrected in this revision: (CI-PUB-1)
+Mechanism step 4's recovery path replaced blind unchanged re-push
+(a no-op against an already-current remote branch) with re-query-and-adopt
+plus bounded retry and an explicit blocker on exhaustion; (CI-PUB-2)
+Objective/Mechanism/acceptance-matrix wording now consistently targets
+"exactly one job-running pipeline," tolerating the inert `skipped` push
+record instead of contradictorily implying zero pipeline records;
+(CI-PUB-3) the Origin/evidence and insufficiency sections now cite the
+actually measured quantities (8.259s-13.310s push-to-MR-registration
+interval; 174.712s-207.017s per completed redundant job pair, 978.068s
+summed across five pairs) instead of the earlier, imprecise "ran to
+success before the MR even existed" framing. The advisory finding
+(consultation wording) is addressed in the `contribution-auditor` waiver
+reason above and the ADDITIVE-vs-required Impact wording below.
+
 ## Origin and evidence
 
 The governor flagged duplicate CI pipelines this session ("WTF! duplicate
@@ -52,16 +71,20 @@ on the same root cause and complementary fixes:
   suppression.
 - **Codex's `g5mj` handoff** (`docs/coordination/20260911T051118Z-coder-tester-g5mj.md`,
   on `origin/codex/claude-transfer-followup`): an independent exact-second
-  cost table for six same-head pairs (!2684-!2689), corroborating the same
-  defect with harder numbers (174.7s-207.0s wasted per pair).
+  cost table for six same-head pairs (!2684-!2689). Five pairs' redundant
+  push-sourced pipelines ran their required jobs to completion, summing
+  **978.068 runner-seconds** across those five (174.712s-207.017s each);
+  the sixth was cancelled live, with null job durations recorded.
 - **Codex's `atkm` note** (`docs/coordination/20260911T051355Z-build-engineer-atkm.md`,
   same branch): confirmed via the GitLab API that all six `g5mj` push
-  pipelines were *created* before their MRs existed (8.3s-13.3s before MR
-  registration in each case) — this is GitLab's documented first-push
-  limitation, not a double-push or a guard failure. `atkm` proposed the
-  prevention-first mechanism this plan implements, and explicitly advised
-  refining `dupe`'s cancellation-first recommendation rather than filing a
-  competing learning.
+  pipelines were *created* **8.259-13.310 seconds before their MRs were
+  registered** — this is the measured push-to-MR-registration interval,
+  not a claim about job completion time or duration. It demonstrates
+  GitLab's documented first-push limitation (the push pipeline exists,
+  irreversibly, before the MR does), not a double-push or a guard
+  failure. `atkm` proposed the prevention-first mechanism this plan
+  implements, and explicitly advised refining `dupe`'s cancellation-first
+  recommendation rather than filing a competing learning.
 - **Governor sequencing, relayed via Codex's `p7tr`**
   (`docs/coordination/20260911T051558Z-planner-architect-p7tr.md`): "When
   ready with CI fix, after collaborating with claude, then continue RUW."
@@ -89,10 +112,12 @@ cancel the demonstrably redundant push pipeline after the fact. `dupe`'s
 audit shows that reactive, memory-dependent step was not applied
 consistently even by the session that wrote the instruction (17 of 28
 sampled MRs missed it). `atkm` independently observes that polling-based
-cancellation cannot reliably beat these pipelines to completion: the
-`g5mj` sample's push pipelines ran to full `success` in single-digit to
-low-double-digit seconds, often faster than a human or agent poll cycle
-notices them.
+cancellation cannot reliably beat these pipelines: the `g5mj` sample shows
+the redundant push pipeline is *created* 8.259-13.310 seconds before the
+MR is even registered — often faster than a human or agent poll cycle
+notices it exists — and, once created, five of six sampled instances ran
+their required jobs to full `success`, consuming 174.712s-207.017s each
+(978.068s total) before any cancellation was attempted.
 
 **Conclusion: prevent the redundant pipeline from being created, rather
 than trying to catch and cancel it afterward.** Reactive cancellation
@@ -104,10 +129,15 @@ path.
 
 For the specific sequence "push a brand-new branch, then immediately open
 its MR" — the shape that produced all 17 confirmed duplicates — ensure
-exactly one CI pipeline instance is created for the branch's initial SHA:
-the canonical `merge_request_event`-sourced pipeline. Achieve this by
-skipping pipeline creation on the first push itself, not by suppressing or
-cancelling a pipeline after GitLab has already created it.
+**exactly one pipeline that consumes runner time** exists for the
+branch's initial SHA: the canonical `merge_request_event`-sourced
+pipeline. An inert `skipped`-status push-sourced pipeline *record* is an
+expected and acceptable side effect of the mechanism below, not a
+violation of this objective — see Mechanism step 3 for the precise
+distinction between "a pipeline record exists" and "a pipeline runs
+jobs." Achieve the objective by skipping job execution on the first push
+itself, not by suppressing or cancelling a pipeline after GitLab has
+already created and started it.
 
 ## Mechanism
 
@@ -152,15 +182,34 @@ cancelling a pipeline after GitLab has already created it.
    fact instead of an assumption.
 
 4. **Fail visibly if MR creation fails, or if step 3's check does not find
-   exactly one canonical pipeline.** A push with `ci.skip` that is not
-   followed by a successful MR registration leaves the branch with *zero*
-   pipelines — a worse silent state than a duplicate, because it looks
-   like "nothing to check" rather than "wasted a runner-minute." The
-   recovery path on failure is: retry MR creation immediately; if that
-   also fails, push again *without* `ci.skip` (an ordinary push-sourced
-   pipeline; not ideal, but visible and safe) and record the failure.
+   exactly one canonical, job-running pipeline.** A push with `ci.skip`
+   that is not followed by a successful MR registration leaves the branch
+   with *zero pipelines that will ever run its required jobs* (the
+   `ci.skip` push record itself stays permanently `skipped` — it does not
+   retroactively start). This is a worse silent state than a duplicate,
+   because it looks like "nothing to check" rather than "wasted a
+   runner-minute."
+
+   **Recovery is re-query-and-adopt, not blind re-push.** An unchanged
+   re-push of the same commit onto a branch that already exists on the
+   remote is a no-op: `git` reports up to date and sends no ref update,
+   so it cannot be relied on to create a new pipeline, and retrying MR
+   creation after an uncertain (e.g. timed-out) response risks racing a
+   creation that actually succeeded server-side. On any uncertain or
+   failed MR-creation result:
+   1. Re-query the project for an existing MR sourced from the exact
+      branch, and re-resolve the branch's current remote head SHA. If a
+      matching MR is found, adopt it (do not create a second one).
+   2. If no MR is found, retry creation with a bounded number of attempts
+      and a bounded wait between them.
+   3. If, after bounded retries, no canonical `merge_request_event`
+      pipeline can be established for the current SHA, **stop and record
+      an explicit blocker** naming the exact branch, ref, and SHA and an
+      owner for follow-up — do not claim the branch is recovered, and do
+      not push an empty commit or retry a failed paid job merely to force
+      a green run (per AGENTS.md's existing prohibition on both).
    Never leave a `ci.skip`-published branch unregistered and unpiped
-   without an explicit, recorded follow-up.
+   without an explicit, recorded blocker per step 3 above.
 
 5. **Subsequent pushes to the same branch are unchanged** — they already
    fall under the existing `$CI_OPEN_MERGE_REQUESTS` guard from the
@@ -180,11 +229,16 @@ cancelling a pipeline after GitLab has already created it.
 
 **Changes:**
 - Adds the `-o ci.skip` + immediate-MR-registration + single-pipeline-
-  verification procedure as the primary publication path for a brand-new
-  branch that will get an MR immediately, in AGENTS.md's polling/
-  publication guidance (the "known first-push limitation" paragraph) and
-  in `docs/reference/agent-cold-start-habits.md` if that file documents
-  the same sequence.
+  verification procedure as the **required** primary publication step
+  (replacing check-and-cancel as primary, for this specific sequence
+  only) for a brand-new branch that will get an MR immediately, in
+  AGENTS.md's polling/publication guidance (the "known first-push
+  limitation" paragraph) and in `docs/reference/agent-cold-start-habits.md`
+  if that file documents the same sequence. This is documented operating
+  procedure, not a mechanical CI gate — its success still depends on
+  operator/agent execution, exactly as the check-and-cancel step it
+  replaces did. This plan does not claim to close that residual risk (see
+  Risks below); it only changes what the required procedure *is*.
 - Refines `agf/learnings/foundry.yaml`'s `20260911T050950Z-dupe` entry's
   `recommendation` field (still unmerged on MR !2690) to name this plan as
   the primary fix and demote check-and-cancel to the documented fallback.
@@ -216,8 +270,8 @@ Per `atkm`'s note, the implementing MR must demonstrate all of:
 
 | Case | Expected outcome |
 |---|---|
-| Normal path: `ci.skip` push, immediate MR create succeeds | Exactly one pipeline at the SHA, `merge_request_event`-sourced |
-| MR creation fails after `ci.skip` push | Visible failure recorded; recovery path followed (retry create, or re-push without `ci.skip`); branch never left silently un-piped |
+| Normal path: `ci.skip` push, immediate MR create succeeds | Exactly one job-running pipeline at the SHA (`merge_request_event`-sourced); the inert `skipped` push-sourced record is expected, not a defect |
+| MR creation fails or is uncertain after `ci.skip` push | Re-query for an existing MR on the branch and adopt it if found; else bounded retry; else stop and record an explicit blocker naming branch/ref/SHA — never a blind unchanged re-push (a no-op against an already-current remote branch) and never claimed-recovered without a verified canonical pipeline |
 | Branch already has an open MR before this push (subsequent push, not first) | Unaffected — existing `$CI_OPEN_MERGE_REQUESTS` guard applies as today |
 | Wrong/stale SHA at verification time (e.g. a fast follow-up push before verification completes) | Verification step re-resolves the current head SHA rather than trusting a cached value; does not falsely report success against a superseded SHA |
 | Canonical pipeline absent or duplicated at verification time | Treated as a failure of step 3/4, not silently accepted; triggers the recovery path |
@@ -258,12 +312,18 @@ not merely asserted.
 
 ```
 Impact:
-  Foundry:          Additive procedural guidance; no existing setup breaks.
-                     Agents not yet using ci.skip continue to get the
-                     existing (imperfect) cancel-after-the-fact coverage.
-  Direct adopters:  ADDITIVE — a new recommended publication habit for
-                     projects with the same GitLab first-push limitation.
-                     Nothing previously permitted is forbidden.
+  Foundry:          ADDITIVE at the framework-contract level (nothing
+                     previously permitted is forbidden), but this session's
+                     agents MUST use the new procedure going forward for
+                     the specific new-branch+immediate-MR sequence — it
+                     replaces check-and-cancel as the required primary
+                     step for that sequence only. Agents not using it
+                     (or falling back per Mechanism step 6) still owe the
+                     existing check-and-cancel step.
+  Direct adopters:  ADDITIVE — a new publication procedure available to
+                     projects with the same GitLab first-push limitation;
+                     adopters choose whether to make it required for their
+                     own agents. Nothing previously permitted is forbidden.
   Downstream:       No adopter-produced artifact shape changes. No agent-
                      facing behavior toward an adopter's own users changes.
   Migration:        None required — the existing compare-and-cancel
