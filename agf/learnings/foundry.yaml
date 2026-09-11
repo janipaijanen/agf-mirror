@@ -4819,6 +4819,111 @@ learnings:
         - 'docs/coordination/20260908T183242Z-planner-architect-ds4k.md: measured 70 open MRs and separated non-plan closure from plan-lifecycle provenance.'
         - '2026-09-09 whole-queue poll: measured 72 open MRs and identified roughly 35 operationally handled carriers still open.'
 
+  - id: 20260911T050950Z-dupe
+    date: '2026-09-11'
+    category: process
+    scope: framework
+    title: known-first-push-pipeline-duplication-not-actually-cancelled-in-practice
+    status: proposed
+    description: >-
+      AGENTS.md already documents the "known first-push limitation": a
+      branch's first push can start a `push`-sourced pipeline before the
+      MR exists, and opening the MR then creates a second,
+      `merge_request_event`-sourced pipeline for the same SHA. The
+      project's own `.gitlab-ci.yml` `workflow:` rules already suppress a
+      *later* redundant push pipeline once an MR is open
+      (`$CI_OPEN_MERGE_REQUESTS`), but by the rule's own comment "cannot"
+      suppress the very first one, because no MR exists yet when that
+      push happens. AGENTS.md's polling contract already instructs
+      comparing pipeline source/ref/status/job-coverage and cancelling
+      the demonstrably redundant push path -- but a Claude planner-
+      architect session ran a full push-then-immediately-open-MR workflow
+      for roughly 30 branches across one long session (2026-09-10/11)
+      without ever performing that comparison-and-cancel step. Auditing a
+      28-MR sample after the governor flagged "duplicate pipelines" found
+      17 instances where the redundant `push`-sourced pipeline ran to
+      full `success` (not caught by any skip/cancel), each duplicating
+      the same required-job set (`agov:governance:validate`,
+      `commercial-corpus:validate`, and others) the `merge_request_event`
+      pipeline already covered. One further pipeline was still `pending`
+      at audit time and was cancelled live. Several older MRs in the same
+      sample *did* show the push pipeline skipped/cancelled, apparently
+      from a different session's (Codex's) own housekeeping discipline on
+      its own MRs -- confirming the mitigation is known and practiced by
+      at least one session, just not applied consistently by this one.
+    agents_involved:
+      - planner-architect
+      - build-engineer
+    framework_section: >-
+      .gitlab-ci.yml workflow: rules;
+      always/universal-polling-and-autonomous-continuation-rule.md
+      (AGENTS.md's "Before canceling anything, compare pipeline source,
+      ref, status, and job-name/required-job coverage" instruction)
+    business_impact:
+      type: cost_overhead
+      description: >-
+        17 confirmed fully-duplicated pipeline runs in a 28-MR sample of
+        one session's own branches, each re-running the same required
+        job set the corresponding merge-request pipeline also ran. At an
+        observed ~2.5-3 runner-minutes per duplicated required-job set,
+        this sample alone accounts for roughly 45-50 wasted
+        runner-minutes, on a project that was separately runner-capacity-
+        constrained (multiple MRs stuck `unchecked` for hours) during the
+        same session. The mitigating instruction already existed in
+        AGENTS.md; the gap was execution discipline, not missing
+        guidance.
+    recommendation: >-
+      Refined 2026-09-11 per build-engineer's `atkm` note
+      (`docs/coordination/20260911T051355Z-build-engineer-atkm.md`),
+      Gate 1 plan `20260911T052932Z-ci-first-push-publication-guard`, and
+      corrected 2026-09-11 (`kp6j`, L2690-1/L2690-2 -- two overclaims in
+      the wording below, not a design change): prevention at publication
+      time is the primary fix, not reactive cancellation. For the "push a
+      brand-new branch, then immediately open its MR" sequence, publish
+      the first push with `git push -o ci.skip -u origin <new-branch>`
+      (a GitLab push option, not a commit-message marker -- the
+      commit-message `[ci skip]`/`[skip ci]` prohibition is unchanged),
+      then immediately register the MR and verify the resulting canonical
+      `merge_request_event` pipeline exists at that SHA and covers the
+      required job set, while the paired `push`-sourced pipeline record
+      stays `status: skipped` (L2690-2: not "exactly one non-skipped
+      pipeline" -- that count is too broad, since API, manual, scheduled,
+      and tag pipelines can intentionally coexist at the same SHA without
+      being duplicates; verify the specific canonical-MR/push pair, not
+      an unqualified count). Empirically confirmed on that plan's own
+      publishing MR (!2692): GitLab still creates a pipeline record for
+      the skipped push, but it never runs jobs, so no runner time is
+      wasted. If MR registration fails or is uncertain after `ci.skip`
+      (L2690-1: this is its own case, not an ordinary compare-and-cancel
+      fallback -- a skipped push plus failed registration may leave no
+      canonical MR pipeline at all, so there is nothing valid to compare
+      against or cancel), follow AGENTS.md's publication-guard procedure
+      directly: re-query for an existing MR on the branch and adopt it if
+      found, retry registration a bounded number of times, and otherwise
+      stop and record an explicit blocker naming the branch, ref, and
+      SHA -- never treat an unchanged re-push as recovery. The original
+      recommendation below is retained as the documented *fallback* only
+      for the separate case of `ci.skip` unavailable or forgotten, or a
+      manual UI push (not the failed-registration case above): immediately
+      after every `git push -u origin <new-branch>` + `glab mr create`
+      pair without `ci.skip`, check for a live (`pending`/`running`)
+      push-sourced pipeline at the same SHA as the newly created MR's
+      pipeline, and cancel it only after confirming the MR pipeline's
+      source/ref/status and required-job coverage demonstrably makes it
+      redundant -- do not wait for a reviewer to flag the waste, and do
+      not cancel on SHA match alone. Build-engineer's evaluation of an
+      automated first-push suppression remains open; the new plan defers
+      that tooling until procedural discipline is itself evidenced,
+      consistent with `atkm`'s observation that polling-based
+      cancellation alone cannot reliably beat these short-lived pipelines
+      to completion.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 17
+      evidence_refs:
+        - '28-MR sample of planner-architect-authored open MRs, 2026-09-11 audit: pipelines 2839623459 (!2688), 2839612071 (!2687), 2839581631 (!2686), 2839564814 (!2685), 2839559375 (!2684), 2838290151 (!2680), 2837876040 (!2677), plus push-source successes on !2660/!2651/!2596/!2593/!2460/!2455/!2394/!2390/!2375/!2368, each paired with a merge_request_event pipeline for the identical SHA covering the same required jobs; pipeline 2839644946 (!2689) was live pending and cancelled at audit time.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
