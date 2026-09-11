@@ -220,6 +220,24 @@ fn live_mandatory_linux_packaging_is_native_and_container_free() {
 }
 
 #[test]
+fn commercial_corpus_validate_guarantees_merge_base_ancestry() {
+    // Regression guard for the shallow-history "no merge base" failure
+    // (MR !2678, pipeline 2840038842): commercial-corpus:validate compares
+    // against CI_MERGE_REQUEST_DIFF_BASE_SHA and needs a real merge base,
+    // which the project default GIT_DEPTH (20) cannot guarantee on a
+    // branch more than ~20 commits past its target. Mirrors the existing
+    // agov:governance:validate override for the identical reason.
+    let configuration = read_live_configuration();
+    let block = top_level_block(&configuration, "commercial-corpus:validate")
+        .expect("commercial-corpus:validate job block");
+    assert!(
+        block.contains("GIT_DEPTH: \"0\""),
+        "commercial-corpus:validate must set GIT_DEPTH: \"0\" to guarantee \
+         merge-base ancestry for its --base-ref comparison:\n{block}"
+    );
+}
+
+#[test]
 fn detects_reintroduced_container_build_on_the_mandatory_linux_path() {
     let configuration = read_live_configuration();
     let package = top_level_block(&configuration, ".rust-tooling-package")
