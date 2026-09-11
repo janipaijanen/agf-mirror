@@ -4760,6 +4760,65 @@ learnings:
         - '2026-09-11 governor exchange: asks why Codex and Claude appear stalled, then explicitly requests learning from doing useful work while CI runs.'
         - 'docs/coordination/20260911T121707Z-planner-architect-kpag.md: next-plan review resumed and release-precondition work routed while !2711 CI remained active.'
 
+  - id: 20260909T015659Z-aebe
+    date: '2026-09-09'
+    category: gap
+    scope: framework
+    title: completed-work-remains-open-without-a-release-linked-disposition-cycle
+    status: proposed
+    description: >-
+      Foundry's open merge-request queue grew from 50 items at the
+      queue-convergence baseline on 2026-09-03 to 72 items on 2026-09-09,
+      even though v2.9.0 and v2.10.0 shipped and many contributing workstreams
+      completed during that interval. A whole-queue poll found roughly 35
+      still-open MRs whose substantive work was already delivered, superseded,
+      consolidated, or overtaken. They included release and runner status
+      records, review requests whose target changes had merged, coordination
+      carriers replaced by a consolidated carrier, and radar/source changes
+      with later closing merges. None was an exact byte-for-byte duplicate of
+      current main, so a mechanical content comparison alone could not
+      distinguish them from live work. The unresolved MRs continued to appear
+      in whole-surface scans, obscured genuinely actionable items, and made the
+      queue look like 72 independent workstreams. The approved
+      queue-convergence plan had already diagnosed the same mechanism when an
+      earlier disposition pass reduced 93 open MRs to 50 and the queue then
+      regrew because no release-linked re-observation and closure cycle owned
+      the follow-through.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: workflow/coordination-publication-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        Every poll and cold start pays to rediscover and reclassify completed
+        work, while real gates compete with stale review and handoff surfaces.
+        Per-record coordination MRs also move the target branch and can
+        invalidate frozen release-base evidence, multiplying pipelines,
+        rebases, and governor attention without advancing product scope.
+    recommendation: >-
+      Make disposition follow-through part of every release boundary. Maintain
+      one evidence-bearing MR ledger owned by the project roadmap; after a
+      release or completed workstream, classify every still-open MR as
+      advance, reconstruct, park, close-superseded, close-invalid, or
+      awaiting-governor, and execute approved forge closures in the same
+      bounded cycle. Require each close to cite the canonical replacement or
+      falsifying fact, never age alone. Batch stale coordination carriers into
+      one reviewed closure record instead of merging one historical record per
+      MR. For plan MRs, wait for or reuse the canonical lifecycle
+      supersession-provenance contract so the ledger and plan status cite the
+      same replacement identifier, governor decision, and UTC timestamp.
+    severity: significant
+    confidence:
+      level: longitudinal
+      evidence_count: 3
+      evidence_refs:
+        - 'docs/plans/20260903T043752Z-queue-convergence-and-roadmap-authority.md: measured 93-to-50 reduction followed by regrowth and requires release-linked re-observation.'
+        - 'docs/coordination/20260908T183242Z-planner-architect-ds4k.md: measured 70 open MRs and separated non-plan closure from plan-lifecycle provenance.'
+        - '2026-09-09 whole-queue poll: measured 72 open MRs and identified roughly 35 operationally handled carriers still open.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
