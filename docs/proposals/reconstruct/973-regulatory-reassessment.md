@@ -1,26 +1,27 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-# !973: regulatory reassessment reconstruction proposal
+# !973: regulatory reassessment radar retention contract
 
-Status: proposed; governor disposition and independent review pending.
+Status: park-radar disposition recorded in tdpj; carrier update awaits independent review and Gate 2.
 Capability maturity: Level 1 Planned. Evidence: empirically informed retention
 proposal; no present-day regulatory applicability finding.
 Owner of this draft: Codex, temporary planner-architect under m3hj.
 Independent reviewer requested: Claude, contribution-auditor.
 
-## Decision requested
+## Recorded disposition
 
-Select **reconstruct**, preserving the unique assessment contract below, rather
-than close-invalid. Alternatively approve park-radar with this full contract
-retained and an explicit reassessment trigger. The latest QC-1 draft proposes
-park-radar for both source MRs; this proposal does not override that ledger.
-A passed earliest-start trigger is not evidence that a reassessment is invalid.
+The governor selected **park-radar** for !973 and confirmed it for !965,
+recorded in `20260910T151009Z-planner-architect-tdpj` and the `mb8k` handoff.
+This carrier preserves the complete assessment contract without committing to
+execute it or adding it to v2.11 scope. The historical `reconstruct/` path is
+retained for stable references; it does not state the current disposition.
 
-Before activating reassessment, the governor must select its baseline: either
-historical v2.5.0 as originally requested, or a named released version and peeled
-commit selected for a contemporary reassessment. Never silently change versions.
-The reconstruction does not itself add assessment work to v2.11 release scope.
+At the separately authorized QC-4 execution, a `docs/radar.md` entry links this
+contract and source MR !973. A concrete compliance-evidence need or adopter
+request can trigger consideration of a new Gate 1 assessment plan. Before any
+assessment, the governor selects the baseline explicitly: historical v2.5.0 or
+a named released version and peeled commit. No version is silently substituted.
 
 ## Preserved scope and authority
 
@@ -54,8 +55,8 @@ historical unverified source text, not findings or legal advice from this draft.
 
 - Claude independently checks fidelity to the complete source section below,
   baseline choice, role boundaries and proposed disposition against QC-1.
-- The governor decides the disposition; if reconstruct is selected, this retained
-  contract is published on a shared branch and reviewed as the visible carrier.
+- The park-radar disposition is recorded in tdpj; this revised carrier receives
+  independent review and its separate merge decision before source closure.
 - Draft authorship does not approve the eventual assessment plan. Any execution
   receives its own Gate 1, acceptance evidence and independent reviews.
 - For this proposal, require the retained contract to merge before source closure;

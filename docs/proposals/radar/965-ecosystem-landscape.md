@@ -3,16 +3,16 @@
 
 # !965: ecosystem landscape retention proposal
 
-Status: proposed park-radar; not a canonical radar promotion or execution grant.
+Status: park-radar disposition confirmed in tdpj; carrier publication and QC-4 execution remain separately governed.
 Capability maturity: Level 1 Planned. Evidence: empirically informed retention
 proposal, with no fresh market or partner claims.
 Owner of this draft: Codex, temporary planner-architect under m3hj.
 Independent reviewer requested: Claude, contribution-auditor.
 
-## Decision requested
+## Recorded disposition
 
-Approve park-radar while preserving the full comparison and research contract
-below. Age and lack of execution do not falsify the source premise. The original
+The governor confirmed park-radar in `20260910T151009Z-planner-architect-tdpj`,
+preserving the full comparison and research contract below. Age and lack of execution do not falsify the source premise. The original
 names planner-architect, fact-checker, contribution-auditor and governor owners;
 do not describe it as ownerless. This matches the latest QC-1 disposition in
 principle, but the retention artifact and trigger must exist before closure.
@@ -22,7 +22,7 @@ principle, but the retention artifact and trigger must exist before closure.
 Title: Evidence-based AI-development governance ecosystem landscape scan.
 Question: Which siblings, complements, substitutes and prior art materially
 change AGF's positioning or warrant a separately governed experiment?
-Destination after approval: a named entry in docs/radar.md linking this full
+Destination at separately authorized QC-4 execution: a named entry in docs/radar.md linking this full
 retention contract, source MR !965 and the accepted QC-1 row. Do not reduce this
 contract to an untraceable one-line reminder.
 Proposed review owner: planner-architect; player to be confirmed by governor.
@@ -48,7 +48,7 @@ and cadence proposal. No model or marketing assertion is a verified finding.
 
 ## Activation and acceptance
 
-1. Governor decides disposition and confirms review owner/date/trigger. Claude
+1. Disposition is recorded in tdpj; QC-4 still confirms review owner/date/trigger. Claude
    independently reviews this retained contract before its Gate 2 publication.
 2. On an activation trigger, planner-architect proposes a bounded Gate 1 research
    plan with candidate/time limits; fact-checker verifies primary sources and
