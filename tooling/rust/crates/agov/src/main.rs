@@ -377,7 +377,7 @@ enum ValidateCommand {
 
 #[derive(Subcommand)]
 enum HandoffCommand {
-    /// Show the next ready handoff for an agent role.
+    /// Show the next unresolved handoff; reply evidence does not confirm acknowledgement.
     Next {
         /// Annotate handoffs addressed to another session; never filters or reorders.
         #[arg(long)]
@@ -5679,6 +5679,7 @@ fn render_pending_handoffs_for_role(
         output.stdout(format!("Pending handoffs for {role}:"));
         for message in pending.iter().rev() {
             output.stdout(format_pending_handoff(message));
+            render_reply_evidence(output, message, messages, "  ");
         }
     }
     output.stdout("");
@@ -5700,6 +5701,7 @@ fn render_pending_handoffs_by_role(output: &mut OutputCounter, messages: &[Hando
             items.sort_by_key(|message| message.sort_key.clone());
             for message in items.iter().rev() {
                 output.stdout(format!("    - {}", pending_handoff_label(message)));
+                render_reply_evidence(output, message, messages, "      ");
             }
         }
     }
@@ -5898,6 +5900,8 @@ fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, args: &[S
     };
 
     render_handoff_summary(&mut output, &message);
+    render_reply_evidence(&mut output, &message, &messages, "  ");
+
     if let Some(recipient) = addressed_elsewhere(&message.raw, session) {
         output.stdout(format!("Addressed elsewhere: {recipient}"));
     }
@@ -6287,6 +6291,59 @@ fn clean_coord_filename(token: &str) -> Option<String> {
         None
     }
 }
+
+/// Advisory evidence only, evaluated after the existing unresolved filter.
+/// Structured references are deliberate: prose/indirect graph edges are not replies.
+#[derive(Debug, PartialEq, Serialize)]
+struct ReplyEvidence {
+    id: String,
+    from: String,
+}
+
+fn reply_evidence(handoff: &HandoffMessage, messages: &[HandoffMessage]) -> Vec<ReplyEvidence> {
+    let Some(timestamp) = string_field(&handoff.raw, "timestamp")
+        .and_then(|s| time::OffsetDateTime::parse(s, &Rfc3339).ok())
+    else {
+        return Vec::new();
+    };
+    let recipient = handoff
+        .raw
+        .get("handoff")
+        .and_then(|h| h.get("next_agent"))
+        .and_then(|v| v.as_str());
+    messages
+        .iter()
+        .filter(|m| {
+            matches!(string_field(&m.raw, "kind"), Some("note" | "review"))
+                && string_field(&m.raw, "from")
+                    .is_some_and(|role| Some(role) == recipient || role == "governor-reviewer")
+                && string_field(&m.raw, "timestamp")
+                    .and_then(|s| time::OffsetDateTime::parse(s, &Rfc3339).ok())
+                    .is_some_and(|t| t > timestamp)
+                && frontmatter_refs(&m.raw).contains(&handoff.file)
+        })
+        .map(|m| ReplyEvidence {
+            id: string_field(&m.raw, "id").unwrap_or("").to_string(),
+            from: string_field(&m.raw, "from").unwrap_or("").to_string(),
+        })
+        .collect()
+}
+
+fn render_reply_evidence(
+    output: &mut OutputCounter,
+    handoff: &HandoffMessage,
+    messages: &[HandoffMessage],
+    indent: &str,
+) {
+    let evidence = reply_evidence(handoff, messages);
+    if !evidence.is_empty() {
+        output.stdout(format!(
+            "{indent}reply present — acknowledgement unconfirmed; reply_evidence: {}",
+            serde_json::to_string(&evidence).expect("reply evidence serializes")
+        ));
+    }
+}
+
 
 fn handoff_for_session(raw: &serde_json::Value) -> Option<&str> {
     if string_field(raw, "kind") != Some("handoff") {
@@ -7607,6 +7664,76 @@ mod tests {
                 }
             }),
         }
+    }
+
+    #[test]
+    fn reply_evidence_is_direct_later_recipient_or_governor_only() {
+        let file = "20260621T000000Z-planner-architect-aaaa.md";
+        let mut h = message(file, "handoff", "2026-06-21T00:00:00Z", &[]);
+        h.raw["handoff"]["next_agent"] = serde_json::json!("coder-tester");
+        let mut reply = message(
+            "20260621T000100Z-coder-tester-bbbb.md",
+            "note",
+            "2026-06-21T00:01:00Z",
+            &[file],
+        );
+        reply.raw["references-to"] = serde_json::json!([file.trim_end_matches(".md")]);
+        for kind in ["note", "review"] {
+            for role in ["coder-tester", "governor-reviewer"] {
+                reply.raw["kind"] = serde_json::json!(kind);
+                reply.raw["from"] = serde_json::json!(role);
+                let ev = reply_evidence(&h, &[h.clone(), reply.clone()]);
+                assert_eq!(
+                    ev,
+                    vec![ReplyEvidence {
+                        id: "20260621T000100Z-coder-tester-bbbb".into(),
+                        from: role.into()
+                    }]
+                );
+                assert_eq!(pending_handoffs(&[h.clone(), reply.clone()]).len(), 1);
+            }
+        }
+        for (field, value) in [
+            ("from", serde_json::json!("planner-architect")),
+            ("timestamp", serde_json::json!("2026-06-21T00:00:00Z")),
+            ("timestamp", serde_json::json!("2026-06-21T01:00:00+01:00")),
+            ("timestamp", serde_json::json!("bad timestamp")),
+            ("references-to", serde_json::json!([])), // graph/prose edge alone is insufficient
+            (
+                "references-to",
+                serde_json::json!(["20260621T000050Z-coder-tester-cccc"]),
+            ),
+            ("references-to", serde_json::json!("malformed")),
+        ] {
+            let mut invalid = reply.clone();
+            invalid.raw[field] = value;
+            assert!(reply_evidence(&h, &[invalid]).is_empty(), "{field}");
+        }
+        for kind in ["ack", "completion", "decision-record"] {
+            let mut resolver = message(
+                "20260621T000200Z-governor-reviewer-cccc.md",
+                kind,
+                "2026-06-21T00:02:00Z",
+                &[&reply.file],
+            );
+            resolver.raw["from"] = serde_json::json!("governor-reviewer");
+            assert!(pending_handoffs(&[h.clone(), reply.clone(), resolver]).is_empty());
+        }
+        let other = message(
+            "20260621T000300Z-planner-architect-dddd.md",
+            "handoff",
+            "2026-06-21T00:03:00Z",
+            &[],
+        );
+        let base = pending_handoffs(&[h.clone(), other.clone()]);
+        let annotated = pending_handoffs(&[h, reply, other]);
+        assert_eq!(
+            base.iter().map(|m| (&m.file, &m.raw)).collect::<Vec<_>>(),
+            annotated
+                .iter()
+                .map(|m| (&m.file, &m.raw))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]

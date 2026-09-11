@@ -993,6 +993,73 @@ fn channel_candidate_evidence_matches_real_cli_and_mcp() {
 }
 
 #[test]
+fn reply_evidence_matches_real_cli_on_all_handoff_views() {
+    let bin = build_real_agov_bin();
+    let root = workspace_root();
+    let fixture = tempfile::tempdir().unwrap();
+    let dir = fixture.path().to_str().unwrap();
+    let id = "20260910T100000Z-planner-architect-aaaa";
+    std::fs::write(fixture.path().join(format!("{id}.md")), format!("---\nkind: handoff\nfrom: planner-architect\nto: coder-tester\nid: {id}\ntimestamp: 2026-09-10T10:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: false\nhandoff:\n  next_agent: coder-tester\n  status: blocked\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n")).unwrap();
+    let cases = [
+        (
+            "agov_handoff_next",
+            vec!["handoff", "next", "coder-tester", "--dir", dir],
+            json!({"role":"coder-tester","dir":dir}),
+        ),
+        (
+            "agov_session_resume",
+            vec!["session", "resume", "--role", "coder-tester", "--dir", dir],
+            json!({"role":"coder-tester","dir":dir}),
+        ),
+        (
+            "agov_session_resume",
+            vec!["session", "resume", "--dir", dir],
+            json!({"dir":dir}),
+        ),
+    ];
+    for has_reply in [false, true] {
+        if has_reply {
+            std::fs::write(fixture.path().join("20260910T100100Z-coder-tester-bbbb.md"), format!("---\nkind: note\nfrom: coder-tester\nto: planner-architect\nid: 20260910T100100Z-coder-tester-bbbb\ntimestamp: 2026-09-10T10:01:00Z\nimmutable: true\nreferences-to: [{id}]\ntopic: clarification-question\nrequires-ack: false\n---\nCan you clarify?\n")).unwrap();
+        }
+        for (name, argv, args) in &cases {
+            let direct = Command::new(&bin)
+                .args(argv)
+                .current_dir(&root)
+                .output()
+                .unwrap();
+            assert_eq!(direct.status.code(), Some(0));
+            let stdout = String::from_utf8(direct.stdout).unwrap();
+            let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+                .env("AGOV_MCP_AGOV_BIN", &bin)
+                .current_dir(&root)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .unwrap();
+            writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":name,"arguments":args}})).unwrap();
+            drop(child.stdin.take());
+            let out = child.wait_with_output().unwrap();
+            let value: Value = serde_json::from_slice(&out.stdout).unwrap();
+            assert_eq!(value["result"]["structuredContent"]["stdout"], stdout);
+            assert_eq!(value["result"]["structuredContent"]["status"], 0);
+            assert_eq!(value["result"]["isError"], false);
+            assert_eq!(
+                stdout.contains("reply present — acknowledgement unconfirmed"),
+                has_reply
+            );
+            assert_eq!(stdout.contains("reply_evidence:"), has_reply);
+            if has_reply {
+                assert!(stdout.contains("\"id\":\"20260910T100100Z-coder-tester-bbbb\""));
+                assert!(stdout.contains("\"from\":\"coder-tester\""));
+                if args.get("role").is_none() {
+                    assert!(stdout.contains("\n      reply present — acknowledgement unconfirmed"));
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn recipient_session_matches_real_cli_and_mcp_without_selection_changes() {
     let bin = build_real_agov_bin();
     let schema = workspace_root().join("agf/schemas");
