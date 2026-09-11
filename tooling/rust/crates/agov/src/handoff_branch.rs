@@ -321,13 +321,47 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
     }
     let partial = !errors.is_empty() || !diagnostic_sets.is_empty();
     output.stdout(format!("partial_coverage: {partial}"));
+    let dictionary = diagnostic_sets
+        .keys()
+        .flatten()
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .enumerate()
+        .map(|(i, text)| (text, i + 1))
+        .collect::<BTreeMap<_, _>>();
+    for (diagnostic, id) in &dictionary {
+        output.stdout(format!("Scan error D{id}: {diagnostic}"));
+    }
     for (diagnostics, sources) in &diagnostic_sets {
-        output.stdout(format!("Scan errors shared by {} sources:", sources.len()));
+        let mut ids = diagnostics
+            .iter()
+            .map(|d| dictionary[d])
+            .collect::<Vec<_>>();
+        ids.sort_unstable();
+        ids.dedup();
+        let mut ranges = vec![];
+        let mut cursor = 0;
+        while cursor < ids.len() {
+            let start = ids[cursor];
+            let mut end = start;
+            cursor += 1;
+            while cursor < ids.len() && ids[cursor] == end + 1 {
+                end = ids[cursor];
+                cursor += 1;
+            }
+            ranges.push(if start == end {
+                format!("D{start}")
+            } else {
+                format!("D{start}-D{end}")
+            });
+        }
+        output.stdout(format!(
+            "Scan errors {} shared by {} sources:",
+            ranges.join(","),
+            sources.len()
+        ));
         for source in sources {
             output.stdout(format!("  source: {source}"));
-        }
-        for diagnostic in diagnostics {
-            output.stdout(format!("  Scan error: {diagnostic}"));
         }
     }
     for error in &errors {

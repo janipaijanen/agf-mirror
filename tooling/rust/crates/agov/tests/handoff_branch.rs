@@ -18,6 +18,10 @@ fn repeated_invalid_sets_keep_ref_attribution_without_repeating_every_error() {
             &head,
         ]);
     }
+    // A different diagnostic set shares the same bad.md diagnostic.
+    r.git(&["checkout", "-b", "extra-invalid"]);
+    r.write("docs/coordination/another.md", "invalid");
+    r.commit();
     r.git(&["checkout", "main"]);
     let out = r.run(&["--include-branch-local"]);
     let text = String::from_utf8(out.stdout).unwrap();
