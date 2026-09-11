@@ -478,12 +478,34 @@ branch, and advance the next already-authorized handoff. In this GitLab
 project, the initial branch push can start before the merge request is
 registered; opening the MR may then create a `push`/`merge_request_event` pair
 for the same SHA. This known first-push limitation does not mean the
-contributor pushed twice or that GitLab ignored the later-push guard. Preserve
-the MR pipeline as the canonical Gate 2 acceptance path. Before canceling
-anything, compare pipeline source, ref, status, and job-name/required-job
-coverage—matching SHA alone is not proof of redundancy. Cancel only the
-demonstrably redundant push path, and record exact pipeline/job IDs and runner
-time already consumed.
+contributor pushed twice or that GitLab ignored the later-push guard.
+
+**When publishing a brand-new branch that will get an MR immediately**, the
+required primary step is publication-time prevention, not after-the-fact
+cancellation (see `docs/plans/20260911T052932Z-ci-first-push-publication-guard.md`):
+push the first commit with `git push -o ci.skip -u origin <new-branch>` — a
+GitLab push option evaluated by the push handshake itself, never a
+commit-message marker, and never a substitute for the `[ci skip]`/`[skip ci]`
+commit-message prohibition below, which stays forbidden — then immediately
+register the MR and verify exactly one job-running pipeline exists at the
+SHA (`merge_request_event`-sourced; the resulting `push`-sourced pipeline
+record stays `skipped` and consumes no runner time — that is the intended
+outcome, not a residual duplicate). If MR registration fails or is
+uncertain, re-query for an existing MR on the branch and adopt it if found,
+retry a bounded number of times, and otherwise stop and record an explicit
+blocker naming the branch, ref, and SHA — an unchanged re-push of an
+already-current branch is a no-op and does not create a new pipeline.
+Subsequent pushes to the same branch are unaffected by any of this; they
+already fall under the existing `$CI_OPEN_MERGE_REQUESTS` guard.
+
+Preserve the MR pipeline as the canonical Gate 2 acceptance path. **The
+compare-and-cancel step below remains required** for every path this
+procedure does not cover — `ci.skip` unavailable or forgotten, a manual
+push through the GitLab UI, or a failed MR registration that itself
+produces a duplicate. Before canceling anything, compare pipeline source,
+ref, status, and job-name/required-job coverage—matching SHA alone is not
+proof of redundancy. Cancel only the demonstrably redundant push path, and
+record exact pipeline/job IDs and runner time already consumed.
 
 The action loop does **not** enlarge authority. Stop and request the binding
 decision for Gate 1 approval, Gate 2 approval or merge, a release/tag/deploy,
