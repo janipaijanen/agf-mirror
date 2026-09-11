@@ -11,6 +11,7 @@ plan_id: 20260911T035752Z-row6-s2-cpc-branch-local-visibility
 
 changed_pages_or_runbooks:
   - AGENTS.md
+  - agf/templates/AGENTS.md
 
 surfaces:
   normative_owner:
@@ -35,23 +36,24 @@ surfaces:
 
   ai_landing_loaders:
     disposition: updated
-    path: AGENTS.md
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
     reason: >-
       "Tooling quick reference" gains a one-line pointer:
       `agov handoff next --include-branch-local` widens the search to
       every local and remote-tracking branch's coordination tree;
-      default behaviour unchanged.
+      default behaviour unchanged. Corrected 2026-09-11 (RNP-2 round 3 —
+      a real drafting bug the recheck caught): `agf/templates/AGENTS.md`
+      was placed under `not_applicable` even though its own stated reason
+      said it should get the pointer. Moved to `updated`, matching what
+      the reason always said and what `distribution` below already
+      confirms ships.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
           Imports root AGENTS.md by reference; reaches Claude without a
           separate edit.
-      - path: agf/templates/AGENTS.md
-        reason: >-
-          Ships the same capability to adopters (this is a real `agov`
-          command surface, not a foundry-only activation decision — see
-          `distribution` below), so it gets the identical one-line
-          pointer, not an "open question" hedge.
 
   validation_drift_evidence:
     disposition: advisory only

@@ -9,16 +9,22 @@ advisory_consultation:
     reason: >-
       Per `agf/agents/MANIFEST.yaml`, foundry's infosec-sentinel is "ci
       (agov validate infosec, on commit)" — a mechanical check, not a
-      separate reviewer session. Ran `agov validate infosec` against
-      this plan: no findings. The substantive question the plan raises
-      (does branch-local content reading ever write, execute, or expose
-      credentials) is answered structurally below (git object reads only,
-      same primitives `coord visibility` already uses) and is
-      independently re-checkable by any reviewer against the live source.
-      Corrected 2026-09-11 (RNP-1): the prior wording ("InfoSec confirms
-      ...") implied an independent reviewer attestation this plan did not
-      actually have; restated to match the mechanical-check basis this
-      project's other plans use for the same role.
+      separate reviewer session. Ran the actual command, precisely named
+      (corrected 2026-09-11, RNP-1 round 3 — the round-1 wording said
+      "ran against this plan," overstating its scope, a mistake this
+      correction fixes here after the sibling S3 plan already caught the
+      same error round 2): `agov validate infosec` invokes
+      `ValidateCommand::Infosec` with no plan-path argument
+      (`main.rs:6883-6887`), dispatching
+      `agov_validators::infosec::validate_all(&agov_core::learnings_dir())`
+      — it scans **learning records only**, not this plan file, its
+      branch, or any API/credential security contract. Result: no
+      findings in the learning corpus. This provides **no plan-security
+      consultation**; it is cited only as the mechanical CI check this
+      project runs on every commit. The read-only/no-write/no-credential
+      reasoning for branch-local reads below is author reasoning, not a
+      screening attestation, and remains an outstanding item for an
+      actual infosec-sentinel or governor security consultation.
   - role: contribution-auditor
     status: consulted
     reason: >-
@@ -104,26 +110,47 @@ below, never at the resolution layer.
 
 ### Dedup / conflict policy (RNP-2)
 
+**The on-disk filesystem is a named source too (RNP-2 round 3).** The
+default (no-flag) source `handoff_next` already reads —
+`read_valid_coord_messages(&dir)`, the current working tree, including
+uncommitted/staged files — does not disappear when
+`--include-branch-local` is added; it is still evaluated (unconditionally,
+exactly as today) and its own pending set participates in dedup/conflict
+on equal footing with every enumerated ref. To compare it on the same
+blob-SHA basis as ref candidates, compute each on-disk file's blob hash
+via `git hash-object <path>` (the same content-addressing algorithm git
+uses for committed blobs — works on an uncommitted file without needing a
+commit). This is the priority-class-0 source (ranks above every ref,
+including local branches, in the class-priority attribution below — it is
+literally what the user is looking at right now).
+
 Same-content dedup reuses the **blob-SHA equality** `load_visibility_snapshot`
 already computes per path (`base.get(path) == Some(blob)` at
-`main.rs:4784`) — generalised here to a per-path comparison **across every
-enumerated ref's own inventory**, not `dedup_and_select_branches`'s
-commit/tree-OID grouping (which only catches two refs at the *same commit*,
-not two refs at *different commits* that happen to carry byte-identical
-content at one path — exactly the "unchanged handoff blob at different
-commits" case the reviewer named). After every ref's independent pending
-set is computed: group same-path candidates across refs by blob SHA. All
-refs sharing one blob SHA for a path report as **one** entry, attributed to
-the highest-priority ref present in that group (local > `origin/*` > other
-remotes, reusing `branch_ref_class`, `main.rs:4634-4643`, for the priority
-order only — not for the dedup test itself, which is blob-SHA equality).
+`main.rs:4784`) — generalised here to a per-path comparison **across the
+on-disk source and every enumerated ref's own inventory together**, not
+`dedup_and_select_branches`'s commit/tree-OID grouping (which only catches
+two refs at the *same commit*, not two refs — or the working tree and a
+ref — at *different* states that happen to carry byte-identical content
+at one path — exactly the "unchanged handoff blob at different commits"
+case the reviewer named). After every source's independent pending set is
+computed (the filesystem plus each ref): group same-path candidates by
+blob SHA. All sources sharing one blob SHA for a path report as **one**
+entry, attributed to the highest-priority source present in that group
+(on-disk filesystem > local branch > `origin/*` > other remotes, extending
+`branch_ref_class`, `main.rs:4634-4643`, with the new filesystem class 0
+— for priority/attribution only, not for the dedup test itself, which is
+blob-SHA equality).
 
 **Genuine conflict** (the same nominal handoff — same path — with
-*different* blob SHAs across refs, each still independently pending per
-its own ref) is a distinct case from same-content duplication and MUST NOT
-be silently resolved by picking one: **all** distinct (ref, blob-SHA)
-pairs are reported as separate entries, each labeled with its ref and
-exact SHA, with a `CONFLICT` marker linking them. This is additive output
+*different* blob SHAs across sources, each still independently pending
+per its own source) is a distinct case from same-content duplication and
+MUST NOT be silently resolved by picking one: **all** distinct (source,
+blob-SHA) pairs are reported as separate entries — including when the
+on-disk filesystem itself is one of the conflicting sources, e.g. a
+locally-edited-but-uncommitted handoff that diverges from what a branch
+already committed at the same path — each labeled with its source and
+exact SHA (or "working tree" for the filesystem source), with a
+`CONFLICT` marker linking them. This is additive output
 — it does not alter `handoff_next`'s existing single-result `max_by_key`
 selection for the primary "next handoff" answer (out of scope, per the
 parent work order guard, to redesign that); conflict entries are a
@@ -162,11 +189,26 @@ identical to the pre-slice binary on the same inputs (fixture 1 below).
    that same ref → evaluating that ref alone (per the "Lifecycle /
    resolution semantics" decision above) correctly excludes it as
    resolved; it does not appear as pending for that ref.
-3c. **Cross-ref non-suppression.** A handoff pending on ref A has no
-   resolving record anywhere on ref A; a resolving record for a
-   different, unrelated handoff exists on ref B → ref A's handoff still
-   reports as pending (ref B's records never enter ref A's own
-   resolution evaluation).
+3c. **Cross-ref non-suppression (corrected 2026-09-11, RNP-2 round 3 — the
+   round-2 version of this fixture used a resolving record for an
+   *unrelated* handoff, which cannot exercise cross-ref pooling at all;
+   the per-ref design already forbids that trivially).** A handoff at a
+   given path is pending on ref A with no resolving record anywhere on
+   ref A; ref B independently has a resolving record (ack/completion)
+   that names **that same handoff's own ID/path** — but ref B never
+   contains the pending handoff itself, only the record that would
+   resolve it if pooled. Evaluated correctly (per-ref-independent), ref
+   A's handoff still reports as pending — proving ref B's resolving
+   record was never consulted while evaluating ref A, the actual
+   suppression risk the reviewer named.
+3d. **Filesystem-vs-ref dedup and conflict (RNP-2 round 3).** The on-disk
+   working tree has an uncommitted handoff at a path; a local branch
+   separately commits a byte-identical copy at the same path → deduped
+   to one entry, attributed to the filesystem (priority class 0). A
+   second case: the on-disk copy and a branch's committed copy at the
+   same path have **different** bytes → both reported in the conflict
+   section, the filesystem entry labeled "working tree" instead of a ref
+   name/SHA.
 4. **Genuine conflict (same path, divergent blob SHA, both still
    independently pending on their own ref).** Two refs each declare a
    same-path handoff file with different byte content, and neither ref
@@ -179,11 +221,21 @@ identical to the pre-slice binary on the same inputs (fixture 1 below).
    branch does not crash the scan; it is reported as a parse failure
    (matching `agov coord visibility`'s existing behaviour), not silently
    dropped or silently accepted.
-6. **Unreadable ref.** A ref that fails to resolve (deleted mid-scan,
-   corrupt object) is reported as a scan error for that ref specifically
-   — the scan continues for every other ref rather than aborting the
-   whole command (matching `coord visibility`'s existing fail-partial,
-   not fail-closed-whole, behaviour for per-ref errors).
+6. **Unreadable ref — a new, proposed behaviour (corrected 2026-09-11,
+   RNP-2 round 3).** Re-verified `coord visibility`'s actual current
+   behaviour: `visibility_scan` (`main.rs:4419-4493`) propagates
+   `git_coord_files(branch, ...)?` and `load_git_messages(branch, ...)?`
+   errors with `?`, aborting the **entire** scan on one bad ref — the
+   existing behaviour is fail-closed-whole, the opposite of what the
+   earlier version of this fixture claimed. S2 deliberately proposes
+   **different, new** behaviour: a ref that fails to resolve (deleted
+   mid-scan, corrupt object) is reported as a scan error for that ref
+   specifically, and the scan continues for every other ref/the
+   filesystem source. The result **must** carry an explicit
+   `partial_coverage: true` (or equivalent) marker naming which ref
+   failed whenever this happens — never an unqualified "no handoff
+   found" success that looks identical to a genuinely clean, fully-
+   covered scan.
 7. **`--session` interaction.** `--include-branch-local` combined with
    the existing `--session` flag (row-5 S1) still annotates branch-local
    candidates with recipient-session information exactly as it does for
@@ -196,16 +248,17 @@ identical to the pre-slice binary on the same inputs (fixture 1 below).
 ## Rule-projection screen
 
 `docs/reviews/rule-projection/20260911T035752Z-row6-s2-cpc-branch-local-visibility.yaml`
-(corrected 2026-09-11, RNP-4 — converted from inline-only prose to the
-structured manifest, and its distribution claim fixed): normative owner
-not applicable; adopter explanation not applicable; runbook not
-applicable; AI loaders `AGENTS.md` updated, `agf/templates/AGENTS.md`
-also updated (ships the same capability to adopters — not an open
-question), `.claude/CLAUDE.md` not applicable via import; validation/drift
-advisory only; distribution confirmed for `agf/templates/AGENTS.md` only
-(root `AGENTS.md` foundry-local, `agov` itself ships via the tooling
-archive, not the `agf/` framework artifact — corrected from the prior
-imprecise claim).
+(corrected 2026-09-11, three rounds — round 1: distribution claim fixed
+inline; round 2: converted to the structured manifest; round 3: fixed a
+genuine drafting bug the recheck caught — `agf/templates/AGENTS.md` was
+placed under `not_applicable` even though its own stated reason said it
+should be updated): normative owner not applicable; adopter explanation
+not applicable; runbook not applicable; AI loaders `AGENTS.md` **and**
+`agf/templates/AGENTS.md` both updated, `.claude/CLAUDE.md` not
+applicable via import; validation/drift advisory only; distribution
+confirmed for `agf/templates/AGENTS.md` only (root `AGENTS.md`
+foundry-local, `agov` itself ships via the tooling archive, not the
+`agf/` framework artifact).
 `agov plan projection-check --allow-planned --base-ref origin/main` on
 this manifest: OK.
 
@@ -215,28 +268,44 @@ Pure additive `agov` flag. Revert the MR → `handoff next` loses the flag;
 zero behaviour change for any caller not passing it. No schema, no rule
 text, no migration.
 
-## Corrections (2026-09-11, RNP review — two rounds)
+## Corrections (2026-09-11, RNP review — three rounds)
 
-Independent review `6pq1` found this plan's original text inaccurate or
-incomplete in five ways; a second recheck (`20260911T124355Z-contribution-auditor-gtsg`)
-found the first correction pass partial on RNP-2 and RNP-4. Status after
-both rounds:
+Independent review `6pq1` (round 1) found this plan's original text
+inaccurate or incomplete in five ways. Recheck `gtsg` (round 2) found the
+round-1 pass partial on RNP-2 and RNP-4. Recheck `20260911T130853Z-contribution-auditor-ehmq`
+(round 3) BLOCKed S2 again: RNP-1 had been fixed on the sibling S3 plan
+but the identical fix was never applied here; RNP-2's dedup/conflict
+policy never named the on-disk filesystem as a source even though it is
+`handoff_next`'s default source; fixture 6 claimed to match `coord
+visibility`'s existing per-ref error behaviour, which round 3 found is
+actually the opposite (current `main.rs` fails closed on the whole scan,
+not per-ref); fixture 3c didn't actually exercise cross-ref suppression;
+and the projection manifest had a genuine drafting bug (a path under
+`not_applicable` whose own reason said it should be `updated`). Status
+after all three rounds:
 
-- **RNP-1** (unsupported consultation attestations) — resolved round 1.
+- **RNP-1** (unsupported consultation attestations, then: infosec wording
+  overstated scope — fixed on S3 round 2 but not applied here) —
+  **resolved round 3**: applied the identical S3 correction to S2's
+  `advisory_consultation.infosec-sentinel`.
 - **RNP-2** (branch provenance/lifecycle undefined, wrong baseline
   citation, then: wrong function citations after `main` advanced again,
   dedup claim not actually blob-SHA-based, no lifecycle/resolution
   semantics, fixture 3 didn't test what it claimed, MCP fixture had an
-  escape hatch) — **resolved round 2**: re-verified `main.rs` a second
-  time (`git_candidate_inventory`/`load_visibility_snapshot`, current as
-  of `main` `5d749c51`+), added the "Lifecycle / resolution semantics"
-  subsection deciding per-ref-independent resolution, corrected dedup to
-  blob-SHA equality, fixed fixture 3 and added 3b/3c, and committed MCP
-  parity without an escape hatch.
+  escape hatch, then: on-disk filesystem never named as a dedup/conflict
+  source, fixture 6's fail-partial claim was backwards relative to actual
+  `main.rs` behaviour, fixture 3c didn't exercise real cross-ref
+  suppression) — **resolved round 3**: added the on-disk filesystem as a
+  named priority-class-0 source in dedup/conflict (fixture 3d), corrected
+  fixture 6 to state plainly that per-ref fail-partial is a **new,
+  proposed** behaviour (current `main.rs` fails closed on the whole scan)
+  and requires an explicit `partial_coverage` marker in the result, and
+  rewrote fixture 3c to use a same-ID resolving record on a different ref
+  (the actual suppression risk), not an unrelated one.
 - **RNP-4** (inline-only projection screen retained, stale distribution
-  sentence) — this finding was against S2 specifically in round 2 (S3's
-  RNP-4 was already resolved round 1) — **resolved round 2**: converted
-  to the structured manifest, corrected the distribution claim.
+  sentence, then: `agf/templates/AGENTS.md` placed under `not_applicable`
+  with a reason that said `updated`) — **resolved round 3**: moved to
+  `updated`, matching its own stated reason and the `distribution` row.
 - **RNP-5** (stale "no overlap" claim) — resolved round 1, see below.
 - RNP-3 applies only to the sibling S3 plan; not addressed here.
 
@@ -265,6 +334,10 @@ Approve (a) the opt-in `--include-branch-local` flag reusing
 `coord visibility`'s existing branch-enumeration and per-ref read path,
 (b) that default (no-flag) behaviour stays byte-identical, (c) the
 per-ref-independent lifecycle/resolution semantics, (d) the blob-SHA
-dedup/conflict policy above, (e) the 10 fixtures (1, 2, 3, 3b, 3c, 4, 5,
-6, 7, 8), (f) the structured loader-pointer projection manifest. Then
-coder-tester implements against current `main`; own Gate 2.
+dedup/conflict policy including the on-disk filesystem as a named
+priority-class-0 source, (e) the new per-ref fail-partial error handling
+(a deliberate departure from `coord visibility`'s current fail-closed-
+whole behaviour, surfaced via an explicit `partial_coverage` marker),
+(f) the 12 fixtures (1, 2, 3, 3b, 3c, 3d, 4, 5, 6, 7, 8), (g) the
+structured loader-pointer projection manifest. Then coder-tester
+implements against current `main`; own Gate 2.
