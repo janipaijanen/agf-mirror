@@ -1,6 +1,8 @@
 ---
 id: 20260911T035752Z-row6-s2-cpc-branch-local-visibility
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T17:10:30Z
 topic: row6-s2-cpc-branch-local-visibility
 candidate_release: v2.11.0
 advisory_consultation:
@@ -46,6 +48,14 @@ advisory_consultation:
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Row 6 S2 — CP-C: branch-local obligation visibility for `agov handoff next` (Gate 1)
+
+**Gate 1: APPROVED** at exact source head `5f80cbefa7d5a1f34c08ba1bee76768c8aadce4a`
+per `20260911T171030Z-governor-reviewer-1rhh` (governor Jani: "2685 and 2586
+approved gate 1", transcribed via the Codex session; recorded on
+`codex/ci-shallow-history-report`, MR !2705). The disclosed plan-security
+consultation limitation (see `advisory_consultation.infosec-sentinel` above)
+is preserved, not converted into a technical screening attestation by this
+approval. coder-tester implements; implementation Gate 2 remains separate.
 
 ## Provenance
 
