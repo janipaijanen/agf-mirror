@@ -5,6 +5,34 @@ use std::{fs, path::PathBuf, process::Command};
 const ID: &str = "20260911T000000Z-planner-architect-a001";
 const FILE: &str = "docs/coordination/20260911T000000Z-planner-architect-a001.md";
 
+#[test]
+fn repeated_invalid_sets_keep_ref_attribution_without_repeating_every_error() {
+    let r = Repo::new();
+    r.git(&["checkout", "-b", "invalid"]);
+    r.write("docs/coordination/bad.md", "invalid");
+    let head = r.commit();
+    for index in 0..20 {
+        r.git(&[
+            "update-ref",
+            &format!("refs/remotes/origin/copy-{index}"),
+            &head,
+        ]);
+    }
+    r.git(&["checkout", "main"]);
+    let out = r.run(&["--include-branch-local"]);
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    assert_eq!(
+        text.matches("invalid candidate docs/coordination/bad.md")
+            .count(),
+        1
+    );
+    for index in 0..20 {
+        assert!(text.contains(&format!("refs/remotes/origin/copy-{index} @ {head}")));
+    }
+    assert!(text.contains("partial_coverage: true"));
+}
+
 struct Repo(tempfile::TempDir);
 impl Repo {
     fn new() -> Self {

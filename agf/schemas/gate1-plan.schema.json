@@ -80,6 +80,15 @@
           }
         ]
       }
+    },
+    "affected_paths": {
+      "type": "array",
+      "description": "Optional repository-relative paths/globs; ** is allowed only as a whole path segment. Overlap checking is advisory.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[^/]\\*\\*)(?!.*\\*\\*[^/]).+$"
+      }
     }
   }
 }

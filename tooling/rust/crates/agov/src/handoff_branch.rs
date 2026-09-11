@@ -250,6 +250,7 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
     }
 
     let mut blob_cache = BlobCache::new();
+    let mut diagnostic_sets: BTreeMap<Vec<String>, Vec<String>> = BTreeMap::new();
     match git_coord_dir(&dir).and_then(|path| git_branch_refs().map(|refs| (path, refs))) {
         Ok((path, mut refs)) => {
             refs.sort_by_key(|r| (branch_ref_class(&r.full_name), r.full_name.clone()));
@@ -268,13 +269,13 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
                 let reference = &group[0];
                 match branch(&reference.oid, &path, &mut blob_cache) {
                     Ok(snapshot) => {
-                        for r in &group {
-                            errors.extend(
-                                snapshot
-                                    .errors
-                                    .iter()
-                                    .map(|e| format!("{} @ {}: {e}", r.full_name, r.oid)),
-                            );
+                        if !snapshot.errors.is_empty() {
+                            diagnostic_sets
+                                .entry(snapshot.errors.clone())
+                                .or_default()
+                                .extend(
+                                    group.iter().map(|r| format!("{} @ {}", r.full_name, r.oid)),
+                                );
                         }
                         collect(
                             &snapshot,
@@ -318,7 +319,17 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
             output.stdout(format!("Addressed elsewhere: {recipient}"));
         }
     }
-    output.stdout(format!("partial_coverage: {}", !errors.is_empty()));
+    let partial = !errors.is_empty() || !diagnostic_sets.is_empty();
+    output.stdout(format!("partial_coverage: {partial}"));
+    for (diagnostics, sources) in &diagnostic_sets {
+        output.stdout(format!("Scan errors shared by {} sources:", sources.len()));
+        for source in sources {
+            output.stdout(format!("  source: {source}"));
+        }
+        for diagnostic in diagnostics {
+            output.stdout(format!("  Scan error: {diagnostic}"));
+        }
+    }
     for error in &errors {
         output.stdout(format!("Scan error: {error}"));
     }
@@ -328,7 +339,7 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
         &format!("next-handoff:{role}"),
         output.chars,
     );
-    if !errors.is_empty() {
+    if partial {
         1
     } else if candidates.is_empty() {
         2

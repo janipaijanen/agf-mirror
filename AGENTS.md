@@ -199,6 +199,8 @@ must not be renamed merely for style.
 
 ## Gate discipline
 
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
+
 Every non-trivial task requires:
 
 - **Gate 1** (planner-architect → governor-reviewer): plan file in `docs/plans/`

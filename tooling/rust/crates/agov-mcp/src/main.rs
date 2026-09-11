@@ -592,6 +592,14 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             push_required_strings(args, "files", &mut cli)?;
             Ok(cli)
         }
+        "agov_plan_collision_check" => {
+            if args.get("include_forge").is_some() {
+                return Err("include_forge is CLI-only; MCP collision checks are local-only".into());
+            }
+            let mut cli = vec!["plan".into(), "collision-check".into()];
+            push_optional_flag(args, "base_ref", "--base-ref", &mut cli)?;
+            Ok(cli)
+        }
         "agov_session_resume" => {
             let mut cli = vec!["session".to_string(), "resume".to_string()];
             push_optional_flag(args, "role", "--role", &mut cli)?;
@@ -870,6 +878,11 @@ fn tools() -> Vec<Value> {
                     "files": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
                 }
             }),
+        ),
+        tool(
+            "agov_plan_collision_check",
+            "Advisory overlap check across active plans and local/remote-tracking refs. Local-only, no network. Exit 1 means overlap; exit 2 means no overlap but incomplete coverage; neither is a gate decision.",
+            json!({"type":"object", "additionalProperties":false, "properties":{"base_ref":{"type":"string"}}}),
         ),
         tool(
             "agov_session_resume",
@@ -1151,6 +1164,7 @@ mod tests {
                 "agov_validate",
                 "agov_coord_validate",
                 "agov_plan_validate",
+                "agov_plan_collision_check",
                 "agov_session_resume",
                 "agov_handoff_next",
                 "agov_handoff_take",
@@ -1199,6 +1213,7 @@ mod tests {
             ("agov_validate", json!({})),
             ("agov_coord_validate", json!({ "files": ["a.md"] })),
             ("agov_plan_validate", json!({ "files": ["a.md"] })),
+            ("agov_plan_collision_check", json!({})),
             ("agov_session_resume", json!({})),
             ("agov_handoff_next", json!({ "role": "coder-tester" })),
             (

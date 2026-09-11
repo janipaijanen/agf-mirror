@@ -167,6 +167,8 @@ mechanical check would never get a chance to run.
 
 ## Gate discipline
 
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
+
 Every non-trivial task requires two gates:
 
 - **Gate 1** — planner-architect files a plan in `docs/plans/`; governor-reviewer

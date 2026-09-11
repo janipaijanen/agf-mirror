@@ -2,6 +2,7 @@ mod ci_cache_topology;
 mod commercial_corpus;
 mod dist;
 mod handoff_branch;
+mod plan_collision;
 mod provenance;
 mod release_namespace;
 
@@ -320,6 +321,14 @@ enum CoordCommand {
 
 #[derive(Subcommand)]
 enum PlanCommand {
+    /// Report possible plan/ref overlaps; advisory, never a gate decision.
+    CollisionCheck {
+        #[arg(long, default_value = "main")]
+        base_ref: String,
+        /// Query GitLab through configured glab authentication (CLI only).
+        #[arg(long)]
+        include_forge: bool,
+    },
     /// Validate one or more Gate 1 plan files.
     Validate {
         #[arg(required = true)]
@@ -817,6 +826,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     format,
                 },
         } => coord_convergence(&series, dir, &format, &args),
+        Command::Plan {
+            sub: PlanCommand::CollisionCheck { base_ref, include_forge },
+        } => plan_collision::run(&base_ref, include_forge, &args),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(
