@@ -1515,3 +1515,54 @@ fn configured_unavailable_upstream_never_suppresses_local_archive() {
     assert!(!String::from_utf8_lossy(&out.stdout).contains("archive_baseline"));
     assert!(!String::from_utf8_lossy(&out.stdout).contains("clean"));
 }
+
+#[test]
+fn session_annotation_preserves_visibility_membership_order_and_exit() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00100-governor-reviewer.md",
+        &decision(100, "base", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/session"]);
+    for (seq, recipient) in [(110, "recipient-B"), (111, "recipient-C")] {
+        repo.write(
+            &format!("docs/coordination/{seq:05}-coder-tester.md"),
+            &handoff(seq, "governor-reviewer", "session test").replace(
+                "handoff:",
+                &format!("session: author-A\nhandoff:\n  for_session: {recipient}"),
+            ),
+        );
+    }
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "sessions"]);
+    let args = [
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/session",
+        "--format",
+        "json",
+    ];
+    let baseline = repo.agov(&args);
+    assert_eq!(baseline.status.code(), Some(1));
+    let mut scoped_args = args.to_vec();
+    scoped_args.extend(["--session", "recipient-B"]);
+    let annotated = repo.agov(&scoped_args);
+    assert_eq!(annotated.status.code(), baseline.status.code());
+    let baseline: serde_json::Value = serde_json::from_slice(&baseline.stdout).unwrap();
+    let mut annotated: serde_json::Value = serde_json::from_slice(&annotated.stdout).unwrap();
+    let rows = annotated["unbridged_obligations"].as_array_mut().unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(rows[0].get("addressed_elsewhere").is_none());
+    assert_eq!(rows[1]["addressed_elsewhere"], "recipient-C");
+    rows[1]
+        .as_object_mut()
+        .unwrap()
+        .remove("addressed_elsewhere");
+    assert_eq!(annotated, baseline);
+}

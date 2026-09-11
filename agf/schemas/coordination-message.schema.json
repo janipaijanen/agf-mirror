@@ -93,6 +93,11 @@
       "required": ["next_agent", "status", "task", "must_read", "do_not_touch"],
       "properties": {
         "next_agent": { "type": "string", "minLength": 1 },
+        "for_session": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional recipient session identifier (UUIDv7 convention, same shape as top-level session). Advisory addressing only; never changes visibility, order, status, claims or authority. Top-level session remains author provenance."
+        },
         "status":     { "type": "string", "enum": ["ready", "blocked"] },
         "task":       { "type": "array", "items": { "type": "string" }, "minItems": 1 },
         "must_read":  { "type": "array", "items": { "type": "string" } },

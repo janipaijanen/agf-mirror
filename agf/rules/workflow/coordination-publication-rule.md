@@ -253,3 +253,16 @@ The scan MUST disclose its ref SHAs and bounded scopes. Missing targets,
 unavailable schemas and incomplete blob/ref reads produce incomplete coverage,
 never a clean-empty claim. Diagnostics use existing advisory warning/error
 exit conventions and confer no new MR-blocking or gate authority.
+
+## Advisory recipient session addressing
+
+`handoff.for_session` optionally names a recipient session using the same
+nonempty-string schema shape and UUIDv7 convention as `session`. Top-level
+`session` remains author provenance. `handoff next <role> --session <token>`
+and `coord visibility --session <token>` annotate mismatched handoff recipients
+as addressed elsewhere. They MUST NOT hide, reorder, deprioritize or change
+ready/blocked state, lifecycle, exit codes, claims, temporary allocations,
+independent review requirements or governor authority. Without the flag,
+output remains unchanged. An absent `for_session` remains role-wide; a matching
+recipient retains its original state. Notes/reviews remain role-wide and their
+author session never becomes a recipient address.

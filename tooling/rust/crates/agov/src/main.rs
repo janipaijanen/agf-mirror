@@ -233,6 +233,9 @@ enum CoordCommand {
     },
     /// Scan local branches for hidden coordination obligations.
     Visibility {
+        /// Annotate handoffs addressed to another session; never filters or reorders.
+        #[arg(long)]
+        session: Option<String>,
         #[arg(long, default_value = "main", alias = "base_branch")]
         base_branch: String,
         #[arg(long)]
@@ -376,6 +379,9 @@ enum ValidateCommand {
 enum HandoffCommand {
     /// Show the next ready handoff for an agent role.
     Next {
+        /// Annotate handoffs addressed to another session; never filters or reorders.
+        #[arg(long)]
+        session: Option<String>,
         agent_role: String,
         #[arg(long, default_value = "docs/coordination")]
         dir: PathBuf,
@@ -769,12 +775,13 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         Command::Coord {
             sub:
                 CoordCommand::Visibility {
+                    session,
                     base_branch,
                     branch,
                     dir,
                     format,
                 },
-        } => coord_visibility(base_branch, branch, dir, format, &args),
+        } => coord_visibility(base_branch, branch, dir, format, session.as_deref(), &args),
         Command::Coord {
             sub: CoordCommand::Graph { dir, format },
         } => coord_graph(dir, format, &args),
@@ -835,8 +842,13 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
         } => gate_change_check_command(&base_ref, &registry, &args),
         Command::Validate { sub } => run_validate(sub, &args),
         Command::Handoff {
-            sub: HandoffCommand::Next { agent_role, dir },
-        } => handoff_next(&agent_role, dir, &args),
+            sub:
+                HandoffCommand::Next {
+                    agent_role,
+                    dir,
+                    session,
+                },
+        } => handoff_next(&agent_role, dir, session.as_deref(), &args),
         Command::Handoff {
             sub: HandoffCommand::Take { id, from, dir },
         } => handoff_take(&id, &from, dir, &args),
@@ -4025,6 +4037,8 @@ struct BranchCollision {
 
 #[derive(Debug, Clone)]
 struct VisibilityObligation {
+    for_session: Option<String>,
+    addressed_elsewhere: bool,
     branch: String,
     file: String,
     seq: Option<i64>,
@@ -4359,6 +4373,7 @@ fn coord_visibility(
     branches: Vec<String>,
     dir: PathBuf,
     format: String,
+    session: Option<&str>,
     args: &[String],
 ) -> i32 {
     let mut output = OutputCounter::default();
@@ -4372,7 +4387,7 @@ fn coord_visibility(
         }
     };
 
-    let report = match visibility_scan(&base_branch, branches, &coord_dir) {
+    let mut report = match visibility_scan(&base_branch, branches, &coord_dir) {
         Ok(report) => report,
         Err(reason) => {
             output.stderr(format!(
@@ -4381,6 +4396,12 @@ fn coord_visibility(
             return 2;
         }
     };
+
+    for item in &mut report.unbridged_obligations {
+        item.addressed_elsewhere = session
+            .zip(item.for_session.as_deref())
+            .is_some_and(|(requested, recipient)| requested != recipient);
+    }
 
     if format == "json" {
         output.stdout(visibility_json(&report));
@@ -4459,6 +4480,8 @@ fn visibility_scan(
             .filter(|message| !visibility_bridged(&base_messages, branch, message))
         {
             unbridged_obligations.push(VisibilityObligation {
+                for_session: handoff_for_session(&message.raw).map(str::to_string),
+                addressed_elsewhere: false,
                 branch: branch.clone(),
                 file: message.file.clone(),
                 seq: message.raw.get("seq").and_then(|value| value.as_i64()),
@@ -5228,6 +5251,12 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
             output.stdout(format!("  to: {}", obligation.to));
             output.stdout(format!("  topic: {}", obligation.topic));
             output.stdout("  bridge: missing");
+            if obligation.addressed_elsewhere {
+                output.stdout(format!(
+                    "  addressed elsewhere: {}",
+                    obligation.for_session.as_deref().unwrap_or("")
+                ));
+            }
         }
     }
 
@@ -5248,7 +5277,7 @@ fn visibility_json(report: &VisibilityReport) -> String {
         .unbridged_obligations
         .iter()
         .map(|entry| {
-            serde_json::json!({
+            let mut value = serde_json::json!({
                 "branch": entry.branch,
                 "file": entry.file,
                 "seq": entry.seq,
@@ -5256,7 +5285,11 @@ fn visibility_json(report: &VisibilityReport) -> String {
                 "to": entry.to,
                 "topic": entry.topic,
                 "bridge": "missing",
-            })
+            });
+            if entry.addressed_elsewhere {
+                value["addressed_elsewhere"] = serde_json::json!(entry.for_session);
+            }
+            value
         })
         .collect();
     let collisions: Vec<serde_json::Value> = report
@@ -5838,7 +5871,7 @@ fn render_must_read(output: &mut OutputCounter, role: &str, messages: &[HandoffM
     }
 }
 
-fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
+fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, args: &[String]) -> i32 {
     let mut output = OutputCounter::default();
     let dir = repo_relative_path(dir);
 
@@ -5865,6 +5898,9 @@ fn handoff_next(agent_role: &str, dir: PathBuf, args: &[String]) -> i32 {
     };
 
     render_handoff_summary(&mut output, &message);
+    if let Some(recipient) = addressed_elsewhere(&message.raw, session) {
+        output.stdout(format!("Addressed elsewhere: {recipient}"));
+    }
     agov_core::roi::record_tool_output(
         "agov.handoff.next",
         args,
@@ -6250,6 +6286,22 @@ fn clean_coord_filename(token: &str) -> Option<String> {
     } else {
         None
     }
+}
+
+fn handoff_for_session(raw: &serde_json::Value) -> Option<&str> {
+    if string_field(raw, "kind") != Some("handoff") {
+        return None;
+    }
+    raw.get("handoff")
+        .and_then(|h| h.get("for_session"))
+        .and_then(|s| s.as_str())
+}
+
+fn addressed_elsewhere<'a>(raw: &'a serde_json::Value, session: Option<&str>) -> Option<&'a str> {
+    let recipient = handoff_for_session(raw)?;
+    session
+        .filter(|requested| *requested != recipient)
+        .map(|_| recipient)
 }
 
 fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) {
