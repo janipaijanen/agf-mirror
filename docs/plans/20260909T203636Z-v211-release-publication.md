@@ -53,6 +53,15 @@ advisory_consultation:
   (`docs/plans/20260831T050110Z-v290-release-publication.md`), which
   proved out the derived-allowlist and fail-closed-pre-tag discipline.
 
+**Post-approval amendment (2026-09-10, R-3).** The parent scope plan's
+PMM-role amendment (condition 4, governor Gate 1 `tsbh`) requires the
+`documentation-estate-steward`'s first estate-wide sweep to complete —
+with every finding dispositioned — before this plan freezes the metadata
+allowlist or CHANGELOG scope. That row is now in "Blocked preconditions"
+and the constraint is restated at Step 3 and the CHANGELOG-scope section.
+This fold is pre-authorized by the parent amendment's own Gate 1; `status`
+stays `approved`.
+
 This plan authorizes **no** version bump, metadata merge, tag, release, or
 deployment. Steps execute only after the preconditions below are all
 green, and the tag step (Step 6) is a **separate binding governor
@@ -74,6 +83,7 @@ are.
 | Improvement Propeller Stage 4 (#131) | the first **genuine unattended Monday wake** with a conforming result **and** the separate Level-5 maturity record |
 | Queue convergence B4–B7 | every currently-open MR has an evidence-backed ledger row (dispositioning only; forge closes are post-release) |
 | Pre-cut governor dispositions (`release-preflight-learning-gate2`, `capability-developer-startup-sync`) | a governor decision/supersession record filed (MRs already merged) |
+| **Documentation-estate assessment** (parent scope plan condition 4; PMM-role amendment) | the `documentation-estate-steward`'s first estate-wide sweep is **complete** and **every finding is dispositioned** (fixed / accepted-as-current / deferred-with-reason / referred-and-governor-dispositioned). The sweep runs at the `release-content-freeze` cadence — it must complete **before Step 3** derives the metadata allowlist and **before the CHANGELOG scope is frozen** (a currency/consistency finding could change either). Report: `docs/reviews/documentation-estate/<sweep-date>-first-estate-sweep.md` |
 | Runner capacity + DinD | confirmed sufficient for the tag pipeline (see Step 5d) **before** tagging — the tag pipeline is the one pipeline that must not fail midway (v2.9.0 was blocked on CI quota; v2.7.0-rc.1 was burned by tagging without a working pipeline) |
 
 `main` must also carry a green pipeline on the exact release base with no
@@ -108,6 +118,15 @@ review: a `v2.10.0` rule exists; `v2.11.0` is absent.
 - Step 5b re-reads this exact object immediately before the tag push.
 
 ### 3. Derive the exact metadata allowlist at the frozen base
+
+> **Estate-assessment precondition (parent scope plan condition 4).** Do
+> not run this step until the `documentation-estate-steward`'s first
+> estate-wide sweep is complete with every finding dispositioned. A
+> currency finding (a surface still naming a superseded version) or a
+> consistency finding (the same claim stated differently across surfaces)
+> discovered *after* the allowlist is frozen forces a re-derivation. The
+> sweep's mechanical currency fixes land on `main` first, so the frozen
+> base already reflects them.
 
 **Two audit commands**, run at the frozen release base; their combined
 output is Gate 2 evidence. The result is an **exact allowlist of paths and
@@ -301,6 +320,11 @@ generic-package version identity, the OCI digest, the `release:verify`
 job ID, and the `agov dist post-publication-check` transcript location.
 
 ## CHANGELOG scope
+
+> The `documentation-estate-steward` sweep (precondition above) completes
+> **before** this scope is frozen. Its dimension-1/2 findings (version and
+> capability/maturity currency) directly bear on what the CHANGELOG's
+> "adopter-visible change" and maturity claims may say.
 
 `CHANGELOG.md` + `agf/CHANGELOG.md` entries state **adopter-visible
 change**, not a commit count:
