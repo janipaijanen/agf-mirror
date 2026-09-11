@@ -59,9 +59,15 @@ surfaces:
     disposition: advisory only
     paths:
       - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/src/handoff_branch.rs
+      - tooling/rust/crates/agov/tests/handoff_branch.rs
+      - tooling/rust/crates/agov-mcp/src/main.rs
     reason: >-
-      A discovery-only flag; its own fixtures (8 in this plan) are the
-      evidence, not a separate mechanical drift check.
+      Implemented as an opt-in advisory inventory. Six integration tests cover
+      the plan cases, including per-source lifecycle, exact raw blob identity,
+      conflicts, invalid/corrupt refs and session annotation. MCP schema/argument
+      parity has a dedicated test; existing session and visibility tests pass.
+      This is validation evidence, not a new blocking check.
 
   distribution:
     disposition: confirmed

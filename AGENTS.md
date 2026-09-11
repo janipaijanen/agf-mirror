@@ -398,6 +398,7 @@ Rust is the default operator path for supported commands:
   other than `handoff` and `ack`; `handoff` obligations remain `agov handoff
   next`'s surface
 - `agov handoff next`
+- `agov handoff next <role> --include-branch-local` — adds advisory handoffs from every local and remote-tracking branch (the `coord visibility` ref universe), with content conflicts and partial coverage labeled; the default filesystem answer is unchanged.
 - `agov session resume`
 - `agov validate ...`
   - `agov.validate.assistant_loader` — checks that AGENTS.md/.claude/CLAUDE.md

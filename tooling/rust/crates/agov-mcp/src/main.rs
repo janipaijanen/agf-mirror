@@ -605,6 +605,7 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             cli.push(required_string(args, "role")?);
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
             push_optional_flag(args, "session", "--session", &mut cli)?;
+            push_bool_flag(args, "include_branch_local", "--include-branch-local", &mut cli)?;
             Ok(cli)
         }
         "agov_handoff_take" => {
@@ -885,11 +886,12 @@ fn tools() -> Vec<Value> {
         ),
         tool(
             "agov_handoff_next",
-            "Show the next pending handoff for a role.",
+            "Show the next filesystem pending handoff for a role. include_branch_local adds advisory per-ref evidence and conflicts; partial coverage returns exit code 1.",
             json!({
                 "type": "object",
                 "required": ["role"],
                 "properties": {
+                    "include_branch_local": { "type": "boolean" },
                     "session": { "type": "string" },
                     "role": { "type": "string" },
                     "dir": { "type": "string" }
@@ -1121,6 +1123,20 @@ struct ToolExecution {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn handoff_branch_flag_schema_and_cli_parity() {
+        let tool = tools().into_iter().find(|t| t["name"] == "agov_handoff_next").unwrap();
+        assert_eq!(tool["inputSchema"]["properties"]["include_branch_local"]["type"], "boolean");
+        let default = tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester"})).unwrap();
+        for value in [Value::Null, json!(false)] {
+            assert_eq!(tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester", "include_branch_local":value})).unwrap(), default);
+        }
+        let branch = tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester", "session":"codex", "include_branch_local":true})).unwrap();
+        assert!(branch.contains(&"--include-branch-local".to_string()));
+        assert!(branch.windows(2).any(|v| v == ["--session", "codex"]));
+        assert!(tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester", "include_branch_local":"true"})).is_err());
+    }
 
     #[test]
     fn tool_list_contains_only_cli_backed_tools() {

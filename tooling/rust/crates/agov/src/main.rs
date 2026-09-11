@@ -1,6 +1,7 @@
 mod ci_cache_topology;
 mod commercial_corpus;
 mod dist;
+mod handoff_branch;
 mod provenance;
 mod release_namespace;
 
@@ -379,6 +380,9 @@ enum ValidateCommand {
 enum HandoffCommand {
     /// Show the next unresolved handoff; reply evidence does not confirm acknowledgement.
     Next {
+        /// Add advisory pending handoffs from local and remote-tracking refs.
+        #[arg(long)]
+        include_branch_local: bool,
         /// Annotate handoffs addressed to another session; never filters or reorders.
         #[arg(long)]
         session: Option<String>,
@@ -847,8 +851,9 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     agent_role,
                     dir,
                     session,
+                    include_branch_local,
                 },
-        } => handoff_next(&agent_role, dir, session.as_deref(), &args),
+        } => handoff_next(&agent_role, dir, session.as_deref(), include_branch_local, &args),
         Command::Handoff {
             sub: HandoffCommand::Take { id, from, dir },
         } => handoff_take(&id, &from, dir, &args),
@@ -5873,7 +5878,10 @@ fn render_must_read(output: &mut OutputCounter, role: &str, messages: &[HandoffM
     }
 }
 
-fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, args: &[String]) -> i32 {
+fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, include_branch_local: bool, args: &[String]) -> i32 {
+    if include_branch_local {
+        return handoff_branch::run(agent_role, dir, session, args);
+    }
     let mut output = OutputCounter::default();
     let dir = repo_relative_path(dir);
 

@@ -207,6 +207,7 @@ agov --version                                 # version + git provenance
 agov version --format json                     # machine-readable version info
 agov session resume --base-branch main         # cold start — always run first
 agov handoff next <role>                       # your next pending task
+agov handoff next <role> --include-branch-local # add advisory local/remote-tracking branch evidence; default unchanged
 agov coord validate docs/coordination/<file>  # validate a coordination message
 agov plan validate docs/plans/<file>           # validate a Gate 1 plan
 agov coord graph-index                         # pending item scan
