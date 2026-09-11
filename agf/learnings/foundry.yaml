@@ -4595,6 +4595,171 @@ learnings:
         - 'docs/coordination/20260909T014426Z-capability-developer-drtp.md vs docs/coordination/20260907T151325Z-governor-reviewer-2emq.md section 2b: drtp P-0 proposed governor confirmation of Stage 4 parameters that 2emq had already confirmed; corrected in docs/coordination/20260909T015104Z-governor-reviewer-ssae.md.'
 
 
+  - id: 20260910T044404Z-rejw
+    date: '2026-09-10'
+    category: gap
+    scope: framework
+    title: poll-summary-exhaustion-was-mistaken-for-standing-obligation-completion
+    status: proposed
+    description: >-
+      During a foundry Codex session, repeated governor requests to poll were
+      answered as searches for new handoffs. The session used compact agov
+      summaries from a checkout behind the fetched target and encountered
+      ignored-record warnings. Later remote and current-target checks improved
+      discovery coverage, but the session still reported no ready action without
+      resolving standing role obligations. It had seen the title of learning
+      20260907T073424Z-rl9k without reading its linked binding governor decision
+      20260907T072913Z-governor-reviewer-s5gs, which requires every active session
+      to acknowledge on its next poll. The acknowledgement remained undone until
+      the governor challenged the omission. The observable failure was a false
+      completion criterion: no newly listed handoff was treated as no outstanding
+      duty. This does not establish a defect in agov's query contract, a hidden
+      model motive, or that every ignored historical record was actionable.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: rules/always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        A required coordination acknowledgement was missed and repeated status
+        replies consumed governor attention without resolving it. This session
+        provides no measured token or time savings, no demonstrated unsafe
+        merge, and no cross-adopter corroboration.
+    recommendation: >-
+      Use compact summaries as discovery indexes whose query, revision, role,
+      cursor, and coverage limits must be understood. Before declaring a cold
+      start or resumed poll complete, reconcile applicable standing decisions,
+      current role allocation, and unresolved obligations against the fetched
+      target and relevant remote branches. Trace relevant learning references
+      to binding decisions; distinguish proposed learning advice from effective
+      authority. Investigate warnings enough to bound their impact, or report
+      incomplete coverage instead of an empty queue. Complete or explicitly
+      disposition required acknowledgements and authorized actions before
+      advancing a completed-poll cursor. Incremental discovery is appropriate
+      after this baseline, not a substitute for it. This is an empirically
+      informed proposal from one session to improve application of existing
+      duties, not a new blocking gate or a demand to reread the whole corpus on
+      every poll. Any tooling or rule change needs its normal governed plan.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '2026-09-10 foundry Codex session: poll and repoll reported no new ready handoff; governor follow-up exposed the unacknowledged s5gs decision and requested this learning.'
+        - 'docs/coordination/20260910T044300Z-coder-tester-gsma.md: delayed acknowledgement and bounded corrective scope; self-reported evidence, not independent corroboration.'
+        - 'docs/coordination/20260907T072913Z-governor-reviewer-s5gs.md: effective role handshake and every-active-session next-poll acknowledgement duty; related learning 20260907T073424Z-rl9k.'
+
+  - id: 20260910T045334Z-wbgq
+    date: '2026-09-10'
+    category: gap
+    scope: framework
+    title: delayed-post-publication-pipeline-reconciliation-wasted-runner-time
+    status: proposed
+    description: >-
+      A foundry Codex session pushed three new branches and then opened MRs
+      !2652, !2653 and !2654. Each initial push created a branch pipeline before
+      the MR existed, followed by an MR pipeline for the same head. The CI
+      workflow already documents this first-push limitation. The assistant
+      monitored only the MR head pipelines and deferred reconciliation to a
+      future timer despite AGENTS.md requiring source/ref/job comparison and
+      cancellation of proven redundant push paths. The governor detected the
+      duplicates. After comparing exact SHAs and coverage, Codex canceled push
+      pipelines 2835783684 and 2835789358, retaining canonical MR pipelines
+      2835785098 and 2835790058. Push pipeline 2835783651 had already completed;
+      canonical MR pipeline 2835785113 was retained. Same SHA alone was not
+      used as proof: the learning MR had additional required MR-only jobs.
+    agents_involved:
+      - coder-tester
+      - build-engineer
+      - governor-reviewer
+    framework_section: rules/always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The completed Codex push pipeline consumed 186.647445 summed job
+        seconds. The canceled learning push job consumed 126.053821 seconds;
+        the other canceled push pipeline had no started jobs. Total observed
+        duplicate job duration for these three Codex publications was
+        312.701266 seconds (about 5.21 runner-minutes), not a monetary charge
+        or wall-clock release-delay estimate. The governor had to intervene.
+    recommendation: >-
+      Treat publish, MR registration, exact-head pipeline reconciliation and
+      monitoring as one foreground operation. Before leaving that operation,
+      compare all pipeline sources, refs, statuses and required job coverage;
+      preserve GitLab's canonical MR head pipeline and immediately cancel only
+      proven redundant active paths, verifying terminal cancellation. Do not
+      defer this to a 30-minute timer or repeat it for several new branches
+      before checking. Prefer already-open owned branches for bounded related
+      additions; verify their push guard actually suppresses redundant runs.
+      A zero-duplicate-creation guarantee needs a separately governed and
+      validated first-publication path, not a claim that prompt cancellation
+      prevents creation. Route that design through the existing issue #53 and
+      duplicate-cost issue #106 rather than a new competing task. Never use
+      commit-level CI-skip markers or discard required MR coverage to save cost.
+      This is empirically informed, single-session evidence; cancellation was
+      observed, permanent prevention was not implemented by this learning.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'docs/coordination/20260910T045221Z-coder-tester-rpqq.md: exact source/head pipeline pairs, job IDs, durations and verified cancellation states.'
+        - '.gitlab-ci.yml workflow rules document the initial push/MR pair and the existing open-MR push guard; AGENTS.md requires immediate evidence-based cancellation of proven redundant push paths.'
+
+  - id: 20260911T122026Z-lhnx
+    date: '2026-09-11'
+    category: gap
+    scope: framework
+    title: a-blocked-work-lane-must-not-stop-other-authorized-progress
+    status: proposed
+    description: >-
+      After completing RUW and wrapper merges, Codex reported pending CI and
+      separate governor gates and ended the work cycle. The governor then
+      asked why Codex and Claude appeared stalled. Read-only review of the
+      next RUW plans, release-precondition reconciliation, and preparation of
+      outstanding acceptance evidence remained possible within existing
+      authority. Codex resumed independent plan review and routed Claude the
+      release-precondition reconciliation while its CI ran. The governor
+      explicitly identified this as expected proactivity and requested a
+      learning. This is evidence of Codex's stopping error and the available
+      alternatives, not proof of Claude's internal state or measured delay.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - build-engineer
+      - governor-reviewer
+    framework_section: rules/always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The governor had to redispatch already-authorized work. Pending
+        external events unnecessarily became a session-wide stopping point.
+        No quantitative time or token savings are established by this event.
+    recommendation: >-
+      When one lane waits for CI, review, ownership acknowledgement, or a
+      binding gate, identify other dependency-independent work within current
+      scope and authority and begin the highest-priority useful action now.
+      Examples include reviewing the next plan, diagnosing available logs,
+      reconciling release prerequisites, preparing acceptance evidence, and
+      closing proven obsolete MRs under existing authorization. State the
+      concrete blocker per lane, the action progressing alongside it, and
+      its owner. Coordinate overlapping work before mutation. End a work
+      cycle only when authorized useful work is completed, actively running
+      and monitored, or blocked with a recorded dependency; a timer is a wake
+      mechanism, not a substitute for foreground progress. Do not invent
+      busywork, duplicate pipelines, expand scope, or infer gate/release
+      authority to appear active. This is an empirically informed application
+      of existing continuation duties from one session, not a new gate.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '2026-09-11 governor exchange: asks why Codex and Claude appear stalled, then explicitly requests learning from doing useful work while CI runs.'
+        - 'docs/coordination/20260911T121707Z-planner-architect-kpag.md: next-plan review resumed and release-precondition work routed while !2711 CI remained active.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
