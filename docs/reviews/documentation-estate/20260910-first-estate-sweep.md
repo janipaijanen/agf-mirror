@@ -9,12 +9,11 @@
 `release-content-freeze` cadence class for v2.11 — this sweep completing
 with every finding dispositioned is v2.11 release-cut **condition 4**
 (parent scope plan amendment R-2, MR !2662).
-**Status:** COMPLETE — all six dimensions swept (2026-09-10). Four
-findings: **DES-1, DES-2, DES-3 FIXED; DES-4 routed to build-engineer**
-for a release-archive check (governor `proceed as proposed`, 2026-09-10).
-v2.11 release-cut condition 4 ("every finding dispositioned") is met:
-three fixed, one has a recorded disposition (build-engineer verification
-then mechanical cell fix).
+**Status:** COMPLETE — all six dimensions swept (2026-09-10). All four
+findings **FIXED**: DES-1, DES-2, DES-3, and now **DES-4** (2026-09-11 —
+build-engineer verification complete, `tooling-conformance.md:52`
+corrected). v2.11 release-cut condition 4 ("every finding dispositioned")
+is fully met.
 
 ## Estate scope (the touchpoint manifest — dimension 6, provisional)
 
@@ -41,7 +40,7 @@ dimensions, or explicitly excluded with a reason.
 | **DES-1** | `agf/docs/governance/manifest.md` L16-19 | 1 currency + 3 consistency | Stated "AGF v2.10.0 is the **pending reviewed release**" and "**v2.9.0 remains the latest published stable release**". Contradicted by `agf/docs/site/roadmap.md` L15/L23 and `docs/roadmap.md` L17 (both: v2.10.0 published & verified), by `agf/VERSION` (2.10.0), and by `CHANGELOG.md` (`## [2.10.0] - 2026-09-08`, a dated entry). Classic stale live-status prose cell — the `qvzj` / V29P failure class. | Fix: rewrite to "v2.10.0 is the latest published, independently verified stable release (tagged 2026-09-08)". | **FIXED** (MR !2663, on `main`) — mechanical currency correction, in scope. | steward |
 | **DES-2** | `AGENTS.md` "Active agents" section | 3 consistency + 5 projection | `documentation-estate-steward` is `status: active` in `agf/agents/MANIFEST.yaml` (the authoritative source AGENTS.md itself names) since MR !2661, but the AGENTS.md "Active agents" table and prose do not list it. A governed normative change (new standing role) that did not propagate to the loader touchpoint — MR !2661 changed the YAML + MANIFEST but not AGENTS.md. | Fix: add the role row to the "Active agents" table + a one-line activation note. | **FIXED** on this branch (mechanical currency correction — the role's active status is not in question; the loader just lagged). | steward |
 | **DES-3** | `AGENTS.md` "Suspended:" line | 3 consistency | `AGENTS.md` listed `independent-implementation-reviewer` as **Suspended**, but governor decision `20260816T145707Z-governor-reviewer-3eqb` **reactivated** it (Gate 2 for MR !1632 at `903899f6`). `MANIFEST.yaml` `status: active` is correct; `AGENTS.md` was the stale surface. | Fix: move the role into the Active-agents table; state the reactivation record; drop it from "Suspended:". | **FIXED** on this branch (mechanical currency correction — reactivation confirmed by `3eqb`). | steward |
-| **DES-4** | `agf/docs/site/reference/tooling-conformance.md` L52 (+ `maturity-vocabulary.md` L28-29) | 2 capability currency | `agov coord convergence --series <id>` marked "**Level 4 validated candidate; not deployable until released**", but announced in the **v2.8.0 CHANGELOG** (2026-08-28) as delivered, and mapped as a live MCP tool (`mcp-server.md:108`). The "not deployable until released" clause is almost certainly stale; the "Level 4" may still be a deliberate statement about the *review-convergence workflow's* evidence maturity, not the command's absence. | build-engineer confirms the v2.8.0+ `agov` archive ships `coord convergence`; the steward then either flips the cell to "Release surface" or rewrites it to separate command maturity (L5) from workflow evidence status. | **ROUTED to build-engineer** (`20260910T14xxxxZ` handoff); disposition recorded, mechanical fix follows the check. | build-engineer → steward |
+| **DES-4** | `agf/docs/site/reference/tooling-conformance.md` L52 | 2 capability currency | `agov coord convergence --series <id>` marked "**Level 4 validated candidate; not deployable until released**", but announced in the **v2.8.0 CHANGELOG** (2026-08-28) as delivered, and mapped as a live MCP tool (`mcp-server.md:108`). | build-engineer confirms the v2.8.0+ `agov` archive ships `coord convergence`, then separates command maturity (L5) from workflow evidence status. | **FIXED** (2026-09-11). Verified independently: downloaded the published v2.10.0 Linux x86_64 archive, confirmed its SHA-256 (`b54c55b5b31238973514c130e534b846de701c3c2a0368f81682f295c08383fd`) matches the published `.sha256` asset, and confirmed `agov coord convergence --help` runs (exit 0) from the extracted binary — cross-checked against Codex's independent same-archive verification (`gtsg`), both agree. Cell now reads "Release surface"; a new prose paragraph separates the command's Level 5 Deployable status (shipped since v2.8.0) from the review-convergence *workflow's* own Empirically informed (not yet Empirically validated at scale) evidence status. | build-engineer |
 
 ## Dimensions swept so far
 
@@ -67,7 +66,7 @@ dimensions, or explicitly excluded with a reason.
 ### 2. Capability / maturity-level currency — COMPLETE
 - `agf/docs/site/reference/maturity-vocabulary.md` — Level 1-5 + evidence-status defined and internally consistent; worked examples correct. OK.
 - `agf/docs/site/index.md` — describes `agov` as optional, uses "Level 5 — Deployable" correctly, and **links** to `docs/adopt/tooling-and-tokens.md` as the canonical command inventory rather than duplicating a table. The homepage-table drift `qvzj` cites has already been corrected (no duplicated inventory to drift). OK.
-- `agf/docs/site/reference/tooling-conformance.md:52` — `agov coord convergence` marked not-yet-released, but announced in the v2.8.0 CHANGELOG and mapped as a live MCP tool → **DES-4** (routed to build-engineer for the release-archive check).
+- `agf/docs/site/reference/tooling-conformance.md:52` — `agov coord convergence` marked not-yet-released, but announced in the v2.8.0 CHANGELOG and mapped as a live MCP tool → **DES-4** (fixed 2026-09-11, build-engineer release-archive verification complete).
 - `agf/docs/site/docs/adopt/tooling-and-tokens.md:47` — cites the maturity vocabulary correctly. OK.
 
 ### 4. Pointer and path integrity — COMPLETE
@@ -102,16 +101,19 @@ Each subsequent sweep refines this manifest (dimension 6 is standing).
 All six dimensions swept. Findings: **DES-1 FIXED** (manifest.md version
 status, MR !2663), **DES-2 FIXED** (AGENTS.md role table, this MR),
 **DES-3 FIXED** (`AGENTS.md` was stale — the role was reactivated by
-`3eqb`; MANIFEST was correct), **DES-4 ROUTED** to build-engineer for a
-release-archive check with the mechanical cell fix to follow. One advisory
+`3eqb`; MANIFEST was correct), **DES-4 FIXED** (build-engineer
+independently verified the v2.10.0 release archive ships
+`coord convergence`; `tooling-conformance.md:52` corrected). One advisory
 (dim 5 inline vs YAML projection screens). No other currency, consistency,
 pointer, or coverage defect found across the adopter-facing estate at
 `main` post-`ab81253c`.
 
-**v2.11 release-cut condition 4:** every finding has a recorded
-disposition — DES-1/2/3 fixed, DES-4 routed with its follow-up defined.
+**v2.11 release-cut condition 4:** fully met — all four findings fixed.
 
 ## Escalations to governor
 
-- **DES-3** — RESOLVED: `AGENTS.md` was stale; `3eqb` reactivated the role. Fixed on this MR.
-- **DES-4** — routed to **build-engineer**: confirm the v2.8.0+ `agov` release archive ships `coord convergence`; the steward then applies the `tooling-conformance.md:52` / `maturity-vocabulary.md` cell fix.
+None outstanding. **DES-3** — RESOLVED: `AGENTS.md` was stale; `3eqb`
+reactivated the role. Fixed on this MR. **DES-4** — RESOLVED: build-engineer
+confirmed the v2.10.0 `agov` release archive ships `coord convergence`
+(checksum-verified download, `--help` runs); `tooling-conformance.md:52`
+corrected 2026-09-11.
