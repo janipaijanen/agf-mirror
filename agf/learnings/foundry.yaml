@@ -4874,27 +4874,44 @@ learnings:
         guidance.
     recommendation: >-
       Refined 2026-09-11 per build-engineer's `atkm` note
-      (`docs/coordination/20260911T051355Z-build-engineer-atkm.md`) and
-      Gate 1 plan `20260911T052932Z-ci-first-push-publication-guard`:
-      prevention at publication time is the primary fix, not reactive
-      cancellation. For the "push a brand-new branch, then immediately
-      open its MR" sequence, publish the first push with
-      `git push -o ci.skip -u origin <new-branch>` (a GitLab push option,
-      not a commit-message marker -- the commit-message `[ci skip]`/
-      `[skip ci]` prohibition is unchanged), immediately register the MR,
-      and verify exactly one non-`skipped` pipeline exists at the SHA.
-      Empirically confirmed on that plan's own publishing MR (!2692):
-      GitLab still creates a pipeline record for the skipped push, but it
-      never runs jobs (`status: skipped`), so no runner time is wasted.
-      The original recommendation below is retained as the documented
-      *fallback* for paths the new procedure does not cover (`ci.skip`
-      unavailable or forgotten, manual UI pushes, or a failed MR
-      registration after `ci.skip`): immediately after every
-      `git push -u origin <new-branch>` + `glab mr create` pair without
-      `ci.skip`, check for a live (`pending`/`running`) push-sourced
-      pipeline at the same SHA as the newly created MR's pipeline and
-      cancel it if the MR pipeline's job set covers it -- do not wait for
-      a reviewer to flag the waste. Build-engineer's evaluation of an
+      (`docs/coordination/20260911T051355Z-build-engineer-atkm.md`),
+      Gate 1 plan `20260911T052932Z-ci-first-push-publication-guard`, and
+      corrected 2026-09-11 (`kp6j`, L2690-1/L2690-2 -- two overclaims in
+      the wording below, not a design change): prevention at publication
+      time is the primary fix, not reactive cancellation. For the "push a
+      brand-new branch, then immediately open its MR" sequence, publish
+      the first push with `git push -o ci.skip -u origin <new-branch>`
+      (a GitLab push option, not a commit-message marker -- the
+      commit-message `[ci skip]`/`[skip ci]` prohibition is unchanged),
+      then immediately register the MR and verify the resulting canonical
+      `merge_request_event` pipeline exists at that SHA and covers the
+      required job set, while the paired `push`-sourced pipeline record
+      stays `status: skipped` (L2690-2: not "exactly one non-skipped
+      pipeline" -- that count is too broad, since API, manual, scheduled,
+      and tag pipelines can intentionally coexist at the same SHA without
+      being duplicates; verify the specific canonical-MR/push pair, not
+      an unqualified count). Empirically confirmed on that plan's own
+      publishing MR (!2692): GitLab still creates a pipeline record for
+      the skipped push, but it never runs jobs, so no runner time is
+      wasted. If MR registration fails or is uncertain after `ci.skip`
+      (L2690-1: this is its own case, not an ordinary compare-and-cancel
+      fallback -- a skipped push plus failed registration may leave no
+      canonical MR pipeline at all, so there is nothing valid to compare
+      against or cancel), follow AGENTS.md's publication-guard procedure
+      directly: re-query for an existing MR on the branch and adopt it if
+      found, retry registration a bounded number of times, and otherwise
+      stop and record an explicit blocker naming the branch, ref, and
+      SHA -- never treat an unchanged re-push as recovery. The original
+      recommendation below is retained as the documented *fallback* only
+      for the separate case of `ci.skip` unavailable or forgotten, or a
+      manual UI push (not the failed-registration case above): immediately
+      after every `git push -u origin <new-branch>` + `glab mr create`
+      pair without `ci.skip`, check for a live (`pending`/`running`)
+      push-sourced pipeline at the same SHA as the newly created MR's
+      pipeline, and cancel it only after confirming the MR pipeline's
+      source/ref/status and required-job coverage demonstrably makes it
+      redundant -- do not wait for a reviewer to flag the waste, and do
+      not cancel on SHA match alone. Build-engineer's evaluation of an
       automated first-push suppression remains open; the new plan defers
       that tooling until procedural discipline is itself evidenced,
       consistent with `atkm`'s observation that polling-based
