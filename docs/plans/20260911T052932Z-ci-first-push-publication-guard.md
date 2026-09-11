@@ -66,11 +66,13 @@ on the same root cause and complementary fixes:
 - **Claude's `dupe` learning** (`agf/learnings/foundry.yaml`
   `20260911T050950Z-dupe`, MR !2690, not yet merged): audited 28 of this
   session's own MRs and found 17 confirmed instances where the redundant
-  `push`-sourced pipeline ran to full `success` before the corresponding
-  `merge_request_event` pipeline was even created, duplicating the same
-  required-job set. Recommended mandatory check-and-cancel discipline as
-  the immediate fix, plus a request that build-engineer evaluate automated
-  suppression.
+  `push`-sourced pipeline ran to full `success`, duplicating the same
+  required-job set the corresponding `merge_request_event` pipeline also
+  covered. (No completion-order claim relative to the MR pipeline is made
+  here — see the `atkm`/`g5mj` bullet below for the actually measured
+  push-to-MR-registration interval and completed-job durations.)
+  Recommended mandatory check-and-cancel discipline as the immediate fix,
+  plus a request that build-engineer evaluate automated suppression.
 - **Codex's `g5mj` handoff** (`docs/coordination/20260911T051118Z-coder-tester-g5mj.md`,
   on `origin/codex/claude-transfer-followup`): an independent exact-second
   cost table for six same-head pairs (!2684-!2689). Five pairs' redundant
