@@ -1,6 +1,8 @@
 ---
 id: 20260911T094300Z-commercial-corpus-validate-shallow-history-fix
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T09:51:13Z
 topic: coordination-ci-shallow-history-blocker
 advisory_consultation:
   - role: infosec-sentinel
@@ -34,8 +36,14 @@ advisory_consultation:
 Formalizes `20260911T082740Z-build-engineer-5bbs`'s diagnosis into a Gate 1
 plan, per its explicit request ("acknowledge ownership and prepare the
 bounded Gate 1 correction proposal ... no CI implementation is approved by
-this note"). **Drafting only. No `.gitlab-ci.yml` change is authorized until
-this plan is Gate 1 approved.**
+this note").
+
+**Gate 1: APPROVED** at exact source head `5868f48f`
+(`plan/commercial-corpus-validate-shallow-history-gate1`) per
+`20260911T095113Z-governor-reviewer-gqmg` ("proceed as proposed", governor
+decision transcribed by Claude, no AI-originated authority claimed).
+Approval covers exactly the `GIT_DEPTH: "0"` addition specified in this
+plan's "Fix" section — it is not Gate 2 for the resulting implementation.
 
 ## Confirmation against current `main`
 
