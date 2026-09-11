@@ -4819,6 +4819,80 @@ learnings:
         - 'docs/coordination/20260908T183242Z-planner-architect-ds4k.md: measured 70 open MRs and separated non-plan closure from plan-lifecycle provenance.'
         - '2026-09-09 whole-queue poll: measured 72 open MRs and identified roughly 35 operationally handled carriers still open.'
 
+  - id: 20260911T050950Z-dupe
+    date: '2026-09-11'
+    category: process
+    scope: framework
+    title: known-first-push-pipeline-duplication-not-actually-cancelled-in-practice
+    status: proposed
+    description: >-
+      AGENTS.md already documents the "known first-push limitation": a
+      branch's first push can start a `push`-sourced pipeline before the
+      MR exists, and opening the MR then creates a second,
+      `merge_request_event`-sourced pipeline for the same SHA. The
+      project's own `.gitlab-ci.yml` `workflow:` rules already suppress a
+      *later* redundant push pipeline once an MR is open
+      (`$CI_OPEN_MERGE_REQUESTS`), but by the rule's own comment "cannot"
+      suppress the very first one, because no MR exists yet when that
+      push happens. AGENTS.md's polling contract already instructs
+      comparing pipeline source/ref/status/job-coverage and cancelling
+      the demonstrably redundant push path -- but a Claude planner-
+      architect session ran a full push-then-immediately-open-MR workflow
+      for roughly 30 branches across one long session (2026-09-10/11)
+      without ever performing that comparison-and-cancel step. Auditing a
+      28-MR sample after the governor flagged "duplicate pipelines" found
+      17 instances where the redundant `push`-sourced pipeline ran to
+      full `success` (not caught by any skip/cancel), each duplicating
+      the same required-job set (`agov:governance:validate`,
+      `commercial-corpus:validate`, and others) the `merge_request_event`
+      pipeline already covered. One further pipeline was still `pending`
+      at audit time and was cancelled live. Several older MRs in the same
+      sample *did* show the push pipeline skipped/cancelled, apparently
+      from a different session's (Codex's) own housekeeping discipline on
+      its own MRs -- confirming the mitigation is known and practiced by
+      at least one session, just not applied consistently by this one.
+    agents_involved:
+      - planner-architect
+      - build-engineer
+    framework_section: >-
+      .gitlab-ci.yml workflow: rules;
+      always/universal-polling-and-autonomous-continuation-rule.md
+      (AGENTS.md's "Before canceling anything, compare pipeline source,
+      ref, status, and job-name/required-job coverage" instruction)
+    business_impact:
+      type: cost_overhead
+      description: >-
+        17 confirmed fully-duplicated pipeline runs in a 28-MR sample of
+        one session's own branches, each re-running the same required
+        job set the corresponding merge-request pipeline also ran. At an
+        observed ~2.5-3 runner-minutes per duplicated required-job set,
+        this sample alone accounts for roughly 45-50 wasted
+        runner-minutes, on a project that was separately runner-capacity-
+        constrained (multiple MRs stuck `unchecked` for hours) during the
+        same session. The mitigating instruction already existed in
+        AGENTS.md; the gap was execution discipline, not missing
+        guidance.
+    recommendation: >-
+      Immediately after every `git push -u origin <new-branch>` +
+      `glab mr create` pair, check for a live (`pending`/`running`) push-
+      sourced pipeline at the same SHA as the newly created MR's pipeline
+      and cancel it if the MR pipeline's job set covers it -- do not wait
+      for a reviewer to flag the waste. Treat this as a mandatory step of
+      "open a new MR", not an optional cleanup. Separately, build-engineer
+      should evaluate whether a lightweight, automated first-push
+      suppression is feasible (e.g. a very short scheduled check that
+      cancels a `push`-sourced pipeline within N seconds of the
+      corresponding MR being registered, rather than relying on each
+      session to remember), since the current mitigation depends entirely
+      on session discipline that this evidence shows is not reliable
+      without an explicit habit.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 17
+      evidence_refs:
+        - '28-MR sample of planner-architect-authored open MRs, 2026-09-11 audit: pipelines 2839623459 (!2688), 2839612071 (!2687), 2839581631 (!2686), 2839564814 (!2685), 2839559375 (!2684), 2838290151 (!2680), 2837876040 (!2677), plus push-source successes on !2660/!2651/!2596/!2593/!2460/!2455/!2394/!2390/!2375/!2368, each paired with a merge_request_event pipeline for the identical SHA covering the same required jobs; pipeline 2839644946 (!2689) was live pending and cancelled at audit time.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
