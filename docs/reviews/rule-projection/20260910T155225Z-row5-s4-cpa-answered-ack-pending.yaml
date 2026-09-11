@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+plan_id: 20260910T155225Z-row5-s4-cpa-answered-ack-pending
+changed_pages_or_runbooks:
+  - agf/docs/site/reference/tooling-conformance.md
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: Advisory display only; no normative lifecycle or gate authority change.
+  adopter_facing_explanation:
+    disposition: updated
+    paths:
+      - agf/docs/site/reference/tooling-conformance.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: Documents exact predicate, neutral interpretation and CLI/MCP representation.
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: docs/reference/session-resume.md
+    reason: Existing poll and handoff procedures still apply; evidence changes no action priority.
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - .claude/CLAUDE.md
+    reason: Existing handoff and session-resume entry points remain unchanged; no new operating instruction.
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/tests/session_resume.rs
+    reason: Predicate adversarial cases, unchanged resolver/order/status, CLI integration; no added blocking authority.
+  distribution:
+    disposition: existing shipped paths
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/docs/site/reference/tooling-conformance.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: These paths ship in AGF; executable behaviour ships in tooling artifacts. Root loaders, tests and runbook are foundry-local.

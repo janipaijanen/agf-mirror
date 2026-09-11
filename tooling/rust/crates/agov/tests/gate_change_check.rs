@@ -486,3 +486,19 @@ fn advisory_coordination_changes_still_require_shared_cli_gate_evidence() {
         assert_success(fixture.check());
     }
 }
+
+#[test]
+fn merged_companion_evidence_does_not_cover_a_later_shared_surface_change() {
+    let mut fixture = Fixture::new();
+    fixture.write("tests/gate_change.rs", "previous slice companion coverage\n");
+    fixture.commit("land previous slice on target");
+    fixture.base = git_output(fixture.root.path(), &["rev-parse", "HEAD"]);
+    fixture.write("tooling/checker.rs", "fn check() { /* next slice */ }\n");
+    fixture.commit("change shared surface after target advancement");
+    let blocked = fixture.check();
+    assert_eq!(blocked.status.code(), Some(1), "{}", diagnostics(&blocked));
+    assert!(String::from_utf8_lossy(&blocked.stderr).contains("no changed declared test path"));
+    fixture.write("tests/gate_change.rs", "previous plus current slice coverage\n");
+    fixture.commit("supply current slice companion evidence");
+    assert_success(fixture.check());
+}

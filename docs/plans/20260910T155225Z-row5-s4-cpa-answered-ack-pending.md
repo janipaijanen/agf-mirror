@@ -64,3 +64,18 @@ Approve neutral reply evidence for already-unresolved handoffs with unchanged me
 ## Gate 1 approval recorded
 
 Governor decision `20260910T190854Z-governor-reviewer-kr4b` approves the corrected scope following independent recheck `6r12`, with its disclosed advisory limits. Earlier pending-review language above is historical; this approval authorizes implementation, while exact-head implementation review and Gate 2 remain required. Decision published in MR !2678.
+
+## Implementation impact assessment
+
+This records the downstream impact of the approved scope without expanding it.
+
+```text
+Impact:
+  Foundry: No lifecycle, membership, order or exit-code change; unresolved handoff displays gain neutral reply evidence.
+  Direct adopters: ADDITIVE — optional reply evidence in existing handoff/session displays; no new required input.
+  Downstream: Coordination record shape and agent authority unchanged; consumers may observe an optional evidence line.
+  Migration: None required; omitted fields/flags preserve existing behavior.
+  Evidence: Approved S4 contract and independent review S4-B1; predicate and real CLI/MCP regression fixtures.
+```
+
+Adopter docs parity: updated — coordination-protocol guidance and the applicable command reference/template projections explain the advisory behavior.
