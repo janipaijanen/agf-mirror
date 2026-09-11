@@ -604,6 +604,7 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             let mut cli = vec!["handoff".to_string(), "next".to_string()];
             cli.push(required_string(args, "role")?);
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
+            push_optional_flag(args, "session", "--session", &mut cli)?;
             Ok(cli)
         }
         "agov_handoff_take" => {
@@ -674,6 +675,7 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             push_optional_flag(args, "branch", "--branch", &mut cli)?;
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
             push_optional_flag(args, "format", "--format", &mut cli)?;
+            push_optional_flag(args, "session", "--session", &mut cli)?;
             Ok(cli)
         }
         "agov_coord_stale" => {
@@ -888,6 +890,7 @@ fn tools() -> Vec<Value> {
                 "type": "object",
                 "required": ["role"],
                 "properties": {
+                    "session": { "type": "string" },
                     "role": { "type": "string" },
                     "dir": { "type": "string" }
                 }
@@ -995,6 +998,7 @@ fn tools() -> Vec<Value> {
             json!({
                 "type": "object",
                 "properties": {
+                    "session": { "type": "string" },
                     "base_branch": { "type": "string" },
                     "branch": { "type": "string" },
                     "dir": { "type": "string" },

@@ -386,3 +386,7 @@ handoffs passing approved plans to implementation.
 - [Poll and coordinate](../operate/poll-and-coordinate.md) — the operating
   loop that puts this protocol into practice, including where
   coordination-only publication fits in one cycle
+
+### Recipient session annotations
+
+Optional `handoff.for_session` addresses a recipient; top-level `session` records the author. `handoff next <role> --session <token>` and `coord visibility --session <token>` leave every item in its existing position/state and annotate only mismatched handoffs as addressed elsewhere. Missing flag or recipient preserves prior output. Notes/reviews remain role-wide. MCP tools accept the equivalent optional `session` string. Visibility JSON adds `addressed_elsewhere` containing the recipient string only on mismatches; handoff text names the recipient. This is advisory under the [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md), without new ownership or authority.

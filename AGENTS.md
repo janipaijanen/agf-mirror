@@ -108,6 +108,8 @@ tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-
 
 ## Coordination channel
 
+Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.
+
 All inter-agent communication goes through immutable Markdown files in
 `docs/coordination/`. Front matter is validated by `agov coord validate`.
 
