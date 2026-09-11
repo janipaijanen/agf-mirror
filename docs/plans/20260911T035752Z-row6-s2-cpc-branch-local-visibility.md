@@ -124,6 +124,15 @@ commit). This is the priority-class-0 source (ranks above every ref,
 including local branches, in the class-priority attribution below — it is
 literally what the user is looking at right now).
 
+**Implementation precision (non-blocking, `dka4`):** hash the exact raw
+bytes already parsed for schema validation — `git hash-object --no-filters
+<path>` (or equivalent in-process blob hashing over the same byte
+snapshot), never the filter/clean-transformed bytes git would otherwise
+apply (e.g. line-ending normalization from `.gitattributes`). Using
+filtered bytes could make two files this plan's own read-only validation
+step treats as byte-identical hash to different blob SHAs, or vice versa,
+silently breaking the dedup/conflict equality test above.
+
 Same-content dedup reuses the **blob-SHA equality** `load_visibility_snapshot`
 already computes per path (`base.get(path) == Some(blob)` at
 `main.rs:4784`) — generalised here to a per-path comparison **across the
@@ -222,12 +231,16 @@ identical to the pre-slice binary on the same inputs (fixture 1 below).
    (matching `agov coord visibility`'s existing behaviour), not silently
    dropped or silently accepted.
 6. **Unreadable ref — a new, proposed behaviour (corrected 2026-09-11,
-   RNP-2 round 3).** Re-verified `coord visibility`'s actual current
-   behaviour: `visibility_scan` (`main.rs:4419-4493`) propagates
-   `git_coord_files(branch, ...)?` and `load_git_messages(branch, ...)?`
-   errors with `?`, aborting the **entire** scan on one bad ref — the
-   existing behaviour is fail-closed-whole, the opposite of what the
-   earlier version of this fixture claimed. S2 deliberately proposes
+   RNP-2 round 3; helper-name citation corrected round 4 — `gtsg`'s own
+   `git_coord_files`/`load_git_messages` names had already gone stale
+   again by the time this fixture was written; the causal claim was
+   right, the cited function names were not).** Re-verified `coord
+   visibility`'s actual current behaviour: `visibility_scan`
+   (`main.rs:4419-4531`) propagates `git_candidate_inventory(&oid,
+   coord_dir)?` and `load_visibility_snapshot(...)?` errors with `?`,
+   aborting the **entire** scan on one bad ref — the existing behaviour
+   is fail-closed-whole, the opposite of what the earlier version of
+   this fixture claimed. S2 deliberately proposes
    **different, new** behaviour: a ref that fails to resolve (deleted
    mid-scan, corrupt object) is reported as a scan error for that ref
    specifically, and the scan continues for every other ref/the
@@ -338,6 +351,6 @@ dedup/conflict policy including the on-disk filesystem as a named
 priority-class-0 source, (e) the new per-ref fail-partial error handling
 (a deliberate departure from `coord visibility`'s current fail-closed-
 whole behaviour, surfaced via an explicit `partial_coverage` marker),
-(f) the 12 fixtures (1, 2, 3, 3b, 3c, 3d, 4, 5, 6, 7, 8), (g) the
+(f) the 11 fixtures (1, 2, 3, 3b, 3c, 3d, 4, 5, 6, 7, 8), (g) the
 structured loader-pointer projection manifest. Then coder-tester
 implements against current `main`; own Gate 2.
