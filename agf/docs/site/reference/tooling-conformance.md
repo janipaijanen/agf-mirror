@@ -49,7 +49,7 @@ The table lists the adopter-facing command surface.
 | `agov coord graph [args...]` | Render role-to-role coordination flows as Graphviz dot or text. | Release surface |
 | `agov coord graph-index [args...]` | Emit the coordination graph as deterministic JSON for cold starts and tooling. See the [graph-index contract](coord-graph-index.md). | Release surface |
 | `agov coord pending [--cutoff <RFC3339>] [--format text\|json]` | Report unresolved non-`handoff` `requires-ack: true` coordination records. Exit `0` found / `2` none found — not a failure. | Release surface |
-| `agov coord convergence --series <id> [--format text\|json]` | Verify and report the deterministic per-invariant state of an opt-in review-convergence series. Exit `1` for invalid transitions or unresolved CLEAR/BLOCK conflicts. | Level 4 validated candidate; not deployable until released |
+| `agov coord convergence --series <id> [--format text\|json]` | Verify and report the deterministic per-invariant state of an opt-in review-convergence series. Exit `1` for invalid transitions or unresolved CLEAR/BLOCK conflicts. | Release surface |
 | `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |
 | `agov usage report [args...]` | Count active roles, senders, message kinds, and unknown senders. | Release surface |
 
@@ -72,6 +72,18 @@ Exit `1` means the opted-in sequence is invalid or paused by conflicting CLEAR
 and BLOCK outcomes; the command never resolves that conflict or accepts risk.
 Candidate SHAs and scoped blobs must be locally available so the command can
 recompute the declared digest.
+
+The command itself is Level 5 Deployable: shipped since v2.8.0 (2026-08-28)
+and verified present in the published v2.10.0 Linux x86_64 archive
+(`agov coord convergence --help` exits `0`; archive SHA-256
+`b54c55b5b31238973514c130e534b846de701c3c2a0368f81682f295c08383fd`,
+matching the published `.sha256` asset). This is separate from the
+*review-convergence workflow's* own evidence status — the per-invariant
+reset boundary, conflict handling, and blocker-materiality vocabulary the
+command implements are Empirically informed (one redesigned candidate and
+targeted review to date, per the v2.8.0 CHANGELOG entry), not yet
+Empirically validated at scale. Command availability and workflow
+track record are two different claims; this page states the former.
 
 ## Conformance suite
 
