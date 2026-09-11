@@ -1,6 +1,8 @@
 ---
 id: 20260911T084336Z-agov-wrapper-fingerprint-collision-fix
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T09:32:47Z
 topic: agov-wrapper-fingerprint-variable-collision
 advisory_consultation:
   - role: infosec-sentinel
@@ -35,8 +37,16 @@ advisory_consultation:
 Formalizes `20260803T235714Z-contribution-auditor-rnh2` (handoff:
 contribution-auditor → build-engineer, "Assess the reproduced wrapper
 variable-collision defect for Gate 1 planning") into a Gate 1 plan, per that
-handoff's explicit request. **Drafting only. Implementation is not
-authorized until this plan is Gate 1 approved.**
+handoff's explicit request.
+
+**Gate 1: APPROVED** at exact source head `1d453e90a7ad99aeb278408f4c44852e6de9e8c1`
+per `20260911T093247Z-governor-reviewer-k5gk` (governor Jani, transcribed via
+the Codex session; recorded on `codex/ci-shallow-history-report`, MR !2705).
+Approval covers exactly the wrapper rename, safe-sharing comment, and
+regression evidence specified in this plan's "Fix" and "Gate 2 evidence
+required" sections below — it is not Gate 2 for the resulting
+implementation, and not merge/release authority for any other MR.
+coder-tester (Codex) implements in `codex/wrapper-fingerprint-fix`.
 
 ## Confirmation against current `main`
 
