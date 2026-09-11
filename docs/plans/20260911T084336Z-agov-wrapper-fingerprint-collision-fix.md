@@ -1,6 +1,8 @@
 ---
 id: 20260911T084336Z-agov-wrapper-fingerprint-collision-fix
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T09:32:47Z
 topic: agov-wrapper-fingerprint-variable-collision
 advisory_consultation:
   - role: infosec-sentinel
