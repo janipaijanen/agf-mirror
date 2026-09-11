@@ -227,6 +227,33 @@ check should be making instead.
   this rule itself (and any other normative rule) must be discoverable
   from adopter-facing Pages, runbooks, and AI loaders.
 
+## Channel membership and bounded candidate discovery
+
+Channel membership consists of lowercase `.md` files directly inside
+`docs/coordination`. Both the local reader and Git visibility reader MUST use
+this depth-one rule without filename exemptions; `README.md` is validated like
+other channel files. Membership itself does not prove validity, resolution,
+approval or gate authority.
+
+Visibility additionally inspects Markdown within the channel subtree, direct
+`docs` siblings whose names start with `coordination`, and the
+`docs/coordination-archive` subtree. It reports schema-valid out-of-channel
+records as misplaced candidates with acknowledgement/handoff metadata as
+unassessed evidence. Recognizable malformed coordination front matter is an
+invalid candidate; ordinary prose is not automatically coordination.
+
+Exact path/blob entries already in the fetched target archive are inventoried
+as lifecycle/closure **unassessed**. Identical candidate-ref entries at that path
+are suppressed as duplicate baseline inventory, never treated as cleared.
+New, changed or moved archive entries warn; a prefix alone is not an exemption.
+Nested nonarchive records remain misplaced even on target. No migration or
+archive mechanism is authorized by this contract.
+
+The scan MUST disclose its ref SHAs and bounded scopes. Missing targets,
+unavailable schemas and incomplete blob/ref reads produce incomplete coverage,
+never a clean-empty claim. Diagnostics use existing advisory warning/error
+exit conventions and confer no new MR-blocking or gate authority.
+
 ## Advisory recipient session addressing
 
 `handoff.for_session` optionally names a recipient session using the same

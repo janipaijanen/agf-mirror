@@ -108,6 +108,8 @@ tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-
 
 ## Coordination channel
 
+Channel membership, bounded misplaced-record discovery and unassessed archive inventory are defined by `agf/rules/workflow/coordination-publication-rule.md`. Only direct lowercase `.md` files are channel members; archive exclusion never proves closure. Consult the visibility command reference for its explicit scan scopes and coverage limits.
+
 Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.
 
 All inter-agent communication goes through immutable Markdown files in

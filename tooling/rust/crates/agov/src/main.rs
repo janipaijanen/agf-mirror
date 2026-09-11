@@ -2636,7 +2636,7 @@ fn channel_summary(dir: &Path) -> ChannelSummary {
 
     for entry in entries.flatten() {
         let path = entry.path();
-        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+        if !agov_coord::channel_reader::is_channel_path(&path, dir) || !path.is_file() {
             continue;
         }
 
@@ -3998,6 +3998,11 @@ struct VisibilityMessage {
 
 #[derive(Debug)]
 struct VisibilityReport {
+    candidate_diagnostics: Vec<serde_json::Value>,
+    invalid_channel_records: Vec<serde_json::Value>,
+    archive_baseline: Vec<serde_json::Value>,
+    scanned_refs: BTreeMap<String, String>,
+    scanned_scopes: Vec<String>,
     /// The requested base branch name, exactly as given via
     /// `--base-branch` (default `"main"`) -- unchanged meaning; never
     /// repurposed to hold a resolved OID or ref name (issue #89).
@@ -4375,7 +4380,9 @@ fn coord_visibility(
     let coord_dir = match git_coord_dir(&dir) {
         Ok(path) => path,
         Err(reason) => {
-            output.stderr(format!("ERR coordination visibility scan failed: {reason}"));
+            output.stderr(format!(
+                "ERR coordination visibility coverage incomplete: {reason}"
+            ));
             return 2;
         }
     };
@@ -4383,7 +4390,9 @@ fn coord_visibility(
     let mut report = match visibility_scan(&base_branch, branches, &coord_dir) {
         Ok(report) => report,
         Err(reason) => {
-            output.stderr(format!("ERR coordination visibility scan failed: {reason}"));
+            output.stderr(format!(
+                "ERR coordination visibility coverage incomplete: {reason}"
+            ));
             return 2;
         }
     };
@@ -4413,11 +4422,23 @@ fn visibility_scan(
     coord_dir: &str,
 ) -> Result<VisibilityReport, String> {
     let effective_base = resolve_effective_base(base_branch)
-        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
+        .map_err(|reason| format!("base_branch_unavailable: {base_branch}: {reason}"))?;
 
-    let base_files = git_coord_files(&effective_base.ref_for_scan, coord_dir)
-        .map_err(|_| format!("base_branch_unavailable: {base_branch}"))?;
-    let base_messages = load_git_messages(&effective_base.ref_for_scan, &base_files)?;
+    let base_inventory = git_candidate_inventory(&effective_base.oid, coord_dir)?;
+    let mut diagnostics = Vec::new();
+    let mut invalid_channel = Vec::new();
+    let mut archive_baseline = Vec::new();
+    let base_messages = load_visibility_snapshot(
+        &effective_base.oid,
+        coord_dir,
+        &base_inventory,
+        &base_inventory,
+        true,
+        &mut diagnostics,
+        &mut invalid_channel,
+        &mut archive_baseline,
+    )?;
+    let mut scanned_refs = BTreeMap::from([(base_branch.to_string(), effective_base.oid.clone())]);
     let base_file_set: std::collections::BTreeSet<&str> = base_messages
         .iter()
         .map(|message| message.file.as_str())
@@ -4434,12 +4455,24 @@ fn visibility_scan(
     let legacy_base_collisions = base_sequence_collisions_visibility(&base_messages);
 
     for branch in &branches {
-        let branch_files = git_coord_files(branch, coord_dir)?;
-        let branch_local_files: Vec<String> = branch_files
-            .into_iter()
-            .filter(|file| !base_file_set.contains(file.as_str()))
-            .collect();
-        let branch_messages = load_git_messages(branch, &branch_local_files)?;
+        let oid = git_output(&["rev-parse", "--verify", &format!("{branch}^{{commit}}")])?
+            .trim()
+            .to_string();
+        let inventory = git_candidate_inventory(&oid, coord_dir)?;
+        let branch_messages: Vec<_> = load_visibility_snapshot(
+            &oid,
+            coord_dir,
+            &inventory,
+            &base_inventory,
+            false,
+            &mut diagnostics,
+            &mut invalid_channel,
+            &mut archive_baseline,
+        )?
+        .into_iter()
+        .filter(|m| !base_file_set.contains(m.file.as_str()))
+        .collect();
+        scanned_refs.insert(branch.clone(), oid);
 
         for message in branch_messages
             .iter()
@@ -4481,6 +4514,11 @@ fn visibility_scan(
     });
 
     Ok(VisibilityReport {
+        candidate_diagnostics: diagnostics,
+        invalid_channel_records: invalid_channel,
+        archive_baseline,
+        scanned_refs,
+        scanned_scopes: candidate_scopes(coord_dir),
         base_branch: base_branch.to_string(),
         effective_base_oid: effective_base.oid,
         effective_base_source: effective_base.source.to_string(),
@@ -4501,10 +4539,6 @@ fn visibility_scan(
 /// caller to separately fast-forward local `main`. When no upstream is
 /// configured, or upstream matches local, behavior is unchanged.
 struct EffectiveBase {
-    /// The ref git commands should read base content from -- the
-    /// requested `base_branch` name, or its upstream short name
-    /// (e.g. `origin/main`) when freshness resolution prefers it.
-    ref_for_scan: String,
     oid: String,
     source: &'static str,
 }
@@ -4522,13 +4556,11 @@ fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
         "for-each-ref",
         "--format=%(upstream:short)",
         &format!("refs/heads/{base_branch}"),
-    ])
-    .unwrap_or_default();
+    ])?;
     let upstream_short = upstream_short.trim();
 
     if upstream_short.is_empty() {
         return Ok(EffectiveBase {
-            ref_for_scan: base_branch.to_string(),
             oid: local_oid,
             source: "local",
         });
@@ -4539,25 +4571,17 @@ fn resolve_effective_base(base_branch: &str) -> Result<EffectiveBase, String> {
         "--verify",
         &format!("{upstream_short}^{{commit}}"),
     ]) else {
-        // Upstream configured but unresolvable (e.g. not fetched yet) --
-        // fall back to local, unchanged behavior.
-        return Ok(EffectiveBase {
-            ref_for_scan: base_branch.to_string(),
-            oid: local_oid,
-            source: "local",
-        });
+        return Err(format!("configured upstream unavailable: {upstream_short}; fetch the target before applying archive baseline suppression"));
     };
     let upstream_oid = upstream_oid.trim().to_string();
 
     if upstream_oid != local_oid {
         Ok(EffectiveBase {
-            ref_for_scan: upstream_short.to_string(),
             oid: upstream_oid,
             source: "upstream",
         })
     } else {
         Ok(EffectiveBase {
-            ref_for_scan: base_branch.to_string(),
             oid: local_oid,
             source: "local",
         })
@@ -4669,31 +4693,157 @@ fn git_coord_dir(dir: &Path) -> Result<String, String> {
         })
 }
 
-fn git_coord_files(ref_name: &str, coord_dir: &str) -> Result<Vec<String>, String> {
-    let output = git_output(&["ls-tree", "-r", "--name-only", ref_name, "--", coord_dir])?;
-    let mut files: Vec<String> = output
-        .lines()
-        .filter(|line| line.ends_with(".md"))
-        .map(str::to_string)
-        .collect();
-    files.sort();
-    Ok(files)
+fn candidate_scopes(coord_dir: &str) -> Vec<String> {
+    let parent = Path::new(coord_dir)
+        .parent()
+        .unwrap_or(Path::new("docs"))
+        .display();
+    let name = Path::new(coord_dir)
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy();
+    vec![
+        format!("{coord_dir}/**/*.md"),
+        format!("{parent}/{name}*.md (direct siblings only)"),
+        format!("{parent}/{name}-archive/**/*.md"),
+    ]
 }
 
-fn load_git_messages(ref_name: &str, files: &[String]) -> Result<Vec<VisibilityMessage>, String> {
-    let mut messages = Vec::new();
-    for (file, content) in git_cat_file_batch(ref_name, files)? {
-        let Some(content) = content else { continue };
-        let Ok(mut raw) = agov_core::yaml::parse_frontmatter_json(&content) else {
-            continue;
-        };
-        if let Some(object) = raw.as_object_mut() {
-            object.insert(
-                "_body".to_string(),
-                serde_json::Value::String(markdown_body(&content)),
-            );
+fn archive_dir(coord_dir: &str) -> String {
+    format!("{coord_dir}-archive")
+}
+
+/// Two bounded tree queries: recursive channel/archive, and direct parent entries.
+/// NUL framing preserves paths; only blob Markdown entries in the declared scope qualify.
+fn git_candidate_inventory(oid: &str, coord_dir: &str) -> Result<BTreeMap<String, String>, String> {
+    let parent = Path::new(coord_dir).parent().unwrap_or(Path::new("docs"));
+    let name = Path::new(coord_dir)
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy();
+    let archive = archive_dir(coord_dir);
+    let recursive = git_output(&["ls-tree", "-rz", oid, "--", coord_dir, &archive])?;
+    let siblings = git_output(&[
+        "ls-tree",
+        "-z",
+        oid,
+        "--",
+        &format!("{}/", parent.display()),
+    ])?;
+    let mut entries = BTreeMap::new();
+    for entry in recursive
+        .split('\0')
+        .chain(siblings.split('\0'))
+        .filter(|s| !s.is_empty())
+    {
+        let (header, path) = entry.split_once('\t').ok_or("incomplete tree entry")?;
+        let fields: Vec<_> = header.split_whitespace().collect();
+        if fields.len() != 3 {
+            return Err("incomplete tree header".into());
         }
-        messages.push(VisibilityMessage { file, raw });
+        if fields[1] != "blob" || !path.ends_with(".md") {
+            continue;
+        }
+        let p = Path::new(path);
+        let sibling = p.parent() == Some(parent)
+            && p.file_name()
+                .is_some_and(|f| f.to_string_lossy().starts_with(name.as_ref()));
+        if p.starts_with(coord_dir) || p.starts_with(&archive) || sibling {
+            entries.insert(path.to_string(), fields[2].to_string());
+        }
+    }
+    Ok(entries)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn load_visibility_snapshot(
+    oid: &str,
+    coord_dir: &str,
+    inventory: &BTreeMap<String, String>,
+    base: &BTreeMap<String, String>,
+    is_base: bool,
+    diagnostics: &mut Vec<serde_json::Value>,
+    invalid_channel: &mut Vec<serde_json::Value>,
+    archive_baseline: &mut Vec<serde_json::Value>,
+) -> Result<Vec<VisibilityMessage>, String> {
+    let schema = agov_core::schema::load_and_compile(
+        &agov_core::schema_dir().join("coordination-message.schema.json"),
+    )
+    .map_err(|err| format!("incomplete coverage: channel schema unavailable: {err}"))?;
+    // Base channel entries are already validated/reported. Reusing exact
+    // path/blob identity avoids repeating baseline invalid-record diagnostics
+    // for every branch, while changed bytes and new paths are still inspected.
+    let files: Vec<_> = inventory
+        .iter()
+        .filter(|(path, blob)| {
+            is_base
+                || !agov_coord::channel_reader::is_channel_path(
+                    Path::new(path),
+                    Path::new(coord_dir),
+                )
+                || base.get(*path) != Some(*blob)
+        })
+        .map(|(path, _)| path.clone())
+        .collect();
+    let mut messages = Vec::new();
+    for (file, content) in git_cat_file_batch(oid, &files)? {
+        let content =
+            content.ok_or_else(|| format!("incomplete coverage: unreadable blob {oid}:{file}"))?;
+        let channel =
+            agov_coord::channel_reader::is_channel_path(Path::new(&file), Path::new(coord_dir));
+        let validated =
+            agov_coord::coord_validator::validate_content_with_schema(&content, &schema);
+        if channel {
+            match validated {
+                Ok(msg) => {
+                    let mut raw = msg.raw;
+                    raw.as_object_mut()
+                        .unwrap()
+                        .insert("_body".into(), serde_json::json!(markdown_body(&content)));
+                    messages.push(VisibilityMessage { file, raw });
+                }
+                Err(errors) => invalid_channel
+                    .push(serde_json::json!({"ref_sha":oid,"path":file,"errors":errors})),
+            }
+            continue;
+        }
+        let blob = &inventory[&file];
+        match validated {
+            Ok(msg) => {
+                let unchanged_archive = Path::new(&file).starts_with(archive_dir(coord_dir))
+                    && base.get(&file) == Some(blob);
+                let mut evidence = serde_json::json!({"ref_sha":oid,"path":file,"blob":blob,"id":msg.id(),"kind":msg.kind(),"to":msg.to(),"requires_ack":msg.requires_ack(),"handoff":msg.raw.get("handoff"),"lifecycle":"unassessed"});
+                if unchanged_archive {
+                    if is_base {
+                        archive_baseline.push(evidence);
+                    }
+                } else {
+                    evidence["diagnostic"] = serde_json::json!("misplaced_candidate");
+                    diagnostics.push(evidence);
+                }
+            }
+            Err(errors) => {
+                let front = content
+                    .strip_prefix("---")
+                    .map(|s| s.split("---").next().unwrap_or(s));
+                if front.is_some_and(|s| {
+                    s.lines().any(|line| {
+                        [
+                            "kind:",
+                            "from:",
+                            "to:",
+                            "references-to:",
+                            "requires-ack:",
+                            "handoff:",
+                        ]
+                        .iter()
+                        .any(|key| line.trim_start().starts_with(key))
+                    })
+                }) {
+                    diagnostics.push(serde_json::json!({"ref_sha":oid,"path":file,"blob":blob,"diagnostic":"invalid_candidate","errors":errors,"lifecycle":"unassessed"}));
+                }
+            }
+        }
     }
     Ok(messages)
 }
@@ -4829,7 +4979,15 @@ fn git_cat_file_batch(
             ));
             break;
         }
-        results.push(Some(String::from_utf8_lossy(&content).to_string()));
+        match String::from_utf8(content) {
+            Ok(content) => results.push(Some(content)),
+            Err(_) => {
+                read_error = Some(format!(
+                    "git cat-file --batch: unreadable UTF-8 blob for {specifier}"
+                ));
+                break;
+            }
+        }
     }
 
     let writer_result = writer
@@ -5040,7 +5198,23 @@ fn render_visibility_text(output: &mut OutputCounter, report: &VisibilityReport)
         report.effective_base_oid, report.effective_base_source
     ));
 
-    if report.sequence_collisions.is_empty()
+    output.stdout(format!(
+        "coverage: complete within {:?}; refs: {:?}",
+        report.scanned_scopes, report.scanned_refs
+    ));
+    output.stdout(format!(
+        "archive baseline: {} record(s), lifecycle/closure unassessed",
+        report.archive_baseline.len()
+    ));
+    for diagnostic in &report.candidate_diagnostics {
+        output.stdout(format!("WARN {diagnostic}"));
+    }
+    for diagnostic in &report.invalid_channel_records {
+        output.stdout(format!("WARN invalid_channel_record {diagnostic}"));
+    }
+    if report.candidate_diagnostics.is_empty()
+        && report.invalid_channel_records.is_empty()
+        && report.sequence_collisions.is_empty()
         && report.unbridged_obligations.is_empty()
         && report.legacy_base_collisions.is_empty()
     {
@@ -5133,6 +5307,12 @@ fn visibility_json(report: &VisibilityReport) -> String {
         .collect();
 
     serde_json::json!({
+        "coverage": "complete_within_declared_scopes",
+        "scanned_scopes": report.scanned_scopes,
+        "scanned_refs": report.scanned_refs,
+        "candidate_diagnostics": report.candidate_diagnostics,
+        "invalid_channel_records": report.invalid_channel_records,
+        "archive_baseline": {"count":report.archive_baseline.len(),"lifecycle":"unassessed","records":report.archive_baseline},
         "base_branch": report.base_branch,
         "effective_base_oid": report.effective_base_oid,
         "effective_base_source": report.effective_base_source,
@@ -5152,7 +5332,10 @@ fn visibility_json(report: &VisibilityReport) -> String {
 fn visibility_exit_code(report: &VisibilityReport) -> i32 {
     if !report.sequence_collisions.is_empty() || !report.errors.is_empty() {
         2
-    } else if !report.unbridged_obligations.is_empty() {
+    } else if !report.unbridged_obligations.is_empty()
+        || !report.candidate_diagnostics.is_empty()
+        || !report.invalid_channel_records.is_empty()
+    {
         1
     } else {
         0
