@@ -1,6 +1,8 @@
 ---
 id: 20260911T040631Z-row6-s3-issue123-affected-paths-collision-check
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T17:13:51Z
 topic: row6-s3-issue123-affected-paths-collision-check
 candidate_release: v2.11.0
 advisory_consultation:
@@ -44,6 +46,15 @@ advisory_consultation:
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Row 6 S3 — #123: structured affected-paths + `agov plan collision-check` (Gate 1)
+
+**Gate 1: APPROVED** at exact source head `6e212f10bb97f180e0c8564c725121b3c3a63dd3`
+per `20260911T171351Z-governor-reviewer-m15q` (governor Jani: "all at gates
+are approved", transcribed via the Codex session; this settled an earlier
+literal-number ambiguity between !2686 and !2586 — `m15q` confirms !2686 is
+the approved S3 plan). Recorded on `codex/ci-shallow-history-report`, MR
+!2705. The disclosed plan-security consultation limitation is preserved,
+not converted into a technical screening attestation by this approval.
+coder-tester implements; implementation Gate 2 remains separate.
 
 ## Provenance
 
