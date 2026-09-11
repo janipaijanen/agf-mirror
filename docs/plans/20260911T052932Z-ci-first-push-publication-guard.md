@@ -1,6 +1,8 @@
 ---
 id: 20260911T052932Z-ci-first-push-publication-guard
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-09-11T06:01:41Z"
 topic: ci-first-push-publication-guard
 advisory_consultation:
   - role: contribution-auditor
