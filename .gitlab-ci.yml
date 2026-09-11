@@ -1181,6 +1181,14 @@ commercial-corpus:validate:
   extends: .rust-base
   stage: test
   interruptible: true
+  variables:
+    # This job's --base-ref comparison needs a real merge base against
+    # CI_MERGE_REQUEST_DIFF_BASE_SHA. The project default GIT_DEPTH (20)
+    # truncates history before that merge base on any branch more than
+    # ~20 commits past its target, producing a `no merge base` failure
+    # unrelated to any actual commercial-corpus defect. Same fix as
+    # agov:governance:validate above, for the same underlying reason.
+    GIT_DEPTH: "0"
   script:
     - |
       set -eu

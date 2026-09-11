@@ -1,3 +1,15 @@
+// Real-world companion-evidence example, 2026-09-11: MR !2711 added
+// `GIT_DEPTH: "0"` to `.gitlab-ci.yml`'s `commercial-corpus:validate` job
+// (fixing a shallow-clone `no merge base` failure, MR !2678). Because
+// `.gitlab-ci.yml` is a declared shared surface for both `gate-change-check`
+// and `ci-needs-implication` in `.agf/gates.yaml`, that one-line, otherwise
+// unrelated CI edit required touching both gates' own declared test paths —
+// exactly the generic scenario `shared_surface_requires_each_active_gates_own_test_evidence`
+// (tests/ci_needs_implication.rs) already exercises. This file's own
+// regression coverage for `commercial-corpus:validate` itself lives in
+// `tests/ci_needs_implication.rs`; this comment is this file's companion
+// touch for that same real commit.
+
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
