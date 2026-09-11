@@ -4708,6 +4708,58 @@ learnings:
         - 'docs/coordination/20260910T045221Z-coder-tester-rpqq.md: exact source/head pipeline pairs, job IDs, durations and verified cancellation states.'
         - '.gitlab-ci.yml workflow rules document the initial push/MR pair and the existing open-MR push guard; AGENTS.md requires immediate evidence-based cancellation of proven redundant push paths.'
 
+  - id: 20260911T122026Z-lhnx
+    date: '2026-09-11'
+    category: gap
+    scope: framework
+    title: a-blocked-work-lane-must-not-stop-other-authorized-progress
+    status: proposed
+    description: >-
+      After completing RUW and wrapper merges, Codex reported pending CI and
+      separate governor gates and ended the work cycle. The governor then
+      asked why Codex and Claude appeared stalled. Read-only review of the
+      next RUW plans, release-precondition reconciliation, and preparation of
+      outstanding acceptance evidence remained possible within existing
+      authority. Codex resumed independent plan review and routed Claude the
+      release-precondition reconciliation while its CI ran. The governor
+      explicitly identified this as expected proactivity and requested a
+      learning. This is evidence of Codex's stopping error and the available
+      alternatives, not proof of Claude's internal state or measured delay.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - build-engineer
+      - governor-reviewer
+    framework_section: rules/always/universal-polling-and-autonomous-continuation-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The governor had to redispatch already-authorized work. Pending
+        external events unnecessarily became a session-wide stopping point.
+        No quantitative time or token savings are established by this event.
+    recommendation: >-
+      When one lane waits for CI, review, ownership acknowledgement, or a
+      binding gate, identify other dependency-independent work within current
+      scope and authority and begin the highest-priority useful action now.
+      Examples include reviewing the next plan, diagnosing available logs,
+      reconciling release prerequisites, preparing acceptance evidence, and
+      closing proven obsolete MRs under existing authorization. State the
+      concrete blocker per lane, the action progressing alongside it, and
+      its owner. Coordinate overlapping work before mutation. End a work
+      cycle only when authorized useful work is completed, actively running
+      and monitored, or blocked with a recorded dependency; a timer is a wake
+      mechanism, not a substitute for foreground progress. Do not invent
+      busywork, duplicate pipelines, expand scope, or infer gate/release
+      authority to appear active. This is an empirically informed application
+      of existing continuation duties from one session, not a new gate.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '2026-09-11 governor exchange: asks why Codex and Claude appear stalled, then explicitly requests learning from doing useful work while CI runs.'
+        - 'docs/coordination/20260911T121707Z-planner-architect-kpag.md: next-plan review resumed and release-precondition work routed while !2711 CI remained active.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
