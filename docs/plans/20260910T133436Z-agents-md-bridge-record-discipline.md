@@ -1,6 +1,8 @@
 ---
 id: 20260910T133436Z-agents-md-bridge-record-discipline
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T17:13:51Z
 topic: agents-md-gate-discipline-bridge-record-addition
 advisory_consultation:
   - role: infosec-sentinel
@@ -27,6 +29,12 @@ advisory_consultation:
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # AGENTS.md gate discipline — bridge-record addition (Gate 1)
+
+**Gate 1: APPROVED** at exact source head `f822ecb5374c105fca288dec2762f281a7893b0b`
+per `20260911T171351Z-governor-reviewer-m15q` (governor Jani: "all at gates
+are approved", transcribed via the Codex session; recorded on
+`codex/ci-shallow-history-report`, MR !2705). coder-tester implements;
+implementation Gate 2 remains separate.
 
 ## Provenance
 
