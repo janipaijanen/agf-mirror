@@ -1,6 +1,8 @@
 ---
 id: 20260911T044602Z-quantized-model-mechanical-drafting-pilot
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-11T17:13:51Z
 topic: quantized-model-mechanical-drafting-offline-pilot
 advisory_consultation:
   - role: infosec-sentinel
@@ -31,6 +33,15 @@ advisory_consultation:
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Quantized/small-model mechanical-drafting pilot — offline evaluation harness (Gate 1)
+
+**Gate 1: APPROVED** at exact source head `9ec079fde1f9360579808f94ccac4ac94418d634`
+per `20260911T171351Z-governor-reviewer-m15q` (governor Jani: "all at gates
+are approved", transcribed via the Codex session; recorded on
+`codex/ci-shallow-history-report`, MR !2705). No experiment, purchase, or
+live model use is authorized by this approval alone — per `sqj4`'s own
+disposition note, this row is "no experiment, purchase or live model use
+follows from the row." coder-tester implements the evaluation harness
+within that stated boundary; implementation Gate 2 remains separate.
 
 ## Provenance
 
