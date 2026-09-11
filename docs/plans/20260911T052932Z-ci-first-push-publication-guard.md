@@ -137,11 +137,19 @@ cancelling a pipeline after GitLab has already created it.
 2. **Immediately register the MR** (`glab mr create` or equivalent) for
    the just-pushed branch, before any further push to that branch.
 
-3. **Verify exactly one canonical pipeline exists** for the intended SHA:
-   query the project's pipelines for that ref/SHA and confirm exactly one
-   result, sourced from `merge_request_event`. This is the visible
-   evidence step — it is what makes "the fix worked" a checked fact
-   instead of an assumption.
+3. **Verify exactly one non-skipped canonical pipeline exists** for the
+   intended SHA: query the project's pipelines for that ref/SHA and
+   confirm exactly one result with a real (non-`skipped`) status, sourced
+   from `merge_request_event`. GitLab still creates a pipeline *record*
+   for the `ci.skip`-marked push — confirmed empirically on this plan's
+   own publishing MR (!2692): pipeline `2839715523` (`push` source)
+   appeared with `status: skipped`, alongside `2839715810`
+   (`merge_request_event` source) as the only pipeline that actually ran
+   jobs, both at the same SHA. The verification target is therefore "no
+   second pipeline consumes runner time," not "no second pipeline record
+   exists at all" — the `skipped` record is inert and free. This is the
+   visible evidence step; it is what makes "the fix worked" a checked
+   fact instead of an assumption.
 
 4. **Fail visibly if MR creation fails, or if step 3's check does not find
    exactly one canonical pipeline.** A push with `ci.skip` that is not
