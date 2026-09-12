@@ -30,7 +30,7 @@ surfaces:
     reason: >-
       Required operator recipe: shared coordination branch, explicit fetch,
       hold-status against origin/main, urgent publication, expiry and source
-      limitations, canonical branch/ref identity and stable source observations.
+      limitations, canonical branch/ref identity and pinned Git candidate sources and per-ref observation limits.
       MCP parity/local-only command surface and exit/row fail-closed statuses.
   ai_landing_loaders:
     disposition: updated
@@ -53,7 +53,7 @@ surfaces:
       - tooling/rust/crates/agov-mcp/src/main.rs
     reason: >-
       Required implementation evidence: optional-field schema compatibility,
-      status command fixtures, alias rejection, raw source/path identity, source churn,
+      status command fixtures, alias rejection, raw source/path identity, ref pinning and failed Git reads,
       incomplete coverage and fixed unverified-authority/publication flags,
       real CLI/MCP parity, retained publication gate negatives and gate companion.
       This draft does not claim any of those edits/tests are already completed.
@@ -71,4 +71,5 @@ surfaces:
       CLI/MCP ship in separate tooling artifacts, not the framework archive;
       Pages source also ships under the framework source glob; rendered explanations
       use the existing site build. Root loader and Claude
-      projection are foundry-local. Implementation must validate these routes.
+      projection are foundry-local. Implementation must validate these routes, compatible framework/tool versions,
+      rollout before first new-field use and schema-preserving post-use disablement.
