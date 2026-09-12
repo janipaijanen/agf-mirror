@@ -5,8 +5,8 @@ topic: cpb2-publication-hold-and-urgency
 candidate_release: v2.11.0
 advisory_consultation:
   - role: infosec-sentinel
-    status: waived
-    reason: Consultation requested; this is not an approved waiver. Review hold authority, expiry, ambiguous records and the never-delay-security boundary before Gate 1.
+    status: consulted
+    reason: Governor-appointed semantic security consultation smmp completed at 9913892e with six blockers and one advisory (q82p). This revision addresses them; bounded re-review remains pending, not a waiver or clearance.
   - role: contribution-auditor
     status: waived
     reason: Independent consultation requested; no author clearance claimed. Review parent fidelity, advisory authority, source coverage and the release-target boundary before Gate 1.
@@ -49,7 +49,9 @@ Level 1 Planned; successful branch implementation will be Level 4 Validated.
    add this field. Hold controls themselves cannot be deferred.
 
 A start must be from governor-reviewer, have urgency urgent, reference the
-release work-order/decision, and expire after its own timestamp. An end must
+release work-order/decision, and expire after its own timestamp and no later
+than 24 hours after that timestamp. This proposed operational maximum is a
+child Gate 1 choice; over-limit controls are invalid, not silently clamped. An end must
 also be a governor-reviewer urgent decision-record, reference the same start
 in both hold_id and references-to, and name the same target. A hold cannot be
 extended in place. A later start is a separate hold; overlapping starts are
@@ -73,26 +75,58 @@ CP-B-3 wires the release procedure later; this child never weakens that rule.
 `agov coord hold-status --target-branch <local-or-remote-tracking-branch>
 [--dir <coord-dir>] [--pending-dir <repo-relative-dir>] [--format text|json]`
 
-Resolve the named target branch once to an immutable target SHA; no independent
-base override is accepted, so evidence cannot silently relabel a feature SHA as main.
-Use that same target SHA as the base inventory.
-resolve the repository root once. Read coordination records at that base's
-configured top-level channel and in the current filesystem channel. One optional
-pending directory is explicitly named, nonrecursive Markdown-only evidence under
-the repository root; reject traversal or symlinks escaping that root. Do not
-implicitly enumerate archives, every branch, GitLab or the network. Label every
-source and exact base SHA. Same path+bytes across base/filesystem is deduplicated;
-different bytes under one ID are a conflict, not a last-writer-wins update.
-Equal ID+raw bytes across different evidence paths is one logical declaration
-with all source labels retained. This read-side evidence deduplication never
-permits publishing a copied new record; CP-B-1 copy rejection remains unchanged.
+Resolve the named target branch once to an immutable target SHA. Accept only
+unambiguous branch references, not a raw SHA, tag, revision expression or symbolic
+alias such as HEAD/origin/HEAD. A full refs/heads/<name> identifies a local branch;
+refs/remotes/<remote>/<name> identifies a remote-tracking branch for one configured
+remote. Short forms are accepted only when exactly one of those full branch refs
+matches; reject ambiguous local/remote aliases and ambiguous remote prefixes.
+Emit the resolved full `target_ref`, canonical `target_branch` equal to
+refs/heads/<name>, selected remote (or null for local), and `target_sha` separately.
+Hold controls store only this canonical logical target_branch form. Thus a hold
+for refs/heads/main matches main and origin/main when both resolve unambiguously
+to logical main; a same-SHA feature ref never matches. Different remotes may name
+the same logical branch but retain distinct target_ref/remote provenance; this
+is not proof they are the authorized publication remote. Operator verification
+must check the repository's configured publication target and fresh fetch.
+A stale local main is reported at its actual SHA, never replaced by origin/main.
+Use the pinned SHA for all Git reads; no independent base override is accepted.
+
+Resolve the repository root once. Read direct lowercase .md records from the
+pinned target's configured channel and the current filesystem channel. One
+optional pending directory is explicitly named, nonrecursive, under the root.
+Reject traversal, all symlink directory components and files (even within the
+root), and nonregular entries. Git channel records must be regular blobs with
+mode 100644 or 100755; reject symlinks/submodules/nonregular channel entries.
+Do not implicitly enumerate archives, every branch, GitLab or the network.
+Label each source and immutable Git SHA. Canonical repository-relative paths
+are evidence identity: same path plus identical bytes is deduplicated with all
+source labels retained; same path plus different bytes is a conflict regardless
+of embedded IDs. Same ID plus different bytes is also a conflict. Equal ID/raw
+bytes at distinct paths is one logical declaration retaining all provenance.
+This read-side deduplication never permits publishing a copied new record;
+CP-B-1 publication-copy rejection remains separately governed.
+
+For each filesystem source, capture the direct entry inventory (path, type and
+stable file identity), open regular files without following links, read bytes,
+and check descriptor/path identity and metadata before/after reading. Re-enumerate
+all requested filesystem inventories and re-read/compare the captured bytes
+before returning. Any observable add/delete/rename/replace/type/identity/content
+change is churn: exit 2, coverage INCOMPLETE, with no positive delay state. No
+automatic retry loop. Deterministic test hooks exercise each walk/read boundary.
+COMPLETE means these bounded stability checks completed for explicit sources;
+it is not a transactional filesystem snapshot or a guarantee against changes
+after return. Output and runbook state this limit; an actual delay decision
+requires fresh independent verification, never reliance on a saved COMPLETE row.
 
 The current filesystem can show a newly published branch's hold which is not
 merged into main. Output must distinguish base-visible from local-only evidence;
 local-only is not proof of remote publication. ALL status rows are declarations,
-never assertions of a published or usable hold: `publication_verified: false` is
-fixed in output. External operator verification remains necessary even for
-base-visible evidence; role labels do not prove governor authenticity.
+never assertions of a published or usable hold: `publication_verified: false`
+and `authority_verified: false` are fixed at top level and on every hold/record
+row. Neither a role label, source visibility, matching SHA nor local file can
+flip these fields. External operator verification remains necessary even for
+base-visible evidence. Required external checks are explicit below.
 
 Operator path: publish the start on the shared coordination branch independently
 of main, bridge it to the release lane, and verify recipient visibility and
@@ -123,34 +157,54 @@ and cannot support treating the target as frozen. Multiple live starts are
 with their paths/IDs, hold resolution, urgency and the following ordered states
 (first match wins):
 
-1. `publish-now`: urgent or hold control, with or without deferred_by. This
-   remains visible even when unrelated source evidence is incomplete.
-2. `unassociated`: no deferred_by; ordinary publication rules apply.
-3. `publish-now`: association missing, invalid, ended, expired, stale, conflicting
-   or any requested-source coverage incomplete. Preserve every reason. No safe
-   delay is inferred from a readable subset.
-4. `deferred-intent`: normal association to the one active matching declaration
-   in a complete, conflict-free requested-source scan. This reports the author's
-   intent only; independently verified publication/authority is still required
-   before any real delay. It is never a command to hide, publish or merge.
+1. `publish-now`: urgent, hold control, requires-ack:true, or kind handoff or
+   review, regardless of omitted/normal urgency or deferred_by. These conservative
+   structural overrides do not need to prove an obligation is still live.
+2. `publish-now`: any requested source is incomplete or has semantic evidence
+   problems that could affect the selected target. Malformed/unknown-target
+   evidence is potentially relevant. Preserve every reason and apply this
+   override globally, not only to the record with the problem. Valid controls
+   proven to concern a different canonical branch may be isolated; never infer
+   unrelatedness from malformed fields or a different SHA.
+3. `unassociated`: no deferred_by; ordinary publication rules apply. This is
+   not a determination that the record is safe to delay.
+4. `publish-now`: association missing, invalid, future/not-yet-active, ended,
+   expired, stale or conflicting.
+5. `review-required`: normal association to the one active matching declaration
+   in a complete, conflict-free stability-checked scan. Reports author intent
+   and its unresolved verification requirements, never a positive deferral.
 
-Mandatory urgency categories remain normative, not reliably inferable from text:
-security/gate findings, escalations and live obligations with waiting actors MUST
-publish immediately. Explicit urgent always overrides deferred_by. Absence of
-urgency never proves the absence of a waiting actor. Tool output includes this
-limitation and lists unassociated records; it does not automatically classify
-content as safe to delay. A suspicious normal classification is a review finding.
+There is no `deferred-intent` or automatic allow-delay output. The optional
+stored deferred_by remains a declaration, not permission. Before any actual
+batching delay, an independent human/operator must verify that exact record's
+urgency and absence of security/gate findings, escalations and live obligations,
+as well as hold publication, governor authority, selected publication remote,
+current target SHA and expiry. If any check is unavailable, publish immediately.
+The command neither accepts a verification flag nor records an approval; it
+always outputs the external-check requirements and fixed false verification
+fields. A later ordinary record revision requires fresh verification. Urgent
+records must remain independently visible even when main integration is held.
+
+Machine-readable `required_external_checks` is the stable enum list
+`[publication, governor_authority, record_urgency_and_obligations,
+publication_target, current_target_and_expiry]`, on the result and each row.
+Text and MCP expose the same list, not only a prose disclaimer. This avoids
+using a review of an unpublished record as an assumed future safeguard.
 
 ### Machine interface and status
 
-JSON version 1 object: `schema_version`, `target_branch`, `target_sha`, `now`, `publication_verified`,
+JSON version 1 object: `schema_version`, `target_ref`, `target_branch`, `target_remote`,
+`target_sha`, `now`, `publication_verified`, `authority_verified`,
+`required_external_checks`,
 `scope`, `sources`, `coverage`, `holds`, `records`, `problems`. Arrays are stable
 sorted by timestamp, ID and path; each evidence item retains its source identity.
 `coverage` is COMPLETE or INCOMPLETE for explicit sources only. Text is a compact
 projection of the same result, with diagnostics deduplicated and referenced.
 
-Exit 0: complete requested-source scan, whether a hold is active or not.
-Exit 1: conflicting/invalid semantic evidence; no usable hold asserted.
+Exit 0: complete requested-source stability checks and no semantic problems,
+whether a hold declaration is active or not; review-required is not permission.
+Exit 1: conflicting/invalid semantic evidence; every potentially affected row
+is publish-now. Exit 1 never coexists with a positive delay state.
 Exit 2: unavailable/incomplete requested-source evidence (takes precedence over 1).
 None of these statuses is a push, merge or release gate. The existing named
 coordination schema validator remains the only field-validation gate; this
@@ -235,3 +289,36 @@ rewrite and no hold is automatically enabled. Adoption instructions distinguish
 intent/status from actual independently visible publication. The governor-only
 control policy is proposed here for explicit child approval, not claimed as a
 previously settled parent choice.
+
+
+## Consolidated semantic security corrections (q82p)
+
+The governor-appointed reviewer reported CPB2-SEC-1 through SEC-6 and advisory
+A1 at 9913892e. This revision addresses all seven as one batch; it is not cleared
+until the reviewer checks the new exact head. In addition to the earlier matrix:
+
+- SEC-1: omitted/normal urgency plus handoff, review or requires-ack:true always
+  yields publish-now. Security/gate/escalation examples not structurally detected
+  never yield automatic deferral; normal active associations are review-required
+  with per-record external urgency/obligation verification required.
+- SEC-2: test local/remote/full refs, main/origin-main equivalence, feature at the
+  same SHA, stale local main, multiple configured remotes with retained provenance,
+  ambiguous short aliases, HEAD, tags, SHAs and ref expressions. Assert one pinned
+  target object for all reads and canonical branch matching independent of SHA.
+- SEC-3: test in-root/escaping symlinks, symlinked source directories, Git
+  symlink/submodule/nonregular modes, and same-path changed bytes with both equal
+  and unequal IDs. Reject aliases; preserve cross-source provenance on dedup.
+- SEC-4: deterministic add/delete/rename/replace and type/identity/byte changes
+  during source enumeration/read/recheck return exit2/INCOMPLETE/publish-now.
+  Document bounded stability checks and post-return freshness limits honestly.
+- SEC-5: malformed YAML/schema, unknown-target controls, same-target conflicts
+  and future starts cannot coexist with a positive delay row. Assert exit/row
+  precedence globally across requested sources, not only on associated records.
+- SEC-6: forged governor labels and both local/base-visible controls keep
+  publication_verified:false and authority_verified:false at result and row
+  level. Check required_external_checks and identical semantics in JSON/text/MCP.
+- A1: proposed 24-hour maximum, positive-duration check, exact maximum accepted,
+  over-limit/year-9999 rejected. This policy is subject to child Gate1 approval.
+
+No implementation is included. No automatic trusted verification store, new
+service, network discovery or new CI gate is introduced by these corrections.

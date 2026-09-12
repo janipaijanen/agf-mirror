@@ -13,14 +13,15 @@ surfaces:
     path: agf/rules/workflow/coordination-publication-rule.md
     reason: >-
       Required implementation outcome: define time-bounded hold declarations,
-      urgent bypass, operator publication/authority verification and unchanged
+      24-hour maximum, structural urgent overrides, per-record external checks and unchanged
       release-target drift controls. No new tool blocking authority.
   adopter_facing_explanation:
     disposition: updated
     path: agf/docs/site/docs/concepts/coordination-protocol.md
     reason: >-
       Required explanation of optional fields, omission compatibility and
-      declaration state versus independently verified shared publication.
+      declaration state versus independently verified shared publication/authority;
+      review-required never grants permission to delay.
   runbook_situation_map:
     disposition: updated
     paths:
@@ -29,7 +30,8 @@ surfaces:
     reason: >-
       Required operator recipe: shared coordination branch, explicit fetch,
       hold-status against origin/main, urgent publication, expiry and source
-      limitations. MCP parity/local-only command surface and exit statuses.
+      limitations, canonical branch/ref identity and stable source observations.
+      MCP parity/local-only command surface and exit/row fail-closed statuses.
   ai_landing_loaders:
     disposition: updated
     paths:
@@ -51,7 +53,8 @@ surfaces:
       - tooling/rust/crates/agov-mcp/src/main.rs
     reason: >-
       Required implementation evidence: optional-field schema compatibility,
-      status command fixtures, raw source identity and incomplete coverage,
+      status command fixtures, alias rejection, raw source/path identity, source churn,
+      incomplete coverage and fixed unverified-authority/publication flags,
       real CLI/MCP parity, retained publication gate negatives and gate companion.
       This draft does not claim any of those edits/tests are already completed.
   distribution:
