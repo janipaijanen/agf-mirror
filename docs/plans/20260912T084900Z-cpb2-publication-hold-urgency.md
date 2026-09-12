@@ -9,7 +9,7 @@ advisory_consultation:
     reason: Governor-appointed semantic security review cleared cf0a50c7 in kskr. This revision changes input and state contracts following trial 8435 and build consultation pkgg; bounded security re-review is required before Gate 1.
   - role: contribution-auditor
     status: consulted
-    reason: Independent contribution review rr8g cleared cf0a50c7 with one citation advisory, resolved below. This changed plan requires bounded recheck; consultation is not governor approval.
+    reason: Independent contribution review rr8g and bounded recheck bnkg at246f57e5 cleared source simplification, external release authorization and staged rollout; citation advisory resolved. This revision only clarifies end provenance and stable problem identity; those three consulted areas remain unchanged. Consultation is not governor approval.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -253,11 +253,17 @@ Source {
 Provenance { source_id: string, path: string, blob_oid: SHA }
 Hold {
  id: string, timestamp: timestamp, target_branch: string, target_sha: SHA,
- expires_at: timestamp, effective_end: timestamp, end_ids: string[],
+ expires_at: timestamp, effective_end: timestamp, ends: End[],
  declared_release_references: string[],
  temporal_state: "future"|"active"|"ended"|"expired",
  target_state: "matching"|"stale"|"other-target",
  conflict: boolean, provenance: Provenance[], problem_ids: string[],
+ publication_verified: false, authority_verified: false,
+ required_external_checks: Check[]
+}
+End {
+ id: string, timestamp: timestamp, hold_id: string, target_branch: string,
+ provenance: Provenance[], problem_ids: string[],
  publication_verified: false, authority_verified: false,
  required_external_checks: Check[]
 }
@@ -279,9 +285,24 @@ Problem {
    "missing-start"|"active-overlap"|"historical-overlap"|"future-overlap"|
    "hold-behavior-disabled",
  severity: "unavailable"|"semantic"|"advisory",
+ operation: "resolve-target"|"resolve-candidate"|"read-tree"|"read-blob"|
+   "validate-record"|"resolve-hold"|"classify-record"|"disabled-fallback",
+ subject: { ref: string?, sha: SHA?, path: string?, record_id: string? },
  message: string, source_ids: string[], paths: string[], record_ids: string[]
 }
 ```
+
+Every valid end, including target-only and future ends, is a structured End
+inside the matching Hold. Keep its own timestamp and every source/path/blob
+provenance; never attach an end's provenance to its start. Equal ID/bytes across
+sources deduplicates that End while retaining provenance; distinct end IDs remain
+separate even when timestamps match. External end publication/authority checks
+can therefore identify exact bytes and sources independently of the start.
+Target-only ends are evidence here even though they create no action Record row.
+Missing-start/invalid ends remain attributable via Problem source/path/record IDs,
+without fabricating a Hold. Golden cases cover target-only end with candidate start,
+candidate-only end, base/candidate identical end, and multiple ends with distinct
+timestamps, paths and SHAs; assert effective_end and each End's fixed false flags.
 
 Malformed controls are represented by problems, never invented valid Hold rows;
 malformed candidate records additionally retain their path/provenance action row.
@@ -295,16 +316,26 @@ usage errors; once a valid invocation starts evaluation, failures use this envel
 Source IDs are `target` or `candidate:<SHA>`; an unresolved candidate source uses
 `unresolved:<requested-ref>`. Sort sources by source_id, provenance by source_id
 then path then blob_oid, holds/records by timestamp (null first), ID (null first),
-then first provenance path/source. Sort all reference/check/reason/problem-ID arrays
-lexically and remove duplicates. Problems sort by code, severity, source_ids,
-paths, record_ids, message, then receive deterministic IDs p000001 onward.
+then first provenance path/source. Sort ends by timestamp, ID and first provenance
+path/source. Sort all reference/check/reason/problem-ID arrays
+lexically and remove duplicates. Problems sort by code, severity, operation, subject.ref/sha/path/record_id
+(null first), source_ids, paths and record_ids, then receive deterministic IDs
+p000001 onward. Their identity is precisely that tuple, excluding message.
+Subject ref identifies a requested ref for resolution, sha/path the pinned Git
+object/channel/blob for reads, and record_id/path the semantic evidence when
+available; unused fields are null. Never use Git stderr as subject identity.
+Repeated occurrences with the same tuple coalesce into one problem; retain
+unique diagnostic messages sorted lexically in message, separated by newline.
+Changing platform Git error wording cannot renumber problems or row references.
 All six external checks appear exactly once at result and every row. Dynamic
 Git error prose is diagnostic only; tests assert stable code, identity and status.
 
 Acceptance must use independent checked-in golden JSON for empty history,
 active normal candidate, candidate urgent control, ended/expired/stale/future,
 active conflict and unavailable source, plus malformed candidate/no-ID and
-base-identical exclusion. Golden files pin every nested field, null, enum,
+base-identical exclusion. Inject different platform/error prose for the same stable operation/subject and
+assert identical problem IDs, ordering and row references. Golden files pin
+every nested field, null, enum,
 reason, provenance and sort order. Deserialize against a checked-in JSON schema
 implementing this contract. CLI/MCP shared-backend parity supplements these
 independent expected outputs and cannot replace them. Text is a compact projection
@@ -474,3 +505,10 @@ unmerged published branch records remain accessible through candidate refs; only
 uncommitted drafts are excluded. No platform crate recommendation in that advisory
 is treated as verified dependency evidence. Recheck this changed plan with the
 trial reviewer and affected security/contribution consultations before Gate 1.
+
+
+The bounded 246f57e5 re-review additionally required attributable end evidence
+and stable problem identity. This revision nests structured End objects with
+independent timestamps/provenance/verification requirements and sorts problem
+identities by stable operation/subject evidence, never dynamic diagnostic prose.
+These are contract clarifications within IPR-6, not new implementation authority.
