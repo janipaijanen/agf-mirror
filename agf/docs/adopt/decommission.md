@@ -30,18 +30,20 @@ work with the removal commit.
 
 ## 2. Files to delete
 
-Delete the files you copied at adoption time. Depending on your layout
-(A: root-level, B: subdirectory), paths vary; the standard set is:
+Delete the files you copied at adoption time. AGF v2.0 supports one
+adoption layout — the framework lives inside your project as the visible
+`agf/` directory (see `governance-file-layout-rule.md`) — so paths are the
+same across adopters; the standard set is:
 
 | Artifact | Typical location |
 |---|---|
-| Agent definitions | `governance/agents/*.yaml` (incl. `MANIFEST.yaml`) |
+| Agent definitions | `agf/agents/*.yaml` (incl. `MANIFEST.yaml`) |
 | Governance rules | `agf/rules/` |
 | AI assistant loader | Tool-specific root file pointing at `agf/rules/`, if created |
 | AI assistant skills | `agf/skills/` plus any optional tool wrapper, if adopted |
 | Stack-specific rule examples | Project-local rule files derived from `agf/project-specific-examples/`, if adopted |
-| Upstream learning records | `learnings/foundry.yaml` |
-| Framework declaration | `framework.yaml` (your tuned copy) |
+| Upstream learning records | `agf/learnings/foundry.yaml` |
+| Framework declaration | `framework.yaml` (your tuned copy, if adopted — a planned [P1] surface per `integration-contract.md`, not shipped in every adoption) |
 | Governance charter | `GOVERNANCE.md` (if based on the template) |
 | Coordination channel | `docs/coordination/` (see history note below) |
 | Framework tooling | Rust `agov` binary/wrapper, or legacy Python/Elixir tooling if vendored from an older release |

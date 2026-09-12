@@ -46,9 +46,9 @@ Adopter-facing surfaces inspected or queued for this sweep:
 | Templates | `agf/templates/*` (10 files incl. `AGENTS.md`, `CLAUDE.md`, `gate1-plan.md`, `learning-record.yaml`, coord-* templates, `README.md`) |
 | Pages site | `agf/docs/site/**/*.md` — **corrected 2026-09-11 (EC-1): the original "19 md files" count was wrong; `git ls-tree -r --name-only agf/docs/site` returns 47.** Only a subset of these 47 were individually named/verified in the dimension passes below; the rest are UNEXAMINED, not confirmed-OK. + `agf/docs/site/roadmap.md` |
 | Governance docs | `agf/docs/governance/manifest.md` — **UNEXAMINED beyond this one file (EC-1):** other governance documents under `agf/docs/**` outside `site/` were not inventoried. |
-| Other agf/docs | `agf/docs/agent-communication-0.26.0.md` — **UNEXAMINED, newly identified (EC-1):** `agf/docs/adopt/compliance-profile.md`, `agf/docs/adopt/decommission.md`, `agf/docs/contracts/binding-contract.md`, `agf/docs/contracts/contract-stability.md`, `agf/docs/contracts/integration-contract.md`, `agf/docs/contracts/tooling-conformance.md`, `agf/ADOPTING.md` |
+| Other agf/docs | `agf/docs/agent-communication-0.26.0.md` — **checked 2026-09-12 (EC-2):** `agf/docs/adopt/compliance-profile.md`, `agf/docs/contracts/binding-contract.md`, `agf/docs/contracts/contract-stability.md`, `agf/docs/contracts/integration-contract.md`, `agf/docs/contracts/tooling-conformance.md`, `agf/ADOPTING.md` — scanned for version-currency and maturity-claim defects; none found (all speak generically of "AGF v2" rather than a specific numbered version, so they cannot go stale the way a pinned-version claim would; existing "planned/deferred" qualifiers on binding-validation content were confirmed still accurate against current Rust `agov`). `agf/docs/adopt/decommission.md` — **checked 2026-09-12 (EC-2), defect found and fixed → DES-5.** |
 | Roadmaps | `docs/roadmap.md` + `agf/docs/site/roadmap.md` |
-| Version anchors | `agf/VERSION` (2.10.0), `CHANGELOG.md`, `agf/CHANGELOG.md`, `agf/templates/learning-record.yaml` framework_version cell — **UNEXAMINED, newly identified (EC-1):** `agf/learnings/foundry.yaml`'s own `framework_version` cell |
+| Version anchors | `agf/VERSION` (2.10.0), `CHANGELOG.md`, `agf/CHANGELOG.md`, `agf/templates/learning-record.yaml` framework_version cell, `agf/learnings/foundry.yaml`'s own `framework_version` cell — **checked 2026-09-12 (EC-2): `agf/learnings/foundry.yaml:38` reads `framework_version: "2.10.0"`, matching `agf/VERSION`. No defect.** |
 | Rules estate-wide consistency (read-only duty, not content ownership) | `agf/rules/**` CUSTOMIZE/normative-claim surfaces — **UNEXAMINED (EC-1):** content excluded correctly (owned by the rules themselves), but the role's separate duty to read for cross-estate consistency was not exercised this pass |
 | Projection manifests | `docs/reviews/rule-projection/*` (18 files) |
 
@@ -64,6 +64,7 @@ dimensions, or explicitly excluded with a reason. **Not yet met — see
 | **DES-2** | `AGENTS.md` "Active agents" section | 3 consistency + 5 projection | `documentation-estate-steward` is `status: active` in `agf/agents/MANIFEST.yaml` (the authoritative source AGENTS.md itself names) since MR !2661, but the AGENTS.md "Active agents" table and prose do not list it. A governed normative change (new standing role) that did not propagate to the loader touchpoint — MR !2661 changed the YAML + MANIFEST but not AGENTS.md. | Fix: add the role row to the "Active agents" table + a one-line activation note. | **FIXED** on this branch (mechanical currency correction — the role's active status is not in question; the loader just lagged). | steward |
 | **DES-3** | `AGENTS.md` "Suspended:" line | 3 consistency | `AGENTS.md` listed `independent-implementation-reviewer` as **Suspended**, but governor decision `20260816T145707Z-governor-reviewer-3eqb` **reactivated** it (Gate 2 for MR !1632 at `903899f6`). `MANIFEST.yaml` `status: active` is correct; `AGENTS.md` was the stale surface. | Fix: move the role into the Active-agents table; state the reactivation record; drop it from "Suspended:". | **FIXED** on this branch (mechanical currency correction — reactivation confirmed by `3eqb`). | steward |
 | **DES-4** | `agf/docs/site/reference/tooling-conformance.md` L52 | 2 capability currency | `agov coord convergence --series <id>` marked "**Level 4 validated candidate; not deployable until released**", but announced in the **v2.8.0 CHANGELOG** (2026-08-28) as delivered, and mapped as a live MCP tool (`mcp-server.md:108`). | build-engineer confirms the v2.8.0+ `agov` archive ships `coord convergence`, then separates command maturity (L5) from workflow evidence status. | **FIXED** (2026-09-11). Verified independently: downloaded the published v2.10.0 Linux x86_64 archive, confirmed its SHA-256 (`b54c55b5b31238973514c130e534b846de701c3c2a0368f81682f295c08383fd`) matches the published `.sha256` asset, and confirmed `agov coord convergence --help` runs (exit 0) from the extracted binary — cross-checked against Codex's independent same-archive verification (`gtsg`), both agree. Cell now reads "Release surface"; a new prose paragraph separates the command's Level 5 Deployable status (shipped since v2.8.0) from the review-convergence *workflow's* own Empirically informed (not yet Empirically validated at scale) evidence status. | build-engineer |
+| **DES-5** | `agf/docs/adopt/decommission.md` L33-46 | 3 consistency | Described adoption as having a choice between "Layout A: root-level" and "Layout B: subdirectory" and told adopters to delete `governance/agents/*.yaml` and `learnings/foundry.yaml`. `governance-file-layout-rule.md` states AGF v2.0 supports exactly one layout (the visible `agf/` directory) and its ownership table places agent definitions at `agf/agents/*.yaml` and learning records at `agf/learnings/<codename>.yaml` — the dual-layout choice was removed from that rule on 2026-08-01, but `decommission.md` was never updated to match. | Fix: remove the layout-choice framing, correct the two paths, and flag `framework.yaml` as the still-planned [P1] surface `integration-contract.md` describes it as, not an artifact every adoption ships. | **FIXED** (2026-09-12, this branch) — mechanical currency correction; found while closing the EC-1 `agf/docs/adopt/**` UNEXAMINED gap. | planner-architect |
 
 ## Dimensions swept so far
 
@@ -167,6 +168,31 @@ sections above. The immutable historical coordination records
 `20260911T080625Z-build-engineer-jqrg`, and others referencing this
 report's original completion claims) are not rewritten; this document
 correction is the applicable current-state record going forward.
+
+## EC-2 continuation (2026-09-12)
+
+Following S2/S3 merge (`!2713`) and the coder-tester handoff `q286`
+routing "estate corrections/completion" back to planner-architect: closed
+a portion of the EC-1 UNEXAMINED gap. Checked `agf/docs/adopt/
+compliance-profile.md`, `agf/docs/adopt/decommission.md`,
+`agf/docs/contracts/binding-contract.md`,
+`agf/docs/contracts/contract-stability.md`,
+`agf/docs/contracts/integration-contract.md`,
+`agf/docs/contracts/tooling-conformance.md`, `agf/ADOPTING.md`, and
+`agf/learnings/foundry.yaml`'s `framework_version` cell — one defect
+found and fixed (**DES-5**, `decommission.md`'s stale dual-layout
+framing), the rest inspected with no currency defect found (all use
+"AGF v2" generically rather than a pinned version, so a version bump
+cannot make them stale the way `DES-1`/`DES-4` were).
+
+**Still UNEXAMINED after EC-2:** the ~28 unnamed `agf/docs/site/**`
+files beyond those the dimension-2/4 passes named; other
+`agf/docs/governance/**` documents beyond `manifest.md`
+(`disclaimer.md`, `retrospective.md`, `anonymization-notice.md`,
+`learning-system.md`, `governance.md`); and the `agf/rules/**`
+cross-estate-consistency read-through. This report still does not meet
+the v2.11 condition 4 completion bar — EC-2 narrows the gap, it does
+not close it.
 
 ## Escalations to governor
 
