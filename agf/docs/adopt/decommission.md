@@ -43,15 +43,17 @@ same across adopters; the standard set is:
 | AI assistant skills | `agf/skills/` plus any optional tool wrapper, if adopted |
 | Stack-specific rule examples | Project-local rule files derived from `agf/project-specific-examples/`, if adopted |
 | Upstream learning records | `agf/learnings/foundry.yaml` |
-| Framework declaration | `framework.yaml` (your tuned copy, if adopted — a planned [P1] surface per `integration-contract.md`, not shipped in every adoption) |
+| Framework declaration | `agf/framework.yaml` (your tuned copy, if adopted — optional; `agov validate framework-config` passes vacuously when it does not exist) |
 | Governance charter | `GOVERNANCE.md` (if based on the template) |
 | Coordination channel | `docs/coordination/` (see history note below) |
 | Framework tooling | Rust `agov` binary/wrapper, or legacy Python/Elixir tooling if vendored from an older release |
 
-**Keep your own learning record** (`learnings/<codename>.yaml`) unless you
-have a reason to delete it — it documents decisions made while governed and
-remains useful project history. The same applies to plan files and ADRs
+**Keep your own learning record** (`agf/learnings/<codename>.yaml`) unless
+you have a reason to delete it — it documents decisions made while governed
+and remains useful project history. The same applies to plan files and ADRs
 produced under governance: they describe your project, not the framework.
+Only delete the shipped `agf/learnings/foundry.yaml` example itself if it
+does not also contain adopter-owned history mixed into the same file.
 
 ## 3. Hooks to remove
 
@@ -81,7 +83,7 @@ for example:
 chore: decommission agents-govern adoption
 
 Removes agent definitions, governance rules, skills, hooks, and CI
-validator jobs. Learning record learnings/<codename>.yaml retained
+validator jobs. Learning record agf/learnings/<codename>.yaml retained
 as project history. Decision recorded in <ADR/issue reference>.
 ```
 
@@ -102,7 +104,7 @@ grep -rn "agov-" .gitlab-ci.yml .github/workflows/ 2>/dev/null
 
 # No copied rule or skill references
 grep -rn "agents-govern" --include="*.md" --include="*.yaml" --include="*.yml" . \
-  | grep -v learnings/ | grep -v docs/adr/
+  | grep -v agf/learnings/ | grep -v docs/adr/
 
 # No leftover hooks
 cat .pre-commit-config.yaml 2>/dev/null | grep -i agov
