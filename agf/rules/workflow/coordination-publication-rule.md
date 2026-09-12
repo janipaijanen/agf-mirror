@@ -44,6 +44,11 @@ records. The fast path remains valid only when every change in the full commit
 range is a pure addition under `docs/coordination/*.md`; all six blocking
 conditions below apply unchanged to the whole range.
 
+A copy is an added record whose full raw bytes equal a coordination record
+at the resolved merge base or an earlier addition in the candidate range
+(including the same commit). Identity is checked byte-for-byte, never by
+similarity or by trusting distinct IDs; genuinely distinct records pass.
+
 Records produced in the same session or work cycle SHOULD be published
 together when no individual record has an independent visibility obligation.
 Batching reduces merge-request churn without weakening validation. A record
@@ -70,7 +75,9 @@ tip diff):
    Modifications, deletions, renames, or copies of existing coordination
    files are rejected; coordination records are append-only by design (see
    `immutable-tags-rule.md`'s sibling principle for tags — this rule is the
-   append-only analogue for coordination records).
+   append-only analogue for coordination records). Copies are detected by exact
+   byte identity against the resolved merge base and prior candidate additions,
+   including earlier additions in the same commit, not by similarity.
 4. **A merge commit or imported history is present in the range.**
 5. **A newly added coordination record fails `agov coord validate`.**
 6. **The commit range does not use the protected fast-path commit
@@ -215,6 +222,11 @@ it fires on known-bad input:
 6. **A stale or unfetchable base ref.** Must fail closed, not pass open.
 7. **A `[ci skip]` or `[skip ci]` marker in any coordination commit.** Must
    fail locally even though the forge would suppress pipeline creation.
+
+8. **An exact copy of a merge-base record or an earlier candidate addition
+   (including the same commit).** Must fail with both paths; template-similar
+   but byte-distinct records must pass. Enumeration or blob-read failures
+   must fail closed.
 
 ## Why this exists
 

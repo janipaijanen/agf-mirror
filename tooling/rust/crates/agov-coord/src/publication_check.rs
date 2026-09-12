@@ -13,6 +13,8 @@
 //! revert followed by a coordination commit nets to a coordination-only
 //! diff, but the range is not coordination-only).
 
+use std::collections::HashMap;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
 use std::process::Command;
 
@@ -40,6 +42,19 @@ pub fn publication_check(
     subject_prefix: &str,
     cwd: &Path,
 ) -> PublicationCheckReport {
+    publication_check_with_git(base_ref, coord_dir, subject_prefix, cwd, &git_bytes)
+}
+
+fn publication_check_with_git(
+    base_ref: &str,
+    coord_dir: &str,
+    subject_prefix: &str,
+    cwd: &Path,
+    read_git: &impl Fn(&Path, &[&str]) -> Result<Vec<u8>, String>,
+) -> PublicationCheckReport {
+    let git = |cwd: &Path, args: &[&str]| {
+        read_git(cwd, args).map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+    };
     let mut reasons = Vec::new();
     let coord_prefix = format!("{}/", coord_dir.trim_end_matches('/'));
 
@@ -111,6 +126,52 @@ pub fn publication_check(
     }
 
     let mut added_files = Vec::new();
+    // Hashes only narrow the search; actual raw bytes decide identity.
+    let mut seen = SeenContent::default();
+    let base_records = read_git(
+        cwd,
+        &[
+            "ls-tree",
+            "-r",
+            "-z",
+            "--name-only",
+            &merge_base,
+            "--",
+            coord_dir,
+        ],
+    );
+    match base_records {
+        Err(error) => reasons.push(format!(
+            "cannot enumerate merge-base coordination records: {error}"
+        )),
+        Ok(paths) => {
+            for raw_path in paths
+                .split(|byte| *byte == 0)
+                .filter(|path| !path.is_empty())
+            {
+                let path = match std::str::from_utf8(raw_path) {
+                    Ok(path) => path,
+                    Err(error) => {
+                        reasons.push(format!(
+                            "cannot decode merge-base coordination path: {error}"
+                        ));
+                        continue;
+                    }
+                };
+                if !path.starts_with(&coord_prefix) || !path.ends_with(".md") {
+                    continue;
+                }
+                match read_git(cwd, &["cat-file", "blob", &format!("{merge_base}:{path}")]) {
+                    Ok(bytes) => {
+                        seen.insert(path, bytes);
+                    }
+                    Err(error) => reasons.push(format!(
+                        "cannot read merge-base coordination record {path}: {error}"
+                    )),
+                }
+            }
+        }
+    }
 
     for commit in &commits {
         let name_status = git(
@@ -130,6 +191,16 @@ pub fn publication_check(
                     "commit {commit} performs a non-addition ({status}) on coordination path: {path}"
                 ));
                 continue;
+            }
+            match read_git(cwd, &["cat-file", "blob", &format!("{commit}:{path}")]) {
+                Ok(bytes) => {
+                    if let Some(existing) = seen.insert(&path, bytes) {
+                        reasons.push(format!("commit {commit} adds a byte-identical copy of an existing coordination record: {path} == {existing}"));
+                    }
+                }
+                Err(error) => reasons.push(format!(
+                    "cannot read added coordination record at commit {commit}: {path}: {error}"
+                )),
             }
             added_files.push(path);
         }
@@ -186,14 +257,39 @@ fn parse_name_status(output: &str) -> Vec<(String, String)> {
         .collect()
 }
 
+#[derive(Default)]
+struct SeenContent(HashMap<u64, Vec<(String, Vec<u8>)>>);
+
+impl SeenContent {
+    fn insert(&mut self, path: &str, bytes: Vec<u8>) -> Option<String> {
+        let mut hash = DefaultHasher::new();
+        bytes.hash(&mut hash);
+        self.insert_bucket(hash.finish(), path, bytes)
+    }
+
+    fn insert_bucket(&mut self, hash: u64, path: &str, bytes: Vec<u8>) -> Option<String> {
+        let bucket = self.0.entry(hash).or_default();
+        if let Some((existing, _)) = bucket.iter().find(|(_, content)| *content == bytes) {
+            return Some(existing.clone());
+        }
+        bucket.push((path.to_string(), bytes));
+        None
+    }
+}
+
+#[cfg(test)]
 fn git(cwd: &Path, args: &[&str]) -> Result<String, String> {
+    git_bytes(cwd, args).map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+}
+
+fn git_bytes(cwd: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
     let output = Command::new("git")
         .current_dir(cwd)
         .args(args)
         .output()
         .map_err(|err| err.to_string())?;
     if output.status.success() {
-        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+        Ok(output.stdout)
     } else {
         Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
     }
@@ -253,6 +349,121 @@ mod tests {
         format!(
             "---\nkind: note\nfrom: coder-tester\nto: all\nid: {id}\ntimestamp: 2026-07-27T00:00:00Z\nimmutable: true\nreferences-to: []\ntopic: t\nrequires-ack: false\n---\n\n# body\n"
         )
+    }
+
+    #[test]
+    fn copied_merge_base_record_fails_with_both_paths() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/a.md", &coord_message("same-id"));
+        repo.commit("chore: base");
+        run(repo.path(), &["branch", "target"]);
+        repo.write("docs/coordination/b.md", &coord_message("same-id"));
+        repo.commit("coordination: copy");
+        // Working-tree bytes cannot affect the decision about committed objects.
+        repo.write("docs/coordination/a.md", "different dirty source");
+        repo.write("docs/coordination/b.md", "different dirty addition");
+        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
+        assert!(!report.ok);
+        assert!(report
+            .reasons
+            .iter()
+            .any(|r| r.contains("docs/coordination/b.md == docs/coordination/a.md")));
+    }
+
+    #[test]
+    fn duplicate_new_records_fail_within_commit_and_across_range() {
+        for separate_commits in [false, true] {
+            let repo = TempRepo::new();
+            repo.write("README.md", "base");
+            repo.commit("chore: base");
+            run(repo.path(), &["branch", "target"]);
+            repo.write("docs/coordination/b.md", &coord_message("same"));
+            if separate_commits {
+                repo.commit("coordination: first");
+            }
+            repo.write("docs/coordination/c.md", &coord_message("same"));
+            repo.commit("coordination: second");
+            let report =
+                publication_check("target", "docs/coordination", "coordination:", repo.path());
+            assert!(!report.ok);
+            assert!(report
+                .reasons
+                .iter()
+                .any(|r| r.contains("docs/coordination/c.md == docs/coordination/b.md")));
+        }
+    }
+
+    #[test]
+    fn template_similar_distinct_record_passes() {
+        let repo = TempRepo::new();
+        let base = format!(
+            "{}\n<!-- SPDX-License-Identifier: MIT -->\n## Evidence\noriginal",
+            coord_message("base")
+        );
+        repo.write("docs/coordination/a.md", &base);
+        repo.commit("chore: base");
+        run(repo.path(), &["branch", "target"]);
+        let distinct = base
+            .replace("id: base", "id: distinct")
+            .replace("00:00:00", "00:01:00")
+            .replace("topic: t", "topic: distinct")
+            .replace("original", "new evidence");
+        repo.write("docs/coordination/b.md", &distinct);
+        repo.commit("coordination: distinct");
+        assert!(publication_check("target", "docs/coordination", "coordination:", repo.path()).ok);
+    }
+
+    #[test]
+    fn target_tip_record_is_not_a_merge_base_record() {
+        let repo = TempRepo::new();
+        repo.write("README.md", "base");
+        repo.commit("chore: base");
+        run(repo.path(), &["branch", "candidate"]);
+        repo.write("docs/coordination/a.md", &coord_message("same"));
+        repo.commit("coordination: target moves");
+        run(repo.path(), &["branch", "target"]);
+        run(repo.path(), &["checkout", "-q", "candidate"]);
+        repo.write("docs/coordination/b.md", &coord_message("same"));
+        repo.commit("coordination: candidate");
+        assert!(publication_check("target", "docs/coordination", "coordination:", repo.path()).ok);
+    }
+
+    #[test]
+    fn enumeration_and_base_and_candidate_blob_errors_fail_closed() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/a.md", &coord_message("a"));
+        repo.commit("chore: base");
+        run(repo.path(), &["branch", "target"]);
+        repo.write("docs/coordination/b.md", &coord_message("b"));
+        repo.commit("coordination: add");
+        for failure in ["ls-tree", "a.md", "b.md"] {
+            let report = publication_check_with_git(
+                "target",
+                "docs/coordination",
+                "coordination:",
+                repo.path(),
+                &|cwd, args| {
+                    if args[0] == failure || (args[0] == "cat-file" && args[2].ends_with(failure)) {
+                        Err(format!("injected {failure} failure"))
+                    } else {
+                        git_bytes(cwd, args)
+                    }
+                },
+            );
+            assert!(!report.ok, "{failure} must fail closed");
+            assert!(report
+                .reasons
+                .iter()
+                .any(|r| r.contains(&format!("injected {failure} failure"))));
+        }
+    }
+
+    #[test]
+    fn hashes_are_only_an_index_and_raw_bytes_decide() {
+        let mut seen = SeenContent::default();
+        assert_eq!(seen.insert_bucket(1, "a", vec![0xff]), None);
+        assert_eq!(seen.insert_bucket(1, "b", vec![0xfe]), None);
+        assert_eq!(seen.insert_bucket(1, "c", vec![0xff]), Some("a".into()));
     }
 
     #[test]

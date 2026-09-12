@@ -41,6 +41,11 @@ records. The fast path remains valid only when every change in the full commit
 range is a pure addition under `docs/coordination/*.md`; all six blocking
 conditions below apply unchanged to the whole range.
 
+A copy is an added record whose full raw bytes equal a coordination record
+at the resolved merge base or an earlier addition in the candidate range
+(including the same commit). Identity is checked byte-for-byte, never by
+similarity or by trusting distinct IDs; genuinely distinct records pass.
+
 Records produced in the same session or work cycle SHOULD be published
 together when no individual record has an independent visibility obligation.
 Batching reduces merge-request churn without weakening validation. A record
@@ -67,7 +72,9 @@ tip diff):
    Modifications, deletions, renames, or copies of existing coordination
    files are rejected; coordination records are append-only by design (see
    `immutable-tags-rule.md`'s sibling principle for tags — this rule is the
-   append-only analogue for coordination records).
+   append-only analogue for coordination records). Copies are detected by exact
+   byte identity against the resolved merge base and prior candidate additions,
+   including earlier additions in the same commit, not by similarity.
 4. **A merge commit or imported history is present in the range.**
 5. **A newly added coordination record fails `agov coord validate`.**
 6. **The commit range does not use the protected fast-path commit
@@ -213,6 +220,11 @@ it fires on known-bad input:
 7. **A `[ci skip]` or `[skip ci]` marker in any coordination commit.** Must
    fail locally even though the forge would suppress pipeline creation.
 
+8. **An exact copy of a merge-base record or an earlier candidate addition
+   (including the same commit).** Must fail with both paths; template-similar
+   but byte-distinct records must pass. Enumeration or blob-read failures
+   must fail closed.
+
 ## Why this exists
 
 See the evidence header. The concrete cost of the gap this rule closes was
@@ -246,3 +258,43 @@ check should be making instead.
 - `documentation-rule-projection-rule.md` — sibling rule governing where
   this rule itself (and any other normative rule) must be discoverable
   from adopter-facing Pages, runbooks, and AI loaders.
+
+## Channel membership and bounded candidate discovery
+
+Channel membership consists of lowercase `.md` files directly inside
+`docs/coordination`. Both the local reader and Git visibility reader MUST use
+this depth-one rule without filename exemptions; `README.md` is validated like
+other channel files. Membership itself does not prove validity, resolution,
+approval or gate authority.
+
+Visibility additionally inspects Markdown within the channel subtree, direct
+`docs` siblings whose names start with `coordination`, and the
+`docs/coordination-archive` subtree. It reports schema-valid out-of-channel
+records as misplaced candidates with acknowledgement/handoff metadata as
+unassessed evidence. Recognizable malformed coordination front matter is an
+invalid candidate; ordinary prose is not automatically coordination.
+
+Exact path/blob entries already in the fetched target archive are inventoried
+as lifecycle/closure **unassessed**. Identical candidate-ref entries at that path
+are suppressed as duplicate baseline inventory, never treated as cleared.
+New, changed or moved archive entries warn; a prefix alone is not an exemption.
+Nested nonarchive records remain misplaced even on target. No migration or
+archive mechanism is authorized by this contract.
+
+The scan MUST disclose its ref SHAs and bounded scopes. Missing targets,
+unavailable schemas and incomplete blob/ref reads produce incomplete coverage,
+never a clean-empty claim. Diagnostics use existing advisory warning/error
+exit conventions and confer no new MR-blocking or gate authority.
+
+## Advisory recipient session addressing
+
+`handoff.for_session` optionally names a recipient session using the same
+nonempty-string schema shape and UUIDv7 convention as `session`. Top-level
+`session` remains author provenance. `handoff next <role> --session <token>`
+and `coord visibility --session <token>` annotate mismatched handoff recipients
+as addressed elsewhere. They MUST NOT hide, reorder, deprioritize or change
+ready/blocked state, lifecycle, exit codes, claims, temporary allocations,
+independent review requirements or governor authority. Without the flag,
+output remains unchanged. An absent `for_session` remains role-wide; a matching
+recipient retains its original state. Notes/reviews remain role-wide and their
+author session never becomes a recipient address.

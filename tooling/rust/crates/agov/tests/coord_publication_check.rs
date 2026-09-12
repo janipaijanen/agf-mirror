@@ -3,6 +3,27 @@ use std::path::PathBuf;
 use std::process::Command;
 
 #[test]
+fn byte_identical_copy_is_rejected_by_cli_with_both_paths() {
+    let repo = GitFixture::new();
+    repo.write("docs/coordination/base.md", &coord("same"));
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "chore: base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-q", "-b", "coord/candidate"]);
+    repo.write("docs/coordination/copy.md", &coord("same"));
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "coordination: copy"]);
+    let output = repo.agov(&["coord", "publication-check", "--base-ref", "main"]);
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    let diagnostic = stderr(&output);
+    assert!(diagnostic.contains("byte-identical copy"), "{diagnostic}");
+    assert!(
+        diagnostic.contains("docs/coordination/copy.md == docs/coordination/base.md"),
+        "{diagnostic}"
+    );
+}
+
+#[test]
 fn clean_coordination_range_passes_and_reports_added_files() {
     let repo = GitFixture::new();
     repo.write("README.md", "base\n");

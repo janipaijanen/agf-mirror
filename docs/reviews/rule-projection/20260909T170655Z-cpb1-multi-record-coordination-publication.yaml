@@ -22,8 +22,9 @@ surfaces:
       six blocking conditions apply unchanged to the full range; same-cycle
       records with no independent-visibility obligation SHOULD batch; an
       urgent record (live obligation with a waiting actor, security or gate
-      finding, escalation, blocking review) still publishes alone. No change
-      to conditions 1-6, lifecycle/supersession semantics, the [ci skip]
+      finding, escalation, blocking review) still publishes alone. Condition 3 explicitly defines copies by raw byte identity against the
+      resolved merge base or earlier candidate additions, including the same
+      commit. No change to the authority of conditions 1-6, lifecycle/supersession semantics, the [ci skip]
       prohibition, or the coordination: fast-path routing.
 
   adopter_facing_explanation:
@@ -72,17 +73,14 @@ surfaces:
     disposition: implemented
     path: tooling/rust/crates/agov-coord/src/publication_check.rs
     reason: >-
-      The implementing MR (CP-B-1 implementation, separate from this plan)
-      re-runs the existing negative self-tests (MR !692 shape,
-      impl-then-revert range, non-pure change, smuggled non-coordination
-      file in a batch range, stale/unfetchable base) and adds one positive
-      test: a range adding two or more valid docs/coordination/*.md records
-      and nothing else passes. agov coord publication-check already inspects
-      the full range and permits N additions, so a logic change is expected
-      only if a test surfaces a single-file assumption; any such fix is in
-      that MR's scope with its own review. Strict `agov plan
-      projection-check` (no --allow-planned) on this manifest is required
-      Gate 2 evidence for that MR.
+      The implementing MR retains the complete existing negative suite and
+      multi-record positive test. The approved copied-record clarification
+      adds byte-identity detection pinned to merge-base and introducing-commit
+      objects, with hashes only indexing candidates for actual byte comparison.
+      Tests reject merge-base copies, same-commit and cross-commit duplicates,
+      and enumeration/base/candidate blob failures; distinct template records
+      and target-tip drift pass. A forced hash collision proves byte equality
+      remains decisive. Strict projection-check is required at Gate 2.
 
   distribution:
     disposition: confirmed
