@@ -65,9 +65,18 @@ has for `docs/coordination/*.md`, applied to their own work-package
 files and nested objects (assumptions, contract entries, evidence
 entries), rather than reinventing ID minting per project.
 
-**Current AGF/AGOV state:** `agov coord brief` already does exactly
-this pattern, but only for coordination messages under
-`docs/coordination/`. There is no artifact-kind-agnostic mint command.
+**Current AGF/AGOV state, corrected per Codex review `p5mj`:** the
+mint→write→validate→delete-on-failure pattern is `agov coord post`
+(`--id-format ulid`), not `agov coord brief` — `brief` only prints a
+skeleton to stdout and writes zero files. `post` uses `create_new`,
+validates the written file, and attempts deletion after a schema or
+same-directory duplicate-ID failure (cleanup errors are ignored, so
+this is fail-*visible*, not a crash-safe transaction). Verified: two
+records sharing one ID in the same directory are rejected by `coord
+validate` with a duplicate-ID diagnostic — a concrete local-directory
+uniqueness check, not proof against cross-branch or historical reuse
+(that gap is exactly what A7 would need to close). There is no
+artifact-kind-agnostic version of either command today.
 
 **Codex: your stance?** Does generalizing the ID-mint code path (same
 non-colliding guarantee, different kind/directory) look like a small,
@@ -83,6 +92,13 @@ graph-index` but artifact-set-generic.
 
 **Codex: your stance?** Same question as A1/A2 — generic capability in
 `agov` vs. a thin external wrapper the customer maintains themselves.
+Codex flags this and A1 together as the strongest generic candidates,
+but corrects the comparison point: `agov coord graph-index`'s current
+JSON (`nodes`/`edges`/`pending`/`invalid_files`, each node carrying
+`file`/`from`/`id`/`kind`/`requires_ack`/`resolved`/`summary`/
+`timestamp`/`to`/`topic`) is coordination-message-shaped, not a generic
+`kind/key/version/pointer/digest` artifact index — A3 would be a new
+data model built alongside it, not a small generalization of it.
 
 ### A4 — `agov graph validate GRAPH_FILE` with a named semantic rule catalog
 
@@ -96,17 +112,31 @@ from the implementer unless an explicit exception is recorded, and
 event/history transitions must be append-only and legal.
 
 **Why:** this is the most substantial ask in the document — it's a
-real rule engine, not just schema validation. Several rules
-(`GOV001-005`, `ID001-005`) closely mirror invariants AGF/AGOV already
-enforces for coordination records specifically (Gate 1 before claim,
-reviewer independence, append-only history, no ID reuse) — the ask is
-essentially "make these project-agnostic instead of coordination-only."
+real rule engine, not just schema validation.
 
-**Codex: your stance?** This is the item most likely to actually be
-useful upstream regardless of this customer (a generic graph/dependency
-validator is a plausible AGF feature on its own merits) — but it's also
-the largest scope item here. Worth a real Gate 1 assessment on its own,
-independent of whether labdns adopts AGF at all?
+**Corrected per Codex review `p5mj`:** my original framing overstated
+the overlap with existing AGF/AGOV behavior — do not describe today's
+coordination validation as already a complete generic implementation of
+Gate-1-before-claim, reviewer independence, legal event transitions, and
+append-only history. Some mechanical checks exist today (notably
+`publication-check`'s history/pinning logic), but binding gate decisions
+and semantic judgments (e.g. "is this reviewer actually independent,"
+"is this role label authoritative") remain governed human/role work, not
+something a validator can authenticate from a record alone — a blocking
+check still needs a named rule granting it that authority, per this
+project's own `tool-authority-boundary-rule.md`. A4 needs a rule-by-rule
+capability inventory (which of the ~25 codes are pure structural checks
+vs. which quietly assume semantic/authority judgment a validator cannot
+make) before treating it as "make existing rules project-agnostic."
+
+**Codex: your stance?** Split structural rules (reference existence,
+cycle detection, typed edge constraints — plausibly generalizable and
+independently useful) from domain/governance-authority rules (stage
+ordering, contract/evidence semantics, reviewer-identity authentication
+— these likely stay customer-owned or need independent design, not a
+blanket generalization). This is the largest scope item here regardless
+of the split; worth its own Gate 1 assessment separate from whether
+labdns adopts AGF at all.
 
 ### A5 — `agov work packet <ID> --output PATH`
 
@@ -164,15 +194,37 @@ relying on actually accurate today?
 `agov` (not gated on the rest of this) since it costs little and either
 confirms or corrects their planning assumption.
 
-**Spot-checked while drafting this document:** `agov coord brief
---from planner-architect --id-format ulid` does emit a valid ULID
-(`01M2B3GS317JWKJMKD07EBMKEC` in this run) alongside the readable
-default; `agov coord graph-index --help` confirms the command exists
-and takes `--dir`/`--output`, matching the customer's description of
-"a compact structured reference index." I did not verify duplicate-ID
-rejection or the delete-on-invalid-write behavior in this pass — worth
-Codex or a fresh test confirming those specifically, since they're the
-actual safety property the customer's design leans on.
+**Corrected per Codex review `20260912T153453Z-coder-tester-p5mj`** —
+my first spot-check under-verified this and mis-attributed behavior to
+the wrong command (see A2's correction above). Codex ran the actual
+probes with a compatible local build (repository-local fixture
+directories, no production records or customer documents touched):
+
+1. `agov coord brief --id-format ulid` prints a skeleton to stdout,
+   writes zero files, and does not itself validate or reserve anything.
+2. `agov coord post --id-format ulid` is the real writer: `create_new`
+   + validate, with best-effort delete-on-failure (cleanup errors are
+   ignored — not a crash-safe transaction).
+3. `agov coord validate` correctly rejected two schema-valid records
+   sharing one ID in the same directory — a genuine local-directory
+   uniqueness check, but not proof against cross-branch/historical
+   reuse.
+4. `agov coord graph-index` produces structured, deterministic JSON
+   (confirmed stable across two runs excluding `generated_at`) — but
+   its shape is coordination-message-specific, not a generic artifact
+   index (see A3's correction).
+5. Existing coordination validation should not be described as a
+   complete generic implementation of Gate-1-before-claim/reviewer-
+   independence/append-only-history (see A4's correction).
+
+**Bottom line for A8:** the coordination surface is real and useful,
+but several of my original "current state" claims conflated `brief`
+with `post`, treated `graph-index`'s shape as more generic than it is,
+and overstated how much of A4's rule catalog existing validation
+already covers. All corrected above. This bounded verification is not
+a release certification, a proof of distributed/cross-branch
+uniqueness, or fault-injection coverage of filesystem-cleanup failure
+paths.
 
 ## What the customer explicitly says they are *not* asking for
 
@@ -194,21 +246,40 @@ actual safety property the customer's design leans on.
 Given the customer's own adoption sequencing treats "propose upstream"
 as the *last* phase, not the first, the honest answer likely does not
 require AGF to commit to building anything before communicating back.
-Plausible response shapes, roughly in order of how much AGF commits to:
+Both Codex and I converge on this shape, with Codex's corrections
+folded in:
 
-1. **Confirm today's `agov` behavior** (A8) and point them at
-   `agov coord brief`/`validate`/`graph-index` as-is — they can start
-   V0-V1 immediately without waiting on AGF.
+1. **Give them the corrected baseline** (A8) — `agov coord post`
+   (not `brief`) does mint+validate+best-effort-delete; `coord
+   validate` catches local-directory ID duplicates; `graph-index`'s
+   JSON is coordination-shaped, not a generic artifact index yet. They
+   can start V0-V1 today with this corrected understanding, without
+   waiting on AGF.
 2. **State AGF's openness to a Gate-1-reviewed generic extension**
-   (A1-A3, A7) if and when they bring a concrete implementation
-   proposal, without committing a timeline now.
-2. **Note interest in A4 (graph/dependency validator) as a standalone
-   AGF capability** worth its own evaluation regardless of this
-   customer, separate from whether the rest of the ask is accepted.
-4. **Decline to take on A5/A6** as AGF scope — recommend they build
-   these as labdns-side tools consuming AGOV's generic index/artifact
-   output, consistent with their own "generic vs. project-owned"
-   boundary in §20.2.
+   (A1+A3 first, as the strongest candidates; A2's writer and A7's
+   merge semantics only once they have their own pilot acceptance
+   evidence) — without committing a timeline now, and explicitly
+   **not** claiming a generic AGOV artifact index already exists.
+3. **Treat A4 as two separable things**: a generic structural subset
+   (reference existence, cycle detection, typed edges) worth its own
+   Gate 1 evaluation regardless of this customer, versus domain/
+   governance-authority rules (stage ordering, reviewer-identity
+   authentication) that likely stay customer-owned or need real
+   independent design — do not present A4 as one bundled ask.
+4. **Decline A5/A6** as AGF scope — recommend labdns-side tools
+   consuming AGOV's index/artifact output, consistent with their own
+   "generic vs. project-owned" boundary in §20.2. Be honest that a
+   thin customer-side adapter does not satisfy their stated
+   one-validator-binary preference *today* — that preference is
+   itself future upstream/extension work, not a current capability.
+
+**Open question for Jani before responding (raised by Codex, not
+resolved here):** does the customer's project-side-first phasing
+(§20.10, V0-V4 on their side before V5 "propose upstream") allow an
+interim thin adapter around `agov` while AGF-side extension work is
+still hypothetical, or do they need one single binary from day one?
+The answer changes how much can honestly be offered right now versus
+deferred to "we'll evaluate a concrete proposal when you bring one."
 
 No version bump, release, or v2.10.1 content is implied or needed for
 any of this — the customer's own material never asks for that; that
