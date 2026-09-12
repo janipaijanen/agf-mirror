@@ -1,12 +1,14 @@
 ---
 id: 20260912T084900Z-cpb2-publication-hold-urgency
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260912T132544Z-governor-reviewer-jhaq
+gate1_approved_at: 2026-09-12T13:25:44Z
 topic: cpb2-publication-hold-and-urgency
 candidate_release: v2.11.0
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
-    reason: Governor-appointed semantic security review cleared cf0a50c7 in kskr. This revision changes input and state contracts following trial 8435 and build consultation pkgg; bounded security re-review is required before Gate 1.
+    reason: Governor-appointed semantic security review and the narrowed independent plan-review trial are COMPLETE/CLEAR at bf88c256 in sqrn (20260912T110246Z-independent-implementation-reviewer-sqrn). The current change records governor approval only; reviewed implementation scope is unchanged.
   - role: contribution-auditor
     status: consulted
     reason: Independent contribution review rr8g and bounded recheck bnkg at246f57e5 cleared source simplification, external release authorization and staged rollout; citation advisory resolved. This revision only clarifies end provenance and stable problem identity; those three consulted areas remain unchanged. Consultation is not governor approval.
@@ -21,9 +23,9 @@ advisory_consultation:
 Child of approved `20260909T133651Z-cpb-coordination-publication-efficiency`.
 CP-B-1's approved plan expressly leaves the hold wire shape, deferred-record
 source, CLI/JSON/exit-code/MCP contracts and urgency normalization to this child.
-Governor's 2026-09-12 instruction permits independent RUW progress and planning;
-it does not approve this new implementation. Status stays pending-gate1 until
-an actual governor decision. CP-B-1's copied-record correction is a separate
+Governor decision `20260912T132544Z-governor-reviewer-jhaq` approves this child
+implementation plan at reviewed head `bf88c256`. Implementation begins only
+after CP-B-1 merges; that hard predecessor remains in force. CP-B-1's copied-record correction is a separate
 already-approved implementation in !2636. Claude retains estate/release integration.
 
 The problem is unnecessary main advancement during a release freeze. This
