@@ -1,3 +1,4 @@
+mod artifact;
 mod ci_cache_topology;
 mod commercial_corpus;
 mod dist;
@@ -42,6 +43,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Generic project-owned artifact validation and indexing.
+    Artifact {
+        #[command(subcommand)]
+        sub: artifact::ArtifactCommand,
+    },
     /// Read-only release preflight checks.
     Release {
         #[command(subcommand)]
@@ -719,6 +725,7 @@ fn normalized_args() -> Vec<String> {
 
 fn run(cli: Cli, args: Vec<String>) -> i32 {
     match cli.command {
+        Command::Artifact { sub } => artifact::run(sub, &args),
         Command::Release { sub } => release_namespace::run(sub),
         Command::Version { format } => version_command(&format, &args),
         Command::Coord {

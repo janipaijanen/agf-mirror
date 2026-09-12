@@ -110,6 +110,8 @@ The server advertises these tools:
 | `agov_coord_visibility` | `agov coord visibility ...` |
 | `agov_coord_stale` | `agov coord stale ...` |
 | `agov_coord_graph_index` | `agov coord graph-index` (stdout only; no `--output`) |
+| `agov_artifact_validate` | `agov artifact validate` (complete registry; optional selected member paths) |
+| `agov_artifact_index` | `agov artifact index` (stdout only) |
 | `agov_coord_publication_check` | `agov coord publication-check ...` |
 | `agov_coord_brief` | `agov coord brief ...` |
 
@@ -162,3 +164,5 @@ pull before reading, write coordination through `agov_coord_post` or the handoff
 tools, validate, commit, push, and review through the normal MR flow. Running
 `agov-mcp` on multiple machines is safe because each server is only a local
 adapter over the same file-based protocol.
+
+Generic artifact tools are documented in the [artifact registry reference](../../reference/artifact-registry.md).

@@ -600,7 +600,7 @@ fn mcp_coordination_tool_registry_matches_live_cli_subcommands() {
         .skip_while(|line| !line.starts_with("Commands:"))
         .skip(1)
         .take_while(|line| !line.trim().is_empty())
-        .filter_map(|line| line.trim_start().split_whitespace().next())
+        .filter_map(|line| line.split_whitespace().next())
         .map(str::to_string)
         .filter(|name| name != "help")
         .collect();

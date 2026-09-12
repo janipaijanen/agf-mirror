@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "coverage": "COMPLETE",
+  "files": [
+    "items/a.json",
+    "items/b.json"
+  ],
+  "entries": [
+    {
+      "id": "task-a",
+      "kind": "work-package",
+      "key": "A",
+      "version": 1,
+      "set": "tasks",
+      "path": "items/a.json",
+      "pointer": "/id",
+      "digest": "8e9367c0176b1f106d64c9aba7cdb4984d6545f20922421e5d72528e334b6eb9",
+      "status": "valid"
+    },
+    {
+      "id": "task-b",
+      "kind": "work-package",
+      "key": "B",
+      "version": 1,
+      "set": "tasks",
+      "path": "items/b.json",
+      "pointer": "/id",
+      "digest": "e3df5db41c769496406c49c2ec652e46f70291d4e0ec8b716fd7e7abad4c4a28",
+      "status": "valid"
+    }
+  ],
+  "edges": [
+    {
+      "source": "task-a",
+      "target": "task-b",
+      "dependency": true,
+      "path": "items/a.json",
+      "pointer": "/dependencies/0"
+    },
+    {
+      "source": "task-b",
+      "target": "task-a",
+      "dependency": false,
+      "path": "items/b.json",
+      "pointer": "/references/0"
+    }
+  ],
+  "problems": []
+}

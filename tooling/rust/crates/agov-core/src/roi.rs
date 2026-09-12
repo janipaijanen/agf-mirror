@@ -43,6 +43,8 @@ pub struct RoiRecord {
 /// published tool definitions match this list exactly.
 pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_validate",
+    "agov_artifact_validate",
+    "agov_artifact_index",
     "agov_coord_validate",
     "agov_plan_validate",
     "agov_plan_collision_check",
@@ -134,6 +136,8 @@ pub const REDACTED: &str = "[redacted]";
 /// either direction (missing token or stale/dead token) — this comment
 /// describes intent; that test is the enforcement.
 pub const COMMAND_PATH_TOKENS: &[&str] = &[
+    "artifact",
+    "index",
     "release",
     "namespace-check",
     // Top-level commands.
@@ -253,6 +257,7 @@ pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 /// Enforced against the live clap surface by the parity test in
 /// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
 pub const KNOWN_FLAG_NAMES: &[&str] = &[
+    "--config",
     "--session",
     "--include-branch-local",
     "--include-forge",

@@ -574,6 +574,20 @@ fn agov_command() -> Result<AgovCommand, String> {
 
 fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
     match name {
+        "agov_artifact_validate" | "agov_artifact_index" => {
+            let fields = args.as_object().ok_or("artifact arguments must be an object")?;
+            let validate = name == "agov_artifact_validate";
+            for key in fields.keys() {
+                if key != "config" && key != "format" && !(validate && key == "paths") {
+                    return Err(format!("unsupported artifact argument {key}"));
+                }
+            }
+            let mut cli = vec!["artifact".into(), if validate { "validate".into() } else { "index".into() }];
+            push_optional_flag(args, "config", "--config", &mut cli)?;
+            push_optional_flag(args, "format", "--format", &mut cli)?;
+            if validate { cli.push("--".into()); push_strings(args, "paths", &mut cli)?; }
+            Ok(cli)
+        }
         "agov_validate" => {
             let mut cli = vec!["validate".to_string()];
             if let Some(check) = optional_string(args, "check")? {
@@ -856,6 +870,21 @@ fn tools() -> Vec<Value> {
                     "paths": { "type": "array", "items": { "type": "string" } }
                 }
             }),
+        ),
+        tool(
+            "agov_artifact_validate",
+            "Validate all configured project artifact sets and optional selected members; structural evidence, not gate authority.",
+            json!({"type":"object", "additionalProperties":false, "properties": {
+                "config":{"type":"string"}, "format":{"type":"string","enum":["text","json"]},
+                "paths":{"type":"array","items":{"type":"string"}}
+            }}),
+        ),
+        tool(
+            "agov_artifact_index",
+            "Return a deterministic project artifact ID/reference index from the configured registry.",
+            json!({"type":"object", "additionalProperties":false, "properties": {
+                "config":{"type":"string"}, "format":{"type":"string","enum":["text","json"]}
+            }}),
         ),
         tool(
             "agov_coord_validate",
@@ -1162,6 +1191,16 @@ mod tests {
     }
 
     #[test]
+    fn artifact_tools_preserve_selection_and_reject_unsupported_arguments() {
+        assert_eq!(tool_cli_args("agov_artifact_validate", &json!({"config":"project.yaml","format":"json","paths":["--outside"]})).unwrap(),
+            vec!["artifact","validate","--config","project.yaml","--format","json","--","--outside"]);
+        assert_eq!(tool_cli_args("agov_artifact_index", &json!({})).unwrap(), vec!["artifact","index"]);
+        assert!(tool_cli_args("agov_artifact_index", &json!({"output":"x"})).is_err());
+        assert!(tool_cli_args("agov_artifact_index", &json!({"paths":[]})).is_err());
+        assert!(tool_cli_args("agov_artifact_validate", &json!({"paths":"x"})).is_err());
+    }
+
+    #[test]
     fn tool_list_contains_only_cli_backed_tools() {
         let names: Vec<String> = tools()
             .into_iter()
@@ -1172,6 +1211,8 @@ mod tests {
             names,
             vec![
                 "agov_validate",
+                "agov_artifact_validate",
+                "agov_artifact_index",
                 "agov_coord_validate",
                 "agov_plan_validate",
                 "agov_plan_collision_check",
@@ -1221,6 +1262,8 @@ mod tests {
     fn tool_cli_args_accepts_exactly_the_allowlisted_names() {
         let minimal_args: &[(&str, Value)] = &[
             ("agov_validate", json!({})),
+            ("agov_artifact_validate", json!({})),
+            ("agov_artifact_index", json!({})),
             ("agov_coord_validate", json!({ "files": ["a.md"] })),
             ("agov_plan_validate", json!({ "files": ["a.md"] })),
             ("agov_plan_collision_check", json!({})),

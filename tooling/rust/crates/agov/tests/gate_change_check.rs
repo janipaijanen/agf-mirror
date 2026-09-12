@@ -142,7 +142,17 @@ fn new_namespace_command_does_not_bypass_shared_gate_test_accompaniment() {
     // A new feature test alone is not a substitute for the already-declared
     // companion of a shared CLI gate surface.
     fixture.write("tests/new_namespace_check.rs", "negative namespace cases\n");
+    // An invalid opt-in artifact registry must not redirect or short-circuit
+    // gate change-check after artifact commands join the shared CLI surface.
+    fixture.write("agov-config.yaml", "artifact_sets: not-a-list\n");
     fixture.commit("add a command on the existing gate surface");
+    let artifact = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .current_dir(fixture.root.path())
+        .env("AGOV_TOKEN_ROI", "0")
+        .args(["artifact", "index"])
+        .output()
+        .expect("run artifact index negative control");
+    assert_eq!(artifact.status.code(), Some(1), "{}", diagnostics(&artifact));
     let output = fixture.check();
     assert_eq!(output.status.code(), Some(1), "{}", diagnostics(&output));
     assert!(String::from_utf8_lossy(&output.stderr).contains("no changed declared test path"));

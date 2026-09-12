@@ -1,0 +1,1 @@
+{"id":"task-b","kind":"work-package","key":"B","version":1,"references":["task-a"],"dependencies":[]}
