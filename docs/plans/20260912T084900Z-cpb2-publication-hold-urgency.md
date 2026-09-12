@@ -6,10 +6,10 @@ candidate_release: v2.11.0
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
-    reason: Governor-appointed semantic security consultation smmp completed at 9913892e with six blockers and one advisory (q82p). This revision addresses them; bounded re-review remains pending, not a waiver or clearance.
+    reason: Governor-appointed semantic security review cleared cf0a50c7 in kskr. This revision changes input and state contracts following trial 8435 and build consultation pkgg; bounded security re-review is required before Gate 1.
   - role: contribution-auditor
-    status: waived
-    reason: Independent consultation requested; no author clearance claimed. Review parent fidelity, advisory authority, source coverage and the release-target boundary before Gate 1.
+    status: consulted
+    reason: Independent contribution review rr8g cleared cf0a50c7 with one citation advisory, resolved below. This changed plan requires bounded recheck; consultation is not governor approval.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -48,14 +48,21 @@ Level 1 Planned; successful branch implementation will be Level 4 Validated.
    the record has or has not been pushed. Existing records are never edited to
    add this field. Hold controls themselves cannot be deferred.
 
-A start must be from governor-reviewer, have urgency urgent, reference the
-release work-order/decision, and expire after its own timestamp and no later
+A start must be from governor-reviewer, have urgency urgent, declare at least one release work-order/decision ID in references-to, and expire after its own timestamp and no later
 than 24 hours after that timestamp. This proposed operational maximum is a
 child Gate 1 choice; over-limit controls are invalid, not silently clamped. An end must
 also be a governor-reviewer urgent decision-record, reference the same start
 in both hold_id and references-to, and name the same target. A hold cannot be
-extended in place. A later start is a separate hold; overlapping starts are
-reported as conflict, never silently reduced to the newest timestamp.
+extended in place. A later start is a separate hold; effective interval overlap
+is evaluated by the precise current-state rules below, never by choosing the
+newest timestamp. The command validates a nonempty references-to list for starts
+but does not resolve or authenticate release authorization. Emit these declared
+reference IDs and require the external release_hold_authorization check: the
+operator must resolve the actual approved release work order/decision, verify
+its identity, kind, scope, publication and governor authority. An absent list is
+invalid semantic evidence; an unresolved, wrong-kind, conflicting or local-only
+reference never becomes verified through this command. An externally verified
+reference still produces fixed false verification fields in this read-only result.
 
 The role label is channel evidence, not cryptographic authentication. These
 checks do not authenticate the governor or elevate an authored role string into
@@ -73,7 +80,8 @@ CP-B-3 wires the release procedure later; this child never weakens that rule.
 ### Operator command and input coverage
 
 `agov coord hold-status --target-branch <local-or-remote-tracking-branch>
-[--dir <coord-dir>] [--pending-dir <repo-relative-dir>] [--format text|json]`
+[--dir <repo-relative-coord-path>] [--candidate-ref <commit-ref>]...
+[--format text|json]`
 
 Resolve the named target branch once to an immutable target SHA. Accept only
 unambiguous branch references, not a raw SHA, tag, revision expression or symbolic
@@ -92,46 +100,64 @@ must check the repository's configured publication target and fresh fetch.
 A stale local main is reported at its actual SHA, never replaced by origin/main.
 Use the pinned SHA for all Git reads; no independent base override is accepted.
 
-Resolve the repository root once. Read direct lowercase .md records from the
-pinned target's configured channel and the current filesystem channel. One
-optional pending directory is explicitly named, nonrecursive, under the root.
-Reject traversal, all symlink directory components and files (even within the
-root), and nonregular entries. Git channel records must be regular blobs with
-mode 100644 or 100755; reject symlinks/submodules/nonregular channel entries.
-Do not implicitly enumerate archives, every branch, GitLab or the network.
-Label each source and immutable Git SHA. Canonical repository-relative paths
-are evidence identity: same path plus identical bytes is deduplicated with all
-source labels retained; same path plus different bytes is a conflict regardless
-of embedded IDs. Same ID plus different bytes is also a conflict. Equal ID/raw
-bytes at distinct paths is one logical declaration retaining all provenance.
-This read-side deduplication never permits publishing a copied new record;
-CP-B-1 publication-copy rejection remains separately governed.
+Resolve the repository root once. `--dir` defaults to docs/coordination and
+selects one normalized repository-relative Git tree path in every source.
+Reject absolute paths, empty/dot/dot-dot components, traversal and symlink tree
+components. It never names a filesystem source. Candidate inputs are explicit
+commit refs, default HEAD when none is given; resolve each exactly once to a
+commit SHA before inventory reads. Accept commit-resolving branches, tags or
+object IDs for candidates (unlike the branch-only publication target), reject
+ambiguous names and malformed/non-commit refs, and retain the requested ref plus
+its immutable SHA. Subsequent reads use only pinned objects even if any input
+ref moves. Deduplicate identical candidate SHAs while retaining all requested
+ref labels. No implicit branch enumeration, network, archive or working-tree read.
 
-For each filesystem source, capture the direct entry inventory (path, type and
-stable file identity), open regular files without following links, read bytes,
-and check descriptor/path identity and metadata before/after reading. Re-enumerate
-all requested filesystem inventories and re-read/compare the captured bytes
-before returning. Any observable add/delete/rename/replace/type/identity/content
-change is churn: exit 2, coverage INCOMPLETE, with no positive delay state. No
-automatic retry loop. Deterministic test hooks exercise each walk/read boundary.
-COMPLETE means these bounded stability checks completed for explicit sources;
-it is not a transactional filesystem snapshot or a guarantee against changes
-after return. Output and runbook state this limit; an actual delay decision
-requires fresh independent verification, never reliance on a saved COMPLETE row.
+Read direct lowercase .md regular blobs (100644 or 100755) from the selected
+channel at the target and every candidate SHA. Reject Git symlinks, submodules
+and other nonregular channel entries. A missing/unreadable requested tree/blob
+or failed decisive Git read makes coverage INCOMPLETE; an existing empty tree
+is complete. Sources are snapshots pinned per ref, not one atomic cross-ref
+transaction. Report this observation limit and require fresh target/publication
+verification before acting; COMPLETE does not prove freshness or publication.
+No new runtime crate, no platform-specific filesystem protocol, and no retry loop.
 
-The current filesystem can show a newly published branch's hold which is not
-merged into main. Output must distinguish base-visible from local-only evidence;
-local-only is not proof of remote publication. ALL status rows are declarations,
-never assertions of a published or usable hold: `publication_verified: false`
-and `authority_verified: false` are fixed at top level and on every hold/record
-row. Neither a role label, source visibility, matching SHA nor local file can
-flip these fields. External operator verification remains necessary even for
-base-visible evidence. Required external checks are explicit below.
+Evidence identity is normalized repository-relative path plus exact raw bytes:
+same path/bytes deduplicates with all source labels; same path/different bytes
+conflicts regardless of IDs. Same ID/different bytes conflicts across paths.
+Same ID/bytes at different paths is one logical declaration with all provenance.
+This read-side deduplication never permits publication of copied new records;
+CP-B-1's copy rejection remains independently governed.
+
+Separate the complete evidence inventory from publication action candidates.
+Target records resolve hold controls, references and conflicts but never alone
+create action rows. An action candidate is a logical record present at an explicit
+candidate SHA with no byte-identical logical record in target inventory, regardless
+of path. Candidate/target-identical records remain evidence only. Candidate records
+with conflicting bytes remain action rows and are publish-now; a malformed
+candidate with no ID has a path-addressed action row. Include candidate controls
+and ordinary records both with and without deferred_by. Retain every provenance
+entry when multiple candidate refs contain the same logical record. This excludes
+already integrated historical review/handoff/urgent records from new work routing.
+
+Every hold and action row has fixed publication_verified:false and
+authority_verified:false. Target-visible versus candidate-only is source evidence,
+never authenticated publication or authority. A local commit can contain an
+unpublished draft; the command cannot distinguish it from a pushed shared commit.
+Neither a role label, source visibility, matching SHA nor an external operator
+claim can flip these fields. All rows retain required external checks.
+
+The first version deliberately excludes arbitrary uncommitted filesystem drafts
+and --pending-dir. A draft may be committed locally on an appropriate branch and
+supplied by candidate ref without pushing it. A published but unmerged shared
+coordination branch is fully supported by explicit candidate ref after fetching;
+it does not require a pending directory. This is the simpler choice from trial
+8435/build consultation pkgg, not a promise or approval of a filesystem follow-up.
 
 Operator path: publish the start on the shared coordination branch independently
 of main, bridge it to the release lane, and verify recipient visibility and
 governor authority using existing rules. Run the command in that checkout with
-`--target-branch origin/main` after an explicit fetch. Both start and end must be
+`--target-branch origin/main --candidate-ref origin/codex/ruw-followthrough-coordination`
+after an explicit fetch (substitute the actual shared branch). Both start and end must be
 verified before the operator changes its batching decision; an unpublished local
 end cannot clear a real hold merely because this command shows ended-declaration.
 Do not merge the start into main merely to make it visible. That would advance
@@ -141,20 +167,29 @@ Scope is always `explicit-sources`,
 never `whole-inbox`; completeness concerns only the requested readable sources.
 
 Use one UTC now value per invocation, injectable only through an internal clock
-in tests. Active interval is start.timestamp <= now < expires_at. A valid end must have timestamp >= start.timestamp; when it is at or before
-now it ends that exact declaration. Earlier ends are invalid; future ends do
-not apply. Multiple valid ends of the same start are idempotent; retain every
-end ID as evidence rather than silently losing records. Expired/ended holds remain
-visible evidence. Missing starts, contradictory controls, invalid timestamps,
-malformed records, unreadable directories/Git objects and invalid base references
-are explicit problems, never an empty clean result. Unavailable evidence never
-creates permission to hold or merge.
+in tests. A valid end names its exact start and has timestamp >= start.timestamp;
+earlier ends, missing starts and target mismatches are semantic errors. The
+effective half-open interval of a start is [start.timestamp, min(expires_at,
+earliest valid end timestamp)); retain all valid end IDs. Ends after expiry do
+not extend the interval. At now before start the declaration is future; at or
+after the effective end it is ended if an end is <= expiry, otherwise expired;
+otherwise it is active. An end exactly at expiry gives ended. Multiple valid ends
+are idempotent and the earliest one controls, including equal-time ends.
 
-For the selected target, return all active-declaration IDs, ended/expired controls and
-conflicts. A start whose target_sha differs from the resolved target is `stale`
-and cannot support treating the target as frozen. Multiple live starts are
-`conflict` even when their SHA matches. Report records declaring deferred_by
-with their paths/IDs, hold resolution, urgency and the following ordered states
+Conflict is current-state only: two or more intervals for the selected canonical
+target containing now are conflicting, regardless of SHA. Past overlap is retained
+as a nonblocking historical-overlap diagnostic and does not poison a later unique
+active declaration. Future overlap is advisory until it becomes current. Other
+malformed or contradictory evidence remains a semantic problem. Explicitly
+report temporal_state separately from target_state (matching|stale|other-target)
+and conflict state; a SHA mismatch must never obscure an active overlap. A stale
+selected-target start cannot support review-required. Valid other-target controls
+remain evidence but cannot affect selected-target classification.
+
+For the selected target, return all observed starts and temporal/target states,
+including future, ended and expired declarations, with conflicts and their evidence.
+Report only the candidate action population defined above, including unassociated
+records, with their paths/IDs, hold resolution, urgency and the following ordered states
 (first match wins):
 
 1. `publish-now`: urgent, hold control, requires-ack:true, or kind handoff or
@@ -171,7 +206,7 @@ with their paths/IDs, hold resolution, urgency and the following ordered states
 4. `publish-now`: association missing, invalid, future/not-yet-active, ended,
    expired, stale or conflicting.
 5. `review-required`: normal association to the one active matching declaration
-   in a complete, conflict-free stability-checked scan. Reports author intent
+   in a complete, conflict-free pinned-source scan. Reports author intent
    and its unresolved verification requirements, never a positive deferral.
 
 There is no `deferred-intent` or automatic allow-delay output. The optional
@@ -187,21 +222,95 @@ records must remain independently visible even when main integration is held.
 
 Machine-readable `required_external_checks` is the stable enum list
 `[publication, governor_authority, record_urgency_and_obligations,
-publication_target, current_target_and_expiry]`, on the result and each row.
+publication_target, current_target_and_expiry, release_hold_authorization]`, on the result and each row.
 Text and MCP expose the same list, not only a prose disclaimer. This avoids
 using a review of an unpublished record as an assumed future safeguard.
 
 ### Machine interface and status
 
-JSON version 1 object: `schema_version`, `target_ref`, `target_branch`, `target_remote`,
-`target_sha`, `now`, `publication_verified`, `authority_verified`,
-`required_external_checks`,
-`scope`, `sources`, `coverage`, `holds`, `records`, `problems`. Arrays are stable
-sorted by timestamp, ID and path; each evidence item retains its source identity.
-`coverage` is COMPLETE or INCOMPLETE for explicit sources only. Text is a compact
-projection of the same result, with diagnostics deduplicated and referenced.
+The following is the normative JSON v1 contract (all keys required, no additional
+keys; `?` below means JSON null is allowed, not key omission). Non-null strings
+are UTF-8; SHA is a full lowercase Git object ID for the supported repository
+format; timestamps are canonical RFC3339 UTC. Stored target_sha remains the
+40-hex schema requirement above, so unsupported object formats fail explicitly.
 
-Exit 0: complete requested-source stability checks and no semantic problems,
+```text
+Result {
+ schema_version: 1,
+ target_ref: string?, target_branch: string?, target_remote: string?,
+ target_sha: SHA?, now: timestamp,
+ publication_verified: false, authority_verified: false,
+ required_external_checks: Check[], scope: "explicit-sources",
+ sources: Source[], coverage: "COMPLETE"|"INCOMPLETE",
+ holds: Hold[], records: Record[], problems: Problem[]
+}
+Check = "publication"|"governor_authority"|"record_urgency_and_obligations"|
+        "publication_target"|"current_target_and_expiry"|"release_hold_authorization"
+Source {
+ source_id: string, kind: "target"|"candidate", requested_refs: string[],
+ sha: SHA?, channel: string, status: "read"|"unavailable", problem_ids: string[]
+}
+Provenance { source_id: string, path: string, blob_oid: SHA }
+Hold {
+ id: string, timestamp: timestamp, target_branch: string, target_sha: SHA,
+ expires_at: timestamp, effective_end: timestamp, end_ids: string[],
+ declared_release_references: string[],
+ temporal_state: "future"|"active"|"ended"|"expired",
+ target_state: "matching"|"stale"|"other-target",
+ conflict: boolean, provenance: Provenance[], problem_ids: string[],
+ publication_verified: false, authority_verified: false,
+ required_external_checks: Check[]
+}
+Record {
+ id: string?, timestamp: timestamp?, provenance: Provenance[],
+ urgency: "normal"|"urgent"|"invalid", deferred_by: string?,
+ hold_id: string?, state: "publish-now"|"unassociated"|"review-required",
+ reasons: Reason[], problem_ids: string[],
+ publication_verified: false, authority_verified: false,
+ required_external_checks: Check[]
+}
+Reason = "urgent"|"hold-control"|"requires-ack"|"handoff"|"review"|
+         "incomplete-source"|"semantic-problem"|"unassociated"|"missing-hold"|
+         "invalid-hold"|"future-hold"|"ended-hold"|"expired-hold"|"stale-hold"|
+         "conflicting-hold"|"external-review-required"|"hold-behavior-disabled"
+Problem {
+ problem_id: string, code: "invalid-input"|"git-read-failed"|"nonregular-entry"|
+   "invalid-record"|"path-conflict"|"id-conflict"|"invalid-control"|
+   "missing-start"|"active-overlap"|"historical-overlap"|"future-overlap"|
+   "hold-behavior-disabled",
+ severity: "unavailable"|"semantic"|"advisory",
+ message: string, source_ids: string[], paths: string[], record_ids: string[]
+}
+```
+
+Malformed controls are represented by problems, never invented valid Hold rows;
+malformed candidate records additionally retain their path/provenance action row.
+An unresolved association has hold_id:null; a resolved stale/ended/conflicting
+association keeps its actual ID. Invalid urgency is never coerced to normal.
+Target identity keys are null only when resolution fails; remote null also means
+an explicitly local target. A resolution failure retains a Source with sha:null
+and unavailable status. Invocation argument syntax errors remain ordinary CLI
+usage errors; once a valid invocation starts evaluation, failures use this envelope.
+
+Source IDs are `target` or `candidate:<SHA>`; an unresolved candidate source uses
+`unresolved:<requested-ref>`. Sort sources by source_id, provenance by source_id
+then path then blob_oid, holds/records by timestamp (null first), ID (null first),
+then first provenance path/source. Sort all reference/check/reason/problem-ID arrays
+lexically and remove duplicates. Problems sort by code, severity, source_ids,
+paths, record_ids, message, then receive deterministic IDs p000001 onward.
+All six external checks appear exactly once at result and every row. Dynamic
+Git error prose is diagnostic only; tests assert stable code, identity and status.
+
+Acceptance must use independent checked-in golden JSON for empty history,
+active normal candidate, candidate urgent control, ended/expired/stale/future,
+active conflict and unavailable source, plus malformed candidate/no-ID and
+base-identical exclusion. Golden files pin every nested field, null, enum,
+reason, provenance and sort order. Deserialize against a checked-in JSON schema
+implementing this contract. CLI/MCP shared-backend parity supplements these
+independent expected outputs and cannot replace them. Text is a compact projection
+of this result with problem references and the same verification requirements.
+
+Exit 0: complete requested pinned-source reads and no semantic problems,
 whether a hold declaration is active or not; review-required is not permission.
 Exit 1: conflicting/invalid semantic evidence; every potentially affected row
 is publish-now. Exit 1 never coexists with a positive delay state.
@@ -237,9 +346,11 @@ allocation acknowledgement still precede the final Gate 1 submission.
   overlapping holds, unknown/mismatched end and duplicate conflicting ID fixtures.
 - Urgent+deferred association always publish-now, controls cannot be held; explicit
   normal classification never advertised as proof that delaying is safe.
-- Real Git base plus current/pending directory integration with source labels,
-  identical-source dedup, changed bytes, unreadable/missing source, malformed
-  record and symlink/traversal rejection. No implicit network call.
+- Real pinned target plus candidate Git refs with source labels, base-only urgent
+  and normal history, base/candidate identical exclusion, local-only normal/urgent
+  candidates, mixed large history/small action set, changed-byte conflicts,
+  unavailable tree/blob and nonregular Git entries. Moving target/candidate refs
+  after resolution cannot change observed objects. No implicit network call.
 - Same fixture through real CLI and MCP stdio: equivalent JSON after removing only the independently sampled `now` value,
   statuses and isError for complete, invalid and incomplete cases. Assert each
   now is valid UTC and lies within its invocation bounds; semantic expiry
@@ -254,8 +365,13 @@ allocation acknowledgement still precede the final Gate 1 submission.
 ## Sequencing, risk and rollback
 
 Draft and consult independently now. Before implementation, reconcile exact paths
-with CP-B-1 and any #122/!2027 work, use merged CP-B-1 as the base and retain the
-S2/S3 additions already on main. Bounded InfoSec and contribution review precede
+with CP-B-1 and the merged work order
+`docs/plans/20260910T065635Z-coordination-lifecycle-semantics-work-order.md`
+and correction `20260910T070211Z-planner-architect-p2rk`. CP-B-2 alone owns urgency;
+Row-5 S3 is a hard successor and cannot introduce competing priority fields.
+The older open !2027 plan is historical/superseded for this implementation, not
+authority to reconcile a competing schema. Repeat the open-MR/path collision scan
+immediately before coding, use merged CP-B-1 as base and retain S2/S3 on main. Bounded InfoSec and contribution review precede
 Gate 1; build-engineer reviews command/test/CI footprint. No purchase or release
 permission is requested. Gate 2 remains separate after implementation evidence.
 
@@ -265,17 +381,35 @@ visible and errors cannot enable a safe effective hold. Another risk is adding
 ceremony: one start/end per release hold, no per-record MR requirement, no
 persistent service, no background polling and no coordination archive introduced.
 
-Before merge rollback is abandoning the branch. After merge do not rewrite old
-records; a correction/revert is forward-only through gates. Expiry ensures a
-missed end does not produce an indefinite hold.
+Before merge rollback is abandoning the branch. Before any new-field record is
+used, a gated revert remains possible. Rollout must first ship schema recognition,
+parser/validator support, CLI/MCP, docs and compatible framework/tooling artifacts;
+only then may CP-B-3 or an operator author the first immutable new-field record.
+The intended first compatible release is v2.11.0; release preflight must verify
+both actual framework and tooling artifacts include this support and pin their
+real minimum versions in adoption instructions (no capability claim from a plan).
+Older schema/tools reject unknown fields or lack hold-status; they are not a
+supported reader once a channel uses these fields. Partial upgrades must be
+completed before use, never handled by stripping immutable record fields.
+After first use, rollback preserves schema/parser acceptance and forward-disables
+advisory hold behavior through a gated forward correction to a conservative
+reader: every candidate row becomes publish-now with hold-behavior-disabled
+reason, fixed false verification fields and external checks; add an advisory
+problem with that code. Existing source/semantic failures retain their exit
+precedence. Exercise this fallback evaluator in a migration fixture; activating
+it in a shipped correction remains separately gated. There is no new CLI mode
+or automatic rollback mechanism, and the pre-field schema cannot be restored.
+A migration fixture must validate immutable new-field records with the compatible
+reader and its disabled behavior. Expiry bounds missed-end effects.
 
 ## Draft review corrections and migration
 
-Independent draft review `cpb2-draft-review.md` identified D1-D4. Revised contract
+Independent draft review embedded in
+`20260912T085315Z-planner-architect-kkjh` at commit `e964a024` identified D1-D4. Revised contract
 never equates declaration state with verified publication; gives classification
 precedence and conservative partial-source behavior; removes the independent
-base override; defines chronology and equivalent evidence deduplication. Added
-one-directory/nonrecursive limit rather than a new discovery subsystem.
+base override; defines chronology and equivalent evidence deduplication. The trial revision replaces mutable filesystem input with explicit immutable
+candidate refs; it adds no discovery subsystem.
 
 Acceptance additionally requires unpublished start and unpublished end fixtures
 with publication_verified false, urgent unassociated precedence, partial-source
@@ -305,12 +439,12 @@ until the reviewer checks the new exact head. In addition to the earlier matrix:
   same SHA, stale local main, multiple configured remotes with retained provenance,
   ambiguous short aliases, HEAD, tags, SHAs and ref expressions. Assert one pinned
   target object for all reads and canonical branch matching independent of SHA.
-- SEC-3: test in-root/escaping symlinks, symlinked source directories, Git
-  symlink/submodule/nonregular modes, and same-path changed bytes with both equal
-  and unequal IDs. Reject aliases; preserve cross-source provenance on dedup.
-- SEC-4: deterministic add/delete/rename/replace and type/identity/byte changes
-  during source enumeration/read/recheck return exit2/INCOMPLETE/publish-now.
-  Document bounded stability checks and post-return freshness limits honestly.
+- SEC-3: test Git symlink/submodule/nonregular modes, invalid channel paths,
+  and same-path changed bytes with both equal and unequal IDs; retain provenance.
+- SEC-4: resolve every target/candidate ref once; inject ref movement/deletion
+  after resolution and verify all reads remain on pinned objects. Inject every
+  decisive Git read failure: exit2/INCOMPLETE/publish-now. Uncommitted filesystem
+  edits cannot affect the result. Document per-ref observation/freshness limits.
 - SEC-5: malformed YAML/schema, unknown-target controls, same-target conflicts
   and future starts cannot coexist with a positive delay row. Assert exit/row
   precedence globally across requested sources, not only on associated records.
@@ -322,3 +456,21 @@ until the reviewer checks the new exact head. In addition to the earlier matrix:
 
 No implementation is included. No automatic trusted verification store, new
 service, network discovery or new CI gate is introduced by these corrections.
+
+
+## Narrowed trial disposition (8435, build consultation pkgg)
+
+IPR-1 defines evidence versus action rows and base-identical exclusion. IPR-2
+chooses declared references plus mandatory external release_hold_authorization,
+with absent/unresolved/wrong-kind/conflicting/local-only/externally verified cases.
+IPR-3 defines effective intervals, earliest ends and current versus historical
+conflicts; fixtures cover exact start/end/expiry equality, equal/different multiple
+ends, A ending before B starts and B starting before A ends, evaluated before,
+during and after overlap. IPR-4 replaces the stale dependency. IPR-5 specifies
+rollout and safe post-use disablement. IPR-6 pins nested JSON plus independent
+goldens. A1 selects explicit pinned Git candidate inputs; no filesystem increment
+is authorized or assumed. pkgg's filesystem-loss comparison is corrected here:
+unmerged published branch records remain accessible through candidate refs; only
+uncommitted drafts are excluded. No platform crate recommendation in that advisory
+is treated as verified dependency evidence. Recheck this changed plan with the
+trial reviewer and affected security/contribution consultations before Gate 1.
