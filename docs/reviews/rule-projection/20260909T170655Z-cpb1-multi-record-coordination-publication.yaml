@@ -80,7 +80,11 @@ surfaces:
       Tests reject merge-base copies, same-commit and cross-commit duplicates,
       and enumeration/base/candidate blob failures; distinct template records
       and target-tip drift pass. A forced hash collision proves byte equality
-      remains decisive. Strict projection-check is required at Gate 2.
+      remains decisive. Per-record schema validation uses the same introducing
+      object bytes; dirty/deleted/untracked files cannot alter acceptance.
+      Symlinks and nested records are rejected; nested base files are not
+      channel copy sources. CLI regressions cover each boundary. Strict
+      projection-check is required at Gate 2.
 
   distribution:
     disposition: confirmed

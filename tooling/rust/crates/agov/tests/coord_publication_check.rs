@@ -2,6 +2,72 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+fn committed_record_fixture(content: &str) -> GitFixture {
+    let repo = GitFixture::new();
+    repo.write("README.md", "base");
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "chore: base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-q", "-b", "coord/candidate"]);
+    repo.write("docs/coordination/record.md", content);
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "coordination: add record"]);
+    repo
+}
+
+#[test]
+fn nested_record_is_outside_publication_channel() {
+    let repo = committed_record_fixture(&coord("direct"));
+    repo.write("docs/coordination/nested/record.md", &coord("nested"));
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "coordination: nested"]);
+    let output = repo.agov(&["coord", "publication-check", "--base-ref", "main"]);
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    assert!(stderr(&output).contains("non-coordination path: docs/coordination/nested/record.md"));
+}
+
+#[test]
+fn invalid_committed_record_cannot_be_repaired_by_dirty_valid_file() {
+    let repo = committed_record_fixture("---\nkind: note\n---\ninvalid");
+    repo.write("docs/coordination/record.md", &coord("valid-dirty"));
+    let output = repo.agov(&["coord", "publication-check", "--base-ref", "main"]);
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    assert!(stderr(&output).contains("schema validation failed"));
+}
+
+#[test]
+fn valid_committed_record_ignores_dirty_missing_and_untracked_files() {
+    let repo = committed_record_fixture(&coord("valid"));
+    repo.write("docs/coordination/record.md", "invalid dirty content");
+    repo.write(
+        "docs/coordination/untracked.md",
+        "invalid untracked content",
+    );
+    let args = &["coord", "publication-check", "--base-ref", "main"];
+    let output = repo.agov(args);
+    assert_eq!(output.status.code(), Some(0), "{}", stderr(&output));
+    fs::remove_file(repo.root.join("docs/coordination/record.md")).unwrap();
+    let output = repo.agov(args);
+    assert_eq!(output.status.code(), Some(0), "{}", stderr(&output));
+}
+
+#[cfg(unix)]
+#[test]
+fn symlink_to_valid_record_is_not_a_regular_publication_record() {
+    let repo = GitFixture::new();
+    repo.write("docs/coordination/base.md", &coord("base"));
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "chore: base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-q", "-b", "coord/candidate"]);
+    std::os::unix::fs::symlink("base.md", repo.root.join("docs/coordination/link.md")).unwrap();
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "coordination: symlink"]);
+    let output = repo.agov(&["coord", "publication-check", "--base-ref", "main"]);
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    assert!(stderr(&output).contains("non-regular coordination record"));
+}
+
 #[test]
 fn byte_identical_copy_is_rejected_by_cli_with_both_paths() {
     let repo = GitFixture::new();

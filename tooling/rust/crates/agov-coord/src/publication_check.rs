@@ -42,7 +42,27 @@ pub fn publication_check(
     subject_prefix: &str,
     cwd: &Path,
 ) -> PublicationCheckReport {
-    publication_check_with_git(base_ref, coord_dir, subject_prefix, cwd, &git_bytes)
+    publication_check_validated(base_ref, coord_dir, subject_prefix, cwd, &|_| Vec::new())
+}
+
+/// Also validate each added record from its introducing commit's raw object bytes.
+/// The callback shares the exact object read used for copy detection, never a
+/// working-tree file or the final head's possibly modified version.
+pub fn publication_check_validated(
+    base_ref: &str,
+    coord_dir: &str,
+    subject_prefix: &str,
+    cwd: &Path,
+    validate_added: &impl Fn(&[u8]) -> Vec<String>,
+) -> PublicationCheckReport {
+    publication_check_with_git(
+        base_ref,
+        coord_dir,
+        subject_prefix,
+        cwd,
+        &git_bytes,
+        validate_added,
+    )
 }
 
 fn publication_check_with_git(
@@ -51,6 +71,7 @@ fn publication_check_with_git(
     subject_prefix: &str,
     cwd: &Path,
     read_git: &impl Fn(&Path, &[&str]) -> Result<Vec<u8>, String>,
+    validate_added: &impl Fn(&[u8]) -> Vec<String>,
 ) -> PublicationCheckReport {
     let git = |cwd: &Path, args: &[&str]| {
         read_git(cwd, args).map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
@@ -158,7 +179,7 @@ fn publication_check_with_git(
                         continue;
                     }
                 };
-                if !path.starts_with(&coord_prefix) || !path.ends_with(".md") {
+                if !is_channel_record(path, &coord_prefix) {
                     continue;
                 }
                 match read_git(cwd, &["cat-file", "blob", &format!("{merge_base}:{path}")]) {
@@ -180,7 +201,7 @@ fn publication_check_with_git(
         )
         .unwrap_or_default();
         for (status, path) in parse_name_status(&name_status) {
-            if !path.starts_with(&coord_prefix) || !path.ends_with(".md") {
+            if !is_channel_record(&path, &coord_prefix) {
                 reasons.push(format!(
                     "commit {commit} touches a non-coordination path: {path}"
                 ));
@@ -192,8 +213,28 @@ fn publication_check_with_git(
                 ));
                 continue;
             }
+            // A symlink is a blob too, but it is not a Markdown record file.
+            // Verify the introducing tree entry before accepting its bytes.
+            match read_git(cwd, &["ls-tree", "-z", commit, "--", &path]) {
+                Ok(entry)
+                    if entry.starts_with(b"100644 blob ") || entry.starts_with(b"100755 blob ") => {
+                }
+                Ok(_) => {
+                    reasons.push(format!(
+                        "commit {commit} adds a non-regular coordination record: {path}"
+                    ));
+                    continue;
+                }
+                Err(error) => {
+                    reasons.push(format!("cannot inspect added coordination record at commit {commit}: {path}: {error}"));
+                    continue;
+                }
+            }
             match read_git(cwd, &["cat-file", "blob", &format!("{commit}:{path}")]) {
                 Ok(bytes) => {
+                    for error in validate_added(&bytes) {
+                        reasons.push(format!("commit {commit} added record {path}: {error}"));
+                    }
                     if let Some(existing) = seen.insert(&path, bytes) {
                         reasons.push(format!("commit {commit} adds a byte-identical copy of an existing coordination record: {path} == {existing}"));
                     }
@@ -213,7 +254,7 @@ fn publication_check_with_git(
     // the aggregate still touches non-coordination history.
     let aggregate = git(cwd, &["diff", "--name-status", &range]).unwrap_or_default();
     for (status, path) in parse_name_status(&aggregate) {
-        if !path.starts_with(&coord_prefix) || !path.ends_with(".md") {
+        if !is_channel_record(&path, &coord_prefix) {
             reasons.push(format!(
                 "aggregate range diff touches a non-coordination path: {path}"
             ));
@@ -237,6 +278,11 @@ fn publication_check_with_git(
         added_files,
         reasons,
     }
+}
+
+fn is_channel_record(path: &str, prefix: &str) -> bool {
+    path.strip_prefix(prefix)
+        .is_some_and(|name| !name.contains('/') && name.ends_with(".md"))
 }
 
 fn parse_name_status(output: &str) -> Vec<(String, String)> {
@@ -352,6 +398,45 @@ mod tests {
     }
 
     #[test]
+    fn schema_callback_receives_introducing_bytes_not_later_head() {
+        let repo = TempRepo::new();
+        repo.write("README.md", "base");
+        repo.commit("chore: base");
+        run(repo.path(), &["branch", "target"]);
+        repo.write("docs/coordination/a.md", "invalid introduction");
+        repo.commit("coordination: introduce");
+        repo.write("docs/coordination/a.md", "valid later version");
+        repo.commit("coordination: replace");
+        let report = publication_check_validated(
+            "target",
+            "docs/coordination",
+            "coordination:",
+            repo.path(),
+            &|bytes| {
+                assert_eq!(bytes, b"invalid introduction");
+                vec!["original object rejected".into()]
+            },
+        );
+        assert!(
+            report
+                .reasons
+                .iter()
+                .any(|r| r.contains("original object rejected"))
+        );
+    }
+
+    #[test]
+    fn nested_base_records_do_not_supply_channel_copy_candidates() {
+        let repo = TempRepo::new();
+        repo.write("docs/coordination/nested/a.md", &coord_message("same"));
+        repo.commit("chore: base");
+        run(repo.path(), &["branch", "target"]);
+        repo.write("docs/coordination/b.md", &coord_message("same"));
+        repo.commit("coordination: direct record");
+        assert!(publication_check("target", "docs/coordination", "coordination:", repo.path()).ok);
+    }
+
+    #[test]
     fn copied_merge_base_record_fails_with_both_paths() {
         let repo = TempRepo::new();
         repo.write("docs/coordination/a.md", &coord_message("same-id"));
@@ -364,10 +449,12 @@ mod tests {
         repo.write("docs/coordination/b.md", "different dirty addition");
         let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
         assert!(!report.ok);
-        assert!(report
-            .reasons
-            .iter()
-            .any(|r| r.contains("docs/coordination/b.md == docs/coordination/a.md")));
+        assert!(
+            report
+                .reasons
+                .iter()
+                .any(|r| r.contains("docs/coordination/b.md == docs/coordination/a.md"))
+        );
     }
 
     #[test]
@@ -386,10 +473,12 @@ mod tests {
             let report =
                 publication_check("target", "docs/coordination", "coordination:", repo.path());
             assert!(!report.ok);
-            assert!(report
-                .reasons
-                .iter()
-                .any(|r| r.contains("docs/coordination/c.md == docs/coordination/b.md")));
+            assert!(
+                report
+                    .reasons
+                    .iter()
+                    .any(|r| r.contains("docs/coordination/c.md == docs/coordination/b.md"))
+            );
         }
     }
 
@@ -449,12 +538,15 @@ mod tests {
                         git_bytes(cwd, args)
                     }
                 },
+                &|_| Vec::new(),
             );
             assert!(!report.ok, "{failure} must fail closed");
-            assert!(report
-                .reasons
-                .iter()
-                .any(|r| r.contains(&format!("injected {failure} failure"))));
+            assert!(
+                report
+                    .reasons
+                    .iter()
+                    .any(|r| r.contains(&format!("injected {failure} failure")))
+            );
         }
     }
 
