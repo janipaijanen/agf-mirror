@@ -26,6 +26,19 @@
 // `tests/ci_needs_implication.rs`; this comment is this file's companion
 // touch for that same real commit.
 
+// Real-world companion-evidence example, 2026-09-12: mitigated a
+// cargo-deny advisory-db crash (pipeline 2842901098) by adding an
+// `rm -rf "$CARGO_HOME/advisory-dbs"` line to `rust:tooling:deny` in
+// `.gitlab-ci.yml`. Whether this mitigation actually fixes the crash's
+// precise cause is an accepted, unproven validation limit -- see the
+// Gate 1 plan (docs/plans/20260912T112252Z-cargo-deny-advisory-db-
+// clean-clone-gate1.md, governor decision jhaq). Same shared-surface
+// scenario as the !2711 example above: this file's own regression
+// coverage for `rust:tooling:deny` itself lives in
+// `tests/ci_needs_implication.rs`
+// (`rust_tooling_deny_clears_stale_advisory_db_before_check`); this
+// comment is this file's companion touch for that same real commit.
+
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

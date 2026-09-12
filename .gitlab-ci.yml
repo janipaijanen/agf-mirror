@@ -1158,6 +1158,21 @@ rust:tooling:deny:
   interruptible: true
   script:
     - cargo install --list 2>/dev/null | grep -qE "^cargo-deny v0\.19\.[0-9]+:" || cargo install cargo-deny --locked --version "^0.19" --force
+    # cargo-deny's advisory-db clone lives under $CARGO_HOME but is not a
+    # cached path (only .cargo/registry, .cargo/bin, and tooling/rust/target
+    # are). Observed 2026-09-12 (pipeline 2842901098): cargo-deny crashed
+    # trying to read an existing clone's FETCH_HEAD -- it misparsed git's
+    # "No such file or directory" fatal message as an ISO-8601 timestamp
+    # instead of cloning fresh -- even though the directory should not
+    # persist across runs on this non-cached path. The precise mechanism
+    # (e.g. a prior run's partial/torn state vs. something else) is an
+    # unproven hypothesis, not a demonstrated cause; see the Gate 1 plan
+    # (docs/plans/20260912T112252Z-cargo-deny-advisory-db-clean-clone-
+    # gate1.md, governor decision jhaq) for the disclosed validation limit.
+    # Force a clean clone every run rather than depend on a directory this
+    # job never persists -- a reasonable mitigation for the observed crash
+    # regardless of the exact precondition.
+    - rm -rf "$CARGO_HOME/advisory-dbs"
     - cargo deny check
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
