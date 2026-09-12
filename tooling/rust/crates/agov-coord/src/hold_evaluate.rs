@@ -819,4 +819,25 @@ mod tests {
             );
         }
     }
+    #[test]
+    fn platform_diagnostics_do_not_renumber_final_rows() {
+        let reports: Vec<_> = ["git diagnostic on platform A", "different platform B diagnostic"].into_iter().map(|message| {
+            let mut inv=active();
+            inv.sources[0].available=false;
+            inv.problems.push(hold_git::ReadProblem {
+                code:"git-read-failed",operation:"read-blob",requested_ref:None,
+                sha:Some("d".repeat(40)),path:Some("docs/coordination/unreadable.md".into()),
+                source_id:inv.sources[0].source_id.clone(),message:message.into(),
+            });
+            let report=checked(inv);
+            assert_eq!(report.exit_status(),2);
+            assert_eq!(report.records[0].problem_ids,vec!["p000001"]);
+            assert_eq!(report.records[0].state,RecordState::PublishNow);
+            let mut json=serde_json::to_value(report).unwrap();
+            for problem in json["problems"].as_array_mut().unwrap() {problem["message"]=serde_json::Value::Null;}
+            json
+        }).collect();
+        assert_eq!(reports[0],reports[1]);
+    }
+
 }
