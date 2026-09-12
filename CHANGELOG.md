@@ -10,21 +10,31 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [2.10.1] - 2026-09-12
 
-**Patch release, MINOR-shaped content.** Adds a generic, opt-in artifact/
-graph validation extension to `agov`, developed for a prospective AGF
-adopter's multi-assistant project. The release content is frozen from
-reviewed `main` at `90bb57a2`. Full workspace test suite: 593 passed, 0
-failed, 3 intentionally ignored network/podman tests.
+**Patch release, MINOR-shaped content.** Standard-path release: ships
+all reviewed work merged to `main` since v2.10.0, not only the
+customer-driven extension this entry leads with. The release content
+is frozen from reviewed `main` at `90bb57a2`. Full workspace test
+suite: 593 passed, 0 failed, 3 intentionally ignored network/podman
+tests.
 
-**Version-number note:** this content is additive/backward-compatible
-(new opt-in config block, new subcommands, no existing behavior changed)
-and would conventionally be a MINOR release. It ships as a PATCH number
-(v2.10.1, not v2.11.0) at explicit governor direction, to keep it a
-small, fast, clearly-scoped drop decoupled from the separately paused
-v2.11/RUW work. See `docs/plans/20260912T155648Z-v2101-ruw-generic-artifact-validation.md`
-for the full record of that decision.
+**Version-number note:** the customer-driven addition below is
+additive/backward-compatible (new opt-in config block, new
+subcommands, no existing behavior changed) and would conventionally be
+a MINOR release on its own. This release ships as a PATCH number
+(v2.10.1, not v2.11.0) at explicit governor direction, to keep the
+customer-driven work a small, fast, clearly-scoped drop decoupled from
+the separately paused v2.11/RUW work. See
+`docs/plans/20260912T155648Z-v2101-ruw-generic-artifact-validation.md`
+for the full record of that decision. The other changes below shipped
+independently on `main` before this release cut and are included
+because a standard-path release ships everything reviewed and merged
+since the preceding release, not only its named headline feature.
 
 ### Added
+
+- **Customer-driven addition — generic artifact/graph validation
+  extension.** Developed for a prospective AGF adopter's multi-assistant
+  project.
 
 - `agov-config.yaml` gains an optional `artifact_sets` block: adopters
   can declare their own project-specific artifact types (name, path
@@ -55,12 +65,51 @@ for the full record of that decision.
   recorded in those reviews, not fixed — both require an adversarial
   actor already outside this feature's stated "stable local working
   tree, opt-in, maintainer-authored config" threat model.
+- **Safe multi-record coordination publication (CP-B-1).** `agov coord
+  publication-check` now supports a candidate range that adds more than
+  one coordination record, with byte-identical copy rejection checked
+  against the union of the merge-base inventory, the pinned current
+  target tip, and earlier candidate additions in the same range —
+  closing a target-tip copy blind spot found in review. Target and
+  candidate refs are each resolved once to an immutable commit before
+  any ancestry, range, or content read, and every decisive Git read now
+  fails closed instead of silently defaulting to an empty result on
+  error. See `docs/plans/20260909T200622Z-cpb1-copied-record-contract-clarification.md`
+  and its governing decisions for the full record.
+- **Two CI reliability fixes**, unrelated to each other and to the
+  customer-driven addition above: `commercial-corpus:validate` now sets
+  `GIT_DEPTH: "0"` so its merge-base comparison does not fail on
+  branches more than ~20 commits past their target; `rust:tooling:deny`
+  now clears `$CARGO_HOME/advisory-dbs` before running `cargo deny
+  check`, mitigating an observed crash where cargo-deny misparsed a
+  git error message as a timestamp. The precise root cause of the
+  latter is disclosed as unproven in
+  `docs/plans/20260912T112252Z-cargo-deny-advisory-db-clean-clone-gate1.md`
+  — the fix is an accepted, low-cost mitigation for the observed
+  failure shape, not a demonstrated fix for a confirmed cause.
+- **Improvement Propeller Stage 4 activated.** The bounded weekly
+  opportunity/governance-friction scan, shipped planned/inactive in
+  v2.10.0, is now active at Level 4 Validated per governor decision
+  `20260909T043713Z-governor-reviewer-djh1`. Level 5 still requires a
+  genuine unattended scheduled wake, not yet recorded.
+- Coordination-channel tooling also gained advisory branch-handoff
+  discovery, advisory plan-collision checks, and cross-session handoff
+  addressing/reply-evidence annotations, merged to `main` since v2.10.0
+  as part of ongoing governance-tooling work. These are internal
+  coordination-workflow aids for AGF development sessions, not part of
+  the customer-driven addition above; see the coordination channel
+  (`docs/coordination/`) for the full record of each.
 
 ### Downstream impact
 
-**ADDITIVE.** No existing coordination record schema, command behavior,
-or CI configuration changed. Adopters who do not add an `artifact_sets`
-block see no behavior change at all.
+**ADDITIVE** for the customer-driven artifact/graph validation
+extension: no existing coordination record schema or command behavior
+changed by it, and adopters who do not add an `artifact_sets` block see
+no behavior change from it at all. The two CI fixes above are
+**PREVENTIVE** (foundry's own pipeline reliability only; adopters do
+not consume this project's `.gitlab-ci.yml`). CP-B-1 and the
+coordination-tooling items are **ADDITIVE** to the coordination-channel
+tooling surface; no existing coordination record schema was changed.
 
 ## [2.10.0] - 2026-09-08
 
