@@ -2521,3 +2521,44 @@ particular, the fourth entry identifies a rule-shaped gap — nothing here
 creates, amends, or pre-approves such a rule, which would require full Gate 1.
 Do not cite the 60–80% figure as an AGF measurement; it is the researcher's
 reported result for their own variants.
+
+# Batch 36 (2026-09-12) — user-submitted candidate (tiered role-ceiling agent system)
+
+Numbered 36 to avoid the "Batch 32"/"Batch 33"/"Batch 34"/"Batch 35" headers
+already open in other unmerged MRs (!2390, !2408, !2752) at review time;
+collision-scanned and found no entry for this candidate in any of them.
+
+## Classified
+
+- https://github.com/khuynh22/agent-dev-team
+  type: tooling, practice | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: MIT-licensed, cross-platform (Claude Code, Gemini CLI, Cursor, and
+  others via the Agent Skills specification and `AGENTS.md`) definition of 21
+  role agents across four scope tiers (T0-T3), 26 portable workflow skills,
+  and a structured escalation protocol. Its stated design problem —
+  preventing an agent from "making a decision it had no business making" by
+  constraining each role's authorized scope — maps closely onto AGF's own
+  role-authority and gate-boundary model: tier ceilings correspond to AGF's
+  per-role authority limits, its "handoff packets" (task history, blocking
+  questions, reversibility assessment) correspond to AGF's coordination
+  handoff records, and its escalation triggers (schema changes, interface
+  modifications, irreversible work) parallel AGF's own high-risk-operations
+  and destructive-op-preflight rules. Useful prior art for comparing how a
+  differently-designed framework expresses the same authority-boundary
+  problem, not evidence that either approach is validated. Maturity is very
+  early — 0 stars, 0 forks, 28 commits, no reported issues or pull requests
+  at access time — so treat every design and effectiveness claim as
+  unverified self-report, more so than the other tooling entries in this
+  registry; it includes stated testing infrastructure (static validation,
+  routing evaluations, behavioral tests) but no independent confirmation
+  that these actually run or pass. (accessed 2026-09-12)
+
+## Evaluation boundary
+
+This batch classifies one source. It adopts nothing: it does not install,
+trial, depend on, or grant AGF authority to `agent-dev-team` or any
+described practice, and it does not change AGF rules, gates, or agent
+boundaries. No radar entry is added — the comparable tier/escalation design
+is prior art for AGF's existing role-authority and escalation rules, not an
+open or controversial question requiring separate tracking.
