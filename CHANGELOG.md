@@ -8,6 +8,60 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.10.1] - 2026-09-12
+
+**Patch release, MINOR-shaped content.** Adds a generic, opt-in artifact/
+graph validation extension to `agov`, developed for a prospective AGF
+adopter's multi-assistant project. The release content is frozen from
+reviewed `main` at `90bb57a2`. Full workspace test suite: 593 passed, 0
+failed, 3 intentionally ignored network/podman tests.
+
+**Version-number note:** this content is additive/backward-compatible
+(new opt-in config block, new subcommands, no existing behavior changed)
+and would conventionally be a MINOR release. It ships as a PATCH number
+(v2.10.1, not v2.11.0) at explicit governor direction, to keep it a
+small, fast, clearly-scoped drop decoupled from the separately paused
+v2.11/RUW work. See `docs/plans/20260912T155648Z-v2101-ruw-generic-artifact-validation.md`
+for the full record of that decision.
+
+### Added
+
+- `agov-config.yaml` gains an optional `artifact_sets` block: adopters
+  can declare their own project-specific artifact types (name, path
+  globs, JSON Schema, ID/reference JSON Pointers, uniqueness scope)
+  without AGF hardcoding any adopter-specific paths or semantics.
+  Absent this block, behavior is unchanged for every existing adopter.
+  Adopter docs: updated (`agf/docs/site/reference/artifact-registry.md`).
+- `agov artifact validate` and `agov artifact index` validate configured
+  artifact sets against their registered schemas and produce a
+  deterministic, byte-repeatable index (`id`, `kind`, `key`, `version`,
+  path, JSON Pointer, digest, status). Enforces structural graph
+  properties only: reference existence, dependency-graph acyclicity,
+  and global ID uniqueness across all configured sets — no gate-
+  ordering, reviewer-authority, or other governance-judgment semantics
+  are inferred by this validator. Also exposed through `agov-mcp`.
+- Filesystem containment for the new surface: every path component is
+  checked for symlinks (not just the final component, and independently
+  during glob expansion), paths are canonicalized and required to stay
+  within the repository root, external schema `$ref` values are
+  rejected recursively across the whole schema document, and reads are
+  capped at 16 MiB with a bounded glob-traversal state limit. Reviewed
+  by build-engineer and by an independent, non-author security review;
+  see `docs/coordination/20260912T171830Z-build-engineer-n2ht.md` and
+  `docs/coordination/20260912T173113Z-independent-implementation-reviewer-8kje.md`.
+  Two accepted advisory limitations (a disclosed, out-of-threat-model
+  TOCTOU gap under an actively hostile concurrent filesystem mutator,
+  and pattern-count amplification bounded only by config file size) are
+  recorded in those reviews, not fixed — both require an adversarial
+  actor already outside this feature's stated "stable local working
+  tree, opt-in, maintainer-authored config" threat model.
+
+### Downstream impact
+
+**ADDITIVE.** No existing coordination record schema, command behavior,
+or CI configuration changed. Adopters who do not add an `artifact_sets`
+block see no behavior change at all.
+
 ## [2.10.0] - 2026-09-08
 
 **Minor release.** Delivers autonomous AGF development operation through the

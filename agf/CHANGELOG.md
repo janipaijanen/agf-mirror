@@ -9,6 +9,51 @@ Adopter docs: not applicable — this MR activates the already-documented
 optional Improvement Propeller only for foundry; adopter projects remain
 inactive until their own governor supplies the activation contract.
 
+## [2.10.1] — 2026-09-12
+
+**Patch release, MINOR-shaped content.** Adds a generic, opt-in artifact/
+graph validation extension to `agov`, developed for a prospective AGF
+adopter's multi-assistant project. The release content is frozen from
+reviewed `main` at `90bb57a2`. Full workspace test suite: 593 passed, 0
+failed, 3 intentionally ignored network/podman tests. **Adopter docs:
+updated.**
+
+**Version-number note:** this content is additive/backward-compatible
+and would conventionally be a MINOR release. It ships as a PATCH number
+at explicit governor direction, to keep it decoupled from the
+separately paused v2.11 work. See
+`docs/plans/20260912T155648Z-v2101-ruw-generic-artifact-validation.md`.
+
+### Added
+
+- `agov-config.yaml` gains an optional `artifact_sets` block: adopters
+  can declare their own project-specific artifact types (name, path
+  globs, JSON Schema, ID/reference JSON Pointers, uniqueness scope)
+  without AGF hardcoding any adopter-specific paths or semantics.
+  Absent this block, behavior is unchanged for every existing adopter.
+  **Adopter docs: updated**
+  (`agf/docs/site/reference/artifact-registry.md`).
+- `agov artifact validate` and `agov artifact index` validate configured
+  artifact sets against their registered schemas and produce a
+  deterministic, byte-repeatable index. Enforces structural graph
+  properties only — reference existence, dependency-graph acyclicity,
+  global ID uniqueness — no governance-judgment semantics are inferred.
+  Also exposed through `agov-mcp`.
+- Filesystem containment (symlink rejection at every path component,
+  canonicalized root containment, recursive external-`$ref` rejection,
+  16 MiB read cap, bounded glob-traversal state) reviewed by
+  build-engineer and by an independent, non-author security reviewer.
+  Two advisory limitations accepted as outside the stated threat model
+  (a disclosed TOCTOU gap requiring an actively hostile concurrent
+  filesystem mutator; pattern-count amplification bounded only by
+  config file size) — not fixed, both documented in the review record.
+
+### Downstream impact
+
+**ADDITIVE.** No existing coordination record schema, command behavior,
+or CI configuration changed. Adopters who do not add an `artifact_sets`
+block see no behavior change at all.
+
 ## [2.10.0] — 2026-09-08
 
 **Minor release.** Delivers autonomous AGF development operation through the

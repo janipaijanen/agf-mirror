@@ -12,9 +12,9 @@ inheriting foundry's development commitments.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.0 is published and independently verified. Foundry's Improvement Propeller is active at Level 4 Validated; Level 5 awaits a genuine unattended scheduled wake. |
-| Observed at | 2026-09-09T05:10:00Z |
-| Observation baseline | `main` at `d0674e3fbacfc6fd87ffed0207ad54b08d7dc383`, before the Stage 4 activation diff |
+| Status | v2.10.1 is the pending reviewed release from current `main`; v2.10.0 remains the latest published stable release until v2.10.1's tag pipeline and anonymous artifact verification complete. Foundry's Improvement Propeller is active at Level 4 Validated; Level 5 awaits a genuine unattended scheduled wake. |
+| Observed at | 2026-09-12T18:50:00Z |
+| Observation baseline | `main` at `90bb57a2f57c899b8ceacefb6a104d8bc80b0f58`, the merged v2.10.1 candidate before release-metadata preparation |
 | Governed source | `docs/roadmap.md`, the approved queue-convergence plan, and the governor decisions cited there |
 | Authority | Informational projection. The internal roadmap, binding plans and decisions, exact tags, and release evidence are authoritative. |
 
@@ -35,6 +35,7 @@ tag/publication authorization.
 
 | Workstream | Current public status |
 |---|---|
+| v2.10.1 generic artifact/graph validation | Publication pending. Adds an opt-in `artifact_sets` registry and `agov artifact validate`/`index` commands so adopters can govern their own project-specific artifact types (schemas, dependency graphs) with the same tooling, without changing existing coordination record behavior. Merged to `main`; release metadata, exact-head Gate 2, the tag, and public artifact verification remain outstanding. The v2.11/RUW work below is separately paused while this ships. |
 | Roadmap and queue convergence | The roadmap owner and this projection are the first approved batch. TODO, issue, MR, and intake-bound batches follow separately. |
 | Plan lifecycle (`qbka`) | A separate Gate 1 work order will define lifecycle states, supersession provenance, validation, and legacy-plan migration. |
 | Linked-data/evidence assessment (#129) | Assessment precedes the plan-lifecycle provenance freeze; it does not authorize linked-data implementation. |
