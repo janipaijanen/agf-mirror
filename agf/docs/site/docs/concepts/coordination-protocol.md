@@ -432,5 +432,5 @@ publication. Neither complete coverage nor unassociated means safe to delay.
 Install compatible framework and tooling artifacts before first use (intended
 first release v2.11.0; confirm actual shipped support). Older readers cannot
 read these fields. Never remove fields from immutable records to downgrade.
-The normative [publication rule](../../../../rules/workflow/coordination-publication-rule.md)
+The normative [publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md)
 defines conservative error handling and schema-preserving forward disablement.
