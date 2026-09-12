@@ -123,6 +123,10 @@ apply per task type.
 
 ## Coordination channel
 
+Channel membership, bounded misplaced-record discovery and unassessed archive inventory are defined by `agf/rules/workflow/coordination-publication-rule.md`. Only direct lowercase `.md` files are channel members; archive exclusion never proves closure. Consult the visibility command reference for its explicit scan scopes and coverage limits.
+
+Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.
+
 All inter-agent communication is recorded in `docs/coordination/` as immutable
 Markdown files. Use the AGF tooling to generate IDs and validate files.
 
@@ -165,6 +169,8 @@ mechanical check would never get a chance to run.
 
 ## Gate discipline
 
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
+
 Every non-trivial task requires two gates:
 
 - **Gate 1** — planner-architect files a plan in `docs/plans/`; governor-reviewer
@@ -205,6 +211,7 @@ agov --version                                 # version + git provenance
 agov version --format json                     # machine-readable version info
 agov session resume --base-branch main         # cold start — always run first
 agov handoff next <role>                       # your next pending task
+agov handoff next <role> --include-branch-local # add advisory local/remote-tracking branch evidence; default unchanged
 agov coord validate docs/coordination/<file>  # validate a coordination message
 agov plan validate docs/plans/<file>           # validate a Gate 1 plan
 agov coord graph-index                         # pending item scan

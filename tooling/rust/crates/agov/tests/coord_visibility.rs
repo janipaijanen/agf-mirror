@@ -772,9 +772,9 @@ fn git_invocation_count_is_bounded_per_branch_not_per_file() {
     assert_eq!(output.status.code(), Some(1));
 
     // Fixed overhead (freshness resolution, branch enumeration, base
-    // ls-tree/batch) plus 2 processes (ls-tree + cat-file --batch) per
+    // ls-tree/batch) plus 4 processes (two bounded ls-tree queries, SHA resolution and cat-file) per
     // branch -- independent of FILES_PER_BRANCH.
-    let bound = 10 + 2 * BRANCHES;
+    let bound = 10 + 4 * BRANCHES;
     assert!(
         invocation_count as i64 <= bound,
         "expected at most {bound} git invocations for {BRANCHES} branches x \
@@ -894,7 +894,7 @@ fn coupled_widened_default_keeps_invocation_count_bounded_by_dedup_groups() {
     );
 
     let dedup_group_count = scanned.len() as i64;
-    let bound = 10 + 2 * dedup_group_count;
+    let bound = 10 + 4 * dedup_group_count;
     assert!(
         invocation_count as i64 <= bound,
         "expected at most {bound} git invocations for {dedup_group_count} deduplicated \
@@ -1052,6 +1052,14 @@ impl GitFixture {
     fn agov(&self, args: &[&str]) -> std::process::Output {
         Command::new(env!("CARGO_BIN_EXE_agov"))
             .env("AGOV_TOKEN_ROI", "0")
+            .env(
+                "AGOV_SCHEMA_DIR",
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .ancestors()
+                    .nth(4)
+                    .unwrap()
+                    .join("agf/schemas"),
+            )
             .args(args)
             .current_dir(&self.root)
             .output()
@@ -1068,6 +1076,14 @@ impl GitFixture {
         let _ = fs::remove_file(&trace_path);
         let output = Command::new(env!("CARGO_BIN_EXE_agov"))
             .env("AGOV_TOKEN_ROI", "0")
+            .env(
+                "AGOV_SCHEMA_DIR",
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .ancestors()
+                    .nth(4)
+                    .unwrap()
+                    .join("agf/schemas"),
+            )
             .env("GIT_TRACE", &trace_path)
             .args(args)
             .current_dir(&self.root)
@@ -1153,6 +1169,14 @@ impl GitFixture {
 
         Command::new(env!("CARGO_BIN_EXE_agov"))
             .env("AGOV_TOKEN_ROI", "0")
+            .env(
+                "AGOV_SCHEMA_DIR",
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .ancestors()
+                    .nth(4)
+                    .unwrap()
+                    .join("agf/schemas"),
+            )
             .env("PATH", new_path)
             .args(args)
             .current_dir(&self.root)
@@ -1197,6 +1221,14 @@ impl GitFixture {
 
         Command::new(env!("CARGO_BIN_EXE_agov"))
             .env("AGOV_TOKEN_ROI", "0")
+            .env(
+                "AGOV_SCHEMA_DIR",
+                PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .ancestors()
+                    .nth(4)
+                    .unwrap()
+                    .join("agf/schemas"),
+            )
             .env("PATH", new_path)
             .args(args)
             .current_dir(&self.root)
@@ -1244,6 +1276,7 @@ fn unique_suffix() -> u128 {
 fn handoff(seq: i64, to: &str, topic: &str) -> String {
     frontmatter(&format!(
         r#"kind: handoff
+id: fixture-handoff-{seq}
 from: coder-tester
 to: {to}
 seq: {seq}
@@ -1278,6 +1311,7 @@ fn decision(seq: i64, topic: &str, refs: &[&str]) -> String {
     };
     frontmatter(&format!(
         r#"kind: decision-record
+id: fixture-decision-{seq}
 from: governor-reviewer
 to: all
 seq: {seq}
@@ -1293,4 +1327,242 @@ artifacts_owned: []
 
 fn frontmatter(yaml: &str) -> String {
     format!("---\n{yaml}---\n\nFixture body.\n")
+}
+
+#[test]
+fn channel_membership_misplaced_candidates_and_archive_baseline_are_separate() {
+    let repo = GitFixture::new();
+    let archived = handoff(101, "governor-reviewer", "unresolved archive");
+    repo.write("docs/coordination-archive/old.md", &archived);
+    repo.write(
+        "docs/coordination/sub/base.md",
+        &handoff(102, "governor-reviewer", "target nested"),
+    );
+    repo.write("docs/coordination/README.md", "ordinary prose");
+    repo.write(
+        "docs/coordination/ignored.MD",
+        &handoff(103, "governor-reviewer", "excluded uppercase"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/candidates"]);
+    repo.write(
+        "docs/coordination/sub/new.md",
+        &handoff(104, "governor-reviewer", "nested handoff"),
+    );
+    repo.write(
+        "docs/coordination-typo.md",
+        &handoff(105, "governor-reviewer", "sibling handoff"),
+    );
+    repo.write("docs/coordination-prose.md", "ordinary sibling prose");
+    repo.write(
+        "docs/coordination-invalid.md",
+        "---\nkind: handoff\nfrom: [\n---\n",
+    );
+    repo.write(
+        "docs/coordination-archive/new.md",
+        &handoff(106, "governor-reviewer", "new archive"),
+    );
+    repo.write("docs/coordination-archive/moved.md", &archived);
+    repo.write(
+        "docs/coordination/00107-coder-tester.md",
+        &handoff(107, "governor-reviewer", "direct handoff"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "candidates"]);
+    let args = [
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/candidates",
+        "--format",
+        "json",
+    ];
+    let output = repo.agov(&args);
+    assert_eq!(output.status.code(), Some(1));
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value["archive_baseline"]["count"], 1);
+    assert_eq!(value["archive_baseline"]["lifecycle"], "unassessed");
+    assert_eq!(
+        value["archive_baseline"]["records"][0]["requires_ack"],
+        true
+    );
+    let candidates = value["candidate_diagnostics"].as_array().unwrap();
+    for path in [
+        "docs/coordination/sub/base.md",
+        "docs/coordination/sub/new.md",
+        "docs/coordination-typo.md",
+        "docs/coordination-archive/new.md",
+        "docs/coordination-archive/moved.md",
+    ] {
+        assert!(
+            candidates.iter().any(|v| v["path"] == path
+                && v["diagnostic"] == "misplaced_candidate"
+                && v["requires_ack"] == true),
+            "{path}"
+        );
+    }
+    assert!(candidates
+        .iter()
+        .any(|v| v["path"] == "docs/coordination-invalid.md"
+            && v["diagnostic"] == "invalid_candidate"));
+    assert!(!candidates
+        .iter()
+        .any(|v| v["path"] == "docs/coordination-archive/old.md"
+            || v["path"] == "docs/coordination-prose.md"));
+    assert!(value["invalid_channel_records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|v| v["path"] == "docs/coordination/README.md"));
+    let obligations = value["unbridged_obligations"].as_array().unwrap();
+    assert_eq!(obligations.len(), 1);
+    assert_eq!(
+        obligations[0]["file"],
+        "docs/coordination/00107-coder-tester.md"
+    );
+    repo.write(
+        "docs/coordination-archive/old.md",
+        &(archived + "\nchanged bytes\n"),
+    );
+    repo.write(
+        "docs/coordination/README.md",
+        &handoff(108, "governor-reviewer", "valid README"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "changed archive"]);
+    let changed = repo.agov(&args);
+    let changed: serde_json::Value = serde_json::from_slice(&changed.stdout).unwrap();
+    assert!(changed["candidate_diagnostics"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|v| v["path"] == "docs/coordination-archive/old.md"
+            && v["diagnostic"] == "misplaced_candidate"));
+    assert!(changed["unbridged_obligations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|v| v["file"] == "docs/coordination/README.md"));
+    assert!(changed["invalid_channel_records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|v| v["ref_sha"] != changed["scanned_refs"]["feat/candidates"]));
+}
+
+#[test]
+fn unavailable_target_never_reports_clean_coverage() {
+    let repo = GitFixture::new();
+    let output = repo.agov(&["coord", "visibility", "--base-branch", "missing"]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("coverage incomplete"));
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("clean"));
+}
+
+#[test]
+fn missing_schema_is_incomplete_coverage_not_invalid_record_inventory() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/record.md",
+        &handoff(100, "governor-reviewer", "test"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    let out = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .args(["coord", "visibility", "--base-branch", "main"])
+        .env("AGOV_SCHEMA_DIR", repo.root.join("missing-schemas"))
+        .current_dir(&repo.root)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("coverage incomplete"));
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("clean"));
+}
+
+#[test]
+fn configured_unavailable_upstream_never_suppresses_local_archive() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination-archive/old.md",
+        &handoff(100, "governor-reviewer", "unassessed local archive"),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "local archive"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&[
+        "remote",
+        "add",
+        "origin",
+        "file:///nonexistent-parity-remote",
+    ]);
+    repo.git(&["config", "branch.main.remote", "origin"]);
+    repo.git(&["config", "branch.main.merge", "refs/heads/main"]);
+    let out = repo.agov(&[
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--format",
+        "json",
+    ]);
+    assert_eq!(out.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&out.stderr).contains("configured upstream unavailable"));
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("archive_baseline"));
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("clean"));
+}
+
+#[test]
+fn session_annotation_preserves_visibility_membership_order_and_exit() {
+    let repo = GitFixture::new();
+    repo.write(
+        "docs/coordination/00100-governor-reviewer.md",
+        &decision(100, "base", &[]),
+    );
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "base"]);
+    repo.git(&["branch", "-M", "main"]);
+    repo.git(&["checkout", "-b", "feat/session"]);
+    for (seq, recipient) in [(110, "recipient-B"), (111, "recipient-C")] {
+        repo.write(
+            &format!("docs/coordination/{seq:05}-coder-tester.md"),
+            &handoff(seq, "governor-reviewer", "session test").replace(
+                "handoff:",
+                &format!("session: author-A\nhandoff:\n  for_session: {recipient}"),
+            ),
+        );
+    }
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-m", "sessions"]);
+    let args = [
+        "coord",
+        "visibility",
+        "--base-branch",
+        "main",
+        "--branch",
+        "feat/session",
+        "--format",
+        "json",
+    ];
+    let baseline = repo.agov(&args);
+    assert_eq!(baseline.status.code(), Some(1));
+    let mut scoped_args = args.to_vec();
+    scoped_args.extend(["--session", "recipient-B"]);
+    let annotated = repo.agov(&scoped_args);
+    assert_eq!(annotated.status.code(), baseline.status.code());
+    let baseline: serde_json::Value = serde_json::from_slice(&baseline.stdout).unwrap();
+    let mut annotated: serde_json::Value = serde_json::from_slice(&annotated.stdout).unwrap();
+    let rows = annotated["unbridged_obligations"].as_array_mut().unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(rows[0].get("addressed_elsewhere").is_none());
+    assert_eq!(rows[1]["addressed_elsewhere"], "recipient-C");
+    rows[1]
+        .as_object_mut()
+        .unwrap()
+        .remove("addressed_elsewhere");
+    assert_eq!(annotated, baseline);
 }

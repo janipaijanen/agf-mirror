@@ -3,6 +3,12 @@ use std::path::Path;
 
 pub type ChannelEntry = (String, Result<CoordMessage, Vec<(String, String)>>);
 
+/// Channel membership is lowercase Markdown directly inside the channel directory.
+/// No filename (including README.md) is exempt from normal validation.
+pub fn is_channel_path(path: &Path, dir: &Path) -> bool {
+    path.parent() == Some(dir) && path.extension().and_then(|e| e.to_str()) == Some("md")
+}
+
 /// Read and validate all coordination message files in `dir`.
 ///
 /// Files are returned sorted by filename (timestamp-prefixed filenames sort
@@ -17,7 +23,7 @@ pub fn read_channel(dir: &Path) -> Vec<ChannelEntry> {
 
     for entry in read_dir.flatten() {
         let path = entry.path();
-        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+        if !is_channel_path(&path, dir) || !path.is_file() {
             continue;
         }
         let Some(file_name) = path.file_name().and_then(|n| n.to_str()) else {
@@ -65,6 +71,46 @@ pub fn all_refs(path: &Path, msg: &CoordMessage) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn readme_is_validated_and_nested_files_are_not_channel_members() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path();
+        std::fs::write(path.join("README.md"), "ordinary prose").unwrap();
+        std::fs::create_dir(path.join("sub")).unwrap();
+        std::fs::write(path.join("sub/record.md"), "bad nested front matter").unwrap();
+        let entries = read_channel(path);
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].0, "README.md");
+        assert!(entries[0].1.is_err());
+        let valid = "---\nkind: note\nfrom: coder-tester\nto: all\nid: fixture-readme\ntimestamp: 2026-09-10T10:00:00Z\nimmutable: true\nreferences-to: []\ntopic: test\nrequires-ack: false\n---\n";
+        std::fs::write(path.join("README.md"), valid).unwrap();
+        std::fs::write(path.join("record.MD"), valid).unwrap();
+        let entries = read_channel(path);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0].1.is_ok());
+    }
+
+    #[test]
+    fn membership_is_direct_lowercase_markdown_without_filename_exceptions() {
+        let root = Path::new("docs/coordination");
+        assert!(is_channel_path(
+            Path::new("docs/coordination/README.md"),
+            root
+        ));
+        assert!(is_channel_path(
+            Path::new("docs/coordination/record.md"),
+            root
+        ));
+        for excluded in [
+            "docs/coordination/sub/record.md",
+            "docs/coordination/record.MD",
+            "docs/coordination-typo.md",
+            "docs/coordination-archive/record.md",
+        ] {
+            assert!(!is_channel_path(Path::new(excluded), root));
+        }
+    }
 
     #[test]
     fn read_channel_returns_sorted_entries() {

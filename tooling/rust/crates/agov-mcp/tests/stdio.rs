@@ -6,6 +6,51 @@ use std::os::unix::fs::PermissionsExt;
 use std::process::{Command, Stdio};
 
 #[test]
+fn branch_handoff_and_local_collision_match_real_cli() {
+    let bin = build_real_agov_bin();
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let schema = workspace_root().join("agf/schemas");
+    let git = |args: &[&str]| {
+        let out = Command::new("git").args(args).current_dir(root).output().unwrap();
+        assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.name", "Test"]);
+    git(&["config", "user.email", "test@example.invalid"]);
+    std::fs::create_dir_all(root.join("docs/coordination")).unwrap();
+    std::fs::create_dir_all(root.join("docs/plans")).unwrap();
+    std::fs::write(root.join("docs/coordination/.keep"), "").unwrap();
+    git(&["add", "."]); git(&["commit", "-m", "base"]);
+    git(&["checkout", "-b", "handoff"]);
+    std::fs::write(root.join("docs/coordination/20260911T000000Z-planner-architect-a001.md"), "---\nid: 20260911T000000Z-planner-architect-a001\nkind: handoff\nfrom: planner-architect\nto: coder-tester\ntimestamp: 2026-09-11T00:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: true\nhandoff:\n  next_agent: coder-tester\n  for_session: claude\n  status: ready\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n").unwrap();
+    git(&["add", "."]); git(&["commit", "-m", "handoff"]); git(&["checkout", "main"]);
+    let parity = |name: &str, argv: &[&str], args: Value, expected: i32| {
+        let direct = Command::new(&bin).args(argv).env("AGOV_SCHEMA_DIR", &schema).env("AGOV_TOKEN_ROI", "0").current_dir(root).output().unwrap();
+        assert_eq!(direct.status.code(), Some(expected), "{}", String::from_utf8_lossy(&direct.stdout));
+        let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+            .env("AGOV_MCP_AGOV_BIN", &bin).env("AGOV_SCHEMA_DIR", &schema).env("AGOV_TOKEN_ROI", "0")
+            .current_dir(root).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
+        writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":name,"arguments":args}})).unwrap();
+        drop(child.stdin.take());
+        let result: Value = serde_json::from_slice(&child.wait_with_output().unwrap().stdout).unwrap();
+        let stdout = String::from_utf8(direct.stdout).unwrap();
+        assert_eq!(result["result"]["structuredContent"]["stdout"], stdout);
+        assert_eq!(result["result"]["structuredContent"]["status"], expected);
+        assert_eq!(result["result"]["isError"], expected != 0);
+        stdout
+    };
+    let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local","--session","codex"], json!({"role":"coder-tester","include_branch_local":true,"session":"codex"}), 0);
+    assert!(report.contains("source: refs/heads/handoff") && report.contains("Addressed elsewhere: claude"));
+    std::fs::write(root.join("docs/coordination/bad.md"), "invalid").unwrap();
+    let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local"], json!({"role":"coder-tester","include_branch_local":true}), 1);
+    assert!(report.contains("partial_coverage: true"));
+    parity("agov_plan_collision_check", &["plan","collision-check"], json!({}), 0);
+    std::fs::write(root.join("docs/plans/old.md"), "---\nid: old\nstatus: approved\nadvisory_consultation:\n- role: infosec-sentinel\n  status: consulted\n- role: contribution-auditor\n  status: consulted\n---\n").unwrap();
+    parity("agov_plan_collision_check", &["plan","collision-check","--base-ref","main"], json!({"base_ref":"main"}), 2);
+}
+
+#[test]
 fn help_describes_mcp_server_and_installation() {
     for flag in ["--help", "-h"] {
         let output = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
@@ -692,6 +737,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
 
     let run_cli = |args: &[&str], cwd: &std::path::Path| -> String {
         let output = Command::new(&agov_bin)
+            .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
             .args(args)
             .current_dir(cwd)
             .output()
@@ -702,6 +748,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
     let run_mcp = |name: &str, arguments: Value, cwd: &std::path::Path| -> String {
         let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
             .env("AGOV_MCP_AGOV_BIN", &agov_bin)
+            .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
             .current_dir(cwd)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -789,27 +836,61 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         );
     }
 
-    // `visibility` additionally needs a real git repository (it enumerates
-    // branches); run it against the actual workspace checkout, but keep
-    // the risk of a concurrent-write race low by requesting only local,
-    // already-fetched ref state rather than triggering a fetch.
+    // Visibility needs Git state as well as fixed files. Use an isolated
+    // repository so concurrent branch/coordination publication cannot race
+    // the two invocations or turn this parity check into an estate scan.
+    let git_fixture = tempfile::tempdir().unwrap();
+    let git_root = git_fixture.path();
+    for argv in [
+        vec!["init", "-b", "main"],
+        vec!["config", "user.name", "Parity Test"],
+        vec!["config", "user.email", "parity@example.invalid"],
+        vec!["commit", "--allow-empty", "-m", "base"],
+        vec!["checkout", "-b", "parity"],
+    ] {
+        assert!(Command::new("git")
+            .args(argv)
+            .current_dir(git_root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    }
+    std::fs::create_dir_all(git_root.join("docs/coordination")).unwrap();
+    for entry in std::fs::read_dir(&coord_dir).unwrap() {
+        let entry = entry.unwrap();
+        std::fs::copy(
+            entry.path(),
+            git_root.join("docs/coordination").join(entry.file_name()),
+        )
+        .unwrap();
+    }
+    for argv in [vec!["add", "docs"], vec!["commit", "-m", "fixture"]] {
+        assert!(Command::new("git")
+            .args(argv)
+            .current_dir(git_root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    }
     let cli_stdout = run_cli(
         &[
             "coord",
             "visibility",
             "--base-branch",
             "main",
-            "--dir",
-            "docs/coordination",
+            "--branch",
+            "parity",
             "--format",
             "text",
         ],
-        &root,
+        git_root,
     );
     let mcp_stdout = run_mcp(
         "agov_coord_visibility",
-        json!({ "base_branch": "main", "dir": "docs/coordination", "format": "text" }),
-        &root,
+        json!({"base_branch":"main","branch":"parity","format":"text"}),
+        git_root,
     );
     assert_eq!(
         cli_stdout, mcp_stdout,
@@ -881,5 +962,228 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
             mcp_brief.contains(field),
             "MCP brief output missing {field}: {mcp_brief}"
         );
+    }
+}
+
+#[test]
+fn channel_candidate_evidence_matches_real_cli_and_mcp() {
+    let bin = build_real_agov_bin();
+    let schema = workspace_root().join("agf/schemas");
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let git = |args: &[&str]| {
+        assert!(Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.name", "Test"]);
+    git(&["config", "user.email", "test@example.invalid"]);
+    std::fs::create_dir_all(root.join("docs/coordination-archive")).unwrap();
+    let record = "---\nkind: handoff\nfrom: planner-architect\nto: coder-tester\nid: fixture-handoff\ntimestamp: 2026-09-10T10:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: true\nhandoff:\n  next_agent: coder-tester\n  status: blocked\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n";
+    std::fs::write(root.join("docs/coordination-archive/old.md"), record).unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "base"]);
+    git(&["checkout", "-b", "feat/candidate"]);
+    std::fs::write(
+        root.join("docs/coordination-typo.md"),
+        record.replace("fixture-handoff", "fixture-sibling"),
+    )
+    .unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "candidate"]);
+    let direct = Command::new(&bin)
+        .args([
+            "coord",
+            "visibility",
+            "--base-branch",
+            "main",
+            "--branch",
+            "feat/candidate",
+            "--format",
+            "json",
+        ])
+        .env("AGOV_SCHEMA_DIR", &schema)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert_eq!(direct.status.code(), Some(1));
+    let stdout = String::from_utf8(direct.stdout).unwrap();
+    let evidence: Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(evidence["archive_baseline"]["count"], 1);
+    assert_eq!(evidence["archive_baseline"]["lifecycle"], "unassessed");
+    assert_eq!(
+        evidence["candidate_diagnostics"][0]["path"],
+        "docs/coordination-typo.md"
+    );
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", &bin)
+        .env("AGOV_SCHEMA_DIR", &schema)
+        .current_dir(root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"agov_coord_visibility","arguments":{"base_branch":"main","branch":"feat/candidate","format":"json"}}})).unwrap();
+    drop(child.stdin.take());
+    let out = child.wait_with_output().unwrap();
+    let value: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(value["result"]["structuredContent"]["stdout"], stdout);
+    assert_eq!(value["result"]["structuredContent"]["status"], 1);
+    assert_eq!(value["result"]["isError"], true); // existing warning-envelope convention
+}
+
+#[test]
+fn reply_evidence_matches_real_cli_on_all_handoff_views() {
+    let bin = build_real_agov_bin();
+    let root = workspace_root();
+    let fixture = tempfile::tempdir().unwrap();
+    let dir = fixture.path().to_str().unwrap();
+    let id = "20260910T100000Z-planner-architect-aaaa";
+    std::fs::write(fixture.path().join(format!("{id}.md")), format!("---\nkind: handoff\nfrom: planner-architect\nto: coder-tester\nid: {id}\ntimestamp: 2026-09-10T10:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: false\nhandoff:\n  next_agent: coder-tester\n  status: blocked\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n")).unwrap();
+    let cases = [
+        (
+            "agov_handoff_next",
+            vec!["handoff", "next", "coder-tester", "--dir", dir],
+            json!({"role":"coder-tester","dir":dir}),
+        ),
+        (
+            "agov_session_resume",
+            vec!["session", "resume", "--role", "coder-tester", "--dir", dir],
+            json!({"role":"coder-tester","dir":dir}),
+        ),
+        (
+            "agov_session_resume",
+            vec!["session", "resume", "--dir", dir],
+            json!({"dir":dir}),
+        ),
+    ];
+    for has_reply in [false, true] {
+        if has_reply {
+            std::fs::write(fixture.path().join("20260910T100100Z-coder-tester-bbbb.md"), format!("---\nkind: note\nfrom: coder-tester\nto: planner-architect\nid: 20260910T100100Z-coder-tester-bbbb\ntimestamp: 2026-09-10T10:01:00Z\nimmutable: true\nreferences-to: [{id}]\ntopic: clarification-question\nrequires-ack: false\n---\nCan you clarify?\n")).unwrap();
+        }
+        for (name, argv, args) in &cases {
+            let direct = Command::new(&bin)
+                .args(argv)
+                .current_dir(&root)
+                .output()
+                .unwrap();
+            assert_eq!(direct.status.code(), Some(0));
+            let stdout = String::from_utf8(direct.stdout).unwrap();
+            let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+                .env("AGOV_MCP_AGOV_BIN", &bin)
+                .current_dir(&root)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .unwrap();
+            writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":name,"arguments":args}})).unwrap();
+            drop(child.stdin.take());
+            let out = child.wait_with_output().unwrap();
+            let value: Value = serde_json::from_slice(&out.stdout).unwrap();
+            assert_eq!(value["result"]["structuredContent"]["stdout"], stdout);
+            assert_eq!(value["result"]["structuredContent"]["status"], 0);
+            assert_eq!(value["result"]["isError"], false);
+            assert_eq!(
+                stdout.contains("reply present — acknowledgement unconfirmed"),
+                has_reply
+            );
+            assert_eq!(stdout.contains("reply_evidence:"), has_reply);
+            if has_reply {
+                assert!(stdout.contains("\"id\":\"20260910T100100Z-coder-tester-bbbb\""));
+                assert!(stdout.contains("\"from\":\"coder-tester\""));
+                if args.get("role").is_none() {
+                    assert!(stdout.contains("\n      reply present — acknowledgement unconfirmed"));
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn recipient_session_matches_real_cli_and_mcp_without_selection_changes() {
+    let bin = build_real_agov_bin();
+    let schema = workspace_root().join("agf/schemas");
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let git = |args: &[&str]| {
+        assert!(Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .unwrap()
+            .status
+            .success());
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.name", "Test"]);
+    git(&["config", "user.email", "test@example.invalid"]);
+    git(&["commit", "--allow-empty", "-m", "base"]);
+    git(&["checkout", "-b", "feat/session"]);
+    let dir = root.join("docs/coordination");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("fixture-handoff.md"), "---\nkind: handoff\nfrom: planner-architect\nto: coder-tester\nid: fixture-handoff\ntimestamp: 2026-09-10T10:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: true\nsession: author-A\nhandoff:\n  next_agent: coder-tester\n  for_session: recipient-B\n  status: blocked\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n").unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "handoff"]);
+    for session in [None, Some("recipient-B"), Some("author-A")] {
+        for (name, mut argv, mut args, status) in [
+            (
+                "agov_handoff_next",
+                vec!["handoff", "next", "coder-tester"],
+                json!({"role":"coder-tester"}),
+                0,
+            ),
+            (
+                "agov_coord_visibility",
+                vec![
+                    "coord",
+                    "visibility",
+                    "--base-branch",
+                    "main",
+                    "--branch",
+                    "feat/session",
+                    "--format",
+                    "json",
+                ],
+                json!({"base_branch":"main","branch":"feat/session","format":"json"}),
+                1,
+            ),
+        ] {
+            if let Some(token) = session {
+                argv.extend(["--session", token]);
+                args["session"] = json!(token);
+            }
+            let direct = Command::new(&bin)
+                .args(argv)
+                .env("AGOV_SCHEMA_DIR", &schema)
+                .current_dir(root)
+                .output()
+                .unwrap();
+            assert_eq!(direct.status.code(), Some(status));
+            let stdout = String::from_utf8(direct.stdout).unwrap();
+            assert_eq!(stdout.contains("elsewhere"), session == Some("author-A"));
+            if name == "agov_handoff_next" {
+                assert!(stdout.contains("Status:      blocked"));
+            }
+            let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+                .env("AGOV_MCP_AGOV_BIN", &bin)
+                .env("AGOV_SCHEMA_DIR", &schema)
+                .current_dir(root)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .unwrap();
+            writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":name,"arguments":args}})).unwrap();
+            drop(child.stdin.take());
+            let out = child.wait_with_output().unwrap();
+            let value: Value = serde_json::from_slice(&out.stdout).unwrap();
+            assert_eq!(value["result"]["structuredContent"]["stdout"], stdout);
+            assert_eq!(value["result"]["structuredContent"]["status"], status);
+            assert_eq!(value["result"]["isError"], status != 0);
+        }
     }
 }

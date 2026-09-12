@@ -436,3 +436,180 @@ fn yaml_list(items: &[&str]) -> String {
             .join("\n")
     }
 }
+
+#[test]
+fn reply_evidence_preserves_handoff_output_and_pending_separation() {
+    let fixture = Fixture::new();
+    let id = "20260621T000000Z-planner-architect-a001";
+    fixture.write_coord(
+        &format!("{id}.md"),
+        &handoff(id, "coder-tester", "reply test", &[])
+            .replace("handoff:", "handoff:\n  for_session: recipient-B"),
+    );
+    let dir = fixture.coord_dir();
+    let args = [
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ];
+    let baseline = agov(&args);
+    assert_eq!(baseline.status.code(), Some(0));
+    let reply_id = "20260621T000100Z-governor-reviewer-a002";
+    let note = decision(reply_id, "clarification question", &[id])
+        .replace("kind: decision-record", "kind: note");
+    fixture.write_coord(&format!("{reply_id}.md"), &note);
+    let annotated = agov(&args);
+    assert_eq!(annotated.status.code(), baseline.status.code());
+    let out = String::from_utf8(annotated.stdout).unwrap();
+    assert!(out.starts_with(std::str::from_utf8(&baseline.stdout).unwrap()));
+    assert!(out.contains("reply present — acknowledgement unconfirmed"));
+    assert!(out.contains(&format!("\"id\":\"{reply_id}\"")));
+    let mut scoped = args.to_vec();
+    scoped.extend(["--session", "recipient-C"]);
+    let combined = agov(&scoped);
+    assert_eq!(combined.status.code(), baseline.status.code());
+    let combined = String::from_utf8(combined.stdout).unwrap();
+    assert!(combined.contains("reply present — acknowledgement unconfirmed"));
+    assert!(combined.contains("Addressed elsewhere: recipient-B"));
+    assert!(combined.contains(&format!("Source: {id}.md")));
+    let resume = agov(&[
+        "session",
+        "resume",
+        "--role",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ]);
+    assert!(String::from_utf8_lossy(&resume.stdout)
+        .contains("reply present — acknowledgement unconfirmed"));
+    let bootstrap = agov(&["session", "resume", "--dir", dir.to_str().unwrap()]);
+    assert_eq!(bootstrap.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&bootstrap.stdout)
+        .contains("reply present — acknowledgement unconfirmed"));
+    let pending = agov(&[
+        "coord",
+        "pending",
+        "--dir",
+        dir.to_str().unwrap(),
+        "--cutoff",
+        "2026-01-01T00:00:00Z",
+    ]);
+    assert_eq!(pending.status.code(), Some(2));
+    assert!(!String::from_utf8_lossy(&pending.stdout).contains(id));
+}
+
+#[test]
+fn recipient_session_annotation_never_changes_selection_or_status() {
+    let fixture = Fixture::new();
+    let id = "20260621T000000Z-planner-architect-a001";
+    let dir = fixture.coord_dir();
+    let base = handoff(id, "coder-tester", "session test", &[])
+        .replace("status: ready", "status: blocked");
+    fixture.write_coord(&format!("{id}.md"), &base);
+    let args = [
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ];
+    let baseline = agov(&args);
+    assert_eq!(baseline.status.code(), Some(0));
+    let mut scoped_args = args.to_vec();
+    scoped_args.extend(["--session", "recipient-B"]);
+    assert_eq!(agov(&scoped_args).stdout, baseline.stdout);
+    fixture.write_coord(
+        &format!("{id}.md"),
+        &base.replace(
+            "handoff:",
+            "session: author-A\nhandoff:\n  for_session: recipient-B",
+        ),
+    );
+    assert_eq!(agov(&args).stdout, baseline.stdout);
+    assert_eq!(agov(&scoped_args).stdout, baseline.stdout);
+    *scoped_args.last_mut().unwrap() = "author-A";
+    let elsewhere = agov(&scoped_args);
+    assert_eq!(elsewhere.status.code(), baseline.status.code());
+    let text = String::from_utf8(elsewhere.stdout).unwrap();
+    assert!(text.starts_with(std::str::from_utf8(&baseline.stdout).unwrap()));
+    assert!(text.contains("Status:      blocked"));
+    assert!(text.contains("Addressed elsewhere: recipient-B"));
+}
+
+#[test]
+fn mixed_session_queue_keeps_newest_blocked_handoff_for_every_session() {
+    let fixture = Fixture::new();
+    let dir = fixture.coord_dir();
+    for (id, session, status) in [
+        ("20260621T000000Z-planner-architect-a001", None, "ready"),
+        (
+            "20260621T000100Z-planner-architect-a002",
+            Some("recipient-B"),
+            "ready",
+        ),
+        (
+            "20260621T000200Z-planner-architect-a003",
+            Some("recipient-C"),
+            "blocked",
+        ),
+    ] {
+        let mut content = handoff(id, "coder-tester", "mixed session queue", &[])
+            .replace("status: ready", &format!("status: {status}"));
+        if let Some(session) = session {
+            content = content.replace("handoff:", &format!("handoff:\n  for_session: {session}"));
+        }
+        fixture.write_coord(&format!("{id}.md"), &content);
+    }
+    let args = [
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+    ];
+    let base = agov(&args);
+    assert_eq!(base.status.code(), Some(0));
+    let baseline = String::from_utf8(base.stdout).unwrap();
+    assert!(baseline.contains("a003.md"));
+    assert!(baseline.contains("Status:      blocked"));
+    for session in ["recipient-B", "recipient-C", "unassigned"] {
+        let mut scoped = args.to_vec();
+        scoped.extend(["--session", session]);
+        let out = agov(&scoped);
+        assert_eq!(out.status.code(), Some(0));
+        let out = String::from_utf8(out.stdout).unwrap();
+        assert!(out.starts_with(&baseline));
+        assert_eq!(
+            out.contains("Addressed elsewhere"),
+            session != "recipient-C"
+        );
+    }
+}
+
+#[test]
+fn elsewhere_ready_handoff_stays_ready_and_visible() {
+    let fixture = Fixture::new();
+    let id = "20260621T000000Z-planner-architect-a001";
+    fixture.write_coord(
+        &format!("{id}.md"),
+        &handoff(id, "coder-tester", "ready session", &[])
+            .replace("handoff:", "handoff:\n  for_session: recipient-B"),
+    );
+    let dir = fixture.coord_dir();
+    let out = agov(&[
+        "handoff",
+        "next",
+        "coder-tester",
+        "--dir",
+        dir.to_str().unwrap(),
+        "--session",
+        "recipient-C",
+    ]);
+    assert_eq!(out.status.code(), Some(0));
+    let text = String::from_utf8(out.stdout).unwrap();
+    assert!(text.contains("Status:      ready"));
+    assert!(text.contains("Addressed elsewhere: recipient-B"));
+    assert!(text.contains(&format!("Source: {id}.md")));
+}

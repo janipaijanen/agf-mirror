@@ -95,9 +95,27 @@ once the MR is visible, but it cannot guarantee a single pipeline for that
 first sequence. Seeing the pair is a known limitation, not evidence that the
 contributor pushed twice.
 
-Keep the MR pipeline as this project's canonical Gate 2 acceptance evidence.
-Do not cancel a pipeline merely because its SHA matches another pipeline.
-First record and compare:
+**Prevent it at publication time, per
+`docs/plans/20260911T052932Z-ci-first-push-publication-guard.md`:** for a
+brand-new branch that will get an MR immediately, push the first commit
+with `git push -o ci.skip -u origin <new-branch>` (a push option, not a
+commit-message marker), then immediately register the MR and verify
+exactly one job-running pipeline exists at the SHA — the resulting
+`push`-sourced pipeline record stays `skipped` and costs no runner time,
+which is the intended outcome. If MR registration fails or is uncertain,
+re-query for an existing MR on the branch and adopt it rather than
+retry-create; an unchanged re-push of an already-current branch is a
+no-op and will not create a new pipeline. After a bounded number of
+retries, stop and record an explicit blocker naming the branch, ref, and
+SHA. Subsequent pushes to the same branch are unaffected — they already
+rely on the `$CI_OPEN_MERGE_REQUESTS` guard below.
+
+**The compare-and-cancel procedure below remains required** for every
+path the prevention step above does not cover (`ci.skip` unavailable or
+forgotten, a manual UI push, or a failed registration that itself
+produces a duplicate). Keep the MR pipeline as this project's canonical
+Gate 2 acceptance evidence. Do not cancel a pipeline merely because its
+SHA matches another pipeline. First record and compare:
 
 - pipeline source and ref;
 - current status;

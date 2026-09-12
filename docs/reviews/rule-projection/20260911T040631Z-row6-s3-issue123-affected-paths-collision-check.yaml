@@ -1,0 +1,116 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for Row 6 S3 (issue #123: structured
+# affected-paths + agov plan collision-check). Added per RNP-4
+# (20260911T121946Z-contribution-auditor-6pq1): the original plan asked
+# the implementer to choose the owner between two candidates and omitted
+# this manifest entirely. Owner is decided here, at Gate 1, not deferred.
+
+plan_id: 20260911T040631Z-row6-s3-issue123-affected-paths-collision-check
+issue: 123
+
+changed_pages_or_runbooks:
+  - AGENTS.md
+  - agf/templates/AGENTS.md
+  - agf/templates/gate1-plan.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    path: agf/rules/workflow/development-workflow-rule.md
+    reason: >-
+      Decided between the two candidates the original plan left open.
+      development-workflow-rule.md's Phase 2 ("Write a Plan File First")
+      already requires a plan to "Include: intent, affected files list,
+      migration needed (yes/no), test strategy, risks, rollback" — the
+      exact phrase "affected files list" already exists there in prose.
+      `affected_paths` is the optional, machine-checkable structured form
+      of that exact existing requirement; it adds no new obligation and
+      changes no rule text, so the existing rule already covers it.
+      always/uncertainty-and-scope-rule.md's ">2 modules" trigger is a
+      different concern (whether a plan is required at all), not what a
+      plan's affected-files field is shaped like, so it is not the owner
+      here.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Internal governance tooling (a Gate 1 plan schema field and a local
+      `agov` command); no adopter-facing Pages claim describes plan
+      authoring mechanics at this level of detail.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/templates/gate1-plan.md
+    reason: >-
+      The plan template itself is this project's plan-authoring
+      situation map. Gains a one-line pointer noting `affected_paths` is
+      an optional structured field; the existing prose "affected files
+      list" field stays the default, non-optional way to declare scope.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      "Gate discipline" section gains a one-line pointer: a plan MAY
+      declare `affected_paths` for machine-checkable overlap detection;
+      `agov plan collision-check` reports (does not block) overlaps.
+      Factual capability addition, not a new obligation on plan authors.
+      Corrected 2026-09-11 (RNP-4 round 2): `agf/templates/AGENTS.md`
+      was previously left as an "open question, not silently applied,"
+      which contradicted this manifest's own `distribution` and
+      `runbook_situation_map` rows — both already confirm
+      `agf/templates/gate1-plan.md`, the adopter plan template, ships
+      with the same `affected_paths` pointer. The schema field and
+      command ship to every adopter equally (not a foundry-only
+      activation policy), so `agf/templates/AGENTS.md` gets the
+      identical one-line pointer, decided here rather than deferred.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Imports root AGENTS.md by reference (`@../AGENTS.md`); the
+          root pointer reaches Claude without a separate edit.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    paths:
+      - tooling/rust/crates/agov/src/main.rs
+      - agf/schemas/gate1-plan.schema.json
+      - tooling/rust/crates/agov/src/plan_collision.rs
+      - tooling/rust/crates/agov/src/plan_collision_forge.rs
+      - tooling/rust/crates/agov/tests/plan_collision.rs
+      - tooling/rust/crates/agov-coord/src/plan_validator.rs
+      - tooling/rust/crates/agov-mcp/src/main.rs
+      - tooling/rust/crates/agov-mcp/tests/stdio.rs
+    reason: >-
+      `agov plan collision-check` ships advisory (non-zero exit for CI
+      visibility, never MR-blocking) in this slice per the parent work
+      order's explicit scope guard. `agov plan validate` gains only a
+      light shape check on `affected_paths` (array of non-empty
+      strings with whole-segment ** only) as part of existing schema validation — no new blocking
+      behaviour beyond that. Promoting collision-check to blocking is a
+      separate, gate-self-test-rule-covered decision with its own
+      negative test, not implied by this slice.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/schemas/gate1-plan.schema.json
+      - agf/templates/gate1-plan.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      The schema field and both template pointers (plan template, agent
+      loader template) ship in the AGF artifact. Root `AGENTS.md` is a
+      foundry-local startup surface, not an adopter-distribution file
+      (same disposition the propeller Stage 4 manifest uses for the same
+      file) — its loader-pointer update is recorded above under
+      `ai_landing_loaders`, not claimed as shipped distribution content
+      here. `agov plan collision-check` itself ships in the tooling
+      archive (separate distribution channel from the `agf/` framework
+      artifact, per this project's established framework-vs-tooling
+      distribution split — corrected from the original plan's imprecise
+      "agov ships in the AGF artifact" claim, per RNP-4).

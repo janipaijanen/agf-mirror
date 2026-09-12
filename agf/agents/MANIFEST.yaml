@@ -182,3 +182,31 @@ agents:
       mechanical blocking authority; CLEAR/BLOCK is advisory evidence for
       governor-reviewer, per tool-authority-boundary-rule.md. Suspended
       2026-08-09; see `reason` above for the active corrective-work trail.
+
+  documentation-estate-steward:
+    status: active
+    played_by: "claude (AI); capability-developer (Codex) reviews the contract, not the sweeps"
+    notes: >
+      Governor decision 2026-09-10 ("PMM as precondition, equal to
+      coder-tester, planner-architect etc."), bridged
+      20260910T050007Z-planner-architect-jh3g -- a direct foundry governor
+      call, same authority basis as the Improvement Propeller activation,
+      overriding for foundry the rule-first calibration that learning
+      20260910T041223Z-qvzj recommends for adopters generally. Owns the
+      consistency and currency of the adopter-facing documentation estate
+      as a whole: estate-wide sweeps for version currency, capability/
+      maturity currency, cross-touchpoint claim consistency, pointer/path
+      integrity, and projection-manifest completeness. Dispositions
+      in-scope findings (fixed / accepted-as-current / deferred-with-
+      reason); escalates normative, cross-role, and structural findings to
+      governor-reviewer. Does NOT author docs (documentation-writer /
+      change owner), review visual/UX/accessibility (web-ux-reviewer),
+      judge tone (marketing-tone-rule), or verify claim veracity
+      (fact-checker) -- see agf/agents/documentation-estate-steward.yaml
+      boundaries. `status: active` here is the proposed end state and is
+      not in effect until the governor Gate 1 decision merges this change
+      (instantiation plan
+      docs/plans/20260910T115843Z-documentation-estate-steward-role.md).
+      The v2.11 IN-row membership and the estate-assessment release-cut
+      precondition are a separate parent-scope amendment with its own
+      governor Gate 1.

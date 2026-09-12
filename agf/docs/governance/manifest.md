@@ -15,11 +15,10 @@
 | Layout | B (single `agf/` directory; adopter files stay in `docs/`) |
 
 This manifest describes the `agf/` directory as it stands in the foundry.
-AGF v2.10.0 is the pending reviewed release from the current-`main` line.
-Until its tag pipeline and anonymous artifact verification complete, v2.9.0
-remains the latest published stable release. Adopters should install releases
-from the GitLab Releases page and verify the published checksums and provenance
-rather than treating an arbitrary repository checkout as a release artifact.
+AGF v2.10.0 is the latest published, independently verified stable release
+(tagged 2026-09-08). Adopters should install releases from the GitLab
+Releases page and verify the published checksums and provenance rather than
+treating an arbitrary repository checkout as a release artifact.
 
 ## Contents
 

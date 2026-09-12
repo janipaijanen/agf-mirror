@@ -1,3 +1,22 @@
+// Row 6 S2/S3 companion evidence (2026-09-11): both advisory commands
+// register in main.rs, a shared surface of gate-change-check. The gate itself
+// is unchanged. Existing negative controls below still exercise missing test
+// accompaniment and gate-removal rejection; command behavior is exercised by
+// handoff_branch.rs, plan_collision.rs and the real MCP stdio parity fixture.
+// This declared companion records that the shared-surface gate was checked.
+
+// Real-world companion-evidence example, 2026-09-11: MR !2711 added
+// `GIT_DEPTH: "0"` to `.gitlab-ci.yml`'s `commercial-corpus:validate` job
+// (fixing a shallow-clone `no merge base` failure, MR !2678). Because
+// `.gitlab-ci.yml` is a declared shared surface for both `gate-change-check`
+// and `ci-needs-implication` in `.agf/gates.yaml`, that one-line, otherwise
+// unrelated CI edit required touching both gates' own declared test paths —
+// exactly the generic scenario `shared_surface_requires_each_active_gates_own_test_evidence`
+// (tests/ci_needs_implication.rs) already exercises. This file's own
+// regression coverage for `commercial-corpus:validate` itself lives in
+// `tests/ci_needs_implication.rs`; this comment is this file's companion
+// touch for that same real commit.
+
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -460,4 +479,65 @@ fn git_output(root: &Path, args: &[&str]) -> String {
         .expect("run git");
     assert!(output.status.success(), "{}", diagnostics(&output));
     String::from_utf8(output.stdout).unwrap().trim().to_string()
+}
+
+#[test]
+fn advisory_coordination_changes_still_require_shared_cli_gate_evidence() {
+    for feature in ["session_addressing", "reply_evidence", "channel_membership"] {
+        let fixture = Fixture::new();
+        fixture.write(
+            "tooling/checker.rs",
+            &format!("fn {feature}() {{ /* advisory display */ }}\n"),
+        );
+        fixture.write(
+            &format!("tests/{feature}.rs"),
+            "new feature regression coverage\n",
+        );
+        fixture.commit("change advisory coordination behavior on shared CLI surface");
+        let blocked = fixture.check();
+        assert_eq!(blocked.status.code(), Some(1), "{}", diagnostics(&blocked));
+        assert!(String::from_utf8_lossy(&blocked.stderr).contains("no changed declared test path"));
+        fixture.write(
+            "tests/gate_change.rs",
+            "shared CLI negative control reviewed\n",
+        );
+        fixture.commit("include declared gate companion evidence");
+        assert_success(fixture.check());
+    }
+}
+
+#[test]
+fn merged_companion_evidence_does_not_cover_a_later_shared_surface_change() {
+    let mut fixture = Fixture::new();
+    fixture.write(
+        "tests/gate_change.rs",
+        "previous slice companion coverage\n",
+    );
+    fixture.commit("land previous slice on target");
+    fixture.base = git_output(fixture.root.path(), &["rev-parse", "HEAD"]);
+    fixture.write("tooling/checker.rs", "fn check() { /* next slice */ }\n");
+    fixture.commit("change shared surface after target advancement");
+    let blocked = fixture.check();
+    assert_eq!(blocked.status.code(), Some(1), "{}", diagnostics(&blocked));
+    assert!(String::from_utf8_lossy(&blocked.stderr).contains("no changed declared test path"));
+    // A feature-local test does not replace the shared gate's declared companion,
+    // even when that feature test was added after the target advanced.
+    fixture.write("tests/visibility.rs", "current slice visibility coverage\n");
+    fixture.commit("add feature-local coverage after target advancement");
+    let still_blocked = fixture.check();
+    assert_eq!(
+        still_blocked.status.code(),
+        Some(1),
+        "{}",
+        diagnostics(&still_blocked)
+    );
+    assert!(
+        String::from_utf8_lossy(&still_blocked.stderr).contains("no changed declared test path")
+    );
+    fixture.write(
+        "tests/gate_change.rs",
+        "previous plus current slice coverage\n",
+    );
+    fixture.commit("supply current slice companion evidence");
+    assert_success(fixture.check());
 }

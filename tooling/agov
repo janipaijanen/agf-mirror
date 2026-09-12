@@ -128,6 +128,7 @@ requested_base_ref() {
 
 binary_is_fresh() {
   binary=$1
+  # Safe shared value: base_ref is passed through unchanged by these helpers.
   base_ref=$2
   expected_fingerprint=$3
   provenance=$($binary version --format json 2>/dev/null || true)
@@ -137,8 +138,8 @@ binary_is_fresh() {
   esac
   commit=${provenance#*'"commit":"'}
   commit=${commit%%\"*}
-  source_fingerprint=${provenance#*'"source_fingerprint":"'}
-  source_fingerprint=${source_fingerprint%%\"*}
+  embedded_fingerprint=${provenance#*'"source_fingerprint":"'}
+  embedded_fingerprint=${embedded_fingerprint%%\"*}
 
   case "$commit" in
     ''|*[!0-9a-fA-F]*)
@@ -150,7 +151,7 @@ binary_is_fresh() {
     echo "WARN rejected $binary: missing or malformed full commit provenance" >&2
     return 1
   fi
-  if [ "$source_fingerprint" != "$expected_fingerprint" ]; then
+  if [ "$embedded_fingerprint" != "$expected_fingerprint" ]; then
     echo "WARN rejected $binary: tooling source fingerprint differs" >&2
     return 1
   fi

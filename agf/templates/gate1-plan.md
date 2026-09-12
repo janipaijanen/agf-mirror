@@ -2,6 +2,8 @@
 id: sample-login-error-message
 status: pending-gate1
 topic: login-error-message
+# Optional: whole-segment **, single-segment * and ? globs are supported.
+# affected_paths: ["lib/auth/login.ex", "test/auth/login_test.exs"]
 gate1_approved_by: ""
 gate1_approved_at: ""
 advisory_consultation:
@@ -21,6 +23,14 @@ Make the failed-login message actionable without revealing whether an account
 exists.
 
 ## Affected files
+
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
+
+Relative paths normalize `.` and redundant separators before comparison;
+`**` is allowed only as a whole segment. The default check is local-only. CLI `--include-forge` adds fresh GitLab reads
+using configured `glab` authentication; `--base-ref` defaults to `main`.
+Exit `0` means full coverage and no overlap; `1` means a possible overlap;
+`2` means no overlap found with incomplete coverage. MCP supports local mode only.
 
 - `lib/auth/login.ex`
 - `test/auth/login_test.exs`

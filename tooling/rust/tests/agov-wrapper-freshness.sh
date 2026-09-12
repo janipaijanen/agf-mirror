@@ -19,6 +19,8 @@ cp "$(git rev-parse --show-toplevel)/tooling/rust/scripts/agov-source-fingerprin
 printf '%s\n' '{}' > "$fixture/agf/schemas/test.json"
 printf '%s\n' 'agents: []' > "$fixture/agf/agents/MANIFEST.yaml"
 printf '%s\n' 'unrelated' > "$fixture/README.md"
+# Match the real checkout: generated binaries must not fingerprint themselves.
+printf '%s\n' '/tooling/rust/target/' > "$fixture/.gitignore"
 
 cat > "$fixture/tooling/rust/target/release/agov" <<'EOF'
 #!/usr/bin/env sh
@@ -36,7 +38,7 @@ chmod +x "$fixture/tooling/agov" "$fixture/tooling/rust/target/release/agov" \
 git -C "$fixture" init -q
 git -C "$fixture" config user.name fixture
 git -C "$fixture" config user.email fixture@example.invalid
-git -C "$fixture" add tooling/agov agf README.md
+git -C "$fixture" add tooling/agov agf README.md .gitignore
 git -C "$fixture" commit -qm initial
 initial=$(git -C "$fixture" rev-parse HEAD)
 initial_fingerprint=$("$fixture/tooling/rust/scripts/agov-source-fingerprint.sh" "$fixture")
@@ -202,10 +204,31 @@ INNER
 chmod +x "$FIXTURE_ROOT/tooling/rust/target/release/agov"
 EOF
 chmod +x "$fake_bin/cargo"
-output=$(cd "$fixture" && FIXTURE_ROOT=$fixture PATH="$fake_bin:/usr/bin:/bin" \
+# Seed valid commit provenance with a wrong embedded fingerprint. Rebuilding
+# must embed the true source digest, not the rejected candidate's digest.
+expected_rebuild_fingerprint=$("$fixture/tooling/rust/scripts/agov-source-fingerprint.sh" "$fixture")
+output=$(cd "$fixture" && PROVENANCE_COMMIT=$sensitive \
+  PROVENANCE_FINGERPRINT=stale-fixture-fingerprint \
+  FIXTURE_ROOT=$fixture PATH="$fake_bin:/usr/bin:/bin" \
   ./tooling/agov coord publication-check --help 2>&1)
+printf '%s' "$output" | grep -q 'tooling source fingerprint differs'
 printf '%s' "$output" | grep -q 'rebuilding stale or missing repository-local release binary'
 printf '%s' "$output" | grep -q 'rebuilt fixture agov ran'
+rebuilt_provenance=$("$fixture/tooling/rust/target/release/agov" version --format json)
+rebuilt_fingerprint=${rebuilt_provenance#*'"source_fingerprint":"'}
+rebuilt_fingerprint=${rebuilt_fingerprint%%\"*}
+if [ "$rebuilt_fingerprint" != "$expected_rebuild_fingerprint" ]; then
+  echo "ERR rebuild embedded rejected fingerprint: $rebuilt_fingerprint" >&2
+  exit 1
+fi
+output=$(cd "$fixture" && FIXTURE_ROOT=$fixture PATH="$fake_bin:/usr/bin:/bin" \
+  ./tooling/agov coord publication-check --help 2>&1)
+if printf '%s' "$output" | grep -q 'rebuilding stale or missing repository-local release binary'; then
+  echo 'ERR unchanged second invocation rebuilt again' >&2
+  exit 1
+fi
+printf '%s' "$output" | grep -q 'rebuilt fixture agov ran'
+echo 'OK rejected wrong fingerprint; rebuilt correct digest; second invocation reused binary'
 
 # Invoking one worktree's wrapper from another linked worktree must fail with
 # the correct local wrapper path instead of silently binding to the first tree.

@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for Row 6 S2 (CP-C: branch-local
+# obligation visibility for `agov handoff next`). Added per RNP-4's note
+# that S2 retained an inline-only projection screen and a stale
+# distribution claim; converted to the structured manifest for
+# consistency with the sibling S3 manifest and to correct the claim.
+
+plan_id: 20260911T035752Z-row6-s2-cpc-branch-local-visibility
+
+changed_pages_or_runbooks:
+  - AGENTS.md
+  - agf/templates/AGENTS.md
+
+surfaces:
+  normative_owner:
+    disposition: not applicable
+    reason: >-
+      No MUST/blocking prose changes. This is an opt-in `agov` discovery
+      flag, same class as row-5 S1's `--session` flag — it adds a
+      capability, it does not create or change a governed rule.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Internal `agov` CLI flag documented in the tooling quick reference,
+      not a separate adopter-facing Pages claim.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      No dedicated runbook exists for coordination-tooling flags; the
+      "Tooling quick reference" pointer in AGENTS.md is the situation map
+      for this class of change (same treatment as `--session`).
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      "Tooling quick reference" gains a one-line pointer:
+      `agov handoff next --include-branch-local` widens the search to
+      every local and remote-tracking branch's coordination tree;
+      default behaviour unchanged. Corrected 2026-09-11 (RNP-2 round 3 —
+      a real drafting bug the recheck caught): `agf/templates/AGENTS.md`
+      was placed under `not_applicable` even though its own stated reason
+      said it should get the pointer. Moved to `updated`, matching what
+      the reason always said and what `distribution` below already
+      confirms ships.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Imports root AGENTS.md by reference; reaches Claude without a
+          separate edit.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    paths:
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/src/handoff_branch.rs
+      - tooling/rust/crates/agov/tests/handoff_branch.rs
+      - tooling/rust/crates/agov-mcp/src/main.rs
+      - tooling/rust/crates/agov-mcp/tests/stdio.rs
+    reason: >-
+      Implemented as an opt-in advisory inventory. Seven integration tests cover
+      the plan cases, including per-source lifecycle, exact raw blob identity,
+      conflicts, invalid/corrupt refs and session annotation. Repeated error sets are grouped with all ref/SHA labels preserved. MCP
+      schema/argument mapping and real stdio CLI parity have dedicated tests.
+      This is validation evidence, not a new blocking check.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/templates/AGENTS.md
+    reason: >-
+      Corrected 2026-09-11 (RNP-4, carried over from the sibling S3
+      correction): `agov` itself ships via the separate tooling archive,
+      not the `agf/` framework artifact — the prior "`agov` + AGENTS.md
+      templates ship in the AGF artifact" sentence conflated the two
+      distribution channels. Root `AGENTS.md` is foundry-local and not
+      shipped (see `ai_landing_loaders` above); `agf/templates/AGENTS.md`
+      is the one path that actually ships in the `agf/` framework
+      artifact and is recorded here.

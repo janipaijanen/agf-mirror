@@ -82,11 +82,20 @@ The adopter-facing product is in `agf/`. Foundry tooling sources are in
 | fact-checker | Jani + AI advisory | Factual/docs claim review when activated by governor-reviewer |
 | academic-peer-reviewer | Jani + AI advisory | Academic/manual review for paper-style claims and definitions |
 | web-ux-reviewer | Jani + AI advisory (independent of the implementing session) | Visual/UX/accessibility review of the public Pages site |
+| documentation-estate-steward | claude (AI) | Estate-wide adopter-facing documentation consistency and currency; runs the release-content-freeze sweep |
+| independent-implementation-reviewer | AI, distinct from the implementer (named per Gate 2 candidate) | Targeted exact-head implementation-diff verification when extra review separation is warranted; advisory, never a Gate 2 approver |
 
-Suspended: independent-implementation-reviewer (role definition has 6
-unresolved findings from its own first exact-head review; see
-`agf/agents/MANIFEST.yaml` for the corrective-work trail).
 Skipped: documentation-writer, deployment-engineer, academic-visual-reviewer.
+
+`independent-implementation-reviewer` was **reactivated** by governor
+decision `20260816T145707Z-governor-reviewer-3eqb` (Gate 2 for MR !1632 at
+`903899f6`); the 2026-08-09 suspension is closed. See
+`agf/agents/MANIFEST.yaml` for the full corrective-work trail.
+
+`documentation-estate-steward` was activated 2026-09-10 by governor decision
+(bridged `20260910T050007Z-planner-architect-jh3g`, ratified
+`20260910T133145Z-governor-reviewer-q862`); see
+`agf/agents/documentation-estate-steward.yaml`.
 
 Active for foundry: improvement-propeller, played by Codex under approved plan
 `20260909T015237Z-propeller-stage4-activation` and governor decision `djh1`.
@@ -110,6 +119,10 @@ tool output is advisory evidence. See `agf/rules/always/tool-authority-boundary-
 ---
 
 ## Coordination channel
+
+Channel membership, bounded misplaced-record discovery and unassessed archive inventory are defined by `agf/rules/workflow/coordination-publication-rule.md`. Only direct lowercase `.md` files are channel members; archive exclusion never proves closure. Consult the visibility command reference for its explicit scan scopes and coverage limits.
+
+Recipient-only session annotations for handoffs are defined by `agf/rules/workflow/coordination-publication-rule.md` (Advisory recipient session addressing). Top-level session is author provenance; a mismatch never hides or reprioritizes an obligation.
 
 All inter-agent communication goes through immutable Markdown files in
 `docs/coordination/`. Front matter is validated by `agov coord validate`.
@@ -190,6 +203,8 @@ must not be renamed merely for style.
 ---
 
 ## Gate discipline
+
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
 
 Every non-trivial task requires:
 
@@ -390,6 +405,7 @@ Rust is the default operator path for supported commands:
   other than `handoff` and `ack`; `handoff` obligations remain `agov handoff
   next`'s surface
 - `agov handoff next`
+- `agov handoff next <role> --include-branch-local` — adds advisory handoffs from every local and remote-tracking branch (the `coord visibility` ref universe), with content conflicts and partial coverage labeled; the default filesystem answer is unchanged.
 - `agov session resume`
 - `agov validate ...`
   - `agov.validate.assistant_loader` — checks that AGENTS.md/.claude/CLAUDE.md
@@ -481,12 +497,34 @@ branch, and advance the next already-authorized handoff. In this GitLab
 project, the initial branch push can start before the merge request is
 registered; opening the MR may then create a `push`/`merge_request_event` pair
 for the same SHA. This known first-push limitation does not mean the
-contributor pushed twice or that GitLab ignored the later-push guard. Preserve
-the MR pipeline as the canonical Gate 2 acceptance path. Before canceling
-anything, compare pipeline source, ref, status, and job-name/required-job
-coverage—matching SHA alone is not proof of redundancy. Cancel only the
-demonstrably redundant push path, and record exact pipeline/job IDs and runner
-time already consumed.
+contributor pushed twice or that GitLab ignored the later-push guard.
+
+**When publishing a brand-new branch that will get an MR immediately**, the
+required primary step is publication-time prevention, not after-the-fact
+cancellation (see `docs/plans/20260911T052932Z-ci-first-push-publication-guard.md`):
+push the first commit with `git push -o ci.skip -u origin <new-branch>` — a
+GitLab push option evaluated by the push handshake itself, never a
+commit-message marker, and never a substitute for the `[ci skip]`/`[skip ci]`
+commit-message prohibition below, which stays forbidden — then immediately
+register the MR and verify exactly one job-running pipeline exists at the
+SHA (`merge_request_event`-sourced; the resulting `push`-sourced pipeline
+record stays `skipped` and consumes no runner time — that is the intended
+outcome, not a residual duplicate). If MR registration fails or is
+uncertain, re-query for an existing MR on the branch and adopt it if found,
+retry a bounded number of times, and otherwise stop and record an explicit
+blocker naming the branch, ref, and SHA — an unchanged re-push of an
+already-current branch is a no-op and does not create a new pipeline.
+Subsequent pushes to the same branch are unaffected by any of this; they
+already fall under the existing `$CI_OPEN_MERGE_REQUESTS` guard.
+
+Preserve the MR pipeline as the canonical Gate 2 acceptance path. **The
+compare-and-cancel step below remains required** for every path this
+procedure does not cover — `ci.skip` unavailable or forgotten, a manual
+push through the GitLab UI, or a failed MR registration that itself
+produces a duplicate. Before canceling anything, compare pipeline source,
+ref, status, and job-name/required-job coverage—matching SHA alone is not
+proof of redundancy. Cancel only the demonstrably redundant push path, and
+record exact pipeline/job IDs and runner time already consumed.
 
 The action loop does **not** enlarge authority. Stop and request the binding
 decision for Gate 1 approval, Gate 2 approval or merge, a release/tag/deploy,
