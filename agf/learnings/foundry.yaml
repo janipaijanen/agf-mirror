@@ -5525,6 +5525,88 @@ learnings:
         - 'docs/coordination/20260917T074516Z-contribution-auditor-kgeb.md and MR !2902: the published review addressed the correction obligation.'
         - 'MR !2888 note 3848441633: the same findings were visible in the implementation discussion without an owner acknowledgement.'
         - 'docs/coordination/20260917T135019Z-contribution-auditor-r312.md and MR !2909: acknowledgement-required corrective handoff issued after the delivery gap was challenged.'
+  - id: 20260912T223157Z-b4nk
+    date: '2026-09-12'
+    category: process
+    scope: framework
+    title: coordination-only-mrs-opened-but-never-merged-audit-trail-invisible
+    status: proposed
+    description: >-
+      Throughout the 2026-09-12 v2.10.1 release session, this
+      planner-architect session correctly followed the mechanics of
+      `coordination-publication-rule.md` for every decision record: it
+      generated the ID, wrote the record, validated it, branched from
+      `main`, committed with the `coordination:` prefix, pushed with
+      `-o ci.skip`, and opened a merge request. What it never did, for 28
+      of the 29 coordination-titled MRs opened that session (the
+      exception being the very last cycle's !2755/!2756/!2757, which
+      were correctly carried through to merge after this gap was found),
+      was the actual merge step. AGENTS.md's own visibility rule states a
+      coordination message "is not complete when it merely exists on
+      disk. It must pass validation and be made visible where the
+      recipient is expected to read it" -- opening an MR partially
+      satisfies this (GitLab shows the diff, a human clicking into the
+      MR list sees it) but the append-only, `main`-committed channel
+      `agov coord list` and every cold-started agent actually reads
+      remained completely unaware of the entire release's decision
+      chain: Gate 1/Gate 2 approvals, the independent security review,
+      the main-history-rewrite notice, the release Gate 2 approval, the
+      merge/tag completion record, and the final independent-verification
+      record were all sitting unmerged in open MRs !2715-!2754 when
+      discovered. The session's own polling loop (`agov coord list
+      --since <cursor>`) consequently and correctly reported "no new
+      coordination messages" every cycle, because there genuinely were
+      none on `main` -- the polling tool was not broken, the publication
+      step was simply never executed. The gap was found only when a
+      *different* task (opening MR !2755 for an unrelated sources-batch
+      classification) prompted a full `glab mr list` scan that surfaced
+      the accumulated backlog by volume.
+    agents_involved:
+      - planner-architect
+      - governor-reviewer
+    framework_section: >-
+      agf/rules/workflow/coordination-publication-rule.md;
+      AGENTS.md Coordination channel section, "Visibility rule"
+    business_impact:
+      type: audit_trail_gap
+      description: >-
+        For the full duration of the v2.10.1 release lifecycle (Gate 1
+        plan through tag-pipeline verification, several hours of a
+        single session), the durable governance audit trail this
+        project's own coordination model depends on did not exist on
+        `main`. Any concurrent session, cold-started agent, or human
+        reviewer consulting `docs/coordination/` on `main` during that
+        window would have seen none of the decisions that were, per the
+        live conversation, already made and acted on -- a silent
+        divergence between "what actually happened" and "what the
+        append-only record shows happened" that the whole model exists
+        to prevent. No incorrect action resulted this time only because
+        no other actor happened to rely on the missing records during
+        the gap window; that is luck, not a property the process
+        guaranteed.
+    recommendation: >-
+      Treat "open the MR" and "merge the MR" as two required steps of one
+      obligation for a coordination-only publication, not "open" alone
+      with "merge" as later, optional cleanup. Concretely: after pushing
+      a coordination-only branch and opening its MR, immediately verify
+      the exact-head pipeline (per the existing first-push publication
+      guard), and if this session holds governor-reviewer merge
+      authority for the exchange in question (e.g. the human has already
+      given verbal Gate 2 authorization for the underlying decision, as
+      happened repeatedly this session via "gate 2 approved," "push it,"
+      etc.), complete the merge in the same turn rather than deferring
+      it to "later in the session." When a large batch accumulates
+      anyway (this session's own multi-record batching provision in
+      `coordination-publication-rule.md` exists precisely to reduce this
+      kind of churn), add a periodic self-check to the polling loop:
+      before reporting "no new coordination since <cursor>," also run
+      `glab mr list` (or equivalent) filtered to this session's own
+      `coordination/*` branches and confirm none are sitting open beyond
+      one poll cycle. A cursor-based `agov coord list` check alone cannot
+      catch this failure mode, because the failure mode is exactly
+      "nothing new landed where the cursor looks" -- the check has to
+      look at the publication surface (open MRs), not just the
+      destination (main's committed channel).
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
