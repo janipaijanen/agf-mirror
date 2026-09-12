@@ -5,6 +5,7 @@ pub mod coord_config;
 pub mod coord_identity;
 pub mod coord_validator;
 pub mod handoff_tracker;
+pub mod hold_evaluate;
 pub mod hold_evidence;
 pub mod hold_classify;
 pub mod hold_result;
