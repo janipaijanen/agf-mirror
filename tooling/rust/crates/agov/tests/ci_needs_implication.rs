@@ -238,6 +238,42 @@ fn commercial_corpus_validate_guarantees_merge_base_ancestry() {
 }
 
 #[test]
+fn rust_tooling_deny_clears_stale_advisory_db_before_check() {
+    // Regression guard for the cargo-deny advisory-db crash (pipeline
+    // 2842901098, required job rust:tooling:deny, 2026-09-12): the
+    // advisory-db clone lives under CARGO_HOME but is not a cached path
+    // (only .cargo/registry, .cargo/bin, and tooling/rust/target are).
+    // cargo-deny crashed trying to read an existing clone's FETCH_HEAD,
+    // misparsing git's fatal error as an ISO-8601 timestamp instead of
+    // cloning fresh, even though the directory should not persist across
+    // runs on this non-cached path. The precise precondition (e.g. a
+    // prior run's partial state vs. something else) is an unproven
+    // hypothesis, not a demonstrated cause -- see the Gate 1 plan
+    // (docs/plans/20260912T112252Z-cargo-deny-advisory-db-clean-clone-
+    // gate1.md, governor decision jhaq) for the disclosed validation
+    // limit. This test is a configuration guard confirming the mitigation
+    // is present and ordered correctly, not a causal regression
+    // reproducer for the original crash.
+    let configuration = read_live_configuration();
+    let block =
+        top_level_block(&configuration, "rust:tooling:deny").expect("rust:tooling:deny job block");
+    let clear_pos = block.find("rm -rf \"$CARGO_HOME/advisory-dbs\"").unwrap_or_else(|| {
+        panic!(
+            "rust:tooling:deny must clear $CARGO_HOME/advisory-dbs before \
+             running cargo deny check, as a guard against a possible torn \
+             prior clone making it crash instead of cloning fresh:\n{block}"
+        )
+    });
+    let check_pos = block
+        .find("cargo deny check")
+        .expect("rust:tooling:deny must still run cargo deny check");
+    assert!(
+        clear_pos < check_pos,
+        "the advisory-db clear must run before cargo deny check, not after:\n{block}"
+    );
+}
+
+#[test]
 fn detects_reintroduced_container_build_on_the_mandatory_linux_path() {
     let configuration = read_live_configuration();
     let package = top_level_block(&configuration, ".rust-tooling-package")
