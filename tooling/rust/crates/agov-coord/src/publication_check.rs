@@ -814,25 +814,28 @@ mod tests {
 
     #[test]
     fn ci_skip_marker_in_commit_message_fails() {
-        let repo = TempRepo::new();
-        repo.write("docs/coordination/base.md", "# base\n");
-        repo.commit("chore: base");
-        let base = repo.head();
-        run(repo.path(), &["branch", "target", &base]);
+        for marker in ["[ci skip]", "[skip ci]"] {
+            let repo = TempRepo::new();
+            repo.write("docs/coordination/base.md", "# base\n");
+            repo.commit("chore: base");
+            let base = repo.head();
+            run(repo.path(), &["branch", "target", &base]);
 
-        repo.write(
-            "docs/coordination/20260727T000500Z-f.md",
-            &coord_message("20260727T000500Z-f"),
-        );
-        repo.commit("coordination: add f [ci skip]");
+            repo.write(
+                "docs/coordination/20260727T000500Z-f.md",
+                &coord_message("20260727T000500Z-f"),
+            );
+            repo.commit(&format!("coordination: add f {marker}"));
 
-        let report = publication_check("target", "docs/coordination", "coordination:", repo.path());
-        assert!(!report.ok);
-        assert!(
-            report.reasons.iter().any(|r| r.contains("ci-skip marker")),
-            "expected a ci-skip-marker reason, got: {:?}",
-            report.reasons
-        );
+            let report =
+                publication_check("target", "docs/coordination", "coordination:", repo.path());
+            assert!(!report.ok);
+            assert!(
+                report.reasons.iter().any(|r| r.contains("ci-skip marker")),
+                "expected a ci-skip-marker reason, got: {:?}",
+                report.reasons
+            );
+        }
     }
 
     #[test]
