@@ -426,8 +426,14 @@ hygiene-precondition authority rests on `q862`.
 
 Analysis only; opens and closes nothing (per the work order's own
 sequencing note: dispositioning may run in parallel with execution).
-Live query against `main` at `4fe0f389` found 55 open MRs; 44 already
-carry a row above. The following 11 opened after the QC-1 baseline.
+Live query against `main` at `4fe0f389`, snapshot timestamp 2026-09-12
+~10:22 UTC, found 55 open MRs; 44 already carry a row above. The
+following 11 opened after the QC-1 baseline. (A later full poll at
+10:51:15 UTC found 58 open MRs — the increase is this cohort's own new
+MRs: `!2721` itself, its review handoff `!2722`, and the CI fix
+`!2723`. This doesn't invalidate this snapshot's rows; it means
+coverage is dated to the snapshot, not a claim that no MR has opened
+since. Per `r5rm` QC1-A1.)
 Four are the `coordination:`-title-prefix carve-out
 (`20260903T043752Z` §3c: "publish independently, uncounted") and need
 no row: **!2715, !2718, !2719, !2720**. The remaining seven:
@@ -440,11 +446,14 @@ no row: **!2715, !2718, !2719, !2720**. The remaining seven:
 | !2688 | Proposal (operating-model token/footprint preliminary assessment, "early start") | **awaiting-governor.** No review or discussion recorded yet. Named question: per `54a3`/`rgb5`, full operating-model minimization is deferred until RUW is released and the open-MR queue is empty, but this "preliminary pilot is separate" — governor must confirm whether this preliminary assessment proceeds now or waits with the full minimization work. |
 | !2689 | Gate 1 plan, approved (quantized-model mechanical-drafting pilot) | **merge-now.** Gate 1 approved (metadata synced this session); exact head `545698a2`. Awaiting governor Gate 2 decision. Not batch-eligible. |
 | !2714 | DES-5 estate-corrections fix (`docs`) | **merge-now.** Active workstream this session — independent exact-head review (`q2pt`) found 2 blocking findings, both corrected at head `bb1ee084`; fresh review requested. Not stale, not batch-eligible. |
-| !2716 | Draft plan (CP-B-2 publication hold/urgency) | **awaiting-governor.** Pending-Gate-1 child plan; independent advisory review CLEAR (`sk2r`), but governor-arranged security consultation (per `smmp`'s appointment, scope includes this MR) is still outstanding before Gate 1. Named question: complete the security consultation this appointment covers. |
+| !2716 | Draft plan (CP-B-2 publication hold/urgency) | **awaiting-governor**, corrected 2026-09-12 (`r5rm` QC1-R1: the prior row wrongly routed already-delivered agent work back to the governor). Security consultation is staffed and delivered (`smmp` appointment, `q82p`/`kskr` findings/clearance at the then-current head); the narrowed one-plan review trial is governor-approved (`rqkp`). **Currently agent-owned**: plan correction and bounded re-review at the revised head (`3ng2`/`bnkg`). The actual governor-only question is the eventual child Gate 1 implementation decision once that agent work completes — not staffing, which is already done. |
 | !2717 | DES-6 escalation + rewrite (`docs`) | **merge-now.** Active workstream this session — governor decision `3rha` directed a rewrite (not archive); implemented at head `59ced653`, awaiting review. Not stale, not batch-eligible. |
 
-**QC-1 continuation completeness:** all 55 currently open MRs now carry
-a disposition row or an explicit carve-out reason. No `close-superseded`,
+**QC-1 continuation completeness (as of the 10:22 UTC snapshot):** all
+55 MRs open at that snapshot now carry a disposition row or an explicit
+carve-out reason. Rows opened after this snapshot (see the 10:51:15 UTC
+recount above) are not yet individually rowed and are not claimed
+covered by this completeness statement. No `close-superseded`,
 `close-invalid`, `reconstruct`, or `park-radar` candidates identified in
 this cohort — all seven are active, recent workstreams (opened
 2026-09-10 through 2026-09-12), not the kind of aged/stale MR the
