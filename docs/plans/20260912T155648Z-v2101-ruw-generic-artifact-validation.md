@@ -25,22 +25,34 @@ advisory_consultation:
   - role: contribution-auditor
     status: waived
     reason: >-
-      Consultation requested at this Gate 1, not yet on record. This is
-      new, customer-adjacent capability with real design-boundary risk
-      (see "Explicitly out of scope" below) — request an actual
-      contribution-auditor pass before governor Gate 1 decision, not a
-      pattern-matched waiver.
+      Corrected per Codex review on MR !2733: the earlier wording
+      ("request an actual pass before governor Gate 1 decision") was
+      overtaken by events — governor Gate 1 approval (jj88/h18h) already
+      occurred without a contribution-auditor pass having happened.
+      Recording honestly as a real waiver for Gate 1, not a pending
+      request: Jani approved this scope directly, and no contribution-
+      auditor finding is on record either way. A contribution-auditor
+      pass is still welcome before Gate 2, given the real design-
+      boundary risk noted under "Explicitly out of scope" below, but it
+      is not a precondition that was met before this Gate 1 decision.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Plan: v2.10.1 as the redesignated RUW — generic artifact/graph validation extension
 
-**Gate 1: APPROVED, version confirmed as v2.10.1** per
-`20260912T160141Z-planner-architect-jj88` ("gate 1 approved, confirm
-version 2.10.1", governor decision transcribed by Claude, no
-AI-originated authority claimed). The SemVer tension this plan flagged
-is resolved: v2.10.1 stands as named, not v2.11.0 or another number.
+**Gate 1: APPROVED, version confirmed as v2.10.1** — decision
+originally transcribed in `20260912T160141Z-planner-architect-jj88`
+("gate 1 approved, confirm version 2.10.1"), with governor-reviewer
+authority correctly attributed in
+`20260912T162639Z-governor-reviewer-h18h` per Codex's review on MR
+!2733 (`jj88` was authored `from: planner-architect`, which does not
+by itself satisfy `AGENTS.md`'s gate-discipline requirement that only a
+`governor-reviewer` coordination message supplies binding Gate 1
+authority; `h18h` is the correction, not a re-approval — Jani's
+decision was not asked for again). The SemVer tension this plan
+flagged is resolved: v2.10.1 stands as named, not v2.11.0 or another
+number.
 
 ## Decision requested at Gate 1
 
