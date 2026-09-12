@@ -6,6 +6,7 @@ pub mod coord_identity;
 pub mod coord_validator;
 pub mod handoff_tracker;
 pub mod hold_status;
+pub mod hold_git;
 pub mod plan_validator;
 pub mod projection_manifest;
 pub mod publication_check;
