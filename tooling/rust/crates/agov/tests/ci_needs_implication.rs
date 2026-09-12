@@ -238,6 +238,35 @@ fn commercial_corpus_validate_guarantees_merge_base_ancestry() {
 }
 
 #[test]
+fn rust_tooling_deny_clears_stale_advisory_db_before_check() {
+    // Regression guard for the cargo-deny advisory-db crash (pipeline
+    // 2842901098, required job rust:tooling:deny, 2026-09-12): the
+    // advisory-db clone lives under CARGO_HOME but is not a cached path
+    // (only .cargo/registry, .cargo/bin, and tooling/rust/target are). A
+    // prior run's partial state there made cargo-deny try to read an
+    // existing clone's FETCH_HEAD and crash when the directory was
+    // actually missing, misparsing git's fatal error as an ISO-8601
+    // timestamp instead of cloning fresh.
+    let configuration = read_live_configuration();
+    let block =
+        top_level_block(&configuration, "rust:tooling:deny").expect("rust:tooling:deny job block");
+    let clear_pos = block.find("rm -rf \"$CARGO_HOME/advisory-dbs\"").unwrap_or_else(|| {
+        panic!(
+            "rust:tooling:deny must clear $CARGO_HOME/advisory-dbs before \
+             running cargo deny check, so a torn prior clone can't make it \
+             crash instead of cloning fresh:\n{block}"
+        )
+    });
+    let check_pos = block
+        .find("cargo deny check")
+        .expect("rust:tooling:deny must still run cargo deny check");
+    assert!(
+        clear_pos < check_pos,
+        "the advisory-db clear must run before cargo deny check, not after:\n{block}"
+    );
+}
+
+#[test]
 fn detects_reintroduced_container_build_on_the_mandatory_linux_path() {
     let configuration = read_live_configuration();
     let package = top_level_block(&configuration, ".rust-tooling-package")
