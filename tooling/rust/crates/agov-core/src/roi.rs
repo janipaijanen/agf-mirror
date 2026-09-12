@@ -45,6 +45,7 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_validate",
     "agov_coord_validate",
     "agov_plan_validate",
+    "agov_plan_collision_check",
     "agov_session_resume",
     "agov_handoff_next",
     "agov_handoff_take",
@@ -162,6 +163,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "pending",
     // plan subcommands (validate shares the top-level "validate" token).
     "projection-check",
+    "collision-check",
     "projection-check-all",
     "change-check",
     // validate subcommands.
@@ -252,6 +254,8 @@ pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 /// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
 pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--session",
+    "--include-branch-local",
+    "--include-forge",
     "--phase",
     "--api-url",
     "--project-id",

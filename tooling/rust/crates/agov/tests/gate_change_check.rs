@@ -1,3 +1,10 @@
+// Row 6 S2/S3 companion evidence (2026-09-11): both advisory commands
+// register in main.rs, a shared surface of gate-change-check. The gate itself
+// is unchanged. Existing negative controls below still exercise missing test
+// accompaniment and gate-removal rejection; command behavior is exercised by
+// handoff_branch.rs, plan_collision.rs and the real MCP stdio parity fixture.
+// This declared companion records that the shared-surface gate was checked.
+
 // Real-world companion-evidence example, 2026-09-11: MR !2711 added
 // `GIT_DEPTH: "0"` to `.gitlab-ci.yml`'s `commercial-corpus:validate` job
 // (fixing a shallow-clone `no merge base` failure, MR !2678). Because

@@ -45,6 +45,14 @@ pub fn validate_file(path: &Path) -> Result<PlanDocument, Vec<(String, String)>>
         .map(|err| (err.message, err.pointer))
         .collect();
 
+    // Name the restricted glob rule explicitly alongside schema diagnostics.
+    if let Some(paths) = raw.get("affected_paths").and_then(|v| v.as_array()) {
+        for (index, path) in paths.iter().enumerate() {
+            if path.as_str().is_some_and(|p| p.split('/').any(|s| s.contains("**") && s != "**")) {
+                errors.push(("affected_paths: ** is allowed only as a whole path segment".into(), format!("#/affected_paths/{index}")));
+            }
+        }
+    }
     if errors.is_empty() {
         errors.extend(validate_semantics(&raw));
     }

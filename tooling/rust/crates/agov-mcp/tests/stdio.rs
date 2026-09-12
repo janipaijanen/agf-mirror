@@ -6,6 +6,51 @@ use std::os::unix::fs::PermissionsExt;
 use std::process::{Command, Stdio};
 
 #[test]
+fn branch_handoff_and_local_collision_match_real_cli() {
+    let bin = build_real_agov_bin();
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let schema = workspace_root().join("agf/schemas");
+    let git = |args: &[&str]| {
+        let out = Command::new("git").args(args).current_dir(root).output().unwrap();
+        assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.name", "Test"]);
+    git(&["config", "user.email", "test@example.invalid"]);
+    std::fs::create_dir_all(root.join("docs/coordination")).unwrap();
+    std::fs::create_dir_all(root.join("docs/plans")).unwrap();
+    std::fs::write(root.join("docs/coordination/.keep"), "").unwrap();
+    git(&["add", "."]); git(&["commit", "-m", "base"]);
+    git(&["checkout", "-b", "handoff"]);
+    std::fs::write(root.join("docs/coordination/20260911T000000Z-planner-architect-a001.md"), "---\nid: 20260911T000000Z-planner-architect-a001\nkind: handoff\nfrom: planner-architect\nto: coder-tester\ntimestamp: 2026-09-11T00:00:00Z\nimmutable: true\nreferences-to: []\ntopic: parity\nrequires-ack: true\nhandoff:\n  next_agent: coder-tester\n  for_session: claude\n  status: ready\n  task: [test]\n  must_read: []\n  do_not_touch: []\n---\n").unwrap();
+    git(&["add", "."]); git(&["commit", "-m", "handoff"]); git(&["checkout", "main"]);
+    let parity = |name: &str, argv: &[&str], args: Value, expected: i32| {
+        let direct = Command::new(&bin).args(argv).env("AGOV_SCHEMA_DIR", &schema).env("AGOV_TOKEN_ROI", "0").current_dir(root).output().unwrap();
+        assert_eq!(direct.status.code(), Some(expected), "{}", String::from_utf8_lossy(&direct.stdout));
+        let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+            .env("AGOV_MCP_AGOV_BIN", &bin).env("AGOV_SCHEMA_DIR", &schema).env("AGOV_TOKEN_ROI", "0")
+            .current_dir(root).stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
+        writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":name,"arguments":args}})).unwrap();
+        drop(child.stdin.take());
+        let result: Value = serde_json::from_slice(&child.wait_with_output().unwrap().stdout).unwrap();
+        let stdout = String::from_utf8(direct.stdout).unwrap();
+        assert_eq!(result["result"]["structuredContent"]["stdout"], stdout);
+        assert_eq!(result["result"]["structuredContent"]["status"], expected);
+        assert_eq!(result["result"]["isError"], expected != 0);
+        stdout
+    };
+    let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local","--session","codex"], json!({"role":"coder-tester","include_branch_local":true,"session":"codex"}), 0);
+    assert!(report.contains("source: refs/heads/handoff") && report.contains("Addressed elsewhere: claude"));
+    std::fs::write(root.join("docs/coordination/bad.md"), "invalid").unwrap();
+    let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local"], json!({"role":"coder-tester","include_branch_local":true}), 1);
+    assert!(report.contains("partial_coverage: true"));
+    parity("agov_plan_collision_check", &["plan","collision-check"], json!({}), 0);
+    std::fs::write(root.join("docs/plans/old.md"), "---\nid: old\nstatus: approved\nadvisory_consultation:\n- role: infosec-sentinel\n  status: consulted\n- role: contribution-auditor\n  status: consulted\n---\n").unwrap();
+    parity("agov_plan_collision_check", &["plan","collision-check","--base-ref","main"], json!({"base_ref":"main"}), 2);
+}
+
+#[test]
 fn help_describes_mcp_server_and_installation() {
     for flag in ["--help", "-h"] {
         let output = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))

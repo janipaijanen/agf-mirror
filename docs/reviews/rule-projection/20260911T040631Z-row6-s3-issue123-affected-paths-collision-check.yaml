@@ -80,12 +80,18 @@ surfaces:
     paths:
       - tooling/rust/crates/agov/src/main.rs
       - agf/schemas/gate1-plan.schema.json
+      - tooling/rust/crates/agov/src/plan_collision.rs
+      - tooling/rust/crates/agov/src/plan_collision_forge.rs
+      - tooling/rust/crates/agov/tests/plan_collision.rs
+      - tooling/rust/crates/agov-coord/src/plan_validator.rs
+      - tooling/rust/crates/agov-mcp/src/main.rs
+      - tooling/rust/crates/agov-mcp/tests/stdio.rs
     reason: >-
       `agov plan collision-check` ships advisory (non-zero exit for CI
       visibility, never MR-blocking) in this slice per the parent work
       order's explicit scope guard. `agov plan validate` gains only a
       light shape check on `affected_paths` (array of non-empty
-      strings) as part of existing schema validation — no new blocking
+      strings with whole-segment ** only) as part of existing schema validation — no new blocking
       behaviour beyond that. Promoting collision-check to blocking is a
       separate, gate-self-test-rule-covered decision with its own
       negative test, not implied by this slice.
