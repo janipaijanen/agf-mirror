@@ -20,18 +20,18 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >-
-      `20260912T112815Z-contribution-auditor-34pp` is the actual
-      consultation (this plan's earlier "waived per gqmg precedent" was
-      incorrect — a similar prior incident is classification evidence,
-      not a governor waiver for this plan; corrected here per that
-      review's DENY-P2). That review found two blocking findings, both
-      addressed below: the root-cause claim is now stated as an unproven
-      hypothesis (DENY-P1) rather than asserted fact, and the sequencing
-      disclosure no longer frames revert-and-redo as the only alternative
-      to retroactive approval (DENY-A1, advisory). Unresolved as of this
-      revision: the underlying causal question in DENY-P1 (below) — this
-      plan asks the governor to accept the validation limit rather than
-      pay for further reproduction, not claiming it as resolved.
+      Two consultations: `20260912T112815Z-contribution-auditor-34pp`
+      (DENY-P1 root-cause overstatement, DENY-P2 borrowed waiver,
+      DENY-A1 revert-framing) and its follow-up
+      `20260912T115356Z-contribution-auditor-6kb2` (DENY-P2 and DENY-A1
+      confirmed resolved; DENY-P1 residual — conditional language was
+      still missing from "Alternatives" and the reproducer-cost claim
+      assumed the disputed mechanism, both corrected in this revision;
+      plus a named required post-approval correction to implementation
+      comments that still assert the cause as fact). This revision
+      addresses every point raised in both reviews except the underlying
+      causal question itself, which is intentionally left open for the
+      governor to accept as a stated validation limit — see "Problem".
 ---
 
 # Plan: force a clean `cargo-deny` advisory-db clone in `rust:tooling:deny`
@@ -77,17 +77,23 @@ one subsequent successful pipeline (`2842989228`) is evidence that
 *that run* passed with the fix present; it is not a before/after causal
 reproduction of the crash, and is not being upgraded to causal proof.
 
-**Validation limit / choice put to the governor:** no bounded local
-reproducer of the torn-state precondition has been built, and none is
-proposed as a precondition for this Gate 1 decision — building one
-would require simulating GitLab's ephemeral-runner filesystem behavior
-across pipeline runs, which is disproportionate to a one-line mitigation
-for a job that is otherwise passing. The governor is asked to accept
-either: (a) the mitigation as a reasonable, low-cost, non-weakening
-guard against this failure shape regardless of unconfirmed precise
-cause, on the understanding the causal claim is unproven; or (b) hold
-Gate 1 pending a bounded reproducer, in which case build-engineer will
-scope one before continuing.
+**Validation limit / choice put to the governor, corrected per `6kb2`:**
+no bounded local reproducer of the torn-state precondition has been
+built. The previous revision asserted that building one would require
+simulating GitLab's cross-pipeline runner filesystem behavior and called
+that disproportionate as though it were the only available method and a
+proven impossibility — contribution-auditor correctly points out that
+local `cargo-deny` source inspection or controlled local directory
+states (e.g. deliberately creating a partial clone and observing whether
+`cargo-deny` reproduces the same misparse) could inform the question
+without needing to reproduce GitLab's runner lifecycle at all. This is
+restated as a proposed effort tradeoff, not a demonstrated technical
+impossibility: the governor is asked to accept either (a) the mitigation
+as a reasonable, low-cost, non-weakening guard against this failure
+shape regardless of unconfirmed precise cause, spending no further
+effort on reproduction; or (b) hold Gate 1 and direct build-engineer to
+attempt the cheaper local-inspection/controlled-directory approach
+before continuing.
 
 Same failure-*shape* (a required job's advertised failure looking like
 a real finding but actually being a setup/evidence-availability defect)
@@ -119,20 +125,47 @@ asserts the `rm -rf` line is present and ordered before `cargo deny
 check` in the live `.gitlab-ci.yml` configuration. A matching
 companion-touch comment was added to `gate_change_check.rs`, following
 the same shared-surface pattern already established for the `!2711`
-`GIT_DEPTH` precedent.
+`GIT_DEPTH` precedent. The string-order assertion is a **configuration
+guard** (confirms the line exists and runs first) — per `6kb2`, it is
+not being described as a causal regression reproducer for the
+torn-state hypothesis.
+
+**Required correction not yet made (per `6kb2`, residual on `34pp`):**
+the `.gitlab-ci.yml` comment above the `rm -rf` line, and the doc
+comments in `ci_needs_implication.rs` and `gate_change_check.rs`, all
+currently assert the prior-run torn-state cause as established fact —
+the same overstatement this plan's "Problem" section now corrects. The
+implementation freeze in the "Sequencing disclosure" section above means
+this is **not** being fixed in this plan revision. It is named here as
+required scope for the first commit made after a governor decision that
+permits any further commit on `fix/rust-deny-advisory-db-cache`: reword
+those three comments to match this plan's conditional language (observed
+crash trace + unproven hypothesis), before that branch is presented as
+Gate-2-ready.
 
 ## Alternatives considered
 
+**Corrected per contribution-auditor review `20260912T115356Z-
+contribution-auditor-6kb2` (DENY-P1, residual) — the previous revision
+of this section still asserted the unproven torn-state cause as
+established fact. Reworded to conditional language, consistent with
+"Problem" above.**
+
 - **Do nothing / retry the pipeline unchanged.** Rejected —
   `debugging-rule.md` forbids retrying a failure without a diagnosed
-  root cause, and an unchanged retry would only pass if the runner
-  happened to land on a filesystem without the torn state, masking the
-  same crash for the next unlucky runner.
-- **Cache `$CARGO_HOME/advisory-dbs`.** Rejected — caching the exact
-  path that produced the torn state does not fix the underlying issue
-  (a crash on partial content) and adds a new persisted path whose
-  staleness (an outdated advisory list) is a worse failure mode for a
-  security-advisory check than a slightly slower clean clone every run.
+  root cause. If the hypothesized torn-state precondition is real, an
+  unchanged retry would only pass on a runner that happens to land on a
+  clean filesystem, which would not demonstrate the failure is fixed
+  and could mask a recurrence on a future run; this is offered as a
+  reason to prefer an explicit fix over an unchanged retry, not as
+  proof of the mechanism itself.
+- **Cache `$CARGO_HOME/advisory-dbs`.** Rejected — even setting aside
+  which precise precondition is at fault, caching the exact path where
+  the crash was observed risks reintroducing whatever state produced
+  it, and adds a new persisted path whose staleness (an outdated
+  advisory list) would be a worse failure mode for a security-advisory
+  check than a slightly slower clean clone every run. This objection
+  holds independent of whether the torn-state hypothesis is confirmed.
 
 ## Gate 2 evidence required
 
@@ -144,6 +177,8 @@ the same shared-surface pattern already established for the `!2711`
    rust_tooling_deny_clears_stale_advisory_db_before_check` passes
    locally.
 4. Confirm no other job's script or cache configuration changed.
+5. The named implementation-comment correction (above) is made and
+   reviewed before this branch is presented as Gate-2-ready.
 
 ## Role and gate boundary
 
