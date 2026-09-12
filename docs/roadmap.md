@@ -7,9 +7,9 @@ views or inputs; they do not create roadmap commitments independently.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.0 is published and independently verified. Post-v2.10 work includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
-| Observed at | 2026-09-09T17:10:00Z for the B8 intake-bound addition; this does not silently reclassify other workstream rows |
-| Observation baseline | `main` at `684bf461b9732a3971dd4d456438e150b569df63`, immediately before the B8 diff |
+| Status | v2.10.1 is the pending reviewed release from current `main` (a customer-driven, low-coupling generic artifact/graph validation extension to `agov`); v2.10.0 remains the latest published stable release until v2.10.1's tag pipeline and anonymous artifact verification complete. Post-v2.10 work also includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
+| Observed at | 2026-09-12T18:50:00Z |
+| Observation baseline | `main` at `90bb57a2f57c899b8ceacefb6a104d8bc80b0f58`, the merged v2.10.1 candidate before release-metadata preparation |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
