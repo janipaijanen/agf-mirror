@@ -647,4 +647,176 @@ mod tests {
         assert_eq!(result.problems[0].code, Code::HoldBehaviorDisabled);
         assert_eq!(result.publication_verified, Unverified);
     }
+    #[test]
+    fn independent_temporal_source_and_action_goldens() {
+        for (name, expected) in [
+            (
+                "expired",
+                include_str!("../tests/fixtures/hold-status/expired.json"),
+            ),
+            (
+                "future",
+                include_str!("../tests/fixtures/hold-status/future.json"),
+            ),
+            (
+                "stale",
+                include_str!("../tests/fixtures/hold-status/stale.json"),
+            ),
+            (
+                "ended",
+                include_str!("../tests/fixtures/hold-status/ended.json"),
+            ),
+            (
+                "candidate-control",
+                include_str!("../tests/fixtures/hold-status/candidate-control.json"),
+            ),
+            (
+                "base-identical",
+                include_str!("../tests/fixtures/hold-status/base-identical.json"),
+            ),
+        ] {
+            let mut inv = active();
+            match name {
+                "expired" | "future" | "stale" => {
+                    let text = String::from_utf8(inv.blobs[0].bytes.clone()).unwrap();
+                    let (old, new) = match name {
+                        "expired" => ("2026-09-12T18:00:00Z".into(), "2026-09-12T12:00:00Z".into()),
+                        "future" => ("2026-09-12T08:00:00Z".into(), "2026-09-12T13:00:00Z".into()),
+                        _ => ("a".repeat(40), "e".repeat(40)),
+                    };
+                    inv.blobs[0].bytes = text.replace(&old, &new).into_bytes();
+                }
+                "ended" => inv.blobs.push(blob(
+                    "target",
+                    "hold-end",
+                    "2026-09-12T10:00:00Z",
+                    Some(
+                        "  action: end\n  target_branch: refs/heads/main\n  hold_id: hold-start\n",
+                    ),
+                    "",
+                    'e',
+                )),
+                "candidate-control" => inv.blobs[0].source_id = inv.sources[0].source_id.clone(),
+                "base-identical" => {
+                    let mut b = inv.blobs[1].clone();
+                    b.source_id = "target".into();
+                    inv.blobs.push(b);
+                }
+                _ => unreachable!(),
+            }
+            assert_eq!(
+                serde_json::to_value(checked(inv)).unwrap(),
+                serde_json::from_str::<serde_json::Value>(expected).unwrap(),
+                "{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn independent_error_goldens_pin_every_reference_and_exit_class() {
+        for (name, expected, status) in [
+            (
+                "unavailable",
+                include_str!("../tests/fixtures/hold-status/unavailable.json"),
+                2,
+            ),
+            (
+                "conflict",
+                include_str!("../tests/fixtures/hold-status/conflict.json"),
+                1,
+            ),
+            (
+                "malformed",
+                include_str!("../tests/fixtures/hold-status/malformed.json"),
+                1,
+            ),
+        ] {
+            let mut inv = active();
+            match name {
+                "unavailable" => {
+                    inv.sources.push(hold_git::Source {
+                        source_id: "unresolved:missing".into(),
+                        requested_refs: vec!["missing".into()],
+                        sha: None,
+                        is_target: false,
+                        available: false,
+                    });
+                    inv.problems.push(hold_git::ReadProblem {
+                        code: "git-read-failed",
+                        operation: "resolve-candidate",
+                        requested_ref: Some("missing".into()),
+                        sha: None,
+                        path: None,
+                        source_id: "unresolved:missing".into(),
+                        message: "platform diagnostic".into(),
+                    });
+                }
+                "conflict" => {
+                    let mut other = inv.blobs[0].clone();
+                    other.path = "docs/coordination/other-start.md".into();
+                    other.oid = "e".repeat(40);
+                    other.bytes = String::from_utf8(other.bytes)
+                        .unwrap()
+                        .replace("id: hold-start", "id: other-start")
+                        .into_bytes();
+                    inv.blobs.push(other);
+                }
+                _ => inv.blobs.push(hold_git::Blob {
+                    source_id: inv.sources[0].source_id.clone(),
+                    path: "docs/coordination/bad.md".into(),
+                    oid: "e".repeat(40),
+                    bytes: b"bad".to_vec(),
+                }),
+            }
+            let result = checked(inv);
+            assert_eq!(result.exit_status(), status);
+            assert_eq!(
+                serde_json::to_value(result).unwrap(),
+                serde_json::from_str::<serde_json::Value>(expected).unwrap(),
+                "{name}"
+            );
+        }
+    }
+
+    #[test]
+    fn independent_end_provenance_goldens() {
+        for (name, expected) in [
+            (
+                "candidate-end",
+                include_str!("../tests/fixtures/hold-status/candidate-end.json"),
+            ),
+            (
+                "identical-end",
+                include_str!("../tests/fixtures/hold-status/identical-end.json"),
+            ),
+            (
+                "candidate-start",
+                include_str!("../tests/fixtures/hold-status/candidate-start.json"),
+            ),
+        ] {
+            let mut inv = active();
+            let mut end = blob(
+                "target",
+                "hold-end",
+                "2026-09-12T10:00:00Z",
+                Some("  action: end\n  target_branch: refs/heads/main\n  hold_id: hold-start\n"),
+                "",
+                'e',
+            );
+            if name == "identical-end" {
+                inv.blobs.push(end.clone());
+            }
+            if name == "candidate-start" {
+                inv.blobs[0].source_id = inv.sources[0].source_id.clone();
+            } else {
+                end.source_id = inv.sources[0].source_id.clone();
+            }
+            inv.blobs.push(end);
+            assert_eq!(
+                serde_json::to_value(checked(inv)).unwrap(),
+                serde_json::from_str::<serde_json::Value>(expected).unwrap(),
+                "{name}"
+            );
+        }
+    }
 }

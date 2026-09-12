@@ -213,3 +213,37 @@ End a cycle only when the obligation is completed and recorded, actively
 running with an identified monitor, or blocked with evidence and ownership.
 “Found work” is not a terminal outcome when the current role is authorized to
 advance it.
+
+## Inspect a release hold without hiding coordination
+
+After an explicit fetch, publish the governor's urgent start on a shared
+coordination branch and bridge it to the release lane. Keep main frozen only
+under the independently verified release decision; do not merge the control
+merely to make it visible. Inspect the actual shared ref:
+
+```sh
+git fetch --prune origin
+agov coord hold-status --target-branch origin/main --candidate-ref origin/coordination/release-hold --format json
+```
+
+Substitute the existing shared branch. Repeat `--candidate-ref` for explicit
+sources; omission defaults to HEAD. `--dir` selects a normalized Git tree path,
+not working-tree drafts. Targets must be unambiguous branches; candidates may
+be commit-resolving refs. Sources are pinned separately, with no implicit
+network, enumeration or atomic cross-ref snapshot. Complete coverage covers
+only requested sources and is not fresh publication evidence or a whole inbox.
+
+Text/JSON show publication_verified=false, authority_verified=false and these
+required_external_checks: publication, governor_authority,
+record_urgency_and_obligations, publication_target, current_target_and_expiry,
+release_hold_authorization. Verify each exact record and control externally.
+If any check is unavailable, publish immediately. Review-required never permits
+delay; unassociated follows ordinary rules. Publish urgent records, controls,
+reviews, handoffs and requires-ack records independently at once. Verify end
+publication/authority before treating a real hold as ended. Target drift still
+requires release preflight again.
+
+Exit 0 means complete readable evidence without semantic errors, 1 semantic
+errors, 2 unavailable/incomplete sources (precedence over 1). These are advisory
+statuses, not merge or release gates. Malformed evidence and incomplete reads
+force potentially affected action rows to publish-now.

@@ -321,7 +321,7 @@ pub(crate) fn read_with_git(
 
 type ReadError = (&'static str, &'static str, String, String);
 fn tree(git: &dyn Git, oid: &str) -> Result<Vec<(String, String, String)>, String> {
-    let bytes = git.run(&["ls-tree", "-z", oid], None)?;
+    let bytes = git.run(&["ls-tree", "--full-tree", "-z", oid], None)?;
     bytes
         .split(|b| *b == 0)
         .filter(|b| !b.is_empty())

@@ -60,6 +60,7 @@ pub const MCP_TOOL_ALLOWLIST: &[&str] = &[
     "agov_coord_visibility",
     "agov_coord_stale",
     "agov_coord_graph_index",
+    "agov_coord_hold_status",
     "agov_coord_publication_check",
     "agov_coord_brief",
 ];
@@ -164,6 +165,7 @@ pub const COMMAND_PATH_TOKENS: &[&str] = &[
     "graph-index",
     "convergence",
     "publication-check",
+    "hold-status",
     "pending",
     // plan subcommands (validate shares the top-level "validate" token).
     "projection-check",
@@ -267,6 +269,7 @@ pub const KNOWN_FLAG_NAMES: &[&str] = &[
     "--project-path",
     "--registry-image",
     "--target-branch",
+    "--candidate-ref",
     "--format",
     "--id-format",
     "--from",

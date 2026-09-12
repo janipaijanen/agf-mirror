@@ -16,6 +16,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
+time = { workspace = true }
 tempfile = { workspace = true }
 # No dev-dependency on the `agov` crate: it is bin-only (no lib target),
 # so a path dependency on it is invalid and Cargo silently ignores it

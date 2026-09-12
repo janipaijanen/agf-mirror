@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
 # Copyright (c) 2026 Jani Päijänen
-# Draft projection map: dispositions name required implementation outcomes,
-# not completed source edits. Implementation remains pending Gate 1.
+# Implementation projection map. Gate 1 approved by jhaq; Gate 2 remains separate.
 plan_id: 20260912T084900Z-cpb2-publication-hold-urgency
 changed_pages_or_runbooks:
   - agf/docs/site/docs/concepts/coordination-protocol.md
@@ -12,14 +11,14 @@ surfaces:
     disposition: updated
     path: agf/rules/workflow/coordination-publication-rule.md
     reason: >-
-      Required implementation outcome: define time-bounded hold declarations,
+      Implemented: define time-bounded hold declarations,
       24-hour maximum, structural urgent overrides, per-record external checks and unchanged
       release-target drift controls. No new tool blocking authority.
   adopter_facing_explanation:
     disposition: updated
     path: agf/docs/site/docs/concepts/coordination-protocol.md
     reason: >-
-      Required explanation of optional fields, omission compatibility and
+      Explains optional fields, omission compatibility and
       declaration state versus independently verified shared publication/authority;
       review-required never grants permission to delay.
   runbook_situation_map:
@@ -28,7 +27,7 @@ surfaces:
       - agf/docs/site/docs/operate/poll-and-coordinate.md
       - agf/docs/site/docs/adopt/mcp-server.md
     reason: >-
-      Required operator recipe: shared coordination branch, explicit fetch,
+      Operator recipe: shared coordination branch, explicit fetch,
       hold-status against origin/main, urgent publication, expiry and source
       limitations, canonical branch/ref identity and pinned Git candidate sources and per-ref observation limits.
       MCP parity/local-only command surface and exit/row fail-closed statuses.
@@ -39,7 +38,7 @@ surfaces:
       - agf/templates/AGENTS.md
       - .claude/rules/workflow/coordination-publication-rule.md
     reason: >-
-      Required concise command/rule pointers in loaders and synchronized
+      Concise command/rule pointers in loaders and synchronized
       canonical-rule projection; do not duplicate the full protocol in loaders.
     not_applicable:
       - path: .claude/CLAUDE.md
@@ -52,11 +51,11 @@ surfaces:
       - tooling/rust/crates/agov/src/main.rs
       - tooling/rust/crates/agov-mcp/src/main.rs
     reason: >-
-      Required implementation evidence: optional-field schema compatibility,
+      Implementation evidence: optional-field schema compatibility,
       status command fixtures, alias rejection, raw source/path identity, ref pinning and failed Git reads,
       incomplete coverage and fixed unverified-authority/publication flags,
       real CLI/MCP parity, retained publication gate negatives and gate companion.
-      This draft does not claim any of those edits/tests are already completed.
+      See hold_status.rs CLI tests, hold-status golden fixtures and MCP stdio parity.
   distribution:
     disposition: confirmed
     paths:

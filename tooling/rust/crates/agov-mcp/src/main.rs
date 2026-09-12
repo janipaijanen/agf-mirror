@@ -582,7 +582,14 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
                     return Err(format!("unsupported artifact argument {key}"));
                 }
             }
-            let mut cli = vec!["artifact".into(), if validate { "validate".into() } else { "index".into() }];
+            let mut cli = vec![
+                "artifact".into(),
+                if validate {
+                    "validate".into()
+                } else {
+                    "index".into()
+                },
+            ];
             push_optional_flag(args, "config", "--config", &mut cli)?;
             push_optional_flag(args, "format", "--format", &mut cli)?;
             if validate { cli.push("--".into()); push_strings(args, "paths", &mut cli)?; }
@@ -608,7 +615,9 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
         }
         "agov_plan_collision_check" => {
             if args.get("include_forge").is_some() {
-                return Err("include_forge is CLI-only; MCP collision checks are local-only".into());
+                return Err(
+                    "include_forge is CLI-only; MCP collision checks are local-only".into(),
+                );
             }
             let mut cli = vec!["plan".into(), "collision-check".into()];
             push_optional_flag(args, "base_ref", "--base-ref", &mut cli)?;
@@ -627,7 +636,12 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             cli.push(required_string(args, "role")?);
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
             push_optional_flag(args, "session", "--session", &mut cli)?;
-            push_bool_flag(args, "include_branch_local", "--include-branch-local", &mut cli)?;
+            push_bool_flag(
+                args,
+                "include_branch_local",
+                "--include-branch-local",
+                &mut cli,
+            )?;
             Ok(cli)
         }
         "agov_handoff_take" => {
@@ -719,6 +733,25 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             }
             let mut cli = vec!["coord".to_string(), "graph-index".to_string()];
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
+            Ok(cli)
+        }
+        "agov_coord_hold_status" => {
+            let fields = args
+                .as_object()
+                .ok_or("hold-status arguments must be an object")?;
+            for key in fields.keys() {
+                if !["target_branch", "candidate_ref", "dir", "format"].contains(&key.as_str()) {
+                    return Err(format!("unsupported hold-status argument {key}"));
+                }
+            }
+            let mut cli = vec!["coord".to_string(), "hold-status".to_string()];
+            push_required_flag(args, "target_branch", "--target-branch", &mut cli)?;
+            push_optional_flag(args, "dir", "--dir", &mut cli)?;
+            for candidate in string_array(args, "candidate_ref")? {
+                cli.push("--candidate-ref".into());
+                cli.push(candidate);
+            }
+            push_optional_flag(args, "format", "--format", &mut cli)?;
             Ok(cli)
         }
         "agov_coord_publication_check" => {
@@ -1071,6 +1104,21 @@ fn tools() -> Vec<Value> {
             }),
         ),
         tool(
+            "agov_coord_hold_status",
+            "Report pinned local Git publication-hold declarations; never verifies authority or permits delay. No implicit network access.",
+            json!({
+                "type": "object",
+                "required": ["target_branch"],
+                "additionalProperties": false,
+                "properties": {
+                    "target_branch": { "type": "string" },
+                    "dir": { "type": "string" },
+                    "candidate_ref": { "type": "array", "items": { "type": "string" } },
+                    "format": { "type": "string", "enum": ["text", "json"] }
+                }
+            }),
+        ),
+        tool(
             "agov_coord_publication_check",
             "Mechanically verify a coordination-only publication candidate against its target ref.",
             json!({
@@ -1184,7 +1232,11 @@ mod tests {
         for value in [Value::Null, json!(false)] {
             assert_eq!(tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester", "include_branch_local":value})).unwrap(), default);
         }
-        let branch = tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester", "session":"codex", "include_branch_local":true})).unwrap();
+        let branch = tool_cli_args(
+            "agov_handoff_next",
+            &json!({"role":"coder-tester", "session":"codex", "include_branch_local":true}),
+        )
+        .unwrap();
         assert!(branch.contains(&"--include-branch-local".to_string()));
         assert!(branch.windows(2).any(|v| v == ["--session", "codex"]));
         assert!(tool_cli_args("agov_handoff_next", &json!({"role":"coder-tester", "include_branch_local":"true"})).is_err());
@@ -1228,6 +1280,7 @@ mod tests {
                 "agov_coord_visibility",
                 "agov_coord_stale",
                 "agov_coord_graph_index",
+                "agov_coord_hold_status",
                 "agov_coord_publication_check",
                 "agov_coord_brief",
             ]
@@ -1293,6 +1346,7 @@ mod tests {
             ("agov_coord_visibility", json!({})),
             ("agov_coord_stale", json!({})),
             ("agov_coord_graph_index", json!({})),
+            ("agov_coord_hold_status", json!({ "target_branch": "main" })),
             (
                 "agov_coord_publication_check",
                 json!({ "base_ref": "origin/main" }),
@@ -1839,5 +1893,17 @@ mod tests {
         .unwrap();
         assert!(args.contains(&"--manifest".to_string()));
         assert!(args.contains(&"agf/agents/MANIFEST.yaml".to_string()));
+    }
+    #[test]
+    fn hold_status_requires_explicit_supported_arguments() {
+        assert_eq!(tool_cli_args("agov_coord_hold_status", &json!({"target_branch":"origin/main","candidate_ref":["one","two"],"format":"json"})).unwrap(), vec!["coord","hold-status","--target-branch","origin/main","--candidate-ref","one","--candidate-ref","two","--format","json"]);
+        for args in [
+            json!({}),
+            json!({"target_branch":"main","include_forge":true}),
+            json!({"target_branch":"main","candidate_ref":"HEAD"}),
+            json!({"target_branch":"main","now":"2026-01-01T00:00:00Z"}),
+        ] {
+            assert!(tool_cli_args("agov_coord_hold_status", &args).is_err());
+        }
     }
 }

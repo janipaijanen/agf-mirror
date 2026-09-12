@@ -620,3 +620,9 @@ an external path.
 
 See `agents-govern/` rules: `workflow/branch-and-worktree-rule.md`,
 `workflow/merge-request-workflow-rule.md`.
+
+Publication-hold evidence: `agov coord hold-status --target-branch origin/main
+--candidate-ref <shared-ref>` reports explicit pinned Git declarations only.
+`review-required` never permits delay. See
+`agf/rules/workflow/coordination-publication-rule.md` for external checks,
+rollout compatibility and immediate-publication obligations.
