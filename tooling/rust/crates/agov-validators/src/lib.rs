@@ -1,3 +1,4 @@
+pub mod artifact_config;
 pub mod adopter_docs;
 pub mod adoption;
 pub mod agents;
