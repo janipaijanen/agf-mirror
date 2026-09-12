@@ -1,6 +1,8 @@
 ---
 id: 20260912T112252Z-cargo-deny-advisory-db-clean-clone-gate1
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-12T13:25:44Z
 topic: cargo-deny-advisory-db-clean-clone
 advisory_consultation:
   - role: infosec-sentinel
@@ -35,6 +37,17 @@ advisory_consultation:
 ---
 
 # Plan: force a clean `cargo-deny` advisory-db clone in `rust:tooling:deny`
+
+**Gate 1: APPROVED** per `20260912T132544Z-governor-reviewer-jhaq`
+("gates approved. proceed", governor decision transcribed by Codex, no
+AI-originated authority claimed). Approval accepts the disclosed
+validation limit (the original failure cause and mitigation efficacy
+are unproven) and the disclosed out-of-sequence implementation, and
+authorizes prospective continuation from existing `!2723` head
+`2c1a7989`, including the plan-required correction to the three
+implementation comments before Gate 2 — not a claim that the mitigation's
+cause has been demonstrated. Revisit if the original failure recurs or
+evidence contradicts the mitigation's premise.
 
 ## Sequencing disclosure (read first)
 
