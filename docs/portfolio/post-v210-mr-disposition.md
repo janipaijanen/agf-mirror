@@ -421,3 +421,34 @@ themselves governor-reviewer records. Governor decision-record
 via MR !2665) ratifies those bridge records, supplying the durable
 governor authority `6pms` asked for. This ledger's re-sequencing and
 hygiene-precondition authority rests on `q862`.
+
+### QC-1 continuation (2026-09-12) — MRs opened since the 2026-09-10 baseline
+
+Analysis only; opens and closes nothing (per the work order's own
+sequencing note: dispositioning may run in parallel with execution).
+Live query against `main` at `4fe0f389` found 55 open MRs; 44 already
+carry a row above. The following 11 opened after the QC-1 baseline.
+Four are the `coordination:`-title-prefix carve-out
+(`20260903T043752Z` §3c: "publish independently, uncounted") and need
+no row: **!2715, !2718, !2719, !2720**. The remaining seven:
+
+| MR | Class | Disposition and closure condition |
+|---|---|---|
+| !2636 | CP-B-1 implementation (`feat`) | *(existing row above, unchanged — still accurate: appointed security reviewer Beauvoir found 2 blocking findings at exact head `1da3584d` (`20260912T100746Z-independent-implementation-reviewer-mhhk`); active workstream, not stale, not batch-eligible.)* |
+| !2666 | Gate 1 plan, approved (AGENTS.md gate-discipline addition) | **merge-now.** Gate 1 approved (metadata synced this session); exact head `f91a9f5e`. Awaiting governor Gate 2 decision. Not batch-eligible — `merge-now` never batches. |
+| !2679 | Draft proposal (bounded CI builder-image/distribution-scan trials) | **awaiting-governor.** Pre-Gate-1 proposal, independently reviewed CLEAR at head `b3c7eaff` (`ssms`, via !2678), no governor Gate 1 decision recorded since 2026-09-10. Named question: proceed to Gate 1 or not. |
+| !2688 | Proposal (operating-model token/footprint preliminary assessment, "early start") | **awaiting-governor.** No review or discussion recorded yet. Named question: per `54a3`/`rgb5`, full operating-model minimization is deferred until RUW is released and the open-MR queue is empty, but this "preliminary pilot is separate" — governor must confirm whether this preliminary assessment proceeds now or waits with the full minimization work. |
+| !2689 | Gate 1 plan, approved (quantized-model mechanical-drafting pilot) | **merge-now.** Gate 1 approved (metadata synced this session); exact head `545698a2`. Awaiting governor Gate 2 decision. Not batch-eligible. |
+| !2714 | DES-5 estate-corrections fix (`docs`) | **merge-now.** Active workstream this session — independent exact-head review (`q2pt`) found 2 blocking findings, both corrected at head `bb1ee084`; fresh review requested. Not stale, not batch-eligible. |
+| !2716 | Draft plan (CP-B-2 publication hold/urgency) | **awaiting-governor.** Pending-Gate-1 child plan; independent advisory review CLEAR (`sk2r`), but governor-arranged security consultation (per `smmp`'s appointment, scope includes this MR) is still outstanding before Gate 1. Named question: complete the security consultation this appointment covers. |
+| !2717 | DES-6 escalation + rewrite (`docs`) | **merge-now.** Active workstream this session — governor decision `3rha` directed a rewrite (not archive); implemented at head `59ced653`, awaiting review. Not stale, not batch-eligible. |
+
+**QC-1 continuation completeness:** all 55 currently open MRs now carry
+a disposition row or an explicit carve-out reason. No `close-superseded`,
+`close-invalid`, `reconstruct`, or `park-radar` candidates identified in
+this cohort — all seven are active, recent workstreams (opened
+2026-09-10 through 2026-09-12), not the kind of aged/stale MR the
+original QC-1 pass targeted. This is expected: QC-1's original 59-MR
+baseline is the stale-queue problem; new MRs opened during active
+Gate-1/Gate-2 work are not queue debt merely for being un-rowed for a
+few hours.
