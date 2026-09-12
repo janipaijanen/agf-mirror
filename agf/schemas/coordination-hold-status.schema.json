@@ -1,0 +1,637 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination-hold-status.schema.json",
+  "title": "Pinned coordination publication hold status v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target_ref",
+    "target_branch",
+    "target_remote",
+    "target_sha",
+    "now",
+    "scope",
+    "sources",
+    "coverage",
+    "holds",
+    "records",
+    "problems",
+    "publication_verified",
+    "authority_verified",
+    "required_external_checks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "target_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "target_branch": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "target_remote": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "target_sha": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "now": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "scope": {
+      "const": "explicit-sources"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Source"
+      }
+    },
+    "coverage": {
+      "enum": [
+        "COMPLETE",
+        "INCOMPLETE"
+      ]
+    },
+    "holds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Hold"
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Record"
+      }
+    },
+    "problems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Problem"
+      }
+    },
+    "publication_verified": {
+      "const": false
+    },
+    "authority_verified": {
+      "const": false
+    },
+    "required_external_checks": {
+      "const": [
+        "current_target_and_expiry",
+        "governor_authority",
+        "publication",
+        "publication_target",
+        "record_urgency_and_obligations",
+        "release_hold_authorization"
+      ]
+    }
+  },
+  "definitions": {
+    "Source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "kind",
+        "requested_refs",
+        "sha",
+        "channel",
+        "status",
+        "problem_ids"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "target",
+            "candidate"
+          ]
+        },
+        "requested_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "sha": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "channel": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "read",
+            "unavailable"
+          ]
+        },
+        "problem_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "Provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "path",
+        "blob_oid"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "blob_oid": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "End": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "timestamp",
+        "hold_id",
+        "target_branch",
+        "provenance",
+        "problem_ids",
+        "publication_verified",
+        "authority_verified",
+        "required_external_checks"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "hold_id": {
+          "type": "string"
+        },
+        "target_branch": {
+          "type": "string"
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Provenance"
+          }
+        },
+        "problem_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "publication_verified": {
+          "const": false
+        },
+        "authority_verified": {
+          "const": false
+        },
+        "required_external_checks": {
+          "const": [
+            "current_target_and_expiry",
+            "governor_authority",
+            "publication",
+            "publication_target",
+            "record_urgency_and_obligations",
+            "release_hold_authorization"
+          ]
+        }
+      }
+    },
+    "Hold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "timestamp",
+        "target_branch",
+        "target_sha",
+        "expires_at",
+        "effective_end",
+        "ends",
+        "declared_release_references",
+        "temporal_state",
+        "target_state",
+        "conflict",
+        "provenance",
+        "problem_ids",
+        "publication_verified",
+        "authority_verified",
+        "required_external_checks"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "target_branch": {
+          "type": "string"
+        },
+        "target_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "effective_end": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "ends": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/End"
+          }
+        },
+        "declared_release_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "temporal_state": {
+          "enum": [
+            "future",
+            "active",
+            "ended",
+            "expired"
+          ]
+        },
+        "target_state": {
+          "enum": [
+            "matching",
+            "stale",
+            "other-target"
+          ]
+        },
+        "conflict": {
+          "type": "boolean"
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Provenance"
+          }
+        },
+        "problem_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "publication_verified": {
+          "const": false
+        },
+        "authority_verified": {
+          "const": false
+        },
+        "required_external_checks": {
+          "const": [
+            "current_target_and_expiry",
+            "governor_authority",
+            "publication",
+            "publication_target",
+            "record_urgency_and_obligations",
+            "release_hold_authorization"
+          ]
+        }
+      }
+    },
+    "Record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "timestamp",
+        "provenance",
+        "urgency",
+        "deferred_by",
+        "hold_id",
+        "state",
+        "reasons",
+        "problem_ids",
+        "publication_verified",
+        "authority_verified",
+        "required_external_checks"
+      ],
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "timestamp": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Provenance"
+          }
+        },
+        "urgency": {
+          "enum": [
+            "normal",
+            "urgent",
+            "invalid"
+          ]
+        },
+        "deferred_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hold_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "enum": [
+            "publish-now",
+            "unassociated",
+            "review-required"
+          ]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "urgent",
+              "hold-control",
+              "requires-ack",
+              "handoff",
+              "review",
+              "incomplete-source",
+              "semantic-problem",
+              "unassociated",
+              "missing-hold",
+              "invalid-hold",
+              "future-hold",
+              "ended-hold",
+              "expired-hold",
+              "stale-hold",
+              "conflicting-hold",
+              "external-review-required",
+              "hold-behavior-disabled"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "problem_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "publication_verified": {
+          "const": false
+        },
+        "authority_verified": {
+          "const": false
+        },
+        "required_external_checks": {
+          "const": [
+            "current_target_and_expiry",
+            "governor_authority",
+            "publication",
+            "publication_target",
+            "record_urgency_and_obligations",
+            "release_hold_authorization"
+          ]
+        }
+      }
+    },
+    "Problem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "problem_id",
+        "code",
+        "severity",
+        "operation",
+        "subject",
+        "message",
+        "source_ids",
+        "paths",
+        "record_ids"
+      ],
+      "properties": {
+        "problem_id": {
+          "type": "string",
+          "pattern": "^p[0-9]{6,}$"
+        },
+        "code": {
+          "enum": [
+            "invalid-input",
+            "git-read-failed",
+            "nonregular-entry",
+            "invalid-record",
+            "path-conflict",
+            "id-conflict",
+            "invalid-control",
+            "missing-start",
+            "active-overlap",
+            "historical-overlap",
+            "future-overlap",
+            "hold-behavior-disabled"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "unavailable",
+            "semantic",
+            "advisory"
+          ]
+        },
+        "operation": {
+          "enum": [
+            "resolve-target",
+            "resolve-candidate",
+            "read-tree",
+            "read-blob",
+            "validate-record",
+            "resolve-hold",
+            "classify-record",
+            "disabled-fallback"
+          ]
+        },
+        "subject": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "sha",
+            "path",
+            "record_id"
+          ],
+          "properties": {
+            "ref": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sha": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{40}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "path": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "record_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "message": {
+          "type": "string"
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "record_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
