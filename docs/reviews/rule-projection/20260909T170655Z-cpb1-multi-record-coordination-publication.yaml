@@ -79,7 +79,7 @@ surfaces:
       objects, with hashes only indexing candidates for actual byte comparison.
       Tests reject merge-base copies, same-commit and cross-commit duplicates,
       and enumeration/base/candidate blob failures; distinct template records
-      pass while target-tip copies after divergence reject. Target refs resolve once;
+      pass while target-tip copies after divergence reject. Target and candidate HEAD resolve once; reports expose both checked SHAs;
       inventory overlap is deduplicated. All decisive Git read errors fail closed,
       including merge/message/diff reads. A forced hash collision proves byte equality
       remains decisive. Per-record schema validation uses the same introducing

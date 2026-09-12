@@ -4344,8 +4344,10 @@ fn render_publication_check_text(
     report: &agov_coord::publication_check::PublicationCheckReport,
 ) {
     output.stdout(format!(
-        "publication-check base_ref={} merge_base={} commits={}",
+        "publication-check base_ref={} target_sha={} candidate_sha={} merge_base={} commits={}",
         report.base_ref,
+        report.target_sha.as_deref().unwrap_or("none"),
+        report.candidate_sha.as_deref().unwrap_or("none"),
         report.merge_base.as_deref().unwrap_or("none"),
         report.commits_checked.len()
     ));
@@ -4369,6 +4371,8 @@ fn publication_check_json(
         "ok": report.ok,
         "base_ref": report.base_ref,
         "merge_base": report.merge_base,
+        "candidate_sha": report.candidate_sha,
+        "target_sha": report.target_sha,
         "commits_checked": report.commits_checked,
         "added_files": report.added_files,
         "reasons": report.reasons,

@@ -86,8 +86,10 @@ tip diff):
    convention** (the project's `coordination:` title prefix, or equivalent),
    when the branch is being routed through the lightweight path.
 
-Resolve the selected target ref once per invocation to an immutable commit SHA;
-use that SHA for ancestry and target-content reads. Inventory direct regular
+Resolve the selected target ref and candidate HEAD once each per invocation to
+immutable commit SHAs before ancestry/enumeration; use only pinned objects for
+ancestry, range, aggregate diff and content reads. Report candidate_sha and
+target_sha in text/JSON so a result is bound to the checked candidate. Inventory direct regular
 coordination blobs at both the merge base and pinned target tip. Repeated
 inventory entries seed the comparison set without becoming candidate additions.
 Every Git read needed to establish conditions 1-6 must fail closed on error,
@@ -240,7 +242,7 @@ it fires on known-bad input:
    but byte-distinct records must pass. Include divergence where the target
    acquires the copied record after the merge base. Target pinning must prevent
    ref drift during reads, and overlapping inventories must not create false copies.
-9. **Any decisive Git read fails.** Inject errors for target resolution, merge
+9. **Any decisive Git read fails.** Inject errors for target/candidate resolution, merge
    and commit enumeration, subject/full message, per-commit and aggregate diffs,
    and tree/blob reads. Every case must fail closed, including otherwise hidden
    merge/import and implementation-plus-revert histories.

@@ -24,6 +24,8 @@ pub struct PublicationCheckReport {
     pub ok: bool,
     pub base_ref: String,
     pub merge_base: Option<String>,
+    pub candidate_sha: Option<String>,
+    pub target_sha: Option<String>,
     pub commits_checked: Vec<String>,
     pub added_files: Vec<String>,
     pub reasons: Vec<String>,
@@ -79,10 +81,12 @@ fn publication_check_with_git(
     let mut reasons = Vec::new();
     let coord_prefix = format!("{}/", coord_dir.trim_end_matches('/'));
 
-    let failure = |reason: String| PublicationCheckReport {
+    let failure = |reason: String, candidate: Option<&str>| PublicationCheckReport {
         ok: false,
         base_ref: base_ref.to_string(),
         merge_base: None,
+        candidate_sha: candidate.map(str::to_owned),
+        target_sha: None,
         commits_checked: Vec::new(),
         added_files: Vec::new(),
         reasons: vec![reason],
@@ -100,23 +104,46 @@ fn publication_check_with_git(
     ) {
         Ok(sha) if !sha.trim().is_empty() => sha.trim().to_string(),
         result => {
-            return failure(format!(
-                "git rev-parse target failed for '{base_ref}': {}",
-                result
-                    .err()
-                    .unwrap_or_else(|| "empty commit resolution".into())
-            ));
+            return failure(
+                format!(
+                    "git rev-parse target failed for '{base_ref}': {}",
+                    result
+                        .err()
+                        .unwrap_or_else(|| "empty commit resolution".into())
+                ),
+                None,
+            );
         }
     };
-    let merge_base = match git(cwd, &["merge-base", &target, "HEAD"]) {
+    let candidate = match git(
+        cwd,
+        &["rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"],
+    ) {
         Ok(sha) if !sha.trim().is_empty() => sha.trim().to_string(),
         result => {
-            return failure(format!(
-                "git merge-base failed between pinned target {target} and HEAD: {}",
-                result
-                    .err()
-                    .unwrap_or_else(|| "empty merge-base resolution".into())
-            ));
+            return failure(
+                format!(
+                    "git rev-parse candidate failed: {}",
+                    result
+                        .err()
+                        .unwrap_or_else(|| "empty candidate resolution".into())
+                ),
+                None,
+            );
+        }
+    };
+    let merge_base = match git(cwd, &["merge-base", &target, &candidate]) {
+        Ok(sha) if !sha.trim().is_empty() => sha.trim().to_string(),
+        result => {
+            return failure(
+                format!(
+                    "git merge-base failed between pinned target {target} and candidate {candidate}: {}",
+                    result
+                        .err()
+                        .unwrap_or_else(|| "empty merge-base resolution".into())
+                ),
+                Some(&candidate),
+            );
         }
     };
     macro_rules! checked_git {
@@ -131,7 +158,7 @@ fn publication_check_with_git(
         };
     }
 
-    let range = format!("{merge_base}..HEAD");
+    let range = format!("{merge_base}..{candidate}");
 
     let merge_commits = checked_git!(&["rev-list", "--merges", &range]);
     for line in merge_commits.lines().filter(|line| !line.trim().is_empty()) {
@@ -304,6 +331,8 @@ fn publication_check_with_git(
         ok: reasons.is_empty(),
         base_ref: base_ref.to_string(),
         merge_base: Some(merge_base),
+        candidate_sha: Some(candidate),
+        target_sha: Some(target),
         commits_checked: commits,
         added_files,
         reasons,
@@ -581,7 +610,7 @@ mod tests {
                     .borrow_mut()
                     .push(args.iter().map(|s| s.to_string()).collect());
                 let result = git_bytes(cwd, args);
-                if args[0] == "rev-parse" {
+                if args.last() == Some(&"target^{commit}") {
                     // Delete the mutable ref immediately after resolution: any later
                     // ancestry/inventory lookup by its name would now fail.
                     run(cwd, &["branch", "-D", "target"]);
@@ -598,7 +627,13 @@ mod tests {
                 .any(|r| r.contains("byte-identical copy"))
         );
         let calls = calls.borrow();
-        assert_eq!(calls.iter().filter(|a| a[0] == "rev-parse").count(), 1);
+        assert_eq!(
+            calls
+                .iter()
+                .filter(|a| a.last().map(String::as_str) == Some("target^{commit}"))
+                .count(),
+            1
+        );
         assert!(
             calls
                 .iter()
@@ -606,6 +641,48 @@ mod tests {
                 .all(|a| a.iter().all(|v| v != "target" && v != "target^{commit}"))
         );
         assert!(!report.reasons.iter().any(|r| r.contains("failed")));
+    }
+
+    #[test]
+    fn candidate_head_is_pinned_before_all_history_reads() {
+        let repo = divergent_repo(false);
+        let original = repo.head();
+        let calls = std::cell::RefCell::new(Vec::<Vec<String>>::new());
+        let report = publication_check_with_git(
+            "target",
+            "docs/coordination",
+            "coordination:",
+            repo.path(),
+            &|cwd, args| {
+                calls
+                    .borrow_mut()
+                    .push(args.iter().map(|s| s.to_string()).collect());
+                let result = git_bytes(cwd, args);
+                if args.last() == Some(&"HEAD^{commit}") {
+                    // Move HEAD to a missing branch: all subsequent reads must be
+                    // object-addressed and cannot depend on the symbolic candidate.
+                    run(
+                        cwd,
+                        &["symbolic-ref", "HEAD", "refs/heads/unborn-after-pin"],
+                    );
+                }
+                result
+            },
+            &|_| Vec::new(),
+        );
+        assert!(report.ok, "{:?}", report.reasons);
+        assert_eq!(report.candidate_sha.as_deref(), Some(original.as_str()));
+        let calls = calls.borrow();
+        let pin = calls
+            .iter()
+            .position(|a| a.last().map(String::as_str) == Some("HEAD^{commit}"))
+            .unwrap();
+        assert!(
+            calls
+                .iter()
+                .skip(pin + 1)
+                .all(|a| a.iter().all(|v| !v.contains("HEAD")))
+        );
     }
 
     #[test]

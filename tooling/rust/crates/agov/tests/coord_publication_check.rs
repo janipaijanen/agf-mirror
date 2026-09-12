@@ -15,36 +15,58 @@ fn committed_record_fixture(content: &str) -> GitFixture {
     repo
 }
 
+fn add_merge_history(repo: &GitFixture) {
+    repo.git(&["checkout", "-q", "-b", "side", "main"]);
+    repo.write("docs/coordination/side.md", &coord("side"));
+    repo.git(&["add", "."]);
+    repo.git(&["commit", "-q", "-m", "coordination: side"]);
+    repo.git(&["checkout", "-q", "coord/candidate"]);
+    repo.git(&[
+        "merge",
+        "--no-ff",
+        "-q",
+        "side",
+        "-m",
+        "coordination: imported merge",
+    ]);
+}
+
 #[cfg(unix)]
 #[test]
-fn decisive_git_read_failures_report_nonzero_json_and_operation() {
+fn head_drift_after_range_enumeration_reports_only_pinned_candidate() {
     use std::os::unix::fs::PermissionsExt;
     let repo = committed_record_fixture(&coord("valid"));
+    let sha = |name| {
+        String::from_utf8(
+            Command::new("git")
+                .current_dir(&repo.root)
+                .args(["rev-parse", name])
+                .output()
+                .unwrap()
+                .stdout,
+        )
+        .unwrap()
+        .trim()
+        .to_string()
+    };
+    let clean = sha("HEAD");
+    let target = sha("main");
+    add_merge_history(&repo);
+    let forbidden = sha("HEAD");
+    repo.git(&["reset", "--hard", &clean]);
     let real_git = Command::new("sh")
         .args(["-c", "command -v git"])
         .output()
         .unwrap();
-    assert!(real_git.status.success());
     let real_git = String::from_utf8(real_git.stdout).unwrap();
     repo.write(
         "fakebin/git",
         r#"#!/bin/sh
-operation=""
-case "$1 $2 $3" in
-  'rev-parse --verify '*) operation=target-resolution ;;
-  'merge-base '*) operation=merge-base ;;
-  'rev-list --merges '*) operation=merges ;;
-  'rev-list --reverse '*) operation=commits ;;
-  'log -1 --format=%s') operation=subject ;;
-  'log -1 --format=%B') operation=message ;;
-  'diff-tree '*) operation=commit-diff ;;
-  'diff --name-status '*) operation=aggregate-diff ;;
-  'ls-tree '*) operation=tree ;;
-  'cat-file '*) operation=blob ;;
-esac
-if [ "$operation" = "$AGOV_TEST_FAIL_OPERATION" ]; then
-  echo "injected git $operation failure" >&2
-  exit 1
+printf '%s\n' "$*" >> "$AGOV_TEST_ARG_LOG"
+if [ "$1" = rev-list ] && [ "$2" = --reverse ]; then
+  "$AGOV_TEST_REAL_GIT" "$@" || exit $?
+  "$AGOV_TEST_REAL_GIT" update-ref HEAD "$AGOV_TEST_DRIFT_TO" || exit $?
+  exit 0
 fi
 exec "$AGOV_TEST_REAL_GIT" "$@"
 "#,
@@ -62,50 +84,166 @@ exec "$AGOV_TEST_REAL_GIT" "$@"
         .join("../../../../agf/schemas")
         .canonicalize()
         .unwrap();
-    for operation in [
-        "target-resolution",
-        "merge-base",
-        "merges",
-        "commits",
-        "subject",
-        "message",
-        "commit-diff",
-        "aggregate-diff",
-        "tree",
-        "blob",
-    ] {
-        let output = Command::new(env!("CARGO_BIN_EXE_agov"))
-            .current_dir(&repo.root)
-            .env("PATH", std::env::join_paths(&paths).unwrap())
-            .env("AGOV_TEST_REAL_GIT", real_git.trim())
-            .env("AGOV_TEST_FAIL_OPERATION", operation)
-            .env("AGOV_TOKEN_ROI", "0")
-            .env("AGOV_SCHEMA_DIR", &schema_dir)
-            .args([
-                "coord",
-                "publication-check",
-                "--base-ref",
-                "main",
-                "--format",
-                "json",
-            ])
+    let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .current_dir(&repo.root)
+        .env("PATH", std::env::join_paths(paths).unwrap())
+        .env("AGOV_TEST_REAL_GIT", real_git.trim())
+        .env("AGOV_TEST_DRIFT_TO", &forbidden)
+        .env("AGOV_TEST_ARG_LOG", repo.root.join("argv.log"))
+        .env("AGOV_SCHEMA_DIR", schema_dir)
+        .env("AGOV_TOKEN_ROI", "0")
+        .args([
+            "coord",
+            "publication-check",
+            "--base-ref",
+            "main",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(0), "{}", stderr(&output));
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(json["candidate_sha"], clean);
+    assert_eq!(json["target_sha"], target);
+    assert_eq!(sha("HEAD"), forbidden);
+    let log = fs::read_to_string(repo.root.join("argv.log")).unwrap();
+    let calls: Vec<_> = log.lines().collect();
+    let pin = calls
+        .iter()
+        .position(|line| line.ends_with("HEAD^{commit}"))
+        .unwrap();
+    assert!(
+        calls
+            .iter()
+            .skip(pin + 1)
+            .all(|line| !line.contains("HEAD")),
+        "{log}"
+    );
+    assert!(
+        !json["commits_checked"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s == &forbidden)
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn decisive_git_read_failures_report_nonzero_json_and_operation() {
+    use std::os::unix::fs::PermissionsExt;
+    for history in ["clean", "merge", "revert"] {
+        let repo = committed_record_fixture(&coord("valid"));
+        if history == "merge" {
+            add_merge_history(&repo);
+        }
+        if history == "revert" {
+            repo.write("src/forbidden.rs", "implementation");
+            repo.git(&["add", "."]);
+            repo.git(&["commit", "-q", "-m", "coordination: implementation"]);
+            fs::remove_file(repo.root.join("src/forbidden.rs")).unwrap();
+            repo.git(&["add", "-A"]);
+            repo.git(&["commit", "-q", "-m", "coordination: revert implementation"]);
+        }
+        let real_git = Command::new("sh")
+            .args(["-c", "command -v git"])
             .output()
             .unwrap();
-        assert_eq!(
-            output.status.code(),
-            Some(1),
-            "{operation}: {}",
-            stderr(&output)
+        assert!(real_git.status.success());
+        let real_git = String::from_utf8(real_git.stdout).unwrap();
+        repo.write(
+            "fakebin/git",
+            r#"#!/bin/sh
+operation=""
+if [ "$1" = rev-parse ] && [ "$4" = 'HEAD^{commit}' ]; then
+  operation=candidate-resolution
+else
+case "$1 $2 $3" in
+  'rev-parse --verify '*) operation=target-resolution ;;
+  'merge-base '*) operation=merge-base ;;
+  'rev-list --merges '*) operation=merges ;;
+  'rev-list --reverse '*) operation=commits ;;
+  'log -1 --format=%s') operation=subject ;;
+  'log -1 --format=%B') operation=message ;;
+  'diff-tree '*) operation=commit-diff ;;
+  'diff --name-status '*) operation=aggregate-diff ;;
+  'ls-tree '*) operation=tree ;;
+  'cat-file '*) operation=blob ;;
+esac
+fi
+if [ "$operation" = "$AGOV_TEST_FAIL_OPERATION" ]; then
+  echo "injected git $operation failure" >&2
+  exit 1
+fi
+exec "$AGOV_TEST_REAL_GIT" "$@"
+"#,
         );
-        let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-        assert_eq!(json["ok"], false, "{operation}: {json}");
-        assert!(
-            json["reasons"].as_array().unwrap().iter().any(|r| r
-                .as_str()
-                .unwrap()
-                .contains(&format!("injected git {operation} failure"))),
-            "{operation}: {json}"
-        );
+        fs::set_permissions(
+            repo.root.join("fakebin/git"),
+            fs::Permissions::from_mode(0o755),
+        )
+        .unwrap();
+        let mut paths = vec![repo.root.join("fakebin")];
+        paths.extend(std::env::split_paths(
+            &std::env::var_os("PATH").unwrap_or_default(),
+        ));
+        let schema_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../../../agf/schemas")
+            .canonicalize()
+            .unwrap();
+        for operation in [
+            "target-resolution",
+            "candidate-resolution",
+            "merge-base",
+            "merges",
+            "commits",
+            "subject",
+            "message",
+            "commit-diff",
+            "aggregate-diff",
+            "tree",
+            "blob",
+        ] {
+            if history == "merge" && operation != "merges" {
+                continue;
+            }
+            if history == "revert" && !["commit-diff", "aggregate-diff"].contains(&operation) {
+                continue;
+            }
+            let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+                .current_dir(&repo.root)
+                .env("PATH", std::env::join_paths(&paths).unwrap())
+                .env("AGOV_TEST_REAL_GIT", real_git.trim())
+                .env("AGOV_TEST_FAIL_OPERATION", operation)
+                .env("AGOV_TOKEN_ROI", "0")
+                .env("AGOV_SCHEMA_DIR", &schema_dir)
+                .args([
+                    "coord",
+                    "publication-check",
+                    "--base-ref",
+                    "main",
+                    "--format",
+                    "json",
+                ])
+                .output()
+                .unwrap();
+            assert_eq!(
+                output.status.code(),
+                Some(1),
+                "{operation}: {}",
+                stderr(&output)
+            );
+            let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+            assert_eq!(json["ok"], false, "{operation}: {json}");
+            assert!(
+                json["reasons"].as_array().unwrap().iter().any(|r| r
+                    .as_str()
+                    .unwrap()
+                    .contains(&format!("injected git {operation} failure"))),
+                "{operation}: {json}"
+            );
+        }
     }
 }
 

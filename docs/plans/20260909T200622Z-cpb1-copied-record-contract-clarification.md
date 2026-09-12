@@ -93,8 +93,10 @@ Condition 3's parenthetical already lists "copies". Add one sentence to the
 The contract (per review `1r5a` findings CPB1-COPY-1 / -2):
 
 1. **Source inventories — merge base and pinned current target tip.**
-   Resolve the selected target ref once to an immutable commit SHA. Use that
-   SHA for merge-base computation and all target tree/blob reads, never a
+   Resolve the selected target ref and candidate HEAD once each to immutable
+   commit SHAs before ancestry/enumeration. Use only these pinned objects for
+   merge-base, range, aggregate diff and tree/blob reads. Report candidate_sha
+   and target_sha in text/JSON so evidence names the checked snapshot, never a
    subsequently dereferenced mutable branch. Enumerate direct lowercase .md
    coordination records at both merge base and pinned target via git objects;
    accept regular blob modes 100644/100755 only. Do not read working-tree paths.
@@ -114,7 +116,7 @@ The contract (per review `1r5a` findings CPB1-COPY-1 / -2):
    seen set is a copy — this catches two identical new records within one
    commit or one candidate range, which neither existed at the merge base.
 5. **Fail closed.** Every security-decisive Git read failure fails the check:
-   target resolution, merge base, merge/commit enumeration, subjects/full
+   target/candidate resolution, merge base, merge/commit enumeration, subjects/full
    messages, per-commit diffs, aggregate diff, tree and blob reads. Do not
    convert errors into empty success evidence. Diagnostics identify failed
    operations/commits/paths without disclosing record bodies.
@@ -146,9 +148,11 @@ Add to `publication_check.rs` tests (per `1r5a` CPB1-COPY-2):
    candidate adds byte-identical B. A fresh check rejects with both paths while
    a distinct B passes. Copies at merge base, target or prior candidates are equal
    cases; target inventory overlap must not reject a legitimate distinct addition.
-6. **Target pinning** — move the mutable target ref after resolution during an
+6. **Target and candidate pinning** — move the mutable target ref after resolution during an
    injected test. Ancestry/tree/blob reads must continue using the original pinned
-   SHA, never a mixed target snapshot. The caller still rechecks target freshness
+   SHA, never a mixed target snapshot. Move HEAD after commit enumeration to
+   forbidden merge history: the result must name the original candidate SHA
+   and no later Git argument may reference HEAD. The caller still rechecks target freshness
    immediately before merge; pinning makes one invocation coherent, not timeless.
 
 The rule's "Required negative self-tests" list gains an explicit
