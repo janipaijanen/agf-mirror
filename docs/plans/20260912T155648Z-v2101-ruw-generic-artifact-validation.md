@@ -1,6 +1,8 @@
 ---
 id: 20260912T155648Z-v2101-ruw-generic-artifact-validation
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-12T16:01:41Z
 topic: v2101-ruw-generic-artifact-validation
 candidate_release: v2.10.1
 advisory_consultation:
@@ -33,6 +35,12 @@ advisory_consultation:
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Plan: v2.10.1 as the redesignated RUW — generic artifact/graph validation extension
+
+**Gate 1: APPROVED, version confirmed as v2.10.1** per
+`20260912T160141Z-planner-architect-jj88` ("gate 1 approved, confirm
+version 2.10.1", governor decision transcribed by Claude, no
+AI-originated authority claimed). The SemVer tension this plan flagged
+is resolved: v2.10.1 stands as named, not v2.11.0 or another number.
 
 ## Decision requested at Gate 1
 
