@@ -37,6 +37,29 @@ convention is not a safety mechanism — it is an unverified claim. This rule
 grants the fast path real, narrow, tool-enforced authority in place of that
 unverified claim.
 
+### Multi-record publication
+
+A coordination-only merge request MAY add any number of new coordination
+records. The fast path remains valid only when every change in the full commit
+range is a pure addition under `docs/coordination/*.md`; all six blocking
+conditions below apply unchanged to the whole range.
+
+A copy is an added record whose full raw bytes equal a coordination record
+at the resolved merge base, the pinned current target tip, or an earlier
+addition in the candidate range
+(including the same commit). Identity is checked byte-for-byte, never by
+similarity or by trusting distinct IDs; genuinely distinct records pass.
+
+Records produced in the same session or work cycle SHOULD be published
+together when no individual record has an independent visibility obligation.
+Batching reduces merge-request churn without weakening validation. A record
+that another agent or human is waiting on to act — including a live
+obligation, security or gate finding, escalation, or blocking review — MUST
+publish independently and immediately rather than wait for a batch.
+
+This permission changes neither coordination lifecycle and supersession
+semantics nor the protected title convention or the `[ci skip]` prohibition.
+
 ### What the fast path may mechanically verify (blocking authority)
 
 A coordination-publication check MAY block a merge request when, and only
@@ -53,12 +76,27 @@ tip diff):
    Modifications, deletions, renames, or copies of existing coordination
    files are rejected; coordination records are append-only by design (see
    `immutable-tags-rule.md`'s sibling principle for tags — this rule is the
-   append-only analogue for coordination records).
+   append-only analogue for coordination records). Copies are detected by exact
+   byte identity against the resolved merge base, pinned current target tip,
+   and prior candidate additions,
+   including earlier additions in the same commit, not by similarity.
 4. **A merge commit or imported history is present in the range.**
 5. **A newly added coordination record fails `agov coord validate`.**
 6. **The commit range does not use the protected fast-path commit
    convention** (the project's `coordination:` title prefix, or equivalent),
    when the branch is being routed through the lightweight path.
+
+Resolve the selected target ref and candidate HEAD once each per invocation to
+immutable commit SHAs before ancestry/enumeration; use only pinned objects for
+ancestry, range, aggregate diff and content reads. Report candidate_sha and
+target_sha in text/JSON so a result is bound to the checked candidate. Inventory direct regular
+coordination blobs at both the merge base and pinned target tip. Repeated
+inventory entries seed the comparison set without becoming candidate additions.
+Every Git read needed to establish conditions 1-6 must fail closed on error,
+including merge/commit enumeration, message, per-commit/aggregate diff and object
+reads. A failed read is unavailable evidence, not a successful empty result.
+This is a prerequisite for enforcing the six existing conditions, not a new
+semantic gate. A caller must still revalidate after a subsequent target advance.
 
 ### What the fast path MUST NOT decide (stays human/role authority)
 
@@ -189,9 +227,25 @@ it fires on known-bad input:
    *aggregate* diff may look coordination-only, but the range still
    contains non-coordination commits. Must fail (the rule inspects every
    commit in the range, not only the net diff).
-3. **A clean, coordination-only range against current target history.**
-   Must pass.
-4. **A stale or unfetchable base ref.** Must fail closed, not pass open.
+3. **Modification, deletion, or rename of an existing coordination record.**
+   Each must fail as a non-pure addition.
+4. **A multi-record batch with any non-coordination file.** Must fail even
+   when all added coordination records are valid.
+5. **A clean range adding two or more valid coordination records against
+   current target history.** Must pass.
+6. **A stale or unfetchable base ref.** Must fail closed, not pass open.
+7. **A `[ci skip]` or `[skip ci]` marker in any coordination commit.** Must
+   fail locally even though the forge would suppress pipeline creation.
+
+8. **An exact copy of a merge-base record, pinned target-tip record, or earlier candidate addition
+   (including the same commit).** Must fail with both paths; template-similar
+   but byte-distinct records must pass. Include divergence where the target
+   acquires the copied record after the merge base. Target pinning must prevent
+   ref drift during reads, and overlapping inventories must not create false copies.
+9. **Any decisive Git read fails.** Inject errors for target/candidate resolution, merge
+   and commit enumeration, subject/full message, per-commit and aggregate diffs,
+   and tree/blob reads. Every case must fail closed, including otherwise hidden
+   merge/import and implementation-plus-revert histories.
 
 ## Why this exists
 

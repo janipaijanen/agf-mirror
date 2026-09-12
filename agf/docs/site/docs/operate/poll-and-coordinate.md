@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
+<!-- Copyright (c) 2026 Jani Päijänen -->
+
 # Poll and coordinate
 
 *Status: Released. Audience: every active operator or AI development
@@ -147,6 +150,9 @@ additions under `docs/coordination/`. See
 [Coordination protocol § Publication is independent of Gate 2](../concepts/coordination-protocol.md#publication-is-independent-of-gate-2-but-mechanically-verified)
 for why, and `agf/rules/workflow/coordination-publication-rule.md` for the
 mechanically-enforced conditions.
+Batch same-cycle records into one coordination-only merge request when no
+individual record is holding up another actor; publish an urgent or waiting
+obligation alone immediately.
 
 ## Splitting work safely
 

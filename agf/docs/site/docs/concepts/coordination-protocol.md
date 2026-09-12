@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
+<!-- Copyright (c) 2026 Jani Päijänen -->
+
 # Coordination protocol
 
 *Status: Deployable. Audience: developers and governors who want
@@ -70,6 +73,11 @@ against the target branch (not only the tip diff) and confirms every commit
 in the range is a pure addition under `docs/coordination/`, with no merge or
 imported history. See `agf/rules/workflow/coordination-publication-rule.md`
 for the complete rule.
+
+The full-range check permits a single coordination-only merge request to add
+multiple records. Batch records produced in the same work cycle when none is
+independently blocking another actor; publish a live obligation, security or
+gate finding, escalation, or blocking review on its own immediately.
 
 This exists because a commit title alone is an unverified claim about the
 branch. One incident (tracked as issue #72, MR !692) showed exactly how that

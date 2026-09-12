@@ -1,3 +1,12 @@
+// CP-B-1 checked-candidate evidence: main.rs exposes the pinned candidate SHA.
+// Publication CLI drift fixtures cover the new output; existing gate controls
+// accompany this shared command surface.
+
+// CP-B-1 copy-review correction (2026-09-12): main.rs now supplies schema
+// validation from introducing-commit bytes, not mutable filesystem paths.
+// coord_publication_check.rs exercises false-pass/false-fail dirty-file
+// controls; these existing gate controls accompany the shared main.rs change.
+
 // Row 6 S2/S3 companion evidence (2026-09-11): both advisory commands
 // register in main.rs, a shared surface of gate-change-check. The gate itself
 // is unchanged. Existing negative controls below still exercise missing test

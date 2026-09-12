@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
+<!-- Copyright (c) 2026 Jani Päijänen -->
+
 <!-- AGF: 2.10.0 — update this comment after each framework upgrade to match agf/VERSION -->
 # AGF-NG — Agent and Contributor Orientation
 
@@ -174,8 +177,10 @@ mechanically verified, not merely title-claimed: `agov coord
 publication-check` inspects the full commit range against the target branch,
 not only the tip diff, and CI runs it automatically via
 `agov:governance:validate` whenever a `coordination:`-titled commit changes
-`docs/coordination/*.md`. Branch it from the target branch, not from an
-implementation branch's tip. **Never add `[ci skip]`/`[skip ci]` to a
+`docs/coordination/*.md`. Batch same-cycle records when none independently
+blocks another actor; publish a live obligation, security or gate finding,
+escalation, or blocking review alone immediately. Branch it from the target
+branch, not from an implementation branch's tip. **Never add `[ci skip]`/`[skip ci]` to a
 coordination-only commit message** — that marker skips pipeline creation
 entirely at the platform level, before any CI configuration runs; run `agov
 coord publication-check --base-ref origin/main` locally before pushing

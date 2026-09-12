@@ -4306,33 +4306,24 @@ fn coord_publication_check(
         }
     };
 
-    let mut report = agov_coord::publication_check::publication_check(
+    // Condition 5 validates the introducing Git object, sharing the exact raw
+    // bytes used by copy detection. Dirty, deleted or untracked local files
+    // cannot supply or replace acceptance evidence.
+    let report = agov_coord::publication_check::publication_check_validated(
         &base_ref,
         &coord_dir,
         &subject_prefix,
         &repo_root,
+        &|bytes| match std::str::from_utf8(bytes) {
+            Ok(content) => agov_coord::coord_validator::validate_content(content)
+                .err()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|(field, message)| format!("schema validation failed ({field}: {message})"))
+                .collect(),
+            Err(error) => vec![format!("schema validation failed (file: invalid UTF-8: {error})")],
+        },
     );
-
-    // Mechanical containment passed; now validate every newly-added
-    // coordination record against the schema, per the rule's condition 5.
-    if report.ok {
-        for relative in &report.added_files {
-            let full_path = repo_root.join(relative);
-            match agov_coord::coord_validator::validate_file(&full_path) {
-                Ok(_) => {}
-                Err(errors) => {
-                    report.ok = false;
-                    for (field, message) in errors {
-                        report.reasons.push(format!(
-                            "{relative}: schema validation failed ({field}: {message})"
-                        ));
-                    }
-                }
-            }
-        }
-        report.reasons.sort();
-        report.reasons.dedup();
-    }
 
     if format == "json" {
         output.stdout(publication_check_json(&report));
@@ -4353,8 +4344,10 @@ fn render_publication_check_text(
     report: &agov_coord::publication_check::PublicationCheckReport,
 ) {
     output.stdout(format!(
-        "publication-check base_ref={} merge_base={} commits={}",
+        "publication-check base_ref={} target_sha={} candidate_sha={} merge_base={} commits={}",
         report.base_ref,
+        report.target_sha.as_deref().unwrap_or("none"),
+        report.candidate_sha.as_deref().unwrap_or("none"),
         report.merge_base.as_deref().unwrap_or("none"),
         report.commits_checked.len()
     ));
@@ -4378,6 +4371,8 @@ fn publication_check_json(
         "ok": report.ok,
         "base_ref": report.base_ref,
         "merge_base": report.merge_base,
+        "candidate_sha": report.candidate_sha,
+        "target_sha": report.target_sha,
         "commits_checked": report.commits_checked,
         "added_files": report.added_files,
         "reasons": report.reasons,
