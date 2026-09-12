@@ -1,15 +1,17 @@
 ---
 id: 20260909T200622Z-cpb1-copied-record-contract-clarification
 status: approved
-gate1_approved_by: 20260910T052328Z-planner-architect-771h
-gate1_approved_at: 2026-09-10T05:23:28Z
+gate1_approved_by: 20260912T102658Z-governor-reviewer-rqkp
+gate1_approved_at: 2026-09-12T10:26:58Z
 topic: cpb1-copied-record-contract-clarification
 candidate_release: v2.11.0
 advisory_consultation:
   - role: infosec-sentinel
-    status: waived
+    status: consulted
     reason: >-
-      Consultation requested at this Gate 1, not yet on record. This
+      Appointed semantic-security review mhhk found the target-inventory
+      design defect and decisive-read fail-open at 1da3584d. Governor rqkp
+      approved this correction; revised-head consultation remains required. This
       narrows a gate (`coordination-publication-rule` condition 3 +
       `agov coord publication-check`). InfoSec must confirm the
       byte-identity copy check adds no bypass and no new false-negative on
@@ -31,6 +33,11 @@ advisory_consultation:
 # CP-B-1 — copied-record contract clarification (narrow Gate 1)
 
 ## Authority
+
+- Governor `20260912T102658Z-governor-reviewer-rqkp` approves the current
+  target-inventory amendment proposed in dpga. Original clarification authority
+  was governor q862 ratifying planner bridge 771h; that history is retained,
+  while rqkp supersedes the explicit merge-base-only restriction.
 
 - `hpms` (2026-09-09): an independent exact-head audit of CP-B-1
   implementation MR !2636 found one blocking mismatch — the approved
@@ -72,7 +79,8 @@ Condition 3's parenthetical already lists "copies". Add one sentence to the
 
 > A copy is detected by **exact byte identity**, not by similarity: an
 > added `docs/coordination/*.md` file whose full byte content equals that
-> of any coordination record already present at the resolved merge base,
+> of any coordination record already present at the resolved merge base or
+> pinned current target tip,
 > **or** of any coordination record added earlier in the same candidate
 > range, is a copy and is rejected as a non-pure addition. The check
 > compares actual bytes, so it also catches a mis-authored duplicate that
@@ -84,12 +92,14 @@ Condition 3's parenthetical already lists "copies". Add one sentence to the
 
 The contract (per review `1r5a` findings CPB1-COPY-1 / -2):
 
-1. **Source of base records — pinned to the merge base, not the tip.**
-   Enumerate the coordination records present at the **already-resolved
-   merge base** via `git ls-tree -r <merge-base> -- docs/coordination`
-   (the same merge base condition 1 resolves). Do not read the target
-   branch tip (avoids target-tip drift) and do not read working-tree
-   paths (avoids working-tree races).
+1. **Source inventories — merge base and pinned current target tip.**
+   Resolve the selected target ref once to an immutable commit SHA. Use that
+   SHA for merge-base computation and all target tree/blob reads, never a
+   subsequently dereferenced mutable branch. Enumerate direct lowercase .md
+   coordination records at both merge base and pinned target via git objects;
+   accept regular blob modes 100644/100755 only. Do not read working-tree paths.
+   Identical inventory entries/content seed the set once; repeated inventory
+   presence is not itself a candidate copy. Retain original path provenance.
 2. **Source of candidate blobs — the exact Git object at its introducing
    commit.** For each `A`-status `docs/coordination/*.md` path, read the
    added blob with `git cat-file blob <commit>:<path>` at the commit where
@@ -99,16 +109,19 @@ The contract (per review `1r5a` findings CPB1-COPY-1 / -2):
    **compare the two blob objects byte-for-byte** and classify as a copy
    only on exact byte equality. A hash match alone never decides.
 4. **Running seen-content set.** Process candidate additions in range
-   order; the seen set is `{merge-base records} ∪ {candidate additions
-   already processed}`. A new addition whose bytes equal anything in the
+   order; the seen set is `{merge-base records} ∪ {pinned target-tip records}
+   ∪ {candidate additions already processed}`. A new addition whose bytes equal anything in the
    seen set is a copy — this catches two identical new records within one
    commit or one candidate range, which neither existed at the merge base.
-5. **Fail closed.** Any `ls-tree` or `cat-file` enumeration/object-read
-   error fails the check (never pass-open), consistent with condition 1.
+5. **Fail closed.** Every security-decisive Git read failure fails the check:
+   target resolution, merge base, merge/commit enumeration, subjects/full
+   messages, per-commit diffs, aggregate diff, tree and blob reads. Do not
+   convert errors into empty success evidence. Diagnostics identify failed
+   operations/commits/paths without disclosing record bodies.
 6. On a copy, fail with
    `"commit <c> adds a byte-identical copy of an existing coordination
-   record: <path> == <existing path>"` (existing path is the merge-base
-   path or the earlier candidate path).
+   record: <path> == <existing path>"` (existing path is the merge-base,
+   pinned target-tip or earlier candidate path).
 
 ### Gate-self-test additions (the CP-B-1 implementing MR, MR !2636)
 
@@ -124,8 +137,19 @@ Add to `publication_check.rs` tests (per `1r5a` CPB1-COPY-2):
    the candidate adds a new record sharing the SPDX header, frontmatter
    keys, and section headings but with a distinct `id:`, `timestamp:`,
    `topic:`, and body. Must **pass** — identity, not similarity.
-4. **Object/enumeration read failure fails closed** — a simulated
-   `ls-tree` / `cat-file` failure must fail the check, not pass it.
+4. **Decisive read failures fail closed** — injected failures for target
+   resolution, merge enumeration, commit enumeration, subject, full message,
+   per-commit diff, aggregate diff, tree enumeration and blob reads must reject.
+   CLI reports nonzero, ok:false, and the failed operation. Include real forbidden
+   merge/import and implementation-plus-revert ranges behind injected failures.
+5. **Advanced-target copies fail** — target adds A after divergence and the
+   candidate adds byte-identical B. A fresh check rejects with both paths while
+   a distinct B passes. Copies at merge base, target or prior candidates are equal
+   cases; target inventory overlap must not reject a legitimate distinct addition.
+6. **Target pinning** — move the mutable target ref after resolution during an
+   injected test. Ancestry/tree/blob reads must continue using the original pinned
+   SHA, never a mixed target snapshot. The caller still rechecks target freshness
+   immediately before merge; pinning makes one invocation coherent, not timeless.
 
 The rule's "Required negative self-tests" list gains an explicit
 copied-record item, matching condition 3's full wording.
@@ -142,26 +166,29 @@ copied-record item, matching condition 3's full wording.
 
 ## Downstream impact
 
-Classification: **ADDITIVE / clarifying**. Condition 3 already forbids
-copies; this makes the detector and the test match the rule. No existing
-coordination MR becomes invalid (two genuinely distinct records differ in
-`id:` / `timestamp:` / body, so they are never byte-identical; the check
-compares bytes, so it neither depends on that convention nor flags a
-distinct record). `agov coord publication-check` output is unchanged for
-every input that is not an exact-copy attempt.
+Classification: **ADDITIVE / clarifying** for the original copy definition;
+this amendment strengthens coverage of the same existing no-copy/full-range
+conditions. Genuinely distinct records remain eligible. Copies introduced on an
+advanced target and failed decisive reads that previously slipped through now
+reject. Error diagnostics identify the failed operation. No similarity heuristic,
+new message kind, new tool authority or release permission is introduced.
 
-## Validation before Gate 1
+## Validation and approval record
 
-`agov plan validate` on this file; `git diff --check`; coordination
-visibility/collision scan. No projection manifest — the CP-B-1 projection
-manifest already covers `coordination-publication-rule.md` and its
-surfaces; this clarification's one added sentence rides that manifest.
+Run `agov plan validate` on this file, `git diff --check`, and strict projection
+validation on the existing CP-B-1 manifest. That manifest covers the amended rule,
+Claude projection and all other implementation surfaces; no second manifest is
+needed. Original approval was governor q862 ratifying 771h. Governor rqkp approves
+the amended target inventory and failure semantics plus expanded test matrix.
+Gate 2 remains pending final exact-head evidence and governor decision.
 
-## Decision requested at Gate 1
+## 2026-09-12 security amendment acceptance
 
-Approve (a) the exact-content-identity definition of "copy" (not
-similarity), (b) the one-sentence rule-text clarification, (c) the
-byte-hash detector addition to `agov coord publication-check`, and (d) the
-two gate-self-tests (copied-record fails; template-similar new record
-passes), all folded into the unmerged CP-B-1 implementing MR !2636 with
-fresh exact-head reviews.
+Governor rqkp approved SEC-1's inventory expansion and batching SEC-2's
+fail-closed correction in existing !2636. These are amendments of this approved
+plan, not a new implementation MR or a waiver of current security findings.
+The prior target-tip-pass test is replaced with divergent-target rejection and
+pinning coverage. Re-run the affected publication unit/CLI/gate tests, strict
+projection validation, clippy and the required exact-head canonical pipeline.
+Obtain independent semantic/code review on the final amended candidate before
+seeking Gate 2. No unchanged retry of failed paid CI is authorized by this plan.

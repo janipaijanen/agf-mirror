@@ -45,7 +45,8 @@ range is a pure addition under `docs/coordination/*.md`; all six blocking
 conditions below apply unchanged to the whole range.
 
 A copy is an added record whose full raw bytes equal a coordination record
-at the resolved merge base or an earlier addition in the candidate range
+at the resolved merge base, the pinned current target tip, or an earlier
+addition in the candidate range
 (including the same commit). Identity is checked byte-for-byte, never by
 similarity or by trusting distinct IDs; genuinely distinct records pass.
 
@@ -76,13 +77,24 @@ tip diff):
    files are rejected; coordination records are append-only by design (see
    `immutable-tags-rule.md`'s sibling principle for tags — this rule is the
    append-only analogue for coordination records). Copies are detected by exact
-   byte identity against the resolved merge base and prior candidate additions,
+   byte identity against the resolved merge base, pinned current target tip,
+   and prior candidate additions,
    including earlier additions in the same commit, not by similarity.
 4. **A merge commit or imported history is present in the range.**
 5. **A newly added coordination record fails `agov coord validate`.**
 6. **The commit range does not use the protected fast-path commit
    convention** (the project's `coordination:` title prefix, or equivalent),
    when the branch is being routed through the lightweight path.
+
+Resolve the selected target ref once per invocation to an immutable commit SHA;
+use that SHA for ancestry and target-content reads. Inventory direct regular
+coordination blobs at both the merge base and pinned target tip. Repeated
+inventory entries seed the comparison set without becoming candidate additions.
+Every Git read needed to establish conditions 1-6 must fail closed on error,
+including merge/commit enumeration, message, per-commit/aggregate diff and object
+reads. A failed read is unavailable evidence, not a successful empty result.
+This is a prerequisite for enforcing the six existing conditions, not a new
+semantic gate. A caller must still revalidate after a subsequent target advance.
 
 ### What the fast path MUST NOT decide (stays human/role authority)
 
@@ -223,10 +235,15 @@ it fires on known-bad input:
 7. **A `[ci skip]` or `[skip ci]` marker in any coordination commit.** Must
    fail locally even though the forge would suppress pipeline creation.
 
-8. **An exact copy of a merge-base record or an earlier candidate addition
+8. **An exact copy of a merge-base record, pinned target-tip record, or earlier candidate addition
    (including the same commit).** Must fail with both paths; template-similar
-   but byte-distinct records must pass. Enumeration or blob-read failures
-   must fail closed.
+   but byte-distinct records must pass. Include divergence where the target
+   acquires the copied record after the merge base. Target pinning must prevent
+   ref drift during reads, and overlapping inventories must not create false copies.
+9. **Any decisive Git read fails.** Inject errors for target resolution, merge
+   and commit enumeration, subject/full message, per-commit and aggregate diffs,
+   and tree/blob reads. Every case must fail closed, including otherwise hidden
+   merge/import and implementation-plus-revert histories.
 
 ## Why this exists
 

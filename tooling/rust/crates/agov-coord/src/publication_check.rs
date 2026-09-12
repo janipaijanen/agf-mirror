@@ -79,34 +79,68 @@ fn publication_check_with_git(
     let mut reasons = Vec::new();
     let coord_prefix = format!("{}/", coord_dir.trim_end_matches('/'));
 
-    let merge_base = match git(cwd, &["merge-base", base_ref, "HEAD"]) {
+    let failure = |reason: String| PublicationCheckReport {
+        ok: false,
+        base_ref: base_ref.to_string(),
+        merge_base: None,
+        commits_checked: Vec::new(),
+        added_files: Vec::new(),
+        reasons: vec![reason],
+    };
+    // Resolve the selected target exactly once. Subsequent reads must use this
+    // immutable commit, including ancestry and both inventory snapshots.
+    let target = match git(
+        cwd,
+        &[
+            "rev-parse",
+            "--verify",
+            "--end-of-options",
+            &format!("{base_ref}^{{commit}}"),
+        ],
+    ) {
         Ok(sha) if !sha.trim().is_empty() => sha.trim().to_string(),
-        _ => {
-            return PublicationCheckReport {
-                ok: false,
-                base_ref: base_ref.to_string(),
-                merge_base: None,
-                commits_checked: Vec::new(),
-                added_files: Vec::new(),
-                reasons: vec![format!(
-                    "no valid merge-base between '{base_ref}' and HEAD; \
-                     target may be unfetched or ancestry is unresolvable"
-                )],
-            };
+        result => {
+            return failure(format!(
+                "git rev-parse target failed for '{base_ref}': {}",
+                result
+                    .err()
+                    .unwrap_or_else(|| "empty commit resolution".into())
+            ));
         }
     };
+    let merge_base = match git(cwd, &["merge-base", &target, "HEAD"]) {
+        Ok(sha) if !sha.trim().is_empty() => sha.trim().to_string(),
+        result => {
+            return failure(format!(
+                "git merge-base failed between pinned target {target} and HEAD: {}",
+                result
+                    .err()
+                    .unwrap_or_else(|| "empty merge-base resolution".into())
+            ));
+        }
+    };
+    macro_rules! checked_git {
+        ($args:expr) => {
+            match git(cwd, $args) {
+                Ok(value) => value,
+                Err(error) => {
+                    reasons.push(format!("git {} failed: {error}", $args.join(" ")));
+                    String::new()
+                }
+            }
+        };
+    }
 
     let range = format!("{merge_base}..HEAD");
 
-    let merge_commits = git(cwd, &["rev-list", "--merges", &range]).unwrap_or_default();
+    let merge_commits = checked_git!(&["rev-list", "--merges", &range]);
     for line in merge_commits.lines().filter(|line| !line.trim().is_empty()) {
         reasons.push(format!(
             "merge commit {line} present in the candidate range; merge/imported history is rejected"
         ));
     }
 
-    let commits: Vec<String> = git(cwd, &["rev-list", "--reverse", &range])
-        .unwrap_or_default()
+    let commits: Vec<String> = checked_git!(&["rev-list", "--reverse", &range])
         .lines()
         .map(str::to_string)
         .filter(|line| !line.is_empty())
@@ -117,8 +151,7 @@ fn publication_check_with_git(
     }
 
     for commit in &commits {
-        let subject = git(cwd, &["log", "-1", "--format=%s", commit])
-            .unwrap_or_default()
+        let subject = checked_git!(&["log", "-1", "--format=%s", commit])
             .trim()
             .to_string();
         if !subject.starts_with(subject_prefix) {
@@ -135,7 +168,7 @@ fn publication_check_with_git(
         // checked at all. Reject it here so the check is at least a
         // reliable local pre-flight (`agov coord publication-check` run
         // before push) even when CI itself would never run.
-        let full_message = git(cwd, &["log", "-1", "--format=%B", commit]).unwrap_or_default();
+        let full_message = checked_git!(&["log", "-1", "--format=%B", commit]);
         let lower = full_message.to_lowercase();
         if lower.contains("[ci skip]") || lower.contains("[skip ci]") {
             reasons.push(format!(
@@ -149,57 +182,54 @@ fn publication_check_with_git(
     let mut added_files = Vec::new();
     // Hashes only narrow the search; actual raw bytes decide identity.
     let mut seen = SeenContent::default();
-    let base_records = read_git(
-        cwd,
-        &[
-            "ls-tree",
-            "-r",
-            "-z",
-            "--name-only",
-            &merge_base,
-            "--",
-            coord_dir,
-        ],
-    );
-    match base_records {
-        Err(error) => reasons.push(format!(
-            "cannot enumerate merge-base coordination records: {error}"
-        )),
-        Ok(paths) => {
-            for raw_path in paths
-                .split(|byte| *byte == 0)
-                .filter(|path| !path.is_empty())
-            {
-                let path = match std::str::from_utf8(raw_path) {
-                    Ok(path) => path,
-                    Err(error) => {
-                        reasons.push(format!(
-                            "cannot decode merge-base coordination path: {error}"
-                        ));
-                        continue;
-                    }
-                };
-                if !is_channel_record(path, &coord_prefix) {
+    for snapshot in [&merge_base, &target] {
+        // Inventory overlap is expected when target and merge base share records;
+        // inserting it is not a candidate publication and never emits a copy.
+        let entries = match read_git(cwd, &["ls-tree", "-r", "-z", snapshot, "--", coord_dir]) {
+            Ok(entries) => entries,
+            Err(error) => {
+                reasons.push(format!("git ls-tree inventory {snapshot} failed: {error}"));
+                continue;
+            }
+        };
+        for entry in entries
+            .split(|byte| *byte == 0)
+            .filter(|entry| !entry.is_empty())
+        {
+            let Some(tab) = entry.iter().position(|byte| *byte == b'\t') else {
+                reasons.push(format!(
+                    "git ls-tree inventory {snapshot} returned malformed entry"
+                ));
+                continue;
+            };
+            let path = match std::str::from_utf8(&entry[tab + 1..]) {
+                Ok(path) => path,
+                Err(error) => {
+                    reasons.push(format!(
+                        "git ls-tree inventory {snapshot} returned undecodable path: {error}"
+                    ));
                     continue;
                 }
-                match read_git(cwd, &["cat-file", "blob", &format!("{merge_base}:{path}")]) {
-                    Ok(bytes) => {
-                        seen.insert(path, bytes);
-                    }
-                    Err(error) => reasons.push(format!(
-                        "cannot read merge-base coordination record {path}: {error}"
-                    )),
+            };
+            if !is_channel_record(path, &coord_prefix)
+                || !(entry.starts_with(b"100644 blob ") || entry.starts_with(b"100755 blob "))
+            {
+                continue;
+            }
+            match read_git(cwd, &["cat-file", "blob", &format!("{snapshot}:{path}")]) {
+                Ok(bytes) => {
+                    seen.insert(path, bytes);
                 }
+                Err(error) => reasons.push(format!(
+                    "git cat-file inventory {snapshot}:{path} failed: {error}"
+                )),
             }
         }
     }
 
     for commit in &commits {
-        let name_status = git(
-            cwd,
-            &["diff-tree", "--no-commit-id", "--name-status", "-r", commit],
-        )
-        .unwrap_or_default();
+        let name_status =
+            checked_git!(&["diff-tree", "--no-commit-id", "--name-status", "-r", commit]);
         for (status, path) in parse_name_status(&name_status) {
             if !is_channel_record(&path, &coord_prefix) {
                 reasons.push(format!(
@@ -252,7 +282,7 @@ fn publication_check_with_git(
     // (e.g. implementation-then-revert-then-coordination) where every
     // individual commit might otherwise look plausible in isolation but
     // the aggregate still touches non-coordination history.
-    let aggregate = git(cwd, &["diff", "--name-status", &range]).unwrap_or_default();
+    let aggregate = checked_git!(&["diff", "--name-status", &range]);
     for (status, path) in parse_name_status(&aggregate) {
         if !is_channel_record(&path, &coord_prefix) {
             reasons.push(format!(
@@ -503,18 +533,125 @@ mod tests {
     }
 
     #[test]
-    fn target_tip_record_is_not_a_merge_base_record() {
+    fn divergent_target_copy_rejects_but_distinct_addition_passes() {
+        for duplicate in [true, false] {
+            let repo = divergent_repo(duplicate);
+            let report =
+                publication_check("target", "docs/coordination", "coordination:", repo.path());
+            assert_eq!(report.ok, !duplicate, "{:?}", report.reasons);
+            if duplicate {
+                assert!(
+                    report
+                        .reasons
+                        .iter()
+                        .any(|r| r.contains("b.md == docs/coordination/a.md"))
+                );
+            }
+        }
+    }
+
+    fn divergent_repo(duplicate: bool) -> TempRepo {
         let repo = TempRepo::new();
-        repo.write("README.md", "base");
+        repo.write("docs/coordination/base.md", &coord_message("base"));
         repo.commit("chore: base");
         run(repo.path(), &["branch", "candidate"]);
-        repo.write("docs/coordination/a.md", &coord_message("same"));
+        repo.write("docs/coordination/a.md", &coord_message("target"));
         repo.commit("coordination: target moves");
         run(repo.path(), &["branch", "target"]);
         run(repo.path(), &["checkout", "-q", "candidate"]);
-        repo.write("docs/coordination/b.md", &coord_message("same"));
+        repo.write(
+            "docs/coordination/b.md",
+            &coord_message(if duplicate { "target" } else { "candidate" }),
+        );
         repo.commit("coordination: candidate");
-        assert!(publication_check("target", "docs/coordination", "coordination:", repo.path()).ok);
+        repo
+    }
+
+    #[test]
+    fn target_ref_is_resolved_once_then_only_pinned_objects_are_read() {
+        let repo = divergent_repo(true);
+        let calls = std::cell::RefCell::new(Vec::<Vec<String>>::new());
+        let report = publication_check_with_git(
+            "target",
+            "docs/coordination",
+            "coordination:",
+            repo.path(),
+            &|cwd, args| {
+                calls
+                    .borrow_mut()
+                    .push(args.iter().map(|s| s.to_string()).collect());
+                let result = git_bytes(cwd, args);
+                if args[0] == "rev-parse" {
+                    // Delete the mutable ref immediately after resolution: any later
+                    // ancestry/inventory lookup by its name would now fail.
+                    run(cwd, &["branch", "-D", "target"]);
+                }
+                result
+            },
+            &|_| Vec::new(),
+        );
+        assert!(!report.ok);
+        assert!(
+            report
+                .reasons
+                .iter()
+                .any(|r| r.contains("byte-identical copy"))
+        );
+        let calls = calls.borrow();
+        assert_eq!(calls.iter().filter(|a| a[0] == "rev-parse").count(), 1);
+        assert!(
+            calls
+                .iter()
+                .skip(1)
+                .all(|a| a.iter().all(|v| v != "target" && v != "target^{commit}"))
+        );
+        assert!(!report.reasons.iter().any(|r| r.contains("failed")));
+    }
+
+    #[test]
+    fn every_security_decisive_git_read_fails_closed() {
+        let repo = divergent_repo(false);
+        let calls = std::cell::RefCell::new(Vec::<Vec<String>>::new());
+        let baseline = publication_check_with_git(
+            "target",
+            "docs/coordination",
+            "coordination:",
+            repo.path(),
+            &|cwd, args| {
+                calls
+                    .borrow_mut()
+                    .push(args.iter().map(|s| s.to_string()).collect());
+                git_bytes(cwd, args)
+            },
+            &|_| Vec::new(),
+        );
+        assert!(baseline.ok, "{:?}", baseline.reasons);
+        for failure in calls.into_inner() {
+            let operation = failure.join(" ");
+            let report = publication_check_with_git(
+                "target",
+                "docs/coordination",
+                "coordination:",
+                repo.path(),
+                &|cwd, args| {
+                    if args == failure {
+                        Err(format!("injected git {operation} failure"))
+                    } else {
+                        git_bytes(cwd, args)
+                    }
+                },
+                &|_| Vec::new(),
+            );
+            assert!(!report.ok, "must fail closed: {operation}");
+            assert!(
+                report
+                    .reasons
+                    .iter()
+                    .any(|r| r.contains(&format!("injected git {operation} failure"))),
+                "{:?}",
+                report.reasons
+            );
+        }
     }
 
     #[test]

@@ -15,6 +15,138 @@ fn committed_record_fixture(content: &str) -> GitFixture {
     repo
 }
 
+#[cfg(unix)]
+#[test]
+fn decisive_git_read_failures_report_nonzero_json_and_operation() {
+    use std::os::unix::fs::PermissionsExt;
+    let repo = committed_record_fixture(&coord("valid"));
+    let real_git = Command::new("sh")
+        .args(["-c", "command -v git"])
+        .output()
+        .unwrap();
+    assert!(real_git.status.success());
+    let real_git = String::from_utf8(real_git.stdout).unwrap();
+    repo.write(
+        "fakebin/git",
+        r#"#!/bin/sh
+operation=""
+case "$1 $2 $3" in
+  'rev-parse --verify '*) operation=target-resolution ;;
+  'merge-base '*) operation=merge-base ;;
+  'rev-list --merges '*) operation=merges ;;
+  'rev-list --reverse '*) operation=commits ;;
+  'log -1 --format=%s') operation=subject ;;
+  'log -1 --format=%B') operation=message ;;
+  'diff-tree '*) operation=commit-diff ;;
+  'diff --name-status '*) operation=aggregate-diff ;;
+  'ls-tree '*) operation=tree ;;
+  'cat-file '*) operation=blob ;;
+esac
+if [ "$operation" = "$AGOV_TEST_FAIL_OPERATION" ]; then
+  echo "injected git $operation failure" >&2
+  exit 1
+fi
+exec "$AGOV_TEST_REAL_GIT" "$@"
+"#,
+    );
+    fs::set_permissions(
+        repo.root.join("fakebin/git"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    let mut paths = vec![repo.root.join("fakebin")];
+    paths.extend(std::env::split_paths(
+        &std::env::var_os("PATH").unwrap_or_default(),
+    ));
+    let schema_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../../agf/schemas")
+        .canonicalize()
+        .unwrap();
+    for operation in [
+        "target-resolution",
+        "merge-base",
+        "merges",
+        "commits",
+        "subject",
+        "message",
+        "commit-diff",
+        "aggregate-diff",
+        "tree",
+        "blob",
+    ] {
+        let output = Command::new(env!("CARGO_BIN_EXE_agov"))
+            .current_dir(&repo.root)
+            .env("PATH", std::env::join_paths(&paths).unwrap())
+            .env("AGOV_TEST_REAL_GIT", real_git.trim())
+            .env("AGOV_TEST_FAIL_OPERATION", operation)
+            .env("AGOV_TOKEN_ROI", "0")
+            .env("AGOV_SCHEMA_DIR", &schema_dir)
+            .args([
+                "coord",
+                "publication-check",
+                "--base-ref",
+                "main",
+                "--format",
+                "json",
+            ])
+            .output()
+            .unwrap();
+        assert_eq!(
+            output.status.code(),
+            Some(1),
+            "{operation}: {}",
+            stderr(&output)
+        );
+        let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(json["ok"], false, "{operation}: {json}");
+        assert!(
+            json["reasons"].as_array().unwrap().iter().any(|r| r
+                .as_str()
+                .unwrap()
+                .contains(&format!("injected git {operation} failure"))),
+            "{operation}: {json}"
+        );
+    }
+}
+
+#[test]
+fn diverged_target_inventory_rejects_copy_and_accepts_distinct_record() {
+    for duplicate in [true, false] {
+        let repo = GitFixture::new();
+        repo.write("README.md", "base");
+        repo.git(&["add", "."]);
+        repo.git(&["commit", "-q", "-m", "chore: base"]);
+        repo.git(&["branch", "-M", "main"]);
+        repo.git(&["branch", "candidate"]);
+        repo.write("docs/coordination/target.md", &coord("target"));
+        repo.git(&["add", "."]);
+        repo.git(&["commit", "-q", "-m", "coordination: target"]);
+        repo.git(&["checkout", "-q", "candidate"]);
+        repo.write(
+            "docs/coordination/candidate.md",
+            &coord(if duplicate { "target" } else { "distinct" }),
+        );
+        repo.git(&["add", "."]);
+        repo.git(&["commit", "-q", "-m", "coordination: candidate"]);
+        let output = repo.agov(&[
+            "coord",
+            "publication-check",
+            "--base-ref",
+            "main",
+            "--format",
+            "json",
+        ]);
+        assert_eq!(
+            output.status.code(),
+            Some(if duplicate { 1 } else { 0 }),
+            "{}",
+            stderr(&output)
+        );
+        let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(json["ok"], !duplicate);
+    }
+}
+
 #[test]
 fn nested_record_is_outside_publication_channel() {
     let repo = committed_record_fixture(&coord("direct"));

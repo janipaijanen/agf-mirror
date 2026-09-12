@@ -23,7 +23,7 @@ surfaces:
       records with no independent-visibility obligation SHOULD batch; an
       urgent record (live obligation with a waiting actor, security or gate
       finding, escalation, blocking review) still publishes alone. Condition 3 explicitly defines copies by raw byte identity against the
-      resolved merge base or earlier candidate additions, including the same
+      resolved merge base, pinned current target tip or earlier additions, including the same
       commit. No change to the authority of conditions 1-6, lifecycle/supersession semantics, the [ci skip]
       prohibition, or the coordination: fast-path routing.
 
@@ -75,11 +75,13 @@ surfaces:
     reason: >-
       The implementing MR retains the complete existing negative suite and
       multi-record positive test. The approved copied-record clarification
-      adds byte-identity detection pinned to merge-base and introducing-commit
+      adds byte-identity detection pinned to merge-base, target-tip and introducing-commit
       objects, with hashes only indexing candidates for actual byte comparison.
       Tests reject merge-base copies, same-commit and cross-commit duplicates,
       and enumeration/base/candidate blob failures; distinct template records
-      and target-tip drift pass. A forced hash collision proves byte equality
+      pass while target-tip copies after divergence reject. Target refs resolve once;
+      inventory overlap is deduplicated. All decisive Git read errors fail closed,
+      including merge/message/diff reads. A forced hash collision proves byte equality
       remains decisive. Per-record schema validation uses the same introducing
       object bytes; dirty/deleted/untracked files cannot alter acceptance.
       Symlinks and nested records are rejected; nested base files are not
