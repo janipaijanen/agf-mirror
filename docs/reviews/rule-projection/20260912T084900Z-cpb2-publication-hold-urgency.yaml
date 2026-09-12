@@ -60,8 +60,12 @@ surfaces:
       - agf/schemas/coordination-message.schema.json
       - agf/rules/workflow/coordination-publication-rule.md
       - agf/templates/AGENTS.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/docs/site/docs/adopt/mcp-server.md
     reason: >-
       Existing packaging routes ship these paths in framework artifacts.
       CLI/MCP ship in separate tooling artifacts, not the framework archive;
-      Pages explanations use the existing site build. Root loader and Claude
+      Pages source also ships under the framework source glob; rendered explanations
+      use the existing site build. Root loader and Claude
       projection are foundry-local. Implementation must validate these routes.
