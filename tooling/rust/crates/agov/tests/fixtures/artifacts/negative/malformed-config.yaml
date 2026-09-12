@@ -1,0 +1,3 @@
+artifact_sets:
+  - name: missing-required-fields
+    paths: []

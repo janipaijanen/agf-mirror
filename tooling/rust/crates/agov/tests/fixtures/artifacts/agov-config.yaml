@@ -1,0 +1,10 @@
+# Project-owned artifact declarations; unrelated coordination config is retained.
+from_aliases: {}
+artifact_sets:
+  - name: tasks
+    paths: ['items/*.json']
+    schema: task.schema.json
+    id_pointers: ['/id']
+    reference_pointers: ['/references', '/dependencies']
+    dependency_pointers: ['/dependencies']
+    uniqueness_scope: global

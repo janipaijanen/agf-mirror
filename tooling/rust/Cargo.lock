@@ -71,6 +71,7 @@ name = "agov-validators"
 version = "2.10.0"
 dependencies = [
  "agov-core",
+ "glob",
  "rayon",
  "regex",
  "serde",
