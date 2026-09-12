@@ -757,9 +757,8 @@ fn workspace_root() -> std::path::PathBuf {
 /// and `graph-index`'s edge list has no documented stable ordering
 /// guarantee across separate process runs even for identical input,
 /// which a two-file fixture with exactly one edge sidesteps entirely.
-/// `publication-check` and `brief` don't depend on `docs/coordination/`
-/// file contents (git history and pure generation, respectively), so
-/// they run against the real repository.
+/// `publication-check` and `brief` also use the isolated Git fixture: a
+/// concurrent fetch must not move their target between paired invocations.
 #[test]
 fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
     let agov_bin = build_real_agov_bin();
@@ -927,25 +926,23 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         "agov_coord_visibility: CLI and MCP output diverged"
     );
 
-    // `publication-check` depends only on git commit history for the
-    // already-fetched `origin/main`, not on `docs/coordination/` file
-    // contents or any hash-ordered collection -- safe against the real
-    // repository.
+    // Use the same isolated Git history for both calls. A concurrent fetch
+    // can move origin/main between real-checkout calls and invalidate parity.
     let cli_stdout = run_cli(
         &[
             "coord",
             "publication-check",
             "--base-ref",
-            "origin/main",
+            "main",
             "--dir",
             "docs/coordination",
         ],
-        &root,
+        git_root,
     );
     let mcp_stdout = run_mcp(
         "agov_coord_publication_check",
-        json!({ "base_ref": "origin/main", "dir": "docs/coordination" }),
-        &root,
+        json!({ "base_ref": "main", "dir": "docs/coordination" }),
+        git_root,
     );
     assert_eq!(
         cli_stdout, mcp_stdout,
@@ -967,7 +964,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         "--topic",
         "cli-mcp-equivalence-check",
     ];
-    let cli_brief = run_cli(&brief_args, &root);
+    let cli_brief = run_cli(&brief_args, git_root);
     let mcp_brief = run_mcp(
         "agov_coord_brief",
         json!({
@@ -976,7 +973,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
             "kind": "note",
             "topic": "cli-mcp-equivalence-check"
         }),
-        &root,
+        git_root,
     );
     for field in [
         "from: coder-tester",
