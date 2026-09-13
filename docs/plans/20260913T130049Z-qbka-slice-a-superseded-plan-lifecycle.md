@@ -1,6 +1,8 @@
 ---
 id: 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-13T13:04:13Z
 topic: qbka-slice-a-provenance-bound-superseded-plan-status
 candidate_release: v2.11.0
 advisory_consultation:
@@ -37,7 +39,8 @@ affected_paths:
 
 # Plan: qbka Slice A — provenance-bound `superseded` plan status
 
-**Gate 1: PENDING.** Fulfills the planning obligation from
+**Gate 1: APPROVED** — `20260913T130413Z-governor-reviewer-td7j`
+("gate 1 approved."). Fulfills the planning obligation from
 `20260903T221643Z-coder-tester-qbka` (transcribing and extending
 `20260903T215909Z-coder-tester-67kq`'s independent census and
 recommendation), and clears **Row 5 S2**'s hard predecessor named in
