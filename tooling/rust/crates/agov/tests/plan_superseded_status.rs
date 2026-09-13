@@ -112,6 +112,22 @@ fn superseded_status_malformed_superseded_at_is_rejected() {
     assert_ne!(code, 0, "{out}");
 }
 
+/// Gate-self-test negative (QBKA-A1, round 2): a syntactically valid
+/// RFC3339 timestamp with a non-UTC offset must still be rejected --
+/// `format: date-time` alone accepts any offset, but the field is
+/// documented as UTC-only, matching this project's own Z-suffixed
+/// timestamp convention.
+#[test]
+fn superseded_status_non_utc_offset_superseded_at_is_rejected() {
+    let repo = Repo::new();
+    repo.plan(
+        "offset-at",
+        "superseded_by: replacement-plan-id\nsuperseded_decision: 20260913T130413Z-governor-reviewer-td7j.md\nsuperseded_at: \"2026-09-13T15:00:00+02:00\"\n",
+    );
+    let (code, out) = repo.validate("docs/plans/offset-at.md");
+    assert_ne!(code, 0, "{out}");
+}
+
 /// Gate-self-test negative: all three provenance fields missing.
 #[test]
 fn superseded_status_missing_all_provenance_is_rejected() {

@@ -48,7 +48,8 @@
       "type": "string",
       "minLength": 1,
       "format": "date-time",
-      "description": "UTC disposition timestamp (RFC3339). Required only when status is superseded."
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$",
+      "description": "UTC disposition timestamp (RFC3339, Z-suffixed). Required only when status is superseded. format: date-time alone accepts any RFC3339 offset (e.g. +02:00); the pattern additionally requires the literal Z (Zulu/UTC) designator, matching this project's own YYYYMMDDThhmmssZ timestamp convention used elsewhere (coordination IDs, gate1_approved_at values in practice)."
     },
     "advisory_consultation": {
       "type": "array",
