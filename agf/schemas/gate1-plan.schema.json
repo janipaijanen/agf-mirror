@@ -20,7 +20,8 @@
         "pending-gate1",
         "approved",
         "active",
-        "complete"
+        "complete",
+        "superseded"
       ]
     },
     "topic": {
@@ -32,6 +33,21 @@
     },
     "gate1_approved_at": {
       "type": "string"
+    },
+    "superseded_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identifier (plan id, or the id of the replacement work item/work order) of what replaced this plan. Required only when status is superseded."
+    },
+    "superseded_decision": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Filename or id of the governor-reviewer coordination decision-record authorizing this disposition. Required only when status is superseded."
+    },
+    "superseded_at": {
+      "type": "string",
+      "minLength": 1,
+      "description": "UTC disposition timestamp (RFC3339). Required only when status is superseded."
     },
     "advisory_consultation": {
       "type": "array",
@@ -90,5 +106,26 @@
         "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[^/]\\*\\*)(?!.*\\*\\*[^/]).+$"
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "superseded_by",
+          "superseded_decision",
+          "superseded_at"
+        ]
+      }
+    }
+  ]
 }
