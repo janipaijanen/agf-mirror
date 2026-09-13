@@ -5720,7 +5720,7 @@ fn render_pending_handoffs_for_role(
     } else {
         output.stdout(format!("Pending handoffs for {role}:"));
         for message in pending.iter().rev() {
-            output.stdout(format_pending_handoff(message));
+            output.stdout(format_pending_handoff(message, messages));
             render_reply_evidence(output, message, messages, "  ");
         }
     }
@@ -5742,7 +5742,10 @@ fn render_pending_handoffs_by_role(output: &mut OutputCounter, messages: &[Hando
             output.stdout(format!("  {role}:"));
             items.sort_by_key(|message| message.sort_key.clone());
             for message in items.iter().rev() {
-                output.stdout(format!("    - {}", pending_handoff_label(message)));
+                output.stdout(format!(
+                    "    - {}",
+                    pending_handoff_label(message, messages)
+                ));
                 render_reply_evidence(output, message, messages, "      ");
             }
         }
@@ -5750,21 +5753,54 @@ fn render_pending_handoffs_by_role(output: &mut OutputCounter, messages: &[Hando
     output.stdout("");
 }
 
-fn format_pending_handoff(message: &HandoffMessage) -> String {
-    format!("  - {}", pending_handoff_label(message))
+fn format_pending_handoff(message: &HandoffMessage, messages: &[HandoffMessage]) -> String {
+    format!("  - {}", pending_handoff_label(message, messages))
 }
 
-fn pending_handoff_label(message: &HandoffMessage) -> String {
+/// Row 5 S4 (CP-A): a handoff with a substantive answer already on file
+/// (per `reply_evidence` -- a later `note`/`review` from `next_agent` or
+/// `governor-reviewer` that `references-to` this handoff) is labeled
+/// `answered — ack pending` instead of the bare declared `ready`/`blocked`
+/// status. This is a derived display value only: no schema field changes,
+/// no ack is auto-satisfied, and the pending set itself (`pending_handoffs`
+/// / `handoff_resolved`) is unchanged.
+///
+/// Shared by every command path that displays a handoff's status --
+/// `pending_handoff_label` (list views: `coord status`, `handoff next
+/// --roles`) and `render_handoff_summary` (the single-item `agov handoff
+/// next <role>` command). A prior revision of this slice updated only the
+/// list views, leaving the named `handoff next <role>` command still
+/// showing the bare declared status (S4-F1,
+/// `20260913T172241Z-coder-tester-bsbr`); this shared helper is the fix,
+/// so no command path can drift from another again.
+fn derived_handoff_status_label(message: &HandoffMessage, messages: &[HandoffMessage]) -> String {
+    handoff_status_label_from_answered(message, !reply_evidence(message, messages).is_empty())
+}
+
+/// Same derivation as `derived_handoff_status_label`, for call sites that
+/// already have a precomputed `reply_evidence` result (e.g. branch-local
+/// advisory candidates in `handoff_branch.rs`, which compute it once at
+/// candidate-collection time) rather than the full message list.
+pub(crate) fn handoff_status_label_from_answered(message: &HandoffMessage, answered: bool) -> String {
+    let declared_status = message
+        .raw
+        .get("handoff")
+        .and_then(|value| value.get("status"))
+        .and_then(|value| value.as_str())
+        .unwrap_or("ready");
+    match (declared_status, answered) {
+        (status, false) => status.to_string(),
+        ("blocked", true) => "blocked, answered — ack pending".to_string(),
+        (_, true) => "answered — ack pending".to_string(),
+    }
+}
+
+fn pending_handoff_label(message: &HandoffMessage, messages: &[HandoffMessage]) -> String {
     format!(
         "{}  {}  [{}]",
         display_id(&message.raw),
         string_field(&message.raw, "topic").unwrap_or(""),
-        message
-            .raw
-            .get("handoff")
-            .and_then(|value| value.get("status"))
-            .and_then(|value| value.as_str())
-            .unwrap_or("ready")
+        derived_handoff_status_label(message, messages)
     )
 }
 
@@ -6007,7 +6043,11 @@ fn handoff_next(
         return 2;
     };
 
-    render_handoff_summary(&mut output, &message);
+    render_handoff_summary(
+        &mut output,
+        &message,
+        !reply_evidence(&message, &messages).is_empty(),
+    );
     render_reply_evidence(&mut output, &message, &messages, "  ");
 
     if let Some(recipient) = addressed_elsewhere(&message.raw, session) {
@@ -6514,7 +6554,7 @@ fn addressed_elsewhere<'a>(raw: &'a serde_json::Value, session: Option<&str>) ->
         .map(|_| recipient)
 }
 
-fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) {
+fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage, answered: bool) {
     let handoff = message
         .raw
         .get("handoff")
@@ -6523,10 +6563,7 @@ fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) 
         .and_then(|value| value.get("next_agent"))
         .and_then(|value| value.as_str())
         .unwrap_or_else(|| string_field(&message.raw, "to").unwrap_or("unknown"));
-    let status = handoff
-        .and_then(|value| value.get("status"))
-        .and_then(|value| value.as_str())
-        .unwrap_or("ready");
+    let status = handoff_status_label_from_answered(message, answered);
 
     output.stdout(format!("Handoff for: {next_agent}"));
     output.stdout(format!("Status:      {status}"));
@@ -7907,6 +7944,75 @@ mod tests {
                 .iter()
                 .map(|m| (&m.file, &m.raw))
                 .collect::<Vec<_>>()
+        );
+    }
+
+    /// Row 5 S4: `pending_handoff_label` folds `reply_evidence` into the
+    /// bracket itself. `reply_evidence`'s own role/reference/kind rules are
+    /// already exhaustively covered by
+    /// `reply_evidence_is_direct_later_recipient_or_governor_only` above --
+    /// these tests cover only the new label text derived from that signal.
+    #[test]
+    fn pending_handoff_label_shows_ready_with_no_reply() {
+        let file = "20260621T000000Z-planner-architect-aaaa.md";
+        let h = message(file, "handoff", "2026-06-21T00:00:00Z", &[]);
+        let label = pending_handoff_label(&h, std::slice::from_ref(&h));
+        assert!(label.ends_with("[ready]"), "{label}");
+        assert!(!label.contains("answered"), "{label}");
+    }
+
+    #[test]
+    fn pending_handoff_label_shows_answered_ack_pending_with_qualifying_reply() {
+        let file = "20260621T000000Z-planner-architect-aaaa.md";
+        let mut h = message(file, "handoff", "2026-06-21T00:00:00Z", &[]);
+        h.raw["handoff"]["next_agent"] = serde_json::json!("coder-tester");
+        let mut reply = message(
+            "20260621T000100Z-coder-tester-bbbb.md",
+            "review",
+            "2026-06-21T00:01:00Z",
+            &[file],
+        );
+        reply.raw["from"] = serde_json::json!("coder-tester");
+        reply.raw["references-to"] = serde_json::json!([file.trim_end_matches(".md")]);
+        let label = pending_handoff_label(&h, &[h.clone(), reply]);
+        assert!(label.ends_with("[answered — ack pending]"), "{label}");
+    }
+
+    #[test]
+    fn pending_handoff_label_non_referencing_reply_stays_ready() {
+        let file = "20260621T000000Z-planner-architect-aaaa.md";
+        let mut h = message(file, "handoff", "2026-06-21T00:00:00Z", &[]);
+        h.raw["handoff"]["next_agent"] = serde_json::json!("coder-tester");
+        let mut unrelated = message(
+            "20260621T000100Z-coder-tester-bbbb.md",
+            "review",
+            "2026-06-21T00:01:00Z",
+            &[],
+        );
+        unrelated.raw["from"] = serde_json::json!("coder-tester");
+        unrelated.raw["references-to"] = serde_json::json!(["some-other-record"]);
+        let label = pending_handoff_label(&h, &[h.clone(), unrelated]);
+        assert!(label.ends_with("[ready]"), "{label}");
+    }
+
+    #[test]
+    fn pending_handoff_label_blocked_plus_answered_shows_both() {
+        let file = "20260621T000000Z-planner-architect-aaaa.md";
+        let mut h = message(file, "handoff", "2026-06-21T00:00:00Z", &[]);
+        h.raw["handoff"]["status"] = serde_json::json!("blocked");
+        h.raw["handoff"]["next_agent"] = serde_json::json!("coder-tester");
+        let mut reply = message(
+            "20260621T000100Z-coder-tester-bbbb.md",
+            "note",
+            "2026-06-21T00:01:00Z",
+            &[file],
+        );
+        reply.raw["from"] = serde_json::json!("coder-tester");
+        reply.raw["references-to"] = serde_json::json!([file.trim_end_matches(".md")]);
+        let label = pending_handoff_label(&h, &[h.clone(), reply]);
+        assert!(
+            label.ends_with("[blocked, answered — ack pending]"),
+            "{label}"
         );
     }
 

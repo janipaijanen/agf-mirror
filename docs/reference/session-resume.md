@@ -170,7 +170,7 @@ decision still comes from the plan, diff, tests, and coordination record.
 | `Branch` | Current git branch, or detached state if applicable. |
 | `Warnings` | Dirty tree, skipped base-branch check, or branch-local coordination risk. |
 | `Invalid coordination files ignored` | Markdown files that `ChannelReader` skipped because they do not validate as coordination messages. |
-| `Pending handoffs` | Unresolved handoffs addressed to the selected role. |
+| `Pending handoffs` | Unresolved handoffs addressed to the selected role. Each entry's bracket shows `[ready]`/`[blocked]` as declared, or `[answered — ack pending]` (`[blocked, answered — ack pending]` if also declared blocked) when a later `note`/`review` from the handoff's own `next_agent` or `governor-reviewer` already references it — see "CP-A ack-pending display" below. This is a derived display value only: the ack itself is not auto-satisfied and the handoff remains in the pending set until an `ack`/`completion`/`decision-record` resolves it. |
 | `Open claims` | Active artifact ownership claims owned by the selected role. |
 | `Stale claims` | Expired claims owned by the selected role. |
 | `Recent decisions` | Latest decision-record messages in the coordination channel. |
@@ -208,6 +208,28 @@ item), `superseded_decision` (the governor-reviewer coordination
 decision-record authorizing the disposition), and `superseded_at` (a
 UTC RFC3339 disposition timestamp). `agov plan validate` rejects a
 `superseded` plan missing or leaving any of these three empty.
+
+## CP-A Ack-Pending Display
+
+Per Row 5 S4 of `20260910T065635Z-coordination-lifecycle-semantics-work-
+order`, `agov handoff next <role>` distinguishes a genuinely untouched
+handoff from one that already has a substantive reply on file, without
+auto-clearing the obligation:
+
+- A handoff with no qualifying later message: `[ready]` or `[blocked]`,
+  exactly as declared in its own `handoff.status`.
+- A handoff with a later `note` or `review` message, authored by that
+  handoff's own declared `handoff.next_agent` **or** by
+  `governor-reviewer`, whose `references-to` names the handoff:
+  `[answered — ack pending]` (or `[blocked, answered — ack pending]` if
+  the handoff also declared itself blocked).
+
+This is a derived, read-time display value only. No coordination-message
+schema field changes, and the ack is never auto-satisfied — the handoff
+stays in the pending set until an actual `ack`, `completion`, or
+`decision-record` resolves it (unchanged from prior behavior). Treat
+`answered — ack pending` as "someone already responded, check before
+re-answering," not as "this obligation is closed."
 
 ## Failure Modes
 

@@ -229,7 +229,8 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
                 .filter(|m| string_field(&m.raw, "to") == Some(role))
                 .max_by_key(|m| m.sort_key.clone())
             {
-                render_handoff_summary(&mut output, &message);
+                let replies = reply_evidence(&message, &snapshot.messages);
+                render_handoff_summary(&mut output, &message, !replies.is_empty());
                 render_reply_evidence(&mut output, &message, &snapshot.messages, "  ");
                 if let Some(recipient) = addressed_elsewhere(&message.raw, session) {
                     output.stdout(format!("Addressed elsewhere: {recipient}"));
@@ -311,7 +312,7 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
             "Candidate: {} | source: {} | commit: {} | blob: {}",
             candidate.message.file, candidate.source, candidate.sha, candidate.blob
         ));
-        render_handoff_summary(&mut output, &candidate.message);
+        render_handoff_summary(&mut output, &candidate.message, !candidate.replies.is_empty());
         if !candidate.replies.is_empty() {
             output.stdout(format!(
                 "  reply present — acknowledgement unconfirmed; reply_evidence: {}",

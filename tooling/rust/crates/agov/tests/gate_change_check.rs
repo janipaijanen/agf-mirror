@@ -43,6 +43,17 @@
 // (`rust_tooling_deny_clears_stale_advisory_db_before_check`); this
 // comment is this file's companion touch for that same real commit.
 
+// Row 5 S4 companion evidence (2026-09-13): `pending_handoff_label` in
+// main.rs was extended to fold the existing `reply_evidence` signal into
+// the `agov handoff next` bracket display (`answered — ack pending`).
+// Advisory queue display only -- no gate, validator, or CI-blocking
+// mechanic touched, and gate-change-check itself is unchanged. Real
+// behavioral coverage for this change lives in main.rs's own unit tests
+// (`pending_handoff_label_shows_ready_with_no_reply` and three siblings);
+// this comment is this file's companion touch for that same shared-surface
+// (`main.rs`) commit, per the generic scenario this file's existing tests
+// already exercise.
+
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

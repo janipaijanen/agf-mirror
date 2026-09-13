@@ -462,8 +462,25 @@ fn reply_evidence_preserves_handoff_output_and_pending_separation() {
     fixture.write_coord(&format!("{reply_id}.md"), &note);
     let annotated = agov(&args);
     assert_eq!(annotated.status.code(), baseline.status.code());
+    let baseline_text = String::from_utf8(baseline.stdout).unwrap();
     let out = String::from_utf8(annotated.stdout).unwrap();
-    assert!(out.starts_with(std::str::from_utf8(&baseline.stdout).unwrap()));
+    // Row 5 S4: once a qualifying reply exists, the Status line itself is
+    // expected to change (bare declared status -> `answered — ack
+    // pending`) -- this is the intentional CP-A behavior, not a
+    // regression. Everything else about the handoff summary (Task, Must
+    // read, Source, and the reply-evidence line appended below) must be
+    // unaffected.
+    assert!(baseline_text.contains("Status:      ready"), "{baseline_text}");
+    assert!(out.contains("Status:      answered — ack pending"), "{out}");
+    let baseline_without_status: Vec<&str> = baseline_text
+        .lines()
+        .filter(|line| !line.starts_with("Status:"))
+        .collect();
+    let annotated_without_status: Vec<&str> = out
+        .lines()
+        .filter(|line| !line.starts_with("Status:") && !line.contains("reply present"))
+        .collect();
+    assert_eq!(baseline_without_status, annotated_without_status);
     assert!(out.contains("reply present — acknowledgement unconfirmed"));
     assert!(out.contains(&format!("\"id\":\"{reply_id}\"")));
     let mut scoped = args.to_vec();
