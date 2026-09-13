@@ -449,3 +449,29 @@ first release v2.11.0; confirm actual shipped support). Older readers cannot
 read these fields. Never remove fields from immutable records to downgrade.
 The normative [publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md)
 defines conservative error handling and schema-preserving forward disablement.
+
+## Challenge-response
+
+The v2.11 development CLI (Level 4, not yet released) recognizes an optional
+`challenge` object on review records. Raise a dispute with a unique
+`challenge_id`, a `disputed_record_id` also named in `references-to`, and a
+`window_hours` value from 1 through 720. Declare your author `session` when
+posting party replies. A reply uses the same challenge ID, references the
+raising record, and sets `resolution: replied`; it remains evidence awaiting
+a decision. Only a governor review with `resolution: escalated` closes it.
+
+`coord pending` shows challenge states separately from ordinary pending
+obligations. Missing sources remain needs-review; future raising records show
+not-yet-effective and their activation timestamp. Expiry is strictly after the
+deadline. Replying does not erase the dispute, and urgency does not grant
+permission. These are advisory states under the
+[challenge-response rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-challenge-response-rule.md).
+
+For JSON consumers, channels with challenge records or read/validation diagnostics return an object with
+`pending` (the unchanged ordinary rows), `challenges` (separate state rows),
+and `problems` (read/validation diagnostics). Channels without challenge
+records retain the legacy pending array. Closed challenges are absent from
+the challenge rows; no record is rewritten. MCP forwards the same CLI output.
+Deploy a compatible reader before introducing challenge records; older strict
+schema readers are unsupported afterward. Forward-disablement keeps a
+conservative needs-review view and retains the schema field.

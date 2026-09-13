@@ -134,3 +134,124 @@ fn branch_listing_keeps_all_candidates_and_deduplicates_identical_sources() {
     assert_eq!(out.matches("Candidate:").count(), 2);
     assert!(out.contains("partial_coverage: false"));
 }
+
+fn update_record(dir: &Path, id: &str, edit: impl FnOnce(&mut Value)) {
+    let path = dir.join(format!("{id}.md"));
+    let text = fs::read_to_string(&path).unwrap();
+    let mut v: Value = serde_json::from_str(
+        text.strip_prefix("---\n")
+            .unwrap()
+            .split("\n---")
+            .next()
+            .unwrap(),
+    )
+    .unwrap();
+    edit(&mut v);
+    fs::write(path, format!("---\n{v}\n---\n\nFixture.\n")).unwrap();
+}
+#[test]
+fn challenge_cli_keeps_ack_separate_and_requires_sources_before_closure() {
+    let root = tempfile::tempdir().unwrap();
+    let dir = root.path();
+    let source = write(dir, "aaaa", 1, "review", false);
+    let raise = write(dir, "bbbb", 2, "review", false);
+    update_record(dir, &source, |v| v["session"] = json!("author"));
+    update_record(dir, &raise, |v| {
+        v["session"] = json!("challenger");
+        v["references-to"] = json!([source]);
+        v["challenge"] = json!({"challenge_id":"one","disputed_record_id":source,"window_hours":2});
+    });
+    let args = ["coord", "pending", "--dir", ".", "--format", "json"];
+    let view: Value = serde_json::from_str(&run(dir, &args)).unwrap();
+    assert_eq!(view["pending"].as_array().unwrap().len(), 1);
+    assert_eq!(view["challenges"].as_array().unwrap().len(), 1);
+    let response = write(dir, "cccc", 3, "review", false);
+    update_record(dir, &response, |v| {
+        v["session"] = json!("author");
+        v["requires-ack"] = json!(false);
+        v["references-to"] = json!([raise]);
+        v["challenge"] = json!({"challenge_id":"one","resolution":"replied"});
+    });
+    let view: Value = serde_json::from_str(&run(dir, &args)).unwrap();
+    assert!(view["pending"].as_array().unwrap().is_empty());
+    assert_eq!(view["challenges"][0]["state"], "replied — decision pending");
+    // The kind remains review; governor identity is a declaration, not authentication.
+    update_record(dir, &response, |v| {
+        v["from"] = json!("governor-reviewer");
+        v["challenge"]["resolution"] = json!("escalated");
+    });
+    let out = Command::new(env!("CARGO_BIN_EXE_agov"))
+        .current_dir(dir)
+        .args(args)
+        .env(
+            "AGOV_SCHEMA_DIR",
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .ancestors()
+                .nth(4)
+                .unwrap()
+                .join("agf/schemas"),
+        )
+        .output()
+        .unwrap();
+    let view: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    assert!(view["challenges"].as_array().unwrap().is_empty());
+    fs::remove_file(dir.join(format!("{source}.md"))).unwrap();
+    let view: Value = serde_json::from_str(&run(dir, &args)).unwrap();
+    assert_eq!(view["challenges"][0]["state"], "needs-review");
+}
+#[test]
+fn schema_rejects_non_governor_terminal_and_contextual_collisions() {
+    let root = tempfile::tempdir().unwrap();
+    let dir = root.path();
+    let id = write(dir, "aaaa", 1, "review", false);
+    update_record(dir, &id, |v| {
+        v["challenge"] = json!({"challenge_id":"one","resolution":"escalated"})
+    });
+    let schema = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap()
+        .join("agf/schemas");
+    let check = || {
+        Command::new(env!("CARGO_BIN_EXE_agov"))
+            .current_dir(dir)
+            .args(["coord", "validate"])
+            .arg(dir.join(format!("{id}.md")))
+            .env("AGOV_SCHEMA_DIR", &schema)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(check().status.code(), Some(1));
+    update_record(dir, &id, |v| {
+        v["references-to"] = json!(["20260913T000000Z-coder-tester-src1"]);
+        v["challenge"] = json!({"challenge_id":"one","disputed_record_id":"20260913T000000Z-coder-tester-src1","window_hours":721});
+    });
+    assert_eq!(check().status.code(), Some(1));
+    update_record(dir, &id, |v| v["challenge"]["window_hours"] = json!(2));
+    assert!(check().status.success());
+    let other = write(dir, "bbbb", 2, "review", false);
+    update_record(dir, &other, |v| {
+        v["references-to"] = json!(["20260913T000000Z-coder-tester-src1"]);
+        v["challenge"] = json!({"challenge_id":"one","disputed_record_id":"20260913T000000Z-coder-tester-src1","window_hours":2});
+    });
+    let out = check();
+    assert_eq!(out.status.code(), Some(1));
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("duplicate challenge_id")
+            || String::from_utf8_lossy(&out.stdout).contains("duplicate challenge_id")
+    );
+}
+
+#[test]
+fn malformed_channel_is_diagnostic_not_a_successful_empty_array() {
+    let root = tempfile::tempdir().unwrap();
+    fs::write(root.path().join("broken.md"), "---\nchallenge: [\n---\n").unwrap();
+    let view: Value = serde_json::from_str(&run(
+        root.path(),
+        &["coord", "pending", "--dir", ".", "--format", "json"],
+    ))
+    .unwrap();
+    assert!(!view["problems"].as_array().unwrap().is_empty());
+    assert!(view["pending"].as_array().unwrap().is_empty());
+}

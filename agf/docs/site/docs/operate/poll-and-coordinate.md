@@ -255,3 +255,15 @@ Use this ordering to select attention, then check role, ownership and gates as
 usual: urgency is self-declared and does not supply permission. Normal and
 omitted urgency share the same tier. This behavior is Level 4 (validated in
 development), pending inclusion in a supported release.
+
+### Handling challenge evidence
+
+Read the separate challenge section in `coord pending`. Investigate unavailable
+sources before interpreting closure; a future record reports when it becomes
+effective. A party reply remains decision-pending. For an expired window,
+route the evidence to the governor through normal coordination; the display
+itself never decides a gate. When raising a review, link one disputed source
+explicitly with `challenge.disputed_record_id`, and keep any unrelated
+requires-ack request independent. See the
+[protocol](../concepts/coordination-protocol.md#challenge-response) for record
+fields and the conditional JSON envelope for compatible consumers.

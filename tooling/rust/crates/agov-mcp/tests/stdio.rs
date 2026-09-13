@@ -1298,3 +1298,51 @@ fn hold_status_matches_real_cli_for_all_exit_classes() {
     parity("HEAD", 1);
     parity("missing", 2);
 }
+
+#[test]
+fn challenge_pending_matches_real_cli() {
+    let bin = build_real_agov_bin();
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let schema = workspace_root().join("agf/schemas");
+    for (id, challenge) in [
+        ("20260913T010000Z-planner-architect-aaaa", false),
+        ("20260913T020000Z-planner-architect-bbbb", true),
+    ] {
+        let mut record = json!({"id":id,"kind":"review","from":"planner-architect","to":"coder-tester","timestamp":if challenge{"2026-09-13T02:00:00Z"}else{"2026-09-13T01:00:00Z"},"immutable":true,"references-to":[],"requires-ack":true,"topic":"parity","artifacts_owned":[]});
+        if challenge {
+            record["references-to"] = json!(["20260913T010000Z-planner-architect-aaaa"]);
+            record["challenge"] = json!({"challenge_id":"parity","disputed_record_id":"20260913T010000Z-planner-architect-aaaa","window_hours":2});
+        }
+        std::fs::write(
+            root.join(format!("{id}.md")),
+            format!("---\n{record}\n---\n\nFixture.\n"),
+        )
+        .unwrap();
+    }
+    let direct = Command::new(&bin)
+        .args(["coord", "pending", "--dir", ".", "--format", "json"])
+        .current_dir(root)
+        .env("AGOV_SCHEMA_DIR", &schema)
+        .env("AGOV_TOKEN_ROI", "0")
+        .output()
+        .unwrap();
+    assert!(direct.status.success());
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", &bin)
+        .env("AGOV_SCHEMA_DIR", &schema)
+        .env("AGOV_TOKEN_ROI", "0")
+        .current_dir(root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    writeln!(child.stdin.as_mut().unwrap(),"{}",json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"agov_coord_pending","arguments":{"dir":".","format":"json"}}})).unwrap();
+    drop(child.stdin.take());
+    let result: Value = serde_json::from_slice(&child.wait_with_output().unwrap().stdout).unwrap();
+    assert_eq!(
+        result["result"]["structuredContent"]["stdout"],
+        String::from_utf8(direct.stdout).unwrap()
+    );
+    assert_eq!(result["result"]["structuredContent"]["status"], 0);
+}

@@ -6051,7 +6051,7 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
     let mut output = OutputCounter::default();
     let dir = repo_relative_path(dir);
 
-    let messages = match read_valid_coord_messages(&dir) {
+    let (messages, invalid_files) = match read_coord_messages_with_invalid(&dir) {
         Ok(messages) => messages,
         Err(_) => {
             output.stderr(format!(
@@ -6072,9 +6072,33 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
     // Stable sort preserves the existing ascending timestamp/file order inside each tier.
     pending.sort_by_key(|p| !urgent_files.contains(p.file.as_str()));
 
+    let has_challenge_input = messages.iter().any(|m| m.raw.get("challenge").is_some());
+    let (challenge_records, challenge_problems) =
+        if !has_challenge_input && invalid_files.is_empty() {
+            (Vec::new(), Vec::new())
+        } else {
+            match agov_coord::challenge::read_directory(&dir) {
+                Ok(data) => data,
+                Err(error) => {
+                    output.stderr(format!("Challenge evidence unavailable: {error}"));
+                    return 1;
+                }
+            }
+        };
+    let challenges =
+        agov_coord::challenge::evaluate(&challenge_records, time::OffsetDateTime::now_utc(), true);
+    let has_challenge = challenge_records
+        .iter()
+        .any(|r| r.raw.get("challenge").is_some()) || !challenge_problems.is_empty();
     if format == "json" {
         let rows: Vec<PendingAckRow> = pending.iter().map(PendingAckRow::from).collect();
-        match serde_json::to_string_pretty(&rows) {
+        // Preserve the legacy array for channels without challenge records.
+        let value = if has_challenge {
+            serde_json::json!({"pending": rows, "challenges": challenges, "problems": challenge_problems})
+        } else {
+            serde_json::json!(rows)
+        };
+        match serde_json::to_string_pretty(&value) {
             Ok(json) => output.stdout(json),
             Err(err) => {
                 output.stderr(format!("ERR  could not render JSON: {err}"));
@@ -6093,8 +6117,25 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
         }
     }
 
+    if format != "json" && has_challenge {
+        output.stdout("Challenges (advisory; separate from ordinary pending count):");
+        for row in &challenges {
+            output.stdout(format!(
+                "  {}  {}  {}  {}",
+                row.challenge_id, row.state, row.file, row.detail
+            ));
+            for reply in &row.replies {
+                output.stdout(format!("    reply evidence: {reply}"));
+            }
+        }
+    }
+    if !has_challenge || format != "json" {
+        for problem in &challenge_problems {
+            output.stderr(format!("Challenge evidence diagnostic: {problem}"));
+        }
+    }
     agov_core::roi::record_tool_output("agov.coord.pending", args, "coord-pending", output.chars);
-    if pending.is_empty() {
+    if pending.is_empty() && challenges.is_empty() && challenge_problems.is_empty() {
         2
     } else {
         0
@@ -6563,6 +6604,27 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
     for (path, message) in duplicate_id_errors_in_dirs(&valid_paths) {
         failed = true;
         output.coord_err(&path, &message);
+    }
+
+    if valid_messages
+        .iter()
+        .any(|(_, m)| m.raw.get("challenge").is_some())
+    {
+        let dirs: BTreeSet<_> = valid_paths.iter().filter_map(|p| p.parent()).collect();
+        for dir in dirs {
+            match agov_coord::challenge::read_directory(dir) {
+                Ok((records, _)) => {
+                    for (file, error) in agov_coord::challenge::duplicate_ids(&records) {
+                        failed = true;
+                        output.coord_err(&dir.join(file).to_string_lossy(), &error);
+                    }
+                }
+                Err(error) => {
+                    failed = true;
+                    output.coord_err(&dir.to_string_lossy(), &error);
+                }
+            }
+        }
     }
 
     if failed {

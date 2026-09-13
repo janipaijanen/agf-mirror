@@ -147,6 +147,8 @@ rename historical coordination files.
 
 Schema: `agf/schemas/coordination-message.schema.json`
 
+Challenge lifecycle and advisory response handling: see `agf/rules/workflow/coordination-challenge-response-rule.md`.
+
 **When to write a coordination entry:** Any action that creates a downstream
 obligation for another agent or human requires a coordination entry as part
 of completing that action — not as an afterthought. Write one when:
