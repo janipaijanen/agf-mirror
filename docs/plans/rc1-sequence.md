@@ -12,10 +12,21 @@ advisory_consultation:
 
 **Correction (2026-09-13, qbka Slice B):** this file had no YAML front
 matter at all (schema-invalid). Describes the release sequence from MR
-!153 to the AGF v2 RC milestone; `v2.0.0` is tagged and long superseded by
-many later releases (current: v2.10.1) — the described release process is
-unambiguously historical, so `status: complete`. See `docs/plans/
-20260913T171837Z-qbka-slice-b-legacy-plan-migration.md`.
+!153 to the AGF v2 RC milestone.
+
+**Correction, round 2 (2026-09-13, independent review `20260913T184748Z-
+coder-tester-t6hh`, finding QBKA-B-F1):** the round-1 correction above cited
+`v2.0.0` as completion evidence, but that release (2026-06-16) predates this
+plan's own commit `67d01c2f` (2026-06-23) and therefore cannot demonstrate
+completion of this plan's later six-step sequence — a chronologically
+impossible citation. The actual post-plan evidence, all dated after
+`67d01c2f`: MR !153 merged at `08c9e9e7` (2026-06-23), readable coordination
+IDs at `11462144` (2026-06-23), `agov` version provenance at `27080987`
+(2026-06-23), the RC readiness audit at `d80163b5` (2026-06-23), and the
+`v2.2.0-rc.1`/`v2.2.0-rc.2` tags at `bd810bdf`/`cd8f10b6` (2026-06-24) — this
+plan's own described RC-1/RC-2 sequence, completed. `status: complete`
+stands, on this corrected evidence. See `docs/plans/20260913T171837Z-qbka-
+slice-b-legacy-plan-migration.md` and `t6hh`.
 
 # RC-1 release sequence
 # 2026-06-23T20:50:13Z
