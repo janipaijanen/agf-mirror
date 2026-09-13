@@ -266,6 +266,17 @@ optional object field:
     record closes the challenge outright, at any time, whether or not
     a `replied` record exists or when it was posted; a `replied` record
     never reopens or reduces an already-`escalated` challenge.
+    **Added per the independent reviewer's recheck (`q3h4`)**: this
+    precedence rule and the missing-source rule immediately below can
+    otherwise appear to conflict when both a valid `escalated` record
+    and an unresolvable `disputed_record_id` are present at once.
+    Resolved conservatively: validate the raising record and resolve
+    its required `disputed_record_id` **before** admitting any terminal
+    candidate for evaluation at all — if either cannot be validated or
+    uniquely resolved, `agov` reports `unavailable`/`needs-review`
+    regardless of whether a purportedly closing `escalated` record is
+    also present. An escalation cannot close a challenge whose own
+    raising record fails this prior validation step.
   - **Missing/unavailable records**: if the raising record's own
     `disputed_record_id`, or a candidate reply's referenced raising
     record, cannot be read (deleted ref, unreadable object, fetch
@@ -298,7 +309,18 @@ optional object field:
     treatment already given to future-dated replies above — this
     closes the gap the independent review found, where a far-future
     raising timestamp could otherwise appear to grant far longer than
-    its declared 30-day-max window. A `replied` record arriving after
+    its declared 30-day-max window. **Added per the independent
+    reviewer's recheck (`q3h4`)**: a future raising record is not
+    simply omitted from output — it remains visible, reported with its
+    own effective (future) timestamp so a reader can see it exists and
+    when it activates, and is excluded from open/expired challenge
+    counts only until that timestamp arrives. Two conforming readers
+    must not disagree about whether such a record is diagnostically
+    visible; "not yet effective" is a distinct, reported state, not a
+    silent absence. Its raising record's own independent ordinary
+    `requires-ack` status (if any) is tracked exactly as described
+    above, unaffected by the challenge's own not-yet-effective state.
+    A `replied` record arriving after
     the deadline has already passed still displays as `replied —
     decision pending` (not rejected) — the window's expiry governs
     *display escalation eligibility*, not whether a late reply is
@@ -542,13 +564,20 @@ that carries `challenge` if the schema were later reverted.
   `challenge` semantics (a code-level, not schema-level, disable), so
   the feature is inert going forward while every existing record —
   including ones with `challenge` — remains schema-valid and readable.
-  **Corrected per `mqjr`'s S3-3 finding**: "stop displaying the
-  `challenge` object" is not itself safe, because a raising record
-  defaults `requires-ack: false` and is excluded from the ordinary
-  pending list specifically so it doesn't double-count — if disablement
-  also removed it from the *challenge* section with nothing replacing
-  that visibility, a genuinely still-open, not-yet-escalated challenge
-  would disappear entirely, violating the parent work order's
+  **Corrected per `mqjr`'s S3-3 finding, and aligned per `q3h4`'s
+  recheck with the ordinary-ack independence rule above (not
+  reintroducing that already-fixed bug)**: "stop displaying the
+  `challenge` object" is not itself safe. A raising record's presence
+  in the *challenge* section and its presence in the *ordinary pending*
+  list are independent, as established above — a raising record
+  defaults `requires-ack: false` (so it does not, by default, also
+  appear as an ordinary obligation), but if its author explicitly set
+  `requires-ack: true` for an unrelated reason, it still appears in the
+  ordinary pending list regardless of the challenge feature's own
+  enabled/disabled state. What disablement actually removes is only the
+  *challenge*-specific display and evaluation — if that removal left no
+  replacement for a genuinely still-open, not-yet-escalated challenge,
+  it would disappear entirely, violating the parent work order's
   no-silent-drop guarantee. The disabled state therefore has its own
   conservative fallback: any record carrying an open (non-`escalated`)
   `challenge` object is still surfaced by `agov coord pending`, in a
