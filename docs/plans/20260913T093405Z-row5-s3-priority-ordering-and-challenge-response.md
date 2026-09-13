@@ -1,6 +1,8 @@
 ---
 id: 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-13T10:02:24Z
 topic: row5-s3-priority-ordering-and-challenge-response
 candidate_release: v2.11.0
 advisory_consultation:
@@ -50,7 +52,10 @@ affected_paths:
 
 # Plan: Row 5 S3 — urgency-ordered queues + bounded challenge-response
 
-**Gate 1: PENDING.** This is S3's own required detail plan under the
+**Gate 1: APPROVED** — `20260913T100224Z-governor-reviewer-g2gd`
+("approved. proceed as proposed. gate approved too."), which also
+resolves the urgency-ordering design question below as unauthenticated
+by design. This is S3's own required detail plan under the
 approved parent work order
 `docs/plans/20260910T065635Z-coordination-lifecycle-semantics-work-order.md`,
 routed by Codex's handoff
@@ -108,13 +113,13 @@ follows approval rather than presuming it.
   declaration is verified before it affects display ordering. This is
   intentionally lighter-weight than !2027's authority-gated
   `immediate` tier, which is exactly the design !2027 proposed and this
-  plan does not carry forward — flagging this explicitly for governor/
-  contribution-auditor: is display-only, unauthenticated ordering
-  sufficient, or does urgent-ordering need its own authority check?
-  Recommend: sufficient, because ordering is advisory display, not a
-  gate — a spuriously "urgent" item wastes attention, it cannot skip a
-  gate or grant authority. If contribution-auditor disagrees, this
-  becomes a BLOCKING Gate 1 finding requiring redesign before Gate 2.
+  plan does not carry forward. **Resolved at Gate 1**
+  (`20260913T100224Z-governor-reviewer-g2gd`): unauthenticated,
+  advisory-only ordering is sufficient — both this plan's own
+  recommendation and Codex's independent `tkkp` review reached the same
+  conclusion, and the governor confirmed it. A real contribution-auditor
+  pass before Gate 2 may still surface a concrete counter-scenario, but
+  the design question itself is closed, not open.
 
 ### 2. Challenge-response contract (new optional schema fields)
 
