@@ -176,6 +176,39 @@ decision still comes from the plan, diff, tests, and coordination record.
 | `Recent decisions` | Latest decision-record messages in the coordination channel. |
 | `Must read` | Files listed by currently pending handoffs for the selected role. |
 
+## Plan Status Lifecycle
+
+`agf/schemas/gate1-plan.schema.json` enumerates five plan `status`
+values. Their valid transitions, per `20260913T130049Z-qbka-slice-a-
+superseded-plan-lifecycle`:
+
+```
+pending-gate1 -> approved       (governor Gate 1 decision)
+pending-gate1 -> superseded     (governor decides the plan will not proceed;
+                                  replaced before ever reaching Gate 1)
+approved      -> active         (implementation begins)
+approved      -> superseded     (governor replaces an approved-but-not-yet-
+                                  implemented plan)
+active        -> complete       (implementation merged, Gate 2 passed)
+active        -> superseded     (governor abandons in-flight implementation
+                                  in favor of a replacement)
+complete      -> (terminal, no further transition)
+superseded    -> (terminal, no further transition)
+```
+
+`complete -> superseded` and any transition away from `superseded` are
+not valid — both are terminal. Real completed work is never
+retroactively relabeled as if it hadn't happened, and a superseded
+plan's disposition is not reopened; a change of mind requires a new
+plan, not resurrecting the old one's status field.
+
+`status: superseded` requires three provenance fields:
+`superseded_by` (a stable identifier for the replacement plan or work
+item), `superseded_decision` (the governor-reviewer coordination
+decision-record authorizing the disposition), and `superseded_at` (a
+UTC RFC3339 disposition timestamp). `agov plan validate` rejects a
+`superseded` plan missing or leaving any of these three empty.
+
 ## Failure Modes
 
 If the command says no role is configured, pass `--role` explicitly or add

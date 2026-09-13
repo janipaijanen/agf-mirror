@@ -20,7 +20,8 @@
         "pending-gate1",
         "approved",
         "active",
-        "complete"
+        "complete",
+        "superseded"
       ]
     },
     "topic": {
@@ -32,6 +33,23 @@
     },
     "gate1_approved_at": {
       "type": "string"
+    },
+    "superseded_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identifier (plan id, or the id of the replacement work item/work order) of what replaced this plan. Declared provenance, matching gate1_approved_by's own convention: the schema requires a non-empty identifier but does not itself resolve or verify that the identifier exists or is correct -- a reviewer confirms that. Required only when status is superseded."
+    },
+    "superseded_decision": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Filename or id of the governor-reviewer coordination decision-record authorizing this disposition. Declared provenance, matching gate1_approved_by's own convention: the schema requires a non-empty value but does not itself verify the record exists or that its author held governor-reviewer authority -- a reviewer confirms that. Required only when status is superseded."
+    },
+    "superseded_at": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$",
+      "description": "UTC disposition timestamp (RFC3339, Z-suffixed). Required only when status is superseded. format: date-time alone accepts any RFC3339 offset (e.g. +02:00); the pattern additionally requires the literal Z (Zulu/UTC) designator, matching this project's own YYYYMMDDThhmmssZ timestamp convention used elsewhere (coordination IDs, gate1_approved_at values in practice)."
     },
     "advisory_consultation": {
       "type": "array",
@@ -90,5 +108,26 @@
         "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[^/]\\*\\*)(?!.*\\*\\*[^/]).+$"
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "superseded_by",
+          "superseded_decision",
+          "superseded_at"
+        ]
+      }
+    }
+  ]
 }

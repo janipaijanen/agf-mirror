@@ -1,6 +1,9 @@
 ---
 id: sample-login-error-message
 status: pending-gate1
+# status may also be: active, complete, or superseded. superseded requires
+# superseded_by/superseded_decision/superseded_at -- see
+# docs/reference/session-resume.md#plan-status-lifecycle.
 topic: login-error-message
 # Optional: whole-segment **, single-segment * and ? globs are supported.
 # affected_paths: ["lib/auth/login.ex", "test/auth/login_test.exs"]
