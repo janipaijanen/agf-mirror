@@ -2607,3 +2607,42 @@ trial, depend on, or grant AGF authority to this work or any described
 method, and it does not change AGF rules, gates, or agent boundaries. No
 radar entry is added — this is a tangential research watch-item, not an
 open or controversial question bearing on AGF's own design.
+
+# Batch 38 (2026-09-13) — user-submitted candidate (vendor marketing page, AI-agent-driven engineering)
+
+## Classified
+
+- https://kiro.dev/topics/frontier-engineering/
+  type: practice, discussion | relation: competitor | action: watch
+  note: a marketing/educational guide published by Kiro (an AI-assisted
+  software development platform already listed in this file's competitor
+  watch list alongside GitHub Spec Kit and OpenSpec) coining "frontier
+  engineering" for a practice where a developer's role shifts from writing
+  code to configuring and directing autonomous coding agents that write,
+  test, and iterate code with reduced human turn-taking. It presents ten
+  named principles (e.g. treating code as disposable, maximizing agent
+  autonomy, building codebases for agent legibility) framed as vendor
+  guidance for using Kiro's own product suite, not as an independent
+  study. No benchmarks, reproducible measurements, dates, or named
+  adopters are given; claimed "step-function productivity gains" are
+  asserted, not evidenced, and the page itself states the practice is
+  early-stage ("no one has worked out how to review agent output most
+  effectively"). Per `docs/marketing-tone-rule.md`, no comparative or
+  critical framing of Kiro is offered here beyond what the page itself
+  states. Relevance to AGF: several named principles overlap with ground
+  this project already occupies with governance rather than pure
+  productivity framing — e.g. "maximizing agent autonomy" versus AGF's own
+  gate/role-authority discipline, and "treating code as disposable" versus
+  this project's review and provenance requirements — but the page states
+  no falsifiable claim AGF can evaluate or cite; it is aspirational vendor
+  narrative. Recorded as a competitor-perspective watch item, not adopted,
+  compared in docs, or otherwise acted on. (accessed 2026-09-13)
+
+## Evaluation boundary
+
+This batch classifies one source. It adopts nothing: it does not install,
+trial, depend on, or grant AGF authority to this work or any described
+method, and it does not change AGF rules, gates, or agent boundaries. No
+radar entry is added — the page contains no falsifiable or controversial
+claim requiring separate tracking beyond the existing competitor watch
+list, which already names Kiro.
