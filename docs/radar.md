@@ -209,6 +209,28 @@ Next review: 2026-10.
   EngineeringSpec in `docs/sources.md` Batch 31 | status: evaluate mechanics, no
   implementation proposed | review-by: 2026-11
 
+- **`agf/skills/` naming overlap with the cross-vendor Agent Plugins
+  specification** — Kiro's announcement of "Agent Plugins 1.0.0" (a
+  vendor-stated cross-vendor specification with a named Technical Steering
+  Committee: AWS, Cursor, Microsoft, OpenAI, Vercel) describes a packaging
+  shape for agent skills that uses the identical `SKILL.md` filename this
+  project's own `agf/skills/<name>/SKILL.md` convention already uses,
+  independently arrived at. The open question is narrow and genuinely
+  unresolved: does aligning `agf/skills/`'s directory/manifest shape with
+  Agent Plugins improve portability for adopters who also use
+  Plugins-compatible clients, or is the naming overlap coincidental and
+  not worth coupling AGF's own skill format to an external, single-vendor-
+  announced specification whose actual multi-vendor adoption and stability
+  are not independently verified? Treat the source as vendor-stated,
+  unverified: the steering-committee claim and the spec's real-world
+  compatibility surface come from Kiro's own blog post, not the
+  specification document or a neutral survey. No alignment, adoption, or
+  `agf/skills/` shape change is proposed here — this is a real, checkable
+  design question worth revisiting once the specification itself (not
+  just a vendor announcement about it) can be read directly. source: Kiro
+  blog in `docs/sources.md` Batch 39 | status: open question, no
+  alignment proposed | review-by: 2026-12
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu

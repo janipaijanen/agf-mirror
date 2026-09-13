@@ -2646,3 +2646,44 @@ method, and it does not change AGF rules, gates, or agent boundaries. No
 radar entry is added — the page contains no falsifiable or controversial
 claim requiring separate tracking beyond the existing competitor watch
 list, which already names Kiro.
+
+# Batch 39 (2026-09-13) — user-submitted candidate (cross-vendor Agent Plugins specification)
+
+## Classified
+
+- https://kiro.dev/blog/powers-supports-plugins/
+  type: standard, tooling | relation: complement, prior-art | action:
+  watch, compare-in-docs
+  note: a 2026-08-07 product-and-standards announcement (Kiro's own blog,
+  not an independent source) stating Kiro's "Powers" extension mechanism
+  now implements "Agent Plugins 1.0.0," described as an open,
+  vendor-neutral packaging specification for agent extensions (Agent
+  Skills and MCP servers), with a named cross-vendor Technical Steering
+  Committee (stated as AWS, Cursor, Microsoft, OpenAI, Vercel) and a
+  public contribution process intended to prevent single-vendor control.
+  The packaging shape described (`POWER.md`, steering files, `mcp.json`,
+  optional `skills/` subdirectories containing `SKILL.md` files plus
+  executable scripts and reference material) is directly comparable to
+  this project's own `agf/skills/<name>/SKILL.md` convention — both use
+  the identical `SKILL.md` filename and a similar per-skill-directory
+  shape, independently arrived at. No security/permissions model is
+  discussed in the announcement. The steering-committee governance claim
+  and the spec's actual current adoption/compatibility surface are
+  vendor-stated and not independently verified here; this is a company
+  blog post, not the specification document or a neutral survey.
+  Relevance to AGF: this is the first concrete, named, cross-vendor
+  standardization effort in this project's tracked sources for exactly
+  the packaging shape `agf/skills/` already uses, making a real (not
+  aspirational) portability question worth tracking — see the new radar
+  entry below. (accessed 2026-09-13)
+
+## Evaluation boundary
+
+This batch classifies one source. It adopts nothing: it does not install,
+trial, depend on, integrate with, or grant AGF authority to Agent Plugins
+1.0.0 or any described method, and it does not change AGF rules, gates,
+`agf/skills/`'s existing shape, or agent boundaries. A radar entry is
+added below — unlike Batch 38, this source names a concrete, checkable
+specification (not aspirational marketing) whose packaging shape overlaps
+this project's own `agf/skills/` convention closely enough to warrant a
+real, if currently open and unresolved, design question.
