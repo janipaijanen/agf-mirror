@@ -1,3 +1,22 @@
+---
+id: rc1-sequence
+status: complete
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+---
+
+**Correction (2026-09-13, qbka Slice B):** this file had no YAML front
+matter at all (schema-invalid). Describes the release sequence from MR
+!153 to the AGF v2 RC milestone; `v2.0.0` is tagged and long superseded by
+many later releases (current: v2.10.1) — the described release process is
+unambiguously historical, so `status: complete`. See `docs/plans/
+20260913T171837Z-qbka-slice-b-legacy-plan-migration.md`.
+
 # RC-1 release sequence
 # 2026-06-23T20:50:13Z
 

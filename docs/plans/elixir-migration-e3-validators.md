@@ -1,6 +1,6 @@
 ---
 id: elixir-migration-e3-validators
-status: gate1-approved
+status: complete
 topic: elixir-validator-implementation
 gate1_approved_by: governor-reviewer
 gate1_approved_at: "2026-06-15"
@@ -12,6 +12,12 @@ advisory_consultation:
     status: not-applicable
     reason: internal foundry tooling; not an upstream submission
 ---
+
+**Correction (2026-09-13, qbka Slice B):** status was `gate1-approved`, an
+invalid enum spelling; corrected to `complete` — introducing commit
+`fac18812` ("FSM Gate 2 approved; E1-E3 planning") confirms this work
+reached Gate 2 at the time. See `docs/plans/20260913T171837Z-qbka-slice-b-
+legacy-plan-migration.md` for full evidence.
 
 # Plan: E3 — Elixir Validator Implementation
 

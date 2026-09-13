@@ -1,3 +1,23 @@
+---
+id: remove-elixir-tooling
+status: complete
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+---
+
+**Correction (2026-09-13, qbka Slice B):** this file had no YAML front
+matter at all (schema-invalid). `tooling/elixir/` does not exist in this
+checkout; AGENTS.md states "No Elixir implementation is tracked" — this
+plan's removal demonstrably shipped, so `status: complete`. This is also
+the `superseded_by` target for `agf-coord-channel-fsm.md`'s now-moot
+Elixir FSM proposal. See `docs/plans/20260913T171837Z-qbka-slice-b-legacy-
+plan-migration.md`.
+
 # Plan: Remove Elixir Tooling (2.2.4)
 
 **Date:** 2026-06-24T13:35:29Z  

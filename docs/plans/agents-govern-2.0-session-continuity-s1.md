@@ -1,5 +1,6 @@
 ---
-status: pending-gate1
+id: agents-govern-2.0-session-continuity-s1
+status: complete
 timestamp: 2026-06-13T12:40:16Z
 references:
   - docs/proposals/session-continuity-and-memory.md
@@ -8,7 +9,23 @@ references:
   - docs/coordination/00157-planner-architect.md
   - docs/coordination/00167-coder-tester.md
   - docs/coordination/00168-coder-tester.md
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
 ---
+
+**Correction (2026-09-13, qbka Slice B):** this file had no `id` or
+`advisory_consultation` (schema-invalid) and `status: pending-gate1`, which
+misrepresented the work as unimplemented. `agov session resume` exists
+today and is this project's documented cold-start command
+(`docs/reference/session-resume.md`, AGENTS.md) — the feature this plan
+proposed (originally `mix agov.session.resume`, later ported to Rust).
+Reconstructed per `docs/plans/20260913T171837Z-qbka-slice-b-legacy-plan-
+migration.md`.
 
 # Plan: Session Continuity S1 — `mix agov.session.resume`
 

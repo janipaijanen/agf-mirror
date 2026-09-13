@@ -1,9 +1,25 @@
 ---
+id: docs-assessment-2026-06-21
 date: 2026-06-21T19:39:00Z
 authors: [planner-architect, four-agent assessment panel]
-status: active
+status: complete
 references-coordination: 20260621T193926Z-planner-architect-ah1n.md
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: This document is itself a multi-angle assessment output, not an implementation plan requiring separate advisory consultation.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: This document is itself a multi-angle assessment output, not an implementation plan requiring separate advisory consultation.
 ---
+
+**Correction (2026-09-13, qbka Slice B):** this file had no `id` or
+`advisory_consultation` (schema-invalid) and `status: active`. It is a
+one-time, dated documentation assessment with a completed "Full 20-item
+findings" section and "Slice assignments summary" — the deliverable
+itself finished long ago; `active` no longer describes it three months
+later. Corrected to `complete`. See `docs/plans/20260913T171837Z-qbka-
+slice-b-legacy-plan-migration.md`.
 
 # Public documentation site assessment — 2026-06-21
 

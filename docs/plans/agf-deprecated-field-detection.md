@@ -1,3 +1,24 @@
+---
+id: agf-deprecated-field-detection
+status: complete
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+---
+
+**Correction (2026-09-13, qbka Slice B):** this file had no YAML front
+matter at all (schema-invalid). `agf/schemas/coordination-message.schema.
+json` contains `"x-deprecated": true` on the `seq` field today — the exact
+machine-readable deprecation surface this plan proposed — so `status:
+complete` (matching the body's own "Status: approved" plus the confirmed
+shipped feature; `approved` alone would understate that this was actually
+implemented). See `docs/plans/20260913T171837Z-qbka-slice-b-legacy-plan-
+migration.md`.
+
 # Plan: Surface Advisory Warning for Deprecated `seq` Field
 
 **Date:** 2026-06-18T11:19:25Z

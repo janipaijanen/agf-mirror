@@ -1,6 +1,6 @@
 ---
 id: release-pages-artifacts-policy
-status: gate1-approved
+status: complete
 topic: release-pages-artifacts
 advisory_consultation:
   - role: infosec-sentinel
@@ -13,6 +13,12 @@ advisory_consultation:
     status: consulted
     reason: implementation must distinguish currently shipped local tooling from planned CI behavior and avoid overclaiming release guarantees
 ---
+
+**Correction (2026-09-13, qbka Slice B):** status was `gate1-approved`, an
+invalid enum spelling; corrected to `complete` — tagged releases with
+public Pages and release artifacts are this project's live, continuously
+used release mechanism. See `docs/plans/20260913T171837Z-qbka-slice-b-
+legacy-plan-migration.md`.
 
 # Plan: public Pages and tagged release artifacts policy
 

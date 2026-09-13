@@ -1,6 +1,6 @@
 ---
 id: gate1-role-authority-tooling-retarget
-status: gate-1-approved
+status: complete
 topic: tooling-defaults-retarget-agents-govern-to-agf
 timestamp: 2026-06-15T18:21:00Z
 advisory_consultation:
@@ -11,6 +11,13 @@ advisory_consultation:
     status: not-applicable
     reason: internal tooling defaults; no adopter-facing contract change
 ---
+
+**Correction (2026-09-13, qbka Slice B):** status was `gate-1-approved`, an
+invalid enum spelling; corrected to `complete` — AGENTS.md's current Role
+authority note confirms `agf/agents/MANIFEST.yaml` (not `agents-govern/
+agents/MANIFEST.yaml`) is the live role authority today, exactly the
+retarget this plan describes. See `docs/plans/20260913T171837Z-qbka-
+slice-b-legacy-plan-migration.md`.
 
 # Plan: Gate 1 — Role Authority Tooling Retarget
 

@@ -4,6 +4,9 @@ status: superseded
 topic: plan-validator-advisory-roles
 gate1_approved_by: ""
 gate1_approved_at: ""
+superseded_by: issue30-plan-validator-role-status-diagnostics
+superseded_decision: 20260913T171642Z-governor-reviewer-hs6j.md
+superseded_at: 2026-09-13T17:16:42Z
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -12,6 +15,15 @@ advisory_consultation:
     status: not-applicable
     reason: internal bug fix in existing Rust tooling, not an external contribution; fast-track eligible per simplicity-rule (single-file bug fix with confirmed root cause)
 ---
+
+**Correction (2026-09-13, qbka Slice B):** added the three provenance
+fields `superseded_by`/`superseded_decision`/`superseded_at` the qbka
+Slice A schema requires for `status: superseded`. The disposition itself
+(superseded by `issue30-plan-validator-role-status-diagnostics`) was
+already stated in this file's own body below and was originally executed
+by a direct governor commit (`e3d301fd`); `hs6j` supplies the missing
+governor-reviewer coordination record ratifying that disposition. See
+`docs/plans/20260913T171837Z-qbka-slice-b-legacy-plan-migration.md`.
 
 # Plan: `agov plan validate` rejects `build-engineer` despite it being a real AGF role (issue #30)
 

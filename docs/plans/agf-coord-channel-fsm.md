@@ -1,9 +1,29 @@
 ---
+id: agf-coord-channel-fsm
 title: Coordination Channel — Explicit Claim FSM
 created: 2026-06-14T20:10:27Z
-status: gate-1-pending
+status: superseded
 branch: feat/coord-claim-fsm
+superseded_by: remove-elixir-tooling
+superseded_decision: 20260913T171642Z-governor-reviewer-hs6j.md
+superseded_at: 2026-09-13T17:16:42Z
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Superseded before implementation or real consultation occurred; consultation is moot.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: Superseded before implementation or real consultation occurred; consultation is moot.
 ---
+
+**Correction (2026-09-13, qbka Slice B):** this plan proposed refactoring
+the Elixir `Agov.ClaimTracker` into a pure `Agov.ClaimFSM` module. It was
+never approved (`gate-1-pending`, an invalid enum spelling besides) and the
+entire Elixir tooling tree was later removed
+(`docs/plans/remove-elixir-tooling.md`, implemented) — `tooling/elixir/`
+no longer exists in this checkout. The proposal is permanently
+inapplicable; marked `superseded` per `hs6j`. See
+`docs/plans/20260913T171837Z-qbka-slice-b-legacy-plan-migration.md`.
 
 # Coordination channel: explicit claim FSM
 
