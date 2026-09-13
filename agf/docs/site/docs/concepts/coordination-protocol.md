@@ -411,6 +411,21 @@ Handoff reply annotations are advisory evidence with unchanged lifecycle and gat
 
 Optional `handoff.for_session` addresses a recipient; top-level `session` records the author. `handoff next <role> --session <token>` and `coord visibility --session <token>` leave every item in its existing position/state and annotate only mismatched handoffs as addressed elsewhere. Missing flag or recipient preserves prior output. Notes/reviews remain role-wide. MCP tools accept the equivalent optional `session` string. Visibility JSON adds `addressed_elsewhere` containing the recipient string only on mismatches; handoff text names the recipient. This is advisory under the [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md), without new ownership or authority.
 
+## Urgency-ordered queues
+
+In the v2.11 development implementation (Level 4: validated, not yet released),
+`urgency: urgent` puts an unresolved item ahead of normal or omitted urgency.
+This self-declared field is advisory; it grants no authority or ownership.
+
+`handoff next <role>` selects urgent handoffs first, then the newest timestamp
+and largest filename within that tier. Session addressing remains a warning
+after selection. `coord pending` lists urgent items first while preserving
+ascending timestamp/filename order inside each tier. Branch-inclusive handoff
+listing retains all per-source candidates and its existing deduplication;
+urgency changes only their printed order. `session resume` adds a leading
+urgent-obligations section when there are eligible urgent records. Resolution,
+acknowledgement cutoff and source-coverage rules remain unchanged.
+
 ## Publication-hold declarations
 
 Optional `urgency: normal|urgent` defaults to normal without rewriting records.

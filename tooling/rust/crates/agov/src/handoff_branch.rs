@@ -300,7 +300,10 @@ pub(super) fn run(role: &str, dir: PathBuf, session: Option<&str>, args: &[Strin
     for (file, _) in candidates.keys() {
         *counts.entry(file.clone()).or_insert(0usize) += 1;
     }
-    for candidate in candidates.values() {
+    let mut ordered: Vec<_> = candidates.values().collect();
+    // Preserve BTreeMap (file, blob) ordering and conflict attribution within each tier.
+    ordered.sort_by_key(|candidate| !is_urgent(&candidate.message));
+    for candidate in ordered {
         if counts[&candidate.message.file] > 1 {
             output.stdout(format!("CONFLICT: {}", candidate.message.file));
         }

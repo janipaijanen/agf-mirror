@@ -5578,6 +5578,7 @@ fn render_session_resume(
     output.stdout("");
     render_warnings(output, &git.warnings(base_branch));
     render_invalid_files(output, invalid_files);
+    render_urgent_obligations(output, messages, Some(role));
     render_pending_handoffs_for_role(output, role, messages);
     render_claims_for_role(output, role, messages, aliases);
     render_recent_decisions(output, messages);
@@ -5598,6 +5599,7 @@ fn render_session_bootstrap(
     output.stdout("");
     render_warnings(output, &git.warnings(base_branch));
     render_invalid_files(output, invalid_files);
+    render_urgent_obligations(output, messages, None);
     render_active_roles(output, manifest, base_branch);
     render_pending_handoffs_by_role(output, messages);
     render_recent_decisions(output, messages);
@@ -5913,7 +5915,70 @@ fn render_must_read(output: &mut OutputCounter, role: &str, messages: &[HandoffM
     }
 }
 
-fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, include_branch_local: bool, args: &[String]) -> i32 {
+// Urgency is advisory ordering only; lifecycle and addressing stay unchanged.
+fn is_urgent(message: &HandoffMessage) -> bool {
+    string_field(&message.raw, "urgency") == Some("urgent")
+}
+
+fn pending_ack_descriptors(
+    messages: &[HandoffMessage],
+) -> Vec<agov_coord::handoff_tracker::MessageDescriptor> {
+    messages
+        .iter()
+        .map(|m| agov_coord::handoff_tracker::MessageDescriptor {
+            file: m.file.clone(),
+            sort_key: format!("{}_{}", m.sort_key.0, m.sort_key.1),
+            refs: m.refs.clone(),
+            msg: agov_coord::coord_validator::CoordMessage { raw: m.raw.clone() },
+        })
+        .collect()
+}
+
+fn render_urgent_obligations(
+    output: &mut OutputCounter,
+    messages: &[HandoffMessage],
+    role: Option<&str>,
+) {
+    let descriptors = pending_ack_descriptors(messages);
+    let pending =
+        agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, "2026-08-02T22:01:54Z");
+    let ordinary: std::collections::BTreeSet<_> = pending.iter().map(|p| p.file.as_str()).collect();
+    let handoffs = pending_handoffs(messages);
+    let handoff_files: std::collections::BTreeSet<_> =
+        handoffs.iter().map(|p| p.file.as_str()).collect();
+    let urgent: Vec<_> = messages
+        .iter()
+        .filter(|m| is_urgent(m))
+        .filter(|m| {
+            role.is_none_or(
+                |r| matches!(string_field(&m.raw, "to"), Some(to) if to == r || to == "all"),
+            )
+        })
+        .filter(|m| ordinary.contains(m.file.as_str()) || handoff_files.contains(m.file.as_str()))
+        .collect();
+    if urgent.is_empty() {
+        return;
+    }
+    output.stdout("Urgent pending obligations (advisory):");
+    for m in urgent {
+        output.stdout(format!(
+            "  - {}  {} -> {}  {}",
+            m.file,
+            string_field(&m.raw, "from").unwrap_or(""),
+            string_field(&m.raw, "to").unwrap_or(""),
+            string_field(&m.raw, "topic").unwrap_or("")
+        ));
+    }
+    output.stdout("");
+}
+
+fn handoff_next(
+    agent_role: &str,
+    dir: PathBuf,
+    session: Option<&str>,
+    include_branch_local: bool,
+    args: &[String],
+) -> i32 {
     if include_branch_local {
         return handoff_branch::run(agent_role, dir, session, args);
     }
@@ -5935,7 +6000,7 @@ fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, include_b
     let next = pending
         .into_iter()
         .filter(|message| string_field(&message.raw, "to") == Some(agent_role))
-        .max_by_key(|message| message.sort_key.clone());
+        .max_by_key(|message| (is_urgent(message), message.sort_key.clone()));
 
     let Some(message) = next else {
         output.stdout(format!("No handoff found for role: {agent_role}"));
@@ -5997,17 +6062,15 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
         }
     };
 
-    let descriptors: Vec<agov_coord::handoff_tracker::MessageDescriptor> = messages
+    let descriptors = pending_ack_descriptors(&messages);
+    let urgent_files: std::collections::BTreeSet<_> = messages
         .iter()
-        .map(|m| agov_coord::handoff_tracker::MessageDescriptor {
-            file: m.file.clone(),
-            sort_key: format!("{}_{}", m.sort_key.0, m.sort_key.1),
-            refs: m.refs.clone(),
-            msg: agov_coord::coord_validator::CoordMessage { raw: m.raw.clone() },
-        })
+        .filter(|m| is_urgent(m))
+        .map(|m| m.file.as_str())
         .collect();
-
-    let pending = agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, cutoff);
+    let mut pending = agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, cutoff);
+    // Stable sort preserves the existing ascending timestamp/file order inside each tier.
+    pending.sort_by_key(|p| !urgent_files.contains(p.file.as_str()));
 
     if format == "json" {
         let rows: Vec<PendingAckRow> = pending.iter().map(PendingAckRow::from).collect();
