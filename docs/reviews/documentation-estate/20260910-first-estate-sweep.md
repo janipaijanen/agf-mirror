@@ -46,7 +46,7 @@ Adopter-facing surfaces inspected or queued for this sweep:
 | Templates | `agf/templates/*` (10 files incl. `AGENTS.md`, `CLAUDE.md`, `gate1-plan.md`, `learning-record.yaml`, coord-* templates, `README.md`) |
 | Pages site | `agf/docs/site/**/*.md` — **corrected 2026-09-11 (EC-1): the original "19 md files" count was wrong; `git ls-tree -r --name-only agf/docs/site` returns 47.** Only a subset of these 47 were individually named/verified in the dimension passes below; the rest are UNEXAMINED, not confirmed-OK. + `agf/docs/site/roadmap.md` |
 | Governance docs | `agf/docs/governance/manifest.md` — **UNEXAMINED beyond this one file (EC-1):** other governance documents under `agf/docs/**` outside `site/` were not inventoried. |
-| Other agf/docs | `agf/docs/agent-communication-0.26.0.md` — **checked 2026-09-12 (EC-2):** `agf/docs/adopt/compliance-profile.md`, `agf/docs/contracts/binding-contract.md`, `agf/docs/contracts/contract-stability.md`, `agf/docs/contracts/integration-contract.md`, `agf/docs/contracts/tooling-conformance.md`, `agf/ADOPTING.md` — scanned for version-currency and maturity-claim defects; none found (all speak generically of "AGF v2" rather than a specific numbered version, so they cannot go stale the way a pinned-version claim would; existing "planned/deferred" qualifiers on binding-validation content were confirmed still accurate against current Rust `agov`). `agf/docs/adopt/decommission.md` — **checked 2026-09-12 (EC-2), defect found and fixed → DES-5.** |
+| Other agf/docs | `agf/docs/agent-communication-0.26.0.md` — **checked 2026-09-12 (EC-2):** `agf/docs/adopt/compliance-profile.md`, `agf/docs/contracts/binding-contract.md`, `agf/docs/contracts/contract-stability.md`, `agf/docs/contracts/tooling-conformance.md`, `agf/ADOPTING.md` — scanned for version-currency and maturity-claim defects; none found (all speak generically of "AGF v2" rather than a specific numbered version, so they cannot go stale the way a pinned-version claim would; existing "planned/deferred" qualifiers on binding-validation content were confirmed still accurate against current Rust `agov`). `agf/docs/contracts/integration-contract.md` — **checked 2026-09-12 (EC-2): a currency defect was found → DES-7 (open, not yet routed).** `agf/docs/adopt/decommission.md` — **checked 2026-09-12 (EC-2), defect found and fixed → DES-5.** |
 | Roadmaps | `docs/roadmap.md` + `agf/docs/site/roadmap.md` |
 | Version anchors | `agf/VERSION` (2.10.0), `CHANGELOG.md`, `agf/CHANGELOG.md`, `agf/templates/learning-record.yaml` framework_version cell, `agf/learnings/foundry.yaml`'s own `framework_version` cell — **checked 2026-09-12 (EC-2): `agf/learnings/foundry.yaml:38` reads `framework_version: "2.10.0"`, matching `agf/VERSION`. No defect.** |
 | Rules estate-wide consistency (read-only duty, not content ownership) | `agf/rules/**` CUSTOMIZE/normative-claim surfaces — **UNEXAMINED (EC-1):** content excluded correctly (owned by the rules themselves), but the role's separate duty to read for cross-estate consistency was not exercised this pass |
@@ -180,11 +180,14 @@ compliance-profile.md`, `agf/docs/adopt/decommission.md`,
 `agf/docs/contracts/contract-stability.md`,
 `agf/docs/contracts/integration-contract.md`,
 `agf/docs/contracts/tooling-conformance.md`, `agf/ADOPTING.md`, and
-`agf/learnings/foundry.yaml`'s `framework_version` cell — one defect
-found and fixed (**DES-5**, `decommission.md`'s stale dual-layout
-framing), the rest inspected with no currency defect found (all use
-"AGF v2" generically rather than a pinned version, so a version bump
-cannot make them stale the way `DES-1`/`DES-4` were).
+`agf/learnings/foundry.yaml`'s `framework_version` cell — two defects
+found: **DES-5** (`decommission.md`'s stale dual-layout framing) was
+fixed, and **DES-7** (`integration-contract.md`'s internal contradiction
+over `framework.yaml`'s shipped status, discovered via `q2pt`'s DES-5
+review) was found and remains open, not yet routed to an owner/decision
+(see the DES-7 row above). The remaining checked files had no currency
+defect found (all use "AGF v2" generically rather than a pinned version,
+so a version bump cannot make them stale the way `DES-1`/`DES-4` were).
 
 **Still UNEXAMINED after EC-2:** the ~28 unnamed `agf/docs/site/**`
 files beyond those the dimension-2/4 passes named; other
