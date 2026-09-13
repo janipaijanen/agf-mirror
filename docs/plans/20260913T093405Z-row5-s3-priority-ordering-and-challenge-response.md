@@ -63,11 +63,17 @@ routed by Codex's handoff
 `!2027` (`docs/plans/20260824T214947Z-coordination-priority-and-material-
 challenge.md`) proposed a three-value `priority`
 (`immediate`/`normal`/`deferred`) plus a `priority_authority` object.
-CP-B-2 has since landed a **different**, simpler, already-shipped field:
+CP-B-2 has since landed a **different**, simpler field, already
+**integrated and validated on `main`** (merge commit `68003b56`) —
+correction per Codex's `tkkp` review: this is not yet "shipped" in the
+sense of a released artifact, only merged to the development branch:
 `urgency` (`normal`/`urgent` only, no authority object — see
 `agf/schemas/coordination-message.schema.json` lines 19-26). The parent
 work order is explicit: "S3 **consumes** \[CP-B-2's `urgency`\] for
-priority-ordering and does **not** define \[a competing field\]."
+priority-ordering and does **not** define \[a competing field\]." `!2027`
+remains open until this plan is approved and its replacement preserves
+!2027's residual scope, per Codex's `tkkp` review — it is not closed
+merely because this plan exists.
 
 **This plan supersedes !2027.** It preserves !2027's two real
 deliverables — deterministic obligation ordering, and a bounded
@@ -112,6 +118,16 @@ follows approval rather than presuming it.
 
 ### 2. Challenge-response contract (new optional schema fields)
 
+**Revised per Codex's `tkkp` review**, which found two real defects in
+the original draft: (a) this section's prose said `references-to` names
+"the challenge's `challenge_id`-bearing record" while the JSON
+description said it names an arbitrary `challenge_id` string —
+`references-to` elsewhere in this schema always names a record's own
+`id`/filename, never an opaque secondary identifier, so the original
+draft was internally inconsistent; (b) "answered" from "any role" lets
+an unrelated third party silently suppress someone else's valid
+challenge merely by posting a matching field. Both are fixed below.
+
 Reuses `kind: review` (already one of the nine message kinds — no new
 kind added, consistent with CP-B-2's own precedent of shipping new
 behavior via optional fields rather than a tenth kind) plus one new
@@ -121,63 +137,132 @@ optional object field:
 "challenge": {
   "type": "object",
   "additionalProperties": false,
-  "required": ["challenge_id", "window_hours"],
+  "required": ["challenge_id"],
   "properties": {
     "challenge_id": {
       "type": "string",
       "minLength": 1,
-      "description": "Opaque identifier for this challenge, shared by the raising record and its eventual resolution/escalation record."
+      "description": "Minted once, only by the raising record. Every other record participating in this exchange (answer or escalation) carries the SAME challenge_id here AND names the raising record's own id/filename in its top-level references-to -- two independent links, both required, so a record cannot claim to respond to a challenge it does not actually reference."
     },
     "window_hours": {
       "type": "integer",
       "minimum": 1,
-      "description": "Bounded response window in hours. No unbounded challenge cycles."
+      "description": "Required only on the raising record; the clock anchor is the raising record's own timestamp field (deadline = raising_record.timestamp + window_hours). A window_hours value on any other record in the exchange is ignored for deadline computation -- informational only -- so conflicting windows across responses cannot move the deadline."
     },
     "resolution": {
       "type": "string",
       "enum": ["open", "answered", "escalated"],
-      "description": "Absent or 'open' on the raising record. A later record referencing this challenge_id in references-to sets 'answered' (substantive response) or 'escalated' (window expired, unanswered, routed to governor)."
+      "description": "Absent or 'open' on the raising record. Never set on any other record type; see the per-role restrictions below for which record author may set 'answered' or 'escalated'."
     }
   }
 }
 ```
 
 - **Raising a challenge**: a `kind: review` record with a `challenge`
-  object (`resolution` absent, meaning `open`) disputes a specific
-  finding, naming the disputed record in `references-to`.
-- **Answering a challenge**: a later record `references-to`-ing the
-  challenge's `challenge_id`-bearing record, with `challenge.resolution:
-  answered` and its own `challenge_id` matching the original — this is
-  the "substantive response" the parent work order requires, distinct
-  from `agov` inferring an answer from mere presence of a later record
-  on the same topic.
-- **Escalation on expiry**: if `window_hours` elapses with no
-  `answered`/`escalated` successor found on the reader's ref, `agov
-  coord pending` displays the challenge as `challenge — window expired,
-  escalate to governor` — a display state, **never** a silent drop and
-  **never** an automatic resolution in either direction. Only a
-  governor-reviewer record may set `resolution: escalated` (schema-
-  enforced: `escalated` requires `from: governor-reviewer`, mirroring
-  CP-B-2's `governor-reviewer`/`urgent`/`decision-record` binding for
-  `publication_hold` end records).
-- **Authority boundary, explicit**: `resolution: answered` may come
-  from any role (a substantive answer is evidence, not an authority
-  claim) but `resolution: escalated` is schema-restricted to
-  `governor-reviewer`, matching this project's standing rule that only
-  a governor-reviewer coordination message supplies binding gate/
-  decision authority.
+  object (`resolution` absent, `challenge_id` freshly minted,
+  `window_hours` present) disputes a specific finding, naming the
+  disputed record in its own `references-to`. This record's own
+  `timestamp` is the deadline anchor for the whole exchange.
+
+- **Identity and linking (fixes the `references-to` inconsistency)**:
+  every subsequent record in the exchange (answer or escalation) MUST
+  carry the identical `challenge.challenge_id` string AND name the
+  *raising record's own id* in its `references-to` — not the
+  `challenge_id` value itself, which is never a valid `references-to`
+  target. A record satisfying only one of the two links is not a valid
+  response and `agov` treats it as an ordinary unrelated record, not as
+  evidence closing the challenge. Two different raising records must
+  never mint the same `challenge_id`; `agov coord validate` rejects a
+  new raising record whose `challenge_id` collides with any existing
+  record's `challenge_id` on the target branch.
+
+- **Who may answer (fixes the silent-suppression gap)**: `resolution:
+  answered` may be set only by a record authored by one of the two
+  direct parties to the dispute — **the raising record's own author**
+  (withdrawing their own challenge) or **the disputed record's own
+  author** (defending the original finding with a substantive reply).
+  `agov` determines "author" from each record's own `from` field. A
+  record from any third role — including another reviewer, another
+  build-engineer session, or an unrelated coder-tester — is valid
+  coordination content in its own right, but does **not** set
+  `resolution: answered` and does not close the challenge; `agov` keeps
+  displaying the challenge as open even if such a record exists,
+  precisely so an unrelated party cannot suppress someone else's
+  dispute by merely posting a matching field. This is the direct fix
+  for `tkkp`'s S3-1 finding.
+
+- **Timing edge cases (fixes the missing clock/conflict semantics)**:
+  a candidate answering/escalating record with a `timestamp` earlier
+  than the raising record's own `timestamp` is invalid and ignored (no
+  backdated closure). Among valid candidates, the first one
+  chronologically after the raising record's timestamp that
+  legitimately sets `answered` or `escalated` closes the challenge;
+  once closed, later records referencing the same `challenge_id` are
+  informational only and never reopen or overwrite the closed state. A
+  record whose `references-to` names the raising record's id but whose
+  own `challenge.challenge_id` does not match is rejected as
+  mismatched, not treated as a response.
+
+- **Escalation on expiry**: if the deadline (raising record's
+  `timestamp` + its `window_hours`) passes with no valid `answered`
+  successor found on the reader's ref, `agov coord pending` displays
+  the challenge as `challenge — window expired, escalate to governor` —
+  a display state, **never** a silent drop and **never** an automatic
+  resolution in either direction. Only a `governor-reviewer` record may
+  set `resolution: escalated` (schema-enforced: `escalated` requires
+  `from: governor-reviewer`, mirroring CP-B-2's
+  `governor-reviewer`/`urgent`/`decision-record` binding for
+  `publication_hold` end records). Routing a matter to the governor is
+  not itself a binding judgment on the dispute's substance — it is
+  visibility, which any assistant can already do via an ordinary
+  handoff; restricting the schema field to `governor-reviewer` instead
+  reflects that *closing* the challenge (removing it from the open-
+  obligation display) is the governed action, not the act of raising
+  attention to it.
+
+- **Authority boundary, explicit**: `resolution: answered` is
+  restricted to the two direct parties (not "any role," corrected
+  above); `resolution: escalated` is schema-restricted to
+  `governor-reviewer`. Both match this project's standing rule that
+  only an authorized role's coordination message supplies binding
+  outcomes — a third party's opinion is evidence for either direct
+  party to use in their own answer, not itself a closing record.
 
 ### 3. `agov` surfaces
 
 - `agov coord pending`: sorts by `urgency` (as above); additionally
   surfaces any record carrying an unresolved `challenge` (`resolution`
   absent/`open`, or window-expired) in a distinct labeled section, not
-  merged into the ordinary pending list.
-- `agov handoff next <role>`: unaffected in its selection logic (still
-  role/session-scoped); its display ordering gains the same
-  `urgency`-first sort as `coord pending`.
+  merged into or counted within the ordinary pending list — a challenge
+  row never duplicates as an ordinary pending row even though the
+  raising record is itself a `kind: review` message. A raising record
+  defaults `requires-ack` to `false` (it is advisory, not a fresh
+  obligation on top of the dispute itself) unless its author explicitly
+  sets `requires-ack: true` for a different, unrelated reason. Multiple
+  simultaneous open challenges are tracked independently, keyed by each
+  one's own `challenge_id`; there is no limit on how many may be open
+  at once.
+- `agov handoff next <role>`: **corrected per `tkkp`'s S3-5 finding** —
+  this is not "unaffected." `handoff next` **selects** one specific
+  next obligation today (role/session-scoped, existing
+  `(timestamp, file)` ordering per candidate); inserting `urgency` as a
+  new primary sort key ahead of that existing ordering means the
+  *selected* obligation itself can change, not merely its display
+  position. This plan intentionally makes that behavioral change: an
+  urgent-but-later-filed obligation is now selected ahead of an
+  older-but-normal one for the same role/session. Existing
+  role/session/supersession filtering and the existing tie-break within
+  each urgency group are frozen exactly as today — `urgency` is
+  inserted as the new outermost sort key, nothing else in the selection
+  pipeline changes. This plan does **not** assume CP-B-2's
+  `publication_hold` fail-closed override behavior automatically
+  extends to `coord pending`/`handoff next` — if a future slice wants
+  a hold's global override to also affect urgency ordering, that is a
+  separate, explicit design decision, not inherited silently here.
 - No new subcommand. No new required flag — both changes are
-  read-side/display-only against already-optional fields.
+  read-side against already-optional fields; `handoff next`'s output
+  selection changes as described above, `coord pending`'s does not
+  (it already lists every pending item, only the order changes).
 
 ## Not in this slice
 
@@ -196,19 +281,29 @@ optional object field:
 
 ## Rule projection (net-new normative owner)
 
-`agf/rules/workflow/coordination-challenge-response-rule.md` does not
-yet exist. Per `documentation-rule-projection-rule.md`'s net-new-owner
-lifecycle, this Gate 1 plan sets `stage: planned` for that owner in its
-projection manifest (to be written at
-`docs/reviews/rule-projection/20260913T093405Z-row5-s3-priority-ordering-and-challenge-response.yaml`
-before Gate 2, per that rule's required direct checks: `agov plan
-projection-check --allow-planned` at Gate 1, the strict check without
-that flag before Gate 2). The new rule states: challenge-response is
-advisory (never blocks a merge on its own), the bounded-window/
-escalation-not-drop guarantee, and the governor-only `escalated`
-authority restriction. `AGENTS.md`, `agf/templates/AGENTS.md`, and
-`.claude/CLAUDE.md` gain a pointer to it in the coordination-channel
-section, alongside the existing nine-message-kinds table.
+**Corrected per `tkkp`'s S3-4 finding**: the manifest itself must exist
+at Gate 1 (with `stage: planned` for the one genuinely net-new owner),
+not be entirely deferred to Gate 2 — only the *owner file's own
+existence* may be planned-and-absent at this stage; the other five
+projection rows need real, named paths now, not reference pointers.
+The six-surface manifest, at
+`docs/reviews/rule-projection/20260913T093405Z-row5-s3-priority-ordering-and-challenge-response.yaml`:
+
+| Surface | Disposition |
+|---|---|
+| Normative owner | `planned`: `agf/rules/workflow/coordination-challenge-response-rule.md` (does not exist yet; created at implementation time, states challenge-response is advisory-only, the bounded-window/escalation-not-drop guarantee, the governor-only `escalated` restriction, and the answered-by-direct-parties-only restriction) |
+| Adopter-facing explanation | `updated`: `agf/docs/site/docs/concepts/coordination-protocol.md` gains a "Challenge-response" subsection (same page CP-B-2 added its own "Publication-hold declarations" subsection to) |
+| Runbook/situation map | `updated`: `agf/docs/site/docs/operate/poll-and-coordinate.md` gains a concise step: how to raise, answer, or recognize an escalated challenge during a poll cycle |
+| AI landing/loaders | `updated`: `AGENTS.md`, `agf/templates/AGENTS.md`, and `.claude/CLAUDE.md`'s "Coordination channel" section gain one pointer sentence next to the existing nine-message-kinds table — not a restatement of the full contract |
+| Validation/drift evidence | `implemented`: `agov coord validate` enforces the schema-level restrictions (challenge_id uniqueness, `escalated` requires `governor-reviewer`); `not mechanically decidable`: whether a given "answered" record is actually a direct party (schema can check `from` against the raising/disputed record's own `from`, which is mechanical) — this one is actually `implemented` too, since both authors' identities are already recorded fields `agov` can compare directly, not a human judgment call |
+| Distribution | `updated`: confirm the new rule ships in the same `agf/rules/` tree distributed via the release archive as every other workflow rule — no separate packaging step needed |
+
+Real `infosec-sentinel` and `contribution-auditor` consultations
+(not the self-assessment recorded in this plan's own front matter) are
+still required before Gate 2, per `tkkp`'s point that self-assessment
+is disclosed honestly here but does not itself satisfy the
+`advisory_consultation` requirement's intent for a schema-changing,
+new-normative-rule change.
 
 ## Test strategy
 
@@ -237,6 +332,23 @@ section, alongside the existing nine-message-kinds table.
   `agov-mcp` tool (if one exposes pending-obligation listing) apply the
   same ordering and challenge-display logic — no divergent behavior
   between the two surfaces.
+- **Added per `tkkp`'s S3-1/S3-2 findings**:
+  - Negative: a third-party (neither raising nor disputed record's
+    author) record claiming `resolution: answered` does not close the
+    challenge; `agov coord pending` still displays it as open.
+  - Negative: a record naming the raising record's id in `references-to`
+    but with a mismatched `challenge_id` is rejected as not a valid
+    response.
+  - Negative: two different raising records that mint the same
+    `challenge_id` — the second is rejected by `agov coord validate`.
+  - Negative: an answering record with a `timestamp` earlier than the
+    raising record's own `timestamp` is ignored as backdated.
+  - Positive: a race between two valid closing candidates — the
+    chronologically first one wins; the later one is informational only
+    and does not reopen or override.
+  - Positive: `handoff next`'s selected obligation changes when an
+    urgent item exists for the same role/session, versus today's
+    baseline where only the oldest normal item would be selected.
 
 ## Migration / impact
 
@@ -248,8 +360,31 @@ fields mean current behavior exactly.
 
 ## Rollback
 
-Both changes are additive and display-only or optional-schema. Reverting
-this slice's MR restores prior sort order and drops challenge-response
-display; no historical coordination record requires editing either way
-(per the append-only/immutable-record discipline this project already
-enforces).
+**Expanded per `tkkp`'s S3-3 finding**, which correctly noted the
+original one-line rollback statement didn't distinguish pre-use from
+post-use rollback, and that a strict old schema (one that rejects
+unknown properties) would fail to parse an already-immutable record
+that carries `challenge` if the schema were later reverted.
+
+- **Pre-use rollback** (before any real record has used `challenge` —
+  e.g. reverting this MR shortly after merge, before adoption): a plain
+  code/schema revert with no migration, identical to reverting any
+  other purely additive change.
+- **Post-use rollback** (after one or more immutable coordination
+  records already carry `challenge`): the schema field itself is
+  **never removed** once used — per this project's own standing rule
+  ("Never remove fields from immutable records to downgrade," already
+  established by CP-B-2's plan and unchanged here). Instead, rollback
+  is *behavioral*: `agov coord pending`/`handoff next` stop reading or
+  displaying the `challenge` object (a code-level, not schema-level,
+  disable), so the feature is inert going forward while every existing
+  record — including ones with `challenge` — remains schema-valid and
+  readable by any reader that already accepted the field. This is the
+  same forward-disablement shape CP-B-2 itself uses (an `enabled: bool`
+  evaluator gate, per that plan). Sort order also reverts to today's
+  behavior at the same point rollback takes effect.
+- **Compatible-reader rollout**: exactly as CP-B-2's own plan already
+  documents for its fields — an older, strict reader that rejects
+  unknown schema properties is not a supported reader once a channel
+  uses `challenge`; this is a known, accepted, documented boundary, not
+  a new one this plan introduces.

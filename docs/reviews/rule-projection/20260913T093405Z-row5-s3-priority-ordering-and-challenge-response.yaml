@@ -1,0 +1,87 @@
+# Six-surface projection evidence for Row 5 S3 (urgency-ordered queues +
+# bounded challenge-response), per
+# agf/rules/workflow/documentation-rule-projection-rule.md. One evidence
+# file per governed change; this is the structured record validation
+# tooling and reviewers read, not a hand-maintained prose matrix.
+
+plan_id: 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+
+surfaces:
+  normative_owner:
+    disposition: planned
+    path: agf/rules/workflow/coordination-challenge-response-rule.md
+    stage: planned
+    reason: >-
+      Net-new rule; does not exist yet at Gate 1. Will define:
+      challenge-response is advisory-only (never blocks a merge or gate on
+      its own), the bounded-window/escalation-not-drop guarantee, the
+      governor-only `escalated` restriction, and the
+      answered-by-direct-parties-only restriction. Created at
+      implementation time; the strict (non-`--allow-planned`) projection
+      check is required Gate 2 evidence once it exists.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      Gains a "Challenge-response" subsection, following the same pattern
+      CP-B-2 used for its own "Publication-hold declarations" subsection on
+      this same page: what the field means, who may set which resolution
+      value, and the expiry/escalation guarantee.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      Gains a concise step describing how to raise a challenge on a
+      disputed finding, how a direct party answers it, and how to recognize
+      an escalated (expired, unanswered) challenge during a normal poll
+      cycle.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - .claude/CLAUDE.md
+    reason: >-
+      One pointer sentence added next to the existing nine-message-kinds
+      table in the "Coordination channel" section of each — not a
+      restatement of the full contract, matching this project's own
+      message-integrity convention (canonical claim stated once, elsewhere
+      referenced).
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      agov coord validate enforces the mechanically decidable parts:
+      challenge_id uniqueness across raising records, `escalated` requiring
+      `from: governor-reviewer` (schema-level allOf, same pattern as
+      CP-B-2's publication_hold end-record binding), and "answered" author
+      restricted to the raising or disputed record's own `from` value —
+      this last check is mechanical, not a human judgment call, because
+      both authors' identities are already recorded fields agov can compare
+      directly against the candidate answering record's own `from` field.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      All three already ship in the agf release archive under existing
+      release-manifest.yaml globs (agf/docs/site/**,
+      agf/project-specific-examples/** template coverage) -- no manifest
+      change needed, following the exact precedent already confirmed for
+      issue #72's own projection evidence. The net-new
+      agf/rules/workflow/coordination-challenge-response-rule.md does not
+      exist yet (see normative_owner: planned) so it cannot be listed here
+      until implementation creates it; it will ship under the existing
+      agf/rules/** glob with no manifest change once it exists, same as
+      every other workflow rule. AGENTS.md and .claude/CLAUDE.md are
+      foundry-local (not part of the shipped agf/ package under any glob),
+      same as that precedent's own finding for AGENTS.md.
