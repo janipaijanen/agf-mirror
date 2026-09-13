@@ -56,18 +56,27 @@ surfaces:
       referenced).
 
   validation_drift_evidence:
-    disposition: implemented
+    disposition: not_mechanically_decidable
     reason: >-
-      **Corrected per the independent semantic review's finding 5**, which
-      found the prior wording conflated two different check kinds under one
-      `implemented` label. Split accurately:
-      (a) STABLE STRUCTURAL VALIDATION, enforced by `agov coord validate`
-      at write/commit time, schema-level and immutable once a record is
-      accepted: challenge_id uniqueness across raising records, `escalated`
-      requiring `from: governor-reviewer` (schema-level allOf, same pattern
-      as CP-B-2's publication_hold end-record binding), and window_hours
-      capped at 720. These are `implemented` in the ordinary sense --
-      JSON Schema field constraints.
+      **Corrected twice.** First per the independent semantic review's
+      finding 5 (splitting conflated check kinds). Then per that same
+      reviewer's `q3h4` recheck: at this plan-only head (no implementation
+      exists yet), calling anything `implemented` overstates current
+      capability regardless of the split below -- corrected to describe
+      these as PLANNED checks for implementation time, not present-tense
+      `implemented` fact. Split, described accurately as planned:
+      (a) PLANNED STABLE STRUCTURAL VALIDATION, to be enforced by
+      `agov coord validate` at write/commit time, schema-level and
+      immutable once a record is accepted: `escalated` requiring
+      `from: governor-reviewer` (schema-level allOf, same pattern as
+      CP-B-2's publication_hold end-record binding) and window_hours
+      capped at 720 -- ordinary per-record JSON Schema field constraints.
+      **Cross-record `challenge_id` uniqueness is named separately, per
+      `q3h4`**: it is contextual validation across the whole corpus (a
+      later new raising record can introduce a collision a fresh
+      full-corpus check must catch), not a per-record JSON Schema field
+      constraint, and not a one-time-immutable fact once accepted -- new
+      colliding records remain possible until each fresh validation run.
       (b) READ-TIME/OBSERVATION-TIME EVALUATOR LOGIC, re-computed by
       `agov coord pending`/`handoff next` on every invocation, never fixed
       at validate/commit time: timestamp-window eligibility (a future-dated
