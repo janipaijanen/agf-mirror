@@ -1,6 +1,8 @@
 ---
 id: 20260913T085123Z-work-item-steward-gate1
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-13T08:55:12Z
 topic: work-item-steward-role-and-existing-trigger-integration
 candidate_release: v2.11
 advisory_consultation:
@@ -41,7 +43,11 @@ affected_paths:
 
 # Plan: work-item-steward — MR/issue readiness and Markdown quality
 
-**Gate 1: PENDING.** Drafted from Codex's proposal
+**Gate 1: APPROVED** — `20260913T085512Z-governor-reviewer-pkkd`
+("gate 1 approved. we need to test the implementation manually on
+existing MRs and issues."). Next step per that same decision: manually
+run this plan's checks against real, existing MRs and issues before any
+tooling/automation is built. Drafted from Codex's proposal
 (`20260913T082918Z-coder-tester-jkhg`) plus the governor's accepted
 trigger-integration constraint
 (`20260913T083739Z-governor-reviewer-s4km`, transcribed by Codex: "good
