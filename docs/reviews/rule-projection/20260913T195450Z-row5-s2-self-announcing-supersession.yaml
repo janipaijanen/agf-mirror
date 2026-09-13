@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+plan_id: 20260913T195450Z-row5-s2-self-announcing-supersession
+changed_pages_or_runbooks:
+  - docs/reference/session-resume.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      The rule's existing "Lifecycle and supersession semantics" section
+      already states the convention this slice mechanizes ("a new,
+      append-only record that references and supersedes the earlier
+      one"). This slice adds a field pair and reader behavior, not a new
+      normative claim.
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      No adopter-facing Pages page describes coordination-record field
+      semantics at this level of detail; the existing rule page is the
+      canonical explanation and is unchanged by this slice.
+  runbook_situation_map:
+    disposition: updated
+    path: docs/reference/session-resume.md
+    reason: >-
+      A one-line pointer will be added to the existing lifecycle
+      documentation section, matching the pattern already used for
+      qbka's "Plan Status Lifecycle" and Row 5 S4's "CP-A Ack-Pending
+      Display" sections.
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - .claude/CLAUDE.md
+    reason: >-
+      Existing coordination-channel and references-to documentation
+      already covers the reading discipline; no new operating
+      instruction is introduced.
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/crates/agov-coord/src/handoff_tracker.rs
+      - tooling/rust/crates/agov/src/main.rs
+    reason: >-
+      Positive/negative/fail-safe test coverage lands in these files'
+      existing #[cfg(test)] modules and a new integration test file (not
+      yet created at Gate 1) per the plan's test strategy; advisory
+      display only, no new blocking authority.
+  distribution:
+    disposition: existing shipped paths
+    paths:
+      - agf/schemas/coordination-message.schema.json
+      - agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      The schema field pair ships in AGF; executable reader behavior
+      ships in the tooling artifact. Tests and this session-resume
+      pointer are foundry-local.
