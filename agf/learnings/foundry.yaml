@@ -4924,6 +4924,46 @@ learnings:
       evidence_refs:
         - '28-MR sample of planner-architect-authored open MRs, 2026-09-11 audit: pipelines 2839623459 (!2688), 2839612071 (!2687), 2839581631 (!2686), 2839564814 (!2685), 2839559375 (!2684), 2838290151 (!2680), 2837876040 (!2677), plus push-source successes on !2660/!2651/!2596/!2593/!2460/!2455/!2394/!2390/!2375/!2368, each paired with a merge_request_event pipeline for the identical SHA covering the same required jobs; pipeline 2839644946 (!2689) was live pending and cancelled at audit time.'
 
+  - id: 20260913T075602Z-55e5
+    date: '2026-09-13'
+    category: gap
+    scope: project
+    title: Resolve recurring reviewer appointment gaps with bounded delegation
+    description: >
+      The implementing and planning sessions agreed that a fresh independent
+      session should review the candidate. The role contract required a named
+      appointment from the governor or an approved plan, but the plan named
+      none. The sessions escalated the individual appointment and repeatedly
+      polled the unchanged blocker instead of promptly proposing a reusable
+      delegation. The governor subsequently approved planner appointment of
+      independent reviewers for approved work, subject to the existing role
+      independence requirements and a published Git appointment record.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: Reviewer appointment and autonomous continuation
+    business_impact:
+      type: cost_overhead
+      description: >
+        Review progress stalled despite agreement on a suitable reviewer;
+        repeated unchanged polling consumed attention and model usage.
+        No quantitative cost or time saving from the remedy is established.
+    recommendation: >
+      Distinguish lack of consensus from lack of appointment authority. When
+      a recurring routine decision needs governor authority, propose a bounded
+      standing delegation promptly. After approval, publish the decision and
+      let the planner appoint qualifying reviewers, naming the candidate,
+      exact head and reviewer provenance in Git. Escalate when independence
+      cannot be satisfied. Preserve governor gate authority; this lesson does
+      not itself activate roles or grant review, merge or release authority.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '20260913T075419Z-governor-reviewer-8tgh'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
