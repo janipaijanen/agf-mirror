@@ -98,6 +98,20 @@ fn superseded_status_missing_superseded_at_is_rejected() {
     assert!(out.contains("superseded_at"), "{out}");
 }
 
+/// Gate-self-test negative (QBKA-A1): `superseded_at` must be a real
+/// RFC3339 timestamp, not merely a non-empty string -- a controlled
+/// candidate with an obviously non-date-time value must be rejected.
+#[test]
+fn superseded_status_malformed_superseded_at_is_rejected() {
+    let repo = Repo::new();
+    repo.plan(
+        "malformed-at",
+        "superseded_by: replacement-plan-id\nsuperseded_decision: 20260913T130413Z-governor-reviewer-td7j.md\nsuperseded_at: definitely-not-rfc3339\n",
+    );
+    let (code, out) = repo.validate("docs/plans/malformed-at.md");
+    assert_ne!(code, 0, "{out}");
+}
+
 /// Gate-self-test negative: all three provenance fields missing.
 #[test]
 fn superseded_status_missing_all_provenance_is_rejected() {

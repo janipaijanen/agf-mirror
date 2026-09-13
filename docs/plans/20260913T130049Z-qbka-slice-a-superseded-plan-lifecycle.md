@@ -90,19 +90,41 @@ Per `67kq`'s four numbered requirements, add to
 "superseded_by": {
   "type": "string",
   "minLength": 1,
-  "description": "Stable identifier (plan id, or the id of the replacement work item/work order) of what replaced this plan. Not a free-text explanation -- a resolvable identifier."
+  "description": "Stable identifier (plan id, or the id of the replacement work item/work order) of what replaced this plan. Declared provenance, matching gate1_approved_by's own convention -- see correction below."
 },
 "superseded_decision": {
   "type": "string",
   "minLength": 1,
-  "description": "Filename or id of the governor-reviewer coordination decision-record authorizing this disposition. Only a governor-reviewer record satisfies this, per this project's standing gate-authority rule -- matches the existing gate1_approved_by/gate1_approved_at convention's own authority model."
+  "description": "Filename or id of the governor-reviewer coordination decision-record authorizing this disposition. Declared provenance, matching gate1_approved_by's own convention -- see correction below."
 },
 "superseded_at": {
   "type": "string",
   "minLength": 1,
+  "format": "date-time",
   "description": "UTC disposition timestamp (RFC3339), matching gate1_approved_at's own convention."
 }
 ```
+
+**Correction (2026-09-13, post-Gate-1, pre-Gate-2 — Codex independent review
+`QBKA-A1`/`QBKA-A2`):** the original wording above ("Not a free-text
+explanation -- a resolvable identifier"; "Only a governor-reviewer record
+satisfies this") overstated the mechanical guarantee. The shipped schema
+enforces a non-empty string (and, for `superseded_at`, RFC3339 `format:
+date-time` — added in this correction; the original draft above only
+required non-empty text and a genuinely malformed value like
+`definitely-not-rfc3339` would have validated). It does **not** resolve
+`superseded_by` against real plan/work-item ids, and does **not**
+authority-check that `superseded_decision` actually names a real
+governor-reviewer record. This was always the intended scope — "matches
+the existing gate1_approved_by/gate1_approved_at convention's own
+authority model" is accurate read as "same *unverified declarative
+string* convention," since `gate1_approved_by`/`gate1_approved_at` are
+themselves plain unverified strings in this schema, not resolved or
+authority-checked either. The field descriptions now say this explicitly
+("Declared provenance... does not itself resolve or verify...") instead
+of implying mechanical resolution. Building real resolution/authority-
+checking tooling for either field remains out of scope for Slice A; a
+future plan may propose it if a real need surfaces.
 
 Plus a top-level conditional requirement (same `if`/`then` pattern this
 schema already uses for `advisory_consultation[].status: waived`):

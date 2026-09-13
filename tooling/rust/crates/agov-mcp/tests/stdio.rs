@@ -859,10 +859,31 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
     for (name, cli_args, mcp_arguments) in isolated_cases {
         let cli_stdout = run_cli(cli_args, fixture.path());
         let mcp_stdout = run_mcp(name, mcp_arguments.clone(), fixture.path());
-        assert_eq!(
-            cli_stdout, mcp_stdout,
-            "{name}: CLI and MCP output diverged"
-        );
+        if *name == "agov_coord_graph_index" {
+            // `generated_at` is a live timestamp stamped independently by
+            // each invocation (main.rs:4174) -- sequential CLI/MCP calls can
+            // legitimately straddle a second boundary and differ there while
+            // the substantive graph payload is identical. Compare structure,
+            // not the intentionally time-varying field.
+            let mut cli_json: Value = serde_json::from_str(&cli_stdout)
+                .unwrap_or_else(|err| panic!("{name}: CLI stdout not JSON: {err}\n{cli_stdout}"));
+            let mut mcp_json: Value = serde_json::from_str(&mcp_stdout)
+                .unwrap_or_else(|err| panic!("{name}: MCP stdout not JSON: {err}\n{mcp_stdout}"));
+            for value in [&mut cli_json, &mut mcp_json] {
+                if let Some(obj) = value.as_object_mut() {
+                    obj.remove("generated_at");
+                }
+            }
+            assert_eq!(
+                cli_json, mcp_json,
+                "{name}: CLI and MCP output diverged (excluding generated_at)"
+            );
+        } else {
+            assert_eq!(
+                cli_stdout, mcp_stdout,
+                "{name}: CLI and MCP output diverged"
+            );
+        }
     }
 
     // Visibility needs Git state as well as fixed files. Use an isolated
