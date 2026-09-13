@@ -467,7 +467,7 @@ deadline. Replying does not erase the dispute, and urgency does not grant
 permission. These are advisory states under the
 [challenge-response rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-challenge-response-rule.md).
 
-For JSON consumers, channels with challenge records or read/validation diagnostics return an object with
+For JSON consumers, channels with challenge records (including schema-invalid challenge records) return an object with
 `pending` (the unchanged ordinary rows), `challenges` (separate state rows),
 and `problems` (read/validation diagnostics). Channels without challenge
 records retain the legacy pending array. Closed challenges are absent from

@@ -6072,24 +6072,30 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
     // Stable sort preserves the existing ascending timestamp/file order inside each tier.
     pending.sort_by_key(|p| !urgent_files.contains(p.file.as_str()));
 
-    let has_challenge_input = messages.iter().any(|m| m.raw.get("challenge").is_some());
-    let (challenge_records, challenge_problems) =
-        if !has_challenge_input && invalid_files.is_empty() {
-            (Vec::new(), Vec::new())
-        } else {
-            match agov_coord::challenge::read_directory(&dir) {
-                Ok(data) => data,
-                Err(error) => {
-                    output.stderr(format!("Challenge evidence unavailable: {error}"));
-                    return 1;
-                }
+    let has_challenge_input = messages.iter().any(|m| m.raw.get("challenge").is_some())
+        || invalid_files.iter().any(|file| {
+            std::fs::read_to_string(dir.join(file))
+                .ok()
+                .and_then(|content| agov_core::yaml::parse_frontmatter_json(&content).ok())
+                .is_some_and(|raw| raw.get("challenge").is_some())
+        });
+    let (challenge_records, challenge_problems) = if !has_challenge_input {
+        (Vec::new(), Vec::new())
+    } else {
+        match agov_coord::challenge::read_directory(&dir) {
+            Ok(data) => data,
+            Err(error) => {
+                output.stderr(format!("Challenge evidence unavailable: {error}"));
+                return 1;
             }
-        };
+        }
+    };
     let challenges =
         agov_coord::challenge::evaluate(&challenge_records, time::OffsetDateTime::now_utc(), true);
     let has_challenge = challenge_records
         .iter()
-        .any(|r| r.raw.get("challenge").is_some()) || !challenge_problems.is_empty();
+        .any(|r| r.raw.get("challenge").is_some())
+        || !challenge_problems.is_empty();
     if format == "json" {
         let rows: Vec<PendingAckRow> = pending.iter().map(PendingAckRow::from).collect();
         // Preserve the legacy array for channels without challenge records.

@@ -244,14 +244,31 @@ fn schema_rejects_non_governor_terminal_and_contextual_collisions() {
 }
 
 #[test]
-fn malformed_channel_is_diagnostic_not_a_successful_empty_array() {
+fn unrelated_invalid_legacy_record_keeps_challenge_free_json_array() {
     let root = tempfile::tempdir().unwrap();
-    fs::write(root.path().join("broken.md"), "---\nchallenge: [\n---\n").unwrap();
+    let id = write(root.path(), "aaaa", 1, "review", false);
+    fs::write(root.path().join("broken.md"), "---\nlegacy: [\n---\n").unwrap();
+    let view: Value = serde_json::from_str(&run(
+        root.path(),
+        &["coord", "pending", "--dir", ".", "--format", "json"],
+    ))
+    .unwrap();
+    assert_eq!(view.as_array().unwrap().len(), 1);
+    assert_eq!(view[0]["id"], id);
+}
+
+#[test]
+fn invalid_challenge_record_still_has_visible_diagnostics() {
+    let root = tempfile::tempdir().unwrap();
+    let id = write(root.path(), "aaaa", 1, "review", false);
+    update_record(root.path(), &id, |v| {
+        v["challenge"] = json!({"challenge_id": "broken"})
+    });
     let view: Value = serde_json::from_str(&run(
         root.path(),
         &["coord", "pending", "--dir", ".", "--format", "json"],
     ))
     .unwrap();
     assert!(!view["problems"].as_array().unwrap().is_empty());
-    assert!(view["pending"].as_array().unwrap().is_empty());
+    assert_eq!(view["challenges"][0]["state"], "needs-review");
 }
