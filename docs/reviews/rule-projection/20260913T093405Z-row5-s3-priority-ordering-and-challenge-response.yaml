@@ -58,19 +58,31 @@ surfaces:
   validation_drift_evidence:
     disposition: implemented
     reason: >-
-      agov coord validate enforces the mechanically decidable parts:
-      challenge_id uniqueness across raising records, `escalated` requiring
-      `from: governor-reviewer` (schema-level allOf, same pattern as
-      CP-B-2's publication_hold end-record binding), window_hours capped at
-      720, and timestamp bounds (no backdated or not-yet-arrived-future
-      candidates). `replied`-author session-matching is `implemented` at
-      the schema/comparison level (agov compares the candidate's own
-      top-level `session` field against the raising/disputed record's
-      `session`, both already-recorded fields) but is explicitly
-      `not mechanically decidable` whether a `session` match reflects the
-      actual same real-world actor -- `session` is self-declared, not
-      cryptographically authenticated, matching this project's existing S1
-      session-identity field's own disclosed limitation.
+      **Corrected per the independent semantic review's finding 5**, which
+      found the prior wording conflated two different check kinds under one
+      `implemented` label. Split accurately:
+      (a) STABLE STRUCTURAL VALIDATION, enforced by `agov coord validate`
+      at write/commit time, schema-level and immutable once a record is
+      accepted: challenge_id uniqueness across raising records, `escalated`
+      requiring `from: governor-reviewer` (schema-level allOf, same pattern
+      as CP-B-2's publication_hold end-record binding), and window_hours
+      capped at 720. These are `implemented` in the ordinary sense --
+      JSON Schema field constraints.
+      (b) READ-TIME/OBSERVATION-TIME EVALUATOR LOGIC, re-computed by
+      `agov coord pending`/`handoff next` on every invocation, never fixed
+      at validate/commit time: timestamp-window eligibility (a future-dated
+      candidate or raising record is temporarily ineligible, not schema-
+      invalid -- it becomes eligible once its own timestamp arrives) and
+      `session`-based direct-party matching (a cross-record evaluator
+      comparison, not a per-field JSON Schema constraint). This row is
+      `implemented` for (a) and `not mechanically decidable` for whether a
+      `session` match in (b) reflects the actual same real-world actor --
+      `session` is self-declared, not cryptographically authenticated,
+      matching this project's existing S1 session-identity field's own
+      disclosed limitation. Distinguishing (a) from (b) matters concretely:
+      a channel can validly contain an immutable, schema-accepted future-
+      dated reply that is not yet *effective* -- that is not a validation
+      failure, it is an evaluator-time state.
 
   distribution:
     disposition: updated
