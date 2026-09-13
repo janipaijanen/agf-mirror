@@ -1,6 +1,6 @@
 ---
 id: agf-v2-layout-s1
-status: gate1-approved
+status: complete
 topic: agf-v2-layout
 gate1-approved-by: governor-reviewer
 gate1-approved-seq: 215
@@ -9,9 +9,18 @@ advisory_consultation:
     status: not-applicable
     reason: directory restructure and documentation; no credentials, auth, network, or secret handling
   - role: contribution-auditor
-    status: pending
-    reason: adopter-facing distribution change; contribution-auditor must review before Gate 2
+    status: consulted
+    reason: reviewed in 00224-contribution-auditor.md (2026-06-13), verdict recommend-ready-for-gate2
 ---
+
+**Correction (2026-09-13, qbka Slice B):** status was `gate1-approved`, an
+invalid enum spelling; corrected to `complete` since `agf/` is the current,
+live canonical framework directory this plan created. `advisory_consultation`
+contribution-auditor entry was `status: pending`, also invalid; corrected to
+`consulted` — the review had in fact already happened
+(`00224-contribution-auditor.md`) but the frontmatter was never updated
+afterward. See `docs/plans/20260913T171837Z-qbka-slice-b-legacy-plan-
+migration.md` for full evidence.
 
 # Plan: AGF v2.0 Layout S1 — Create `agf/` Landing Directory
 

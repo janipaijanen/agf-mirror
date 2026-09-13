@@ -1,3 +1,22 @@
+---
+id: validate-contributions-readme-stats
+status: complete
+advisory_consultation:
+  - role: infosec-sentinel
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+  - role: contribution-auditor
+    status: not-applicable
+    reason: Historical plan predating this project's per-plan advisory-consultation tracking convention; reconstructed retroactively per qbka Slice B, no fabricated consultation record created.
+---
+
+**Correction (2026-09-13, qbka Slice B):** this file had no YAML front
+matter at all (schema-invalid). `tooling/rust/crates/agov-validators/src/
+readme_stats.rs` exists and its tests run in the current workspace suite
+— the feature this plan proposed demonstrably shipped, so `status:
+complete`. See `docs/plans/20260913T171837Z-qbka-slice-b-legacy-plan-
+migration.md`.
+
 # Plan: Expand contributions validator + add readme_stats validator
 
 **Timestamp:** 2026-06-24T19:49:22Z
