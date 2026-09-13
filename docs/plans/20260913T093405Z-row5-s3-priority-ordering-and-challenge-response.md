@@ -156,6 +156,11 @@ optional object field:
       "minLength": 1,
       "description": "Minted once, only by the raising record. Every other record participating in this exchange (a reply or an escalation) carries the SAME challenge_id here AND names the raising record's own id/filename in its top-level references-to -- two independent links, both required, so a record cannot claim to respond to a challenge it does not actually reference."
     },
+    "disputed_record_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Required only on the raising record. Names exactly one record -- the specific finding being disputed -- and MUST also appear in the raising record's own top-level references-to. A raising record's references-to may separately cite other contextual records (prior reviews, related discussion); this field is what disambiguates which one is actually disputed, since references-to alone is an unrestricted array with no ordering or cardinality contract."
+    },
     "window_hours": {
       "type": "integer",
       "minimum": 1,
@@ -173,11 +178,17 @@ optional object field:
 
 - **Raising a challenge**: a `kind: review` record with a `challenge`
   object (`resolution` absent, `challenge_id` freshly minted,
-  `window_hours` present) disputes a specific finding, naming the
-  disputed record in its own `references-to`. This record's own
-  `timestamp` is the deadline anchor and its own top-level `session`
-  field (the existing session-identity field from Row 5 S1) is the
-  bound identity of the raising party.
+  `window_hours` present, `disputed_record_id` naming exactly the one
+  specific finding under dispute) disputes that finding. Per finding 2
+  above, `disputed_record_id` — not `references-to` generally — is the
+  single source of truth for which record is disputed; the raising
+  record's `references-to` MUST include that same id (so the existing
+  "obligation resolved by a later reference" tooling still sees the
+  link) but MAY also cite other contextual records without ambiguity,
+  since only the `disputed_record_id`-named one counts as "the"
+  dispute. This record's own `timestamp` is the deadline anchor and its
+  own top-level `session` field (the existing session-identity field
+  from Row 5 S1) is the bound identity of the raising party.
 
 - **Identity and linking**: every subsequent record in the exchange
   (a reply or an escalation) MUST carry the identical
@@ -192,9 +203,11 @@ optional object field:
 - **Session-bound parties (fixes `mqjr`'s role-vs-session finding)**:
   "direct party" is determined by matching a candidate reply's
   top-level `session` field against the raising record's `session`
-  (the challenger replying/withdrawing) or the disputed record's own
-  `session` (the original author defending) — **not** by `from` role
-  alone. Two sessions sharing a role (e.g. two `coder-tester` sessions)
+  (the challenger replying/withdrawing) or the `session` of the one
+  record named by the raising record's own `disputed_record_id` (the
+  original author defending) — **not** by `from` role alone, and not
+  by any other record `references-to` might also cite. Two sessions
+  sharing a role (e.g. two `coder-tester` sessions)
   no longer compare equal. This still relies on a self-declared
   `session` token, exactly as S1 already does — it is not
   cryptographic authentication, and this plan makes no stronger claim
@@ -237,22 +250,60 @@ optional object field:
     invocation, so a record dated tomorrow cannot close today's
     challenge; a **backdated** one (`candidate.timestamp <
     raising_record.timestamp`) is permanently invalid.
-  - **Equal timestamps**: if two valid candidate records share the
-    exact same `timestamp`, the tie breaks by filename/id, ascending
-    lexicographic order — the same `(timestamp, file)` convention
-    `agov`'s other sort keys already use, not a new rule invented for
-    this feature.
+  - **Equal timestamps, scoped to same-class candidates only**:
+    **corrected per the independent semantic review's finding 3**,
+    which found the prior wording ambiguous about whether a tie-break
+    could apply *across* a reply and an escalation (it must not — only
+    `escalated` ever closes anything, regardless of any reply's
+    timing, per the simplified two-value model above; a reply can
+    never "win" against an escalation or vice versa, because a reply
+    never closes at all). The lexicographic tie-break applies **only**
+    when ordering multiple candidate records of the **same**
+    `resolution` value for **display purposes** (e.g. multiple
+    `replied` records from the same or different direct parties) — it
+    is never used to decide precedence between `replied` and
+    `escalated`. Precedence is unconditional: any valid `escalated`
+    record closes the challenge outright, at any time, whether or not
+    a `replied` record exists or when it was posted; a `replied` record
+    never reopens or reduces an already-`escalated` challenge.
   - **Missing/unavailable records**: if the raising record's own
-    referenced disputed record, or a candidate reply's referenced
-    raising record, cannot be read (deleted ref, unreadable object,
-    fetch failure), `agov` reports it as an `unavailable` problem and
-    treats the challenge as unresolved/needs-review — never as
-    silently absent or silently closed. This mirrors
+    `disputed_record_id`, or a candidate reply's referenced raising
+    record, cannot be read (deleted ref, unreadable object, fetch
+    failure), or `disputed_record_id` does not resolve to exactly one
+    record, or is absent, duplicated, or ambiguous against
+    `references-to`'s other entries, `agov` reports it as an
+    `unavailable`/`needs-review` problem and treats the challenge as
+    unresolved — never as silently absent, silently closed, or
+    resolved by picking a convenient candidate. This mirrors
     `coordination-publication-rule.md`'s existing "a failed read is
-    unavailable evidence, not a successful empty result" discipline.
+    unavailable evidence, not a successful empty result" discipline,
+    extended per the independent semantic review's finding 2 to source
+    ambiguity, not only source absence.
   - A record whose `references-to` names the raising record's id but
     whose own `challenge.challenge_id` does not match is rejected as
     mismatched, not treated as a response.
+  - **Deadline arithmetic, equality, and future-dated raising records
+    (fixes the independent semantic review's finding 4)**: deadline
+    computation (`raising_record.timestamp + window_hours`) uses
+    checked/saturating arithmetic — a value that would overflow the
+    supported timestamp range is treated as an invalid raising record
+    (`needs-review`), never as silently wrapping to an incorrect,
+    earlier-than-intended deadline. At exactly the deadline instant
+    (`now == deadline`), the challenge is still `open`, not yet
+    expired — expiry requires `now > deadline`, strictly after. A
+    **raising record itself** dated in the future relative to the
+    reader's observation time (`raising_record.timestamp > now`) is
+    not yet effective: `agov` does not display it as an open challenge
+    until its own declared timestamp arrives, exactly mirroring the
+    treatment already given to future-dated replies above — this
+    closes the gap the independent review found, where a far-future
+    raising timestamp could otherwise appear to grant far longer than
+    its declared 30-day-max window. A `replied` record arriving after
+    the deadline has already passed still displays as `replied —
+    decision pending` (not rejected) — the window's expiry governs
+    *display escalation eligibility*, not whether a late reply is
+    valid evidence; the operator's own decision whether to still weigh
+    a late reply is out of `agov`'s scope.
 
 - **Escalation on expiry**: if the deadline (raising record's
   `timestamp` + its `window_hours`) passes with no valid `replied`
@@ -280,33 +331,67 @@ optional object field:
 
 - `agov coord pending`: sorts by `urgency` (as above); additionally
   surfaces any record carrying an unresolved `challenge` (`resolution`
-  absent/`open`, or window-expired) in a distinct labeled section, not
-  merged into or counted within the ordinary pending list — a challenge
-  row never duplicates as an ordinary pending row even though the
-  raising record is itself a `kind: review` message. A raising record
-  defaults `requires-ack` to `false` (it is advisory, not a fresh
-  obligation on top of the dispute itself) unless its author explicitly
-  sets `requires-ack: true` for a different, unrelated reason. Multiple
-  simultaneous open challenges are tracked independently, keyed by each
-  one's own `challenge_id`; there is no limit on how many may be open
-  at once.
-- `agov handoff next <role>`: **corrected per `tkkp`'s S3-5 finding** —
-  this is not "unaffected." `handoff next` **selects** one specific
-  next obligation today (role/session-scoped, existing
-  `(timestamp, file)` ordering per candidate); inserting `urgency` as a
-  new primary sort key ahead of that existing ordering means the
-  *selected* obligation itself can change, not merely its display
-  position. This plan intentionally makes that behavioral change: an
-  urgent-but-later-filed obligation is now selected ahead of an
-  older-but-normal one for the same role/session. Existing
-  role/session/supersession filtering and the existing tie-break within
-  each urgency group are frozen exactly as today — `urgency` is
-  inserted as the new outermost sort key, nothing else in the selection
-  pipeline changes. This plan does **not** assume CP-B-2's
-  `publication_hold` fail-closed override behavior automatically
-  extends to `coord pending`/`handoff next` — if a future slice wants
-  a hold's global override to also affect urgency ordering, that is a
-  separate, explicit design decision, not inherited silently here.
+  absent/`open`, or window-expired) in a distinct labeled section. A
+  raising record defaults `requires-ack` to `false` (it is advisory,
+  not a fresh obligation on top of the dispute itself) unless its
+  author explicitly sets `requires-ack: true` for a different,
+  unrelated reason. **Corrected per the independent semantic review's
+  finding 1**: these two tracked properties — "carries an open
+  challenge" and "has its own ordinary requires-ack obligation" — are
+  **independent**, not mutually exclusive display modes. The original
+  wording ("not merged into or counted within the ordinary pending
+  list") incorrectly suppressed a raising record's separate,
+  explicitly-set `requires-ack: true` obligation merely because it also
+  had an open challenge — a real record satisfying both properties must
+  appear in *both* the ordinary pending count (if its own ack-tracker
+  eligibility, per `handoff_tracker.rs`'s existing
+  `find_pending_all_kinds`/`is_directly_referenced_later` logic,
+  remains unsatisfied) *and* the challenge section (for its dispute
+  state). A single visual row MAY display both states together; the
+  challenge itself is never counted as a second, separate ordinary
+  obligation — only the raising record's own independent `requires-ack`
+  status is. Multiple simultaneous open challenges are tracked
+  independently, keyed by each one's own `challenge_id`; there is no
+  limit on how many may be open at once.
+- **Three distinct existing paths, characterized separately** — per
+  Codex's own source-grounded inventory of `main` at `5917d1ab`
+  (`jh8g`), corrected from this plan's earlier, less precise
+  description:
+  - `agov handoff next <role>` (single-role path,
+    `tooling/rust/crates/agov/src/main.rs` ~line 5916): selects
+    `max_by_key((timestamp string, filename))` among unresolved
+    handoffs already filtered to `to == role`. Session addressing
+    (`--session`) is applied as a post-selection "addressed elsewhere"
+    warning, not an eligibility filter. **Corrected per `tkkp`'s S3-5
+    finding**: inserting `urgency` as a new, outermost primary sort key
+    ahead of this existing `(timestamp, file)` key means the *selected*
+    obligation can change (an urgent-but-later item now selected ahead
+    of an older-but-normal one) — this plan intentionally makes that
+    change. Everything else in this path (role filtering, the
+    session-addressed-elsewhere warning, the existing tie-break within
+    each urgency group) is frozen exactly as today.
+  - `agov coord pending` (~line 5985): preserves the existing ascending
+    `(timestamp string, filename)` order over its full unresolved set
+    (requires-ack records excluding handoff/ack kinds, per the
+    existing tracker's cutoff and direct-later-reference resolution).
+    `urgency` is inserted the same way, as a new outermost sort key;
+    this path already lists every item rather than selecting one, so
+    only the *order*, not the *contents*, changes.
+  - **Branch-inclusive `handoff next --include-branch-local`**
+    (`handoff_branch.rs`, a genuinely separate code path from the
+    single-role path above): collects *all* unresolved per-source-role
+    candidates across every local/remote-tracking ref, deduplicates by
+    `(file, blob)` into a `BTreeMap`, and prints them in map order —
+    it does not select one "best" candidate the way the single-role
+    path does. `urgency` ordering applies to this path's own printed
+    order the same way it does to `coord pending`'s (a full listing,
+    not a single selection); it does not change the dedup or
+    cross-branch collection logic.
+  - This plan does **not** assume CP-B-2's `publication_hold`
+    fail-closed override behavior automatically extends to any of the
+    three paths above — if a future slice wants a hold's global
+    override to also affect urgency ordering, that is a separate,
+    explicit design decision, not inherited silently here.
 - No new subcommand. No new required flag — both changes are
   read-side against already-optional fields; `handoff next`'s output
   selection changes as described above, `coord pending`'s does not
