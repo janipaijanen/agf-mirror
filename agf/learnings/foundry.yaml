@@ -4964,6 +4964,46 @@ learnings:
       evidence_refs:
         - '20260913T075419Z-governor-reviewer-8tgh'
 
+  - id: 20260913T080313Z-qvbw
+    date: '2026-09-13'
+    category: validation
+    scope: project
+    title: A blocked candidate is not evidence that the work queue is blocked
+    description: >
+      The implementing assistant knew the autonomous continuation rule but
+      focused on one candidate awaiting reviewer appointment. It repeatedly
+      scanned for events and ended the cycle without assessing alternative
+      authorized work. This confused an item dependency with a global stop
+      condition. Correctly explaining the rule afterwards does not demonstrate
+      improved execution; selection and completion evidence are needed.
+    agents_involved:
+      - coder-tester
+      - planner-architect
+    framework_section: Universal polling and autonomous continuation
+    business_impact:
+      type: cost_overhead
+      description: >
+        Repeated unchanged scans consumed model usage while independent
+        diagnostics, queue assessment and review preparation went unselected.
+        No measured savings from the corrective practice are claimed.
+    recommendation: >
+      Scope each blocker to its dependent item. After recording it, assess
+      other approved and unclaimed work, including read-only diagnostics and
+      incorporation checks. Before ending an active cycle, record the next
+      selected action or concrete authority, dependency or ownership reasons
+      preventing plausible alternatives. Reuse that assessment while its
+      evidence remains unchanged; do not repeatedly rebuild the same inventory.
+      A poll with no new events is not proof that no work is actionable.
+      Respect existing claims and gates. Reviewer appointment authority now
+      extends to all active assistants under decision d1st, superseding the
+      planner-only limit in the preceding learning's historical remedy.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - '20260913T075949Z-governor-reviewer-d1st'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
