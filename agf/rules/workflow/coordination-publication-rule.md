@@ -320,3 +320,63 @@ independent review requirements or governor authority. Without the flag,
 output remains unchanged. An absent `for_session` remains role-wide; a matching
 recipient retains its original state. Notes/reviews remain role-wide and their
 author session never becomes a recipient address.
+
+## Advisory publication holds and urgency
+
+`urgency: normal|urgent` is optional; omission means normal without changing
+stored bytes. A governor-reviewer urgent `decision-record` may declare
+`publication_hold: {action: start, target_branch, target_sha, expires_at}`.
+The canonical branch is `refs/heads/<name>` and SHA is 40 lowercase hex digits.
+A start references a release work order/decision, expires after its timestamp,
+and lasts at most 24 hours. An urgent governor end instead declares
+`{action: end, target_branch, hold_id}` and references that exact start. It must
+match the target and not precede the start. Unknown or incompatible fields are
+invalid. Controls cannot be deferred. Ordinary records may declare `deferred_by`
+with a hold ID; that is author intent, never permission to delay.
+
+A hold concerns main integration, never recipient visibility. Publish controls
+on a shared coordination branch and bridge them independently of main. Urgent
+records, controls, reviews, handoffs and requires-ack records publish immediately.
+Do not merge controls just to make them visible: target drift still requires
+release preflight again. A hold does not authorize a tag, merge or release.
+
+`agov coord hold-status --target-branch origin/main --candidate-ref <ref>`
+reads explicit pinned local Git snapshots only. Target selection accepts an
+unambiguous local or remote-tracking branch, not HEAD, tags or raw SHAs.
+Candidates accept commit-resolving refs, default HEAD, with no implicit fetch,
+branch enumeration or filesystem drafts. `--dir` is a normalized repository-relative
+Git tree path, default docs/coordination. Incomplete sources, malformed evidence,
+missing/invalid associations, current overlaps and future, ended, expired or
+stale associations cannot support delay. Other-target valid controls remain
+evidence. Historical and future overlaps are advisory; simultaneous active
+selected-target declarations conflict even when their SHAs differ. End intervals
+are half-open and use the earliest valid end or expiry, whichever comes first.
+
+Complete conflict-free matching active declarations can yield `review-required`;
+this NEVER grants permission to delay. `unassociated` means ordinary rules apply.
+All result and hold/end/action rows keep publication_verified and authority_verified
+false. Before batching each exact record, independently verify all six checks:
+publication, governor_authority, record_urgency_and_obligations,
+publication_target, current_target_and_expiry, release_hold_authorization.
+Check actual published start/end bytes, the governor's decision and referenced
+release authorization, current remote/target/expiry, and absence of security or
+gate findings, escalations and live obligations in the exact candidate. If any
+check is unavailable, publish immediately. Source presence and role strings are
+not authentication; candidate-only ends cannot automatically clear real holds.
+
+The tool is advisory with explicit-sources coverage, not a whole inbox or atomic
+cross-ref snapshot. Exit 0 means complete readable sources without semantic
+problems; 1 means semantic problems; 2 means unavailable/incomplete evidence
+and takes precedence. Affected candidates fail conservatively to publish-now.
+These statuses add no blocking authority; the existing named coordination
+schema validator remains the field-validation gate.
+
+Rollout requires compatible framework schemas/rules and CLI/MCP artifacts before
+any immutable record uses these fields. The intended first release is v2.11.0;
+release preflight must verify actual artifacts and minimum supported versions.
+Older readers reject fields or lack the command; complete partial upgrades
+without stripping immutable fields. Before first use a gated revert is possible.
+After first use preserve field recognition: a separately gated forward correction
+may disable advisory behavior, reporting publish-now/hold-behavior-disabled for
+all candidates while retaining error precedence and external checks. No runtime
+rollback flag or automatic migration is introduced here.

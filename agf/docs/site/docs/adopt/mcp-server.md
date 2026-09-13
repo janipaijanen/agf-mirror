@@ -166,3 +166,21 @@ tools, validate, commit, push, and review through the normal MR flow. Running
 adapter over the same file-based protocol.
 
 Generic artifact tools are documented in the [artifact registry reference](../../reference/artifact-registry.md).
+
+### Publication-hold evidence
+
+`agov_coord_hold_status` mirrors `agov coord hold-status`: required
+`target_branch` string; optional `candidate_ref` string array, `dir` string
+(default docs/coordination), and `format` text|json (default text). Repeated
+candidates pin explicit commit refs; omission means HEAD. It reads local Git
+only, with no implicit network or forge mode.
+
+The CLI JSON v1 envelope includes explicit-sources coverage, pinned identities,
+holds and end provenance, candidate action rows and stable problem IDs. The
+adapter preserves stdout, exit status (0 complete, 1 semantic, 2 incomplete)
+and isError (true for nonzero). Text and JSON retain fixed false publication
+and authority verification and all six required_external_checks: publication,
+governor_authority, record_urgency_and_obligations, publication_target,
+current_target_and_expiry, release_hold_authorization. Review-required never
+authorizes delay. Framework schemas and tooling must both support the fields
+before first use; intended rollout is v2.11.0, pending shipped-artifact evidence.

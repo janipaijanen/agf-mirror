@@ -410,3 +410,27 @@ Handoff reply annotations are advisory evidence with unchanged lifecycle and gat
 ### Recipient session annotations
 
 Optional `handoff.for_session` addresses a recipient; top-level `session` records the author. `handoff next <role> --session <token>` and `coord visibility --session <token>` leave every item in its existing position/state and annotate only mismatched handoffs as addressed elsewhere. Missing flag or recipient preserves prior output. Notes/reviews remain role-wide. MCP tools accept the equivalent optional `session` string. Visibility JSON adds `addressed_elsewhere` containing the recipient string only on mismatches; handoff text names the recipient. This is advisory under the [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md), without new ownership or authority.
+
+## Publication-hold declarations
+
+Optional `urgency: normal|urgent` defaults to normal without rewriting records.
+An urgent governor decision can start or end a bounded hold on main integration;
+ordinary records can associate through `deferred_by`. Visibility to recipients
+still happens immediately on shared Git branches. No field authenticates a role
+or grants permission to delay. Starts last at most 24 hours and cite a release
+authorization; ends identify the exact start and canonical target branch.
+
+The read-only `coord hold-status` command distinguishes active, future, ended
+and expired declarations, target drift and conflicts. It reports only new
+candidate records as action rows, retaining target history as evidence. Urgent
+records, controls, handoffs, reviews and requires-ack records are publish-now.
+A normal associated record may be review-required, which still requires all
+six independent publication, authority, urgency/obligation, target, expiry and
+release-authorization checks before delay. Missing checks require immediate
+publication. Neither complete coverage nor unassociated means safe to delay.
+
+Install compatible framework and tooling artifacts before first use (intended
+first release v2.11.0; confirm actual shipped support). Older readers cannot
+read these fields. Never remove fields from immutable records to downgrade.
+The normative [publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md)
+defines conservative error handling and schema-preserving forward disablement.

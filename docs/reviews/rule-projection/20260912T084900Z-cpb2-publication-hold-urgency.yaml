@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+# Implementation projection map. Gate 1 approved by jhaq; Gate 2 remains separate.
+plan_id: 20260912T084900Z-cpb2-publication-hold-urgency
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+  - agf/docs/site/docs/adopt/mcp-server.md
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Implemented: define time-bounded hold declarations,
+      24-hour maximum, structural urgent overrides, per-record external checks and unchanged
+      release-target drift controls. No new tool blocking authority.
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      Explains optional fields, omission compatibility and
+      declaration state versus independently verified shared publication/authority;
+      review-required never grants permission to delay.
+  runbook_situation_map:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/docs/site/docs/adopt/mcp-server.md
+    reason: >-
+      Operator recipe: shared coordination branch, explicit fetch,
+      hold-status against origin/main, urgent publication, expiry and source
+      limitations, canonical branch/ref identity and pinned Git candidate sources and per-ref observation limits.
+      MCP parity/local-only command surface and exit/row fail-closed statuses.
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+      - .claude/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Concise command/rule pointers in loaders and synchronized
+      canonical-rule projection; do not duplicate the full protocol in loaders.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: Imports root AGENTS.md; no independent body requires editing.
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - agf/schemas/coordination-message.schema.json
+      - tooling/rust/crates/agov-coord/src/coord_validator.rs
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov-mcp/src/main.rs
+    reason: >-
+      Implementation evidence: optional-field schema compatibility,
+      status command fixtures, alias rejection, raw source/path identity, ref pinning and failed Git reads,
+      incomplete coverage and fixed unverified-authority/publication flags,
+      real CLI/MCP parity, retained publication gate negatives and gate companion.
+      See hold_status.rs CLI tests, hold-status golden fixtures and MCP stdio parity.
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/schemas/coordination-message.schema.json
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/templates/AGENTS.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/docs/site/docs/adopt/mcp-server.md
+    reason: >-
+      Existing packaging routes ship these paths in framework artifacts.
+      CLI/MCP ship in separate tooling artifacts, not the framework archive;
+      Pages source also ships under the framework source glob; rendered explanations
+      use the existing site build. Root loader and Claude
+      projection are foundry-local. Implementation must validate these routes, compatible framework/tool versions,
+      rollout before first new-field use and schema-preserving post-use disablement.

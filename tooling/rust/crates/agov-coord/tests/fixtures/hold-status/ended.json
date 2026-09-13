@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "target_ref": "refs/heads/main",
+  "target_branch": "refs/heads/main",
+  "target_remote": null,
+  "target_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "now": "2026-09-12T12:00:00Z",
+  "publication_verified": false,
+  "authority_verified": false,
+  "required_external_checks": [
+    "current_target_and_expiry",
+    "governor_authority",
+    "publication",
+    "publication_target",
+    "record_urgency_and_obligations",
+    "release_hold_authorization"
+  ],
+  "scope": "explicit-sources",
+  "sources": [
+    {
+      "source_id": "candidate:dddddddddddddddddddddddddddddddddddddddd",
+      "kind": "candidate",
+      "requested_refs": [
+        "HEAD"
+      ],
+      "sha": "dddddddddddddddddddddddddddddddddddddddd",
+      "channel": "docs/coordination",
+      "status": "read",
+      "problem_ids": []
+    },
+    {
+      "source_id": "target",
+      "kind": "target",
+      "requested_refs": [
+        "main"
+      ],
+      "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "channel": "docs/coordination",
+      "status": "read",
+      "problem_ids": []
+    }
+  ],
+  "coverage": "COMPLETE",
+  "holds": [
+    {
+      "id": "hold-start",
+      "timestamp": "2026-09-12T08:00:00Z",
+      "target_branch": "refs/heads/main",
+      "target_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expires_at": "2026-09-12T18:00:00Z",
+      "effective_end": "2026-09-12T10:00:00Z",
+      "ends": [
+        {
+          "id": "hold-end",
+          "timestamp": "2026-09-12T10:00:00Z",
+          "hold_id": "hold-start",
+          "target_branch": "refs/heads/main",
+          "provenance": [
+            {
+              "source_id": "target",
+              "path": "docs/coordination/hold-end.md",
+              "blob_oid": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            }
+          ],
+          "problem_ids": [],
+          "publication_verified": false,
+          "authority_verified": false,
+          "required_external_checks": [
+            "current_target_and_expiry",
+            "governor_authority",
+            "publication",
+            "publication_target",
+            "record_urgency_and_obligations",
+            "release_hold_authorization"
+          ]
+        }
+      ],
+      "declared_release_references": [
+        "hold-start"
+      ],
+      "temporal_state": "ended",
+      "target_state": "matching",
+      "conflict": false,
+      "provenance": [
+        {
+          "source_id": "target",
+          "path": "docs/coordination/hold-start.md",
+          "blob_oid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "problem_ids": [],
+      "publication_verified": false,
+      "authority_verified": false,
+      "required_external_checks": [
+        "current_target_and_expiry",
+        "governor_authority",
+        "publication",
+        "publication_target",
+        "record_urgency_and_obligations",
+        "release_hold_authorization"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "id": "normal-note",
+      "timestamp": "2026-09-12T11:00:00Z",
+      "provenance": [
+        {
+          "source_id": "candidate:dddddddddddddddddddddddddddddddddddddddd",
+          "path": "docs/coordination/normal-note.md",
+          "blob_oid": "cccccccccccccccccccccccccccccccccccccccc"
+        }
+      ],
+      "urgency": "normal",
+      "deferred_by": "hold-start",
+      "hold_id": "hold-start",
+      "state": "publish-now",
+      "reasons": [
+        "ended-hold"
+      ],
+      "problem_ids": [],
+      "publication_verified": false,
+      "authority_verified": false,
+      "required_external_checks": [
+        "current_target_and_expiry",
+        "governor_authority",
+        "publication",
+        "publication_target",
+        "record_urgency_and_obligations",
+        "release_hold_authorization"
+      ]
+    }
+  ],
+  "problems": []
+}

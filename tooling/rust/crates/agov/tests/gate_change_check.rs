@@ -573,3 +573,17 @@ fn merged_companion_evidence_does_not_cover_a_later_shared_surface_change() {
     fixture.commit("supply current slice companion evidence");
     assert_success(fixture.check());
 }
+
+#[test]
+fn advisory_hold_records_cannot_waive_gate_companion_requirements() {
+    let fixture = Fixture::new();
+    fixture.write("tooling/checker.rs", "fn changed() {}\n");
+    fixture.write("docs/coordination/hold.md", "---\nkind: decision-record\nfrom: governor-reviewer\nurgency: urgent\npublication_hold:\n  action: start\n  target_branch: refs/heads/main\n---\n");
+    fixture.commit("change gate surface with an advisory hold declaration");
+    let blocked = fixture.check();
+    assert_eq!(blocked.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&blocked.stderr).contains("no changed declared test path"));
+    fixture.write("tests/gate_change.rs", "current gate companion evidence\n");
+    fixture.commit("supply required gate companion");
+    assert_success(fixture.check());
+}

@@ -16,6 +16,93 @@
     "requires-ack"
   ],
   "properties": {
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "urgent"
+      ],
+      "description": "Declared urgency only. Structural obligations may override normal; never permission to delay."
+    },
+    "deferred_by": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Hold ID association declaring batching intent, never verified publication or authority."
+    },
+    "publication_hold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "target_branch"
+      ],
+      "properties": {
+        "action": {
+          "enum": [
+            "start",
+            "end"
+          ]
+        },
+        "target_branch": {
+          "type": "string",
+          "pattern": "^refs/heads/.+"
+        },
+        "target_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "hold_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "action": {
+              "const": "start"
+            }
+          },
+          "required": [
+            "target_sha",
+            "expires_at"
+          ],
+          "not": {
+            "required": [
+              "hold_id"
+            ]
+          }
+        },
+        {
+          "properties": {
+            "action": {
+              "const": "end"
+            }
+          },
+          "required": [
+            "hold_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "target_sha"
+                ]
+              },
+              {
+                "required": [
+                  "expires_at"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
     "kind": {
       "type": "string",
       "enum": [
@@ -229,6 +316,37 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "required": [
+          "publication_hold"
+        ]
+      },
+      "then": {
+        "required": [
+          "urgency"
+        ],
+        "properties": {
+          "kind": {
+            "const": "decision-record"
+          },
+          "from": {
+            "const": "governor-reviewer"
+          },
+          "urgency": {
+            "const": "urgent"
+          },
+          "references-to": {
+            "minItems": 1
+          }
+        },
+        "not": {
+          "required": [
+            "deferred_by"
+          ]
+        }
+      }
+    },
     {
       "if":   { "properties": { "kind": { "const": "claim" } }, "required": ["kind"] },
       "then": { "required": ["artifacts_owned"], "properties": { "artifacts_owned": { "minItems": 1 } } }

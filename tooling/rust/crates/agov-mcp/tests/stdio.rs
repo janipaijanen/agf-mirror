@@ -40,14 +40,44 @@ fn branch_handoff_and_local_collision_match_real_cli() {
         assert_eq!(result["result"]["isError"], expected != 0);
         stdout
     };
-    let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local","--session","codex"], json!({"role":"coder-tester","include_branch_local":true,"session":"codex"}), 0);
-    assert!(report.contains("source: refs/heads/handoff") && report.contains("Addressed elsewhere: claude"));
+    let report = parity(
+        "agov_handoff_next",
+        &[
+            "handoff",
+            "next",
+            "coder-tester",
+            "--include-branch-local",
+            "--session",
+            "codex",
+        ],
+        json!({"role":"coder-tester","include_branch_local":true,"session":"codex"}),
+        0,
+    );
+    assert!(
+        report.contains("source: refs/heads/handoff")
+            && report.contains("Addressed elsewhere: claude")
+    );
     std::fs::write(root.join("docs/coordination/bad.md"), "invalid").unwrap();
-    let report = parity("agov_handoff_next", &["handoff","next","coder-tester","--include-branch-local"], json!({"role":"coder-tester","include_branch_local":true}), 1);
+    let report = parity(
+        "agov_handoff_next",
+        &["handoff", "next", "coder-tester", "--include-branch-local"],
+        json!({"role":"coder-tester","include_branch_local":true}),
+        1,
+    );
     assert!(report.contains("partial_coverage: true"));
-    parity("agov_plan_collision_check", &["plan","collision-check"], json!({}), 0);
+    parity(
+        "agov_plan_collision_check",
+        &["plan", "collision-check"],
+        json!({}),
+        0,
+    );
     std::fs::write(root.join("docs/plans/old.md"), "---\nid: old\nstatus: approved\nadvisory_consultation:\n- role: infosec-sentinel\n  status: consulted\n- role: contribution-auditor\n  status: consulted\n---\n").unwrap();
-    parity("agov_plan_collision_check", &["plan","collision-check","--base-ref","main"], json!({"base_ref":"main"}), 2);
+    parity(
+        "agov_plan_collision_check",
+        &["plan", "collision-check", "--base-ref", "main"],
+        json!({"base_ref":"main"}),
+        2,
+    );
 }
 
 #[test]
@@ -727,9 +757,8 @@ fn workspace_root() -> std::path::PathBuf {
 /// and `graph-index`'s edge list has no documented stable ordering
 /// guarantee across separate process runs even for identical input,
 /// which a two-file fixture with exactly one edge sidesteps entirely.
-/// `publication-check` and `brief` don't depend on `docs/coordination/`
-/// file contents (git history and pure generation, respectively), so
-/// they run against the real repository.
+/// `publication-check` and `brief` also use the isolated Git fixture: a
+/// concurrent fetch must not move their target between paired invocations.
 #[test]
 fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
     let agov_bin = build_real_agov_bin();
@@ -897,25 +926,23 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         "agov_coord_visibility: CLI and MCP output diverged"
     );
 
-    // `publication-check` depends only on git commit history for the
-    // already-fetched `origin/main`, not on `docs/coordination/` file
-    // contents or any hash-ordered collection -- safe against the real
-    // repository.
+    // Use the same isolated Git history for both calls. A concurrent fetch
+    // can move origin/main between real-checkout calls and invalidate parity.
     let cli_stdout = run_cli(
         &[
             "coord",
             "publication-check",
             "--base-ref",
-            "origin/main",
+            "main",
             "--dir",
             "docs/coordination",
         ],
-        &root,
+        git_root,
     );
     let mcp_stdout = run_mcp(
         "agov_coord_publication_check",
-        json!({ "base_ref": "origin/main", "dir": "docs/coordination" }),
-        &root,
+        json!({ "base_ref": "main", "dir": "docs/coordination" }),
+        git_root,
     );
     assert_eq!(
         cli_stdout, mcp_stdout,
@@ -937,7 +964,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
         "--topic",
         "cli-mcp-equivalence-check",
     ];
-    let cli_brief = run_cli(&brief_args, &root);
+    let cli_brief = run_cli(&brief_args, git_root);
     let mcp_brief = run_mcp(
         "agov_coord_brief",
         json!({
@@ -946,7 +973,7 @@ fn real_cli_and_mcp_produce_equivalent_output_for_all_seven_new_tools() {
             "kind": "note",
             "topic": "cli-mcp-equivalence-check"
         }),
-        &root,
+        git_root,
     );
     for field in [
         "from: coder-tester",
@@ -1186,4 +1213,88 @@ fn recipient_session_matches_real_cli_and_mcp_without_selection_changes() {
             assert_eq!(value["result"]["isError"], status != 0);
         }
     }
+}
+
+#[test]
+fn hold_status_matches_real_cli_for_all_exit_classes() {
+    let bin = build_real_agov_bin();
+    let fixture = tempfile::tempdir().unwrap();
+    let root = fixture.path();
+    let git = |args: &[&str]| {
+        let o = Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .unwrap();
+        assert!(o.status.success());
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.name", "Test"]);
+    git(&["config", "user.email", "test@example.invalid"]);
+    std::fs::create_dir_all(root.join("docs/coordination")).unwrap();
+    std::fs::write(root.join("docs/coordination/.keep"), "").unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "base"]);
+    git(&["checkout", "-b", "candidate"]);
+    let parity = |candidate: &str, status: i32| {
+        let before = std::time::SystemTime::now();
+        let direct = Command::new(&bin)
+            .args([
+                "coord",
+                "hold-status",
+                "--target-branch",
+                "main",
+                "--candidate-ref",
+                candidate,
+                "--format",
+                "json",
+            ])
+            .env("AGOV_TOKEN_ROI", "0")
+            .current_dir(root)
+            .output()
+            .unwrap();
+        assert_eq!(direct.status.code(), Some(status));
+        let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+            .env("AGOV_MCP_AGOV_BIN", &bin)
+            .env("AGOV_TOKEN_ROI", "0")
+            .current_dir(root)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        writeln!(child.stdin.as_mut().unwrap(), "{}", json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"agov_coord_hold_status","arguments":{"target_branch":"main","candidate_ref":[candidate],"format":"json"}}})).unwrap();
+        drop(child.stdin.take());
+        let response: Value =
+            serde_json::from_slice(&child.wait_with_output().unwrap().stdout).unwrap();
+        let after = std::time::SystemTime::now();
+        assert_eq!(response["result"]["structuredContent"]["status"], status);
+        assert_eq!(response["result"]["isError"], status != 0);
+        let mut a: Value = serde_json::from_slice(&direct.stdout).unwrap();
+        let mut b: Value = serde_json::from_str(
+            response["result"]["structuredContent"]["stdout"]
+                .as_str()
+                .unwrap(),
+        )
+        .unwrap();
+        for value in [&mut a, &mut b] {
+            let now = value.as_object_mut().unwrap().remove("now").unwrap();
+            let stamp = now.as_str().unwrap();
+            assert!(stamp.ends_with('Z'));
+            // RFC3339 conversion uses the same serde-compatible timestamp parser
+            // as the project's existing wire tests, with subsecond bounds below.
+            let parsed =
+                time::OffsetDateTime::parse(stamp, &time::format_description::well_known::Rfc3339)
+                    .unwrap();
+            let system = std::time::UNIX_EPOCH
+                + std::time::Duration::new(parsed.unix_timestamp() as u64, parsed.nanosecond());
+            assert!(system >= before && system <= after);
+        }
+        assert_eq!(a, b);
+    };
+    parity("HEAD", 0);
+    std::fs::write(root.join("docs/coordination/bad.md"), "bad").unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "invalid"]);
+    parity("HEAD", 1);
+    parity("missing", 2);
 }

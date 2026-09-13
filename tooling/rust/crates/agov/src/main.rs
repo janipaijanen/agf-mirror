@@ -3,6 +3,7 @@ mod ci_cache_topology;
 mod commercial_corpus;
 mod dist;
 mod handoff_branch;
+mod hold_status;
 mod plan_collision;
 mod provenance;
 mod release_namespace;
@@ -267,6 +268,17 @@ enum CoordCommand {
         /// Write output to a file instead of stdout.
         #[arg(long)]
         output: Option<PathBuf>,
+    },
+    /// Report declarations from explicit pinned local Git sources; never permits delay.
+    HoldStatus {
+        #[arg(long)]
+        target_branch: String,
+        #[arg(long, default_value = "docs/coordination")]
+        dir: String,
+        #[arg(long)]
+        candidate_ref: Vec<String>,
+        #[arg(long, default_value = "text", value_parser = ["text", "json"])]
+        format: String,
     },
     /// Mechanically verify a coordination-only publication candidate against
     /// its target ref, per coordination-publication-rule.md: every commit in
@@ -817,6 +829,15 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                     format,
                 },
         } => coord_publication_check(base_ref, dir, subject_prefix, format, &args),
+        Command::Coord {
+            sub:
+                CoordCommand::HoldStatus {
+                    target_branch,
+                    dir,
+                    candidate_ref,
+                    format,
+                },
+        } => hold_status::run(&target_branch, &dir, &candidate_ref, &format, &args),
         Command::Coord {
             sub:
                 CoordCommand::Pending {
