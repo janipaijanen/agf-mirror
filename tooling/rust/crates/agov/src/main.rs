@@ -5578,6 +5578,7 @@ fn render_session_resume(
     output.stdout("");
     render_warnings(output, &git.warnings(base_branch));
     render_invalid_files(output, invalid_files);
+    render_urgent_obligations(output, messages, Some(role));
     render_pending_handoffs_for_role(output, role, messages);
     render_claims_for_role(output, role, messages, aliases);
     render_recent_decisions(output, messages);
@@ -5598,6 +5599,7 @@ fn render_session_bootstrap(
     output.stdout("");
     render_warnings(output, &git.warnings(base_branch));
     render_invalid_files(output, invalid_files);
+    render_urgent_obligations(output, messages, None);
     render_active_roles(output, manifest, base_branch);
     render_pending_handoffs_by_role(output, messages);
     render_recent_decisions(output, messages);
@@ -5913,7 +5915,70 @@ fn render_must_read(output: &mut OutputCounter, role: &str, messages: &[HandoffM
     }
 }
 
-fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, include_branch_local: bool, args: &[String]) -> i32 {
+// Urgency is advisory ordering only; lifecycle and addressing stay unchanged.
+fn is_urgent(message: &HandoffMessage) -> bool {
+    string_field(&message.raw, "urgency") == Some("urgent")
+}
+
+fn pending_ack_descriptors(
+    messages: &[HandoffMessage],
+) -> Vec<agov_coord::handoff_tracker::MessageDescriptor> {
+    messages
+        .iter()
+        .map(|m| agov_coord::handoff_tracker::MessageDescriptor {
+            file: m.file.clone(),
+            sort_key: format!("{}_{}", m.sort_key.0, m.sort_key.1),
+            refs: m.refs.clone(),
+            msg: agov_coord::coord_validator::CoordMessage { raw: m.raw.clone() },
+        })
+        .collect()
+}
+
+fn render_urgent_obligations(
+    output: &mut OutputCounter,
+    messages: &[HandoffMessage],
+    role: Option<&str>,
+) {
+    let descriptors = pending_ack_descriptors(messages);
+    let pending =
+        agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, "2026-08-02T22:01:54Z");
+    let ordinary: std::collections::BTreeSet<_> = pending.iter().map(|p| p.file.as_str()).collect();
+    let handoffs = pending_handoffs(messages);
+    let handoff_files: std::collections::BTreeSet<_> =
+        handoffs.iter().map(|p| p.file.as_str()).collect();
+    let urgent: Vec<_> = messages
+        .iter()
+        .filter(|m| is_urgent(m))
+        .filter(|m| {
+            role.is_none_or(
+                |r| matches!(string_field(&m.raw, "to"), Some(to) if to == r || to == "all"),
+            )
+        })
+        .filter(|m| ordinary.contains(m.file.as_str()) || handoff_files.contains(m.file.as_str()))
+        .collect();
+    if urgent.is_empty() {
+        return;
+    }
+    output.stdout("Urgent pending obligations (advisory):");
+    for m in urgent {
+        output.stdout(format!(
+            "  - {}  {} -> {}  {}",
+            m.file,
+            string_field(&m.raw, "from").unwrap_or(""),
+            string_field(&m.raw, "to").unwrap_or(""),
+            string_field(&m.raw, "topic").unwrap_or("")
+        ));
+    }
+    output.stdout("");
+}
+
+fn handoff_next(
+    agent_role: &str,
+    dir: PathBuf,
+    session: Option<&str>,
+    include_branch_local: bool,
+    args: &[String],
+) -> i32 {
     if include_branch_local {
         return handoff_branch::run(agent_role, dir, session, args);
     }
@@ -5935,7 +6000,7 @@ fn handoff_next(agent_role: &str, dir: PathBuf, session: Option<&str>, include_b
     let next = pending
         .into_iter()
         .filter(|message| string_field(&message.raw, "to") == Some(agent_role))
-        .max_by_key(|message| message.sort_key.clone());
+        .max_by_key(|message| (is_urgent(message), message.sort_key.clone()));
 
     let Some(message) = next else {
         output.stdout(format!("No handoff found for role: {agent_role}"));
@@ -5986,7 +6051,7 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
     let mut output = OutputCounter::default();
     let dir = repo_relative_path(dir);
 
-    let messages = match read_valid_coord_messages(&dir) {
+    let (messages, invalid_files) = match read_coord_messages_with_invalid(&dir) {
         Ok(messages) => messages,
         Err(_) => {
             output.stderr(format!(
@@ -5997,21 +6062,49 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
         }
     };
 
-    let descriptors: Vec<agov_coord::handoff_tracker::MessageDescriptor> = messages
+    let descriptors = pending_ack_descriptors(&messages);
+    let urgent_files: std::collections::BTreeSet<_> = messages
         .iter()
-        .map(|m| agov_coord::handoff_tracker::MessageDescriptor {
-            file: m.file.clone(),
-            sort_key: format!("{}_{}", m.sort_key.0, m.sort_key.1),
-            refs: m.refs.clone(),
-            msg: agov_coord::coord_validator::CoordMessage { raw: m.raw.clone() },
-        })
+        .filter(|m| is_urgent(m))
+        .map(|m| m.file.as_str())
         .collect();
+    let mut pending = agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, cutoff);
+    // Stable sort preserves the existing ascending timestamp/file order inside each tier.
+    pending.sort_by_key(|p| !urgent_files.contains(p.file.as_str()));
 
-    let pending = agov_coord::handoff_tracker::find_pending_all_kinds(&descriptors, cutoff);
-
+    let has_challenge_input = messages.iter().any(|m| m.raw.get("challenge").is_some())
+        || invalid_files.iter().any(|file| {
+            std::fs::read_to_string(dir.join(file))
+                .ok()
+                .and_then(|content| agov_core::yaml::parse_frontmatter_json(&content).ok())
+                .is_some_and(|raw| raw.get("challenge").is_some())
+        });
+    let (challenge_records, challenge_problems) = if !has_challenge_input {
+        (Vec::new(), Vec::new())
+    } else {
+        match agov_coord::challenge::read_directory(&dir) {
+            Ok(data) => data,
+            Err(error) => {
+                output.stderr(format!("Challenge evidence unavailable: {error}"));
+                return 1;
+            }
+        }
+    };
+    let challenges =
+        agov_coord::challenge::evaluate(&challenge_records, time::OffsetDateTime::now_utc(), true);
+    let has_challenge = challenge_records
+        .iter()
+        .any(|r| r.raw.get("challenge").is_some())
+        || !challenge_problems.is_empty();
     if format == "json" {
         let rows: Vec<PendingAckRow> = pending.iter().map(PendingAckRow::from).collect();
-        match serde_json::to_string_pretty(&rows) {
+        // Preserve the legacy array for channels without challenge records.
+        let value = if has_challenge {
+            serde_json::json!({"pending": rows, "challenges": challenges, "problems": challenge_problems})
+        } else {
+            serde_json::json!(rows)
+        };
+        match serde_json::to_string_pretty(&value) {
             Ok(json) => output.stdout(json),
             Err(err) => {
                 output.stderr(format!("ERR  could not render JSON: {err}"));
@@ -6030,8 +6123,25 @@ fn coord_pending(dir: PathBuf, cutoff: &str, format: &str, args: &[String]) -> i
         }
     }
 
+    if format != "json" && has_challenge {
+        output.stdout("Challenges (advisory; separate from ordinary pending count):");
+        for row in &challenges {
+            output.stdout(format!(
+                "  {}  {}  {}  {}",
+                row.challenge_id, row.state, row.file, row.detail
+            ));
+            for reply in &row.replies {
+                output.stdout(format!("    reply evidence: {reply}"));
+            }
+        }
+    }
+    if !has_challenge || format != "json" {
+        for problem in &challenge_problems {
+            output.stderr(format!("Challenge evidence diagnostic: {problem}"));
+        }
+    }
     agov_core::roi::record_tool_output("agov.coord.pending", args, "coord-pending", output.chars);
-    if pending.is_empty() {
+    if pending.is_empty() && challenges.is_empty() && challenge_problems.is_empty() {
         2
     } else {
         0
@@ -6500,6 +6610,27 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
     for (path, message) in duplicate_id_errors_in_dirs(&valid_paths) {
         failed = true;
         output.coord_err(&path, &message);
+    }
+
+    if valid_messages
+        .iter()
+        .any(|(_, m)| m.raw.get("challenge").is_some())
+    {
+        let dirs: BTreeSet<_> = valid_paths.iter().filter_map(|p| p.parent()).collect();
+        for dir in dirs {
+            match agov_coord::challenge::read_directory(dir) {
+                Ok((records, _)) => {
+                    for (file, error) in agov_coord::challenge::duplicate_ids(&records) {
+                        failed = true;
+                        output.coord_err(&dir.join(file).to_string_lossy(), &error);
+                    }
+                }
+                Err(error) => {
+                    failed = true;
+                    output.coord_err(&dir.to_string_lossy(), &error);
+                }
+            }
+        }
     }
 
     if failed {

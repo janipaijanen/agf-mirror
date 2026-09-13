@@ -16,3 +16,5 @@ pub mod projection_manifest;
 pub mod publication_check;
 pub mod publication_hold;
 pub mod readable_id;
+
+pub mod challenge;

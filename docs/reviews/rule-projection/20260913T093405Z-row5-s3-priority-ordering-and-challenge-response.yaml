@@ -11,17 +11,9 @@ changed_pages_or_runbooks:
 
 surfaces:
   normative_owner:
-    disposition: planned
+    disposition: updated
     path: agf/rules/workflow/coordination-challenge-response-rule.md
-    stage: planned
-    reason: >-
-      Net-new rule; does not exist yet at Gate 1. Will define:
-      challenge-response is advisory-only (never blocks a merge or gate on
-      its own), the bounded-window guarantee, the governor-only `escalated`
-      restriction as the sole closing action, and the
-      session-bound-direct-parties-only restriction for `replied`. Created
-      at implementation time; the strict (non-`--allow-planned`) projection
-      check is required Gate 2 evidence once it exists.
+    reason: Defines advisory lifecycle, source-first terminal validation, temporal bounds and conservative rollback visibility.
 
   adopter_facing_explanation:
     disposition: updated
@@ -56,42 +48,16 @@ surfaces:
       referenced).
 
   validation_drift_evidence:
-    disposition: not_mechanically_decidable
+    disposition: implemented
     reason: >-
-      **Corrected twice.** First per the independent semantic review's
-      finding 5 (splitting conflated check kinds). Then per that same
-      reviewer's `q3h4` recheck: at this plan-only head (no implementation
-      exists yet), calling anything `implemented` overstates current
-      capability regardless of the split below -- corrected to describe
-      these as PLANNED checks for implementation time, not present-tense
-      `implemented` fact. Split, described accurately as planned:
-      (a) PLANNED STABLE STRUCTURAL VALIDATION, to be enforced by
-      `agov coord validate` at write/commit time, schema-level and
-      immutable once a record is accepted: `escalated` requiring
-      `from: governor-reviewer` (schema-level allOf, same pattern as
-      CP-B-2's publication_hold end-record binding) and window_hours
-      capped at 720 -- ordinary per-record JSON Schema field constraints.
-      **Cross-record `challenge_id` uniqueness is named separately, per
-      `q3h4`**: it is contextual validation across the whole corpus (a
-      later new raising record can introduce a collision a fresh
-      full-corpus check must catch), not a per-record JSON Schema field
-      constraint, and not a one-time-immutable fact once accepted -- new
-      colliding records remain possible until each fresh validation run.
-      (b) READ-TIME/OBSERVATION-TIME EVALUATOR LOGIC, re-computed by
-      `agov coord pending`/`handoff next` on every invocation, never fixed
-      at validate/commit time: timestamp-window eligibility (a future-dated
-      candidate or raising record is temporarily ineligible, not schema-
-      invalid -- it becomes eligible once its own timestamp arrives) and
-      `session`-based direct-party matching (a cross-record evaluator
-      comparison, not a per-field JSON Schema constraint). This row is
-      `implemented` for (a) and `not mechanically decidable` for whether a
-      `session` match in (b) reflects the actual same real-world actor --
-      `session` is self-declared, not cryptographically authenticated,
-      matching this project's existing S1 session-identity field's own
-      disclosed limitation. Distinguishing (a) from (b) matters concretely:
-      a channel can validly contain an immutable, schema-accepted future-
-      dated reply that is not yet *effective* -- that is not a validation
-      failure, it is an evaluator-time state.
+      Schema enforces review kind, governor-only terminal declarations and
+      bounded windows. The validator checks raising links and contextual
+      challenge-ID uniqueness. challenge.rs tests cover source guards,
+      session matching, terminal precedence, time boundaries and disabled
+      visibility. CLI integration covers independent ack tracking, schema
+      rejection and contextual collisions; stdio parity uses the real CLI.
+      These are declaration/evaluation checks, not identity authentication
+      or proof that a response substantively resolves a dispute.
 
   distribution:
     disposition: updated

@@ -1,3 +1,7 @@
+// Row 5 S3 companion evidence: urgency/challenge commands change shared main.rs,
+// not gate-change-check behavior. Existing negative controls below are rerun;
+// S3 behavioral coverage is in urgency_ordering.rs and challenge.rs tests.
+
 // CP-B-1 checked-candidate evidence: main.rs exposes the pinned candidate SHA.
 // Publication CLI drift fixtures cover the new output; existing gate controls
 // accompany this shared command surface.

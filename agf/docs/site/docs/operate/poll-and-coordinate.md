@@ -247,3 +247,23 @@ Exit 0 means complete readable evidence without semantic errors, 1 semantic
 errors, 2 unavailable/incomplete sources (precedence over 1). These are advisory
 statuses, not merge or release gates. Malformed evidence and incomplete reads
 force potentially affected action rows to publish-now.
+
+### Reading urgency in the v2.11 development CLI
+
+Urgent pending records lead the queue, and session resume highlights them.
+Use this ordering to select attention, then check role, ownership and gates as
+usual: urgency is self-declared and does not supply permission. Normal and
+omitted urgency share the same tier. This behavior is Level 4 (validated in
+development), pending inclusion in a supported release.
+
+### Handling challenge evidence
+
+Read the separate challenge section in `coord pending`. Investigate unavailable
+sources before interpreting closure; a future record reports when it becomes
+effective. A party reply remains decision-pending. For an expired window,
+route the evidence to the governor through normal coordination; the display
+itself never decides a gate. When raising a review, link one disputed source
+explicitly with `challenge.disputed_record_id`, and keep any unrelated
+requires-ack request independent. See the
+[protocol](../concepts/coordination-protocol.md#challenge-response) for record
+fields and the conditional JSON envelope for compatible consumers.

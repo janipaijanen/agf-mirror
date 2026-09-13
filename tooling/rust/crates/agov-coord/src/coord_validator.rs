@@ -161,6 +161,7 @@ pub fn validate_content_with_schema(
 
     if errors.is_empty() {
         crate::publication_hold::validate_fields(&raw)?;
+        crate::challenge::validate_fields(&raw)?;
         Ok(CoordMessage { raw })
     } else {
         Err(errors
