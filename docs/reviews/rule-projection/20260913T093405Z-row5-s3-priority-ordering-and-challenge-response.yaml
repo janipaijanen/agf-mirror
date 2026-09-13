@@ -17,10 +17,10 @@ surfaces:
     reason: >-
       Net-new rule; does not exist yet at Gate 1. Will define:
       challenge-response is advisory-only (never blocks a merge or gate on
-      its own), the bounded-window/escalation-not-drop guarantee, the
-      governor-only `escalated` restriction, and the
-      answered-by-direct-parties-only restriction. Created at
-      implementation time; the strict (non-`--allow-planned`) projection
+      its own), the bounded-window guarantee, the governor-only `escalated`
+      restriction as the sole closing action, and the
+      session-bound-direct-parties-only restriction for `replied`. Created
+      at implementation time; the strict (non-`--allow-planned`) projection
       check is required Gate 2 evidence once it exists.
 
   adopter_facing_explanation:
@@ -29,17 +29,18 @@ surfaces:
     reason: >-
       Gains a "Challenge-response" subsection, following the same pattern
       CP-B-2 used for its own "Publication-hold declarations" subsection on
-      this same page: what the field means, who may set which resolution
-      value, and the expiry/escalation guarantee.
+      this same page: what the field means, the session-bound direct-party
+      restriction on `replied`, and why only `escalated` (governor-only)
+      actually closes a challenge.
 
   runbook_situation_map:
     disposition: updated
     path: agf/docs/site/docs/operate/poll-and-coordinate.md
     reason: >-
       Gains a concise step describing how to raise a challenge on a
-      disputed finding, how a direct party answers it, and how to recognize
-      an escalated (expired, unanswered) challenge during a normal poll
-      cycle.
+      disputed finding, how a direct party replies to it (evidence, not
+      automatic closure), and how to recognize an escalated (governor-
+      closed) or window-expired challenge during a normal poll cycle.
 
   ai_landing_loaders:
     disposition: updated
@@ -60,11 +61,16 @@ surfaces:
       agov coord validate enforces the mechanically decidable parts:
       challenge_id uniqueness across raising records, `escalated` requiring
       `from: governor-reviewer` (schema-level allOf, same pattern as
-      CP-B-2's publication_hold end-record binding), and "answered" author
-      restricted to the raising or disputed record's own `from` value —
-      this last check is mechanical, not a human judgment call, because
-      both authors' identities are already recorded fields agov can compare
-      directly against the candidate answering record's own `from` field.
+      CP-B-2's publication_hold end-record binding), window_hours capped at
+      720, and timestamp bounds (no backdated or not-yet-arrived-future
+      candidates). `replied`-author session-matching is `implemented` at
+      the schema/comparison level (agov compares the candidate's own
+      top-level `session` field against the raising/disputed record's
+      `session`, both already-recorded fields) but is explicitly
+      `not mechanically decidable` whether a `session` match reflects the
+      actual same real-world actor -- `session` is self-declared, not
+      cryptographically authenticated, matching this project's existing S1
+      session-identity field's own disclosed limitation.
 
   distribution:
     disposition: updated

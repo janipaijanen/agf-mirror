@@ -123,15 +123,22 @@ follows approval rather than presuming it.
 
 ### 2. Challenge-response contract (new optional schema fields)
 
-**Revised per Codex's `tkkp` review**, which found two real defects in
-the original draft: (a) this section's prose said `references-to` names
-"the challenge's `challenge_id`-bearing record" while the JSON
-description said it names an arbitrary `challenge_id` string —
-`references-to` elsewhere in this schema always names a record's own
-`id`/filename, never an opaque secondary identifier, so the original
-draft was internally inconsistent; (b) "answered" from "any role" lets
-an unrelated third party silently suppress someone else's valid
-challenge merely by posting a matching field. Both are fixed below.
+**Revised twice.** First per Codex's `tkkp` review (references-to
+identity conflation; unrestricted "any role" answering). Then per
+Codex's follow-up `mqjr` recheck, which correctly found the first
+revision still incomplete: (a) checking only the `from` role string
+cannot distinguish two different sessions playing the same role (two
+`coder-tester` sessions compare equal); (b) letting the disputed
+record's own author unilaterally set `answered` and have that
+**remove** the obligation from view conflates "a reply was posted"
+with "the dispute is actually resolved" — the challenger may still
+disagree; (c) a response with a **future-declared** `timestamp` was
+incorrectly treated as valid the moment it appeared, closing a
+challenge before its own declared time; (d) missing/unavailable
+raising or disputed records, equal-timestamp ties, and a maximum
+window bound were unspecified; (e) the `resolution` field's own schema
+description was self-contradictory ("never set on any other record
+type" directly next to record types that do set it). All fixed below.
 
 Reuses `kind: review` (already one of the nine message kinds — no new
 kind added, consistent with CP-B-2's own precedent of shipping new
@@ -147,17 +154,18 @@ optional object field:
     "challenge_id": {
       "type": "string",
       "minLength": 1,
-      "description": "Minted once, only by the raising record. Every other record participating in this exchange (answer or escalation) carries the SAME challenge_id here AND names the raising record's own id/filename in its top-level references-to -- two independent links, both required, so a record cannot claim to respond to a challenge it does not actually reference."
+      "description": "Minted once, only by the raising record. Every other record participating in this exchange (a reply or an escalation) carries the SAME challenge_id here AND names the raising record's own id/filename in its top-level references-to -- two independent links, both required, so a record cannot claim to respond to a challenge it does not actually reference."
     },
     "window_hours": {
       "type": "integer",
       "minimum": 1,
-      "description": "Required only on the raising record; the clock anchor is the raising record's own timestamp field (deadline = raising_record.timestamp + window_hours). A window_hours value on any other record in the exchange is ignored for deadline computation -- informational only -- so conflicting windows across responses cannot move the deadline."
+      "maximum": 720,
+      "description": "Required only on the raising record; capped at 720 (30 days) -- no unbounded window. The clock anchor is the raising record's own timestamp field (deadline = raising_record.timestamp + window_hours). A window_hours value on any other record in the exchange is ignored for deadline computation -- informational only -- so conflicting windows across responses cannot move the deadline."
     },
     "resolution": {
       "type": "string",
-      "enum": ["open", "answered", "escalated"],
-      "description": "Absent or 'open' on the raising record. Never set on any other record type; see the per-role restrictions below for which record author may set 'answered' or 'escalated'."
+      "enum": ["open", "replied", "escalated"],
+      "description": "Meaningful on every record in the exchange, not just the raising one (corrected: the prior wording that this is 'never set on any other record type' directly contradicted the reply/escalation records that must set it). 'open' (or absent) marks the raising record. 'replied' marks a direct party's substantive reply -- see 'Reply is evidence, not automatic closure' below: it does NOT by itself remove the challenge from display. 'escalated' marks the one record that actually closes the exchange, restricted to governor-reviewer."
     }
   }
 }
@@ -167,71 +175,106 @@ optional object field:
   object (`resolution` absent, `challenge_id` freshly minted,
   `window_hours` present) disputes a specific finding, naming the
   disputed record in its own `references-to`. This record's own
-  `timestamp` is the deadline anchor for the whole exchange.
+  `timestamp` is the deadline anchor and its own top-level `session`
+  field (the existing session-identity field from Row 5 S1) is the
+  bound identity of the raising party.
 
-- **Identity and linking (fixes the `references-to` inconsistency)**:
-  every subsequent record in the exchange (answer or escalation) MUST
-  carry the identical `challenge.challenge_id` string AND name the
-  *raising record's own id* in its `references-to` — not the
-  `challenge_id` value itself, which is never a valid `references-to`
-  target. A record satisfying only one of the two links is not a valid
-  response and `agov` treats it as an ordinary unrelated record, not as
-  evidence closing the challenge. Two different raising records must
+- **Identity and linking**: every subsequent record in the exchange
+  (a reply or an escalation) MUST carry the identical
+  `challenge.challenge_id` string AND name the raising record's own id
+  in its `references-to` — not the `challenge_id` value itself, which
+  is never a valid `references-to` target. A record satisfying only
+  one of the two links is not a valid response and `agov` treats it as
+  an ordinary unrelated record. Two different raising records must
   never mint the same `challenge_id`; `agov coord validate` rejects a
-  new raising record whose `challenge_id` collides with any existing
-  record's `challenge_id` on the target branch.
+  colliding one.
 
-- **Who may answer (fixes the silent-suppression gap)**: `resolution:
-  answered` may be set only by a record authored by one of the two
-  direct parties to the dispute — **the raising record's own author**
-  (withdrawing their own challenge) or **the disputed record's own
-  author** (defending the original finding with a substantive reply).
-  `agov` determines "author" from each record's own `from` field. A
-  record from any third role — including another reviewer, another
-  build-engineer session, or an unrelated coder-tester — is valid
-  coordination content in its own right, but does **not** set
-  `resolution: answered` and does not close the challenge; `agov` keeps
-  displaying the challenge as open even if such a record exists,
-  precisely so an unrelated party cannot suppress someone else's
-  dispute by merely posting a matching field. This is the direct fix
-  for `tkkp`'s S3-1 finding.
+- **Session-bound parties (fixes `mqjr`'s role-vs-session finding)**:
+  "direct party" is determined by matching a candidate reply's
+  top-level `session` field against the raising record's `session`
+  (the challenger replying/withdrawing) or the disputed record's own
+  `session` (the original author defending) — **not** by `from` role
+  alone. Two sessions sharing a role (e.g. two `coder-tester` sessions)
+  no longer compare equal. This still relies on a self-declared
+  `session` token, exactly as S1 already does — it is not
+  cryptographic authentication, and this plan makes no stronger claim
+  than S1's own. When a candidate reply's `session` is absent (an
+  older-format record, or a session that never adopted S1's field), it
+  cannot be bound as a direct party and is treated as third-party
+  content per the rule below — never as an assumed match.
 
-- **Timing edge cases (fixes the missing clock/conflict semantics)**:
-  a candidate answering/escalating record with a `timestamp` earlier
-  than the raising record's own `timestamp` is invalid and ignored (no
-  backdated closure). Among valid candidates, the first one
-  chronologically after the raising record's timestamp that
-  legitimately sets `answered` or `escalated` closes the challenge;
-  once closed, later records referencing the same `challenge_id` are
-  informational only and never reopen or overwrite the closed state. A
-  record whose `references-to` names the raising record's id but whose
-  own `challenge.challenge_id` does not match is rejected as
-  mismatched, not treated as a response.
+- **Reply is evidence, not automatic closure (fixes `mqjr`'s
+  conflation finding)**: keeping this bounded and simple, per
+  `simplicity-rule.md`, rather than inventing a multi-state dispute
+  workflow the parent work order never asked for — there are exactly
+  two non-open `resolution` values, and only one of them closes
+  anything. A direct party's `resolution: replied` record does **not**
+  remove the challenge from `agov coord pending`'s display: the
+  challenge's displayed state changes from `open` to `replied —
+  decision pending` and **stays visible** in that state indefinitely.
+  A reply is evidence for whoever eventually looks at the dispute, not
+  a self-executing resolution. The **only** record that removes a
+  challenge from the needs-attention display is a governor-reviewer
+  record setting `resolution: escalated` — whether that happens
+  because the window expired unanswered, or because the governor
+  reviewed a reply and decided the matter is settled, is a distinction
+  for the governor's own record to state in prose; the schema does not
+  need a separate value for each trigger. A record from any third
+  role/session — another reviewer, a different build-engineer session,
+  an unrelated coder-tester session — is valid coordination content in
+  its own right but is not a direct party under the session-binding
+  rule above and never sets `replied`.
+
+- **Timing edge cases (fixes `mqjr`'s forward-dated-response and
+  missing-record findings)**:
+  - A candidate record's own `timestamp` must satisfy
+    `raising_record.timestamp <= candidate.timestamp <= now` at the
+    moment `agov` evaluates it, where `now` is the reader's current
+    observation time, not merely "after the raising timestamp" as the
+    prior revision incorrectly stated. A **future-declared**
+    `timestamp` (`candidate.timestamp > now`) is invalid **until that
+    time actually arrives** — `agov` re-evaluates this on every
+    invocation, so a record dated tomorrow cannot close today's
+    challenge; a **backdated** one (`candidate.timestamp <
+    raising_record.timestamp`) is permanently invalid.
+  - **Equal timestamps**: if two valid candidate records share the
+    exact same `timestamp`, the tie breaks by filename/id, ascending
+    lexicographic order — the same `(timestamp, file)` convention
+    `agov`'s other sort keys already use, not a new rule invented for
+    this feature.
+  - **Missing/unavailable records**: if the raising record's own
+    referenced disputed record, or a candidate reply's referenced
+    raising record, cannot be read (deleted ref, unreadable object,
+    fetch failure), `agov` reports it as an `unavailable` problem and
+    treats the challenge as unresolved/needs-review — never as
+    silently absent or silently closed. This mirrors
+    `coordination-publication-rule.md`'s existing "a failed read is
+    unavailable evidence, not a successful empty result" discipline.
+  - A record whose `references-to` names the raising record's id but
+    whose own `challenge.challenge_id` does not match is rejected as
+    mismatched, not treated as a response.
 
 - **Escalation on expiry**: if the deadline (raising record's
-  `timestamp` + its `window_hours`) passes with no valid `answered`
-  successor found on the reader's ref, `agov coord pending` displays
-  the challenge as `challenge — window expired, escalate to governor` —
-  a display state, **never** a silent drop and **never** an automatic
-  resolution in either direction. Only a `governor-reviewer` record may
-  set `resolution: escalated` (schema-enforced: `escalated` requires
-  `from: governor-reviewer`, mirroring CP-B-2's
+  `timestamp` + its `window_hours`) passes with no valid `replied`
+  record from a direct party found on the reader's ref, `agov coord
+  pending` displays the challenge as `challenge — window expired,
+  escalate to governor` — a display state, **never** a silent drop.
+  Whether or not a reply already exists, only a `governor-reviewer`
+  record may set `resolution: escalated` (schema-enforced: `escalated`
+  requires `from: governor-reviewer`, mirroring CP-B-2's
   `governor-reviewer`/`urgent`/`decision-record` binding for
-  `publication_hold` end records). Routing a matter to the governor is
-  not itself a binding judgment on the dispute's substance — it is
-  visibility, which any assistant can already do via an ordinary
-  handoff; restricting the schema field to `governor-reviewer` instead
-  reflects that *closing* the challenge (removing it from the open-
-  obligation display) is the governed action, not the act of raising
-  attention to it.
+  `publication_hold` end records) — this is the single closing action
+  regardless of whether it follows a reply or an unanswered expiry, per
+  the simplification above.
 
-- **Authority boundary, explicit**: `resolution: answered` is
-  restricted to the two direct parties (not "any role," corrected
-  above); `resolution: escalated` is schema-restricted to
-  `governor-reviewer`. Both match this project's standing rule that
-  only an authorized role's coordination message supplies binding
-  outcomes — a third party's opinion is evidence for either direct
-  party to use in their own answer, not itself a closing record.
+- **Authority boundary, explicit**: `resolution: replied` is
+  restricted to the two session-bound direct parties (not "any role");
+  `resolution: escalated` is schema-restricted to `governor-reviewer`
+  and is the only value that closes a challenge. Both match this
+  project's standing rule that only an authorized role's coordination
+  message supplies binding outcomes — a third party's opinion is
+  evidence either direct party may use in their own reply, not itself
+  a closing record.
 
 ### 3. `agov` surfaces
 
@@ -296,11 +339,11 @@ The six-surface manifest, at
 
 | Surface | Disposition |
 |---|---|
-| Normative owner | `planned`: `agf/rules/workflow/coordination-challenge-response-rule.md` (does not exist yet; created at implementation time, states challenge-response is advisory-only, the bounded-window/escalation-not-drop guarantee, the governor-only `escalated` restriction, and the answered-by-direct-parties-only restriction) |
+| Normative owner | `planned`: `agf/rules/workflow/coordination-challenge-response-rule.md` (does not exist yet; created at implementation time, states challenge-response is advisory-only, the bounded-window guarantee, the governor-only `escalated` restriction as the sole closing action, and the session-bound-direct-parties-only restriction for `replied`) |
 | Adopter-facing explanation | `updated`: `agf/docs/site/docs/concepts/coordination-protocol.md` gains a "Challenge-response" subsection (same page CP-B-2 added its own "Publication-hold declarations" subsection to) |
-| Runbook/situation map | `updated`: `agf/docs/site/docs/operate/poll-and-coordinate.md` gains a concise step: how to raise, answer, or recognize an escalated challenge during a poll cycle |
+| Runbook/situation map | `updated`: `agf/docs/site/docs/operate/poll-and-coordinate.md` gains a concise step: how to raise, reply to, or recognize an escalated challenge during a poll cycle |
 | AI landing/loaders | `updated`: `AGENTS.md`, `agf/templates/AGENTS.md`, and `.claude/CLAUDE.md`'s "Coordination channel" section gain one pointer sentence next to the existing nine-message-kinds table — not a restatement of the full contract |
-| Validation/drift evidence | `implemented`: `agov coord validate` enforces the schema-level restrictions (challenge_id uniqueness, `escalated` requires `governor-reviewer`); `not mechanically decidable`: whether a given "answered" record is actually a direct party (schema can check `from` against the raising/disputed record's own `from`, which is mechanical) — this one is actually `implemented` too, since both authors' identities are already recorded fields `agov` can compare directly, not a human judgment call |
+| Validation/drift evidence | `implemented`: `agov coord validate` enforces the schema-level restrictions (challenge_id uniqueness, `escalated` requires `governor-reviewer`, `window_hours` max 720); **not** claimed fully mechanical for direct-party matching — `mqjr`'s finding stands: `session`-field comparison narrows but does not eliminate false matches (a self-declared token, not cryptographic identity), so this row is `implemented` for the schema-level checks and `not mechanically decidable` for whether a `session` match is the *actual* same real-world actor |
 | Distribution | `updated`: confirm the new rule ships in the same `agf/rules/` tree distributed via the release archive as every other workflow rule — no separate packaging step needed |
 
 Real `infosec-sentinel` and `contribution-auditor` consultations
@@ -323,7 +366,7 @@ new-normative-rule change.
 - Positive: an open challenge with time remaining displays as open, not
   escalated.
 - Negative (challenge core behavior): an open challenge past its
-  `window_hours` with no `answered`/`escalated` successor displays as
+  `window_hours` with no `escalated` record from a governor displays as
   `escalate to governor` — proving the fail-state fires — and a
   non-governor-authored record claiming `resolution: escalated` is
   rejected by schema validation (`from` const mismatch), proving the
@@ -339,21 +382,51 @@ new-normative-rule change.
   between the two surfaces.
 - **Added per `tkkp`'s S3-1/S3-2 findings**:
   - Negative: a third-party (neither raising nor disputed record's
-    author) record claiming `resolution: answered` does not close the
+    author) record claiming `resolution: replied` does not close the
     challenge; `agov coord pending` still displays it as open.
   - Negative: a record naming the raising record's id in `references-to`
     but with a mismatched `challenge_id` is rejected as not a valid
     response.
   - Negative: two different raising records that mint the same
     `challenge_id` — the second is rejected by `agov coord validate`.
-  - Negative: an answering record with a `timestamp` earlier than the
+  - Negative: a reply record with a `timestamp` earlier than the
     raising record's own `timestamp` is ignored as backdated.
-  - Positive: a race between two valid closing candidates — the
-    chronologically first one wins; the later one is informational only
-    and does not reopen or override.
+- **Added per `mqjr`'s recheck findings**:
+  - Negative: two different sessions sharing the same `from` role each
+    reply — neither is treated as a direct party unless its `session`
+    actually matches the raising or disputed record's own `session`.
+  - Positive/negative: a direct party's `replied` record does NOT
+    remove the challenge from `agov coord pending`'s output; it only
+    changes the displayed sub-state to `replied — decision pending`.
+  - Negative: a reply record with a `timestamp` in the future relative
+    to the reader's observation time is invalid at read time; re-run
+    the same read after that time passes and confirm it becomes valid
+    (proving `agov` re-evaluates rather than caching a one-time
+    judgment).
+  - Negative: the raising or disputed record is deleted/unreadable —
+    `agov` reports an `unavailable` problem and treats the challenge as
+    needs-review, never as silently closed or silently absent.
+  - Positive: two valid candidate records with identical timestamps —
+    the lexicographically earlier filename/id wins the tie,
+    deterministically.
+  - Negative: a `window_hours` value above 720 is rejected by schema
+    validation.
+  - Positive: disabling challenge display (forward-disablement,
+    post-use rollback) still surfaces any previously-open,
+    not-yet-escalated challenge in a distinct `disabled — needs review`
+    section, rather than making it disappear entirely.
   - Positive: `handoff next`'s selected obligation changes when an
-    urgent item exists for the same role/session, versus today's
-    baseline where only the oldest normal item would be selected.
+    urgent item exists for the same role/session. **Corrected per
+    `mqjr`'s S3-5 finding**: the previous revision asserted "today's
+    baseline selects the oldest normal item" as if already established
+    fact — it is not yet code-grounded. This test must first capture
+    today's actual current selection behavior with a characterization
+    test (per `workflow/feature-regression-guard-rule.md`'s pattern for
+    modifying an untested-in-this-respect feature), *then* add urgency
+    ordering on top and confirm only the urgency-vs-no-urgency delta
+    changed, with every other existing tie-break, role/session, and
+    supersession-filtering behavior verified unchanged against that
+    same characterization baseline.
 
 ## Migration / impact
 
@@ -379,15 +452,30 @@ that carries `challenge` if the schema were later reverted.
   records already carry `challenge`): the schema field itself is
   **never removed** once used — per this project's own standing rule
   ("Never remove fields from immutable records to downgrade," already
-  established by CP-B-2's plan and unchanged here). Instead, rollback
-  is *behavioral*: `agov coord pending`/`handoff next` stop reading or
-  displaying the `challenge` object (a code-level, not schema-level,
-  disable), so the feature is inert going forward while every existing
-  record — including ones with `challenge` — remains schema-valid and
-  readable by any reader that already accepted the field. This is the
+  established by CP-B-2's plan and unchanged here). Rollback is
+  *behavioral*: `agov coord pending`/`handoff next` stop evaluating new
+  `challenge` semantics (a code-level, not schema-level, disable), so
+  the feature is inert going forward while every existing record —
+  including ones with `challenge` — remains schema-valid and readable.
+  **Corrected per `mqjr`'s S3-3 finding**: "stop displaying the
+  `challenge` object" is not itself safe, because a raising record
+  defaults `requires-ack: false` and is excluded from the ordinary
+  pending list specifically so it doesn't double-count — if disablement
+  also removed it from the *challenge* section with nothing replacing
+  that visibility, a genuinely still-open, not-yet-escalated challenge
+  would disappear entirely, violating the parent work order's
+  no-silent-drop guarantee. The disabled state therefore has its own
+  conservative fallback: any record carrying an open (non-`escalated`)
+  `challenge` object is still surfaced by `agov coord pending`, in a
+  distinct `disabled — needs review` section, for as long as disablement
+  is active — visibility is preserved even though the ordering/reply
+  logic is inert. Sort order (the `urgency` half of this plan) also
+  reverts to today's behavior at the same point rollback takes effect;
+  this fallback concerns only the `challenge` half. This mirrors the
   same forward-disablement shape CP-B-2 itself uses (an `enabled: bool`
-  evaluator gate, per that plan). Sort order also reverts to today's
-  behavior at the same point rollback takes effect.
+  evaluator gate, per that plan), extended with the conservative
+  visibility fallback CP-B-2 didn't need for its own, non-obligation
+  fields.
 - **Compatible-reader rollout**: exactly as CP-B-2's own plan already
   documents for its fields — an older, strict reader that rejects
   unknown schema properties is not a supported reader once a channel
