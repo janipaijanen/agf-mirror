@@ -5764,24 +5764,43 @@ fn format_pending_handoff(message: &HandoffMessage, messages: &[HandoffMessage])
 /// status. This is a derived display value only: no schema field changes,
 /// no ack is auto-satisfied, and the pending set itself (`pending_handoffs`
 /// / `handoff_resolved`) is unchanged.
-fn pending_handoff_label(message: &HandoffMessage, messages: &[HandoffMessage]) -> String {
+///
+/// Shared by every command path that displays a handoff's status --
+/// `pending_handoff_label` (list views: `coord status`, `handoff next
+/// --roles`) and `render_handoff_summary` (the single-item `agov handoff
+/// next <role>` command). A prior revision of this slice updated only the
+/// list views, leaving the named `handoff next <role>` command still
+/// showing the bare declared status (S4-F1,
+/// `20260913T172241Z-coder-tester-bsbr`); this shared helper is the fix,
+/// so no command path can drift from another again.
+fn derived_handoff_status_label(message: &HandoffMessage, messages: &[HandoffMessage]) -> String {
+    handoff_status_label_from_answered(message, !reply_evidence(message, messages).is_empty())
+}
+
+/// Same derivation as `derived_handoff_status_label`, for call sites that
+/// already have a precomputed `reply_evidence` result (e.g. branch-local
+/// advisory candidates in `handoff_branch.rs`, which compute it once at
+/// candidate-collection time) rather than the full message list.
+pub(crate) fn handoff_status_label_from_answered(message: &HandoffMessage, answered: bool) -> String {
     let declared_status = message
         .raw
         .get("handoff")
         .and_then(|value| value.get("status"))
         .and_then(|value| value.as_str())
         .unwrap_or("ready");
-    let answered = !reply_evidence(message, messages).is_empty();
-    let bracket = match (declared_status, answered) {
+    match (declared_status, answered) {
         (status, false) => status.to_string(),
         ("blocked", true) => "blocked, answered — ack pending".to_string(),
         (_, true) => "answered — ack pending".to_string(),
-    };
+    }
+}
+
+fn pending_handoff_label(message: &HandoffMessage, messages: &[HandoffMessage]) -> String {
     format!(
         "{}  {}  [{}]",
         display_id(&message.raw),
         string_field(&message.raw, "topic").unwrap_or(""),
-        bracket
+        derived_handoff_status_label(message, messages)
     )
 }
 
@@ -6024,7 +6043,11 @@ fn handoff_next(
         return 2;
     };
 
-    render_handoff_summary(&mut output, &message);
+    render_handoff_summary(
+        &mut output,
+        &message,
+        !reply_evidence(&message, &messages).is_empty(),
+    );
     render_reply_evidence(&mut output, &message, &messages, "  ");
 
     if let Some(recipient) = addressed_elsewhere(&message.raw, session) {
@@ -6531,7 +6554,7 @@ fn addressed_elsewhere<'a>(raw: &'a serde_json::Value, session: Option<&str>) ->
         .map(|_| recipient)
 }
 
-fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) {
+fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage, answered: bool) {
     let handoff = message
         .raw
         .get("handoff")
@@ -6540,10 +6563,7 @@ fn render_handoff_summary(output: &mut OutputCounter, message: &HandoffMessage) 
         .and_then(|value| value.get("next_agent"))
         .and_then(|value| value.as_str())
         .unwrap_or_else(|| string_field(&message.raw, "to").unwrap_or("unknown"));
-    let status = handoff
-        .and_then(|value| value.get("status"))
-        .and_then(|value| value.as_str())
-        .unwrap_or("ready");
+    let status = handoff_status_label_from_answered(message, answered);
 
     output.stdout(format!("Handoff for: {next_agent}"));
     output.stdout(format!("Status:      {status}"));
