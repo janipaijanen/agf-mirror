@@ -2562,3 +2562,48 @@ described practice, and it does not change AGF rules, gates, or agent
 boundaries. No radar entry is added — the comparable tier/escalation design
 is prior art for AGF's existing role-authority and escalation rules, not an
 open or controversial question requiring separate tracking.
+
+# Batch 37 (2026-09-13) — user-submitted candidate (LLM-as-variation-operator taxonomy)
+
+Numbered 37 to avoid the "Batch 33"/"Batch 34"/"Batch 35" headers already
+open in other unmerged MRs (!2390, !2408, !2752) at review time; Batch 36
+is already merged to main. Collision-scanned against those open MRs and
+main's current content and found no entry for this candidate in any of
+them.
+
+## Classified
+
+- https://camilochs.github.io/semantic-turn-metaheuristics/
+  type: research | relation: tangential | action: watch
+  note: an academic tutorial/preprint (with a companion, reportedly
+  stdlib-only Python 3.9+ codebase) proposing a taxonomy for classifying
+  LLM calls used as variation operators (mutation/crossover analogues)
+  inside metaheuristic optimization search loops, along two axes: prompt
+  conditioning type (numeric/symbolic/linguistic) and artifact
+  persistence (transient/amortized/transfer). Self-reported evidence
+  includes a 30-method survey/classification, an inter-coder reliability
+  check across three independent LLM coders (9/12 methods coded
+  unanimously, Gwet's AC1 = 0.73, as stated on the page), and a
+  bin-packing ablation reporting both conditions reaching the optimum
+  (the page explicitly disclaims being a benchmark/leaderboard
+  comparison). Authorship as stated on the page: Camilo Chacón Sartori
+  (Apeiron Intelligence, IIRIA-CSIC), Guillem Rodríguez-Corominas
+  (IIRIA-CSIC/UPC Barcelona), Christian Blum (IIRIA-CSIC); none of this
+  is independently verified here. Relevance to AGF's own domain (agent
+  governance, multi-agent coordination, software development workflows)
+  is tangential at best — this concerns a single LLM call embedded in an
+  optimization loop's variation step, not multi-agent coordination,
+  role/gate authority, or governed decision-making, and per the page's
+  own framing the work is pre-publication ("in preparation" for 2026),
+  Level 1-2 maturity by this project's own vocabulary for the
+  classification framework itself. Recorded for possible future
+  relevance to any AGF work touching LLM-in-a-loop design patterns, not
+  because it bears on agent governance directly. (accessed 2026-09-13)
+
+## Evaluation boundary
+
+This batch classifies one source. It adopts nothing: it does not install,
+trial, depend on, or grant AGF authority to this work or any described
+method, and it does not change AGF rules, gates, or agent boundaries. No
+radar entry is added — this is a tangential research watch-item, not an
+open or controversial question bearing on AGF's own design.
