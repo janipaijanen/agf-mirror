@@ -150,6 +150,12 @@
       "type": "array",
       "items": { "type": "string" }
     },
+    "supersedes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Stable ids of one or more earlier coordination records this one replaces for the same audience. Written only on the later (superseding) record -- coordination records are immutable and append-only, so an earlier record can never acquire a field after the fact. Readers derive the reverse relationship; see coordination-publication-rule.md's lifecycle and supersession semantics, which requires a correction to both reference and supersede the record it replaces -- an id listed here MUST also appear in this record's own references-to for the edge to be honored. An entry is honored only after edge-validity checks (existence and matching references-to citation, temporal order, no self-edge, same audience, sender authority against the current chain leaf) pass -- see agov-coord's supersession module."
+    },
     "topic": {
       "type": "string",
       "minLength": 1

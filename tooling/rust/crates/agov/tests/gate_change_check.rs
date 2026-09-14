@@ -54,6 +54,20 @@
 // (`main.rs`) commit, per the generic scenario this file's existing tests
 // already exercise.
 
+// Row 5 S2 companion evidence (2026-09-14): `pending_handoffs`, `coord_list`,
+// and `CoordListRow` in main.rs were extended to derive and (for
+// `coord_list`) display a coordination record's `agov-coord::supersession`
+// chain-walk result, per the Gate 1-approved round-3 corrected design
+// (`docs/plans/20260913T195450Z-row5-s2-self-announcing-supersession.md`,
+// governor decision `20260914T044207Z-governor-reviewer-hdqh`). Advisory
+// queue display and audit-log annotation only -- no gate, validator, or
+// CI-blocking mechanic touched, and gate-change-check itself is unchanged.
+// Real behavioral coverage lives in `agov-coord::supersession`'s own unit
+// tests (edge validity and the governor-authority chain-walk regressions)
+// and in `tests/supersession.rs` (the four-surface command-level coverage
+// S2-G1-F3 required); this comment is this file's companion touch for that
+// same shared-surface (`main.rs`) change.
+
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -167,7 +181,12 @@ fn new_namespace_command_does_not_bypass_shared_gate_test_accompaniment() {
         .args(["artifact", "index"])
         .output()
         .expect("run artifact index negative control");
-    assert_eq!(artifact.status.code(), Some(1), "{}", diagnostics(&artifact));
+    assert_eq!(
+        artifact.status.code(),
+        Some(1),
+        "{}",
+        diagnostics(&artifact)
+    );
     let output = fixture.check();
     assert_eq!(output.status.code(), Some(1), "{}", diagnostics(&output));
     assert!(String::from_utf8_lossy(&output.stderr).contains("no changed declared test path"));

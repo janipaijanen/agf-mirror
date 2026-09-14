@@ -2617,6 +2617,11 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
         None => None,
     };
 
+    // Full-history descriptors, resolved BEFORE the `--since` filter below:
+    // a superseder can be published outside the requested window on
+    // either side, so the chain walk must see the whole channel.
+    let descriptors = pending_ack_descriptors(&messages);
+
     let items: Vec<HandoffMessage> = messages
         .into_iter()
         .filter(|message| match &cursor {
@@ -2630,8 +2635,17 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
         return 2;
     }
 
+    let superseded_by = |file: &str| -> Option<String> {
+        let descriptor = descriptors.iter().find(|d| d.file == file)?;
+        let superseder = agov_coord::supersession::valid_superseder(descriptor, &descriptors)?;
+        Some(superseder.msg.id().unwrap_or(&superseder.file).to_string())
+    };
+
     if format == "json" {
-        let rows: Vec<CoordListRow> = items.iter().map(CoordListRow::from).collect();
+        let rows: Vec<CoordListRow> = items
+            .iter()
+            .map(|message| CoordListRow::from_with_superseded(message, superseded_by(&message.file)))
+            .collect();
         match serde_json::to_string_pretty(&rows) {
             Ok(json) => output.stdout(json),
             Err(err) => {
@@ -2641,15 +2655,20 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
         }
     } else {
         for message in &items {
+            let annotation = match superseded_by(&message.file) {
+                Some(id) => format!("  superseded — see {id}"),
+                None => String::new(),
+            };
             output.stdout(format!(
-                "{}  {}  {}  {} -> {}  {}  {}",
+                "{}  {}  {}  {} -> {}  {}  {}{}",
                 string_field(&message.raw, "timestamp").unwrap_or(""),
                 string_field(&message.raw, "id").unwrap_or(""),
                 string_field(&message.raw, "kind").unwrap_or(""),
                 string_field(&message.raw, "from").unwrap_or(""),
                 string_field(&message.raw, "to").unwrap_or(""),
                 string_field(&message.raw, "topic").unwrap_or(""),
-                message.file
+                message.file,
+                annotation
             ));
         }
     }
@@ -2967,10 +2986,24 @@ struct CoordListRow {
     from: String,
     to: String,
     topic: String,
+    /// Row 5 S2: the superseder's own `id`, when this record has a
+    /// [`agov_coord::supersession::valid_superseder`]. `coord list` is a
+    /// chronological audit log, not a live-obligation queue, so a
+    /// superseded row is annotated here rather than dropped -- see
+    /// `coord_list`'s own text-output rendering for the equivalent
+    /// annotation on that path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    superseded: Option<String>,
 }
 
 impl From<&HandoffMessage> for CoordListRow {
     fn from(message: &HandoffMessage) -> Self {
+        Self::from_with_superseded(message, None)
+    }
+}
+
+impl CoordListRow {
+    fn from_with_superseded(message: &HandoffMessage, superseded: Option<String>) -> Self {
         Self {
             file: message.file.clone(),
             id: string_field(&message.raw, "id").unwrap_or("").to_string(),
@@ -2983,6 +3016,7 @@ impl From<&HandoffMessage> for CoordListRow {
             topic: string_field(&message.raw, "topic")
                 .unwrap_or("")
                 .to_string(),
+            superseded,
         }
     }
 }
@@ -6371,17 +6405,32 @@ fn read_coord_messages_with_invalid(
     Ok((messages, invalid_files))
 }
 
+/// Backs `agov handoff next`, `agov coord status`, and the `--roles` list
+/// views -- the one shared resolution point Row 5 S2's design requires
+/// (see S2-G1-F3/S4-F1's own precedent for why a per-command
+/// reimplementation is the exact mistake to avoid). A handoff is excluded
+/// both when the existing `ack`/`completion`/`decision-record` chain
+/// resolves it and, independently, when it has a
+/// [`agov_coord::supersession::valid_superseder`] (Row 5 S2) -- two
+/// distinct terminal states, not one folded into the other.
 fn pending_handoffs(messages: &[HandoffMessage]) -> Vec<HandoffMessage> {
     let descendants_by_file = descendants_by_file(messages);
     let messages_by_file: BTreeMap<&str, &HandoffMessage> = messages
         .iter()
         .map(|message| (message.file.as_str(), message))
         .collect();
+    let descriptors = pending_ack_descriptors(messages);
 
     messages
         .iter()
         .filter(|message| string_field(&message.raw, "kind") == Some("handoff"))
         .filter(|message| !handoff_resolved(message, &descendants_by_file, &messages_by_file))
+        .filter(|message| {
+            let Some(descriptor) = descriptors.iter().find(|d| d.file == message.file) else {
+                return true;
+            };
+            agov_coord::supersession::valid_superseder(descriptor, &descriptors).is_none()
+        })
         .cloned()
         .collect()
 }

@@ -25,10 +25,10 @@ surfaces:
     disposition: updated
     path: docs/reference/session-resume.md
     reason: >-
-      A one-line pointer will be added to the existing lifecycle
-      documentation section, matching the pattern already used for
-      qbka's "Plan Status Lifecycle" and Row 5 S4's "CP-A Ack-Pending
-      Display" sections.
+      A new "Coordination-Record Supersession" section was added
+      alongside the existing lifecycle documentation, matching the
+      pattern already used for qbka's "Plan Status Lifecycle" and Row 5
+      S4's "CP-A Ack-Pending Display" sections.
   ai_landing_loaders:
     disposition: existing pointer sufficient
     paths:
@@ -42,13 +42,19 @@ surfaces:
   validation_drift_evidence:
     disposition: implemented
     paths:
+      - tooling/rust/crates/agov-coord/src/supersession.rs
       - tooling/rust/crates/agov-coord/src/handoff_tracker.rs
       - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/tests/supersession.rs
     reason: >-
-      Positive/negative/fail-safe test coverage lands in these files'
-      existing #[cfg(test)] modules and a new integration test file (not
-      yet created at Gate 1) per the plan's test strategy; advisory
-      display only, no new blocking authority.
+      Edge-validity checks (all six, including the S2-G1-R2-F1 causal-
+      reference requirement) and the governor-authority chain-walk
+      (S2-G1-R2-F2 fix, with the four required regression cases) are unit
+      tested in supersession.rs's own #[cfg(test)] module. Command-level
+      coverage across all four required surfaces (agov handoff next,
+      agov coord status, agov coord pending, agov coord list including
+      its JSON output) lives in tests/supersession.rs. Advisory display
+      only, no new blocking authority.
   distribution:
     disposition: existing shipped paths
     paths:

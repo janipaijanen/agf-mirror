@@ -231,6 +231,36 @@ stays in the pending set until an actual `ack`, `completion`, or
 `answered — ack pending` as "someone already responded, check before
 re-answering," not as "this obligation is closed."
 
+## Coordination-Record Supersession
+
+Per Row 5 S2 of `20260910T065635Z-coordination-lifecycle-semantics-work-
+order`, a later coordination record may declare `supersedes: [id, ...]`
+to retire an earlier record's live-obligation status for the same
+audience. The earlier record never acquires a field after the fact
+(coordination records are immutable and append-only); the reverse
+relationship is always derived by readers.
+
+An edge is honored only once six checks pass: the successor names the
+predecessor in **both** its own `supersedes` and `references-to` arrays
+(a `supersedes` claim alone is not enough), a strictly later timestamp, no
+self-edge, the same `to` audience, and sender authority (the
+predecessor's own author, or `governor-reviewer`). Resolution walks a
+chain to its current leaf rather than picking the latest of several
+direct claims against the original record -- this is what keeps a
+governor-reviewer override from being silently displaced by a
+lower-authority correction published later: once governor-reviewer
+becomes a leaf, only governor-reviewer (or a fresh governor-reviewer
+record correctly targeting that leaf) can extend the chain further. Any
+check failing means the edge is not honored and the record stays exactly
+as visible as if `supersedes` were absent.
+
+A validly superseded record is excluded from `agov handoff next`, `agov
+coord status`'s pending-handoffs section, the `--roles` list views, and
+`agov coord pending`. `agov coord list` does not drop the row -- it is a
+chronological audit log, not a live-obligation queue -- but annotates it
+(`superseded — see <id>` in text output; a `superseded` field in JSON
+output).
+
 ## Failure Modes
 
 If the command says no role is configured, pass `--role` explicitly or add
