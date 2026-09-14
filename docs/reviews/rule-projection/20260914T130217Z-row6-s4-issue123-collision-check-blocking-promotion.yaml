@@ -16,18 +16,20 @@ changed_pages_or_runbooks:
 
 surfaces:
   normative_owner:
-    disposition: existing pointer sufficient
+    disposition: updated
     stage: existing
     path: agf/rules/workflow/development-workflow-rule.md
     reason: >-
-      Same owner as S3: development-workflow-rule.md's Phase 2 already
-      requires a plan to declare an "affected files list." This slice
-      adds real enforcement behind that existing requirement's
-      machine-checkable form (a plan whose affected_paths collides,
-      unacknowledged, with another live plan now blocks at CI) rather
-      than introducing a new normative claim. The blocking mechanism
-      itself is gate-mechanics detail, appropriately owned by the same
-      rule that already governs what a plan must declare.
+      Corrected 2026-09-14 (independent Gate 1 review thsq, S4-G1-1):
+      the round-1 manifest claimed "existing pointer sufficient" without
+      actually adding blocking-authority text, contradicting
+      tool-authority-boundary-rule.md's requirement that a named rule
+      explicitly grant a check blocking authority before it may halt
+      work. Same owner as S3 (development-workflow-rule.md's Phase 2
+      already requires a plan to declare an "affected files list"), but
+      this slice actually amends it with a new "Affected-paths collision
+      blocking" subsection naming the exact check, exact condition, and
+      exact scope (plan-vs-plan only) that may halt Gate 1.
 
   adopter_facing_explanation:
     disposition: not applicable
@@ -56,10 +58,10 @@ surfaces:
       collision-check reports (does not block) overlaps") is corrected
       to state the new, narrower truth: collision-check blocks Gate 1
       for a changed plan's unacknowledged collision against another live
-      plan or local ref (not yet against other open MRs' forge-visible
-      changes -- that remains advisory, explicitly out of scope this
-      slice). Both loader copies updated together, matching S3's own
-      precedent for keeping them identical.
+      **plan only** (not local refs or other open MRs' forge-visible
+      changes -- both remain advisory, explicitly out of scope this
+      slice per S4-G1-3's correction). Both loader copies updated
+      together, matching S3's own precedent for keeping them identical.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
@@ -74,14 +76,20 @@ surfaces:
       - tooling/rust/crates/agov/src/main.rs
       - tooling/rust/crates/agov/tests/plan_collision.rs
       - agf/schemas/gate1-plan.schema.json
+      - .agf/gates.yaml
+      - agf/rules/workflow/development-workflow-rule.md
     reason: >-
-      Unlike S3 (advisory only), this slice ships a real blocking gate:
-      test coverage in `tests/plan_collision.rs` must include the
-      negative case (unacknowledged collision blocks), the positive case
-      (`depends_on` clears it), the `--changed-only` scoping proof, the
-      incomplete-coverage-is-not-a-block proof, and confirmation that
-      default (no-flag) invocations are unaffected -- per
-      `gate-self-test-rule`, not merely advisory display coverage.
+      Unlike S3 (advisory only), this slice ships a real blocking gate,
+      registered as `plan-collision-block` in `.agf/gates.yaml`
+      (S4-G1-2's fix) so `gate-change-check` itself ties every listed
+      surface back to `tests/plan_collision.rs`. Test coverage there
+      must include the negative case (unacknowledged collision blocks),
+      the positive case (`depends_on` clears it), the `--changed-only`
+      scoping proof, the incomplete-coverage-is-not-a-block proof, the
+      `--plans-only` determinism proof (S4-G1-3), the first-push/MR-pair
+      CI-rule regression (S4-G1-4), and confirmation that default
+      (no-flag) invocations are unaffected -- per `gate-self-test-rule`,
+      not merely advisory display coverage.
 
   distribution:
     disposition: confirmed
