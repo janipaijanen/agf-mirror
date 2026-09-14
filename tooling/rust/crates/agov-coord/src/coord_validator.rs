@@ -56,6 +56,20 @@ impl CoordMessage {
             .filter_map(normalize_coord_reference)
             .collect()
     }
+
+    /// Normalised `supersedes` filenames (bare IDs resolved to `<id>.md`).
+    /// See Row 5 S2's supersession module for how this field is
+    /// interpreted -- this accessor only exposes the raw declared list.
+    pub fn supersedes(&self) -> Vec<String> {
+        self.raw
+            .get("supersedes")
+            .and_then(|v| v.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|v| v.as_str())
+            .filter_map(normalize_coord_reference)
+            .collect()
+    }
 }
 
 /// Normalise a single `references-to` entry to a coordination filename.

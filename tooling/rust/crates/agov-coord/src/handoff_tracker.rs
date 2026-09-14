@@ -117,6 +117,12 @@ pub struct PendingAck {
 ///
 /// `descriptors` must be sorted by filename (chronological order), same
 /// contract as [`find_pending`].
+///
+/// A record with a [`crate::supersession::valid_superseder`] is also
+/// excluded here (Row 5 S2), independently of and in addition to the
+/// direct-reference resolution above -- a validly superseded record is a
+/// second, distinct terminal state for this surface, not a special case
+/// of direct reference.
 pub fn find_pending_all_kinds(descriptors: &[MessageDescriptor], cutoff: &str) -> Vec<PendingAck> {
     descriptors
         .iter()
@@ -124,6 +130,7 @@ pub fn find_pending_all_kinds(descriptors: &[MessageDescriptor], cutoff: &str) -
         .filter(|d| !matches!(d.msg.kind(), Some("handoff") | Some("ack")))
         .filter(|d| d.msg.timestamp().is_some_and(|ts| ts >= cutoff))
         .filter(|d| !is_directly_referenced_later(d, descriptors))
+        .filter(|d| crate::supersession::valid_superseder(d, descriptors).is_none())
         .map(|d| PendingAck {
             id: d.msg.id().unwrap_or("").to_string(),
             file: d.file.clone(),
@@ -136,7 +143,10 @@ pub fn find_pending_all_kinds(descriptors: &[MessageDescriptor], cutoff: &str) -
         .collect()
 }
 
-fn is_directly_referenced_later(target: &MessageDescriptor, descriptors: &[MessageDescriptor]) -> bool {
+fn is_directly_referenced_later(
+    target: &MessageDescriptor,
+    descriptors: &[MessageDescriptor],
+) -> bool {
     descriptors
         .iter()
         .any(|d| d.sort_key > target.sort_key && d.refs.iter().any(|r| r == &target.file))
@@ -349,7 +359,10 @@ mod tests {
         );
         let pending = find_pending_all_kinds(&[a, b, c], CUTOFF);
         assert_eq!(pending.len(), 1);
-        assert_eq!(pending[0].file, "20260802T100000Z-contribution-auditor-aaaa.md");
+        assert_eq!(
+            pending[0].file,
+            "20260802T100000Z-contribution-auditor-aaaa.md"
+        );
     }
 
     #[test]
