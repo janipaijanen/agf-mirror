@@ -1,3 +1,18 @@
+// Row 6 S4 companion evidence (2026-09-14): added
+// `agov:governance:plan-collision-gate` to `.gitlab-ci.yml`, a new,
+// independent job with its own single `merge_request_event` +
+// path-scoped rule. It shares no `needs:`, DinD, container-build, or
+// source-agnostic-branch-rule relationship with any existing mandatory
+// edge this gate's own fixtures track -- the mandatory-edges and
+// context-matrix fixtures below are unaffected, and
+// `live_configuration_preserves_every_mandatory_needs_implication` and
+// `mandatory_edge_fixture_matches_the_complete_ci_inventory` both still
+// pass unmodified against the live configuration. Real behavioral
+// coverage for the new job's own gate mechanics
+// (`plan-collision-block`) lives in `tests/plan_collision.rs`; this
+// comment is this file's companion touch for the shared-surface
+// (`.gitlab-ci.yml`) change per `.agf/gates.yaml`.
+
 use agov_validators::ci_rules::{job_selected, CiContext};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
