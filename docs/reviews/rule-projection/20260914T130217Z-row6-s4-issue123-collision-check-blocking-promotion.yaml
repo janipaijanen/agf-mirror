@@ -1,0 +1,108 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for Row 6 S4 (issue #123, part 2:
+# promoting agov plan collision-check to MR-blocking). S3's own manifest
+# deliberately left this promotion advisory-only; this slice is the
+# "later decision" S3's plan named.
+
+plan_id: 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+issue: 123
+
+changed_pages_or_runbooks:
+  - AGENTS.md
+  - agf/templates/AGENTS.md
+  - agf/templates/gate1-plan.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    stage: existing
+    path: agf/rules/workflow/development-workflow-rule.md
+    reason: >-
+      Corrected 2026-09-14 (independent Gate 1 review thsq, S4-G1-1):
+      the round-1 manifest claimed "existing pointer sufficient" without
+      actually adding blocking-authority text, contradicting
+      tool-authority-boundary-rule.md's requirement that a named rule
+      explicitly grant a check blocking authority before it may halt
+      work. Same owner as S3 (development-workflow-rule.md's Phase 2
+      already requires a plan to declare an "affected files list"), but
+      this slice actually amends it with a new "Affected-paths collision
+      blocking" subsection naming the exact check, exact condition, and
+      exact scope (plan-vs-plan only) that may halt Gate 1.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Internal governance tooling (a Gate 1 plan schema field, three new
+      `agov` CLI flags, and a CI job); no adopter-facing Pages claim
+      describes plan-authoring mechanics at this level of detail, same
+      disposition as S3.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/templates/gate1-plan.md
+    reason: >-
+      Gains a one-line pointer noting `depends_on` as the mechanism to
+      acknowledge a known, deliberate `affected_paths` overlap and avoid
+      a blocked Gate 1 -- extending S3's existing `affected_paths`
+      pointer in the same template.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      "Gate discipline" section's existing S3 pointer ("agov plan
+      collision-check reports (does not block) overlaps") is corrected
+      to state the new, narrower truth: collision-check blocks Gate 1
+      for a changed plan's unacknowledged collision against another live
+      **plan only** (not local refs or other open MRs' forge-visible
+      changes -- both remain advisory, explicitly out of scope this
+      slice per S4-G1-3's correction). Both loader copies updated
+      together, matching S3's own precedent for keeping them identical.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Imports root AGENTS.md by reference (`@../AGENTS.md`); the
+          root pointer reaches Claude without a separate edit, same as
+          S3.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/crates/agov/src/plan_collision.rs
+      - tooling/rust/crates/agov/src/main.rs
+      - tooling/rust/crates/agov/tests/plan_collision.rs
+      - agf/schemas/gate1-plan.schema.json
+      - .agf/gates.yaml
+      - agf/rules/workflow/development-workflow-rule.md
+    reason: >-
+      Unlike S3 (advisory only), this slice ships a real blocking gate,
+      registered as `plan-collision-block` in `.agf/gates.yaml`
+      (S4-G1-2's fix) so `gate-change-check` itself ties every listed
+      surface back to `tests/plan_collision.rs`. Test coverage there
+      must include the negative case (unacknowledged collision blocks),
+      the positive case (`depends_on` clears it), the `--changed-only`
+      scoping proof, the incomplete-coverage-is-not-a-block proof, the
+      `--plans-only` determinism proof (S4-G1-3), the first-push/MR-pair
+      CI-rule regression (S4-G1-4), and confirmation that default
+      (no-flag) invocations are unaffected -- per `gate-self-test-rule`,
+      not merely advisory display coverage.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/schemas/gate1-plan.schema.json
+      - agf/templates/gate1-plan.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      Same distribution shape as S3: the schema field and both template
+      pointers ship in the AGF artifact; `agov plan collision-check`
+      (including its three new flags) ships in the separate tooling
+      archive. The new `.gitlab-ci.yml` job is foundry-local CI
+      configuration, not an AGF or tooling distribution artifact --
+      adopters wiring this gate into their own CI copy the job pattern,
+      not a shipped file, matching how every other foundry-local CI job
+      in this repository is treated.
