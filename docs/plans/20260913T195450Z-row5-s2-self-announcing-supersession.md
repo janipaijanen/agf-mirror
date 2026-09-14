@@ -1,6 +1,8 @@
 ---
 id: 20260913T195450Z-row5-s2-self-announcing-supersession
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-14T04:42:07Z
 topic: row5-s2-self-announcing-supersession
 candidate_release: v2.11.0
 advisory_consultation:
