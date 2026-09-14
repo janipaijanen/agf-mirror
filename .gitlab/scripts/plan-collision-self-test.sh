@@ -17,6 +17,15 @@ set -eu
 
 agov_bin="${1:?plan-collision-self-test.sh: agov binary path required}"
 
+# Captured before entering the synthetic fixture directory below: the
+# fixture has no agf/ tree of its own, so agov's own schema-dir discovery
+# (which walks up from CWD) would fail there. Point it explicitly at the
+# real repository's schema directory, resolved from this script's own
+# invocation-time working directory (the CI job cd's to $CI_PROJECT_DIR
+# before calling this script).
+AGOV_SCHEMA_DIR="$PWD/agf/schemas"
+export AGOV_SCHEMA_DIR
+
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
