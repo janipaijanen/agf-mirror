@@ -1,6 +1,8 @@
 ---
 id: 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-14T15:26:01Z
 topic: row6-s4-issue123-collision-check-blocking-promotion
 candidate_release: v2.11.0
 advisory_consultation:
