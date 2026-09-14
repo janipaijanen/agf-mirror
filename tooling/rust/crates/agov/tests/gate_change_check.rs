@@ -337,7 +337,7 @@ fn shared_ci_change_still_requires_gate_change_checks_own_evidence() {
 }
 
 #[test]
-fn live_registry_assigns_shared_ci_surface_to_both_active_gates() {
+fn live_registry_assigns_shared_ci_surface_to_all_active_gates() {
     let registry_path = repo_root().join(".agf/gates.yaml");
     let registry = std::fs::read_to_string(&registry_path).expect("read live gate registry");
     let (owners, unresolved) = live_registry_errors(&registry);
@@ -346,8 +346,12 @@ fn live_registry_assigns_shared_ci_surface_to_both_active_gates() {
         BTreeSet::from([
             "ci-needs-implication".to_string(),
             "gate-change-check".to_string(),
+            // Row 6 S4 (#123): plan-collision-block also registers
+            // .gitlab-ci.yml, since the new agov:governance:plan-collision-gate
+            // job lives there.
+            "plan-collision-block".to_string(),
         ]),
-        ".gitlab-ci.yml must remain registered to exactly both active gates"
+        ".gitlab-ci.yml must remain registered to exactly these active gates"
     );
     assert!(unresolved.is_empty(), "{}", unresolved.join("\n"));
 }

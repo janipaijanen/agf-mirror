@@ -101,12 +101,17 @@
     },
     "affected_paths": {
       "type": "array",
-      "description": "Optional repository-relative paths/globs; ** is allowed only as a whole path segment. Overlap checking is advisory.",
+      "description": "Optional repository-relative paths/globs; ** is allowed only as a whole path segment. `agov plan collision-check` reports overlaps against other live plans advisory-only by default; the agov:governance:plan-collision-gate CI job additionally blocks Gate 1 for an unacknowledged plan-vs-plan overlap -- see `depends_on` and agf/rules/workflow/development-workflow-rule.md's \"Affected-paths collision blocking\" section.",
       "items": {
         "type": "string",
         "minLength": 1,
         "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[^/]\\*\\*)(?!.*\\*\\*[^/]).+$"
       }
+    },
+    "depends_on": {
+      "type": "array",
+      "description": "Optional list of other plan ids, MR references (!<iid>), or branch names this plan acknowledges an affected_paths overlap with, and has a deliberate sequencing/coordination disposition for. Naming a counterpart here downgrades a detected collision from blocking to informational for this plan; it does not require the counterpart to reciprocate.",
+      "items": { "type": "string", "minLength": 1 }
     }
   },
   "allOf": [

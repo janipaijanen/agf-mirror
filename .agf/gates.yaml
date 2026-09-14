@@ -22,3 +22,13 @@ gates:
     tests:
       - tooling/rust/crates/agov/tests/ci_needs_implication.rs
       - tooling/rust/crates/agov/tests/fixtures/ci-needs/**
+  - id: plan-collision-block
+    status: active
+    surfaces:
+      - agf/schemas/gate1-plan.schema.json
+      - agf/rules/workflow/development-workflow-rule.md
+      - .gitlab-ci.yml
+      - tooling/rust/crates/agov/src/plan_collision.rs
+      - tooling/rust/crates/agov/src/main.rs
+    tests:
+      - tooling/rust/crates/agov/tests/plan_collision.rs

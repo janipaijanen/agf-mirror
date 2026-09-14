@@ -65,6 +65,31 @@ the only multi-file exception owned by `simplicity-rule.md`.
 
 Do NOT begin implementation without a confirmed plan.
 
+### Affected-paths collision blocking
+
+<!-- Row 6 S4, issue #123: promotes agov plan collision-check from
+     advisory-only (Row 6 S3) to MR-blocking for the plan-vs-plan case.
+     This is the named rule tool-authority-boundary-rule.md requires
+     before agov:governance:plan-collision-gate may block a merge
+     request. -->
+
+A plan MAY declare `affected_paths` (see `gate1-plan.schema.json`) as a
+machine-checkable, normalised form of the affected-files list required
+above. When it does, the `agov:governance:plan-collision-gate` CI job
+compares that plan's `affected_paths` against every other live
+(`pending-gate1`/`approved`) plan's `affected_paths`. **A plan whose
+`affected_paths` overlaps another live plan's, with neither plan's
+`depends_on` naming the other, blocks Gate 1** until the overlap is
+resolved -- either coordinate and add `depends_on` (see the schema
+field's own description for its exact acknowledgment semantics), or
+edit one side's `affected_paths` so they no longer overlap.
+
+This blocking check compares **plan-vs-plan only**. A collision against
+a local branch's or another open MR's actual changed files is not
+blocked by this check -- `agov plan collision-check`, run without
+`--plans-only`, still reports those overlaps advisory-only, for a human
+reviewer to consider.
+
 ## Phase 3 -- Micro-Task Breakdown
 
 Decompose into tasks of 2-5 minutes each. Every task must state:

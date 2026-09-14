@@ -228,6 +228,10 @@ fn mr(api: &mut impl Api, iid: u64, initial: &str, base: &str) -> Result<Source,
         return Ok(Source {
             label: format!("MR !{iid} @ {expected} (base {base})"),
             paths: evidence?,
+            token: Some(format!("!{iid}")),
+            depends_on: vec![],
+            is_plan: false,
+            changed: false,
         });
     }
 }

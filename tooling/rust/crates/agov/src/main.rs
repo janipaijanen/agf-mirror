@@ -339,13 +339,32 @@ enum CoordCommand {
 
 #[derive(Subcommand)]
 enum PlanCommand {
-    /// Report possible plan/ref overlaps; advisory, never a gate decision.
+    /// Report possible plan/ref overlaps; advisory unless
+    /// --fail-on-unacknowledged-collision is set (Row 6 S4, #123).
     CollisionCheck {
         #[arg(long, default_value = "main")]
         base_ref: String,
         /// Query GitLab through configured glab authentication (CLI only).
         #[arg(long)]
         include_forge: bool,
+        /// Compare only docs/plans/*.md files against each other -- no
+        /// ref/branch enumeration, no forge querying (takes precedence
+        /// over --include-forge). Deterministic inside a CI checkout that
+        /// may not have other branches present.
+        #[arg(long)]
+        plans_only: bool,
+        /// Restrict eligible pairs to those where at least one plan
+        /// differs between --base-ref and the working tree. A pair where
+        /// neither plan changed is excluded entirely, not merely
+        /// downgraded.
+        #[arg(long)]
+        changed_only: bool,
+        /// Change only the exit code (0 = every eligible pair
+        /// acknowledged or none exist, 1 = at least one is not) and emit
+        /// mode-sensitive severity labels. Default (unset) output and
+        /// exit codes are unchanged.
+        #[arg(long)]
+        fail_on_unacknowledged_collision: bool,
     },
     /// Validate one or more Gate 1 plan files.
     Validate {
@@ -855,8 +874,22 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
                 },
         } => coord_convergence(&series, dir, &format, &args),
         Command::Plan {
-            sub: PlanCommand::CollisionCheck { base_ref, include_forge },
-        } => plan_collision::run(&base_ref, include_forge, &args),
+            sub:
+                PlanCommand::CollisionCheck {
+                    base_ref,
+                    include_forge,
+                    plans_only,
+                    changed_only,
+                    fail_on_unacknowledged_collision,
+                },
+        } => plan_collision::run(
+            &base_ref,
+            include_forge,
+            plans_only,
+            changed_only,
+            fail_on_unacknowledged_collision,
+            &args,
+        ),
         Command::Plan {
             sub: PlanCommand::Validate { files },
         } => validate_files(

@@ -1091,6 +1091,41 @@ agov:governance:validate:
     - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
 
+# Row 6 S4 (#123): MR-blocking plan-vs-plan collision gate.
+# agf/rules/workflow/development-workflow-rule.md's "Affected-paths
+# collision blocking" subsection is the named rule granting this check
+# blocking authority (agf/rules/always/tool-authority-boundary-rule.md).
+# MR-pipeline-source-only, single rule, no push-sourced variant -- a plan
+# branch's first push (before GitLab registers the MR) never triggers this
+# job, so no push/merge_request_event duplicate pair is possible.
+agov:governance:plan-collision-gate:
+  extends: .rust-base
+  stage: test
+  interruptible: true
+  script:
+    - |
+      set -eu
+      cargo build --quiet --release -p agov
+      agov_bin="$PWD/target/release/agov"
+      cd "$CI_PROJECT_DIR"
+
+      # Deterministic, fail-closed base resolution (S4-G1-R2-1): a real MR
+      # pipeline checks out a detached HEAD with no local target branch ref.
+      # Reuse the same fetch/resolve contract agov:governance:validate
+      # already uses, rather than trusting a local ref that may not exist.
+      . "$CI_PROJECT_DIR/.gitlab/scripts/changed-files.sh"
+      target_ref="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:?target branch required in an MR pipeline}"
+      if ! base="$(cf_resolve_base "$target_ref")"; then
+        echo "ERR: could not resolve comparison base against '$target_ref'; failing closed (this gate never silently passes an unevaluated plan)." >&2
+        exit 1
+      fi
+
+      "$agov_bin" plan collision-check --plans-only --changed-only --fail-on-unacknowledged-collision --base-ref "$base"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "docs/plans/**/*.md"
+
 # Negative-test suite for the fail-closed changed-file contract used by
 # agov:governance:validate. Required by
 # agf/rules/always/gate-self-test-rule.md: a gate ships with a
