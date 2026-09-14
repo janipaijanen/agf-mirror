@@ -84,7 +84,10 @@ rejected — do not implement the round-1 field pair or algorithm.
   live obligation. **Fixed:** see "Edge validity" below — an edge is
   honored only after existence, strict temporal order, no self-edge,
   same-audience, and sender-authority checks all pass; an invalid edge
-  fails safe (the original record stays visible, with a diagnostic).
+  fails safe (the original record stays visible, silently unannotated
+  -- corrected wording per round 4's Advisory A1; an earlier draft of
+  this bullet said "with a diagnostic," which the implementation never
+  did and does not need to).
 - **S2-G1-F3 (material):** round 1 touched only `coord list` and `coord
   pending`, explicitly leaving `agov handoff next` — the actual primary
   surface for handoff obligations — unchanged, so a superseded handoff
@@ -143,6 +146,51 @@ architecture that round 2 already got right.
   leaf, only governor-reviewer (or a fresh governor-reviewer record) can
   extend the chain further. Equal-timestamp direct candidates at the
   same hop are broken by lexicographically smallest id, deterministically.
+
+## Correction (2026-09-14, round 4) — independent Gate 2 review BLOCK
+
+Independent Gate 2 review `20260914T063028Z-coder-tester-hgrg`, run
+against the implementation's exact head, found and reproduced two
+further blocking gaps in the implementation of round 3's own design
+(the design's own words were correct; the code had two semantic bugs
+against it), plus one advisory documentation gap. Fixed in the
+implementation, not the design text, since round 3's design already
+specified the correct behavior:
+
+- **S2-I1 (critical):** timestamps were compared as raw RFC3339
+  strings, not parsed chronological instants. RFC3339 permits
+  differing valid UTC offsets, so lexical order is not chronological
+  order: `2026-08-01T11:00:00+02:00` (`09:00Z`) sorted after
+  `2026-08-01T10:00:00Z` as a string despite being chronologically
+  *earlier*, so a chronologically-earlier record could wrongly retire
+  a later live obligation. **Fixed:** both the single-hop temporal
+  check and the multi-candidate sort in
+  `agov-coord::supersession::valid_superseder` now parse every
+  timestamp to an instant before comparing, and fail safe (edge not
+  honored) on any parse failure.
+- **S2-I2 (critical):** the implementation's equal-timestamp tie-break
+  used id alone, contradicting round 3's own stated authority
+  guarantee. At an exactly equal instant, an ordinary author's
+  equal-timestamp record could out-sort a governor-reviewer's
+  equal-timestamp record purely on id, silently discarding a governor
+  override `is_valid_direct_edge` itself had already deemed valid at
+  that hop. **Fixed:** the tie-break now checks
+  governor-reviewer authorship *before* id: at an exactly equal
+  instant, a `governor-reviewer`-authored candidate wins over a
+  non-governor one; id remains the final, deterministic tie-break
+  only among candidates the first two steps do not distinguish.
+- **Advisory A1 (non-blocking):** the round-2 correction summary's
+  S2-G1-F2 bullet above promised an invalid edge stays visible "with a
+  diagnostic," but the implementation is silently unannotated --
+  corrected in that bullet directly, since the actual, simpler
+  behavior (silent fail-safe, matching every other advisory display
+  surface in this codebase) is what shipped and is sufficient; a
+  compact warning was considered and rejected as unnecessary
+  complexity for a purely advisory display path.
+
+Both regression cases from `hgrg` (the mixed-offset chronological
+case and the equal-instant author-vs-governor authority case) are now
+dedicated unit tests in `supersession.rs`'s own test module.
 
 ## Problem (per #122 and the work order)
 
@@ -525,20 +573,34 @@ valid in spirit, rewritten against the real one-way array field,
      sender-authority against the governor-authored leaf) and does not
      displace governor's override; `X` remains resolved by governor's
      record, not the author's later one.
-   - **Equal timestamps:** two direct correctors of the same leaf at
-     identical timestamps -> resolution picks the lexicographically
+   - **Equal timestamps, same authority:** two direct correctors of the
+     same leaf, both non-governor (or both governor-reviewer), at
+     identical instants -> resolution picks the lexicographically
      smallest id, deterministically, same result on every run and every
      surface.
+   - **Equal timestamps, mixed authority (round 4, S2-I2 regression):**
+     a non-governor and a governor-reviewer direct corrector of the same
+     leaf at an identical instant, where the non-governor id would sort
+     first alphabetically -> the governor-reviewer candidate must still
+     win. Id-only tie-breaking is not sufficient; authority must be
+     checked before id.
    - **Authorized extension of the winning leaf:** a further valid
      record correctly targeting the current leaf (whichever party
      authored it, provided sender-authority passes against the leaf)
      extends the chain correctly.
-4. **Shared-function regression:** a single test asserting `handoff
+4. **Mixed-offset chronological ordering (round 4, S2-I1 regression):**
+   a successor at a non-UTC RFC3339 offset that is chronologically
+   earlier than its target, despite its raw string sorting later, must
+   not be honored as a valid edge; the chronologically later
+   counterpart (raw string sorting earlier) must be honored. Compare
+   parsed instants, never raw strings, at both the single-hop check and
+   the multi-candidate sort.
+5. **Shared-function regression:** a single test asserting `handoff
    next`, `coord status`, `coord pending`, and the `--roles` list view
    all agree on the same candidate's resolved leaf for the same
    fixture -- the literal test S4-F1's absence would have caught for
    that feature, applied here pre-emptively.
-5. Full workspace suite, clippy, corpus regression, `agov gate
+6. Full workspace suite, clippy, corpus regression, `agov gate
    change-check` with the companion touch to `tests/gate_change_check.rs`
    if `main.rs`/`handoff_tracker.rs` are registered gate-change-check
    surfaces (confirmed pattern from Row 5 S4's own implementation).

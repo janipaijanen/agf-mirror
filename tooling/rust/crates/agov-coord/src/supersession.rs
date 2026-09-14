@@ -18,6 +18,18 @@
 //! rationale and the independent reviews that shaped each check.
 
 use crate::handoff_tracker::MessageDescriptor;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+
+/// Parses a record's declared `timestamp` to a chronological instant.
+/// `None` on any missing or unparseable value -- callers must fail safe
+/// (treat the edge/ordering as invalid) rather than fall back to string
+/// comparison. See S2-I1: RFC3339 lexical order is not chronological
+/// order once valid but differing UTC offsets are allowed by the schema
+/// (`2026-08-01T11:00:00+02:00` is chronologically `09:00Z`, earlier than
+/// `2026-08-01T10:00:00Z`, despite sorting later as a raw string).
+fn parsed_timestamp(descriptor: &MessageDescriptor) -> Option<OffsetDateTime> {
+    OffsetDateTime::parse(descriptor.msg.timestamp()?, &Rfc3339).ok()
+}
 
 /// Returns true iff `s` is a valid direct superseder of `target` (a single
 /// hop). All six checks below must pass; any failure means the edge is not
@@ -36,11 +48,10 @@ fn is_valid_direct_edge(s: &MessageDescriptor, target: &MessageDescriptor) -> bo
         return false;
     }
 
-    // 2. Strict temporal order. Alone, this makes a single-hop cycle
-    //    structurally impossible; the chain walk in `valid_superseder`
-    //    additionally prevents a cross-hop cycle by construction (each
-    //    hop strictly increases in timestamp).
-    let (Some(s_ts), Some(target_ts)) = (s.msg.timestamp(), target.msg.timestamp()) else {
+    // 2. Strict temporal order, compared as parsed instants, not raw
+    //    strings (S2-I1 fix). A missing or unparseable timestamp on
+    //    either side fails safe: the edge is not honored.
+    let (Some(s_ts), Some(target_ts)) = (parsed_timestamp(s), parsed_timestamp(target)) else {
         return false;
     };
     if s_ts <= target_ts {
@@ -100,8 +111,23 @@ fn is_valid_direct_edge(s: &MessageDescriptor, target: &MessageDescriptor) -> bo
 /// governor-reviewer record passes the sender-authority check at that hop.
 ///
 /// At any hop, if multiple candidates satisfy [`is_valid_direct_edge`],
-/// the one with the earliest `timestamp` becomes the next leaf; ties are
-/// broken by lexicographically smallest `id`, deterministic and stable.
+/// selection is, in order:
+///
+/// 1. Earliest parsed instant wins (S2-I1 fix: chronological, not
+///    lexical, comparison).
+/// 2. At an exactly equal instant, a `governor-reviewer`-authored
+///    candidate wins over a non-`governor-reviewer` one (S2-I2 fix).
+///    Without this step, an ordinary author's equal-timestamp record
+///    could out-sort a governor-reviewer's equal-timestamp record on id
+///    alone, silently discarding a governor override that
+///    [`is_valid_direct_edge`]'s own sender-authority check already
+///    deemed valid at this hop -- exactly the authority guarantee
+///    S2-G1-R2-F2 (and the chain-walk design generally) exists to
+///    preserve.
+/// 3. Lexicographically smallest `id` is the final, deterministic and
+///    stable tie-break, used only when steps 1 and 2 do not distinguish
+///    the candidates (e.g. two non-governor candidates at the same
+///    instant, or two governor-reviewer candidates at the same instant).
 ///
 /// This function is pure and advisory: it raises no error and blocks
 /// nothing. An invalid or absent edge simply means the walk does not take
@@ -124,9 +150,14 @@ pub fn valid_superseder<'a>(
         }
 
         direct_successors.sort_by(|a, b| {
-            let a_ts = a.msg.timestamp().unwrap_or("");
-            let b_ts = b.msg.timestamp().unwrap_or("");
-            a_ts.cmp(b_ts)
+            // `is_valid_direct_edge` already required both to parse
+            // successfully to reach this point.
+            let a_ts = parsed_timestamp(a).expect("validated by is_valid_direct_edge");
+            let b_ts = parsed_timestamp(b).expect("validated by is_valid_direct_edge");
+            let a_is_governor = a.msg.from() == Some("governor-reviewer");
+            let b_is_governor = b.msg.from() == Some("governor-reviewer");
+            a_ts.cmp(&b_ts)
+                .then_with(|| b_is_governor.cmp(&a_is_governor)) // governor (true) sorts first
                 .then_with(|| a.msg.id().unwrap_or("").cmp(b.msg.id().unwrap_or("")))
         });
 
@@ -569,6 +600,101 @@ mod tests {
         assert_eq!(
             result.file, b.file,
             "equal-timestamp direct candidates must resolve to the lexicographically smallest id"
+        );
+    }
+
+    /// S2-I1 regression (`20260914T063028Z-coder-tester-hgrg`): a
+    /// schema-valid successor at a non-UTC offset that is actually
+    /// EARLIER in real chronological time than the target must NOT be
+    /// honored as a valid edge, even though its raw RFC3339 string sorts
+    /// later. `2026-08-01T11:00:00+02:00` is `2026-08-01T09:00:00Z` --
+    /// one hour before the target's `10:00:00Z`.
+    #[test]
+    fn mixed_offset_earlier_instant_is_invalid_despite_later_looking_string() {
+        let x = plain(
+            X,
+            "coder-tester",
+            "governor-reviewer",
+            "2026-08-01T10:00:00Z",
+        );
+        let s = descriptor(
+            "20260801T110000Z-coder-tester-ssss.md",
+            "coder-tester",
+            "governor-reviewer",
+            "2026-08-01T11:00:00+02:00", // == 2026-08-01T09:00:00Z, earlier than target
+            &[X],
+            &[X],
+        );
+        let all = vec![x.clone(), s];
+        assert!(
+            valid_superseder(&x, &all).is_none(),
+            "a chronologically earlier successor must not be honored merely because its \
+             raw RFC3339 string sorts later"
+        );
+    }
+
+    /// S2-I1 regression, positive counterpart: a schema-valid successor
+    /// at a non-UTC offset that IS actually later in real chronological
+    /// time must be honored, even though its raw string sorts earlier
+    /// than the target's.
+    #[test]
+    fn mixed_offset_later_instant_is_valid_despite_earlier_looking_string() {
+        let x = plain(
+            X,
+            "coder-tester",
+            "governor-reviewer",
+            "2026-08-01T10:00:00Z",
+        );
+        let s = descriptor(
+            "20260801T090000Z-coder-tester-ssss.md",
+            "coder-tester",
+            "governor-reviewer",
+            "2026-08-01T09:00:00-02:00", // == 2026-08-01T11:00:00Z, later than target
+            &[X],
+            &[X],
+        );
+        let all = vec![x.clone(), s.clone()];
+        let result = valid_superseder(&x, &all)
+            .expect("a chronologically later successor must be honored despite an earlier-looking raw string");
+        assert_eq!(result.file, s.file);
+    }
+
+    /// S2-I2 regression (`20260914T063028Z-coder-tester-hgrg`): at an
+    /// exactly equal instant, a governor-reviewer-authored direct
+    /// successor must win over a non-governor one, even when the
+    /// non-governor id would otherwise sort first alphabetically. This
+    /// is the authority guarantee the chain walk exists to preserve
+    /// (S2-G1-R2-F2) -- id-only tie-breaking silently discarded it.
+    #[test]
+    fn equal_instant_governor_candidate_wins_over_lower_sorting_author_id() {
+        let x = plain(
+            X,
+            "coder-tester",
+            "governor-reviewer",
+            "2026-08-01T10:00:00Z",
+        );
+        let author = descriptor(
+            "20260801T110000Z-coder-tester-aaaa.md", // sorts before the governor id
+            "coder-tester",
+            "governor-reviewer",
+            "2026-08-01T11:00:00Z",
+            &[X],
+            &[X],
+        );
+        let governor = descriptor(
+            "20260801T110000Z-governor-reviewer-zzzz.md", // sorts after "aaaa" by id alone
+            "governor-reviewer",
+            "governor-reviewer",
+            "2026-08-01T11:00:00Z", // identical instant to `author`
+            &[X],
+            &[X],
+        );
+        let all = vec![x.clone(), author, governor.clone()];
+        let result = valid_superseder(&x, &all).expect("expected a winner");
+        assert_eq!(
+            result.file, governor.file,
+            "a governor-reviewer-authored candidate must win an equal-instant tie over a \
+             non-governor candidate, regardless of id ordering"
         );
     }
 }
