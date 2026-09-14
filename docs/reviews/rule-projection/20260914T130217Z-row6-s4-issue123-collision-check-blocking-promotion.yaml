@@ -34,7 +34,7 @@ surfaces:
   adopter_facing_explanation:
     disposition: not applicable
     reason: >-
-      Internal governance tooling (a Gate 1 plan schema field, two new
+      Internal governance tooling (a Gate 1 plan schema field, three new
       `agov` CLI flags, and a CI job); no adopter-facing Pages claim
       describes plan-authoring mechanics at this level of detail, same
       disposition as S3.
@@ -100,7 +100,7 @@ surfaces:
     reason: >-
       Same distribution shape as S3: the schema field and both template
       pointers ship in the AGF artifact; `agov plan collision-check`
-      (including its two new flags) ships in the separate tooling
+      (including its three new flags) ships in the separate tooling
       archive. The new `.gitlab-ci.yml` job is foundry-local CI
       configuration, not an AGF or tooling distribution artifact --
       adopters wiring this gate into their own CI copy the job pattern,

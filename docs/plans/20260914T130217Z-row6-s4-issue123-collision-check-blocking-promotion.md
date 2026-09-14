@@ -108,6 +108,49 @@ was never approved):
   pipeline, so no dual-graph duplication is possible. See "Design: CI
   job" below.
 
+## Correction (2026-09-14, round 3) — independent re-review BLOCK
+
+A second independent review, `20260914T143145Z-coder-tester-rr33`,
+confirmed all four round-2 findings are resolved but found two further
+residual, real problems in the corrected design. Both fixed here; the
+design sections below reflect the corrected state throughout.
+
+- **S4-G1-R2-1 (material):** `--changed-only` still needed a base ref to
+  diff against, and round 2 quietly assumed a local `refs/heads/main`
+  would exist in the CI job's own checkout. The actual runner log for
+  this MR's own pipeline shows a **detached-HEAD checkout with no local
+  `main` ref at all** -- the same fact this project's own existing
+  `cf_resolve_base` fail-closed contract
+  (`.gitlab/scripts/changed-files.sh`, already used by the
+  `agov:governance:validate` job) was written to handle. Worse, round
+  2's exit-code contract meant an unresolvable base silently produced
+  "no changed plan -> exit 0," letting the gate pass without ever
+  evaluating the candidate plan. **Fixed:** the CI job now sources and
+  calls the repository's existing `cf_resolve_base` function to fetch
+  and resolve `$CI_MERGE_REQUEST_TARGET_BRANCH_NAME` deterministically,
+  passes the resolved SHA explicitly as `--base-ref`, and **fails
+  closed (exits non-zero) if the base cannot be resolved at all** --
+  never silently degrading to a clean pass. See "Design: CI job" below.
+- **S4-G1-R2-2 (material):** the plan said `--fail-on-unacknowledged-collision`
+  changes only the exit code, "never the printed report" -- but the
+  unchanged report still literally prints `(advisory only)` and no
+  `severity: blocking` line, even while the process exits non-zero.
+  `tool-authority-boundary-rule.md` requires blocking output to declare
+  its level; undeclared output is advisory by that rule's own default.
+  A job that blocks the MR while its own evidence still says "advisory
+  only" is self-contradictory. **Fixed:** blocking mode now emits
+  mode-sensitive severity labels -- see "Design: severity labeling"
+  below. Default (no-flag) output is completely unchanged.
+
+Two non-blocking advisory corrections from the same review are also
+applied: the projection manifest's two remaining "two new flags"
+references (`adopter_facing_explanation` and `distribution` rows -- round
+2 only updated `validation_drift_evidence`) are corrected to three, and
+`--plans-only --include-forge` behavior is now explicitly specified and
+tested: `--plans-only` takes precedence and silently suppresses forge
+querying regardless of `--include-forge` (documented explicitly, per the
+review's accepted alternative to rejecting the combination outright).
+
 ## Provenance
 
 - Parent: `docs/plans/20260910T072138Z-coordination-discovery-collision-tooling-work-order.md`,
@@ -217,7 +260,10 @@ uses `--plans-only`, `--changed-only`, and
 ### CI: a new, narrowly scoped blocking job
 
 New job in `.gitlab-ci.yml` (name indicative,
-e.g. `agov:governance:plan-collision-gate`):
+e.g. `agov:governance:plan-collision-gate`), reusing this repository's
+existing fail-closed base-resolution contract
+(`.gitlab/scripts/changed-files.sh`'s `cf_resolve_base`, the same
+function `agov:governance:validate` already uses -- S4-G1-R2-1 fix):
 
 ```yaml
 agov:governance:plan-collision-gate:
@@ -227,7 +273,14 @@ agov:governance:plan-collision-gate:
       changes:
         - "docs/plans/**/*.md"
   script:
-    - agov plan collision-check --plans-only --changed-only --fail-on-unacknowledged-collision
+    - . "$CI_PROJECT_DIR/.gitlab/scripts/changed-files.sh"
+    - |
+      target_ref="${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:?target branch required in an MR pipeline}"
+      if ! base="$(cf_resolve_base "$target_ref")"; then
+        echo "ERR: could not resolve comparison base against '$target_ref'; failing closed (this gate never silently passes an unevaluated plan)." >&2
+        exit 1
+      fi
+    - agov plan collision-check --plans-only --changed-only --fail-on-unacknowledged-collision --base-ref "$base"
 ```
 
 Path-scoped per `ci-trigger-scoping-rule` -- a change touching no plan
@@ -237,28 +290,80 @@ combined with the path filter; there is no second rule for `push`-sourced
 pipelines, so the job is structurally absent from a `push` pipeline's
 graph -- a plan branch's first push (before GitLab registers the MR)
 never triggers this job at all, and no dual-graph duplication is
-possible once the MR pipeline does run it. `--base-ref` is omitted from
-the script, defaulting to `main` (the command's existing default),
-since a merge-request pipeline's target is always the MR's target
-branch.
+possible once the MR pipeline does run it.
 
-**Plan-vs-plan only this slice (S4-G1-3 fix):** `--plans-only` means no
-`--base-ref`-relative ref/branch enumeration and no forge querying occur
-at all -- the job compares only `docs/plans/*.md` files against each
-other, which requires no fetch beyond the checkout the pipeline already
-has. **Non-goal for this slice:** blocking on collisions against a
-local branch's or another open MR's changed paths (both `collision-check`'s
+**Deterministic, fail-closed base resolution (S4-G1-R2-1 fix):** a real
+GitLab MR pipeline checks out a **detached HEAD** -- there is no local
+`refs/heads/main` to default to, contrary to round 2's assumption. The
+job explicitly fetches and resolves `$CI_MERGE_REQUEST_TARGET_BRANCH_NAME`
+via `cf_resolve_base` (fetch + `git rev-parse` against the fetched
+remote-tracking ref, already fail-closed on empty/unset predefined SHA
+variables -- the exact condition round 2 missed) and passes the
+resolved SHA explicitly as `--base-ref`. **If the base cannot be
+resolved at all, the job exits non-zero (blocks) rather than silently
+treating "no changed plan found" as a clean pass** -- an unresolvable
+base means the candidate plan was never evaluated, which must never be
+indistinguishable from "evaluated, no collision."
+
+**Plan-vs-plan only this slice (S4-G1-3 fix, unchanged from round 2):**
+`--plans-only` means no ref/branch enumeration and no forge querying
+occur -- only `docs/plans/*.md` files are compared against each other.
+This needs the resolved `--base-ref` only to determine *which plan
+files changed* (a plain `git diff --name-status`, not a multi-branch
+inventory), which is why S4-G1-R2-1's fix is a base-resolution fix, not
+a reintroduction of the ref-enumeration determinism problem S4-G1-3
+already closed. **`--plans-only` combined with `--include-forge`:**
+`--plans-only` takes precedence and silently suppresses forge querying
+regardless of `--include-forge` -- tested explicitly (see "Test
+strategy" below), not left as an unspecified interaction.
+**Non-goal for this slice:** blocking on collisions against a local
+branch's or another open MR's changed paths (both `collision-check`'s
 existing local-ref mode and `--include-forge`) -- both remain fully
 advisory-only until a future slice defines and tests a deterministic,
-bounded ref-fetch contract for a CI checkout (`thsq`'s own resolution
-condition). A collision only visible in ref/MR mode is not blocked by
-this slice's gate, only by a human running `collision-check` without
-`--plans-only` (unchanged advisory behavior).
+bounded ref-fetch contract for a CI checkout.
 
-On failure, the job's own output (already produced by `collision-check`,
-unchanged) names the exact colliding plans and the specific overlapping
-paths; the fix is either coordinate and add `depends_on`, or change one
-side's `affected_paths` so they no longer overlap.
+On failure, the job's own output names the exact colliding plans and
+the specific overlapping paths, now labeled per "Design: severity
+labeling" below; the fix is either coordinate and add `depends_on`, or
+change one side's `affected_paths` so they no longer overlap.
+
+### Design: severity labeling (S4-G1-R2-2 fix)
+
+Round 2's claim that `--fail-on-unacknowledged-collision` "changes only
+the exit code, never the printed report" is corrected: it was
+self-contradictory with `tool-authority-boundary-rule.md`'s requirement
+that blocking output declare its level, since S3's unchanged report
+literally prints `(advisory only)` and carries no `severity: blocking`
+line even while the process would exit non-zero.
+
+**Default (no-flag) output: completely unchanged**, still ending in
+`Possible overlaps within the coverage above: N (advisory only)`, still
+carrying no per-line severity label -- this preserves S3's own advisory
+contract byte-for-byte, matching this plan's own backward-compatibility
+requirement.
+
+**Under `--fail-on-unacknowledged-collision`: mode-sensitive labels,
+matching this project's existing `agov coord validate`/`agov plan
+validate` convention** (`OK`/`ERR severity: blocking`,
+`WARN severity: advisory`):
+
+- Each reported `Possible overlap: ...` line for an *eligible,
+  unacknowledged* pair (the ones that would cause exit `1`) gains a
+  trailing `severity: blocking` marker.
+- Each reported overlap line for an *eligible, acknowledged* pair
+  (cleared by `depends_on`) gains `severity: informational (acknowledged
+  via depends_on)` instead.
+- The final summary line changes from `(advisory only)` to state the
+  real split, e.g.
+  `N unacknowledged collision(s) -- severity: blocking; M acknowledged`.
+- `Unassessed`/`Invalid (excluded)`/`Unavailable` lines keep their
+  existing, already-distinct labels (per S3's own contract) -- this
+  slice does not change what those three categories mean, only adds
+  the new blocking/acknowledged distinction to actual overlap lines.
+
+This is purely additive to the report's *text* under the new flag; it
+does not change what counts as a collision, an acknowledgment, or an
+eligible pair -- those are the flags already specified above.
 
 ### Rule authority (S4-G1-1 fix)
 
@@ -352,19 +457,40 @@ changes registered under `gate-change-check`/`ci-needs-implication`):
    first-push-duplication coverage) proving a plan-changing commit's
    first push produces the new job only in a `merge_request_event`
    pipeline graph, never in the paired `push` graph.
-7. **Default (no-flag) invocations unaffected:** re-run every existing
-   `plan_collision.rs` fixture unmodified, with none of the three new
-   flags passed -> byte-identical exit codes to before this slice
-   (0/1/2 contract preserved).
-8. **Companion touch** to `tests/gate_change_check.rs` (registering the
-   new `plan-collision-block` gate id) and, if the new job trips
-   `ci-needs-implication`'s own surface checks,
-   `tests/ci_needs_implication.rs` -- `.gitlab-ci.yml` and `main.rs` are
-   registered shared surfaces for both existing gates per
-   `.agf/gates.yaml`.
-9. Full workspace suite, clippy, corpus regression, `agov gate
-   change-check`.
-10. **Gate 2 evidence requirement:** the implementation MR's own
+7. **Fail-closed base resolution (S4-G1-R2-1 regression):** a job-level
+   fixture where `cf_resolve_base` cannot resolve the target (fetch
+   failure, unset `CI_MERGE_REQUEST_TARGET_BRANCH_NAME`, or an empty
+   rev-parse result) -> the job exits non-zero and the printed error
+   names the unresolvable target -- proving the gate blocks rather than
+   silently treating an unevaluated plan as a clean pass. A second
+   fixture confirms the resolved-base happy path still finds a real,
+   known collision (i.e. the fail-closed path and the working path are
+   both exercised, not just one).
+8. **Severity labeling (S4-G1-R2-2 regression):** under
+   `--fail-on-unacknowledged-collision`, an unacknowledged eligible
+   collision's report line carries `severity: blocking`; an acknowledged
+   one carries `severity: informational (acknowledged via depends_on)`;
+   the summary line no longer says `(advisory only)`. The exact same
+   fixture run **without** the flag reproduces S3's original
+   `(advisory only)` text byte-for-byte, proving default output is
+   truly unchanged.
+9. **`--plans-only --include-forge` interaction:** with both flags
+   passed, forge querying does not occur (no GitLab API calls) --
+   `--plans-only` takes precedence, tested explicitly rather than left
+   implicit.
+10. **Default (no-flag) invocations unaffected:** re-run every existing
+    `plan_collision.rs` fixture unmodified, with none of the three new
+    flags passed -> byte-identical exit codes and report text to before
+    this slice (0/1/2 contract preserved).
+11. **Companion touch** to `tests/gate_change_check.rs` (registering the
+    new `plan-collision-block` gate id) and, if the new job trips
+    `ci-needs-implication`'s own surface checks,
+    `tests/ci_needs_implication.rs` -- `.gitlab-ci.yml` and `main.rs` are
+    registered shared surfaces for both existing gates per
+    `.agf/gates.yaml`.
+12. Full workspace suite, clippy, corpus regression, `agov gate
+    change-check`.
+13. **Gate 2 evidence requirement:** the implementation MR's own
     description must include the reviewer-visible negative-test
     command and its output, tied to that MR's exact head, per
     `gate-self-test-rule` -- not merely "tests pass in CI," a
@@ -416,11 +542,13 @@ Approve (a) the `depends_on` schema field, (b) the three new
 `collision-check` flags (`--plans-only`, `--changed-only`,
 `--fail-on-unacknowledged-collision`) and their exit-code contract, (c)
 the new path-scoped, MR-pipeline-only, plan-vs-plan-only blocking CI
-job, (d) the new `development-workflow-rule.md` subsection actually
-granting this check blocking authority, (e) the new `plan-collision-block`
-entry in `.agf/gates.yaml`, (f) that ref-mode blocking, forge-mode
-blocking, and the post-implementation drift check are explicitly
-out-of-scope follow-ups, not silently implied here, and (g) the test
-strategy above (including the Gate 2 reviewer-visible negative-test
-transcript requirement) as satisfying `gate-self-test-rule` for this
-gate-mechanics change.
+job, including its fail-closed `cf_resolve_base`-based target
+resolution, (d) the mode-sensitive severity-labeling contract for
+blocking-mode output, (e) the new `development-workflow-rule.md`
+subsection actually granting this check blocking authority, (f) the new
+`plan-collision-block` entry in `.agf/gates.yaml`, (g) that ref-mode
+blocking, forge-mode blocking, and the post-implementation drift check
+are explicitly out-of-scope follow-ups, not silently implied here, and
+(h) the test strategy above (including the Gate 2 reviewer-visible
+negative-test transcript requirement) as satisfying
+`gate-self-test-rule` for this gate-mechanics change.
