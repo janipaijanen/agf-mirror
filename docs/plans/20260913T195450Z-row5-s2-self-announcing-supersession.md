@@ -8,18 +8,21 @@ advisory_consultation:
     status: not-applicable
     reason: >-
       Advisory display/filtering change on the read path, plus one new
-      optional coordination-message field pair. No new write authority,
-      no credential or secret surface, no change to who may author a
-      record. The self-assessment below is offered for a real pass
-      before Gate 2, not as a substitute.
+      optional coordination-message field. No new write authority, no
+      credential or secret surface, no change to who may author a
+      record. Round-2 correction below adds real edge-validity checks
+      (existence, temporal order, self-edge/cycle, same-audience,
+      sender authority) specifically because an earlier draft of this
+      plan had none -- see S2-G1-F2.
   - role: contribution-auditor
-    status: waived
+    status: consulted
     reason: >-
-      Bounded slice from an already Gate-1-approved work order
-      (20260910T065635Z-...), with the vocabulary explicitly required to
-      match qbka Slice A's now-frozen shape (no design freedom left on
-      that axis). A real pass is welcome before Gate 2 but is not
-      required to unblock drafting.
+      Round 1 waived this, which independent review (S2-G1-F4) correctly
+      identified as exactly the risk the parent work order's consultation
+      requirement exists to catch -- round 1's design did in fact diverge
+      from qbka's shape in a way a real pass would have caught. Round 2
+      consultation performed and published as
+      20260914T012444Z-contribution-auditor-r2sj.md.
 affected_paths:
   - agf/schemas/coordination-message.schema.json
   - tooling/rust/crates/agov-coord/src/handoff_tracker.rs
@@ -40,6 +43,52 @@ provenance shape), is merged (`e9f7742d`) and Slice B's 12-file migration
 and corpus regression guard are also merged — the predecessor is fully
 satisfied.
 
+## Correction (2026-09-14, round 2) — independent Gate 1 review BLOCK
+
+Independent review `20260914T010848Z-coder-tester-h8a7` found four
+mandatory blocking findings in the round-1 design below and correctly
+recommended BLOCK before any implementation started (none had). All four
+are addressed in this round-2 revision; the round-1 "Design" sections
+that follow this note are **superseded by the corrected design further
+below** and kept only as the historical record of what was proposed and
+rejected — do not implement the round-1 field pair or algorithm.
+
+- **S2-G1-F1 (critical):** round 1 proposed a *two-way* field pair —
+  `supersedes` on the later record and `superseded_by` on the earlier
+  one. Coordination records are immutable and append-only; an earlier
+  record cannot retroactively acquire a field after a later correction
+  exists. This also contradicts a prior independent design refinement,
+  `20260905T200607Z-coder-tester-hqps`, already on record: "the original
+  immutable record cannot acquire a literal `superseded_by` field. Add
+  `supersedes: [id, ...]` only on the later record and derive the
+  reverse `superseded-by` edge in `agov`." Round 1 should have found and
+  followed this — it did not. **Fixed:** the schema now defines exactly
+  one new field, `supersedes` (an array, on the later record only); the
+  reverse relationship is derived by readers, never written back.
+- **S2-G1-F2 (critical):** round 1 dropped an obligation from the live
+  queue whenever a named target merely *existed*, with no check for
+  temporal order, self-edges, cycles, or same-audience/sender authority.
+  A mistaken or hostile record could have silently hidden another role's
+  live obligation. **Fixed:** see "Edge validity" below — an edge is
+  honored only after existence, strict temporal order, no self-edge,
+  same-audience, and sender-authority checks all pass; an invalid edge
+  fails safe (the original record stays visible, with a diagnostic).
+- **S2-G1-F3 (material):** round 1 touched only `coord list` and `coord
+  pending`, explicitly leaving `agov handoff next` — the actual primary
+  surface for handoff obligations — unchanged, so a superseded handoff
+  would have stayed actionable there. **Fixed:** the design below shares
+  one resolution function across `agov handoff next`, `agov coord
+  status`, `agov coord pending`, and `agov coord list`, per
+  `hqps`'s own explicit list ("`list`, `pending`, `status`, and `handoff
+  next`").
+- **S2-G1-F4 (material):** round 1 waived contribution-auditor
+  consultation despite the parent work order requiring it at this exact
+  gate to confirm no divergence from qbka's shape — and round 1 *did*
+  diverge, undetected, precisely because that consultation was skipped.
+  **Fixed:** `advisory_consultation` above now reflects a real
+  consultation (`20260914T012444Z-contribution-auditor-r2sj`), performed
+  against this corrected design.
+
 ## Problem (per #122 and the work order)
 
 A superseded coordination record does not announce itself. `agov coord
@@ -49,6 +98,13 @@ act on convention-superseded guidance with no mechanical signal that a
 replacement exists. The work order's own evidence: `th6m` still reads as
 a live operator instruction after `mhq1` withheld it by prose alone, and
 out-of-band correction compounds the gap.
+
+## ROUND 1 DESIGN (superseded — kept for historical record only; do not implement)
+
+The sections immediately below, through "## Corrected design (round 2)",
+describe the rejected round-1 proposal. They are preserved verbatim as
+the record of what independent review found and blocked; skip to
+"## Corrected design (round 2)" for what to actually build.
 
 ## Design: field pair, matching qbka Slice A's frozen shape exactly
 
@@ -218,3 +274,157 @@ the branch restores today's undifferentiated display with no migration.
   the schema" provenance model; the one deliberate difference (no
   `..._decision`/`..._at` triple) is explained explicitly above so it
   reads as a considered choice, not an oversight.
+
+*(End of round-1 design — superseded. Corrected design follows.)*
+
+## Corrected design (round 2)
+
+### Schema: one field, one-way, on the later record only
+
+Add exactly one new field to `agf/schemas/coordination-message.schema.json`,
+top level (sibling to `references-to`):
+
+```json
+"supersedes": {
+  "type": "array",
+  "minItems": 1,
+  "items": { "type": "string", "minLength": 1 },
+  "description": "Stable ids of one or more earlier coordination records this one replaces for the same audience. Written only on the later (superseding) record -- coordination records are immutable and append-only, so an earlier record can never acquire a field after the fact. Readers derive the reverse relationship; see coordination-publication-rule.md's lifecycle and supersession semantics. An entry is honored only after edge-validity checks (existence, temporal order, no self-edge, same audience, sender authority) pass -- see agov-coord's supersession module."
+}
+```
+
+No `superseded_by` field is added anywhere. No `..._decision`/`..._at`
+provenance triple: unlike a plan's terminal `status: superseded` (a
+governed disposition), a coordination record's `supersedes` is an
+ordinary editorial fact about the author's own record sequence,
+requiring no additional authority beyond authoring the newer record --
+subject to the sender-authority check below, which is the actual
+authority boundary.
+
+### Edge validity (shared logic, new module)
+
+New `tooling/rust/crates/agov-coord/src/supersession.rs` (or a section
+of `handoff_tracker.rs` if that proves the more natural home at
+implementation time), exposing one function:
+
+```rust
+/// Returns the first record among `all` that validly supersedes
+/// `candidate`, if any. An edge is valid only when every check passes;
+/// an invalid or absent edge returns None, and `candidate` stays live.
+pub fn valid_superseder<'a>(
+    candidate: &MessageDescriptor,
+    all: &'a [MessageDescriptor],
+) -> Option<&'a MessageDescriptor>
+```
+
+Checks, all mandatory (per S2-G1-F2's resolution condition):
+
+1. **Existence:** a candidate successor `S` names `candidate.id` in its
+   own `supersedes` array, and `S` is present among `all` (i.e.
+   resolvable on the reader's current ref -- same branch or `main`).
+2. **Strict temporal order:** `S.timestamp > candidate.timestamp`. This
+   alone makes cycles structurally impossible (a cycle would require an
+   earlier record to supersede a later one), so no separate cycle check
+   is needed beyond enforcing this strictly.
+3. **No self-edge:** `S.id != candidate.id`.
+4. **Same audience:** `S.to == candidate.to`. Supersession replaces a
+   record for the same intended audience, per the work order and the
+   coordination-publication-rule's own framing; a record addressed to a
+   different role cannot supersede this one.
+5. **Sender authority:** `S.from == candidate.from` (the original author
+   correcting their own prior record -- the common case) **or**
+   `S.from == "governor-reviewer"` (an authoritative override), matching
+   the existing `reply_evidence` precedent (`next_agent` or
+   `governor-reviewer`) already established in this codebase for an
+   analogous "who may act on this record" question.
+
+If multiple candidates satisfy all five checks, the one with the latest
+`timestamp` wins (a record may be corrected more than once; the most
+recent valid correction is authoritative).
+
+**Fail-safe:** any check failing means the edge is not honored --
+`candidate` stays exactly as visible as if no `supersedes` field existed
+anywhere. This function raises no error and blocks nothing; it is a
+pure, advisory read-time derivation.
+
+### One shared resolution point across all four surfaces
+
+Per S2-G1-F3's resolution condition and `hqps`'s explicit list, this
+must reach `list`, `pending`, `status`, and `handoff next` --
+not a per-command reimplementation (the exact mistake Row 5 S4's own
+S4-F1 finding caught in a different feature; this design deliberately
+avoids repeating it):
+
+- **`agov/src/main.rs`'s `handoff_resolved`** (already the single shared
+  function behind `pending_handoffs`, which in turn backs `agov handoff
+  next`, `agov coord status`, and the `--roles` list views): extend it
+  to also treat a `valid_superseder` result as resolving, alongside its
+  existing `ack`/`completion`/`decision-record` check. This one change
+  automatically and correctly covers `handoff next`, `coord status`, and
+  the list-by-role views in a single place -- exactly the shared-point
+  fix S4-F1 needed and didn't originally have.
+- **`agov-coord/src/handoff_tracker.rs`'s `find_pending_all_kinds`**
+  (the separate, non-handoff-kind surface backing `agov coord pending`):
+  extend analogously, using the same `valid_superseder` function, so
+  both parallel resolution paths share one edge-validity implementation
+  even though they remain two call sites (matching this codebase's
+  existing two-implementation split between handoff-kind and
+  other-kind resolution -- not itself in this slice's scope to unify).
+- **`agov/src/main.rs`'s `coord_list`:** does not drop rows (it is a
+  chronological audit log, not a live-obligation queue). For each row
+  whose `valid_superseder` result is `Some(s)`, append `superseded — see
+  <s.id>` to the rendered line (text and JSON). An unresolvable or
+  invalid edge leaves the row unannotated, unchanged from today.
+
+### Non-goals (unchanged from round 1, still correct)
+
+- Out-of-band MR-comment instructions (routed to row 6 / #123).
+- Auto-resolving `requires-ack` from a superseding record alone --
+  `supersedes` is a lifecycle-display/resolution annotation sharing the
+  same resolving-kind precedent as `ack`/`completion`/`decision-record`,
+  not a new grant of ack-clearing authority to arbitrary record kinds; a
+  `note` or `review` record with a *valid* `supersedes` edge resolves
+  the superseded record specifically because supersession is now a
+  recognized terminal state for that predecessor, exactly parallel to
+  how those three kinds already terminate a handoff today. This is a
+  deliberate, bounded extension of "what counts as resolved" -- not an
+  unbounded one, since all five edge-validity checks still gate it.
+- Rewriting or validating an author's supersession *claim* itself beyond
+  the five mechanical checks -- a claim that passes all five checks but
+  is still substantively wrong (e.g. governor-reviewer supersedes the
+  wrong record by mistake) is a review finding, corrected by a further
+  new record, never by editing history.
+- `agov coord graph`/`graph-index` -- unchanged, separate scope.
+
+### Test strategy (round 2)
+
+In addition to round 1's positive/fail-safe/annotation tests (still
+valid in spirit, rewritten against the real one-way array field and
+`valid_superseder`):
+
+1. **Each of the five edge-validity checks gets its own negative test:**
+   non-existent target, non-later timestamp (equal and earlier), self-edge,
+   different `to` audience, and unauthorized sender (neither original
+   author nor `governor-reviewer`) -- each must leave the candidate
+   fully live/unannotated, exactly as if `supersedes` were absent.
+2. **Positive, all five checks pass:** candidate excluded from `handoff
+   next`, `coord status`, `coord pending`, and the `--roles` views;
+   annotated (not excluded) in `coord list`.
+3. **Multiple correctors:** two later records both validly supersede the
+   same candidate at different timestamps -> the later one is reported
+   as the superseder.
+4. **Shared-function regression:** a single test asserting `handoff
+   next`, `coord status`, and the `--roles` list view all agree on the
+   same candidate's resolved state for the same fixture -- the literal
+   test S4-F1's absence would have caught for that feature, applied here
+   pre-emptively.
+5. Full workspace suite, clippy, corpus regression, `agov gate
+   change-check` with the companion touch to `tests/gate_change_check.rs`
+   if `main.rs`/`handoff_tracker.rs` are registered gate-change-check
+   surfaces (confirmed pattern from Row 5 S4's own implementation).
+
+### Rollback (round 2)
+
+The new field is additive; the resolution function is pure and advisory.
+Reverting restores today's behavior with no migration. No existing
+record's meaning changes since no record currently sets `supersedes`.

@@ -11,8 +11,10 @@ surfaces:
       The rule's existing "Lifecycle and supersession semantics" section
       already states the convention this slice mechanizes ("a new,
       append-only record that references and supersedes the earlier
-      one"). This slice adds a field pair and reader behavior, not a new
-      normative claim.
+      one"). This slice adds one one-way field (`supersedes`, corrected
+      in round 2 from an earlier two-way field-pair draft that an
+      independent review blocked -- see the plan's round-2 correction)
+      and reader behavior, not a new normative claim.
   adopter_facing_explanation:
     disposition: not applicable
     reason: >-
@@ -53,6 +55,6 @@ surfaces:
       - agf/schemas/coordination-message.schema.json
       - agf/rules/workflow/coordination-publication-rule.md
     reason: >-
-      The schema field pair ships in AGF; executable reader behavior
-      ships in the tooling artifact. Tests and this session-resume
-      pointer are foundry-local.
+      The schema field ships in AGF; executable reader behavior ships in
+      the tooling artifact. Tests and this session-resume pointer are
+      foundry-local.
