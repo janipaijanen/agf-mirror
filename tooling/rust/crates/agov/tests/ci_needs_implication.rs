@@ -1,17 +1,15 @@
-// Row 6 S4 companion evidence (2026-09-14): added
-// `agov:governance:plan-collision-gate` to `.gitlab-ci.yml`, a new,
-// independent job with its own single `merge_request_event` +
-// path-scoped rule. It shares no `needs:`, DinD, container-build, or
-// source-agnostic-branch-rule relationship with any existing mandatory
-// edge this gate's own fixtures track -- the mandatory-edges and
-// context-matrix fixtures below are unaffected, and
-// `live_configuration_preserves_every_mandatory_needs_implication` and
-// `mandatory_edge_fixture_matches_the_complete_ci_inventory` both still
-// pass unmodified against the live configuration. Real behavioral
-// coverage for the new job's own gate mechanics
-// (`plan-collision-block`) lives in `tests/plan_collision.rs`; this
-// comment is this file's companion touch for the shared-surface
-// (`.gitlab-ci.yml`) change per `.agf/gates.yaml`.
+// Row 6 S4 companion evidence (2026-09-14, corrected per independent
+// review hkj4's S4-I2 finding -- the first version of this companion was
+// a comment only, not a substantive test): added
+// `agov:governance:plan-collision-gate` to `.gitlab-ci.yml`. It shares no
+// `needs:`, DinD, container-build, or source-agnostic-branch-rule
+// relationship with any existing mandatory edge this gate's own fixtures
+// track -- the mandatory-edges and context-matrix fixtures below are
+// unaffected. Real job-selection coverage for the new job's own trigger
+// contract is `plan_collision_gate_selects_on_mr_context_and_its_own_surfaces`
+// below; real behavioral coverage for the gate mechanics themselves
+// (`plan-collision-block`) lives in `tests/plan_collision.rs` and
+// `.gitlab/scripts/plan-collision-self-test.sh`.
 
 use agov_validators::ci_rules::{job_selected, CiContext};
 use serde_json::Value;
@@ -75,6 +73,66 @@ fn namespace_gate_is_pre_tag_only_and_reuses_the_preview_producer() {
     assert!(block.contains("allow_failure: false"));
     assert!(block.contains("job: rust:tooling:preview"));
     assert!(!block.contains("cargo build") && !block.contains("dind"));
+}
+
+/// Row 6 S4 (#123), S4-I2 regression: `agov:governance:plan-collision-gate`
+/// must select on an MR pipeline touching `docs/plans/**/*.md` OR any of
+/// its own behavior-bearing surfaces (ci-trigger-scoping-rule.md's own
+/// instruction not to scope a CI check out of its own configuration
+/// changes -- exactly the gap that made the gate absent from its own
+/// introducing MR's pipeline), and must never select on a push-sourced
+/// pipeline (the S4-G1-4 duplicate-pipeline fix).
+#[test]
+fn plan_collision_gate_selects_on_mr_context_and_its_own_surfaces() {
+    let yaml: serde_norway::Value = serde_norway::from_str(&read_live_configuration()).unwrap();
+    let rules = &yaml["agov:governance:plan-collision-gate"]["rules"];
+    let rules: Value = serde_json::to_value(rules).unwrap();
+    for (source, changed, selected) in [
+        ("merge_request_event", "docs/plans/example.md", true),
+        (
+            "merge_request_event",
+            "agf/schemas/gate1-plan.schema.json",
+            true,
+        ),
+        (
+            "merge_request_event",
+            "agf/rules/workflow/development-workflow-rule.md",
+            true,
+        ),
+        (
+            "merge_request_event",
+            "tooling/rust/crates/agov/src/plan_collision.rs",
+            true,
+        ),
+        (
+            "merge_request_event",
+            "tooling/rust/crates/agov/src/plan_collision_forge.rs",
+            true,
+        ),
+        ("merge_request_event", "tooling/rust/crates/agov/src/main.rs", true),
+        (
+            "merge_request_event",
+            ".gitlab/scripts/plan-collision-self-test.sh",
+            true,
+        ),
+        ("merge_request_event", ".gitlab-ci.yml", true),
+        ("merge_request_event", "README.md", false),
+        ("push", "docs/plans/example.md", false),
+        ("schedule", "docs/plans/example.md", false),
+    ] {
+        let context = CiContext::new()
+            .with_variable("CI_PIPELINE_SOURCE", source)
+            .with_changed_path(changed);
+        assert_eq!(
+            job_selected(&rules, &context).unwrap(),
+            selected,
+            "source={source} changed={changed}"
+        );
+    }
+    let block = top_level_block(&read_live_configuration(), "agov:governance:plan-collision-gate")
+        .unwrap();
+    assert!(block.contains("plan-collision-self-test.sh"));
+    assert!(block.contains("--fail-on-unacknowledged-collision"));
 }
 
 #[test]

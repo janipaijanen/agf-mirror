@@ -1098,6 +1098,14 @@ agov:governance:validate:
 # MR-pipeline-source-only, single rule, no push-sourced variant -- a plan
 # branch's first push (before GitLab registers the MR) never triggers this
 # job, so no push/merge_request_event duplicate pair is possible.
+#
+# S4-I2 fix: the trigger path list also names this gate's own
+# behavior-bearing surfaces (schema, authorizing rule, command source,
+# CI config), not only docs/plans/**/*.md -- ci-trigger-scoping-rule.md's
+# own instruction is not to scope a CI check out of changes to its own
+# configuration. Without this, a change to the gate's own mechanics (like
+# this slice's own introducing MR) never triggers the job that is
+# supposed to prove those mechanics work.
 agov:governance:plan-collision-gate:
   extends: .rust-base
   stage: test
@@ -1108,6 +1116,11 @@ agov:governance:plan-collision-gate:
       cargo build --quiet --release -p agov
       agov_bin="$PWD/target/release/agov"
       cd "$CI_PROJECT_DIR"
+
+      # S4-I2 fix: prove the gate actually fires on a known-bad input
+      # BEFORE evaluating the real candidate. A gate that silently stopped
+      # firing must not be trusted to clear the real candidate either.
+      "$CI_PROJECT_DIR/.gitlab/scripts/plan-collision-self-test.sh" "$agov_bin"
 
       # Deterministic, fail-closed base resolution (S4-G1-R2-1): a real MR
       # pipeline checks out a detached HEAD with no local target branch ref.
@@ -1125,6 +1138,13 @@ agov:governance:plan-collision-gate:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - "docs/plans/**/*.md"
+        - "agf/schemas/gate1-plan.schema.json"
+        - "agf/rules/workflow/development-workflow-rule.md"
+        - "tooling/rust/crates/agov/src/plan_collision.rs"
+        - "tooling/rust/crates/agov/src/plan_collision_forge.rs"
+        - "tooling/rust/crates/agov/src/main.rs"
+        - ".gitlab/scripts/plan-collision-self-test.sh"
+        - ".gitlab-ci.yml"
 
 # Negative-test suite for the fail-closed changed-file contract used by
 # agov:governance:validate. Required by

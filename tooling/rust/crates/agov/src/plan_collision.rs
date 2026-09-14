@@ -74,11 +74,17 @@ fn changed_paths(base: &str, head: &str) -> Result<Vec<String>, String> {
 /// `--changed-only` is passed) so acknowledgment matching behaves
 /// consistently either way.
 fn changed_plan_files(base: &str) -> Result<BTreeSet<String>, String> {
+    // Merge-base semantics (S4-I1 fix), matching `changed_paths`'s own
+    // pattern: identify what the CANDIDATE itself changed since it forked
+    // from `base`, not a flat two-tree diff against `base`'s current tip.
+    // A flat diff would also attribute target-side-only changes (files
+    // `base` moved on independently since the fork) to the candidate.
+    let ancestor = git_output(&["merge-base", base, "HEAD"])?;
     let diff = git_output(&[
         "diff",
         "--name-status",
         "-z",
-        base,
+        ancestor.trim(),
         "HEAD",
         "--",
         "docs/plans",
@@ -87,6 +93,24 @@ fn changed_plan_files(base: &str) -> Result<BTreeSet<String>, String> {
     Ok(paths
         .into_iter()
         .filter(|p| p.starts_with("docs/plans/") && p.ends_with(".md"))
+        .collect())
+}
+
+/// Live `docs/plans/*.md` file paths that exist at `base` (the fresh
+/// target commit) but are not present in `local_files` -- e.g. a plan
+/// merged to the target branch after the candidate forked from it (S4-I1
+/// fix). `local_files` holds the exact `docs/plans/<name>.md` filenames
+/// already scanned from the candidate's own working tree.
+fn target_only_plan_paths(base: &str, local_files: &BTreeSet<String>) -> Result<Vec<String>, String> {
+    let listing = git_output(&["ls-tree", "-r", "--name-only", "-z", base, "--", "docs/plans"])?;
+    Ok(listing
+        .split_terminator('\0')
+        .filter(|p| p.ends_with(".md"))
+        .filter(|p| {
+            let file_name = p.rsplit('/').next().unwrap_or(p);
+            !local_files.contains(file_name)
+        })
+        .map(|p| p.to_string())
         .collect())
 }
 
@@ -120,6 +144,48 @@ fn string_array(value: &serde_json::Value, field: &str) -> Vec<String> {
         .collect()
 }
 
+enum PlanClassification {
+    Plan(Source),
+    Unassessed(String),
+    Invalid(String),
+    Skip,
+}
+
+/// Shared classification for a plan document, whether it came from the
+/// candidate's own working tree or from `git show <base>:<path>` for a
+/// target-only plan (S4-I1 fix) -- one rule set, one place, for both.
+fn classify_plan(
+    label: &str,
+    result: Result<agov_coord::plan_validator::PlanDocument, Vec<(String, String)>>,
+    changed: bool,
+) -> PlanClassification {
+    match result {
+        Ok(plan)
+            if matches!(
+                string_field(&plan.raw, "status"),
+                Some("pending-gate1" | "approved")
+            ) =>
+        {
+            match plan.raw.get("affected_paths").and_then(|v| v.as_array()) {
+                Some(paths) => PlanClassification::Plan(Source {
+                    label: label.to_string(),
+                    paths: paths.iter().map(|v| v.as_str().unwrap().into()).collect(),
+                    token: string_field(&plan.raw, "id").map(|s| s.to_string()),
+                    depends_on: string_array(&plan.raw, "depends_on"),
+                    is_plan: true,
+                    changed,
+                }),
+                None => PlanClassification::Unassessed(format!("{label}: no affected_paths declared")),
+            }
+        }
+        Ok(_) => PlanClassification::Skip,
+        Err(errors) => PlanClassification::Invalid(format!(
+            "{label}: {}",
+            serde_json::to_string(&errors).unwrap()
+        )),
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn run(
     base_ref: &str,
@@ -151,6 +217,7 @@ pub(super) fn run(
         Err(_) => BTreeSet::new(),
     };
 
+    let mut local_filenames: BTreeSet<String> = BTreeSet::new();
     let dir = agov_core::repo_root().join("docs/plans");
     match std::fs::read_dir(&dir) {
         Ok(entries) => {
@@ -167,36 +234,56 @@ pub(super) fn run(
                 }
                 plan_count += 1;
                 let file_name = entry.file_name().to_string_lossy().into_owned();
+                local_filenames.insert(file_name.clone());
                 let label = format!("plan docs/plans/{file_name}");
                 let repo_path = format!("docs/plans/{file_name}");
-                match agov_coord::plan_validator::validate_file(&entry.path()) {
-                    Ok(plan)
-                        if matches!(
-                            string_field(&plan.raw, "status"),
-                            Some("pending-gate1" | "approved")
-                        ) =>
-                    {
-                        match plan.raw.get("affected_paths").and_then(|v| v.as_array()) {
-                            Some(paths) => plans.push(Source {
-                                label,
-                                paths: paths.iter().map(|v| v.as_str().unwrap().into()).collect(),
-                                token: string_field(&plan.raw, "id").map(|s| s.to_string()),
-                                depends_on: string_array(&plan.raw, "depends_on"),
-                                is_plan: true,
-                                changed: changed_plan_files.contains(&repo_path),
-                            }),
-                            None => unassessed.push(format!("{label}: no affected_paths declared")),
-                        }
-                    }
-                    Ok(_) => (),
-                    Err(errors) => invalid.push(format!(
-                        "{label}: {}",
-                        serde_json::to_string(&errors).unwrap()
-                    )),
+                let result = agov_coord::plan_validator::validate_file(&entry.path());
+                match classify_plan(&label, result, changed_plan_files.contains(&repo_path)) {
+                    PlanClassification::Plan(source) => plans.push(source),
+                    PlanClassification::Unassessed(message) => unassessed.push(message),
+                    PlanClassification::Invalid(message) => invalid.push(message),
+                    PlanClassification::Skip => (),
                 }
             }
         }
         Err(e) => unavailable.push(format!("plan directory: {e}")),
+    }
+
+    // S4-I1 fix: a plan merged to the target branch after the candidate
+    // forked from it is absent from the candidate's own working tree, so
+    // the scan above never sees it. Overlay every live plan that exists at
+    // the fresh target commit but not locally -- read via `git show`, not
+    // the filesystem, since it may not be present in this checkout at all.
+    let mut target_inventory_failed = false;
+    if let Ok(base_sha) = &base {
+        let base_sha = base_sha.trim();
+        match target_only_plan_paths(base_sha, &local_filenames) {
+            Ok(paths) => {
+                for path in paths {
+                    plan_count += 1;
+                    let label = format!("plan {path} (target-only @ {base_sha})");
+                    match git_output(&["show", &format!("{base_sha}:{path}")]) {
+                        Ok(content) => {
+                            let result = agov_coord::plan_validator::validate_content(&content);
+                            match classify_plan(&label, result, false) {
+                                PlanClassification::Plan(source) => plans.push(source),
+                                PlanClassification::Unassessed(message) => unassessed.push(message),
+                                PlanClassification::Invalid(message) => invalid.push(message),
+                                PlanClassification::Skip => (),
+                            }
+                        }
+                        Err(e) => {
+                            unavailable.push(format!("{label}: {e}"));
+                            target_inventory_failed = true;
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                unavailable.push(format!("target-only plan inventory: {e}"));
+                target_inventory_failed = true;
+            }
+        }
     }
     plans.sort_by(|a, b| a.label.cmp(&b.label));
 
@@ -339,7 +426,10 @@ pub(super) fn run(
         // before reaching this point when its own base resolution fails
         // (see the plan's "Design: CI job" section); this is a second,
         // in-process guard for direct invocations that skip that wrapper.
-        if base.is_err() {
+        // Likewise, a failed target-only plan inventory (S4-I1 fix) means
+        // coverage of "every live plan at the fresh target" is incomplete
+        // -- never silently report a clean pass for an unevaluated target.
+        if base.is_err() || target_inventory_failed {
             return 1;
         }
         if unacknowledged > 0 {

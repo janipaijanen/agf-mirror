@@ -293,6 +293,71 @@ fn unresolvable_base_fails_closed_under_blocking_mode() {
     assert_eq!(code, 1, "an unresolvable base must block, never silently pass");
 }
 
+/// S4-I1 regression (`20260914T173527Z-coder-tester-hkj4`): a live plan
+/// added to the target branch AFTER the candidate forked must not be
+/// invisible to the blocking check. Exact topology from the review's own
+/// controlled reproduction: fork, add a colliding plan on the candidate,
+/// then add a colliding plan on the target -- the candidate's own working
+/// tree never sees the target-side addition via the filesystem alone.
+#[test]
+fn target_side_plan_added_after_fork_is_not_invisible() {
+    let r = Repo::new();
+    let fork = r.git(&["rev-parse", "HEAD"]);
+    r.git(&["checkout", "-b", "candidate"]);
+    r.plan("candidate", "affected_paths: ['shared.rs']");
+    r.commit();
+    r.git(&["checkout", "main"]);
+    r.plan("existing", "affected_paths: ['shared.rs']");
+    r.commit();
+    r.git(&["checkout", "candidate"]);
+
+    let (code, text) = r.run(&[
+        "plan",
+        "collision-check",
+        "--plans-only",
+        "--changed-only",
+        "--fail-on-unacknowledged-collision",
+        "--base-ref",
+        "main",
+    ]);
+    assert_eq!(
+        code, 1,
+        "a target-only live plan added after fork must still block: {text}"
+    );
+    assert!(text.contains("candidate.md"), "{text}");
+    assert!(text.contains("existing.md"), "{text}");
+    assert!(text.contains("severity: blocking"), "{text}");
+    let _ = fork; // establishes the divergence point; not asserted directly
+}
+
+/// S4-I1 regression, positive counterpart: the same fork/target-add
+/// topology, but the candidate's plan declares `depends_on` naming the
+/// target-only plan's id -- must clear the block despite never having
+/// seen that plan locally before the check ran.
+#[test]
+fn target_side_plan_can_be_acknowledged_via_depends_on() {
+    let r = Repo::new();
+    r.git(&["checkout", "-b", "candidate"]);
+    r.plan_with_depends_on("candidate", "['shared.rs']", "['existing']");
+    r.commit();
+    r.git(&["checkout", "main"]);
+    r.plan("existing", "affected_paths: ['shared.rs']");
+    r.commit();
+    r.git(&["checkout", "candidate"]);
+
+    let (code, text) = r.run(&[
+        "plan",
+        "collision-check",
+        "--plans-only",
+        "--changed-only",
+        "--fail-on-unacknowledged-collision",
+        "--base-ref",
+        "main",
+    ]);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("severity: informational"), "{text}");
+}
+
 #[test]
 fn plans_only_suppresses_forge_querying_even_with_include_forge() {
     let r = Repo::new();
