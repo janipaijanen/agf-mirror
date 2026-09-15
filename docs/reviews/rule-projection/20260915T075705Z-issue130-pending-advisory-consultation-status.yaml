@@ -81,6 +81,7 @@ surfaces:
     paths:
       - agf/schemas/gate1-plan.schema.json
       - tooling/rust/crates/agov/tests/plan_superseded_status.rs
+      - tooling/rust/crates/agov/tests/plan_collision.rs
     reason: >-
       New blocking behavior inside an already-mechanically-enforced
       command (`agov plan validate`) requires its own negative/positive
@@ -96,6 +97,15 @@ surfaces:
       every plan status must remain unaffected. The new test cases join
       that existing file rather than a new one, matching its own
       established scope for this schema's status-conditional coverage.
+      Additionally (added per round-3 audit `damr`):
+      `agf/schemas/gate1-plan.schema.json` is a registered `surfaces`
+      entry of the active `plan-collision-block` gate in
+      `.agf/gates.yaml`, so `agov gate change-check` requires this
+      change to also touch one of that gate's registered `tests` paths.
+      `plan_collision.rs` gains one case proving a `pending-gate1` plan
+      with a `pending` advisory row is still correctly scanned by
+      collision-check, satisfying that mechanical requirement with a
+      genuine regression guard rather than a contrived touch.
 
   distribution:
     disposition: confirmed

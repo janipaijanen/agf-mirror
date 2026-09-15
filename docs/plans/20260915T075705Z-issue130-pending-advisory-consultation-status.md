@@ -39,6 +39,7 @@ affected_paths:
   - AGENTS.md
   - agf/templates/AGENTS.md
   - tooling/rust/crates/agov/tests/plan_superseded_status.rs
+  - tooling/rust/crates/agov/tests/plan_collision.rs
   - docs/reviews/rule-projection/20260915T075705Z-issue130-pending-advisory-consultation-status.yaml
 depends_on:
   - 20260913T085123Z-work-item-steward-gate1
@@ -220,9 +221,12 @@ self-discipline ("the plan self-blocks... in prose," per `a8pj`'s own
 observation).
 
 No change to `tooling/rust/crates/agov-coord/src/plan_validator.rs` is
-needed under this revised design; `affected_paths` above is updated
-accordingly to name only the schema, template, and loader-projection
-files actually touched.
+needed under this revised design. `affected_paths` above names the
+schema, template, and loader-projection files actually touched, plus
+(added per round-2/round-3 audit) the two test files: the new
+`plan_superseded_status.rs` negative-test cases and the
+`plan_collision.rs` companion test the gate-registry consequence below
+requires.
 
 ### Non-goals
 
@@ -277,12 +281,26 @@ this new test file should follow directly):
    only `approved` -- a plan that reaches implementation or completion
    with an unresolved consultation is the same defect, whichever of the
    three post-Gate-1 statuses it currently carries.
-7. Full workspace suite, clippy. `agov gate change-check` is not
-   implicated -- the change is confined to
-   `agf/schemas/gate1-plan.schema.json` and `agf/templates/gate1-plan.md`,
-   neither a registered gate surface in `.agf/gates.yaml` today, and this
-   slice does not register one (no new blocking mechanism is introduced;
-   schema conformance is already `agov plan validate`'s existing job).
+7. **`agov gate change-check` companion test (corrected per round-3 audit
+   `damr`).** `agf/schemas/gate1-plan.schema.json` IS a registered
+   `surfaces` entry of the active `plan-collision-block` gate in
+   `.agf/gates.yaml` (registered by Row 6 S4, base `bcc76b04`) -- the
+   earlier "not a registered gate surface" claim in this section was
+   wrong; `gate change-check` mechanically requires any commit touching
+   a registered surface to also touch at least one of that gate's own
+   registered `tests` paths
+   (`tooling/rust/crates/agov/tests/plan_collision.rs` or
+   `.gitlab/scripts/plan-collision-self-test.sh`). The implementation
+   commit adds one case to `plan_collision.rs` (already the registered
+   test, and already the crate the new `plan_superseded_status.rs` case
+   lives beside): a `status: pending-gate1` plan with a `pending`
+   `advisory_consultation` row is still correctly scanned and included
+   in collision-check's inventory, unaffected by the new enum value --
+   a genuine regression guard for the collision-check gate itself, not
+   a contrived touch to satisfy the mechanical check. Both
+   `tooling/rust/crates/agov/tests/plan_collision.rs` and
+   `tooling/rust/crates/agov/tests/plan_superseded_status.rs` are now in
+   `affected_paths` above.
 8. **Gate 2 evidence requirement:** the implementation MR's own
    description includes the reviewer-visible negative-test command and
    its output, tied to that MR's exact head.
