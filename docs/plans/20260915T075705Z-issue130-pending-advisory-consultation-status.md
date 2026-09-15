@@ -7,8 +7,8 @@ advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
-      Schema field addition and a semantic Rust validation check on
-      already-present plan-frontmatter fields; no credential, secret,
+      Schema field addition and a schema-level allOf/if/then conditional
+      on already-present plan-frontmatter fields; no credential, secret,
       network, or new write authority introduced. Per
       `agf/agents/MANIFEST.yaml`, infosec-sentinel is CI-only and cannot
       be self-performed (consistent with the disclosed limitation
@@ -23,10 +23,18 @@ advisory_consultation:
       introducing gate mechanics. Found and fixed two real gaps in the
       same draft (a non-compiling code snippet, and a deferred
       rule-projection manifest that should have existed at Gate 1) --
-      see that record for detail.
+      see that record for detail. Independently, a second
+      contribution-auditor pass (Codex,
+      20260915T113047Z-contribution-auditor-rhs6) reviewed the MR !2837
+      head after that first round and returned BLOCK with two further
+      findings (rule-authority gap in the proposed Rust semantic check;
+      code/prose disagreement on which roles' `pending` status blocks),
+      plus one residual manifest-timing inconsistency. This revision
+      addresses all three -- see the "Schema-level conditional" Design
+      subsection and the Rule projection section below for the corrected
+      reasoning.
 affected_paths:
   - agf/schemas/gate1-plan.schema.json
-  - tooling/rust/crates/agov-coord/src/plan_validator.rs
   - agf/templates/gate1-plan.md
   - AGENTS.md
   - agf/templates/AGENTS.md
@@ -142,55 +150,78 @@ remains valid unchanged. `reason` stays optional for `pending` (unlike
 already says everything required; naming the requesting coordination
 record's id in `reason` is recommended practice, not enforced.
 
-### Semantic validation: `pending` blocks Gate 1 approval (the actual fix)
+### Schema-level conditional: `pending` blocks Gate 1 approval (the actual fix, revised)
 
-The schema addition alone would let a plan sit at `status: approved`
-with a `pending` consultation row forever -- exactly as useless as
-today's `waived` misuse, just honestly labeled instead of dishonestly
-labeled. The real fix is a new check in
-`tooling/rust/crates/agov-coord/src/plan_validator.rs`'s
-`validate_semantics_with_manifest` (the same function that already
-enforces required-role presence and active-role status), mirroring its
-existing pattern:
+**Revised after independent contribution audit
+`20260915T113047Z-contribution-auditor-rhs6`** (BLOCK, two findings) on
+the first draft, which proposed a new Rust semantic check in
+`plan_validator.rs`. That draft had two real defects: (1) no named rule
+granted a *new* semantic check blocking authority -- citing the existing
+required-role-presence check as precedent is not the same as a rule
+actually saying so, exactly the gap `tool-authority-boundary-rule.md`
+exists to close (the same defect Row 6 S4's `thsq` review caught in this
+session, round 1); (2) the proposed loop filtered every
+`advisory_consultation` row regardless of role, while the prose claimed
+only *required*-role rows blocked -- code and prose disagreed.
 
-The existing function only extracts role *names* into `roles: Vec<String>`
-(for the required-role-presence check) -- it does not currently retain
-each row's `status` alongside its `role`. The new check needs both, so
-it iterates `data.get("advisory_consultation")` a second time (matching
-this function's own existing style of one focused loop per concern,
-rather than restructuring the existing `roles` extraction):
+The revised fix drops the Rust check entirely and expresses the same
+restriction as a schema-level conditional, following the exact pattern
+this schema already uses for `status: superseded`'s own provenance
+requirement (see the existing top-level `allOf`/`if`/`then` block for
+`superseded_by`/`superseded_decision`/`superseded_at`). Draft-07's
+`if`/`then` combines cleanly with a per-item `not: {"const": "pending"}`
+constraint added alongside the array's existing `items` schema:
 
-```rust
-// New check, alongside the existing required-role and
-// role-active-status checks in validate_semantics_with_manifest:
-let plan_status = data.get("status").and_then(serde_json::Value::as_str);
-if matches!(plan_status, Some("approved" | "active" | "complete")) {
-    let pending_rows = data
-        .get("advisory_consultation")
-        .and_then(serde_json::Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter(|entry| entry.get("status").and_then(serde_json::Value::as_str) == Some("pending"))
-        .filter_map(|entry| entry.get("role").and_then(serde_json::Value::as_str));
-    for role in pending_rows {
-        errors.push((
-            format!(
-                "plan status is '{}' but advisory_consultation role '{role}' is still pending -- Gate 1 approval requires every required-role row to leave pending first",
-                plan_status.unwrap()
-            ),
-            "#/advisory_consultation".to_string(),
-        ));
+```json
+{
+  "if": {
+    "properties": { "status": { "enum": ["approved", "active", "complete"] } },
+    "required": ["status"]
+  },
+  "then": {
+    "properties": {
+      "advisory_consultation": {
+        "items": {
+          "properties": {
+            "status": { "not": { "const": "pending" } }
+          }
+        }
+      }
     }
+  }
 }
 ```
 
+Added to the schema's existing top-level `allOf` array, alongside the
+`superseded` conditional already there.
+
+This resolves both findings at once. On authority: `agov plan validate`
+running JSON Schema conformance against `gate1-plan.schema.json` is not
+a *new* check needing a *new* rule grant -- it is the existing,
+already-named blocking mechanism Gate discipline itself points to
+("plan file... conforming to `agf/schemas/gate1-plan.schema.json`" in
+`AGENTS.md`). A schema constraint is the contract; there is no separate
+"the tool decided to enforce this" step for a rule to authorize. On the
+required-vs-optional-role question: the `items` sub-schema applies to
+*every* element of the array by JSON Schema definition, so the
+constraint is uniform across required and optional rows with no special
+casing needed -- matching the auditor's suggested safer default (any
+declared `pending` row blocks a post-Gate-1 status, not only a required
+one) without an explicit branch to get wrong.
+
 A plan at `status: pending-gate1` MAY have `pending` rows -- that is
 exactly the state `pending` exists to represent (mid-drafting, review
-requested, not yet answered). The block fires only once a plan claims
-`approved`/`active`/`complete` while a required row is still `pending`
--- the literal MR !2478 failure mode #130 documents, now caught by the
-validator itself rather than relying on plan-author self-discipline
-("the plan self-blocks... in prose," per `a8pj`'s own observation).
+requested, not yet answered). The `then` branch fires only once a plan
+claims `approved`/`active`/`complete` while *any* consultation row is
+still `pending` -- the literal MR !2478 failure mode #130 documents, now
+caught by the schema itself rather than relying on plan-author
+self-discipline ("the plan self-blocks... in prose," per `a8pj`'s own
+observation).
+
+No change to `tooling/rust/crates/agov-coord/src/plan_validator.rs` is
+needed under this revised design; `affected_paths` above is updated
+accordingly to name only the schema, template, and loader-projection
+files actually touched.
 
 ### Non-goals
 
@@ -204,38 +235,54 @@ validator itself rather than relying on plan-author self-discipline
   -- an author still uses an ordinary `handoff`/`note` to request a real
   review, same as today; this slice only fixes what the plan file itself
   is permitted to say about that request's outstanding state.
+- No change to `tooling/rust/crates/agov-coord/src/plan_validator.rs` --
+  the revised design (see above) is schema-only; there is no new Rust
+  semantic check.
+- No distinction between required and optional `advisory_consultation`
+  roles for the blocking condition -- *any* row left `pending` blocks a
+  post-Gate-1 status, matching independent-audit finding rhs6's
+  suggested safer default and avoiding a required-vs-optional branch
+  the schema's per-item `items` constraint would have to special-case.
 
 ## Test strategy (gate-self-test-rule: this is gate mechanics)
 
 `agov plan validate` is an existing mechanically-enforced blocking
-check; this slice adds new blocking behavior to it, so it needs its own
-negative/positive evidence, not merely a schema-shape test:
+check; this slice adds new blocking behavior to it via a schema
+conditional, so it needs its own negative/positive evidence -- the same
+shape `tooling/rust/crates/agov/tests/plan_superseded_status.rs` already
+uses for this schema's existing `superseded` conditional (a template
+this new test file should follow directly):
 
-1. **Negative (the new check fires):** a plan with `status: approved`
-   and one `advisory_consultation` row `status: pending` ->
-   `agov plan validate` fails, naming the specific role and stating Gate
-   1 approval requires it to leave pending first.
-2. **Positive, mid-draft:** the same plan at `status: pending-gate1`
-   with the identical `pending` row -> validates cleanly (pending is
+1. **Negative (required role pending):** a plan with `status: approved`
+   and the `infosec-sentinel` row `status: pending` -> `agov plan
+   validate` fails.
+2. **Negative (optional role pending):** a plan with `status: approved`,
+   both required rows `consulted`, and one additional optional-role row
+   (e.g. `fact-checker`) `status: pending` -> also fails, proving the
+   schema constraint is uniform across required and optional rows (this
+   is the exact case round-1's Rust draft got right in effect but wrong
+   in its own prose -- this test pins the corrected, stated behavior).
+3. **Positive, mid-draft:** the same plan at `status: pending-gate1`
+   with an identical `pending` row -> validates cleanly (pending is
    legitimate pre-Gate-1 state).
-3. **Positive, flipped:** the same plan at `status: approved` with the
+4. **Positive, flipped:** the same plan at `status: approved` with the
    row changed to `consulted` -> validates cleanly (matches this
    session's own real Row 6 S4 experience).
-4. **Backward compatibility:** every existing enum value
+5. **Backward compatibility:** every existing enum value
    (`consulted`/`waived`/`not-applicable`) at every plan status,
    unmodified, continues to validate exactly as before -- re-run
    unchanged against the existing `plan_validator` test suite.
-5. **`status: active`/`status: complete` also block on `pending`,** not
+6. **`status: active`/`status: complete` also block on `pending`,** not
    only `approved` -- a plan that reaches implementation or completion
-   with an unresolved required consultation is the same defect,
-   whichever of the three post-Gate-1 statuses it currently carries.
-6. Full workspace suite, clippy, `agov gate change-check` if
-   `plan_validator.rs` is a registered gate surface (confirm at
-   implementation time; it is not currently registered in
-   `.agf/gates.yaml`, so this may be a net-new registration decision,
-   not a companion-touch one -- to be resolved during implementation,
-   not asserted here).
-7. **Gate 2 evidence requirement:** the implementation MR's own
+   with an unresolved consultation is the same defect, whichever of the
+   three post-Gate-1 statuses it currently carries.
+7. Full workspace suite, clippy. `agov gate change-check` is not
+   implicated -- the change is confined to
+   `agf/schemas/gate1-plan.schema.json` and `agf/templates/gate1-plan.md`,
+   neither a registered gate surface in `.agf/gates.yaml` today, and this
+   slice does not register one (no new blocking mechanism is introduced;
+   schema conformance is already `agov plan validate`'s existing job).
+8. **Gate 2 evidence requirement:** the implementation MR's own
    description includes the reviewer-visible negative-test command and
    its output, tied to that MR's exact head.
 
@@ -253,31 +300,43 @@ three, with the same one-line blocking-condition note.
 
 Six-surface manifest at
 `docs/reviews/rule-projection/20260915T075705Z-issue130-pending-advisory-consultation-status.yaml`,
+already exists and is finalized (updated alongside this revision),
 validated (`agov plan projection-check --allow-planned --base-ref
-origin/main`: OK). Normative owner: `AGENTS.md` itself, **existing
-pointer sufficient** -- unlike Row 6 S4's brand-new CI gate, `agov plan
-validate`'s blocking authority over Gate 1 plan-frontmatter semantics is
-already established and already exercised today (the existing
-required-role-presence and active-role-status checks already block
-without their own dedicated per-check rule text); this slice adds a new
-semantic check inside that same already-authorized command, not a new
-independent gate.
+origin/main`: OK).
+
+**Normative owner disposition, revised after independent audit rhs6's
+finding.** The first draft argued "existing pointer sufficient" by
+analogy to the existing required-role-presence and active-role-status
+Rust checks -- rhs6 correctly rejected that reasoning: citing precedent
+for a new check does not itself grant that new check authority, per
+`tool-authority-boundary-rule.md`. The revised schema-only design (see
+Design above) does not have this problem, because it introduces no new
+*check* at all: `agf/schemas/gate1-plan.schema.json` is itself the named,
+already-governed artifact `agov plan validate`'s schema-conformance step
+enforces, and `AGENTS.md`'s Gate discipline section already names that
+exact schema as the Gate 1 authority ("plan file... conforming to
+`agf/schemas/gate1-plan.schema.json`"). Editing the schema's own `allOf`
+conditionals is squarely inside that existing pointer's scope -- the
+same way the `superseded` provenance conditional already there needed no
+separate rule text of its own. Normative owner: `AGENTS.md`, **existing
+pointer sufficient**, on this corrected basis.
 
 ## Rollback
 
 The schema addition is purely additive (a new enum value; no existing
-value's meaning changes). The validator addition is a new check with a
-narrow trigger condition (`status` in `{approved, active, complete}` AND
-some row `pending`) -- no plan using the three prior values at any
-status is affected. Reverting removes the enum value and the check;
-zero migration for any existing plan, since none can currently declare
-`pending` at all.
+value's meaning changes). The conditional addition is a new `allOf`
+entry with a narrow trigger condition (`status` in
+`{approved, active, complete}` AND some row `pending`) -- no plan using
+the three prior values at any status is affected. Reverting removes the
+enum value and the conditional; zero migration for any existing plan,
+since none can currently declare `pending` at all.
 
 ## Decision requested at Gate 1
 
-Approve (a) the `pending` schema enum value, (b) the new
-`plan_validator.rs` semantic check blocking `approved`/`active`/`complete`
-while a required consultation row remains `pending`, (c) the test
-strategy above as satisfying `gate-self-test-rule` for this
-gate-mechanics change, and (d) the rule-projection disposition to be
-finalized in the six-surface manifest at implementation time.
+Approve (a) the `pending` schema enum value, (b) the schema-level
+`allOf`/`if`/`then` conditional blocking `approved`/`active`/`complete`
+while any consultation row remains `pending` (no Rust semantic check),
+(c) the test strategy above as satisfying `gate-self-test-rule` for this
+gate-mechanics change, and (d) the rule-projection disposition, already
+finalized in the six-surface manifest referenced above (not deferred to
+implementation time).
