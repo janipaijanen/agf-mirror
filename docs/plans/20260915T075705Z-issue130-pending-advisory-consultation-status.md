@@ -31,6 +31,11 @@ affected_paths:
   - AGENTS.md
   - agf/templates/AGENTS.md
   - docs/reviews/rule-projection/20260915T075705Z-issue130-pending-advisory-consultation-status.yaml
+depends_on:
+  - 20260913T085123Z-work-item-steward-gate1
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -60,6 +65,41 @@ affected_paths:
   understands "pending" as a real state. A plan author who instead
   reused `waived` (as MR !2478 did) would have passed validation while
   making the same false claim #130 already documents.
+
+## Collision-check disposition (`depends_on`)
+
+The newly blocking `agov:governance:plan-collision-gate` (shipped by Row 6
+S4, merged to `main` at `bcc76b04` after this branch was first opened --
+this plan was rebased onto that commit before this Gate 1 request)
+reported four unacknowledged overlaps against this plan's `affected_paths`,
+each reviewed and disposed below:
+
+- `20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle` (overlap:
+  `agf/schemas/gate1-plan.schema.json`) and
+  `20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion`
+  (same file) are both already Gate 2-approved and merged to `main`
+  (confirmed via coordination records
+  `20260913T160721Z-governor-reviewer-5jjg` and
+  `20260915T050307Z-governor-reviewer-g7j1`). This branch is rebased on
+  top of both results, so there is no real scheduling conflict -- the
+  collision-check cannot yet distinguish a merged plan from a live one
+  because plan `status` has no post-merge terminal value in the current
+  schema (a separate, unfiled gap, not this plan's scope).
+- `20260913T093405Z-row5-s3-priority-ordering-and-challenge-response`
+  (overlap: `tooling/rust/crates/agov-coord/src/**` vs. this plan's
+  `tooling/rust/crates/agov-coord/src/plan_validator.rs`) is likewise
+  already merged (`20260913T121333Z-planner-architect-gkqh`,
+  `row5-s3-merged`). Same disposition as above.
+- `20260913T085123Z-work-item-steward-gate1` (overlap: `AGENTS.md`) is
+  genuinely still open (Gate 1-approved, no completion record found as of
+  this writing). Reviewed its plan file directly: its `AGENTS.md` change
+  adds a new row to the "Active agents" roster table, while this plan's
+  `AGENTS.md` change edits the existing "Gate discipline" paragraph --
+  disjoint regions of a small file. Acknowledged via `depends_on` rather
+  than narrowed `affected_paths`, since the file-level overlap is real
+  and worth a reviewer's awareness even though the semantic conflict risk
+  is low; an ordinary merge (whichever of the two lands second) resolves
+  it trivially.
 
 ## Problem
 
