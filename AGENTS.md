@@ -206,7 +206,7 @@ must not be renamed merely for style.
 
 ## Gate discipline
 
-A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports overlaps advisory-only by default. A plan whose `affected_paths` overlaps another live plan's, unacknowledged by `depends_on`, blocks Gate 1 via `agov:governance:plan-collision-gate` -- see `agf/rules/workflow/development-workflow-rule.md`'s "Affected-paths collision blocking" section. Only plan-vs-plan overlaps block; a local branch's or another open MR's changed paths remain advisory-only.
 
 Every non-trivial task requires:
 

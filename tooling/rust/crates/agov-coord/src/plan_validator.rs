@@ -26,7 +26,15 @@ pub fn validate_file(path: &Path) -> Result<PlanDocument, Vec<(String, String)>>
         Err(err) => return Err(vec![(format!("{err:?}"), String::new())]),
     };
 
-    let raw = match yaml::parse_frontmatter_json(&content) {
+    validate_content(&content)
+}
+
+/// Validate plan-file content already read from disk or a Git blob (e.g.
+/// `git show <ref>:<path>` for a plan that exists on a target ref but not
+/// in the current working tree). Shares every check `validate_file` runs,
+/// minus the read step.
+pub fn validate_content(content: &str) -> Result<PlanDocument, Vec<(String, String)>> {
+    let raw = match yaml::parse_frontmatter_json(content) {
         Ok(value) => value,
         Err(yaml::YamlError::NoFrontmatter) => {
             return Err(vec![(

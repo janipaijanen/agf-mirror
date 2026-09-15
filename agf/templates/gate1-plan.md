@@ -7,6 +7,10 @@ status: pending-gate1
 topic: login-error-message
 # Optional: whole-segment **, single-segment * and ? globs are supported.
 # affected_paths: ["lib/auth/login.ex", "test/auth/login_test.exs"]
+# Optional: acknowledge a known, deliberate affected_paths overlap with
+# another plan/MR/branch to avoid a blocked Gate 1 -- see "Affected files"
+# below.
+# depends_on: ["other-plan-id"]
 gate1_approved_by: ""
 gate1_approved_at: ""
 advisory_consultation:
@@ -27,13 +31,17 @@ exists.
 
 ## Affected files
 
-A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports (does not block) overlaps.
+A plan MAY declare `affected_paths` for machine-checkable overlap detection; `agov plan collision-check` reports overlaps advisory-only by default. A plan whose `affected_paths` overlaps another live plan's, unacknowledged by `depends_on`, blocks Gate 1 via the `agov:governance:plan-collision-gate` CI job -- add `depends_on: ["other-plan-id"]` to acknowledge a genuine, coordinated overlap instead of editing `affected_paths` to avoid it. Only plan-vs-plan overlaps block; a local branch's or another open MR's changed paths remain advisory-only.
 
 Relative paths normalize `.` and redundant separators before comparison;
 `**` is allowed only as a whole segment. The default check is local-only. CLI `--include-forge` adds fresh GitLab reads
 using configured `glab` authentication; `--base-ref` defaults to `main`.
 Exit `0` means full coverage and no overlap; `1` means a possible overlap;
 `2` means no overlap found with incomplete coverage. MCP supports local mode only.
+`--plans-only` restricts comparison to `docs/plans/*.md` files only, skipping
+ref/branch and forge enumeration entirely; combined with `--changed-only`
+and `--fail-on-unacknowledged-collision`, this is what the CI gate above
+runs.
 
 - `lib/auth/login.ex`
 - `test/auth/login_test.exs`

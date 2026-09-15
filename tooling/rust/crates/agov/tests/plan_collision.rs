@@ -65,6 +65,9 @@ impl Repo {
     fn plan(&self, name: &str, field: &str) {
         self.write(&format!("docs/plans/{name}.md"), &format!("---\nid: {name}\nstatus: approved\n{field}\nadvisory_consultation:\n  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: consulted\n---\nPlan.\n"));
     }
+    fn plan_with_depends_on(&self, name: &str, affected_paths: &str, depends_on: &str) {
+        self.write(&format!("docs/plans/{name}.md"), &format!("---\nid: {name}\nstatus: approved\naffected_paths: {affected_paths}\ndepends_on: {depends_on}\nadvisory_consultation:\n  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: consulted\n---\nPlan.\n"));
+    }
 }
 
 #[test]
@@ -178,6 +181,199 @@ fn unreadable_ref_is_named_without_losing_known_overlap() {
     assert!(text.contains("refs/heads/broken"));
     r.plan("b", "affected_paths: ['a']");
     assert_eq!(r.check().0, 1);
+}
+
+// --- Row 6 S4 (#123): blocking-mode tests. All prior tests above run
+// unmodified with none of the three new flags, proving default (no-flag)
+// behavior is byte-for-byte unchanged. ---
+
+const BLOCKING: &[&str] = &[
+    "plan",
+    "collision-check",
+    "--plans-only",
+    "--changed-only",
+    "--fail-on-unacknowledged-collision",
+];
+
+#[test]
+fn unacknowledged_collision_blocks() {
+    let r = Repo::new();
+    r.plan("existing", "affected_paths: ['a.rs']");
+    let base = r.commit();
+    r.plan("new", "affected_paths: ['a.rs']");
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 1, "{text}");
+    assert!(text.contains("severity: blocking"), "{text}");
+    assert!(text.contains("1 unacknowledged collision"), "{text}");
+}
+
+#[test]
+fn depends_on_acknowledges_and_clears_the_block() {
+    let r = Repo::new();
+    r.plan("existing", "affected_paths: ['a.rs']");
+    let base = r.commit();
+    r.plan_with_depends_on("new", "['a.rs']", "['existing']");
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("severity: informational"), "{text}");
+    assert!(text.contains("0 unacknowledged collision"), "{text}");
+}
+
+#[test]
+fn changed_only_excludes_a_pre_existing_collision_but_default_still_reports_it() {
+    let r = Repo::new();
+    r.plan("a", "affected_paths: ['x.rs']");
+    r.plan("b", "affected_paths: ['x.rs']");
+    let base = r.commit();
+    // Nothing changes after `base` -- both plans already existed and
+    // already collided before this diff.
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("0 unacknowledged collision"), "{text}");
+
+    // The exact same collision, without --changed-only, is still reported
+    // in the (unchanged) advisory report -- proving the flag genuinely
+    // restricts scope rather than the collision having vanished.
+    let (code, text) = r.check();
+    assert_eq!(code, 1, "{text}");
+    assert!(text.contains("plan docs/plans/a.md <-> plan docs/plans/b.md"));
+}
+
+#[test]
+fn unassessed_plan_is_not_conflated_with_an_unacknowledged_collision() {
+    let r = Repo::new();
+    r.plan("existing", "affected_paths: ['a.rs']");
+    let base = r.commit();
+    r.plan("new", "affected_paths: ['b.rs']"); // disjoint, no collision
+    r.plan("no-paths", ""); // unassessed: no affected_paths declared
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("Unassessed:"), "{text}");
+}
+
+#[test]
+fn plans_only_ignores_a_colliding_local_branch() {
+    let r = Repo::new();
+    r.git(&["checkout", "-b", "other"]);
+    r.write("a.rs", "x\n");
+    r.commit();
+    r.git(&["checkout", "main"]);
+    r.plan("existing", "affected_paths: ['a.rs']");
+    let base = r.commit();
+    r.plan("new", "affected_paths: ['z.rs']"); // no plan-vs-plan collision
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    // A plain (non-plans-only) check would report the branch collision;
+    // --plans-only must not consult ref state at all.
+    assert_eq!(code, 0, "{text}");
+    assert!(!text.contains("ref refs/heads/other"), "{text}");
+}
+
+#[test]
+fn unresolvable_base_fails_closed_under_blocking_mode() {
+    let r = Repo::new();
+    r.plan("new", "affected_paths: ['a.rs']");
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", "does-not-exist"]);
+    let (code, _text) = r.run(&args);
+    assert_eq!(code, 1, "an unresolvable base must block, never silently pass");
+}
+
+/// S4-I1 regression (`20260914T173527Z-coder-tester-hkj4`): a live plan
+/// added to the target branch AFTER the candidate forked must not be
+/// invisible to the blocking check. Exact topology from the review's own
+/// controlled reproduction: fork, add a colliding plan on the candidate,
+/// then add a colliding plan on the target -- the candidate's own working
+/// tree never sees the target-side addition via the filesystem alone.
+#[test]
+fn target_side_plan_added_after_fork_is_not_invisible() {
+    let r = Repo::new();
+    let fork = r.git(&["rev-parse", "HEAD"]);
+    r.git(&["checkout", "-b", "candidate"]);
+    r.plan("candidate", "affected_paths: ['shared.rs']");
+    r.commit();
+    r.git(&["checkout", "main"]);
+    r.plan("existing", "affected_paths: ['shared.rs']");
+    r.commit();
+    r.git(&["checkout", "candidate"]);
+
+    let (code, text) = r.run(&[
+        "plan",
+        "collision-check",
+        "--plans-only",
+        "--changed-only",
+        "--fail-on-unacknowledged-collision",
+        "--base-ref",
+        "main",
+    ]);
+    assert_eq!(
+        code, 1,
+        "a target-only live plan added after fork must still block: {text}"
+    );
+    assert!(text.contains("candidate.md"), "{text}");
+    assert!(text.contains("existing.md"), "{text}");
+    assert!(text.contains("severity: blocking"), "{text}");
+    let _ = fork; // establishes the divergence point; not asserted directly
+}
+
+/// S4-I1 regression, positive counterpart: the same fork/target-add
+/// topology, but the candidate's plan declares `depends_on` naming the
+/// target-only plan's id -- must clear the block despite never having
+/// seen that plan locally before the check ran.
+#[test]
+fn target_side_plan_can_be_acknowledged_via_depends_on() {
+    let r = Repo::new();
+    r.git(&["checkout", "-b", "candidate"]);
+    r.plan_with_depends_on("candidate", "['shared.rs']", "['existing']");
+    r.commit();
+    r.git(&["checkout", "main"]);
+    r.plan("existing", "affected_paths: ['shared.rs']");
+    r.commit();
+    r.git(&["checkout", "candidate"]);
+
+    let (code, text) = r.run(&[
+        "plan",
+        "collision-check",
+        "--plans-only",
+        "--changed-only",
+        "--fail-on-unacknowledged-collision",
+        "--base-ref",
+        "main",
+    ]);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("severity: informational"), "{text}");
+}
+
+#[test]
+fn plans_only_suppresses_forge_querying_even_with_include_forge() {
+    let r = Repo::new();
+    r.plan("a", "affected_paths: ['x.rs']");
+    let base = r.commit();
+    let (code, text) = r.run(&[
+        "plan",
+        "collision-check",
+        "--plans-only",
+        "--include-forge",
+        "--base-ref",
+        &base,
+    ]);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("mode: plans-only"), "{text}");
+    assert!(!text.contains("MRs inspected: 1"), "{text}");
 }
 
 #[test]
