@@ -13,6 +13,10 @@ topic: login-error-message
 # depends_on: ["other-plan-id"]
 gate1_approved_by: ""
 gate1_approved_at: ""
+# advisory_consultation[].status may also be "pending": a review was
+# requested but has not yet answered. Valid while status is pending-gate1;
+# the plan cannot reach approved/active/complete while any declared row
+# (required or optional) is still pending.
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted

@@ -70,7 +70,8 @@
             "enum": [
               "consulted",
               "waived",
-              "not-applicable"
+              "not-applicable",
+              "pending"
             ]
           },
           "reason": {
@@ -132,6 +133,33 @@
           "superseded_decision",
           "superseded_at"
         ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": ["approved", "active", "complete"]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "advisory_consultation": {
+            "items": {
+              "properties": {
+                "status": {
+                  "not": {
+                    "const": "pending"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   ]

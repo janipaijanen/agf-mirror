@@ -176,7 +176,10 @@ A plan MAY declare `affected_paths` for machine-checkable overlap detection; `ag
 Every non-trivial task requires two gates:
 
 - **Gate 1** — planner-architect files a plan in `docs/plans/`; governor-reviewer
-  approves before implementation starts.
+  approves before implementation starts. `advisory_consultation[].status` may
+  be `pending` (a review was requested but has not yet answered) only before
+  approval -- the plan cannot reach `approved`/`active`/`complete` while any
+  declared row is still `pending`.
 - **Gate 2** — coder-tester files a handoff; governor-reviewer reviews and merges.
 
 If this project retains `docs/sources.md` and/or `docs/radar.md` as strictly
