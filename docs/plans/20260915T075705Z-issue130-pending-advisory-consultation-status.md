@@ -1,6 +1,8 @@
 ---
 id: 20260915T075705Z-issue130-pending-advisory-consultation-status
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-15T17:31:54Z
 topic: issue130-pending-advisory-consultation-status
 candidate_release: v2.11.0
 advisory_consultation:
