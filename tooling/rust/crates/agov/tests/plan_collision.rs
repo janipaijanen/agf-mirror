@@ -68,6 +68,12 @@ impl Repo {
     fn plan_with_depends_on(&self, name: &str, affected_paths: &str, depends_on: &str) {
         self.write(&format!("docs/plans/{name}.md"), &format!("---\nid: {name}\nstatus: approved\naffected_paths: {affected_paths}\ndepends_on: {depends_on}\nadvisory_consultation:\n  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: consulted\n---\nPlan.\n"));
     }
+    /// Issue #130: a `pending-gate1` plan carrying a `pending`
+    /// `advisory_consultation` row (the new enum value), otherwise a
+    /// normal candidate for collision inventory.
+    fn plan_pending_gate1_with_pending_advisory(&self, name: &str, field: &str) {
+        self.write(&format!("docs/plans/{name}.md"), &format!("---\nid: {name}\nstatus: pending-gate1\n{field}\nadvisory_consultation:\n  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: pending\n---\nPlan.\n"));
+    }
 }
 
 #[test]
@@ -397,4 +403,21 @@ fn equivalent_relative_spellings_cannot_hide_a_real_branch_overlap() {
     let (code, text) = r.check();
     assert_eq!(code, 1, "{text}");
     assert!(text.contains("plan docs/plans/alias.md <-> plan docs/plans/canonical.md"));
+}
+
+/// Issue #130 regression guard (round-3 independent audit `damr`'s
+/// required companion test for `.agf/gates.yaml`'s `plan-collision-block`
+/// gate, which registers this schema as a surface): a plan validly using
+/// the new `pending` advisory_consultation value at `status: pending-gate1`
+/// is still scanned and included in collision-check's inventory like any
+/// other candidate, and still participates correctly in overlap detection.
+#[test]
+fn pending_advisory_status_plan_is_still_scanned_and_detects_overlap() {
+    let r = Repo::new();
+    r.plan_pending_gate1_with_pending_advisory("mid-draft", "affected_paths: ['shared.rs']");
+    r.plan("existing", "affected_paths: ['shared.rs']");
+    let (code, text) = r.check();
+    assert_eq!(code, 1, "{text}");
+    assert!(text.contains("plan docs/plans/existing.md <-> plan docs/plans/mid-draft.md"));
+    assert!(text.contains("plans inspected: 2"), "{text}");
 }

@@ -46,6 +46,16 @@ impl Repo {
             ),
         );
     }
+    /// For issue #130's `pending` conditional: arbitrary `status` and an
+    /// explicit `advisory_consultation` block (caller controls per-row status).
+    fn plan_with_status(&self, name: &str, status: &str, advisory_consultation_yaml: &str) {
+        self.write(
+            &format!("docs/plans/{name}.md"),
+            &format!(
+                "---\nid: {name}\nstatus: {status}\nadvisory_consultation:\n{advisory_consultation_yaml}\n---\nPlan.\n"
+            ),
+        );
+    }
 }
 
 #[test]
@@ -167,5 +177,115 @@ fn pre_existing_statuses_still_validate_without_provenance_fields() {
         );
         let (code, out) = repo.validate(&format!("docs/plans/{name}.md"));
         assert_eq!(code, 0, "status {status}: {out}");
+    }
+}
+
+// Issue #130: schema-owned `allOf`/`if`/`then` conditional blocking
+// `status: approved|active|complete` while any `advisory_consultation`
+// row is `pending`. Gate-self-test-rule negative fixtures per
+// docs/plans/20260915T075705Z-issue130-pending-advisory-consultation-status.md's
+// Test strategy.
+
+/// Gate-self-test negative: a required-role row `pending` at `status:
+/// approved` is rejected.
+#[test]
+fn pending_required_role_at_approved_is_rejected() {
+    let repo = Repo::new();
+    repo.plan_with_status(
+        "pending-required",
+        "approved",
+        "  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: pending\n",
+    );
+    let (code, out) = repo.validate("docs/plans/pending-required.md");
+    assert_ne!(code, 0, "{out}");
+}
+
+/// Gate-self-test negative: an *optional*-role row `pending` is rejected
+/// too -- the schema's per-item constraint is uniform across required and
+/// optional rows, not required-role-only (round-2 independent audit rhs6's
+/// suggested safer default).
+#[test]
+fn pending_optional_role_at_approved_is_also_rejected() {
+    let repo = Repo::new();
+    repo.plan_with_status(
+        "pending-optional",
+        "approved",
+        "  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: consulted\n  - role: fact-checker\n    status: pending\n",
+    );
+    let (code, out) = repo.validate("docs/plans/pending-optional.md");
+    assert_ne!(code, 0, "{out}");
+}
+
+/// Positive, mid-draft: `pending` is legitimate at `status: pending-gate1`.
+#[test]
+fn pending_row_at_pending_gate1_status_is_valid() {
+    let repo = Repo::new();
+    repo.plan_with_status(
+        "mid-draft",
+        "pending-gate1",
+        "  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: pending\n",
+    );
+    let (code, out) = repo.validate("docs/plans/mid-draft.md");
+    assert_eq!(code, 0, "{out}");
+}
+
+/// Positive, flipped: the same plan with the row resolved to `consulted`
+/// validates cleanly at `status: approved` (matches Row 6 S4's own real
+/// session experience).
+#[test]
+fn resolved_row_at_approved_is_valid() {
+    let repo = Repo::new();
+    repo.plan_with_status(
+        "resolved",
+        "approved",
+        "  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: consulted\n",
+    );
+    let (code, out) = repo.validate("docs/plans/resolved.md");
+    assert_eq!(code, 0, "{out}");
+}
+
+/// `status: active` and `status: complete` block on `pending` too, not
+/// only `approved` -- the same defect at any post-Gate-1 status.
+#[test]
+fn pending_row_blocks_at_active_and_complete_too() {
+    let repo = Repo::new();
+    for status in ["active", "complete"] {
+        let name = format!("blocked-{status}");
+        repo.plan_with_status(
+            &name,
+            status,
+            "  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: pending\n",
+        );
+        let (code, out) = repo.validate(&format!("docs/plans/{name}.md"));
+        assert_ne!(code, 0, "status {status}: {out}");
+    }
+}
+
+/// Backward compatibility: every pre-existing enum value, at every plan
+/// status, continues to validate exactly as before the `pending` addition.
+#[test]
+fn pre_existing_advisory_status_values_still_validate_at_every_plan_status() {
+    let repo = Repo::new();
+    for plan_status in ["pending-gate1", "approved", "active", "complete"] {
+        for row_status in ["consulted", "not-applicable"] {
+            let name = format!("compat-{plan_status}-{row_status}");
+            repo.plan_with_status(
+                &name,
+                plan_status,
+                &format!(
+                    "  - role: infosec-sentinel\n    status: {row_status}\n  - role: contribution-auditor\n    status: consulted\n"
+                ),
+            );
+            let (code, out) = repo.validate(&format!("docs/plans/{name}.md"));
+            assert_eq!(code, 0, "{plan_status}/{row_status}: {out}");
+        }
+        let name = format!("compat-{plan_status}-waived");
+        repo.plan_with_status(
+            &name,
+            plan_status,
+            "  - role: infosec-sentinel\n    status: waived\n    reason: test\n  - role: contribution-auditor\n    status: consulted\n",
+        );
+        let (code, out) = repo.validate(&format!("docs/plans/{name}.md"));
+        assert_eq!(code, 0, "{plan_status}/waived: {out}");
     }
 }

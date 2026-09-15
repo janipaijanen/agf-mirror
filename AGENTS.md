@@ -213,7 +213,10 @@ Every non-trivial task requires:
 - **Gate 1** (planner-architect → governor-reviewer): plan file in `docs/plans/`
   with YAML front matter conforming to `agf/schemas/gate1-plan.schema.json`.
   The `advisory_consultation` section must declare a status for both
-  `infosec-sentinel` and `contribution-auditor`. Plan status must be `approved`
+  `infosec-sentinel` and `contribution-auditor`; `pending` is valid pre-Gate-1
+  drafting state (a review was requested but has not yet answered) but a plan
+  cannot reach `approved`/`active`/`complete` while any declared row --
+  required or optional -- is still `pending`. Plan status must be `approved`
   before implementation begins — do not start coding on a `pending-gate1` plan.
   Validation: `agov plan validate <file>`.
 - **Gate 2** (coder-tester → governor-reviewer): implementation on a feature
