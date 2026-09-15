@@ -17,18 +17,30 @@ impl Repo {
         fs::write(p, content).unwrap();
     }
     fn validate(&self, name: &str) -> (i32, String) {
+        self.validate_with_manifest(name, None)
+    }
+    /// `manifest_path`, when set, is passed as `AGOV_MANIFEST_PATH` so a
+    /// declared optional role (e.g. `fact-checker`) resolves as `active`
+    /// instead of falling back to "unknown advisory role" -- required to
+    /// isolate the schema `pending` conditional's own diagnostic from the
+    /// unrelated required-role-only fallback (round-2 Gate 2 review j78p).
+    fn validate_with_manifest(&self, name: &str, manifest_path: Option<&std::path::Path>) -> (i32, String) {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .ancestors()
             .nth(4)
             .unwrap()
             .to_path_buf();
-        let out = Command::new(env!("CARGO_BIN_EXE_agov"))
-            .args(["plan", "validate", name])
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_agov"));
+        cmd.args(["plan", "validate", name])
             .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
             .env("AGOV_TOKEN_ROI", "0")
-            .current_dir(self.0.path())
-            .output()
-            .unwrap();
+            .current_dir(self.0.path());
+        if let Some(manifest_path) = manifest_path {
+            cmd.env("AGOV_MANIFEST_PATH", manifest_path);
+        } else {
+            cmd.env_remove("AGOV_MANIFEST_PATH");
+        }
+        let out = cmd.output().unwrap();
         (
             out.status.code().unwrap(),
             format!(
@@ -207,13 +219,31 @@ fn pending_required_role_at_approved_is_rejected() {
 #[test]
 fn pending_optional_role_at_approved_is_also_rejected() {
     let repo = Repo::new();
+    // Declare fact-checker active so the failure is isolated to the new
+    // schema conditional, not the unrelated "unknown advisory role"
+    // fallback that fires when AGOV_MANIFEST_PATH is absent.
+    repo.write(
+        "MANIFEST.yaml",
+        "agents:\n  fact-checker:\n    status: active\n",
+    );
+    let manifest_path = repo.0.path().join("MANIFEST.yaml");
     repo.plan_with_status(
         "pending-optional",
         "approved",
         "  - role: infosec-sentinel\n    status: consulted\n  - role: contribution-auditor\n    status: consulted\n  - role: fact-checker\n    status: pending\n",
     );
-    let (code, out) = repo.validate("docs/plans/pending-optional.md");
+    let (code, out) =
+        repo.validate_with_manifest("docs/plans/pending-optional.md", Some(&manifest_path));
     assert_ne!(code, 0, "{out}");
+    // Pin the diagnostic to the schema's pending conditional specifically
+    // (pointer at the fact-checker row, index 2), not merely any nonzero
+    // exit -- a masking "unknown advisory role" error would also exit
+    // nonzero and must not make this test pass for the wrong reason.
+    assert!(
+        out.contains("#/advisory_consultation/2/status") && out.contains("pending"),
+        "{out}"
+    );
+    assert!(!out.contains("unknown advisory role"), "{out}");
 }
 
 /// Positive, mid-draft: `pending` is legitimate at `status: pending-gate1`.
@@ -287,5 +317,26 @@ fn pre_existing_advisory_status_values_still_validate_at_every_plan_status() {
         );
         let (code, out) = repo.validate(&format!("docs/plans/{name}.md"));
         assert_eq!(code, 0, "{plan_status}/waived: {out}");
+    }
+    // The fifth plan status, `superseded`, was omitted above (round-2 Gate 2
+    // review j78p) -- it needs its own provenance fields, so it can't share
+    // `plan_with_status`'s bare front matter. The new `pending` conditional
+    // only triggers on approved/active/complete, so `superseded` is
+    // unaffected either way; this closes the claimed "every plan status"
+    // coverage gap directly rather than narrowing the claim.
+    for (row_status, extra) in [
+        ("consulted", ""),
+        ("not-applicable", ""),
+        ("waived", "    reason: test\n"),
+    ] {
+        let name = format!("compat-superseded-{row_status}");
+        repo.write(
+            &format!("docs/plans/{name}.md"),
+            &format!(
+                "---\nid: {name}\nstatus: superseded\nsuperseded_by: replacement-plan-id\nsuperseded_decision: 20260913T130413Z-governor-reviewer-td7j.md\nsuperseded_at: 2026-09-13T13:04:13Z\nadvisory_consultation:\n  - role: infosec-sentinel\n    status: {row_status}\n{extra}  - role: contribution-auditor\n    status: consulted\n---\nPlan.\n"
+            ),
+        );
+        let (code, out) = repo.validate(&format!("docs/plans/{name}.md"));
+        assert_eq!(code, 0, "superseded/{row_status}: {out}");
     }
 }
