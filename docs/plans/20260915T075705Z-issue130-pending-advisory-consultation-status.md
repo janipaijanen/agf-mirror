@@ -38,6 +38,7 @@ affected_paths:
   - agf/templates/gate1-plan.md
   - AGENTS.md
   - agf/templates/AGENTS.md
+  - tooling/rust/crates/agov/tests/plan_superseded_status.rs
   - docs/reviews/rule-projection/20260915T075705Z-issue130-pending-advisory-consultation-status.yaml
 depends_on:
   - 20260913T085123Z-work-item-steward-gate1
@@ -293,10 +294,13 @@ identical copy currently say only "The `advisory_consultation` section
 must declare a status for both `infosec-sentinel` and
 `contribution-auditor`" -- true but silent on what `pending` means or
 when it blocks. Both gain a one-line addition: `pending` is valid
-pre-Gate-1 drafting state; a plan cannot reach `approved` while a
-required row is still `pending`. `agf/templates/gate1-plan.md` gains a
-comment noting `pending` as an available value alongside the existing
-three, with the same one-line blocking-condition note.
+pre-Gate-1 drafting state; a plan cannot reach `approved` while *any*
+declared consultation row -- required or optional -- is still `pending`
+(revised per round-2 audit `pgsh`: the schema's per-item constraint
+applies uniformly, so the loader text now says "any declared row," not
+"a required row"). `agf/templates/gate1-plan.md` gains a comment noting
+`pending` as an available value alongside the existing three, with the
+same one-line blocking-condition note.
 
 Six-surface manifest at
 `docs/reviews/rule-projection/20260915T075705Z-issue130-pending-advisory-consultation-status.yaml`,

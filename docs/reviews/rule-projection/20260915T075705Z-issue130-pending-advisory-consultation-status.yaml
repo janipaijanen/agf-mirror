@@ -37,9 +37,12 @@ surfaces:
   adopter_facing_explanation:
     disposition: not applicable
     reason: >-
-      Internal governance tooling (a schema enum value and a Rust
-      validator semantic check); no adopter-facing Pages page describes
-      advisory-consultation status semantics at this level of detail.
+      Internal governance tooling (a schema enum value and a schema-level
+      allOf/if/then conditional; no Rust validator change -- corrected
+      per round-2 audit pgsh, which caught this reason still describing
+      the withdrawn Rust-check design). No adopter-facing Pages page
+      describes advisory-consultation status semantics at this level of
+      detail.
 
   runbook_situation_map:
     disposition: updated
@@ -48,7 +51,10 @@ surfaces:
       The plan template's `advisory_consultation` example gains a
       comment naming `pending` as an available value alongside the
       existing three, with the one-line blocking-condition note (cannot
-      reach `approved` while a required row is `pending`).
+      reach `approved`/`active`/`complete` while *any* declared row --
+      required or optional -- is `pending`; corrected per round-2 audit
+      pgsh from "a required row," which understated the schema's actual
+      uniform per-item scope).
 
   ai_landing_loaders:
     disposition: updated
@@ -59,10 +65,11 @@ surfaces:
       "Gate discipline" section's existing sentence ("The
       `advisory_consultation` section must declare a status for both...")
       gains a one-line addition: `pending` is valid pre-Gate-1 drafting
-      state; a plan cannot reach `approved` while a required row is
-      still `pending`. Both loader copies updated together, matching
-      this project's established precedent (e.g. Row 6 S3, Row 6 S4) for
-      keeping them identical.
+      state; a plan cannot reach `approved`/`active`/`complete` while
+      *any* declared consultation row is still `pending` (corrected per
+      round-2 audit pgsh from "a required row"). Both loader copies
+      updated together, matching this project's established precedent
+      (e.g. Row 6 S3, Row 6 S4) for keeping them identical.
     not_applicable:
       - path: .claude/CLAUDE.md
         reason: >-
