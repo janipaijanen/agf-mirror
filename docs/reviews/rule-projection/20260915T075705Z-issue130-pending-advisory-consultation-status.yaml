@@ -1,0 +1,130 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for issue #130 (a schema-true `pending`
+# advisory_consultation status).
+
+plan_id: 20260915T075705Z-issue130-pending-advisory-consultation-status
+issue: 130
+
+changed_pages_or_runbooks:
+  - AGENTS.md
+  - agf/templates/AGENTS.md
+  - agf/templates/gate1-plan.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    path: AGENTS.md
+    reason: >-
+      Revised after independent contribution audit
+      20260915T113047Z-contribution-auditor-rhs6 rejected the first
+      draft's precedent-by-analogy reasoning (citing existing Rust
+      checks as authority for a proposed new one does not itself grant
+      authority, per tool-authority-boundary-rule.md). The corrected
+      design introduces no new check at all: it edits
+      agf/schemas/gate1-plan.schema.json's own allOf/if/then
+      conditionals (the same mechanism already used for this schema's
+      `superseded` provenance requirement), and AGENTS.md's "Gate
+      discipline" section already names that exact schema as the Gate 1
+      authority ("plan file... conforming to
+      agf/schemas/gate1-plan.schema.json"). Schema-conformance checking
+      via `agov plan validate` is the existing, already-named blocking
+      mechanism; there is no separate new-check-authority question to
+      resolve.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Internal governance tooling (a schema enum value and a schema-level
+      allOf/if/then conditional; no Rust validator change -- corrected
+      per round-2 audit pgsh, which caught this reason still describing
+      the withdrawn Rust-check design). No adopter-facing Pages page
+      describes advisory-consultation status semantics at this level of
+      detail.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/templates/gate1-plan.md
+    reason: >-
+      The plan template's `advisory_consultation` example gains a
+      comment naming `pending` as an available value alongside the
+      existing three, with the one-line blocking-condition note (cannot
+      reach `approved`/`active`/`complete` while *any* declared row --
+      required or optional -- is `pending`; corrected per round-2 audit
+      pgsh from "a required row," which understated the schema's actual
+      uniform per-item scope).
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      "Gate discipline" section's existing sentence ("The
+      `advisory_consultation` section must declare a status for both...")
+      gains a one-line addition: `pending` is valid pre-Gate-1 drafting
+      state; a plan cannot reach `approved`/`active`/`complete` while
+      *any* declared consultation row is still `pending` (corrected per
+      round-2 audit pgsh from "a required row"). Both loader copies
+      updated together, matching this project's established precedent
+      (e.g. Row 6 S3, Row 6 S4) for keeping them identical.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Imports root AGENTS.md by reference (`@../AGENTS.md`); the
+          root pointer reaches Claude without a separate edit.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - agf/schemas/gate1-plan.schema.json
+      - tooling/rust/crates/agov/tests/plan_superseded_status.rs
+      - tooling/rust/crates/agov/tests/plan_collision.rs
+    reason: >-
+      New blocking behavior inside an already-mechanically-enforced
+      command (`agov plan validate`) requires its own negative/positive
+      test evidence per `gate-self-test-rule.md`, expressed as a schema
+      conditional (no Rust semantic check) following the exact pattern
+      `plan_superseded_status.rs` already uses for this schema's
+      existing `superseded` conditional: a `status: approved` plan with
+      a required-role `pending` row must fail; the same with an
+      optional-role `pending` row must also fail (proving the
+      per-item constraint is uniform, not required-role-only); the same
+      plan at `pending-gate1` must pass; the same plan with the row
+      flipped to `consulted` must pass; every existing enum value at
+      every plan status must remain unaffected. The new test cases join
+      that existing file rather than a new one, matching its own
+      established scope for this schema's status-conditional coverage.
+      Additionally (added per round-3 audit `damr`):
+      `agf/schemas/gate1-plan.schema.json` is a registered `surfaces`
+      entry of the active `plan-collision-block` gate in
+      `.agf/gates.yaml`, so `agov gate change-check` requires this
+      change to also touch one of that gate's registered `tests` paths.
+      `plan_collision.rs` gains one case proving a `pending-gate1` plan
+      with a `pending` advisory row is still correctly scanned by
+      collision-check, satisfying that mechanical requirement with a
+      genuine regression guard rather than a contrived touch.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/schemas/gate1-plan.schema.json
+      - agf/templates/gate1-plan.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      Corrected during implementation (this reason's earlier claim that
+      gate1-plan.schema.json is embedded via include_str! was checked
+      against agov-core/src/schema.rs and found false -- only
+      hold_result.rs/hold_evidence.rs/hold_evaluate.rs and
+      agov/src/provenance.rs use include_str! for their own schemas;
+      agov_core::schema_dir() resolves gate1-plan.schema.json from
+      AGOV_SCHEMA_DIR or repo_root()/agf/schemas at runtime, a real
+      filesystem read, same as every other governed schema file). The
+      schema enum value, its new allOf/if/then conditional, and both
+      template pointers all ship as real files under agf/schemas/ and
+      agf/templates/ in the AGF artifact -- the same existing
+      distribution channel every prior schema-only change already uses
+      (e.g. Row 6 S4's depends_on field addition), not a new distribution
+      concern this slice introduces.
