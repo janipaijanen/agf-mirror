@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for issue #130 (a schema-true `pending`
+# advisory_consultation status).
+
+plan_id: 20260915T075705Z-issue130-pending-advisory-consultation-status
+issue: 130
+
+changed_pages_or_runbooks:
+  - AGENTS.md
+  - agf/templates/AGENTS.md
+  - agf/templates/gate1-plan.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    path: AGENTS.md
+    reason: >-
+      Unlike Row 6 S4's brand-new CI gate (which needed a fresh rule
+      grant because nothing previously authorized any check to block on
+      plan-vs-plan collisions), `agov plan validate`'s blocking authority
+      over Gate 1 plan-frontmatter semantics is already established and
+      already exercised today (the existing required-role-presence and
+      active-role-status checks already block without their own
+      dedicated per-check rule text). AGENTS.md's "Gate discipline"
+      section already states a plan file must conform to
+      `gate1-plan.schema.json` and that `agov plan validate` is the
+      check. This slice adds a new semantic check inside that same
+      already-authorized command; it does not introduce a new
+      independent gate the way Row 6 S4 did.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Internal governance tooling (a schema enum value and a Rust
+      validator semantic check); no adopter-facing Pages page describes
+      advisory-consultation status semantics at this level of detail.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/templates/gate1-plan.md
+    reason: >-
+      The plan template's `advisory_consultation` example gains a
+      comment naming `pending` as an available value alongside the
+      existing three, with the one-line blocking-condition note (cannot
+      reach `approved` while a required row is `pending`).
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      "Gate discipline" section's existing sentence ("The
+      `advisory_consultation` section must declare a status for both...")
+      gains a one-line addition: `pending` is valid pre-Gate-1 drafting
+      state; a plan cannot reach `approved` while a required row is
+      still `pending`. Both loader copies updated together, matching
+      this project's established precedent (e.g. Row 6 S3, Row 6 S4) for
+      keeping them identical.
+    not_applicable:
+      - path: .claude/CLAUDE.md
+        reason: >-
+          Imports root AGENTS.md by reference (`@../AGENTS.md`); the
+          root pointer reaches Claude without a separate edit.
+
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/crates/agov-coord/src/plan_validator.rs
+    reason: >-
+      New blocking behavior inside an already-mechanically-enforced
+      command (`agov plan validate`) requires its own negative/positive
+      test evidence per `gate-self-test-rule.md`: a `status: approved`
+      plan with a `pending` row must fail; the same plan at
+      `pending-gate1` must pass; the same plan with the row flipped to
+      `consulted` must pass; every existing enum value at every plan
+      status must remain unaffected.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/schemas/gate1-plan.schema.json
+      - agf/templates/gate1-plan.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      The schema enum value and both template pointers ship in the AGF
+      artifact; the validator's semantic check ships in the separate
+      tooling archive (`agov plan validate`'s existing distribution
+      channel, unchanged by this slice).
