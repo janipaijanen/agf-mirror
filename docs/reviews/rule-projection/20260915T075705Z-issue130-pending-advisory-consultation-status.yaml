@@ -114,11 +114,17 @@ surfaces:
       - agf/templates/gate1-plan.md
       - agf/templates/AGENTS.md
     reason: >-
-      The schema enum value, its new allOf/if/then conditional, and both
-      template pointers all ship in the AGF artifact
-      (agf/schemas/gate1-plan.schema.json is embedded into the released
-      `agov` binary via include_str! per agov-core/src/schema.rs, so the
-      conditional is enforced identically in a release build with no
-      separate tooling-archive distribution step -- unlike the first
-      draft's Rust-check design, this revision has no second artifact to
-      track).
+      Corrected during implementation (this reason's earlier claim that
+      gate1-plan.schema.json is embedded via include_str! was checked
+      against agov-core/src/schema.rs and found false -- only
+      hold_result.rs/hold_evidence.rs/hold_evaluate.rs and
+      agov/src/provenance.rs use include_str! for their own schemas;
+      agov_core::schema_dir() resolves gate1-plan.schema.json from
+      AGOV_SCHEMA_DIR or repo_root()/agf/schemas at runtime, a real
+      filesystem read, same as every other governed schema file). The
+      schema enum value, its new allOf/if/then conditional, and both
+      template pointers all ship as real files under agf/schemas/ and
+      agf/templates/ in the AGF artifact -- the same existing
+      distribution channel every prior schema-only change already uses
+      (e.g. Row 6 S4's depends_on field addition), not a new distribution
+      concern this slice introduces.
