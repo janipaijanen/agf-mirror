@@ -24,7 +24,11 @@ impl Repo {
     /// instead of falling back to "unknown advisory role" -- required to
     /// isolate the schema `pending` conditional's own diagnostic from the
     /// unrelated required-role-only fallback (round-2 Gate 2 review j78p).
-    fn validate_with_manifest(&self, name: &str, manifest_path: Option<&std::path::Path>) -> (i32, String) {
+    fn validate_with_manifest(
+        &self,
+        name: &str,
+        manifest_path: Option<&std::path::Path>,
+    ) -> (i32, String) {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .ancestors()
             .nth(4)
