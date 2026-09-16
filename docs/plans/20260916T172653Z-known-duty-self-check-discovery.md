@@ -338,12 +338,30 @@ This revision fixes all of that by **capturing full immutable evidence at
 observation time**, so no later reconstruction of a changed worktree is ever
 required, and by moving collection off the shared tracked tree.
 
-Scope is unchanged from the first correction: eligible only for what Class 1
-(local/worktree-only, per Part 2) can observe — the `91fc` shape (a drafted,
-schema-valid coordination correction sitting uncommitted or
-committed-but-unpushed in the acting worktree). `dupe`/`wbgq` (Class 1b,
-forge-pipeline state) and every missing-rule, no-owner, typed-graph, or
-semantic incident shape remain **ineligible** for this trial.
+**Correction (resolves `mn5j`-F2): this trial's measured predicate covers
+only one of Part 2's three Class 1 shapes.** Part 2 defines Class 1 as three
+shapes: (1) an untracked/uncommitted file, (2) a coordination-only local
+branch absent from any remote-tracking ref, and (3) a committed-but-unpushed
+commit. A prior revision's scope statement implied this trial covered all
+three ("the `91fc` shape... sitting uncommitted or committed-but-unpushed").
+It did not: the porcelain-based capture and replay below can only see shape
+(1) — `git status --porcelain=v2` reports untracked/uncommitted working-tree
+state, not a clean worktree's local branch/ref topology or committed-tree
+history. This revision narrows the trial's stated and measured scope
+explicitly to **shape (1) only**: an untracked or uncommitted file under
+`docs/coordination/`. Shapes (2) and (3) remain part of Part 2's Class 1
+*definition* for a future implementation to extend to, but this discovery
+plan's evidence protocol does not capture, replay, or report a rate for
+them — a follow-up implementation or trial extension that wants to cover
+them must capture commit IDs, ref-reachability snapshots, and
+coordination-only diff/path inventories for those shapes and replay against
+that Git-graph evidence, not against porcelain text alone. Every false-
+positive/negative rate reported by this trial must be labeled as covering
+shape (1) only, never "Class 1" or "the whole detector" unqualified.
+
+`dupe`/`wbgq` (Class 1b, forge-pipeline state) and every missing-rule,
+no-owner, typed-graph, or semantic incident shape remain **ineligible** for
+this trial, as in the prior revision.
 
 **Unit of observation:** one *poll-entry check invocation* — a discrete run
 of the Class 1 check at one of Part 3's poll-entry check points (cold start
@@ -402,11 +420,12 @@ timing-derived label with three independently measured axes:
 **Axis 1 — Detector accuracy (mechanical, no publication history needed).**
 For each candidate, mechanically check — from the *already-captured*
 evidence alone, at record time — whether it actually meets the check's own
-stated predicate: eligible path (under `docs/coordination/`), unpublished
-Git state (untracked or committed-but-unpushed per Part 2's corrected
-terminology), schema-valid bytes (the recorded `agov coord validate`
-outcome), and fresh ref coverage (the fetch happened immediately before the
-snapshot, per Part 2's freshness precondition). A warned candidate that
+stated predicate for the shape-(1) scope this trial measures (per the
+`mn5j`-F2 correction above): eligible path (under `docs/coordination/`),
+untracked or uncommitted per the recorded porcelain text, schema-valid
+bytes (the recorded `agov coord validate` outcome), and fresh ref coverage
+(the fetch happened immediately before the snapshot, per Part 2's
+freshness precondition). A warned candidate that
 meets this predicate is a **detector true positive**; a warned candidate
 that does not (e.g., the ref snapshot was stale and the file was actually
 already pushed) is a **detector false positive**. This axis needs no
@@ -423,11 +442,13 @@ file deliberately held for a later batch under `coordination-publication-
 rule.md`'s batching permission, with the authorizing reference named),
 `abandoned` (scratch state with no obligation), or `unknown` (the session
 cannot self-report confidently). An independent labeler may later
-corroborate or reject that self-report against a governed record (e.g., a
-later-published coordination entry that confirms or contradicts the
-claimed disposition), but never infers the disposition purely from elapsed
-observations or publication timing — an unresolved case stays `unknown`,
-it is not inferred.
+**corroborate**, **reject** (record as `disputed`, keeping both the
+self-report and the labeler's contrary reading rather than silently
+overwriting one), or find **insufficient evidence to decide** (stays
+`unknown`) against a governed record (e.g., a later-published coordination
+entry that confirms or contradicts the claimed disposition) — but the
+labeler never infers the disposition purely from elapsed observations or
+publication timing.
 
 **Axis 3 — Behavioral adoption (descriptive outcome, no causal claim).**
 Separately and only descriptively, record what eventually happened to each
@@ -448,51 +469,89 @@ different Axis 1/2/3 combinations; no observation-level aggregate label is
 needed for any axis.
 
 **False-negative sampling (missed obligations) — targets Axis 1's
-mechanical predicate only, same method as before.** For every *clean*
-(zero-warning) observation, the recorded raw porcelain text is itself
-already immutable evidence — no later worktree access is needed. A
-**simple random sample without replacement**, drawn uniformly at a fixed
-10% sampling rate from each aggregation cycle's clean observations (not
-"every 10th," which is systematic, not random), has its recorded porcelain
-text independently re-examined against the same Axis 1 predicate: if that
-text shows an eligible, unpublished, schema-valid `docs/coordination/` path
-the check's own recorded result did not flag, that is a **detector false
-negative** — a bug in the check's own logic, fully auditable from the
-recorded text alone. This deliberately does not attempt to sample for
-missed *duty* (Axis 2) or missed *adoption* (Axis 3) — those are semantic/
-behavioral measures with their own evidence limits, not something a
-mechanical replay against recorded porcelain text can settle.
+mechanical predicate, shape (1) only.** For every *clean* (zero-warning)
+observation, the recorded raw porcelain text is itself already immutable
+evidence — no later worktree access is needed. A **simple random sample
+without replacement**, drawn uniformly at a fixed 10% sampling rate from
+each aggregation cycle's clean observations (not "every 10th," which is
+systematic, not random), has its recorded porcelain text independently
+re-examined against the same Axis 1 predicate: if that text shows an
+eligible, untracked/uncommitted, schema-valid `docs/coordination/` path the
+check's own recorded result did not flag, that is a **detector false
+negative (shape 1)** — a bug in the check's own logic, fully auditable from
+the recorded text alone. **This replay explicitly does not, and cannot,
+detect a missed coordination-only local branch or a missed
+committed-but-unpushed commit (Class 1 shapes 2 and 3)** — the porcelain
+snapshot carries no evidence about those, and this trial captures none. The
+reported detector false-negative rate must therefore be labeled "shape (1)
+only," never "Class 1" or "the detector" unqualified; a detector missing
+every shape-2/3 case could still report a zero shape-(1) false-negative
+rate, and that must not be presented as if it covered the whole predicate.
+This deliberately does not attempt to sample for missed *duty* (Axis 2) or
+missed *adoption* (Axis 3) either — those are semantic/behavioral measures
+with their own evidence limits, not something a mechanical replay against
+recorded porcelain text can settle.
 
-**Metrics, with distinct denominators, none conflated:**
+**Correction (resolves `mn5j`-F1): a mechanically correct detector is not
+the same claim as a safe-to-block detector.** Axis 1's predicate (eligible
+path, untracked/uncommitted, schema-valid, fresh refs) can be satisfied by
+an `active_edit`, `authorized_defer`, or `abandoned` candidate just as
+easily as by a genuine `outstanding_duty` one — a near-zero Axis 1
+false-positive rate says the detector correctly recognizes its own
+pattern, not that most things it flags are actionable duties. The prior
+revision let Axis 1 alone stand in for the blocking-readiness evidence
+`qnjr` requires; this revision adds a second, separately named measure
+that Axis 1 cannot substitute for.
 
-- **Detector false-positive rate** (Axis 1) = detector false positives ÷
-  all warned candidates.
-- **Detector false-negative rate** (Axis 1, sampled) = detector false
-  negatives found in the random sample ÷ size of that random sample drawn
-  from clean observations.
-- **Disposition-known rate** (Axis 2) = candidates with a non-`unknown`
-  disposition ÷ all warned candidates — reported for context; not a
-  false-positive/negative claim.
-- **Adoption breakdown** (Axis 3) = counts per outcome category, reported
-  as raw counts, not a single rate — deliberately not collapsed into one
-  number, since the categories are not on the same scale.
+**Metrics — three distinct measures, three distinct denominators, none
+conflated:**
+
+- **Detector false-positive rate** (Axis 1, shape 1 only) = detector false
+  positives ÷ all warned candidates. Evidence that the check's own pattern-
+  matching logic is correct — nothing more.
+- **Detector false-negative rate** (Axis 1, shape 1 only, sampled) =
+  detector false negatives found in the random sample ÷ size of that random
+  sample drawn from clean observations.
+- **Operational (actionability) false-positive rate** (Axis 2) = count of
+  warned candidates with an independently corroborated Axis 2 disposition
+  of `active_edit`, `authorized_defer`, or `abandoned` ÷ count of warned
+  candidates with any independently corroborated, non-`unknown`,
+  non-disputed Axis 2 disposition (the **adjudicated-disposition**
+  denominator). Candidates whose disposition is `unknown`, uncorroborated,
+  or disputed between the self-report and an independent labeler are
+  **excluded** from this denominator and reported separately as the
+  **disposition-unknown/disputed share** = (unknown + uncorroborated +
+  disputed) ÷ all warned candidates, so a reader can see how much of the
+  candidate pool this rate actually speaks for.
 
 **Minimum window and sufficiency.** Continue the trial for whichever is
 longer of 20 poll-entry check invocations or 5 calendar days, across both
 active AI sessions. If, at the end of that window, fewer than 5 warned
-candidates or fewer than 5 sampled clean observations have accumulated,
-the corresponding rate is **inconclusive** and the window extends until
-both minimums are met — a report must not present a rate computed from
-fewer than 5 events in its own denominator.
+candidates, fewer than 5 sampled clean observations, or fewer than 5
+independently adjudicated (non-`unknown`, non-disputed) Axis 2 disposition
+cases have accumulated, the corresponding rate is **inconclusive** and the
+window extends until all three minimums are met — a report must not
+present a rate computed from fewer than 5 events in its own denominator.
 
 **Acceptance and revisit criteria.** The follow-up blocking-authority
-proposal, if any, must cite the **detector false-positive rate** and
-**detector false-negative rate** (Axis 1) — these, not Axis 2 or Axis 3, are
-the evidence `qnjr` requires before any blocking proposal, because they
-measure whether the check's own mechanism is correct. Axis 2 and Axis 3 data
-may be cited as supporting context about real-world usefulness and
-adoption, but never substituted for Axis 1's mechanical rates, and never
-presented as if elapsed time or publication order proves duty or causation.
+proposal, if any, must cite **all three** rates above — the two Axis 1
+detector-accuracy rates *and* the Axis 2 operational false-positive rate,
+each with its own raw counts and denominator stated explicitly — plus the
+disposition-unknown/disputed share. Axis 1 alone is never sufficient to
+support a blocking proposal: it evidences implementation correctness, not
+actionability. If, by the end of the minimum trial window, fewer than 5
+adjudicated Axis 2 disposition cases exist (i.e., most sessions never
+self-report or corroboration never resolves them), the follow-up plan must
+either extend the trial until that minimum is met, or — per `mn5j`-F1's
+named alternative — conclude that the Class 1 check should remain
+**permanently advisory**, because its mechanical predicate cannot, on the
+available evidence, be shown to track actionable duty. A future blocking
+proposal is not entitled to assume Axis 2 evidence exists; it must show it.
+Axis 3 (adoption) data may still be cited as supporting context, but is
+never substituted for either Axis 1 or Axis 2's rates, and elapsed time or
+publication order still never proves duty or causation on its own. A
+revisit is required if any of the three rates is later found, on a larger
+sample, to differ materially from what was reported.
 A revisit is required if either Axis 1 rate is later found, on a larger
 sample, to differ materially from what was reported.
 
@@ -599,8 +658,30 @@ descriptive outcome report with no causal claim absent explicit
 contemporaneous acknowledgment or a controlled comparison). Only Axis 1's
 detector false-positive and false-negative rates are cited as the evidence
 `qnjr` requires before any blocking proposal; Axis 2 and Axis 3 are
-supporting context, never substituted for Axis 1. Re-review requested at
-this exact head.
+supporting context, never substituted for Axis 1.
+
+That revision (`5236f88c`) received re-review round 5
+`20260916T191046Z-contribution-auditor-mn5j` (BLOCK, 2 mandatory findings):
+Axis 1 alone cannot justify blocking-readiness because its mechanical
+predicate is satisfied equally by `active_edit`/`authorized_defer`/
+`abandoned` candidates as by genuine `outstanding_duty` ones — a near-zero
+Axis 1 false-positive rate proves the detector recognizes its own pattern,
+not that the pattern is actionable (`mn5j`-F1); and the false-negative
+replay only ever covered porcelain-visible untracked/uncommitted files
+(Class 1 shape 1), silently omitting Class 1's other two defined shapes —
+an unpushed coordination-only local branch and a committed-but-unpushed
+commit — while a prior revision's scope statement implied all three were
+covered (`mn5j`-F2). This revision corrects F1 by adding a second,
+separately-denominated **operational (actionability) false-positive rate**
+built from independently corroborated Axis 2 dispositions, excluding
+unknown/disputed cases from its denominator and reporting their share
+separately, and requiring the follow-up blocking proposal to cite this rate
+*in addition to* Axis 1's — or explicitly conclude the check must stay
+permanently advisory if that evidence never accumulates. It corrects F2 by
+explicitly narrowing this trial's measured scope to shape (1) only, in both
+the Axis 1 predicate description and the false-negative replay, and by
+labeling every reported rate "shape (1) only" rather than "Class 1"
+unqualified. Re-review requested at this exact head.
 
 ## Next steps
 
