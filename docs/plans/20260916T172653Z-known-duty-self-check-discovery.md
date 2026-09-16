@@ -13,7 +13,12 @@ advisory_consultation:
       its own Gate 1 request. Any later implementation plan carries its
       own infosec consultation.
   - role: contribution-auditor
-    status: pending
+    status: consulted
+    reason: >-
+      Six BLOCK rounds (2j4s, ppdr, hegk, skk5, mn5j, d2e4) and one CLEAR
+      (hrpg) at exact head dce96c14098a8d18d82d2db1c3ca7a8f8af31d21. See
+      20260916T200737Z-contribution-auditor-hrpg.md for the final CLEAR
+      recommendation.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
