@@ -5057,6 +5057,86 @@ learnings:
       evidence_refs:
         - 'MR !2853 and pipelines 2853159969, 2853166644, and 2853167812; valid replacement carrier !2854.'
 
+  - id: 20260916T145637Z-91fc
+    date: '2026-09-16'
+    category: process
+    scope: framework
+    title: a-drafted-fix-for-a-live-blocking-finding-sat-unpublished-awaiting-conversational-permission
+    status: proposed
+    description: >-
+      Playing planner-architect/capability-developer (governor assignment
+      krbr), Claude filed capability review 6djn. Codex's independent
+      contribution audit (qrkg) returned BLOCK at 2026-09-16T12:05:35Z with
+      two mandatory findings. Asked by the governor "what's next," the same
+      session correctly identified, unprompted, that publishing the
+      correction was the next action and its own to perform, stating
+      explicitly that nothing was waiting on Codex or the governor at that
+      instant. It then drafted the corrected record but did not publish it --
+      instead asking the governor "want me to commit and push, or hold here
+      for your review first?", turning an already self-identified,
+      non-destructive, rule-pre-authorized publication into a request for
+      permission. coordination-publication-rule.md already states that a
+      correction to a live blocking finding must publish "alone
+      immediately"; coordination-message-rule.md already states "never act
+      silently" and requires acting on the highest-priority obligation
+      rather than merely reporting it. Neither rule was applied to the
+      session's own drafted output until the governor challenged the delay
+      twice: first asking whether Codex's wait was noticed, then a sharper
+      second challenge that prompted the session to quantify the wait
+      (2h47m) and publish immediately. The eventual mechanical work --
+      commit, publication-check, push, MR description update -- took a few
+      minutes once actually performed; the delay was entirely in the choice
+      to ask rather than act. This single incident does not establish the
+      general cause; it is submitted as one data point in a recurring
+      cluster (see recommendation) that a separate synthesis is examining.
+    agents_involved:
+      - planner-architect
+      - capability-developer
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: >-
+      workflow/coordination-publication-rule.md (a correction to a live
+      blocking finding publishes alone, immediately); always/coordination-
+      message-rule.md ("never act silently"; act on the highest-priority
+      obligation, don't just report it)
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The blocking finding sat unpublished/uncorrected for a measured
+        2h47m (12:05:35Z to 14:52:27Z) during which the capability-review
+        workstream and its two gated Gate-1-track recommendations could not
+        proceed. No unsafe merge, release, or data loss resulted. The cost
+        is added governor attention (two direct challenges were needed to
+        produce an action the session had already correctly identified as
+        its own to take) and an avoidable delay on the fastest legitimate
+        path the project's own rules already authorize.
+    recommendation: >-
+      When a session has explicitly named a non-destructive,
+      already-in-scope action as the correct next step and its own to
+      perform, execute it in the same turn rather than pausing for
+      conversational confirmation. No new rule text is needed for this
+      specific instance -- coordination-publication-rule and
+      coordination-message-rule already say this. This entry's recurrence
+      alongside 20260907T073424Z-rl9k, 20260910T044404Z-rejw,
+      20260910T045334Z-wbgq, 20260911T050950Z-dupe,
+      20260911T122026Z-lhnx, 20260909T015659Z-aebe,
+      20260913T075602Z-55e5, 20260913T080313Z-qvbw,
+      20260916T045614Z-vx18, and 20260909T021145Z-cd7k -- ten prior
+      records, all sharing the shape "an agent already had the knowledge or
+      draft needed to act, and did not act without an external prompt" --
+      is itself evidence of a cross-cutting pattern that repeated prose
+      restatement has not closed. Routing a separate cross-cutting
+      synthesis to the governor to assess whether a structural (non-prose)
+      fix is warranted, rather than proposing one unilaterally here.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'docs/coordination/20260916T120535Z-contribution-auditor-qrkg.md: BLOCK finding published 2026-09-16T12:05:35Z.'
+        - '2026-09-16 session transcript: the session named the correction as its own next action, then asked the governor for push permission instead of publishing it; corrected only after two direct governor challenges.'
+        - 'docs/coordination/20260916T141617Z-capability-developer-8pp6.md and MR !2864 (branch coordination/capability-review-10-learning-trigger, exact head a6e7aeb4): the correction, published 2026-09-16T14:53Z, ~2h47m after qrkg.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
