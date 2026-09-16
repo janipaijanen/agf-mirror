@@ -360,15 +360,20 @@ verbatim; and the check's own computed result (clean, or the list of
 flagged paths/commits). For every untracked or uncommitted path under
 `docs/coordination/` present in that porcelain output, the observation
 additionally records one **candidate** sub-record: content SHA-256; whether
-a temporary copy passes `agov coord validate`; and — resolving `hegk`-F1's
-core objection that Git state alone cannot establish duty or intent —
-whatever *contemporaneous provenance* the candidate file itself already
-carries as a schema-valid coordination draft: its own front-matter `kind`,
-`topic`, and `references-to` fields (never its full prose body, to avoid
-exposing draft content prematurely). Recording front-matter fields rather
-than body text keeps the captured evidence to exactly what identifies
-*which* obligation the candidate answers, without leaking the draft's
-actual argument before it is ready to publish.
+a temporary copy passes `agov coord validate`; whether the remote-tracking
+snapshot for this observation was fetched immediately beforehand (the Axis
+1 freshness field, per Part 2); and whatever *contemporaneous provenance*
+the candidate file itself already carries as a schema-valid coordination
+draft — its own front-matter `kind`, `topic`, and `references-to` fields
+(never its full prose body, to avoid exposing draft content prematurely).
+Recording front-matter fields rather than body text keeps the captured
+evidence to exactly what identifies *which* obligation the candidate
+answers, without leaking the draft's actual argument before it is ready to
+publish. Separately, the acting session may — at or immediately after the
+observation, never inferred later — attach an Axis 2 disposition self-report
+(`active_edit` / `outstanding_duty` / `authorized_defer` plus authorizing
+reference / `abandoned` / `unknown`) to the candidate record; an omitted
+self-report defaults to `unknown`, never to an inferred value.
 
 **Storage: non-perturbing, not a continuously-mutated shared file.** Each
 session appends its own observation records to a **local, non-git-tracked
@@ -381,81 +386,114 @@ it through the normal branch/MR/review workflow exactly once per aggregation
 cycle, and that published snapshot — not a live, continuously-appended
 file — is what the labeling and reporting steps below read.
 
-**Correction from the prior revision (resolves `hegk`-F1): labeling is
-per-candidate, not per-observation, and corroborates against later published
-history rather than the snapshot alone.** The prior draft assigned one label
-to an entire observation, which loses information when an observation
-contains several candidates with different outcomes, and it asked the
-labeler to decide `true_positive`/`false_positive` from the snapshot fields
-alone — which, as `hegk`-F1 correctly notes, cannot distinguish a neglected
-duty from an actively-edited draft or a deliberately deferred batch. This
-revision labels each **candidate**, and requires the labeler to corroborate
-the candidate's front-matter `topic`/`references-to` against the
-**project's own published coordination history** (the same channel this
-plan's records already live in) — specifically: did a record with a
-matching `topic` or referencing the same `id` get published later, and if
-so, how many subsequent observations (of any session) elapsed between this
-candidate's first appearance and that publication? A candidate is labeled:
+**Correction from the prior revision (resolves `skk5`-F1): three separate
+questions, not one conflated true/false-positive label driven by
+publication timing.** The prior draft inferred `true_positive`/
+`false_positive` from how quickly a candidate was later published — but, as
+`skk5`-F1 correctly identifies, that inverts causality: a candidate
+published immediately may be the check working *correctly* (a real
+outstanding duty, surfaced, acted on at once), while a candidate that
+persists for several observations may simply be active editing, an
+authorized batch, or an abandoned scratch file, none of which is "neglect."
+Publication timing is a **behavioral outcome**, not **ground truth** about
+whether the original warning was correct. This revision replaces the single
+timing-derived label with three independently measured axes:
 
-- `true_positive` — the same `topic`/id-referencing draft persisted,
-  unchanged or evolving, across **two or more** consecutive observations of
-  the same session before being published, or was never published at all
-  within the trial window (a still-outstanding neglected duty at trial end).
-- `false_positive` — the candidate's content hash or topic matches a record
-  published in the **same or the very next** observation of the same
-  session (resolved before another poll-entry check ever saw it as
-  outstanding), or the labeler finds an independent, already-published
-  coordination record showing the file was a deliberately deferred batch
-  item under `coordination-publication-rule.md`'s batching permission.
-- `inconclusive` — the corroborating publication history is insufficient to
-  decide (e.g., the trial window ended before either resolution or a second
-  observation occurred).
+**Axis 1 — Detector accuracy (mechanical, no publication history needed).**
+For each candidate, mechanically check — from the *already-captured*
+evidence alone, at record time — whether it actually meets the check's own
+stated predicate: eligible path (under `docs/coordination/`), unpublished
+Git state (untracked or committed-but-unpushed per Part 2's corrected
+terminology), schema-valid bytes (the recorded `agov coord validate`
+outcome), and fresh ref coverage (the fetch happened immediately before the
+snapshot, per Part 2's freshness precondition). A warned candidate that
+meets this predicate is a **detector true positive**; a warned candidate
+that does not (e.g., the ref snapshot was stale and the file was actually
+already pushed) is a **detector false positive**. This axis needs no
+publication-history corroboration and no session self-report — it is a
+pure check-correctness measure, computable entirely from the observation's
+own recorded fields.
 
-**Mixed observations are no longer a problem:** because the label attaches
-to each candidate individually, one observation with three candidates can
-correctly carry three different labels; no observation-level `mixed`
-category is needed.
+**Axis 2 — Duty/disposition (contemporaneous self-report, independently
+corroborated).** At or immediately after the observation that first flags
+a candidate, the acting session records its own contemporaneous disposition
+for that candidate as one of: `active_edit` (still being drafted),
+`outstanding_duty` (a real duty not yet acted on), `authorized_defer` (a
+file deliberately held for a later batch under `coordination-publication-
+rule.md`'s batching permission, with the authorizing reference named),
+`abandoned` (scratch state with no obligation), or `unknown` (the session
+cannot self-report confidently). An independent labeler may later
+corroborate or reject that self-report against a governed record (e.g., a
+later-published coordination entry that confirms or contradicts the
+claimed disposition), but never infers the disposition purely from elapsed
+observations or publication timing — an unresolved case stays `unknown`,
+it is not inferred.
 
-**False-negative sampling (missed obligations) — per-candidate, same
-method.** For every *clean* (zero-warning) observation, the recorded raw
-porcelain text is itself already immutable evidence — no later worktree
-access is needed. A **simple random sample without replacement**, drawn
-uniformly at a fixed 10% sampling rate from each aggregation cycle's clean
-observations (not "every 10th," which is systematic, not random), has its
-recorded porcelain text independently re-examined: if that text shows an
-untracked or uncommitted `docs/coordination/` path the check's own recorded
-result did not flag, that is one missed-obligation candidate — a bug in the
-check's own logic, fully auditable from the recorded text alone, never from
-the live worktree.
+**Axis 3 — Behavioral adoption (descriptive outcome, no causal claim).**
+Separately and only descriptively, record what eventually happened to each
+candidate: `published`, `explicitly_deferred` (per an Axis 2
+`authorized_defer` self-report that was later corroborated), `still_present`
+(unresolved at trial end), `removed`, or `unknown`, plus the elapsed
+observations/time to that outcome. This axis reports what happened; it does
+**not** claim the check's warning *caused* the outcome unless there is an
+explicit contemporaneous acknowledgment from the acting session (e.g., a
+note stating the warning prompted the action) or a controlled comparison
+this trial does not attempt to design. Absent one of those, "published
+shortly after the warning" and "the warning caused the publication" are
+different claims, and only the first is ever asserted here.
 
-**Two distinct metrics, two distinct denominators, `inconclusive` excluded
-from both — not conflated:**
+**Mixed observations remain handled correctly:** each axis is scored per
+candidate, so one observation with three candidates can carry three
+different Axis 1/2/3 combinations; no observation-level aggregate label is
+needed for any axis.
 
-- **False-positive rate** = count of candidates labeled `false_positive` ÷
-  count of candidates labeled `true_positive` or `false_positive` (the
-  **adjudicated-candidate** denominator — `inconclusive` candidates are
-  excluded from this denominator, not silently folded in as implicit
-  non-false-positives, and their own share is reported separately as the
-  **inconclusive rate** = inconclusive candidates ÷ all candidates).
-- **Sampled false-negative rate** = count of missed-obligation candidates
-  found in the random sample ÷ size of that random sample drawn from clean
-  observations (the clean-sample denominator — never the all-observations
-  or all-candidates count).
+**False-negative sampling (missed obligations) — targets Axis 1's
+mechanical predicate only, same method as before.** For every *clean*
+(zero-warning) observation, the recorded raw porcelain text is itself
+already immutable evidence — no later worktree access is needed. A
+**simple random sample without replacement**, drawn uniformly at a fixed
+10% sampling rate from each aggregation cycle's clean observations (not
+"every 10th," which is systematic, not random), has its recorded porcelain
+text independently re-examined against the same Axis 1 predicate: if that
+text shows an eligible, unpublished, schema-valid `docs/coordination/` path
+the check's own recorded result did not flag, that is a **detector false
+negative** — a bug in the check's own logic, fully auditable from the
+recorded text alone. This deliberately does not attempt to sample for
+missed *duty* (Axis 2) or missed *adoption* (Axis 3) — those are semantic/
+behavioral measures with their own evidence limits, not something a
+mechanical replay against recorded porcelain text can settle.
+
+**Metrics, with distinct denominators, none conflated:**
+
+- **Detector false-positive rate** (Axis 1) = detector false positives ÷
+  all warned candidates.
+- **Detector false-negative rate** (Axis 1, sampled) = detector false
+  negatives found in the random sample ÷ size of that random sample drawn
+  from clean observations.
+- **Disposition-known rate** (Axis 2) = candidates with a non-`unknown`
+  disposition ÷ all warned candidates — reported for context; not a
+  false-positive/negative claim.
+- **Adoption breakdown** (Axis 3) = counts per outcome category, reported
+  as raw counts, not a single rate — deliberately not collapsed into one
+  number, since the categories are not on the same scale.
 
 **Minimum window and sufficiency.** Continue the trial for whichever is
 longer of 20 poll-entry check invocations or 5 calendar days, across both
-active AI sessions. If, at the end of that window, fewer than 5 adjudicated
-(non-inconclusive) candidates or fewer than 5 sampled clean observations
-have accumulated, the trial result is **inconclusive** for the
-corresponding metric and the window extends until both minimums are met —
-a report must not present a rate computed from fewer than 5 events in its
-own denominator.
+active AI sessions. If, at the end of that window, fewer than 5 warned
+candidates or fewer than 5 sampled clean observations have accumulated,
+the corresponding rate is **inconclusive** and the window extends until
+both minimums are met — a report must not present a rate computed from
+fewer than 5 events in its own denominator.
 
 **Acceptance and revisit criteria.** The follow-up blocking-authority
-proposal, if any, must cite the false-positive rate, the inconclusive rate,
-and the sampled false-negative rate, each with its own raw counts and
-denominator stated explicitly and separately, not just a combined
-percentage. A revisit is required if any rate is later found, on a larger
+proposal, if any, must cite the **detector false-positive rate** and
+**detector false-negative rate** (Axis 1) — these, not Axis 2 or Axis 3, are
+the evidence `qnjr` requires before any blocking proposal, because they
+measure whether the check's own mechanism is correct. Axis 2 and Axis 3 data
+may be cited as supporting context about real-world usefulness and
+adoption, but never substituted for Axis 1's mechanical rates, and never
+presented as if elapsed time or publication order proves duty or causation.
+A revisit is required if either Axis 1 rate is later found, on a larger
 sample, to differ materially from what was reported.
 
 **Advisory, carried forward for the follow-up implementation plan (resolves
@@ -540,8 +578,29 @@ three distinct metrics with `inconclusive` excluded from the false-positive
 denominator. It addresses A1 by requiring the aggregation step to record
 expected-observation-count/gap/dropout evidence rather than assuming
 completeness, while explicitly leaving stronger integrity mechanisms (hash
-chaining, append-only sinks) to the follow-up implementation plan. Re-review
-requested at this exact head.
+chaining, append-only sinks) to the follow-up implementation plan.
+
+That revision (`a43b4776`) received re-review round 4
+`20260916T185123Z-contribution-auditor-skk5` (BLOCK, 1 mandatory finding):
+the timing-derived `true_positive`/`false_positive` label inverted
+causality — a candidate published quickly could be the check working
+*correctly* (real duty, acted on immediately), while a candidate persisting
+across observations could just be active editing or an authorized batch,
+not neglect (`skk5`-F1). This revision replaces the single conflated label
+with three separately measured and separately reported axes: **Axis 1 —
+detector accuracy** (a purely mechanical check of whether the warned
+candidate met the check's own predicate — eligible path, unpublished state,
+schema validity, fresh ref coverage — computable from already-captured
+evidence with no publication-history corroboration); **Axis 2 —
+duty/disposition** (a contemporaneous self-report from the acting session,
+optionally corroborated later against a governed record, never inferred
+from elapsed time); and **Axis 3 — behavioral adoption** (a purely
+descriptive outcome report with no causal claim absent explicit
+contemporaneous acknowledgment or a controlled comparison). Only Axis 1's
+detector false-positive and false-negative rates are cited as the evidence
+`qnjr` requires before any blocking proposal; Axis 2 and Axis 3 are
+supporting context, never substituted for Axis 1. Re-review requested at
+this exact head.
 
 ## Next steps
 
