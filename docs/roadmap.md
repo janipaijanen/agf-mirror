@@ -42,19 +42,19 @@ governor confirmation
 
 | Workstream | State | Next authorized boundary |
 |---|---|---|
-| Queue convergence B1 | Authorized current batch | This batch creates the owner, corrects its public projection, and records MR !2269 as superseded; its exact head returns for Gate 2. |
+| Queue convergence B1 | Done | Roadmap owner (`5314240b`), B1 dispositions (`e3d2a214`), and review advisories closure (`161c9281`) all merged to `main`. |
 | Queue convergence B2-B3 | Sequenced after B1 | Re-observe and disposition TODOs, then issues, in separate review-sized batches. |
 | Queue convergence B4-B7 | Partly blocked | Non-plan cohorts remain later batches. Plan-MR dispositions wait for the `qbka` Slice A provenance contract (now satisfied -- see `qbka` row below; this row's own re-observation has not yet been separately confirmed). |
 | Queue convergence B8 | Advisory bound defined below | Apply the bound during discovery and selection; promotion to a blocking gate requires separate evidence, planning, and approval. |
 | Issue #129 | Assessment required | Complete and review the linked-data/evidence-model assessment before `qbka` Slice A freezes provenance semantics. This is assessment-first, not linked-data implementation. |
 | `qbka` plan lifecycle | Done | Slice A (superseded plan-lifecycle schema/validator/provenance) merged and Gate 2 approved (`20260913T160721Z-governor-reviewer-5jjg`). Slice B (legacy-plan migration) merged after an F1 evidence correction (see `git log --grep=qbka`: `41d27775`, `c246a322`). |
 | Issue #121 | Row 5 S1 shipped session-level addressing (`for_session`), merged `20260911T035333Z-planner-architect-nh1j` | Unresolved whether this fully satisfies #121's scope, or leaves the execution-lane/claim-and-reassignment work its own comments describe (`hqps`, 2026-09-05) as a separate slice. Needs verification before closing the issue. |
-| Issue #122 | Done | Resolved by Row 5 S2 self-announcing supersession, Gate 2 approved `20260914T115129Z-governor-reviewer-4bm1`. |
-| MR !2027 | Unchanged | No new evidence this pass; disposition unchanged from prior roadmap state. |
+| Issue #122 | Implementation done; issue closure pending | Resolved by Row 5 S2 self-announcing supersession, Gate 2 approved `20260914T115129Z-governor-reviewer-4bm1`. GitLab issue #122 itself remains open -- this row records shipped implementation, not tracker closure. |
+| MR !2027 | Closed | Closed on GitLab 2026-09-13T10:04:36Z, after the prior roadmap baseline. |
 | Issue #123 | Partially done | Plan-vs-plan `affected_paths` collision detection shipped and MR-blocking (Row 6 S3 advisory + Row 6 S4 blocking promotion, Gate 2 approved `20260915T050307Z-governor-reviewer-g7j1`). The plan's original third bullet -- a post-implementation `affected_paths`-vs-actual-diff drift check -- remains open and unclaimed; needs its own Gate 1 plan if pursued. |
 | CPB2 (publication-hold urgency) | Done | Merged and closed (`20260913T085749Z-coder-tester-b1nb`). |
 | Row 5 S3 (priority ordering and challenge response) | Done | Merged (`20260913T121333Z-planner-architect-gkqh`). |
-| Issue #131 | Stage 4 Gate 1 approved; tracked activation in progress | Foundry activation is Level 4 Validated under plan `20260909T015237Z-propeller-stage4-activation` and decision `djh1`. After the tracked activation reaches Gate 2 and merges, initialize the guarded local state and one verified Monday 09:00 UTC heartbeat. Only its first genuine unattended conforming wake can supply separate Level 5 evidence. |
+| Issue #131 | Activation merged; genuine unattended wake still outstanding | Foundry activation is Level 4 Validated under plan `20260909T015237Z-propeller-stage4-activation` and decision `djh1`; the tracked activation commit (`96cad939`) is on `main`. The scheduler's own live wake state was last confirmed paused, `last_weekly_completed_at: null` (`20260911T135557Z-contribution-auditor-sqj4`). Only a first genuine unattended conforming wake, recorded separately, can supply Level 5 evidence -- it has not yet occurred as of this observation. |
 | Issue #132 | Blocked | Do not export the Propeller method as a skill until #131 has genuine Level 5 wake evidence. |
 | `release-v2.7.0-rc.2` | `awaiting-governor` | Its fate remains undecided after rc.1 was abandoned. It does not block the current sequence. |
 

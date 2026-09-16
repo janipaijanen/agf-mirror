@@ -21,9 +21,10 @@ inheriting foundry's development commitments.
 ## Current released baseline
 
 **Latest fully published stable release: v2.10.1.** Published 2026-09-12,
-superseding v2.10.0 as latest. Its annotated tag, mandatory tag pipeline,
-GitLab Release, generic package, OCI image, checksums, and anonymous
-downloads were independently verified. Use the
+superseding v2.10.0 as latest. Its tag (lightweight, unlike v2.10.0's
+annotated tag -- a disclosed process gap, not a functional defect),
+mandatory tag pipeline, GitLab Release, generic package, OCI image,
+checksums, and anonymous downloads were independently verified. Use the
 [v2.10.1 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.10.1)
 for public artifacts.
 
@@ -40,10 +41,11 @@ tag/publication authorization.
 | Roadmap and queue convergence | The roadmap owner and this projection are the first approved batch. TODO, issue, MR, and intake-bound batches follow separately. |
 | Plan lifecycle (`qbka`) | Shipped: lifecycle states, supersession provenance, validation, and legacy-plan migration are merged. |
 | Linked-data/evidence assessment (#129) | Assessment precedes the plan-lifecycle provenance freeze; it does not authorize linked-data implementation. |
-| Coordination semantics (#122) | Shipped: superseded coordination records now self-announce. |
-| Coordination semantics (#121, !2027) | Session-level addressing shipped; whether it fully covers #121's scope, and !2027, remain under separate review. |
+| Coordination semantics (#122) | Implementation done: superseded coordination records now self-announce (Row 5 S2). Issue closure/reconciliation on the tracker is pending. |
+| Coordination semantics (#121) | Session-level addressing shipped; whether it fully covers #121's scope remains under separate review. |
+| MR !2027 | Closed (2026-09-13). |
 | Collision detection (#123) | Shipped and MR-blocking for plan-vs-plan overlaps. A post-implementation drift check remains a separate, unclaimed follow-up. |
-| Improvement Propeller activation (#131) | Foundry activation is approved and active at Level 4 Validated. After the tracked activation merges, one guarded Monday 09:00 UTC heartbeat is initialized. A genuine unattended conforming wake, recorded separately, is required before any Level 5 claim. Adopters remain inactive unless their own governor activates the optional role. |
+| Improvement Propeller activation (#131) | Foundry activation is approved and active at Level 4 Validated; the tracked activation commit has merged. The scheduler's own live wake state was last confirmed paused (2026-09-11); a genuine unattended conforming wake, recorded separately, is still required before any Level 5 claim and has not yet occurred. Adopters remain inactive unless their own governor activates the optional role. |
 | Improvement Propeller skill export (#132) | Blocked until #131 reaches genuine Level 5 wake evidence. |
 
 The internal roadmap records the complete sequencing and collision boundaries.
