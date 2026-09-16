@@ -113,21 +113,41 @@ specify as a concrete, implementable mechanism in this plan:
 
 ### Class 1 — Deterministic local/worktree state
 
-Fully computable from Git objects and the filesystem, with no interpretation:
+Fully computable from the current worktree's Git objects and filesystem
+alone, with no forge query and no interpretation. Precondition: the
+worktree's remote-tracking refs must be freshly fetched immediately before
+the check runs, or the check must explicitly report that it is evaluating
+against a possibly-stale remote-tracking snapshot — a remote-tracking ref
+that has not been fetched can be behind the actual remote state, which would
+otherwise turn a real publish into a false "unpushed" warning:
 
 - an untracked or uncommitted file under `docs/coordination/` that would pass
   `agov coord validate` if published (a drafted-but-unpublished record);
 - a local branch containing coordination-only content, per
   `coordination-publication-rule.md`'s own definition of the fast path, that
-  has not been pushed;
-- a local commit on the current branch that is not present on any
-  remote-tracking ref (published-but-not-pushed, or pushed-but-not-visible on
-  the checked-out worktree's remotes).
+  has not been pushed to any remote-tracking ref;
+- a local commit on the current branch that is **committed but not yet
+  pushed** to any remote-tracking ref as of the last fetch (corrected
+  terminology per `2j4s`-A1: "committed and unpublished," not "published-but-
+  not-pushed" — a commit is not published until it reaches the remote).
 
-This class covers records `dupe`, `91fc`, and `wbgq` directly: each was a
-concrete, checkable artifact (an unpushed file, an unpublished correction, an
-unreconciled pipeline pair) sitting in a state a deterministic check can name
-without any model judgment.
+This class covers record `91fc` directly: a drafted, schema-valid correction
+sitting uncommitted (or committed-but-unpushed) in the worktree is exactly
+the local, no-forge-query state Class 1 can name without any model judgment
+or external service call.
+
+**Correction from the prior revision (resolves `2j4s`-F1):** `dupe` and
+`wbgq` are **not** Class 1 instances. Both incidents required observing
+GitLab pipeline state (source, ref, status, required-job coverage across
+multiple pipeline records for the same SHA) — a forge query, not a local
+Git/filesystem read. That is a materially different deterministic slice,
+with its own inputs (GitLab API), authentication, availability, and
+fetch/API-freshness contract, which this plan does not scope. A **candidate
+Class 1b — deterministic forge-pipeline state** is named here for a future,
+separate plan to define fully (its own error/availability contract, rate
+limits, and required-job comparison logic) if the governor wants that
+slice pursued; it is out of scope for this plan's Class 1 and is not
+counted in this plan's evidence protocol (Part 6).
 
 ### Class 2 — Typed coordination-graph state
 
@@ -152,15 +172,29 @@ dependency to name, not a mechanism to build now.
 Interpreting a conversational statement such as "the next action is X and
 it's mine to do," or judging whether a lane is "genuinely blocked" versus
 "blocked only for one dependent item." `g41r`'s own text calls this "likely
-too fuzzy for v1." This plan keeps Class 3 **out of scope entirely** — it is
-a future direction, not a v1 candidate, and per `tool-authority-boundary-rule`
-a semantic judgment could never carry blocking authority regardless of
-implementation quality.
+too fuzzy for v1." This plan keeps Class 3 **out of scope entirely** for this
+work — it is a future direction, not a v1 candidate, because no reliable
+evaluation contract for it exists yet, not because it is permanently
+ineligible.
+
+**Correction from the prior revision (resolves `2j4s`-F3):** `tool-authority-
+boundary-rule.md` does not categorically forbid a semantic/model check from
+ever holding blocking authority — it requires that *any* check, deterministic
+or semantic, be granted blocking authority only by a named rule that
+explicitly says so. Class 3 is excluded here purely on scope and reliability
+grounds. If Class 3 is ever reconsidered, that would require its own
+independent evidence, its own reliability/evaluation contract, and its own
+separately approved named rule explicitly granting it blocking authority —
+exactly the same bar Class 1 must clear per Part 5, not a bar this plan
+claims is structurally impossible to clear.
 
 **Design conclusion:** the only mechanism this plan recommends scoping for a
-follow-up implementation Gate 1 is a **Class 1, deterministic-only check**.
-Class 2 is named as a tracked dependency (issue #122). Class 3 is explicitly
-out of scope.
+follow-up implementation Gate 1 is the **Class 1, local/worktree-only
+deterministic check** (record `91fc`'s shape). Class 1b (forge-pipeline
+state, covering `dupe`/`wbgq`) is named as a distinct future candidate, not
+part of this plan's scoped mechanism. Class 2 is named as a tracked
+dependency (issue #122). Class 3 is out of scope for this plan on reliability
+grounds, not on authority grounds.
 
 ## Part 3 — Automatic invocation point (resolves G41R-F2)
 
@@ -175,22 +209,47 @@ plan to wire the Class 1 check into a point a session cannot skip by
 forgetting, not into a new standalone command a session must remember to
 invoke:
 
-- **Primary candidate:** extend `agov session resume` and `agov coord status`
-  themselves (both already-mandatory cold-start/poll commands per AGENTS.md's
-  "Cold-start rule") to run the Class 1 check as part of their existing
-  output, surfacing a hard-to-miss warning block rather than requiring a
-  second, separate invocation.
-- **Secondary candidate, if tooling access allows:** a pre-push or pre-commit
-  local hook that runs the Class 1 check before a session's own publish step,
-  consistent with how this project already closed the analogous first-push
-  duplication gap for `dupe`/`wbgq` (mechanical guard at the point of the
-  risky action, not a rule asking the session to remember).
+**Correction from the prior revision (resolves `2j4s`-F2):** the prior draft
+called `agov session resume` and `agov coord status` "already-mandatory
+cold-start/poll commands." That overstated the actual contract. AGENTS.md's
+polling loop names `agov coord list --since <cursor>` as the first
+per-cycle check; `agov session resume` is mandated only at cold start, once
+per session; `agov coord status` is a supported command, never stated as
+mandatory. A session can complete every later poll cycle in a long session
+calling only `coord list` and never touching either proposed surface. This
+plan therefore distinguishes cold-start coverage from every-poll coverage
+and does not claim either candidate is already unskippable end-to-end:
 
-Both candidates are deterministic, run inside a command the session is
-already required to call, and require no new memorization. The follow-up
-plan must pick between them (or specify both) with evidence for which
-integration point the implementation actually reaches in practice — not
-merely which one is theoretically available.
+- **Cold-start coverage (already mandatory today):** extend `agov session
+  resume` to run the Class 1 check and surface its warning block. This is a
+  real, already-mandatory boundary, but it fires once per session and would
+  miss a Class 1 state that a session creates and then leaves unresolved
+  mid-session without restarting.
+- **Every-poll coverage (requires a follow-up rule/tooling change, not yet
+  mandatory):** extend `agov coord list` — the one command AGENTS.md's poll
+  loop actually requires every cycle — to run the Class 1 check and surface
+  its warning in the same output. This candidate covers the every-poll
+  boundary `91fc`'s shape needs, but making `coord list` carry this check is
+  itself a tooling change the follow-up implementation plan must propose and
+  get Gate 1 approval for; it is not automatically covered by today's rule
+  text simply because `coord list` is already mandatory for a different
+  purpose.
+- **Secondary candidate, if tooling access allows:** a pre-push or pre-commit
+  local hook that runs the Class 1 check before a session's own publish
+  step. This catches the state at the moment a session tries to publish
+  something else, but — as `2j4s`-F2 notes — it does not fire at all if the
+  session ends the poll or session without attempting any push, so it is a
+  useful additional layer, not a substitute for the every-poll coverage
+  above.
+
+None of these candidates is claimed to be automatically unskippable today.
+The follow-up implementation plan must: (a) pick the exact integration
+point(s) from the above, stating explicitly which completion boundary each
+one covers and which it does not; (b) get that tooling change through its
+own Gate 1, since extending a mandatory command's behavior is itself a
+change to that command's contract; and (c) define how a bypass or an
+incomplete/failed check run is reported, so a silent skip cannot be mistaken
+for a clean result.
 
 ## Part 4 — Worktree, multi-session, and visibility limits
 
@@ -238,29 +297,73 @@ instead of a hypothesis.
 
 ## Part 6 — Evidence collection before any blocking proposal
 
-Before any future plan proposes blocking authority for the Class 1 check,
-the follow-up implementation plan must run it in advisory mode and collect,
-for a stated minimum window (recommend: no fewer than 20 poll cycles or 5
-calendar days, whichever is longer, across both active AI sessions):
+**Corrected from the prior revision (resolves `2j4s`-F4).** The prior draft
+gave a window and four labels with no trial unit, denominator, durable
+schema, labeler, false-negative sampling method, or sufficiency/acceptance
+criteria — none of which can produce an actual rate. This revision defines
+the trial concretely, and narrows its eligible scope to exactly what Class 1
+(local/worktree-only, per Part 2's correction) can observe: the `91fc` shape
+(a drafted, schema-valid coordination correction sitting uncommitted or
+committed-but-unpushed in the acting worktree). `dupe`/`wbgq` (forge-pipeline
+state) and every missing-rule, no-owner, typed-graph, or semantic incident
+shape are **not eligible** for this trial — the local check cannot observe
+them, so counting their recurrence against this check's hit rate would be
+meaningless.
 
-- **True positives:** count of Class 1 warnings that corresponded to a real
-  drafted-but-unpublished record, unreconciled pipeline, or unpushed commit
-  a session would otherwise have missed.
-- **False positives:** count of Class 1 warnings that fired on a state that
-  was not actually an outstanding duty (e.g., a deliberately staged draft
-  the session was still actively editing, a file intentionally held for a
-  later batch per `coordination-publication-rule.md`'s batching
-  permission).
-- **Missed obligations:** any of the eleven records' shape recurring *after*
-  the check ships, where the check ran and did not flag it — this is the
-  measure of whether the check actually closes the gap it was built for, not
-  merely detects a narrower subset.
-- **Adoption rate:** whether the check's warning, once surfaced, actually
-  changed session behavior in the same turn (closing the loop `91fc` itself
-  identified — noticing is not the same as acting).
+**Unit of observation:** one *completion boundary* — a discrete moment the
+implementation's chosen integration point (Part 3) runs the Class 1 check,
+whether at cold start or at a per-poll `coord list` invocation. The
+denominator for any rate is the count of completion boundaries observed
+during the trial window, not the count of warnings.
+
+**Durable record.** Each completion boundary's check result is appended to a
+plain, git-tracked trial log (e.g.
+`docs/reviews/known-duty-self-check-trial.jsonl`, one JSON line per
+observation) recording: timestamp, session/role, worktree path, integration
+point (cold-start vs. per-poll), raw check result (clean / N warnings with
+their exact file paths or commit SHAs), and — filled in during labeling, not
+at observation time — a `label` field left `null` until reviewed.
+
+**Labeling and independent adjudication.** Every observation with at least
+one warning is labeled by a session or human *other than* the one whose
+worktree produced the warning (mirroring this project's own independent-
+review discipline), as one of: `true_positive` (the flagged file/commit was
+a genuine unpublished duty the acting session had not yet acted on),
+`false_positive` (the flagged state was intentional — e.g., a deliberately
+staged draft still being edited, or a file held for a later batch under
+`coordination-publication-rule.md`'s batching permission), or
+`inconclusive` (insufficient information to decide; recorded, not discarded).
+
+**False-negative sampling (missed obligations).** Because the check cannot
+prove a negative on its own, a bounded, fixed-size random sample of
+*clean* (zero-warning) completion boundaries — proposed: every 10th clean
+observation — is independently re-examined by inspecting that worktree's
+actual state at that timestamp (via `git log`/`git status` at the recorded
+commit) for an unflagged `91fc`-shape condition the check should have caught
+but did not. This is the only mechanism in this protocol that can produce a
+false-negative/missed-obligation count; without it, "no warnings fired" is
+unverified, not evidence of correctness.
+
+**Minimum window and sufficiency.** Continue the trial for whichever is
+longer of 20 completion boundaries or 5 calendar days, across both active AI
+sessions. If, at the end of that window, fewer than 5 warning observations
+and fewer than 5 sampled clean observations have accumulated, the trial
+result is **inconclusive** and the window extends until both minimums are
+met — a report must not present a rate computed from fewer than 5 events in
+either bucket.
+
+**Acceptance and revisit criteria.** The follow-up blocking-authority
+proposal, if any, must cite: the exact false-positive rate (false positives
+÷ all warning observations) and the exact sampled false-negative rate
+(missed obligations found in the false-negative sample ÷ sampled clean
+observations), both with their raw counts and denominators, not just a
+percentage. A revisit is required if either rate is later found, on a
+larger sample, to differ materially from what was reported.
 
 This data, not a design argument, is what should settle whether blocking
-authority is ever proposed.
+authority is ever proposed for the Class 1 check specifically. It says
+nothing about Class 1b, Class 2, or Class 3, which would each need their own
+trial if pursued.
 
 ## Risks and rollback
 
@@ -269,19 +372,32 @@ authority is ever proposed.
   excludes both; a follow-up plan that adds them must justify each
   separately against the same false-positive/coverage discipline as Class 1.
 - **Risk:** surfacing warnings inside `agov session resume`/`agov coord
-  status` output could be misread as blocking if not clearly labeled
-  advisory. The implementation plan must label every Class 1 finding
-  `severity: advisory` per `tool-authority-boundary-rule.md`.
+  list` output could be misread as blocking if not clearly labeled advisory.
+  The implementation plan must label every Class 1 finding `severity:
+  advisory` per `tool-authority-boundary-rule.md`.
 - **Rollback:** this plan produces no running code; there is nothing to roll
   back. A follow-up implementation, once it exists, rolls back by reverting
   its own commit — ordinary `branch-and-worktree-rule.md`/`merge-request-
   workflow-rule.md` discipline applies, nothing special to this design.
 
+## Revision note (exact-head correction round)
+
+The prior revision at `9de49781` received contribution-auditor review
+`20260916T174117Z-contribution-auditor-2j4s` (BLOCK, 4 mandatory findings, 1
+advisory). This revision corrects all five: moving `dupe`/`wbgq` out of
+Class 1 into a named-but-out-of-scope Class 1b (F1); replacing the "already-
+mandatory" invocation claim with an honest cold-start-vs-every-poll split
+naming `coord list` as the every-poll integration target still requiring
+its own Gate 1 (F2); correcting the tool-authority-boundary characterization
+of Class 3 (F3); replacing the evidence protocol with a concrete trial
+design scoped to what Class 1 can actually observe (F4); and correcting
+"published-but-not-pushed" to "committed but unpublished" (A1). Re-review
+requested at this exact head.
+
 ## Next steps
 
-1. Request contribution-auditor review of this plan (advisory_consultation
-   row above is `pending`).
-2. Request governor-reviewer Gate 1 decision.
+1. Request contribution-auditor re-review of this corrected revision.
+2. Request governor-reviewer Gate 1 decision once the auditor row clears.
 3. On approval, a separate implementation Gate 1 plan scopes the actual
    Class 1 check, its integration point (Part 3), and the evidence-collection
    protocol (Part 6) as its own acceptance criteria — this plan does not
