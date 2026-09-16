@@ -242,14 +242,40 @@ and does not claim either candidate is already unskippable end-to-end:
   useful additional layer, not a substitute for the every-poll coverage
   above.
 
-None of these candidates is claimed to be automatically unskippable today.
+**Correction (resolves `2j4s`-review-round-2 `ppdr`-F1): this is delayed
+next-entry detection, not completion-time prevention.** All three
+candidates above are *entry* boundaries — a session calling `session
+resume` at cold start, or `coord list` at the start of its next poll. None
+of them runs when the current poll or session *ends*, and a Git hook does
+not run at all unless a push or commit is attempted. This plan therefore
+does **not** claim to prevent a poll or session from ending while a Class 1
+state exists — that would require a real-time, mid-cycle wake mechanism
+this plan has not identified on any currently supported assistant surface.
+What it actually offers is: **the Class 1 state is guaranteed to surface no
+later than the next time the acting session (or another active session in
+the same worktree) calls `session resume` or `coord list`** — a delayed but
+bounded detection guarantee, not a completion guard. The prior revision's
+"completion boundary" language overstated this; the check point is
+correctly named a **poll-entry check point** in this revision and in Part 6.
+
+**Named residual gap, for governor disposition, not silently accepted by
+this plan:** a session that creates a Class 1 state and then ends
+permanently — no further poll, no cold start, no other session ever
+touching that worktree again — is never flagged by this mechanism. This
+plan surfaces that gap explicitly rather than papering over it; whether that
+residual risk is acceptable, or whether a future plan must additionally
+pursue a real-time wake mechanism, is a disposition for the governor to make
+when reviewing the follow-up implementation plan, not something this
+discovery plan resolves.
+
 The follow-up implementation plan must: (a) pick the exact integration
-point(s) from the above, stating explicitly which completion boundary each
-one covers and which it does not; (b) get that tooling change through its
-own Gate 1, since extending a mandatory command's behavior is itself a
-change to that command's contract; and (c) define how a bypass or an
-incomplete/failed check run is reported, so a silent skip cannot be mistaken
-for a clean result.
+point(s) from the above, stating explicitly which poll-entry check point
+each one covers and which it does not, and restating the residual
+no-next-entry gap; (b) get that tooling change through its own Gate 1,
+since extending a mandatory command's behavior is itself a change to that
+command's contract; and (c) define how a bypass or an incomplete/failed
+check run is reported, so a silent skip cannot be mistaken for a clean
+result.
 
 ## Part 4 — Worktree, multi-session, and visibility limits
 
@@ -297,66 +323,103 @@ instead of a hypothesis.
 
 ## Part 6 — Evidence collection before any blocking proposal
 
-**Corrected from the prior revision (resolves `2j4s`-F4).** The prior draft
-gave a window and four labels with no trial unit, denominator, durable
-schema, labeler, false-negative sampling method, or sufficiency/acceptance
-criteria — none of which can produce an actual rate. This revision defines
-the trial concretely, and narrows its eligible scope to exactly what Class 1
-(local/worktree-only, per Part 2's correction) can observe: the `91fc` shape
-(a drafted, schema-valid coordination correction sitting uncommitted or
-committed-but-unpushed in the acting worktree). `dupe`/`wbgq` (forge-pipeline
-state) and every missing-rule, no-owner, typed-graph, or semantic incident
-shape are **not eligible** for this trial — the local check cannot observe
-them, so counting their recurrence against this check's hit rate would be
-meaningless.
+**Corrected from the prior revision (resolves `2j4s`-F4 and, in this round,
+`ppdr`-F2).** The first correction defined a trial unit, denominator, and
+labeling process but relied on a labeler re-inspecting "that worktree's
+actual state at that timestamp" later — which is not implementable: Git
+records committed trees, not the historical contents of untracked files,
+the index, or `git status` output, so once the acting session edits,
+commits, or cleans the candidate, that historical ground truth is gone. It
+also proposed a shared git-tracked JSONL log written on every poll, which
+would dirty the worktree continuously, create concurrent-writer conflicts
+across sessions, and perturb the very state being measured — and it mixed
+up denominators between metrics and called "every tenth" sampling "random."
+This revision fixes all of that by **capturing full immutable evidence at
+observation time**, so no later reconstruction of a changed worktree is ever
+required, and by moving collection off the shared tracked tree.
 
-**Unit of observation:** one *completion boundary* — a discrete moment the
-implementation's chosen integration point (Part 3) runs the Class 1 check,
-whether at cold start or at a per-poll `coord list` invocation. The
-denominator for any rate is the count of completion boundaries observed
-during the trial window, not the count of warnings.
+Scope is unchanged from the first correction: eligible only for what Class 1
+(local/worktree-only, per Part 2) can observe — the `91fc` shape (a drafted,
+schema-valid coordination correction sitting uncommitted or
+committed-but-unpushed in the acting worktree). `dupe`/`wbgq` (Class 1b,
+forge-pipeline state) and every missing-rule, no-owner, typed-graph, or
+semantic incident shape remain **ineligible** for this trial.
 
-**Durable record.** Each completion boundary's check result is appended to a
-plain, git-tracked trial log (e.g.
-`docs/reviews/known-duty-self-check-trial.jsonl`, one JSON line per
-observation) recording: timestamp, session/role, worktree path, integration
-point (cold-start vs. per-poll), raw check result (clean / N warnings with
-their exact file paths or commit SHAs), and — filled in during labeling, not
-at observation time — a `label` field left `null` until reviewed.
+**Unit of observation:** one *poll-entry check invocation* — a discrete run
+of the Class 1 check at one of Part 3's poll-entry check points (cold start
+or per-poll `coord list`), renamed from "completion boundary" per `ppdr`-F1
+to avoid implying it prevents a cycle from ending.
 
-**Labeling and independent adjudication.** Every observation with at least
-one warning is labeled by a session or human *other than* the one whose
-worktree produced the warning (mirroring this project's own independent-
-review discipline), as one of: `true_positive` (the flagged file/commit was
-a genuine unpublished duty the acting session had not yet acted on),
-`false_positive` (the flagged state was intentional — e.g., a deliberately
-staged draft still being edited, or a file held for a later batch under
-`coordination-publication-rule.md`'s batching permission), or
-`inconclusive` (insufficient information to decide; recorded, not discarded).
+**What is captured, at observation time, before anything can change:**
+each invocation writes one record containing — a unique observation id;
+session/role identifier; UTC timestamp; integration point (cold-start vs.
+poll-entry); the pinned local `HEAD` SHA; the fetched remote-tracking ref
+snapshot (ref → SHA, immediately after fetch); the **full raw `git status
+--porcelain=v2` output text** at that instant, verbatim; for every
+untracked or uncommitted path under `docs/coordination/` present in that
+porcelain output, its content SHA-256 and whether a temporary copy passes
+`agov coord validate`; and the check's own computed result (clean, or the
+list of paths/commits it flagged). Capturing the raw porcelain text and
+per-file hash/validate outcome **at record time** is what makes later
+false-negative auditing possible without ever touching the worktree again
+— the recorded porcelain text *is* the historical ground truth, not a
+promise to go re-derive it afterward.
 
-**False-negative sampling (missed obligations).** Because the check cannot
-prove a negative on its own, a bounded, fixed-size random sample of
-*clean* (zero-warning) completion boundaries — proposed: every 10th clean
-observation — is independently re-examined by inspecting that worktree's
-actual state at that timestamp (via `git log`/`git status` at the recorded
-commit) for an unflagged `91fc`-shape condition the check should have caught
-but did not. This is the only mechanism in this protocol that can produce a
-false-negative/missed-obligation count; without it, "no warnings fired" is
-unverified, not evidence of correctness.
+**Storage: non-perturbing, not a continuously-mutated shared file.** Each
+session appends its own observation records to a **local, non-git-tracked
+runtime log** (e.g. under that session's own scratch/tmp directory, never
+under a path any other session or worktree shares). No shared tracked file
+is written on every poll. At the end of the trial window (or at a fixed
+weekly cadence, whichever comes first), the trial owner aggregates the
+per-session local logs into **one bounded, dated snapshot file**, publishes
+it through the normal branch/MR/review workflow exactly once per aggregation
+cycle, and that published snapshot — not a live, continuously-appended
+file — is what the labeling and reporting steps below read.
+
+**Labeling and independent adjudication.** For each observation with at
+least one warning, a session or human *other than* the one that produced
+the observation labels it, reading only the **published, immutable
+snapshot fields** (never the live worktree, consistent with Part 4's
+multi-session visibility limit — the labeler needs no live access because
+the evidence was already captured) as one of: `true_positive` (the porcelain
+snapshot and validate outcome confirm the flagged file/commit was a genuine
+unpublished, schema-valid duty), `false_positive` (the porcelain snapshot
+shows the state was intentional — e.g., a file the recorded content hash
+matches a later-published deliberate batch, or one still being actively
+edited across multiple observations), or `inconclusive` (the snapshot is
+insufficient to decide; recorded, not discarded).
+
+**False-negative sampling (missed obligations) — corrected method.** For
+every *clean* (zero-warning) observation, the recorded raw porcelain text is
+itself already immutable evidence — no later worktree access is needed. A
+**simple random sample without replacement**, drawn uniformly at a fixed
+10% sampling rate from each aggregation cycle's clean observations (not
+"every 10th," which is systematic, not random), has its recorded porcelain
+text independently re-examined: if that text shows an untracked or
+uncommitted `docs/coordination/` path the check's own recorded result did
+not flag, that is a missed obligation — a bug in the check's own logic,
+fully auditable from the recorded text alone, never from the live worktree.
+
+**Two distinct metrics, two distinct denominators — not conflated:**
+
+- **False-positive rate** = count of observations labeled `false_positive`
+  ÷ count of observations with at least one warning (the warning-observation
+  denominator).
+- **Sampled false-negative rate** = count of missed obligations found in the
+  random sample ÷ size of that random sample drawn from clean observations
+  (the clean-sample denominator — never the all-observations count).
 
 **Minimum window and sufficiency.** Continue the trial for whichever is
-longer of 20 completion boundaries or 5 calendar days, across both active AI
-sessions. If, at the end of that window, fewer than 5 warning observations
-and fewer than 5 sampled clean observations have accumulated, the trial
-result is **inconclusive** and the window extends until both minimums are
-met — a report must not present a rate computed from fewer than 5 events in
-either bucket.
+longer of 20 poll-entry check invocations or 5 calendar days, across both
+active AI sessions. If, at the end of that window, fewer than 5 warning
+observations or fewer than 5 sampled clean observations have accumulated,
+the trial result is **inconclusive** for the corresponding metric and the
+window extends until both minimums are met — a report must not present a
+rate computed from fewer than 5 events in its own denominator.
 
 **Acceptance and revisit criteria.** The follow-up blocking-authority
-proposal, if any, must cite: the exact false-positive rate (false positives
-÷ all warning observations) and the exact sampled false-negative rate
-(missed obligations found in the false-negative sample ÷ sampled clean
-observations), both with their raw counts and denominators, not just a
+proposal, if any, must cite both rates above with their raw counts and
+denominators stated explicitly and separately, not just a combined
 percentage. A revisit is required if either rate is later found, on a
 larger sample, to differ materially from what was reported.
 
@@ -391,8 +454,24 @@ naming `coord list` as the every-poll integration target still requiring
 its own Gate 1 (F2); correcting the tool-authority-boundary characterization
 of Class 3 (F3); replacing the evidence protocol with a concrete trial
 design scoped to what Class 1 can actually observe (F4); and correcting
-"published-but-not-pushed" to "committed but unpublished" (A1). Re-review
-requested at this exact head.
+"published-but-not-pushed" to "committed but unpublished" (A1).
+
+That revision (`b469eca3`) received re-review
+`20260916T181543Z-contribution-auditor-ppdr` (BLOCK, 2 mandatory findings):
+the proposed "completion boundary" invocation points are actually delayed
+next-entry detection, not real-time completion prevention (`ppdr`-F1); and
+the false-negative sampling method relied on reconstructing historical
+worktree state that Git cannot preserve, used a continuously-mutated shared
+tracked log, used systematic sampling while calling it random, and conflated
+two metrics' denominators (`ppdr`-F2). This revision corrects both: Part 3
+renames the mechanism to "poll-entry check point," states the delayed-
+detection guarantee honestly, and names the no-next-entry residual gap for
+governor disposition; Part 6 captures full immutable evidence (raw
+`git status --porcelain=v2` text, content hashes, validate outcomes) at
+observation time so no later worktree reconstruction is needed, moves
+collection to non-tracked per-session logs aggregated into bounded published
+snapshots, uses true random sampling, and separates the two metrics'
+denominators explicitly. Re-review requested at this exact head.
 
 ## Next steps
 
