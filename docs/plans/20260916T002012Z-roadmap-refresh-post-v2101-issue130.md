@@ -1,6 +1,8 @@
 ---
 id: 20260916T002012Z-roadmap-refresh-post-v2101-issue130
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-16T04:23:34Z
 topic: roadmap-refresh-post-v2101-issue130
 candidate_release: v2.11.0
 advisory_consultation:
