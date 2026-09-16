@@ -351,19 +351,24 @@ or per-poll `coord list`), renamed from "completion boundary" per `ppdr`-F1
 to avoid implying it prevents a cycle from ending.
 
 **What is captured, at observation time, before anything can change:**
-each invocation writes one record containing — a unique observation id;
-session/role identifier; UTC timestamp; integration point (cold-start vs.
-poll-entry); the pinned local `HEAD` SHA; the fetched remote-tracking ref
-snapshot (ref → SHA, immediately after fetch); the **full raw `git status
---porcelain=v2` output text** at that instant, verbatim; for every
-untracked or uncommitted path under `docs/coordination/` present in that
-porcelain output, its content SHA-256 and whether a temporary copy passes
-`agov coord validate`; and the check's own computed result (clean, or the
-list of paths/commits it flagged). Capturing the raw porcelain text and
-per-file hash/validate outcome **at record time** is what makes later
-false-negative auditing possible without ever touching the worktree again
-— the recorded porcelain text *is* the historical ground truth, not a
-promise to go re-derive it afterward.
+each invocation writes one **observation** record containing — a unique
+observation id; session/role identifier; UTC timestamp; integration point
+(cold-start vs. poll-entry); the pinned local `HEAD` SHA; the fetched
+remote-tracking ref snapshot (ref → SHA, immediately after fetch); the
+**full raw `git status --porcelain=v2` output text** at that instant,
+verbatim; and the check's own computed result (clean, or the list of
+flagged paths/commits). For every untracked or uncommitted path under
+`docs/coordination/` present in that porcelain output, the observation
+additionally records one **candidate** sub-record: content SHA-256; whether
+a temporary copy passes `agov coord validate`; and — resolving `hegk`-F1's
+core objection that Git state alone cannot establish duty or intent —
+whatever *contemporaneous provenance* the candidate file itself already
+carries as a schema-valid coordination draft: its own front-matter `kind`,
+`topic`, and `references-to` fields (never its full prose body, to avoid
+exposing draft content prematurely). Recording front-matter fields rather
+than body text keeps the captured evidence to exactly what identifies
+*which* obligation the candidate answers, without leaking the draft's
+actual argument before it is ready to publish.
 
 **Storage: non-perturbing, not a continuously-mutated shared file.** Each
 session appends its own observation records to a **local, non-git-tracked
@@ -376,52 +381,97 @@ it through the normal branch/MR/review workflow exactly once per aggregation
 cycle, and that published snapshot — not a live, continuously-appended
 file — is what the labeling and reporting steps below read.
 
-**Labeling and independent adjudication.** For each observation with at
-least one warning, a session or human *other than* the one that produced
-the observation labels it, reading only the **published, immutable
-snapshot fields** (never the live worktree, consistent with Part 4's
-multi-session visibility limit — the labeler needs no live access because
-the evidence was already captured) as one of: `true_positive` (the porcelain
-snapshot and validate outcome confirm the flagged file/commit was a genuine
-unpublished, schema-valid duty), `false_positive` (the porcelain snapshot
-shows the state was intentional — e.g., a file the recorded content hash
-matches a later-published deliberate batch, or one still being actively
-edited across multiple observations), or `inconclusive` (the snapshot is
-insufficient to decide; recorded, not discarded).
+**Correction from the prior revision (resolves `hegk`-F1): labeling is
+per-candidate, not per-observation, and corroborates against later published
+history rather than the snapshot alone.** The prior draft assigned one label
+to an entire observation, which loses information when an observation
+contains several candidates with different outcomes, and it asked the
+labeler to decide `true_positive`/`false_positive` from the snapshot fields
+alone — which, as `hegk`-F1 correctly notes, cannot distinguish a neglected
+duty from an actively-edited draft or a deliberately deferred batch. This
+revision labels each **candidate**, and requires the labeler to corroborate
+the candidate's front-matter `topic`/`references-to` against the
+**project's own published coordination history** (the same channel this
+plan's records already live in) — specifically: did a record with a
+matching `topic` or referencing the same `id` get published later, and if
+so, how many subsequent observations (of any session) elapsed between this
+candidate's first appearance and that publication? A candidate is labeled:
 
-**False-negative sampling (missed obligations) — corrected method.** For
-every *clean* (zero-warning) observation, the recorded raw porcelain text is
-itself already immutable evidence — no later worktree access is needed. A
-**simple random sample without replacement**, drawn uniformly at a fixed
-10% sampling rate from each aggregation cycle's clean observations (not
-"every 10th," which is systematic, not random), has its recorded porcelain
-text independently re-examined: if that text shows an untracked or
-uncommitted `docs/coordination/` path the check's own recorded result did
-not flag, that is a missed obligation — a bug in the check's own logic,
-fully auditable from the recorded text alone, never from the live worktree.
+- `true_positive` — the same `topic`/id-referencing draft persisted,
+  unchanged or evolving, across **two or more** consecutive observations of
+  the same session before being published, or was never published at all
+  within the trial window (a still-outstanding neglected duty at trial end).
+- `false_positive` — the candidate's content hash or topic matches a record
+  published in the **same or the very next** observation of the same
+  session (resolved before another poll-entry check ever saw it as
+  outstanding), or the labeler finds an independent, already-published
+  coordination record showing the file was a deliberately deferred batch
+  item under `coordination-publication-rule.md`'s batching permission.
+- `inconclusive` — the corroborating publication history is insufficient to
+  decide (e.g., the trial window ended before either resolution or a second
+  observation occurred).
 
-**Two distinct metrics, two distinct denominators — not conflated:**
+**Mixed observations are no longer a problem:** because the label attaches
+to each candidate individually, one observation with three candidates can
+correctly carry three different labels; no observation-level `mixed`
+category is needed.
 
-- **False-positive rate** = count of observations labeled `false_positive`
-  ÷ count of observations with at least one warning (the warning-observation
-  denominator).
-- **Sampled false-negative rate** = count of missed obligations found in the
-  random sample ÷ size of that random sample drawn from clean observations
-  (the clean-sample denominator — never the all-observations count).
+**False-negative sampling (missed obligations) — per-candidate, same
+method.** For every *clean* (zero-warning) observation, the recorded raw
+porcelain text is itself already immutable evidence — no later worktree
+access is needed. A **simple random sample without replacement**, drawn
+uniformly at a fixed 10% sampling rate from each aggregation cycle's clean
+observations (not "every 10th," which is systematic, not random), has its
+recorded porcelain text independently re-examined: if that text shows an
+untracked or uncommitted `docs/coordination/` path the check's own recorded
+result did not flag, that is one missed-obligation candidate — a bug in the
+check's own logic, fully auditable from the recorded text alone, never from
+the live worktree.
+
+**Two distinct metrics, two distinct denominators, `inconclusive` excluded
+from both — not conflated:**
+
+- **False-positive rate** = count of candidates labeled `false_positive` ÷
+  count of candidates labeled `true_positive` or `false_positive` (the
+  **adjudicated-candidate** denominator — `inconclusive` candidates are
+  excluded from this denominator, not silently folded in as implicit
+  non-false-positives, and their own share is reported separately as the
+  **inconclusive rate** = inconclusive candidates ÷ all candidates).
+- **Sampled false-negative rate** = count of missed-obligation candidates
+  found in the random sample ÷ size of that random sample drawn from clean
+  observations (the clean-sample denominator — never the all-observations
+  or all-candidates count).
 
 **Minimum window and sufficiency.** Continue the trial for whichever is
 longer of 20 poll-entry check invocations or 5 calendar days, across both
-active AI sessions. If, at the end of that window, fewer than 5 warning
-observations or fewer than 5 sampled clean observations have accumulated,
-the trial result is **inconclusive** for the corresponding metric and the
-window extends until both minimums are met — a report must not present a
-rate computed from fewer than 5 events in its own denominator.
+active AI sessions. If, at the end of that window, fewer than 5 adjudicated
+(non-inconclusive) candidates or fewer than 5 sampled clean observations
+have accumulated, the trial result is **inconclusive** for the
+corresponding metric and the window extends until both minimums are met —
+a report must not present a rate computed from fewer than 5 events in its
+own denominator.
 
 **Acceptance and revisit criteria.** The follow-up blocking-authority
-proposal, if any, must cite both rates above with their raw counts and
-denominators stated explicitly and separately, not just a combined
-percentage. A revisit is required if either rate is later found, on a
-larger sample, to differ materially from what was reported.
+proposal, if any, must cite the false-positive rate, the inconclusive rate,
+and the sampled false-negative rate, each with its own raw counts and
+denominator stated explicitly and separately, not just a combined
+percentage. A revisit is required if any rate is later found, on a larger
+sample, to differ materially from what was reported.
+
+**Advisory, carried forward for the follow-up implementation plan (resolves
+`hegk`-A1): per-session local logs are not immutable until aggregated and
+published.** Unlike the observation/candidate *content* captured at record
+time (which is immutable once written), the local runtime log file itself
+remains ordinarily mutable or deletable on disk until its dated aggregate
+is committed and reviewed — a session could edit or lose its own local log
+before aggregation. This plan does not close that gap; it requires the
+aggregation step to record, per aggregation cycle, the expected observation-
+id count and any detected gaps (missing or out-of-sequence ids, session
+dropout), and the snapshot-content hash of each per-session log it
+consumed, so a reviewer can see whether aggregation was complete or partial
+rather than assuming it was. If stronger integrity guarantees are later
+found necessary, the follow-up implementation plan may add hash chaining or
+an append-only artifact sink — this discovery plan does not choose one now.
 
 This data, not a design argument, is what should settle whether blocking
 authority is ever proposed for the Class 1 check specifically. It says
@@ -471,7 +521,27 @@ governor disposition; Part 6 captures full immutable evidence (raw
 observation time so no later worktree reconstruction is needed, moves
 collection to non-tracked per-session logs aggregated into bounded published
 snapshots, uses true random sampling, and separates the two metrics'
-denominators explicitly. Re-review requested at this exact head.
+denominators explicitly.
+
+That revision (`735f9a7d`) received re-review round 3
+`20260916T183607Z-contribution-auditor-hegk` (BLOCK, 1 mandatory finding, 1
+advisory): the captured Git-state evidence alone cannot establish duty or
+intent, and the per-observation labeling unit loses information when one
+observation carries several candidates with different true/false outcomes
+(`hegk`-F1); and per-session local logs are not actually immutable until
+aggregated and published (`hegk`-A1, advisory). This revision corrects F1
+by making the labeling unit the individual candidate (not the whole
+observation), capturing each candidate's own coordination front-matter
+(`kind`/`topic`/`references-to`) as contemporaneous provenance, and
+requiring the labeler to corroborate against the project's own later-
+published coordination history rather than the snapshot alone; it separates
+the false-positive, inconclusive, and sampled false-negative rates into
+three distinct metrics with `inconclusive` excluded from the false-positive
+denominator. It addresses A1 by requiring the aggregation step to record
+expected-observation-count/gap/dropout evidence rather than assuming
+completeness, while explicitly leaving stronger integrity mechanisms (hash
+chaining, append-only sinks) to the follow-up implementation plan. Re-review
+requested at this exact head.
 
 ## Next steps
 
