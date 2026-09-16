@@ -304,22 +304,49 @@ implementation plan inherits them rather than re-discovering them:
 
 Per `tool-authority-boundary-rule.md`, this plan's Class 1 check ships as
 **advisory only**. No named rule in this plan grants it blocking authority.
-The follow-up implementation plan may propose blocking authority for the
-Class 1 check only after:
 
-1. it has run for a bounded evidence-collection period (see Part 6) with a
-   published false-positive and missed-obligation rate;
+**Correction (resolves `d2e4`-F1): blocking eligibility is coextensive with
+measured evidence, not with "the Class 1 check" as a whole.** Part 6's
+trial captures and reports evidence for Class 1 **shape (1) only**
+(untracked/uncommitted files) — shapes (2) (unpushed local branch) and (3)
+(committed-but-unpushed commit) have no immutable capture, no independent
+replay, and no mechanical or operational rate at all. A future blocking
+proposal must not be allowed to cite shape-(1) evidence and then propose
+blocking authority that also fires on shapes (2)/(3), which were never
+measured. The follow-up implementation plan may propose blocking authority
+for **the exact shape-(1) predicate only** — never "the Class 1 check" or
+"Class 1" unqualified — only after:
+
+1. it has run for a bounded evidence-collection period (see Part 6) with
+   published detector false-positive, detector false-negative, and
+   operational (actionability) false-positive rates, **each explicitly
+   scoped to shape (1)**;
 2. a separate, dedicated Gate 1 plan explicitly proposes the blocking rule
-   change, naming the exact check, the exact rule file that would grant
-   blocking authority, and the exact failure mode it targets; and
+   change, naming the exact check, the exact shape-(1) predicate it
+   applies to, the exact rule file that would grant blocking authority, and
+   the exact failure mode it targets; and
 3. that separate Gate 1 plan itself carries a negative test demonstrating
    the gate fires on a known-bad input, per `gate-self-test-rule.md` — gate
    mechanics are never eligible for the fast-track waiver, and a
    self-check that gains blocking authority is gate mechanics.
 
-This plan does not pre-authorize step 2 or 3. It only clears the ground so
-that a future plan proposing them starts from real advisory-mode evidence
-instead of a hypothesis.
+**Shapes (2) and (3) remain advisory-only indefinitely under this plan.**
+Extending blocking authority to either would require its own immutable
+capture design, its own independent replay method, its own mechanical
+false-positive/false-negative rates, its own operational actionability
+rate, its own sufficiency thresholds, and its own revisit criteria — a
+full repeat of Part 6's evidence discipline for that shape specifically,
+not an inherited assumption from shape (1)'s results. This plan does not
+scope that work; a future plan proposing it starts over on evidence for
+those shapes, or the follow-up implementation plan may instead choose to
+narrow its actual implementation to shape (1) only and defer shapes (2)/(3)
+completely, which this plan does not decide on its behalf.
+
+This plan does not pre-authorize step 2 or 3 above for shape (1), and does
+not authorize any blocking proposal for shapes (2)/(3) under any
+circumstance. It only clears the ground so that a future plan proposing
+shape-(1) blocking starts from real advisory-mode evidence instead of a
+hypothesis.
 
 ## Part 6 — Evidence collection before any blocking proposal
 
@@ -543,7 +570,7 @@ actionability. If, by the end of the minimum trial window, fewer than 5
 adjudicated Axis 2 disposition cases exist (i.e., most sessions never
 self-report or corroboration never resolves them), the follow-up plan must
 either extend the trial until that minimum is met, or — per `mn5j`-F1's
-named alternative — conclude that the Class 1 check should remain
+named alternative — conclude that the shape-(1) check should remain
 **permanently advisory**, because its mechanical predicate cannot, on the
 available evidence, be shown to track actionable duty. A future blocking
 proposal is not entitled to assume Axis 2 evidence exists; it must show it.
@@ -551,8 +578,6 @@ Axis 3 (adoption) data may still be cited as supporting context, but is
 never substituted for either Axis 1 or Axis 2's rates, and elapsed time or
 publication order still never proves duty or causation on its own. A
 revisit is required if any of the three rates is later found, on a larger
-sample, to differ materially from what was reported.
-A revisit is required if either Axis 1 rate is later found, on a larger
 sample, to differ materially from what was reported.
 
 **Advisory, carried forward for the follow-up implementation plan (resolves
@@ -571,16 +596,20 @@ found necessary, the follow-up implementation plan may add hash chaining or
 an append-only artifact sink — this discovery plan does not choose one now.
 
 This data, not a design argument, is what should settle whether blocking
-authority is ever proposed for the Class 1 check specifically. It says
-nothing about Class 1b, Class 2, or Class 3, which would each need their own
-trial if pursued.
+authority is ever proposed for **the shape-(1) predicate specifically** —
+not for "the Class 1 check" as a whole (per the `d2e4`-F1 correction in
+Part 5). It says nothing about Class 1 shapes (2)/(3), Class 1b, Class 2,
+or Class 3, each of which would need its own trial if pursued.
 
 ## Risks and rollback
 
-- **Risk:** a follow-up implementation could be tempted to fold Class 2 or
-  Class 3 signals in "while it's convenient." This plan's scope explicitly
-  excludes both; a follow-up plan that adds them must justify each
-  separately against the same false-positive/coverage discipline as Class 1.
+- **Risk:** a follow-up implementation could be tempted to fold Class 2,
+  Class 3, or Class 1 shapes (2)/(3) signals in "while it's convenient," or
+  to treat shape-(1) evidence as if it justified blocking authority for all
+  of Class 1. This plan's scope explicitly excludes all of them from
+  blocking eligibility (Part 5); a follow-up plan that adds any of them
+  must produce that shape's own full evidence protocol first, not inherit
+  shape (1)'s results.
 - **Risk:** surfacing warnings inside `agov session resume`/`agov coord
   list` output could be misread as blocking if not clearly labeled advisory.
   The implementation plan must label every Class 1 finding `severity:
@@ -681,13 +710,32 @@ permanently advisory if that evidence never accumulates. It corrects F2 by
 explicitly narrowing this trial's measured scope to shape (1) only, in both
 the Axis 1 predicate description and the false-negative replay, and by
 labeling every reported rate "shape (1) only" rather than "Class 1"
-unqualified. Re-review requested at this exact head.
+unqualified.
+
+That revision (`ba5879d4`) received re-review round 6
+`20260916T192623Z-contribution-auditor-d2e4` (BLOCK, 1 mandatory finding, 1
+advisory): although Part 6's evidence was correctly scoped to shape (1)
+only, Part 5's blocking-authority language, Part 6's conclusion, and the
+"Next steps" section still referred to authorizing a future blocking
+proposal for "the Class 1 check" unqualified — leaving room for a future
+plan to cite shape-(1)-only evidence while proposing a block that also
+fires on unmeasured shapes (2)/(3) (`d2e4`-F1); and Part 6's acceptance
+criteria carried a stale, narrower duplicate revisit sentence left over
+from an earlier revision (`d2e4`-A1, advisory). This revision corrects F1
+by rewriting Part 5, Part 6's conclusion, the Risks section, and "Next
+steps" to state explicitly that blocking eligibility is coextensive with
+shape (1) only — shapes (2)/(3) remain advisory-only indefinitely under
+this plan, requiring their own full evidence protocol before any future
+plan may even propose blocking them. It corrects A1 by deleting the stale
+duplicate sentence. Re-review requested at this exact head.
 
 ## Next steps
 
 1. Request contribution-auditor re-review of this corrected revision.
 2. Request governor-reviewer Gate 1 decision once the auditor row clears.
 3. On approval, a separate implementation Gate 1 plan scopes the actual
-   Class 1 check, its integration point (Part 3), and the evidence-collection
-   protocol (Part 6) as its own acceptance criteria — this plan does not
-   pre-approve that implementation's design in detail, only its boundaries.
+   shape-(1) Class 1 check, its integration point (Part 3), and the
+   evidence-collection protocol (Part 6) as its own acceptance criteria —
+   this plan does not pre-approve that implementation's design in detail,
+   only its boundaries, and does not authorize the implementation plan to
+   extend blocking eligibility beyond the shape-(1) predicate (Part 5).
