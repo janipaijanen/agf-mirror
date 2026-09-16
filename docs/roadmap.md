@@ -7,20 +7,23 @@ views or inputs; they do not create roadmap commitments independently.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.1 is the pending reviewed release from current `main` (a customer-driven, low-coupling generic artifact/graph validation extension to `agov`); v2.10.0 remains the latest published stable release until v2.10.1's tag pipeline and anonymous artifact verification complete. Post-v2.10 work also includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
-| Observed at | 2026-09-12T18:50:00Z |
-| Observation baseline | `main` at `90bb57a2f57c899b8ceacefb6a104d8bc80b0f58`, the merged v2.10.1 candidate before release-metadata preparation |
+| Status | v2.10.1 is the latest published stable release (tag pipeline, GitLab Release, and anonymous artifact verification complete -- `20260912T210138Z-planner-architect-asdh`, `20260912T215750Z-coder-tester-4jss`, `20260912T220356Z-planner-architect-grqd`). Post-v2.10 work also includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
+| Observed at | 2026-09-16T04:24:48Z |
+| Observation baseline | `main` at `f8a8025e984f8d59a3adb4d1d672812e790379d5` |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
 
-**Latest stable release: v2.10.0.** The release is Level 5 Deployable: its
-annotated tag, mandatory tag pipeline, GitLab Release, generic package, OCI
-image, checksums, and anonymous downloads were verified in
+**Latest stable release: v2.10.1.** Published 2026-09-12, superseding v2.10.0
+as latest (v2.10.0 remains available, not removed from history). Tag
+pipeline, GitLab Release, generic package, OCI image, checksums, and
+anonymous downloads independently verified
+(`20260912T215750Z-coder-tester-4jss`, `20260912T220356Z-planner-architect-grqd`).
+v2.10.0's own Level 5 Deployable verification remains on record in
 `docs/coordination/20260908T152605Z-coder-tester-re48.md`.
 
 The public artifacts are available from the
-[v2.10.0 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.10.0).
+[v2.10.1 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.10.1).
 
 No later version number or release scope is binding merely because it appears
 in an issue label, proposal, or advisory horizon. A later release requires its
@@ -41,12 +44,16 @@ governor confirmation
 |---|---|---|
 | Queue convergence B1 | Authorized current batch | This batch creates the owner, corrects its public projection, and records MR !2269 as superseded; its exact head returns for Gate 2. |
 | Queue convergence B2-B3 | Sequenced after B1 | Re-observe and disposition TODOs, then issues, in separate review-sized batches. |
-| Queue convergence B4-B7 | Partly blocked | Non-plan cohorts remain later batches. Plan-MR dispositions wait for the `qbka` Slice A provenance contract. |
+| Queue convergence B4-B7 | Partly blocked | Non-plan cohorts remain later batches. Plan-MR dispositions wait for the `qbka` Slice A provenance contract (now satisfied -- see `qbka` row below; this row's own re-observation has not yet been separately confirmed). |
 | Queue convergence B8 | Advisory bound defined below | Apply the bound during discovery and selection; promotion to a blocking gate requires separate evidence, planning, and approval. |
 | Issue #129 | Assessment required | Complete and review the linked-data/evidence-model assessment before `qbka` Slice A freezes provenance semantics. This is assessment-first, not linked-data implementation. |
-| `qbka` plan lifecycle | Needs its own Gate 1 plan | A separate planner owns the schema, validator, transition semantics, provenance contract, and legacy-plan migration work order. |
-| Issues #121, #122, MR !2027 | Needs own Gate 1 workstream | Treat as coordination-protocol semantics; #122 must align with the `qbka` provenance shape. |
-| Issue #123 | Needs own Gate 1 plan | Add collision-detection tooling only after the current manual collision pass. |
+| `qbka` plan lifecycle | Done | Slice A (superseded plan-lifecycle schema/validator/provenance) merged and Gate 2 approved (`20260913T160721Z-governor-reviewer-5jjg`). Slice B (legacy-plan migration) merged after an F1 evidence correction (see `git log --grep=qbka`: `41d27775`, `c246a322`). |
+| Issue #121 | Row 5 S1 shipped session-level addressing (`for_session`), merged `20260911T035333Z-planner-architect-nh1j` | Unresolved whether this fully satisfies #121's scope, or leaves the execution-lane/claim-and-reassignment work its own comments describe (`hqps`, 2026-09-05) as a separate slice. Needs verification before closing the issue. |
+| Issue #122 | Done | Resolved by Row 5 S2 self-announcing supersession, Gate 2 approved `20260914T115129Z-governor-reviewer-4bm1`. |
+| MR !2027 | Unchanged | No new evidence this pass; disposition unchanged from prior roadmap state. |
+| Issue #123 | Partially done | Plan-vs-plan `affected_paths` collision detection shipped and MR-blocking (Row 6 S3 advisory + Row 6 S4 blocking promotion, Gate 2 approved `20260915T050307Z-governor-reviewer-g7j1`). The plan's original third bullet -- a post-implementation `affected_paths`-vs-actual-diff drift check -- remains open and unclaimed; needs its own Gate 1 plan if pursued. |
+| CPB2 (publication-hold urgency) | Done | Merged and closed (`20260913T085749Z-coder-tester-b1nb`). |
+| Row 5 S3 (priority ordering and challenge response) | Done | Merged (`20260913T121333Z-planner-architect-gkqh`). |
 | Issue #131 | Stage 4 Gate 1 approved; tracked activation in progress | Foundry activation is Level 4 Validated under plan `20260909T015237Z-propeller-stage4-activation` and decision `djh1`. After the tracked activation reaches Gate 2 and merges, initialize the guarded local state and one verified Monday 09:00 UTC heartbeat. Only its first genuine unattended conforming wake can supply separate Level 5 evidence. |
 | Issue #132 | Blocked | Do not export the Propeller method as a skill until #131 has genuine Level 5 wake evidence. |
 | `release-v2.7.0-rc.2` | `awaiting-governor` | Its fate remains undecided after rc.1 was abandoned. It does not block the current sequence. |
