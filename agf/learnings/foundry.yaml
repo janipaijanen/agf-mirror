@@ -5004,6 +5004,59 @@ learnings:
       evidence_refs:
         - '20260913T075949Z-governor-reviewer-d1st'
 
+
+  - id: 20260916T045614Z-vx18
+    date: '2026-09-16'
+    category: gap
+    scope: framework
+    title: mutating-command-timeouts-can-outlive-the-tool-response-and-race-the-retry
+    status: proposed
+    description: >-
+      During an independent Gate 2 documentation review, one shell sequence
+      combined a potentially slow repository-local agov rebuild, coordination
+      validation, commit, publication-check, and push. The command call returned
+      at its output deadline while the underlying process continued. The
+      operator treated the returned call as finished, corrected the still-visible
+      file, and started a second sequence against the same worktree and remote
+      branch. The original process then resumed after its build lock cleared,
+      observed a moving working tree, committed the schema-invalid pre-correction
+      form, and pushed it. Overlapping correction attempts produced several
+      branch heads and redundant pipelines before a clean replacement carrier
+      was published and the stale pipelines were cancelled. The review findings
+      remained intact and no implementation or main-branch content merged, but
+      a shared coordination branch temporarily contained an invalid immutable
+      record and required explicit replacement rather than silent history
+      rewriting.
+    agents_involved:
+      - contribution-auditor
+      - coder-tester
+      - build-engineer
+    framework_section: tooling/external-command-lifecycle-and-coordination-publication
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The race consumed extra runner time, created an invalid shared record,
+        required a replacement merge request and cancellation work, and added
+        avoidable review noise. Exact-head merge safety prevented the defect
+        from reaching main.
+    recommendation: >-
+      Treat any timed-out or yielded mutating command as having unknown
+      lifecycle until its process or session is explicitly observed complete.
+      Never launch a retry that touches the same worktree, index, branch, or
+      remote ref while the earlier process may still run. Split slow preparation
+      and validation from commit/push mutations; obtain a session identifier for
+      long operations and wait on it; re-read the working tree and remote head
+      immediately before committing and pushing; and make the final push a
+      single SHA-guarded step. When overlap still occurs, cancel superseded
+      pipelines, preserve the failed carrier as evidence, and publish a clean
+      replacement without force-rewriting a visible coordination record.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'MR !2853 and pipelines 2853159969, 2853166644, and 2853167812; valid replacement carrier !2854.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
