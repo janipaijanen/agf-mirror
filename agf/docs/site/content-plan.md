@@ -1,8 +1,14 @@
 # Content plan: end-user documentation site
 
-Control artifact for the GitLab Pages documentation lane (per Gate 1
-approval, seq 103). Pages are drafted only after their row here defines
-audience, objective, prerequisites, and review needs.
+*Status: Historical control artifact for the initial v2.0 site design. This is
+not the current page inventory, release-status authority, or navigation
+contract. Use `agf/docs/build/mkdocs.yml` for the current navigation and the
+generated `reference/release-info.md` page for the exact published version.*
+
+This records the original GitLab Pages documentation lane (per Gate 1
+approval, seq 103). The rows and status vocabulary below explain that initial
+design and are retained as planning history; later governed additions are not
+retroactively inserted into this table.
 
 ## Audiences
 
@@ -56,11 +62,13 @@ Provisional.* Other pages link to that statement rather than restating it
 
 ## Glossary needs
 
-Terms that must be defined on first use and consistently afterwards:
-*gate, coordination channel, learning record, codename, jurisdiction,
-fast track, compliance profile, `agf/` layout, Provisional.* The canonical
-definitions live in `docs/paper/agents-govern-framework.md` §Definitions;
-site pages link or quote verbatim.
+Terms identified by the original plan for consistent definition were: *gate,
+coordination channel, learning record, codename, jurisdiction, fast track,
+compliance profile, `agf/` layout,* and *Provisional*. The planned
+`docs/paper/agents-govern-framework.md` definition owner no longer exists.
+Current definitions and operating meaning live in the relevant released site
+pages, schemas, and rules; do not treat this historical list as a canonical
+glossary.
 
 ## Review checkpoints
 

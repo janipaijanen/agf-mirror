@@ -3,11 +3,14 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 # Figures
 
-All figures are generated from DOT source files in
-`agf/docs/figures/src/`. SVG outputs are committed to
-`docs/site/reference/figures/` as source-of-truth artifacts.
+Most diagram figures are generated from DOT source files in
+`agf/docs/figures/src/`. Their SVG outputs are committed to
+`docs/site/reference/figures/` as source-of-truth artifacts. The
+`agf-nutshell-flyer.png` is the exception: its HTML template, build script, and
+font assets live in `agf/docs/figures/src/agf-nutshell-flyer/`; both generated
+PNG copies are committed and checked by CI.
 
-**To regenerate all figures:**
+**To regenerate all DOT/SVG figures:**
 
 ```bash
 cd agf/docs/figures
