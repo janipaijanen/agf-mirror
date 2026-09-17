@@ -5351,30 +5351,40 @@ learnings:
       states: (1) watcher state -- armed, due, or suspended after its idle
       window; (2) inbox-delta state -- new relevant activity or unchanged;
       and (3) authorized-work state -- ready, running, concretely blocked, or
-      verified exhausted. A watcher suspension or unchanged inbox MUST NOT
-      set authorized-work state to exhausted and MUST NOT terminate an active
-      work turn.
+      verified exhausted. A watcher suspension or unchanged inbox MUST NOT be
+      treated as proof that the separate authorized-work queue is exhausted.
+      A bounded heartbeat turn may still correctly end after suspending or
+      deleting its own idle watcher; the prohibited inference is using that
+      watcher-state change to conclude the authorized-work queue is empty or
+      to cancel a separate active work lane, not that a turn may never end.
 
       Before an agent returns a terminal no-work result, require a compact
-      queue-exhaustion certificate covering the current coordination cursor,
-      role handoffs and pending acknowledgements, all open MRs, issues, owned
+      queue-exhaustion report covering the current coordination cursor, role
+      handoffs and pending acknowledgements, all open MRs, issues, owned
       waiting states, active claims, and both the primary and spare execution
-      lanes. If an item is blocked, the certificate must show why another
+      lanes. If an item is blocked, the report must show why another
       independent lane cannot proceed. Apply this contract to every active AI
       role through the existing universal rule and loader projections; do not
       create a parallel role-specific rule.
 
       Because the normative prose already exists, prefer a mechanical
       affordance over another reminder: extend the governed `agov session
-      resume`/polling surface to emit the three states independently and fail
-      closed on a terminal response whose work state is not supported by the
-      queue scan. Any tooling or loader change still follows normal Gate 1 and
-      Gate 2 discipline.
+      resume`/polling surface to emit the three states independently, with
+      each queue-exhaustion surface reported as checked, unavailable, or
+      unknown rather than asserted true by default. Local `agov` reads
+      repository-visible artifacts only; it cannot certify that a forge-side
+      or runtime-side surface outside its own read scope is exhausted, and it
+      cannot intercept or block an assistant's terminal response. Any
+      enforcement, cross-surface certification, or response-blocking
+      integration is out of this learning's scope and belongs to the
+      separately governed plan tracked by issue #133. Any tooling or loader
+      change still follows normal Gate 1 and Gate 2 discipline.
     severity: significant
     confidence:
       level: longitudinal
-      evidence_count: 5
+      evidence_count: 6
       evidence_refs:
+        - 'docs/coordination/20260917T041058Z-contribution-auditor-j236.md: the direct current-event correction record -- the governor-directed universal execution correction for this exact 2026-09-17 recurrence.'
         - 'docs/coordination/20260823T150447Z-coder-tester-d6h6.md: establishes that no new activity and no open assignments are different states and requires verified queue exhaustion.'
         - 'docs/coordination/20260910T143052Z-contribution-auditor-51s5.md: records that an empty queue is a scoped observation rather than permission to stop.'
         - 'docs/coordination/20260913T080255Z-coder-tester-k2pr.md: records the prior recurrence where one reviewer dependency was incorrectly treated as a global stop and event scans replaced work selection.'
