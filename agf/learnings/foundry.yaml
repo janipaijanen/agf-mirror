@@ -5652,6 +5652,117 @@ learnings:
         - 'AGENTS.md, Polling timer notation / poll-cycle procedure (baseline text at record authoring time): already requires scanning all open merge requests each cycle, not only `agov coord list --since <cursor>`.'
         - 'Contribution-auditor exact-head review `20260917T040118Z-contribution-auditor-bhmj.md` (MR !2758 at head `2edf1515a5449f4ea99d9116a38c60b056383eb5`): BLOCK recommendation with the three findings this correction resolves (temporal-accuracy, main-absence-vs-invisibility conflation, missing evidence block).'
 
+  - id: 20260910T041223Z-qvzj
+    date: '2026-09-10'
+    category: gap
+    scope: framework
+    title: no-standing-owner-or-estate-wide-check-for-docs-touchpoint-consistency-and-currency
+    status: proposed
+    description: >-
+      Nothing in AGF systematically asks whether the whole adopter-facing
+      documentation estate — README, the Pages site, both changelogs, the AI
+      loaders, ADOPTING.md, role/manifest docs — is internally consistent and
+      current for a reader arriving cold. The checks that exist are all
+      change-scoped or cell-scoped: `documentation-rule-projection-rule`
+      projects each governed normative change onto six named surfaces but
+      never sweeps the estate; a release-publication plan's metadata allowlist
+      bumps version cells and rewrites the specific release-status prose it can
+      enumerate; `web-ux-reviewer` (visual/UX/accessibility, activation-gated)
+      and `fact-checker` (claim veracity, activation-gated) each cover a slice.
+      Content currency and cross-surface consistency — feature-status drift
+      (planned/beta/GA), terminology drift, stale how-to steps, a concept page
+      that still says "planned" for something a release made real, a README
+      that lags the site — has **no dedicated complete-estate responsibility
+      and no trigger that runs one**. The per-change projection screen, the
+      release-plan metadata review, and the bounded Improvement Propeller
+      opportunity/friction lanes all run and each catches a slice; none of
+      them performs, or is meant to perform, a full estate audit. The gap
+      surfaces only when a human notices, a per-change reviewer looks wider
+      than the change, or (hypothesis) an adopter hits stale content.
+
+      This shape recurs (observed corrections; the causal narrative below is
+      the reviewer's reading, not established fact). In the v2.11
+      release-publication plan this session, the Group B "sweep live
+      release-status prose" step was drafted and then found under-scoped by
+      review qbhj (finding V211-RP-R1): the plan's own discovery grep matched
+      one of roughly six live status cells. In the v2.9.0 release-publication
+      plan the hand-built metadata allowlist was corrected across three
+      successive reviews (V29P-1, V29P-1-R2, V29P-1-R3) — omitting role
+      definitions, ADOPTING.md, and live release-status blocks, and one
+      revision misclassified a live cell as historical (per-file counts are
+      as those reviews recorded them; not independently reconstructed here).
+      governance-file-layout-rule.md records sage-review creating root-level
+      governance directories twice by following stale ADOPTING.md paths
+      literally. v2.4.11's changelog scope was entirely documentation and
+      accessibility work; whether that reflects previously-undetected
+      accumulated debt is a plausible reading, not something the changelog by
+      itself establishes. Common thread: no estate view, hand-enumeration
+      misses surfaces, the miss is caught downstream in review or later.
+
+      Asked "plan release contents for next release", the assistant would have
+      produced only the narrow version-cell and per-change-projection
+      treatment above; on the evidence of this session it did not
+      independently raise the estate-wide "is the reader getting a
+      consistent, current story" question until the governor's touchpoint-role
+      proposal prompted it (a counterfactual about other framings is not
+      claimed). An assistant-proposed "Product Marketing Touchpoint Keeper"
+      role (a single owner for touchpoint accuracy, consistency, and
+      freshness, with an SSOT-derivation manifest and event-driven cadence
+      classes) names this gap directly.
+    agents_involved:
+      - planner-architect
+      - contribution-auditor
+      - governor-reviewer
+      - capability-developer
+    framework_section: rules/workflow/documentation-rule-projection-rule.md
+    business_impact:
+      type: cost_overhead
+      description: >-
+        Repeated avoidable rework directly evidenced: the v2.9.0
+        metadata-allowlist corrected across three review rounds, and an
+        under-scoped v2.11 status sweep caught in review. Related but
+        weaker-linked: the v2.4.11 documentation/accessibility release and the
+        duplicated governance directories from stale adopter-path guidance.
+        Foundry is pre-customer; no adopter harm is established by the cited
+        evidence, and the exposure would grow once adopters rely on the
+        estate.
+    recommendation: >-
+      Give docs-touchpoint accuracy, cross-surface consistency, and currency a
+      distinct, checkable responsibility. Per the calibration in
+      concept-modelling-rule's provisional header (single-adopter evidence
+      ships a rule / Gate-1-and-Gate-2 checklist; a new standing agent waits
+      for 2+ adopter corroboration because of the jurisdiction,
+      communication-channel, and role-authority cost), start as a rule /
+      checklist, not a MANIFEST agent. The rule should: (1) name one
+      touchpoint manifest mapping each surface to its upstream source of
+      truth, reconciled with the existing docs/reviews/rule-projection/
+      manifest rather than a parallel ledger; (2) define cadence classes
+      bound to trigger events (release, roadmap/status change, glossary or
+      branding change) rather than periodic audits; (3) require deriving
+      facts from the SSOT over hand-enumeration, cross-checked with an
+      independent second view (the per-file / per-category / total
+      reconciliation the v2.11 plan adopted); (4) add an estate sweep as a
+      companion to the per-change projection screen, not a replacement, with
+      an explicit bounded scope and completion criterion per run (enumerated
+      surfaces, the trigger event that scoped it, and a recorded disposition
+      for every drift found — fixed, deferred with a reason, or referred to
+      another owner); (5) bound it explicitly against web-ux-reviewer
+      (visual), marketing-tone-rule (tone and message-integrity), and
+      fact-checker (claim veracity). The role-versus-rule choice, any
+      MANIFEST change, and any new mandatory release-cut condition are
+      governor decisions routed through capability-developer — an advisory
+      learning does not create them.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'v2.11 release-publication plan (docs/plans/20260909T203636Z-v211-release-publication.md) Group B, found under-scoped by review docs/coordination/20260909T213256Z-contribution-auditor-qbhj.md finding V211-RP-R1 (one of ~6 live status cells matched).'
+        - 'v2.9.0 release-publication plan (docs/plans/20260831T050110Z-v290-release-publication.md) Step 3: hand-built metadata allowlist wrong across reviews V29P-1, V29P-1-R2, V29P-1-R3, omitting role definitions / ADOPTING.md / live status blocks and misclassifying one live cell as historical.'
+        - 'agf/rules/always/governance-file-layout-rule.md evidence note: sage-review created root-level governance dirs twice by following ADOPTING.md paths literally in a subdirectory layout.'
+        - 'agf/CHANGELOG.md [2.4.11] 2026-08-01: a full release scoped entirely to documentation and accessibility catch-up.'
+        - 'Assistant session 2026-09-10: assistant-proposed "Product Marketing Touchpoint Keeper" role definition naming the gap; governor directed capture as a learning.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
