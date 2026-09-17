@@ -164,10 +164,10 @@ invoke the relevant validator(s) on the affected files.
 
 | Path glob | Triggers |
 |---|---|
-| `agents/**` | `agov validate agents` |
-| `agents/MANIFEST.yaml` | `agov validate adoption` |
-| `learnings/**` | `agov validate learnings`, `agov validate infosec`, `agov validate contributions` |
-| `framework.yaml` | `agov validate framework-config` |
+| `agf/agents/**` | `agov validate agents` |
+| `agf/agents/MANIFEST.yaml` | `agov validate adoption` |
+| `agf/learnings/**` | `agov validate learnings`, `agov validate infosec`, `agov validate contributions` |
+| `agf/framework.yaml` | `agov validate framework-config` |
 | Release manifest / release metadata | `agov dist validate`, `agov dist check-tag`, `agov dist build` as applicable |
 
 README statistics validation is available as `agov validate readme-stats`;
@@ -312,9 +312,11 @@ to claim current v2 Full-tier support.
 The `missing_for_full_compliance` list is the actionable surface — it
 lists exactly the capabilities currently `False`, in declaration
 order. Adopters targeting Full read this list and know what to wait
-for. Once `framework.yaml` ships ([P1]) the report will compare
-against an adopter-declared target tier (Artefact-only /
-Process-aware / Full per
+for. Once an adopter actually ships an `agf/framework.yaml` exercising
+precedence and binding config ([P1] — see the Implementation status
+note below distinguishing the shipped validator command from this
+still-planned capability), the report will compare against an
+adopter-declared target tier (Artefact-only / Process-aware / Full per
 [Compliance profile](../adopt/compliance-profile.md)); today the report
 is unconditional.
 
@@ -382,7 +384,7 @@ for the framing.
 | Binding contract — sidecar metadata + filename fallback | **Specified; Rust validator deferred** | [B3] |
 | Per-artefact JSON Schema | **Shipped v1.1.46** ([`schemas/`](https://gitlab.com/janipaijanen/agents-govern-framework/-/tree/main/agents-govern/schemas)) | [C1] |
 | Cross-artefact invariant manifest | **Shipped v1.1.46** ([`schemas/invariants.yaml`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agents-govern/schemas/invariants.yaml)) | [C2] |
-| `framework.yaml` (precedence + binding config) | **Validator shipped as `agov validate framework-config`** | [P1] |
+| `framework.yaml` (precedence + binding config) | **Validator command shipped** (`agov validate framework-config`), and passes vacuously when no `agf/framework.yaml` exists; the precedence/binding-config *capability* itself — an adopter actually authoring `agf/framework.yaml` and the report comparing against it — remains planned | [P1] |
 | Mandatory `category: tension` recording for cross-layer conflicts | **Shipped v1.1.47** (canonical home at [Concept — Tension recording](concept/principles.md#tension-recording); `learnings/_template.yaml` header naming the discipline) | [P2] |
 
 The 21 issues filed under
