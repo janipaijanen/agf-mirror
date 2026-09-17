@@ -5390,6 +5390,61 @@ learnings:
         - 'docs/coordination/20260913T080255Z-coder-tester-k2pr.md: records the prior recurrence where one reviewer dependency was incorrectly treated as a global stop and event scans replaced work selection.'
         - 'MR !2885 / coordination record 20260917T035555Z-contribution-auditor-maqn and MR !2757: work completed immediately after the governor challenged the stop, proving the authorized queue was not exhausted.'
         - 'MR !2886 / coordination record 20260917T040118Z-contribution-auditor-bhmj and MR !2887 / coordination record 20260917T040356Z-contribution-auditor-62gr: two additional independent reviews advanced after the same incorrect stop.'
+  - id: 20260917T142026Z-t4x3
+    date: '2026-09-17'
+    category: gap
+    scope: framework
+    title: Published routing is not delivered work until an owner acknowledges or claims it
+    status: proposed
+    description: >
+      An independent review blocked MR !2888 and addressed the corrections to
+      coder-tester and planner-architect. The review record was validated,
+      merged to main, and copied into the MR discussion. Later polling kept
+      reporting that the corrections were waiting, while the intended owner
+      remained unaware of the obligation and considered its queue clear. The
+      reviewing session treated publication and technical visibility as if
+      they proved human-or-agent receipt. Only a direct governor challenge
+      exposed that no acknowledgement, claim, or explicit reassignment had
+      occurred. The session then issued an acknowledgement-required handoff
+      and directly mentioned the owner. This demonstrates a delivery-state
+      gap: an artifact can be durable and discoverable without becoming an
+      accepted work obligation in the recipient's live queue.
+    agents_involved:
+      - contribution-auditor
+      - coder-tester
+      - planner-architect
+      - governor-reviewer
+    framework_section: Coordination visibility, handoff acknowledgement, and autonomous continuation
+    business_impact:
+      type: cost_overhead
+      description: >
+        Authorized correction work remained idle while both assistants
+        believed their local view was adequate. Repeated polling consumed
+        model and operator attention, and the governor had to reconcile the
+        two inconsistent queue views. No quantitative cost saving from the
+        corrective practice is established.
+    recommendation: >
+      Track publication state and delivery state separately. A validated,
+      pushed, or merged message proves durable visibility; it does not prove
+      that the named owner saw, accepted, or scheduled the work. For an
+      actionable handoff that requires a response, keep the obligation open
+      until one of three observable outcomes exists: the owner acknowledges or
+      claims it, the work completes, or the owner is explicitly unavailable
+      and the obligation is reassigned. Use requires-ack selectively for such
+      handoffs rather than for broadcast notes. Pollers must inspect addressed
+      pending records and full owned queues, not only recent or top-listed
+      forge items. Tooling should expose published-unacknowledged handoffs as
+      a distinct state and must not let senders or recipients infer delivery
+      from publication alone. This lesson does not enlarge role or gate
+      authority.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'docs/coordination/20260917T074516Z-contribution-auditor-kgeb.md and MR !2902: the published review addressed the correction obligation.'
+        - 'MR !2888 note 3848441633: the same findings were visible in the implementation discussion without an owner acknowledgement.'
+        - 'docs/coordination/20260917T135019Z-contribution-auditor-r312.md and MR !2909: acknowledgement-required corrective handoff issued after the delivery gap was challenged.'
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
