@@ -98,6 +98,7 @@ The server advertises these tools:
 | `agov_validate` | `agov validate ...` |
 | `agov_coord_validate` | `agov coord validate <files>` |
 | `agov_plan_validate` | `agov plan validate <files>` |
+| `agov_plan_collision_check` | `agov plan collision-check ...` |
 | `agov_session_resume` | `agov session resume ...` |
 | `agov_handoff_next` | `agov handoff next <role>` |
 | `agov_handoff_take` | `agov handoff take <id> --from <role>` |
