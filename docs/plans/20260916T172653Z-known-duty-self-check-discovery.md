@@ -1,6 +1,8 @@
 ---
 id: 20260916T172653Z-known-duty-self-check-discovery
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: '2026-09-17T05:09:37Z'
 topic: known-duty-self-check-discovery
 advisory_consultation:
   - role: infosec-sentinel
