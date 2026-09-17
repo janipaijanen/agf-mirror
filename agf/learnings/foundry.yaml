@@ -5298,6 +5298,99 @@ learnings:
         - '2026-09-16 session transcript: the session named the correction as its own next action, then asked the governor for push permission instead of publishing it; corrected only after two direct governor challenges.'
         - 'docs/coordination/20260916T141617Z-capability-developer-8pp6.md and MR !2864 (branch coordination/capability-review-10-learning-trigger, exact head a6e7aeb4): the correction, published 2026-09-16T14:53Z, ~2h47m after qrkg.'
 
+
+  - id: 20260917T040721Z-cmgq
+    date: '2026-09-17'
+    category: gap
+    scope: framework
+    title: watcher-idle-cutoff-was-mistaken-for-work-queue-exhaustion-despite-an-explicit-stop-rule
+    status: proposed
+    description: >-
+      A contribution-auditor session reached the 180-minute no-new-activity
+      cutoff of its polling watcher, stopped the watcher, and then ended
+      autonomous work as though the work queue had also been exhausted. Those
+      were different states. The idle cutoff governed only future scheduled
+      observation; it said nothing about already-visible authorized work.
+      Several independent items remained actionable: MR !2368 needed a
+      contribution audit, coordination-only MR !2757 was valid and ready to
+      merge through the publication fast path, MR !2758 contained a
+      pre-published false completion and evidence-boundary defects, and MR
+      !2394 could receive a substantive content review while its stale failed
+      pipeline was diagnosed. The governor had to point out the incorrect
+      stop before the session resumed those items. The resumed work produced
+      durable reviews in !2885, !2886, and !2887 and merged !2757.
+
+      This was not a missing-rule failure. The canonical universal polling
+      rule already says that waiting CI, an empty chat inbox, and absence of
+      another prompt are not stop conditions; it separately defines the
+      180-minute idle window as suspension of scheduled polling. Earlier
+      records d6h6, 51s5, and k2pr had already distinguished "no new
+      activity" from "no open assignments," warned that empty-queue claims
+      are scoped observations, and identified treating one dependency as a
+      global stop. The recurrence shows that prose understood during review
+      is still being collapsed into one terminal state during execution.
+    agents_involved:
+      - contribution-auditor
+      - governor-reviewer
+    framework_section: >-
+      agf/rules/always/universal-polling-and-autonomous-continuation-rule.md,
+      especially "Stop boundary and empty queue" and "Scheduling and
+      notification honesty"
+    business_impact:
+      type: cost_overhead
+      description: >-
+        The assistant stopped while useful authorized work was available, so
+        the governor had to notice the inactivity, diagnose the stopping
+        mistake, and restart the work manually. The delayed queue contained a
+        false historical completion claim and two evidence-quality gaps that
+        remained unreviewed until the correction. No unsafe merge or data loss
+        occurred, but the failure consumed human attention and contradicted
+        the operating model's purpose of autonomous continuation.
+    recommendation: >-
+      Make every agent and assistant surface track and report three separate
+      states: (1) watcher state -- armed, due, or suspended after its idle
+      window; (2) inbox-delta state -- new relevant activity or unchanged;
+      and (3) authorized-work state -- ready, running, concretely blocked, or
+      verified exhausted. A watcher suspension or unchanged inbox MUST NOT be
+      treated as proof that the separate authorized-work queue is exhausted.
+      A bounded heartbeat turn may still correctly end after suspending or
+      deleting its own idle watcher; the prohibited inference is using that
+      watcher-state change to conclude the authorized-work queue is empty or
+      to cancel a separate active work lane, not that a turn may never end.
+
+      Before an agent returns a terminal no-work result, require a compact
+      queue-exhaustion report covering the current coordination cursor, role
+      handoffs and pending acknowledgements, all open MRs, issues, owned
+      waiting states, active claims, and both the primary and spare execution
+      lanes. If an item is blocked, the report must show why another
+      independent lane cannot proceed. Apply this contract to every active AI
+      role through the existing universal rule and loader projections; do not
+      create a parallel role-specific rule.
+
+      Because the normative prose already exists, prefer a mechanical
+      affordance over another reminder: extend the governed `agov session
+      resume`/polling surface to emit the three states independently, with
+      each queue-exhaustion surface reported as checked, unavailable, or
+      unknown rather than asserted true by default. Local `agov` reads
+      repository-visible artifacts only; it cannot certify that a forge-side
+      or runtime-side surface outside its own read scope is exhausted, and it
+      cannot intercept or block an assistant's terminal response. Any
+      enforcement, cross-surface certification, or response-blocking
+      integration is out of this learning's scope and belongs to the
+      separately governed plan tracked by issue #133. Any tooling or loader
+      change still follows normal Gate 1 and Gate 2 discipline.
+    severity: significant
+    confidence:
+      level: longitudinal
+      evidence_count: 6
+      evidence_refs:
+        - 'docs/coordination/20260917T041058Z-contribution-auditor-j236.md: the direct current-event correction record -- the governor-directed universal execution correction for this exact 2026-09-17 recurrence.'
+        - 'docs/coordination/20260823T150447Z-coder-tester-d6h6.md: establishes that no new activity and no open assignments are different states and requires verified queue exhaustion.'
+        - 'docs/coordination/20260910T143052Z-contribution-auditor-51s5.md: records that an empty queue is a scoped observation rather than permission to stop.'
+        - 'docs/coordination/20260913T080255Z-coder-tester-k2pr.md: records the prior recurrence where one reviewer dependency was incorrectly treated as a global stop and event scans replaced work selection.'
+        - 'MR !2885 / coordination record 20260917T035555Z-contribution-auditor-maqn and MR !2757: work completed immediately after the governor challenged the stop, proving the authorized queue was not exhausted.'
+        - 'MR !2886 / coordination record 20260917T040118Z-contribution-auditor-bhmj and MR !2887 / coordination record 20260917T040356Z-contribution-auditor-62gr: two additional independent reviews advanced after the same incorrect stop.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
