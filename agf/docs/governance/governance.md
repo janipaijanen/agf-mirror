@@ -2,25 +2,39 @@
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Governance — AGF-NG (foundry)
 
-Framework version adopted: **1.1.50** | Layout: **B** | Codename: **foundry**
+Framework version adopted: **2.10.1** | Layout: single `agf/` directory
+(AGF v2.0+; see `agf/rules/always/governance-file-layout-rule.md`) |
+Codename: **foundry**
 
 This file governs the AGF-NG project — the next version of agents-govern.
-It replaces the upstream GOVERNANCE.md for this project's purposes.
+It is a project-specific governance charter alongside the upstream
+`agents-govern/GOVERNANCE.md` bootstrap reference (legacy, not this
+project's own governed artifact).
+
+**This page summarizes; it does not duplicate.** Role rosters, gate
+mechanics, and coordination-channel rules change more often than this
+charter should be rewritten. Where a live source exists, this page
+points at it instead of re-encoding a copy that can drift out of sync —
+the failure mode that made the previous version of this file stale
+across framework version, role roster, model name, and coordination
+schema simultaneously (see estate-sweep finding **DES-6**,
+`docs/reviews/documentation-estate/20260910-first-estate-sweep.md`).
 
 ---
 
 ## Role Assignments
 
-| Agent | Played by | Notes |
-|-------|-----------|-------|
-| **Planner-Architect** | Claude (claude-sonnet-4-6) | Plans proposals, authors ADRs |
-| **Coder-Tester** | Claude (claude-sonnet-4-6) | Implements framework artifact changes |
-| **Governor-Reviewer** | Human (Jani) | Approves all gates; final authority |
-| **Contribution-Auditor** | Human + Claude | Reviews incoming proposals for adversarial patterns |
-| **Infosec-Sentinel** | CI (`agov validate infosec`) | Automated on commit |
+Authoritative source: **`AGENTS.md`** ("Active agents" section) and
+**`agf/agents/MANIFEST.yaml`** (per-role status, player, and
+corrective-work trail). This charter does not re-list the roster; read
+those two files for who plays what and whether a role is active,
+skipped, or suspended.
 
-Claude plays both Planner-Architect and Coder-Tester in Phase 1.
-Split signals are in each agent's YAML `phase_notes`.
+Session-level or temporary role assignments (e.g., a specific model
+playing `coder-tester` for a given work stream) are recorded as
+`decision-record` entries in `docs/coordination/`, not written into
+this charter — a role assignment that changes between sessions would
+make this file stale again the moment it changed.
 
 ---
 
@@ -28,95 +42,103 @@ Split signals are in each agent's YAML `phase_notes`.
 
 | Pipeline Step | Maps To |
 |---------------|---------|
-| Requirement | Proposal in `docs/proposals/synthesis.md` or issue |
-| Plan | Coordination claim + plan doc in `docs/plans/` |
-| Gate 1 | Governor-Reviewer approval in coordination channel |
-| Implement | Coder-Tester edits framework artifacts |
-| Verify | `agov validate` passes; Infosec-Sentinel clean |
-| Gate 2 | Governor-Reviewer reviews in coordination channel |
-| Commit | Merge to main |
+| Requirement | Proposal in `docs/proposals/` or an issue |
+| Plan | Gate 1 plan file in `docs/plans/` (schema: `agf/schemas/gate1-plan.schema.json`) |
+| Gate 1 | governor-reviewer approval, recorded in `docs/coordination/` |
+| Implement | coder-tester edits framework artifacts on a feature branch |
+| Verify | `agov validate` / `agov plan validate` / `agov coord validate` pass; InfoSec clean |
+| Gate 2 | governor-reviewer reviews the exact-head diff, recorded in `docs/coordination/` |
+| Commit | Merge to `main` via merge request |
 
 ---
 
 ## Gate Rules
 
-### Gate 1 (Plan Approval)
+Full, current gate mechanics live in `AGENTS.md` ("Gate discipline") and
+`agf/rules/workflow/*.md` (`development-workflow-rule.md`,
+`systematic-code-review-rule.md`, `simplicity-rule.md`,
+`gate-self-test-rule.md`). This charter states the invariant those
+rules all implement, not their current procedural detail:
 
-- [ ] Plan cites at least one corroborating learning ID or AI assessment finding
-- [ ] Scope is bounded (specific files and sections named)
-- [ ] Backward compatibility impact stated (breaking / non-breaking / N/A)
-- [ ] If plan touches advisory roles: consultation noted or explicitly waived
-- [ ] Governor-Reviewer has approved
-
-**Fast track** (Gate 1 waived): ≤2 files, no new concepts, no
-backward-compatibility risk. Waiver recorded in coordination channel.
-
-### Gate 2 (Merge Approval)
-
-- [ ] `agov validate` passes
-- [ ] `agov validate infosec` clean
-- [ ] Implements exactly what the approved plan specified
-- [ ] Evidence citation present in changed docs (where applicable)
-- [ ] CHANGELOG.md updated (for user-visible changes)
-- [ ] Governor-Reviewer has approved
+- **Gate 1** requires a plan file conforming to the current Gate 1
+  schema, with both `infosec-sentinel` and `contribution-auditor`
+  advisory consultation declared, before implementation starts.
+- **Gate 2** requires implementation on a feature branch, passing
+  validation, and a governor-reviewer review of the exact head before
+  merge.
+- A narrow, rule-defined fast-track exists for specific low-risk change
+  classes (see `agf/rules/workflow/simplicity-rule.md`) — it is never a
+  blanket exemption and never covers gate mechanics themselves
+  (`agf/rules/always/gate-self-test-rule.md`).
 
 ---
 
 ## Artifact Ownership
 
-| Artifact | Owner | Consumers |
-|----------|-------|-----------|
-| `docs/proposals/synthesis.md` | Planner-Architect | Governor-Reviewer, Coder-Tester |
-| `docs/plans/*.md` | Planner-Architect | Coder-Tester, Governor-Reviewer |
-| `agf/docs/adr/*.md` | Planner-Architect | All |
-| `agf/framework.md` | Coder-Tester | All |
-| `agf/agents/*.yaml` | Coder-Tester | All |
-| `agf/rules/**` | Coder-Tester | All |
-| `agf/skills/**` | Coder-Tester | All |
-| `agf/schemas/**` | Coder-Tester | All |
-| `agf/learnings/foundry.yaml` | Coder-Tester (entries) + Governor-Reviewer (approval) | All |
-| `agf/CHANGELOG.md` | Coder-Tester | All |
-| `docs/coordination/*.md` | Originating agent (immutable) | All |
-| `agf/GOVERNANCE.md` | Governor-Reviewer | All |
-| `agf/agents/MANIFEST.yaml` | Governor-Reviewer | All |
-| Tool-specific assistant loaders | Coder-Tester | Relevant tool |
-| Tool-specific assistant commands | Coder-Tester | Relevant tool |
+Canonical layout and ownership table:
+`agf/rules/always/governance-file-layout-rule.md`. That table is the one
+authority for artifact ownership (including its `agf/agents/*.yaml` "pending
+#79" qualifier and footnote); this charter does not restate it as a second
+copy, since a restated copy is exactly the kind of independently-drifting
+duplicate DES-6 itself was filed against.
+
+This project has not created a project-root `GOVERNANCE.md`; this file
+(`agf/docs/governance/governance.md`) serves that role for foundry. A
+prior version of this file cited a nonexistent `agf/GOVERNANCE.md` path
+— corrected here; do not recreate that cross-reference.
 
 ---
 
 ## Coordination Channel
 
-Append-only channel at `docs/coordination/`. See `docs/coordination/README.md`.
+Append-only channel at `docs/coordination/`. Current ID format, message
+kinds, and validation are defined in `AGENTS.md` ("Coordination
+channel") and `agf/schemas/coordination-message.schema.json` — read
+those, not this section, for the live contract. Invariants that don't
+change with schema revisions:
 
-Key rules:
-- Messages are immutable. Corrections are new messages.
-- Every message has YAML front matter with `kind`, `from`, `to`, `seq`,
-  `artifacts_owned`, and `requires-ack`.
-- File ownership lapses when the claiming agent posts a completion with
-  empty `artifacts_owned`.
-- Digests at `docs/coordination/digests/`; raw files remain authoritative.
+- Messages are immutable. Corrections are new messages that reference
+  and supersede the one they correct — never edits to the original.
+- Every message has YAML front matter conforming to the current schema.
+- A coordination message addressed to another agent or human isn't
+  complete until it's published somewhere the recipient can actually
+  read it (committed and pushed, or bridged with a visible pointer) —
+  see `agf/rules/workflow/coordination-publication-rule.md`.
 
 ---
 
 ## Self-Governing Principle
 
 This project uses the framework it is building. Every friction point is
-recorded in `foundry.yaml` and becomes evidence for `docs/proposals/synthesis.md`.
+recorded in `agf/learnings/foundry.yaml` and becomes evidence for future
+proposals and rule changes.
 
-Additional Governor-Reviewer responsibility: **evidence arbiter** —
-reject plans citing no corroborating evidence. This enforces the framework's
-own evidence discipline while building the next version.
+Additional governor-reviewer responsibility: **evidence arbiter** —
+reject plans citing no corroborating evidence. This enforces the
+framework's own evidence discipline while building the next version.
 
 ---
 
-## Split Signals (Phase 2 triggers)
+## Role-Split History
 
-| Signal | Action |
+This charter originally described a single-Claude arrangement (one
+session playing both `planner-architect` and `coder-tester`) with
+"Split Signals" naming the conditions under which those would divide
+into separate players. That split has since happened in practice —
+`coder-tester` and `planner-architect` are played by separate sessions
+per the current role assignment recorded in `docs/coordination/` and
+`agf/agents/MANIFEST.yaml`, not by a single combined session. The
+original rationale is preserved below as the historical reasoning for
+*why* a split was anticipated; it is not a live decision point anymore.
+
+| Original signal | Historical rationale |
 |--------|--------|
-| Plans conflict with Coder-Tester's own designs | Split Planner + Architect |
-| Coder-Tester misses bugs in own changes | Split Coder + Tester |
-| Review burden slows governance | Split Governor + Reviewer |
+| Plans conflict with the implementer's own designs | Motivates separating planning from implementation |
+| The implementer misses bugs in its own changes | Motivates an implementation/test separation |
+| Review burden slows governance | Motivates separating governor from reviewer duties |
 
 ---
 
-*Last updated: 2026-06-11 | Framework 1.1.50 | Layout B*
+*Last updated: 2026-09-12 (DES-6 rewrite, governor decision
+`20260912T094217Z-governor-reviewer-3rha`) | Framework 2.10.1 | Layout:
+single `agf/` directory.*
