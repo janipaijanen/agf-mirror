@@ -15,7 +15,7 @@ handoff:
   status: ready
   task:
     - "Optional: pick up the estate-sweep continuation plan
-      (docs/plans/20260917T202324Z-des-estate-sweep-continuation-plan.md)
+      (docs/reviews/documentation-estate/20260917T202324Z-sweep-continuation-plan.md)
       if this session is active before Claude resumes -- 36
       agf/docs/site/**/*.md files remain unexamined for v2.11 condition
       4. The plan documents the exact broad-scan-then-targeted-read
@@ -23,7 +23,7 @@ handoff:
       session can continue without re-deriving it or duplicating files
       already covered tonight."
   must_read:
-    - docs/plans/20260917T202324Z-des-estate-sweep-continuation-plan.md
+    - docs/reviews/documentation-estate/20260917T202324Z-sweep-continuation-plan.md
     - docs/reviews/documentation-estate/20260910-first-estate-sweep.md
   do_not_touch:
     - v2.11 release-cut condition 4 completion claim; only the governor
@@ -34,7 +34,7 @@ handoff:
 
 # Estate-sweep continuation planned and available for pickup
 
-Wrote `docs/plans/20260917T202324Z-des-estate-sweep-continuation-plan.md`
+Wrote `docs/reviews/documentation-estate/20260917T202324Z-sweep-continuation-plan.md`
 per the governor's direction to plan this work and coordinate before
 continuing further tonight. It documents: the exact remaining coverage
 gap (36 files, list included), the method that found DES-8 (MR !2934,

@@ -11,7 +11,13 @@ existing standing mandate (activated 2026-09-10, governor decision bridged
 — estate-sweep currency/consistency corrections have not required separate
 Gate 1 approval throughout this thread (DES-1 through DES-8), matching
 `agf/rules/workflow/simplicity-rule.md`'s calibration for bounded,
-reversible, single-class docs fixes. Filed as a plan anyway because the
+reversible, single-class docs fixes. **Filed under
+`docs/reviews/documentation-estate/`, not `docs/plans/`**, because
+`docs/plans/*.md` is mechanically validated against the Gate 1 plan schema
+(`agf/schemas/gate1-plan.schema.json`, requires `id`/`status`/
+`advisory_consultation` YAML front matter) and this file is genuinely not
+seeking Gate 1 approval — giving it fake Gate 1 fields to pass validation
+would misrepresent what it is. Written anyway because the
 governor asked for the remaining work to be planned and coordinated before
 continuing, given a real chance no session picks it up again tonight.
 
