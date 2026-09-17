@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Governance — AGF-NG (foundry)
 
-Framework version adopted: **2.10.0** | Layout: single `agf/` directory
+Framework version adopted: **2.10.1** | Layout: single `agf/` directory
 (AGF v2.0+; see `agf/rules/always/governance-file-layout-rule.md`) |
 Codename: **foundry**
 
@@ -140,5 +140,5 @@ original rationale is preserved below as the historical reasoning for
 ---
 
 *Last updated: 2026-09-12 (DES-6 rewrite, governor decision
-`20260912T094217Z-governor-reviewer-3rha`) | Framework 2.10.0 | Layout:
+`20260912T094217Z-governor-reviewer-3rha`) | Framework 2.10.1 | Layout:
 single `agf/` directory.*

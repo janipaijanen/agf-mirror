@@ -260,3 +260,14 @@ and pointing only to the canonical rule. The "adds a new open item"
 characterization in the "Still UNEXAMINED after EC-2" paragraph above is
 superseded by this resolution; it is left unedited per this report's
 append-only convention rather than rewritten in place.
+
+**Inventory correction.** The EC-1/EC-2 "47 Markdown files" figure for
+`agf/docs/site/**` is stale against the branch's current merge target:
+`git ls-tree -r --name-only agf/docs/site` on `main` now returns **48**,
+the added file being `agf/docs/site/reference/artifact-registry.md`
+(2026-09-12). That page has not been examined by any pass in this
+report — it is folded into the existing "~28 unnamed... UNEXAMINED"
+count above, which is accordingly **~29** as of this correction, not
+~28. This MR remains an explicitly partial estate continuation; it does
+not claim the added page was inspected, and v2.11 condition 4 is still
+not met by this report.
