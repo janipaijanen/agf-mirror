@@ -4,12 +4,12 @@
 deciding what to activate, deactivate, or remove.*
 
 !!! warning "Incomplete classification pilot"
-    This page classifies **9 of 66 governed artifacts** (51 rules under
+    This page classifies **9 of 68 governed artifacts** (52 rules under
     `agf/rules/` — `agf/rules/README.md` is an index, not itself a rule, and
-    is not counted — plus 15 agent role definitions under `agf/agents/`). It
+    is not counted — plus 16 agent role definitions under `agf/agents/`). It
     is a first representative slice, not a complete adopter-facing removal
     guide. See [Tracked completion](#tracked-completion) below for the
-    remaining 57 artifacts and how that work is tracked.
+    remaining 59 artifacts and how that work is tracked.
 
 ## Why this page exists
 
@@ -74,10 +74,11 @@ prior knowledge of this framework's "upstream/downstream" vocabulary.
 
 ## Tracked completion
 
-The remaining 57 governed artifacts (49 rules plus 8 agent roles:
+The remaining 59 governed artifacts (50 rules plus 9 agent roles:
 fact-checker, capability-developer, documentation-writer,
 deployment-engineer, academic-peer-reviewer, academic-visual-reviewer,
-web-ux-reviewer, independent-implementation-reviewer) are
+web-ux-reviewer, independent-implementation-reviewer,
+documentation-estate-steward) are
 not yet classified. Completing the classification is real editorial
 judgment per rule and role — it belongs in a follow-up plan sized so a
 reviewer can answer one yes/no question per batch, per this project's own

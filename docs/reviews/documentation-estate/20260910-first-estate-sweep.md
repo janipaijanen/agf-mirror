@@ -301,3 +301,31 @@ release-cut condition 4 is still not met by this report as a whole.
 All findings raised to date (DES-1 through DES-7) are now dispositioned
 (FIXED or RESOLVED); the coverage gap, not an undispositioned finding,
 is the remaining obstacle to condition 4.
+
+## EC-5 continuation (2026-09-17)
+
+**DES-8 — FIXED.** Targeted sweep of previously-UNEXAMINED
+`agf/docs/site/**` files for the DES-2/DES-3 failure class (loader/
+role-roster staleness). Found: `agf/docs/reference/quick-reference.md`
+(the canonical role catalog the estate's own `roles-and-gates.md` and
+`applicability-catalog.md` cite) listed only 14 roles and was missing
+`documentation-estate-steward` and `improvement-propeller` — both
+have shipped `agf/agents/*.yaml` definitions (16 total, confirmed via
+`ls agf/agents/*.yaml`). This propagated: `roles-and-gates.md` repeated
+the stale "fourteen" count twice; `applicability-catalog.md`'s
+classification banner used stale totals (51 rules/15 agents/66 total,
+57 remaining) against the actual current counts (52 rules/16 agents/68
+total). Fixed all three files: added both missing roles to
+`quick-reference.md` in their correct Core/Extended sections per their
+`tier`/`phase` fields; corrected "fourteen" to "sixteen" (twice) in
+`roles-and-gates.md`; corrected the banner and "Tracked completion"
+totals in `applicability-catalog.md` (9 classified stays accurate —
+verified against the actual classified-list row count — only the
+denominator and unclassified-role enumeration were stale).
+
+**Estate coverage status.** This is a real, bounded advance on the
+"Still UNEXAMINED after EC-2" gap, not a claim of completion: a
+targeted sweep of a subset of the ~29 unnamed files, not the full
+remaining set. The exact number of files still fully unexamined after
+this pass has not been recounted. v2.11 release-cut condition 4 is
+still not met by this report as a whole.

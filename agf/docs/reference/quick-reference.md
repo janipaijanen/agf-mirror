@@ -20,6 +20,7 @@ reference most. For detail, follow the links.
 | academic-visual-reviewer | Reviews visual quality, layout, and figure legibility |
 | web-ux-reviewer | Reviews rendered web/documentation-site UX, layout, theming, and accessibility, independent of the implementer |
 | independent-implementation-reviewer | Read-only exact-head review of an implementation against its approved plan and evidence, by a session/model distinct from the implementer; advisory, never a Gate 1 or Gate 2 approval |
+| documentation-estate-steward | Owns consistency and currency of the adopter-facing documentation estate as a whole; runs estate-wide sweeps and dispositions in-scope findings |
 
 **Extended (Phase 3-4)** — activate when the project needs them:
 
@@ -28,6 +29,7 @@ reference most. For detail, follow the links.
 | deployment-engineer (P3) | Translates source artifacts into deployable releases |
 | documentation-writer (P3) | Writes audience-specific guides, tutorials, and reference docs |
 | capability-developer (P4) | Analyzes accumulated evidence and proposes framework capability changes |
+| improvement-propeller (P4, meta, optional) | Bounded weekly opportunity-scanning and slow governance-friction proposals; activated per-adopter via a governor decision naming player, evidence, wake mechanism, cadence, and cursor state |
 
 A release archive ships `agents/MANIFEST.example.yaml`, a neutral template of
 active/skipped role status — copy it to `agents/MANIFEST.yaml` (never itself
