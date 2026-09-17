@@ -5643,7 +5643,7 @@ learnings:
       destination (main's committed channel).
     severity: significant
     confidence:
-      level: single-session
+      level: single-adopter
       evidence_count: 1
       evidence_refs:
         - 'Coordination record `20260912T222945Z-planner-architect-sh2b.md`, the same-session finding that first surfaced the 28-of-29 unmerged coordination-MR backlog (2026-09-12T22:29:45Z).'
