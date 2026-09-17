@@ -4349,6 +4349,167 @@ learnings:
         - 'docs/coordination/20260830T113003Z-coder-tester-2shr.md: finding GCD-G2-3, the required self-test losing schema context in CI, reproduced deterministically in canonical job 16190308091 at head 37352cd6.'
         - 'tests/changed-files-failclosed.sh: the shallow-clone fixture bug found by the author during authoring, where --depth implied --single-branch and the test failed on rev-parse rather than on the missing merge base.'
 
+  - id: 20260905T194427Z-wq4k
+    date: '2026-09-05'
+    category: gap
+    scope: framework
+    title: coordination-work-orders-address-roles-not-sessions-lack-mechanical-supersession-and-conflict-detection
+    status: proposed
+    description: >-
+      A critical self-assessment of the agentic work orders operative in one
+      long multi-thread session (handoffs, plans, the AGENTS.md polling
+      contract, gate discipline) found the primitives sound but four
+      structural gaps that recurred and produced near-misses. Gaps 1-3 came
+      from the Claude self-assessment; gap 4 and two factual corrections below
+      came from an independent Codex review (`20260905T200607Z-coder-tester-hqps`).
+
+
+      (1) Addressing is by role, not session. `planner-architect` was played
+      concurrently by two different runtimes: `2s3a` was filed as
+      planner-architect by a Codex session (`model: codex-gpt-5`) and `esr1`
+      by a separate Claude session (`model: claude-sonnet-5`), while this
+      Claude session was also resumed as planner-architect. `coder-tester`
+      likewise alternated between runtimes. A record `to: <role>` does not say
+      which session should act; on resume this session had to infer its queue
+      ownership from branch and commit history. The entire `7sjq`/`8k1s`
+      exchange existed only to decide, in prose, which session plays an
+      already-active role for one incident. `model` is provenance, not an
+      address.
+
+
+      (2) Supersession is convention, not mechanism. A stale claim is
+      corrected by a new record that references and supersedes the old one,
+      but the old record carries no marker and reads as live when found
+      alone. `th6m` (merged to `main`) relayed an operator ask to enable
+      privileged runner services; ~1h later `mhq1` explicitly withheld that
+      and routed the fix to code, yet `th6m` still reads as an open
+      instruction. An agent acting on it in good faith would apply a change
+      the governor had declined.
+
+
+      (3) Binding instructions travelled off-channel. The governor's "pause
+      OTGR expansion" direction arrived as a comment on MR !2375, invisible
+      to `agov coord list`; this session missed it for two poll cycles while
+      OTGR handoffs were live. (The instruction was binding when received —
+      the gap is durable visibility, not authority.)
+
+
+      (4) Plan/workstream collision detection is absent. A plan's affected
+      files are prose, not a normalised queryable set, and nothing checks for
+      overlap across pending or approved plans and active implementation MRs.
+      MR !2389 (Gate-1-approved by `mhq1`) and MR !2373 (still
+      `pending-gate1`) were both slated to modify the same two Rust test
+      files (`ci_needs_implication.rs`, `gate_change_check.rs`); the overlap
+      was surfaced only by a later independent review (`4ghp` finding A3), not
+      by any plan field or tooling primitive. Session-level addressing would
+      not have prevented this — it is a distinct root cause.
+
+
+      One consequence compounds all four: every record is written long and
+      self-contained because a reader cannot trust that an earlier referenced
+      record still stands. The supersession gap is a direct structural cause
+      of channel verbosity.
+
+
+      A related model-behaviour failure surfaced in the same session and is
+      recorded separately as Claude Code feedback: the agent identified that
+      gate items lacked independent review and repeatedly offered to perform
+      it rather than doing it, until the user pointed out that independent
+      review of in-scope items is the default the polling contract already
+      authorises. Whether the contract needs an explicit "independent review
+      of gate items is default-authorised, do not ask" line, or this was pure
+      execution failure, is itself worth deciding.
+    roles_involved:
+      - planner-architect
+      - coder-tester
+      - build-engineer
+      - governor-reviewer
+      - contribution-auditor
+    framework_section: >
+      Coordination protocol and the AGENTS.md polling/action-loop contract;
+      workflow/coordination-publication-rule.md (append-only supersession);
+      always/coordination-message-rule.md; Gate 1 plan affected-file
+      estimation.
+    business_impact:
+      type: cost_overhead
+      description: >-
+        No loss was realised — the plan overlap and the contradicted runner
+        instruction were both caught before acting. The cost is recurring
+        overhead and near-miss exposure: manual session-ownership inference on
+        resume, an in-prose role-assignment negotiation for a routine
+        incident, a merged operator instruction that a later decision
+        reversed, a two-cycle miss of an out-of-band pause, an undetected
+        affected-file overlap between an approved and a pending plan, and
+        systematic over-length coordination records. Each is individually
+        small and structurally persistent; together they erode the channel's
+        value as a place a cold-starting agent can act from without
+        re-deriving context.
+    recommendation: >-
+      Pursue four changes as separable slices under a shared Gate 1 design,
+      each with a gate-self-test since they touch the coordination schema,
+      `agov`, and AGENTS.md. Release-critical runner-routing work stays ahead
+      of them.
+
+
+      Execution ownership (issue #121): keep `to:` as the authorised role;
+      add a separate optional opaque execution-lane / actor-instance
+      identifier, plus immutable claim / reassignment / completion records.
+      `agov handoff next` warns when another active lane has claimed the item.
+      Staleness may be advisory; wall-clock lease expiry must never silently
+      transfer authority. Do not encode `role@provider-session` into `to:` —
+      that conflates durable role authority with an ephemeral runtime
+      identity.
+
+
+      Explicit supersession (issue #122): the immutable original cannot gain a
+      `superseded_by` field. Add `supersedes: [id, ...]` only on the later
+      record and derive the reverse edge in `agov`; validate that targets
+      exist, precede the superseder, and cannot form cycles. `list`,
+      `pending`, `status`, and `handoff next` visibly mark and normally
+      exclude fully superseded obligations, with an explicit include-history
+      option. Require an explicit edge — do not infer contradiction from topic
+      similarity.
+
+
+      Binding-instruction publication: a live governor instruction is binding
+      when received and does not become invalid because it arrived in chat or
+      an MR comment. The recipient or issuing session MUST promptly mirror any
+      pause, gate disposition, scope change, or downstream obligation into a
+      coordination record and place a bridge pointer at the original surface
+      before treating publication as complete.
+
+
+      Plan/workstream collision detection: give plans structured affected
+      paths/globs and add an `agov plan conflicts` pre-Gate-1 check across
+      live plans and implementation MRs. Exact overlap without an explicit
+      dependency or sequencing disposition blocks Gate 1. Later, check the
+      implementation diff against the approved scope so estimates cannot
+      silently drift.
+
+
+      Assessment cadence: run a lightweight quarterly plus incident-triggered
+      review, not one per minor release (this project's release cadence would
+      make per-minor a frequent tax and tempt rubber-stamping). The
+      contribution-auditor samples a small fixed number of recent work orders
+      against the five-axis rubric (understandable, session-unambiguous,
+      non-conflicting, operable, minimal but not shorter); a different active
+      reviewer checks the report when practical. Near misses, conflicting
+      instructions, duplicated execution, or a coordination schema / gate
+      change trigger an immediate small review. The report is advisory and
+      files an issue only for a repeated or material finding; it is not a
+      release gate by default.
+    severity: significant
+    confidence:
+      level: single-adopter
+      evidence_count: 7
+      evidence_refs:
+        - 'docs/coordination/20260905T144657Z-planner-architect-2s3a.md (model: codex-gpt-5) and 20260905T145235Z-planner-architect-esr1.md (model: claude-sonnet-5): two different runtimes authoring as planner-architect during this Claude planner-architect session; role addressing cannot select among them.'
+        - 'docs/coordination/20260905T152636Z-planner-architect-7sjq.md and 20260905T153502Z-governor-reviewer-8k1s.md: an in-prose negotiation to assign an already-active role to one of two same-role sessions.'
+        - 'docs/coordination/20260905T171349Z-planner-architect-th6m.md vs 20260905T180719Z-governor-reviewer-mhq1.md: a merged operator instruction contradicted ~1h later with no marker on the original.'
+        - 'MR !2375 governor comment (2026-09-05T15:06Z) "pause OTGR expansion": a binding instruction delivered off-channel, missed for two poll cycles.'
+        - 'docs/coordination/20260905T193012Z-contribution-auditor-4ghp.md finding A3: MR !2389 (Gate-1-approved) and MR !2373 (pending-gate1) both slated to edit ci_needs_implication.rs and gate_change_check.rs; overlap surfaced only by independent review, not by any plan field or check.'
+        - 'This session''s own coordination records (4ghp, hm61, brgs, sgg6, prb8): 40-90 lines each for ~5-10 lines of signal, self-contained because earlier referenced records cannot be trusted to still stand.'
+        - 'docs/coordination/20260905T200607Z-coder-tester-hqps.md: independent Codex review that corrected two factual claims in the first draft of this record (session provenance of esr1/2s3a; !2373 approval state) and identified plan/workstream collision detection as a fourth, distinct root cause.'
 
   - id: 20260906T104942Z-ev5m
     date: '2026-09-06'
