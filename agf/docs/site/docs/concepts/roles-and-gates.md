@@ -34,12 +34,12 @@ Around the core pipeline sit supporting roles — build engineering,
 security sentinel, contribution auditing, and others. The shipped
 [quick reference](https://gitlab.com/janipaijanen/agents-govern-framework)
 (`docs/reference/quick-reference.md` in the distribution) lists all
-fourteen with one-line responsibilities. The **human governor** sits above
+sixteen with one-line responsibilities. The **human governor** sits above
 all of them: every agent authority is delegated, revocable, and bounded
 by the red list in the deputy-governor rule (security boundaries,
 destructive operations, and meta-governance are never delegable).
 
-One of those fourteen, **independent-implementation-reviewer**, is worth
+One of those sixteen, **independent-implementation-reviewer**, is worth
 naming here specifically: it performs a read-only, exact-head review of
 an implementation against its approved Gate 1 plan and evidence, by a
 session and model distinct from the implementer. It is not a fourth
