@@ -2687,3 +2687,42 @@ added below — unlike Batch 38, this source names a concrete, checkable
 specification (not aspirational marketing) whose packaging shape overlaps
 this project's own `agf/skills/` convention closely enough to warrant a
 real, if currently open and unresolved, design question.
+
+# Batch 35 (2026-09-17) — user-submitted candidate (autonomous coding with adversarial review)
+
+Numbered 35 after the Batch 33 and Batch 34 candidates in open MRs !2390 and
+!2408. A fresh collision scan of every open MR touching `docs/sources.md` or
+`docs/radar.md` found no other entry for this candidate; stale MR !2752 is the
+superseded source of this refreshed current-main entry.
+
+## Classified
+
+- https://github.com/no-human-ai/no_human/tree/1d7edf47f4836068f470eeaf4e0b5d98ce11a3f5
+  type: tooling, practice | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: MIT-licensed autonomous coding tool that describes a ticket-to-reviewed-
+  pull-request loop with planning, test execution, a fresh-session second-model
+  review that does not receive the coder transcript, and operator approve/reject
+  actions. Its stated tamper guard mechanically checks deleted tests, new skips,
+  and weakened assertions before review; its reproduction gate requires offered
+  bug-fix tests to fail at the merge base and pass on the new tree. These are
+  directly comparable to AGF's non-author review and negative-test disciplines,
+  making the project useful prior art for testing whether AGF states those
+  controls precisely. They do not independently validate AGF or establish that
+  either project's controls are effective. Repository maturity indicators at
+  access time were 1,640 commits, 315 stars, 30 forks, 58 open issues, and 22
+  open pull requests; these are GitHub counters, not evidence for the project's
+  safety or effectiveness claims. The repository also ships desktop components
+  and an MCP server for local no_human task intake/status from Claude Code or
+  another MCP client. AGF has not installed, trialed, or security-reviewed that
+  integration. (primary project repository and self-description; pinned
+  revision `1d7edf47f4836068f470eeaf4e0b5d98ce11a3f5`; accessed 2026-09-17)
+
+## Evaluation boundary
+
+This batch classifies one source. It adopts nothing: it does not install,
+trial, depend on, or grant AGF authority to `no_human` or any described
+practice, and it does not change AGF rules, gates, or agent boundaries. No
+radar entry is added: the comparable design choices are prior art for existing
+review and gate-self-test disciplines, not a separately adopted design or
+implementation commitment.
