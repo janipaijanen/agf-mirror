@@ -421,3 +421,43 @@ themselves governor-reviewer records. Governor decision-record
 via MR !2665) ratifies those bridge records, supplying the durable
 governor authority `6pms` asked for. This ledger's re-sequencing and
 hygiene-precondition authority rests on `q862`.
+
+### QC-1 continuation (2026-09-12) — MRs opened since the 2026-09-10 baseline
+
+Analysis only; opens and closes nothing (per the work order's own
+sequencing note: dispositioning may run in parallel with execution).
+Live query against `main` at `4fe0f389`, snapshot timestamp 2026-09-12
+~10:22 UTC, found 55 open MRs; 44 already carry a row above. The
+following 11 opened after the QC-1 baseline. (A later full poll at
+10:51:15 UTC found 58 open MRs — the increase is this cohort's own new
+MRs: `!2721` itself, its review handoff `!2722`, and the CI fix
+`!2723`. This doesn't invalidate this snapshot's rows; it means
+coverage is dated to the snapshot, not a claim that no MR has opened
+since. Per `r5rm` QC1-A1.)
+Four are the `coordination:`-title-prefix carve-out
+(`20260903T043752Z` §3c: "publish independently, uncounted") and need
+no row: **!2715, !2718, !2719, !2720**. The remaining seven:
+
+| MR | Class | Disposition and closure condition |
+|---|---|---|
+| !2636 | CP-B-1 implementation (`feat`) | *(existing row above, unchanged — still accurate: appointed security reviewer Beauvoir found 2 blocking findings at exact head `1da3584d` (`20260912T100746Z-independent-implementation-reviewer-mhhk`); active workstream, not stale, not batch-eligible.)* |
+| !2666 | Gate 1 plan, approved (AGENTS.md gate-discipline addition) | **merge-now.** Gate 1 approved (metadata synced this session); exact head `f91a9f5e`. Awaiting governor Gate 2 decision. Not batch-eligible — `merge-now` never batches. |
+| !2679 | Draft proposal (bounded CI builder-image/distribution-scan trials) | **awaiting-governor.** Pre-Gate-1 proposal, independently reviewed CLEAR at head `b3c7eaff` (`ssms`, via !2678), no governor Gate 1 decision recorded since 2026-09-10. Named question: proceed to Gate 1 or not. |
+| !2688 | Proposal (operating-model token/footprint preliminary assessment, "early start") | **agent-owned, no governor redispatch needed.** Corrected 2026-09-17 per non-author review `j5pm`: `54a3`/`rgb5` are CP-B records and do not govern this MR; the operating-model directive and this preliminary pass's authorization are `pnqk` (`20260911T042239Z-planner-architect-pnqk`, future-triggered directive) and `gmpm` (`20260911T043058Z-planner-architect-gmpm`, governor-authorized early start during the pause). The preliminary pass itself is already authorized and agent-owned — no open governor question on whether to proceed with it. The full post-RUW/post-queue-closeout minimization assessment `pnqk` describes remains deferred until both triggers fire; this row does not ask the governor to redispatch that deferred work. |
+| !2689 | Gate 1 plan, approved (quantized-model mechanical-drafting pilot) | **merge-now.** Gate 1 approved (metadata synced this session); exact head `545698a2`. Awaiting governor Gate 2 decision. Not batch-eligible. |
+| !2714 | DES-5 estate-corrections fix (`docs`) | **merge-now.** Active workstream this session — independent exact-head review (`q2pt`) found 2 blocking findings, both corrected at head `bb1ee084`; fresh review requested. Not stale, not batch-eligible. |
+| !2716 | Draft plan (CP-B-2 publication hold/urgency) | **awaiting-governor**, corrected 2026-09-12 (`r5rm` QC1-R1: the prior row wrongly routed already-delivered agent work back to the governor). Security consultation is staffed and delivered (`smmp` appointment, `q82p`/`kskr` findings/clearance at the then-current head); the narrowed one-plan review trial is governor-approved (`rqkp`). **Currently agent-owned**: plan correction and bounded re-review at the revised head (`3ng2`/`bnkg`). The actual governor-only question is the eventual child Gate 1 implementation decision once that agent work completes — not staffing, which is already done. |
+| !2717 | DES-6 escalation + rewrite (`docs`) | **merge-now.** Active workstream this session — governor decision `3rha` directed a rewrite (not archive); implemented at head `59ced653`, awaiting review. Not stale, not batch-eligible. |
+
+**QC-1 continuation completeness (as of the 10:22 UTC snapshot):** all
+55 MRs open at that snapshot now carry a disposition row or an explicit
+carve-out reason. Rows opened after this snapshot (see the 10:51:15 UTC
+recount above) are not yet individually rowed and are not claimed
+covered by this completeness statement. No `close-superseded`,
+`close-invalid`, `reconstruct`, or `park-radar` candidates identified in
+this cohort — all seven are active, recent workstreams (opened
+2026-09-10 through 2026-09-12), not the kind of aged/stale MR the
+original QC-1 pass targeted. This is expected: QC-1's original 59-MR
+baseline is the stale-queue problem; new MRs opened during active
+Gate-1/Gate-2 work are not queue debt merely for being un-rowed for a
+few hours.
