@@ -5538,29 +5538,48 @@ learnings:
       generated the ID, wrote the record, validated it, branched from
       `main`, committed with the `coordination:` prefix, pushed with
       `-o ci.skip`, and opened a merge request. What it never did, for 28
-      of the 29 coordination-titled MRs opened that session (the
-      exception being the very last cycle's !2755/!2756/!2757, which
-      were correctly carried through to merge after this gap was found),
-      was the actual merge step. AGENTS.md's own visibility rule states a
-      coordination message "is not complete when it merely exists on
-      disk. It must pass validation and be made visible where the
-      recipient is expected to read it" -- opening an MR partially
-      satisfies this (GitLab shows the diff, a human clicking into the
-      MR list sees it) but the append-only, `main`-committed channel
-      `agov coord list` and every cold-started agent actually reads
-      remained completely unaware of the entire release's decision
-      chain: Gate 1/Gate 2 approvals, the independent security review,
-      the main-history-rewrite notice, the release Gate 2 approval, the
-      merge/tag completion record, and the final independent-verification
-      record were all sitting unmerged in open MRs !2715-!2754 when
-      discovered. The session's own polling loop (`agov coord list
-      --since <cursor>`) consequently and correctly reported "no new
-      coordination messages" every cycle, because there genuinely were
-      none on `main` -- the polling tool was not broken, the publication
-      step was simply never executed. The gap was found only when a
-      *different* task (opening MR !2755 for an unrelated sources-batch
+      of the 29 coordination-titled MRs opened that session, was the
+      actual merge step. Of those 28, !2755 and !2756 were merged on
+      2026-09-12 (the same day the backlog was found), but !2757 was
+      *not* "correctly carried through to merge after this gap was
+      found" as this record originally claimed at its 2026-09-12
+      authoring time -- it remained open for five more days and merged
+      only at 2026-09-17T03:59:46Z, during the contribution-audit review
+      cycle that caught this error. The record's own creation timestamp
+      (2026-09-12T22:31:57Z) preceded !2757's actual merge by almost five
+      days: it recorded an expected future event as already-completed
+      evidence, which `coordination-publication-rule.md`'s lifecycle
+      semantics forbid for completion-shaped claims. AGENTS.md's own
+      visibility rule states a coordination message "is not complete
+      when it merely exists on disk. It must pass validation and be made
+      visible where the recipient is expected to read it" -- opening an
+      MR partially satisfies this (GitLab shows the diff, a human
+      clicking into the MR list sees it) but the append-only,
+      `main`-committed channel `agov coord list` and every cold-started
+      agent actually reads remained unaware of the entire release's
+      decision chain: Gate 1/Gate 2 approvals, the independent security
+      review, the main-history-rewrite notice, the release Gate 2
+      approval, the merge/tag completion record, and the final
+      independent-verification record were all sitting unmerged in open
+      MRs !2715-!2754 when discovered. This is a real, material
+      `main`-channel publication gap, but it is one of *two* execution
+      failures, not one: at the record's own baseline, AGENTS.md already
+      defined visibility as satisfied by "committed and pushed to a
+      shared branch... or paired with a visible bridge note," not by
+      `main` alone, and the polling contract already required scanning
+      all open MRs each cycle, not only `agov coord list --since
+      <cursor>`. The session's own polling loop consequently and
+      correctly reported "no new coordination messages" every cycle
+      *for the cursor-based `main` check specifically* -- that check was
+      not broken -- but treating that single check as a complete poll,
+      when the already-governing contract required a whole-open-MR scan
+      too, was the second failure, separate from the unmerged-MR
+      publication gap itself. The gap was found only when a *different*
+      task (opening MR !2755 for an unrelated sources-batch
       classification) prompted a full `glab mr list` scan that surfaced
-      the accumulated backlog by volume.
+      the accumulated backlog by volume -- underscoring that the
+      whole-surface scan the contract already required, when actually
+      executed, is what caught this.
     agents_involved:
       - planner-architect
       - governor-reviewer
@@ -5574,16 +5593,22 @@ learnings:
         plan through tag-pipeline verification, several hours of a
         single session), the durable governance audit trail this
         project's own coordination model depends on did not exist on
-        `main`. Any concurrent session, cold-started agent, or human
-        reviewer consulting `docs/coordination/` on `main` during that
-        window would have seen none of the decisions that were, per the
-        live conversation, already made and acted on -- a silent
-        divergence between "what actually happened" and "what the
-        append-only record shows happened" that the whole model exists
-        to prevent. No incorrect action resulted this time only because
-        no other actor happened to rely on the missing records during
-        the gap window; that is luck, not a property the process
-        guaranteed.
+        `main` -- a real, material publication defect. It was not,
+        however, total invisibility: the records were reachable to any
+        reviewer or agent that followed the already-governing
+        whole-surface poll (scanning all open MRs, not only `main`), and
+        AGENTS.md's own visibility rule already accepted a pushed shared
+        branch as one valid visibility path. The narrower, accurate risk
+        is that a cold-started agent or reviewer relying only on the
+        cursor-based `main` channel -- rather than the complete poll the
+        contract already required -- would have seen none of the
+        decisions that were, per the live conversation, already made and
+        acted on -- a silent divergence between "what actually happened"
+        and "what the append-only record shows happened on the one
+        surface a partial poll checks." No incorrect action resulted
+        this time only because no other actor happened to rely on an
+        incomplete poll during the gap window; that is luck, not a
+        property the process guaranteed.
     recommendation: >-
       Treat "open the MR" and "merge the MR" as two required steps of one
       obligation for a coordination-only publication, not "open" alone
@@ -5598,15 +5623,34 @@ learnings:
       it to "later in the session." When a large batch accumulates
       anyway (this session's own multi-record batching provision in
       `coordination-publication-rule.md` exists precisely to reduce this
-      kind of churn), add a periodic self-check to the polling loop:
-      before reporting "no new coordination since <cursor>," also run
-      `glab mr list` (or equivalent) filtered to this session's own
-      `coordination/*` branches and confirm none are sitting open beyond
-      one poll cycle. A cursor-based `agov coord list` check alone cannot
-      catch this failure mode, because the failure mode is exactly
-      "nothing new landed where the cursor looks" -- the check has to
-      look at the publication surface (open MRs), not just the
+      kind of churn), this incident is best read as evidence that the
+      already-governing whole-open-MR poll step was skipped, not that a
+      wholly new control is needed. Do not treat a self-check narrower
+      than that existing requirement (e.g. one filtered only to this
+      session's own `coordination/*` branches) as sufficient on its own,
+      or present it as the only missing control, unless a future
+      incident specifically shows the existing whole-surface poll was
+      insufficient *when actually executed*. As a targeted reinforcement
+      of that existing requirement rather than a replacement for it: add
+      a periodic self-check to the polling loop -- before reporting "no
+      new coordination since <cursor>," also run `glab mr list` (or
+      equivalent) filtered to this session's own `coordination/*`
+      branches and confirm none are sitting open beyond one poll cycle.
+      A cursor-based `agov coord list` check alone cannot catch this
+      failure mode, because the failure mode is exactly "nothing new
+      landed where the cursor looks" -- the check has to look at the
+      publication surface (open MRs), not just the
       destination (main's committed channel).
+    severity: significant
+    confidence:
+      level: single-session
+      evidence_count: 1
+      evidence_refs:
+        - 'Coordination record `20260912T222945Z-planner-architect-sh2b.md`, the same-session finding that first surfaced the 28-of-29 unmerged coordination-MR backlog (2026-09-12T22:29:45Z).'
+        - 'GitLab MR timestamps (project API, checked 2026-09-17): !2755 created 2026-09-12T22:14:05Z / merged 2026-09-12T22:23:45Z; !2756 created 2026-09-12T22:16:57Z / merged 2026-09-12T22:23:24Z; !2757 created 2026-09-12T22:31:06Z / merged 2026-09-17T03:59:46Z -- confirming !2757 was still open five days after this record''s own 2026-09-12T22:31:57Z authoring timestamp, not "correctly carried through to merge" contemporaneously as originally written.'
+        - 'AGENTS.md, Coordination channel section, "Visibility rule" (baseline text at record authoring time): defines visibility as satisfied by validation plus being made visible via a committed/pushed shared branch or a bridge note, not by presence on `main` alone.'
+        - 'AGENTS.md, Polling timer notation / poll-cycle procedure (baseline text at record authoring time): already requires scanning all open merge requests each cycle, not only `agov coord list --since <cursor>`.'
+        - 'Contribution-auditor exact-head review `20260917T040118Z-contribution-auditor-bhmj.md` (MR !2758 at head `2edf1515a5449f4ea99d9116a38c60b056383eb5`): BLOCK recommendation with the three findings this correction resolves (temporal-accuracy, main-absence-vs-invisibility conflation, missing evidence block).'
 
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
