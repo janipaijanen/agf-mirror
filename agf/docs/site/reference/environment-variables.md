@@ -1,11 +1,11 @@
 # Environment variables
 
-This page is the canonical reference for operator-facing runtime configuration
-supported by `agov`, `agov-mcp`, and the repository-local launcher. If a new
-operator-facing `AGOV_*` or `AGF_*` variable is added to those surfaces,
-document it here in the same change. Compile-time provenance markers, test
-fixtures, and job-local shell variables used only inside CI or release scripts
-remain documented with their owning implementation.
+This page is the canonical reference for AGF-controlled environment variables
+supported by `agov`, `agov-mcp`, the repository-local launcher, and their build
+provenance path. If a new operator-facing or build-provenance `AGOV_*` or
+`AGF_*` variable is added to those surfaces, document it here in the same
+change. Test fixtures and job-local shell variables used only inside CI or
+release scripts remain documented with their owning implementation.
 
 AGF tooling should normally run as the project user, not as root. Root-owned
 build products, telemetry logs, or generated files can make later developer
