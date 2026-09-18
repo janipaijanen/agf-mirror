@@ -13,7 +13,15 @@ advisory_consultation:
       skill content to screen yet — Gate 2 review re-screens the actual
       file.
   - role: contribution-auditor
-    status: pending
+    status: consulted
+    reason: >-
+      Two-round review: `20260918T191859Z-contribution-auditor-jdhm`
+      (5 blocking findings, all corrected at head `192ad150`) and
+      `20260918T195845Z-contribution-auditor-ammr` (corrected head
+      confirmed sound; 2 blocking lifecycle findings — this consultation
+      status update and the `spk2` correction record
+      `20260918T200224Z-planner-architect-ekaq` — plus 1 advisory
+      wording fix, addressed at this head).
 ---
 
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
