@@ -1,7 +1,8 @@
 # Serial governed role execution on capacity-constrained runtimes
 
 **Status:** post-RUW capability proposal for adversarial review  
-**Maturity:** Level 2 Surface-defined  
+**Maturity:** Level 1 Planned; this draft proposes, but does not approve, a
+Level 2 surface
 **Evidence status:** Theoretical, informed by existing AGF session-continuity
 and handoff mechanisms; not yet validated on a multi-model single-slot runtime
 
@@ -70,6 +71,13 @@ Gate 1 plan after RUW work.
 7. Physical capacity one applies to resident model execution. It does not imply
    that deterministic validators, Git operations, or other non-model tools
    must stop while the model slot is occupied.
+
+The current manifest can describe dedicated staffing only in free-text
+`played_by`; `agov` does not enforce role-to-model eligibility. Do not reuse
+coordination `from`, `to`, or `model` as routing authority. If later evidence
+justifies enforcement, propose an adopter-owned staffing profile consumed by
+the removable adapter, where mismatch blocks local invocation or records an
+explicit fallback without rewriting role authority.
 
 ## Rejected assumptions
 
