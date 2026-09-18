@@ -66,7 +66,7 @@ excluded below). It is still the right starting point for any continuation:
 re-run it, exclude anything the continuation itself just finished, treat
 everything else as unexamined by default rather than assuming coverage.
 
-**36 files remain unexamined** after tonight (list current as of
+**37 files remain unexamined** after tonight (list current as of
 `origin/main` at the time this plan was written):
 
 ```

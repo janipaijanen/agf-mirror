@@ -1,8 +1,11 @@
 # Environment variables
 
-This page is the canonical reference for AGF-controlled environment variables.
-If a new `AGOV_*` or `AGF_*` variable is added to tooling, document it here in
-the same change.
+This page is the canonical reference for AGF-controlled environment variables
+supported by `agov`, `agov-mcp`, the repository-local launcher, and their build
+provenance path. If a new operator-facing or build-provenance `AGOV_*` or
+`AGF_*` variable is added to those surfaces, document it here in the same
+change. Test fixtures and job-local shell variables used only inside CI or
+release scripts remain documented with their owning implementation.
 
 AGF tooling should normally run as the project user, not as root. Root-owned
 build products, telemetry logs, or generated files can make later developer
@@ -18,7 +21,9 @@ commands fail in surprising ways.
 | `AGOV_BUILD_SOURCE_FINGERPRINT` | deterministic digest of behavior-affecting tooling inputs | repository-local wrapper and the `agov` build script | Supplies the SHA-256 source fingerprint embedded in `agov version --format json`. The wrapper computes it through the canonical fingerprint helper when rebuilding. CI and manual builds normally leave it unset so the build script computes it; overriding it does not bypass the wrapper's post-build equality check. |
 | `AGOV_LEARNINGS_DIR` | `agf/learnings` under the detected repo root | `agov validate learnings`, `agov validate infosec`, `agov validate contributions`, and the umbrella `agov validate` command | Overrides the default learning-record directory used by validators. Use this for a canonical adopter-owned learning corpus outside `agf/learnings`. For one-off upstream-submittable packets, prefer `agov validate learnings <path-to-learning.yaml>` instead of changing the environment. |
 | `AGOV_MANIFEST_PATH` | `agf/agents/MANIFEST.yaml` | `agov plan validate` and related plan validators; `agov session resume` (bare, no `--role`) | Overrides the adopter role manifest. `agov plan validate`'s Gate 1 schema validates advisory-entry shape; semantic validation accepts active manifest roles, identifies known non-active roles by status, and rejects roles absent from the manifest as unknown. `agov session resume` reads the same resolved path to list active roles at cold start and never falls back to `agf/agents/MANIFEST.example.yaml` if it is missing — a release archive never places a file at `agf/agents/MANIFEST.yaml` itself, so a fresh extraction with no local manifest yet prints "No adopter manifest found... copy agf/agents/MANIFEST.example.yaml or set AGOV_MANIFEST_PATH" rather than silently reading the template as if it were live state. Set this variable explicitly only when the local manifest lives somewhere other than the default path. |
+| `AGOV_MCP_AGOV_BIN` | automatic resolution | `agov-mcp` | Explicit path to the matching `agov` executable. When unset, the server checks compatible checkout builds, `agov` on `PATH`, and then the documented Cargo fallback. Prefer an absolute path in assistant configuration when more than one checkout or release is present. |
 | `AGOV_MODEL` | unset | `agov coord brief` | Optional model/runtime provenance to include in generated coordination front matter. Explicit `agov coord brief --model <name>` overrides this value. This field is audit metadata only; routing and authority still come from `from` and `to` roles. |
+| `AGOV_RELEASE_TOKEN` | unset | `agov release namespace-check` standard-path forge preflight | Existing authorized GitLab token used only when the command must query protected release namespaces. Supply it through process environment or secret storage; never put the value in repository files, command arguments, logs, or coordination records. Absence causes the authenticated preflight to stop rather than silently weaken the check. |
 | `AGOV_SCHEMA_DIR` | Tool-dependent | `agov coord validate`, `agov plan validate`, and related validators | Overrides the directory containing AGF JSON schemas. Release-archive adopters should set this explicitly when running the binary outside a repository layout that contains `agf/schemas`. |
 | `AGOV_TOKEN_ROI` | enabled when telemetry is supported | automatic token ROI telemetry | Set to `0`, `false`, or `off` to disable automatic token ROI log writes. |
 | `AGOV_TOKEN_ROI_LOG` | `<detected-project-root>/tmp/agov-token-roi.jsonl` | token ROI telemetry and `agov token roi report` | Overrides the token ROI JSONL log path. Relative values resolve from the invocation directory. A path outside the detected project root is honored with a warning. The parent directory is created automatically when logging succeeds. Choose an ignored project-local path unless your policy deliberately tracks telemetry. |
