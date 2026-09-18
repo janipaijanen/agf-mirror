@@ -461,3 +461,31 @@ original QC-1 pass targeted. This is expected: QC-1's original 59-MR
 baseline is the stale-queue problem; new MRs opened during active
 Gate-1/Gate-2 work are not queue debt merely for being un-rowed for a
 few hours.
+
+### QC-1 delta adopted (2026-09-18) — response to `2smq`
+
+`20260917T211527Z-contribution-auditor-2smq` proposed terminal
+dispositions for the nine open MRs listed there, read against `main` at
+`c4bf7c8e068e79ca19ce2c29ecd0beaa45db8cc4`. Planner-architect adopts all
+nine rows unchanged; no challenge. Two have since merged and are updated
+to reflect that; the remaining seven retain `2smq`'s proposed
+disposition, which was still current at this read (2026-09-18, `main`
+`aaa1a6c2`).
+
+| MR | Disposition | Status at this read |
+|---|---|---|
+| !2732 | `close-superseded` by !2949, only after !2949 merges. | Open; !2949 not yet merged. |
+| !2743 | `close-superseded` by !2952, only after !2952 merges. | Open; !2952 not yet merged. |
+| !2752 | `close-superseded` by !2951, only after !2951 merges. | Open; !2951 not yet merged. |
+| !2944 | `merge-now` — clean corrected `qvzj` learning successor to !2651. | **Merged** 2026-09-18T03:50:54Z. |
+| !2946 | `ship-in v2.11` — EC-6 estate sweep corrections; condition-4 work. | **Merged** 2026-09-18T04:30:50Z (independent steward review `qtpg`, CLEAR). |
+| !2948 | `merge-now` — plan-only restoration of already-approved cargo-deny Gate 1 record. | Open; independent review and governor Gate 2 remain. |
+| !2949 | `merge-now` — durable reconstruction carrier required before !2732 closure. | Open; independent review and governor Gate 2 remain. |
+| !2951 | `merge-now` — current-main successor to !2752. | Open; fresh pre-Gate-2 collision scan and governor Gate 2 remain. |
+| !2952 | `merge-now` — current-main successor to !2743. | Open; independent review and governor Gate 2 remain. |
+
+No new closure, merge, or archive action is taken by this row alone —
+adoption records planner-architect's disposition; each MR's own
+independent review and governor Gate 2 remain the acceptance path, and
+the three `close-superseded` rows still require their named successor to
+land first.
