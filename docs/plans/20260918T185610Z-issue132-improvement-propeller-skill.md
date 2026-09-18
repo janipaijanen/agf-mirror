@@ -52,12 +52,13 @@ shape).
 |---|---|---|
 | `agf/skills/improvement-propeller/SKILL.md` | New. Thin skill definition. | No |
 | `agf/skills/README.md` | Add one row for the new skill in the "Available skills" table. | No |
-| `docs/reviews/rule-projection/20260918T185610Z-issue132-improvement-propeller-skill.yaml` | New. Six-surface projection evidence per `documentation-rule-projection-rule.md`. | No |
+| `README.md` | Update the "8 skills" count (line 164) to 9. | No |
+| `docs/reviews/rule-projection/20260918T185610Z-issue132-improvement-propeller-skill.yaml` | New. Six-surface projection evidence per `documentation-rule-projection-rule.md`; gains the SKILL.md path once it exists post-Gate-1. | No |
 
 No code, schema, CI, or distribution-manifest change. No test suite
 touches skill Markdown files today (skills are agent-invoked
 procedures, not executable code); this plan does not add one, consistent
-with the existing seven skills, none of which carry an automated test.
+with the existing eight skills, none of which carry an automated test.
 
 ## Skill content (what Gate 1 approves)
 
@@ -87,9 +88,18 @@ governing rule rather than restating it:
    the rule's activation contract, cursor/recovery semantics, or
    role-boundary text, and does not itself activate the role for any
    adopter.
-2. **Role disclaimer, verbatim** — reproduced from the rule's Principle
-   and authority section: "observes and proposes, grants nothing, and
-   makes no decision." Stated before Step 1, not buried at the end.
+2. **Role disclaimer** — the phrase "observes and proposes, grants
+   nothing, and makes no decision" is issue #132's own plain-language
+   requirement text, not a verbatim quotation from the rule (correction
+   per contribution-auditor finding F5 — no such sentence exists in
+   `improvement-propeller-rule.md`). Stated before Step 1, paired with
+   the rule's actual authority blockquote quoted verbatim: "Propel a
+   small, deduplicated set of evidence-backed improvement proposals; do
+   not become the project's priority setter, planner, reviewer, or
+   implementer," plus the adjoining MUST-NOT list (assign work, reserve
+   another role's branch, set roadmap/release priority, create
+   implementation claims, approve gates or risk, implement its own
+   proposal, merge, tag, release, deploy).
 3. **Step 1 — Scope the input.** Operator supplies the concept, content,
    or document (a URL, a pasted excerpt, a local file, a described idea).
    Per the rule's untrusted-evidence clause, any recorded URL is named
@@ -125,6 +135,22 @@ governing rule rather than restating it:
    pattern already used in `poll-and-coordinate/SKILL.md`'s Inputs
    section.
 
+## Maturity (per `implementation-honesty-rule.md`)
+
+The skill's own maturity, distinct from dependency #131's already-closed
+Level 5 disposition:
+
+- **At this Gate 1 plan:** Level 1 Planned. Named in this plan; no file
+  exists yet.
+- **After implementation, table-top verification (Test strategy step
+  2), and contribution-auditor review pass:** Level 4 Validated. Schema
+  n/a (skills aren't schema-governed); "validated" here means the
+  worked-example table-top output matches the required shape and the
+  normative-text/disclaimer-attribution checks pass.
+- **Level 5 Deployable** only once the skill ships in a supported
+  release artifact with `agf/skills/README.md` and `README.md`'s skill
+  count both current — not merely present on `main`.
+
 ## Explicitly out of scope
 
 - The optional capability-developer "does this warrant agent evolution?"
@@ -150,23 +176,23 @@ Summary:
 | Adopter-facing explanation | `not applicable` — the skill is the operational artifact; the rule's own Pages/runbook projections (if any exist today) are unaffected |
 | Runbook/situation map | `updated` — one row added to `agf/skills/README.md`'s "Available skills" table |
 | AI landing/loaders | `not applicable` — skills are discovered by an agent reading `agf/skills/` directly (per `agf/skills/README.md`'s own "Adoption" section), not via `AGENTS.md`/`CLAUDE.md` pointer text; no loader change needed |
-| Validation/drift evidence | `advisory only` — no automated skill-content validator exists for any of the seven current skills; contribution-auditor review at Gate 2 is the check, named authority: this plan/Gate 2 review |
-| Distribution | `implemented` — `agf/skills/` ships in the framework tree as-is; no separate packaging step exists for skills today (confirmed: no skill-specific entry in any manifest/build script found) |
+| Validation/drift evidence | `advisory only` — no automated skill-content validator exists for any of the eight current skills; contribution-auditor review at Gate 2 is the check, named authority: this plan/Gate 2 review |
+| Distribution | `implemented` — `agf/skills/**` is a listed glob in `agf/dist/release-manifest.yaml`; root `README.md` is not a distribution surface (not matched by any manifest glob) and its count update is ordinary repo maintenance, not a distribution-row concern |
 
 ## Pre-existing gap observed, not fixed by this plan
 
 `agf/skills/README.md`'s "Available skills" table currently lists 4 of
-the 7 skills that exist in `agf/skills/` (missing `capability-review`,
+the 8 skills that exist in `agf/skills/` (missing `capability-review`,
 `contribution-audit`, `health`, `release`). This plan adds a correct
 5th row for `improvement-propeller` but does not backfill the other
-three missing rows — that is a documentation-estate-steward-shaped
+four missing rows — that is a documentation-estate-steward-shaped
 finding (estate consistency), out of this issue's scope. Flagging here
 so it is not lost; a separate coordination note names it for the
-steward's next pass.
+steward's next pass (per contribution-auditor finding A1).
 
 ## Test strategy
 
-No automated test exists for any current skill's content (all seven are
+No automated test exists for any current skill's content (all eight are
 Markdown procedure definitions, not executable code). This plan does not
 introduce one — consistent with existing skills. Verification is:
 
@@ -179,8 +205,9 @@ introduce one — consistent with existing skills. Verification is:
    finds the existing entry rather than proposing a duplicate).
 3. Independent contribution-auditor review confirms the skill does not
    restate or fork the rule's normative text (checked by diff/grep
-   against the rule body) and that the role disclaimer is reproduced
-   verbatim.
+   against the rule body) and correctly attributes the disclaimer
+   language per the correction above (not claimed as a verbatim rule
+   quotation).
 
 ## Risks
 
