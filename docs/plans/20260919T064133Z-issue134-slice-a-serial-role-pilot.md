@@ -1,6 +1,8 @@
 ---
 id: 20260919T064133Z-issue134-slice-a-serial-role-pilot
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-19T07:37:59Z
 topic: issue134-slice-a-manual-capacity-one-pilot
 advisory_consultation:
   - role: infosec-sentinel
@@ -13,7 +15,14 @@ advisory_consultation:
       handoffs, forged provenance), which is carried verbatim from the
       already-accepted proposal, not new exposure introduced here.
   - role: contribution-auditor
-    status: pending
+    status: consulted
+    reason: >-
+      `20260919T075442Z-contribution-auditor-sm6p`: CLEAR, 0 blocking
+      findings, 1 advisory (A1, preserve test-strength honesty for
+      manual-procedural negative scenarios -- already satisfied by
+      Step 4's required per-scenario test-mode field, no plan-text
+      change needed). Governor Gate 1 decision:
+      `20260919T073759Z-governor-reviewer-m8d4`.
 ---
 
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
