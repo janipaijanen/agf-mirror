@@ -5763,6 +5763,47 @@ learnings:
         - 'agf/CHANGELOG.md [2.4.11] 2026-08-01: a full release scoped entirely to documentation and accessibility catch-up.'
         - 'Assistant session 2026-09-10: assistant-proposed "Product Marketing Touchpoint Keeper" role definition naming the gap; governor directed capture as a learning.'
 
+  - id: 20260905T214613Z-1917
+    date: "2026-09-05"
+    category: gap
+    scope: framework
+    title: >-
+      Scheduled polling must coalesce while an agent is actively working and
+      run at the next safe boundary
+    description: >
+      A universal polling design specified a recurring cadence but did not
+      initially state what happens when a scheduled wake becomes due while the
+      same agent is already executing authorized work. Without an explicit
+      non-reentrancy rule, runtimes or agents can interpret the tick as an
+      interruption, start overlapping scans, duplicate forge/API work, or
+      silently discard the tick. The required behavior is a single pending-poll
+      latch: any ticks due during active work coalesce, do not preempt or spawn
+      concurrent polling, and cause exactly one complete poll immediately after
+      the work reaches a safe completion, handoff, gate, or evidenced blocker
+      boundary.
+    agents_involved: [governor-reviewer, planner-architect]
+    framework_section: "Polling, scheduling, and autonomous continuation"
+    business_impact:
+      type: cost_overhead
+      description: >
+        Prevents duplicate API and CI observation work, avoids interruption of
+        release-critical execution, and removes ambiguity that otherwise
+        requires human correction or leaves coordination updates unseen.
+    recommendation: >
+      Define scheduled polling as non-reentrant in the canonical polling rule,
+      assistant-facing guides, runbook, and polling skill. A wake due during
+      active work sets one pending-poll latch; repeated wakes coalesce; one full
+      cycle runs immediately at the next safe boundary; cadence resumes from
+      that completed cycle. Add a table-top acceptance case that rejects both
+      overlapping poll loops and silently skipped deferred polls.
+    severity: significant
+    status: proposed
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - 'docs/plans/20260905T210255Z-universal-agent-autonomous-polling.md: non-reentrant scheduled polling requirement.'
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
