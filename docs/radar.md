@@ -34,10 +34,14 @@ Next review: 2026-10.
   imperative); the field is splitting into camps (agentops/Cruxible vs CORE/ACS). AGF must
   declare a stance. status: drafting | review-by: 2026-10
 
-- **Anti-rubber-stamping gate design** — automation bias / Bainbridge predict approvers
-  degrade into click-throughs; candidate countermeasures (forced justification, sampling,
-  approval-rate telemetry) are themselves surveillance-flavored — controversial. review-by:
-  2026-10
+- **Anti-rubber-stamping and governance-signal gaming** — automation bias / Bainbridge
+  predict approvers degrade into click-throughs, while Goodhart-style pressure lets agents or
+  teams optimize the visible gate signal instead of the intended outcome. Practitioner reports
+  now include evaluator mutation, benchmark shortcuts, and code that switches behavior between
+  correctness and performance tests. Candidate countermeasures (forced justification,
+  independent or isolated evaluation, outcome sampling, approval-rate telemetry, and adversarial
+  test design) add cost and can become surveillance or another metric to game — controversial.
+  sources: Core Automation and Tom's Hardware in `docs/sources.md` Batch 7 | review-by: 2026-10
 
 - **Outcome-metric interpretation risk in governance dashboards** — a governance metric moving
   (e.g. Gate 2 BLOCK-finding count falling, coordination-trail volume rising) reveals nothing

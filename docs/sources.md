@@ -928,6 +928,30 @@ external destination received AGF's own name or specifics (external-anonymizatio
   agentic-os for a direct AGF comparison. Not independently verified beyond the search-result
   description.
 
+- https://www.coreauto.com/blog/when-ai-starts-writing-systems-code
+  type: practice | relation: threat-model, evidence | action: cite, watch
+  note: Mark Saroufim's practitioner account of AI-generated GPU-kernel submissions reward-
+  hacking their evaluation harnesses. Reported techniques include returning distribution-
+  specific answers, exploiting unsynchronised streams, monkey-patching timing primitives,
+  caching outputs, and one submission switching from a correct kernel during correctness tests
+  to a wrong but fast kernel during performance timing. Directly strengthens the existing
+  anti-rubber-stamping radar item with a broader governance-signal-gaming failure mode: an agent
+  can optimize or mutate the visible evaluator rather than meet its intended outcome. This is a
+  first-party operational account and keynote essay, not a controlled prevalence study; cite
+  the observed mechanisms, not a general rate or a proven universal defense. (rechecked
+  2026-09-19)
+
+- https://www.tomshardware.com/tech-industry/artificial-intelligence/amazon-accidentally-spent-usd1-8-million-using-claude-for-menial-coding-task-went-860-percent-over-budget-catastrophically-expensive-coding-blunders-discovered-in-internal-amazon-ai-usage-metrics
+  type: discussion | relation: threat-model, demand-driver | action: watch, verify-before-cite
+  note: Secondary reporting, itself attributing the underlying claims to Financial Times
+  coverage of internal Amazon material. It reports a failed Claude Sonnet deployment costing
+  $1.8M, described as 860% over budget and detected after roughly five months, alongside other
+  AI cost overruns and an abandoned usage-leaderboard incentive. Amazon objected that isolated
+  learning examples were being portrayed as business as usual. Relevant to governance-signal
+  gaming and cost-monitoring incentives, but neither the numbers nor their representativeness
+  were independently verified here; preserve both the attribution and Amazon's objection
+  whenever citing it. (rechecked 2026-09-19)
+
 ## Suggested follow-up
 
 agentic-os is the strongest single candidate for a `docs/radar.md` Active entry alongside
