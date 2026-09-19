@@ -1,6 +1,8 @@
 ---
 id: 20260918T185610Z-issue132-improvement-propeller-skill
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-19T03:59:57Z
 topic: issue132-improvement-propeller-skill-gate1-planning
 advisory_consultation:
   - role: infosec-sentinel
