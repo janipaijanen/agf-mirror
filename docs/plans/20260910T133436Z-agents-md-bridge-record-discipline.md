@@ -58,15 +58,34 @@ paragraph. It states:
 
 1. A bridge record (a role `note` transcribing a live governor decision) is
    **not binding authority on its own** and must say so.
-2. Reversible state (a plan's `status`) MAY move to `approved` ahead of the
-   governor record; the commit cites the bridge record and notes the
-   pending confirmation.
+2. A plan's `status` stays `pending-gate1` even when the bridge record
+   accurately transcribes a live "approved" decision — the machine/agent-
+   visible `approved` state must not appear before the governor record
+   exists, since another session or agent could treat `approved` alone as
+   authorization to implement.
 3. **Irreversible** actions (merge to a protected branch, tag, forge
-   closure) wait for the governor record — unless the governor authorizes
-   that specific action in the same session, captured in the next
-   `governor-reviewer` record.
+   closure) always wait for the governor record — unless the governor
+   authorizes that specific action in the same session, captured in the
+   next `governor-reviewer` record **before** the irreversible action
+   executes.
 4. An unreferenced bridge record after the session is a gap; `agov coord
-   pending` surfaces it. `q862` is the worked example.
+   pending` surfaces it — but its resolution check has no governor-role
+   qualification (any record's `references-to` clears it), so a cleared
+   entry means "something referenced it," not "governor ratified it." Only
+   an actual `governor-reviewer`-authored `ack`/`decision-record` supplies
+   binding authority. `q862` is the worked example.
+
+**Corrected 2026-09-19** per independent contribution-auditor review
+`20260919T174055Z-contribution-auditor-51gs` (findings BRIDGE-G2-1,
+BRIDGE-G2-2): the original text at Gate 1 approval permitted a plan's
+`status` to move to `approved` from a bridge note alone (the authority
+loophole this plan exists to prevent) and overstated `agov coord
+pending`'s actual mechanical guarantee (no governor-role check exists in
+the implemented resolver). Both are fixed above and in the `AGENTS.md`
+edit this plan carries. This correction is a same-cycle text fix, not a
+new decision — it stays inside the Gate 1 scope already approved by
+`m15q`; a fresh exact-head pipeline and re-review are required before
+Gate 2.
 
 ## Impact (`downstream-impact-rule`)
 

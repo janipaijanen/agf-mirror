@@ -261,18 +261,28 @@ is provisional until a `governor-reviewer` record (an `ack`, a
 `decision-record`, or a ratification decision-record) references it. Until
 that governor record exists:
 
-- a plan's `status` MAY transition to `approved` ahead of it (reversible), but
-  the transition commit cites the bridge record and notes the pending
-  confirmation;
+- a plan's `status` stays `pending-gate1` even when the bridge record
+  accurately transcribes a live "approved" decision — the machine/agent-
+  visible `approved` state must not appear before the governor record exists,
+  because another session or agent may treat `approved` alone as
+  authorization to start implementation. The bridge note may say the governor
+  approved it live and that confirmation is pending; it must not flip the
+  plan's `status` field;
 - **irreversible** actions — a merge to a protected branch, a tag, a forge
-  closure — wait for the governor record, **unless** the governor authorizes
-  that specific action in the same session ("merge now"), in which case that
-  authorization is itself captured in the next `governor-reviewer`
-  bridge/ratification record.
+  closure — always wait for the governor record, **unless** the governor
+  authorizes that specific action in the same session ("merge now"), in which
+  case that authorization is captured in the next `governor-reviewer`
+  bridge/ratification record **before** the irreversible action executes, not
+  after.
 
-A bridge record still unreferenced by any `governor-reviewer` record after the
-session is a gap; `agov coord pending` surfaces it (bridge records are
-`requires-ack: true`). Worked example:
+A bridge record still unreferenced by any record after the session is a gap;
+`agov coord pending` surfaces any unresolved `requires-ack: true` record
+generically — its resolution check is "does any later record's
+`references-to` list this file," with no check on the referencing record's
+sender role. A non-`governor-reviewer` reference also clears a bridge record
+from this list. Treat a cleared entry as "something referenced it," not proof
+of governor ratification — only an actual `governor-reviewer`-authored `ack`
+or `decision-record` supplies binding authority. Worked example:
 `docs/coordination/20260910T133145Z-governor-reviewer-q862.md` ratifies a
 session's bridge records in one append-only decision-record.
 
