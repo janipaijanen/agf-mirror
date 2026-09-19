@@ -15,15 +15,20 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Gate-discipline normative text in a loader file. Contribution-auditor
-      must confirm the addition only makes an existing implicit constraint
-      explicit (a planner bridge note is not governor authority — already
-      stated for same-role self-acks in the paragraph immediately above),
-      does not create a new fast path or weaken the governor-record
-      requirement, and that "reversible status may move ahead, irreversible
-      waits" is a genuine narrowing, not a loophole. Evidence: Codex review
-      `6pms` POLL-G1 (2026-09-10); the same failure class AGENTS.md already
-      records as having recurred three times on 2026-07-21.
+      Gate-discipline normative text in a loader file. Two review rounds:
+      `20260919T174055Z-contribution-auditor-51gs` found the originally
+      approved text let a plan's `status` reach `approved` from a bridge
+      note alone (BRIDGE-G2-1) and overstated `agov coord pending`'s
+      guarantee as governor-qualified when the implemented resolver has
+      no such check (BRIDGE-G2-2) — both corrected in the operative
+      `AGENTS.md` paragraph and this plan's own "Change" section.
+      `20260919T182246Z-contribution-auditor-7kmt` re-reviewed the
+      corrected head and confirmed both resolved, with one residual
+      finding (BRIDGE-G2-R1, this section and the projection table below
+      still asserted the rejected model) now also fixed. Evidence:
+      Codex review `6pms` POLL-G1 (2026-09-10); the same failure class
+      AGENTS.md already records as having recurred three times on
+      2026-07-21.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -112,7 +117,7 @@ prohibition on anything that was allowed.
 | Adopter-facing explanation | `not applicable` — `AGENTS.md` *is* the adopter-facing loader; there is no separate Pages page for the conversational-decision case, and the addition is short operational guidance, not a rule needing its own explainer. If a Pages "governance workflow" page later covers gate discipline, it points here. |
 | Runbook/situation map | `not applicable` — no runbook step changes; the guidance is "what a bridge record is", not a procedure. |
 | AI landing/loaders | `updated` — `AGENTS.md` (this edit). `agf/templates/AGENTS.md` and `.claude/CLAUDE.md`: `not applicable` — `.claude/CLAUDE.md` is a one-line `@../AGENTS.md` import (propagates); `agf/templates/AGENTS.md` is the neutral adopter template and does not carry foundry's session-specific gate-discipline elaborations (it already omits the "same-role self-ack" paragraph's foundry incident detail). |
-| Validation/drift evidence | `advisory only` — no mechanical check; `agov coord pending` already surfaces an unreferenced `requires-ack` bridge record, which is the practical enforcement. Authority: the governor at each session's close. |
+| Validation/drift evidence | `advisory only` — no mechanical check. `agov coord pending` surfaces a generic unresolved `requires-ack` reference obligation, but its resolver has no governor-role qualification and does not enforce or prove governor ratification — a non-governor reference also clears the row. Binding authority is supplied only by an actual `governor-reviewer`-authored `ack`/`decision-record`, confirmed at the governor's own session close. |
 | Distribution | `AGENTS.md` is project-local (foundry's own loader), not shipped in an AGF release archive; `agf/templates/AGENTS.md` is what ships and is deliberately not changed here. Confirmed project-local by design. |
 
 ## Test and acceptance
