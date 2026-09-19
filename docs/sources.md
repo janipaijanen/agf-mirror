@@ -2726,3 +2726,65 @@ practice, and it does not change AGF rules, gates, or agent boundaries. No
 radar entry is added: the comparable design choices are prior art for existing
 review and gate-self-test disciplines, not a separately adopted design or
 implementation commitment.
+
+# Batch 40 (2026-09-19) — user-submitted candidates (durable planning and opinionated agent workflow)
+
+Numbered 40 after the merged Batch 39. A fresh collision scan of main, remote
+branches, and every open merge request found no existing entry for either
+candidate and no competing Batch 40.
+
+## Classified
+
+- https://github.com/othmanadi/planning-with-files/tree/faf1a15a7dcc17a9e0f49760da0756d1a5d4609a
+  type: tooling, practice | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: MIT-licensed agent skill/plugin that keeps active execution state in
+  three gitignored Markdown files (`task_plan.md`, `findings.md`, and
+  `progress.md`) and uses host hooks to restore selected state after context
+  clearing, compaction, or a crash. The repository describes optional
+  a SHA-256 plan-body consistency check, a completion stop hook with a block cap and
+  stall detection, a parallel-write regression guard, and a diagnostic for
+  hook installation. These are useful prior art for AGF's session continuity,
+  interruption recovery, completion discipline, and mechanical-enforcement
+  boundaries. Its automatic recovery reads project files; reading local agent
+  session records requires an explicit catch-up mode. The repository reports
+  1,084 tests, three wins in three blind A/B comparisons, and a historical
+  author-run recovery result of 5.0 versus 13.3 turns, while explicitly noting
+  that the measurement used an earlier default recovery behavior. Treat all
+  effectiveness, latency, compatibility, and benchmark claims as project
+  self-report, not independent validation or evidence about AGF. The project
+  also warns that some skill-only installation paths can silently lack the
+  hooks that distinguish the mechanism. (primary repository and
+  self-description; pinned revision `faf1a15a7dcc17a9e0f49760da0756d1a5d4609a`;
+  accessed 2026-09-19)
+
+- https://github.com/garrytan/gstack/tree/a6b3a57512ca6d5c6aa5b68f74f736195021f96e
+  type: tooling, practice | relation: prior-art, complement, competitor |
+  action: watch, compare-in-docs
+  note: MIT-licensed, opinionated agent-development workflow that presents 23
+  role-shaped specialist tools plus shared browser, review, QA, release,
+  learning, and context utilities for Claude Code and other supported hosts.
+  Its stated sprint sequence is Think → Plan → Build → Review → Test → Ship →
+  Reflect, with artifacts passed between skills. Of direct AGF interest, its
+  opt-in continuous-checkpoint mode creates local `WIP:` commits with a
+  structured context body, leaves push disabled by default to avoid CI on each
+  checkpoint, restores context from those commits, and filter-squashes its own
+  WIP commits before a pull request while preserving other commits. It also
+  describes model-specific behavioral overlays and review-readiness routing.
+  These mechanisms are prior art for recovery, role-shaped skill packaging,
+  review routing and CI-trigger economy; specialist
+  names do not establish AGF role or Gate authority. The repository's large
+  productivity and shipping claims are author-reported and are not treated as
+  independent evidence of effectiveness, safety, or suitability for AGF.
+  (primary repository and self-description; pinned revision
+  `a6b3a57512ca6d5c6aa5b68f74f736195021f96e`; accessed 2026-09-19)
+
+## Evaluation boundary
+
+This batch classifies two sources and adds one comparative radar question. It
+adopts nothing: it does not install, execute, trial, vendor, or depend on either
+project; import their hooks, skills, prompts, role names, browser tooling, or
+checkpoint formats; grant them AGF authority; or change AGF rules, gates,
+schemas, session behavior, or coordination boundaries. Any experiment or
+normative change requires its own governed scope. The projects' self-reported
+benchmarks and productivity claims must not be cited as AGF measurements.

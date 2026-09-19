@@ -231,6 +231,29 @@ Next review: 2026-10.
   blog in `docs/sources.md` Batch 39 | status: open question, no
   alignment proposed | review-by: 2026-12
 
+- **Operational checkpoint substrate: gitignored planning files vs local WIP
+  commits vs the canonical coordination trail** — Planning with Files restores
+  active phases, findings, and progress from gitignored Markdown and can
+  mechanically hold completion while work remains; gstack instead offers
+  opt-in local `WIP:` commits with structured context, push disabled by default,
+  context restoration from Git, and filter-squashing before review. Both address
+  context loss and interrupted work, but neither mechanism automatically has
+  AGF authority. The open question is whether either substrate closes a measured
+  gap beyond `agov session resume`, governed handoffs, and local telemetry, or
+  creates another mutable state channel that can disagree with Git-visible
+  coordination. A bounded comparison would test crash recovery, compaction,
+  dirty and untracked work, concurrent worktrees, stale-worker revival,
+  exact-head review
+  invalidation, CI duplication, cleanup, and promotion of durable facts into
+  canonical records. It must also measure steady-state token and latency cost:
+  per-turn reinjection can preserve intent while repeatedly consuming context,
+  and frequent Git checkpoints can preserve state while polluting history or
+  triggering automation if pushed. Treat both projects' performance claims as
+  self-report. No hook, checkpoint convention, stop authority, schema, or trial
+  is proposed here. sources: Planning with Files and gstack in
+  `docs/sources.md` Batch 40 | status: compare mechanics only | review-by:
+  2026-12
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
