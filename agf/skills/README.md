@@ -20,6 +20,7 @@ agents-govern adoption tasks.
 | [`learning/`](learning/SKILL.md) | Generate timestamp ID when needed, gather fields, format YAML, insert at correct position, validate |
 | [`infosec-screen/`](infosec-screen/SKILL.md) | Run validate-infosec.sh + pre-commit + SPDX check + project-specific patterns |
 | [`poll-and-coordinate/`](poll-and-coordinate/SKILL.md) | Full pause/poll/act/rearm lifecycle: pause any armed wake-up, load durable cursor, fetch fresh into a disposable worktree, inspect coordination/MRs/issues/pipelines at true scope, classify, act within gate, persist cursor, rearm or stop |
+| [`improvement-propeller/`](improvement-propeller/SKILL.md) | Run one human-invoked, advisory evidence, deduplication, and ranking assessment, then route any surviving item through normal governance |
 
 ## Adoption
 
