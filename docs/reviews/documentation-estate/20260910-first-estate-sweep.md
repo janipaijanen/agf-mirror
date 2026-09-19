@@ -9,15 +9,22 @@
 `release-content-freeze` cadence class for v2.11 — this sweep completing
 with every finding dispositioned is v2.11 release-cut **condition 4**
 (parent scope plan amendment R-2, MR !2662).
-**Status:** **INCOMPLETE — corrected 2026-09-11 (EC-1,
-`20260911T171634Z-contribution-auditor-s214`).** The four *findings this
-sweep did identify* (DES-1 through DES-4) are all **FIXED**, and those
-fixes stand on their own — but the sweep's own claimed coverage does not
-substantiate a "all six dimensions complete" or "v2.11 condition 4 fully
-met" assertion. Concrete gaps, verified independently before this
-correction: the scope table's Pages-site row says "19 Markdown files";
-`git ls-tree -r --name-only e2b786c4 agf/docs/site` returns **47**.
-Several adopter-facing surfaces the role's read jurisdiction covers were
+**Status:** **File-coverage reconciliation complete (EC-7,
+2026-09-19); binding "condition 4 met" disposition still pending a
+governor decision.** All 48 current `agf/docs/site/**/*.md` files are
+now individually accounted for across EC-1 through EC-6 plus this
+reconciliation — see EC-7 below for the method and residual. This
+does *not* mean every file received uniform six-dimension depth (EC-6
+itself distinguishes broad-scan-only coverage from targeted reads on
+higher-drift-risk files); it means the coverage-accounting gap that
+kept this report's own completion criterion unmet is closed. Originally
+corrected 2026-09-11 (EC-1, `20260911T171634Z-contribution-auditor-s214`)
+after the scope table's Pages-site row wrongly said "19 Markdown files";
+`git ls-tree -r --name-only e2b786c4 agf/docs/site` returned **47** at
+that time (now 48; one file added since). The four *findings that first
+sweep did identify* (DES-1 through DES-4) were **FIXED** immediately and
+those fixes stood on their own throughout. Several adopter-facing surfaces
+the role's read jurisdiction covers were
 never entered in the scope table at all: `agf/docs/adopt/compliance-profile.md`,
 `agf/docs/adopt/decommission.md`, `agf/docs/contracts/*.md` (4 files),
 other governance documents beyond `manifest.md`, `agf/ADOPTING.md`, and
@@ -360,3 +367,62 @@ reconciliation and binding completion disposition remain with the governor as
 the handoff requires. DES-9 through DES-12 are dispositioned as mechanical
 currency/consistency corrections; no policy, role authority, schema, gate, or
 release decision changed.
+
+## EC-7 — final estate-coverage reconciliation (2026-09-19)
+
+This is the reconciliation EC-6 said remained: a direct diff between the
+current live Pages-site tree and every file individually named as checked
+across EC-1 through EC-6, to state explicitly whether the file-coverage
+gap that has kept this report's `Status:` at `INCOMPLETE` since EC-1 is
+actually closed.
+
+**Method:**
+
+1. Enumerated the current tree: `git ls-tree -r --name-only origin/main
+   agf/docs/site | grep '\.md$'` → **48 files** (one more than the 47
+   counted at EC-1; +1 file added to the Pages site since).
+2. Built the "checked" set from three sources: (a) the exact 37-file
+   remaining-inventory list in
+   `docs/reviews/documentation-estate/20260917T202324Z-sweep-continuation-plan.md`,
+   which EC-6 states it covered in full; (b) every `agf/docs/site/*.md`
+   path referenced by full path anywhere in this report's EC-1 through
+   EC-6 text (11 files: `content-plan.md`, `docs/adopt/
+   tooling-and-tokens.md`, `evaluate.md`, `index.md`,
+   `reference/artifact-registry.md`, `reference/environment-
+   variables.md`, `reference/figures.md`, `reference/maturity-
+   vocabulary.md`, `reference/release-artifacts.md`,
+   `reference/tooling-conformance.md`, `roadmap.md`); (c) three files
+   fixed in this session but outside the 37-file continuation batch —
+   `docs/concepts/roles-and-gates.md`, `docs/adopt/mcp-server.md`
+   (EC-5-adjacent, MR !2939), `docs/adopt/applicability-catalog.md`
+   (EC-5) — plus `docs/index.md`, which the continuation plan itself
+   states was "already examined tonight, clean" outside its own
+   37-file remaining list. Deduplicated: **48 files.**
+3. Diffed (2) against (1) in both directions.
+
+**Result:** zero residual either direction. Every file in the current
+48-file Pages-site tree is named as checked by at least one of EC-1
+through EC-6; no checked file has been removed or renamed out from
+under the record.
+
+**What this does and does not establish.** It closes the specific,
+concrete gap EC-1 first identified (an inaccurate file count with most
+files never individually named) and that every later EC section said
+remained open. It does **not** independently re-verify that each of the
+48 files' six-dimension review was uniformly thorough — EC-6 itself
+already discloses that its 37-file pass split into a full broad-scan
+(all 37) plus targeted deep reads on a higher-drift-risk subset, with
+the remainder receiving "the same pointer/currency scan" rather than a
+individually-narrated dimension-by-dimension pass. That depth
+distinction is accurately represented in this report already and this
+reconciliation does not paper over it.
+
+**Recommendation to the governor:** the file-coverage precondition for
+v2.11 release-cut condition 4 (`docs/plans/20260909T021841Z-v211-release-scope.md`'s
+"every surface... inspected... or explicitly excluded with a reason")
+is now satisfiable — every surface has a named check. Whether that
+satisfies condition 4 as written, or whether the governor wants a
+deeper re-pass on any specific file before declaring the sweep complete,
+is the binding decision this report has deferred to the governor since
+EC-1. This reconciliation supplies the missing evidence for that
+decision; it does not make the decision.
