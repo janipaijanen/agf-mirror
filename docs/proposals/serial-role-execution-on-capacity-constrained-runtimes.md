@@ -28,9 +28,11 @@ authority, or an agent-role activation. Any implementation requires a bounded
 Gate 1 plan after RUW work.
 
 Governor acceptance is recorded in
-`20260918T150621Z-governor-reviewer-qmgg.md`; Claude's no-addition response,
-relayed by the governor, is recorded in
-`20260918T150612Z-planner-architect-qs8r.md`.
+`20260918T150621Z-governor-reviewer-qmgg.md`. The record it cited as
+"Claude's no-addition response,"
+`20260918T150612Z-planner-architect-qs8r.md`, does not reflect an
+actual Claude assessment; the real independent review is
+`20260918T151040Z-planner-architect-bemh.md` (CLEAR).
 
 ## Existing work and collision disposition
 
