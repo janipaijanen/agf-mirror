@@ -294,6 +294,26 @@ Next review: 2026-10.
   status: parked question, no assessment or implementation commitment |
   review-by: 2026-11
 
+- **External durable Work/Attempt/settlement control plane vs repository-native
+  governance trail** — Kungfu combines several questions that the Piyaz context-
+  graph, AetherGrid renewable-lease, and LLM Wiki cross-harness-digest items
+  currently expose separately: one durable Work identity continues through
+  multiple Agent Sessions and failed Attempts, a live owner excludes a second
+  writer, evidence remains attached to the Work, and governed review plus
+  settlement—not the executing Agent—decide completion. That combination could
+  complement AGF's coordination and evidence trail, but it could also become a
+  competing canonical state machine. A bounded comparison must map Project,
+  Work, Attempt, ownership, evidence, review, and settlement onto AGF claims,
+  handoffs, reviews, completion records, plans, and human gates; force conflicts
+  between `.kungfu/` and Git; test crash recovery, stale ownership, concurrent
+  Agents, exact commit/MR linkage, deterministic export and reconstruction,
+  secrets and local-data handling, migration, and clean removal. AGF's
+  repository trail and authorized human decisions remain canonical throughout:
+  no Kungfu state or actor acquires Gate 1, Gate 2, merge, release, or governor
+  authority. source: Kungfu at reviewed commit in `docs/sources.md` Batch 42 |
+  status: compare as adjacent control plane, do not integrate | maturity: Level
+  1 Planned; evidence: Empirically informed at most | review-by: 2026-11
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
