@@ -2841,3 +2841,39 @@ checkpoint formats; grant them AGF authority; or change AGF rules, gates,
 schemas, session behavior, or coordination boundaries. Any experiment or
 normative change requires its own governed scope. The projects' self-reported
 benchmarks and productivity claims must not be cited as AGF measurements.
+
+# Batch 41 (2026-09-19) — Swatch colour-accessibility tooling
+
+## Classified
+
+- https://luntta.fi/swatch/
+  type: tooling, interactive reference | relation: prior-art, complement |
+  action: watch, compare-in-docs
+  note: Project-authored documentation and browser playground for Swatch
+  3.0.1. It describes CSS Color 4 parsing, perceptual colour spaces and OKLCh
+  manipulation, WCAG 2.1 and APCA contrast calculations, several Delta-E
+  methods, Machado colour-vision-deficiency simulation, Fidaner daltonization,
+  palette distinguishability checks, and local image simulation. These
+  facilities are relevant prior art for evaluating AGF's existing semantic
+  palette, but the project's descriptions are self-report rather than
+  independent validation. The live playground is exploratory evidence, not a
+  reproducible acceptance surface. (accessed 2026-09-19)
+
+- https://github.com/luntta/swatch/tree/919038d209825c4f465cb650bb3aa717af45bb54
+  type: tooling, source | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: MIT-licensed source pinned to the commit behind annotated tag `v3.0.1`;
+  the tag-to-commit mapping was independently resolved with `git ls-remote` on
+  2026-09-19. This is a reproducible reference if a future governed palette
+  assessment is approved. AGF has not reproduced its algorithms or results,
+  installed it, or checked it against fixed AGF fixtures.
+
+## Evaluation boundary
+
+This classification adopts no library, metric, threshold, palette, dependency,
+validator, or runtime practice. AGF's current palette and blocking contrast
+authority remain unchanged. A future assessment would need its own governed
+scope before changing palette tokens, adding tooling, or producing acceptance
+evidence. The corresponding non-binding question is retained in
+`docs/radar.md`; stale MR !1061 is the historical source of this refreshed
+classification.

@@ -280,6 +280,20 @@ Next review: 2026-10.
   | status: parked question, no assessment or legal conclusion | review-by:
   2026-10-10
 
+- **Semantic-palette accessibility assessment** — Does a concrete visual or
+  accessibility defect justify a bounded assessment of AGF's existing semantic
+  palette across contrast, colour-vision-deficiency simulation, pairwise
+  distinguishability, greyscale, print, and representative rendered assets?
+  Swatch supplies relevant project-authored tooling prior art, but it has not
+  been installed, security-reviewed, or reproduced against AGF fixtures, and
+  its outputs do not replace primary standards or AGF's governed contrast
+  authority. Promote only when a measured defect or approved visual-system
+  change needs the evidence; any tool adoption, palette migration, validator,
+  dependency, or blocking-threshold change requires separate Gate 1 scope.
+  source: Swatch in `docs/sources.md` Batch 41; historical source MR !1061 |
+  status: parked question, no assessment or implementation commitment |
+  review-by: 2026-11
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
