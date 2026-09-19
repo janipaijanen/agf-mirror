@@ -1933,13 +1933,42 @@ correction, supersession, role authority, and false positives explicitly handled
   credibility rather than independent AGF relevance — general software-engineering practice
   writing, not prior art for this project's specific governance mechanisms.
 
+- https://medium.com/airbnb-engineering/eval-driven-development-lessons-from-evaluating-genai-at-scale-e817e5ae5788
+  type: practice | relation: evidence, prior-art, complement, threat-model |
+  action: cite, watch
+  note: Rohit Girme, Dan Miller, Mia Zhao, Lifan Yang, and Clint Kelly (Airbnb),
+  "Eval-driven development: Lessons from evaluating GenAI at scale" (published
+  2026-07-28). Airbnb's engineering guide reports a production-informed evaluation
+  practice: define goals and release gates early; derive narrow metrics from observed
+  failures; run deterministic checks before model judges; calibrate each judge against a
+  human-labelled set; retain a final human decision-maker; and evaluate an agent's retrieval,
+  tool calls, intermediate trajectory, and full pipeline rather than only its final output.
+  These are useful external practice signals for AGF's human Gate authority,
+  tool-authority boundary, exact-evidence discipline, and layered validation. They are not
+  proof that Airbnb's process produces safer or better outcomes, nor that judge/human
+  agreement in the high 80s–90s is a general assurance threshold: the article publishes no
+  dataset, comparative results, error distribution, or independent replication.
+
+  The guide also sharpens AGF's threat boundary. Calibrating an LLM judge does not establish
+  reviewer independence across session, model, vendor, prompt, or evidence channel. Its
+  recommendation to inspect and persist detailed traces can conflict with data minimisation,
+  confidentiality, retention, and psychological safety; AGF should prefer task-relevant,
+  consented or synthetic evidence and should not require hidden chain-of-thought. Production
+  sampling and de-identification are described by Airbnb but remain self-reported. Cross-
+  reference the existing radar items **Verification independence tiers**,
+  **Anti-rubber-stamping and governance-signal gaming**, **Outcome-metric interpretation risk
+  in governance dashboards**, and **Psychological safety vs surveillance**. No standalone
+  radar item and no numbered-release scope are created by this source intake. A future
+  unnumbered backlog question may compare trajectory evaluation with evidence minimisation if
+  a concrete AGF use case emerges. Evidence status: Empirically informed, not empirically
+  validated. (rechecked 2026-09-19)
+
 ## Evaluation boundary
 
-No radar entry: the primary article and its three closely-linked posts corroborate design
-decisions already made here rather than raising a new open or controversial question
-specific to AGF. Do not cite this batch as validation that AGF's specific implementation is
-correct — Aytas's posts describe the shape of the problem and a compatible direction, not
-this project's mechanisms, which he has not seen.
+No radar entry: these sources corroborate design decisions already made here rather than
+raising a new open or controversial question specific to AGF. Do not cite this batch as
+validation that AGF's specific implementation is correct — the sources describe compatible
+practice and the shape of the problem, not an independent evaluation of AGF.
 
 # Batch 25 (2026-08-16) — user-submitted candidate
 
