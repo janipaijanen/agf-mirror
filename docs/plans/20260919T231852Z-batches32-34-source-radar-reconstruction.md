@@ -24,6 +24,7 @@ depends_on:
   - "!2306"
   - "!2390"
   - "!2408"
+  - "!967"
 ---
 
 # Plan: reconstruct source and radar Batches 32–34 on current main
@@ -101,7 +102,13 @@ Before implementation and again immediately before Gate 2:
   titles, and edit regions for duplicates or allocation conflicts;
 - stop and refresh the reconstruction if a relevant target or MR changes.
 
-The three stale MRs are acknowledged in `depends_on` and remain open until the
+The three stale source-batch MRs and MR !967 are acknowledged in `depends_on`.
+The direct 2026-09-19 forge scan found that !967 also changes
+`docs/sources.md`, although its regulatory-source corrections are in an older
+historical batch rather than the Batch 32–34 insertion region. Treat that as a
+real path collision: if !967 advances or merges, refresh the target, rebase the
+implementation, and verify that both its corrections and the reconstructed
+batches survive. The three stale source-batch MRs remain open until the
 replacement carrier has merged. No other implementation branch may edit the
 same registry regions without an explicit sequencing disposition.
 
