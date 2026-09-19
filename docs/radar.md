@@ -254,6 +254,28 @@ Next review: 2026-10.
   `docs/sources.md` Batch 40 | status: compare mechanics only | review-by:
   2026-12
 
+- **Periodic Internet / AI-ecosystem landscape scan** — Which siblings,
+  complements, substitutes, and prior art materially change AGF's positioning
+  or warrant a separately governed experiment? The retained research contract
+  defines stable comparison axes, evidence classes, output limits, and the
+  boundary against outreach, adoption, integration, and public comparative
+  claims. Promote only when a concrete positioning or integration decision
+  needs the comparison. Full contract:
+  `docs/proposals/radar/965-ecosystem-landscape.md`; source: MR !965 | status:
+  parked question, no scan or implementation commitment | review-by:
+  2026-10-10
+
+- **Regulatory / AI-governance requirements landscape re-assessment** — Does
+  a concrete adopter request or compliance-evidence need justify a new,
+  bounded assessment against a governor-selected released baseline? The
+  retained contract preserves the required fact-checking, capability evidence,
+  applicability uncertainty, and structural-exclusion boundaries. Its dated
+  source material is historical and unverified; this entry makes no current
+  legal, regulatory, or compliance finding. Full contract:
+  `docs/proposals/reconstruct/973-regulatory-reassessment.md`; source: MR !973
+  | status: parked question, no assessment or legal conclusion | review-by:
+  2026-10-10
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
