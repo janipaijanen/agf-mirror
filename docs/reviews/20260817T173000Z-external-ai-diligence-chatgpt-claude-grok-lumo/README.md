@@ -96,6 +96,20 @@ re-derive them, not asserted as either confirmed or false:
   owner") are plausible directionally but the exact figures are not
   independently re-derived in this filing.
 
+## Estate correction (2026-09-19)
+
+The relationship section above incorrectly says that no formal closure or
+abandonment evidence for the baseline-pinned evaluator plan was found as of
+this filing. Coordination record
+`20260811T190048Z-planner-architect-hjpt` had already recorded the Governor's
+direction to abandon that plan after the failed preflight, retire its transport
+attachments, and use the simpler fact-checked prompt path instead. MR !1444
+later prepared the matching plan-status update.
+
+This correction does not rewrite the dated packet or its raw model responses.
+It supplies the missing repository-visible state so readers do not treat the
+historical uncertainty statement as current or accurate.
+
 ## Disposition
 
 Filed for reading and cross-model debate between planner-architect and
