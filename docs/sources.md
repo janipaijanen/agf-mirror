@@ -2877,3 +2877,52 @@ scope before changing palette tokens, adding tooling, or producing acceptance
 evidence. The corresponding non-binding question is retained in
 `docs/radar.md`; stale MR !1061 is the historical source of this refreshed
 classification.
+
+# Batch 42 (2026-09-19) — user-submitted durable-work control-plane candidate
+
+## Classified
+
+- https://github.com/kungfu-systems/kungfu/tree/f7c01a2f084d2c5939353a24c4bb920c1045eda4
+  type: tooling, framework, practice | relation: prior-art, competitor,
+  complement, threat-model | action: watch, compare-in-docs, evaluate
+  note: Kungfu, Apache-2.0-licensed v4 Alpha at reviewed default-branch commit
+  `f7c01a2f084d2c5939353a24c4bb920c1045eda4`, describes a local durable Work
+  layer that carries an objective, progress, evidence, next action, and
+  completion state across Codex, Claude, OpenCode, Amp, and other execution
+  surfaces. Its core Project/Work/Attempt split keeps failed or superseded
+  attempts beneath one continuing work identity; its project-local `.kungfu/`
+  workspace is mostly kept outside Git; and it refuses a second writer when a
+  live Agent already owns the Work. The documented completion boundary is a
+  close AGF structural parallel: an executing Agent produces a candidate and
+  evidence, while independent review and Kungfu settlement determine whether
+  Work is complete.
+
+  This is substantial primary-source prior art for cross-harness continuity,
+  explicit work identity, evidence receipts, failure recovery, exclusive work
+  ownership, and separation between production and acceptance. It is also a
+  coordination/work-continuity competitor and a useful threat model: if
+  `.kungfu/` state and AGF's Git-backed plan, coordination, MR, and gate trail
+  disagree, operators need one explicit canonical authority and a deterministic
+  reconciliation path. A Kungfu Work owner, reviewer, settlement result, or
+  successful demonstration has no AGF Gate 1, Gate 2, merge, release, or
+  governor authority.
+
+  Evidence is bounded. The project labels the product Alpha, not Stable or
+  generally available, and explicitly limits its published demonstrations to
+  exact-artifact continuity, recovery, and settlement scenarios rather than
+  provider rankings or production certification. Its known-limits material
+  lists unfinished compatibility enforcement and other qualification debt.
+  AGF has not installed or independently trialled the reviewed build. Treat
+  the mechanics as source-documented and the effectiveness evidence as
+  project-authored and, at most, Empirically informed. For AGF this remains a
+  Level 1 Planned evaluation candidate, not an instantiated integration.
+  (accessed 2026-09-19)
+
+## Evaluation boundary
+
+The matching radar item asks whether Kungfu's combined durable-work control
+plane adds value beyond AGF's repository-native records without creating a
+second authority channel. Do not install Kungfu, import `.kungfu/` state,
+create an integration issue, or adopt any Work/Attempt/settlement invariant
+without a separately approved plan and a bounded export, reconstruction,
+privacy, concurrency, and removability evaluation.
