@@ -10,6 +10,8 @@ advisory_consultation:
 affected_paths:
   - agf/rules/always/high-risk-operations-rule.md
   - .claude/rules/always/high-risk-operations-rule.md
+depends_on:
+  - 20260920T113336Z-governance-mode-classification
 ---
 
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -296,6 +298,17 @@ rule content only. Confirmed no gate mechanics touched, so
 this MR itself (it applies going forward to anyone editing the newly-
 named gate/coordination/release-mechanics areas this rule now points
 at).
+
+**Affected-paths collision, acknowledged:** `agov:governance:plan-
+collision-gate` correctly flagged `agf/rules/always/high-risk-
+operations-rule.md` as overlapping with the already-merged plan
+`20260920T113336Z-governance-mode-classification.md`, which listed this
+same path in its own `affected_paths` as a cross-reference (it read but
+did not edit this file). Acknowledged via this plan's `depends_on` field
+per `development-workflow-rule.md`'s "Affected-paths collision blocking"
+section — the two plans are sequentially related by design (this one is
+exactly the fast-follow that plan's decision `3es7` named), not an
+accidental double-edit.
 
 ## Rule-projection screen
 
