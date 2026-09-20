@@ -5,7 +5,7 @@ topic: distribution-scan-profiling-slice-b
 affected_paths:
   - tooling/rust/crates/agov/src/dist.rs
   - tooling/rust/crates/agov/tests/dist_scan_profile.rs
-  - tooling/rust/crates/agov/tests/fixtures/dist_scan_profile/**
+  - tooling/rust/crates/agov/tests/fixtures/dist_scan_profile.yaml
   - tooling/rust/crates/agov/Cargo.toml
   - docs/reviews/dist-scan-profiling/**
 advisory_consultation:
@@ -150,34 +150,59 @@ to a future optimization plan), but the fixture is built now so that
 baseline measurement and any future optimization measurement use the
 *same* fixed, reproducible checkout shape — not a moving target.
 
-Add `tooling/rust/crates/agov/tests/fixtures/dist_scan_profile/` (new,
-committed, synthetic — not the real repository tree) containing:
+**Corrected 2026-09-20** per Codex coder-tester implementation-readiness
+feedback on MR !3066 (advisory author-side input, not the binding
+independent contribution audit — Codex authored the parent !2679
+proposal and explicitly disclaimed audit authority): do not commit
+~500 synthetic fixture files. That adds a permanent repository/release-
+scan footprint to test a transient scale property, and this plan's own
+`affected_paths` already needs to stay narrow to avoid false
+plan-collision overlap with unrelated `tests/**`-touching plans. Instead,
+generate the fixture tree **at test runtime**, in a temporary directory,
+from a small, fixed, committed set of generator parameters:
 
-- a nested directory tree under one `/**`-glob include root, at least
-  4 levels deep, ~500 regular files (fixed count, committed, so
-  measurements are reproducible across machines and CI runners — not a
-  claim about the real repository's current file count),
-- at least one **untracked** file (present on disk, deliberately not
-  added to the fixture's own throwaway git init, if the harness uses a
-  real git repo; if the harness does not use git at all, this instead
-  means: present under the include glob root but outside any
-  git-index-based enumeration the harness might be tempted to
-  substitute),
-- at least one **nested** untracked file (2+ directories deep),
-- one **hidden** file/dir (dotfile, dot-directory),
-- one **symlink** (to a file inside the fixture root, and — as a
-  boundary/regression case — one attempted symlink escaping the fixture
-  root, which the existing `safe_join` containment must still reject;
-  this exercises existing behavior, unchanged by this plan),
-- a fixture manifest (`release-manifest.yaml`-shaped, schema_version 1)
-  matching the real manifest's *pattern shape* (`/**` includes, a
-  leading-`**` exclude pattern equivalent to `"**/__pycache__/**"`) at
-  much smaller, fixed scale, so pattern-shape cost (design hypothesis 2
-  above) is measurable in isolation from tree-size cost (hypothesis 1).
+Commit a single small generator-input file,
+`tooling/rust/crates/agov/tests/fixtures/dist_scan_profile.yaml`, stating
+the fixed parameters: tree depth (>=4), regular-file count (~500),
+untracked-file paths (including one nested 2+ directories deep), hidden
+file/dir paths, valid-symlink target, and one out-of-root symlink-escape
+attempt path. A committed `#[test]` in
+`tooling/rust/crates/agov/tests/dist_scan_profile.rs`:
 
-A committed `#[test]` in `tooling/rust/crates/agov/tests/dist_scan_profile.rs` runs
-`agov::dist::validate()` against this fixture (via the `dist-profile`
-feature) and asserts:
+1. reads the generator-input file,
+2. deterministically builds the tree under a fresh `tempfile::tempdir()`
+   from those exact parameters (fixed, not random — the same input
+   always produces the same tree shape and file count, so measurements
+   stay reproducible across machines and CI runners without committing
+   the generated files themselves),
+3. `git init`s the temporary directory and commits only the baseline
+   (tracked) subset the generator-input file designates,
+4. writes the untracked, nested-untracked, and hidden files **after**
+   that commit, so they are genuinely untracked on disk — exercising
+   real tracked/untracked semantics rather than simulating them,
+5. creates the valid symlink and the symlink-escape attempt (the latter
+   exercises existing `safe_join` containment, unchanged by this plan),
+6. writes a `release-manifest.yaml`-shaped manifest (schema_version 1)
+   into the temporary tree, matching the real manifest's *pattern
+   shape* (`/**` includes, a leading-`**` exclude pattern equivalent to
+   `"**/__pycache__/**"`) at this small, fixed scale, so pattern-shape
+   cost (design hypothesis 2 above) is measurable in isolation from
+   tree-size cost (hypothesis 1),
+7. asserts the generated tree matches the generator-input file's exact
+   declared counts (untracked, nested-untracked, hidden, symlink) before
+   any `dist::validate()` call — a fixture-integrity check, so a future
+   change to the generator cannot silently drift the fixture shape.
+
+This preserves the mandatory untracked/nested/symlink/hidden coverage
+`eeek`'s review note requires, and preserves reproducibility (the
+generator-input file is the reproducible artifact, not hundreds of
+generated files), while avoiding hundreds of low-information repository
+objects. `affected_paths` above reflects this: one generator-input file
+plus the test file, not a `fixtures/dist_scan_profile/**` glob of
+generated content.
+
+The same committed `#[test]` then runs `agov::dist::validate()` against
+the generated fixture tree (via the `dist-profile` feature) and asserts:
 
 - the untracked, nested-untracked, hidden, and valid-symlink files are
   correctly included or excluded per the fixture manifest's own
@@ -251,15 +276,17 @@ discipline, this plan cannot pre-authorize that follow-on work.
   the default build path, changing binary size or behavior. Mitigation:
   explicit `cfg(feature = "dist-profile")` gating verified by the
   no-feature build/test acceptance step above.
-- **Risk:** the fixed-fixture tree size (~500 files) is not
+- **Risk:** the fixed-fixture tree size (~500 generated files) is not
   representative of the real manifest's current scale, making the
   fixture measurement non-predictive of real-tree cost. Mitigation: this
   plan measures both the fixture *and* the real tree (design step 4);
   the fixture exists for reproducibility and pattern-shape isolation,
   not as a substitute for the real-tree number.
 - **Rollback:** revert the new `dist-profile` feature, the `dist
-  diagnose` subcommand, the fixture directory, and the new test file.
-  No schema, manifest, or release-artifact change to unwind.
+  diagnose` subcommand, the fixture generator-input file, and the new
+  test file. No schema, manifest, or release-artifact change to unwind,
+  and nothing generated at test runtime persists outside the temporary
+  directory it was created in.
 
 ## Related
 
@@ -275,6 +302,12 @@ discipline, this plan cannot pre-authorize that follow-on work.
   of the mandatory-fixture review note.
 - `docs/reviews/issue-53-current-ci-latency-reconstruction-2026-09-19.md` —
   the CI-latency evidence this plan's measurement target derives from.
+- Codex coder-tester note on MR !3066 (2026-09-20, GitLab MR discussion,
+  not a coordination file — advisory implementation-readiness input,
+  explicitly not the binding independent contribution audit since Codex
+  authored the parent !2679 proposal) — source of the 2026-09-20
+  correction replacing ~500 committed fixture files with test-runtime
+  generation from a small committed generator-input file.
 - `agf/rules/workflow/simplicity-rule.md` — no new dependency, minimal
   feature-gated instrumentation.
 - `agf/rules/workflow/development-workflow-rule.md`,
