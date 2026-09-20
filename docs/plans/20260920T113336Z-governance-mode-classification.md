@@ -4,9 +4,29 @@ status: pending-gate1
 topic: governance-mode-classification-light-normal-strict
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: not-applicable
+    reason: >-
+      Rule-content-only change touching no learning records, credentials,
+      or cross-record leak surface. `agov validate infosec` scans learning
+      records; this plan has no file under agf/learnings/ in its diff, so
+      that mechanical check has nothing to run against.
   - role: contribution-auditor
-    status: pending
+    status: waived
+    reason: >-
+      Same-actor limitation disclosed, not a fully independent audit: the
+      planner-architect statement and the contribution-auditor-lens
+      statement below were both produced by this same session/model
+      (claude-sonnet-5). Codex (the usual different-model contribution-
+      auditor player) is dormant (token-exhausted, expected back
+      ~2026-09-23). The governor was told this explicitly and directed
+      "proceed as proposed" anyway in the live session
+      (2026-09-20T~11:45Z), which this plan treats as the governor's
+      direct-assignment acceptance of self-analysis in place of an
+      independent audit -- the same resolution path used previously for a
+      genuine same-actor conflict (see coordination record `rn3m`,
+      2026-09-12, CP-B-1). A durable independent contribution-auditor
+      re-review by a different model remains available and welcome once
+      Codex is back; this waiver does not foreclose one.
 affected_paths:
   - agf/rules/workflow/simplicity-rule.md
   - .claude/rules/workflow/simplicity-rule.md
@@ -166,13 +186,11 @@ STRICT, full stop):**
   compliance claim, or a governed-decision rewrite (today's existing
   sources/radar fast-path disqualifier list, generalized to all work —
   unchanged in substance).
-- A contractual, compliance, legal, or externally-binding deliverable
-  (the governor's "contractual ERP requirements baseline" example) —
-  scope-changing or contract-changing in the sense the governor named.
-  **Named here as a STRICT trigger category by extension of the
-  governor's own example; this is new relative to
-  `high-risk-operations-rule.md`'s literal current list and needs
-  explicit Gate 1 confirmation** — see "Open question for Gate 1" below.
+- **Not included in this plan's STRICT list** (deferred, per the Gate 1
+  resolution below): contractual, compliance, legal, or externally-binding
+  deliverables — the governor's own "contractual ERP requirements
+  baseline" example. Routed to a fast-follow plan instead of this one; see
+  "Open question for Gate 1 — RESOLVED" below.
 
 **Step 2 — if none of the above apply, check LIGHT eligibility (today's
 fast-track criteria, unchanged):** cosmetic/local-impact task — typo,
@@ -189,34 +207,94 @@ plan → governor-reviewer approval → implementation → Gate 2 review →
 merge, exactly as `development-workflow-rule.md` and
 `systematic-code-review-rule.md` already require.
 
-### Open question for Gate 1
+### Open question for Gate 1 — RESOLVED
 
-The STRICT disqualifier list's last bullet (contractual/compliance/
-legal/externally-binding deliverables) is the one genuinely new trigger
-category in this plan — it is not literally present in
-`high-risk-operations-rule.md`'s current enumerated areas, though it
-matches the governor's own worked example. Two options for the governor
-to choose between at Gate 1:
+The STRICT disqualifier list's contractual/compliance/legal/externally-
+binding-deliverable trigger was the one genuinely new category in this
+plan — not literally present in `high-risk-operations-rule.md`'s current
+enumerated areas, though it matches the governor's own "contractual ERP
+requirements baseline" worked example. Two options were put to the
+governor at Gate 1: (1) include it now, accepting one ADDITIVE bullet
+alongside the otherwise-PREVENTIVE consolidation; or (2) defer it to a
+fast-follow plan that first customizes `high-risk-operations-rule.md` for
+AGF-NG's actual domain, keeping this diff byte-for-byte a rename-and-
+consolidate pass.
 
-1. **Include it now**, accepting this one bullet is ADDITIVE (a new
-   STRICT trigger) rather than pure PREVENTIVE consolidation, since
-   without it the governor's own motivating example wouldn't actually
-   classify as STRICT under this scheme.
-2. **Defer it**, keeping this plan's STRICT list byte-for-byte identical
-   to `high-risk-operations-rule.md`'s current areas plus
-   `downstream-impact-rule.md`'s BREAKING trigger plus
-   `gate-self-test-rule.md`'s gate-mechanics carve-out — nothing more —
-   and route "contractual/compliance/legal/externally-binding
-   deliverable" to a fast-follow plan that customizes
-   `high-risk-operations-rule.md` for AGF-NG's actual domain (see
-   "Observation for the governor" above), so the two changes don't land
-   in one diff.
+**Resolved 2026-09-20 (live session): option 2 (defer).** The governor
+directed "proceed as proposed," adopting this plan's author recommendation
+and the converged multi-role synthesis below. This plan's STRICT list is
+therefore exactly: `high-risk-operations-rule.md`'s current areas, plus
+`downstream-impact-rule.md`'s BREAKING trigger, plus
+`gate-self-test-rule.md`'s gate-mechanics carve-out — nothing more. The
+contractual/compliance/legal deliverable trigger is explicitly **not**
+part of this plan's scope; it is a named fast-follow (see "Observation for
+the governor" above), not silently dropped. See bridge/decision record
+referenced in this plan's `gate1_approved_by` field for the binding
+transcription of this instruction.
 
-This plan's author recommends option 2 (defer), to keep this diff a pure
-rename-and-consolidate pass with no new substantive obligation, and to let
-the `high-risk-operations-rule.md` customization get its own focused
-review rather than riding in in a bullet point. Stating both options
-rather than deciding unilaterally, per `uncertainty-and-scope-rule.md`.
+#### Role consultation summary (multi-role synthesis, single session)
+
+Before the governor's "proceed as proposed" instruction, this session
+was asked what its own agentic roles would propose on this exact
+question, and answered with the following per-role positions (transcribed
+here verbatim, per the governor's explicit "include the statements above"
+instruction). **Disclosure:** all four are this same session/model
+(claude-sonnet-5) reasoning from each role's mandate, not four
+independent reviewers — see the `advisory_consultation` waiver above for
+why that is being accepted rather than treated as blocking.
+
+> **planner-architect** (already on record in the plan): defer. Keep
+> MR !3074 a single-purpose consolidation diff — renaming existing tiers
+> vs. inventing a new obligation are different review questions, and
+> bundling them fails `branch-and-worktree-rule.md`'s own sizing test
+> ("can a reviewer answer one yes/no question?").
+>
+> **contribution-auditor**: also defer, on a sharper ground — this
+> repo's own pattern (`environment-interrogation-rule.md`,
+> `destructive-op-preflight-rule.md`, `boundary-shape-testing-rule.md`,
+> `deputy-governor-rule.md` — all shipped as "Provisional status" on
+> single-adopter/single-incident evidence, explicitly requiring
+> corroboration before promotion) is exactly what a contractual-
+> deliverable STRICT trigger would need. Right now the entire evidence
+> base for that trigger is one conversational example. Folding it into
+> STRICT as an unqualified MUST skips the evidence discipline the rest
+> of the codebase applies to itself. If it ships at all in this pass, it
+> should ship "Provisional," not co-equal with the existing
+> high-risk-operations list.
+>
+> **build-engineer**: a different objection — as scoped, this plan
+> doesn't actually buy machine speed yet. It's pure rule-text; no
+> pipeline runs faster, no CI job gets skipped, because mechanical
+> enforcement is explicitly deferred. The real "machine speed" payoff is
+> a follow-up that wires mode into CI path-scoping
+> (`ci-trigger-scoping-rule.md`'s pattern — LIGHT-tier changes skip the
+> heavy jobs the way governance-only MRs already do). Prioritize that
+> follow-up plan over debating one more STRICT bullet now.
+>
+> **coder-tester**: the disqualifier list currently mixes two kinds of
+> criteria — objective/path-based (mechanically checkable, e.g. "touches
+> `agf/rules/**`") and subjective ("is this a contractual/compliance
+> deliverable?", which needs human judgment). Anything meant to
+> eventually gain a negative self-test (per `gate-self-test-rule.md`)
+> needs to be in the mechanical half. Keep the subjective trigger out of
+> this pass, or at least flag it as advisory-only, not something a
+> future validator could check.
+>
+> **Convergent recommendation across all four**: defer the
+> contractual/compliance trigger to its own follow-up plan (paired with
+> the already-flagged `high-risk-operations-rule.md` customization),
+> keep this MR as pure consolidation, and prioritize a second follow-up
+> that wires mode into CI scoping — that's where "machine speed" actually
+> gets delivered, not in the rule text alone.
+
+The governor's "proceed as proposed" instruction adopts this converged
+recommendation. Two follow-ups are named, not scheduled by this plan:
+(a) customize `high-risk-operations-rule.md` for AGF-NG's domain and
+reconsider the contractual/compliance STRICT trigger there, with proper
+evidence framing (Provisional-status header, per this codebase's own
+pattern); (b) wire LIGHT/STRICT mode into CI path-scoping per
+`ci-trigger-scoping-rule.md`, which is where the actual runtime "machine
+speed" gain would come from.
 
 ## Affected files
 
