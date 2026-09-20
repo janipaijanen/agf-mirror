@@ -1,6 +1,8 @@
 ---
 id: 20260920T162709Z-high-risk-operations-domain-customization
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260920T194655Z-governor-reviewer-kgd8
+gate1_approved_at: 2026-09-20T19:46:55Z
 topic: high-risk-operations-rule-agf-ng-domain-customization
 advisory_consultation:
   - role: infosec-sentinel
