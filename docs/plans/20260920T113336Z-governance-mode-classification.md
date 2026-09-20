@@ -1,6 +1,8 @@
 ---
 id: 20260920T113336Z-governance-mode-classification
-status: pending-gate1
+status: approved
+gate1_approved_by: 20260920T115342Z-governor-reviewer-3es7
+gate1_approved_at: 2026-09-20T11:53:42Z
 topic: governance-mode-classification-light-normal-strict
 advisory_consultation:
   - role: infosec-sentinel
