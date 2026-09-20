@@ -75,10 +75,28 @@ against `agf/learnings/foundry.yaml`:
    release` command implementations, and `immutable-tags-rule.md`'s
    enforcement points. *Consequence if wrong: schema/config errors ship
    silently and, because tags are immutable once pushed, recovery costs
-   multiple patch releases against an already-broken version* —
-   evidenced by this project's own documented three-incident history
-   (v0.25.0, v0.38.0, v0.41.0), already cited as `gate-self-test-rule.md`'s
-   own motivating evidence.
+   a new patch version rather than a fix to the broken one.*
+   **Evidence correction (caught after this plan's first draft):**
+   `gate-self-test-rule.md` cites a "v0.25.0/v0.38.0/v0.41.0" three-
+   incident history as its own motivating evidence, sourced from
+   `agf/learnings/iron-gate.yaml`. Verified directly: that file does not
+   exist anywhere in this checkout (`agf/learnings/` contains only
+   `foundry.yaml` and `harbor-workshop.yaml`), and this repository's own
+   tag history starts at `v1.1.51`/`v2.0.0` — there is no `v0.25.0`,
+   `v0.38.0`, or `v0.41.0` tag or CHANGELOG entry here. That incident
+   history is not verifiable within this checkout and is **not** cited
+   as this area's evidence. Instead, this area's inclusion rests on
+   directly-verified in-repo mechanics: `.gitlab-ci.yml`'s
+   `agf:dist:release` job already asserts "the tag must match
+   `agf/VERSION` or this job fails before any archive is written" (a
+   server-side, tag-pipeline-embedded guard — not a bypassable
+   client-side hook), and the mandatory `release:namespace-check` MR job
+   independently verifies namespace absence before merge. Both already
+   exist specifically *because* this project treats release/tag
+   mechanics as high-stakes enough to warrant mechanical, unbypassable
+   enforcement — that existing investment is the evidence this area
+   belongs on the STOP-and-plan-first list, not a borrowed incident this
+   checkout cannot independently check.
 
 4. **Agent role/authority manifest edits** — specifically the
    `played_by` and `status` fields in `agf/agents/MANIFEST.yaml` and each
@@ -107,12 +125,16 @@ against `agf/learnings/foundry.yaml`:
    logic" item, already present in this project's own schema vocabulary
    rather than invented.
 
-Two of six areas (1 and 4) do not yet have a documented incident at the
-severity of `hv3k` or the iron-gate three-incident history — flagged
-honestly per `verifiable-claims-rule.md` rather than overclaimed; their
-inclusion rests on structural analogy to the original rule's audit-log
-and RLS items (both "silent corruption of a trust boundary with delayed
-detection"), not on a recorded incident. If a reviewer judges that
+Three of six areas (1, 3, and 4) do not have an in-repo-verifiable
+recorded incident behind them — only `hv3k` (area 2) does. Flagged
+honestly per `verifiable-claims-rule.md` rather than overclaimed: areas 1
+and 4 rest on structural analogy to the original rule's audit-log and RLS
+items (both "silent corruption of a trust boundary with delayed
+detection"); area 3 rests on this project's own existing mechanical
+investment in tag/release guards (see the evidence correction above), not
+on the borrowed, unverifiable three-incident narrative the first draft of
+this plan mistakenly cited as "this project's own." If a reviewer judges
+that
 insufficient for STRICT-tier inclusion, downgrading either to NORMAL
 (still requires full Gate 1, just not the STOP-before-starting pause)
 is a reasonable Gate 1 finding this plan does not foreclose.
@@ -160,9 +182,18 @@ Impact:
                      documentation-rule-projection-rule.md's baseline-
                      audit-scope precedent for the same principle).
   Evidence:         20260803T212420Z-hv3k (gate-authority validation
-                     logic); the v0.25.0/v0.38.0/v0.41.0 three-incident
-                     history already documented in
-                     gate-self-test-rule.md (release/tag mechanics).
+                     logic, area 2 -- independently verified in
+                     agf/learnings/foundry.yaml). Release/tag mechanics
+                     (area 3) is evidenced by this project's own existing
+                     mechanical enforcement (agf:dist:release's tag-vs-
+                     VERSION guard; release:namespace-check), not by the
+                     v0.25.0/v0.38.0/v0.41.0 narrative gate-self-test-
+                     rule.md cites -- verified directly that neither the
+                     backing learnings/iron-gate.yaml file nor those
+                     version tags/CHANGELOG entries exist anywhere in
+                     this checkout, so that narrative is not usable as
+                     this plan's evidence. See "Grounded evidence for
+                     each area" above for the correction.
 ```
 
 ## Proposed content (draft — subject to Gate 1 review)
@@ -199,9 +230,10 @@ Replace `high-risk-operations-rule.md`'s single flat STOP list with:
     `agov:oci:release` CI jobs, the `agov dist`/`agov release` command
     implementations, and `immutable-tags-rule.md`'s enforcement points.
     *Consequence if wrong: errors ship silently and, because tags are
-    immutable once pushed, recovery costs multiple patch releases
-    against an already-broken version (this project's own v0.25.0,
-    v0.38.0, v0.41.0 incidents).*
+    immutable once pushed, recovery costs a new patch version rather
+    than a fix to the broken one — exactly what `agf:dist:release`'s
+    tag-vs-VERSION guard and `release:namespace-check` already exist to
+    prevent.*
   - **Agent role/authority manifest edits** — the `played_by` and
     `status` fields specifically in `agf/agents/MANIFEST.yaml` and each
     `agf/agents/*.yaml`. *Consequence if wrong: silently reassigns who
@@ -232,9 +264,10 @@ Replace `high-risk-operations-rule.md`'s single flat STOP list with:
 ## CUSTOMIZE
 
 The list above is AGF-NG's own configured high-risk-area list —
-grounded in this project's incident history (learning
-`20260803T212420Z-hv3k`; the v0.25.0/v0.38.0/v0.41.0 release incidents)
-rather than invented, and kept here as a worked example. **Adopters
+grounded in this project's own verified incident and enforcement
+history (learning `20260803T212420Z-hv3k`; the tag-vs-VERSION and
+namespace-absence guards already in `.gitlab-ci.yml`) rather than
+invented, and kept here as a worked example. **Adopters
 building a different kind of project MUST replace this list with their
 own domain's high-risk areas** — the original generic SaaS-application
 example this rule shipped with (audit log pipeline, access control,
@@ -289,10 +322,17 @@ No code under test — rule-content-only change. Verification is:
 
 ## Risks
 
-- **Overclaiming evidence risk**: areas 1 and 4 (coordination integrity,
-  role-manifest edits) don't have an incident at `hv3k`'s or iron-gate's
-  documented severity. Addressed above by explicit disclosure rather
-  than presenting all six areas as equally evidenced.
+- **Overclaiming evidence risk**: caught once already in this plan's own
+  drafting -- the first draft cited a "v0.25.0/v0.38.0/v0.41.0" three-
+  incident history as "this project's own documented" evidence for area
+  3, sourced from `gate-self-test-rule.md`'s citation of a
+  `learnings/iron-gate.yaml` file that does not exist anywhere in this
+  checkout, and version tags that do not exist in this repository's own
+  history (which starts at `v1.1.51`/`v2.0.0`). Corrected before this
+  plan reached Gate 1 review; see "Grounded evidence for each area"
+  above. Areas 1 and 4 (coordination integrity, role-manifest edits)
+  remain without a specific recorded incident and are disclosed as such
+  rather than presented as equally evidenced to `hv3k`.
 - **Path-drift risk**: naming specific file/crate paths in a rule
   (rather than only conceptual areas, as the original generic list did)
   makes the rule more concrete but also more likely to go stale as the
