@@ -65,29 +65,74 @@ Stop and reconsider if you find yourself:
 - Introducing a pattern the rest of the codebase does not use
 - Reaching for a design pattern by name before understanding the problem
 
-## Calibrating workflow overhead to task size
+## Governance mode: LIGHT / NORMAL / STRICT
 
-Not every task needs the full multi-phase workflow from development-workflow-rule.
+Not every task needs the same process weight. "Fix two paragraphs" and "add
+a new route" do not warrant the same ceremony, and neither of those warrants
+the ceremony a change to gate mechanics or a genuinely high-risk area needs.
+Every task is classified into exactly one of three modes before work starts.
 
-| Task type | Workflow required |
-|-----------|------------------|
-| Typo, comment, ordinary doc update | Branch, edit, test, merge request |
-| Single-file bug fix with obvious cause | Fix -> test -> commit |
-| New field on existing model | Plan note + migration + test + commit |
-| New route or service | Full plan file + TDD + review checklist |
-| Cross-cutting change (>3 modules) | Full workflow + worktree |
-| Refactor of existing code | Characterisation tests first, then refactor |
+The classification is a heuristic self-check the acting session runs, not a
+mandatory human pre-declaration -- but any human or coordination record may
+explicitly declare a mode, and an explicit declaration overrides the
+heuristic result when they disagree (a human declaring STRICT on a change
+the heuristic would call LIGHT always wins; the reverse requires the
+disqualifier list below to genuinely not apply).
 
-When in doubt: choose the lighter process that still satisfies the applicable
-branch and review rules. Upgrade if the task grows.
+**Step 1 -- check STRICT disqualifiers first (if any apply, mode is STRICT,
+full stop):**
+- Touches any [`always/high-risk-operations-rule.md`](../always/high-risk-operations-rule.md)
+  named area.
+- Touches any [`always/downstream-impact-rule.md`](../always/downstream-impact-rule.md)
+  trigger path **and** is classified BREAKING under that rule's Parnas test.
+- Is gate mechanics per [`always/gate-self-test-rule.md`](../always/gate-self-test-rule.md)
+  (introduces or modifies a git hook, validator, CI check, pre-commit
+  script, or MR-blocking rule) -- always STRICT regardless of diff size.
+  At diff level a weakening and a fix look identical, so "it's one line" is
+  not evidence that a gate change is low-risk -- it is exactly the shape a
+  weakening takes. A revert of a gate change is still a gate change.
+- PII, security boundary, architecture, or data-model change.
+- Public AGF product/marketing/competitive/performance/maturity/compliance
+  claim, or a governed-decision rewrite.
 
-**Fast-track waiver:** When using the lighter process (skipping the plan file), record the waiver in the commit message: what task, why low-risk. If the task turns out larger than expected, stop and write a plan -- do not continue without one. Not eligible: PII, security boundaries, architecture, data model changes, or **gate mechanics** -- any change to a gate, schema, validator, CI check, merge policy, or release policy.
+**Step 2 -- if none of the above apply, check LIGHT eligibility:**
+cosmetic/local-impact task -- typo, comment, ordinary doc update, a
+single-file bug fix with an obvious cause, a new field on an existing model,
+or a narrow reversible research-maintenance edit to `docs/sources.md`/
+`docs/radar.md` meeting that section's own eligibility list below. If
+eligible: skip the separate Gate 1 plan file; record the fast-track waiver
+in the commit message (what task, why low-risk). If the task turns out
+larger than expected, or grows mid-flight into a STRICT or NORMAL shape,
+stop and write a plan -- do not continue on the lighter path past the point
+it fits.
 
-**Gate mechanics are ineligible regardless of diff size.** A one-line change to a validator, a CI rule, or a hook is a gate change and takes the full path: Gate 1, and the negative test that [`always/gate-self-test-rule.md`](../always/gate-self-test-rule.md) requires for a modification as well as an introduction. This is deliberate and it is the one place where the size-calibration table above does not apply. At diff level a weakening and a fix look identical, so "it's one line" is not evidence that a gate change is low-risk -- it is exactly the shape a weakening takes. A revert of a gate change is still a gate change. This aligns the general waiver with the disqualifier list the narrow research fast path below already applies.
+**Fast-track commits must not include a version bump, CHANGELOG entry, or
+git tag.** These are work commits -- they accumulate on the main branch
+until the next release. Tagging a fast-track commit causes version creep.
 
-**Fast-track commits must not include a version bump, CHANGELOG entry, or git tag.** These are work commits -- they accumulate on the main branch until the next release. Tagging a fast-track commit causes version creep.
+**Step 3 -- otherwise, NORMAL:** full plan file + TDD + review checklist for
+a new route/service; full workflow + worktree for a cross-cutting change
+touching more than three modules; characterisation tests first for a
+refactor of existing code. Full Gate 1 plan -> governor-reviewer approval ->
+implementation -> Gate 2 review -> merge, exactly as
+[`development-workflow-rule.md`](development-workflow-rule.md) and
+[`systematic-code-review-rule.md`](systematic-code-review-rule.md) already
+require.
 
-## Sources/radar research-maintenance fast path
+When in doubt: choose the lighter mode that still satisfies the applicable
+branch and review rules, and upgrade the moment the task grows past it.
+
+*Note for adopters extending this classification:* a category naming
+contractual, compliance, legal, or externally-binding deliverables as an
+additional STRICT trigger was proposed and deliberately deferred (governor
+decision `20260920T115342Z-governor-reviewer-3es7`) pending a fast-follow
+plan that first customizes `always/high-risk-operations-rule.md` for the
+adopting project's own domain, so that a new substantive obligation doesn't
+ride in alongside this rename-and-consolidate pass. Projects with real
+contractual/compliance deliverables should treat that as open follow-up
+work, not as already covered here.
+
+## Sources/radar research-maintenance fast path (a LIGHT-tier example)
 
 A reversible research-maintenance change may skip a separate Gate 1 plan,
 contribution audit, and pre-change coordination MR only when **all** of these
