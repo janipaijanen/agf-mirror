@@ -2575,6 +2575,315 @@ creates, amends, or pre-approves such a rule, which would require full Gate 1.
 Do not cite the 60–80% figure as an AGF measurement; it is the researcher's
 reported result for their own variants.
 
+# Batch 32 (originally reviewed 2026-09-01; reconstructed 2026-09-20) — multi-agent operator plane
+
+## Classified
+
+- https://github.com/agentconnect-md/agentconnect/tree/4eff3b12cf296cd4bde216dae6155f9352fa814e
+  architecture: https://github.com/agentconnect-md/agentconnect/blob/4eff3b12cf296cd4bde216dae6155f9352fa814e/docs/designs/architecture.md
+  current-check: https://github.com/agentconnect-md/agentconnect/tree/39dd463c6561f86d015526ae6c0819c6131ae872
+  type: tooling, framework | relation: complement, prior-art | action:
+  compare-in-docs, watch
+  note: AgentConnect's Apache-2.0 repository describes an operator/runtime plane
+  that connects people and ACP-compatible agents through chat and forge
+  surfaces. At the retained reviewed revision, its daemon and control-plane
+  architecture owns sessions, schedules, agent processes, authentication,
+  configuration, placement, permissions, metadata, and observability outside
+  the governed repository. Current `main` was rechecked only for project
+  identity and licence; this entry does not silently refresh the historical
+  architectural assessment. The design is useful prior art for an AGF-adjacent
+  interaction plane, while Git records and human Gate 1/Gate 2 decisions remain
+  canonical. Any future comparison must test export and deterministic
+  reconstruction, identity mapping, acknowledgement and retry behavior,
+  concurrent ownership, exact commit/MR/plan linkage, retention, failure
+  recovery, and removal. These are source-described capabilities, not AGF
+  controls or evidence of governance outcomes.
+
+## Evaluation boundary
+
+This batch classifies one source and amends an existing radar question. It does
+not install, bridge, import, export, trial, or depend on AgentConnect, and it
+grants AgentConnect no role, gate, scheduling, or review authority.
+
+# Batch 33 (originally reviewed 2026-09-05; reconstructed 2026-09-20) — MCP governance, authentication, skills, memory, and context
+
+Eleven candidates are classified. One unrelated candidate is recorded as
+reviewed-and-dropped. Repository links are pinned to revisions rechecked on
+2026-09-20; dynamic pages were retrieved on that date. Volatile popularity and
+repository-size counts were removed because they do not affect classification.
+
+## Classified
+
+- https://github.com/OWASP/OWASP-MCP-Governance-and-Risk-Project/tree/60cc8b5f19d5db325e27b2f83c2b1dc9e93b3097
+  type: framework | relation: complement, prior-art, demand-driver | action:
+  cite, compare-in-docs, watch
+  note: This GPL-2.0 repository describes a v1.0 organizational framework for
+  inventorying, classifying, risk-scoring, and governing MCP servers, including
+  source-authored hard gates and mappings to OWASP, NIST, ISO, and SOC 2
+  material. Its server-admission scope differs from AGF's development
+  governance, but an adopter may need `agov-mcp` and other MCP use to answer to
+  such a rubric. Placement in the OWASP GitHub organization does not by itself
+  establish an OWASP project maturity category; none is asserted here. The
+  framework's policy text is cited and paraphrased, not imported into AGF.
+
+- https://github.com/glama-ai/tool-definition-quality-score/tree/b9881b0cfec88969e42672c92544487ca191a992
+  type: framework, tooling, research | relation: complement, evidence | action:
+  compare-in-docs, watch, verify
+  note: Glama's Tool Definition Quality Score specifies a rubric and pipeline
+  for rating what MCP tool definitions communicate to agents. The repository
+  identifies deterministic stages and an LLM-evaluation stage, and cites
+  external studies for defect and tool-selection findings. This is relevant to
+  the descriptions exported by `agov-mcp`, but the rubric has not been run on
+  AGF here. No licence file was verified at the reviewed revision, so the item
+  remains citation-only. Study figures and registry claims remain attributed
+  to Glama and the cited papers rather than to AGF.
+
+- https://aliasunder.dev/posts/oauth-2-1-for-a-personal-mcp-server/
+  related-source: https://github.com/aliasunder/vault-cortex/tree/805a85d9fee11dd33c272a22c2cd8f13d277e79b
+  type: practice, discussion | relation: prior-art, evidence | action:
+  compare-in-docs, watch
+  note: A single author's 2026 experience report about the OAuth 2.1 and PKCE
+  implementation used for a personal MCP server. It describes token lifetime,
+  consent, refresh rotation, HMAC-keyed storage, reuse-triggered grant
+  revocation, gateway behavior, rate-limit repair, and audit logging in that
+  deployment. Operational counts, incidents, risk ratings, and conclusions are
+  the author's reports; they are not independently reproduced, reusable
+  security guidance, production validation, or an endorsed OTGR design. The
+  related repository is MIT at the pinned revision. (retrieved 2026-09-20 UTC)
+
+- https://github.com/slxca/opencontext/tree/cc1e5e2476636fbca593828a6764c30ceb6b7066
+  site: https://www.opencntx.dev/
+  type: tooling, practice | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: OpenContext's MIT repository describes an MCP server that stores
+  project-local advisory memory as plain Markdown under `.opencontext/`, with
+  Git providing reviewable history and no required cloud or vector database.
+  This converges with AGF's plain-file and removability preferences, but the
+  memory remains an assistant aid and cannot replace coordination, plans, or
+  gate records. No effectiveness claim is adopted. (site retrieved 2026-09-20
+  UTC)
+
+- https://github.com/Octonove/crbro-memory/tree/e7629c236965fc851b72f5e0e8c1639ebe3ca3e2
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: CRBRO's MIT repository describes a local MCP memory server using
+  readable local records, lexical retrieval, optional local embeddings,
+  correction/retraction mechanics, credential redaction, optional OS-keychain
+  storage, and serialized writes. Its measurements and capability claims are
+  project-authored and were not reproduced. It is prior art for advisory
+  memory; it acquires no durable-record or authority role in AGF.
+
+- https://github.com/Bharathcoorg/intermcp/tree/06d11ba93220f6f79ae0a19a5fddcf2ddccbd9ef
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: InterMCP's MIT repository describes a Rust MCP engine and multiplexer
+  with namespaced child tools plus source-described filesystem containment,
+  redaction, loop detection, approvals, and supply-chain checks. Those
+  mechanisms were not tested here and do not establish a sandbox, policy, or
+  security boundary for AGF. Performance language in the repository is omitted
+  because it is project-authored and unnecessary to this classification.
+
+- https://blog.logrocket.com/skills-vs-mcp-tools-agent-guide/
+  type: discussion, practice | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: Ikeh Akinyemi's 2026-08-25 article contrasts schema-bound MCP tools with
+  natural-language skills and argues for placing deterministic work where
+  failures are visible. It is a secondary, ecosystem-oriented discussion, not
+  independent validation, but is relevant prior art for AGF's split between
+  interpretive skills and the deterministic `agov`/`agov-mcp` surface.
+  (retrieved 2026-09-20 UTC)
+
+- https://github.com/gengirish/skills-mcp/tree/f8155367e5bd79b0c0a7ef3596559599d56161e6
+  type: tooling | relation: prior-art, threat-model | action: watch
+  note: This MIT-licensed MCP server describes a generated catalog that can
+  search and install agent skills sourced from multiple GitHub repositories.
+  Dynamic catalog counts were removed. The relevant AGF signal is both
+  assistant-neutral discovery and the corresponding untrusted-input boundary:
+  fetching a third-party skill introduces executable instructions into an
+  agent's context. The catalog is not trusted, installed, or proposed as a
+  distribution channel here.
+
+- https://github.com/deepmemteam/deepmem-claude-plugin/tree/e4bd7a99a38f127fdd9f34096336821615d6d664
+  type: tooling | relation: prior-art | action: watch
+  note: The repository describes a Claude plugin that writes and searches
+  persistent memory through a hosted DeepMem API. Its README requires an API
+  key but does not establish the provider's retention, encryption, or data-use
+  terms. No licence file was verified at the reviewed revision, so this entry
+  is citation-only. It is a privacy and removability contrast to local durable
+  records, not a recommendation or security assessment.
+
+- https://context.apimatic.io/
+  source: https://github.com/context-plugins/plugin-marketplace/tree/d09ec8bd4784b5c7c7af49b3efd9041c1842472a
+  type: tooling, practice | relation: complement, demand-driver | action: watch
+  note: APIMatic's commercial site presents an API Context Marketplace for
+  installing API-specific context plugins across coding assistants; the linked
+  marketplace repository is MIT at the reviewed revision. This is
+  context-provisioning for integration work rather than governance. It is a
+  signal that context is becoming a packaged dependency, with provenance and
+  untrusted-input questions, but it creates no AGF authority or integration
+  commitment. (site retrieved 2026-09-20 UTC)
+
+- https://github.com/haukebri/mira-test-engineer/tree/98eeed86e074a50e20715f68245b7f28fd10d4ea
+  type: tooling, practice | relation: prior-art, complement | action: watch
+  note: Mira Test Engineer's MIT repository packages skills for reviewing and,
+  only after explicit approval, deleting or consolidating weak tests. It is
+  minor prior art for test-hygiene and cross-harness skill packaging. The
+  project supplies no independent evidence that its process improves outcomes;
+  no skill or deletion policy is adopted here.
+
+## Reviewed and dropped
+
+- https://hooklayer.dev/ — the submitted product scores the marketing hook and
+  predicted virality of short-form video. It does not concern coding-agent
+  hooks, Git hooks, webhooks, policy enforcement, or agent observability, so it
+  is outside AGF's scope.
+
+## Evaluation boundary
+
+This batch classifies public material and amends or adds non-binding radar
+questions. It does not install, trial, copy, map to, conform to, or depend on
+any of the projects, frameworks, hosted services, or practices. Authentication,
+credential, revocation, sandbox, supply-chain, and policy statements above are
+source-attributed descriptions rather than AGF controls or assurances.
+
+# Batch 34 (originally reviewed 2026-09-05; reconstructed 2026-09-20) — governance frameworks, coordination, spend, review, and diagram tooling
+
+Twelve candidates are classified. Repository links are pinned to revisions
+rechecked on 2026-09-20; dynamic pages were retrieved on that date. Volatile
+popularity, activity, and deployment counts were removed by default.
+
+## Classified
+
+- https://github.com/asalsali/covenant-framework-community/tree/8674b9585a7ece8a70875ab40c5d66a68e6365d8
+  type: framework | relation: competitor, prior-art | action: compare-in-docs,
+  watch
+  note: The Covenant repository describes structural multi-agent governance for
+  coding assistants using named roles, commands, a constitution, lifecycle
+  checkpoints, and memory/exit records. Its custom Covenant Public License
+  v1.0 is verified at the pinned revision and requires due diligence before any
+  reuse. Benchmark and effectiveness claims are project-authored and omitted.
+  The comparison records conceptual overlap only; it asserts no AGF
+  superiority or compatibility.
+
+- https://github.com/fulcrumaxe/fulcrumaxe/tree/a88b279da9dc31f4803a6f316c3b68739c2a1ed5
+  site: https://fulcrumaxe.dev/
+  type: framework, tooling, practice | relation: competitor, prior-art | action:
+  compare-in-docs, watch
+  note: FULCRUMAXE's AGPL-3.0 repository and site describe an autonomous team
+  operating through GitHub Discussions and pull requests, with role-separated
+  review, source-described mandatory security review for selected paths, and
+  isolated worktrees with write-containment hooks. These are project claims,
+  not verified controls or independent deployment evidence. They are useful
+  prior art for review routing and worktree boundaries. (site retrieved
+  2026-09-20 UTC)
+
+- https://github.com/wistrand/radia/tree/c5f3e273635b3965d944578e291e330ee35dd874
+  site: https://radia.sh/
+  type: framework, tooling | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: Radia's Apache-2.0 repository describes a content-routed coordination
+  runtime: participants publish immutable JSON records, workers match patterns
+  and claim work under fenced renewable leases, and new records carry results
+  and lineage. The current README explicitly says there is no independent
+  deployment history and documents remaining hardening. This is non-binding
+  prior art for AGF's coordination and lease questions, not a prerequisite,
+  dependency, authorization layer, or effectiveness result. (site retrieved
+  2026-09-20 UTC)
+
+- https://github.com/ShapeStudio/bridle/tree/6052e1b8ada5aeac1dc669776043be56ab7c685e
+  site: https://www.bridle.network/
+  type: protocol, tooling | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: Bridle's Apache-2.0 repository and pre-release site describe typed
+  agent-to-agent envelopes, bilateral opt-in, local policy evaluation,
+  source-described default-deny handling for elevated actions, and replayable
+  logs. The site also states that no downloadable coordination server exists
+  yet. This is prior art for consent, identity, and cross-operator exchange;
+  it is not an AGF integration, security assurance, or gate mechanism. (site
+  retrieved 2026-09-20 UTC)
+
+- https://machinetestimony.org/census/2026-09/
+  type: research | relation: prior-art, evidence, demand-driver | action: cite,
+  compare-in-docs, watch
+  note: Machine Testimony's September census assesses named, pinned revisions
+  of eight agent systems against its own Testimony Record specification and
+  publishes file-level evidence. The page identifies the operator as Garnet
+  Taurus Ltd., discloses that the reference implementation is among the
+  assessed systems, and states that the programme is neither a registered
+  institute nor a certification body. Its census text is CC BY 4.0 and its
+  schema/tools are stated as MIT. Results are the programme's assessment of
+  those revisions, not an established standard, certification, or evidence
+  that AGF would receive any result. (retrieved 2026-09-20 UTC)
+
+- https://github.com/alpbahadur/interns-review-plugin/tree/40e828af676e566c53462197db2cdb5fbc4485eb
+  type: tooling, practice | relation: prior-art, complement | action:
+  compare-in-docs, watch
+  note: This MIT plugin describes spawning multiple reviewer subagents to
+  challenge a proposal before implementation and recording accepted or
+  rejected findings. Same-harness or same-model subagents do not thereby meet
+  AGF's governed independence criteria. The item is convergence prior art for
+  risk-scaled review and finding verification, not independent review evidence.
+
+- https://github.com/theagentplane/tokenops/tree/bb34459996fc52fa1ee0d35ac4b57d8042b50321
+  type: tooling, framework | relation: complement, prior-art | action: watch,
+  compare-in-docs
+  note: TokenOps' MIT repository describes a control plane and client wrapper
+  that evaluate run-scoped token budgets before model calls and can apply
+  configured stop, throttle, or mutation policies. The repository's savings and
+  performance claims are self-reported and are not AGF measurements. This is
+  runtime-interposition prior art adjacent to `agov token roi`, not a proposed
+  AGF spend gate, dependency, or policy authority.
+
+- https://github.com/actradeck/actradeck/tree/f1079bd4246f2020a5d2c3aee7a064abe649b887
+  type: tooling | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: Actradeck's Apache-2.0 repository describes a local operator cockpit
+  with approval holds, pattern-based secret redaction, and replayable agent
+  activity. Its own documentation qualifies detection as best-effort rather
+  than a sandbox or absolute security boundary. It is prior art for runtime
+  observation and interception, not an AGF control or security endorsement.
+
+- https://github.com/bob-codedaptive/fleet-generator/tree/1a3986ab9e634d73531ed382a6a03a93f90933a4
+  type: tooling | relation: prior-art, complement | action: watch
+  note: Fleet Generator's MIT repository describes a browser-based generator
+  for role definitions, skills, hooks, commands, and assistant configuration.
+  It is packaging prior art for installable agent teams. Generated role names,
+  hooks, and reported token figures have no AGF authority and were not tested.
+
+- https://github.com/bybit-exchange/svg-diagram/tree/c30c9e3bc9a70f2b77b60c7ea27157de3a88d81a
+  type: tooling | relation: prior-art, complement | action: watch
+  note: This MIT repository packages diagram instructions and an SVG linter
+  that checks produced artifacts against a house style. It is prior art for
+  output-level visual verification and plain-text diagrams; no skill, style,
+  or validator is adopted here.
+
+- https://github.com/franciscocarloserra/local-multi-agent-swarm/tree/652952ef74d605712ee5e83982e587e43a9a7354
+  type: tooling, research | relation: prior-art | action: watch
+  note: The repository describes a local multi-agent orchestration research
+  harness with a dashboard, bounded retries, a supervising judge, persistent
+  state, and optional process isolation. No licence file was verified at the
+  reviewed revision, so the item remains citation-only. All capability and
+  safety language is project-authored and untested here.
+
+- https://conversion.ai/blog/text-to-query-agent/
+  type: practice, discussion | relation: prior-art | action: watch
+  note: Conversion's engineering article describes a text-to-query agent using
+  tool-assisted schema discovery, a smaller intermediate representation, and a
+  semantic benchmark. Latency, cost, model, and correctness figures are the
+  company's self-reported results and are omitted from AGF claims. The narrow
+  relevance is the division between model interpretation and deterministic
+  validation; the article supplies no governance mechanism. (retrieved
+  2026-09-20 UTC)
+
+## Evaluation boundary
+
+This batch classifies public material and amends non-binding radar questions.
+It does not install, trial, import, compete with, or depend on any of these
+projects, protocols, services, or practices. Their identities, approvals,
+policies, audit records, immutable records, sandboxes, reviews, and gates do not
+become AGF authority or controls. Source-authored benchmarks and operational
+claims are not AGF measurements.
+
 # Batch 36 (2026-09-12) — user-submitted candidate (tiered role-ceiling agent system)
 
 Numbered 36 to avoid the "Batch 32"/"Batch 33"/"Batch 34"/"Batch 35" headers

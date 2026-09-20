@@ -61,6 +61,17 @@ Next review: 2026-10.
   immature, converging. Trigger to act: a stable draft with a real security section, or an
   adopter requiring signed provenance. review-by: 2027-01
 
+- **Adjacent MCP server-admission governance vs AGF development governance** — the OWASP-hosted
+  MCP Governance and Risk repository describes inventory, classification, scoring, evidence,
+  and hard-gate mechanics for deciding whether an MCP server may operate in an organisation.
+  AGF governs development roles, evidence, and human gate decisions, so the scopes overlap but
+  are not substitutes. The open question is whether AGF should cite or map its `agov-mcp` and MCP
+  adopter surfaces to such a rubric, or keep the layers explicitly separate. Organisation
+  placement does not establish a formal OWASP project maturity category, and no conformance is
+  claimed. Trigger to act: verified formal status plus a stable mapping, or an adopter asking AGF
+  to satisfy it. source: OWASP MCP Governance and Risk in `docs/sources.md` Batch 33 | status:
+  compare scopes, no conformance or implementation proposed | review-by: 2027-01
+
 - **Agent-BOM / input provenance** — CycloneDX #895 open proposal; governs what agents
   *consume*. Novel territory, format unsettled. review-by: 2027-01
 
@@ -75,33 +86,38 @@ Next review: 2026-10.
   now. review-by: 2027-01
 
 - **Governance proxy / LLM-gateway layer** — rejected 2026-07 under the removability
-  principle (observation-only variant conceivable). Kept on radar because industry pressure
-  toward runtime interposition keeps growing (ACS, Enforra, Tenure). review-by: 2027-01
+  principle (observation-only variant conceivable). Runtime interposition keeps growing:
+  TokenOps applies run-scoped spend policy before model calls, while Actradeck holds selected
+  agent actions for operator review. The unresolved AGF question is whether an advisory spend
+  or activity signal adds value without becoming a required runtime, policy authority, or
+  second gate. Their enforcement and savings claims remain project-authored. sources: TokenOps
+  and Actradeck in `docs/sources.md` Batch 34 | review-by: 2027-01
 
-- **External context graph vs canonical repository trail** — Piyaz represents tasks,
-  dependencies, decisions, execution records, and activity in a live PostgreSQL-backed graph
-  shared through MCP and a web UI. That could complement AGF's compact repository records and
-  downstream-impact work, but it could also create split-brain authority when the graph and Git
-  disagree. A bounded evaluation must test export and deterministic reconstruction, immutable
-  history versus editable records, identity and authorization, concurrent claims and stale
-  writes, exact commit/MR/plan linkage, hosted-data privacy and retention, migration, and clean
-  removal. Any projection must leave AGF's repository trail and human gate decisions canonical;
-  a Piyaz status, hint, or review verdict acquires no AGF authority. source: Piyaz v0.4.13 in
-  `docs/sources.md` Batch 20 | status: evaluate, not adopt | review-by: 2026-11
+- **External operator/context planes vs canonical repository trail** — Piyaz represents tasks,
+  dependencies, decisions, execution records, and activity in a live graph; AgentConnect adds
+  the adjacent operator/runtime case, connecting people and agents through chat and forge
+  surfaces while sessions, schedules, permissions, knowledge, daemon state, and control-plane
+  orchestration live outside AGF's repository trail. Either could complement compact repository
+  records or create split-brain authority when external state and Git disagree. A bounded
+  comparison must test export and deterministic reconstruction, immutable history versus
+  editable records, identity and authorization, concurrent ownership and stale writes, exact
+  commit/MR/plan linkage, hosted-data privacy and retention, migration, and removal. AGF's Git
+  trail and human gates remain canonical; external status, schedules, and verdicts acquire no
+  authority. sources: Piyaz in `docs/sources.md` Batch 20 and AgentConnect in Batch 32 |
+  status: compare, not adopt | review-by: 2026-11
 
-- **Renewable work leases vs repository-native claims** — AetherGrid uses
-  time-bounded renewable leases, explicit execution-start confirmation,
-  heartbeats, immutable lifecycle events, and reconciliation to preserve
-  exclusive job ownership across worker failure. AGF already has claims, stale
-  detection, completion, and Git-backed history, but not a continuously renewed
-  ownership lease. The candidate benefit is safer concurrent execution and
-  deterministic recovery from interrupted agents; the counter-risk is turning
-  a removable file-based framework into a scheduler-dependent runtime, plus
-  false reassignment when a healthy agent temporarily cannot renew. Evaluate
-  whether the useful invariants can remain repository-native and advisory, or
-  whether this belongs only in external orchestrator integrations. Do not infer
-  gate authority from lease ownership. source: AetherGrid in `docs/sources.md`
-  | status: compare mechanics, do not implement | review-by: 2026-11
+- **Renewable work leases and content-routed claims vs repository-native claims** — AetherGrid
+  uses time-bounded renewable leases, execution-start confirmation, heartbeats, immutable
+  lifecycle events, and reconciliation. Radia describes workers discovering records by content
+  pattern and claiming them under fenced renewable leases rather than addressing a named player.
+  AGF already has claims, stale detection, completion, and Git-backed history, but not a
+  continuously renewed ownership lease or runtime content router. Candidate benefits are safer
+  concurrent execution, capability-based discovery, and deterministic recovery; counter-risks
+  are scheduler dependence, false reassignment, hidden matching policy, and a second authority
+  channel. Evaluate which invariants can remain repository-native and advisory. Neither lease
+  ownership nor pattern matching grants gate authority, and Radia is not load-bearing for a
+  future coordination change. sources: AetherGrid and Radia in `docs/sources.md` (Radia Batch
+  34) | status: compare mechanics, do not implement | review-by: 2026-11
 
 - **Repo-contained, model-replaceable agent package / deliberate self-cannibalization** —
   APSquared describes one self-contained marketing agent per repository: local instructions,
@@ -112,24 +128,21 @@ Next review: 2026-10.
   the source is a self-reported marketing case, not independent evidence. source: APSquared in
   `docs/sources.md` | status: joint Claude/Codex assessment requested | review-by: 2026-10
 
-- **Cross-harness session-digest layer vs. coordination-only continuity** — LLM Wiki's
+- **Advisory memory and session-digest layers vs. coordination-only continuity** — LLM Wiki's
   session rehydration writes default-on, redacted digests to a `.sessions/` directory
   (state JSON + Markdown, no full transcripts) that stay operational-only until explicitly
   promoted into durable evidence, readable uniformly across Claude Code, Codex, OpenCode.
-  AGF handles the same cross-harness continuity problem differently: `agov session resume`
-  covers within-harness continuity, and durable coordination records
+  OpenContext and CRBRO add local file-resident advisory memory with Git-readable or otherwise
+  inspectable storage, retrieval, and correction mechanics. AGF handles continuity differently:
+  `agov session resume` covers within-harness continuity, and durable coordination records
   (`docs/coordination/*.md`) cover cross-agent state, but nothing sits between them as a
-  lighter-weight, redacted "what was I doing" pointer for a fresh session on a different
-  harness. Open question: does that gap cause real friction (a concrete cold-start failure
-  mode `agent-cold-start-habits.md`'s existing protocol doesn't already cover), or would a
-  digest layer just be a second, weaker memory channel competing with the coordination
-  channel's own authority — the exact risk `coordination-message-rule.md` and
-  `coordination-sequence-guard-rule.md` exist to prevent? Controversial: any answer other
-  than "no gap, coordination records already suffice" risks re-legitimizing an informal
-  parallel-authority channel, the same failure mode flagged when assessing AIHero's
-  `/handoff` pattern (`docs/coordination/20260816T115701Z-planner-architect-hrd1.md`).
-  source: LLM Wiki in `docs/sources.md` Batch 25 | status: evaluate, no implementation
-  proposed | review-by: 2026-11
+  lighter-weight, redacted operational pointer or memory layer. Open question: does that gap
+  cause measured friction beyond the existing cold-start protocol, or would another mutable
+  channel compete with coordination authority, retain sensitive material, and serve stale
+  facts? Any evaluation must separate private advisory recall from facts that require canonical
+  publication and test correction, deletion, provenance, promotion, and removal. sources: LLM
+  Wiki in `docs/sources.md` Batch 25; OpenContext and CRBRO in Batch 33 | status: evaluate, no
+  memory format or implementation proposed | review-by: 2026-11
 
 - **Stale-authorization / policy-state serializability at Gate 1→merge** — "Stateful
   Governance for Concurrent Agentic Systems" formalizes the requirement that a committed
@@ -320,10 +333,11 @@ Next review: 2026-10.
 - Traficom / NCSC-FI announcements (Finland)
 - Microsoft ACS / Agent Governance Toolkit releases
 - OpenSSF + Eclipse ORC WG (CRA for OSS)
-- CycloneDX Agent-BOM proposal (#895); OWASP AI Exchange
+- CycloneDX Agent-BOM proposal (#895); OWASP AI Exchange, MCP Top 10, and MCP Governance and Risk
 - IETF AIMS/WIMSE drafts
 - arXiv: multi-agent SE governance, LLM-as-judge reliability, provenance for agents
-- Competitor repos: CORE, MAREF, agentops, Enforra, Cruxible
+- Competitor repos: CORE, MAREF, agentops, Enforra, Cruxible; Covenant and FULCRUMAXE (Batch 34)
+- Machine Testimony census (pinned agent-record evidence assessments; Batch 34)
 
 ## Retired
 
