@@ -1,22 +1,26 @@
 ---
 id: 20260919T231852Z-batches32-34-source-radar-reconstruction
-status: pending-gate1
+status: approved
 topic: batches32-34-source-radar-reconstruction
+gate1_approved_by: governor-reviewer
+gate1_approved_at: 2026-09-20T04:20:55Z
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >
-      Requested before Gate 1 because the recovered text makes comparative
-      governance, maturity, performance, and competitive-positioning claims
-      across three stale source batches.
+      Initial BLOCK and corrected exact-head CLEAR are recorded in
+      20260920T041553Z-contribution-auditor-db2e. The review covered scope,
+      collision evidence, all eight radar edits, stale-truth handling, claim
+      discipline, and acceptance criteria at aeedc925.
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >
-      Requested before Gate 1 because Batch 33 discusses MCP admission,
-      authentication, credential handling, sandboxing, and revocation, while
-      Batch 34 discusses runtime approval and policy enforcement. Review must
-      ensure that descriptive source material cannot be read as AGF security
-      guidance or authorization.
+      The configured agov validate infosec path passed at exact head aeedc925.
+      Independent semantic-security and source-fidelity consultation, including
+      initial BLOCK and corrected-head CLEAR, is recorded in
+      20260920T041603Z-coder-tester-jemk. The mechanical result is limited to
+      its configured surface and the semantic consultation grants no Gate
+      authority.
 affected_paths:
   - docs/sources.md
   - docs/radar.md
