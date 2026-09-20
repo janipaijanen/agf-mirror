@@ -4,9 +4,26 @@ status: pending-gate1
 topic: high-risk-operations-rule-agf-ng-domain-customization
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: not-applicable
+    reason: >-
+      Rule-content-only change touching no learning records, credentials,
+      or cross-record leak surface. `agov validate infosec` scans learning
+      records; this plan has no file under agf/learnings/ in its diff, so
+      that mechanical check has nothing to run against.
   - role: contribution-auditor
-    status: pending
+    status: waived
+    reason: >-
+      Same-actor limitation disclosed, not a fully independent audit: this
+      session authored both the plan and its own evidence-correction pass.
+      Codex (the usual different-model contribution-auditor player) is
+      dormant (token-exhausted, expected back ~2026-09-23). The governor
+      was told this on the prior governance-mode-classification plan and
+      directed proceeding there; the same disclosed-waiver resolution
+      applies here, on the governor's explicit "gate approved. proceed"
+      instruction in this live session. A durable independent
+      contribution-auditor re-review by a different model remains
+      available once Codex returns and does not require reopening this
+      Gate 1 decision unless it surfaces a blocking finding.
 affected_paths:
   - agf/rules/always/high-risk-operations-rule.md
   - .claude/rules/always/high-risk-operations-rule.md
