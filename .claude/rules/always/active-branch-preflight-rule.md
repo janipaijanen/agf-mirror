@@ -1,0 +1,1 @@
+../../../agf/rules/always/active-branch-preflight-rule.md
