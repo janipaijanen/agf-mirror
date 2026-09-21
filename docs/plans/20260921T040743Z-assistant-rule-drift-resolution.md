@@ -14,6 +14,11 @@ affected_paths:
   - .claude/rules/**
   - agf/rules/**
   - README.md
+depends_on:
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260920T113336Z-governance-mode-classification
+  - 20260920T162709Z-high-risk-operations-domain-customization
 ---
 
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -105,173 +110,236 @@ and `README.md` directly:
    is what actually loads) gets outdated tooling-path guidance. This is
    the real risk the WARN exists to catch.
 
-### README.md is self-contradictory — a policy conflict, not resolved here
+### README.md was self-contradictory — resolved during Gate 1, via a verified technical fact
 
-`agf/rules/README.md` (canonical) now reads: "The canonical rule copy
-stays in `agf/rules/`. Tool-specific root files should point assistants
-at this directory **instead of duplicating the rule tree** into
+`agf/rules/README.md` (canonical) reads: "The canonical rule copy stays
+in `agf/rules/`. Tool-specific root files should point assistants at
+this directory **instead of duplicating the rule tree** into
 `.claude/rules/`... That keeps the framework carve-out honest: removing
 `agf/` removes AGF-owned content."
 
-`.claude/rules/README.md` (the copy actually loaded) still reads the
-older policy: "The reference implementation targets Claude Code
+`.claude/rules/README.md` (the copy actually loaded) read the older
+policy: "The reference implementation targets Claude Code
 (`.claude/rules/`). Adopters using other tools should **copy the rule
 content** into their tool's equivalent directory..."
 
-These are not merely differently-worded — they recommend opposite
-mechanisms. The canonical file now argues against the very copied-tree
-architecture `.claude/rules/` is, while issue #135's own acceptance
-direction says to *keep* `agov.validate.assistant_drift` (a copied-tree
-comparator) as the mechanical evidence surface. **This plan does not
-resolve that conflict** — see "Open question for the governor" below.
+These recommend opposite mechanisms. The first draft of this plan left
+this as an open governor question, hypothesizing but not verifying
+whether Claude Code supports a per-file `@`-import mechanism (the same
+syntax `.claude/CLAUDE.md`'s own `@../AGENTS.md` line uses) that could
+let `.claude/rules/*.md` files "point" instead of "duplicate."
 
-## Proposed scope for this plan (bounded)
+**Verified directly against Claude Code's official documentation
+(`code.claude.com/docs/en/memory.md`), not assumed:** `@`-imports
+resolve only inside `CLAUDE.md`-family loader files, not inside
+arbitrary files under `.claude/rules/`. But the same documentation
+names a different, real mechanism for exactly this case: **symlinks**.
+The docs' own worked example is `ln -s
+~/company-standards/security.md .claude/rules/security.md`. Claude Code
+reads through a symlink and loads the target file's actual content —
+there is no drift to detect because there is only one file on disk,
+addressable by two paths.
 
-Per `simplicity-rule.md` and this project's own minimum-sufficient-value
-discipline: fixing all 46 "differ" files individually in one diff would
-be an unreviewable mega-change, and doing so before the governor
-resolves the README.md policy conflict risks redoing the work under a
-different target architecture. This plan scopes to what's safe and
-valuable regardless of that unresolved question:
+This resolves the README.md conflict in canonical's favor: "point
+assistants at this directory instead of duplicating" is achievable
+today, exactly as canonical `agf/rules/README.md` already says, via
+symlinks rather than either literal copying or the unsupported
+`@`-import mechanism. See "Proposed scope" below for what this changes
+in this plan's actual diff.
 
-1. **Add all 7 missing files to `.claude/rules/`**, copied verbatim from
-   `agf/rules/`, closing the `coordination-challenge-response-rule.md`
-   visibility gap immediately. Zero risk: these files currently don't
-   exist in the copy at all, so this is pure addition, not a
-   reconciliation judgment call.
-2. **Fix the one confirmed genuine stale-content case**
-   (`always/gate-self-test-rule.md`) as a worked, documented example of
-   what "obsolete residue" correction looks like — updating the
-   `.claude/` copy's tooling-path and issue-reference text to match
-   canonical.
-3. **Produce a durable classification inventory** for all 55 findings
-   (a table: path, finding type, sub-pattern, disposition, reason) at
-   `docs/reviews/assistant-rule-drift-inventory-20260921.md`, so the
-   remaining ~44 differ files have a recorded classification even though
-   most aren't touched by this plan. This is the artifact issue #135's
-   acceptance direction actually asks for ("inventory each current
-   `.claude/rules/` entry... classify...").
-4. **Do not touch the sanctioned loader-projection files**
-   (`development-workflow-rule.md`, `simplicity-rule.md`, and any other
-   `.claude/` copy carrying a "Canonical owner: ..." pointer paragraph)
-   beyond recording their classification — they're intentional, and
-   re-touching them risks reintroducing exactly the kind of
-   session-to-session inconsistency this plan is trying to reduce.
-5. **Do not touch the 2 extra foundry-local files** — already correctly
-   classified, no action needed.
-6. **Explicitly flag, not resolve, the README.md policy conflict** — see
-   below.
+## Proposed scope for this plan (bounded, symlink-based)
 
-The remaining ~44 "differ" files that are pure front-matter-only
-asymmetry, once classified in the inventory, are named as follow-up
-work contingent on the governor's README.md policy decision — fixing
-them blind (standardizing front matter one way or the other) before
-that decision is made is the kind of premature, potentially-rework-
-generating action `agent-proactive-analysis-rule.md` and
-`simplicity-rule.md` both caution against.
+With the README.md conflict now resolved (see above) in favor of the
+canonical-copy-eliminating architecture, actually achievable via Claude
+Code's documented symlink support, this plan's scope is the full,
+verified conversion rather than a narrow placeholder pending governor
+input. The conversion is mechanical (a symlink either resolves to
+byte-identical canonical content or it doesn't — `agov validate`'s
+`assistant_drift` check remains a true post-conversion drift detector,
+now catching the case "someone edited a symlinked file directly and
+broke the link" in addition to its original copy-drift purpose), so the
+larger scope does not carry the same review-cost concerns a 46-file
+hand-edited diff would.
 
-## Open question for the governor (not resolved by this plan)
+All 55 `agov validate assistant_drift` findings were individually
+classified this session (full working notes retained in
+`docs/reviews/assistant-rule-drift-inventory-20260921.md`, produced as
+part of this plan) into four dispositions:
 
-`agf/rules/README.md`'s current text argues for eliminating the copied-
-tree architecture entirely (loader pointers instead of duplication).
-Issue #135's own acceptance direction says to keep
-`agov.validate.assistant_drift` (a copied-tree comparator) as the
-mechanical evidence surface. Three options, not decided here:
+1. **49 files converted to relative symlinks** pointing at their
+   canonical `agf/rules/` counterpart — the 7 originally-"missing"
+   files (most consequentially
+   `workflow/coordination-challenge-response-rule.md`, which
+   `AGENTS.md`/`.claude/CLAUDE.md` already reference by name but which
+   never actually loaded), plus 28 files whose only "differ" delta was
+   front-matter (provenance/SPDX header formatting — content-identical
+   bodies), plus 14 files whose "differ" delta was confirmed, by full
+   diff, to be pure staleness with no legitimate customization (e.g.
+   `always/gate-self-test-rule.md`'s stale `src/agents_govern/
+   validate_*` tooling-path and "issue 46" wording vs. canonical's
+   `tooling/rust/crates/` and "historical predecessor-tracker issue
+   46"; `README.md` itself, once its own conflict is resolved per
+   above). Each symlink uses the shortest correct relative path (e.g.
+   `.claude/rules/workflow/tdd-rule.md` ->
+   `../../../agf/rules/workflow/tdd-rule.md`), verified per-depth
+   before creation.
+2. **4 files remain hand-maintained copies, not symlinked** —
+   `workflow/simplicity-rule.md`, `workflow/development-workflow-rule.md`,
+   `always/improvement-propeller-rule.md`, and
+   `always/universal-polling-and-autonomous-continuation-rule.md`. Each
+   carries a deliberate "Canonical owner: ..." or "... Foundry
+   Projection" discovery-pointer pattern that intentionally trims
+   substantial canonical content (`simplicity-rule.md`'s `.claude/`
+   copy omits the ~100-line "Minimum sufficient value" section
+   entirely; the two "Foundry Projection" files are ~11-12 line stubs
+   replacing ~130-200 line full bodies). This is confirmed deliberate
+   content-shaping, not staleness, and a symlink would silently
+   restore the full canonical body — an unreviewed behavioral and
+   context-budget change this plan does not make. These 4 stay exactly
+   as they are; only their classification is recorded.
+3. **2 files remain untouched, no canonical counterpart** —
+   `always/coordination-message-rule.md` and
+   `always/coordination-sequence-guard-rule.md`, both legitimately
+   foundry-local (carry `# Evidence: AGF-NG operational use`). No
+   action.
+4. **The durable classification inventory**
+   (`docs/reviews/assistant-rule-drift-inventory-20260921.md`) records
+   all 55 findings — path, finding type, sub-pattern, disposition, and
+   reason — satisfying issue #135's acceptance direction to "inventory
+   each current `.claude/rules/` entry... classify..." regardless of
+   which disposition applied.
 
-1. **Keep the copied-tree architecture** (today's mechanism) and fix
-   `agf/rules/README.md`'s canonical text to stop recommending
-   pointer-only — the drift-detection tooling already exists and works;
-   the documentation is the thing that's actually wrong.
-2. **Move to per-file loader pointers** in `.claude/rules/` (each file a
-   short stub referencing `agf/rules/...`) if Claude Code's tooling
-   supports per-file imports the way `.claude/CLAUDE.md`'s own
-   `@../AGENTS.md` import line does — **not verified in this plan**;
-   whether arbitrary files under `.claude/rules/` support the same
-   `@`-import mechanism CLAUDE.md itself uses is an open technical
-   question, not assumed true. If true, this eliminates the drift
-   problem by construction instead of needing a comparator at all.
-3. **Hybrid**: keep full copies for genuinely load-bearing rules,
-   convert low-churn/generic rules to pointers.
-
-This plan's author has no basis to pick among these without the
-governor's input on whether option 2's technical premise even holds,
-and recommends resolving this before any follow-up plan attempts the
-remaining 44-file reconciliation.
+After conversion, `agov validate assistant_drift` is expected to report
+zero `missing` and zero `differ` findings for the 49 converted paths (a
+symlink's resolved content is byte-identical to its target by
+construction) and to continue reporting the 4 hand-maintained copies as
+`differ` (expected, documented, and excluded from the "drift" framing
+going forward — see Downstream-impact classification below) and the 2
+foundry-local files as `extra` (expected, no target exists). The
+validator itself is unchanged by this plan; only the files it compares
+change shape.
 
 ## Affected files
 
-- `.claude/rules/always/active-branch-preflight-rule.md` (new)
-- `.claude/rules/always/agent-improvement-proposal-rule.md` (new)
-- `.claude/rules/always/tool-authority-boundary-rule.md` (new)
-- `.claude/rules/workflow/coordination-challenge-response-rule.md` (new)
-- `.claude/rules/workflow/coordination-id-rule.md` (new)
-- `.claude/rules/workflow/merge-request-description-rule.md` (new)
-- `.claude/rules/workflow/review-convergence-rule.md` (new)
-- `.claude/rules/always/gate-self-test-rule.md` (content correction)
-- `docs/reviews/assistant-rule-drift-inventory-20260921.md` (new,
-  classification artifact)
+**Converted to symlinks (49 files)** — the 7 previously-missing files:
+
+- `.claude/rules/always/active-branch-preflight-rule.md`
+- `.claude/rules/always/agent-improvement-proposal-rule.md`
+- `.claude/rules/always/tool-authority-boundary-rule.md`
+- `.claude/rules/workflow/coordination-challenge-response-rule.md`
+- `.claude/rules/workflow/coordination-id-rule.md`
+- `.claude/rules/workflow/merge-request-description-rule.md`
+- `.claude/rules/workflow/review-convergence-rule.md`
+
+...plus 28 front-matter-only-differ files and 14 confirmed-stale-differ
+files (including `.claude/rules/always/gate-self-test-rule.md` and
+`.claude/rules/README.md`) — the complete per-file list with its
+disposition and reason is the classification inventory itself, not
+duplicated here (see below), per `documentation-rule-projection-rule.md`
+message-integrity discipline (state each fact once, in its canonical
+location).
+
+**Unchanged, classification recorded only (6 files):**
+- `.claude/rules/workflow/simplicity-rule.md` (hand-maintained copy)
+- `.claude/rules/workflow/development-workflow-rule.md` (hand-maintained copy)
+- `.claude/rules/always/improvement-propeller-rule.md` (hand-maintained copy)
+- `.claude/rules/always/universal-polling-and-autonomous-continuation-rule.md` (hand-maintained copy)
+- `.claude/rules/always/coordination-message-rule.md` (foundry-local, no canonical counterpart)
+- `.claude/rules/always/coordination-sequence-guard-rule.md` (foundry-local, no canonical counterpart)
+
+**New artifact:**
+- `docs/reviews/assistant-rule-drift-inventory-20260921.md` (full
+  55-row classification: path, finding type, sub-pattern, disposition,
+  reason)
 
 No canonical `agf/rules/` file is modified by this plan — every change
-is either a pure addition to `.claude/rules/` or a correction that
-brings `.claude/rules/` into agreement with the already-correct
-canonical text.
+is either a symlink addition under `.claude/rules/` or the classification
+inventory artifact. `agf/rules/README.md`'s existing pointer-architecture
+recommendation is left as-is; this plan makes it accurate rather than
+aspirational.
 
 ## Downstream-impact classification
 
-Per `downstream-impact-rule.md`: **ADDITIVE** for the 7 new files (new
-content, no existing contract removed — sessions simply gain visibility
-into rules that were always supposed to apply but weren't loaded).
-**PREVENTIVE** for the `gate-self-test-rule.md` correction (removes
-stale guidance that could have misled a session into referencing
-retired tooling paths; does not restrict any previously-permitted
-behavior). Neither classification requires a migration note.
+Per `downstream-impact-rule.md`: **ADDITIVE** for the 49 symlink
+conversions (no existing contract removed — every symlinked file's
+resolved content is unchanged from what `.claude/rules/` already served,
+except for the 7 previously-missing files, which is the same visibility
+gain as before, and the 14 stale-content files, which now serve the
+already-current canonical text instead of stale text — a
+`gate-self-test-rule.md` session no longer sees a retired
+`src/agents_govern/validate_*` tooling path). Classifying the stale-text
+corrections as PREVENTIVE (not BREAKING) follows the same reasoning as
+the original narrower plan: removing stale guidance that could mislead a
+session does not restrict any previously-permitted behavior. Neither
+classification requires a migration note.
 
 ```
 Impact:
-  Foundry:          Yes -- 7 previously-invisible rules become visible
-                     to every Claude Code session in this repo going
-                     forward, including coordination-challenge-response-
-                     rule.md's actual obligations (currently referenced
-                     by name but never loaded).
+  Foundry:          Yes -- 49 .claude/rules/ files become symlinks to
+                     agf/rules/. Every Claude Code session in this repo
+                     going forward reads live canonical content instead
+                     of a snapshot, including coordination-challenge-
+                     response-rule.md's actual obligations (currently
+                     referenced by name but never loaded) and the 14
+                     files that were silently stale. A future edit to
+                     agf/rules/ now takes effect in .claude/rules/
+                     immediately, with no separate sync step and no way
+                     for the two to drift again for these 49 paths.
   Direct adopters:  ADDITIVE -- adopters who copied .claude/rules/ from
-                     an earlier AGF-NG state gain the same 7 files if
-                     they resync; no existing adopter behavior changes.
+                     an earlier AGF-NG state gain the same symlink
+                     structure if they resync; no existing adopter
+                     behavior changes. Adopters on platforms without
+                     symlink support (rare; git and Claude Code both
+                     support them, per the verified code.claude.com/
+                     docs/en/memory.md documentation) would need to fall
+                     back to plain copies for those 49 paths -- noted as
+                     a known limitation, not a blocker for this project.
   Downstream:       No adopter-produced artifact shape changes.
-  Migration:        None required.
+  Migration:        None required for this project. Adopters who forked
+                     .claude/rules/ as independent copies (not symlinks)
+                     are unaffected until they choose to resync.
 ```
 
 ## Test strategy
 
 - `agov validate` (umbrella) before and after: the `assistant_drift`
-  WARN's finding count must drop from 55 to 55-8=47 (7 missing + 1
-  differ resolved), with the specific 7 filenames no longer appearing
-  in the missing list and `gate-self-test-rule.md` no longer appearing
-  in the differ list.
-- Manual diff confirming each of the 7 new `.claude/rules/` files is
-  byte-identical to its `agf/rules/` source at addition time.
-- Manual read-through of the corrected `gate-self-test-rule.md` copy
-  confirming it matches canonical exactly.
+  check's finding count must drop from 55 to 6 (the 4 deliberate
+  hand-maintained-copy `differ` findings + the 2 foundry-local `extra`
+  findings), with all 7 previously-`missing` filenames and all 42
+  previously-`differ`-then-symlinked filenames no longer appearing as
+  findings at all.
+- For each of the 49 converted paths: confirm the resulting path is a
+  symlink (`test -L <path>`), confirm it resolves (`test -e <path>`),
+  and confirm `readlink` yields the expected relative path to the
+  correct `agf/rules/` file.
+- Confirm `git status`/`git show` records each conversion as the
+  expected symlink mode (`120000`), not a regular file.
+- Manual read-through of a sample of resolved symlink content (at
+  minimum every one of the 14 confirmed-stale-differ files, plus
+  `coordination-challenge-response-rule.md`) confirming it now matches
+  canonical exactly.
 - `agov coord validate` / `agov plan validate` as applicable to any
   coordination or plan files this work produces.
 
 ## Risks
 
-- **Partial-fix risk**: fixing only 8 of 55 findings leaves 47 still
-  WARNing. Accepted deliberately — see "Proposed scope" above for why
-  fixing the rest now would risk rework pending the governor's
-  architecture decision. The inventory artifact makes the remaining
-  scope legible rather than silently deferred.
-- **Verbatim-copy risk**: the 7 new files use an older front-matter
-  schema than most `.claude/rules/` files. Copying them verbatim
-  preserves that inconsistency rather than normalizing it — acceptable,
-  since normalizing front-matter schema is exactly the kind of decision
-  this plan defers to the governor's architecture call, not something to
-  decide unilaterally while merely closing a visibility gap.
+- **Symlink-portability risk**: covered above under Downstream-impact
+  classification; git and Claude Code both document symlink support, so
+  this is a documented limitation for exotic environments, not an
+  unverified assumption.
+- **Hand-maintained-copy drift risk**: the 4 files kept as copies
+  (`simplicity-rule.md`, `development-workflow-rule.md`,
+  `improvement-propeller-rule.md`,
+  `universal-polling-and-autonomous-continuation-rule.md`) can still
+  silently drift from canonical on a future canonical edit, exactly as
+  today — this plan does not change that risk, only shrinks its surface
+  from 55 possible-drift files to 4.
 - **Scope-creep risk**: explicitly not reviving or merging stale MR
   !654, per issue #135's own instruction.
 
 ## Rollback
 
 Pure documentation/rule-content changes on a feature branch behind Gate
-1 and Gate 2; revert-by-new-commit if needed. No runtime, schema, or
-data effect to unwind.
+1 and Gate 2; revert-by-new-commit if needed (a git revert restores the
+49 paths to plain files with their pre-conversion content). No runtime,
+schema, or data effect to unwind.
