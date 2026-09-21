@@ -1,6 +1,8 @@
 ---
 id: 20260921T040743Z-assistant-rule-drift-resolution
-status: pending-gate1
+status: approved
+gate1_approved_by: governor-reviewer
+gate1_approved_at: "2026-09-21T17:56:27Z"
 topic: resolve-foundry-assistant-rule-drift-issue-135
 advisory_consultation:
   - role: infosec-sentinel
@@ -9,7 +11,13 @@ advisory_consultation:
       Rule-content-only change touching no learning records, credentials,
       or cross-record leak surface.
   - role: contribution-auditor
-    status: pending
+    status: waived
+    reason: >-
+      Codex (contribution-auditor player) remains token-dormant this
+      session; governor directed proceeding without a separate audit
+      round for this rename/consolidation-shaped change, per precedent
+      20260920T115342Z-governor-reviewer-3es7 and
+      20260920T194655Z-governor-reviewer-kgd8.
 affected_paths:
   - .claude/rules/**
   - agf/rules/**
