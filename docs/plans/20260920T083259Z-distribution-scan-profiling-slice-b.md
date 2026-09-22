@@ -4,6 +4,7 @@ status: pending-gate1
 topic: distribution-scan-profiling-slice-b
 affected_paths:
   - tooling/rust/crates/agov/src/dist.rs
+  - tooling/rust/crates/agov/src/main.rs
   - tooling/rust/crates/agov/tests/dist_scan_profile.rs
   - tooling/rust/crates/agov/tests/fixtures/dist_scan_profile.yaml
   - tooling/rust/crates/agov/Cargo.toml
@@ -110,8 +111,8 @@ Add a `#[cfg(any(test, feature = "dist-profile"))]`-gated counter struct
 `agov dist validate` invocation:
 
 - number of `fs::read_dir` calls made by `collect_regular_files`,
-- number of `glob::glob()` calls made by `glob_matches` (distinguishing
-  calls from `expand_glob` vs. calls from `matches_any`),
+- number of all `glob::glob()` calls, split by origin: direct calls from
+  `expand_glob`, and calls from `glob_matches` reached through `matches_any`,
 - wall-clock duration of `expand_includes` and of the
   exclude/forbidden-filter pass, measured separately with
   `std::time::Instant`.
@@ -165,8 +166,10 @@ Commit a single small generator-input file,
 `tooling/rust/crates/agov/tests/fixtures/dist_scan_profile.yaml`, stating
 the fixed parameters: tree depth (>=4), regular-file count (~500),
 untracked-file paths (including one nested 2+ directories deep), hidden
-file/dir paths, valid-symlink target, and one out-of-root symlink-escape
-attempt path. A committed `#[test]` in
+file/dir paths, and a valid in-root symlink target. An outside-resolving
+symlink policy is deliberately excluded: current traversal follows symlinks,
+and deciding or changing that semantic/security policy requires its own plan.
+A committed `#[test]` in
 `tooling/rust/crates/agov/tests/dist_scan_profile.rs`:
 
 1. reads the generator-input file,
@@ -180,8 +183,7 @@ attempt path. A committed `#[test]` in
 4. writes the untracked, nested-untracked, and hidden files **after**
    that commit, so they are genuinely untracked on disk — exercising
    real tracked/untracked semantics rather than simulating them,
-5. creates the valid symlink and the symlink-escape attempt (the latter
-   exercises existing `safe_join` containment, unchanged by this plan),
+5. creates the valid in-root symlink required by the earlier review,
 6. writes a `release-manifest.yaml`-shaped manifest (schema_version 1)
    into the temporary tree, matching the real manifest's *pattern
    shape* (`/**` includes, a leading-`**` exclude pattern equivalent to
@@ -189,7 +191,7 @@ attempt path. A committed `#[test]` in
    cost (design hypothesis 2 above) is measurable in isolation from
    tree-size cost (hypothesis 1),
 7. asserts the generated tree matches the generator-input file's exact
-   declared counts (untracked, nested-untracked, hidden, symlink) before
+   declared counts (untracked, nested-untracked, hidden, in-root symlink) before
    any `dist::validate()` call — a fixture-integrity check, so a future
    change to the generator cannot silently drift the fixture shape.
 
@@ -252,6 +254,8 @@ discipline, this plan cannot pre-authorize that follow-on work.
 - No claim of a measured speedup, causal attribution, or optimization
   recommendation — this plan produces a baseline measurement only.
 - No touch to Slice A (native builder image) in any form.
+- No decision, assertion, or behavior change for outside-resolving symlinks;
+  that distribution-security policy is a separate governed concern.
 
 ## Test and acceptance
 
@@ -300,6 +304,10 @@ discipline, this plan cannot pre-authorize that follow-on work.
 - `20260910T182239Z-planner-architect-eeek` — source of the "577k"
   ad hoc figure this plan replaces with a reproducible diagnostic, and
   of the mandatory-fixture review note.
+- `20260922T152955Z-contribution-auditor-srjp` — fresh exact-head audit;
+  this revision adds the omitted CLI dispatch path, states the counter
+  origins precisely, and removes the false existing-symlink-containment
+  premise and out-of-scope escape fixture.
 - `docs/reviews/issue-53-current-ci-latency-reconstruction-2026-09-19.md` —
   the CI-latency evidence this plan's measurement target derives from.
 - Codex coder-tester note on MR !3066 (2026-09-20, GitLab MR discussion,
