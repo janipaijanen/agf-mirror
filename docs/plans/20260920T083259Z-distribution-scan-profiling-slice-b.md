@@ -9,6 +9,12 @@ affected_paths:
   - tooling/rust/crates/agov/tests/fixtures/dist_scan_profile.yaml
   - tooling/rust/crates/agov/Cargo.toml
   - docs/reviews/dist-scan-profiling/**
+depends_on:
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
+  - 20260913T165127Z-row5-s4-cp-a-ack-pending-display
+  - 20260913T195450Z-row5-s2-self-announcing-supersession
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
 advisory_consultation:
   - role: contribution-auditor
     status: pending
@@ -60,6 +66,14 @@ conclusion 2): "September evidence keeps ... distribution traversal ...
 as live measurement targets. It supports profiling and a bounded child
 experiment, not a speedup claim." Any optimization implied by the
 measurement below requires its own, separate Gate 1 plan.
+
+Adding the CLI dispatch path makes the collision declaration complete and
+reveals five approved Row 5/Row 6 plans that also touch `main.rs`. Their
+implementations are already present on the current `main`; this plan must be
+implemented afterward and preserve those command, lifecycle, display,
+supersession, and collision-check surfaces. The five `depends_on` entries
+record that deliberate sequencing and acknowledgement. They grant no scope to
+alter those earlier features.
 
 ## Why this exists (source-verified problem statement)
 
