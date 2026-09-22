@@ -17,15 +17,20 @@ depends_on:
   - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Requesting independent contribution-auditor review before Gate 1.
-      This plan derives from the already-independently-reviewed !2679
-      proposal (`20260910T183418Z-contribution-auditor-ssms`, "!2679 may
-      advance to separate concrete pending-Gate-1 slice plans") and the
-      issue #53 reconstruction, but the specific instrumentation design
-      below is new synthesis authored by this planner-architect session,
-      not itself yet independently reviewed at this exact head.
+      Independent contribution-auditor review completed in two passes at
+      this branch's exact head. First pass
+      (`20260922T152955Z-contribution-auditor-srjp`) found two blocking
+      findings (CA-3066-1: `tooling/rust/crates/agov/src/main.rs` missing
+      from `affected_paths`; CA-3066-2: false existing-`safe_join`
+      containment premise for an out-of-root symlink case). Both were
+      fixed at this head (`main.rs` added to `affected_paths` with the
+      resulting five plan-collision overlaps acknowledged via
+      `depends_on`; the false containment claim and its fixture case
+      removed, retaining only the required in-root symlink case). Second
+      pass (`20260922T161950Z-contribution-auditor-hrr1`) confirms CLEAR:
+      0 blocking, 0 advisory, 0 accepted-risk findings.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
