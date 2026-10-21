@@ -1,5 +1,21 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Jani Päijänen
+
+// Coord-schema-recompile companion evidence (2026-10-21), matching
+// `tests/gate_change_check.rs`'s own companion comment for the same commit:
+// `channel_summary`, `coord_publication_check`, `read_coord_messages_with_
+// invalid`, `validate_coord_files`, and `duplicate_id_errors_in_dirs` in
+// main.rs (a declared `plan-collision-block` surface) were changed to
+// compile the coordination-message schema once per invocation instead of
+// once per scanned file. Performance-only: no plan-collision-block logic
+// touched, and the gate itself is unchanged. Real behavioral coverage for
+// these five call sites lives in their existing command-level test files
+// (`coord_visibility.rs`, `coord_convergence.rs`, `coord_write.rs`,
+// `handoff_branch.rs`, `handoff_next_ack_pending_display.rs`,
+// `coord_publication_check.rs`, `urgency_ordering.rs`, `supersession.rs`,
+// `session_resume.rs`), all of which pass unchanged; this comment is this
+// file's companion touch for that same shared-surface (`main.rs`) commit.
+
 use std::{fs, path::PathBuf, process::Command};
 
 struct Repo(tempfile::TempDir);

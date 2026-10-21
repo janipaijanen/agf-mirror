@@ -68,6 +68,24 @@
 // S2-G1-F3 required); this comment is this file's companion touch for that
 // same shared-surface (`main.rs`) change.
 
+// Coord-schema-recompile companion evidence (2026-10-21): `channel_summary`,
+// `coord_publication_check`, `read_coord_messages_with_invalid`,
+// `validate_coord_files`, and `duplicate_id_errors_in_dirs` in main.rs were
+// changed to compile the coordination-message schema once per invocation
+// instead of once per scanned file (`agov-coord::coord_validator`'s new
+// `compile_channel_schema`/`validate_file_with_schema`, reusing the existing
+// `validate_content_with_schema`). Performance-only: no behavior change, and
+// gate-change-check itself is unchanged. Real behavioral coverage for these
+// five call sites lives in their existing command-level test files --
+// `coord_visibility.rs`, `coord_convergence.rs`, `coord_write.rs`,
+// `handoff_branch.rs`, `handoff_next_ack_pending_display.rs`,
+// `coord_publication_check.rs`, `urgency_ordering.rs`, `supersession.rs`,
+// and `session_resume.rs` -- all of which exercise `coord status/pending/
+// list/stale/graph`, `handoff next/take/complete`, `coord post`, `coord
+// validate`, and `coord publication-check` end-to-end and pass unchanged;
+// this comment is this file's companion touch for that same shared-surface
+// (`main.rs`) commit.
+
 use serde_json::Value;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
