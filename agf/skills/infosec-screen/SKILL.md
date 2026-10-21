@@ -104,7 +104,7 @@ Report:
 
 | Check | Status | Details |
 |-------|--------|---------|
-| validate-infosec.sh | pass/fail | N blocks, N warns, N acked |
+| agov validate infosec | pass/fail | N blocks, N warns, N acked |
 | pre-commit hooks | pass/fail/skipped | failures listed |
 | SPDX headers | pass/fail | missing files listed |
 | Project patterns | pass/fail | findings listed |
