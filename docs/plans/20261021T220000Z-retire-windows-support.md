@@ -26,6 +26,10 @@ affected_paths:
 depends_on:
   - 20261021T204757Z-remove-dind-ci
   - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
+  - 20260913T165127Z-row5-s4-cp-a-ack-pending-display
+  - 20260913T195450Z-row5-s2-self-announcing-supersession
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -51,6 +55,9 @@ governor decision. This is that disposition, with its own implementation scope.
 Part 1 of the prior plan is being attempted in draft MR !3102 and has an
 independent runner blocker; this plan neither changes nor claims that MR.
 Coordinate `.gitlab-ci.yml` and its CI test with its owner before editing.
+The four Row 5 plans listed in `depends_on` also name `agov/src/main.rs`;
+this change touches only its stale Windows preview comment, so their runtime
+work is unaffected. The references acknowledge the path collision.
 
 ## Implementation
 
