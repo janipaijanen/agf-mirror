@@ -20,6 +20,7 @@ affected_paths:
   - agf/docs/site/reference/release-artifacts.md
 depends_on:
   - 20261021T204757Z-remove-dind-ci
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
