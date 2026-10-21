@@ -46,9 +46,8 @@ release policy.
 ## Artifacts produced by a release build
 
 For version `X.Y.Z`, the release artifact vocabulary is below. Framework,
-Linux tooling, and OCI rows are mandatory for current tag releases; Windows
-rows describe optional manual-preview output and appear on a Release page only
-if that release deliberately publishes them.
+Linux tooling, and OCI rows are mandatory for current tag releases. Windows
+tooling previews are retired; current releases do not build them.
 
 The immutable v2.4.7 tag is a partial-publication exception: its OCI image was
 published before a downstream release-creation check failed on the absent
@@ -66,17 +65,11 @@ v2.4.8 or later for a complete release surface.
 | `dist/agov-X.Y.Z-linux-x86_64.tar.gz` | Mandatory Rust `agov` tooling archive for Linux x86_64 |
 | `dist/agov-X.Y.Z-linux-x86_64.tar.gz.sha256` | Tooling archive SHA-256 checksum |
 | `dist/agov-X.Y.Z-linux-x86_64.tar.gz-provenance.json` | Tooling archive provenance |
-| `dist/agov-X.Y.Z-windows-x86_64.zip` | Optional manual-preview Rust `agov` tooling archive for Windows x64; not a mandatory tag-release asset |
-| `dist/agov-X.Y.Z-windows-x86_64.zip.sha256` | Optional Windows preview checksum |
-| `dist/agov-X.Y.Z-windows-x86_64.zip-provenance.json` | Optional Windows preview provenance |
 | `dist/agov-oci-X.Y.Z-provenance.json` | Provenance for the published `agov` container image |
 
 Tooling archive filenames use a short public platform slug
-(`linux-x86_64`, `windows-x86_64`). The provenance record's
-`target_platform` field keeps the full Rust target triple
-(`x86_64-unknown-linux-musl`, `x86_64-pc-windows-gnu`) — the filename
-identifies the platform for a person downloading; the record identifies
-the exact build target for a verifier.
+(`linux-x86_64`). The provenance record's `target_platform` field keeps the
+full Rust target triple (`x86_64-unknown-linux-musl`).
 
 Linux arm64 (`aarch64-unknown-linux-musl`, published as `linux-aarch64`
 on releases v2.4.7 through v2.5.0-rc.2, and on `v2.5.0` itself as the
@@ -150,7 +143,7 @@ agov dist validate-provenance dist/*-provenance.json --artifact-dir dist
 # manifest_digest are used), and extracts + executes the packaged agov
 # binary from every downloaded tooling archive whose target_platform this
 # host can run, cross-checking its own `version --format json` self-report.
-# A cross-target archive (e.g. aarch64 or Windows, on an x86_64 Linux
+# A cross-target archive (e.g. aarch64 on an x86_64 Linux
 # verifier) is not silently skipped -- an explicit SKIP line names the gap.
 agov dist post-publication-check \
   --releases-url "https://gitlab.com/api/v4/projects/<id>/releases/v2.4.0" \
@@ -232,7 +225,7 @@ agf:dist:release:
   rules:
     - if: $CI_COMMIT_TAG
 
-# Mandatory Linux Rust tooling archives on tag pipelines; Windows packaging is an optional manual preview
+# Linux Rust tooling archives on tag pipelines
 rust:tooling:release:
   rules:
     - if: $CI_COMMIT_TAG
@@ -254,12 +247,9 @@ and then expire; the durable release copies are the package registry uploads
 and GitLab Release links created by `release:create`.
 
 Framework release assets include the `.tar.gz`, `.zip`, all `.sha256` checksum
-files, and one provenance JSON record per archive. Mandatory Linux Rust tooling
-targets are published as `.tar.gz`. Windows x64 packaging remains available as
-optional manual preview evidence and is not built or promised by every tag;
-when deliberately produced, it uses `.zip` plus checksum and provenance
-sidecars. Each GitLab Release page's actual asset links are the authoritative
-platform inventory. The
+files, and one provenance JSON record per archive. Linux Rust tooling is
+published as `.tar.gz`. Each GitLab Release page's actual asset links are the
+authoritative platform inventory. The
 `agov:oci:release` job publishes the container image and, after the push
 succeeds, an `agov-oci-X.Y.Z-provenance.json` record carrying the pushed
 image's digest — `release:create` links it alongside the archive records.

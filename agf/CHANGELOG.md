@@ -5,6 +5,10 @@ distribution.
 
 ## [Unreleased]
 
+- Windows tooling preview support is retired. Current `agov`/`agov-mcp`
+  release tooling targets Linux x86_64; migrate Windows preview automation to
+  a Linux host or the OCI image. Existing historical artifacts are unchanged.
+
 Adopter docs: not applicable — this MR activates the already-documented
 optional Improvement Propeller only for foundry; adopter projects remain
 inactive until their own governor supplies the activation contract.

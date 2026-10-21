@@ -69,8 +69,7 @@ the repository root:
 ```
 
 Platform tooling archives include this configuration as
-`examples/claude/.mcp.json`. After putting both `agov` and `agov-mcp` (or their
-Windows `.exe` forms) on `PATH`, copy the example to the project root as
+`examples/claude/.mcp.json`. After putting both `agov` and `agov-mcp` on `PATH`, copy the example to the project root as
 `.mcp.json`, review it, and approve the project-scoped `agov` server when
 Claude Code prompts. The shipped example intentionally contains no absolute
 paths, credentials, or machine-specific environment values.

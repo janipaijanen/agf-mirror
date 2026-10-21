@@ -9,8 +9,13 @@ advisory_consultation:
     status: pending
 affected_paths:
   - .gitlab-ci.yml
+  - CHANGELOG.md
+  - agf/CHANGELOG.md
+  - docs/reviews/rule-projection/20261021T220000Z-retire-windows-support.yaml
   - tooling/rust/crates/agov/tests/ci_needs_implication.rs
   - tooling/rust/crates/agov/src/ci_cache_topology.rs
+  - tooling/rust/crates/agov/src/main.rs
+  - tooling/rust/crates/agov-mcp/src/main.rs
   - tooling/rust/scripts/check-release-self-sufficiency.sh
   - tooling/rust/scripts/release-assets.sh
   - tooling/rust/scripts/agov-oci-image.sh
@@ -87,3 +92,24 @@ This is non-trivial CI and release-surface work, so the normal Gate 1 plan and
 advisory consultation apply. Implementation starts only after a published
 binding Gate 1 decision records approval for this plan and ownership of the
 shared CI paths is resolved.
+
+## Downstream impact and migration
+
+Impact:
+  Foundry: BREAKING — the two manual Windows preview jobs and their DinD/Cross
+    setup disappear; Linux packaging and OCI release jobs remain.
+  Direct adopters: BREAKING for anyone using the optional Windows preview ZIP
+    or building it from this project's CI. Use the published Linux x86_64
+    archive on a Linux host or the OCI image. Previously downloaded Windows
+    preview files remain historical artifacts, without ongoing support.
+  Downstream: No framework source archive format, governance file, or agent
+    behavior changes; the optional Windows tooling artifact is no longer
+    produced or listed by current release tooling.
+  Migration: Move Windows tooling automation to a Linux x86_64 runner or
+    consume the Linux OCI image. Remove references to the retired Windows
+    preview jobs and `AGOV_PACKAGE_WINDOWS_PREVIEW` variable.
+  Evidence: MR !3103 records the failed Windows Podman feasibility spike;
+    MR !3102 records the current runner's nested-container failure.
+
+Adopter docs parity: updated — current installation and release-reference
+pages remove the Windows preview/download path and state the Linux path.

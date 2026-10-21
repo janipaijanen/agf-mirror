@@ -84,9 +84,8 @@ extended to a second artifact:
   published on releases through v2.5.0 but is not currently built for
   releases from `main` (CI runner capacity constraint; see
   [release artifacts](../../reference/release-artifacts.md) for detail). No
-  macOS or Windows AGOV binary is currently published. On an unsupported
-  platform, run `agov` from a full source checkout instead of assuming a
-  binary exists.
+  macOS and Windows tooling are unsupported. Use a Linux x86_64 host for
+  the published `agov` binary.
 - **Asset naming:** `agov-<version>-<platform>.tar.gz`, with a companion
   `agov-<version>-<platform>.tar.gz.sha256` and
   `agov-<version>-<platform>.tar.gz-provenance.json`, each linked
