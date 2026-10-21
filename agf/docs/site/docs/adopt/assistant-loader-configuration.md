@@ -262,3 +262,5 @@ judgment remains with the governor-reviewer.
 - Install the framework layout: [install the `agf/` directory](install-and-layouts.md)
 - Wire validation: [contracts and validators](../advanced/contracts-and-validators.md)
 - Try one change: [your first governed change](../start/first-governed-change.md)
+- Running a coding-style plugin alongside AGF: [coexisting with third-party
+  assistant plugins](third-party-plugin-coexistence.md)
