@@ -77,9 +77,9 @@ workflow:
 
 # Route every job to the dedicated project runner (#55908035, tags
 # podman/linux/amd64) instead of racing it against the shared-runner fleet.
-# This `default:` block governs ordinary jobs. The six jobs that require
-# nested containers override it locally with the dedicated `dind` tag; the
-# ci-needs implication regression test keeps that split routing exhaustive.
+# This `default:` block governs ordinary jobs, including four Podman-only
+# OCI jobs. The two optional Windows Cross jobs still override it with the
+# dedicated `dind` tag; the ci-needs implication test checks this routing.
 #
 # Governor-directed change, 2026-09-04: shared runners stay enabled
 # (shared_runners_enabled: true, unchanged) but GitLab has no "prefer this
@@ -586,7 +586,9 @@ release:create:
 # `podman` to shell out to, matching `agov:oci:release`'s own image choice.
 release:verify:
   tags:
-    - dind
+    - podman
+    - linux
+    - amd64
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:
@@ -697,7 +699,9 @@ agov-oci-image:selftest:
 # namespace, and no registry credential is required or used.
 agov:oci:mr-build-scan:
   tags:
-    - dind
+    - podman
+    - linux
+    - amd64
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
@@ -710,6 +714,11 @@ agov:oci:mr-build-scan:
   script:
     - export AGOV_VERSION="$(cat agf/VERSION)"
     - tooling/rust/scripts/agov-oci-image.sh build-unpublished
+    # Temporary Gate 1 negative fixture: force the same scan job to reject a
+    # pinned image with 15 fixable HIGH/CRITICAL findings. Remove after the
+    # failing pipeline is recorded; never publish this image.
+    - podman pull docker.io/library/alpine@sha256:21a3deaa0d32a8057914f36584b5288d2e5ecc984380bc0118285c70fa8c9300
+    - podman tag docker.io/library/alpine@sha256:21a3deaa0d32a8057914f36584b5288d2e5ecc984380bc0118285c70fa8c9300 "localhost/agov-unpublished:$AGOV_VERSION"
     - tooling/rust/scripts/agov-oci-image.sh scan-unpublished
   rules:
     # Deliberate over-approximation, not an enumeration. The approved plan
@@ -1361,7 +1370,9 @@ rust:tooling:test:
 # it never actually gathered).
 rust:tooling:oci-pull-test:
   tags:
-    - dind
+    - podman
+    - linux
+    - amd64
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
@@ -1699,7 +1710,9 @@ release:assets-verify-pre-oci:
 
 agov:oci:release:
   tags:
-    - dind
+    - podman
+    - linux
+    - amd64
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:

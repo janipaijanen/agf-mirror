@@ -21,11 +21,7 @@ const EDGE_FIXTURE: &str = include_str!("fixtures/ci-needs/mandatory-edges.tsv")
 const CONTEXT_FIXTURE: &str = include_str!("fixtures/ci-needs/context-matrix.tsv");
 const SHARED_SURFACE_REGISTRY: &str =
     include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
-const DIND_JOBS: [&str; 6] = [
-    "agov:oci:mr-build-scan",
-    "rust:tooling:oci-pull-test",
-    "agov:oci:release",
-    "release:verify",
+const DIND_JOBS: [&str; 2] = [
     "rust:tooling:preview:windows-package",
     "rust:tooling:build:windows:preview",
 ];
@@ -404,7 +400,29 @@ fn split_runner_routing_errors(configuration: &str) -> Vec<String> {
         }
     }
 
-    let allowed = DIND_JOBS.into_iter().collect::<BTreeSet<_>>();
+    let podman_jobs = [
+        "agov:oci:mr-build-scan",
+        "rust:tooling:oci-pull-test",
+        "agov:oci:release",
+        "release:verify",
+    ];
+    let expected_podman = ["podman", "linux", "amd64"].map(str::to_string);
+    for job in podman_jobs {
+        let actual = top_level_block(configuration, job)
+            .as_deref()
+            .and_then(top_level_tags);
+        if actual.as_deref() != Some(expected_podman.as_slice()) {
+            errors.push(format!(
+                "Podman job `{job}` must override runner tags with exactly {:?}, found {:?}",
+                expected_podman, actual
+            ));
+        }
+    }
+
+    let allowed = DIND_JOBS
+        .into_iter()
+        .chain(podman_jobs)
+        .collect::<BTreeSet<_>>();
     for (name, block) in top_level_blocks(configuration) {
         if name == "default" || allowed.contains(name.as_str()) {
             continue;
