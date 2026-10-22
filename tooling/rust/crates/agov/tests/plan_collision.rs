@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Jani Päijänen
 
+// OCI runner split (2026-10-22): .gitlab-ci.yml changes a declared shared
+// surface, but not collision behavior. Rerun these controls alongside the
+// positive and wrong-pool routing checks in ci_needs_implication.rs.
+
 // Coord-schema-recompile companion evidence (2026-10-21), matching
 // `tests/gate_change_check.rs`'s own companion comment for the same commit:
 // `channel_summary`, `coord_publication_check`, `read_coord_messages_with_

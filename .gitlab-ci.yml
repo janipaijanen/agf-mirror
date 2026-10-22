@@ -77,9 +77,9 @@ workflow:
 
 # Route every job to the dedicated project runner (#55908035, tags
 # podman/linux/amd64) instead of racing it against the shared-runner fleet.
-# This `default:` block governs ordinary jobs. The six jobs that require
-# nested containers override it locally with the dedicated `dind` tag; the
-# ci-needs implication regression test keeps that split routing exhaustive.
+# This `default:` block governs ordinary jobs. Two OCI pull/inspect jobs use
+# the Podman runner pool; two nested-scan jobs and two optional Windows Cross
+# jobs override it with `dind`. The ci-needs implication test checks the split.
 #
 # Governor-directed change, 2026-09-04: shared runners stay enabled
 # (shared_runners_enabled: true, unchanged) but GitLab has no "prefer this
@@ -586,7 +586,9 @@ release:create:
 # `podman` to shell out to, matching `agov:oci:release`'s own image choice.
 release:verify:
   tags:
-    - dind
+    - podman
+    - linux
+    - amd64
   image: quay.io/podman/stable:v5.6.0
   stage: deploy
   variables:
@@ -1361,7 +1363,9 @@ rust:tooling:test:
 # it never actually gathered).
 rust:tooling:oci-pull-test:
   tags:
-    - dind
+    - podman
+    - linux
+    - amd64
   image: quay.io/podman/stable:v5.6.0
   stage: test
   interruptible: true
