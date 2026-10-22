@@ -1,6 +1,8 @@
 ---
 id: 20261022T205113Z-instruction-context-reduction
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261022T213843Z-governor-reviewer-jk7s
+gate1_approved_at: 2026-10-22T21:38:43Z
 topic: instruction-context-reduction-below-150k-chars
 advisory_consultation:
   - role: infosec-sentinel
@@ -214,7 +216,11 @@ Tasks, in order:
    per excluded rule, the owner path, the INDEX trigger line, and the surface
    that still loads it. Run `agov plan projection-check` on it.
 4. Measure: startup size report before and after, plus an `InstructionsLoaded`
-   log of the loaded set, pasted in the MR. This also confirms the documentation
+   log of the loaded set, pasted in the MR. **Fail-closed checkpoint (governor
+   decision `jk7s`):** Phase 1 must not begin unless the intended exclusions are
+   proven on the installed Claude Code version. Documentation says versions
+   before 2.1.239 need the symlink-target path to match, so use patterns proven
+   by this evidence, or stop and report. This also confirms the documentation
    claims from Task 0 on the installed Claude Code version.
 
 Done: measured startup report plus the `InstructionsLoaded` log. Computed
