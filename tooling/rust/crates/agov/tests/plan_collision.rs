@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Jani Päijänen
-
 // OCI runner split (2026-10-22): .gitlab-ci.yml changes a declared shared
 // surface, but not collision behavior. Rerun these controls alongside the
 // positive and wrong-pool routing checks in ci_needs_implication.rs.
@@ -19,6 +18,11 @@
 // `coord_publication_check.rs`, `urgency_ordering.rs`, `supersession.rs`,
 // `session_resume.rs`), all of which pass unchanged; this comment is this
 // file's companion touch for that same shared-surface (`main.rs`) commit.
+
+// Windows tooling retirement (2026-10-22): .gitlab-ci.yml drops optional
+// Windows preview jobs, a declared shared surface of plan-collision-block.
+// Rerun these collision controls alongside the CI job-selection assertions in
+// ci_needs_implication.rs; the collision gate itself is unchanged.
 
 use std::{fs, path::PathBuf, process::Command};
 
