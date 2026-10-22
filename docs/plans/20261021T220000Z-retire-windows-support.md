@@ -1,12 +1,16 @@
 ---
 id: 20261021T220000Z-retire-windows-support
-status: pending-gate1
+status: approved
 topic: retire-windows-tooling-support-and-preview-ci
+gate1_approved_by: "20261021T224603Z-governor-reviewer-1q2r; advisory waiver 20261022T041904Z-governor-reviewer-382s"
+gate1_approved_at: "2026-10-21T22:46:03Z"
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: waived
+    reason: "Governor waived this advisory row in 20261022T041904Z-governor-reviewer-382s; no consultation is claimed."
   - role: contribution-auditor
-    status: pending
+    status: waived
+    reason: "Governor waived this advisory row in 20261022T041904Z-governor-reviewer-382s; provisional note r6ns is not a clearance."
 affected_paths:
   - .gitlab-ci.yml
   - tooling/rust/crates/agov/tests/ci_needs_implication.rs
