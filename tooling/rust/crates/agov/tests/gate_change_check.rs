@@ -1,3 +1,7 @@
+// OCI runner split (2026-10-22): .gitlab-ci.yml routes two pull/inspect jobs
+// to Podman runners while nested scans stay on DinD. This gate is unchanged;
+// ci_needs_implication.rs covers the routing and both wrong-pool cases.
+
 // Row 5 S3 companion evidence: urgency/challenge commands change shared main.rs,
 // not gate-change-check behavior. Existing negative controls below are rerun;
 // S3 behavioral coverage is in urgency_ordering.rs and challenge.rs tests.

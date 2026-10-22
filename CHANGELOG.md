@@ -8,7 +8,7 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
-- Route four Podman-only CI jobs to the live Podman runner pool instead of the unavailable DinD pool.
+- Route two OCI pull/inspect CI jobs to the live Podman runner pool instead of the unavailable DinD pool.
 
 ## [2.10.1] - 2026-09-12
 
