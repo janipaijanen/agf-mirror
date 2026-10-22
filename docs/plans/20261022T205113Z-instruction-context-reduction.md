@@ -66,12 +66,23 @@ branch-and-worktree 10.3k, deputy-governor 9.9k, documentation-rule-projection
    in an always-loaded index, naming the situation and the file to open.
 3. Shipped `agf/` text is not changed in Phase 0. Phases 1-2 change shipped or
    AI-loader text and are STRICT (`simplicity-rule.md`, `downstream-impact-rule.md`).
-4. Existing path references must keep resolving: `.gitlab-ci.yml` lines
-   832-833 name `.claude/rules/always/gate-self-test-rule.md` and
-   `.claude/rules/workflow/release-via-merge-request-rule.md`, and 30+
-   `docs/reviews/rule-projection/*.yaml` manifests name `.claude/rules/**`
-   paths. A stub MUST exist at each existing path (see Design).
-5. Acceptance is measured, not asserted: the startup size report before and
+4. Existing path references must keep resolving. Measured by grep: only
+   seven distinct `.claude/rules` paths are referenced by CI, validators, or
+   the 30 projection manifests (`coordination-publication`, `simplicity`,
+   `release-via-merge-request`, `gate-self-test`, `development-workflow`,
+   `branch-and-worktree`, and the two foundry pointers); `.claude/rules/foo.md`
+   is a test fixture. `.gitlab-ci.yml:832-833` names `gate-self-test` and
+   `release-via-merge-request`. A file MUST exist at each of those paths. Every
+   other `.claude/rules` link can be removed with no stub.
+5. The approved loader contract (plan `20260921T040743Z-assistant-rule-drift-resolution`,
+   Gate 1 approved) chose symlinks so that no copy can drift, and
+   `agov validate assistant_drift` (`tooling/rust/crates/agov-validators/src/assistant_drift.rs`)
+   compares `.claude/rules` with `agf/rules`. Replacing a symlink with a stub
+   changes that contract. See Design, "Loader contract and drift validator".
+6. Codex reads `AGENTS.md` natively but not `.claude/rules`. Anything moved out
+   of `AGENTS.md` or off the `.claude/rules` path must stay reachable for Codex
+   (see Phase 1).
+7. Acceptance is measured, not asserted: the startup size report before and
    after.
 
 ## Design
@@ -84,6 +95,8 @@ branch-and-worktree 10.3k, deputy-governor 9.9k, documentation-rule-projection
 | B | Needed in a recognizable situation | Foundry-local stub at the same path, with `paths:` frontmatter if supported, plus one trigger line in the index |
 | C | Not relevant to foundry's stack | Stub or index entry only; canonical file still ships in `agf/` |
 
+Only seven paths must keep a file (Constraint 4). Every other Tier B/C link is
+simply removed and listed in the INDEX, so Phase 0 adds about 7 stubs, not 20.
 A stub is about 300 bytes: a title, "Canonical owner: `agf/rules/...`", the
 trigger sentence, and an instruction to read the canonical file. It adds no
 rule text and grants no authority (same pattern as the existing
@@ -91,14 +104,14 @@ rule text and grants no authority (same pattern as the existing
 
 ### Proposed tier assignment (bytes, for ranking; for scrutiny, not final)
 
-- Tier B (situational, about 100k removed from always-load):
+- Tier B (situational, 85.8k bytes removed from always-load):
   `release-via-merge-request` 40.3k (release tasks only), `deputy-governor`
   9.9k (delegation is off by default), `documentation-rule-projection` 9.2k
   (plans touching Pages/runbooks), `deprecation-policy` 7.6k,
   `ci-trigger-scoping` 6.5k, `review-convergence` 5.9k,
   `environment-interrogation` 4.7k, `implementation-honesty` 3.8k,
   `external-anonymization` 7.3k (see risk R2).
-- Tier C (stack-specific, about 61k removed): `visible-artifact-verification`,
+- Tier C (stack-specific, 60.9k bytes removed): `visible-artifact-verification`,
   `concept-modelling`, `file-generator`, `migration-generation`,
   `audit-log-completeness`, `boundary-shape-testing`, `marketing-tone`,
   `accessibility`, `i18n-supported-locales`, `feature-flagged-docs`,
@@ -109,8 +122,26 @@ rule text and grants no authority (same pattern as the existing
   coordination-* rules, systematic-code-review, branch-and-worktree,
   merge-request-*, immutable-tags, tdd, debugging, and the small ones.
 
-Estimated Phase 0 result: 325k bytes minus about 160k plus about 7k of stubs.
-This is an estimate; Phase 0 acceptance replaces it with the measured number.
+Computed Phase 0 result (script over the real load set, Tier B 85.8k + Tier C
+60.9k bytes removed, 3k INDEX and 7 stubs added): about 189k bytes, about 179k
+chars at the observed 0.949 chars/byte ratio. **Phase 0 alone does NOT reach
+150.0k chars.** Phase 1 (`AGENTS.md` 35.7k to about 12k) brings it to about
+157k chars. Phase 2 (or moving more Tier A rules to Tier B, for example
+`branch-and-worktree` 10.3k and `systematic-code-review` 7.3k) is needed to
+get below 150.0k. Phase 0 acceptance replaces these estimates with the measured
+startup report.
+
+### Loader contract and drift validator
+
+The approved drift plan chose symlinks for one reason: one file on disk means
+no drift. Stubs are different files, so `agov validate assistant_drift` will
+report each stub as "differ". Options for Gate 1 to choose between:
+(a) accept the advisory WARN for the seven stubs and record them as intentional
+foundry-local projections, as `improvement-propeller-rule.md` already is;
+(b) teach the validator an explicit "projection stub" class. (b) changes a
+validator, so it is gate mechanics under `gate-self-test-rule.md` and needs its
+own negative test. This plan proposes (a) and treats (b) as a separate plan.
+Task 0 confirms the validator's current treatment of existing projections.
 
 ### Compression lever (caveman rewrite)
 
@@ -144,8 +175,8 @@ and the risk R1 mitigation changes. Depends on: nothing.
 Tasks, in order:
 1. Add `.claude/rules/INDEX.md` (always loaded, about 3k): one line per rule
    not in Tier A, "when X, read Y". Depends on Task 0.
-2. Replace each Tier B/C symlink with a stub at the same path. Existing paths
-   keep resolving (Constraint 4).
+2. Remove each Tier B/C symlink. Where a path is referenced (Constraint 4) replace
+   the link with a stub; otherwise leave no file.
 3. Obligation coverage matrix `docs/reviews/rule-projection/20261022T205113Z-instruction-context-reduction.yaml`:
    per moved rule, the owner path, the trigger line, and the surface that
    still loads it. Run `agov plan projection-check` on it.
@@ -155,6 +186,13 @@ Done: report under 150.0k chars if Phase 0 alone suffices; otherwise the
 measured remainder drives Phases 1-2. Depends on Task 0 and approval.
 
 ### Phase 1 — Slim `AGENTS.md` (35.7k to about 12k)
+
+Codex reads `AGENTS.md` natively but not `.claude/rules`, so `AGENTS.md` is
+Codex's only always-loaded instruction file. Before moving anything, mark which
+`AGENTS.md` obligations Codex needs on every task (gate discipline, bridge
+records, coordination visibility, the polling contract summary) and keep those
+in `AGENTS.md` in compressed form. Only reference material (build commands,
+telemetry paths, full command list) moves unconditionally.
 
 Move the polling procedure, bridge-record procedure, build/telemetry
 reference, and command lists to
@@ -245,8 +283,9 @@ change. No tag, release, or immutable record is involved.
    and does it need its own index?
 2. Is Tier assignment right, especially R2 and `branch-and-worktree` (10k,
    frequent use)?
-3. Is Phase 0 alone enough to reach 150.0k chars? If yes, are Phases 1-2
-   deferred or dropped?
+3. Phase 0 alone reaches about 179k chars, not 150.0k (computed above). Is the
+   Phase 0 + 1 + selected Tier A demotions combination acceptable, or is Phase
+   2 (splitting shipped rules) wanted?
 4. Does `agov validate assistant_loader` or any validator assume specific files
    under `.claude/rules`? (Grep found `.gitlab-ci.yml:832-833` and projection
    manifests only; confirm no Rust reference.)
