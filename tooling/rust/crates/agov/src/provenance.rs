@@ -1032,9 +1032,11 @@ pub fn extract_from_zip(
         let entry = archive
             .by_index(index)
             .map_err(|err| format!("could not read a zip entry: {err}"))?;
-        let matches = Path::new(entry.name())
-            .file_name()
-            .and_then(|name| name.to_str())
+        let matches = entry
+            .name()
+            .ok()
+            .and_then(|name| Path::new(name.as_ref()).file_name().and_then(|n| n.to_str()).map(str::to_owned))
+            .as_deref()
             == Some(entry_name);
         if matches {
             return extract_reader(entry, dest_path);

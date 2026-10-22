@@ -2730,6 +2730,13 @@ fn channel_summary(dir: &Path) -> ChannelSummary {
 
     let mut timestamps = Vec::new();
     let mut total = 0usize;
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        return ChannelSummary {
+            total: 0,
+            range: "(empty)".to_string(),
+            claims: "no active claims".to_string(),
+        };
+    };
 
     for entry in entries.flatten() {
         let path = entry.path();
@@ -2737,7 +2744,9 @@ fn channel_summary(dir: &Path) -> ChannelSummary {
             continue;
         }
 
-        if let Ok(message) = agov_coord::coord_validator::validate_file(&path) {
+        if let Ok(message) =
+            agov_coord::coord_validator::validate_file_with_schema(&path, &schema)
+        {
             total += 1;
             if let Some(timestamp) = message
                 .raw
@@ -4401,6 +4410,11 @@ fn coord_publication_check(
         }
     };
 
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        output.stderr("ERR publication check failed: could not compile coordination-message schema");
+        return 2;
+    };
+
     // Condition 5 validates the introducing Git object, sharing the exact raw
     // bytes used by copy detection. Dirty, deleted or untracked local files
     // cannot supply or replace acceptance evidence.
@@ -4410,12 +4424,16 @@ fn coord_publication_check(
         &subject_prefix,
         &repo_root,
         &|bytes| match std::str::from_utf8(bytes) {
-            Ok(content) => agov_coord::coord_validator::validate_content(content)
-                .err()
-                .unwrap_or_default()
-                .into_iter()
-                .map(|(field, message)| format!("schema validation failed ({field}: {message})"))
-                .collect(),
+            Ok(content) => {
+                agov_coord::coord_validator::validate_content_with_schema(content, &schema)
+                    .err()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|(field, message)| {
+                        format!("schema validation failed ({field}: {message})")
+                    })
+                    .collect()
+            }
             Err(error) => vec![format!("schema validation failed (file: invalid UTF-8: {error})")],
         },
     );
@@ -6403,6 +6421,7 @@ fn read_coord_messages_with_invalid(
 ) -> Result<(Vec<HandoffMessage>, Vec<String>), std::io::Error> {
     let mut messages = Vec::new();
     let mut invalid_files = Vec::new();
+    let mut schema = None;
 
     for entry in std::fs::read_dir(dir)? {
         let entry = entry?;
@@ -6415,7 +6434,18 @@ fn read_coord_messages_with_invalid(
             continue;
         };
 
-        let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+        // Compiled lazily: a directory with no `.md` files never needs the
+        // schema at all (matches the old per-file `validate_file` behavior).
+        let schema = match &schema {
+            Some(schema) => schema,
+            None => schema.insert(
+                agov_coord::coord_validator::compile_channel_schema()
+                    .map_err(|err| std::io::Error::other(format!("{err:?}")))?,
+            ),
+        };
+
+        let Ok(message) = agov_coord::coord_validator::validate_file_with_schema(&path, schema)
+        else {
             invalid_files.push(file_name.to_string());
             continue;
         };
@@ -6700,10 +6730,14 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
     let mut output = OutputCounter::default();
     let mut valid_messages = Vec::new();
     let mut valid_paths = Vec::new();
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        output.stderr("ERR  could not compile coordination-message schema");
+        return 1;
+    };
 
     for file in files {
         let label = file.to_string_lossy().to_string();
-        match agov_coord::coord_validator::validate_file(&file) {
+        match agov_coord::coord_validator::validate_file_with_schema(&file, &schema) {
             Ok(data) => {
                 for message in
                     agov_coord::coord_validator::advisory_findings_for_path(&data, Some(&file))
@@ -6801,6 +6835,9 @@ fn duplicate_id_errors_in_dirs(files: &[PathBuf]) -> Vec<(String, String)> {
         }
     }
 
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        return Vec::new();
+    };
     for dir in dirs {
         let Ok(entries) = std::fs::read_dir(&dir) else {
             continue;
@@ -6810,7 +6847,9 @@ fn duplicate_id_errors_in_dirs(files: &[PathBuf]) -> Vec<(String, String)> {
             if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
                 continue;
             }
-            let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+            let Ok(message) =
+                agov_coord::coord_validator::validate_file_with_schema(&path, &schema)
+            else {
                 continue;
             };
             let Some(id) = message.id() else {

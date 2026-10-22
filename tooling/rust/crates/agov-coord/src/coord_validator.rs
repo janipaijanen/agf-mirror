@@ -136,23 +136,39 @@ pub fn looks_like_coord_filename(filename: &str) -> bool {
 /// Returns `Ok(CoordMessage)` on pass, `Err(errors)` on any failure.
 /// Errors are `(message, json_pointer)` pairs matching Elixir output.
 pub fn validate_file(path: &Path) -> Result<CoordMessage, Vec<(String, String)>> {
-    let content = match std::fs::read_to_string(path) {
-        Ok(content) => content,
-        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
-            return Err(vec![("file not found".to_string(), String::new())]);
-        }
-        Err(err) => return Err(vec![(format!("{err:?}"), String::new())]),
-    };
+    validate_content(&read_file(path)?)
+}
 
-    validate_content(&content)
+/// Same as `validate_file`, but reusing a schema the caller already
+/// compiled -- for scanning many files in one directory without
+/// recompiling the schema per file (see `validate_content_with_schema`).
+pub fn validate_file_with_schema(
+    path: &Path,
+    compiled: &schema::CompiledSchema,
+) -> Result<CoordMessage, Vec<(String, String)>> {
+    validate_content_with_schema(&read_file(path)?, compiled)
+}
+
+fn read_file(path: &Path) -> Result<String, Vec<(String, String)>> {
+    match std::fs::read_to_string(path) {
+        Ok(content) => Ok(content),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            Err(vec![("file not found".to_string(), String::new())])
+        }
+        Err(err) => Err(vec![(format!("{err:?}"), String::new())]),
+    }
+}
+
+/// Compile the channel schema once, for callers scanning many files.
+pub fn compile_channel_schema() -> Result<schema::CompiledSchema, Vec<(String, String)>> {
+    let schema_path = agov_core::schema_dir().join("coordination-message.schema.json");
+    schema::load_and_compile(&schema_path)
+        .map_err(|err| vec![(format!("{err:?}"), schema_path.display().to_string())])
 }
 
 /// Validate Git blob or file contents through the same channel schema.
 pub fn validate_content(content: &str) -> Result<CoordMessage, Vec<(String, String)>> {
-    let schema_path = agov_core::schema_dir().join("coordination-message.schema.json");
-    let compiled = schema::load_and_compile(&schema_path)
-        .map_err(|err| vec![(format!("{err:?}"), schema_path.display().to_string())])?;
-    validate_content_with_schema(content, &compiled)
+    validate_content_with_schema(content, &compile_channel_schema()?)
 }
 
 /// Reuse a compiled channel schema for a bounded Git snapshot scan.
