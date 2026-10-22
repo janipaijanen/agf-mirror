@@ -4,9 +4,23 @@ status: pending-gate1
 topic: instruction-context-reduction-below-150k-chars
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: waived
+    reason: >
+      Waived by the human governor in the live session on 2026-10-22 ("waive
+      the auditor and infosec rows"), recorded in bridge note
+      20261022T212922Z-planner-architect-rhqs. The plan changes only
+      foundry-local loader files; it touches no credentials, learning records,
+      schemas or validators. Provisional until a governor-reviewer record
+      references the bridge note.
   - role: contribution-auditor
-    status: pending
+    status: waived
+    reason: >
+      Waived by the human governor in the live session on 2026-10-22, recorded
+      in bridge note 20261022T212922Z-planner-architect-rhqs. Independent
+      scrutiny already exists as official coder-tester review
+      20261022T212401Z-coder-tester-epbp. That review is not an independent
+      contribution audit. Provisional until a governor-reviewer record
+      references the bridge note.
 affected_paths:
   - AGENTS.md
   - .claude/CLAUDE.md
