@@ -12,7 +12,7 @@ Read the named file with the Read tool BEFORE doing the matching work. Plan
 |---|---|
 | prepare a release, bump `agf/VERSION`, tag, publish, or edit `release:*` / `agov:oci:release` jobs | `agf/rules/workflow/release-via-merge-request-rule.md` |
 | act under a delegation, review a Gate 2 "deputy" decision, or write a delegation artifact | `agf/rules/workflow/deputy-governor-rule.md` |
-| change normative text in a Pages page, runbook, or AI loader (needs a projection manifest) | `agf/rules/workflow/documentation-rule-projection-rule.md` |
+| write a plan, or edit a Pages page, runbook, `AGENTS.md`, or other AI loader, that adds, changes, or removes MUST/SHOULD/blocking/approval wording (this needs a six-row projection manifest in `docs/reviews/rule-projection/`) | `agf/rules/workflow/documentation-rule-projection-rule.md` |
 | rename, deprecate, or remove a CLI flag, schema field, MCP field, or config key | `agf/rules/workflow/deprecation-policy-rule.md` |
 | add or change a long-running CI stage or its `rules:`/`changes:` paths | `agf/rules/workflow/ci-trigger-scoping-rule.md` |
 | work in a series that declares a `convergence` coordination object | `agf/rules/workflow/review-convergence-rule.md` |
@@ -24,7 +24,7 @@ Read the named file with the Read tool BEFORE doing the matching work. Plan
 | upgrade or add a dependency or run a package manager | `agf/rules/workflow/no-auto-package-update.md` |
 | choose or bump a version number | `agf/rules/workflow/semver-no-carry-rule.md` |
 
-## Stack-specific rules (apply only if foundry grows the matching surface)
+## Specialized surfaces (load when the task matches)
 
 | Topic | Read first |
 |---|---|
@@ -33,8 +33,8 @@ Read the named file with the Read tool BEFORE doing the matching work. Plan
 | generating files for third-party viewers | `agf/rules/workflow/file-generator-rule.md` |
 | database migrations | `agf/rules/workflow/migration-generation-rule.md` |
 | create/update/delete audit trails | `agf/rules/always/audit-log-completeness-rule.md` |
-| parsing external API or webhook data | `agf/rules/workflow/boundary-shape-testing-rule.md` |
-| public marketing or product-facing prose | `agf/rules/docs/marketing-tone-rule.md` |
+| parsing structured data from outside the project: external APIs, webhooks, library callbacks, OAuth/OIDC, RPC responses, queue messages | `agf/rules/workflow/boundary-shape-testing-rule.md` |
+| write or edit any `docs/**/*.md`, `README.md`, or other Markdown meant for external readers (tone, claims, vendor mentions) | `agf/rules/docs/marketing-tone-rule.md` |
 | user-facing HTML or UI | `agf/rules/ui/accessibility-rule.md` |
 | adding a locale | `agf/rules/always/i18n-supported-locales-rule.md` |
 | feature-flagged user workflows | `agf/rules/docs/feature-flagged-docs-rule.md` |
