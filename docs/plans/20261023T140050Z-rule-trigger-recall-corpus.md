@@ -4,11 +4,17 @@ status: pending-gate1
 topic: rule-trigger-recall-corpus-and-protocol
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Review requested. Adds documentation and a data file only; no credentials or runtime code.
+    status: consulted
+    reason: >
+      `agov validate infosec` passes; the plan adds prompts and paths only. Summarized in
+      contribution-auditor record 20261023T140948Z-contribution-auditor-shqm.
   - role: contribution-auditor
-    status: pending
-    reason: Review requested before Gate 1.
+    status: consulted
+    reason: >
+      Audit by the AI side of the role (the plan's own author), record
+      20261023T140948Z-contribution-auditor-shqm: no blocking finding, one WARN (claim-gate
+      cost bound, fixed in this revision) and two INFO (classification, hold-out provenance,
+      both fixed). The governor may pull or redo it.
 affected_paths:
   - docs/reference/rule-trigger-recall/corpus.yaml
   - docs/reference/rule-trigger-recall/protocol.md
@@ -26,7 +32,10 @@ depends_on:
 Follow-up to issue #138. Scope agreed with coder-tester (Codex) in the 2026-10-23
 experiment debate (ACS seq 184 and 186): a committed declarative scenario corpus, a
 short manual protocol and a result schema; **no runner**. Draft by planner-architect.
-Nothing here is approved.
+Gate 1 was approved in principle by the Human Governor in a live session on
+2026-10-23 (bridge `20261023T140946Z-planner-architect-gmpg`). The audit found one WARN,
+resolved below, so the plan stays `pending-gate1` until a governor-reviewer record
+confirms this exact head.
 
 ## Decision requested
 
@@ -51,7 +60,9 @@ recall, and three samples cannot support a 95% claim (one miss in six is 83.3%).
 Declarative list; each scenario has: `id`, `rule` (expected repo path or `NONE`),
 `kind` (`direct`, `paraphrase`, `near-boundary`, `negative`), `consequence`
 (`high` for security, gate, release, delegation and coordination-integrity rules;
-`low` otherwise), `prompt`, and `accept` (list of acceptable paths). Four scenarios
+`low` otherwise), `prompt`, `accept` (list of acceptable paths), and `author` (`planner-architect` or
+`coder-tester`; hold-out scenarios carry `author: coder-tester` so the separation is
+auditable). Four scenarios
 per rule for the first slice of 13 high-consequence or recently-missed rules: release,
 deputy-governor, documentation-rule-projection, deprecation, ci-trigger-scoping,
 merge-request-workflow, immutable-tags, coordination-challenge-response,
@@ -77,6 +88,12 @@ Two gates, named honestly: a **smoke gate** (any trigger edit): zero misses on e
 95% Wilson interval, plus the false-trigger rate on `negative` scenarios. Never run
 paid model calls in blocking CI.
 
+**Cost bound.** The claim gate is at least 20 trials x 13 rules x 2 models = 520 paid
+model calls per run, before paraphrases, and about 1,040 if each rule keeps four scenario
+kinds at N=20. It runs only when the governor asks for a recall claim, never on a trigger
+edit and never automatically. The smoke gate is 13 rules x 4 scenarios x 3 trials x 1-2
+models, roughly 156-312 calls, and runs on every trigger edit that touches a covered rule.
+
 ### Result schema (`result.schema.json`)
 
 One JSON object per trial: `scenario_id`, `model`, `client_version`, `head_sha`,
@@ -91,8 +108,9 @@ One JSON object per trial: `scenario_id`, `model`, `client_version`, `head_sha`,
 
 ## Classification and impact
 
-NORMAL-to-STRICT: documentation and a data file under `docs/reference/`; no rule,
-loader or tooling change. Governor decides whether it counts as STRICT.
+STRICT for review purposes: documentation and a data file under `docs/reference/`, but later
+MRs will cite the corpus as acceptance evidence, so it is reviewed like gate evidence.
+No rule, loader or tooling change.
 ```
 Impact:
   Foundry:          adds a durable evaluation surface; no behavior change.
