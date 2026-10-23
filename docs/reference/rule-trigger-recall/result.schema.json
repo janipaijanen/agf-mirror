@@ -28,7 +28,7 @@
       "if": { "properties": { "measurement_mode": { "const": "actual-open" } }, "required": ["measurement_mode"] },
       "then": {
         "required": ["first_read_target"],
-        "properties": { "tools_enabled": { "contains": { "const": "Read" } } }
+        "properties": { "tools_enabled": { "const": ["Read"] } }
       },
       "else": {
         "not": { "required": ["first_read_target"] },

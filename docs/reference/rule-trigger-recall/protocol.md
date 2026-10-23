@@ -52,7 +52,7 @@ there was none (which fails a positive trial). Positive and negative pass rules 
 - **Smoke gate** (after any trigger edit touching a covered rule): zero misses on every `high`
   scenario at N=3 per scenario. It is a regression screen, not a statistical claim. Acceptance of
   an implementation under this plan is smoke-only.
-- **Actual-open smoke**: 5 rules (release-via-merge-request, deputy-governor, merge-request-workflow,
+- **Actual-open smoke (the fixed set)**: 5 rules (release-via-merge-request, deputy-governor, merge-request-workflow,
   immutable-tags, coordination-challenge-response) x 3 scenarios (direct, paraphrase, negative) x 3
   trials x 1 model = 45 calls.
 - **Claim gate** (only if the governor requests it): unit = one (rule, model) pair. Positive recall
@@ -71,8 +71,39 @@ lines (anti-overfitting). Whoever edits a trigger line uses only `holdout: false
 
 Write one JSON object per line to a dated local file, for example
 `tmp/rule-trigger-recall-<date>-<head8>.jsonl`. The corpus and this protocol are committed;
-raw transcripts and result files are MR artifacts or dated local evidence. No JSON-schema validator
-is installed in this repository, so check a result file with `jq`; empty output means conforming:
+raw result files are MR artifacts or dated local evidence.
+
+**Draft-07 validation (the check that counts).** Validate every record against
+`result.schema.json` with the repository's own vendored validator: the Rust crate `jsonschema`
+**0.18.3** (see `tooling/rust/Cargo.lock`) driven by `agov_core::schema` in Draft-07 mode, with no
+remote references. No extra dependency is installed. Put this throwaway example, which is not committed, at
+`tooling/rust/crates/agov-core/examples/validate_jsonl.rs` and run
+`cargo run -q -p agov-core --example validate_jsonl -- <schema.json> <results.jsonl>`; it prints
+each finding and `valid=N invalid=M`, exit 0 only when M = 0:
+
+```rust
+use std::path::Path;
+fn main() {
+    let a: Vec<String> = std::env::args().collect();
+    let schema = agov_core::schema::load_and_compile(Path::new(&a[1])).expect("compile schema");
+    let (mut ok, mut bad) = (0, 0);
+    for (i, line) in std::fs::read_to_string(&a[2]).expect("read").lines().enumerate() {
+        if line.trim().is_empty() { continue; }
+        let v: serde_json::Value = serde_json::from_str(line).expect("json");
+        let f = agov_core::schema::validate(&schema, &v);
+        if f.is_empty() { ok += 1; } else { bad += 1; for x in f { println!("line {}: {} {}", i + 1, x.pointer, x.message); } }
+    }
+    println!("valid={ok} invalid={bad}");
+    std::process::exit(if bad == 0 { 0 } else { 1 });
+}
+```
+
+Keep the malformed-control evidence with every run: delete `first_read_target` from actual-open
+records, set `tools_enabled` to `["Read","Bash"]`, add `first_read_target` to a route-selection
+record, and set a bad `head_sha` and `kind`; each control must be rejected.
+
+**Structural preflight (not a substitute).** `jq` is a quick sanity filter only; empty output
+means the structure looks right:
 
 ```
 jq -c '
@@ -82,7 +113,7 @@ jq -c '
     or ((.measurement_mode | IN("route-selection","actual-open")) | not)
     or ((.kind | IN("direct","paraphrase","near-boundary","negative")) | not)
     or ((.head_sha | test("^[0-9a-f]{40}$")) | not)
-    or (.measurement_mode == "actual-open" and ((has("first_read_target") | not) or ((.tools_enabled | index("Read")) == null)))
+    or (.measurement_mode == "actual-open" and ((has("first_read_target") | not) or (.tools_enabled != ["Read"])))
     or (.measurement_mode == "route-selection" and (has("first_read_target") or ((.tools_enabled | length) > 0)))
   )' results.jsonl
 ```

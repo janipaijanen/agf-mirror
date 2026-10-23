@@ -198,7 +198,7 @@ scenarios:
     consequence: high
     author: planner-architect
     holdout: false
-    prompt: "I want to list the existing tags in the repository."
+    prompt: "I want to check which branch I am currently on."
     accept:
       - agf/rules/workflow/immutable-tags-rule.md
   - id: coordination-challenge-response-direct
