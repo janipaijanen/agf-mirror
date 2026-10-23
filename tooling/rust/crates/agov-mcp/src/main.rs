@@ -394,6 +394,7 @@ fn call_tool(params: Value, agov: &AgovCommand) -> Result<Value, String> {
         .get("arguments")
         .cloned()
         .unwrap_or_else(|| json!({}));
+    reject_unknown_args(canonical_tool, &args)?;
     let cli_args = tool_cli_args(canonical_tool, &args)?;
     let execution = run_agov(agov, &cli_args, Some(canonical_tool));
 
@@ -1151,12 +1152,73 @@ fn tools() -> Vec<Value> {
     ]
 }
 
-fn tool(name: &str, description: &str, input_schema: Value) -> Value {
+fn tool(name: &str, description: &str, mut input_schema: Value) -> Value {
+    // Every published schema is closed: capable clients reject a stray key
+    // before transport, and `reject_unknown_args` enforces the same property
+    // set server-side.
+    if let Some(schema) = input_schema.as_object_mut() {
+        schema.insert("additionalProperties".into(), Value::Bool(false));
+    }
     json!({
         "name": name,
         "description": description,
         "inputSchema": input_schema
     })
+}
+
+/// Arguments that are deliberately not published but have their own tailored
+/// error in `tool_cli_args`; they must reach it instead of the generic check.
+fn has_tailored_rejection(tool_name: &str, key: &str) -> bool {
+    matches!(
+        (tool_name, key),
+        ("agov_plan_collision_check", "include_forge") | ("agov_coord_graph_index", "output")
+    )
+}
+
+const MAX_SHOWN_KEY_CHARS: usize = 200;
+
+/// Escape control characters and cap the length of a caller-supplied string
+/// before it is echoed in a diagnostic.
+fn display_untrusted(raw: &str) -> String {
+    let mut shown = String::new();
+    for (count, ch) in raw.chars().enumerate() {
+        if count == MAX_SHOWN_KEY_CHARS {
+            shown.push_str("...[truncated]");
+            break;
+        }
+        if ch.is_control() {
+            shown.push_str(&format!("\\x{:02x}", ch as u32));
+        } else {
+            shown.push(ch);
+        }
+    }
+    shown
+}
+
+/// Reject any argument key that is not in the tool's published
+/// `inputSchema.properties`, before the child `agov` process starts.
+fn reject_unknown_args(tool_name: &str, args: &Value) -> Result<(), String> {
+    let Some(given) = args.as_object() else {
+        return Ok(());
+    };
+    let published = tools();
+    let Some(schema) = published
+        .iter()
+        .find(|tool| tool["name"] == tool_name)
+        .and_then(|tool| tool["inputSchema"]["properties"].as_object())
+    else {
+        return Ok(());
+    };
+    match given
+        .keys()
+        .find(|key| !schema.contains_key(*key) && !has_tailored_rejection(tool_name, key))
+    {
+        Some(key) => Err(format!(
+            "{tool_name} does not accept argument '{}'",
+            display_untrusted(key)
+        )),
+        None => Ok(()),
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -1905,5 +1967,68 @@ mod tests {
         ] {
             assert!(tool_cli_args("agov_coord_hold_status", &args).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod strict_args_tests {
+    use super::*;
+
+    #[test]
+    fn every_published_schema_is_closed() {
+        let published = tools();
+        assert_eq!(published.len(), 21);
+        for tool in &published {
+            assert_eq!(
+                tool["inputSchema"]["additionalProperties"],
+                json!(false),
+                "{} schema is not closed",
+                tool["name"]
+            );
+        }
+    }
+
+    #[test]
+    fn misspelled_key_is_rejected_naming_tool_and_key() {
+        let err = reject_unknown_args("agov_coord_list", &json!({"sence": "x"})).unwrap_err();
+        assert!(err.contains("agov_coord_list") && err.contains("'sence'"), "{err}");
+        assert!(reject_unknown_args("agov_coord_list", &json!({"since": "x"})).is_ok());
+        assert!(reject_unknown_args("agov_coord_list", &json!({})).is_ok());
+    }
+
+    #[test]
+    fn every_tool_rejects_a_stray_key_and_accepts_its_published_keys() {
+        for tool in tools() {
+            let name = tool["name"].as_str().unwrap();
+            assert!(reject_unknown_args(name, &json!({"zz_stray": 1})).is_err(), "{name}");
+            for key in tool["inputSchema"]["properties"].as_object().unwrap().keys() {
+                assert!(reject_unknown_args(name, &json!({ key: null })).is_ok(), "{name} {key}");
+            }
+        }
+    }
+
+    #[test]
+    fn tailored_errors_still_win_for_known_unsupported_keys() {
+        assert!(reject_unknown_args("agov_plan_collision_check", &json!({"include_forge": true})).is_ok());
+        assert!(reject_unknown_args("agov_coord_graph_index", &json!({"output": "x"})).is_ok());
+        // The exemption is per tool: the same key on another tool is just unknown.
+        assert!(reject_unknown_args("agov_coord_list", &json!({"include_forge": true})).is_err());
+        assert!(reject_unknown_args("agov_plan_collision_check", &json!({"output": "x"})).is_err());
+    }
+
+    #[test]
+    fn echoed_key_is_escaped_and_length_capped() {
+        let key = "a\u{1b}[31m\nb\u{7f}\u{85}";
+        let err = reject_unknown_args("agov_coord_list", &json!({ key: 1 })).unwrap_err();
+        assert!(!err.chars().any(char::is_control), "{err:?}");
+        assert!(err.contains("\\x1b") && err.contains("\\x0a") && err.contains("\\x7f") && err.contains("\\x85"));
+        let long = "k".repeat(5000);
+        let err = reject_unknown_args("agov_coord_list", &json!({ long: 1 })).unwrap_err();
+        assert!(err.len() < 400 && err.contains("...[truncated]"), "{}", err.len());
+    }
+
+    #[test]
+    fn non_object_arguments_are_left_to_existing_handling() {
+        assert!(reject_unknown_args("agov_coord_list", &Value::Null).is_ok());
     }
 }

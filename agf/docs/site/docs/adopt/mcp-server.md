@@ -150,6 +150,16 @@ Gate 1/Gate 2 review. `agov_coord_list` and `agov_coord_pending` both preserve
 the CLI's `status: 2` for "nothing new"/"nothing pending" polling results but
 return it as a non-error MCP tool result.
 
+Every tool schema is closed (`additionalProperties: false`), and the server
+enforces the same property set before the child `agov` process starts: a call
+that carries a key the tool does not publish fails with a JSON-RPC error naming
+the tool and the key, instead of running with the key silently dropped. Clients
+that enforce `additionalProperties: false` themselves reject the request before
+it reaches the server. `include_forge` on `agov_plan_collision_check` and
+`output` on `agov_coord_graph_index` keep their own explanatory errors. If a
+client used to send extra keys, compare them with the `inputSchema.properties`
+from `tools/list` and remove the extras.
+
 `agov_coord_pending` tracks unresolved `requires-ack: true` records of any
 kind except `ack` and `handoff` — `handoff` obligations remain
 `agov_handoff_next`'s surface, unchanged. A record is pending until a later
