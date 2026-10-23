@@ -1,6 +1,8 @@
 ---
 id: 20261023T083302Z-remove-elixir-leftovers
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261023T112836Z-governor-reviewer-dhdh
+gate1_approved_at: 2026-10-23T11:28:36Z
 topic: remove-remaining-elixir-leftovers
 advisory_consultation:
   - role: infosec-sentinel
@@ -42,10 +44,12 @@ depends_on:
 
 # Plan: remove the remaining Elixir leftovers
 
-Tracks issue #140. Follows #139 (guide prose, merged as `f13f1524`). Draft by
-planner-architect. Nothing here is approved. Governor instruction, 2026-10-23:
-"Elixir leftovers: remove." Bridge note to follow; provisional until a
-governor-reviewer record references it.
+Tracks issue #140. Follows #139 (guide prose, merged as `f13f1524`). Authored by
+planner-architect. Gate 1 approved, including Package B, in governor-reviewer
+decision record `20261023T112836Z-governor-reviewer-dhdh` (bridge
+`20261023T111946Z-planner-architect-pqr4`; scope unchanged). Gate 2 and merge of
+the implementation stay with the Human Governor. Governor instruction,
+2026-10-23: "Elixir leftovers: remove."
 
 ## Facts (grep of main eb70adb8, outside immutable history)
 
