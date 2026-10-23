@@ -13,25 +13,30 @@ depends_on:
   - agov-mcp-transport-protocol-correctness
   - mcp-coordination-dir-contract-fix
   - agov-coordination-read-path-reliability
+  - 20261021T220000Z-retire-windows-support
   - "!3105"
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Requested via `20261023T155752Z-planner-architect-ehh4` because Slice A
-      tightens the MCP request trust boundary and Slice B passes an untrusted
-      revision string to local Git. Review must confirm fail-closed unknown-key
-      handling, argument separation, option injection resistance, and no
-      implicit network access.
+      Two parts, kept separate. (1) The CI validator `agov validate infosec` passes; it checks
+      learning records only and says nothing about this plan's trust boundary. (2) A trust-boundary
+      read-through by a different assistant than the plan's author (Claude, contribution-auditor
+      record `20261023T193348Z-contribution-auditor-7njp`, findings 6-10) found no blocking issue
+      and two WARNs, both resolved in revision R2 below: leading-dash ref values through MCP, and
+      escaping of echoed untrusted strings. It is advisory evidence, not the CI role's decision.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Requested via `20261023T155752Z-planner-architect-ehh4` to verify that
-      the two independently testable slices match the governor-approved
-      proposal without absorbing the existing MCP coordination-directory
-      plan, input-provenance issue #49, or watcher state issue #133.
+      Record `20261023T193348Z-contribution-auditor-7njp` (Claude, independent of the plan's author
+      Codex): scope matches the governor's `ptds` proposal; no blocking finding; two WARNs
+      (missing classification/impact/migration statement, undeclared high-risk `agov-coord`
+      reuse boundary) plus INFOs, all addressed in revision R2 by Claude under the allocation in ACS
+      seq 226. R2 was written by the reviewer at the author's request, so the author (Codex) must
+      still check it independently before Gate 1.
 affected_paths:
   - tooling/rust/crates/agov/src/main.rs
+  - tooling/rust/crates/agov/src/coord_list_ref.rs
   - tooling/rust/crates/agov/tests/coord_list_ref.rs
   - tooling/rust/crates/agov-mcp/src/main.rs
   - tooling/rust/crates/agov-mcp/tests/stdio.rs
@@ -114,14 +119,90 @@ edge in this slice: non-ref JSON returns `[]`; ref JSON returns its provenance
 object with `messages: []`; both retain exit 2 as the documented expected
 polling-empty status. Text output and exit semantics remain unchanged.
 
+## Revision R2 (2026-10-23, Claude, per ACS seq 226): resolutions of review 7njp
+
+This revision adds the statements and test requirements the independent review asked for. It does
+not change the two slices' behavior. Mapping: finding 1 -> "Classification and impact"; finding 2 ->
+"Where the ref reader lives"; finding 3 -> sequencing note; finding 4 -> `depends_on` note; finding 5 ->
+"JSON shapes"; findings 6-9 -> "Trust boundary requirements"; finding 10 -> "Documentation notes".
+
+### Classification and impact
+
+Mode: **STRICT** (the MCP request boundary is a security boundary, and `tooling/rust/` is a
+`downstream-impact-rule` trigger path).
+
+```
+Impact:
+  Foundry:          operators and the polling rule gain a ref-aware first check; MCP calls with stray keys now fail.
+  Direct adopters:  Slice A BREAKING under the Parnas test (requests that silently succeeded with a stray or
+                    misspelled key now return an error); Slice B ADDITIVE (new optional --ref, new JSON shape only
+                    when --ref is used); the empty-result JSON fix is BREAKING for any consumer that matched the
+                    plain sentence in --format json (it now receives []).
+  Downstream:       MCP clients that cached a looser argument set must send only the documented keys.
+  Migration:        required. See "Migration note" below. Evidence: reproduced typo `sence` and the false-empty
+                    delta in this plan.
+```
+
+**Migration note.** For Slice A, an MCP client should diff the keys it sends against each tool's published
+`inputSchema.properties` from `tools/list` and remove any extra key; the error names the tool and key. For the
+empty-result JSON change, `coord list --format json` now emits `[]` (non-ref) or an object with `messages: []`
+(ref); exit status 2 for "no messages" is unchanged. Consumers that string-matched
+`No coordination messages found` in JSON mode must parse the JSON instead.
+
+Adopter docs parity: **updated** (the three documentation paths in `affected_paths` change in the same work).
+
+### Where the ref reader lives
+
+Ref mode is implemented in the `agov` crate (the new `coord_list_ref.rs` module and `main.rs`). It **calls**
+the existing `agov-coord` read and validation functions; it does **not edit** anything under
+`tooling/rust/crates/agov-coord/**` (a `high-risk-operations-rule` area: coordination integrity mechanics and
+publication-hold code). If during implementation a shared helper in `agov-coord` must change or be moved, that is
+a plan amendment that adds the path, names the high-risk handling and returns to Gate 1 before the change is made.
+The Git-reading approach (`rev-parse`, `ls-tree`, `cat-file --batch`) mirrors the existing visibility code but is
+re-implemented or called, never edited, here.
+
+### JSON shapes
+
+Without `--ref`, JSON stays an array (and `[]` when empty). With `--ref`, JSON is an object
+(`source_ref`, `source_oid`, `coordination_dir`, `messages`). MCP clients must branch on whether they passed `ref`.
+
+### Trust boundary requirements
+
+1. **Leading-dash values.** The MCP layer passes the ref to the child process as the single argument
+   `--ref=<value>` (never as two arguments), so a value such as `-x` is a value, not a flag. A CLI test and an MCP
+   command-vector test both use a ref starting with `-`.
+2. **Echoed untrusted strings.** Text output and diagnostics that include `source_ref` or a rejected key name escape
+   control characters (C0, C1, DEL, ESC) as `\xNN`, cap the displayed value at 200 characters with a trailing
+   marker, and never print raw newlines. JSON output is unaffected. Tests use a value containing ESC and a newline.
+3. **Bounds and file types (ref mode).** Fail closed with exit 2 above 50,000 channel entries, 1 MiB per blob or
+   128 MiB total (the current channel is about 4,400 records, so the bounds leave room). Read only regular blobs
+   (modes 100644 and 100755); skip symlinks and submodules and report the skipped count in the coverage line.
+   Reject a `--dir` that is absolute, contains `..`, a backslash or NUL, or starts with `-`.
+4. **Duplicate keys.** Duplicate JSON-RPC argument keys keep today's last-wins behavior for a known key; a
+   duplicated or single unknown key is rejected. A test covers both cases so a repeated key cannot smuggle a known
+   key past the check.
+
+### Documentation notes
+
+Clients that enforce `additionalProperties: false` will reject `include_forge` and `output` before the tailored
+errors can appear; the MCP documentation says so and points to the tailored text.
+
+### Sequencing note
+
+The two slices are independently revertible and may land as two implementation MRs, in either order, sharing one
+exact-head CLI/MCP parity run when they land together. `depends_on` lists the plan `20261021T220000Z-retire-windows-support`, which acknowledges the
+collision with the now-merged Windows retirement, and `"!3105"` (a merge request, not a plan), which only records
+sequencing. MR !3105 merged on 2026-10-23 as `c2a73e5e`, so implementation starts from a `main` that already contains
+it and no rebase over it is needed.
+
 ## Collision and sequencing disposition
 
-Fresh fetch and open-MR inspection found one current implementation overlap:
-MR !3105 touches both Rust entrypoints and `mcp-server.md` while retiring
-Windows support. It does not implement either behavior here. Rebase this work
-after !3105 if that MR merges first; otherwise re-run the exact range diff and
-resolve only those already-reviewed mechanical removals. Do not merge this
-implementation ahead of an unresolved textual or behavioral conflict.
+Fresh fetch and open-MR inspection (R1) found one implementation overlap: MR !3105 touches both Rust
+entrypoints and `mcp-server.md` while retiring Windows support. It did not implement either behavior here.
+**Update in R2:** MR !3105 merged on 2026-10-23 (`c2a73e5e`), so the overlap is now between this plan and a plan
+already on `main`; it is acknowledged through `depends_on` and implementation starts from the merged state. Do not
+merge this implementation ahead of an unresolved textual or behavioral conflict, and re-run the changed-only
+collision check against the then-current `main` before Gate 2.
 
 The declared plan dependencies acknowledge older live-plan path overlaps:
 the transport-correctness plan owns JSON-RPC framing, the directory-contract
@@ -160,6 +241,16 @@ Slice B:
   modes.
 - CLI and MCP return equivalent ref-mode status/stdout/stderr, with the MCP
   command vector showing `--ref` as a separate argument.
+
+
+R2 additions to the acceptance evidence:
+
+- Ref starting with `-` passes through both the CLI and the MCP command vector (`--ref=-x`) as a value.
+- A ref or key containing ESC and a newline appears escaped and length-capped in text output; JSON is valid.
+- Bounds: a fixture over each limit fails closed with exit 2; a symlink and a submodule entry in the channel are
+  skipped and counted; each rejected `--dir` form (`/abs`, `..`, backslash, NUL, leading `-`) fails.
+- Duplicate-key cases from "Trust boundary requirements" item 4.
+- `git diff` shows no change under `tooling/rust/crates/agov-coord/**`.
 
 Required verification:
 
