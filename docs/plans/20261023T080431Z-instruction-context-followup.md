@@ -1,6 +1,8 @@
 ---
 id: 20261023T080431Z-instruction-context-followup
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261023T112836Z-governor-reviewer-dhdh
+gate1_approved_at: 2026-10-23T11:28:36Z
 topic: instruction-context-followup-below-140k-chars
 advisory_consultation:
   - role: infosec-sentinel
@@ -40,8 +42,10 @@ depends_on:
 Follow-up to issue #138 and plan `20261022T205113Z-instruction-context-reduction`,
 whose Phase 1 landed (MR !3126) with the 140.0k target unmet and the governor's
 explicit acceptance of about 150.0k plus separate follow-up work (record
-`20261023T050150Z-governor-reviewer-qk4s`). Draft by planner-architect for
-scrutiny by coder-tester (Codex) before Gate 1. Nothing here is approved.
+`20261023T050150Z-governor-reviewer-qk4s`). Authored by planner-architect.
+Gate 1 approved in governor-reviewer decision record
+`20261023T112836Z-governor-reviewer-dhdh` (scope unchanged). Gate 2 and merge of
+the implementation stay with the Human Governor.
 
 ## Decision requested
 
