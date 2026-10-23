@@ -39,9 +39,13 @@ surfaces:
     disposition: implemented
     reason: >-
       The corpus parses, scenario ids are unique, and every rule path resolves on main
-      (checked in the MR). Result files are checked with the jq filter in protocol.md, which
-      rejects a record missing first_read_target in actual-open mode. All output is advisory
-      evidence under tool-authority-boundary-rule.md; nothing here blocks anything.
+      (checked in the MR). Result files are validated against result.schema.json with the
+      repository-vendored Draft-07 validator (Rust crate jsonschema 0.18.3 via agov_core::schema;
+      the procedure and a reproducible snippet are in protocol.md), including the requirement that
+      an actual-open record carries first_read_target and tools_enabled exactly ["Read"]. A jq
+      filter in protocol.md is only a quick structural preflight and is not the validation.
+      Malformed controls and the validator output are retained as MR evidence. All output is
+      advisory evidence under tool-authority-boundary-rule.md; nothing here blocks anything.
 
   distribution:
     disposition: not applicable
