@@ -48,8 +48,11 @@ Gate 1 approval to remove prose that describes the retired Elixir
 implementation from foundry and shipped guides, and to invert one CI gate so it
 no longer requires such a sentence. The governor stated on 2026-10-23: "remove
 the elixir stuff from the guides. it was historical, but now git history holds
-it", and chose the scope "foundry guides plus shipped agf docs". Bridge note to
-follow; provisional until a governor-reviewer record references it.
+it", and chose the scope "foundry guides plus shipped agf docs". Bridge notes
+`20261023T045404Z-planner-architect-prhg` (scope) and
+`20261023T061220Z-planner-architect-2gpd` (Gate 1 statement and the
+`upgrade-from-v1.md` choice) are on main; both stay provisional until a
+governor-reviewer record references them.
 
 ## Facts (grep of main, 2026-10-23)
 
@@ -63,7 +66,7 @@ follow; provisional until a governor-reviewer record references it.
   exactly one `AGENTS.md` line containing the ignored-directory wording. This
   blocks removal until the gate changes. That is gate mechanics
   (`gate-self-test-rule`, STRICT).
-- Shipped guides: `upgrade-from-v1.md` (7 mentions), `release-artifacts.md`
+- Shipped guides: `upgrade-from-v1.md` (8 matching lines, 11 Elixir/Mix tokens), `release-artifacts.md`
   (3), `decommission.md` (1), `learning-system.md` (1), the ADR below (1),
   `use-cases.md` (1, kept), `retrospective.md` (1, kept).
 
@@ -149,5 +152,6 @@ Adopter docs parity: updated (shipped guides edited in the same MR).
 
 - R1: a hidden consumer of the AGENTS.md residue line. Mitigation: grep of
   scripts and CI shows only the one script.
-- R2: over-deleting a v1-upgrade hint. Mitigation: the open question above.
+- R2: over-deleting a v1-upgrade hint. Mitigation: resolved by the governor's choice to delete every Elixir/Mix mention
+  (decision section above); the page then says only "v1 commands".
 Rollback: revert the MR. No tag or release is involved.
