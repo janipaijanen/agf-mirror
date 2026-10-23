@@ -1369,6 +1369,108 @@ fn challenge_pending_matches_real_cli() {
 }
 
 #[test]
+fn unknown_arguments_fail_before_the_child_agov_starts() {
+    let fixture = tempfile::tempdir().unwrap();
+    let log = fixture.path().join("calls.log");
+    let mock = fixture.path().join("agov-mock");
+    std::fs::write(
+        &mock,
+        format!(
+            "#!/usr/bin/env sh\nif [ \"$1\" = \"--version\" ]; then exit 0; fi\nprintf '%s\\n' \"$*\" >> '{}'\n",
+            log.display()
+        ),
+    )
+    .unwrap();
+    let mut permissions = std::fs::metadata(&mock).unwrap().permissions();
+    permissions.set_mode(0o755);
+    std::fs::set_permissions(&mock, permissions).unwrap();
+
+    let call = |id: u32, name: &str, arguments: &str| {
+        format!(
+            r#"{{"jsonrpc":"2.0","id":{id},"method":"tools/call","params":{{"name":"{name}","arguments":{arguments}}}}}"#
+        )
+    };
+    let requests = [
+        // misspelled cursor key: must fail, must not run
+        call(1, "agov_coord_list", r#"{"sence":"2026-01-01T00:00:00Z"}"#),
+        // duplicated unknown key: still rejected
+        call(2, "agov_coord_list", r#"{"zz":1,"zz":2}"#),
+        // unknown key next to a valid one: still rejected
+        call(3, "agov_coord_list", r#"{"since":"x","zz":1}"#),
+        // duplicated known key: last value wins, as before
+        call(4, "agov_coord_list", r#"{"since":"first","since":"second"}"#),
+        // tailored error still wins for the known-unsupported key
+        call(5, "agov_plan_collision_check", r#"{"include_forge":true}"#),
+        // key with ESC and newline is echoed escaped
+        call(6, "agov_coord_list", "{\"a\\u001b[31m\\nb\":1}"),
+    ];
+
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", &mock)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    {
+        let stdin = child.stdin.as_mut().unwrap();
+        for request in &requests {
+            writeln!(stdin, "{request}").unwrap();
+        }
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let responses: Vec<Value> = String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(responses.len(), 6);
+
+    for index in [0, 1, 2] {
+        let message = responses[index]["error"]["message"].as_str().unwrap();
+        assert!(
+            message.contains("agov_coord_list") && message.contains("does not accept argument"),
+            "{message}"
+        );
+    }
+    assert!(responses[0]["error"]["message"].as_str().unwrap().contains("'sence'"));
+    assert!(responses[3]["error"].is_null(), "{}", responses[3]);
+    assert!(responses[4]["error"]["message"].as_str().unwrap().contains("CLI-only"));
+    let escaped = responses[5]["error"]["message"].as_str().unwrap();
+    assert!(!escaped.chars().any(char::is_control), "{escaped:?}");
+    assert!(escaped.contains("\\x1b") && escaped.contains("\\x0a"), "{escaped}");
+
+    // Only the duplicated-known-key call reached the child, with the last value.
+    let calls = std::fs::read_to_string(&log).unwrap();
+    assert_eq!(calls.lines().count(), 1, "{calls}");
+    assert!(calls.contains("second") && !calls.contains("first"), "{calls}");
+}
+
+#[test]
+fn tools_list_publishes_only_closed_schemas() {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", "/bin/true")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    writeln!(
+        child.stdin.as_mut().unwrap(),
+        "{}",
+        json!({"jsonrpc":"2.0","id":1,"method":"tools/list"})
+    )
+    .unwrap();
+    drop(child.stdin.take());
+    let output = child.wait_with_output().unwrap();
+    let response: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let tools = response["result"]["tools"].as_array().unwrap();
+    assert_eq!(tools.len(), 21);
+    for tool in tools {
+        assert_eq!(tool["inputSchema"]["additionalProperties"], json!(false), "{}", tool["name"]);
+    }
+}
+
+#[test]
 fn coord_list_ref_reaches_the_child_as_one_equals_argument_and_ref_errors_stay_errors() {
     let fixture = tempfile::tempdir().unwrap();
     let log = fixture.path().join("calls.log");
