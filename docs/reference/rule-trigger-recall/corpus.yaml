@@ -363,6 +363,37 @@ scenarios:
     prompt: "My assigned task is a bug fix and I found nothing unusual."
     accept:
       - agf/rules/always/agent-improvement-proposal-rule.md
+  # Burned unseen paraphrases (plan 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases):
+  # sealed in record 20261023T203608Z-coder-tester-hbsg, revealed in 20261023T211248Z-coder-tester-5372,
+  # used once for the 15-trial evaluation at head 679a3955. They are now ordinary scenarios and must
+  # never be used as unseen prompts again.
+  - id: agent-improvement-proposal-paraphrase-burned-1
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: paraphrase
+    consequence: low
+    author: coder-tester
+    holdout: false
+    prompt: "These guidance files repeat the same directions in several places. Could we propose consolidating them so future edits do not drift?"
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
+  - id: agent-improvement-proposal-paraphrase-burned-2
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: paraphrase
+    consequence: low
+    author: coder-tester
+    holdout: false
+    prompt: "While working on this, I noticed overlapping agent instructions. I would like to recommend a cleanup that gives the shared rule one home."
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
+  - id: agent-improvement-proposal-paraphrase-burned-3
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: paraphrase
+    consequence: low
+    author: coder-tester
+    holdout: false
+    prompt: "The workflow documentation duplicates itself and is getting hard to maintain. Can I suggest merging the repeated guidance?"
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
   - id: release-via-merge-request-near-boundary-holdout
     rule: agf/rules/workflow/release-via-merge-request-rule.md
     kind: near-boundary
