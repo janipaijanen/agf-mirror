@@ -5,6 +5,11 @@ topic: agov-strict-mcp-arguments-and-ref-aware-coordination-list
 gate1_approved_by: ""
 gate1_approved_at: ""
 depends_on:
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
+  - 20260913T165127Z-row5-s4-cp-a-ack-pending-display
+  - 20260913T195450Z-row5-s2-self-announcing-supersession
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
   - agov-mcp-transport-protocol-correctness
   - mcp-coordination-dir-contract-fix
   - agov-coordination-read-path-reliability
@@ -122,9 +127,15 @@ The declared plan dependencies acknowledge older live-plan path overlaps:
 the transport-correctness plan owns JSON-RPC framing, the directory-contract
 plan owns `dir` → `coordination_dir`, and the read-path-reliability plan owns
 the earlier cursor/visibility fixes. This plan neither supersedes nor edits
-their contracts. The collision gate must be rerun after this file is drafted;
-any additional reported live-plan overlap requires an explicit sequencing
-disposition before Gate 1.
+their contracts. The five timestamped Row 5/Row 6 plans reported by the
+exact-head CI collision gate all overlap only through the shared
+`tooling/rust/crates/agov/src/main.rs` entrypoint. Their established
+coordination lifecycle, plan lifecycle, acknowledgement display,
+supersession, and collision-gate behavior stays intact; this work starts from
+their integrated `main` state and adds only the new `coord list --ref` path.
+They are named in `depends_on` so that sequencing is explicit rather than
+silently treating the common entrypoint as free. Any further reported live
+plan overlap requires an explicit disposition before Gate 1.
 
 ## Tests and acceptance
 
