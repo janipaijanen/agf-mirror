@@ -88,11 +88,11 @@ once its guards are gone, nothing stops a future commit or release payload from
 re-adding `tooling/elixir/`, `mix.*` or `*.ex[s]` files. If the Governor accepts
 that, B proceeds; if not, only A ships. Both touch gate or release mechanics
 (`high-risk-operations-rule`: release and publication mechanics), so Gate 1 and
-Gate 2 are the Governor's; `agf/agents/*.yaml` is also red-listed.
+Gate 2 are the Governor's.
 
 ## Classification and impact
 
-STRICT: release mechanics, gate removal, agent definition text.
+STRICT: release mechanics and gate removal.
 ```
 Impact:
   Foundry:          CI loses the Elixir exclusion selftest and six guard calls; builds unchanged.
@@ -101,7 +101,8 @@ Impact:
   Migration:        not required; no shipped file matches the removed patterns.
   Evidence:         governor instruction 2026-10-23; issue #140; grep above.
 ```
-Adopter docs parity: updated (`agf/dist/README.md`).
+Adopter docs parity: updated (`agf/dist/README.md` and
+`agf/docs/site/reference/release-artifacts.md`).
 
 ## Test strategy
 
