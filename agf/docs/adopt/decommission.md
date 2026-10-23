@@ -46,7 +46,7 @@ same across adopters; the standard set is:
 | Framework declaration | `agf/framework.yaml` (your tuned copy, if adopted — optional; `agov validate framework-config` passes vacuously when it does not exist) |
 | Governance charter | `GOVERNANCE.md` (if based on the template) |
 | Coordination channel | `docs/coordination/` (see history note below) |
-| Framework tooling | Rust `agov` binary/wrapper, or legacy Python/Elixir tooling if vendored from an older release |
+| Framework tooling | Rust `agov` binary/wrapper, or legacy Python tooling if vendored from an older release |
 
 **Keep your own learning record** (`agf/learnings/<codename>.yaml`) unless
 you have a reason to delete it — it documents decisions made while governed

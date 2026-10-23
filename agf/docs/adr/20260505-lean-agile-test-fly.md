@@ -101,7 +101,7 @@ Filed at [`learnings/linked-data-probe.yaml`](https://gitlab.com/janipaijanen/ag
 
 At the time of this ADR, `pyproject.toml`, `src/agents_govern/`, and
 `agov-validate-*` were untouched. This remains historical context; current v2
-validator guidance lives in the Elixir Mix tasks under `tooling/elixir/`.
+validator guidance lives in the Rust `agov` validators.
 
 ### D5. CHANGELOG entry
 

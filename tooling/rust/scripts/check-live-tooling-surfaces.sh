@@ -21,10 +21,15 @@ selftest() {
   trap 'rm -rf "$fixture_dir"' EXIT HUP INT TERM
   printf '%s\n' 'agov validate infosec' >"$fixture_dir/good"
   printf '%s\n' 'mix agov.validate.infosec' >"$fixture_dir/bad"
+  printf '%s\n' 'An ignored `tooling/elixir/` directory may remain.' >"$fixture_dir/bad-residue"
 
   scan_forbidden "$fixture_dir/good"
   if scan_forbidden "$fixture_dir/bad" >/dev/null 2>&1; then
     echo "negative fixture unexpectedly passed" >&2
+    exit 1
+  fi
+  if scan_forbidden "$fixture_dir/bad-residue" >/dev/null 2>&1; then
+    echo "negative residue fixture unexpectedly passed" >&2
     exit 1
   fi
   echo "OK live tooling-surface negative self-test"
@@ -47,16 +52,6 @@ check_repo() {
     exit 1
   fi
 
-  # AGENTS.md intentionally names the ignored residue path once. Require the
-  # explicit non-implementation wording and reject any other occurrence.
-  agents_matches=$(grep -n 'tooling/elixir' AGENTS.md || true)
-  agents_count=$(printf '%s\n' "$agents_matches" | grep -c . || true)
-  if [ "$agents_count" -ne 1 ] || ! printf '%s\n' "$agents_matches" | grep -q 'ignored `tooling/elixir/` directory'; then
-    echo "AGENTS.md residue reference is absent, duplicated, or ambiguous" >&2
-    printf '%s\n' "$agents_matches" >&2
-    exit 1
-  fi
-
   live_failure=0
   while IFS= read -r path; do
     [ -n "$path" ] || continue
@@ -68,6 +63,7 @@ check_repo() {
     fi
   done <<'EOF'
 .gitlab/merge_request_templates/Default.md
+AGENTS.md
 .gitlab/merge_request_templates/Learning Record.md
 .claude/rules/always/gate-self-test-rule.md
 .claude/rules/workflow/release-via-merge-request-rule.md
