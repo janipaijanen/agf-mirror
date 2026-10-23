@@ -4,11 +4,18 @@ status: pending-gate1
 topic: remove-remaining-elixir-leftovers
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Review requested. Package B removes a release-payload guard; no credentials or schemas change.
+    status: consulted
+    reason: >
+      `agov validate infosec` passes; Codex's screen (record nrt1) found no
+      credentials or cross-project linkage. Summarized in contribution-auditor
+      record 20261023T112057Z-contribution-auditor-1p6s.
   - role: contribution-auditor
-    status: pending
-    reason: Review requested before Gate 1.
+    status: consulted
+    reason: >
+      Audit by the AI side of the role (the plan's own author), record
+      20261023T112057Z-contribution-auditor-1p6s: no blocking finding, one WARN
+      (orphan erlang pin, fixed in this revision) and one INFO. The governor may
+      pull or redo it.
 affected_paths:
   - mise.toml
   - mise.lock
@@ -47,7 +54,7 @@ remains is configuration, guards and names:
 
 | Item | Where |
 |---|---|
-| Toolchain pin `elixir = "1.20.1-otp-29"` | `mise.toml`, `mise.lock` |
+| Toolchain pins `elixir = "1.20.1-otp-29"` and `erlang = "29.0.2"` (Erlang is used only by the Elixir toolchain; grep of main finds no other use) | `mise.toml`, `mise.lock` |
 | Ignore entries | `.gitignore` (`tooling/elixir/`), `.dockerignore` (3 lines) |
 | Release-payload guard script and selftest | `tooling/rust/scripts/check-no-elixir-artifacts.sh` |
 | Guard invocations | `.gitlab-ci.yml` 454, 491, 528, 531, 1572, 1576; job `release:elixir-exclusion-selftest` (795-816) |
@@ -58,8 +65,8 @@ remains is configuration, guards and names:
 
 ## Scope
 
-Package A (inert leftovers, low risk): remove the `mise.toml` elixir pin and
-refresh `mise.lock` only for that tool (no unrelated tool-version churn; the diff
+Package A (inert leftovers, low risk): remove the `mise.toml` elixir and erlang pins and
+refresh `mise.lock` only for those two tools (no unrelated tool-version churn; the diff
 of `mise.lock` is reviewed line by line); remove the Elixir entries from `.gitignore` and
 `.dockerignore`; reword the Rust comments to drop the Elixir reference; rename
 the `roi.rs` mixed-records test to "legacy records" (fixture data untouched);
@@ -73,8 +80,8 @@ sentence, and the now-false phrase "Elixir build directories" in
 the `tooling/elixir` term from the scan pattern and the `bad-residue` selftest
 fixture, reword "dead Elixir parity harness remains" to "dead parity harness
 remains", and add selftest fixtures for the `uv run agov-` and `bin/agf` patterns
-that the script scans but does not yet test; drop the two `coord_brief.rs` tests; switch
-the `dist.rs` forbidden-list test to a neutral forbidden pattern so the generic
+that the script scans but does not yet test; drop the two `coord_brief.rs` tests; switch and rename
+the `dist.rs` forbidden-list test (`rejects_selected_mix_and_elixir_sources`) to a neutral forbidden pattern and name so the generic
 mechanism stays tested.
 
 Out of scope: Elixir as an example language in rules and docs
