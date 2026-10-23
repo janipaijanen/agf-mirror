@@ -1,9 +1,9 @@
 ---
 id: 20261023T155559Z-agov-strict-args-ref-list
-status: pending-gate1
+status: approved
 topic: agov-strict-mcp-arguments-and-ref-aware-coordination-list
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: 20261023T201411Z-governor-reviewer-ms5d
+gate1_approved_at: "2026-10-23T20:14:11Z"
 depends_on:
   - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
   - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
@@ -17,14 +17,12 @@ depends_on:
   - "!3105"
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      The exact-head InfoSec review is to be performed and published by coder-tester (Codex) after revision
-      R2 (ACS seq 229). Evidence already available, which is not that decision: the CI validator
-      `agov validate infosec` passes (it checks learning records only), and a trust-boundary read-through by
-      a different assistant than the plan's author (contribution-auditor record
-      `20261023T193348Z-contribution-auditor-7njp`, findings 6-10) found no blocking issue and two WARNs,
-      resolved in R2.
+      Exact-head InfoSec review `20261023T200444Z-infosec-sentinel-nqts` (coder-tester, Codex) is CLEAR at
+      head f771e6fa. Supporting evidence, not the decision: the CI validator `agov validate infosec` passes
+      (learning records only) and the trust-boundary read-through in contribution-auditor record
+      `20261023T193348Z-contribution-auditor-7njp`.
   - role: contribution-auditor
     status: consulted
     reason: >-
