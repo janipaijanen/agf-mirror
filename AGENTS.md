@@ -304,7 +304,7 @@ same list with fuller scope wording):
 - prepare an MR or write its description, `glab mr create/update`: `workflow/merge-request-description-rule.md`
 - act under a delegation or write a delegation artifact: `workflow/deputy-governor-rule.md`
 - plan or Gate 2 review that adds or changes normative guidance in a Pages page, runbook, or AI loader: `workflow/documentation-rule-projection-rule.md`
-- rename, deprecate, or remove a CLI flag, MCP field, schema field, API parameter, or config key: `workflow/deprecation-policy-rule.md`
+- rename, restructure, deprecate, or remove a CLI flag, MCP field, schema field, API parameter, or config key: `workflow/deprecation-policy-rule.md`
 - add or change a CI stage over about 5 minutes or its `rules:`/`changes:`: `workflow/ci-trigger-scoping-rule.md`
 - series with a `convergence` coordination object: `workflow/review-convergence-rule.md`
 - commands or config for a specific host, container, runner, or runtime: `always/environment-interrogation-rule.md`
@@ -312,7 +312,7 @@ same list with fuller scope wording):
 - run anything that could upgrade dependencies, or add a dependency: `workflow/no-auto-package-update.md`
 - choose or write a `MAJOR.MINOR.PATCH` version: `workflow/semver-no-carry-rule.md`
 - output a human will look at (CAD, PDF, dashboard, chart, report): `workflow/visible-artifact-verification-rule.md`
-- add or move an attribute on persisted data: `workflow/concept-modelling-rule.md`
+- introduce, modify, or move an attribute on persisted data: `workflow/concept-modelling-rule.md`
 - generate files read by tools you do not control (DXF, SVG, PDF, CSV, JSON-LD): `workflow/file-generator-rule.md`
 - create or change a database migration: `workflow/migration-generation-rule.md`
 - add or change a handler that creates, updates, or deletes persisted data: `always/audit-log-completeness-rule.md`
