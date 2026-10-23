@@ -58,7 +58,8 @@ follow; provisional until a governor-reviewer record references it.
   blocks removal until the gate changes. That is gate mechanics
   (`gate-self-test-rule`, STRICT).
 - Shipped guides: `upgrade-from-v1.md` (7 mentions), `release-artifacts.md`
-  (3), `decommission.md` (1), `learning-system.md` (1), `use-cases.md` (1).
+  (3), `decommission.md` (1), `learning-system.md` (1), the ADR below (1),
+  `use-cases.md` (1, kept), `retrospective.md` (1, kept).
 
 ## Scope
 
@@ -72,7 +73,15 @@ In:
    option. Per file: `release-artifacts.md` drop the "no Elixir/ERTS package"
    statements or reduce to the Rust-only fact; `decommission.md` drop the
    legacy tooling cell; `learning-system.md` drop the E4 Elixir deferral note;
-   `use-cases.md` drop "Elixir and Python" from the stack list.
+   one sentence in `agf/docs/adr/20260505-lean-agile-test-fly.md` (D4) that
+   falsely says current validator guidance lives in Elixir Mix tasks under
+   `tooling/elixir/`: correct it to the Rust `agov` validators, nothing else in
+   that ADR changes.
+
+Intent reading (governor to correct if wrong): "Elixir stuff" means the retired
+AGF tooling, not Elixir as an example language. So `use-cases.md` ("across
+Elixir and Python") and `retrospective.md` (an adopter's historical stack
+evidence) stay as kept residuals below.
 
 Out (kept on purpose):
 - `check-no-elixir-artifacts.sh`, the `release:elixir-exclusion-selftest` job,
@@ -86,11 +95,11 @@ Out (kept on purpose):
 - Coordination records, plans, learnings, audits, proposals, CHANGELOG: immutable
   or historical.
 
-Expected residual \`git grep -i elixir\` hits after the change, each deliberate:
-\`upgrade-from-v1.md\` (v1 command names as removal search targets, pending the
-open question), the release-payload guard sentences in \`release-artifacts.md\`
-that name what the payload must not contain, \`use-cases.md\` and
-\`retrospective.md\` (language/stack evidence, not tooling), and the guard
+Expected residual `git grep -i elixir` hits after the change, each deliberate:
+`upgrade-from-v1.md` (v1 command names as removal search targets, pending the
+open question), the release-payload guard sentences in `release-artifacts.md`
+that name what the payload must not contain, `use-cases.md` and
+`retrospective.md` (language/stack evidence, not tooling), and the guard
 scripts and manifests listed above.
 
 ## Open question for the governor
@@ -121,7 +130,7 @@ Adopter docs parity: updated (shipped guides edited in the same MR).
    the MR `## Negative test` section.
 2. `check-live-tooling-surfaces.sh selftest` extended with that fixture.
 3. `git grep -i elixir -- AGENTS.md agf/docs agf/templates docs/reference`
-   lists only the kept items above.
+   lists only the expected residuals above; the MR pastes the output.
 4. `agov validate adoption`, `agov plan projection-check-all`, pipeline green
    at the exact head.
 
