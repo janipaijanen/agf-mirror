@@ -2,6 +2,11 @@
 // to Podman runners while nested scans stay on DinD. This gate is unchanged;
 // ci_needs_implication.rs covers the routing and both wrong-pool cases.
 
+// Windows tooling retirement (2026-10-22): .gitlab-ci.yml drops the optional
+// Windows preview jobs and ZIP packaging. This is a declared shared surface,
+// so rerun this gate's missing-companion and shared-surface controls. The CI
+// job-selection behavior is covered by ci_needs_implication.rs.
+
 // Row 5 S3 companion evidence: urgency/challenge commands change shared main.rs,
 // not gate-change-check behavior. Existing negative controls below are rerun;
 // S3 behavioral coverage is in urgency_ordering.rs and challenge.rs tests.

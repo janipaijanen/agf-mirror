@@ -21,11 +21,9 @@ const EDGE_FIXTURE: &str = include_str!("fixtures/ci-needs/mandatory-edges.tsv")
 const CONTEXT_FIXTURE: &str = include_str!("fixtures/ci-needs/context-matrix.tsv");
 const SHARED_SURFACE_REGISTRY: &str =
     include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
-const DIND_JOBS: [&str; 4] = [
+const DIND_JOBS: [&str; 2] = [
     "agov:oci:mr-build-scan",
     "agov:oci:release",
-    "rust:tooling:preview:windows-package",
-    "rust:tooling:build:windows:preview",
 ];
 const PODMAN_JOBS: [&str; 2] = ["release:verify", "rust:tooling:oci-pull-test"];
 
@@ -510,7 +508,7 @@ fn native_linux_packaging_errors(configuration: &str) -> Vec<String> {
         }
     }
     for required in [
-        "apt-get install -y -qq binutils jq musl-tools zip\n",
+        "apt-get install -y -qq binutils jq musl-tools\n",
         "    - export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc\n",
         "        rustup target add \"$target\"\n",
         "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n",

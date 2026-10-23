@@ -9,6 +9,9 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 ## [Unreleased]
 
 - Route two OCI pull/inspect CI jobs to the live Podman runner pool instead of the unavailable DinD pool.
+- Retired the optional Windows `agov`/`agov-mcp` preview build and packaging
+  path. Automation using that preview must move to Linux x86_64 or the OCI
+  image; current CI and release tooling no longer produce Windows ZIPs.
 
 ## [2.10.1] - 2026-09-12
 

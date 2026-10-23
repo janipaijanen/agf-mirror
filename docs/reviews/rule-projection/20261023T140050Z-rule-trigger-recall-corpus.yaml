@@ -1,0 +1,62 @@
+# Six-surface projection evidence for plan
+# docs/plans/20261023T140050Z-rule-trigger-recall-corpus.md,
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# The plan adds a foundry-local evaluation corpus, manual protocol and result schema under
+# docs/reference/rule-trigger-recall/. No rule text, loader, or tooling changes.
+
+plan_id: 20261023T140050Z-rule-trigger-recall-corpus
+
+changed_pages_or_runbooks:
+  - docs/reference/rule-trigger-recall/protocol.md
+
+surfaces:
+  normative_owner:
+    disposition: not applicable
+    reason: >-
+      The protocol states no normative rule. It is a foundry-local test protocol that grants
+      no authority; the rules the corpus tests keep their canonical owners under agf/rules/.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Foundry-local evaluation material. No Pages page explains it and adopters are not
+      asked to use it.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      A manual test protocol for the maintainers of the foundry loaders, not an operational
+      runbook for adopters or for routine agent work.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      Nothing is added to AGENTS.md, .claude/rules/INDEX.md, settings or any loader. The
+      corpus is read on demand only, so it adds no always-loaded context.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      The corpus parses, scenario ids are unique, and every rule path resolves on main
+      (checked in the MR). Result files are validated against result.schema.json with the
+      repository-vendored Draft-07 validator (Rust crate jsonschema 0.18.3 via agov_core::schema;
+      the procedure and a reproducible snippet are in protocol.md), including the requirement that
+      an actual-open record carries first_read_target and tools_enabled exactly ["Read"]. A jq
+      filter in protocol.md is only a quick structural preflight and is not the validation.
+      Malformed controls and the validator output are retained as MR evidence. All output is
+      advisory evidence under tool-authority-boundary-rule.md; nothing here blocks anything.
+
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: docs/reference/rule-trigger-recall/corpus.yaml
+        reason: Foundry-local; not in any AGF or tooling artifact.
+      - path: docs/reference/rule-trigger-recall/protocol.md
+        reason: Foundry-local; not in any AGF or tooling artifact.
+      - path: docs/reference/rule-trigger-recall/result.schema.json
+        reason: Foundry-local; deliberately not under agf/schemas.
+    reason: >-
+      All new files are project-local to the foundry checkout. Nothing in agf/ or the shipped
+      templates changes.

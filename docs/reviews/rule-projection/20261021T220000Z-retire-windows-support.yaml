@@ -1,0 +1,46 @@
+plan_id: 20261021T220000Z-retire-windows-support
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/adopt/tooling-and-tokens.md
+  - agf/docs/site/docs/adopt/mcp-server.md
+  - agf/docs/site/docs/start/commission.md
+  - agf/docs/site/reference/release-artifacts.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    paths:
+      - .gitlab-ci.yml
+      - tooling/rust/release-targets.txt
+    reason: The CI jobs and release target manifest define the current build contract; the pages describe it.
+  adopter_facing_explanation:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/adopt/tooling-and-tokens.md
+      - agf/docs/site/docs/start/commission.md
+    reason: Both current entry points state that the published tooling path is Linux x86_64 and Windows tooling is unsupported.
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/adopt/tooling-and-tokens.md
+    reason: The existing installation sequence directs adopters to the supported archive and OCI path.
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: AGENTS.md and shipped loaders do not name a Windows binary or preview job; their rules and pointers are unchanged.
+  validation_drift_evidence:
+    disposition: implemented
+    paths:
+      - tooling/rust/scripts/release-assets.sh
+      - tooling/rust/scripts/check-release-self-sufficiency.sh
+      - tooling/rust/crates/agov/tests/ci_needs_implication.rs
+    reason: Release asset self-tests exclude retired Windows files, archive self-tests cover Linux, and CI selection tests cover the remaining jobs.
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: agf/docs/site/docs/adopt/tooling-and-tokens.md
+        reason: Existing distributed Pages path.
+      - path: agf/docs/site/docs/adopt/mcp-server.md
+        reason: Existing distributed Pages path.
+      - path: agf/docs/site/docs/start/commission.md
+        reason: Existing distributed Pages path.
+      - path: agf/docs/site/reference/release-artifacts.md
+        reason: Existing distributed Pages path.
+    reason: All changed Pages files already ship through the site build.
