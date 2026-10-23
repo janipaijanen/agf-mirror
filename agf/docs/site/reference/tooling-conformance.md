@@ -48,6 +48,7 @@ The table lists the adopter-facing command surface.
 | `agov coord visibility [args...]` | Detect coordination obligations hidden on non-base branches. | Release surface |
 | `agov coord graph [args...]` | Render role-to-role coordination flows as Graphviz dot or text. | Release surface |
 | `agov coord graph-index [args...]` | Emit the coordination graph as deterministic JSON for cold starts and tooling. See the [graph-index contract](coord-graph-index.md). | Release surface |
+| `agov coord list [--since <cursor>] [--dir <path>] [--format text\|json] [--ref <commit-ish>]` | List valid coordination messages after a cursor. `--ref` reads the channel from an already-fetched commit (local Git only, bounded: at most 50,000 entries, 1 MiB per record, 128 MiB total; symlinks and submodules are skipped and counted). Exit `0` found / `2` none found or a ref that cannot be read (the reason is on stderr) — not a failure of the tool itself. | Release surface |
 | `agov coord pending [--cutoff <RFC3339>] [--format text\|json]` | Report unresolved non-`handoff` `requires-ack: true` coordination records. Exit `0` found / `2` none found — not a failure. | Release surface |
 | `agov coord convergence --series <id> [--format text\|json]` | Verify and report the deterministic per-invariant state of an opt-in review-convergence series. Exit `1` for invalid transitions or unresolved CLEAR/BLOCK conflicts. | Release surface |
 | `agov token roi report [args...]` | Summarize local deterministic-tool token savings telemetry. | Release surface |

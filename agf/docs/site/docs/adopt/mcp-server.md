@@ -150,6 +150,17 @@ Gate 1/Gate 2 review. `agov_coord_list` and `agov_coord_pending` both preserve
 the CLI's `status: 2` for "nothing new"/"nothing pending" polling results but
 return it as a non-error MCP tool result.
 
+`agov_coord_list` accepts an optional `ref` string, forwarded as the single
+argument `--ref=<value>` (a value that starts with `-` stays a value). It reads
+the coordination channel from that already-fetched commit-ish, so the
+fetch-first poll is not answered from a stale checkout; the server never
+fetches. With `ref`, `format: json` returns an object (`source_ref`,
+`source_oid`, `coordination_dir`, `skipped`, `messages`); without it the result
+is still an array, and an empty result is `[]`. A ref the tool cannot read
+returns `status: 2` with the reason on `stderr` and is marked as an error, not
+as the "nothing new" polling result. Clients that enforce a strict schema must
+branch on whether they sent `ref` when they parse the JSON.
+
 `agov_coord_pending` tracks unresolved `requires-ack: true` records of any
 kind except `ack` and `handoff` — `handoff` obligations remain
 `agov_handoff_next`'s surface, unchanged. A record is pending until a later
