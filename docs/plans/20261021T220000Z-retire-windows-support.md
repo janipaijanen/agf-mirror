@@ -29,6 +29,8 @@ affected_paths:
   - agf/docs/site/reference/release-artifacts.md
 depends_on:
   - 20261021T204757Z-remove-dind-ci
+  - 20261023T045214Z-remove-elixir-references
+  - 20261023T083302Z-remove-elixir-leftovers
   - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
   - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
   - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
