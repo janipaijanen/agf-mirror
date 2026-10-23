@@ -1,0 +1,365 @@
+# Rule-trigger recall corpus (foundry-local).
+# Plan: docs/plans/20261023T140050Z-rule-trigger-recall-corpus.md (Gate 1: 20261023T144257Z-governor-reviewer-zc0p).
+#
+# Each scenario states a situation. The agent is asked which rule file it reads first.
+# `accept` lists the rule path for the scenario's rule. For kind `negative` the scenario
+# PASSES when the answer is NOT in `accept` (the rule must not be chosen).
+# `high` consequence = security, gate, release, delegation and coordination-integrity rules.
+#
+# Authors: planner-architect wrote the direct, paraphrase and negative scenarios below.
+# The hold-out quarter (13 scenarios, kind near-boundary, one per rule, `holdout: true`,
+# `author: coder-tester`) is authored by coder-tester and is not read when editing trigger
+# lines. It is added by coder-tester in a separate commit on this MR.
+
+scenarios:
+  - id: release-via-merge-request-direct
+    rule: agf/rules/workflow/release-via-merge-request-rule.md
+    kind: direct
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I must prepare a release: bump agf/VERSION and create the git tag."
+    accept:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+  - id: release-via-merge-request-paraphrase
+    rule: agf/rules/workflow/release-via-merge-request-rule.md
+    kind: paraphrase
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "Time to cut the next version: update the changelog, make the release branch, and push the tag."
+    accept:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+  - id: release-via-merge-request-negative
+    rule: agf/rules/workflow/release-via-merge-request-rule.md
+    kind: negative
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I need to fix a typo in docs/reference/session-resume.md."
+    accept:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+  - id: deputy-governor-direct
+    rule: agf/rules/workflow/deputy-governor-rule.md
+    kind: direct
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I have a delegation artifact and need to approve a Gate 2 decision as a deputy governor."
+    accept:
+      - agf/rules/workflow/deputy-governor-rule.md
+  - id: deputy-governor-paraphrase
+    rule: agf/rules/workflow/deputy-governor-rule.md
+    kind: paraphrase
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "The governor delegated approvals to me for a limited time and I am about to approve a merge on their behalf."
+    accept:
+      - agf/rules/workflow/deputy-governor-rule.md
+  - id: deputy-governor-negative
+    rule: agf/rules/workflow/deputy-governor-rule.md
+    kind: negative
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I need to ask the governor a clarifying question about plan scope."
+    accept:
+      - agf/rules/workflow/deputy-governor-rule.md
+  - id: documentation-rule-projection-direct
+    rule: agf/rules/workflow/documentation-rule-projection-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am writing a plan that adds MUST wording to an adopter-facing Pages runbook."
+    accept:
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+  - id: documentation-rule-projection-paraphrase
+    rule: agf/rules/workflow/documentation-rule-projection-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "My Gate 2 review covers a Pages page that introduces new blocking guidance; what projection evidence is required?"
+    accept:
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+  - id: documentation-rule-projection-negative
+    rule: agf/rules/workflow/documentation-rule-projection-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am fixing a broken link in a Pages page and no rule wording changes."
+    accept:
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+  - id: deprecation-policy-direct
+    rule: agf/rules/workflow/deprecation-policy-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I want to rename a CLI flag in agov and remove the old one."
+    accept:
+      - agf/rules/workflow/deprecation-policy-rule.md
+  - id: deprecation-policy-paraphrase
+    rule: agf/rules/workflow/deprecation-policy-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "We plan to retire an MCP tool field that adopters may use; how long must we keep it?"
+    accept:
+      - agf/rules/workflow/deprecation-policy-rule.md
+  - id: deprecation-policy-negative
+    rule: agf/rules/workflow/deprecation-policy-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am adding a brand new optional CLI flag with no change to existing flags."
+    accept:
+      - agf/rules/workflow/deprecation-policy-rule.md
+  - id: ci-trigger-scoping-direct
+    rule: agf/rules/workflow/ci-trigger-scoping-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am adding a CI stage that takes about ten minutes and need to decide its rules and changes paths."
+    accept:
+      - agf/rules/workflow/ci-trigger-scoping-rule.md
+  - id: ci-trigger-scoping-paraphrase
+    rule: agf/rules/workflow/ci-trigger-scoping-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "A slow end-to-end test job runs on every merge request, including docs-only ones, and I want to limit when it runs."
+    accept:
+      - agf/rules/workflow/ci-trigger-scoping-rule.md
+  - id: ci-trigger-scoping-negative
+    rule: agf/rules/workflow/ci-trigger-scoping-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am renaming a variable inside a short unit-test job script."
+    accept:
+      - agf/rules/workflow/ci-trigger-scoping-rule.md
+  - id: merge-request-workflow-direct
+    rule: agf/rules/workflow/merge-request-workflow-rule.md
+    kind: direct
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I need to get a change onto main; what is the required path?"
+    accept:
+      - agf/rules/workflow/merge-request-workflow-rule.md
+  - id: merge-request-workflow-paraphrase
+    rule: agf/rules/workflow/merge-request-workflow-rule.md
+    kind: paraphrase
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "Can I push this tiny fix straight to main?"
+    accept:
+      - agf/rules/workflow/merge-request-workflow-rule.md
+  - id: merge-request-workflow-negative
+    rule: agf/rules/workflow/merge-request-workflow-rule.md
+    kind: negative
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I am reading the code of a function to understand what it does."
+    accept:
+      - agf/rules/workflow/merge-request-workflow-rule.md
+  - id: immutable-tags-direct
+    rule: agf/rules/workflow/immutable-tags-rule.md
+    kind: direct
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "A tag was pushed with a mistake and I want to delete it and recreate it on another commit."
+    accept:
+      - agf/rules/workflow/immutable-tags-rule.md
+  - id: immutable-tags-paraphrase
+    rule: agf/rules/workflow/immutable-tags-rule.md
+    kind: paraphrase
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "Can I force-move a pushed release tag to the fixed commit?"
+    accept:
+      - agf/rules/workflow/immutable-tags-rule.md
+  - id: immutable-tags-negative
+    rule: agf/rules/workflow/immutable-tags-rule.md
+    kind: negative
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I want to list the existing tags in the repository."
+    accept:
+      - agf/rules/workflow/immutable-tags-rule.md
+  - id: coordination-challenge-response-direct
+    rule: agf/rules/workflow/coordination-challenge-response-rule.md
+    kind: direct
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I must raise a coordination challenge against a disputed record (kind: review with a challenge object)."
+    accept:
+      - agf/rules/workflow/coordination-challenge-response-rule.md
+  - id: coordination-challenge-response-paraphrase
+    rule: agf/rules/workflow/coordination-challenge-response-rule.md
+    kind: paraphrase
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "A coordination record looks wrong and I want to formally dispute it so it stays visible until the governor decides."
+    accept:
+      - agf/rules/workflow/coordination-challenge-response-rule.md
+  - id: coordination-challenge-response-negative
+    rule: agf/rules/workflow/coordination-challenge-response-rule.md
+    kind: negative
+    consequence: high
+    author: planner-architect
+    holdout: false
+    prompt: "I need to add an acknowledgement for a handoff addressed to me."
+    accept:
+      - agf/rules/workflow/coordination-challenge-response-rule.md
+  - id: coordination-id-direct
+    rule: agf/rules/workflow/coordination-id-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I must write a coordination message by hand and the filename or ID looks wrong."
+    accept:
+      - agf/rules/workflow/coordination-id-rule.md
+  - id: coordination-id-paraphrase
+    rule: agf/rules/workflow/coordination-id-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "What format must a new coordination record id and filename have?"
+    accept:
+      - agf/rules/workflow/coordination-id-rule.md
+  - id: coordination-id-negative
+    rule: agf/rules/workflow/coordination-id-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I need to read the latest coordination messages since a cursor."
+    accept:
+      - agf/rules/workflow/coordination-id-rule.md
+  - id: feature-regression-guard-direct
+    rule: agf/rules/workflow/feature-regression-guard-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I must change a permission check in a handler and delete an outdated test for it."
+    accept:
+      - agf/rules/workflow/feature-regression-guard-rule.md
+  - id: feature-regression-guard-paraphrase
+    rule: agf/rules/workflow/feature-regression-guard-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am refactoring a route and one existing assertion now fails; may I just remove the test?"
+    accept:
+      - agf/rules/workflow/feature-regression-guard-rule.md
+  - id: feature-regression-guard-negative
+    rule: agf/rules/workflow/feature-regression-guard-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am adding a new documentation file with no code change."
+    accept:
+      - agf/rules/workflow/feature-regression-guard-rule.md
+  - id: debugging-direct
+    rule: agf/rules/workflow/debugging-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I need to diagnose a failing test and a stack trace in the Rust crates."
+    accept:
+      - agf/rules/workflow/debugging-rule.md
+  - id: debugging-paraphrase
+    rule: agf/rules/workflow/debugging-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "A screenshot shows an error in the tool output and I am tempted to try fixes until it goes away."
+    accept:
+      - agf/rules/workflow/debugging-rule.md
+  - id: debugging-negative
+    rule: agf/rules/workflow/debugging-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am writing a new feature from a clear specification."
+    accept:
+      - agf/rules/workflow/debugging-rule.md
+  - id: governance-file-layout-direct
+    rule: agf/rules/always/governance-file-layout-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I need to write a new ADR and decide where it should live in the repository."
+    accept:
+      - agf/rules/always/governance-file-layout-rule.md
+  - id: governance-file-layout-paraphrase
+    rule: agf/rules/always/governance-file-layout-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "Where do learning records and agent definitions go in this project?"
+    accept:
+      - agf/rules/always/governance-file-layout-rule.md
+  - id: governance-file-layout-negative
+    rule: agf/rules/always/governance-file-layout-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I am renaming a local variable in a Rust function."
+    accept:
+      - agf/rules/always/governance-file-layout-rule.md
+  - id: agent-improvement-proposal-direct
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: direct
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "While doing my assigned task I noticed a confusing workflow and avoidable token spend and want to propose an improvement."
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
+  - id: agent-improvement-proposal-paraphrase
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: paraphrase
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "I spotted duplicated instructions across two files while working and want to suggest cleaning them up."
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
+  - id: agent-improvement-proposal-negative
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: negative
+    consequence: low
+    author: planner-architect
+    holdout: false
+    prompt: "My assigned task is a bug fix and I found nothing unusual."
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
