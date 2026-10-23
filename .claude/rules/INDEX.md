@@ -24,7 +24,7 @@ with the Read tool BEFORE doing the matching work. Plan
 | perform any git tag operation: create, push, move, delete, or retag | `agf/rules/workflow/immutable-tags-rule.md` |
 | run any command that could upgrade dependencies, or add or change a dependency | `agf/rules/workflow/no-auto-package-update.md` |
 | choose, bump, or write a `MAJOR.MINOR.PATCH` version number in a manifest, changelog, or tag | `agf/rules/workflow/semver-no-carry-rule.md` |
-| notice friction, duplication, confusing workflow, avoidable token spend or a documentation gap while doing assigned AGF work, or propose an improvement (route it as a note, review, lesson-proposal or plan) | `agf/rules/always/agent-improvement-proposal-rule.md` |
+| notice friction, duplication, confusing workflow, avoidable token spend or a documentation gap while doing assigned AGF work, want to suggest a cleanup or consolidation of duplicated instructions, or propose an improvement (route it as a note, review, lesson-proposal or plan) | `agf/rules/always/agent-improvement-proposal-rule.md` |
 | create or place a learning record, agent definition, ADR, framework rule, working plan, coordination record or `GOVERNANCE.md`, or decide where a governance artifact lives | `agf/rules/always/governance-file-layout-rule.md` |
 | raise, answer or close a coordination `challenge` (`kind: review`, `challenge_id`, `disputed_record_id`) | `agf/rules/workflow/coordination-challenge-response-rule.md` |
 | diagnose a bug, failing test, stack trace or screenshot | `agf/rules/workflow/debugging-rule.md` |
