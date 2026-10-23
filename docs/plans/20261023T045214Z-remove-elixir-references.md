@@ -4,13 +4,19 @@ status: pending-gate1
 topic: remove-retired-elixir-references-from-guides
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >
-      Review requested. No credentials, learning records or security boundary
-      are touched; the one gate-script change keeps its check and inverts it.
+      `agov validate infosec` passes at head 0a142db7; Codex's independent
+      screen (coder-tester record 20261023T062129Z-coder-tester-ejmn) found no
+      credentials, cross-project linkage, or fictional-name leaks. Summarized in
+      contribution-auditor record 20261023T062749Z-contribution-auditor-gjkk.
   - role: contribution-auditor
-    status: pending
-    reason: Review requested before Gate 1.
+    status: consulted
+    reason: >
+      Audit by the AI side of the role (the plan's own author) filed as
+      20261023T062749Z-contribution-auditor-gjkk: no blocking finding, two INFO
+      items (v249 inventory becomes a historical snapshot; gate-self-test applies
+      in the implementation MR). The governor may pull or redo it.
 affected_paths:
   - AGENTS.md
   - docs/reference/foundry-polling-and-bridge-procedure.md
@@ -94,6 +100,10 @@ Out (kept on purpose):
 - `mise.toml` / `mise.lock` toolchain pin: build config, separate decision.
 - Coordination records, plans, learnings, audits, proposals, CHANGELOG: immutable
   or historical.
+
+`docs/portfolio/v249-tooling-reference-inventory.md` records the AGENTS.md
+residue line as classified; it stays unedited and becomes a historical snapshot
+(audit finding 1).
 
 Expected residual `git grep -i elixir` hits after the change, each deliberate:
 the release-payload guard sentences in `release-artifacts.md`
