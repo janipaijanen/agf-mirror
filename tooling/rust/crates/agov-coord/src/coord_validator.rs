@@ -134,7 +134,7 @@ pub fn looks_like_coord_filename(filename: &str) -> bool {
 ///   - Validate against `coordination-message.schema.json`
 ///
 /// Returns `Ok(CoordMessage)` on pass, `Err(errors)` on any failure.
-/// Errors are `(message, json_pointer)` pairs matching Elixir output.
+/// Errors are `(message, json_pointer)` pairs.
 pub fn validate_file(path: &Path) -> Result<CoordMessage, Vec<(String, String)>> {
     validate_content(&read_file(path)?)
 }

@@ -379,6 +379,28 @@ fn live_registry_assigns_shared_ci_surface_to_all_active_gates() {
 }
 
 #[test]
+fn live_registry_lists_release_manifest_as_a_gate_change_check_surface() {
+    // Issue 140 edits agf/dist/release-manifest.yaml (removes the Elixir/Mix
+    // forbidden entries). That file must stay a registered surface of
+    // gate-change-check so such an edit keeps requiring its own test evidence.
+    let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
+        .expect("read live gate registry");
+    let block = registry
+        .split("  - id: ")
+        .find(|entry| entry.starts_with("gate-change-check"))
+        .expect("gate-change-check entry");
+    let surfaces = block.split("    tests:").next().unwrap();
+    assert!(
+        surfaces.contains("agf/dist/release-manifest.yaml"),
+        "release manifest must remain a gate-change-check surface"
+    );
+    assert!(
+        surfaces.contains(".gitlab-ci.yml"),
+        ".gitlab-ci.yml must remain a gate-change-check surface"
+    );
+}
+
+#[test]
 fn live_registry_guard_detects_an_unresolved_declared_path() {
     let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
         .expect("read live gate registry");

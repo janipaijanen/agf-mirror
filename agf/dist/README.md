@@ -14,8 +14,6 @@ cargo run -p agov -- dist build
 The manifest is allowlist-first. Excludes are only for generated or local files
 that could appear under otherwise intentional source directories.
 
-Downstream executable tooling is Rust-only. AGF and `agov` release archives
-must not contain the retired `tooling/elixir/` implementation, Mix project
-files, or Elixir source files. The explicit `forbidden` entries are a
+Downstream executable tooling is Rust-only. The explicit `forbidden` entries are a
 defense-in-depth boundary in addition to the manifest allowlist; release jobs
 also inspect completed archives before publication.

@@ -53,6 +53,26 @@ fn live_configuration_preserves_every_mandatory_needs_implication() {
 }
 
 #[test]
+fn retired_elixir_exclusion_job_leaves_no_dangling_reference_or_needs_edge() {
+    // Issue 140: the release:elixir-exclusion-selftest job and every call to
+    // check-no-elixir-artifacts.sh were removed. A deleted job must not remain a
+    // `needs:` target or a script reference, and the mandatory implications must
+    // still hold on the live configuration.
+    let configuration = read_live_configuration();
+    assert!(
+        !configuration.contains("elixir-exclusion-selftest"),
+        "removed job is still referenced"
+    );
+    assert!(
+        !configuration.contains("check-no-elixir-artifacts"),
+        "removed guard script is still referenced"
+    );
+    assert!(top_level_block(&configuration, "release:elixir-exclusion-selftest").is_none());
+    let errors = implication_errors(&configuration).expect("evaluate live CI configuration");
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+#[test]
 fn namespace_gate_is_pre_tag_only_and_reuses_the_preview_producer() {
     let yaml: serde_norway::Value = serde_norway::from_str(&read_live_configuration()).unwrap();
     let rules = &yaml["release:namespace-check"]["rules"];

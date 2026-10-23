@@ -38,7 +38,7 @@ The current archive policy is allowlist-first:
   and release manifest;
 - exclude generated site output and generated release-info pages;
 - forbid local or bootstrap paths such as `.worktrees/`, `tmp/`, `dist/`,
-  `agents-govern/`, Elixir build directories, and `.env` files.
+  `agents-govern/`, and `.env` files.
 
 Downstream projects may fork the manifest or pass `--manifest` to use their own
 release policy.

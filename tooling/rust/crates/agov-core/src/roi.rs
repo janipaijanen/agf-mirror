@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 
 /// A saved-token ROI record appended to `tmp/agov-token-roi.jsonl`.
 ///
-/// Fields mirror the Elixir `Agov.TokenRoi` JSONL format (§8.2 of the plan).
+/// Fields follow the JSONL format of earlier ROI logs (§8.2 of the plan).
 /// Unknown workflows may omit the `saved_*` fields. The optional
 /// `transport`/`adapter`/`tool` attribution fields (v2.4.0 Workstream C)
 /// are self-reported workflow measurement, never authenticated identity —
@@ -1656,7 +1656,7 @@ mod tests {
     }
 
     #[test]
-    fn summarize_groups_mixed_rust_and_elixir_records() {
+    fn summarize_groups_mixed_rust_and_legacy_records() {
         let records = vec![
             serde_json::json!({
                 "event": "tool_output",

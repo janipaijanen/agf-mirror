@@ -62,8 +62,3 @@ forbidden:
   - agf/docs/site/reference/release-info.md
   - "**/__pycache__/**"
   - "**/*.pyc"
-  - tooling/elixir/**
-  - "**/mix.exs"
-  - "**/mix.lock"
-  - "**/*.ex"
-  - "**/*.exs"
