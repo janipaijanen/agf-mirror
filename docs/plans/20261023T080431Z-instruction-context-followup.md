@@ -80,12 +80,12 @@ Same mechanism as Phase 0: add `claudeMdExcludes` globs, INDEX row, and an
 
 | Rule (canonical Scope) | Chars | Trigger |
 |---|---|---|
-| `always/agent-improvement-proposal-rule` | 3,515 | noticing friction, duplication or a doc gap outside the assigned task, or proposing an improvement |
-| `always/governance-file-layout-rule` | 3,414 | creating learnings, agent definitions, ADRs or `GOVERNANCE.md`, or deciding where a governance artifact lives |
+| `always/agent-improvement-proposal-rule` | 3,515 | noticing friction, duplication, confusing workflow, avoidable token spend or a doc gap while doing assigned AGF work, or proposing an improvement (route as note, review, lesson-proposal or plan) |
+| `always/governance-file-layout-rule` | 3,414 | creating or placing a learning record, agent definition, ADR, framework rule, working plan, coordination record or `GOVERNANCE.md`, or deciding where a governance artifact lives |
 | `workflow/coordination-challenge-response-rule` | 2,961 | raising or answering a coordination `challenge` (`kind: review`) |
 | `workflow/debugging-rule` | 2,859 | diagnosing a bug, failing test, stack trace or screenshot |
 | `workflow/feature-regression-guard-rule` | 2,606 | modifying a route, service, template conditional, permission check or feature flag, or deleting or weakening a test |
-| `workflow/coordination-id-rule` | 2,501 | writing a coordination record by hand, or fixing an ID or filename |
+| `workflow/coordination-id-rule` | 2,501 | creating any coordination message, or fixing an ID or filename (the always-loaded `AGENTS.md` instruction to use `agov coord brief` stays; this trigger adds the filename and validator rules) |
 
 Added back: about 150 chars per trigger line in `AGENTS.md` and a similar INDEX
 row, about 1.8k total. Net about -16.1k.
@@ -111,11 +111,14 @@ the plan does not merge; it stops and returns to the governor.
 1. Add six `claudeMdExcludes` globs; INDEX rows; `AGENTS.md` trigger lines;
    rewrite the simplicity projection with the pointer.
 2. Projection manifest `docs/reviews/rule-projection/20261023T080431Z-instruction-context-followup.yaml`
-   (six rows per demoted rule); `agov plan projection-check` OK.
+   (one row per demoted rule, six in total, each disposing the six projection
+   surfaces); `agov plan projection-check` OK.
 3. Measure: `InstructionsLoaded` log and report; before/after table.
-4. Behavior replays (evidence, not a gate): a coordination challenge, a debugging
-   task, a new ADR, an improvement note, a feature-flag change and a hand-written
-   coordination ID; record which rule the agent opens.
+4. Behavior replays, one per demoted rule: a coordination challenge, a debugging
+   task, a new ADR, an improvement note, a feature-flag change, a coordination
+   record with an ID. Record which rule the agent opens. Replay success is an
+   acceptance condition for that rule's demotion: a rule whose replay does not open
+   it stays in the always-loaded set and the plan re-measures.
 
 ## Test strategy
 
