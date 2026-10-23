@@ -42,7 +42,9 @@ depends_on:
 
 # Plan: remove retired Elixir references from the guides
 
-Tracks issue #139. Draft by planner-architect. Nothing here is approved.
+Tracks issue #139. Authored by planner-architect. Gate 1 approved by the Human Governor in
+governor-reviewer decision record `20261023T065201Z-governor-reviewer-p4tr`
+(scope unchanged). Gate 2 and merge stay with the Human Governor.
 
 ## Decision requested
 
