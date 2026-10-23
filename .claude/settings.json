@@ -24,6 +24,12 @@
     "**/.claude/rules/always/i18n-supported-locales-rule.md",
     "**/.claude/rules/docs/feature-flagged-docs-rule.md",
     "**/.claude/rules/workflow/testing-environments-rule.md",
-    "**/.claude/rules/README.md"
+    "**/.claude/rules/README.md",
+    "**/.claude/rules/always/agent-improvement-proposal-rule.md",
+    "**/.claude/rules/always/governance-file-layout-rule.md",
+    "**/.claude/rules/workflow/coordination-challenge-response-rule.md",
+    "**/.claude/rules/workflow/debugging-rule.md",
+    "**/.claude/rules/workflow/feature-regression-guard-rule.md",
+    "**/.claude/rules/workflow/coordination-id-rule.md"
   ]
 }
