@@ -4,11 +4,17 @@ status: pending-gate1
 topic: instruction-context-followup-below-140k-chars
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Review requested. Foundry-local loader files only; no credentials, schemas or validators.
+    status: consulted
+    reason: >
+      `agov validate infosec` passes; Codex's screen found no credentials or
+      cross-project linkage. Summarized in contribution-auditor record
+      20261023T112100Z-contribution-auditor-8mh1.
   - role: contribution-auditor
-    status: pending
-    reason: Review requested before Gate 1.
+    status: consulted
+    reason: >
+      Audit by the AI side of the role (the plan's own author), record
+      20261023T112100Z-contribution-auditor-8mh1: no blocking finding, two INFO.
+      The governor may pull or redo it.
 affected_paths:
   - AGENTS.md
   - .claude/settings.json
