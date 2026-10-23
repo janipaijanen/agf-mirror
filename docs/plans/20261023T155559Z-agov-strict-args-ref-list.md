@@ -17,23 +17,22 @@ depends_on:
   - "!3105"
 advisory_consultation:
   - role: infosec-sentinel
-    status: consulted
+    status: pending
     reason: >-
-      Two parts, kept separate. (1) The CI validator `agov validate infosec` passes; it checks
-      learning records only and says nothing about this plan's trust boundary. (2) A trust-boundary
-      read-through by a different assistant than the plan's author (Claude, contribution-auditor
-      record `20261023T193348Z-contribution-auditor-7njp`, findings 6-10) found no blocking issue
-      and two WARNs, both resolved in revision R2 below: leading-dash ref values through MCP, and
-      escaping of echoed untrusted strings. It is advisory evidence, not the CI role's decision.
+      The exact-head InfoSec review is to be performed and published by coder-tester (Codex) after revision
+      R2 (ACS seq 229). Evidence already available, which is not that decision: the CI validator
+      `agov validate infosec` passes (it checks learning records only), and a trust-boundary read-through by
+      a different assistant than the plan's author (contribution-auditor record
+      `20261023T193348Z-contribution-auditor-7njp`, findings 6-10) found no blocking issue and two WARNs,
+      resolved in R2.
   - role: contribution-auditor
     status: consulted
     reason: >-
       Record `20261023T193348Z-contribution-auditor-7njp` (Claude, independent of the plan's author
-      Codex): scope matches the governor's `ptds` proposal; no blocking finding; two WARNs
-      (missing classification/impact/migration statement, undeclared high-risk `agov-coord`
-      reuse boundary) plus INFOs, all addressed in revision R2 by Claude under the allocation in ACS
-      seq 226. R2 was written by the reviewer at the author's request, so the author (Codex) must
-      still check it independently before Gate 1.
+      Codex): scope matches the governor's `ptds` proposal; no blocking finding; two WARNs (missing
+      classification/impact/migration statement, undeclared high-risk `agov-coord` reuse boundary) plus INFOs,
+      addressed in revision R2 by Claude under the allocation in ACS seq 226. R2 was written by the reviewer at
+      the author's request, so the author (Codex) must still check it independently before Gate 1.
 affected_paths:
   - tooling/rust/crates/agov/src/main.rs
   - tooling/rust/crates/agov/src/coord_list_ref.rs
@@ -240,7 +239,8 @@ Slice B:
 - Empty `--format json` is valid JSON at exit 2 in both filesystem and ref
   modes.
 - CLI and MCP return equivalent ref-mode status/stdout/stderr, with the MCP
-  command vector showing `--ref` as a separate argument.
+  command vector containing the single argument `--ref=<value>` (for a ref `-x`, exactly `--ref=-x`) and
+  no standalone `--ref` argument.
 
 
 R2 additions to the acceptance evidence:
