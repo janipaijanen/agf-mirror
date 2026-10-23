@@ -8,7 +8,7 @@ instruction surface that must be updated, not just the file copy.*
 
 !!! note "What changed structurally"
     v1 placed framework files in `agents-govern/` (or a local copy) with numeric
-    coordination sequence files and Elixir/Python `mix agov.*` commands.
+    coordination sequence files and v1 commands.
     v2 places them in `agf/` with tooling-generated readable ID coordination files
     and the Rust `agov` binary.
 
@@ -21,7 +21,7 @@ The migration has two risk areas:
 
 1. **Split-brain instruction surfaces.** After the file copy, every place that
    teaches agents or humans to use `agents-govern/`, numeric sequence files, or
-   `mix agov.*` will silently route work through v1 patterns. These are the
+   v1 commands will silently route work through v1 patterns. These are the
    failures the checklist is designed to surface.
 2. **Stale adopter learning records.** A learning record that validates as
    correct YAML may still carry v1 framework paths, retired role names, or
@@ -62,7 +62,7 @@ Work top to bottom. Do not mark a step done until you have verified it.
       AGF-provided skills from the v1 distribution, replace them with the
       equivalents from the v2 distribution archive.
 - [ ] Verify that no skill or command file hard-codes a local tool path for
-      `mix agov.*`, Python validators, or the v1 session-resume flow.
+      v1 commands, Python validators, or the v1 session-resume flow.
 
 ### 4. Update every instruction surface for cold start and tooling
 
@@ -71,7 +71,7 @@ The most common split-brain source after migration.
 - [ ] Search all of: `AGENTS.md`, `.claude/CLAUDE.md`, `agf/templates/AGENTS.md`
       (if customized), and any project-specific loader file for references to:
       - `agents-govern/`
-      - `mix agov.session.resume` (v1 Elixir form)
+      - v1 session-resume commands
       - numeric sequence coordination files (`00001-`, `00002-`)
       - Python validator commands (`python -m agents_govern.*`)
 - [ ] Replace each occurrence with the v2 equivalent:
@@ -99,9 +99,9 @@ The most common split-brain source after migration.
 - [ ] Update any onboarding document, README section, or wiki page that tells
       people how to install the tooling. The v2 Rust `agov` binary is published
       on the [AGF releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
-      Remove references to installing from source via Elixir/Mix.
+      Remove references to installing from source.
 - [ ] If CI jobs run validation, update them to call `agov validate <target>`
-      instead of v1 Python or Elixir commands.
+      instead of v1 commands.
 
 ### 7. Validate the full layout
 
@@ -130,7 +130,7 @@ chain is working end-to-end.
 
 ### 9. Scan active docs for v1 references
 
-- [ ] Search the full repository for `agents-govern/`, `mix agov`, and any
+- [ ] Search the full repository for `agents-govern/`, v1 command names, and any
       numeric coordination sequence patterns (e.g. `\b000[0-9]{2}-`).
 - [ ] Any occurrence in a human-readable doc, template, or rule is a remaining
       split-brain surface. Update or annotate each one.
@@ -150,7 +150,7 @@ through each record under these lenses:
   should, and avoid naming internal identifiers that would be visible upstream?
 - **fact-checker:** does the record cite the current framework version, current
   role names, and current tooling commands? A record written during v1 may say
-  `agents-govern/`, `mix agov.*`, or `L001` sequential IDs that imply v1
+  `agents-govern/`, v1 command names, or `L001` sequential IDs that imply v1
   context.
 
 Update each stale field before the migration MR merges. The learning record

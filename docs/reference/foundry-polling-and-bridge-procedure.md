@@ -128,8 +128,7 @@ packaging or release evidence.
 The Rust parser is the command authority. The wrapper forwards arguments
 unchanged and does not maintain a second command allowlist or help inventory.
 
-If a command is not available in the local Rust build, stop and report the gap;
-do not fall back to Elixir/Mix.
+If a command is not available in the local Rust build, stop and report the gap.
 
 ### Supported commands
 
@@ -293,12 +292,6 @@ secrets/security ambiguity, or materially conflicting instructions. Do not
 retry a failed paid job merely to seek green status: inspect the failure,
 diagnose it, and use the next already-required corrected acceptance run unless
 the governing test policy specifically requires a retry.
-
-No Elixir implementation is tracked. An ignored `tooling/elixir/` directory
-may remain in an old developer checkout as local residue; it is neither a
-reference implementation nor a fallback. Do not use local residue for routine
-agent work, cold start, validation, or release-page downloads. Shipped `agov`
-tooling artifacts are Rust, with platform-specific archive names.
 
 ```bash
 # Validate coordination messages

@@ -13,8 +13,7 @@ There are two release surfaces:
 | `agov` adopter tooling | `agov-X.Y.Z-<target>.tar.gz`, `agov-X.Y.Z-<target>.zip` | Rust binary archives built per target platform |
 
 The framework source archives and adopter tooling archives are now both built
-through the Rust tooling surface. GitLab CI does not publish an Elixir/ERTS
-`agov` package. Adopters downloading release tooling should use the Rust
+through the Rust tooling surface. Adopters downloading release tooling should use the Rust
 `agov` archives on the [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
 
 ```bash
@@ -263,10 +262,7 @@ sidecars. Each GitLab Release page's actual asset links are the authoritative
 platform inventory. The
 `agov:oci:release` job publishes the container image and, after the push
 succeeds, an `agov-oci-X.Y.Z-provenance.json` record carrying the pushed
-image's digest — `release:create` links it alongside the archive records. No
-Elixir/ERTS `agov` package is published to the
-[project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
-
+image's digest — `release:create` links it alongside the archive records.
 After `release:create` publishes the release, `release:verify` runs the
 composed public-lifecycle check (`agov dist post-publication-check`)
 against the just-published release: real OCI-registry pull-by-digest

@@ -37,8 +37,7 @@ AGF-NG/
 │   └── schemas/              # JSON Schema draft-07 definitions
 ├── tooling/
 │   ├── agov                  # User-facing wrapper for the Rust agov CLI
-│   ├── rust/                 # Preferred AGF tooling implementation
-│   └── elixir/               # Reference/development implementation and parity oracle
+│   └── rust/                 # AGF tooling implementation
 ├── docs/
 │   ├── coordination/         # Immutable coordination channel (append-only)
 │   ├── plans/                # Gate 1 plan files
@@ -273,7 +272,7 @@ duplicate pipelines. Its text keeps its force; this section only points to it.
 Always apply, even before opening it:
 
 - Use `./tooling/agov` first. If a command is missing from the Rust build, stop
-  and report the gap; do not fall back to Elixir/Mix.
+  and report the gap.
 - After reading this file and before `agov session resume`, check whether a
   repository-root `ai-cold-start.md` exists and read it as a local overlay.
   Cold start is two steps: `agov session resume --base-branch main`, then rerun
@@ -287,12 +286,6 @@ Always apply, even before opening it:
 - The action loop never enlarges authority: Gate 1/2 approval, merge, release,
   tag, deploy, scope expansion, destructive action, and new role authority stay
   with the governor.
-
-No Elixir implementation is tracked. An ignored `tooling/elixir/` directory
-may remain in an old developer checkout as local residue; it is neither a
-reference implementation nor a fallback. Do not use local residue for routine
-agent work, cold start, validation, or release-page downloads. Shipped `agov`
-tooling artifacts are Rust, with platform-specific archive names.
 
 Codex and other assistants do not load `.claude/rules/`. Before the matching
 work, open the named file under `agf/rules/` (`.claude/rules/INDEX.md` has the
