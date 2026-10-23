@@ -288,6 +288,12 @@ Always apply, even before opening it:
   tag, deploy, scope expansion, destructive action, and new role authority stay
   with the governor.
 
+No Elixir implementation is tracked. An ignored `tooling/elixir/` directory
+may remain in an old developer checkout as local residue; it is neither a
+reference implementation nor a fallback. Do not use local residue for routine
+agent work, cold start, validation, or release-page downloads. Shipped `agov`
+tooling artifacts are Rust, with platform-specific archive names.
+
 Codex and other assistants do not load `.claude/rules/`. Before the matching
 work, open `.claude/rules/INDEX.md`: it lists situational rules (release and
 tags, protected-branch merge requests, delegation, documentation projection,
