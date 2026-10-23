@@ -1,14 +1,22 @@
 ---
 id: 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261023T201759Z-governor-reviewer-d7qh
+gate1_approved_at: "2026-10-23T20:17:59Z"
 topic: recall-smoke-criterion-and-weak-paraphrases
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Review requested. Edits loader trigger text and a test protocol; no credentials, schemas or runtime code.
+    status: consulted
+    reason: >-
+      Exact-head InfoSec review `20261023T201201Z-infosec-sentinel-bsb2` (coder-tester, Codex; corrects the
+      revision typo in `nj3k`) is CLEAR at head db9a926e. The plan edits loader trigger text and a test
+      protocol only; no credentials, schemas or runtime code.
   - role: contribution-auditor
-    status: pending
-    reason: Review requested before Gate 1.
+    status: consulted
+    reason: >-
+      Corrected contribution audit `20261023T201148Z-contribution-auditor-pgjg` (coder-tester, Codex; corrects
+      `q6h7`) confirms all three blocking findings of `20261023T195804Z-contribution-auditor-js5s` are
+      resolved at head db9a926e. Author of the plan is planner-architect (Claude), so the audit is independent.
 affected_paths:
   - AGENTS.md
   - .claude/rules/INDEX.md
