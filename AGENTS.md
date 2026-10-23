@@ -295,13 +295,40 @@ agent work, cold start, validation, or release-page downloads. Shipped `agov`
 tooling artifacts are Rust, with platform-specific archive names.
 
 Codex and other assistants do not load `.claude/rules/`. Before the matching
-work, open `.claude/rules/INDEX.md`: it lists situational rules (release and
-tags, protected-branch merge requests, delegation, documentation projection,
-deprecation, CI trigger scoping, and others) and the file to read for each.
-Read `agf/rules/workflow/release-via-merge-request-rule.md` before any release or
-tag, and `agf/rules/workflow/merge-request-workflow-rule.md` before changing a
-protected branch.
+work, open the named file under `agf/rules/` (`.claude/rules/INDEX.md` has the
+same list with fuller scope wording):
 
+- release, `agf/VERSION` bump, git tag, `release:*` jobs: `workflow/release-via-merge-request-rule.md`
+- any git tag create, push, move, delete, or retag: `workflow/immutable-tags-rule.md`
+- change or open/merge an MR to `main`, `production`, `release/*`: `workflow/merge-request-workflow-rule.md`
+- prepare an MR or write its description, `glab mr create/update`: `workflow/merge-request-description-rule.md`
+- act under a delegation or write a delegation artifact: `workflow/deputy-governor-rule.md`
+- plan or Gate 2 review that adds or changes normative guidance in a Pages page, runbook, or AI loader: `workflow/documentation-rule-projection-rule.md`
+- rename, deprecate, or remove a CLI flag, MCP field, schema field, API parameter, or config key: `workflow/deprecation-policy-rule.md`
+- add or change a CI stage over about 5 minutes or its `rules:`/`changes:`: `workflow/ci-trigger-scoping-rule.md`
+- series with a `convergence` coordination object: `workflow/review-convergence-rule.md`
+- commands or config for a specific host, container, runner, or runtime: `always/environment-interrogation-rule.md`
+- docs or publications describing what the project can do (maturity levels): `docs/implementation-honesty-rule.md`
+- run anything that could upgrade dependencies, or add a dependency: `workflow/no-auto-package-update.md`
+- choose or write a `MAJOR.MINOR.PATCH` version: `workflow/semver-no-carry-rule.md`
+- output a human will look at (CAD, PDF, dashboard, chart, report): `workflow/visible-artifact-verification-rule.md`
+- add or move an attribute on persisted data: `workflow/concept-modelling-rule.md`
+- generate files read by tools you do not control (DXF, SVG, PDF, CSV, JSON-LD): `workflow/file-generator-rule.md`
+- create or change a database migration: `workflow/migration-generation-rule.md`
+- add or change a handler that creates, updates, or deletes persisted data: `always/audit-log-completeness-rule.md`
+- parse structured data from outside the project (APIs, webhooks, tokens): `workflow/boundary-shape-testing-rule.md`
+- write `docs/**/*.md`, `README.md`, or other external-facing Markdown: `docs/marketing-tone-rule.md`
+- user-facing HTML, templates, CSS, or JavaScript: `ui/accessibility-rule.md`
+- add or change a locale or translation catalog: `always/i18n-supported-locales-rule.md`
+- non-trivial feature flag with a user-visible workflow: `docs/feature-flagged-docs-rule.md`
+- write a test or choose a test tier: `workflow/testing-environments-rule.md`
+- overview of the rule tree: `agf/rules/README.md`
+
+Two obligations moved to `docs/reference/foundry-polling-and-bridge-procedure.md`
+keep their force. Read "Time and telemetry memory" there before writing any
+durable record with a timestamp or ID (UTC, `date -u`) and before any claim about
+tooling or framework capability or the strength of evidence (maturity Levels 1-5,
+evidence-status labels).
 
 ---
 
