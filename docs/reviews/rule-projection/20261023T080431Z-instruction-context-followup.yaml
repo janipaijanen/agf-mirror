@@ -65,8 +65,12 @@ surfaces:
       InstructionsLoaded log on Claude Code 2.1.x: 33 files before, 27 after; the
       six demoted rules are absent and nothing else changed; 156,887 to about
       136.2k chars on disk. Behavior replays: 5 of 6 first samples opened the
-      right rule; the challenge rule was missed once on the first wording, its
-      trigger was strengthened, and 3 of 3 re-runs of that wording then opened it.
+      right rule; the challenge rule was missed once on the first wording and the
+      improvement rule was missed twice in three samples after the required
+      phrases were added; both triggers were strengthened, and every re-run then
+      opened the right rule (challenge 3 of 3, improvement 6 of 6, final sweep
+      5 of 5). Claude Code /context shows memory files 34 files, 53.6k tokens on
+      main and 28 files, 46.8k tokens at the final head.
       agov validate assistant_drift reads files, not the setting. All output is
       advisory evidence under tool-authority-boundary-rule.md.
 

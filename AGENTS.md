@@ -315,7 +315,7 @@ same list with fuller scope wording):
 - add or change a locale or translation catalog: `always/i18n-supported-locales-rule.md`
 - non-trivial feature flag with a user-visible workflow: `docs/feature-flagged-docs-rule.md`
 - write a test or choose a test tier: `workflow/testing-environments-rule.md`
-- notice friction, duplication or a doc gap while doing assigned AGF work, or propose an improvement: `always/agent-improvement-proposal-rule.md`
+- notice friction, duplication, confusing workflow, avoidable token spend or a doc gap while doing assigned AGF work, or route an improvement idea (note, review, lesson-proposal or plan): `always/agent-improvement-proposal-rule.md`
 - create or place a learning record, agent definition, ADR, framework rule, working plan, coordination record or `GOVERNANCE.md`: `always/governance-file-layout-rule.md`
 - raise, answer or close a coordination `challenge` (`kind: review`, `challenge_id`, `disputed_record_id`): `workflow/coordination-challenge-response-rule.md`
 - diagnose a bug, failing test, stack trace or screenshot: `workflow/debugging-rule.md`
