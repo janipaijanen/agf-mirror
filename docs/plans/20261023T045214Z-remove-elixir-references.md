@@ -96,18 +96,19 @@ Out (kept on purpose):
   or historical.
 
 Expected residual `git grep -i elixir` hits after the change, each deliberate:
-`upgrade-from-v1.md` (v1 command names as removal search targets, pending the
-open question), the release-payload guard sentences in `release-artifacts.md`
+the release-payload guard sentences in `release-artifacts.md`
 that name what the payload must not contain, `use-cases.md` and
 `retrospective.md` (language/stack evidence, not tooling), and the guard
 scripts and manifests listed above.
 
-## Open question for the governor
+## Governor decision on `upgrade-from-v1.md` (live, 2026-10-23)
 
-`upgrade-from-v1.md` names `mix agov.*` so v1 adopters can search their repos
-for old commands. Options: (a) keep that page's v1 command names, because they
-describe what to remove (recommended); (b) delete every Elixir/Mix mention and
-say only "v1 commands". Under (a) the "guides" are cleaned everywhere else.
+The governor chose option (b): "Delete every elixir/mix mention." Every
+Elixir/Mix mention is removed from `upgrade-from-v1.md`, including the `mix
+agov.*` command names; the page says only "v1 commands" where it must refer to
+them. Bridge note `20261023T061220Z-planner-architect-2gpd` (provisional until a
+governor-reviewer record references it). The earlier recommendation to keep
+those names as search targets is withdrawn.
 
 ## Classification and impact
 
