@@ -97,6 +97,13 @@ the `direct`, `paraphrase` and `near-boundary` trials of that rule; the false-tr
 counts the `negative` trials of that rule separately, with its own denominator. They are
 never pooled.
 
+**Actual-open sample (fixed, small).** 5 rules (release-via-merge-request, deputy-governor,
+merge-request-workflow, immutable-tags, coordination-challenge-response) x 3 scenarios
+(one `direct`, one `paraphrase`, one `negative`) x 3 trials x 1 model = **45 calls** per
+run, only the Read tool enabled, a read-only working copy. A positive trial passes when
+`first_read_target` is in `accept`; a negative trial passes when it is not. Reported as
+smoke results, not as a rate with a bound.
+
 **Smoke gate** (any trigger edit that touches a covered rule): zero misses on every `high`
 scenario at N=3 per scenario. It is a regression screen, not a statistical claim.
 **Implementation acceptance is smoke-only.** The claim gate runs only if the governor
@@ -117,13 +124,24 @@ asks, never on a trigger edit and never automatically.
 
 ### Result schema (`result.schema.json`)
 
-One JSON object per trial: `scenario_id`, `model`, `client_version`, `head_sha`,
-`answer`, `pass`, `date_utc`. Foundry-local; not under `agf/schemas`.
+One JSON object per trial. Required: `scenario_id`, `rule`, `kind`, `model`,
+`client_version`, `head_sha`, `measurement_mode` (`route-selection` or `actual-open`),
+`tools_enabled` (array; empty for route selection, `["Read"]` for actual open), `answer`
+(path the agent named, or `NONE`), `pass`, `date_utc`. `first_read_target` (string or null)
+is **required when `measurement_mode` is `actual-open`** and forbidden otherwise: the path
+of the first Read tool call taken from `--output-format stream-json`, `null` if the agent
+made no Read call (which fails the trial). The schema makes route-selection and actual-open
+results impossible to confuse. Foundry-local; not under `agf/schemas`.
 
 ## Acceptance
 
 - Corpus parses; every `rule` path resolves on main; every scenario id is unique.
-- The protocol runs end to end by hand on the current head, with its result file
+- An actual-open protocol smoke on the current head: 3 scenarios x 1 trial, one `direct`,
+  one `paraphrase`, one `negative`, with a result file in which every record validates
+  against `result.schema.json`, `first_read_target` is populated from stream-json, and a
+  deliberately malformed record (`actual-open` without `first_read_target`) fails
+  validation.
+- The route-selection protocol runs end to end by hand on the current head, with its result file
   attached to the MR: current route-selection recall, the lower bound, and the false-trigger rate, reported as
   smoke-gate results only; a claim-gate run is out of scope unless the governor requests it.
 - Codex authors the hold-out quarter and signs the protocol as reproducible.
