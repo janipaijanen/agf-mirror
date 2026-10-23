@@ -441,3 +441,25 @@ fn pending_advisory_status_plan_is_still_scanned_and_detects_overlap() {
     assert!(text.contains("plan docs/plans/existing.md <-> plan docs/plans/mid-draft.md"));
     assert!(text.contains("plans inspected: 2"), "{text}");
 }
+
+#[test]
+fn live_ci_keeps_the_plan_collision_gate_after_an_unrelated_job_removal() {
+    // Issue 140 removed an unrelated CI job from .gitlab-ci.yml. The shared CI
+    // surface is registered to plan-collision-block, so show that the gate job
+    // and its self-test wiring are still present.
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .expect("repository root")
+        .to_path_buf();
+    let configuration =
+        fs::read_to_string(root.join(".gitlab-ci.yml")).expect("read live CI configuration");
+    assert!(
+        configuration.contains("agov:governance:plan-collision-gate:"),
+        "plan-collision gate job missing"
+    );
+    assert!(
+        configuration.contains("plan-collision-self-test.sh"),
+        "plan-collision self-test wiring missing"
+    );
+}
