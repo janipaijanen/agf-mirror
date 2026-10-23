@@ -4,7 +4,7 @@ set -eu
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
 
 scan_forbidden() {
-  if grep -Ein 'mix[[:space:]]+agov|uv[[:space:]]+run[[:space:]]+agov-|tooling/elixir|bin/agf' "$@"; then
+  if grep -Ein 'mix[[:space:]]+agov|uv[[:space:]]+run[[:space:]]+agov-|bin/agf' "$@"; then
     return 1
   else
     status=$?
@@ -21,15 +21,20 @@ selftest() {
   trap 'rm -rf "$fixture_dir"' EXIT HUP INT TERM
   printf '%s\n' 'agov validate infosec' >"$fixture_dir/good"
   printf '%s\n' 'mix agov.validate.infosec' >"$fixture_dir/bad"
-  printf '%s\n' 'An ignored `tooling/elixir/` directory may remain.' >"$fixture_dir/bad-residue"
+  printf '%s\n' 'uv run agov-validate-infosec' >"$fixture_dir/bad-uv"
+  printf '%s\n' 'call bin/agf validate' >"$fixture_dir/bad-wrapper"
 
   scan_forbidden "$fixture_dir/good"
   if scan_forbidden "$fixture_dir/bad" >/dev/null 2>&1; then
     echo "negative fixture unexpectedly passed" >&2
     exit 1
   fi
-  if scan_forbidden "$fixture_dir/bad-residue" >/dev/null 2>&1; then
-    echo "negative residue fixture unexpectedly passed" >&2
+  if scan_forbidden "$fixture_dir/bad-uv" >/dev/null 2>&1; then
+    echo "negative uv-run fixture unexpectedly passed" >&2
+    exit 1
+  fi
+  if scan_forbidden "$fixture_dir/bad-wrapper" >/dev/null 2>&1; then
+    echo "negative bin/agf fixture unexpectedly passed" >&2
     exit 1
   fi
   echo "OK live tooling-surface negative self-test"
@@ -43,12 +48,7 @@ check_repo() {
     exit 1
   fi
   if [ -e tooling/rust/tests/parity/run.sh ]; then
-    echo "dead Elixir parity harness remains" >&2
-    exit 1
-  fi
-  if [ -n "$(git ls-files 'tooling/elixir/**')" ]; then
-    echo "tracked Elixir implementation files remain" >&2
-    git ls-files 'tooling/elixir/**' >&2
+    echo "dead parity harness remains" >&2
     exit 1
   fi
 

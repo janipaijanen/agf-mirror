@@ -14,11 +14,6 @@ build/
 *.env
 .netrc
 
-# Elixir
-tooling/elixir/_build/
-tooling/elixir/deps/
-tooling/elixir/erl_crash.dump
-
 # Development / governance artifacts
 .git/
 .claude/

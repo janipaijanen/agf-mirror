@@ -162,7 +162,7 @@ default:
 
 # Scan committed dependency manifests and lockfiles for known CVEs.
 # Trivy filesystem scanning detects language lockfiles, including Cargo.lock
-# and mix.lock, without building project artifacts. The JSON report is kept for
+# and other language lockfiles, without building project artifacts. The JSON report is kept for
 # review; HIGH and CRITICAL findings with fixes available block the pipeline.
 dependency:cve-scan:
   image:
@@ -451,7 +451,6 @@ agf:dist:preview:
   script:
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
-    - scripts/check-no-elixir-artifacts.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
     - scripts/check-release-self-sufficiency.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
   artifacts:
     name: "agf-preview-$CI_COMMIT_SHORT_SHA"
@@ -488,7 +487,6 @@ agf:dist:release:
     - cargo run --quiet -p agov -- dist check-tag
     - cargo run --quiet -p agov -- dist validate
     - cargo run --quiet -p agov -- dist build
-    - scripts/check-no-elixir-artifacts.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
     - scripts/check-release-self-sufficiency.sh check ../../dist/agf-*.tar.gz ../../dist/agf-*.zip
   artifacts:
     name: "agf-$CI_COMMIT_TAG"
@@ -525,11 +523,6 @@ release:create:
     # uploaded or a Release entry is created, so a missing archive or
     # sidecar blocks the pipeline instead of shipping an incomplete release.
     - tooling/rust/scripts/release-assets.sh verify dist "$VERSION"
-    - tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz
-    - |
-      if find dist -maxdepth 1 -name 'agov-*.zip' -print -quit | grep -q .; then
-        tooling/rust/scripts/check-no-elixir-artifacts.sh check dist/agov-*.zip
-      fi
     # Validate the complete assembled release set -- schema, cross-record
     # cardinality bijection (every primary artifact exactly one record, no
     # stale/extra records), and artifact/sha256/checksum-sidecar agreement
@@ -791,30 +784,6 @@ release:assets-verify-preview:
       changes:
         - tooling/rust/**/*
         - .gitlab-ci.yml
-
-release:elixir-exclusion-selftest:
-  image: alpine:3.22
-  stage: test
-  interruptible: true
-  before_script:
-    - apk add --no-cache tar gzip unzip
-  script:
-    - tooling/rust/scripts/check-no-elixir-artifacts.sh selftest
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes: &release_elixir_exclusion_selftest_paths
-        - .gitlab-ci.yml
-        - agf/dist/**/*
-        - tooling/rust/scripts/check-no-elixir-artifacts.sh
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
-      changes:
-        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
-        paths: *release_elixir_exclusion_selftest_paths
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
-      when: never
-    - if: $CI_COMMIT_BRANCH
-      changes: *release_elixir_exclusion_selftest_paths
-    - if: $CI_COMMIT_TAG
 
 tooling:live-surface-validate:
   image: alpine:3.22
@@ -1569,11 +1538,9 @@ rust:tooling:clippy:
           --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
       fi
-    - ../../tooling/rust/scripts/check-no-elixir-artifacts.sh check ../../dist/agov-*.tar.gz
     - scripts/check-release-self-sufficiency.sh check ../../dist/agov-*.tar.gz
     - |
       if find ../../dist -maxdepth 1 -name 'agov-*.zip' -print -quit | grep -q .; then
-        ../../tooling/rust/scripts/check-no-elixir-artifacts.sh check ../../dist/agov-*.zip
         scripts/check-release-self-sufficiency.sh check ../../dist/agov-*.zip
       fi
   artifacts:

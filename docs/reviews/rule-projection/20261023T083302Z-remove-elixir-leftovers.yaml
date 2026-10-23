@@ -1,0 +1,67 @@
+# Six-surface projection evidence for plan
+# docs/plans/20261023T083302Z-remove-elixir-leftovers.md (Package B),
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# Package B removes the Elixir/Mix entries from the release-payload `forbidden`
+# list and the guard script that enforced them. No rule text under agf/rules/ is
+# touched; the owner of the exclusion contract is the release manifest.
+
+plan_id: 20261023T083302Z-remove-elixir-leftovers
+
+changed_pages_or_runbooks:
+  - agf/docs/site/reference/release-artifacts.md
+  - agf/dist/README.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/dist/release-manifest.yaml
+    reason: >-
+      The manifest `forbidden` list is the governed contract for what a release
+      payload must not contain. Package B removes its five Elixir/Mix entries
+      (tooling/elixir/**, **/mix.exs, **/mix.lock, **/*.ex, **/*.exs). Every
+      other forbidden entry is unchanged. No rule file owns these entries.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/reference/release-artifacts.md
+    reason: >-
+      Line 41 lists "Elixir build directories" among excluded paths. That phrase
+      becomes false once the guard is gone, so it is removed in the same MR.
+      Nothing else on the page changes.
+
+  runbook_situation_map:
+    disposition: updated
+    path: agf/dist/README.md
+    reason: >-
+      Lines 18-19 state that the payload must not contain the retired Elixir
+      implementation, Mix files or Elixir sources. The sentence is removed with
+      the manifest entries it describes.
+
+  ai_landing_loaders:
+    disposition: not applicable
+    reason: >-
+      AGENTS.md, agf/templates/AGENTS.md and .claude/CLAUDE.md contain no
+      release-payload exclusion text after MR !3140 (issue 139); the grep of main
+      shows no Elixir or Mix reference in any loader.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      agov dist validate and the dist.rs forbidden-list unit test keep checking
+      the remaining forbidden entries; the test fixture switches from mix.lock to
+      a neutral forbidden pattern so the generic mechanism stays covered. The
+      removed check-no-elixir-artifacts.sh only covered the five removed entries.
+      Output is advisory evidence under tool-authority-boundary-rule.md except
+      where a named rule already grants a check blocking authority.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/dist/release-manifest.yaml
+      - agf/dist/README.md
+      - agf/docs/site/reference/release-artifacts.md
+    reason: >-
+      agf/dist/** and the release-artifacts Pages page ship in the AGF source
+      archive and site. Payload membership is unchanged because no shipped file
+      matches the removed patterns; archive bytes and checksums change.
