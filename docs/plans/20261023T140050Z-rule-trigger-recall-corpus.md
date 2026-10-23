@@ -40,8 +40,8 @@ confirms this exact head.
 ## Decision requested
 
 Gate 1 approval to add a durable, foundry-local evaluation surface under
-`docs/reference/rule-trigger-recall/`: scenarios that test whether an agent opens
-the right rule file when a situation arises, after rules were moved off the
+`docs/reference/rule-trigger-recall/`: scenarios that test whether an agent selects
+the right rule file (route selection) and, in a smaller check, actually opens it, when a situation arises, after rules were moved off the
 always-load path. This is documentation and data; it changes no rule, loader or
 tooling. It is a Gate 1 item because it creates a durable evaluation surface that
 later MRs will cite as acceptance evidence.
@@ -76,23 +76,44 @@ true`; their text is not used when editing trigger lines, to limit overfitting
 
 ### Protocol (`protocol.md`)
 
-Fixed: client version, model id, `claude -p ... --model <id>` with no tools, clean
-session per trial, working copy at the exact head under test. Per scenario and
-model: N trials with randomized paraphrase where the corpus provides one. Record the
-raw answers as a dated local file or an MR artifact; the corpus and protocol, not the
-transcripts, are committed. A scenario passes when the answer's path is in `accept`.
+**What is measured.** Two separable properties, each named for what it tests:
 
-Two gates, named honestly: a **smoke gate** (any trigger edit): zero misses on every
-`high` scenario at N=3; and a **claim gate** (before saying "recall >= 95%"): at least
-20 trials per rule and model with fixed versions, reported as the lower bound of a
-95% Wilson interval, plus the false-trigger rate on `negative` scenarios. Never run
-paid model calls in blocking CI.
+- **Route selection** (the default): `claude -p ... --model <id>` with no tools. The agent
+  is asked which rule file it would read first. This tests whether the always-loaded
+  trigger text points to the right file. It does **not** test that the agent opens it;
+  every claim, pass criterion and result file says "route selection".
+- **Actual open** (a small separate check): enable only the Read tool and record the first
+  Read target from `--output-format stream-json`. A trial passes when that observed path is
+  in `accept`. Run on a smaller sample because it costs more per call; a claim about
+  "opens the rule" may use only this check.
 
-**Cost bound.** The claim gate is at least 20 trials x 13 rules x 2 models = 520 paid
-model calls per run, before paraphrases, and about 1,040 if each rule keeps four scenario
-kinds at N=20. It runs only when the governor asks for a recall claim, never on a trigger
-edit and never automatically. The smoke gate is 13 rules x 4 scenarios x 3 trials x 1-2
-models, roughly 156-312 calls, and runs on every trigger edit that touches a covered rule.
+Fixed for both: client version, model id, clean session per trial, working copy at the exact
+head under test. Record the raw answers or stream as a dated local file or an MR artifact;
+the corpus and protocol, not the transcripts, are committed. A scenario passes when the
+answer's (or observed) path is in `accept`.
+
+**Units and denominators.** The unit is one `(rule, model)` pair. Positive recall counts
+the `direct`, `paraphrase` and `near-boundary` trials of that rule; the false-trigger rate
+counts the `negative` trials of that rule separately, with its own denominator. They are
+never pooled.
+
+**Smoke gate** (any trigger edit that touches a covered rule): zero misses on every `high`
+scenario at N=3 per scenario. It is a regression screen, not a statistical claim.
+**Implementation acceptance is smoke-only.** The claim gate runs only if the governor
+separately requests it.
+
+**Claim gate** (before saying "route-selection recall is at least 95%"): the lower bound of
+a 95% Wilson interval per unit must reach 0.95. With zero failures that needs **n >= 73**
+trials per unit (73/73 gives 0.9500; 72/72 gives 0.9493; 20/20 gives only 0.8389 and 60/60
+only 0.9398). One allowed failure needs n >= 110, two need 142, three need 173. The same
+n >= 73 applies to the negative-trial denominator for a false-trigger rate of at most 5%.
+Never run paid model calls in blocking CI.
+
+**Cost bound.** Smoke gate: 13 rules x 4 scenarios x 3 trials = 156 calls per model, 312
+for two models, per run. Claim gate, zero-failure design: 13 rules x 73 trials x 2 models =
+1,898 positive calls plus 1,898 negative calls = **3,796 paid calls per claim run**; with one
+allowed failure per unit, 13 x 110 x 2 x 2 = 5,720. The claim gate runs only when the governor
+asks, never on a trigger edit and never automatically.
 
 ### Result schema (`result.schema.json`)
 
@@ -103,7 +124,8 @@ One JSON object per trial: `scenario_id`, `model`, `client_version`, `head_sha`,
 
 - Corpus parses; every `rule` path resolves on main; every scenario id is unique.
 - The protocol runs end to end by hand on the current head, with its result file
-  attached to the MR: current recall, the lower bound, and the false-trigger rate.
+  attached to the MR: current route-selection recall, the lower bound, and the false-trigger rate, reported as
+  smoke-gate results only; a claim-gate run is out of scope unless the governor requests it.
 - Codex authors the hold-out quarter and signs the protocol as reproducible.
 
 ## Classification and impact
