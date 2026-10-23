@@ -12,8 +12,8 @@ advisory_consultation:
 affected_paths:
   - AGENTS.md
   - .claude/rules/INDEX.md
-  - docs/reference/rule-trigger-recall/corpus.yaml
   - docs/reference/rule-trigger-recall/protocol.md
+  - docs/reference/rule-trigger-recall/corpus.yaml
   - docs/reviews/rule-projection/20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases.yaml
 depends_on:
   - 20261023T140050Z-rule-trigger-recall-corpus
@@ -48,35 +48,46 @@ explains it. If a rule is picked correctly with probability 0.99 per trial, the 
 A bar that fails nearly half the time for a 99%-reliable rule detects luck, not regression, and
 would block every legitimate trigger edit at random.
 
-## Proposal A: two-stage smoke criterion
+## Proposal A: two-stage smoke criterion, compared against the baseline
 
-Stage 1 (unchanged): every covered scenario, N=3, the exact head under test. A scenario with 3/3 passes
-is done.
-Stage 2 (new, only for a scenario that missed in stage 1): re-run that scenario alone for **10 more**
-trials under the same conditions. Classify:
+Stage 1 (unchanged): every covered scenario, N=3, on the pre-edit **baseline head** and on the **candidate
+head**, under identical conditions (same client version, model id, prompt wording, tools restriction). A scenario
+that is 3/3 on both is done.
 
-- **Regression** if at least **3 of the 10** fail **and** the same scenario passed 3/3 on the pre-edit
-  baseline run. This blocks the edit.
-- **Variance** otherwise: record it, do not block, and list the scenario in the MR.
+Stage 2 (bounded, symmetric): if **either** side missed on a scenario in stage 1, run that scenario for **10
+more trials on each side** (baseline head and candidate head), so at most 20 extra calls per flagged scenario.
+This fixes the asymmetry in the first draft, where a scenario that was already weak at baseline (for example
+2/3) could never be judged against a 0/10 candidate.
 
-Operating characteristics (exact binomial, 10 trials), per-trial failure probability p:
+Exact comparison, applied to the 10-trial counts only (stage 1 trials are kept as evidence, not pooled):
 
-| true failure rate p | P(at least 3 of 10 fail) = chance the edit is blocked |
+- Let `b` = baseline failures out of 10 and `c` = candidate failures out of 10.
+- **Regression** if `c >= 3` **and** `c - b >= 3`. This blocks the edit.
+- **Variance or improvement** otherwise: record `b` and `c`, do not block, list the scenario in the MR.
+
+Operating characteristics, exact binomial (two independent 10-trial samples, per-trial failure probability
+`p_b` baseline and `p_c` candidate):
+
+| case | chance the edit is blocked |
 |---|---|
-| 0.02 | 0.1% |
-| 0.05 | 1.2% |
-| 0.10 | 7.0% |
-| 0.30 | 61.7% |
-| 0.50 | 94.5% |
+| no real change, `p_b = p_c = 0.02` | 0.07% |
+| no real change, `p_b = p_c = 0.05` | 0.7% |
+| no real change, `p_b = p_c = 0.10` | 3.0% |
+| no real change, `p_b = p_c = 0.30` (a weak scenario) | 11.0% |
+| baseline 0.05, candidate 0.20 | 23.4% |
+| baseline 0.05, candidate 0.30 | 49.2% |
+| baseline 0.05, candidate 0.50 | 87.8% |
+| baseline 0.05, candidate 0.70 | 99.0% |
+| baseline 0.30, candidate 1.00 | 99.8% |
 
-So a reliable rule is blocked about 1% of the time, a badly regressed one (50%) about 95% of the time,
-and a moderately regressed one (30%) about 62%. Moderate regressions are what the claim gate (n >= 73
-per unit, Wilson bound 0.95) exists to measure; this plan **does not touch the claim gate**. The
-smoke gate stays a regression screen, never a claim, and stage 2 results are never pooled into a rate.
+A reliable scenario is blocked well under 1% of the time when nothing changed, a badly regressed one
+(50%+) about 88-99% of the time, and a weak scenario that gets no worse is blocked about 11%, not
+automatically. Moderate regressions (a rise from 5% to 20%) are mostly not caught by smoke; the **claim gate
+(n >= 73 per unit, Wilson bound 0.95) measures those and is neither touched nor weakened.** The smoke gate stays
+a regression screen, never a claim, and stage 2 counts are never pooled into a rate.
 
-Baseline: before an edit, run stage 1 on the exact parent head and keep that result file. A candidate's
-miss counts toward "regression" only for a scenario that was 3/3 at the baseline, so an old weak
-scenario cannot block an unrelated edit. Hold-outs remain frozen and are used only for evaluation.
+Baseline hygiene: the baseline stage 1 result file for the parent head is kept with the MR, with the Draft-07
+validation and malformed controls from `protocol.md`. Hold-outs remain frozen and are used only for evaluation.
 
 ## Proposal B: the two weak scenarios
 
@@ -90,30 +101,54 @@ Observed at `49ed24d7`, route selection, 3 trials each:
    `branch-and-worktree-rule.md`, which is always loaded and says "Never commit directly to `main`".
    That is a defensible first read, not a missed trigger.
 
-Changes proposed:
+### Decision on (2), made now: the accept list is NOT changed
 
-- **Trigger text for (1).** Extend the `AGENTS.md` trigger line and the `INDEX.md` row for
-  `agent-improvement-proposal-rule` to say the situation includes *suggesting a cleanup or consolidation of
-  duplicated instructions*, the wording the canonical rule's table uses for routing ("note, review,
-  lesson-proposal or plan"). No rule text changes.
-- **Do not tune on the failing scenario.** The edit is made after seeing that scenario fail, so its score
-  after the edit is contaminated. Evaluation uses **three new, unseen paraphrases** of this situation written
-  by coder-tester (not by me, not read when editing the trigger), 5 trials each = 15 trials, plus the
-  existing scenarios as a regression check under Proposal A.
-- **Accept list for (2).** Add `agf/rules/workflow/branch-and-worktree-rule.md` to the `accept` list of
-  `merge-request-workflow-paraphrase` only, with this plan as the recorded reason. This corrects a scenario
-  I authored; it is a corpus-definition change, not a trigger change, and it is disclosed as a post-hoc
-  adjustment. Hold-outs are not touched. If the governor-reviewer prefers, leave the accept list as is and
-  record the scenario as a known-variance scenario instead.
+`merge-request-workflow-paraphrase` keeps its current `accept` list. Widening it after seeing the miss would
+lower a bar that I authored, and the new stage 2 already separates a single stray answer (variance) from a real
+regression, so no corpus edit is needed. `corpus.yaml` is not edited for any accept list; its only change under this plan is adding the revealed
+unseen paraphrases after reveal (see Acceptance). The scenario is recorded as a known-variance scenario in the MR. If later evidence shows that
+`branch-and-worktree-rule.md` is the habitual first read, that is a new proposal.
+
+### Trigger text for (1)
+
+Extend the `AGENTS.md` trigger line and the `INDEX.md` row for `agent-improvement-proposal-rule` to say the
+situation includes *suggesting a cleanup or consolidation of duplicated instructions*, the routing wording
+the canonical rule uses ("note, review, lesson-proposal or plan"). No rule text changes.
+
+### Unseen paraphrases: sealing, storage and reveal lifecycle
+
+The failing scenario cannot validate its own fix (the edit is made after seeing it fail), so the evaluation uses
+**three unseen paraphrases of the same situation, written by coder-tester (Codex)**, 5 trials each = 15 trials.
+Lifecycle, in order:
+
+1. **Seal.** Before the trigger edit is written, Codex writes the three prompts to a local file outside the
+   repository (not committed, not shared), computes `SHA-256(file bytes + a random 16-byte salt)` and publishes
+   **only that hash** in an AGF coordination record. I never read the prompts at this stage.
+2. **Edit.** I write and push the trigger edit at exact head `H`. No unseen prompt exists in the repository, in
+   any MR text, or in any room message yet.
+3. **Reveal.** After `H` is pushed, Codex publishes the file and the salt (as a commit to this MR's branch, or
+   a coordination record). Anyone can verify the hash matches the sealed value; a mismatch voids the evaluation.
+4. **Evaluate.** Run the 15 trials at `H` under the protocol; also run stage 1/2 for all 52 scenarios against
+   the baseline.
+5. **Burn.** The revealed prompts are retained as `holdout: false`, `author: coder-tester` corpus scenarios
+   marked used. They are never again counted as unseen for a later trigger edit; Codex writes a fresh set then.
+   This keeps contaminated prompts from passing as hold-outs.
+
+Pass: at least **13 of 15** (87%). This is a smoke result, fixed here before the edit, not a recall claim.
 
 ## Acceptance
 
-- Protocol text for Proposal A is written and reviewed; its table is reproducible from the binomial formula.
-- Baseline stage 1 at the parent head and candidate stage 1 at the new head, both complete (52 x 3), with
-  the Draft-07 validation and the malformed controls retained as in `protocol.md`.
-- The 15-trial fresh-paraphrase evaluation passes at least **13 of 15** (87%); this is a smoke result, not
-  a claim, and the exact count is fixed here before the edit is made.
-- No other covered scenario that was 3/3 at baseline is classified as a regression under stage 2.
+- `protocol.md` carries the stage 1 / stage 2 text of Proposal A, and its table is reproducible from the
+  binomial formula (script or formula in the MR).
+- Baseline stage 1 at the parent head and candidate stage 1 at the candidate head, both complete (52 x 3),
+  with Draft-07 validation and the malformed controls retained as in `protocol.md`. Stage 2 (10 + 10 trials) for
+  every scenario that missed on either side, with `b` and `c` listed and the regression rule applied exactly
+  as written; no scenario classified as a regression.
+- The sealed-paraphrase lifecycle is followed in order and the hash verifies; the 15-trial evaluation passes at
+  least **13 of 15**. This is a smoke result, not a claim.
+- The `merge-request-workflow-paraphrase` accept list is unchanged and the scenario is listed as known variance.
+- `corpus.yaml` is changed only after reveal, to add the burned paraphrases as `holdout: false` (a separate
+  commit that reuses revealed text verbatim); this plan declares that follow-on and nothing earlier.
 - The claim gate is not run and not changed.
 
 ## Classification and impact
@@ -123,7 +158,7 @@ red-listed under the earlier delegation, and decided here by the delegate or Hum
 `tpam`) and changes a test protocol that later MRs will cite as acceptance evidence.
 ```
 Impact:
-  Foundry:          one trigger line and one INDEX row change; one test protocol gains a stage; a scenario accept list grows by one path.
+  Foundry:          one trigger line and one INDEX row change; one test protocol gains a symmetric two-stage comparison; the revealed unseen paraphrases are added to the corpus after reveal. No accept list changes.
   Direct adopters:  none; not under agf/.
   Downstream:       none.
   Migration:        not required.
@@ -137,7 +172,7 @@ Adopter docs parity: not applicable.
   another author; the edit's evaluation never uses the failing scenario.
 - R2 the 3-of-10 threshold passes a moderate regression. Mitigation: documented in the table; the claim gate
   stays the instrument for moderate effects.
-- R3 the post-hoc accept change looks like lowering the bar. Mitigation: disclosed here, limited to a rule that
-  states the same obligation, reversible, and optional for the governor-reviewer.
+- R3 the sealed lifecycle is skipped or a prompt leaks before reveal. Mitigation: the hash is published first and
+  verified at reveal; a mismatch voids the evaluation and Codex writes a fresh set.
 - R4 N=10 re-runs cost calls: at most 10 per missing scenario per run, bounded by the count of misses.
 Rollback: revert the MR. No tag or release is involved.
