@@ -49,9 +49,35 @@ there was none (which fails a positive trial). Positive and negative pass rules 
 
 ## Gates
 
-- **Smoke gate** (after any trigger edit touching a covered rule): zero misses on every `high`
-  scenario at N=3 per scenario. It is a regression screen, not a statistical claim. Acceptance of
-  an implementation under this plan is smoke-only.
+- **Smoke gate** (after any trigger edit touching a covered rule): a regression screen against the
+  pre-edit baseline, never a statistical claim. Plan `20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases`,
+  Gate 1 record `20261023T201759Z-governor-reviewer-d7qh`. It replaces the earlier zero-miss bar, which
+  fails about 45% of the time for a rule picked correctly 99% of the time per trial over the 60
+  `high` trials (1 - 0.99^60).
+  1. *Stage 1.* Run every covered scenario at N=3 on the **baseline head** (the exact parent of the
+     edit) and on the **candidate head**, under identical conditions (client version, model id, prompt
+     wording, `--tools` restriction). A scenario that is 3/3 on both sides is done.
+  2. *Stage 2.* If **either** side missed a scenario in stage 1, run that scenario 10 more trials on
+     **each** side (baseline and candidate; at most 20 extra calls per flagged scenario). Let `b` and `c` be
+     the failures out of 10 on the baseline and the candidate. The scenario is a **regression** when
+     `c >= 3` and `c - b >= 3`, and that blocks the edit. Otherwise it is variance or improvement:
+     record `b` and `c` and list the scenario in the MR.
+  3. Stage 1 counts stay as evidence; stage 1 and stage 2 counts are never pooled into a rate.
+  Exact binomial block rates for two independent 10-trial samples with per-trial failure
+  probabilities `p_b` (baseline) and `p_c` (candidate): no change at 0.02 / 0.05 / 0.10 / 0.30 blocks
+  0.07% / 0.7% / 3.0% / 11.0%; baseline 0.05 against candidate 0.20 / 0.30 / 0.50 / 0.70 blocks
+  23.4% / 49.2% / 87.8% / 99.0%; baseline 0.30 against candidate 1.00 blocks 99.8%. Reproduce with
+  `sum(P_b(i) * P_c(j))` over `j >= 3, j - i >= 3`, `P_k(i) = C(10,i) p^i (1-p)^(10-i)`. Moderate
+  regressions are mostly not caught here; the claim gate measures those and is unchanged. Acceptance of
+  an implementation under the plan is smoke-only.
+- **Unseen-paraphrase evaluation** (when a trigger edit follows a failing scenario): the failing
+  scenario cannot validate its own fix, so evaluate on three unseen paraphrases written by coder-tester,
+  5 trials each, passing at 13 of 15 or more (a smoke result, not a claim). Lifecycle, in order:
+  *seal* (before the edit, the author publishes only `SHA-256(file bytes + 16-byte salt)` in a
+  coordination record; the editor never reads the prompts), *edit* (the editor pushes head `H`),
+  *reveal* (the author publishes file and salt; a hash mismatch voids the evaluation), *evaluate*
+  (15 trials at `H`, plus stage 1/2 on all scenarios), *burn* (revealed prompts become `holdout: false`
+  scenarios and are never unseen again).
 - **Actual-open smoke (the fixed set)**: 5 rules (release-via-merge-request, deputy-governor, merge-request-workflow,
   immutable-tags, coordination-challenge-response) x 3 scenarios (direct, paraphrase, negative) x 3
   trials x 1 model = 45 calls.
