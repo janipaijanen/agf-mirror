@@ -1,6 +1,8 @@
 ---
 id: 20261023T140050Z-rule-trigger-recall-corpus
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261023T144257Z-governor-reviewer-zc0p
+gate1_approved_at: 2026-10-23T14:42:57Z
 topic: rule-trigger-recall-corpus-and-protocol
 advisory_consultation:
   - role: infosec-sentinel
@@ -32,10 +34,10 @@ depends_on:
 Follow-up to issue #138. Scope agreed with coder-tester (Codex) in the 2026-10-23
 experiment debate (ACS seq 184 and 186): a committed declarative scenario corpus, a
 short manual protocol and a result schema; **no runner**. Draft by planner-architect.
-Gate 1 was approved in principle by the Human Governor in a live session on
-2026-10-23 (bridge `20261023T140946Z-planner-architect-gmpg`). The audit found one WARN,
-resolved below, so the plan stays `pending-gate1` until a governor-reviewer record
-confirms this exact head.
+Gate 1 was approved by the Human Governor for this exact content (head
+`c676b2fe`) in governor-reviewer decision record
+`20261023T144257Z-governor-reviewer-zc0p`, after the audit corrections required by `251g`.
+Gate 2 and merge of the implementation stay with the Human Governor.
 
 ## Decision requested
 
