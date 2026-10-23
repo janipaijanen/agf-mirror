@@ -24,6 +24,12 @@ with the Read tool BEFORE doing the matching work. Plan
 | perform any git tag operation: create, push, move, delete, or retag | `agf/rules/workflow/immutable-tags-rule.md` |
 | run any command that could upgrade dependencies, or add or change a dependency | `agf/rules/workflow/no-auto-package-update.md` |
 | choose, bump, or write a `MAJOR.MINOR.PATCH` version number in a manifest, changelog, or tag | `agf/rules/workflow/semver-no-carry-rule.md` |
+| notice friction, duplication, confusing workflow, avoidable token spend or a documentation gap while doing assigned AGF work, or propose an improvement (route it as a note, review, lesson-proposal or plan) | `agf/rules/always/agent-improvement-proposal-rule.md` |
+| create or place a learning record, agent definition, ADR, framework rule, working plan, coordination record or `GOVERNANCE.md`, or decide where a governance artifact lives | `agf/rules/always/governance-file-layout-rule.md` |
+| raise, answer or close a coordination `challenge` (`kind: review`, `challenge_id`, `disputed_record_id`) | `agf/rules/workflow/coordination-challenge-response-rule.md` |
+| diagnose a bug, failing test, stack trace or screenshot | `agf/rules/workflow/debugging-rule.md` |
+| modify a route, service, template conditional, permission check or feature flag, or delete or weaken a test | `agf/rules/workflow/feature-regression-guard-rule.md` |
+| create any coordination message, or fix an ID or filename (the always-loaded `AGENTS.md` instruction to use `agov coord brief` stays; this adds the filename and validator rules) | `agf/rules/workflow/coordination-id-rule.md` |
 
 ## Specialized surfaces (load when the task matches)
 
