@@ -363,3 +363,120 @@ scenarios:
     prompt: "My assigned task is a bug fix and I found nothing unusual."
     accept:
       - agf/rules/always/agent-improvement-proposal-rule.md
+  - id: release-via-merge-request-near-boundary-holdout
+    rule: agf/rules/workflow/release-via-merge-request-rule.md
+    kind: near-boundary
+    consequence: high
+    author: coder-tester
+    holdout: true
+    prompt: "The code is ready for v2.12.0, but no tag exists yet. I need to decide where to commit the VERSION and changelog updates so the release remains reviewable."
+    accept:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+  - id: deputy-governor-near-boundary-holdout
+    rule: agf/rules/workflow/deputy-governor-rule.md
+    kind: near-boundary
+    consequence: high
+    author: coder-tester
+    holdout: true
+    prompt: "A time-bounded delegation expires in twenty minutes, and a low-risk item appears to fit it. I need to determine whether I may approve the item under that delegation."
+    accept:
+      - agf/rules/workflow/deputy-governor-rule.md
+  - id: documentation-rule-projection-near-boundary-holdout
+    rule: agf/rules/workflow/documentation-rule-projection-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "A Gate 2 diff changes MUST wording in an operational runbook without changing the canonical rule. I need to check authority ownership and whether normal entry points still discover it."
+    accept:
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+  - id: deprecation-policy-near-boundary-holdout
+    rule: agf/rules/workflow/deprecation-policy-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "A configuration key is still accepted by the parser but is no longer documented. I plan to replace it with a differently named key and remove the old one."
+    accept:
+      - agf/rules/workflow/deprecation-policy-rule.md
+  - id: ci-trigger-scoping-near-boundary-holdout
+    rule: agf/rules/workflow/ci-trigger-scoping-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "A seven-minute CI job currently runs on every merge request. I want to add rules and changes filters so it runs only when its inputs can change."
+    accept:
+      - agf/rules/workflow/ci-trigger-scoping-rule.md
+  - id: merge-request-workflow-near-boundary-holdout
+    rule: agf/rules/workflow/merge-request-workflow-rule.md
+    kind: near-boundary
+    consequence: high
+    author: coder-tester
+    holdout: true
+    prompt: "A feature branch targets main and its exact-head checks are green. I need to determine the permitted review, authorization, and merge sequence."
+    accept:
+      - agf/rules/workflow/merge-request-workflow-rule.md
+  - id: immutable-tags-near-boundary-holdout
+    rule: agf/rules/workflow/immutable-tags-rule.md
+    kind: near-boundary
+    consequence: high
+    author: coder-tester
+    holdout: true
+    prompt: "A tag already pushed to the remote points at the wrong commit, and nobody is known to have consumed it. I am considering deleting and recreating the same tag."
+    accept:
+      - agf/rules/workflow/immutable-tags-rule.md
+  - id: coordination-challenge-response-near-boundary-holdout
+    rule: agf/rules/workflow/coordination-challenge-response-rule.md
+    kind: near-boundary
+    consequence: high
+    author: coder-tester
+    holdout: true
+    prompt: "A review record disputes an earlier coordination decision using a challenge ID, and one party has replied. I need to determine what can close the challenge."
+    accept:
+      - agf/rules/workflow/coordination-challenge-response-rule.md
+  - id: coordination-id-near-boundary-holdout
+    rule: agf/rules/workflow/coordination-id-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "I am about to create a coordination note and must choose its generated identifier and matching filename before validation."
+    accept:
+      - agf/rules/workflow/coordination-id-rule.md
+  - id: feature-regression-guard-near-boundary-holdout
+    rule: agf/rules/workflow/feature-regression-guard-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "An intentional permission-check change will hide a control from one role, while an existing test asserts that the role can see it."
+    accept:
+      - agf/rules/workflow/feature-regression-guard-rule.md
+  - id: debugging-near-boundary-holdout
+    rule: agf/rules/workflow/debugging-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "An intermittent CI failure has a stack trace and a suspected null value. Before adding a guard, I need a reproducible fault boundary and root cause."
+    accept:
+      - agf/rules/workflow/debugging-rule.md
+  - id: governance-file-layout-near-boundary-holdout
+    rule: agf/rules/always/governance-file-layout-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "In an AGF v2 adopter repository, I need to add a learning record and must decide whether it belongs at the project root or under the framework directory."
+    accept:
+      - agf/rules/always/governance-file-layout-rule.md
+  - id: agent-improvement-proposal-near-boundary-holdout
+    rule: agf/rules/always/agent-improvement-proposal-rule.md
+    kind: near-boundary
+    consequence: low
+    author: coder-tester
+    holdout: true
+    prompt: "While fixing the assigned bug, I notice unrelated recurring token waste that should be recorded without expanding the current implementation."
+    accept:
+      - agf/rules/always/agent-improvement-proposal-rule.md
