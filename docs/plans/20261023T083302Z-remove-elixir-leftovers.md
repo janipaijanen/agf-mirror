@@ -17,7 +17,8 @@ affected_paths:
   - .gitlab-ci.yml
   - agf/dist/release-manifest.yaml
   - agf/dist/README.md
-  - agf/agents/build-engineer.yaml
+  - agf/docs/site/reference/release-artifacts.md
+  - docs/reviews/rule-projection/20261023T083302Z-remove-elixir-leftovers.yaml
   - tooling/rust/scripts/check-no-elixir-artifacts.sh
   - tooling/rust/scripts/check-live-tooling-surfaces.sh
   - tooling/rust/crates/agov/src/dist.rs
@@ -53,21 +54,26 @@ remains is configuration, guards and names:
 | Forbidden release entries | `agf/dist/release-manifest.yaml` 65-69 (`tooling/elixir/**`, `mix.exs`, `mix.lock`, `*.ex`, `*.exs`); prose in `agf/dist/README.md` 18-19 |
 | Live-surface check parts | `check-live-tooling-surfaces.sh`: tracked-file check, `tooling/elixir` pattern, dead-parity message |
 | Rust names and comments | `dist.rs` test `rejects_selected_mix_and_elixir_sources`; `coord_brief.rs` two "no retired elixir path" tests; comments in `coord_validator.rs:137` and `roi.rs:8`; test `roi.rs:1659` |
-| Prose | `.gitlab-ci.yml:165` comment (mix.lock), `agf/agents/build-engineer.yaml:89` example (`mix.exs`) |
+| Prose | `.gitlab-ci.yml:165` comment (mix.lock); `agf/docs/site/reference/release-artifacts.md:41` ("Elixir build directories" in the payload exclusion list) |
 
 ## Scope
 
 Package A (inert leftovers, low risk): remove the `mise.toml` elixir pin and
-refresh `mise.lock`; remove the Elixir entries from `.gitignore` and
+refresh `mise.lock` only for that tool (no unrelated tool-version churn; the diff
+of `mise.lock` is reviewed line by line); remove the Elixir entries from `.gitignore` and
 `.dockerignore`; reword the Rust comments to drop the Elixir reference; rename
 the `roi.rs` mixed-records test to "legacy records" (fixture data untouched);
-reword the CI comment and the build-engineer example to generic wording.
+reword the CI comment to generic wording. `agf/agents/build-engineer.yaml:89` lists `mix.exs` as one valid adopter dependency-manifest example; it stays (Elixir as an example language is out of scope, review F1), which also keeps this plan off the agent-definition red-list surface.
 
 Package B (guards, removes a safety net): delete `check-no-elixir-artifacts.sh`,
 its six CI invocations and the `release:elixir-exclusion-selftest` job; remove
-the five Elixir entries from the release manifest `forbidden` list and the
-README sentence; drop the tracked-file check and the `tooling/elixir` pattern
-from `check-live-tooling-surfaces.sh` and the two `coord_brief.rs` tests; switch
+the five Elixir entries from the release manifest `forbidden` list, the README
+sentence, and the now-false phrase "Elixir build directories" in
+`agf/docs/site/reference/release-artifacts.md:41`; in `check-live-tooling-surfaces.sh` drop the tracked-`tooling/elixir`-files check,
+the `tooling/elixir` term from the scan pattern and the `bad-residue` selftest
+fixture, reword "dead Elixir parity harness remains" to "dead parity harness
+remains", and add selftest fixtures for the `uv run agov-` and `bin/agf` patterns
+that the script scans but does not yet test; drop the two `coord_brief.rs` tests; switch
 the `dist.rs` forbidden-list test to a neutral forbidden pattern so the generic
 mechanism stays tested.
 
@@ -91,7 +97,7 @@ STRICT: release mechanics, gate removal, agent definition text.
 Impact:
   Foundry:          CI loses the Elixir exclusion selftest and six guard calls; builds unchanged.
   Direct adopters:  release-manifest `forbidden` list shrinks (no such files ship); BREAKING under Parnas (set of forbidden actions narrows), no practical effect.
-  Downstream:       none; release payload bytes unchanged.
+  Downstream:       none; release payload membership unchanged. Source archive bytes and checksums change because `agf/dist/README.md` and the manifest ship.
   Migration:        not required; no shipped file matches the removed patterns.
   Evidence:         governor instruction 2026-10-23; issue #140; grep above.
 ```
@@ -102,9 +108,12 @@ Adopter docs parity: updated (`agf/dist/README.md`).
 1. Gate self-test (`gate-self-test-rule`, Package B modifies gates): after the
    removal, `dist.rs` forbidden-list test with a neutral pattern still fails closed
    on a forbidden file; show the transcript. `check-live-tooling-surfaces.sh`
-   `selftest` still rejects the remaining bad fixtures (`mix agov`, `uv run agov-`,
-   `bin/agf`).
+   `selftest` still rejects its bad fixtures: the existing `mix agov` one plus the
+   new `uv run agov-` and `bin/agf` ones added by this plan.
 2. `cargo test` for `agov`, `agov-coord`, `agov-core`; `agov dist validate`.
+   Projection manifest `docs/reviews/rule-projection/20261023T083302Z-remove-elixir-leftovers.yaml`
+   (normative release guidance in `agf/dist/README.md` and the Pages page
+   `release-artifacts.md`; six surfaces disposed) passes `agov plan projection-check`.
 3. Pipeline: all jobs green at the exact head; the removed job no longer appears.
 4. Final `git grep -i elixir` outside history lists only the out-of-scope items.
 
