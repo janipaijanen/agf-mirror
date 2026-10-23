@@ -1,6 +1,8 @@
 ---
 id: 20261023T045214Z-remove-elixir-references
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261023T065201Z-governor-reviewer-p4tr
+gate1_approved_at: 2026-10-23T06:52:01Z
 topic: remove-retired-elixir-references-from-guides
 advisory_consultation:
   - role: infosec-sentinel
