@@ -540,7 +540,7 @@ fn agov_command() -> Result<AgovCommand, String> {
         });
     }
 
-    if let Some(agov) = executable_on_path(if cfg!(windows) { "agov.exe" } else { "agov" }) {
+    if let Some(agov) = executable_on_path("agov") {
         return Ok(AgovCommand {
             program: agov,
             prefix: Vec::new(),
@@ -548,7 +548,7 @@ fn agov_command() -> Result<AgovCommand, String> {
         });
     }
 
-    let cargo = executable_on_path(if cfg!(windows) { "cargo.exe" } else { "cargo" })
+    let cargo = executable_on_path("cargo")
         .ok_or_else(|| {
             "could not resolve agov; tried AGOV_MCP_AGOV_BIN, repository release/debug builds, agov on PATH, and cargo on PATH"
                 .to_string()

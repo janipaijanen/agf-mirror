@@ -4,9 +4,8 @@
 // resolved) rather than the source .gitlab-ci.yml, so a job that becomes a
 // shared-cache consumer through indirect `extends` (e.g. via
 // .rust-tooling-package) is still caught -- a hard-coded job-name list
-// missed exactly this case during Slice A (rust:tooling:preview and
-// rust:tooling:build:windows:preview silently skipped the policy
-// assertion because before_script arrays don't merge under `extends`).
+// missed a preview job during Slice A because before_script arrays do not
+// merge under `extends`.
 // See docs/plans/ci-rust-cache-policy-slice-b.md.
 //
 // The check operates on which CI variable each job's `cache.policy`

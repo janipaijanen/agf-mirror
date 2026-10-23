@@ -1697,8 +1697,8 @@ fn discover_release_assets(release_json: &str) -> Result<Vec<(String, String)>, 
 /// The Rust target triple this binary can actually execute a self-report
 /// check against. Only the exact triple matching the verifier host's own
 /// architecture and OS is executable here -- an `aarch64-unknown-linux-musl`
-/// or `x86_64-pc-windows-gnu` archive cannot run its packaged binary on an
-/// `x86_64` Linux CI runner. Cross-target archives are not silently
+/// archive for another OS cannot run its packaged binary on an `x86_64`
+/// Linux CI runner. Cross-target archives are not silently
 /// skipped: `composed_self_report_check` emits an explicit line naming the
 /// gap instead of omitting it.
 fn executable_target_platform() -> Option<&'static str> {

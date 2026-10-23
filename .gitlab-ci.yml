@@ -78,8 +78,8 @@ workflow:
 # Route every job to the dedicated project runner (#55908035, tags
 # podman/linux/amd64) instead of racing it against the shared-runner fleet.
 # This `default:` block governs ordinary jobs. Two OCI pull/inspect jobs use
-# the Podman runner pool; two nested-scan jobs and two optional Windows Cross
-# jobs override it with `dind`. The ci-needs implication test checks the split.
+# the Podman runner pool; the two nested-scan jobs override it with `dind`.
+# The ci-needs implication test checks the split.
 #
 # Governor-directed change, 2026-09-04: shared runners stay enabled
 # (shared_runners_enabled: true, unchanged) but GitLab has no "prefer this
@@ -539,7 +539,7 @@ release:create:
     # Upload every release artifact to the generic package registry.
     # The glob covers framework archives, Rust tooling archives, checksums, and provenance.
     - |
-      for f in dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz dist/agov-*.zip \
+      for f in dist/agf-*.tar.gz dist/agf-*.zip dist/agov-*.tar.gz \
                 dist/*.sha256 dist/*-provenance.json \
                 dist/SHA256SUMS; do
         [ -f "$f" ] || continue
@@ -1404,7 +1404,7 @@ rust:tooling:clippy:
     # assertion for every job built on this template.
     - !reference [.rust-base, before_script]
     # .rust-base's referenced before_script already cd's into tooling/rust.
-    - apt-get update -qq && apt-get install -y -qq binutils jq musl-tools zip
+    - apt-get update -qq && apt-get install -y -qq binutils jq musl-tools
     # The repository config preserves Cross's prefixed linker name. Debian's
     # musl-tools package exposes the native wrapper as musl-gcc, so override
     # only the mandatory native x86_64 target in this job environment.
@@ -1500,79 +1500,13 @@ rust:tooling:clippy:
           --output "../../dist/${archive}-provenance.json"
         rm -rf "$staging"
       done < release-targets.txt
-    # Windows packaging is optional preview evidence. It runs only on demand
-    # via AGOV_PACKAGE_WINDOWS_PREVIEW=1 (the
-    # rust:tooling:preview:windows-package manual job), never as part of a tag
-    # release. Tag releases publish the mandatory Linux tooling archives.
-    - |
-      if [ "${AGOV_PACKAGE_WINDOWS_PREVIEW:-}" = "1" ]; then
-        target="x86_64-pc-windows-gnu"
-        slug="windows-x86_64"
-        cargo clean --release --target "$target" -p agov -p agov-mcp
-        cross build --release --target "$target" -p agov -p agov-mcp
-        sh scripts/verify-tooling-provenance.sh --binary "$VERSION" "$CI_COMMIT_SHA" \
-          "target/${target}/release/agov.exe" "target/${target}/release/agov-mcp.exe"
-        archive="agov-${VERSION}-${slug}.zip"
-        staging="$(mktemp -d)"
-        dist_dir="$(cd ../../dist && pwd)"
-        mkdir -p "$staging/agov-${VERSION}-${slug}"
-        cp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
-        cp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
-        cmp "target/${target}/release/agov.exe" "$staging/agov-${VERSION}-${slug}/agov.exe"
-        cmp "target/${target}/release/agov-mcp.exe" "$staging/agov-${VERSION}-${slug}/agov-mcp.exe"
-        mkdir -p "$staging/agov-${VERSION}-${slug}/examples/claude"
-        cp ../../examples/claude/.mcp.json "$staging/agov-${VERSION}-${slug}/examples/claude/.mcp.json"
-        cmp ../../examples/claude/.mcp.json "$staging/agov-${VERSION}-${slug}/examples/claude/.mcp.json"
-        printf "AGF agov Rust tooling\nVersion: %s\nTarget: %s\n\nagov-mcp.exe is the stdio MCP server for agov.exe. Install by placing both agov.exe and agov-mcp.exe on PATH. To configure Claude Code, copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted. AGOV_MCP_AGOV_BIN may optionally point agov-mcp at a specific agov executable.\n\nDocumentation: https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/docs/site/docs/adopt/mcp-server.md\n" \
-          "$VERSION" "$target" > "$staging/agov-${VERSION}-${slug}/README.txt"
-        scripts/stage-tooling-runbook.sh stage "$staging/agov-${VERSION}-${slug}"
-        (cd "$staging" && zip -qr "$dist_dir/${archive}" "agov-${VERSION}-${slug}")
-        (cd ../../dist && sha256sum "${archive}" > "${archive}.sha256")
-        "$AGOV_BIN" dist provenance-record file \
-          --product agov --version "$VERSION" --source-commit "${CI_COMMIT_SHA:-unknown}" \
-          --tag "${CI_COMMIT_TAG:-untagged}" \
-          --build-timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-          --pipeline-id "${CI_PIPELINE_ID:-unknown}" --job-id "${CI_JOB_ID:-unknown}" \
-          --implementation rust --packaging zip --target-platform "$target" \
-          --artifact "../../dist/${archive}" \
-          --output "../../dist/${archive}-provenance.json"
-        rm -rf "$staging"
-      fi
     - scripts/check-release-self-sufficiency.sh check ../../dist/agov-*.tar.gz
-    - |
-      if find ../../dist -maxdepth 1 -name 'agov-*.zip' -print -quit | grep -q .; then
-        scripts/check-release-self-sufficiency.sh check ../../dist/agov-*.zip
-      fi
   artifacts:
     paths:
       - dist/agov-*.tar.gz
       - dist/agov-*.tar.gz.sha256
-      - dist/agov-*.zip
-      - dist/agov-*.zip.sha256
       - dist/agov-*-provenance.json
 
-# The optional Windows packaging preview still needs Cross and a container
-# engine for its MinGW sysroot. Keep that dependency isolated from mandatory
-# Linux previews and tag releases so a DinD failure cannot block publication.
-.rust-tooling-windows-package:
-  extends: .rust-tooling-package
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    CROSS_REMOTE: "1"
-  before_script:
-    # extends does not merge before_script arrays. Preserve the cache-policy
-    # assertion and install both the common archive tools and Windows Cross.
-    - !reference [.rust-base, before_script]
-    - apt-get update -qq && apt-get install -y -qq binutils docker.io jq zip
-    - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
-
-# Build preview Rust tooling archives for Linux platform targets. These
-# artifacts are not releases.
 rust:tooling:preview:
   extends: .rust-tooling-package
   interruptible: true
@@ -1598,51 +1532,6 @@ rust:tooling:preview:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes: *rust_tooling_preview_paths
 
-# Manual evidence job: run the full .rust-tooling-package script including
-# the Windows packaging block (AGOV_PACKAGE_WINDOWS_PREVIEW=1) so the
-# packaged agov-<version>-windows-x86_64.zip, its .sha256 sidecar, and its
-# provenance record are producible and inspectable from an MR pipeline
-# without creating a release tag.
-rust:tooling:preview:windows-package:
-  tags:
-    - dind
-  extends: .rust-tooling-windows-package
-  interruptible: true
-  variables:
-    AGOV_PACKAGE_WINDOWS_PREVIEW: "1"
-  artifacts:
-    name: "agov-rust-windows-package-preview-$CI_COMMIT_SHORT_SHA"
-    expire_in: 1 day
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
-        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
-        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
-        # here, a VERSION-only change would trigger that job while leaving
-        # its dependency unbuilt.
-        - agf/VERSION
-        - agf/docs/site/docs/operate/poll-and-coordinate.md
-        - examples/claude/.mcp.json
-      when: manual
-      allow_failure: true
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
-        # agf/VERSION names the produced archive (dist/agov-$VERSION-*.tar.gz)
-        # and is consumed by agov:oci:mr-build-scan via `needs`. Without it
-        # here, a VERSION-only change would trigger that job while leaving
-        # its dependency unbuilt.
-        - agf/VERSION
-        - agf/docs/site/docs/operate/poll-and-coordinate.md
-        - examples/claude/.mcp.json
-      when: manual
-      allow_failure: true
-
-# Build mandatory Linux Rust tooling archives only on tag pipelines. Windows
-# packaging remains available through the optional manual preview job above.
 rust:tooling:release:
   extends: .rust-tooling-package
   artifacts:
@@ -1693,50 +1582,3 @@ agov:oci:release:
     expire_in: 1 week
   rules:
     - if: $CI_COMMIT_TAG
-
-# Manual Windows x64 preview build. This is intentionally separate from the
-# default Rust preview job so ordinary MRs do not pay the Windows cross-build
-# cost, while release preparation can still request Windows artifacts.
-rust:tooling:build:windows:preview:
-  tags:
-    - dind
-  extends: .rust-base
-  stage: build
-  interruptible: true
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-    CROSS_REMOTE: "1"
-  before_script:
-    # extends does not merge before_script arrays -- redefining this key
-    # here would otherwise silently drop .rust-base's cache-policy
-    # assertion.
-    - !reference [.rust-base, before_script]
-    # .rust-base's referenced before_script already cd's into tooling/rust.
-    - apt-get update -qq && apt-get install -y -qq docker.io
-    - export PATH="$CARGO_HOME/bin:$PATH"
-    - cargo install --list 2>/dev/null | grep -qE "^cross v0\.2\.[0-9]+:" || cargo install cross --locked --version "^0.2" --force
-  script:
-    - cross build --release --target x86_64-pc-windows-gnu -p agov -p agov-mcp
-  artifacts:
-    name: "agov-rust-windows-preview-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - tooling/rust/target/x86_64-pc-windows-gnu/release/agov.exe
-      - tooling/rust/target/x86_64-pc-windows-gnu/release/agov-mcp.exe
-    expire_in: 1 day
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
-      when: manual
-      allow_failure: true
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      changes:
-        - tooling/rust/**/*
-        - .gitlab-ci.yml
-      when: manual
-      allow_failure: true
