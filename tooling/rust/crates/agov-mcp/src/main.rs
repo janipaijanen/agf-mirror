@@ -446,7 +446,9 @@ fn run_agov(
 
     match output {
         Ok(output) => ToolExecution {
-            ok: output.status.success() || is_expected_non_error_status(args, output.status.code()),
+            ok: output.status.success()
+                || (is_expected_non_error_status(args, output.status.code())
+                    && !is_ref_read_failure(args, &output.stderr)),
             status: output.status.code().unwrap_or(1),
             command: args.to_vec(),
             stdout: String::from_utf8_lossy(&output.stdout).to_string(),
@@ -469,6 +471,12 @@ fn is_expected_non_error_status(args: &[String], status: Option<i32>) -> bool {
             args.get(1).map(String::as_str),
             Some("list") | Some("pending")
         )
+}
+
+/// In `--ref` mode exit 2 with stderr output is an unreadable ref or Git input, not
+/// "nothing new": it must stay an error so a caller never mistakes it for a clean empty.
+fn is_ref_read_failure(args: &[String], stderr: &[u8]) -> bool {
+    !stderr.is_empty() && args.iter().any(|arg| arg.starts_with("--ref="))
 }
 
 fn validate_agov_startup(command: &AgovCommand) -> Result<(), String> {
@@ -679,6 +687,10 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             push_optional_flag(args, "since", "--since", &mut cli)?;
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
             push_optional_flag(args, "format", "--format", &mut cli)?;
+            // One `--ref=<value>` argument: a value starting with `-` stays a value.
+            if let Some(reference) = optional_string(args, "ref")? {
+                cli.push(format!("--ref={reference}"));
+            }
             Ok(cli)
         }
         "agov_coord_pending" => {
@@ -1029,7 +1041,8 @@ fn tools() -> Vec<Value> {
                 "properties": {
                     "since": { "type": "string" },
                     "dir": { "type": "string" },
-                    "format": { "type": "string", "enum": ["text", "json"] }
+                    "format": { "type": "string", "enum": ["text", "json"] },
+                    "ref": { "type": "string", "description": "Read the channel from this fetched commit-ish (no fetch); JSON becomes an object with source_ref, source_oid, coordination_dir and messages." }
                 }
             }),
         ),
@@ -1498,6 +1511,25 @@ mod tests {
         let args = vec!["coord".to_string(), "list".to_string()];
 
         assert!(is_expected_non_error_status(&args, Some(2)));
+    }
+
+    #[test]
+    fn coord_list_ref_is_one_equals_argument_even_with_a_leading_dash() {
+        for value in ["main", "-x", "--all", "origin/main"] {
+            let args = tool_cli_args("agov_coord_list", &json!({ "ref": value, "since": "s" })).unwrap();
+            assert_eq!(args, vec!["coord".to_string(), "list".into(), "--since".into(), "s".into(), format!("--ref={value}")]);
+            assert!(!args.iter().any(|arg| arg == "--ref"));
+        }
+        assert!(tool_cli_args("agov_coord_list", &json!({ "ref": 1 })).is_err());
+    }
+
+    #[test]
+    fn ref_read_failure_is_not_the_polling_empty_amnesty() {
+        let with_ref = vec!["coord".to_string(), "list".into(), "--ref=main".into()];
+        assert!(is_ref_read_failure(&with_ref, b"ERR  could not resolve --ref main\n"));
+        assert!(!is_ref_read_failure(&with_ref, b""));
+        let without_ref = vec!["coord".to_string(), "list".into()];
+        assert!(!is_ref_read_failure(&without_ref, b"anything"));
     }
 
     #[test]

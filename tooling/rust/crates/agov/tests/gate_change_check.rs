@@ -674,3 +674,21 @@ fn advisory_hold_records_cannot_waive_gate_companion_requirements() {
     fixture.commit("supply required gate companion");
     assert_success(fixture.check());
 }
+
+#[test]
+fn live_registry_keeps_agov_main_as_a_gate_change_check_surface() {
+    // `agov coord list --ref` (plan 20261023T155559Z-agov-strict-args-ref-list, Slice B) edits
+    // tooling/rust/crates/agov/src/main.rs, a shared surface of this gate. The gate itself is
+    // unchanged; that file must stay registered so an edit to it keeps requiring test evidence.
+    let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
+        .expect("read live gate registry");
+    let block = registry
+        .split("  - id: ")
+        .find(|entry| entry.starts_with("gate-change-check"))
+        .expect("gate-change-check entry");
+    let surfaces = block.split("    tests:").next().unwrap();
+    assert!(
+        surfaces.contains("tooling/rust/crates/agov/src/main.rs"),
+        "agov main.rs must remain a gate-change-check surface"
+    );
+}

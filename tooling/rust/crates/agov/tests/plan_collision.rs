@@ -467,3 +467,26 @@ fn live_ci_keeps_the_plan_collision_gate_after_an_unrelated_job_removal() {
         "plan-collision self-test wiring missing"
     );
 }
+
+/// `agov coord list --ref` (plan 20261023T155559Z-agov-strict-args-ref-list, Slice B) edits
+/// tooling/rust/crates/agov/src/main.rs, a declared `plan-collision-block` surface. The collision
+/// gate itself is unchanged; the file must stay registered so an edit to it keeps requiring test
+/// evidence.
+#[test]
+fn live_registry_keeps_agov_main_as_a_plan_collision_block_surface() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap()
+        .to_path_buf();
+    let registry = std::fs::read_to_string(root.join(".agf/gates.yaml")).expect("read gate registry");
+    let block = registry
+        .split("  - id: ")
+        .find(|entry| entry.starts_with("plan-collision-block"))
+        .expect("plan-collision-block entry");
+    let surfaces = block.split("    tests:").next().unwrap();
+    assert!(
+        surfaces.contains("tooling/rust/crates/agov/src/main.rs"),
+        "agov main.rs must remain a plan-collision-block surface"
+    );
+}

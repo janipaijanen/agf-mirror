@@ -1,6 +1,7 @@
 mod artifact;
 mod ci_cache_topology;
 mod commercial_corpus;
+mod coord_list_ref;
 mod dist;
 mod handoff_branch;
 mod hold_status;
@@ -224,6 +225,9 @@ enum CoordCommand {
         dir: PathBuf,
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
+        /// Read the channel from this fetched commit-ish instead of the checkout (no fetch).
+        #[arg(long = "ref", value_name = "COMMIT-ISH")]
+        source_ref: Option<String>,
     },
     /// Print coordination channel overview.
     Status {
@@ -815,8 +819,8 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             &args,
         ),
         Command::Coord {
-            sub: CoordCommand::List { since, dir, format },
-        } => coord_list(since, dir, format, &args),
+            sub: CoordCommand::List { since, dir, format, source_ref },
+        } => coord_list(since, dir, format, source_ref, &args),
         Command::Coord {
             sub: CoordCommand::Status { dir, recent, roles },
         } => coord_status(dir, recent, roles, &args),
@@ -2628,14 +2632,36 @@ fn coord_post(options: CoordPostOptions, args: &[String]) -> i32 {
     }
 }
 
-fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[String]) -> i32 {
+fn coord_list(
+    since: Option<String>,
+    dir: PathBuf,
+    format: String,
+    source_ref: Option<String>,
+    args: &[String],
+) -> i32 {
     let mut output = OutputCounter::default();
-    let dir = repo_relative_path(dir);
-    let messages = match read_valid_coord_messages(&dir) {
-        Ok(messages) => messages,
-        Err(_) => {
-            output.stderr(format!("ERR  directory not found: {}", dir.display()));
-            return 1;
+    let mut ref_source = None;
+    let messages = if let Some(reference) = &source_ref {
+        // Ref mode: unavailable ref or unreadable Git input is exit 2, never a clean empty.
+        match coord_list_ref::read_channel_at_ref(reference, &dir) {
+            Ok(channel) => {
+                let messages = channel.messages.clone();
+                ref_source = Some(channel);
+                messages
+            }
+            Err(message) => {
+                output.stderr(format!("ERR  {message}"));
+                return 2;
+            }
+        }
+    } else {
+        let dir = repo_relative_path(dir);
+        match read_valid_coord_messages(&dir) {
+            Ok(messages) => messages,
+            Err(_) => {
+                output.stderr(format!("ERR  directory not found: {}", dir.display()));
+                return 1;
+            }
         }
     };
 
@@ -2663,8 +2689,29 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
         })
         .collect();
 
+    let source_line = ref_source.as_ref().map(|channel| {
+        format!(
+            "source: ref={} oid={} dir={} records={} skipped={}",
+            coord_list_ref::display_untrusted(&channel.source_ref),
+            channel.source_oid,
+            coord_list_ref::display_untrusted(&channel.coordination_dir),
+            channel.messages.len(),
+            channel.skipped
+        )
+    });
+
     if items.is_empty() {
-        output.stdout("No coordination messages found");
+        if format == "json" {
+            match &ref_source {
+                Some(channel) => output.stdout(coord_list_ref_json(channel, &[])),
+                None => output.stdout("[]"),
+            }
+        } else {
+            if let Some(line) = &source_line {
+                output.stdout(line);
+            }
+            output.stdout("No coordination messages found");
+        }
         return 2;
     }
 
@@ -2679,7 +2726,11 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
             .iter()
             .map(|message| CoordListRow::from_with_superseded(message, superseded_by(&message.file)))
             .collect();
-        match serde_json::to_string_pretty(&rows) {
+        let rendered = match &ref_source {
+            Some(channel) => serde_json::to_string_pretty(&coord_list_ref_object(channel, &rows)),
+            None => serde_json::to_string_pretty(&rows),
+        };
+        match rendered {
             Ok(json) => output.stdout(json),
             Err(err) => {
                 output.stderr(format!("ERR  could not render JSON: {err}"));
@@ -2687,6 +2738,9 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
             }
         }
     } else {
+        if let Some(line) = &source_line {
+            output.stdout(line);
+        }
         for message in &items {
             let annotation = match superseded_by(&message.file) {
                 Some(id) => format!("  superseded — see {id}"),
@@ -2708,6 +2762,20 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
 
     agov_core::roi::record_tool_output("agov", args, "coord-list", output.chars);
     0
+}
+
+fn coord_list_ref_object(channel: &coord_list_ref::RefChannel, rows: &[CoordListRow]) -> serde_json::Value {
+    serde_json::json!({
+        "source_ref": channel.source_ref,
+        "source_oid": channel.source_oid,
+        "coordination_dir": channel.coordination_dir,
+        "skipped": channel.skipped,
+        "messages": rows,
+    })
+}
+
+fn coord_list_ref_json(channel: &coord_list_ref::RefChannel, rows: &[CoordListRow]) -> String {
+    serde_json::to_string_pretty(&coord_list_ref_object(channel, rows)).unwrap_or_default()
 }
 
 struct ChannelSummary {
@@ -6577,7 +6645,11 @@ fn body_refs(path: &Path) -> Vec<String> {
     let Ok(content) = std::fs::read_to_string(path) else {
         return Vec::new();
     };
-    let body = content.splitn(3, "---").nth(2).unwrap_or(content.as_str());
+    body_refs_from_content(&content)
+}
+
+fn body_refs_from_content(content: &str) -> Vec<String> {
+    let body = content.splitn(3, "---").nth(2).unwrap_or(content);
 
     body.split(|ch: char| ch.is_whitespace() || matches!(ch, '`' | '"' | '\'' | '(' | ')' | ','))
         .filter_map(clean_coord_filename)

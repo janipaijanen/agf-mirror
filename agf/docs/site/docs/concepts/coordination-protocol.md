@@ -50,7 +50,14 @@ agov handoff complete <handoff-id> --from coder-tester
 `agov coord list --since <message-id-or-rfc3339-timestamp>` lists valid messages
 after a known cursor using `(timestamp, filename)` order. It exits `2` when no
 new messages match, so polling scripts can distinguish "nothing new" from an
-error. Adapters such as a local MCP server may expose these commands to an
+error. `agov coord list --ref <commit-ish>` reads the same channel from a
+commit that is already fetched, so a poll right after `git fetch` is not
+answered from a stale checkout; it never fetches, a ref it cannot read is an
+error on stderr with exit `2` (not an empty result), and symlink or submodule
+entries in the channel are skipped and counted on the `source:` line. With
+`--format json` the ref form returns an object (`source_ref`, `source_oid`,
+`coordination_dir`, `skipped`, `messages`); without `--ref` the JSON stays an
+array, and an empty result is `[]` with exit `2`. Adapters such as a local MCP server may expose these commands to an
 assistant surface, but the durable coordination protocol remains append-only
 files plus validation.
 
