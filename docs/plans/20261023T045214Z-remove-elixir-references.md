@@ -55,8 +55,8 @@ the elixir stuff from the guides. it was historical, but now git history holds
 it", and chose the scope "foundry guides plus shipped agf docs". Bridge notes
 `20261023T045404Z-planner-architect-prhg` (scope) and
 `20261023T061220Z-planner-architect-2gpd` (Gate 1 statement and the
-`upgrade-from-v1.md` choice) are on main; both stay provisional until a
-governor-reviewer record references them.
+`upgrade-from-v1.md` choice) are on main; both are ratified by
+governor-reviewer record `20261023T065201Z-governor-reviewer-p4tr`.
 
 ## Facts (grep of main, 2026-10-23)
 
@@ -123,8 +123,8 @@ scripts and manifests listed above.
 The governor chose option (b): "Delete every elixir/mix mention." Every
 Elixir/Mix mention is removed from `upgrade-from-v1.md`, including the `mix
 agov.*` command names; the page says only "v1 commands" where it must refer to
-them. Bridge note `20261023T061220Z-planner-architect-2gpd` (provisional until a
-governor-reviewer record references it). The earlier recommendation to keep
+them. Bridge note `20261023T061220Z-planner-architect-2gpd` (ratified by
+`20261023T065201Z-governor-reviewer-p4tr`). The earlier recommendation to keep
 those names as search targets is withdrawn.
 
 ## Classification and impact
