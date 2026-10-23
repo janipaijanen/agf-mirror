@@ -20,7 +20,7 @@ affected_paths:
   - agf/docs/site/reference/release-artifacts.md
   - agf/docs/adopt/decommission.md
   - agf/docs/governance/learning-system.md
-  - agf/docs/site/use-cases.md
+  - agf/docs/adr/20260505-lean-agile-test-fly.md
 depends_on:
   - 20261022T205113Z-instruction-context-reduction
   - 20260913T085123Z-work-item-steward-gate1
@@ -85,6 +85,13 @@ Out (kept on purpose):
 - `mise.toml` / `mise.lock` toolchain pin: build config, separate decision.
 - Coordination records, plans, learnings, audits, proposals, CHANGELOG: immutable
   or historical.
+
+Expected residual \`git grep -i elixir\` hits after the change, each deliberate:
+\`upgrade-from-v1.md\` (v1 command names as removal search targets, pending the
+open question), the release-payload guard sentences in \`release-artifacts.md\`
+that name what the payload must not contain, \`use-cases.md\` and
+\`retrospective.md\` (language/stack evidence, not tooling), and the guard
+scripts and manifests listed above.
 
 ## Open question for the governor
 
