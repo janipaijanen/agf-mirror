@@ -14,6 +14,15 @@ authority. The scenarios are in `corpus.yaml`; result records follow `result.sch
 
 ## Fixed conditions
 
+**Restrict the tool set with `--tools`, not with a prompt sentence or `--allowedTools`.** When the
+session runs with permissions bypassed, `--allowedTools` only pre-approves tools; it does not
+remove the others, and "do not use tools" is only an instruction. In the first run of this
+protocol one trial in a repository working copy wrote a stray coordination record
+(`claude-haiku-5-5`, role build-engineer) under `docs/coordination/` despite that
+instruction. Run every trial in a throwaway worktree, use `--tools ""` (route selection) or
+`--tools Read` (actual open), and check `git status --short` is empty after each run; delete and
+report anything untracked that appears, and never publish it.
+
 Record per run: client version (`claude --version`), model id, the exact head SHA of the working
 copy, and the date. Use a clean session per trial (`claude -p`, no resume) in a throwaway worktree
 at the head under test. Do not mix client versions or models inside one comparison.
@@ -21,7 +30,7 @@ at the head under test. Do not mix client versions or models inside one comparis
 ## Route-selection trial
 
 ```
-claude -p "<prompt>. Do not use tools. Answer with ONLY the repo path of the single rule file you must read first, or NONE. No other text." --model <id> < /dev/null
+claude -p "<prompt>. Answer with ONLY the repo path of the single rule file you must read first, or NONE. No other text." --model <id> --tools "" < /dev/null
 ```
 
 Take the first line of output as `answer`. Positive kinds (`direct`, `paraphrase`,
@@ -31,7 +40,7 @@ when `answer` is **not** in `accept`.
 ## Actual-open trial
 
 ```
-claude -p "<prompt>. Read the single rule file you must read first." --model <id> --allowedTools Read --output-format stream-json --verbose < /dev/null
+claude -p "<prompt>. Read the single rule file you must read first." --model <id> --tools Read --output-format stream-json --verbose < /dev/null
 ```
 
 `first_read_target` is the `file_path` of the first `Read` tool_use in the stream, or `null` if
