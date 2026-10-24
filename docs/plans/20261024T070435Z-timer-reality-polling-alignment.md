@@ -25,6 +25,16 @@ affected_paths:
 depends_on:
   - 20260905T210255Z-universal-agent-autonomous-polling
   - 20260823T093120Z-poll-and-coordinate-skill
+  - 20260913T085123Z-work-item-steward-gate1
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260915T075705Z-issue130-pending-advisory-consultation-status
+  - 20260921T040743Z-assistant-rule-drift-resolution
+  - 20261022T205113Z-instruction-context-reduction
+  - 20261023T045214Z-remove-elixir-references
+  - 20261023T080431Z-instruction-context-followup
+  - 20261023T155559Z-agov-strict-args-ref-list
+  - 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -113,6 +123,22 @@ are foundry-local.
 - Collision check (changed-only) reports zero unacknowledged plan overlaps.
 - Negative check: a grep for the removed blanket prohibition sentence finds nothing under `agf/`.
 - Gate 2 evidence includes the diff stat and the migration note in the MR description.
+
+## Collision and sequencing disposition
+
+A full plans-only collision check (not changed-only) reports ten overlaps with this plan. Each overlapped plan
+is already `approved` and its change is merged on `main`; none is a competing live proposal. This plan builds on
+the merged text, so each is declared in `depends_on`. The reason per overlap:
+
+| Plan | Overlapping path | Why this plan depends on it |
+|---|---|---|
+| `work-item-steward-gate1`, `row5-s3-priority-ordering-and-challenge-response`, `row6-s4-issue123-collision-check-blocking-promotion`, `issue130-pending-advisory-consultation-status` | `AGENTS.md`, `agf/templates/AGENTS.md` | each earlier added or changed loader wording; this plan changes only the polling-timer sentence and leaves their text intact |
+| `instruction-context-reduction`, `instruction-context-followup`, `remove-elixir-references`, `recall-smoke-criterion-and-weak-paraphrases` | `AGENTS.md`, `docs/reference/agent-cold-start-habits.md`, `docs/reference/foundry-polling-and-bridge-procedure.md` | they moved or trimmed loader text and trigger lines; this plan edits the moved timer text where it now lives and does not touch trigger lines |
+| `assistant-rule-drift-resolution` | `agf/rules/**` | it set the rule-drift handling; this plan edits two named rule files only and follows its handling |
+| `agov-strict-args-ref-list` | `agf/docs/site/docs/concepts/coordination-protocol.md` | it added a `coord list --ref` paragraph; this plan edits the timer paragraph of the same page and keeps the `--ref` paragraph |
+
+Implementation re-runs the changed-only collision check against the then-current `main` and re-reads the merged
+text of each file before editing it. A new overlap with a live (not merged) plan returns to Gate 1.
 
 ## Risks and rollback
 
