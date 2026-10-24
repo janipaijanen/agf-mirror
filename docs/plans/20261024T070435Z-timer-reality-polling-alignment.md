@@ -66,12 +66,16 @@ The canonical owner is `agf/rules/always/universal-polling-and-autonomous-contin
 ## Scope and changes
 
 1. **Owner rule, capability-neutral.** In the owner section: a mechanism counts as a real wake or
-   notification mechanism when it can notify the assistant and its lifetime is observable; state that any such
-   mechanism is bounded by the session and by its own declared expiry; require the agent to report each
+   notification mechanism when it can notify the assistant and its lifetime is observable; state that a
+   session-bound or internal mechanism (one that runs inside the assistant session) ends with the session or at
+   its own declared expiry, whichever comes first, and that an external scheduler outside the session may outlive
+   it only under item 2; every mechanism, internal or external, has an observable lifecycle and expiry; require the agent to report each
    replacement (identifier, start, expiry, delivery result) and to re-arm before expiry while the poll is meant
    to continue. No client name and no numeric client limit appears in the rule.
-2. **Durability.** Durable unattended wake requires an external scheduler with Level 5 evidence (see
-   `docs/reference/maturity-vocabulary` usage in AGENTS.md); anything else is session-bound.
+2. **Durability.** Durable unattended wake means a wake that can outlive the assistant session. It requires an
+   external scheduler with Level 5 evidence (see `docs/reference/maturity-vocabulary` usage in AGENTS.md); that
+   scheduler's job still has an observable lifecycle and a declared expiry. A mechanism without that evidence is
+   treated as session-bound. The rule never says that all wake mechanisms are session-bound.
 3. **Quiet tiers.** A schedule that polls less often when quiet reduces load and adds no durability.
 4. **Operator-set continuation deadline.** A human or governor may set an absolute UTC time before which the
    idle stop does not apply. It is a bounded override of the idle stop only: it grants no authority, changes no
