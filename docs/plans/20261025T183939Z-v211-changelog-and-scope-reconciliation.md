@@ -1,20 +1,21 @@
 ---
 id: 20261025T183939Z-v211-changelog-and-scope-reconciliation
-status: pending-gate1
+status: approved
 topic: v211-changelog-and-scope-reconciliation
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: 20261025T185407Z-governor-reviewer-771r
+gate1_approved_at: "2026-10-25T18:54:07Z"
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Requested at publication. The plan edits only changelog prose and names no credential, secret or
-      cross-project link; the CI `agov validate infosec` job is the mechanical evidence, not a verdict.
+      Per governor decision 771r: `agov validate infosec` passed and exact-head pipeline 2986980230
+      (head 9b4b2f35) succeeded. The plan adds prose only and no secret, credential or cross-project linkage.
   - role: contribution-auditor
-    status: pending
+    status: waived
     reason: >-
-      Requested at publication. An independent (non-author) review is needed because the plan classifies
-      adopter-facing changes (BREAKING/ADDITIVE) that the governor will rely on at the release cut.
+      Waived for this plan only by governor decision 771r. The author correctly did not self-audit; Codex
+      independently applied the contribution-audit skill and all six manual dimensions, and its one LOW
+      accuracy finding was corrected in 9b4b2f35. This creates no standing waiver or role assignment.
 affected_paths:
   - CHANGELOG.md
   - agf/CHANGELOG.md
