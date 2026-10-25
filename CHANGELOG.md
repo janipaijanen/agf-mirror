@@ -8,6 +8,14 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+Adopter-facing entries for the next release, with their `Adopter docs:` lines, are
+in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[Unreleased]`; this section lists
+repository-level changes only.
+
+- Removed the retired Elixir release-payload guard script, its CI invocations and
+  the `release:elixir-exclusion-selftest` job, and the Elixir toolchain pins from
+  `mise.toml`/`mise.lock`. The generic forbidden-file mechanism in the
+  release manifest is unchanged and still tested.
 - Route two OCI pull/inspect CI jobs to the live Podman runner pool instead of the unavailable DinD pool.
 - Retired the optional Windows `agov`/`agov-mcp` preview build and packaging
   path. Automation using that preview must move to Linux x86_64 or the OCI
