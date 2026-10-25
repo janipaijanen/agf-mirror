@@ -25,6 +25,10 @@ depends_on:
   - 20260913T195450Z-row5-s2-self-announcing-supersession
   - 20260910T065635Z-coordination-lifecycle-semantics-work-order
   - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20260921T040743Z-assistant-rule-drift-resolution
+  - 20261021T220000Z-retire-windows-support
+  - 20261023T155559Z-agov-strict-args-ref-list
+  - 20261024T070435Z-timer-reality-polling-alignment
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -112,6 +116,15 @@ Scan at 2026-10-25T19:28Z: no open MR changes the rule, the Pages page, the sche
 on `agf/CHANGELOG.md`; it is acknowledged in `depends_on`, and the implementation must merge after !3215. The
 parents `20260913T195450Z-row5-s2-self-announcing-supersession` and
 `20260910T065635Z-coordination-lifecycle-semantics-work-order` are cited, not edited.
+
+CI `agov:governance:plan-collision-gate` (pipeline 2987029092, head d2563a4a) reported four more plan overlaps
+that the first draft did not acknowledge. They are now listed in `depends_on` as deliberate and sequenced:
+`20260921T040743Z-assistant-rule-drift-resolution` (glob `agf/rules/**` vs the rule file),
+`20261021T220000Z-retire-windows-support` (`agf/CHANGELOG.md`), and
+`20261023T155559Z-agov-strict-args-ref-list` and `20261024T070435Z-timer-reality-polling-alignment`
+(`coordination-protocol.md`). All four are approved plans whose implementations are already on `main`; this
+plan edits those files only after Gate 1 and does not reopen them. My earlier local check missed them because
+it ran the main checkout's release binary of 2026-10-22; CI's current-build result is the authority.
 
 ## Risks and rollback
 
