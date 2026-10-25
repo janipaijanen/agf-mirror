@@ -1,14 +1,23 @@
 ---
 id: 20261024T070435Z-timer-reality-polling-alignment
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261024T073826Z-governor-reviewer-q5r3
+gate1_approved_at: "2026-10-24T07:38:26Z"
 topic: timer-reality-polling-alignment
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Review requested. Edits normative polling and scheduling wording; no credentials, schemas or runtime code. Checks that the continuation-deadline override cannot be read as extra authority.
+    status: consulted
+    reason: >-
+      At the approved exact head 406d48df, `agov validate infosec` passed and exact-head pipeline
+      2984090041 succeeded. The change contains no credentials, secrets, runtime code or
+      cross-project linkage (governor decision q5r3).
   - role: contribution-auditor
-    status: pending
-    reason: Review requested before Gate 1 (normative rule edit, adopter-facing skill and docs).
+    status: waived
+    reason: >-
+      Waived for this plan only by governor decision q5r3. The available ordinary AI player is the plan
+      author and correctly refused to self-audit; Codex independently applied the contribution-audit skill
+      and all six manual dimensions to the exact head and found no blocking issue. The waiver creates no
+      standing waiver or new role assignment.
 affected_paths:
   - agf/rules/always/universal-polling-and-autonomous-continuation-rule.md
   - agf/skills/poll-and-coordinate/SKILL.md
