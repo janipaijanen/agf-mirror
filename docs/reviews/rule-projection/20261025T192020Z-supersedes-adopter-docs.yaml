@@ -15,7 +15,7 @@ surfaces:
     path: agf/rules/workflow/coordination-publication-rule.md
     reason: >-
       The "Lifecycle and supersession semantics" section gains the contract for the `supersedes` field:
-      citation in `references-to`, the five validity conditions, chain-to-leaf resolution with its tie-break,
+      citation in `references-to`, the six validity checks, chain-to-leaf resolution with its tie-break,
       and the statement that an invalid edge is ignored and the field grants no authority. Contract in words,
       not implementation. The schema description already points here.
 

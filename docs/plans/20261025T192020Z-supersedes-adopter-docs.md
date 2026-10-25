@@ -102,12 +102,16 @@ changed files ship under `agf/`.
 - `agov plan validate` on this plan; `agov plan projection-check --allow-planned` at Gate 1, and the strict
   `agov plan projection-check` (no flag) against the final manifest before Gate 2.
 - Fidelity check by a reviewer: each condition in the new rule text matches `is_valid_direct_edge` and
-  `valid_superseder` in `supersession.rs` (five conditions, chain-to-leaf, three-step tie-break). A claim that
-  the code does not support is a blocking finding.
+  `valid_superseder` in `supersession.rs` (the six checks the module documents: target named in `supersedes`, matching
+  `references-to` citation, strict later instant, no self-edge, same `to`, sender authority; then chain-to-leaf and
+  the three-step tie-break). A claim that the code does not support is a blocking finding, and a review that
+  certifies fewer than the six checks is incomplete.
 - The `agov validate adopter-docs` run passes; `site-html-build` link checks pass; the new text states the
   conditions once (rule) and the page only summarises and links.
-- A worked check: the `8e7m`/`e82e` pair, rewritten with `supersedes`, meets all five conditions (later,
-  different record, same `to`, same `from`, cited in `references-to`). Recorded in the MR, not committed.
+- A worked check: the `8e7m`/`e82e` pair, rewritten with `supersedes`, meets all six checks: (1a) `e82e`
+  names `8e7m` in `supersedes`, (1b) `e82e` cites `8e7m` in `references-to`, (2) `e82e` is strictly later, (3) it is a
+  different record, (4) same `to` (`governor-reviewer`), (5) same `from` (`planner-architect`). Recorded in the MR,
+  not committed.
 
 ## Collision and sequencing disposition
 
