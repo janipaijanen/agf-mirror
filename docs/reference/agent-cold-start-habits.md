@@ -41,13 +41,9 @@ means pending, and `null` means the message is not a handoff.
 
 ## Treat Timers As Intake
 
-A timer is useful only if it drives action. AGF timer notation such as
-`15mins/180min` means:
-
-- scan every 15 minutes;
-- stop only after 180 minutes of no new incoming activity;
-- reset the 180-minute idle window whenever a new relevant coordination message
-  or merge-request event arrives.
+A timer is useful only if it drives action. Follow
+[Scheduling and notification honesty](../../agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty)
+for timer notation, wake qualification, expiry, rearming, and continuation.
 
 For framework development, a poll scans at least:
 
@@ -67,12 +63,6 @@ MR-note bridges are intake, not noise. They may point to coordination published
 on another branch. Follow the bridge, validate the referenced record, and use
 the coordination record as the durable instruction. A poll that checks only
 local files can miss both the record and a cost-sensitive pre-push instruction.
-
-Use the assistant surface's internal reminder or wake-up mechanism when it
-exists. Do not replace an internal timer with an external shell timer, cron job,
-background `sleep`, or detached process: the assistant will not reliably notice
-that process. If no internal timer exists, say so and scan when active or after
-resume.
 
 Scheduling is non-reentrant: a wake that comes due while you are still
 executing an authorized item does not preempt it or start a second cycle —

@@ -280,9 +280,8 @@ Always apply, even before opening it:
 - Every active AGF development role/session MUST follow
   `agf/rules/always/universal-polling-and-autonomous-continuation-rule.md`.
   Observation is whole-surface; selection and mutation stay role-, authority-,
-  gate-, and claim-scoped. A polling timer such as `15mins/180min` is an
-  internal attention schedule, not an external shell timer, unless the governor
-  explicitly asks for one.
+  gate-, and claim-scoped. Its "Scheduling and notification honesty" section
+  governs timer qualification, durability, expiry, rearming, and continuation.
 - The action loop never enlarges authority: Gate 1/2 approval, merge, release,
   tag, deploy, scope expansion, destructive action, and new role authority stay
   with the governor.

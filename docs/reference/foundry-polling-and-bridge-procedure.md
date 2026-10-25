@@ -200,19 +200,8 @@ temporary allocation before mutation; peer consensus cannot create authority.
 
 ### Polling timer notation
 
-When the governor asks for a polling timer such as `15mins/180min`, interpret
-it as an internal attention schedule, not an external shell timer:
-
-- run the complete poll cycle below every 15 minutes;
-- keep scanning until 180 minutes have passed with no new incoming activity;
-- reset the 180-minute idle window whenever a new relevant coordination message
-  or GitLab event appears;
-- do not start background shell, cron, sleep, or detached process timers unless
-  the governor explicitly asks for an external process.
-
-If the current assistant surface cannot schedule internal wake-ups, say so
-plainly and perform the scan when active or resumed. Do not claim that an
-external process will be noticed by the assistant.
+For timer notation, wake qualification, durability, expiry, rearming, and
+bounded continuation, follow [Scheduling and notification honesty](../../agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
 
 `Poll` means an action loop, not a local-file check or status-only report. On
 each cycle, unless the governor explicitly narrows the scope:

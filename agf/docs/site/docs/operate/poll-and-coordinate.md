@@ -192,11 +192,8 @@ because another pipeline exists.
 
 ## Polling cadence
 
-A cadence such as `15mins/180min` means scan every 15 minutes until 180 minutes
-of inactivity, resetting the idle window after relevant activity. Use a real
-assistant/orchestrator wake-up. A background shell timer, `sleep`, cron job, or
-detached process does not ensure an assistant will resume. If the surface
-cannot wake itself, say polling continues when the session is active.
+Set an explicit cadence, report each replacement and any scheduling limitation,
+and follow [Scheduling and notification honesty](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
 
 Scheduled polling is **non-reentrant**. A wake that becomes due while the same
 session is executing an authorized work item does not interrupt that work or
