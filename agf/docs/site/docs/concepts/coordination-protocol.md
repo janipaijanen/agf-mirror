@@ -134,7 +134,22 @@ precise about what stage of the lifecycle it is claiming:
 - **When readiness or an artifact's identity changes**, the correction is a
   new, append-only record that references and supersedes the earlier one —
   never a mutation of the original. A Gate 2 handoff or review naming an
-  exact commit SHA stops being current the moment that SHA changes.
+  exact commit SHA stops being current the moment that SHA changes. To make
+  the replacement visible to tooling, the new record lists the earlier one in
+  an optional `supersedes` field and also cites it in `references-to`:
+
+  ```yaml
+  references-to:
+    - 20260101T093000Z-planner-architect-a1b2.md
+  supersedes:
+    - 20260101T093000Z-planner-architect-a1b2.md
+  ```
+
+  `agov coord list` then marks the earlier record as superseded, and
+  `agov coord pending` leaves it out. An edge that fails any of the rule's
+  checks is ignored without error, so a citation alone does not retire a
+  record. The conditions are defined once, in the
+  [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md).
 
 A false lifecycle claim is a blocking finding wherever it is caught,
 corrected by a superseding record, never by editing the false one.

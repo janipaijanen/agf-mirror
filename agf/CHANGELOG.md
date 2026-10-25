@@ -57,9 +57,9 @@ Pages and to `agf/` for rules, templates, schemas and skills.
 - **Self-announcing supersession (78fc52a7).** New optional `supersedes` field on
   coordination records; a superseding record names the earlier records it
   replaces for the same audience, and a validly superseded record no longer
-  appears as a pending acknowledgement. Adopter docs: GAP — only the schema field description documents this; no Pages page
-  or template mentions `supersedes`. Needs a governor outcome (add docs, or a
-  waiver) before release.
+  appears as a pending acknowledgement. Adopter docs: updated
+  (`rules/workflow/coordination-publication-rule.md`,
+  `docs/concepts/coordination-protocol.md`).
 - **`superseded` plan status (e9f7742d).** Gate 1 plans may now carry
   `status: superseded` with its required fields. Adopter docs: updated
   (`templates/gate1-plan.md`).
