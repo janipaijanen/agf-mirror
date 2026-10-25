@@ -193,7 +193,7 @@ because another pipeline exists.
 ## Polling cadence
 
 Set an explicit cadence, report each replacement and any scheduling limitation,
-and follow [Scheduling and notification honesty](../../../../rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
+and follow [Scheduling and notification honesty](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
 
 Scheduled polling is **non-reentrant**. A wake that becomes due while the same
 session is executing an authorized work item does not interrupt that work or

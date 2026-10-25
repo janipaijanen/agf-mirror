@@ -186,7 +186,7 @@ role authority, or governor-reviewer decisions.
 ## Optional polling timer guidance
 
 When a loader requests polling, define its cadence, report each replacement and
-any scheduling limitation, and follow [Scheduling and notification honesty](../../../../rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
+any scheduling limitation, and follow [Scheduling and notification honesty](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
 
 If you are upgrading from an older copied layout, remove AGF-provided copies
 from `.claude/rules/`, `.claude/skills/`, or similar tool directories. Keep a

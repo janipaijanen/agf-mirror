@@ -301,7 +301,7 @@ gate. A known open blocker remains BLOCK even when another part of the review
 is incomplete; CLEAR requires complete coverage.
 
 Polling-cycle notes should name the branch or MR scope and timer convention;
-[Scheduling and notification honesty](../../../../rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty)
+[Scheduling and notification honesty](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty)
 is the normative definition.
 
 ## Parallel work and conflicts
