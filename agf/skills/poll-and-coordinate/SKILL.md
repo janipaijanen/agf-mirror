@@ -37,7 +37,7 @@ Where any wording here differs from that rule, the rule governs.
 | Input | Default | Meaning |
 |---|---|---|
 | `cadence_seconds` | 1800 | Gap between cycles while work may still be pending |
-| `idle_window_minutes` | 240 | Stop rearming once this much wall-clock time has passed with nothing new found |
+| `idle_window_minutes` | 180 | Stop rearming once this much wall-clock time has passed with nothing new found |
 | `cursor_path` | `.agov/poll-cursor.json` (project-local, must be git-ignored) | Durable record of last-seen state across cycles and across sessions |
 
 If the invoking surface passes explicit values for any input, use those.
@@ -191,9 +191,8 @@ authority.
    role is authorized to advance it.
 3. If more work remains, or `idle_window_minutes` has not yet elapsed
    since the last cycle that found something new, rearm: schedule the
-   next cycle after `cadence_seconds` using your assistant surface's real
-   wake-up mechanism — never a background shell timer, `sleep`, cron job,
-   or detached process, none of which reliably resume an assistant
-   session.
+   next cycle after `cadence_seconds` using a mechanism that satisfies
+   [Scheduling and notification honesty](../../rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty),
+   and report the replacement evidence required there.
 4. If nothing new was found and `idle_window_minutes` has elapsed since
    the last cycle that found something, stop rather than rearm.

@@ -202,16 +202,28 @@ sourced candidate set through the issue board and coordination channel.
 
 ## Scheduling and notification honesty
 
-A real assistant/orchestrator wake mechanism may implement cadence. Shell
-sleep, cron, detached processes, or timers the assistant cannot observe do not
-count. A surface without scheduling polls on activation/resume and states the
-limitation.
+A wake mechanism counts only when it can notify the assistant and its lifetime
+is observable. A session-bound mechanism ends when its session ends or at its
+declared expiry, whichever comes first. An external scheduler may outlive the
+session only with Level 5 evidence that its supported operator path works; its
+job lifecycle and expiry must still be observable. Without that evidence,
+treat the mechanism as session-bound. A surface without a qualifying mechanism
+polls on activation or resume and states the limitation.
+
+For each replacement, report its identifier, start, expiry, and delivery
+result. Rearm it before expiry while polling is intended to continue. A quieter
+cadence tier can reduce load, but it does not make the mechanism more durable.
 
 Unless configured otherwise, `15mins/180mins` means a delta cycle every 15
 minutes, suspending after 180 continuous minutes without relevant activity and
 resetting on relevant activity. New activity or explicit resume rearms the
 window. Due ticks never preempt active work and continue from the completed
 coalesced cycle.
+
+A human or governor may set an absolute UTC continuation deadline before which
+the idle stop does not apply. This bounded override grants no authority and
+changes no gate. It ends at the stated deadline; for a session-bound mechanism,
+it also ends when the session or mechanism ends.
 
 Unchanged, healthy, pending, or non-actionable state stays quiet unless the
 operator explicitly requested periodic reports. Notify on meaningful
