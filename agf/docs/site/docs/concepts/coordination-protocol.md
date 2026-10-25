@@ -145,8 +145,9 @@ precise about what stage of the lifecycle it is claiming:
     - 20260101T093000Z-planner-architect-a1b2.md
   ```
 
-  `agov coord list` then marks the earlier record as superseded, and
-  `agov coord pending` leaves it out. An edge that fails any of the rule's
+  `agov coord list` then marks the earlier record as superseded, and the
+  pending views leave it out (`agov coord pending`, and for handoffs
+  `agov handoff next` and `agov coord status`). An edge that fails any of the rule's
   checks is ignored without error, so a citation alone does not retire a
   record. The conditions are defined once, in the
   [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md).

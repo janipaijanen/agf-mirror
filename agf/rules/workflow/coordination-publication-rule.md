@@ -150,8 +150,10 @@ corrected by a superseding record — never by editing the false one.
 A later record MAY declare `supersedes: [<earlier record>, ...]` to retire the
 earlier record's live-obligation status for the same audience. The earlier
 record is never edited; readers derive the relationship at read time. A
-validly superseded record is shown as superseded (`agov coord list`) and is
-left out of the pending-acknowledgement view (`agov coord pending`).
+validly superseded record is shown as superseded in `agov coord list` and is
+left out of the pending views: `agov coord pending` for records that require
+acknowledgement, and `agov handoff next` and `agov coord status` for
+handoffs.
 
 An edge is honored only when all six checks hold; otherwise it is ignored
 without error and the earlier record stays live:
