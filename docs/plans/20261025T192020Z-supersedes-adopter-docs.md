@@ -1,21 +1,22 @@
 ---
 id: 20261025T192020Z-supersedes-adopter-docs
-status: pending-gate1
+status: approved
 topic: supersedes-adopter-docs
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: 20261025T195702Z-governor-reviewer-8gsh
+gate1_approved_at: "2026-10-25T19:57:02Z"
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Requested at publication. The plan adds documentation prose only and names no credential, secret or
-      cross-project link; `agov validate infosec` is mechanical evidence, not a verdict.
+      Per governor decision 8gsh: `agov validate infosec` passed and exact-head pipeline 2987058397
+      (head 7e1f9c84) succeeded. The plan contains documentation and projection evidence only.
   - role: contribution-auditor
-    status: pending
+    status: waived
     reason: >-
-      Requested at publication. An independent (non-author) review is needed: the plan adds normative wording
-      to a rule (`coordination-publication-rule.md`) and must not relax or widen the six existing blocking
-      conditions or the supersession authority checks.
+      Waived for this plan only by governor decision 8gsh. The author correctly did not self-audit; Codex
+      independently applied the contribution-audit skill and all six manual dimensions. Its LOW fidelity
+      finding (five versus six supersession checks) was corrected in 7e1f9c84. This creates no standing
+      waiver or role assignment.
 affected_paths:
   - agf/rules/workflow/coordination-publication-rule.md
   - agf/docs/site/docs/concepts/coordination-protocol.md
