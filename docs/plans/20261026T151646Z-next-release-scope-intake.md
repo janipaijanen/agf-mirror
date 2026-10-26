@@ -1,8 +1,6 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
-status: approved
-gate1_approved_by: 20261026T153847Z-governor-reviewer-s72h
-gate1_approved_at: "2026-10-26T15:38:47Z"
+status: pending-gate1
 topic: next-release-scope-and-rolling-intake
 advisory_consultation:
   - role: infosec-sentinel
@@ -14,14 +12,12 @@ advisory_consultation:
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
-    status: consulted
+    status: pending
     reason: >-
-      A delegated non-author contribution-auditor reviewed the exact revised
-      draft and returned CLEAR with zero blocking, advisory, or accepted-risk
-      findings. The first pass found two blocking ambiguities (the boundary of
-      evidence-only refreshes and overstated collision coverage) plus one
-      lifecycle advisory; all were corrected before the final rereview. The
-      durable review record is published in the same Gate 1 review cycle.
+      A non-author review is required for this material amendment before a new
+      Gate 1 decision. The prior CLEAR and governor decision apply only to the
+      earlier exact head; they do not approve this candidate-membership and
+      readiness refresh.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
@@ -40,6 +36,11 @@ content gathering. This version-neutral plan is the single rolling owner for
 that release's scope. It starts immediately after verified v2.11.0 publication
 at annotated tag `v2.11.0` (`d732e372f35bacd1f37981bb89031041d35121e4`,
 peeled commit `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`).
+
+Governor decision `20261026T153847Z-governor-reviewer-s72h` approved the prior
+exact plan head. This amendment returns the plan to `pending-gate1` because it
+removes a candidate that already shipped and changes the readiness and exit
+conditions of other rows. The earlier decision does not authorize this head.
 
 This plan reuses the proven `IN` / `CANDIDATE` / `DEFER` vocabulary from the
 v2.11 scope plan. It is not a new project roadmap, queue ledger, milestone,
@@ -65,9 +66,9 @@ complete release scope by themselves:
 
 - both `[Unreleased]` changelogs are empty after v2.11.0 and cannot represent
   prospective work;
-- the open queue contains 12 MRs and roughly 54 issues, mostly unmilestoned,
-  including old `park-radar` items that must not become release candidates by
-  age or visibility;
+- the open queue remains nontrivial and mostly unmilestoned, including old
+  `park-radar` items that must not become release candidates by age or
+  visibility;
 - active GitLab milestones still include stale v2.5/v2.6/v2.7 records; and
 - merged work cannot be excluded from a standard whole-tree release merely by
   omitting it from a named scope list.
@@ -112,9 +113,22 @@ namespace, protected-tag, pipeline, artifact, and anonymous-verification steps.
 
 ## Landed delta since v2.11.0
 
-There is currently no next-release product change. Since the tag, only the
-v2.11.0 completion record and the three-file post-publication status sync have
-merged. Both `[Unreleased]` sections remain empty.
+The three-file post-publication status sync merged as `0fa27e48`; it records
+v2.11.0 publication and does not create a new product headline. MR !3098 source
+head `6fccd783116bef86a908b4e53eadf9fd32d67b14` then merged as `dc5523f6`,
+correcting stale command references in three shipped `agf/skills` files. That
+adopter-visible correction is landed but is not an `IN` commitment: it merged
+without the required pre-merge Gate 2 decision and before its plan MR !3248
+merged. Correction record `20261026T180956Z-governor-reviewer-pbgd` at
+`2ccba663967767c7ede3359f1203bb89afddac3c` merged through MR !3258 as
+`e5548cf6e9b5372e374aa3368b6e98ae3800553c`; it records the chronology without
+retroactively authorizing the merge. The remaining post-tag changes through
+`e5548cf6` are plans and coordination records. Both `[Unreleased]` sections
+remain empty.
+
+Timer-reality polling alignment is not part of this delta. Its implementation
+commit `324322ef26b3efaeb2cd5a545c6d95cd64e4ba0e` is already an ancestor of the
+v2.11.0 peeled commit and the v2.11.0 changelog records it.
 
 ## IN
 
@@ -127,13 +141,12 @@ These rows are decision inputs, not commitments.
 
 | Item / source | Potential adopter-visible outcome | Evidence and current gate | Compatibility and docs | Disposition | Promotion or exit condition |
 |---|---|---|---|---|---|
-| Timer-reality polling alignment (`20261024T070435Z-timer-reality-polling-alignment`) | Polling and wake instructions match observable mechanism lifetimes | Gate 1 approved; implementation not yet merged | Classified BREAKING for the poll-and-coordinate skill; owner rule, skill, templates, and adopter pages already scoped | CANDIDATE | Governor promotes after rechecking live collisions and readiness; otherwise defer |
-| MR !3098, stale commands in shipped `agf/skills` | Shipped skills use current Rust `agov` commands | Exact head `6fccd783116bef86a908b4e53eadf9fd32d67b14`, green pipeline, binding disposition `awaiting-governor`; normal Gate 1 still required | Documentation/skill correction; impact classification required by its plan | CANDIDATE | Approve a normal Gate 1 and then merge at Gate 2, or defer/close |
+| MR !3098, stale commands in shipped `agf/skills` | Shipped skills use current Rust `agov` commands | Source `6fccd783116bef86a908b4e53eadf9fd32d67b14` merged as `dc5523f6`; Gate 1 decision existed, but the implementation merged before its plan MR and without pre-merge Gate 2; correction record `20261026T180956Z-governor-reviewer-pbgd` merged through MR !3258 as `e5548cf6` | Documentation/skill correction; no runtime or schema behavior change | CANDIDATE (landed, disposition required) | Governor decides whether the whole-tree release retains this landed change or it is reverted. The correction record is evidence, not retroactive Gate 2 |
 | MR !3066 / issue #137, distribution-scan measurement | Evidence on suspected leading-`**` re-walk cost | Exact head `f7c1c8ec379bc61fa1b8e1fe4ea42fc4f1731367`; corrected measurement-first Gate 1 plan, independent review clear, green pipeline; `awaiting-governor` | Measurement only; no optimization claim or compatibility effect yet | CANDIDATE | Governor approves the measurement plan; optimization requires later evidence and its own plan |
 | Issue #128, cadence register / year-clock | One discoverable view of recurring governance obligations | Explicit prior-release candidate; no current Gate 1 plan | Likely documentation/governance surface; owner and projection boundaries unresolved | CANDIDATE | Governor chooses plan or deferral after checking overlap with roadmap and role cadences |
 | Issue #133, watcher idle versus work exhaustion | Mechanically distinct watcher-idle, inbox-idle, and queue-exhausted states | Recurrent operational failure model; issue carries `plan`; no Gate 1 plan | Could affect rules, skills, and operator docs; classification unknown | CANDIDATE | A bounded Gate 1 identifies the canonical owner and acceptance surface |
-| MR !3097 evidence, `rule.schema.json` drift | Resolve unenforced schema/corpus disagreement without false compliance | Exact head `6a8c773d24628bd623ba4536175f11c02188d772`; coordination proposal only; evidence reports broad nonconformance; no acknowledged design choice or Gate 1 | Potentially high-risk schema/rule migration | CANDIDATE | Publish/acknowledge the evidence, choose migration versus schema correction, then approve a plan |
-| Issues #119 and #138, instruction-context cost | Lower always-loaded instruction cost without weakening governance | Measured context pressure and Claude usage report; #138 may instead be complete at the accepted threshold | Loader/rule splitting can be behavior-sensitive; recall evidence required | CANDIDATE | First reconcile #138 as close or residual scope; any canonical compression/split needs fresh Gate 1 and recall checks |
+| MR !3097 evidence, `rule.schema.json` drift | Resolve unenforced schema/corpus disagreement without false compliance | Proposal head `6a8c773d24628bd623ba4536175f11c02188d772` merged as `40f9e8d127df9cba441e663ea070614378ddbcfd`; evidence reports broad nonconformance, but no migration-versus-schema decision or Gate 1 exists | Potentially high-risk schema/rule migration | CANDIDATE | Governor chooses migration versus schema correction, then approves a bounded plan |
+| Issues #119 and #138, instruction-context cost | Measure residual context cost without weakening governance, then decide whether any delivery change is warranted | Measurement-only Phase A plan `20261026T155400Z-context-delivery-measurement` merged in !3243 and is Gate 1 approved by `20261026T174028Z-governor-reviewer-snh2`; no report or product implementation exists | Phase A changes no loader, rule, schema, package or tool; any later delivery change can be behavior-sensitive and needs its own Gate 1 and recall checks | CANDIDATE | Complete Phase A and reconcile #138 as close, residual scope or inconclusive; no product work self-promotes from the measurement |
 | Issues #111 and #113, upgrade/ignore safety | Detect governance loss or excluded provenance during adoption upgrades | Learning issues only; no bounded Gate 1 plan | Security- and data-loss-sensitive trust boundary | CANDIDATE | A plan defines detection, recovery, and false-positive controls; infosec consultation required |
 | Issue #136, stale worktree inventory | Safe report-first visibility into stale branches/worktrees | Report-first direction only; explicitly no deletion authorization | Foundry tooling/operator docs; destructive action excluded | CANDIDATE | Gate 1 limits scope to inventory/reporting and defines later deletion authority separately |
 | Issue #105, advisory sensitive-material scanner | Optional warning for arbitrary-file sensitive material | Unmilestoned backlog; no plan | Infosec-sensitive; advisory/blocking boundary must be explicit | CANDIDATE | Infosec-reviewed Gate 1 demonstrates need, scope, and false-positive handling |
