@@ -10,11 +10,15 @@ advisory_consultation:
       credential, personal data, data flow, tooling, schema or security boundary
       is touched, and no new command is introduced.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Non-author audit requested from codex-foundry. The plan author is
-      planner-architect, and the implementation commit in MR !3098 was also
-      written by claude.
+      Non-author audit by codex-foundry (the plan author and the implementation
+      commit author are claude). First pass at head 45b1447d (room seq 689): OTHER,
+      one factual correction (the plan wrongly claimed `agov validate adopter-docs`
+      re-checks shipped skills); applied. Second pass at exact head
+      b2263f82587ec62d99262756f2aa14f0ab668e7e (room seq 694): CLEAN. The review is
+      recorded in the ACS room; a durable coordination review citing the final
+      metadata head is to follow before Gate 1.
 affected_paths:
   - docs/plans/20261026T170645Z-skills-stale-command-refs.md
   - agf/skills/README.md
