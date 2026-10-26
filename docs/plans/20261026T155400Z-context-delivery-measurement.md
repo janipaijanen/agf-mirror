@@ -67,7 +67,7 @@ feature claim needs a baseline, target and failure condition.
 | ID | Label | Requirement | Acceptance check | Failure or stop condition |
 |---|---|---|---|---|
 | SDD-CTX-1 | assumption to test | Effective loaded instruction size at session start is recorded for each client, for two subjects with pinned revisions: S1 the foundry checkout at one commit SHA, S2 a clean adopter install from the v2.11.0 release artifact (annotated tag `v2.11.0`) using its documented loader setup. Revisions are fixed per subject (see Method), not shared across subjects. | Each client's own report or debug surface (Claude Code `InstructionsLoaded` log and startup report; Codex's equivalent; a third client if available), not the on-disk sum. Fresh sessions, at least 3 runs where the client's loading varies. Unit (characters or tokens) recorded as the client reports it. | A client exposes no report: record `not measurable`, never an estimate. |
-| SDD-CTX-2 | assumption to test | Cost of a routine task set is recorded: (a) answer "where do Gate 1 plans live and what must they contain", (b) one `agov coord list` poll and summary, (c) one read-only MR status question. Each task runs in its own fresh session, so no task inherits history. For each client, the same task is also run once in an empty directory with no project instructions (the bare baseline). | First-request input from the client's own usage surface, for the project run and the bare baseline, in the same client-reported unit. Cost ratio R = project first-request input divided by bare-baseline first-request input. | Usage surface absent or units differ between the two runs: `not assessable`. |
+| SDD-CTX-2 | assumption to test | Cost of a routine task set is recorded: (a) answer "where do Gate 1 plans live and what must they contain", (b) one `agov coord list` poll and summary, (c) one read-only MR status question. Every client runs all three tasks against both subjects, S1 and S2, so each client yields one ratio R per subject; no client picks a subject. Each task runs in its own fresh session, so no task inherits history. For each client, the same task is also run once in an empty directory with no project instructions (the bare baseline, one per client, shared by both subjects). | First-request input from the client's own usage surface, for the project run and the bare baseline, in the same client-reported unit. Cost ratio R = project first-request input divided by bare-baseline first-request input. | Usage surface absent or units differ between the two runs: `not assessable`. |
 | SDD-UX-1 | assumption to test | A fresh agent session, given only the v2.11.0 release artifact and its adopter docs, reaches one valid operation on a defined fixture (see Method, S2 fixture). Setup time and operation time are recorded separately, with step counts and failed attempts. | Transcript counts; 3 runs; sanitized. Success is the fixture's stated pass condition. | Any step that needs undocumented knowledge is a finding, not a pass. |
 | SDD-SUPPLY-1 | assumption to test | A descriptive audit of installed Ponytail (first) and, if time allows, one more plugin: manifest layout per client, skills, hooks, update path, permissions requested, provenance, copy-drift and version checks, benchmark methodology. | Read-only inspection of the installed package and primary specifications. No install or hook script is executed. File presence and vendor claims are not quality evidence; benchmark claims are recorded as vendor-stated unless reproduced. | A claim without a primary source is labeled `unverified`. |
 
@@ -134,10 +134,12 @@ A condition whose inputs are missing, mismatched in unit or undocumented is
   Setup time is counted from first opening the documentation until the loader
   is configured; operation time from then until pass or fail; the two are reported
   separately.
-- Collision evidence: after the final rebase, run the deterministic form
-  `agov plan collision-check --plans-only --changed-only
-  --fail-on-unacknowledged-collision` and record its exit code and any stated
-  incomplete historical coverage in the MR.
+- Collision evidence: after the final rebase, run the deterministic form pinned to
+  the fetched remote target, `agov plan collision-check --plans-only --changed-only
+  --base-ref origin/main --fail-on-unacknowledged-collision` (an unpinned run reads
+  a possibly stale local `main` and can report collisions between unrelated older
+  plans), and record its exit code and any stated incomplete historical coverage in
+  the MR.
 - Raw machine-local traces stay under `tmp/`. Nothing is committed from a trace
   until `agov validate infosec` and a read by an infosec-sentinel pass: no
   credentials, home paths beyond the repository, or cross-project identifiers.
