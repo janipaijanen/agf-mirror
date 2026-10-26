@@ -17,7 +17,7 @@ advisory_consultation:
       is planner-architect.
 affected_paths:
   - docs/plans/20261026T155400Z-context-delivery-measurement.md
-  - docs/reviews/context-delivery-measurement/report.md
+  - docs/reviews/context-delivery-measurement/20261026T155400Z-context-delivery-measurement-report.md
 depends_on:
   - 20261022T205113Z-instruction-context-reduction
   - 20261023T080431Z-instruction-context-followup
@@ -66,9 +66,9 @@ feature claim needs a baseline, target and failure condition.
 
 | ID | Label | Requirement | Acceptance check | Failure or stop condition |
 |---|---|---|---|---|
-| SDD-CTX-1 | assumption to test | Effective loaded instruction size at session start is recorded for each client, for two subjects: S1 the foundry checkout, S2 a clean adopter install from the v2.11.0 release artifact using its documented loader setup. | Each client's own report or debug surface (Claude Code `InstructionsLoaded` log and startup report; Codex's equivalent; a third client if available), not the on-disk sum. Fresh sessions, same commit, at least 3 runs where the client's loading varies. | A client exposes no report: record `not measurable`, never an estimate. |
-| SDD-CTX-2 | assumption to test | Cost of a routine task set is recorded: (a) answer "where do Gate 1 plans live and what must they contain", (b) one `agov coord list` poll and summary, (c) one read-only MR status question. | Per-request input tokens or characters from the client's own usage surface, first request and task total, same protocol as CTX-1. | Usage surface absent: `not measurable`. |
-| SDD-UX-1 | assumption to test | A fresh agent session, given only the v2.11.0 release artifact and its adopter docs, reaches one valid operation (`agov session resume`, then validating one coordination file). Steps, wall time and failed attempts are recorded. | Transcript counts; 3 runs; sanitized. | Any step that needs undocumented knowledge is a finding, not a pass. |
+| SDD-CTX-1 | assumption to test | Effective loaded instruction size at session start is recorded for each client, for two subjects with pinned revisions: S1 the foundry checkout at one commit SHA, S2 a clean adopter install from the v2.11.0 release artifact (annotated tag `v2.11.0`) using its documented loader setup. Revisions are fixed per subject (see Method), not shared across subjects. | Each client's own report or debug surface (Claude Code `InstructionsLoaded` log and startup report; Codex's equivalent; a third client if available), not the on-disk sum. Fresh sessions, at least 3 runs where the client's loading varies. Unit (characters or tokens) recorded as the client reports it. | A client exposes no report: record `not measurable`, never an estimate. |
+| SDD-CTX-2 | assumption to test | Cost of a routine task set is recorded: (a) answer "where do Gate 1 plans live and what must they contain", (b) one `agov coord list` poll and summary, (c) one read-only MR status question. Each task runs in its own fresh session, so no task inherits history. For each client, the same task is also run once in an empty directory with no project instructions (the bare baseline). | First-request input from the client's own usage surface, for the project run and the bare baseline, in the same client-reported unit. Cost ratio R = project first-request input divided by bare-baseline first-request input. | Usage surface absent or units differ between the two runs: `not assessable`. |
+| SDD-UX-1 | assumption to test | A fresh agent session, given only the v2.11.0 release artifact and its adopter docs, reaches one valid operation on a defined fixture (see Method, S2 fixture). Setup time and operation time are recorded separately, with step counts and failed attempts. | Transcript counts; 3 runs; sanitized. Success is the fixture's stated pass condition. | Any step that needs undocumented knowledge is a finding, not a pass. |
 | SDD-SUPPLY-1 | assumption to test | A descriptive audit of installed Ponytail (first) and, if time allows, one more plugin: manifest layout per client, skills, hooks, update path, permissions requested, provenance, copy-drift and version checks, benchmark methodology. | Read-only inspection of the installed package and primary specifications. No install or hook script is executed. File presence and vendor claims are not quality evidence; benchmark claims are recorded as vendor-stated unless reproduced. | A claim without a primary source is labeled `unverified`. |
 
 ### Future entry conditions (not executed in Phase A)
@@ -83,26 +83,61 @@ claim to test them.
 
 ## Predeclared threshold: "material residual cost"
 
-Set before any result is collected, and only a proposed value until the governor
-approves it at Gate 1. Residual cost is material for a client and subject when any
-of these holds:
+Set before any result is collected. Every numeric value below is a proposed value
+until the governor approves it at Gate 1. Residual cost is material for a client
+and subject when any assessable condition holds:
 
-1. the client emits a context or instruction warning or a hard-limit event at
-   session start;
-2. effective loaded instructions are at least 75% of the client's documented
-   instruction or context limit; or
-3. a routine task (CTX-2) exceeds a documented per-request limit.
+1. **Event:** the client emits a context or instruction warning or a hard-limit
+   event at session start.
+2. **Same-unit share:** effective loaded instructions are at least 75% of the
+   client's documented instruction or context limit, only when the client reports
+   both values in the same unit (or documents the conversion). Characters are
+   never divided by a token limit, and no cross-unit ratio is computed.
+   Rationale for 75%: it leaves 25% of the limit for the conversation, tool output
+   and the model's own work, which a long agent session consumes. Sensitivity: the
+   report also states the outcome at 50% and 90%; the decision uses 75%.
+3. **Within-client cost ratio:** the CTX-2 ratio R (project first-request input over
+   the bare baseline, same unit) is at least 2.0. This needs no documented limit.
+   Sensitivity: the report also states the outcome at 1.5 and 3.0; the decision
+   uses 2.0. Rationale: at R = 2.0 the project's instructions alone double the
+   per-request input before the task begins.
 
-Where a client documents no limit, record the limit as `unknown`; an unknown limit
-cannot satisfy condition 2 and nothing is inferred. If none of the conditions holds
-for any measured client and subject, the outcome is `no profile experiment` and the
-workstream stops. If a condition holds, the report recommends a separate Gate 1 plan
-for an A/B experiment; it does not start one.
+A condition whose inputs are missing, mismatched in unit or undocumented is
+`not assessable`. It is never counted as "not triggered". Outcomes:
+
+- at least one assessable condition holds for any measured client and subject:
+  `material residual cost`; the report recommends a separate Gate 1 plan for an
+  A/B experiment and starts none;
+- at least one condition is assessable for every measured client and none holds:
+  `no profile experiment`; the workstream stops;
+- otherwise (some client has no assessable condition): `inconclusive`; the report
+  names the gap and returns to the governor.
 
 ## Method
 
-- Same repository commit for all runs; record client name, version, date, model,
-  and a confidence note per figure.
+- Pinned revisions, recorded in the report before the first run: S1 is one `main`
+  commit SHA, the same for every client; S2 is the `v2.11.0` release artifact with
+  its recorded SHA-256 checksum and tag commit, the same for every client. A later
+  `main` advance does not change a run already started; a rerun on a new revision
+  is a new, separately labeled run. Record client name, version, date, model, and
+  a confidence note per figure.
+- S2 fixture, fixed before any run. Setup boundary: a new empty git repository in
+  a new directory, then the install and loader configuration that the v2.11.0
+  adopter documentation prescribes (ADOPTING.md and the assistant-loader
+  configuration page in the artifact), using the neutral codename
+  `measure-fixture`; no foundry file, memory or prior session is available. The
+  exact command sequence is transcribed from that documentation into the report
+  before the first run and is not written from memory. Operation fixture: generate
+  one coordination `note` with the documented ID tooling, then run the documented
+  coordination validator on it. Pass: the validator exits 0 on that file. Fail:
+  any other result, or a step that needs knowledge outside the documentation.
+  Setup time is counted from first opening the documentation until the loader
+  is configured; operation time from then until pass or fail; the two are reported
+  separately.
+- Collision evidence: after the final rebase, run the deterministic form
+  `agov plan collision-check --plans-only --changed-only
+  --fail-on-unacknowledged-collision` and record its exit code and any stated
+  incomplete historical coverage in the MR.
 - Raw machine-local traces stay under `tmp/`. Nothing is committed from a trace
   until `agov validate infosec` and a read by an infosec-sentinel pass: no
   credentials, home paths beyond the repository, or cross-project identifiers.
@@ -136,7 +171,9 @@ No normative guidance is introduced, so no rule-projection manifest applies.
 
 ## Deliverable
 
-`docs/reviews/context-delivery-measurement/report.md`: per requirement, the method,
+`docs/reviews/context-delivery-measurement/20261026T155400Z-context-delivery-measurement-report.md`
+(qualified by this plan's ID so a later run cannot overwrite it; once merged it is
+not edited, and a rerun needs a new plan or a governor-approved amendment): per requirement, the method,
 figures with client/version/date, the threshold outcome, `not measurable` entries,
 and a recommendation limited to `no profile experiment` or `propose a separate
 Gate 1 for an A/B experiment`. The report states its evidence status: measured
