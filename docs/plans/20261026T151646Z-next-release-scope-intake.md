@@ -12,12 +12,13 @@ advisory_consultation:
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      A non-author review is required for this material amendment before a new
-      Gate 1 decision. The prior CLEAR and governor decision apply only to the
-      earlier exact head; they do not approve this candidate-membership and
-      readiness refresh.
+      Non-author review `20261026T201509Z-contribution-auditor-prhj`, published
+      through MR !3262 at exact head
+      `2b4e00490245cdae4c446d29ae42867b5fd6ea8a`, returned CLEAR on exact plan
+      head `908145cd7f1b9d439eb4be2ed113138b57f116aa` with zero blocking, advisory,
+      or accepted-risk findings.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
