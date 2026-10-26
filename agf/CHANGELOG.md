@@ -8,6 +8,18 @@ distribution.
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
 Pages and to `agf/` for rules, templates, schemas and skills.
 
+## [2.11.0] — 2026-10-26
+
+**Minor release.** Standard-path release from reviewed `main` at
+`24d098a1`. Full Rust workspace suite: 739 passed, 0 failed, 3 intentionally
+ignored network/Podman tests; each framework archive passed all 28 shipped
+tests. It tightens MCP and polling contracts, adds explicit coordination
+holds, challenge-response, supersession and plan-collision controls, exports
+the optional Improvement Propeller method, and refreshes adopter documentation.
+The breaking entries below include their required migrations; features that
+need adopter-local authority remain inactive by default. **Adopter docs:
+updated.**
+
 ### Changed (breaking)
 
 - **MCP strict arguments (57527ede).** `agov-mcp` now rejects a tool call that

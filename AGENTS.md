@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-<!-- AGF: 2.10.1 — update this comment after each framework upgrade to match agf/VERSION -->
+<!-- AGF: 2.11.0 — update this comment after each framework upgrade to match agf/VERSION -->
 # AGF-NG — Agent and Contributor Orientation
 
 **Project codename:** foundry
@@ -93,8 +93,9 @@ Activation history for `independent-implementation-reviewer` and
 Active for foundry: improvement-propeller, played by Codex under approved plan
 `20260909T015237Z-propeller-stage4-activation` and governor decision `djh1`.
 Its weekly opportunity and slow governance-friction lanes are defined by
-`agf/rules/always/improvement-propeller-rule.md`; current activation is Level 4
-Validated pending a genuine unattended scheduled-wake proof. Shipping the
+`agf/rules/always/improvement-propeller-rule.md`; current activation is Level 5
+Deployable after the genuine unattended wake confirmed by governor decision
+`20260918T162825Z-governor-reviewer-8hs2`. Shipping the
 definition still does not activate it for adopters: each adopter requires its
 own governor decision naming the player, evidence surfaces, real wake
 mechanism, cadence, and cursor state.

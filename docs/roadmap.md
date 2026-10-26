@@ -7,9 +7,9 @@ views or inputs; they do not create roadmap commitments independently.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.1 is the latest published stable release (tag pipeline, GitLab Release, and anonymous artifact verification complete -- `20260912T210138Z-planner-architect-asdh`, `20260912T215750Z-coder-tester-4jss`, `20260912T220356Z-planner-architect-grqd`). Post-v2.10 work also includes the active, Level 4 Validated Improvement Propeller; Level 5 awaits a genuine unattended scheduled wake. |
-| Observed at | 2026-09-16T04:24:48Z |
-| Observation baseline | `main` at `f8a8025e984f8d59a3adb4d1d672812e790379d5` |
+| Status | v2.11.0 is the pending reviewed release from current `main`; v2.10.1 remains the latest published stable release until v2.11.0's tag pipeline and anonymous artifact verification complete. The Improvement Propeller is Level 5 Deployable (`20260918T162825Z-governor-reviewer-8hs2`). |
+| Observed at | 2026-10-26T05:50:00Z |
+| Observation baseline | `main` at `24d098a108ffe9cb227bd55c1c8208cac6506123`, the frozen v2.11.0 release base |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
@@ -46,7 +46,7 @@ governor confirmation
 | Queue convergence B2-B3 | Sequenced after B1 | Re-observe and disposition TODOs, then issues, in separate review-sized batches. |
 | Queue convergence B4-B7 | Partly blocked | Non-plan cohorts remain later batches. Plan-MR dispositions wait for the `qbka` Slice A provenance contract (now satisfied -- see `qbka` row below; this row's own re-observation has not yet been separately confirmed). |
 | Queue convergence B8 | Advisory bound defined below | Apply the bound during discovery and selection; promotion to a blocking gate requires separate evidence, planning, and approval. |
-| Issue #129 | Assessment required | Complete and review the linked-data/evidence-model assessment before `qbka` Slice A freezes provenance semantics. This is assessment-first, not linked-data implementation. |
+| Issue #129 | Withdrawn | The linked-data / semantic-data assessment was withdrawn by governor decision `20260909T135843Z-governor-reviewer-6sj1`. It is historical backlog only, is not actionable, and does not block `qbka` or v2.11. |
 | `qbka` plan lifecycle | Done | Slice A (superseded plan-lifecycle schema/validator/provenance) merged and Gate 2 approved (`20260913T160721Z-governor-reviewer-5jjg`). Slice B (legacy-plan migration) merged after an F1 evidence correction (see `git log --grep=qbka`: `41d27775`, `c246a322`). |
 | Issue #121 | Row 5 S1 shipped session-level addressing (`for_session`), merged `20260911T035333Z-planner-architect-nh1j` | Unresolved whether this fully satisfies #121's scope, or leaves the execution-lane/claim-and-reassignment work its own comments describe (`hqps`, 2026-09-05) as a separate slice. Needs verification before closing the issue. |
 | Issue #122 | Implementation done; issue closure pending | Resolved by Row 5 S2 self-announcing supersession, Gate 2 approved `20260914T115129Z-governor-reviewer-4bm1`. GitLab issue #122 itself remains open -- this row records shipped implementation, not tracker closure. |
@@ -54,8 +54,8 @@ governor confirmation
 | Issue #123 | Partially done | Plan-vs-plan `affected_paths` collision detection shipped and MR-blocking (Row 6 S3 advisory + Row 6 S4 blocking promotion, Gate 2 approved `20260915T050307Z-governor-reviewer-g7j1`). The plan's original third bullet -- a post-implementation `affected_paths`-vs-actual-diff drift check -- remains open and unclaimed; needs its own Gate 1 plan if pursued. |
 | CPB2 (publication-hold urgency) | Done | Merged and closed (`20260913T085749Z-coder-tester-b1nb`). |
 | Row 5 S3 (priority ordering and challenge response) | Done | Merged (`20260913T121333Z-planner-architect-gkqh`). |
-| Issue #131 | Activation merged; genuine unattended wake still outstanding | Foundry activation is Level 4 Validated under plan `20260909T015237Z-propeller-stage4-activation` and decision `djh1`; the tracked activation commit (`96cad939`) is on `main`. The scheduler's own live wake state was last confirmed paused, `last_weekly_completed_at: null` (`20260911T135557Z-contribution-auditor-sqj4`). Only a first genuine unattended conforming wake, recorded separately, can supply Level 5 evidence -- it has not yet occurred as of this observation. |
-| Issue #132 | Blocked | Do not export the Propeller method as a skill until #131 has genuine Level 5 wake evidence. |
+| Issue #131 | Done | Foundry activation is Level 5 Deployable after the genuine unattended wake `sg5e`, independently reviewed and confirmed by governor decision `20260918T162825Z-governor-reviewer-8hs2`. |
+| Issue #132 | Done | The optional Improvement Propeller skill export is merged (`32fd0134`). Adoption remains inactive until an adopter's own governor supplies the required activation decision and wake configuration. |
 | `release-v2.7.0-rc.2` | `awaiting-governor` | Its fate remains undecided after rc.1 was abandoned. It does not block the current sequence. |
 
 Absence from this roadmap summary is not a terminal disposition. Individual
