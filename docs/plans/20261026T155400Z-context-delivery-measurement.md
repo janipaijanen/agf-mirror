@@ -145,9 +145,22 @@ A condition whose inputs are missing, mismatched in unit or undocumented is
   a possibly stale local `main` and can report collisions between unrelated older
   plans), and record its exit code and any stated incomplete historical coverage in
   the MR.
-- Raw machine-local traces stay under `tmp/`. Nothing is committed from a trace
-  until `agov validate infosec` and a read by an infosec-sentinel pass: no
-  credentials, home paths beyond the repository, or cross-project identifiers.
+- Capture boundary (infosec). Raw traces are local, private and temporary:
+  - each run writes to its own directory created with mode 0700, with raw files at
+    mode 0600, or to equivalent OS-private storage; the repository `tmp/` default
+    permissions are not relied on;
+  - raw traces never enter a model prompt, a fixture or a commit;
+  - the author derives a separate sanitized candidate (figures and short
+    excerpts); raw traces are deleted once the required review and evidence
+    extraction are done, and the report records that they were deleted;
+  - only the sanitized candidate and the report may be committed.
+- The control that applies to every candidate excerpt and to the report is a
+  manual read by the infosec-sentinel reviewer before commit, checking for
+  credentials, home paths beyond the repository, and cross-project identifiers.
+  `agov validate infosec` scans only the configured learning-record YAML; it is
+  not evidence for these artifacts and is not cited as such. A general secret
+  scanner may be added as extra evidence only if one is actually installed and its
+  version is recorded.
 - The report quotes figures and short excerpts only.
 - Roles: planner-architect runs the Claude Code measurements; codex-foundry the
   Codex measurements; a third-client run by acs-server-dev is optional and its
