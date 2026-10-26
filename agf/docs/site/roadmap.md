@@ -12,9 +12,9 @@ inheriting foundry's development commitments.
 
 | Field | Value |
 |---|---|
-| Status | v2.10.1 is the latest published stable release (tag pipeline, GitLab Release, and anonymous artifact verification complete). Foundry's Improvement Propeller is active at Level 4 Validated; Level 5 awaits a genuine unattended scheduled wake. |
-| Observed at | 2026-09-16T04:24:48Z |
-| Observation baseline | `main` at `f8a8025e984f8d59a3adb4d1d672812e790379d5` |
+| Status | v2.11.0 is the pending reviewed release from current `main`; v2.10.1 remains the latest published stable release until v2.11.0's tag pipeline and anonymous artifact verification complete. Foundry's Improvement Propeller is Level 5 Deployable. |
+| Observed at | 2026-10-26T05:50:00Z |
+| Observation baseline | `main` at `24d098a108ffe9cb227bd55c1c8208cac6506123`, the frozen v2.11.0 release base |
 | Governed source | `docs/roadmap.md`, the approved queue-convergence plan, and the governor decisions cited there |
 | Authority | Informational projection. The internal roadmap, binding plans and decisions, exact tags, and release evidence are authoritative. |
 
@@ -40,13 +40,13 @@ tag/publication authorization.
 | v2.10.1 generic artifact/graph validation | Published (v2.10.1). Adds an opt-in `artifact_sets` registry and `agov artifact validate`/`index` commands so adopters can govern their own project-specific artifact types (schemas, dependency graphs) with the same tooling, without changing existing coordination record behavior. |
 | Roadmap and queue convergence | The roadmap owner and this projection are the first approved batch. TODO, issue, MR, and intake-bound batches follow separately. |
 | Plan lifecycle (`qbka`) | Shipped: lifecycle states, supersession provenance, validation, and legacy-plan migration are merged. |
-| Linked-data/evidence assessment (#129) | Assessment precedes the plan-lifecycle provenance freeze; it does not authorize linked-data implementation. |
+| Linked-data/evidence assessment (#129) | Withdrawn by governor decision `20260909T135843Z-governor-reviewer-6sj1`; historical backlog only, not actionable and not a v2.11 blocker. |
 | Coordination semantics (#122) | Implementation done: superseded coordination records now self-announce (Row 5 S2). Issue closure/reconciliation on the tracker is pending. |
 | Coordination semantics (#121) | Session-level addressing shipped; whether it fully covers #121's scope remains under separate review. |
 | MR !2027 | Closed (2026-09-13). |
 | Collision detection (#123) | Shipped and MR-blocking for plan-vs-plan overlaps. A post-implementation drift check remains a separate, unclaimed follow-up. |
-| Improvement Propeller activation (#131) | Foundry activation is approved and active at Level 4 Validated; the tracked activation commit has merged. The scheduler's own live wake state was last confirmed paused (2026-09-11); a genuine unattended conforming wake, recorded separately, is still required before any Level 5 claim and has not yet occurred. Adopters remain inactive unless their own governor activates the optional role. |
-| Improvement Propeller skill export (#132) | Blocked until #131 reaches genuine Level 5 wake evidence. |
+| Improvement Propeller activation (#131) | Level 5 Deployable after a genuine unattended wake, independent review, and binding governor confirmation (`20260918T162825Z-governor-reviewer-8hs2`). Adopters remain inactive unless their own governor activates the optional role. |
+| Improvement Propeller skill export (#132) | Shipped as an optional skill (`32fd0134`); it activates nothing without adopter-local governor authority and wake configuration. |
 
 The internal roadmap records the complete sequencing and collision boundaries.
 The issue and MR disposition ledgers remain evidence-bearing projections for

@@ -12,6 +12,17 @@ Adopter-facing entries for the next release, with their `Adopter docs:` lines, a
 in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[Unreleased]`; this section lists
 repository-level changes only.
 
+## [2.11.0] - 2026-10-26
+
+**Minor release.** Standard-path release from reviewed `main` at
+`24d098a1`. Full Rust workspace suite: 739 passed, 0 failed, 3 intentionally
+ignored network/Podman tests; each framework archive passed all 28 shipped
+tests. The adopter-facing release adds stricter MCP argument handling,
+coordination lifecycle and publication controls, plan collision enforcement,
+the optional Improvement Propeller skill, governance modes, and documentation
+currency fixes. Repository operations also retire the unused Elixir and
+Windows preview paths and route OCI work to the live Podman runner pool.
+
 - Removed the retired Elixir release-payload guard script, its CI invocations and
   the `release:elixir-exclusion-selftest` job, and the Elixir toolchain pins from
   `mise.toml`/`mise.lock`. The generic forbidden-file mechanism in the
