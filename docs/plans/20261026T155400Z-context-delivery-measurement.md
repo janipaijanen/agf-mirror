@@ -11,10 +11,15 @@ advisory_consultation:
       the plan text now and of every captured output before any fixture or
       excerpt is committed.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Non-author audit requested from codex-foundry (room seq 622). The author
-      is planner-architect.
+      Non-author audit by codex-foundry (author is planner-architect). First pass
+      at head 74a3ed30 (room seq 627): CHANGES REQUESTED, five blocking findings
+      B1 to B5 plus three advisories, all applied. Second pass at head e60cc392
+      (room seq 642): OTHER, two corrections, both applied. Third pass at exact
+      head 7bf4e650bddc7b502f65db11264cd1a989088383 (room seq 648): CLEAN. The
+      review is recorded in the ACS room; a durable coordination review record
+      for this head is not yet published.
 affected_paths:
   - docs/plans/20261026T155400Z-context-delivery-measurement.md
   - docs/reviews/context-delivery-measurement/20261026T155400Z-context-delivery-measurement-report.md
