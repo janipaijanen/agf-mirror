@@ -1,6 +1,8 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261026T203057Z-governor-reviewer-pq3q
+gate1_approved_at: "2026-10-26T20:30:57Z"
 topic: next-release-scope-and-rolling-intake
 advisory_consultation:
   - role: infosec-sentinel
@@ -14,11 +16,13 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Non-author review `20261026T201509Z-contribution-auditor-prhj`, published
-      through MR !3262 at exact head
-      `2b4e00490245cdae4c446d29ae42867b5fd6ea8a`, returned CLEAR on exact plan
-      head `908145cd7f1b9d439eb4be2ed113138b57f116aa` with zero blocking, advisory,
-      or accepted-risk findings.
+      Independent non-author Claude review
+      `20261026T203055Z-contribution-auditor-6572` returned CLEAR on exact plan
+      head `02268449b8b2a828a618e17e806a293f5744374a` with zero blocking, advisory,
+      or accepted-risk findings. Earlier Codex-subagent reviews
+      `20261026T201509Z-contribution-auditor-prhj` and
+      `20261026T202603Z-contribution-auditor-rts7` remain supporting evidence,
+      not the independent consultation.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
