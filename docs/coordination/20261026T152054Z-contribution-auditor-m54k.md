@@ -17,7 +17,7 @@ artifacts_owned: []
 # Next-release scope/intake plan contribution audit: CLEAR
 
 Scope: MR !3239 exact head
-`c4d890386a6735566eba7af5b87adca9a5eef9c2`, solely
+`08c104367c15d98c186f99a465a4d4bac5c65382`, solely
 `docs/plans/20261026T151646Z-next-release-scope-intake.md`.
 
 Coverage: COMPLETE
@@ -61,3 +61,8 @@ package, release, or deployment authority. `agov plan validate` and
 collisions among assessable plans; the disclosed historical coverage limit is
 the only residual limitation and is not an accepted risk because the plan
 requires the compensating manual authority review.
+
+After the first clear, the author pinned the exact live heads of MRs !3098,
+!3066, !3097, and !2679. Exact-head rereview confirmed all four hashes against
+GitLab and found this was an evidence-only correction: no scope, readiness
+interpretation, compatibility, promotion condition, or authority changed.
