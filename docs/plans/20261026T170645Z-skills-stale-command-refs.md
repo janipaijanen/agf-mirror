@@ -98,9 +98,11 @@ passes. No code changes.
 ## Risks and rollback
 
 Risk: `run_all_validators` changes before release, making the list stale again.
-Mitigation: the list cites the function by name, and `agov validate adopter-docs` plus
-the release freeze sweep re-check shipped docs. Rollback: revert the MR; no tag or
-release is involved.
+Mitigation: the list cites the function by name, and the release-freeze sweep and the
+technical review at Gate 2 compare the list directly with `run_all_validators`. No
+validator checks this parity today: `agov validate adopter-docs` only inspects
+release-range trigger paths, and `agf/skills/` is not one of them. A real parity check
+would be a separate proposal. Rollback: revert the MR; no tag or release is involved.
 
 ## Authority
 
