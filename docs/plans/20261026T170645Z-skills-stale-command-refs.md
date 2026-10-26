@@ -1,6 +1,8 @@
 ---
 id: 20261026T170645Z-skills-stale-command-refs
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261026T174028Z-governor-reviewer-snh2
+gate1_approved_at: 2026-10-26T17:40:28Z
 topic: shipped-skills-stale-command-references
 advisory_consultation:
   - role: infosec-sentinel

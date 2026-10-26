@@ -1,6 +1,8 @@
 ---
 id: 20261026T155400Z-context-delivery-measurement
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261026T174028Z-governor-reviewer-snh2
+gate1_approved_at: 2026-10-26T17:40:28Z
 topic: context-delivery-measurement-phase-a
 advisory_consultation:
   - role: infosec-sentinel
