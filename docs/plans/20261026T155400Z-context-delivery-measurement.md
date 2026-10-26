@@ -4,12 +4,17 @@ status: pending-gate1
 topic: context-delivery-measurement-phase-a
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Review requested. Phase A captures client startup and debug output and
-      inspects third-party plugin packages. The plan needs an infosec screen of
-      the plan text now and of every captured output before any fixture or
-      excerpt is committed.
+      Review by codex-foundry acting as infosec-sentinel (author is
+      planner-architect). First pass at head b439aefd (room seq 651): OTHER, two
+      blocking capture-boundary findings. B1: the plan wrongly cited
+      `agov validate infosec`, which scans only learning-record YAML. B2: raw-trace
+      protection and retention were undefined. Both applied. Second pass at exact
+      head deb058a59698e84a92ac431d9fcfbb74ed51fd5b (room seq 656): content CLEAN.
+      That review is recorded in the ACS room and is content evidence, not
+      pipeline-completion evidence. Every captured excerpt and the report still
+      need the manual infosec-sentinel read the plan requires before commit.
   - role: contribution-auditor
     status: consulted
     reason: >-
