@@ -1,8 +1,8 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
-status: pending-gate1
-gate1_approved_by: 20261027T183717Z-governor-reviewer-a8d6
-gate1_approved_at: "2026-10-27T18:37:17Z"
+status: approved
+gate1_approved_by: 20261027T215726Z-governor-reviewer-a2nh
+gate1_approved_at: "2026-10-27T21:57:26Z"
 topic: next-release-scope-and-rolling-intake
 advisory_consultation:
   - role: infosec-sentinel
@@ -40,10 +40,10 @@ that release's scope. It starts immediately after verified v2.11.0 publication
 at annotated tag `v2.11.0` (`d732e372f35bacd1f37981bb89031041d35121e4`,
 peeled commit `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`).
 
-Governor decision `20261027T183717Z-governor-reviewer-a8d6` approved the prior
-exact plan head. This final amendment returns the plan to `pending-gate1`
-because it proposes the exact v2.12.0 freeze base and closes the last landed
-content disposition. The earlier decision does not authorize this head.
+Governor decision `20261027T215726Z-governor-reviewer-a2nh` approves the final
+intake head merged through MR !3307, freezes v2.12.0 at the exact implementation
+base below, and admits the two ordered `IN` items. It authorizes implementation
+of item 1; item 2 remains sequenced after item 1.
 
 This plan reuses the proven `IN` / `CANDIDATE` / `DEFER` vocabulary from the
 v2.11 scope plan. It is not a new project roadmap, queue ledger, milestone,
@@ -59,9 +59,9 @@ schema, or release tool:
 
 Only a governor decision may promote a row from `CANDIDATE` to `IN`, remove an
 `IN` row, choose a version, freeze scope, or authorize a release cut. Every
-workstream retains its own Gate 1 and exact-head Gate 2. Until a binding
-governor decision approves this exact head, this plan grants no implementation,
-merge, tag, package, release, or deployment authority.
+workstream retains its own Gate 1 and exact-head Gate 2. Decision `a2nh`
+supplies the freeze and bounded implementation authority; it grants no version
+bump, tag, package, release, or deployment authority.
 
 ## Why a rolling intake is needed
 
@@ -155,15 +155,15 @@ Timer-reality polling alignment is not part of this delta. Its implementation
 commit `324322ef26b3efaeb2cd5a545c6d95cd64e4ba0e` is already an ancestor of the
 v2.11.0 peeled commit and the v2.11.0 changelog records it.
 
-## Freeze candidate
+## Frozen release scope
 
-Proposed semantic version: **v2.12.0**. Proposed exact implementation base:
-`9af411aa1186f454a5801100dcddf258d588d414`. The candidate contains one bounded
-documentation slice, in this order. A minor version is proposed because the two
+Semantic version: **v2.12.0**. Exact implementation base:
+`9af411aa1186f454a5801100dcddf258d588d414`. The release contains two bounded
+documentation slices, in this order. A minor version is selected because the two
 items add adopter-facing documentation and navigation surfaces without a
-breaking compatibility change. If approved, the candidate would freeze that
-scope; it does not authorize a tag, publication or deployment, which require
-the later release-publication child plan and decisions.
+breaking compatibility change. Decision `a2nh` freezes this scope and
+authorizes item 1; it does not authorize a tag, publication or deployment,
+which require the later release-publication child plan and decisions.
 
 1. `20261027T052500Z-tooling-coexistence-discoverability` (materially corrected
    plan status approved, renewed Gate 1 `g2ar` on `main`). Implementation first:
@@ -173,13 +173,13 @@ the later release-publication child plan and decisions.
    1 merges. Its Gate 2 requires an independent rendered exact-head web-UX review,
    in addition to the plan's own acceptance evidence.
 
-The exact-tag claim recheck at the proposed base confirms Ponytail v5.3.2 commit
+The exact-tag claim recheck at the frozen base confirms Ponytail v5.3.2 commit
 `16352ac229eb08a9598dcae48fe9f2b342567d86` and Caveman v4.0.1 peeled commit
 `d262ab3882952a59312ff3537cd86d894523c5ab`; the corrected evidence table and
-advisory reviews are in the coexistence plan. This amendment stays
-`pending-gate1` until a non-author review of this exact head and a new durable
-governor decision names this base, v2.12.0 and both ordered IN items. Each
-implementation still needs its own exact-head Gate 2.
+advisory reviews are in the coexistence plan. Contribution-auditor review
+`20261027T215147Z-contribution-auditor-rajn` is CLEAR, and decision `a2nh`
+names this base, v2.12.0 and both ordered `IN` items. Each implementation still
+needs its own exact-head Gate 2.
 
 ## Retained landed change
 
@@ -232,9 +232,9 @@ These rows are decision inputs, not commitments.
   owners and this plan's `depends_on` disposition manually.
 - Non-author contribution review confirms the table does not promote backlog,
   duplicate roadmap/ledger authority, or overstate issue/MR readiness.
-- The plan names one candidate version and exact base but grants no
-  implementation, metadata, tag, publication or deployment authority before
-  the binding governor decision. It adds no tooling or schema.
+- The plan names the frozen version and exact base. Decision `a2nh` grants the
+  bounded implementation sequencing above but no metadata, tag, publication or
+  deployment authority. The plan adds no tooling or schema.
 - The freeze review can account for every merged change since `v2.11.0`, both
   selected `IN` rows, and every named `CANDIDATE` disposition without relying
   on stale milestones.
