@@ -17,10 +17,12 @@ advisory_consultation:
     reason: >-
       Non-author plan-stage review is CLEAR on corrected content SHA-256
       e59024751c044208d0d97df23e533454ca29e620b33b4f41677d45caa06c00b4.
-      The correction removed an impossible self-reference and requires
-      released-binary behavioral fixture evidence for urgency and challenge
-      claims. This later metadata-only head records that review without
-      changing scope, authority, evidence requirements, or acceptance.
+      A renewed review is CLEAR on sequencing-corrected content SHA-256
+      d5d9e8511d7ec9ac5004b8dc7195a1008ff41ad8c324b8eca7912d82bd275b05,
+      after CI exposed six predecessor overlaps; the blocking check now reports
+      six acknowledged and zero unacknowledged. This later metadata-only head
+      records those reviews without changing scope, authority, evidence
+      requirements, or acceptance.
 affected_paths:
   - docs/plans/20261027T230355Z-v212-release-freeze-corrections.md
   - agf/CHANGELOG.md
@@ -32,6 +34,12 @@ affected_paths:
 depends_on:
   - 20261026T151646Z-next-release-scope-intake
   - 20260909T203636Z-v211-release-publication
+  - 20260921T040743Z-assistant-rule-drift-resolution
+  - 20261021T220000Z-retire-windows-support
+  - 20261023T155559Z-agov-strict-args-ref-list
+  - 20261024T070435Z-timer-reality-polling-alignment
+  - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20261025T192020Z-supersedes-adopter-docs
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -167,6 +175,18 @@ covered because all changed AGF paths ship in the framework archive/site.
 
 Rollback is a revert of the implementation MR before release metadata is
 derived. No schema, runtime, data, tag, or published namespace changes.
+
+## Collision disposition
+
+The blocking plans-only check identifies six predecessor plans whose declared
+paths overlap this correction: assistant-rule drift resolution, Windows
+retirement, strict MCP arguments/ref-aware list, timer-reality polling,
+v2.11 changelog reconciliation, and supersedes adopter documentation. Their
+implementations are already merged and included in v2.11.0. They are listed in
+`depends_on` so this plan explicitly sequences after and preserves their landed
+results. This is not permission to overwrite an unmerged counterpart: before
+implementation, fetch current refs and stop if any of those plan owners has a
+new open implementation on an affected path.
 
 ## Gate request
 
