@@ -6,18 +6,20 @@ gate1_approved_at: "2026-10-27T15:29:26Z"
 topic: truthful-coexistence-content-and-discoverability
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Material amendment (this head). The earlier plan-stage CLEAR (room seq 768)
-      covered the previous evidence inventory and does not stand for the corrected
-      claims. Pending a non-author infosec review of this exact head, with the fresh
-      exact-head implementation read still required before merge.
+      Non-author review at exact content head
+      ae2e8597e0455fec2b37d4f63964508ff7b4a4fb (room seq 818): CLEAR. The corrected
+      consent and opt-out boundaries match the tagged primary documents; no secret,
+      private endpoint, executable-install instruction or unsafe command was added.
+      A fresh exact-head implementation read is still required before merge.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Material amendment (this head) correcting the evidence inventory and claim
-      boundaries after Codex's row-by-row third-party recheck (room seq 810 and 811).
-      Pending a non-author audit of this exact head.
+      Non-author review at exact content head
+      ae2e8597e0455fec2b37d4f63964508ff7b4a4fb (room seq 818): CLEAR. The material
+      amendment corrects the evidence inventory and claim boundaries without adding
+      unsound authority, endorsement or precedent claims.
 affected_paths:
   - docs/plans/20261027T052500Z-tooling-coexistence-discoverability.md
   - README.md
