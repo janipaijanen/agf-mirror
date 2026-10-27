@@ -8,6 +8,18 @@ distribution.
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
 Pages and to `agf/` for rules, templates, schemas and skills.
 
+### Fixed
+
+- **Shipped skills use current `agov` commands (dc5523f6, from MR !3098).** The
+  `health` skill now describes the eleven checks that `agov validate` runs, and no
+  longer mentions a strict mode that does not exist. The `infosec-screen` skill and
+  the skills index now name `agov validate infosec` instead of `validate-infosec.sh`,
+  which is not shipped. The landed change is wording only: no runtime, schema or
+  validator behaviour changes. This entry is reconciled to the freeze under the
+  Human decision to retain the landed change. Adopter docs: updated
+  (`agf/skills/health/SKILL.md`, `agf/skills/infosec-screen/SKILL.md`,
+  `agf/skills/README.md`).
+
 ## [2.11.0] — 2026-10-26
 
 **Minor release.** Standard-path release from reviewed `main` at
