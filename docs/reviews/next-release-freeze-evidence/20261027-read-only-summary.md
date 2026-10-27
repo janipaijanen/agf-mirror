@@ -3,17 +3,17 @@
 
 # Next-release freeze evidence: read-only summary (2026-10-27)
 
-This summary is evidence for the Human Governor's freeze decision. It is not a freeze record, chooses no scope, and approves nothing. It is written against `main` at `ccfa8b9e` (`git describe`: `v2.11.0-141-gccfa8b9e`) as a snapshot only. `ccfa8b9e` is not the final freeze base: the base is refreshed after MR !3297, MR !3298 and MR !3300 settle.
+This summary is evidence for the Human Governor's freeze decision. It is not a freeze record, chooses no scope, and approves nothing. It is written against `main` at `ccecb9ed` (`git describe`: `v2.11.0-147-gccecb9ed`) as a snapshot only. `ccecb9ed` is not the final freeze base: the base is refreshed again at freeze.
 
 ## 1. Base and proposed version
 
-- Base snapshot: `main` `ccfa8b9e`, not final (see above).
+- Base snapshot: `main` `ccecb9ed`, not final (see above).
 - Proposed semantic version: `v2.12.0`. Authority: a relay of the Human Governor's live answer (room seq 807) is provisional; the bridge record is `20261027T185202Z-governor-reviewer-krqj` in MR !3300. Final freeze authority is still pending a binding governor-reviewer freeze decision. Unreleased, untagged.
 
 ## 2. Changelog states
 
 - `CHANGELOG.md` `[Unreleased]`: preface only, no entries. The preface says adopter-facing entries live in `agf/CHANGELOG.md`.
-- `agf/CHANGELOG.md` `[Unreleased]`: preface only on `main`. The reconciliation entry for MR !3098 is proposed in MR !3298 (head `07e4a65b`). It is not yet merged.
+- `agf/CHANGELOG.md` `[Unreleased]`: now contains the `Fixed` entry for the MR !3098 correction, landed through MR !3298 (exact head `07e4a65b`, merged as `c42b1cfa`). The root `CHANGELOG.md` `[Unreleased]` has no entry, by design.
 
 ## 3. Landed post-v2.11.0 changes, with dispositions
 
@@ -36,11 +36,17 @@ Ordered. Both implementation blocked until the freeze record:
 ## 5. Unresolved decisions and conditions
 
 1. Binding freeze decision naming the final base SHA, version and scope. Required by both child plans. IN alone does not satisfy it (room seq 806). The bridge record `krqj` is provisional, not the freeze.
-2. Changelog reconciliation: MR !3298 to merge (for !3098), and the freeze must confirm no other entries are missing.
+2. Changelog reconciliation: MR !3298 is resolved (merged as `c42b1cfa`). The freeze must confirm that no other adopter-facing entries are missing at the final base.
 3. Exact-base third-party claim recheck for the coexistence plan. Codex's recheck (room seq 810 and 811) found material claim drift, so the freeze and implementation are held, and the plan needs a material amendment first. Exact commits from that recheck: Ponytail v5.3.2 `16352ac229eb08a9598dcae48fe9f2b342567d86`, Caveman v4.0.1 peeled `d262ab3882952a59312ff3537cd86d894523c5ab`. Not done in this summary.
-4. Root `CHANGELOG.md`: no entry proposed. Its preface places adopter-facing entries in `agf/CHANGELOG.md`.
+4. Root `CHANGELOG.md`: no entry, by design. Its preface places adopter-facing entries in `agf/CHANGELOG.md`.
 5. Issue #138 / #119 disposition after the Phase A `inconclusive` result: close, residual scope, or a Codex-client measurement path. Governor decision.
 6. Remaining CANDIDATE rows keep their dispositions and are not frozen in: MR !3066 / #137, #128, #133, MR !3097, #111 and #113, #136, #105, MR !2679. DEFER: #129 withdrawn, #134 blocked on hardware evidence.
+
+## 5a. Landed evidence since the previous snapshot
+
+- MR !3297, intake plan status sync to approved citing `a8d6`: merged as `26556f24`.
+- MR !3298, `agf/CHANGELOG.md` entry for the !3098 correction: merged as `c42b1cfa`.
+- MR !3300, provisional bridge `20261027T185202Z-governor-reviewer-krqj` (Human's live freeze-path answer, relayed): merged as `ccecb9ed`. It is provisional and is not the freeze.
 
 ## 6. What this summary does not claim
 
