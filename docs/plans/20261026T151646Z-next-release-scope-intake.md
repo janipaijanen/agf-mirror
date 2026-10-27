@@ -200,7 +200,6 @@ These rows are decision inputs, not commitments.
 | Issues #111 and #113, upgrade/ignore safety | Detect governance loss or excluded provenance during adoption upgrades | Learning issues only; no bounded Gate 1 plan | Security- and data-loss-sensitive trust boundary | CANDIDATE | A plan defines detection, recovery, and false-positive controls; infosec consultation required |
 | Issue #136, stale worktree inventory | Safe report-first visibility into stale branches/worktrees | Report-first direction only; explicitly no deletion authorization | Foundry tooling/operator docs; destructive action excluded | CANDIDATE | Gate 1 limits scope to inventory/reporting and defines later deletion authority separately |
 | Issue #105, advisory sensitive-material scanner | Optional warning for arbitrary-file sensitive material | Unmilestoned backlog; no plan | Infosec-sensitive; advisory/blocking boundary must be explicit | CANDIDATE | Infosec-reviewed Gate 1 demonstrates need, scope, and false-positive handling |
-| MR !2679, builder-image trial slice | Evidence on a bounded builder-image experiment | Exact head `b3c7eaff6ea0502087fc9dd0f7f73bc41ddf8ee8`; draft, green, `awaiting-governor`; its distribution-scan slice is superseded in readiness by !3066 | Research only until evidence supports a product change | CANDIDATE | Governor isolates a still-useful trial slice or closes/supersedes it |
 
 ## DEFER and exclusions
 
@@ -213,6 +212,10 @@ These rows are decision inputs, not commitments.
 - Issue #137 does not admit an optimization until the measurement work proves
   the hypothesis.
 - Issue #134 remains blocked on named capacity-one hardware/operator evidence.
+- MR !2679 was closed without merge on 2026-10-27 under governor decision
+  `20261027T214011Z-governor-reviewer-s8n7` (published through MR !3308). Its
+  distribution-scan slice is superseded by !3066; the builder-image trial was
+  not selected. The source branch and history remain available for reference.
 - A generic `release::unmilestoned-backlog` label, an old milestone, or absence
   from this table never promotes an item.
 - Anything not named `IN` or `CANDIDATE` is unexamined, not silently rejected.
