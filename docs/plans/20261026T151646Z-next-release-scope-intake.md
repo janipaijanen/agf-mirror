@@ -1,8 +1,8 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
-status: pending-gate1
-gate1_approved_by: 20261026T203057Z-governor-reviewer-pq3q
-gate1_approved_at: "2026-10-26T20:30:57Z"
+status: approved
+gate1_approved_by: 20261027T183717Z-governor-reviewer-a8d6
+gate1_approved_at: "2026-10-27T18:37:17Z"
 topic: next-release-scope-and-rolling-intake
 advisory_consultation:
   - role: infosec-sentinel
