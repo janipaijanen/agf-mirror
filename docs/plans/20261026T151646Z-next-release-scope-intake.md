@@ -109,8 +109,9 @@ obtain non-author review, and publish a new governor decision for the exact
 head.
 
 At freeze, reconcile the selected whole tree, run the documentation-estate
-release-content-freeze sweep, convert landed adopter-visible rows into both
-changelogs, choose the semantic version from actual compatibility impact, and
+release-content-freeze sweep, reconcile both changelogs and record each landed
+adopter-visible row in its applicable canonical changelog, choose the semantic
+version from actual compatibility impact, and
 derive a separate release-publication child plan. The child plan owns metadata,
 namespace, protected-tag, pipeline, artifact, and anonymous-verification steps.
 
@@ -136,10 +137,13 @@ under Gate 1 record `djnt` (MR !3290, merged `0e6e2604`). This amendment merged 
 (MR !3291, merged `c245ce38`) and completion record `gpn3` (MR !3293); see DEFER. The
 final reconciliation is recorded in
 `docs/reviews/next-release-freeze-evidence/20261027-read-only-summary.md`, merged
-at candidate base `9af411aa1186f454a5801100dcddf258d588d414`. At that base the
-only adopter-visible landed delta is MR !3098's retained skill-command
-correction, reconciled in `agf/CHANGELOG.md`; the root changelog intentionally
-has no entry. Plans, coordination records, radar entries and verbatim radar
+at candidate base `9af411aa1186f454a5801100dcddf258d588d414`. At that base MR
+!3098's retained skill-command correction is the only landed change requiring
+a new v2.12 changelog entry or disposition, reconciled in `agf/CHANGELOG.md`;
+the root changelog intentionally has no entry. The post-v2.11 status sync in
+`agf/docs/governance/manifest.md` and `agf/docs/site/roadmap.md` is separately
+inventoried as a no-changelog publication-status update. Plans, coordination
+records, radar entries and verbatim radar
 carrier files (`docs/radar.md`, `docs/proposals/radar/`, merged through MR !3274
 as `208f1d5a1031d49ac5b6056738a928c39dd0cb88`), and the Phase A measurement
 report (`docs/reviews/context-delivery-measurement/`, merged through MR !3271 as
@@ -153,9 +157,12 @@ v2.11.0 peeled commit and the v2.11.0 changelog records it.
 ## Freeze candidate
 
 Proposed semantic version: **v2.12.0**. Proposed exact implementation base:
-`9af411aa1186f454a5801100dcddf258d588d414`. The candidate freezes one bounded
-documentation slice, in this order. It does not authorize a tag, publication or
-deployment; those require the later release-publication child plan and decisions.
+`9af411aa1186f454a5801100dcddf258d588d414`. The candidate contains one bounded
+documentation slice, in this order. A minor version is proposed because the two
+items add adopter-facing documentation and navigation surfaces without a
+breaking compatibility change. If approved, the candidate would freeze that
+scope; it does not authorize a tag, publication or deployment, which require
+the later release-publication child plan and decisions.
 
 1. `20261027T052500Z-tooling-coexistence-discoverability` (materially corrected
    plan status approved, renewed Gate 1 `g2ar` on `main`). Implementation first:
