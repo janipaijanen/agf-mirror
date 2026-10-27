@@ -127,12 +127,19 @@ merged. Correction record `20261026T180956Z-governor-reviewer-pbgd` at
 `2ccba663967767c7ede3359f1203bb89afddac3c` merged through MR !3258 as
 `e5548cf6e9b5372e374aa3368b6e98ae3800553c`; it records the chronology without
 retroactively authorizing the merge. The remaining post-tag changes through
-`0d76ea53` (current `main` at this writing; the only change after `a52767d4` is bridge note
-`20261027T053114Z-planner-architect-tks3`, MR !3278) are plans, coordination records, radar
+`0d76ea53` (the only change after `a52767d4` is bridge note
+`20261027T053114Z-planner-architect-tks3`, MR !3278). Radar correction MR !3281 merged as
+`5ebb03be` under Gate 2 record `1rdd` (MR !3286) and radar-closure proposal MR !3282 merged as
+`914495f3`. The coexistence plan merged as `58ac4aec` (MR !3275) under Gate 1 and Gate 2 record
+`p47g` (MR !3288, merged `108bc189`). The Pages homepage plan merged as `47716594` (MR !3276)
+under Gate 1 record `djnt` (MR !3290, merged `0e6e2604`). This amendment merged as `25326561`
+(MR !3283). The eight park-radar merge requests were closed 2026-10-27 under decision `5nmt`
+(MR !3291, merged `c245ce38`) and completion record `gpn3` (MR !3293); see DEFER. The
+current `main` at this writing is `cefea244`. Plans, coordination records, radar
 entries and verbatim radar carrier files (`docs/radar.md`, `docs/proposals/radar/`,
 merged through MR !3274 as `208f1d5a1031d49ac5b6056738a928c39dd0cb88`), and the Phase A
 measurement report (`docs/reviews/context-delivery-measurement/`, merged through MR
-!3271 as `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`). None of these paths is under
+!3271 as `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`). None of the paths above is under
 `agf/`, so none changes an adopter-visible surface. Both `[Unreleased]` sections
 list no entries.
 
@@ -142,8 +149,22 @@ v2.11.0 peeled commit and the v2.11.0 changelog records it.
 
 ## IN
 
-None. An approved workstream plan or green MR does not self-promote into the
-release.
+One bounded documentation slice, in this order. No version, tag, release or
+freeze is chosen here, and the rest of the scope stays unfrozen.
+
+1. `20261027T052500Z-tooling-coexistence-discoverability` (MR !3275; plan status
+   approved, Gate 1 `p47g` on `main` via MR !3288). Implementation first: README
+   pointer, one adopter page, one navigation line and one projection manifest.
+2. `20261027T052118Z-gitlab-pages-homepage-modernization` (MR !3276; plan status
+   approved, Gate 1 `djnt` on `main` via MR !3290). Implementation only after item
+   1 merges. Its Gate 2 requires an independent rendered exact-head web-UX review,
+   in addition to the plan's own acceptance evidence.
+
+This amendment records the governor's scope direction (room seq 798). It stays
+`pending-gate1` until a non-author review of this exact head and a new durable
+governor decision naming it. An approved workstream plan or green MR still does
+not self-promote into the release; each item's implementation needs its own
+Gate 2.
 
 ## CANDIDATE seed inventory
 
@@ -161,13 +182,13 @@ These rows are decision inputs, not commitments.
 | Issue #136, stale worktree inventory | Safe report-first visibility into stale branches/worktrees | Report-first direction only; explicitly no deletion authorization | Foundry tooling/operator docs; destructive action excluded | CANDIDATE | Gate 1 limits scope to inventory/reporting and defines later deletion authority separately |
 | Issue #105, advisory sensitive-material scanner | Optional warning for arbitrary-file sensitive material | Unmilestoned backlog; no plan | Infosec-sensitive; advisory/blocking boundary must be explicit | CANDIDATE | Infosec-reviewed Gate 1 demonstrates need, scope, and false-positive handling |
 | MR !2679, builder-image trial slice | Evidence on a bounded builder-image experiment | Exact head `b3c7eaff6ea0502087fc9dd0f7f73bc41ddf8ee8`; draft, green, `awaiting-governor`; its distribution-scan slice is superseded in readiness by !3066 | Research only until evidence supports a product change | CANDIDATE | Governor isolates a still-useful trial slice or closes/supersedes it |
-| Plan `20261027T052500Z-tooling-coexistence-discoverability` (MR !3275, head `e90ffffadf33a050763e904b0f114a1f62cb36db`) | A discoverable, hedged statement of AGF's place in the stack and when other assistant tooling can sit beside it | Freeze-tail documentation slice; plan-stage consultations CLEAR at exact head `e90ffffadf33a050763e904b0f114a1f62cb36db` (Codex review, room seq 777; pipeline `2992880241` success), `pending-gate1`, needs a new binding Gate 1; implementation blocked until a freeze decision that names it | Documentation only: README pointer, one adopter page, one nav line, one projection manifest; no rule, schema or template change | CANDIDATE (freeze-tail docs slice) | Human Gate 1 of the plan, then an explicit admission in the freeze decision as `IN` or a named controlled post-freeze documentation slice |
-| Plan `20261027T052118Z-gitlab-pages-homepage-modernization` (MR !3276, head `59745355a21360fb35ed95d2a57c0a61804ff916`) | A clearer public homepage with routes to decide, adopt and operate | Freeze-tail documentation slice; content review CLEAR at the stated head, `pending-gate1`; depends on the coexistence slice above; independent rendered web-UX review mandatory at Gate 2 | Two-file presentation change (`agf/docs/site/index.md`, `agf/docs/site/stylesheets/agf.css`); no new asset, script or dependency | CANDIDATE (freeze-tail docs slice) | Human Gate 1 of the plan, the prerequisite slice merged, and an explicit admission in the freeze decision |
 
 ## DEFER and exclusions
 
-- Old `park-radar` MRs !459, !923, !967, !998, !1000, !1451, !1718, and
-  !1722 remain post-v2.11 queue-closeout work, not release candidates.
+- The old `park-radar` MRs !459, !923, !967, !998, !1000, !1451, !1718, and
+  !1722 were closed 2026-10-27 under decision `5nmt` and completion record `gpn3`
+  (MR !3293). Their unique content is preserved as radar entries and carrier files
+  on `main` (MR !3274, merged `208f1d5a`). They are not release candidates.
 - Issue #129 remains withdrawn. Semantic/linked-data work needs a fresh
   governor decision before it can re-enter intake.
 - Issue #137 does not admit an optimization until the measurement work proves
