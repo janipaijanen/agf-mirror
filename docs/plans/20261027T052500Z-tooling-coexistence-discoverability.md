@@ -1,6 +1,6 @@
 ---
 id: 20261027T052500Z-tooling-coexistence-discoverability
-status: approved
+status: pending-gate1
 gate1_approved_by: 20261027T152926Z-governor-reviewer-p47g
 gate1_approved_at: "2026-10-27T15:29:26Z"
 topic: truthful-coexistence-content-and-discoverability
@@ -8,22 +8,18 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Non-author review by codex-foundry. Pass 1 at head 20492391 (room seq 762) and
-      pass 2 at head 686f06bf (room seq 763) returned CHANGES with no secret, endpoint
-      or executable-install content found; the findings were applied. Pass 3 at exact
-      head 38cf9b736932e24b70679a1ee0ed245769afd6ff (room seq 768): CLEAR, subject to
-      the required pipeline finishing green. This is plan-stage content evidence only;
-      a fresh exact-head infosec read of the final implementation is still required
-      before it merges.
+      Non-author review at exact content head
+      ae2e8597e0455fec2b37d4f63964508ff7b4a4fb (room seq 818): CLEAR. The corrected
+      consent and opt-out boundaries match the tagged primary documents; no secret,
+      private endpoint, executable-install instruction or unsafe command was added.
+      A fresh exact-head implementation read is still required before merge.
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Non-author review by codex-foundry, same three passes. The findings on the
-      compatibility wording, durable and accurate evidence, the canonical authority
-      boundary, reproducible freeze evidence and the separation of vendor facts from
-      evidence labels were applied. Pass 3 at exact head
-      38cf9b736932e24b70679a1ee0ed245769afd6ff (room seq 768): CLEAR. The review is
-      recorded in the ACS room; this metadata-only update needs a narrow recheck.
+      Non-author review at exact content head
+      ae2e8597e0455fec2b37d4f63964508ff7b4a4fb (room seq 818): CLEAR. The material
+      amendment corrects the evidence inventory and claim boundaries without adding
+      unsound authority, endorsement or precedent claims.
 affected_paths:
   - docs/plans/20261027T052500Z-tooling-coexistence-discoverability.md
   - README.md
@@ -175,24 +171,32 @@ not edited here (the new text only links to it if needed).
 
 ## Evidence inventory (primary-document claims, to be rechecked at freeze)
 
-These were read from locally installed packages on 2026-10-26 and 2026-10-27, read
-only, with nothing executed. The author's working notes are local and are not
-durable evidence; at freeze the entry for each named claim MUST record the exact
-primary-document URL, the immutable tag and full commit SHA, and the access date, so
-a reviewer can reproduce it. Abbreviated SHAs and local notes do not satisfy this. They are claims from the vendors' own documents, not
-verification. The notes are local; the durable record is the Phase A report once it
-merges.
+Amended 2026-10-27. Codex's row-by-row recheck (room seq 810 and 811) against exact
+tagged commits replaced the earlier inventory, which cited moving `main` SHAs and a
+local install record. The claims below are the recheck's corrections; the author has
+not independently re-verified them, and the recheck itself is cited, not reproduced here.
+Each claim must be cited at freeze with its exact immutable-tag URL, the full commit SHA
+and the access date (2026-10-27 for this recheck). Vendor claims are attributed to the
+vendor's own documents and are not evidence labels.
+
+Exact sources (immutable commits):
+- Ponytail 5.3.2: commit `16352ac229eb08a9598dcae48fe9f2b342567d86`
+  (`https://github.com/DietrichGebert/ponytail/commit/16352ac229eb08a9598dcae48fe9f2b342567d86`).
+- Caveman 4.0.1: peeled commit `d262ab3882952a59312ff3537cd86d894523c5ab`
+  (`https://github.com/JuliusBrussee/caveman/commit/d262ab3882952a59312ff3537cd86d894523c5ab`).
 
 | Item | Ponytail 5.3.2 | Caveman 4.0.1 |
 |---|---|---|
-| Package | git sha `09c434ab73ca43761c5d8b0c5d341926c2fba710` | git sha `bad48a0e1df55e05e3f52249afa35ecc1909ee76` |
-| License | MIT | Apache-2.0 since 3.0.0; MIT text kept for older parts |
-| Hosts | per-host manifests for Claude Code, Codex and others, vendor-listed | manifests for Claude Code, Codex, Cursor, Gemini; vendor claims many more |
-| Hooks | three Claude Code lifecycle hooks, small Node scripts | four Claude Code lifecycle hooks, Node scripts |
-| Data | per-turn local ledger on by default; optional webhook off by default | vendor states skill and hooks make no service calls; CLI usage telemetry (content-free counts with IP) default-on, opt-out; account-based services separate |
-| Provenance | install record carries a git sha; no signature seen | vendor states tags are not yet protected and immutable releases are off; runtime binaries use a signed manifest |
-| Benchmarks | vendor-stated, not reproduced | vendor-stated, not reproduced |
-| Not reviewed | hook code paths | hook code against the data statements; engine, proxy, mem, mcp, shrink, browse code |
+| License | MIT (repository license at the tagged commit) | Apache-2.0 for the whole repository from 3.0.0; the MIT text is kept only as a historical notice for older parts |
+| Claude Code hooks | three manifest event groups (SessionStart, SubagentStart, UserPromptSubmit). The vendor prose calls them two lifecycle hooks; this inconsistency is stated, not resolved | four manifest event groups (SessionStart, SubagentStart, UserPromptSubmit, SessionEnd) |
+| Local data | a per-turn local task ledger is on by default; the optional webhook is empty by default; task-name sending defaults on when a webhook is configured | the skill runs locally except compress; native SessionStart can emit telemetry after an interactive `yes` was persisted. Separately, the default CLI telemetry can send install and account data, locale and timezone, session, command and outcome, token, proxy and history data, MCP-tool metadata and the IP address; account and cloud paths are separate |
+| Provenance | none asserted beyond the tagged commit. The earlier install-record SHA and no-signature claim is removed because it has no tagged primary support | the vendor's SECURITY.md at the tagged commit says git tags are not protected and immutable releases are not enabled, and that runtime binaries are checked against a signed manifest. That is a tagged-document snapshot, not the current repository setting and not a verified operation |
+| Benchmarks | vendor-reported; not reproduced; not cited as evidence | vendor-reported; not reproduced; not cited as evidence |
+| Not reviewed | hook code paths, and the code behind the data statements | the engine, proxy, mem, mcp, shrink and browse code, and the hook code behind the data statements |
+
+Telemetry wording: the vendor's SECURITY.md at the tagged commit describes broader
+opt-in and default telemetry than the counts-plus-IP summary the earlier draft used. The
+page must quote the tagged wording, not a summary of it.
 
 ## Projection screen (six rows)
 
