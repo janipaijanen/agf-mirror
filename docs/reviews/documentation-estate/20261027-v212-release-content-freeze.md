@@ -3,10 +3,14 @@
 
 # v2.12.0 release-content freeze sweep — 2026-10-27
 
-**Role:** documentation-estate-steward  
-**Pre-implementation `main`:** `e03b3261ccb8a4205c45801ea1d034971f437a2d`  
-**Previous release tag object:** `d732e372f35bacd1f37981bb89031041d35121e4`  
-**Previous release peeled commit:** `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`  
+**Role:** documentation-estate-steward
+
+**Pre-implementation `main`:** `e03b3261ccb8a4205c45801ea1d034971f437a2d`
+
+**Previous release tag object:** `d732e372f35bacd1f37981bb89031041d35121e4`
+
+**Previous release peeled commit:** `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`
+
 **Status:** complete for the v2.12 release-content-freeze cadence; exact-head
 fact review and Gate 2 bind the correction MR's final SHA externally.
 
@@ -14,7 +18,7 @@ fact review and Gate 2 bind the correction MR's final SHA externally.
 
 | Item | Reviewed head | Merge commit | Changelog disposition |
 |---|---|---|---|
-| Retained MR !3098 skill-command correction | `6fccd783116bef86a908b4e53eadf9fd32d67b14` | `dc5523f6e9b5372e374aa3368b6e98ae3800553c` | Existing `[Unreleased]` Fixed entry retained; correction record `pbgd` preserves the non-retroactive Gate 2 chronology. |
+| Retained MR !3098 skill-command correction | `6fccd783116bef86a908b4e53eadf9fd32d67b14` | `dc5523f6d5493b2bacbf3548927cf68d00e5dbc4` | Existing `[Unreleased]` Fixed entry retained; correction record `pbgd` preserves the non-retroactive Gate 2 chronology. |
 | Tooling coexistence guidance, MR !3311 | `d347c4b75d0d64231e323ed7b8e88aa7ad9731b7` | `b703704c394624db387840be693c304dde9d264d` | Added entry: discoverability, authority/data-flow checklist, and bounded evidence calibration. |
 | Homepage modernization, MR !3314 | `44c14e7ce630b72911146dfb9f293c8f7ce7d00f` | `dce4396f7b78e520df828876f7ae04ff9377949c` | Changed entry: four canonical routes and reviewed responsive/light-dark/focus presentation. |
 
