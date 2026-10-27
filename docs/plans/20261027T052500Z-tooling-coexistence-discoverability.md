@@ -37,9 +37,15 @@ version authority.
 
 The Human Governor directed (relayed by codex-foundry, room seq 746, not seen
 first-hand by the author) that, for the next release once contents are stable, the
-main README gains the Ponytail discipline and the Pages site is modernized, with
-truthful content on using AGF alongside other tooling such as Caveman and
-Ponytail. Codex split that directive in two: this plan owns the truthful content and
+main README and the Pages site are updated with truthful content on using AGF
+alongside other tooling such as Caveman and Ponytail. In a live session the Human
+then chose this shape (the author's summary, recorded when this plan was revised):
+do not praise other tooling directly or by name in the main text; state AGF's
+position in the stack, and say that AGF is probably compatible with the reader's
+stack, with some evidence behind that statement. The earlier README item about
+adopting a "Ponytail discipline" is read as superseded by this shape; if the
+Human meant adopting lean-change habits in AGF's own guidance, that is a separate
+item, outside this plan. Codex split that directive in two: this plan owns the truthful content and
 discoverability; a separate Codex-authored plan owns homepage and visual
 modernization and will list this plan's ID in `depends_on`. This plan touches no
 homepage, CSS, theme or layout.
@@ -58,13 +64,36 @@ Implementation MUST NOT start until all of these exist:
 Drafting and review of this plan may proceed now. A changed base SHA after the freeze
 record invalidates the recheck and requires it to be repeated.
 
+## Position statement (the shape of the text)
+
+The README and the page lead with AGF's place in the stack, without naming any
+tool: AGF is the governance layer, meaning who may decide what, the gates and the
+coordination record. Coding-style assistant tools work inside an approved change,
+below that layer. The reader-facing sentence is of the form: "AGF is probably
+compatible with your stack, because tools that work inside the approved change and
+do not edit AGF's governance files have coexisted with it in our own use; some
+evidence exists (link)". It is deliberately hedged. It says "no conflict was
+observed in our own use", never "compatible" or "supported".
+
+Conditions that keep it true:
+1. The "some evidence" link goes to dated evidence entries that say what was
+   observed, in how many repositories, and the limits. Today that is one
+   repository (this one) with two tools active beside AGF and no conflict seen,
+   labelled Empirically informed at most.
+2. "Your stack" is scoped to tools that work inside the approved change and do not
+   edit AGF's governance files. An installer that overwrites the AGF loader, or a
+   hook that writes records, is outside that scope and the text says so.
+3. Names appear only in the evidence entries on the coexistence page, attributed
+   to the third party's own documents, dated, and labelled vendor-stated where they
+   are vendor claims. They do not appear in the README or in the landing text.
+
 ## Scope (implementation, after the gate)
 
 | Path | Change |
 |---|---|
-| `agf/docs/site/docs/adopt/third-party-plugin-coexistence.md` | Single canonical owner of the content. Update the Ponytail example against the recorded evidence and add a Caveman example in the same form. Keep the status line honest (see claims). |
+| `agf/docs/site/docs/adopt/third-party-plugin-coexistence.md` | Single canonical owner of the content. Rewrite layer-first (the position statement and its scope). Keep the Ponytail example and add a Caveman example as dated evidence entries, updated against the recorded evidence. Keep the status line honest (see claims). |
 | `agf/docs/build/mkdocs.yml` | Expose the existing page in the Adopt navigation. It is currently not listed, so it is undiscoverable from the site menu. One nav line. |
-| `README.md` | One short section pointing to the page, stating the coexistence boundary in a few sentences. No copied rules, no benchmark figures. |
+| `README.md` | One short section with the generic position statement and a link to the page. It names no third-party tool, copies no rules and cites no benchmark figure. |
 | `docs/reviews/rule-projection/20261027T052500Z-tooling-coexistence-discoverability.yaml` | The six-row projection screen manifest required because the page carries normative precedence guidance. |
 
 Not included: `llms.txt` (add only if a discoverability need beyond README plus
@@ -75,8 +104,10 @@ not edited here (the new text only links to it if needed).
 
 ## Claim discipline (applies to every sentence added)
 
-- Use "coexists with" or "can be used alongside". Never "official integration",
-  "supported", "certified", "endorsed" or "recommended by AGF".
+- Use "coexists with" or "can be used alongside"; in the main text, "probably
+  compatible, some evidence exists". Never "official integration", "supported",
+  "certified", "endorsed" or "recommended by AGF", and no praise of any tool, by
+  name or otherwise.
 - AGF keeps authority: gates, role authority and the coordination record are
   unchanged by any plugin. Plugin output and reviews are advisory evidence only.
 - Installers, hooks, MCP servers and loader edits are supply-chain surfaces and the
@@ -131,13 +162,21 @@ merges.
 - `mkdocs build` for the Pages site passes with the new nav line and no broken links.
 - `agov validate`, `agov plan validate` and `agov plan projection-check` (strict)
   pass for the manifest; `git diff --check` is clean on the current-target merge tree.
-- A reviewer greps the added text for the forbidden words in the claim discipline.
+- A reviewer greps the added text for the forbidden words in the claim discipline,
+  and confirms that `README.md` and the landing text contain no third-party tool
+  name (the names appear only in the evidence entries on the coexistence page).
+- The "some evidence" link resolves to an evidence entry that states the number of
+  repositories, the period, and the limits.
 
 ## Risks and rollback
 
 - **Staleness:** third-party packages change quickly. Control: the freeze recheck,
   attributed and dated claims, and a review-by statement in the page.
-- **Read as endorsement:** control: the claim discipline and the non-author fact-check.
+- **Read as endorsement:** control: no names in the main text, the hedged wording,
+  the claim discipline and the non-author fact-check.
+- **"Probably compatible" read as a promise:** control: the scope condition on
+  "your stack", the explicit statement that no conflict was observed in our own use,
+  and the evidence label.
 - **Hidden supply-chain advice:** control: the text names installers and hooks as
   supply-chain surfaces and tells the adopter to review and decide.
 - **Scope creep into modernization:** control: the explicit exclusions above and the
