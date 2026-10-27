@@ -1,0 +1,122 @@
+<!-- Radar carrier. Retained verbatim from MR !1718 (source branch docs/learning-dd-operational-debt-backlog, head a5e690e2), the lines it added to agf/learnings/foundry.yaml (a proposed learning entry, never recorded).
+     Non-authoritative: parked on the radar, grants no Gate 1, rule, template, validator or implementation authority. -->
+  - id: "20260817T202241Z-ookv"
+    date: "2026-08-17"
+    category: gap
+    scope: project
+    title: >
+      Operational-debt backlog (pending handoffs, branch sprawl, rule-copy
+      drift) has no closure SLO, bounded branch lifetime, or
+      ownership/dashboard mechanism — bounded per-item disposition plans
+      exist, but nothing bounds the queue itself
+    description: >
+      An external open-source due-diligence simulation (ChatGPT run,
+      Protocol 2.1, 2026-08-17), preserved durably at MR !1691
+      (`docs/dd-20260817-external-ai-diligence`, commit
+      `c7c24ebcd2af9ba7671dfa6b7619508af39ba0bb` — **not yet merged to
+      `main` as of this record**),
+      `docs/reviews/20260817T173000Z-external-ai-diligence-chatgpt-claude-grok-lumo/raw/11-ChatGPT-Answer.md`,
+      rated this project 2.1/5 overall and flagged, as finding F7 / risk
+      R8 ("Control signal buried by operational queues and drift",
+      rated Medium-High), a concrete operational snapshot: 81 pending
+      handoffs, 8 unresolved required acknowledgements past cutoff, 51
+      rule-copy drift findings (44 differing, 5 missing, 2 extra), and
+      547 GitLab branches (164 marked merged). The DD's stated required
+      treatment: "closure SLOs for acknowledgements, bounded branch
+      lifetime, drift-closure process, and dashboards/ownership."
+
+      **Correction (2026-08-17, per coder-tester review `37mj`):** the
+      raw counts above are a single snapshot, not a validated workload
+      baseline. `agov coord status` currently reports obviously
+      completed or superseded work as pending (confirmed examples:
+      the reactivation/staffing re-review and the v2.6.1 round-3
+      review), so "81 pending handoffs" is a projection-closure
+      quality signal, not evidence that 81 live tasks need execution.
+      "547 branches" likewise mixes active, merged, historical,
+      review, plan, protected, and evidence-preserving branches without
+      age/disposition buckets. This entry no longer asserts these counts
+      as a validated rate problem — see the corrected recommendation
+      below.
+
+      This project does have an active, deliberate response to *part*
+      of this problem: GitLab issue #110 and its Gate 1 plan
+      (`docs/plans/20260816T114725Z-open-mr-hygiene-disposition.md`,
+      MR !1617) triage open merge requests one at a time, with a
+      corrected verification methodology (merge-base diff + unique
+      content-identifier search, not path existence, since shared
+      accumulator files like `agf/learnings/foundry.yaml` and
+      `docs/radar.md` make path-only checks unreliable) after an
+      earlier, less rigorous pass
+      (`20260811T212756Z-planner-architect-rhrj`, 2026-08-12) closed 20
+      already-agreed dead MRs but left the underlying queue largely
+      intact. Issue #110's own bounded first round (Gate 1 activated
+      2026-08-16 under the standing `tgjs` conditional mandate,
+      executed, Gate 2 accepted `ahh2`) closed exactly one MR (!921).
+
+      What has no plan at all, as of this record: a closure SLO for
+      pending handoffs/acknowledgements, a bounded maximum branch
+      lifetime, a recurring (not one-off) drift-closure process for the
+      51 rule-copy findings, or any dashboard/ownership assignment for
+      tracking queue health over time. The existing response is
+      deliberately narrow, bounded, per-item, and manual by design (to
+      avoid the blanket-closure risk of destroying real unpublished
+      backlog) — but that same design does not itself distinguish a
+      live obligation from a stale or already-resolved projection in
+      the tooling's own reported counts (per the `37mj` correction
+      above). Whether the *rate* of accumulation is actually a problem,
+      versus the *reporting* being noisy, is exactly what a measurement
+      baseline (not yet built) would establish — this entry does not
+      claim to already know which.
+    agents_involved:
+      - planner-architect
+      - contribution-auditor
+      - coder-tester
+      - governor-reviewer
+    framework_section: >-
+      workflow/simplicity-rule.md's per-task workflow calibration table
+      has no entry for "recurring queue-health SLO" — the closest rows
+      (single-file fix, cross-cutting change) assume a single bounded
+      task, not an ongoing rate-bounding obligation. No existing rule in
+      `.claude/rules/` currently requires a project to define or
+      maintain a closure SLO, bounded branch lifetime, or drift-closure
+      cadence for its own coordination/MR backlog.
+    business_impact:
+      type: cost_overhead
+      description: >
+        No realized harm yet — issue #110's bounded, verified approach
+        has correctly avoided the failure mode of destroying real
+        backlog through blanket closure. The cost is reviewer/agent
+        attention: an unbounded queue makes it progressively harder for
+        any single poll cycle (human or agent) to distinguish a live
+        obligation from historical noise, which is exactly the risk the
+        DD's R3 finding (unauthenticated governance records) and R8
+        finding (queue-buried control signal) compound against each
+        other — a large, growing queue is also a larger haystack in
+        which a wrong or stale approval could hide unnoticed.
+    recommendation: >
+      **Superseded by joint consensus (`37mj`, 2026-08-17):** the
+      original recommendation here proposed a single four-mechanism
+      policy bundle (closure SLO, bounded branch lifetime, drift
+      cadence, dashboard) directly. Coder-tester's independent review
+      accepted the underlying signal but blocked that framing as
+      premature. Joint disposition: build a **Phase 0 measurement and
+      triage baseline first** — a computed inventory classifying every
+      pending obligation into mutually exclusive states (live,
+      human-gated, completed-but-unacknowledged, superseded,
+      stale-projection, historical) and every branch by disposition
+      (active-MR, closed/merged-MR, protected, evidence-preserving,
+      other) with age buckets — using a deterministic `agov` report,
+      not a manually maintained dashboard. Enforcement mechanisms
+      (SLOs, lifetimes, cadences) are deferred to a later Gate 1
+      decision, made only if the baseline actually demonstrates they
+      would remove more recurring review effort than they add (per
+      `workflow/simplicity-rule.md`). See
+      `docs/plans/20260817T210510Z-operational-debt-phase0-measurement.md`
+      for the resulting plan and `37mj`'s full success-criteria list.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !1691 (docs/dd-20260817-external-ai-diligence, commit c7c24ebcd2af9ba7671dfa6b7619508af39ba0bb, not yet merged), docs/reviews/20260817T173000Z-external-ai-diligence-chatgpt-claude-grok-lumo/raw/11-ChatGPT-Answer.md, section F7/R8 (Prioritized Risk Register), 2026-08-17 — AI-simulated due-diligence assessment commissioned by the project's own maintainer, not an independent third-party audit; treated as a single self-produced evidentiary source, same evidentiary weight as this project's other self-produced review findings."
+

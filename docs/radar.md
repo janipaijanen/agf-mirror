@@ -376,6 +376,43 @@ Next review: 2026-10.
   `docs/proposals/radar/1451-strategic-candidate-comparison.md`; source: MR !1451
   | status: parked question, no commitment | review-by: 2027-01-31
 
+- **Release provenance: commit/tag signing and SBOM** — Should AGF releases carry
+  independently verifiable provenance, meaning signed tags or commits and a
+  dependency inventory (SBOM), beyond same-channel checksums and self-issued
+  metadata? The retained learning entry and its handoff record a 2026-08-17
+  observation of zero signed commits, zero signed tags and no SBOM, taken from an
+  external due-diligence simulation and counted at that date, so the numbers are
+  historical and not re-verified. The independent read recommended separating an
+  SBOM slice from a signing-identity proof of concept (keyless CI identity versus
+  a hardware-backed fallback) and warned against implementing from the entry.
+  This is security-relevant: revisit at the next release-engineering or
+  deprecation/supply-chain review, or on an adopter request for verifiable
+  provenance. Carriers: `docs/proposals/radar/1722-supply-chain-signing-learning-entry.txt`,
+  `docs/proposals/radar/1722-supply-chain-signing-handoff.md`; source: MR !1722 |
+  status: parked question, no signing or SBOM commitment | review-by: 2027-01-31
+
+- **Operational-debt backlog bounds** — Does the queue itself need closure SLOs,
+  bounded branch lifetime and an ownership view, given pending handoffs, branch
+  sprawl and rule-copy drift? The retained Phase-0 plan was approved, but only
+  Snapshot 1 was taken (2026-08-17) and Snapshot 2 never was, so the baseline is
+  one dated snapshot and the proposed SLO response never found a sponsor. Promote
+  only with a named sponsor and a fresh snapshot. Carriers:
+  `docs/proposals/radar/1718-operational-debt-phase0-measurement.md`,
+  `docs/proposals/radar/1718-operational-debt-learning-entry.txt`,
+  `docs/proposals/radar/1718-snapshot-1-README.md` and the data files under
+  `docs/proposals/radar/data/1718-snapshot-1-*`; source: MR !1718 (its 554-line
+  branch inventory stays only on the retained branch) | status: parked question,
+  no SLO commitment | review-by: 2027-01-31
+
+- **AI-regulation requirements gap analysis (historical)** — The retained analysis
+  and its fact-check history (bounded renewed fact-check CLEAR at the MR head on
+  2026-08-03) preserve how AGF maps to AI regulation and governance requirements as
+  of that date. It is dated source material and makes no current legal, regulatory
+  or compliance finding; the live question is the re-assessment entry above.
+  Carrier: `docs/proposals/radar/967-ai-regulation-requirements-gap-analysis.md`;
+  source: MR !967 (its `docs/sources.md` edit stays only on the retained branch) |
+  status: parked, folded under the re-assessment question | review-by: 2027-01-31
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
