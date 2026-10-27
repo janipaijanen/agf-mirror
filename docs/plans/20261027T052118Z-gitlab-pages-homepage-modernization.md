@@ -51,9 +51,12 @@ conditions below are met.
 
 Implementation is blocked until all of these are visible on `main`:
 
-1. a Human Governor release-freeze decision for plan
-   `20261026T151646Z-next-release-scope-intake` that names the selected `IN`
-   scope, semantic version, and exact base SHA;
+1. a reviewed material refresh of
+   `20261026T151646Z-next-release-scope-intake`, followed by a Human Governor
+   release-freeze decision that names the selected `IN` scope, semantic
+   version, and exact base SHA. That intake/freeze must explicitly admit this
+   plan, `20261027T052118Z-gitlab-pages-homepage-modernization`, either as an
+   `IN` item or as a named controlled post-freeze documentation slice;
 2. reconciled release changelogs and no unresolved release-content
    disposition at that base;
 3. the approved and merged output of
@@ -65,6 +68,9 @@ Implementation is blocked until all of these are visible on `main`:
 The implementation branch starts from the frozen base or a later descendant
 that changes no frozen content assumption. Any changed release scope,
 third-party claim, destination URL, or site architecture returns to planning.
+If the reviewed intake and binding freeze do not name this plan, implementation
+stays blocked and the modernization moves to a later release; a generic
+documentation sweep or a stable content set does not silently admit it.
 
 ## Smallest complete implementation
 
