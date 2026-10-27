@@ -14,12 +14,14 @@ advisory_consultation:
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      This material amendment adds two documentation-slice candidates and updates
-      the Phase A row. The earlier independent review
-      `20261026T203055Z-contribution-auditor-6572` covers the previous exact head
-      only. A non-author review of this exact head is required before Gate 1.
+      Non-author review by codex-foundry (room seq 789) at exact head
+      `3fdac97f2bbfc29bf3104fb4357963ef0385c634`: content CLEAR; the B1, B2 and A1
+      wording fixes are accurate and limited, with no IN, version, freeze,
+      implementation or promotion. Pipeline `2995161449` success. Any new head
+      needs a narrow recheck. Earlier Claude pass `20261027T050957Z-contribution-auditor-krqb`
+      covered a different plan head and is not relied on here.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
