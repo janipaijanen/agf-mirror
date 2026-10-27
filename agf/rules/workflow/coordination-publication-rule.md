@@ -401,8 +401,8 @@ These statuses add no blocking authority; the existing named coordination
 schema validator remains the field-validation gate.
 
 Rollout requires compatible framework schemas/rules and CLI/MCP artifacts before
-any immutable record uses these fields. The intended first release is v2.11.0;
-release preflight must verify actual artifacts and minimum supported versions.
+any immutable record uses these fields. They first shipped in v2.11.0; operators
+must still verify actual artifacts and minimum supported versions before use.
 Older readers reject fields or lack the command; complete partial upgrades
 without stripping immutable fields. Before first use a gated revert is possible.
 After first use preserve field recognition: a separately gated forward correction

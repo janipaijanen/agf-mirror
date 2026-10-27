@@ -433,7 +433,7 @@ Optional `handoff.for_session` addresses a recipient; top-level `session` record
 
 ## Urgency-ordered queues
 
-In the v2.11 development implementation (Level 4: validated, not yet released),
+The v2.11.0 release made this capability Level 5 — Deployable:
 `urgency: urgent` puts an unresolved item ahead of normal or omitted urgency.
 This self-declared field is advisory; it grants no authority or ownership.
 
@@ -464,16 +464,16 @@ six independent publication, authority, urgency/obligation, target, expiry and
 release-authorization checks before delay. Missing checks require immediate
 publication. Neither complete coverage nor unassociated means safe to delay.
 
-Install compatible framework and tooling artifacts before first use (intended
-first release v2.11.0; confirm actual shipped support). Older readers cannot
-read these fields. Never remove fields from immutable records to downgrade.
+The fields and tooling shipped in v2.11.0. Install compatible framework
+schemas, rules, and tooling artifacts together before first use. Older readers
+cannot read these fields. Never remove fields from immutable records to downgrade.
 The normative [publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md)
 defines conservative error handling and schema-preserving forward disablement.
 
 ## Challenge-response
 
-The v2.11 development CLI (Level 4, not yet released) recognizes an optional
-`challenge` object on review records. Raise a dispute with a unique
+The v2.11.0 release made this CLI capability Level 5 — Deployable. It recognizes
+an optional `challenge` object on review records. Raise a dispute with a unique
 `challenge_id`, a `disputed_record_id` also named in `references-to`, and a
 `window_hours` value from 1 through 720. Declare your author `session` when
 posting party replies. A reply uses the same challenge ID, references the
