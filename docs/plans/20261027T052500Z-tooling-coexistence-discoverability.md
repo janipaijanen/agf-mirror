@@ -30,6 +30,7 @@ affected_paths:
   - docs/reviews/rule-projection/20261027T052500Z-tooling-coexistence-discoverability.yaml
 depends_on:
   - 20261026T151646Z-next-release-scope-intake
+  - 20260921T040743Z-assistant-rule-drift-resolution
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -209,6 +210,16 @@ merges.
   name (the names appear only in the evidence entries on the coexistence page).
 - The "some evidence" link resolves to an evidence entry that states the number of
   repositories, the period, and the limits.
+
+## Collision disposition
+
+The collision gate reports one overlap on `README.md` with the approved plan
+`20260921T040743Z-assistant-rule-drift-resolution`, now acknowledged in `depends_on`.
+That plan is long approved and its work is not part of this plan. Before
+implementation the owner MUST fetch current refs, confirm whether that plan still has
+unmerged work on `README.md`, and rebase onto its merged result; a conflicting
+counterpart is a stop for coordination, not permission to overwrite. This
+acknowledgment approves nothing.
 
 ## Risks and rollback
 
