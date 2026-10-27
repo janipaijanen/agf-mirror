@@ -16,12 +16,13 @@ advisory_consultation:
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Non-author review by codex-foundry (room seq 789) at exact head
-      `3fdac97f2bbfc29bf3104fb4357963ef0385c634`: content CLEAR; the B1, B2 and A1
-      wording fixes are accurate and limited, with no IN, version, freeze,
-      implementation or promotion. Pipeline `2995161449` success. Any new head
-      needs a narrow recheck. Earlier Claude pass `20261027T050957Z-contribution-auditor-krqb`
-      covered a different plan head and is not relied on here.
+      Independent non-author review at exact head
+      `ce434093be56cc55814b189b050d26f2e76e763f`: CLEAR. The landed evidence,
+      exactly two ordered IN documentation items, removal of their CANDIDATE
+      rows, and the eight DEFER closures are accurate; no version, tag, release,
+      deployment, or whole-scope freeze is selected. Pipeline `2995361298`
+      succeeded with jobs `17511257529`, `17511257530`, and `17511257531`.
+      Any new head needs a narrow recheck.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
