@@ -14,12 +14,13 @@ advisory_consultation:
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      This material amendment selects v2.12.0, an exact base, and the final
-      two-item IN scope. Pending a non-author review of the exact head; the
-      earlier CLEAR covered the version-neutral intake and does not authorize
-      this freeze candidate.
+      Review 20261027T215147Z-contribution-auditor-rajn covers exact plan head
+      1c131572e22e44b4428100d83ea46fd44378e3b9 and returns CLEAR after the
+      sole stale-state finding was resolved. This later metadata-only head
+      records that review without changing version, base, scope, candidate
+      disposition, authority, or acceptance criteria.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
