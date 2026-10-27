@@ -22,6 +22,12 @@ advisory_consultation:
       claim. F3 is resolved by objective shared-publication, citation, and
       chronology evidence. F4 is resolved by binding eligibility to record
       kinds, requires-ack: false, and absence of obligation/lifecycle signals.
+      Claude's exact-head re-audit of cea56392 was CLEAR with two nonblocking
+      advisories: A1 is applied by defining exhausted authority as every
+      authorized action completed or expired, never partial completion; A2 is
+      applied by making unchanged record content in a commit reachable from an
+      approved shared ref before the action dispositive, while the
+      author-written timestamp is corroborating evidence only.
 affected_paths:
   - agf/rules/workflow/coordination-publication-rule.md
   - agf/docs/site/docs/concepts/coordination-protocol.md
@@ -47,9 +53,9 @@ Codify one narrow adopter-facing exception to the ordinary human merge-decision
 path: after an already-authorized merge has completed, the author may merge a
 coordination-only record whose sole remaining effect is publication of the
 audit trail. This includes carrying to `main` an unchanged decision record that
-was already published on an approved shared path before the action, supplied
-the decision's authority is now exhausted by the completed action. It does not
-include creating authority retrospectively.
+was already committed and reachable from an approved shared ref before the
+action, supplied every action it authorized has completed or expired. It does
+not include partial completion or creating authority retrospectively.
 
 The Human Governor approved this foundry behavior in the bridge and binding
 decision records
@@ -77,9 +83,10 @@ Add a concise subsection to
 exception as a conjunction: every condition below is required.
 
 1. The candidate is a coordination-only MR concerning one or more completed
-   merges. Each merge had authority published on `main` or an approved shared
-   path before it executed; local, untracked, and local-only records do not
-   count.
+   merges. Each merge had authority published before execution as unchanged
+   record content in a Git commit reachable from `main` or another approved
+   shared ref; local, untracked, local-only, or merely timestamped records do
+   not count.
 2. Every added record has kind `note`, `completion`, or `decision-record` (so
    `claim` and `handoff` kinds are ineligible), sets `requires-ack: false`, and
    has none of the top-level `handoff`, `challenge`, `publication_hold`,
@@ -87,17 +94,22 @@ exception as a conjunction: every condition below is required.
    other than making the audit trail visible.
 3. Prior authority is objective rather than self-attested:
    - an eligible carried `decision-record` has the same ID and unchanged
-     content as its pre-action shared publication; both its record timestamp
-     and that shared publication precede the action; and its authority is
-     exhausted because the authorized action is complete; or
+     content as the version in a Git commit that was reachable from an approved
+     shared ref before the action; its author-written timestamp corroborates
+     that chronology but never establishes it; and its authority is exhausted
+     because **every** action the record authorizes has completed or expired
+     (partial completion is ineligible); or
    - an eligible post-action `note` or `completion` cites the pre-action
      authorizing record in `references-to`; that authorizing record was already
-     visible on `main` or an approved shared path before the action and both its
-     timestamp and publication precede the action.
-4. Merge evidence names the authorizing record, its approved shared location,
-   the action/merge it authorized, and the relevant publication and action
-   timestamps or commit identities, making the authority-before-action and
-   completion chronology reviewable.
+     present unchanged in a Git commit reachable from `main` or another
+     approved shared ref before the action. Its timestamp is corroborating,
+     never dispositive.
+4. Merge evidence names the authorizing record, the pre-action commit containing
+   its unchanged content, the approved shared ref from which that commit was
+   reachable before action, every action the record authorized, and the
+   corresponding completion or expiry evidence. It records the relevant commit
+   identities and chronology so authority-before-action and complete exhaustion
+   are independently reviewable.
 5. The full candidate passes `agov coord publication-check`, coordination
    validation, and every required CI job at the exact current head.
 6. Immediately before merge, the current-target merge tree contains only the
@@ -119,8 +131,8 @@ The rule MUST state that the exception never covers:
   create retrospective authority, or a decision needed before an unfinished
   action or before any irreversible action executes;
 - creation or change of Gate 1 or Gate 2 authority (an unchanged pre-action
-  decision may only be carried after its authorized action completed, when its
-  authority is exhausted);
+  decision may only be carried after every action it authorized completed or
+  expired, when its authority is exhausted);
 - implementation or mixed-scope content;
 - a changed prior decision or a record that grants authority or creates a new
   downstream obligation;
@@ -167,10 +179,12 @@ these results without inventing policy:
 
 | Scenario | Expected result | Reason |
 |---|---|---|
-| Before a merge, the Human decision record is published on an approved shared branch; after the authorized merge completes, the exact same record ID and content are carried to `main`; its timestamp and shared publication precede the merge, and all seven checks pass. | Eligible; the exhausted decision may be carried unchanged and the chain ends. | Publication completes the audit trail but creates no authority. |
+| Before a merge, unchanged Human decision-record content is committed and reachable from an approved shared ref; after every action it authorizes completes or expires, the exact same ID/content are carried to `main`, and all seven checks pass. | Eligible; the exhausted decision may be carried unchanged and the chain ends. | Git reachability proves prior publication; publication to `main` creates no authority. |
 | After an authorized merge completes, a `note` or `completion` with `requires-ack: false` cites the pre-action authorizing record, and the evidence proves the authority-before-action chronology. | Eligible; the author may merge the exact head and the chain ends. | It is post-action evidence tied to objective prior authority. |
+| A decision authorized two actions, but only one completed and the other has neither completed nor expired. | Blocked. | Authority is not exhausted; partial completion cannot terminate the chain. |
+| A record carries a pre-action timestamp but no commit containing its unchanged content is proven reachable from an approved shared ref before the action. | Blocked. | An author-written timestamp cannot prove publication or prior authority. |
 | A decision record is first shared after the action and claims that it authorized the already-completed action. | Blocked. | This is retrospective authority creation, not carry of exhausted authority. |
-| A carried decision's ID or content differs from its pre-action shared publication, or the publication/timestamp does not precede the action. | Blocked. | Prior authority and unchanged carry are not objectively established. |
+| A carried decision's ID or content differs from the pre-action commit, or that commit was not reachable from an approved shared ref before action. | Blocked. | Prior authority and unchanged carry are not objectively established. |
 | A note/completion does not cite the pre-action authorizing record, or merge evidence omits its shared location and chronology. | Blocked. | Authority is self-attested or unreconstructable. |
 | A record has `requires-ack: true`, another kind, or a handoff, claim, challenge, hold, urgency, or supersession signal. | Blocked. | It may create an obligation or alter lifecycle state. |
 | The same record asks for permission to merge an implementation that has not merged. | Blocked. | The authority is live and the action unfinished. |
@@ -189,7 +203,8 @@ Gate 2 evidence MUST include:
   exclusion are present in the canonical owner, with projections remaining
   subordinate, including fixtures or worked examples for unchanged exhausted
   decision carry, cited post-action evidence, retrospective authority, changed
-  decision bytes/ID, missing chronology, and obligation signals; and
+  decision bytes/ID, partial completion, timestamp-only claims, missing
+  reachability/chronology, and obligation signals; and
 - a current-target diff/merge-tree inspection proving the implementation MR
   itself contains only its approved four-file scope. The implementation MR is
   a rule change and therefore is not eligible to self-merge under the exception
@@ -208,8 +223,9 @@ cross-project validation.
 
 - **A record smuggles prospective authority into a post-action narrative.**
   Control: all conditions are conjunctive; pre-action shared publication and
-  chronology are objective, and any new authority, changed decision, missing
-  citation, or downstream-obligation signal makes the candidate ineligible.
+  chronology are proven through commit content and approved-ref reachability,
+  and any new authority, changed decision, missing citation, partial completion,
+  or downstream-obligation signal makes the candidate ineligible.
 - **A clean source head becomes unsafe after target movement.** Control:
   re-fetch and inspect the current-target merge tree immediately before the
   exact-SHA merge; stale pipeline evidence alone is insufficient.
