@@ -1,4 +1,4 @@
-<!-- Radar carrier. Retained verbatim from MR !459 (source branch plan/issue53-blinded-ci-followup, head 09b5147f), file docs/plans/issue-53-feedback-latency-measurement.md. Front-matter status was pending-gate1 and is not an approval.
+<!-- Radar carrier. Retained verbatim from MR !459 (source branch plan/issue53-blinded-ci-followup, head 09b5147f), file docs/plans/issue-53-feedback-latency-measurement.md. Its front matter records status approved with a Governor Gate 1 reference dated 2026-07-23; that is historical and is not a live approval for any work.
      Non-authoritative: parked on the radar, grants no Gate 1, rule, template, validator or implementation authority. -->
 ---
 id: issue-53-feedback-latency-measurement

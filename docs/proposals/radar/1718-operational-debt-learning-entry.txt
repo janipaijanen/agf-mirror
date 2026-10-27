@@ -1,4 +1,4 @@
-<!-- Radar carrier. Retained verbatim from MR !1718 (source branch docs/learning-dd-operational-debt-backlog, head a5e690e2), the lines it added to agf/learnings/foundry.yaml (a proposed learning entry, never recorded).
+<!-- Radar carrier. Retained verbatim from MR !1718 (source branch docs/learning-dd-operational-debt-backlog, head a5e690e2), the lines it added to agf/learnings/foundry.yaml (a proposed learning entry, never recorded). Whitespace only: the trailing blank line was removed.
      Non-authoritative: parked on the radar, grants no Gate 1, rule, template, validator or implementation authority. -->
   - id: "20260817T202241Z-ookv"
     date: "2026-08-17"
@@ -119,4 +119,3 @@
       evidence_count: 1
       evidence_refs:
         - "MR !1691 (docs/dd-20260817-external-ai-diligence, commit c7c24ebcd2af9ba7671dfa6b7619508af39ba0bb, not yet merged), docs/reviews/20260817T173000Z-external-ai-diligence-chatgpt-claude-grok-lumo/raw/11-ChatGPT-Answer.md, section F7/R8 (Prioritized Risk Register), 2026-08-17 — AI-simulated due-diligence assessment commissioned by the project's own maintainer, not an independent third-party audit; treated as a single self-produced evidentiary source, same evidentiary weight as this project's other self-produced review findings."
-

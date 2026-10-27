@@ -63,3 +63,5 @@ Pending non-handoff obligations came from `agov coord pending --format json` at 
 - `summary.json` — machine-readable counts and Snapshot-1 N/A denominators.
 
 Snapshot 2 must join these stable keys to its own item rows. Counts alone must not be subtracted to infer arrivals, dispositions, or transitions.
+
+<!-- Fidelity exception: the two CSV files under docs/proposals/radar/data/ with the 1718-snapshot-1 prefix were normalized from CRLF to LF line endings so the repository whitespace check passes. Nothing else differs from the source blobs; the 554-line branches.csv is not carried. -->
