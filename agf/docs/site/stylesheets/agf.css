@@ -219,6 +219,10 @@
   font-size: 1rem;
 }
 
+.agf-route-card a {
+  color: var(--md-accent-fg-color);
+}
+
 .agf-route-card p {
   margin: 0;
   color: var(--md-default-fg-color--light);
