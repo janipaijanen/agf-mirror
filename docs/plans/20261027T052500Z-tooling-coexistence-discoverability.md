@@ -137,8 +137,10 @@ not edited here (the new text only links to it if needed).
   text says so; each needs the adopter's own review and a human trust decision.
 - No token-savings, cost, speed or quality claim, and no vendor benchmark figure
   unless it is labelled vendor-stated, attributed, and not reproduced. The author's
-  own Phase A measurement (report on `main` at `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`) shows always-on instructions and
-  hooks add context, so nothing here may imply AGF or a plugin saves tokens.
+  own Phase A measurement (report on `main` at `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`)
+  reports material context cost in the tested Claude and foundry condition and
+  identifies user-level hooks as a confound; it does not isolate plugin cost. Nothing
+  here may imply AGF or a plugin saves tokens.
 - Third-party claims are attributed to the third party's own documents and dated;
   they are not presented as verified, and no sentence implies the plugin code was
   audited. Names are used nominatively and respect each project's trademark terms.
