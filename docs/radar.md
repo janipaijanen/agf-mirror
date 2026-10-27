@@ -336,8 +336,8 @@ Next review: 2026-10.
   `docs/proposals/radar/459-issue-53-feedback-latency-measurement.md`,
   `docs/proposals/radar/459-issue-53-feedback-latency-evidence-2026-07-24.md`,
   `docs/proposals/radar/data/459-issue-53-feedback-latency-normalized-2026-07-24.json`;
-  source: MR !459 (the fourteen coordination records of that branch stay only on
-  the retained branch) | status: parked question, no measurement commitment |
+  source: MR !459 (the thirteen coordination records and the proposed learning record
+  `20260723T231109Z-w7k2` of that branch stay only on the retained branch) | status: parked question, no measurement commitment |
   review-by: 2027-01-31
 
 - **Expectation signals for material caveats (issue #100)** — Does AGF need a
