@@ -5,7 +5,7 @@
 
 Plan: `20261026T155400Z-context-delivery-measurement` (Gate 1 `20261026T174028Z-governor-reviewer-snh2`).
 Evidence status: measured facts are Empirically informed for the tested client only; any adopter-benefit claim stays Theoretical.
-Status of this draft: Codex-client CTX-2 is not assessable (see below), so the plan's outcome rule gives `inconclusive`.
+Status of this report: Codex-client CTX-2 is not assessable (see below), so the plan's outcome rule gives `inconclusive`.
 
 ## Pinned subjects
 - S1: `main` commit `e5548cf6e9b5372e374aa3368b6e98ae3800553c`, exported with `git archive` into a directory outside the repository tree.
