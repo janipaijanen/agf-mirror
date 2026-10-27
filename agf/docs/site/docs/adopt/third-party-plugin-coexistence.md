@@ -84,8 +84,10 @@ Vendor-stated facts at that commit:
   unresolved;
 - the [plugin configuration](https://github.com/DietrichGebert/ponytail/blob/16352ac229eb08a9598dcae48fe9f2b342567d86/.claude-plugin/plugin.json)
   enables a local per-turn task ledger by default;
-  its optional webhook URL is empty by default, and task names default to being
-  sent when a webhook is configured.
+  its optional webhook URL is empty by default, so no webhook sends by default.
+  When configured, the webhook receives the task row as JSON—including cost,
+  turns, agent time, tokens, reuse, and test status—and task names default to
+  being included.
 
 Foundry evidence: the Phase A
 [context-delivery report](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f/docs/reviews/context-delivery-measurement/20261026T155400Z-context-delivery-measurement-report.md)
@@ -114,13 +116,16 @@ Vendor-stated facts at that commit:
   selected file to the configured model provider;
 - its tagged [security document](https://github.com/JuliusBrussee/caveman/blob/d262ab3882952a59312ff3537cd86d894523c5ab/SECURITY.md)
   says, **“Telemetry is on by default and
-  opt-out.”** A native `SessionStart` can send a background `session_start`
-  event only after an interactive choice has been persisted. The listed event
+  opt-out.”** The first eligible interactive run discloses the scope and can
+  persist the default-on decision without affirmative opt-in; non-interactive
+  runs do not persist that default. A native `SessionStart` can then send a
+  background `session_start` event. The listed event
   fields can include install and account state, locale and timezone, session,
   command and outcome, token and proxy aggregates, aggregate first-run scan
   counts from local Claude Code or Codex history, MCP tool metadata, and the
-  sender's IP address. The same document names `caveman telemetry off` and
-  `DO_NOT_TRACK=1` as controls;
+  sender's IP address. The same document warns that desktop or background hooks
+  may miss a shell-only `DO_NOT_TRACK`; `caveman telemetry off` persists a
+  lasting opt-out;
 - the tagged security document says Git tags were not protected and GitHub
   immutable releases were not enabled at that snapshot. It separately says
   runtime binaries are checked against a signed manifest. These are
