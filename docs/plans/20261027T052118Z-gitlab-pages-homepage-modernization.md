@@ -12,19 +12,13 @@ advisory_consultation:
       CSS only. It adds no executable code, credential path, network request,
       data collection, external asset, dependency, or deployment mechanism.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Independent review must confirm that the two-file visual refresh stays
-      subordinate to the canonical documentation, does not add unsupported
-      third-party claims, and cannot begin before the release freeze and
-      coexistence-content prerequisites are satisfied.
-  - role: web-ux-reviewer
-    status: pending
-    reason: >-
-      An independent reviewer must inspect the rendered exact-head candidate
-      at desktop and narrow-mobile widths, in light and dark themes, including
-      keyboard focus, contrast, overflow, navigation clarity, and reduced-motion
-      behavior before Gate 2.
+      Claude independently reviewed MR !3276 at head `fe1488ce` in ACS room
+      seq 769. M1 found that a pending plan-stage web-UX row would block Gate 1
+      even though rendered review is correctly a Gate 2 requirement; A1 asked
+      for a neutral route label aligned with the coexistence plan. Both findings
+      are applied here. Exact-head Gate 1 review remains a Human decision.
 affected_paths:
   - agf/docs/site/index.md
   - agf/docs/site/stylesheets/agf.css
@@ -82,7 +76,7 @@ the visitor's next decision. The implementation will:
   caveat, evidence-status qualifier, cost statement, or release-status fact;
 - present three clear routes—**Decide**, **Adopt**, and **Operate**—using
   existing canonical destination pages;
-- add one compact **Fits around your stack** route to the canonical
+- add one compact **Using AGF with other tools** route to the canonical
   third-party-plugin coexistence guide produced by the prerequisite plan;
 - use a small responsive card/grid treatment built from the existing AGF
   palette tokens and typography; and
@@ -135,7 +129,7 @@ Gate 2 requires all of the following at the exact implementation head:
    either duplicated elsewhere on the same page or retained behind a direct
    canonical link; unique warnings, qualifications, and measured-versus-
    theoretical labels are not silently lost.
-4. The Decide, Adopt, Operate, and Fits around your stack routes resolve in the
+4. The Decide, Adopt, Operate, and Using AGF with other tools routes resolve in the
    rendered build, use descriptive link text, and remain usable without CSS.
 5. An independent `web-ux-reviewer`, distinct from the implementer, records a
    rendered exact-head review at desktop and narrow-mobile widths in both
