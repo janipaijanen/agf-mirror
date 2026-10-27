@@ -89,6 +89,7 @@ nav:
           - Install the agf directory: docs/adopt/install-and-layouts.md
           - Adopter applicability catalog: docs/adopt/applicability-catalog.md
           - Assistant loader configuration: docs/adopt/assistant-loader-configuration.md
+          - Third-party assistant tooling: docs/adopt/third-party-plugin-coexistence.md
           - Your first governed change: docs/start/first-governed-change.md
           - Upgrade from v1 (agents-govern): docs/adopt/upgrade-from-v1.md
           - Tooling and token savings: docs/adopt/tooling-and-tokens.md
