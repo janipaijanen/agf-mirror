@@ -1,6 +1,8 @@
 ---
 id: 20261027T230355Z-v212-release-freeze-corrections
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261027T231633Z-governor-reviewer-ma21
+gate1_approved_at: "2026-10-27T23:16:33Z"
 topic: v212-release-content-freeze-corrections
 advisory_consultation:
   - role: infosec-sentinel
