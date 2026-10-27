@@ -1,6 +1,6 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
-status: approved
+status: pending-gate1
 gate1_approved_by: 20261027T183717Z-governor-reviewer-a8d6
 gate1_approved_at: "2026-10-27T18:37:17Z"
 topic: next-release-scope-and-rolling-intake
@@ -8,21 +8,18 @@ advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
-      This plan records release-intake evidence and sequencing only. It
-      authorizes no implementation, credential access, CI change, artifact
-      publication, version choice, tag, or deployment. Every admitted
+      This amendment selects release scope, version and a documentation-only
+      base. It changes no credential path, security policy, executable content,
+      artifact publication, tag or deployment mechanism. Every admitted
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
-    status: consulted
+    status: pending
     reason: >-
-      Independent non-author review at exact head
-      `ce434093be56cc55814b189b050d26f2e76e763f`: CLEAR. The landed evidence,
-      exactly two ordered IN documentation items, removal of their CANDIDATE
-      rows, and the eight DEFER closures are accurate; no version, tag, release,
-      deployment, or whole-scope freeze is selected. Pipeline `2995361298`
-      succeeded with jobs `17511257529`, `17511257530`, and `17511257531`.
-      Any new head needs a narrow recheck.
+      This material amendment selects v2.12.0, an exact base, and the final
+      two-item IN scope. Pending a non-author review of the exact head; the
+      earlier CLEAR covered the version-neutral intake and does not authorize
+      this freeze candidate.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
@@ -37,15 +34,15 @@ depends_on:
 ## Purpose and authority
 
 The governor asked on 2026-10-26 to plan the next release and to formalize
-content gathering. This version-neutral plan is the single rolling owner for
+content gathering. This plan is the single rolling owner for
 that release's scope. It starts immediately after verified v2.11.0 publication
 at annotated tag `v2.11.0` (`d732e372f35bacd1f37981bb89031041d35121e4`,
 peeled commit `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`).
 
-Governor decision `20261026T203057Z-governor-reviewer-pq3q` approved the prior
-exact plan head. This amendment returns the plan to `pending-gate1` because it
-adds two candidates and changes the status of an existing row after the Phase A
-report landed. The earlier decision does not authorize this head.
+Governor decision `20261027T183717Z-governor-reviewer-a8d6` approved the prior
+exact plan head. This final amendment returns the plan to `pending-gate1`
+because it proposes the exact v2.12.0 freeze base and closes the last landed
+content disposition. The earlier decision does not authorize this head.
 
 This plan reuses the proven `IN` / `CANDIDATE` / `DEFER` vocabulary from the
 v2.11 scope plan. It is not a new project roadmap, queue ledger, milestone,
@@ -61,16 +58,17 @@ schema, or release tool:
 
 Only a governor decision may promote a row from `CANDIDATE` to `IN`, remove an
 `IN` row, choose a version, freeze scope, or authorize a release cut. Every
-workstream retains its own Gate 1 and exact-head Gate 2. This plan grants no
-implementation, merge, tag, package, release, or deployment authority.
+workstream retains its own Gate 1 and exact-head Gate 2. Until a binding
+governor decision approves this exact head, this plan grants no implementation,
+merge, tag, package, release, or deployment authority.
 
 ## Why a rolling intake is needed
 
 The current evidence surfaces answer different questions and are not a
 complete release scope by themselves:
 
-- both `[Unreleased]` changelogs are empty after v2.11.0 and cannot represent
-  prospective work;
+- changelogs record landed work but cannot represent prospective work or choose
+  release scope by themselves;
 - the open queue remains nontrivial and mostly unmilestoned, including old
   `park-radar` items that must not become release candidates by age or
   visibility;
@@ -136,36 +134,50 @@ retroactively authorizing the merge. The remaining post-tag changes through
 under Gate 1 record `djnt` (MR !3290, merged `0e6e2604`). This amendment merged as `25326561`
 (MR !3283). The eight park-radar merge requests were closed 2026-10-27 under decision `5nmt`
 (MR !3291, merged `c245ce38`) and completion record `gpn3` (MR !3293); see DEFER. The
-current `main` at this writing is `cefea244`. Plans, coordination records, radar
-entries and verbatim radar carrier files (`docs/radar.md`, `docs/proposals/radar/`,
-merged through MR !3274 as `208f1d5a1031d49ac5b6056738a928c39dd0cb88`), and the Phase A
-measurement report (`docs/reviews/context-delivery-measurement/`, merged through MR
-!3271 as `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`). None of the paths above is under
-`agf/`, so none changes an adopter-visible surface. Both `[Unreleased]` sections
-list no entries.
+final reconciliation is recorded in
+`docs/reviews/next-release-freeze-evidence/20261027-read-only-summary.md`, merged
+at candidate base `9af411aa1186f454a5801100dcddf258d588d414`. At that base the
+only adopter-visible landed delta is MR !3098's retained skill-command
+correction, reconciled in `agf/CHANGELOG.md`; the root changelog intentionally
+has no entry. Plans, coordination records, radar entries and verbatim radar
+carrier files (`docs/radar.md`, `docs/proposals/radar/`, merged through MR !3274
+as `208f1d5a1031d49ac5b6056738a928c39dd0cb88`), and the Phase A measurement
+report (`docs/reviews/context-delivery-measurement/`, merged through MR !3271 as
+`9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`) do not add another adopter-visible
+release item.
 
 Timer-reality polling alignment is not part of this delta. Its implementation
 commit `324322ef26b3efaeb2cd5a545c6d95cd64e4ba0e` is already an ancestor of the
 v2.11.0 peeled commit and the v2.11.0 changelog records it.
 
-## IN
+## Freeze candidate
 
-One bounded documentation slice, in this order. No version, tag, release or
-freeze is chosen here, and the rest of the scope stays unfrozen.
+Proposed semantic version: **v2.12.0**. Proposed exact implementation base:
+`9af411aa1186f454a5801100dcddf258d588d414`. The candidate freezes one bounded
+documentation slice, in this order. It does not authorize a tag, publication or
+deployment; those require the later release-publication child plan and decisions.
 
-1. `20261027T052500Z-tooling-coexistence-discoverability` (MR !3275; plan status
-   approved, Gate 1 `p47g` on `main` via MR !3288). Implementation first: README
-   pointer, one adopter page, one navigation line and one projection manifest.
+1. `20261027T052500Z-tooling-coexistence-discoverability` (materially corrected
+   plan status approved, renewed Gate 1 `g2ar` on `main`). Implementation first:
+   README pointer, one adopter page, one navigation line and one projection manifest.
 2. `20261027T052118Z-gitlab-pages-homepage-modernization` (MR !3276; plan status
    approved, Gate 1 `djnt` on `main` via MR !3290). Implementation only after item
    1 merges. Its Gate 2 requires an independent rendered exact-head web-UX review,
    in addition to the plan's own acceptance evidence.
 
-This amendment records the governor's scope direction (room seq 798). It stays
+The exact-tag claim recheck at the proposed base confirms Ponytail v5.3.2 commit
+`16352ac229eb08a9598dcae48fe9f2b342567d86` and Caveman v4.0.1 peeled commit
+`d262ab3882952a59312ff3537cd86d894523c5ab`; the corrected evidence table and
+advisory reviews are in the coexistence plan. This amendment stays
 `pending-gate1` until a non-author review of this exact head and a new durable
-governor decision naming it. An approved workstream plan or green MR still does
-not self-promote into the release; each item's implementation needs its own
-Gate 2.
+governor decision names this base, v2.12.0 and both ordered IN items. Each
+implementation still needs its own exact-head Gate 2.
+
+## Retained landed change
+
+- MR !3098's skill-command correction is retained in the whole-tree release.
+  It is reconciled in `agf/CHANGELOG.md`; correction record `pbgd` preserves the
+  chronology without claiming retroactive Gate 2 authority.
 
 ## CANDIDATE seed inventory
 
@@ -173,7 +185,6 @@ These rows are decision inputs, not commitments.
 
 | Item / source | Potential adopter-visible outcome | Evidence and current gate | Compatibility and docs | Disposition | Promotion or exit condition |
 |---|---|---|---|---|---|
-| MR !3098, stale commands in shipped `agf/skills` | Shipped skills use current Rust `agov` commands | Source `6fccd783116bef86a908b4e53eadf9fd32d67b14` merged as `dc5523f6`; Gate 1 decision existed, but the implementation merged before its plan MR and without pre-merge Gate 2; correction record `20261026T180956Z-governor-reviewer-pbgd` merged through MR !3258 as `e5548cf6` | Documentation/skill correction; no runtime or schema behavior change | CANDIDATE (landed, disposition required) | Governor decides whether the whole-tree release retains this landed change or it is reverted. The correction record is evidence, not retroactive Gate 2 |
 | MR !3066 / issue #137, distribution-scan measurement | Evidence on suspected leading-`**` re-walk cost | Exact head `f7c1c8ec379bc61fa1b8e1fe4ea42fc4f1731367`; corrected measurement-first Gate 1 plan, independent review clear, green pipeline; `awaiting-governor` | Measurement only; no optimization claim or compatibility effect yet | CANDIDATE | Governor approves the measurement plan; optimization requires later evidence and its own plan |
 | Issue #128, cadence register / year-clock | One discoverable view of recurring governance obligations | Explicit prior-release candidate; no current Gate 1 plan | Likely documentation/governance surface; owner and projection boundaries unresolved | CANDIDATE | Governor chooses plan or deferral after checking overlap with roadmap and role cadences |
 | Issue #133, watcher idle versus work exhaustion | Mechanically distinct watcher-idle, inbox-idle, and queue-exhausted states | Recurrent operational failure model; issue carries `plan`; no Gate 1 plan | Could affect rules, skills, and operator docs; classification unknown | CANDIDATE | A bounded Gate 1 identifies the canonical owner and acceptance surface |
@@ -210,11 +221,12 @@ These rows are decision inputs, not commitments.
   owners and this plan's `depends_on` disposition manually.
 - Non-author contribution review confirms the table does not promote backlog,
   duplicate roadmap/ledger authority, or overstate issue/MR readiness.
-- The plan contains no candidate version, date commitment, implementation
-  authority, metadata edit, tag instruction, or new tooling/schema.
-- A later freeze can account for every merged change since `v2.11.0`, every
-  selected `IN` row, and every named `CANDIDATE` disposition without relying on
-  stale milestones.
+- The plan names one candidate version and exact base but grants no
+  implementation, metadata, tag, publication or deployment authority before
+  the binding governor decision. It adds no tooling or schema.
+- The freeze review can account for every merged change since `v2.11.0`, both
+  selected `IN` rows, and every named `CANDIDATE` disposition without relying
+  on stale milestones.
 
 ## Risks and rollback
 
