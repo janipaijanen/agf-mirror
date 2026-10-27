@@ -1,8 +1,8 @@
 ---
 id: 20261027T052500Z-tooling-coexistence-discoverability
-status: pending-gate1
-gate1_approved_by: 20261027T152926Z-governor-reviewer-p47g
-gate1_approved_at: "2026-10-27T15:29:26Z"
+status: approved
+gate1_approved_by: 20261027T211331Z-governor-reviewer-g2ar
+gate1_approved_at: "2026-10-27T21:13:31Z"
 topic: truthful-coexistence-content-and-discoverability
 advisory_consultation:
   - role: infosec-sentinel
