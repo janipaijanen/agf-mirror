@@ -327,6 +327,55 @@ Next review: 2026-10.
   status: compare as adjacent control plane, do not integrate | maturity: Level
   1 Planned; evidence: Empirically informed at most | review-by: 2026-11
 
+- **Release feedback latency (issue #53)** — Is the delay between a change and
+  usable pipeline/review feedback large enough, and measured reliably enough, to
+  justify a bounded re-measurement? The retained plan and its 2026-07-24 evidence
+  preserve the method and the normalized data; the evidence is historical and has
+  not been re-verified. Promote only when feedback delay is reported as a concrete
+  problem or a release-cadence review asks for the numbers. Carrier files:
+  `docs/proposals/radar/459-issue-53-feedback-latency-measurement.md`,
+  `docs/proposals/radar/459-issue-53-feedback-latency-evidence-2026-07-24.md`,
+  `docs/proposals/radar/data/459-issue-53-feedback-latency-normalized-2026-07-24.json`;
+  source: MR !459 (the fourteen coordination records of that branch stay only on
+  the retained branch) | status: parked question, no measurement commitment |
+  review-by: 2027-01-31
+
+- **Expectation signals for material caveats (issue #100)** — Does AGF need a
+  small convention so that a load-bearing caveat is not technically true but
+  practically buried? The retained proposal reached consensus on the foundation
+  and narrowed the mechanism, but at Level 1 Planned and Theoretical; it grants no
+  rule, template or validator authority and warns against warning decoration and
+  AI-hedging misuse. Promote only on a second concrete incident of a buried caveat
+  or a named sponsor. Carrier: `docs/proposals/radar/923-expectation-signals-consensus.md`;
+  source: MR !923, issue #100 stays open | status: parked question | review-by:
+  2027-01-31
+
+- **Learning-record enum enforcement** — Should `category`, `severity` and
+  `scope` move from documented conventions to enforced values, and should the top
+  `confidence.level` tier have an evidence threshold? The retained audit
+  reproduces the live schema and corpus state as of 2026-08-03 and leaves the
+  decision open, so its counts are historical. Revisit before any new
+  classification field is added to the learning schema. Carrier:
+  `docs/proposals/radar/998-learning-field-enforcement-audit.md`; source: MR !998
+  | status: parked question | review-by: 2027-01-31
+
+- **Deferred LLIS comparison learning candidates** — Which of the candidate
+  learnings drawn from the NASA LLIS comparison and the schema audit should be
+  recorded once the learning schema is stable? The retained list is a deferred
+  TODO gated on the supersession-field and enforcement-audit work, and nothing in
+  it was recorded as a learning. Carrier:
+  `docs/proposals/radar/1000-llis-deferred-learning-candidates.md`; source: MR
+  !1000 | status: parked, gated on learning-schema stability | review-by:
+  2027-01-31
+
+- **Strategic candidate comparison and release mapping** — Is a scored
+  comparison of the deferred strategic candidates, mapped to releases, worth doing
+  after the backlog triage? The retained document defines the exercise and says
+  explicitly not to start it. Promote only when the Human Governor asks for the
+  comparison or a release-cadence review needs it. Carrier:
+  `docs/proposals/radar/1451-strategic-candidate-comparison.md`; source: MR !1451
+  | status: parked question, no commitment | review-by: 2027-01-31
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
