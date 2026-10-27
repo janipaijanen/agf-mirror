@@ -1,6 +1,6 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
-status: approved
+status: pending-gate1
 gate1_approved_by: 20261026T203057Z-governor-reviewer-pq3q
 gate1_approved_at: "2026-10-26T20:30:57Z"
 topic: next-release-scope-and-rolling-intake
@@ -14,15 +14,12 @@ advisory_consultation:
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
-    status: consulted
+    status: pending
     reason: >-
-      Independent non-author Claude review
-      `20261026T203055Z-contribution-auditor-6572` returned CLEAR on exact plan
-      head `02268449b8b2a828a618e17e806a293f5744374a` with zero blocking, advisory,
-      or accepted-risk findings. Earlier Codex-subagent reviews
-      `20261026T201509Z-contribution-auditor-prhj` and
-      `20261026T202603Z-contribution-auditor-rts7` remain supporting evidence,
-      not the independent consultation.
+      This material amendment adds two documentation-slice candidates and updates
+      the Phase A row. The earlier independent review
+      `20261026T203055Z-contribution-auditor-6572` covers the previous exact head
+      only. A non-author review of this exact head is required before Gate 1.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
@@ -42,10 +39,10 @@ that release's scope. It starts immediately after verified v2.11.0 publication
 at annotated tag `v2.11.0` (`d732e372f35bacd1f37981bb89031041d35121e4`,
 peeled commit `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`).
 
-Governor decision `20261026T153847Z-governor-reviewer-s72h` approved the prior
+Governor decision `20261026T203057Z-governor-reviewer-pq3q` approved the prior
 exact plan head. This amendment returns the plan to `pending-gate1` because it
-removes a candidate that already shipped and changes the readiness and exit
-conditions of other rows. The earlier decision does not authorize this head.
+adds two candidates and changes the status of an existing row after the Phase A
+report landed. The earlier decision does not authorize this head.
 
 This plan reuses the proven `IN` / `CANDIDATE` / `DEFER` vocabulary from the
 v2.11 scope plan. It is not a new project roadmap, queue ledger, milestone,
@@ -128,8 +125,13 @@ merged. Correction record `20261026T180956Z-governor-reviewer-pbgd` at
 `2ccba663967767c7ede3359f1203bb89afddac3c` merged through MR !3258 as
 `e5548cf6e9b5372e374aa3368b6e98ae3800553c`; it records the chronology without
 retroactively authorizing the merge. The remaining post-tag changes through
-`e5548cf6` are plans and coordination records. Both `[Unreleased]` sections
-remain empty.
+`a52767d4eff730cc90ea73043ecfd16aa22cd3d0` are plans, coordination records, radar
+entries and verbatim radar carrier files (`docs/radar.md`, `docs/proposals/radar/`,
+merged through MR !3274 as `208f1d5a1031d49ac5b6056738a928c39dd0cb88`), and the Phase A
+measurement report (`docs/reviews/context-delivery-measurement/`, merged through MR
+!3271 as `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`). None of these paths is under
+`agf/`, so none changes an adopter-visible surface. Both `[Unreleased]` sections
+list no entries.
 
 Timer-reality polling alignment is not part of this delta. Its implementation
 commit `324322ef26b3efaeb2cd5a545c6d95cd64e4ba0e` is already an ancestor of the
@@ -151,11 +153,13 @@ These rows are decision inputs, not commitments.
 | Issue #128, cadence register / year-clock | One discoverable view of recurring governance obligations | Explicit prior-release candidate; no current Gate 1 plan | Likely documentation/governance surface; owner and projection boundaries unresolved | CANDIDATE | Governor chooses plan or deferral after checking overlap with roadmap and role cadences |
 | Issue #133, watcher idle versus work exhaustion | Mechanically distinct watcher-idle, inbox-idle, and queue-exhausted states | Recurrent operational failure model; issue carries `plan`; no Gate 1 plan | Could affect rules, skills, and operator docs; classification unknown | CANDIDATE | A bounded Gate 1 identifies the canonical owner and acceptance surface |
 | MR !3097 evidence, `rule.schema.json` drift | Resolve unenforced schema/corpus disagreement without false compliance | Proposal head `6a8c773d24628bd623ba4536175f11c02188d772` merged as `40f9e8d127df9cba441e663ea070614378ddbcfd`; evidence reports broad nonconformance, but no migration-versus-schema decision or Gate 1 exists | Potentially high-risk schema/rule migration | CANDIDATE | Governor chooses migration versus schema correction, then approves a bounded plan |
-| Issues #119 and #138, instruction-context cost | Measure residual context cost without weakening governance, then decide whether any delivery change is warranted | Measurement-only Phase A plan `20261026T155400Z-context-delivery-measurement` merged in !3243 and is Gate 1 approved by `20261026T174028Z-governor-reviewer-snh2`; no report or product implementation exists | Phase A changes no loader, rule, schema, package or tool; any later delivery change can be behavior-sensitive and needs its own Gate 1 and recall checks | CANDIDATE | Complete Phase A and reconcile #138 as close, residual scope or inconclusive; no product work self-promotes from the measurement |
+| Issues #119 and #138, instruction-context cost | Measure residual context cost without weakening governance, then decide whether any delivery change is warranted | Measurement-only Phase A plan `20261026T155400Z-context-delivery-measurement` (Gate 1 `20261026T174028Z-governor-reviewer-snh2`) is complete: its report is on `main` at `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f` with outcome `inconclusive` under the plan's rule (Claude Code showed material cost on the foundry checkout, none on the clean adopter install; the Codex client was not assessable); no product implementation exists | Phase A changed no loader, rule, schema, package or tool; any later delivery change can be behavior-sensitive and needs its own Gate 1 and recall checks | CANDIDATE | Governor reads the report and decides: close #138 as complete, name a residual scope, or ask for a Codex-client measurement path; no product work self-promotes from the measurement |
 | Issues #111 and #113, upgrade/ignore safety | Detect governance loss or excluded provenance during adoption upgrades | Learning issues only; no bounded Gate 1 plan | Security- and data-loss-sensitive trust boundary | CANDIDATE | A plan defines detection, recovery, and false-positive controls; infosec consultation required |
 | Issue #136, stale worktree inventory | Safe report-first visibility into stale branches/worktrees | Report-first direction only; explicitly no deletion authorization | Foundry tooling/operator docs; destructive action excluded | CANDIDATE | Gate 1 limits scope to inventory/reporting and defines later deletion authority separately |
 | Issue #105, advisory sensitive-material scanner | Optional warning for arbitrary-file sensitive material | Unmilestoned backlog; no plan | Infosec-sensitive; advisory/blocking boundary must be explicit | CANDIDATE | Infosec-reviewed Gate 1 demonstrates need, scope, and false-positive handling |
 | MR !2679, builder-image trial slice | Evidence on a bounded builder-image experiment | Exact head `b3c7eaff6ea0502087fc9dd0f7f73bc41ddf8ee8`; draft, green, `awaiting-governor`; its distribution-scan slice is superseded in readiness by !3066 | Research only until evidence supports a product change | CANDIDATE | Governor isolates a still-useful trial slice or closes/supersedes it |
+| Plan `20261027T052500Z-tooling-coexistence-discoverability` (MR !3275, head `e90ffffadf33a050763e904b0f114a1f62cb36db`) | A discoverable, hedged statement of AGF's place in the stack and when other assistant tooling can sit beside it | Freeze-tail documentation slice; plan-stage consultations CLEAR at an earlier head, `pending-gate1`, needs a new binding Gate 1; implementation blocked until a freeze decision that names it | Documentation only: README pointer, one adopter page, one nav line, one projection manifest; no rule, schema or template change | CANDIDATE (freeze-tail docs slice) | Human Gate 1 of the plan, then an explicit admission in the freeze decision as `IN` or a named controlled post-freeze documentation slice |
+| Plan `20261027T052118Z-gitlab-pages-homepage-modernization` (MR !3276, head `59745355a21360fb35ed95d2a57c0a61804ff916`) | A clearer public homepage with routes to decide, adopt and operate | Freeze-tail documentation slice; content review CLEAR at the stated head, `pending-gate1`; depends on the coexistence slice above; independent rendered web-UX review mandatory at Gate 2 | Two-file presentation change (`agf/docs/site/index.md`, `agf/docs/site/stylesheets/agf.css`); no new asset, script or dependency | CANDIDATE (freeze-tail docs slice) | Human Gate 1 of the plan, the prerequisite slice merged, and an explicit admission in the freeze decision |
 
 ## DEFER and exclusions
 
