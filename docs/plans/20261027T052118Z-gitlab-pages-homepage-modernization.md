@@ -1,9 +1,9 @@
 ---
 id: 20261027T052118Z-gitlab-pages-homepage-modernization
-status: pending-gate1
+status: approved
 topic: release-gated-gitlab-pages-homepage-modernization
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: 20261027T153632Z-governor-reviewer-djnt
+gate1_approved_at: "2026-10-27T15:36:32Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
