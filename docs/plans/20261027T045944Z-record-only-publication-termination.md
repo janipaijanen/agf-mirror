@@ -24,6 +24,14 @@ affected_paths:
   - agf/docs/site/docs/concepts/coordination-protocol.md
   - agf/templates/AGENTS.md
   - docs/reviews/rule-projection/20261027T045944Z-record-only-publication-termination.yaml
+depends_on:
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260915T075705Z-issue130-pending-advisory-consultation-status
+  - 20260921T040743Z-assistant-rule-drift-resolution
+  - 20261023T155559Z-agov-strict-args-ref-list
+  - 20261024T070435Z-timer-reality-polling-alignment
+  - 20261025T192020Z-supersedes-adopter-docs
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -93,6 +101,18 @@ The rule MUST state that the exception never covers:
 No schema, role, tooling, CI, release, or enforcement change is in scope. In
 particular, this plan does not add a machine classifier for semantic
 eligibility and does not generalize self-merge to other coordination-only MRs.
+
+### Collision disposition
+
+The forge-inclusive collision gate reports seven approved plan snapshots that
+overlap the rule, explanation, or template paths named above. This plan
+acknowledges them in `depends_on` and claims no parallel implementation
+ownership. Any still-current work under those plans goes first. Before
+implementation begins, the owner MUST fetch current refs, confirm which
+counterparts remain live, rebase onto their merged results, and resolve their
+semantics before editing an overlapping file. A stale or conflicting
+counterpart is a stop for coordination, not permission to overwrite it. This
+sequencing acknowledgment does not approve this plan or any predecessor.
 
 ## Projection screen and affected files
 
