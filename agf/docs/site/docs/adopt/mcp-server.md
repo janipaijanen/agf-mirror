@@ -203,5 +203,5 @@ and isError (true for nonzero). Text and JSON retain fixed false publication
 and authority verification and all six required_external_checks: publication,
 governor_authority, record_urgency_and_obligations, publication_target,
 current_target_and_expiry, release_hold_authorization. Review-required never
-authorizes delay. Framework schemas and tooling must both support the fields
-before first use; intended rollout is v2.11.0, pending shipped-artifact evidence.
+authorizes delay. The fields and tooling shipped in v2.11.0; install compatible
+framework schemas, rules, and tooling artifacts together before first use.

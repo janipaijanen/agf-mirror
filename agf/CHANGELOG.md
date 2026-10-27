@@ -8,6 +8,26 @@ distribution.
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
 Pages and to `agf/` for rules, templates, schemas and skills.
 
+### Added
+
+- **Evidence-calibrated guidance for using AGF with other assistant tooling
+  (b703704c, MR !3311).** A new adopter page defines authority, instruction,
+  hook, and data-flow boundaries before tools are combined. The README and site
+  navigation expose it, with bounded, dated Ponytail and Caveman examples and
+  explicit Level 2 Surface-defined / Theoretical coexistence evidence. No
+  integration, endorsement, or adopter-validated compatibility is claimed.
+  Adopter docs: updated (`README.md`,
+  `docs/adopt/third-party-plugin-coexistence.md`).
+
+### Changed
+
+- **Homepage routes readers to canonical guidance (dce4396f, MR !3314).** The
+  public homepage now leads with Decide, Adopt, Operate, and Using AGF with
+  other tools routes instead of duplicating detailed guidance. Route cards
+  reflow from two columns to one, preserve visible keyboard focus, and use
+  light/dark theme contrast reviewed at the exact implementation head. Adopter
+  docs: updated (`index.md`, `stylesheets/agf.css`).
+
 ### Fixed
 
 - **Shipped skills use current `agov` commands (dc5523f6, from MR !3098).** The
@@ -19,6 +39,12 @@ Pages and to `agf/` for rules, templates, schemas and skills.
   Human decision to retain the landed change. Adopter docs: updated
   (`agf/skills/health/SKILL.md`, `agf/skills/infosec-screen/SKILL.md`,
   `agf/skills/README.md`).
+- **Coordination feature pages reflect the published v2.11.0 artifacts.**
+  Urgency ordering, challenge-response, and publication-hold fields no longer
+  describe v2.11 as unreleased or awaiting shipped-artifact evidence. The
+  compatible framework/tooling warning remains. Adopter docs: updated
+  (`docs/adopt/mcp-server.md`, `docs/concepts/coordination-protocol.md`,
+  `rules/workflow/coordination-publication-rule.md`).
 
 ## [2.11.0] — 2026-10-26
 
