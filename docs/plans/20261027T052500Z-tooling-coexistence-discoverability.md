@@ -4,24 +4,24 @@ status: pending-gate1
 topic: truthful-coexistence-content-and-discoverability
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
       Non-author review by codex-foundry. Pass 1 at head 20492391 (room seq 762) and
-      pass 2 at head 686f06bf (room seq 763): both CHANGES, no secret, endpoint or
-      executable-install content found. Findings applied in this revision: durable
-      freeze evidence (exact primary URLs, full immutable SHAs, access dates), a fresh
-      exact-head infosec read of the final implementation for telemetry, network,
-      installer and hook statements, and no claim resting on the unmerged MR !3271.
-      Stays pending until a review is CLEAR at this exact head.
+      pass 2 at head 686f06bf (room seq 763) returned CHANGES with no secret, endpoint
+      or executable-install content found; the findings were applied. Pass 3 at exact
+      head 38cf9b736932e24b70679a1ee0ed245769afd6ff (room seq 768): CLEAR, subject to
+      the required pipeline finishing green. This is plan-stage content evidence only;
+      a fresh exact-head infosec read of the final implementation is still required
+      before it merges.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Non-author review by codex-foundry, same two passes. Findings applied in this
-      revision: B1 the self-contradictory compatibility wording (an exact scoped
-      phrase is now the only permitted form); B2 evidence must be durable and accurate
-      (the Caveman records are cited as what they are); B3 the canonical authority
-      boundary is preserved; B4 reproducible freeze evidence; B5 vendor facts are kept
-      apart from the evidence labels. Stays pending until CLEAR at this exact head.
+      Non-author review by codex-foundry, same three passes. The findings on the
+      compatibility wording, durable and accurate evidence, the canonical authority
+      boundary, reproducible freeze evidence and the separation of vendor facts from
+      evidence labels were applied. Pass 3 at exact head
+      38cf9b736932e24b70679a1ee0ed245769afd6ff (room seq 768): CLEAR. The review is
+      recorded in the ACS room; this metadata-only update needs a narrow recheck.
 affected_paths:
   - docs/plans/20261027T052500Z-tooling-coexistence-discoverability.md
   - README.md
@@ -64,7 +64,13 @@ homepage, CSS, theme or layout.
 Implementation MUST NOT start until all of these exist:
 
 1. a Human Governor freeze decision record on the next-release intake plan that
-   names the base `main` SHA, the version, and the `IN` scope;
+   names the base `main` SHA, the version, and the `IN` scope, and that explicitly
+   admits this plan (`20261027T052500Z-tooling-coexistence-discoverability`) either as
+   `IN` or as a named, controlled post-freeze documentation slice. This is
+   discretionary public-documentation work, not reconciliation of already-frozen
+   product facts, so a dependency alone must not silently change frozen scope. The
+   current intake plan has `IN` empty and does not name this plan; the next reviewed
+   intake refresh must add this plan and the Pages modernization plan before freeze;
 2. both `[Unreleased]` changelogs reconciled to that scope, with no unresolved
    release-content disposition for landed changes; and
 3. a recheck, at that SHA, of every primary-document claim recorded in the
@@ -131,7 +137,7 @@ not edited here (the new text only links to it if needed).
   text says so; each needs the adopter's own review and a human trust decision.
 - No token-savings, cost, speed or quality claim, and no vendor benchmark figure
   unless it is labelled vendor-stated, attributed, and not reproduced. The author's
-  own Phase A measurement (MR !3271, once merged) shows always-on instructions and
+  own Phase A measurement (report on `main` at `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`) shows always-on instructions and
   hooks add context, so nothing here may imply AGF or a plugin saves tokens.
 - Third-party claims are attributed to the third party's own documents and dated;
   they are not presented as verified, and no sentence implies the plugin code was
@@ -156,9 +162,10 @@ not edited here (the new text only links to it if needed).
   with AGF, and the page must not present them as such. For the plugin, the
   coexistence inference stays Theoretical unless a new durable record of exercised use
   is made before freeze.
-- **Ponytail:** the author's Phase A report (MR !3271) is the intended durable record
-  of the read-only package inspection; if it has not landed at freeze, another
-  durable coordination record is made, or the observation is omitted. Co-use in the
+- **Ponytail:** the author's Phase A report, now on `main` at
+  `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`, is the durable record of the read-only
+  package inspection (SDD-SUPPLY-1). It proves package inspection, not generalized
+  coexistence; the page may cite it for that only. Co-use in the
   foundry's own agent sessions is an observation by the author and the Human, not yet
   a durable record, and is not claimed until it is.
 
@@ -255,7 +262,9 @@ Adopter docs parity: updated (the changed files are adopter-facing).
 
 ## Authority
 
-Gate 1 and Gate 2 are governor-reviewer decisions. Because the text makes public
+The Human's earlier conditional Gate 1 approval was for head 686f06bf and did not carry
+to this revised head; this head needs a new binding Gate 1 decision. Gate 1 and Gate 2
+are governor-reviewer decisions. Because the text makes public
 statements about third-party tools, the author recommends the Human Governor decide
 Gate 1; a delegated decision by codex-foundry under the cross-approval delegation is
 possible only if the Human agrees. The author does not approve this plan.
