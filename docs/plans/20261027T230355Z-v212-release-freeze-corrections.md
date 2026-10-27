@@ -4,17 +4,23 @@ status: pending-gate1
 topic: v212-release-content-freeze-corrections
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Review requested for the public release-artifact verification method and
-      to confirm that no credential, private endpoint, or unsafe download
-      instruction enters the release-freeze report or adopter documentation.
+      Non-author plan-stage review is CLEAR after its sole supply-chain finding
+      was corrected: official anonymous asset discovery, fresh temporary
+      directory, checksum and provenance verification before extraction or
+      execution, bounded read-only commands, evidence redaction, and cleanup
+      are now explicit. A fresh exact-head implementation review remains
+      required before Gate 2.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Review requested to confirm that factual v2.11 shipment corrections and
-      three changelog rows reconcile the frozen v2.12 scope without adding new
-      behavior, authority, or release content.
+      Non-author plan-stage review is CLEAR on corrected content SHA-256
+      e59024751c044208d0d97df23e533454ca29e620b33b4f41677d45caa06c00b4.
+      The correction removed an impossible self-reference and requires
+      released-binary behavioral fixture evidence for urgency and challenge
+      claims. This later metadata-only head records that review without
+      changing scope, authority, evidence requirements, or acceptance.
 affected_paths:
   - docs/plans/20261027T230355Z-v212-release-freeze-corrections.md
   - agf/CHANGELOG.md
@@ -99,7 +105,11 @@ Do not rewrite surrounding normative text.
 
 Add one release-content-freeze report that records:
 
-- the exact reviewed implementation head and preceding stable tag;
+- the exact pre-implementation `main` base, the v2.11.0 tag object and peeled
+  commit, and the reviewed product heads and merge commits for both frozen
+  items; the external exact-head fact-check and Gate 2 coordination record bind
+  the correction MR's final SHA, avoiding an impossible self-reference inside
+  the commit being identified;
 - both ordered `IN` items and retained MR !3098 changelog dispositions;
 - every finding above and its final disposition;
 - the two repaired coordination-chain gaps;
@@ -114,11 +124,23 @@ covered because all changed AGF paths ship in the framework archive/site.
 
 ## Evidence and tests
 
-- Verify the public v2.11.0 Linux x86_64 archive and checksum anonymously, run
-  its `agov --version` and `agov coord hold-status --help`, and record the exact
-  asset identity and result without credentials. Confirm the v2.11.0 framework
-  archive contains the coordination schema/rule surfaces used by
-  challenge-response and publication holds.
+- Discover the official v2.11.0 assets through the anonymous GitLab Releases
+  HTTPS API and download the Linux x86_64 archive, checksum sidecar, and
+  provenance record into a fresh `mktemp -d` directory. Verify checksum
+  agreement and the provenance binding to the expected tag, source commit,
+  filename, and checksum before extracting or executing the binary. Then run
+  only the bounded read-only commands below; record asset
+  identities and results without credentials, shell tracing, local paths, or
+  environment contents. Remove the temporary directory afterward. Confirm
+  separately that the framework archive contains the coordination schema/rule
+  surfaces used by challenge-response and publication holds. Use the existing
+  `agov dist post-publication-check` path where it applies instead of inventing
+  a second verifier. Run `agov --version` and `agov coord hold-status --help`,
+  then use disposable fixture records with the released binary to assert urgent
+  ordering through `agov handoff next`, `agov coord pending`, and
+  `agov session resume`, and to assert the raising, replied, escalated, and
+  expired challenge states through `agov coord pending`. File presence or help
+  output alone is not behavioral evidence.
 - Assert the exact stale phrases are absent and the compatible-version warning
   remains.
 - `agov plan validate` and strict plans-only collision check pass.
