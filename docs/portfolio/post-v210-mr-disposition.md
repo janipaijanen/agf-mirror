@@ -314,22 +314,22 @@ premise-falsifying evidence.)
 | !965 | Docs (Internet landscape scan TODO) | **park-radar** — governor confirmed (2026-09-10, "proceed as proposed" on `pnmm`). **Carrier:** the retained ecosystem-landscape contract in Codex MR !2670 (`docs/proposals/radar/965-ecosystem-landscape.md`, source SHA-256 verified in `pnmm`) — linked from one `docs/radar.md` entry "periodic internet / AI-ecosystem landscape scan" with a `review-by` set at QC-4. **MR !2670 must merge to `main` before !965 closes.** Source TODO names role owners (`pnmm`) — un-sponsored, not un-owned. |
 | !1691 | Docs (external simulated due-diligence, Aug) | **merge-now** (revised per `gsat`: no named later DD artifact on `main` identified). It is a dated external-DD evidence artifact; merging preserves it in-tree. Own Gate 2. |
 | !952 | Docs (governance-signal gaming radar TODO) | **close-superseded** by !954 (the actual radar entry). Closing note names !954. |
-| !459 | Plan + measurement evidence (#53 latency) | **park-radar** (supersedes the historical "Refresh candidate" row). Preserve any normalized data; keep #53 open with `radar` label + `review-by`. |
+| !459 | Plan + measurement evidence (#53 latency) | **park-radar** (supersedes the historical "Refresh candidate" row). Preserve any normalized data; keep #53 open with `radar` label + `review-by`. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
 | !745 | Gate 1 plan (issue-board workflow #75) | **awaiting-governor** (revised per `gsat`: "stale since Aug" is age, not evidence). Named anchor: **issue #75 is open** with no Gate 1 on this plan and no sponsor. Governor-only question: *defer #75 to a later milestone, reassign the plan, or close #75?* |
 | !800 | Draft proposal (coordination timeline visualizer) | **park-radar** (supersedes historical row). Unsponsored draft; `radar/` record, close. |
 | !810 | Docs (longitudinal CI cost/latency assessment) | **park-radar** (supersedes historical row). Preserve causal-limits evidence; fold the #53 question into radar. |
 | !918 | Plan (classify AgentCouch live-transport radar, #99) | **park-radar**. Classification belongs on radar; `radar/` record, close, keep #99. |
-| !923 | Proposal (test expectation-signals foundation, #100) | **park-radar**. Unsponsored; `radar/` record, keep #100 open with `review-by`. |
+| !923 | Proposal (test expectation-signals foundation, #100) | **park-radar**. Unsponsored; `radar/` record, keep #100 open with `review-by`. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
 | !954 | Docs (governance-signal gaming radar entry) | **park-radar** — this is the radar entry itself; land it via the research-maintenance fast path (`docs/radar.md` only) or close with the question retained on radar. |
-| !967 | Docs (AI regulation/governance gap analysis) | **park-radar**. Fold into radar with a `review-by`; no v2.11 scope. |
-| !998 | Plan (audit learning-record field enforcement) | **park-radar**. Keep the audit question on radar; `radar/` record, close. |
-| !1000 | Docs (deferred LLIS learning candidates) | **park-radar**. Candidate list belongs on radar; close with retention. |
+| !967 | Docs (AI regulation/governance gap analysis) | **park-radar**. Fold into radar with a `review-by`; no v2.11 scope. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
+| !998 | Plan (audit learning-record field enforcement) | **park-radar**. Keep the audit question on radar; `radar/` record, close. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
+| !1000 | Docs (deferred LLIS learning candidates) | **park-radar**. Candidate list belongs on radar; close with retention. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
 | !1061 | Docs (classify Swatch; defer palette audit) | **park-radar**. Classification + deferred audit → radar; close. |
-| !1451 | Plan (queue deferred strategic candidate comparison) | **park-radar**. Explicitly deferred work; keep the trigger on radar, close. |
+| !1451 | Plan (queue deferred strategic candidate comparison) | **park-radar**. Explicitly deferred work; keep the trigger on radar, close. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
 | !1527 | Docs (classify Airbnb eval-driven dev guide) | **park-radar**. Source classification → radar/sources fast path or close with retention. |
 | !1659 | Docs (classify Kungfu durable-work prior art) | **park-radar**. Same; radar/sources. |
-| !1718 | Learning (operational-debt backlog gap; SLO response) | **park-radar**. The proposed collaborative SLO response needs a sponsor; keep the question on radar with `review-by`. |
-| !1722 | Learning (supply-chain signing/SBOM gap) | **park-radar**. Security-relevant but no v2.11 scope; radar with `review-by`; revisit at the deprecation/​supply-chain review. |
+| !1718 | Learning (operational-debt backlog gap; SLO response) | **park-radar**. The proposed collaborative SLO response needs a sponsor; keep the question on radar with `review-by`. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
+| !1722 | Learning (supply-chain signing/SBOM gap) | **park-radar**. Security-relevant but no v2.11 scope; radar with `review-by`; revisit at the deprecation/​supply-chain review. **Closed 2026-10-27 by batch completion gpn3 (MR !3293).** |
 | !2275 | Plan (calm explanatory-visual system revision) | **awaiting-governor** (revised per `gsat`). Named anchor: the plan carries an **`s8ks` review (V1-V3)** but no Gate 1 decision. Governor-only question: *approve, defer, or close the calm-visual-system plan?* |
 | !2306 | Docs (classify AgentConnect operator plane) | **park-radar**. radar/sources. |
 | !2390 | Docs (classify Batch 33 sources) | **park-radar** via the `docs/sources.md` research-maintenance fast path (its own eligible MR), else close with retention. |
