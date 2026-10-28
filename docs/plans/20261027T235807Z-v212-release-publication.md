@@ -5,17 +5,22 @@ topic: v212-release-publication-child-plan
 candidate_release: v2.12.0
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Review requested for the four-namespace absence checks, exact protected-tag
-      policy, credential-safe evidence, immutable tag boundary, and anonymous
-      released-byte verification.
+      Corrected-plan review `20261028T000412Z-infosec-sentinel-s7g1` is CLEAR
+      with complete coverage and no findings at content SHA-256
+      34676d9dbf9c8f67e261aaea1372a9532fbd9fdc26835f53f03b5d2f984d63ad.
+      It confirms the namespace, exact protected-tag, credential, immutable-tag,
+      anonymous-byte, post-publication identity, and fail-forward controls.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Review requested for frozen-base provenance, derived metadata allowlist,
-      historical-reference preservation, tree-identity proof, release/status-sync
-      separation, and authority boundaries.
+      Corrected-plan review `20261028T000402Z-contribution-auditor-ajra` is CLEAR
+      with complete coverage and no findings at content SHA-256
+      34676d9dbf9c8f67e261aaea1372a9532fbd9fdc26835f53f03b5d2f984d63ad.
+      It confirms all fourteen overlaps are acknowledged, frozen provenance and
+      historical references are preserved, final-base and tree identity are
+      fail-closed, and publication remains separated from status synchronization.
 affected_paths:
   - docs/plans/20261027T235807Z-v212-release-publication.md
   - AGENTS.md
