@@ -1,6 +1,8 @@
 ---
 id: 20261027T235807Z-v212-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261028T001516Z-governor-reviewer-kman
+gate1_approved_at: "2026-10-28T00:15:16Z"
 topic: v212-release-publication-child-plan
 candidate_release: v2.12.0
 advisory_consultation:
