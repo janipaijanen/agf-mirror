@@ -33,7 +33,7 @@ agent:
   name: "build-engineer"
   id: "agents-govern:build-engineer:0.1.0"
   version: "0.1.0"
-  framework_version: "2.11.0"
+  framework_version: "2.12.0"
   provenance: adapted-from-v1x
   tier: "production"
   phase: 1

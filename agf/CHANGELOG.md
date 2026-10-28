@@ -8,6 +8,15 @@ distribution.
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
 Pages and to `agf/` for rules, templates, schemas and skills.
 
+## [2.12.0] — 2026-10-28
+
+**Documentation-focused minor release.** Standard current-main release from
+reviewed construction base `fc98b4d1`. It adds evidence-calibrated guidance for
+using AGF alongside other assistant tooling, modernizes the public homepage's
+canonical routes and accessibility presentation, and corrects shipped command
+and v2.11 coordination-feature documentation. No runtime, schema, validator, or
+governance-authority behavior changes. **Adopter docs: updated.**
+
 ### Added
 
 - **Evidence-calibrated guidance for using AGF with other assistant tooling

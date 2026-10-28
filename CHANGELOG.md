@@ -12,6 +12,13 @@ Adopter-facing entries for the next release, with their `Adopter docs:` lines, a
 in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[Unreleased]`; this section lists
 repository-level changes only.
 
+## [2.12.0] - 2026-10-28
+
+**Documentation-focused minor release.** Standard current-main release from
+reviewed construction base `fc98b4d1`. The canonical adopter changelog records
+the tooling-coexistence guidance, homepage modernization, and documentation
+corrections. This release adds no repository-operation change.
+
 ## [2.11.0] - 2026-10-26
 
 **Minor release.** Standard-path release from reviewed `main` at
