@@ -41,6 +41,8 @@ depends_on:
   - 20261023T155559Z-agov-strict-args-ref-list
   - 20261024T070435Z-timer-reality-polling-alignment
   - 20261025T192020Z-supersedes-adopter-docs
+  - 20261027T230355Z-v212-release-freeze-corrections
+  - 20261027T235807Z-v212-release-publication
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -75,6 +77,24 @@ visible on shared branches before the authorized merges, but their later carry
 to `main` happened after those actions completed. The desired terminal state is
 one verified publication of exhausted authority or post-action evidence, not
 absence of the audit record.
+
+## Currency refresh (2026-10-28)
+
+Governor review `20261028T202841Z-governor-reviewer-thps` returned this plan
+for two target-only plan collisions on `main` at `b61ff556`. This branch now
+contains current `main`. Both plans are `approved` and their changes landed.
+Each overlap is file-level; none edits the text this plan adds or relies on.
+
+| Landed plan | Shared file | Landed change | Effect on this plan |
+|---|---|---|---|
+| `20261027T230355Z-v212-release-freeze-corrections` | `coordination-publication-rule.md` | Rollout paragraph now says the fields "first shipped in v2.11.0" instead of "intended first release". | Different paragraph. This plan adds a new subsection and quotes none of that text. |
+| `20261027T230355Z-v212-release-freeze-corrections` | `coordination-protocol.md` | Maturity wording changed from "Level 4, not yet released" to "Level 5 — Deployable" in the hold and challenge sections. | Different sections. This plan makes no maturity claim about those features. |
+| `20261027T235807Z-v212-release-publication` | `agf/templates/AGENTS.md` | Only the `AGF: 2.12.0` version comment changed. | This plan's edit to the template is a separate pointer line. |
+
+Both plans are added to `depends_on`. `affected_paths` is not narrowed. The
+independently reviewed seven-condition boundary and every exclusion are
+unchanged; no design statement changed beyond this reconciliation, so the
+contribution-auditor disposition above stays valid.
 
 ## Proposed change
 
