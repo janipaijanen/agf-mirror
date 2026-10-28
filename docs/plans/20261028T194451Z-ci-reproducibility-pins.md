@@ -15,12 +15,15 @@ advisory_consultation:
   - role: infosec-sentinel
     status: pending
     reason: >-
-      Supply-chain pinning change on the release-publication job. Consultation
-      requested with this plan; no clearance is claimed yet.
+      Independent review `20261028T205413Z-governor-reviewer-tqds` returned BLOCK
+      at head 861070e2. This revision answers its four findings. The row stays
+      pending until an exact-head re-review; no clearance is claimed.
   - role: contribution-auditor
     status: pending
     reason: >-
-      Independent review requested with this plan; no clearance is claimed yet.
+      Independent review `20261028T205413Z-governor-reviewer-tqds` returned BLOCK
+      at head 861070e2. This revision answers its four findings. The row stays
+      pending until an exact-head re-review; no clearance is claimed.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -78,39 +81,62 @@ so this plan now cites jobs by name, not by line.
 
 ## Design
 
-### Pin 1: `release:create`
+Revision 2. It answers the BLOCK findings in
+`20261028T205413Z-governor-reviewer-tqds` (CA-1 to CA-4, IS-1 to IS-4).
 
-Replace `:latest` with `:<version>@sha256:<digest>`, the same form `.rust-base`
-uses. Before choosing the version, the implementer MUST confirm the pinned
-image still provides every command the job's script uses (`release-cli create`,
-`apk`, `curl`, `unzip`, `tar`, `gzip`). Keep a comment naming the date the
-digest was resolved and the registry query used.
+### Pin 1: `release:create` image (CA-4, IS-2, IS-3)
 
-### Pin 2: `rust:tooling:oci-pull-test`
+- **Tag.** Pin `registry.gitlab.com/gitlab-org/release-cli` to the exact tag
+  `v0.24.0` plus its `@sha256:` digest. `v0.24.0` was the highest plain
+  `vMAJOR.MINOR.PATCH` tag on 2026-10-28. Selection rule if the implementer
+  finds `v0.24.0` unusable: the highest plain-semver tag that passes the
+  tool check below; no pre-release tag; no `latest`.
+- **Digest.** Resolve it at implementation from the registry manifest of that
+  tag and record the date and query in a comment next to the `image:` line.
+- **Tool check (credential-free, non-mutating).** Run in the pinned image with
+  no CI token and no upload: `command -v release-cli curl unzip tar gzip apk`
+  and `release-cli --version`. This replaces the earlier "dry run of the job's
+  commands", which would upload packages and create a Release. No command that
+  needs `CI_JOB_TOKEN` runs.
+- **Vulnerability scan.** The repository already scans with Trivy
+  (`aquasec/trivy:0.66.0`, job `dependency:cve-scan`). At implementation run
+  `trivy image` on the pinned digest and put the HIGH and CRITICAL result in
+  the MR. Each HIGH or CRITICAL finding is fixed (choose another tag by the
+  rule above) or accepted by a governor risk record before merge.
 
-Replace `--default-toolchain stable` with `--default-toolchain 1.97.1`. The
-version MUST equal the `.rust-base` version. Keep one source of truth: a CI
-variable `RUST_TOOLCHAIN_VERSION: "1.97.1"` used by this job. Whether
-`.rust-base` also reads that variable is left out of scope; it keeps its
-digest-pinned image.
+### Pin 2: `rust:tooling:oci-pull-test` toolchain (CA-2, IS-1)
 
-### Verification that pins hold (drift check)
+- **One declared version.** Add a CI variable
+  `RUST_TOOLCHAIN_VERSION: "1.97.1"`. The job passes
+  `--default-toolchain "$RUST_TOOLCHAIN_VERSION"`.
+- **Equality check.** The drift checker (below) extracts the version from the
+  `.rust-base` image tag and compares it to `RUST_TOOLCHAIN_VERSION`. A
+  mismatch is an advisory finding. `.rust-base` keeps its digest-pinned image.
+- **Verifiable installer.** Remove `curl https://sh.rustup.rs | sh`. Download
+  the versioned `rustup-init` binary for a named rustup release from
+  `static.rust-lang.org`, and verify it against its published SHA-256 with
+  `sha256sum -c` before running it. The rustup version and the checksum are
+  literals in `.gitlab-ci.yml`, resolved and recorded at implementation. A
+  failed checksum stops the job.
 
-A small POSIX script, `.gitlab/scripts/check-ci-pins.sh`, reads
-`.gitlab-ci.yml` and exits non-zero when it finds any of:
+### Drift checker (CA-1, CA-3)
 
-- an `image:` value ending in `:latest` or with no tag at all;
-- `--default-toolchain stable|beta|nightly`;
-- `release:create`'s `image:` lacking `@sha256:`.
+`.gitlab/scripts/check-ci-pins.sh` is **advisory and always exits 0** when it
+runs to completion. It prints one line per finding, each tagged
+`severity: advisory`. It exits non-zero only for its own malfunction (missing
+file, unreadable input). The CI job needs no `allow_failure` to stay advisory,
+because the tool itself grants itself no blocking authority.
+Per `always/tool-authority-boundary-rule.md`, blocking behavior needs a
+separately governed authority grant; this plan does not create one.
 
-Output lines carry `severity: advisory` or `severity: blocking` per
-`always/tool-authority-boundary-rule.md`.
+It checks both GitLab image forms:
 
-Decision D1 is resolved by governor review
-`20261028T202841Z-governor-reviewer-thps`: the check starts **advisory**
-(job `allow_failure: true`, visible warning), because no named rule grants it
-blocking authority. Promotion to blocking needs a separately governed rule
-change; this plan does not imply one.
+- scalar: `image: name:tag@sha256:...`;
+- mapping: `image:` with a nested `name:` (and optional `entrypoint:`).
+
+Findings: a `:latest` tag; no tag; for `release:create` only, no `@sha256:`;
+`--default-toolchain stable|beta|nightly`; a `sh.rustup.rs` pipe;
+`RUST_TOOLCHAIN_VERSION` differing from the `.rust-base` tag.
 
 ### Deliberate update procedure
 
@@ -118,45 +144,55 @@ A pin changes only through a merge request that:
 
 1. names the old and new version and digest;
 2. states the resolution date and the registry query;
-3. shows the job passing on the exact head; and
-4. for `release:create`, shows `release:assets-selftest` and one dry read of the
-   job's tool list against the new image.
+3. shows the credential-free tool check and the Trivy result for the new
+   digest (release image) or the checksum verification (rustup); and
+4. shows the job passing on the exact head.
 
-No automated bump tool is added. Cadence: review the two pins when a release
-plan is drafted. No separate schedule is created.
+No automated bump tool is added. Review the pins when a release plan is
+drafted.
 
 ## Negative test (`gate-self-test-rule.md`)
 
-`tests/ci-pins-selftest.sh` runs the checker on fixtures:
+`tests/ci-pins-selftest.sh` feeds fixtures to the checker and asserts both
+the advisory output and the exit code (0 for findings, non-zero only for a
+missing input file).
 
-| Fixture | Expected |
-|---|---|
-| `image: registry.gitlab.com/gitlab-org/release-cli:latest` | fails, names the line |
-| `image: alpine` (no tag) | fails |
-| `--default-toolchain stable` | fails |
-| `release:create` image with a tag but no digest | fails |
-| the corrected `.gitlab-ci.yml` | passes |
+| Fixture | Expected output | Exit |
+|---|---|---|
+| scalar `image: ...release-cli:latest` | advisory finding naming the line | 0 |
+| scalar `image: alpine` (no tag) | advisory finding | 0 |
+| mapping `image:` with `name: alpine` (no tag) | advisory finding | 0 |
+| mapping `image:` with `name: alpine:3.22` (tag) | no finding | 0 |
+| `--default-toolchain stable` | advisory finding | 0 |
+| `curl ... sh.rustup.rs \| sh` | advisory finding | 0 |
+| `release:create` image with tag, no digest | advisory finding | 0 |
+| `RUST_TOOLCHAIN_VERSION` != `.rust-base` tag | advisory finding | 0 |
+| corrected `.gitlab-ci.yml` | no findings | 0 |
+| missing input file | error line | non-zero |
 
 The MR description MUST include the transcript. The self-test also runs in CI.
 
-## Out of scope
+## Out of scope and residual risk
 
 - `apk add --no-cache ...` inside `release:create` installs unpinned Alpine
-  packages. This is a related reproducibility gap. It is noted here for the
-  governor and is not part of this plan.
+  packages. **This plan does not make `release:create` fully reproducible and
+  does not claim to.** A durable residual-risk record MUST exist before the
+  next release (governor review `tqds`); it is filed with the revised plan.
 - MkDocs dependencies (ordered item 5), `mise.toml`, and the response-size
   plan (ordered item 3).
 - Any blocking promotion of the check.
 
 ## Risks and rollback
 
-- A pinned `release-cli` older than needed could lack a flag the job uses.
-  Mitigation: the tool-list confirmation above. Rollback: revert the one-line
-  image change by MR; no tag is involved because the job runs only on tag
-  pipelines, so the first real exercise is the next release. The plan
-  therefore requires a manual dry run of the job's commands in the pinned image
-  before merge.
+- A pinned `release-cli` could lack a command the job uses. Mitigation: the
+  credential-free tool check, run before merge.
+- **Rollback never restores `:latest`.** Roll back to a verified last-known-good
+  pinned digest. No such digest exists before this change, so if the new pin
+  fails and no other verified digest is available, **suspend release
+  publication** until one is verified.
 - The advisory check can be ignored. Accepted for the first slice.
+- The rustup checksum literal can go stale. The update procedure above covers
+  it; a stale value fails the job, which is the safe direction.
 
 ## Impact statement
 
