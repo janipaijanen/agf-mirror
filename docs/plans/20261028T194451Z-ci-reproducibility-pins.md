@@ -2,6 +2,11 @@
 id: 20261028T194451Z-ci-reproducibility-pins
 status: pending-gate1
 topic: ci-reproducibility-pins-release-create-and-oci-pull-test
+depends_on:
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20261021T204757Z-remove-dind-ci
+  - 20261021T220000Z-retire-windows-support
+  - 20261023T083302Z-remove-elixir-leftovers
 affected_paths:
   - .gitlab-ci.yml
   - .gitlab/scripts/check-ci-pins.sh
@@ -34,7 +39,7 @@ implementation.
 Two CI inputs float, against `always/security-hardening-rule.md` ("pin image
 tags", "pin tool versions in CI"):
 
-1. `release:create` (`.gitlab-ci.yml:508`) uses
+1. `release:create` (`.gitlab-ci.yml`, job `release:create`) uses
    `registry.gitlab.com/gitlab-org/release-cli:latest`. It runs only on a tag
    pipeline. A tag is immutable, so a bad upstream image costs a version number.
 2. `rust:tooling:oci-pull-test` (`.gitlab-ci.yml`, `before_script`) installs
@@ -42,7 +47,7 @@ tags", "pin tool versions in CI"):
    Other jobs use `rust:1.97.1@sha256:1bcff4be...` (`.rust-base`). The two
    toolchains can differ and `stable` moves without a repository change.
 
-## Evidence (read 2026-10-28, `origin/main` `ccb52317`)
+## Evidence (read 2026-10-28, `origin/main` `cc2976a3`)
 
 - The highest semver tag in the `gitlab-org/release-cli` registry repository
   was `v0.24.0`. I did not confirm that `latest` equals `v0.24.0`; the
@@ -51,6 +56,25 @@ tags", "pin tool versions in CI"):
   digest-resolution comment citing `docs/plans/ci-rust-cache-policy-slice-b.md`).
   `mise.toml` has `rust = "stable"`; that is local developer tooling and is out
   of scope here.
+
+## Collision reconciliation (2026-10-28)
+
+Pipeline `3000929469` failed `agov:governance:plan-collision-gate` on four
+unacknowledged `.gitlab-ci.yml` overlaps (governor review
+`20261028T202841Z-governor-reviewer-thps`). All four plans are `approved` and
+landed. Each was read against the current CI file. This plan edits only the
+`image:` line of `release:create` and the `--default-toolchain` argument in
+`rust:tooling:oci-pull-test`.
+
+| Landed plan | Effect on the two jobs | Effect on this plan |
+|---|---|---|
+| `20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion` | Added the collision-check job that failed this MR. | None on the two jobs. Needed here: the check correctly requires this `depends_on`. |
+| `20261021T204757Z-remove-dind-ci` | Changed `oci-pull-test` runner tags to `podman`, `linux`, `amd64`. The job image and the rustup line are unchanged. | None. Pin 2 edits the rustup line only. |
+| `20261021T220000Z-retire-windows-support` | Removed Windows preview CI. Neither job changed. | None. |
+| `20261023T083302Z-remove-elixir-leftovers` | Removed Elixir artifact checks from CI scripts. | None. The `release:create` tool list is unchanged (`release-cli`, `apk`, `curl`, `unzip`, `tar`, `gzip`). |
+
+All four are added to `depends_on`. Line numbers moved because of these plans,
+so this plan now cites jobs by name, not by line.
 
 ## Design
 
@@ -82,10 +106,11 @@ A small POSIX script, `.gitlab/scripts/check-ci-pins.sh`, reads
 Output lines carry `severity: advisory` or `severity: blocking` per
 `always/tool-authority-boundary-rule.md`.
 
-Decision D1 for the governor: should the check block? Blocking authority needs
-a named rule that grants it. No such rule exists today. The plan recommends
-shipping it as **advisory** (job `allow_failure: true`, visible warning) first.
-Promotion to blocking is a separate rule change with its own Gate 1.
+Decision D1 is resolved by governor review
+`20261028T202841Z-governor-reviewer-thps`: the check starts **advisory**
+(job `allow_failure: true`, visible warning), because no named rule grants it
+blocking authority. Promotion to blocking needs a separately governed rule
+change; this plan does not imply one.
 
 ### Deliberate update procedure
 
