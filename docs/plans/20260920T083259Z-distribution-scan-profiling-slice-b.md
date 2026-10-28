@@ -15,6 +15,9 @@ depends_on:
   - 20260913T165127Z-row5-s4-cp-a-ack-pending-display
   - 20260913T195450Z-row5-s2-self-announcing-supersession
   - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20261021T220000Z-retire-windows-support
+  - 20261023T083302Z-remove-elixir-leftovers
+  - 20261023T155559Z-agov-strict-args-ref-list
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
@@ -46,6 +49,25 @@ advisory_consultation:
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Plan: distribution-scan profiling instrumentation (Slice B, measurement-first)
+
+## Currency refresh (2026-10-28)
+
+Governor review `20261028T173322Z-governor-reviewer-hpb8` returned this plan
+for three plan collisions found against `main` at `19f362e0`. This branch now
+contains current `main`. The three plans are `approved` and their changes have
+landed. Each overlap is file-level only; none touches the code this plan adds
+counters to.
+
+| Landed plan | Shared file | Evidence of no semantic overlap |
+|---|---|---|
+| `20261021T220000Z-retire-windows-support` | `main.rs` | Its changes sit outside the `dist` subcommand dispatch (`dist_command`, `DistCommand`). |
+| `20261023T083302Z-remove-elixir-leftovers` | `dist.rs` | Since this plan's previous head, `dist.rs` changed in test code only: forbidden-glob test fixtures. `expand_includes`, `safe_join` and glob matching are unchanged. |
+| `20261023T155559Z-agov-strict-args-ref-list` | `main.rs` | Its changes are in `coord_list` and related coordination readers, not in `dist`. |
+
+Each plan is added to `depends_on`. `affected_paths` is not narrowed, because
+this plan still needs the `main.rs` dispatch change and the `dist.rs`
+counters. The measurement-only boundary is unchanged: no optimization,
+caching, CI wiring, dependency, or builder-image work enters this slice.
 
 ## Provenance and scope boundary
 
