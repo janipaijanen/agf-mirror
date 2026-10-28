@@ -1,0 +1,84 @@
+{
+  "snapshot": "Snapshot 1",
+  "captured_at": "2026-08-17T22:49:00Z",
+  "coordination_source_revision": "fcee3b3709bdd82592465cd5b9b123f117f10faf",
+  "arrivals_since_prior_snapshot": null,
+  "dispositions_since_prior_snapshot": null,
+  "transitions_since_prior_snapshot": null,
+  "inventories": {
+    "obligations": {
+      "count": 8,
+      "states": {
+        "human-gated": 1,
+        "completed-but-unacknowledged": 7
+      },
+      "age_buckets": {
+        "7-29d": 4,
+        "1-6d": 3,
+        "<1d": 1
+      },
+      "oldest": {
+        "identity_key": "20260803T073120Z-infosec-sentinel-nqh5",
+        "state": "human-gated",
+        "owner": "governor-reviewer",
+        "blocker": "MR !967 remains open; governor acknowledgement/decision remains the named gate.",
+        "source_link": "docs/coordination/20260803T073120Z-infosec-sentinel-nqh5.md",
+        "age_bucket": "7-29d",
+        "pending_since": "2026-08-03T07:31:20Z",
+        "topic": "infosec-boundary-check-mr-967-ai2-ai5"
+      }
+    },
+    "branches": {
+      "count": 553,
+      "states": {
+        "closed/merged-MR": 404,
+        "active-MR": 69,
+        "orphaned": 75,
+        "protected": 5
+      },
+      "age_buckets": {
+        "7-29d": 425,
+        "30-89d": 64,
+        "1-6d": 55,
+        "<1d": 9
+      },
+      "oldest": {
+        "identity_key": "plan/T3-spec-alignment",
+        "state": "orphaned",
+        "owner": "Jani P\u00e4ij\u00e4nen",
+        "blocker": "none recorded",
+        "source_link": "GitLab branch query: no MR history",
+        "age_bucket": "30-89d",
+        "head_sha": "dea2ade095f31fc34ecbd97af548fde637356abd",
+        "last_commit_at": "2026-06-11T22:31:15.000+03:00"
+      }
+    },
+    "assistant_drift": {
+      "count": 51,
+      "states": {
+        "actionable difference": 51
+      },
+      "finding_types": {
+        "differ": 44,
+        "missing": 5,
+        "extra": 2
+      },
+      "oldest": {
+        "identity_key": ".claude/rules/README.md|differ",
+        "state": "actionable difference",
+        "owner": "coder-tester",
+        "blocker": "No correction authorized by this measurement-only plan.",
+        "source_link": ".claude/rules/README.md",
+        "age_bucket": "30-89d",
+        "finding_type": "differ",
+        "last_changed_at": "2026-06-11T01:29:56+03:00"
+      }
+    }
+  },
+  "unresolved_exceptions": [
+    "One live human-gated coordination item remains: 20260803T073120Z-infosec-sentinel-nqh5 for MR !967.",
+    "Seven tool-pending records appear complete from GitLab state but lack direct resolving references.",
+    "All 51 assistant-drift findings are actionable differences for measurement purposes; this plan authorizes no remediation.",
+    "Retention classification is based only on exact branch-name matches in coordination records containing an explicit retention phrase; unrecorded intent cannot be inferred."
+  ]
+}

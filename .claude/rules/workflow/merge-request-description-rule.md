@@ -1,0 +1,1 @@
+../../../agf/rules/workflow/merge-request-description-rule.md

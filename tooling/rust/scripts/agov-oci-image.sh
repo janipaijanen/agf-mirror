@@ -45,9 +45,8 @@ TARGETS_MANIFEST="$SCRIPT_DIR/../release-targets.txt"
 #
 # Deliberately maps ONLY the Linux tar.gz targets this OCI path can consume:
 # both callers construct a .tar.gz path, extract with tar, and run an
-# extensionless `agov` ELF binary inside this Linux image. The Windows
-# release artifact (agov-...-windows-x86_64.zip, containing agov.exe) can
-# never satisfy that, so x86_64-pc-windows-gnu is rejected as unsupported
+# extensionless `agov` ELF binary inside this Linux image. Windows targets
+# cannot satisfy that, so x86_64-pc-windows-gnu is rejected as unsupported
 # here rather than translated into a nonexistent .tar.gz path.
 manifest_records() {
   manifest="$1"
@@ -120,7 +119,7 @@ EOF
 target_slug() {
   requested="$1"
   if [ "$requested" = "x86_64-pc-windows-gnu" ]; then
-    echo "target $requested is not supported by this Linux OCI-image path (its release artifact is a Windows .zip with agov.exe, not a .tar.gz with a runnable agov binary)" >&2
+    echo "target $requested is not supported by this Linux OCI-image path" >&2
     return 1
   fi
   target_slug_from "$TARGETS_MANIFEST" "$requested"

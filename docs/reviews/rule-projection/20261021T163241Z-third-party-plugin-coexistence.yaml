@@ -1,0 +1,91 @@
+# Six-surface projection evidence for the new "Coexisting with third-party
+# assistant plugins" adopter-docs page. Fast-tracked under simplicity-rule
+# (single-file, reversible, ordinary doc addition); no separate Gate 1 plan
+# file. This record is the Gate 2 evidence documentation-rule-projection-rule
+# requires for new normative guidance in an adopter-facing Pages page.
+
+plan_id: 20261021T163241Z-third-party-plugin-coexistence
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+  - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+
+surfaces:
+  normative_owner:
+    disposition: not applicable
+    reason: >-
+      The page states a precedence rule (governor/AGF authority above a
+      third-party plugin's coding-style instructions) that restates existing
+      owners rather than creating a new one: role authority and Gate 1/Gate 2
+      decision ownership are already governed by agf/agents/MANIFEST.yaml and
+      the gate-discipline section of AGENTS.md; the "plugin output is advisory
+      evidence, never a gate approval" line restates
+      always/tool-authority-boundary-rule.md. The page is explicitly adopter
+      guidance for applying those existing owners alongside a plugin, not a
+      new rule.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      New Pages page under docs/adopt/, the audience for adopter-facing
+      explanation per docs/documentation-audience-rule.md. It explains why
+      coexistence needs a stated precedence, gives the loader snippet to add,
+      and gives a worked example (Ponytail) checked live against the tool's
+      own README/release before publication.
+
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      The page's own numbered checklist (install path, role scoping, review
+      filing, deferred-work split, provenance recording, hook supply-chain
+      review, evidence-level hygiene) is the situation-oriented sequence; no
+      separate operations runbook entry exists for third-party plugin
+      adoption, and this page is the natural landing point when that
+      situation arises. No existing runbook page claims this ground, so there
+      is no competing projection to reconcile.
+
+  ai_landing_loaders:
+    disposition: updated
+    path: agf/docs/site/docs/adopt/assistant-loader-configuration.md
+    reason: >-
+      Added a "Next" pointer from the loader-configuration page (the page an
+      assistant reads when setting up or verifying the shared loader) to the
+      new coexistence page, so an assistant configuring a loader alongside a
+      plugin is one click from the coexistence guidance. Root AGENTS.md is
+      unchanged: the loader snippet the page recommends is adopter-authored,
+      conditional on whether a plugin is actually in use, and therefore
+      belongs in the adopter's own AGENTS.md instance, not in this
+      framework-shipped reference page.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    paths:
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      No mechanical validator exists or is proposed beyond the "Planned
+      tooling" section's own advisory `agov validate` idea (not implemented).
+      The Ponytail worked-example table's factual claims (levels, slash
+      commands, deferred-work ledger, hooks, supported-host list) were
+      verified against the live DietrichGebert/ponytail README at authoring
+      time per always/verifiable-claims-rule.md; semantic adequacy of the
+      guidance remains Gate 2 judgment.
+
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+        reason: >-
+          Ships under agf/docs/site/, the existing adopter-facing Pages tree,
+          alongside every other page in docs/adopt/; no separate release
+          manifest or template change is needed for a new page in an already
+          distributed directory.
+      - path: agf/docs/site/docs/adopt/assistant-loader-configuration.md
+        reason: >-
+          Existing distributed page; the edit is a one-line "Next" pointer
+          addition, not a structural or template change.
+    reason: >-
+      Both files are already within the Pages site's existing distribution
+      path; this change adds content to that path rather than introducing a
+      new distribution surface.

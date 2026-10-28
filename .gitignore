@@ -20,9 +20,6 @@ build/
 *.env
 .netrc
 
-# Elixir (removed from repo; ignore lingering local build state)
-tooling/elixir/
-
 # Local/generated bootstrap artifacts
 agents-govern/uv.lock
 

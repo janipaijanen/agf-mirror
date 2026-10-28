@@ -145,6 +145,35 @@ A false lifecycle claim (e.g., a record asserting completion before the
 event happened) is a blocking finding at whatever review stage catches it,
 corrected by a superseding record — never by editing the false one.
 
+### The `supersedes` field
+
+A later record MAY declare `supersedes: [<earlier record>, ...]` to retire the
+earlier record's live-obligation status for the same audience. The earlier
+record is never edited; readers derive the relationship at read time. A
+validly superseded record is shown as superseded in `agov coord list` and is
+left out of the pending views: `agov coord pending` for records that require
+acknowledgement, and `agov handoff next` and `agov coord status` for
+handoffs.
+
+An edge is honored only when all six checks hold; otherwise it is ignored
+without error and the earlier record stays live:
+
+1. the later record names the earlier record in its `supersedes`;
+2. the later record also cites it in its own `references-to`;
+3. the later record's `timestamp` is strictly later, compared as instants;
+4. the two are different records;
+5. both have the same `to`; and
+6. both have the same `from`, or the later record is from `governor-reviewer`.
+
+Chains resolve to the current leaf: a correction names the current leaf, not
+the original record. When several valid candidates compete at one hop, the
+earliest wins; at an exactly equal instant a `governor-reviewer` record wins;
+the smallest id breaks any remaining tie.
+
+Supersession is advisory evidence. It blocks nothing, approves or completes
+nothing, and grants no authority; the lifecycle rules above still decide who
+may issue a binding record.
+
 ## CI implementation shape
 
 - Do not rely solely on commit-title pattern matching
@@ -372,8 +401,8 @@ These statuses add no blocking authority; the existing named coordination
 schema validator remains the field-validation gate.
 
 Rollout requires compatible framework schemas/rules and CLI/MCP artifacts before
-any immutable record uses these fields. The intended first release is v2.11.0;
-release preflight must verify actual artifacts and minimum supported versions.
+any immutable record uses these fields. They first shipped in v2.11.0; operators
+must still verify actual artifacts and minimum supported versions before use.
 Older readers reject fields or lack the command; complete partial upgrades
 without stripping immutable fields. Before first use a gated revert is possible.
 After first use preserve field recognition: a separately gated forward correction

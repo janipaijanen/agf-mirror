@@ -8,7 +8,7 @@
 # template. Adopters should create their own local role-status record before
 # relying on manifest-driven tooling.
 #
-# Framework version: 2.10.0  |  Layout: B
+# Framework version: 2.12.0  |  Layout: B
 # Governor-Reviewer approval required for all status changes.
 # Run: agov validate agents
 # =============================================================================
@@ -99,9 +99,10 @@ agents:
       tmp/codex-improvement-propeller-state.json with learning baseline 62
       through 20260906T104942Z-ev5m, coordination lower bound
       20260907T143711Z-contribution-auditor-dt4s, and release baseline v2.9.0
-      peeled ee27978b218de47b062ab4ac2afee090b2c48ff8. Activation is Level 4
-      Validated until one genuine unattended scheduled wake supplies separate
-      Level 5 evidence.
+      peeled ee27978b218de47b062ab4ac2afee090b2c48ff8. Activation is Level 5
+      Deployable after the genuine unattended wake `sg5e`, independently
+      reviewed and confirmed by governor decision
+      20260918T162825Z-governor-reviewer-8hs2.
 
   documentation-writer:
     status: skipped

@@ -700,11 +700,11 @@ forbidden:
     }
 
     #[test]
-    fn rejects_selected_mix_and_elixir_sources() {
+    fn rejects_selected_files_matching_forbidden_globs() {
         let temp = fixture_root();
         write(temp.path(), "agf/VERSION", "2.0.0\n");
-        write(temp.path(), "agf/legacy/mix.lock", "retired\n");
-        write(temp.path(), "agf/legacy/lib/sample.ex", "retired\n");
+        write(temp.path(), "agf/legacy/cache.tmp", "retired\n");
+        write(temp.path(), "agf/legacy/lib/sample.bak", "retired\n");
         let manifest = write(
             temp.path(),
             "manifest.yaml",
@@ -719,17 +719,17 @@ package:
 include:
   - glob: agf/legacy/**
 forbidden:
-  - "**/mix.lock"
-  - "**/*.ex"
+  - "**/*.tmp"
+  - "**/*.bak"
 "#,
         );
 
         let errors = validate(&manifest, temp.path()).unwrap_err();
         assert!(errors
             .iter()
-            .any(|error| { error == "forbidden file selected for release: agf/legacy/mix.lock" }));
+            .any(|error| { error == "forbidden file selected for release: agf/legacy/cache.tmp" }));
         assert!(errors.iter().any(|error| {
-            error == "forbidden file selected for release: agf/legacy/lib/sample.ex"
+            error == "forbidden file selected for release: agf/legacy/lib/sample.bak"
         }));
     }
 

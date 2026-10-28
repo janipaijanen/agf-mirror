@@ -1,0 +1,1 @@
+../../../agf/rules/workflow/coordination-challenge-response-rule.md

@@ -176,7 +176,8 @@ Minimal example:
 
 - Use `/home/example/src/project` as the canonical local checkout.
 - Prefer the local release build at `tooling/rust/target/release/agov`.
-- When polling is requested, use the documented `15mins/180min` cadence.
+- When polling is requested, use the operator's cadence and the timer guidance
+  below.
 
 This file is local. It does not override AGF gates, coordination records,
 role authority, or governor-reviewer decisions.
@@ -184,21 +185,8 @@ role authority, or governor-reviewer decisions.
 
 ## Optional polling timer guidance
 
-Some teams ask assistants to poll for coordination or merge-request activity
-while a human is away. If you use timer shorthand in your loader or local
-instructions, define it explicitly. For example, `15mins/180min` should mean:
-
-- scan every 15 minutes for new coordination messages and merge-request
-  activity;
-- stop after 180 minutes with no new incoming activity;
-- reset the 180-minute idle window whenever new relevant activity appears.
-
-For AI assistants, this should be an internal reminder or wake-up in the active
-assistant surface. Do not tell the assistant to start a background shell timer,
-cron job, detached `sleep`, or other external process unless you actually want
-an external monitor; the assistant may not notice it. If the assistant cannot
-schedule internal wake-ups, it should say so and scan when it is active or
-resumed.
+When a loader requests polling, define its cadence, report each replacement and
+any scheduling limitation, and follow [Scheduling and notification honesty](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty).
 
 If you are upgrading from an older copied layout, remove AGF-provided copies
 from `.claude/rules/`, `.claude/skills/`, or similar tool directories. Keep a
@@ -262,3 +250,5 @@ judgment remains with the governor-reviewer.
 - Install the framework layout: [install the `agf/` directory](install-and-layouts.md)
 - Wire validation: [contracts and validators](../advanced/contracts-and-validators.md)
 - Try one change: [your first governed change](../start/first-governed-change.md)
+- Running a coding-style plugin alongside AGF: [coexisting with third-party
+  assistant plugins](third-party-plugin-coexistence.md)

@@ -8,6 +8,37 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+Adopter-facing entries for the next release, with their `Adopter docs:` lines, are
+in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[Unreleased]`; this section lists
+repository-level changes only.
+
+## [2.12.0] - 2026-10-28
+
+**Documentation-focused minor release.** Standard current-main release from
+reviewed construction base `fc98b4d1`. The canonical adopter changelog records
+the tooling-coexistence guidance, homepage modernization, and documentation
+corrections. This release adds no repository-operation change.
+
+## [2.11.0] - 2026-10-26
+
+**Minor release.** Standard-path release from reviewed `main` at
+`24d098a1`. Full Rust workspace suite: 739 passed, 0 failed, 3 intentionally
+ignored network/Podman tests; each framework archive passed all 28 shipped
+tests. The adopter-facing release adds stricter MCP argument handling,
+coordination lifecycle and publication controls, plan collision enforcement,
+the optional Improvement Propeller skill, governance modes, and documentation
+currency fixes. Repository operations also retire the unused Elixir and
+Windows preview paths and route OCI work to the live Podman runner pool.
+
+- Removed the retired Elixir release-payload guard script, its CI invocations and
+  the `release:elixir-exclusion-selftest` job, and the Elixir toolchain pins from
+  `mise.toml`/`mise.lock`. The generic forbidden-file mechanism in the
+  release manifest is unchanged and still tested.
+- Route two OCI pull/inspect CI jobs to the live Podman runner pool instead of the unavailable DinD pool.
+- Retired the optional Windows `agov`/`agov-mcp` preview build and packaging
+  path. Automation using that preview must move to Linux x86_64 or the OCI
+  image; current CI and release tooling no longer produce Windows ZIPs.
+
 ## [2.10.1] - 2026-09-12
 
 **Patch release, MINOR-shaped content.** Standard-path release: ships

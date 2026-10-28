@@ -1,0 +1,89 @@
+# Six-surface projection evidence for plan
+# docs/plans/20261023T080431Z-instruction-context-followup.md,
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# No rule text changes. Six more rules stop loading at session start
+# (claudeMdExcludes in .claude/settings.json), each gets one row in
+# .claude/rules/INDEX.md and one trigger line in AGENTS.md. The foundry-local
+# simplicity projection drops two situational sections and points to the owner.
+
+plan_id: 20261023T080431Z-instruction-context-followup
+
+changed_pages_or_runbooks:
+  - .claude/rules/INDEX.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/always/agent-improvement-proposal-rule.md
+      - agf/rules/always/governance-file-layout-rule.md
+      - agf/rules/workflow/coordination-challenge-response-rule.md
+      - agf/rules/workflow/debugging-rule.md
+      - agf/rules/workflow/feature-regression-guard-rule.md
+      - agf/rules/workflow/coordination-id-rule.md
+      - agf/rules/workflow/simplicity-rule.md
+    reason: >-
+      Each demoted rule keeps its canonical owner file under agf/rules/ and its
+      .claude/rules symlink; none is moved, copied or edited. The trimmed
+      simplicity sections remain verbatim in the canonical agf/rules/workflow
+      simplicity rule (verified line by line: 77 of 77 lines present). One INDEX
+      row and one AGENTS.md trigger line exist per demoted rule.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Foundry-local loader configuration only. Adopters receive agf/ unchanged; no
+      Pages page explains .claude/settings.json, the foundry INDEX or the foundry
+      projection of the simplicity rule.
+
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    paths:
+      - .claude/rules/INDEX.md
+    reason: >-
+      INDEX.md is the situation map: six new rows phrased "when you are about to
+      X, read Y". They restate the canonical Scope and no rule body.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - .claude/rules/INDEX.md
+      - .claude/settings.json
+      - AGENTS.md
+      - .claude/rules/workflow/simplicity-rule.md
+    reason: >-
+      Claude loads INDEX.md and honours claudeMdExcludes. Codex reads only
+      AGENTS.md, so AGENTS.md carries one compact trigger line per demoted rule.
+      The simplicity projection replaces its sources/radar sections with a pointer
+      to the canonical owner; its Step 2 reference now names the canonical rule.
+      agf/templates/AGENTS.md is unchanged.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      InstructionsLoaded log on Claude Code 2.1.x: 33 files before, 27 after; the
+      six demoted rules are absent and nothing else changed; 156,887 to about
+      136.2k chars on disk. Behavior replays: 5 of 6 first samples opened the
+      right rule; the challenge rule was missed once on the first wording and the
+      improvement rule was missed twice in three samples after the required
+      phrases were added; both triggers were strengthened, and every re-run then
+      opened the right rule (challenge 3 of 3, improvement 6 of 6, final sweep
+      5 of 5). Claude Code /context shows memory files 34 files, 53.6k tokens on
+      main and 28 files, 46.8k tokens at the final head.
+      agov validate assistant_drift reads files, not the setting. All output is
+      advisory evidence under tool-authority-boundary-rule.md.
+
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: .claude/settings.json
+        reason: Project-local checkout configuration; not in any AGF or tooling artifact.
+      - path: .claude/rules/INDEX.md
+        reason: Foundry-local loader pointer; not shipped.
+      - path: .claude/rules/workflow/simplicity-rule.md
+        reason: Foundry-local projection; the shipped canonical rule is unchanged.
+    reason: >-
+      Every changed file is project-local to the foundry checkout. Nothing in agf/
+      or the shipped templates changes.

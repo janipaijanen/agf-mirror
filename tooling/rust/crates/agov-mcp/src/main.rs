@@ -394,6 +394,7 @@ fn call_tool(params: Value, agov: &AgovCommand) -> Result<Value, String> {
         .get("arguments")
         .cloned()
         .unwrap_or_else(|| json!({}));
+    reject_unknown_args(canonical_tool, &args)?;
     let cli_args = tool_cli_args(canonical_tool, &args)?;
     let execution = run_agov(agov, &cli_args, Some(canonical_tool));
 
@@ -445,7 +446,9 @@ fn run_agov(
 
     match output {
         Ok(output) => ToolExecution {
-            ok: output.status.success() || is_expected_non_error_status(args, output.status.code()),
+            ok: output.status.success()
+                || (is_expected_non_error_status(args, output.status.code())
+                    && !is_ref_read_failure(args, &output.stderr)),
             status: output.status.code().unwrap_or(1),
             command: args.to_vec(),
             stdout: String::from_utf8_lossy(&output.stdout).to_string(),
@@ -468,6 +471,12 @@ fn is_expected_non_error_status(args: &[String], status: Option<i32>) -> bool {
             args.get(1).map(String::as_str),
             Some("list") | Some("pending")
         )
+}
+
+/// In `--ref` mode exit 2 with stderr output is an unreadable ref or Git input, not
+/// "nothing new": it must stay an error so a caller never mistakes it for a clean empty.
+fn is_ref_read_failure(args: &[String], stderr: &[u8]) -> bool {
+    !stderr.is_empty() && args.iter().any(|arg| arg.starts_with("--ref="))
 }
 
 fn validate_agov_startup(command: &AgovCommand) -> Result<(), String> {
@@ -540,7 +549,7 @@ fn agov_command() -> Result<AgovCommand, String> {
         });
     }
 
-    if let Some(agov) = executable_on_path(if cfg!(windows) { "agov.exe" } else { "agov" }) {
+    if let Some(agov) = executable_on_path("agov") {
         return Ok(AgovCommand {
             program: agov,
             prefix: Vec::new(),
@@ -548,7 +557,7 @@ fn agov_command() -> Result<AgovCommand, String> {
         });
     }
 
-    let cargo = executable_on_path(if cfg!(windows) { "cargo.exe" } else { "cargo" })
+    let cargo = executable_on_path("cargo")
         .ok_or_else(|| {
             "could not resolve agov; tried AGOV_MCP_AGOV_BIN, repository release/debug builds, agov on PATH, and cargo on PATH"
                 .to_string()
@@ -678,6 +687,10 @@ fn tool_cli_args(name: &str, args: &Value) -> Result<Vec<String>, String> {
             push_optional_flag(args, "since", "--since", &mut cli)?;
             push_optional_flag(args, "dir", "--dir", &mut cli)?;
             push_optional_flag(args, "format", "--format", &mut cli)?;
+            // One `--ref=<value>` argument: a value starting with `-` stays a value.
+            if let Some(reference) = optional_string(args, "ref")? {
+                cli.push(format!("--ref={reference}"));
+            }
             Ok(cli)
         }
         "agov_coord_pending" => {
@@ -1028,7 +1041,8 @@ fn tools() -> Vec<Value> {
                 "properties": {
                     "since": { "type": "string" },
                     "dir": { "type": "string" },
-                    "format": { "type": "string", "enum": ["text", "json"] }
+                    "format": { "type": "string", "enum": ["text", "json"] },
+                    "ref": { "type": "string", "description": "Read the channel from this fetched commit-ish (no fetch); JSON becomes an object with source_ref, source_oid, coordination_dir and messages." }
                 }
             }),
         ),
@@ -1151,12 +1165,73 @@ fn tools() -> Vec<Value> {
     ]
 }
 
-fn tool(name: &str, description: &str, input_schema: Value) -> Value {
+fn tool(name: &str, description: &str, mut input_schema: Value) -> Value {
+    // Every published schema is closed: capable clients reject a stray key
+    // before transport, and `reject_unknown_args` enforces the same property
+    // set server-side.
+    if let Some(schema) = input_schema.as_object_mut() {
+        schema.insert("additionalProperties".into(), Value::Bool(false));
+    }
     json!({
         "name": name,
         "description": description,
         "inputSchema": input_schema
     })
+}
+
+/// Arguments that are deliberately not published but have their own tailored
+/// error in `tool_cli_args`; they must reach it instead of the generic check.
+fn has_tailored_rejection(tool_name: &str, key: &str) -> bool {
+    matches!(
+        (tool_name, key),
+        ("agov_plan_collision_check", "include_forge") | ("agov_coord_graph_index", "output")
+    )
+}
+
+const MAX_SHOWN_KEY_CHARS: usize = 200;
+
+/// Escape control characters and cap the length of a caller-supplied string
+/// before it is echoed in a diagnostic.
+fn display_untrusted(raw: &str) -> String {
+    let mut shown = String::new();
+    for (count, ch) in raw.chars().enumerate() {
+        if count == MAX_SHOWN_KEY_CHARS {
+            shown.push_str("...[truncated]");
+            break;
+        }
+        if ch.is_control() {
+            shown.push_str(&format!("\\x{:02x}", ch as u32));
+        } else {
+            shown.push(ch);
+        }
+    }
+    shown
+}
+
+/// Reject any argument key that is not in the tool's published
+/// `inputSchema.properties`, before the child `agov` process starts.
+fn reject_unknown_args(tool_name: &str, args: &Value) -> Result<(), String> {
+    let Some(given) = args.as_object() else {
+        return Ok(());
+    };
+    let published = tools();
+    let Some(schema) = published
+        .iter()
+        .find(|tool| tool["name"] == tool_name)
+        .and_then(|tool| tool["inputSchema"]["properties"].as_object())
+    else {
+        return Ok(());
+    };
+    match given
+        .keys()
+        .find(|key| !schema.contains_key(*key) && !has_tailored_rejection(tool_name, key))
+    {
+        Some(key) => Err(format!(
+            "{tool_name} does not accept argument '{}'",
+            display_untrusted(key)
+        )),
+        None => Ok(()),
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -1436,6 +1511,25 @@ mod tests {
         let args = vec!["coord".to_string(), "list".to_string()];
 
         assert!(is_expected_non_error_status(&args, Some(2)));
+    }
+
+    #[test]
+    fn coord_list_ref_is_one_equals_argument_even_with_a_leading_dash() {
+        for value in ["main", "-x", "--all", "origin/main"] {
+            let args = tool_cli_args("agov_coord_list", &json!({ "ref": value, "since": "s" })).unwrap();
+            assert_eq!(args, vec!["coord".to_string(), "list".into(), "--since".into(), "s".into(), format!("--ref={value}")]);
+            assert!(!args.iter().any(|arg| arg == "--ref"));
+        }
+        assert!(tool_cli_args("agov_coord_list", &json!({ "ref": 1 })).is_err());
+    }
+
+    #[test]
+    fn ref_read_failure_is_not_the_polling_empty_amnesty() {
+        let with_ref = vec!["coord".to_string(), "list".into(), "--ref=main".into()];
+        assert!(is_ref_read_failure(&with_ref, b"ERR  could not resolve --ref main\n"));
+        assert!(!is_ref_read_failure(&with_ref, b""));
+        let without_ref = vec!["coord".to_string(), "list".into()];
+        assert!(!is_ref_read_failure(&without_ref, b"anything"));
     }
 
     #[test]
@@ -1905,5 +1999,68 @@ mod tests {
         ] {
             assert!(tool_cli_args("agov_coord_hold_status", &args).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod strict_args_tests {
+    use super::*;
+
+    #[test]
+    fn every_published_schema_is_closed() {
+        let published = tools();
+        assert_eq!(published.len(), 21);
+        for tool in &published {
+            assert_eq!(
+                tool["inputSchema"]["additionalProperties"],
+                json!(false),
+                "{} schema is not closed",
+                tool["name"]
+            );
+        }
+    }
+
+    #[test]
+    fn misspelled_key_is_rejected_naming_tool_and_key() {
+        let err = reject_unknown_args("agov_coord_list", &json!({"sence": "x"})).unwrap_err();
+        assert!(err.contains("agov_coord_list") && err.contains("'sence'"), "{err}");
+        assert!(reject_unknown_args("agov_coord_list", &json!({"since": "x"})).is_ok());
+        assert!(reject_unknown_args("agov_coord_list", &json!({})).is_ok());
+    }
+
+    #[test]
+    fn every_tool_rejects_a_stray_key_and_accepts_its_published_keys() {
+        for tool in tools() {
+            let name = tool["name"].as_str().unwrap();
+            assert!(reject_unknown_args(name, &json!({"zz_stray": 1})).is_err(), "{name}");
+            for key in tool["inputSchema"]["properties"].as_object().unwrap().keys() {
+                assert!(reject_unknown_args(name, &json!({ key: null })).is_ok(), "{name} {key}");
+            }
+        }
+    }
+
+    #[test]
+    fn tailored_errors_still_win_for_known_unsupported_keys() {
+        assert!(reject_unknown_args("agov_plan_collision_check", &json!({"include_forge": true})).is_ok());
+        assert!(reject_unknown_args("agov_coord_graph_index", &json!({"output": "x"})).is_ok());
+        // The exemption is per tool: the same key on another tool is just unknown.
+        assert!(reject_unknown_args("agov_coord_list", &json!({"include_forge": true})).is_err());
+        assert!(reject_unknown_args("agov_plan_collision_check", &json!({"output": "x"})).is_err());
+    }
+
+    #[test]
+    fn echoed_key_is_escaped_and_length_capped() {
+        let key = "a\u{1b}[31m\nb\u{7f}\u{85}";
+        let err = reject_unknown_args("agov_coord_list", &json!({ key: 1 })).unwrap_err();
+        assert!(!err.chars().any(char::is_control), "{err:?}");
+        assert!(err.contains("\\x1b") && err.contains("\\x0a") && err.contains("\\x7f") && err.contains("\\x85"));
+        let long = "k".repeat(5000);
+        let err = reject_unknown_args("agov_coord_list", &json!({ long: 1 })).unwrap_err();
+        assert!(err.len() < 400 && err.contains("...[truncated]"), "{}", err.len());
+    }
+
+    #[test]
+    fn non_object_arguments_are_left_to_existing_handling() {
+        assert!(reject_unknown_args("agov_coord_list", &Value::Null).is_ok());
     }
 }

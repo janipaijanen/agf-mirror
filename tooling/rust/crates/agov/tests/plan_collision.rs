@@ -1,5 +1,29 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Jani Päijänen
+// OCI runner split (2026-10-22): .gitlab-ci.yml changes a declared shared
+// surface, but not collision behavior. Rerun these controls alongside the
+// positive and wrong-pool routing checks in ci_needs_implication.rs.
+
+// Coord-schema-recompile companion evidence (2026-10-21), matching
+// `tests/gate_change_check.rs`'s own companion comment for the same commit:
+// `channel_summary`, `coord_publication_check`, `read_coord_messages_with_
+// invalid`, `validate_coord_files`, and `duplicate_id_errors_in_dirs` in
+// main.rs (a declared `plan-collision-block` surface) were changed to
+// compile the coordination-message schema once per invocation instead of
+// once per scanned file. Performance-only: no plan-collision-block logic
+// touched, and the gate itself is unchanged. Real behavioral coverage for
+// these five call sites lives in their existing command-level test files
+// (`coord_visibility.rs`, `coord_convergence.rs`, `coord_write.rs`,
+// `handoff_branch.rs`, `handoff_next_ack_pending_display.rs`,
+// `coord_publication_check.rs`, `urgency_ordering.rs`, `supersession.rs`,
+// `session_resume.rs`), all of which pass unchanged; this comment is this
+// file's companion touch for that same shared-surface (`main.rs`) commit.
+
+// Windows tooling retirement (2026-10-22): .gitlab-ci.yml drops optional
+// Windows preview jobs, a declared shared surface of plan-collision-block.
+// Rerun these collision controls alongside the CI job-selection assertions in
+// ci_needs_implication.rs; the collision gate itself is unchanged.
+
 use std::{fs, path::PathBuf, process::Command};
 
 struct Repo(tempfile::TempDir);
@@ -420,4 +444,49 @@ fn pending_advisory_status_plan_is_still_scanned_and_detects_overlap() {
     assert_eq!(code, 1, "{text}");
     assert!(text.contains("plan docs/plans/existing.md <-> plan docs/plans/mid-draft.md"));
     assert!(text.contains("plans inspected: 2"), "{text}");
+}
+
+#[test]
+fn live_ci_keeps_the_plan_collision_gate_after_an_unrelated_job_removal() {
+    // Issue 140 removed an unrelated CI job from .gitlab-ci.yml. The shared CI
+    // surface is registered to plan-collision-block, so show that the gate job
+    // and its self-test wiring are still present.
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .expect("repository root")
+        .to_path_buf();
+    let configuration =
+        fs::read_to_string(root.join(".gitlab-ci.yml")).expect("read live CI configuration");
+    assert!(
+        configuration.contains("agov:governance:plan-collision-gate:"),
+        "plan-collision gate job missing"
+    );
+    assert!(
+        configuration.contains("plan-collision-self-test.sh"),
+        "plan-collision self-test wiring missing"
+    );
+}
+
+/// `agov coord list --ref` (plan 20261023T155559Z-agov-strict-args-ref-list, Slice B) edits
+/// tooling/rust/crates/agov/src/main.rs, a declared `plan-collision-block` surface. The collision
+/// gate itself is unchanged; the file must stay registered so an edit to it keeps requiring test
+/// evidence.
+#[test]
+fn live_registry_keeps_agov_main_as_a_plan_collision_block_surface() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(4)
+        .unwrap()
+        .to_path_buf();
+    let registry = std::fs::read_to_string(root.join(".agf/gates.yaml")).expect("read gate registry");
+    let block = registry
+        .split("  - id: ")
+        .find(|entry| entry.starts_with("plan-collision-block"))
+        .expect("plan-collision-block entry");
+    let surfaces = block.split("    tests:").next().unwrap();
+    assert!(
+        surfaces.contains("tooling/rust/crates/agov/src/main.rs"),
+        "agov main.rs must remain a plan-collision-block surface"
+    );
 }

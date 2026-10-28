@@ -1,6 +1,7 @@
 mod artifact;
 mod ci_cache_topology;
 mod commercial_corpus;
+mod coord_list_ref;
 mod dist;
 mod handoff_branch;
 mod hold_status;
@@ -224,6 +225,9 @@ enum CoordCommand {
         dir: PathBuf,
         #[arg(long, default_value = "text", value_parser = ["text", "json"])]
         format: String,
+        /// Read the channel from this fetched commit-ish instead of the checkout (no fetch).
+        #[arg(long = "ref", value_name = "COMMIT-ISH")]
+        source_ref: Option<String>,
     },
     /// Print coordination channel overview.
     Status {
@@ -815,8 +819,8 @@ fn run(cli: Cli, args: Vec<String>) -> i32 {
             &args,
         ),
         Command::Coord {
-            sub: CoordCommand::List { since, dir, format },
-        } => coord_list(since, dir, format, &args),
+            sub: CoordCommand::List { since, dir, format, source_ref },
+        } => coord_list(since, dir, format, source_ref, &args),
         Command::Coord {
             sub: CoordCommand::Status { dir, recent, roles },
         } => coord_status(dir, recent, roles, &args),
@@ -1697,8 +1701,8 @@ fn discover_release_assets(release_json: &str) -> Result<Vec<(String, String)>, 
 /// The Rust target triple this binary can actually execute a self-report
 /// check against. Only the exact triple matching the verifier host's own
 /// architecture and OS is executable here -- an `aarch64-unknown-linux-musl`
-/// or `x86_64-pc-windows-gnu` archive cannot run its packaged binary on an
-/// `x86_64` Linux CI runner. Cross-target archives are not silently
+/// archive for another OS cannot run its packaged binary on an `x86_64`
+/// Linux CI runner. Cross-target archives are not silently
 /// skipped: `composed_self_report_check` emits an explicit line naming the
 /// gap instead of omitting it.
 fn executable_target_platform() -> Option<&'static str> {
@@ -2628,14 +2632,36 @@ fn coord_post(options: CoordPostOptions, args: &[String]) -> i32 {
     }
 }
 
-fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[String]) -> i32 {
+fn coord_list(
+    since: Option<String>,
+    dir: PathBuf,
+    format: String,
+    source_ref: Option<String>,
+    args: &[String],
+) -> i32 {
     let mut output = OutputCounter::default();
-    let dir = repo_relative_path(dir);
-    let messages = match read_valid_coord_messages(&dir) {
-        Ok(messages) => messages,
-        Err(_) => {
-            output.stderr(format!("ERR  directory not found: {}", dir.display()));
-            return 1;
+    let mut ref_source = None;
+    let messages = if let Some(reference) = &source_ref {
+        // Ref mode: unavailable ref or unreadable Git input is exit 2, never a clean empty.
+        match coord_list_ref::read_channel_at_ref(reference, &dir) {
+            Ok(channel) => {
+                let messages = channel.messages.clone();
+                ref_source = Some(channel);
+                messages
+            }
+            Err(message) => {
+                output.stderr(format!("ERR  {message}"));
+                return 2;
+            }
+        }
+    } else {
+        let dir = repo_relative_path(dir);
+        match read_valid_coord_messages(&dir) {
+            Ok(messages) => messages,
+            Err(_) => {
+                output.stderr(format!("ERR  directory not found: {}", dir.display()));
+                return 1;
+            }
         }
     };
 
@@ -2663,8 +2689,29 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
         })
         .collect();
 
+    let source_line = ref_source.as_ref().map(|channel| {
+        format!(
+            "source: ref={} oid={} dir={} records={} skipped={}",
+            coord_list_ref::display_untrusted(&channel.source_ref),
+            channel.source_oid,
+            coord_list_ref::display_untrusted(&channel.coordination_dir),
+            channel.messages.len(),
+            channel.skipped
+        )
+    });
+
     if items.is_empty() {
-        output.stdout("No coordination messages found");
+        if format == "json" {
+            match &ref_source {
+                Some(channel) => output.stdout(coord_list_ref_json(channel, &[])),
+                None => output.stdout("[]"),
+            }
+        } else {
+            if let Some(line) = &source_line {
+                output.stdout(line);
+            }
+            output.stdout("No coordination messages found");
+        }
         return 2;
     }
 
@@ -2679,7 +2726,11 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
             .iter()
             .map(|message| CoordListRow::from_with_superseded(message, superseded_by(&message.file)))
             .collect();
-        match serde_json::to_string_pretty(&rows) {
+        let rendered = match &ref_source {
+            Some(channel) => serde_json::to_string_pretty(&coord_list_ref_object(channel, &rows)),
+            None => serde_json::to_string_pretty(&rows),
+        };
+        match rendered {
             Ok(json) => output.stdout(json),
             Err(err) => {
                 output.stderr(format!("ERR  could not render JSON: {err}"));
@@ -2687,6 +2738,9 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
             }
         }
     } else {
+        if let Some(line) = &source_line {
+            output.stdout(line);
+        }
         for message in &items {
             let annotation = match superseded_by(&message.file) {
                 Some(id) => format!("  superseded — see {id}"),
@@ -2710,6 +2764,20 @@ fn coord_list(since: Option<String>, dir: PathBuf, format: String, args: &[Strin
     0
 }
 
+fn coord_list_ref_object(channel: &coord_list_ref::RefChannel, rows: &[CoordListRow]) -> serde_json::Value {
+    serde_json::json!({
+        "source_ref": channel.source_ref,
+        "source_oid": channel.source_oid,
+        "coordination_dir": channel.coordination_dir,
+        "skipped": channel.skipped,
+        "messages": rows,
+    })
+}
+
+fn coord_list_ref_json(channel: &coord_list_ref::RefChannel, rows: &[CoordListRow]) -> String {
+    serde_json::to_string_pretty(&coord_list_ref_object(channel, rows)).unwrap_or_default()
+}
+
 struct ChannelSummary {
     total: usize,
     range: String,
@@ -2730,6 +2798,13 @@ fn channel_summary(dir: &Path) -> ChannelSummary {
 
     let mut timestamps = Vec::new();
     let mut total = 0usize;
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        return ChannelSummary {
+            total: 0,
+            range: "(empty)".to_string(),
+            claims: "no active claims".to_string(),
+        };
+    };
 
     for entry in entries.flatten() {
         let path = entry.path();
@@ -2737,7 +2812,9 @@ fn channel_summary(dir: &Path) -> ChannelSummary {
             continue;
         }
 
-        if let Ok(message) = agov_coord::coord_validator::validate_file(&path) {
+        if let Ok(message) =
+            agov_coord::coord_validator::validate_file_with_schema(&path, &schema)
+        {
             total += 1;
             if let Some(timestamp) = message
                 .raw
@@ -4401,6 +4478,11 @@ fn coord_publication_check(
         }
     };
 
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        output.stderr("ERR publication check failed: could not compile coordination-message schema");
+        return 2;
+    };
+
     // Condition 5 validates the introducing Git object, sharing the exact raw
     // bytes used by copy detection. Dirty, deleted or untracked local files
     // cannot supply or replace acceptance evidence.
@@ -4410,12 +4492,16 @@ fn coord_publication_check(
         &subject_prefix,
         &repo_root,
         &|bytes| match std::str::from_utf8(bytes) {
-            Ok(content) => agov_coord::coord_validator::validate_content(content)
-                .err()
-                .unwrap_or_default()
-                .into_iter()
-                .map(|(field, message)| format!("schema validation failed ({field}: {message})"))
-                .collect(),
+            Ok(content) => {
+                agov_coord::coord_validator::validate_content_with_schema(content, &schema)
+                    .err()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|(field, message)| {
+                        format!("schema validation failed ({field}: {message})")
+                    })
+                    .collect()
+            }
             Err(error) => vec![format!("schema validation failed (file: invalid UTF-8: {error})")],
         },
     );
@@ -6403,6 +6489,7 @@ fn read_coord_messages_with_invalid(
 ) -> Result<(Vec<HandoffMessage>, Vec<String>), std::io::Error> {
     let mut messages = Vec::new();
     let mut invalid_files = Vec::new();
+    let mut schema = None;
 
     for entry in std::fs::read_dir(dir)? {
         let entry = entry?;
@@ -6415,7 +6502,18 @@ fn read_coord_messages_with_invalid(
             continue;
         };
 
-        let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+        // Compiled lazily: a directory with no `.md` files never needs the
+        // schema at all (matches the old per-file `validate_file` behavior).
+        let schema = match &schema {
+            Some(schema) => schema,
+            None => schema.insert(
+                agov_coord::coord_validator::compile_channel_schema()
+                    .map_err(|err| std::io::Error::other(format!("{err:?}")))?,
+            ),
+        };
+
+        let Ok(message) = agov_coord::coord_validator::validate_file_with_schema(&path, schema)
+        else {
             invalid_files.push(file_name.to_string());
             continue;
         };
@@ -6547,7 +6645,11 @@ fn body_refs(path: &Path) -> Vec<String> {
     let Ok(content) = std::fs::read_to_string(path) else {
         return Vec::new();
     };
-    let body = content.splitn(3, "---").nth(2).unwrap_or(content.as_str());
+    body_refs_from_content(&content)
+}
+
+fn body_refs_from_content(content: &str) -> Vec<String> {
+    let body = content.splitn(3, "---").nth(2).unwrap_or(content);
 
     body.split(|ch: char| ch.is_whitespace() || matches!(ch, '`' | '"' | '\'' | '(' | ')' | ','))
         .filter_map(clean_coord_filename)
@@ -6700,10 +6802,14 @@ fn validate_coord_files(files: Vec<std::path::PathBuf>, args: &[String]) -> i32 
     let mut output = OutputCounter::default();
     let mut valid_messages = Vec::new();
     let mut valid_paths = Vec::new();
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        output.stderr("ERR  could not compile coordination-message schema");
+        return 1;
+    };
 
     for file in files {
         let label = file.to_string_lossy().to_string();
-        match agov_coord::coord_validator::validate_file(&file) {
+        match agov_coord::coord_validator::validate_file_with_schema(&file, &schema) {
             Ok(data) => {
                 for message in
                     agov_coord::coord_validator::advisory_findings_for_path(&data, Some(&file))
@@ -6801,6 +6907,9 @@ fn duplicate_id_errors_in_dirs(files: &[PathBuf]) -> Vec<(String, String)> {
         }
     }
 
+    let Ok(schema) = agov_coord::coord_validator::compile_channel_schema() else {
+        return Vec::new();
+    };
     for dir in dirs {
         let Ok(entries) = std::fs::read_dir(&dir) else {
             continue;
@@ -6810,7 +6919,9 @@ fn duplicate_id_errors_in_dirs(files: &[PathBuf]) -> Vec<(String, String)> {
             if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
                 continue;
             }
-            let Ok(message) = agov_coord::coord_validator::validate_file(&path) else {
+            let Ok(message) =
+                agov_coord::coord_validator::validate_file_with_schema(&path, &schema)
+            else {
                 continue;
             };
             let Some(id) = message.id() else {

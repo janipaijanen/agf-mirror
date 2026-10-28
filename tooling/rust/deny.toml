@@ -21,6 +21,7 @@ allow = [
     "ISC",
     "Unlicense",
     "CC0-1.0",
+    "Zlib",
     # Unicode / ICU data files
     "Unicode-3.0",
     "Unicode-DFS-2016",

@@ -45,17 +45,15 @@ list() {
   dist_dir="$1"
   find "$dist_dir" -maxdepth 1 -type f \( \
       -name 'agf-*.tar.gz' -o -name 'agf-*.zip' -o \
-      -name 'agov-*.tar.gz' -o -name 'agov-*.zip' -o \
+      -name 'agov-*.tar.gz' -o \
       -name '*.sha256' -o -name '*-provenance.json' -o \
       -name 'SHA256SUMS' \
-    \) -exec basename {} \; | sort
+    \) ! -name 'agov-*-windows-*' -exec basename {} \; | sort
 }
 
-# The mandatory set a release MUST publish. Deliberately excludes optional
-# Windows preview archives and `SHA256SUMS` -- the documented contract promises
-# individual checksum files, not an aggregate one (see docs/coordination/
-# 20260721T123209Z-coder-tester-rggs.md); `list` still opportunistically links
-# any recognized optional artifact if present.
+# The mandatory set a release MUST publish. `SHA256SUMS` is optional; the
+# contract promises individual checksum files, not an aggregate one (see
+# docs/coordination/20260721T123209Z-coder-tester-rggs.md).
 #
 # Provenance filenames follow one rule (v2.4.0 Workstream B, the unified
 # release-provenance contract, agf/schemas/release-provenance.schema.json):
@@ -172,6 +170,10 @@ verify_set() {
   if ! expected_files=$($set_function "$version"); then
     return 1
   fi
+  if find "$dist_dir" -maxdepth 1 -type f -name 'agov-*-windows-*' -print -quit | grep -q .; then
+    echo "verify FAILED: retired Windows tooling asset present" >&2
+    return 1
+  fi
   missing=0
   for f in $expected_files; do
     if [ ! -f "$dist_dir/$f" ]; then
@@ -260,9 +262,6 @@ agov-${test_version}-linux-x86_64.tar.gz
 agov-${test_version}-linux-x86_64.tar.gz.sha256
 agov-${test_version}-linux-x86_64.tar.gz-provenance.json
 agov-oci-${test_version}-provenance.json
-agov-${test_version}-windows-x86_64.zip
-agov-${test_version}-windows-x86_64.zip.sha256
-agov-${test_version}-windows-x86_64.zip-provenance.json
 SHA256SUMS"
   unrelated_name="README-not-a-release-asset.txt"
 
@@ -270,8 +269,11 @@ SHA256SUMS"
     : > "$tmp/$f"
   done
   : > "$tmp/$unrelated_name"
+  : > "$tmp/agov-${test_version}-windows-x86_64.zip"
+  : > "$tmp/agov-${test_version}-windows-x86_64.zip.sha256"
+  : > "$tmp/agov-${test_version}-windows-x86_64.zip-provenance.json"
 
-  # --- `list`: every fixture file discovered, unrelated file excluded ---
+  # --- `list`: current assets discovered, retired Windows files excluded ---
   actual="$(list "$tmp")"
 
   for f in $fixture_names; do
@@ -286,19 +288,31 @@ SHA256SUMS"
     failed=1
   fi
 
+  if printf '%s\n' "$actual" | grep -q -- "agov-${test_version}-windows-x86_64"; then
+    echo "retired Windows tooling asset was linked" >&2
+    failed=1
+  fi
+
+  if verify "$tmp" "$test_version" >/dev/null 2>&1; then
+    echo "verify accepted a retired Windows tooling asset" >&2
+    failed=1
+  fi
+  rm "$tmp/agov-${test_version}-windows-x86_64.zip" \
+     "$tmp/agov-${test_version}-windows-x86_64.zip.sha256" \
+     "$tmp/agov-${test_version}-windows-x86_64.zip-provenance.json"
+
   # --- `verify`, positive case: complete dist dir passes ---
   if ! verify "$tmp" "$test_version" >/dev/null; then
     echo "verify unexpectedly FAILED against a complete fixture" >&2
     failed=1
   fi
 
-  # --- `verify`, optional-Windows case: the mandatory release is complete
-  # without any Windows archive, checksum, or provenance record. ---
+  # --- `verify`, mandatory release case. ---
   for f in $(expected "$test_version"); do
     : > "$mandatory_tmp/$f"
   done
   if ! verify "$mandatory_tmp" "$test_version" >/dev/null; then
-    echo "verify unexpectedly FAILED without optional Windows assets" >&2
+    echo "verify unexpectedly FAILED against mandatory assets" >&2
     failed=1
   fi
   rm "$mandatory_tmp/agov-oci-${test_version}-provenance.json"

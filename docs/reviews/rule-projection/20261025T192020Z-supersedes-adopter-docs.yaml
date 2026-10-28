@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for plan docs/plans/20261025T192020Z-supersedes-adopter-docs.md
+# (pending Gate 1), per agf/rules/workflow/documentation-rule-projection-rule.md.
+
+plan_id: 20261025T192020Z-supersedes-adopter-docs
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      The "Lifecycle and supersession semantics" section gains the contract for the `supersedes` field:
+      citation in `references-to`, the six validity checks, chain-to-leaf resolution with its tie-break,
+      and the statement that an invalid edge is ignored and the field grants no authority. Contract in words,
+      not implementation. The schema description already points here.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      The lifecycle bullet names the field, gives a short example of a head-change correction, says where the
+      effect shows, and links to the owner. It restates the conditions in one sentence at most.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      No operational runbook has a step for correcting a stale coordination record. A new step would be a
+      second statement of the contract; the protocol page is the situational explanation.
+
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/templates/AGENTS.md
+    reason: >-
+      The shipped template already points assistants to coordination-publication-rule.md for coordination
+      publication semantics; the owner gains the new section, so the pointer reaches it. The foundry AGENTS.md
+      is project-local and unchanged.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    reason: >-
+      Fidelity of the wording against supersession.rs is human review (a reviewer checks each condition). The
+      projection-check and adopter-docs validators only check manifest and path coverage. Not mechanically
+      decidable under tool-authority-boundary-rule.md.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      Files under agf/ ship in the AGF distribution. agf/CHANGELOG.md also ships; it changes only the one
+      Adopter docs line of the 78fc52a7 entry after MR !3215 merges.

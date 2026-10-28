@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+#
+# Six-surface projection evidence for plan docs/plans/20261024T070435Z-timer-reality-polling-alignment.md
+# (Gate 1 approved), per agf/rules/workflow/documentation-rule-projection-rule.md.
+
+plan_id: 20261024T070435Z-timer-reality-polling-alignment
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+  - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/always/universal-polling-and-autonomous-continuation-rule.md
+    reason: >-
+      The section "Scheduling and notification honesty" becomes the single statement of the
+      scheduling test: capability-neutral real wake mechanism, session boundary, declared expiry,
+      re-arm reporting, durable wake via external scheduler with Level 5 evidence, quiet tiers add no
+      durability, and the bounded operator continuation deadline. No client name or numeric limit.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      The timer convention paragraph is reduced to a one-sentence statement plus a pointer to the
+      owner section; the page stays the canonical explanatory page for the protocol.
+
+  runbook_situation_map:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+    reason: >-
+      Both runbooks keep a short situational step ("set an explicit cadence, report each timer
+      replacement, state the limit when no scheduler exists") and point to the owner instead of
+      restating the rule.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      The foundry AGENTS.md polling-timer sentence and the shipped template line become pointers to the
+      owner section. The skill (agf/skills/poll-and-coordinate/SKILL.md) is corrected in the same MR:
+      blanket ban replaced by the owner's test, idle default 180.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    reason: >-
+      A grep check (no second statement of the scheduling test, no numeric client cap under agf/, one
+      idle default) is run in the implementation MR. It is advisory evidence under
+      tool-authority-boundary-rule.md; whether wording is faithful stays human review.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/rules/always/universal-polling-and-autonomous-continuation-rule.md
+      - agf/skills/poll-and-coordinate/SKILL.md
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/docs/site/docs/adopt/assistant-loader-configuration.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/templates/AGENTS.md
+    not_applicable:
+      - path: AGENTS.md
+        reason: Foundry-local loader, not shipped.
+      - path: docs/reference/foundry-polling-and-bridge-procedure.md
+        reason: Foundry-local reference, not shipped.
+      - path: docs/reference/agent-cold-start-habits.md
+        reason: Foundry-local reference, not shipped.
+      - path: docs/reference/operator-timer-evidence.md
+        reason: New foundry-local, non-normative evidence page, not shipped.
+    reason: >-
+      Files under agf/ ship in the AGF distribution; docs/reference and the root AGENTS.md are
+      project-local.

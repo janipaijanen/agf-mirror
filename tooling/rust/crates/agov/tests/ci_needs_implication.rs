@@ -21,14 +21,11 @@ const EDGE_FIXTURE: &str = include_str!("fixtures/ci-needs/mandatory-edges.tsv")
 const CONTEXT_FIXTURE: &str = include_str!("fixtures/ci-needs/context-matrix.tsv");
 const SHARED_SURFACE_REGISTRY: &str =
     include_str!("fixtures/gate-change/shared-ci-surface-registry.yaml");
-const DIND_JOBS: [&str; 6] = [
+const DIND_JOBS: [&str; 2] = [
     "agov:oci:mr-build-scan",
-    "rust:tooling:oci-pull-test",
     "agov:oci:release",
-    "release:verify",
-    "rust:tooling:preview:windows-package",
-    "rust:tooling:build:windows:preview",
 ];
+const PODMAN_JOBS: [&str; 2] = ["release:verify", "rust:tooling:oci-pull-test"];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct Edge {
@@ -49,6 +46,26 @@ struct MatrixContext {
 #[test]
 fn live_configuration_preserves_every_mandatory_needs_implication() {
     let configuration = read_live_configuration();
+    let errors = implication_errors(&configuration).expect("evaluate live CI configuration");
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+}
+
+#[test]
+fn retired_elixir_exclusion_job_leaves_no_dangling_reference_or_needs_edge() {
+    // Issue 140: the release:elixir-exclusion-selftest job and every call to
+    // check-no-elixir-artifacts.sh were removed. A deleted job must not remain a
+    // `needs:` target or a script reference, and the mandatory implications must
+    // still hold on the live configuration.
+    let configuration = read_live_configuration();
+    assert!(
+        !configuration.contains("elixir-exclusion-selftest"),
+        "removed job is still referenced"
+    );
+    assert!(
+        !configuration.contains("check-no-elixir-artifacts"),
+        "removed guard script is still referenced"
+    );
+    assert!(top_level_block(&configuration, "release:elixir-exclusion-selftest").is_none());
     let errors = implication_errors(&configuration).expect("evaluate live CI configuration");
     assert!(errors.is_empty(), "{}", errors.join("\n"));
 }
@@ -159,6 +176,29 @@ fn detects_a_dind_override_on_an_ordinary_job() {
         errors
             .iter()
             .any(|error| error.contains("rust:tooling:test") && error.contains("unexpected")),
+        "{}",
+        errors.join("\n")
+    );
+}
+
+#[test]
+fn detects_oci_jobs_on_the_wrong_runner_pool() {
+    let configuration = read_live_configuration();
+    let release_verify = top_level_block(&configuration, "release:verify")
+        .expect("release verification job block")
+        .replace("    - podman\n    - linux\n    - amd64\n", "    - dind\n");
+    let scan = top_level_block(&configuration, "agov:oci:mr-build-scan")
+        .expect("MR image scan job block")
+        .replace("    - dind\n", "    - podman\n    - linux\n    - amd64\n");
+    let mutated = replace_top_level_block(&configuration, "release:verify", &release_verify);
+    let mutated = replace_top_level_block(&mutated, "agov:oci:mr-build-scan", &scan);
+
+    let errors = split_runner_routing_errors(&mutated);
+    assert!(
+        errors.iter().any(|error| error.contains("release:verify"))
+            && errors
+                .iter()
+                .any(|error| error.contains("agov:oci:mr-build-scan")),
         "{}",
         errors.join("\n")
     );
@@ -404,7 +444,23 @@ fn split_runner_routing_errors(configuration: &str) -> Vec<String> {
         }
     }
 
-    let allowed = DIND_JOBS.into_iter().collect::<BTreeSet<_>>();
+    let expected_podman = ["podman", "linux", "amd64"].map(str::to_string);
+    for job in PODMAN_JOBS {
+        let actual = top_level_block(configuration, job)
+            .as_deref()
+            .and_then(top_level_tags);
+        if actual.as_deref() != Some(expected_podman.as_slice()) {
+            errors.push(format!(
+                "Podman job `{job}` must override runner tags with exactly {:?}, found {:?}",
+                expected_podman, actual
+            ));
+        }
+    }
+
+    let allowed = DIND_JOBS
+        .into_iter()
+        .chain(PODMAN_JOBS)
+        .collect::<BTreeSet<_>>();
     for (name, block) in top_level_blocks(configuration) {
         if name == "default" || allowed.contains(name.as_str()) {
             continue;
@@ -452,7 +508,7 @@ fn native_linux_packaging_errors(configuration: &str) -> Vec<String> {
         }
     }
     for required in [
-        "apt-get install -y -qq binutils jq musl-tools zip\n",
+        "apt-get install -y -qq binutils jq musl-tools\n",
         "    - export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc\n",
         "        rustup target add \"$target\"\n",
         "        cargo build --release --target \"$target\" -p agov -p agov-mcp\n",

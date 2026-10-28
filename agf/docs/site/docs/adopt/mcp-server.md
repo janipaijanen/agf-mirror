@@ -69,8 +69,7 @@ the repository root:
 ```
 
 Platform tooling archives include this configuration as
-`examples/claude/.mcp.json`. After putting both `agov` and `agov-mcp` (or their
-Windows `.exe` forms) on `PATH`, copy the example to the project root as
+`examples/claude/.mcp.json`. After putting both `agov` and `agov-mcp` on `PATH`, copy the example to the project root as
 `.mcp.json`, review it, and approve the project-scoped `agov` server when
 Claude Code prompts. The shipped example intentionally contains no absolute
 paths, credentials, or machine-specific environment values.
@@ -151,6 +150,27 @@ Gate 1/Gate 2 review. `agov_coord_list` and `agov_coord_pending` both preserve
 the CLI's `status: 2` for "nothing new"/"nothing pending" polling results but
 return it as a non-error MCP tool result.
 
+Every tool schema is closed (`additionalProperties: false`), and the server
+enforces the same property set before the child `agov` process starts: a call
+that carries a key the tool does not publish fails with a JSON-RPC error naming
+the tool and the key, instead of running with the key silently dropped. Clients
+that enforce `additionalProperties: false` themselves reject the request before
+it reaches the server. `include_forge` on `agov_plan_collision_check` and
+`output` on `agov_coord_graph_index` keep their own explanatory errors. If a
+client used to send extra keys, compare them with the `inputSchema.properties`
+from `tools/list` and remove the extras.
+
+`agov_coord_list` accepts an optional `ref` string, forwarded as the single
+argument `--ref=<value>` (a value that starts with `-` stays a value). It reads
+the coordination channel from that already-fetched commit-ish, so the
+fetch-first poll is not answered from a stale checkout; the server never
+fetches. With `ref`, `format: json` returns an object (`source_ref`,
+`source_oid`, `coordination_dir`, `skipped`, `messages`); without it the result
+is still an array, and an empty result is `[]`. A ref the tool cannot read
+returns `status: 2` with the reason on `stderr` and is marked as an error, not
+as the "nothing new" polling result. Clients that enforce a strict schema must
+branch on whether they sent `ref` when they parse the JSON.
+
 `agov_coord_pending` tracks unresolved `requires-ack: true` records of any
 kind except `ack` and `handoff` — `handoff` obligations remain
 `agov_handoff_next`'s surface, unchanged. A record is pending until a later
@@ -183,5 +203,5 @@ and isError (true for nonzero). Text and JSON retain fixed false publication
 and authority verification and all six required_external_checks: publication,
 governor_authority, record_urgency_and_obligations, publication_target,
 current_target_and_expiry, release_hold_authorization. Review-required never
-authorizes delay. Framework schemas and tooling must both support the fields
-before first use; intended rollout is v2.11.0, pending shipped-artifact evidence.
+authorizes delay. The fields and tooling shipped in v2.11.0; install compatible
+framework schemas, rules, and tooling artifacts together before first use.

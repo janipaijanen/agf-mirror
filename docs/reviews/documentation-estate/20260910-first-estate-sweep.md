@@ -9,9 +9,11 @@
 `release-content-freeze` cadence class for v2.11 — this sweep completing
 with every finding dispositioned is v2.11 release-cut **condition 4**
 (parent scope plan amendment R-2, MR !2662).
-**Status:** **File-coverage reconciliation complete (EC-7,
-2026-09-19); binding "condition 4 met" disposition still pending a
-governor decision.** All 48 current `agf/docs/site/**/*.md` files are
+**Status:** **v2.11 release-cut condition 4: MET, per binding governor
+decision `20260920T074728Z-governor-reviewer-ht63` (2026-09-20),
+accepting the EC-7 file-coverage reconciliation below as satisfying
+this report's own completion criterion.** All 48 current
+`agf/docs/site/**/*.md` files are
 now individually accounted for across EC-1 through EC-6 plus this
 reconciliation — see EC-7 below for the method and residual. This
 does *not* mean every file received uniform six-dimension depth (EC-6
@@ -417,12 +419,11 @@ individually-narrated dimension-by-dimension pass. That depth
 distinction is accurately represented in this report already and this
 reconciliation does not paper over it.
 
-**Recommendation to the governor:** the file-coverage precondition for
-v2.11 release-cut condition 4 (`docs/plans/20260909T021841Z-v211-release-scope.md`'s
+**Governor disposition (2026-09-20):** the file-coverage precondition
+for v2.11 release-cut condition 4 (`docs/plans/20260909T021841Z-v211-release-scope.md`'s
 "every surface... inspected... or explicitly excluded with a reason")
-is now satisfiable — every surface has a named check. Whether that
-satisfies condition 4 as written, or whether the governor wants a
-deeper re-pass on any specific file before declaring the sweep complete,
-is the binding decision this report has deferred to the governor since
-EC-1. This reconciliation supplies the missing evidence for that
-decision; it does not make the decision.
+was accepted as satisfying condition 4 as written, per binding decision
+`20260920T074728Z-governor-reviewer-ht63`. Condition 4 is now MET. The
+depth distinction noted above (broad-scan vs. targeted-read coverage)
+remains an accurate characterization of the sweep's own rigor, not a
+reason the condition is unmet.

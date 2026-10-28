@@ -1,0 +1,71 @@
+# Six-surface projection evidence for plan
+# docs/plans/20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases.md
+# (Gate 1 approved: 20261023T201759Z-governor-reviewer-d7qh),
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# The plan changes the foundry-local recall protocol's smoke gate (a regression screen, not a rule)
+# and widens one trigger line in the AI loaders. No rule text changes.
+
+plan_id: 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases
+
+changed_pages_or_runbooks:
+  - docs/reference/rule-trigger-recall/protocol.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: agf/rules/always/agent-improvement-proposal-rule.md
+    reason: >-
+      The rule is unchanged. It already lists friction, duplication and documentation gaps and
+      routes a cleanup idea as note, review, lesson-proposal or plan; the loader trigger line
+      only gained the situation "want to suggest a cleanup or consolidation of duplicated
+      instructions". The protocol states no normative rule and grants no authority.
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      The protocol is foundry-local evaluation material. No Pages page explains it and adopters
+      are not asked to use it.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      A manual test protocol for the maintainers of the foundry loaders, not an operational
+      runbook for adopters or for routine agent work.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - AGENTS.md
+      - .claude/rules/INDEX.md
+    reason: >-
+      One trigger line in each loader gained the situation of suggesting a cleanup or
+      consolidation of duplicated instructions, pointing at the same canonical rule. The
+      foundry-local AGENTS.md line and the INDEX.md row are the two places that name this
+      trigger; no copy of the rule text was added.
+    not_applicable:
+      - path: agf/templates/AGENTS.md
+        reason: >-
+          The shipped adopter template does not name this trigger line, so there is nothing to
+          widen there.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    reason: >-
+      Smoke recall results are advisory evidence under tool-authority-boundary-rule.md and
+      block nothing. The binomial table in protocol.md is reproducible from the formula stated
+      there; results are validated against result.schema.json as the protocol already requires.
+
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: docs/reference/rule-trigger-recall/protocol.md
+        reason: Foundry-local; not in any AGF or tooling artifact.
+      - path: AGENTS.md
+        reason: Foundry-local loader of this checkout, not shipped.
+      - path: .claude/rules/INDEX.md
+        reason: Foundry-local loader pointer file, not shipped.
+    reason: >-
+      Every changed file is project-local to the foundry checkout. Nothing in agf/ or the shipped
+      templates changes.

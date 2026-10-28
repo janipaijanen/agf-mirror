@@ -66,6 +66,15 @@ Read [`AGENTS.md`](AGENTS.md) before acting. The `agov` CLI is the universal
 supported path. Recommended for MCP-capable assistants: connect
 [agov MCP](agf/docs/site/docs/adopt/mcp-server.md) for structured access.
 
+## Using AGF with other assistant tooling
+
+AGF is designed to sit above tools that work inside the approved change and do
+not edit AGF's governance files. AGF is probably compatible with tools of that
+kind; [some evidence exists](agf/docs/site/docs/adopt/third-party-plugin-coexistence.md),
+and it is limited. Keep AGF's human decisions, gates, and coordination records
+authoritative, and review installers, hooks, and data flows before enabling
+another tool.
+
 ## Evidence and maturity
 
 Every qualifier below still applies — this table only relocates them out of

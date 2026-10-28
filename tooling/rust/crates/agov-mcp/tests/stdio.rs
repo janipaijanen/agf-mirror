@@ -1367,3 +1367,238 @@ fn challenge_pending_matches_real_cli() {
     );
     assert_eq!(result["result"]["structuredContent"]["status"], 0);
 }
+
+#[test]
+fn unknown_arguments_fail_before_the_child_agov_starts() {
+    let fixture = tempfile::tempdir().unwrap();
+    let log = fixture.path().join("calls.log");
+    let mock = fixture.path().join("agov-mock");
+    std::fs::write(
+        &mock,
+        format!(
+            "#!/usr/bin/env sh\nif [ \"$1\" = \"--version\" ]; then exit 0; fi\nprintf '%s\\n' \"$*\" >> '{}'\n",
+            log.display()
+        ),
+    )
+    .unwrap();
+    let mut permissions = std::fs::metadata(&mock).unwrap().permissions();
+    permissions.set_mode(0o755);
+    std::fs::set_permissions(&mock, permissions).unwrap();
+
+    let call = |id: u32, name: &str, arguments: &str| {
+        format!(
+            r#"{{"jsonrpc":"2.0","id":{id},"method":"tools/call","params":{{"name":"{name}","arguments":{arguments}}}}}"#
+        )
+    };
+    let requests = [
+        // misspelled cursor key: must fail, must not run
+        call(1, "agov_coord_list", r#"{"sence":"2026-01-01T00:00:00Z"}"#),
+        // duplicated unknown key: still rejected
+        call(2, "agov_coord_list", r#"{"zz":1,"zz":2}"#),
+        // unknown key next to a valid one: still rejected
+        call(3, "agov_coord_list", r#"{"since":"x","zz":1}"#),
+        // duplicated known key: last value wins, as before
+        call(4, "agov_coord_list", r#"{"since":"first","since":"second"}"#),
+        // tailored error still wins for the known-unsupported key
+        call(5, "agov_plan_collision_check", r#"{"include_forge":true}"#),
+        // key with ESC and newline is echoed escaped
+        call(6, "agov_coord_list", "{\"a\\u001b[31m\\nb\":1}"),
+    ];
+
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", &mock)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    {
+        let stdin = child.stdin.as_mut().unwrap();
+        for request in &requests {
+            writeln!(stdin, "{request}").unwrap();
+        }
+    }
+    let output = child.wait_with_output().unwrap();
+    assert!(output.status.success());
+    let responses: Vec<Value> = String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(responses.len(), 6);
+
+    for index in [0, 1, 2] {
+        let message = responses[index]["error"]["message"].as_str().unwrap();
+        assert!(
+            message.contains("agov_coord_list") && message.contains("does not accept argument"),
+            "{message}"
+        );
+    }
+    assert!(responses[0]["error"]["message"].as_str().unwrap().contains("'sence'"));
+    assert!(responses[3]["error"].is_null(), "{}", responses[3]);
+    assert!(responses[4]["error"]["message"].as_str().unwrap().contains("CLI-only"));
+    let escaped = responses[5]["error"]["message"].as_str().unwrap();
+    assert!(!escaped.chars().any(char::is_control), "{escaped:?}");
+    assert!(escaped.contains("\\x1b") && escaped.contains("\\x0a"), "{escaped}");
+
+    // Only the duplicated-known-key call reached the child, with the last value.
+    let calls = std::fs::read_to_string(&log).unwrap();
+    assert_eq!(calls.lines().count(), 1, "{calls}");
+    assert!(calls.contains("second") && !calls.contains("first"), "{calls}");
+}
+
+#[test]
+fn tools_list_publishes_only_closed_schemas() {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", "/bin/true")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    writeln!(
+        child.stdin.as_mut().unwrap(),
+        "{}",
+        json!({"jsonrpc":"2.0","id":1,"method":"tools/list"})
+    )
+    .unwrap();
+    drop(child.stdin.take());
+    let output = child.wait_with_output().unwrap();
+    let response: Value = serde_json::from_slice(&output.stdout).unwrap();
+    let tools = response["result"]["tools"].as_array().unwrap();
+    assert_eq!(tools.len(), 21);
+    for tool in tools {
+        assert_eq!(tool["inputSchema"]["additionalProperties"], json!(false), "{}", tool["name"]);
+    }
+}
+
+#[test]
+fn coord_list_ref_reaches_the_child_as_one_equals_argument_and_ref_errors_stay_errors() {
+    let fixture = tempfile::tempdir().unwrap();
+    let log = fixture.path().join("calls.log");
+    let mock = fixture.path().join("agov-mock");
+    // Exit 2 with stderr text when the ref is `bad`, exit 2 silently otherwise.
+    std::fs::write(
+        &mock,
+        format!(
+            "#!/usr/bin/env sh\nif [ \"$1\" = \"--version\" ]; then exit 0; fi\nprintf '%s\\n' \"$*\" >> '{}'\nfor a in \"$@\"; do if [ \"$a\" = \"--ref=bad\" ]; then echo 'ERR  could not resolve --ref bad' >&2; exit 2; fi; done\necho 'No coordination messages found'\nexit 2\n",
+            log.display()
+        ),
+    )
+    .unwrap();
+    let mut permissions = std::fs::metadata(&mock).unwrap().permissions();
+    permissions.set_mode(0o755);
+    std::fs::set_permissions(&mock, permissions).unwrap();
+
+    let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+        .env("AGOV_MCP_AGOV_BIN", &mock)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    {
+        let stdin = child.stdin.as_mut().unwrap();
+        for (id, value) in [(1, "-x"), (2, "bad"), (3, "origin/main")] {
+            writeln!(
+                stdin,
+                "{}",
+                json!({"jsonrpc":"2.0","id":id,"method":"tools/call","params":{
+                    "name":"agov_coord_list","arguments":{"ref":value}}})
+            )
+            .unwrap();
+        }
+    }
+    let output = child.wait_with_output().unwrap();
+    let responses: Vec<Value> = String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(responses.len(), 3);
+    // Silent exit 2 stays the documented non-error polling-empty result.
+    assert_eq!(responses[0]["result"]["isError"], false);
+    assert_eq!(responses[2]["result"]["isError"], false);
+    // Exit 2 with an error on stderr is an error, not a clean empty.
+    assert_eq!(responses[1]["result"]["isError"], true);
+    assert_eq!(responses[1]["result"]["structuredContent"]["status"], 2);
+    let calls = std::fs::read_to_string(&log).unwrap();
+    let lines: Vec<&str> = calls.lines().collect();
+    assert_eq!(lines, ["coord list --ref=-x", "coord list --ref=bad", "coord list --ref=origin/main"]);
+}
+
+/// Slice B parity: `coord list --ref` through the CLI and through the MCP `ref` argument
+/// return the same status, stdout and stderr, against the real binary and an isolated repo.
+#[test]
+fn coord_list_ref_cli_and_mcp_return_equivalent_status_stdout_and_stderr() {
+    let agov_bin = build_real_agov_bin();
+    let root = workspace_root();
+    let repo = tempfile::tempdir().unwrap();
+    let git = |args: &[&str]| {
+        let out = Command::new("git").args(args).current_dir(repo.path()).output().unwrap();
+        assert!(out.status.success(), "{args:?}");
+    };
+    git(&["init", "-b", "main"]);
+    git(&["config", "user.email", "t@example.invalid"]);
+    git(&["config", "user.name", "T"]);
+    std::fs::create_dir_all(repo.path().join("docs/coordination")).unwrap();
+    for (id, ts) in [("20260911T000000Z-planner-architect-a001", "2026-09-11T00:00:00Z"), ("20260911T000100Z-planner-architect-a002", "2026-09-11T00:01:00Z")] {
+        std::fs::write(
+            repo.path().join(format!("docs/coordination/{id}.md")),
+            format!("---\nid: {id}\nkind: note\nfrom: planner-architect\nto: all\ntimestamp: {ts}\nimmutable: true\nreferences-to: []\ntopic: fixture\nrequires-ack: false\nartifacts_owned: []\nmodel: test\n---\n\nBody.\n"),
+        )
+        .unwrap();
+    }
+    git(&["add", "."]);
+    git(&["commit", "-m", "fixture"]);
+
+    let cli = |args: &[&str]| {
+        let out = Command::new(&agov_bin)
+            .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
+            .env("AGOV_TOKEN_ROI", "0")
+            .args(["coord", "list"])
+            .args(args)
+            .current_dir(repo.path())
+            .output()
+            .unwrap();
+        (
+            out.status.code().unwrap(),
+            String::from_utf8_lossy(&out.stdout).to_string(),
+            String::from_utf8_lossy(&out.stderr).to_string(),
+        )
+    };
+    let mcp = |arguments: Value| {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_agov-mcp"))
+            .env("AGOV_MCP_AGOV_BIN", &agov_bin)
+            .env("AGOV_SCHEMA_DIR", root.join("agf/schemas"))
+            .env("AGOV_TOKEN_ROI", "0")
+            .current_dir(repo.path())
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        writeln!(
+            child.stdin.as_mut().unwrap(),
+            "{}",
+            json!({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"agov_coord_list","arguments":arguments}})
+        )
+        .unwrap();
+        drop(child.stdin.take());
+        let output = child.wait_with_output().unwrap();
+        let response: Value = serde_json::from_slice(&output.stdout).unwrap();
+        let content = &response["result"]["structuredContent"];
+        (
+            content["status"].as_i64().unwrap() as i32,
+            content["stdout"].as_str().unwrap().to_string(),
+            content["stderr"].as_str().unwrap().to_string(),
+        )
+    };
+
+    assert_eq!(
+        cli(&["--ref", "HEAD", "--format", "json"]),
+        mcp(json!({"ref": "HEAD", "format": "json"}))
+    );
+    assert_eq!(
+        cli(&["--ref=HEAD", "--since", "20260911T000030Z"]),
+        mcp(json!({"ref": "HEAD", "since": "20260911T000030Z"}))
+    );
+    assert_eq!(cli(&["--ref=-x"]), mcp(json!({"ref": "-x"})));
+    assert_eq!(cli(&["--ref=-x"]).0, 2);
+}

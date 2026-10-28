@@ -5,9 +5,163 @@ distribution.
 
 ## [Unreleased]
 
-Adopter docs: not applicable — this MR activates the already-documented
-optional Improvement Propeller only for foundry; adopter projects remain
-inactive until their own governor supplies the activation contract.
+Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
+Pages and to `agf/` for rules, templates, schemas and skills.
+
+## [2.12.0] — 2026-10-28
+
+**Documentation-focused minor release.** Standard current-main release from
+reviewed construction base `fc98b4d1`. It adds evidence-calibrated guidance for
+using AGF alongside other assistant tooling, modernizes the public homepage's
+canonical routes and accessibility presentation, and corrects shipped command
+and v2.11 coordination-feature documentation. No runtime, schema, validator, or
+governance-authority behavior changes. **Adopter docs: updated.**
+
+### Added
+
+- **Evidence-calibrated guidance for using AGF with other assistant tooling
+  (b703704c, MR !3311).** A new adopter page defines authority, instruction,
+  hook, and data-flow boundaries before tools are combined. The README and site
+  navigation expose it, with bounded, dated Ponytail and Caveman examples and
+  explicit Level 2 Surface-defined / Theoretical coexistence evidence. No
+  integration, endorsement, or adopter-validated compatibility is claimed.
+  Adopter docs: updated (`README.md`,
+  `docs/adopt/third-party-plugin-coexistence.md`).
+
+### Changed
+
+- **Homepage routes readers to canonical guidance (dce4396f, MR !3314).** The
+  public homepage now leads with Decide, Adopt, Operate, and Using AGF with
+  other tools routes instead of duplicating detailed guidance. Route cards
+  reflow from two columns to one, preserve visible keyboard focus, and use
+  light/dark theme contrast reviewed at the exact implementation head. Adopter
+  docs: updated (`index.md`, `stylesheets/agf.css`).
+
+### Fixed
+
+- **Shipped skills use current `agov` commands (dc5523f6, from MR !3098).** The
+  `health` skill now describes the eleven checks that `agov validate` runs, and no
+  longer mentions a strict mode that does not exist. The `infosec-screen` skill and
+  the skills index now name `agov validate infosec` instead of `validate-infosec.sh`,
+  which is not shipped. The landed change is wording only: no runtime, schema or
+  validator behaviour changes. This entry is reconciled to the freeze under the
+  Human decision to retain the landed change. Adopter docs: updated
+  (`agf/skills/health/SKILL.md`, `agf/skills/infosec-screen/SKILL.md`,
+  `agf/skills/README.md`).
+- **Coordination feature pages reflect the published v2.11.0 artifacts.**
+  Urgency ordering, challenge-response, and publication-hold fields no longer
+  describe v2.11 as unreleased or awaiting shipped-artifact evidence. The
+  compatible framework/tooling warning remains. Adopter docs: updated
+  (`docs/adopt/mcp-server.md`, `docs/concepts/coordination-protocol.md`,
+  `rules/workflow/coordination-publication-rule.md`).
+
+## [2.11.0] — 2026-10-26
+
+**Minor release.** Standard-path release from reviewed `main` at
+`24d098a1`. Full Rust workspace suite: 739 passed, 0 failed, 3 intentionally
+ignored network/Podman tests; each framework archive passed all 28 shipped
+tests. It tightens MCP and polling contracts, adds explicit coordination
+holds, challenge-response, supersession and plan-collision controls, exports
+the optional Improvement Propeller method, and refreshes adopter documentation.
+The breaking entries below include their required migrations; features that
+need adopter-local authority remain inactive by default. **Adopter docs:
+updated.**
+
+### Changed (breaking)
+
+- **MCP strict arguments (57527ede).** `agov-mcp` now rejects a tool call that
+  carries a key the tool does not publish, with a JSON-RPC error naming the tool
+  and the key. Before, such keys were silently dropped. Migration: compare the
+  keys your client sends with `inputSchema.properties` from `tools/list` and
+  remove the extras. Adopter docs: updated (`docs/adopt/mcp-server.md`).
+- **Windows tooling preview support is retired (c2a73e5e).** Current
+  `agov`/`agov-mcp` release tooling targets Linux x86_64; migrate Windows
+  preview automation to a Linux host or the OCI image. Existing historical
+  artifacts are unchanged. Adopter docs: updated (`docs/adopt/mcp-server.md`,
+  `docs/adopt/tooling-and-tokens.md`, `docs/start/commission.md`,
+  `reference/release-artifacts.md`).
+- **Polling and timer wording follows runtime reality (8bfdc25f).** The universal
+  polling rule's "Scheduling and notification honesty" section is now the single
+  statement of timer qualification, expiry and re-arm reporting. The
+  `poll-and-coordinate` skill's default idle window changes from 240 to 180
+  minutes, and copied blanket bans on background processes are replaced by a
+  pointer to that section. Migration: replace copied bans with the pointer; set
+  an explicit idle window if you relied on the 240-minute default. Adopter docs:
+  updated (`docs/operate/poll-and-coordinate.md`,
+  `docs/adopt/assistant-loader-configuration.md`,
+  `docs/concepts/coordination-protocol.md`, `templates/AGENTS.md`).
+
+### Added
+
+- **`agov coord list --ref` and the MCP `ref` argument (c1999c8e).** Reads the
+  coordination channel from an already-fetched commit-ish, so a poll is not
+  answered from a stale checkout; the server never fetches. With `ref`,
+  `format: json` returns an object instead of an array, so strict clients must
+  branch on whether they sent `ref`. Adopter docs: updated
+  (`docs/adopt/mcp-server.md`, `docs/concepts/coordination-protocol.md`,
+  `reference/tooling-conformance.md`).
+- **Publication holds and `agov coord hold-status` (68003b56).** New optional
+  coordination fields `urgency`, `publication_hold` and `deferred_by`, a
+  `coordination-hold-status` schema, and an advisory command that reads pinned
+  Git snapshots. Records that use the new fields are rejected by older tooling;
+  upgrade `agov` and the schemas together before using them. Adopter docs:
+  updated (`docs/concepts/coordination-protocol.md`,
+  `docs/operate/poll-and-coordinate.md`, `docs/adopt/mcp-server.md`,
+  `templates/AGENTS.md`).
+- **Advisory challenge-response and urgency ordering (cbfa285b).** An optional
+  `challenge` object on `review` records, a new workflow rule, and visibility of
+  open challenges in the coordination tooling. Adopter docs: updated
+  (`docs/concepts/coordination-protocol.md`, `docs/operate/poll-and-coordinate.md`,
+  `rules/workflow/coordination-challenge-response-rule.md`).
+- **Self-announcing supersession (78fc52a7).** New optional `supersedes` field on
+  coordination records; a superseding record names the earlier records it
+  replaces for the same audience, and a validly superseded record no longer
+  appears as a pending acknowledgement. Adopter docs: updated
+  (`rules/workflow/coordination-publication-rule.md`,
+  `docs/concepts/coordination-protocol.md`).
+- **`superseded` plan status (e9f7742d).** Gate 1 plans may now carry
+  `status: superseded` with its required fields. Adopter docs: updated
+  (`templates/gate1-plan.md`).
+- **`pending` advisory consultation status (4a00dc6e).** A requested review that
+  has not answered may be recorded as `pending`; a plan cannot become
+  `approved`, `active` or `complete` while any declared row is still `pending`.
+  No existing valid plan becomes invalid. Adopter docs: updated
+  (`templates/gate1-plan.md`, `templates/AGENTS.md`).
+- **Plan `depends_on` and optional blocking collision check (bcc76b04).** Plans
+  may acknowledge a deliberate `affected_paths` overlap with `depends_on`. The
+  new `agov plan collision-check --fail-on-unacknowledged-collision` flag blocks
+  on unacknowledged overlaps; the default output severity stays advisory and the
+  default collision exit code stays 1. Adopter docs: updated
+  (`rules/workflow/development-workflow-rule.md`, `templates/gate1-plan.md`,
+  `templates/AGENTS.md`).
+- **Improvement Propeller skill (32fd0134).** Exports the Improvement Propeller
+  method as an optional skill. It activates nothing: each adopter still needs its
+  own governor decision naming the player, evidence surfaces, real wake
+  mechanism, cadence and cursor state. Adopter docs: updated
+  (`skills/improvement-propeller/SKILL.md`, `skills/README.md`).
+- **Third-party plugin coexistence page (08d3a2ce).** Adopter docs: updated
+  (`docs/adopt/third-party-plugin-coexistence.md`,
+  `docs/adopt/assistant-loader-configuration.md`).
+- **Governance mode LIGHT/NORMAL/STRICT (7efe8867).** The simplicity rule
+  classifies each task by process weight before work starts. Adopter docs:
+  updated (`rules/workflow/simplicity-rule.md`).
+- **High-risk-operations domain customization (5216a2ef).** The rule's list is
+  now a worked example that adopters replace with their own domain's areas.
+  Adopter docs: updated (`rules/always/high-risk-operations-rule.md`).
+
+### Changed
+
+- **Release payload guard (7588a7c5).** The release manifest no longer lists
+  Elixir and `mix` files as forbidden; the generic forbidden-file mechanism is
+  unchanged. No adopter behavior changes. Adopter docs: not applicable, because
+  the manifest controls the AGF release payload only.
+- **Coordination schema compiled once per scan (d4cc426a).** Internal
+  performance fix; no contract change. Adopter docs: not applicable.
+- **Documentation currency fixes (046cec8a, bfc4d648, 7bd189b9, 4f7b6b95,
+  2165b579, a507cadd, 52892835).** Role roster, integration-contract paths,
+  governance page, decommission layout, environment-variable and figure
+  references, an MCP tool row, and the roadmap. Wording and path corrections;
+  no behavior change. Adopter docs: updated.
 
 ## [2.10.1] — 2026-09-12
 

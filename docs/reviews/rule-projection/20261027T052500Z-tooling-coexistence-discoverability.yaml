@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+
+plan_id: 20261027T052500Z-tooling-coexistence-discoverability
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    stage: existing
+    paths:
+      - agf/agents/MANIFEST.yaml
+      - agf/rules/always/tool-authority-boundary-rule.md
+    reason: >-
+      These existing owners define role authority and the boundary between
+      tool evidence and binding decisions. The coexistence page explains that
+      boundary and creates no competing rule.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      The page is the single adopter-facing owner for the bounded coexistence
+      position, precedence example, trust checklist, and dated evidence limits.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      This change adds evaluation and configuration guidance, not an incident
+      response or recurring operator procedure.
+
+  ai_landing_loaders:
+    disposition: updated
+    path: README.md
+    reason: >-
+      The root README gains one generic pointer. AGENTS.md and the shipped
+      loader remain unchanged because they already route authority to AGF's
+      roles and rules.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    paths:
+      - README.md
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+      - agf/docs/build/mkdocs.yml
+      - docs/reviews/rule-projection/20261027T052500Z-tooling-coexistence-discoverability.yaml
+    reason: >-
+      Strict site and projection checks cover structure and discoverability.
+      Exact third-party claims, evidence limits, and non-endorsement remain
+      independent review judgments against immutable primary documents.
+
+  distribution:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+      - agf/docs/build/mkdocs.yml
+    reason: >-
+      The canonical page and navigation configuration ship through the existing
+      agf/docs distribution path. The root README and review manifest remain
+      project-local evidence surfaces.

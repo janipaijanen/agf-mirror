@@ -264,8 +264,7 @@ checklist.
   tests exist, GOVERNANCE.md exists, pre-commit hooks active)
 - Communication symmetry: run `agov validate agents` — zero asymmetries
   expected
-- README stats: `agov-validate-readme-stats` is deferred to the E4 Elixir
-  migration slice; until then, verify README stats manually or with the v1.x
+- README stats: `agov-validate-readme-stats` is deferred; until then, verify README stats manually or with the v1.x
   Python-era tool if maintaining that line.
 
 **Authority and succession.** The Sentinel's decisions (change vs. no-change)

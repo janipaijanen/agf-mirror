@@ -1,3 +1,12 @@
+// OCI runner split (2026-10-22): .gitlab-ci.yml routes two pull/inspect jobs
+// to Podman runners while nested scans stay on DinD. This gate is unchanged;
+// ci_needs_implication.rs covers the routing and both wrong-pool cases.
+
+// Windows tooling retirement (2026-10-22): .gitlab-ci.yml drops the optional
+// Windows preview jobs and ZIP packaging. This is a declared shared surface,
+// so rerun this gate's missing-companion and shared-surface controls. The CI
+// job-selection behavior is covered by ci_needs_implication.rs.
+
 // Row 5 S3 companion evidence: urgency/challenge commands change shared main.rs,
 // not gate-change-check behavior. Existing negative controls below are rerun;
 // S3 behavioral coverage is in urgency_ordering.rs and challenge.rs tests.
@@ -67,6 +76,24 @@
 // and in `tests/supersession.rs` (the four-surface command-level coverage
 // S2-G1-F3 required); this comment is this file's companion touch for that
 // same shared-surface (`main.rs`) change.
+
+// Coord-schema-recompile companion evidence (2026-10-21): `channel_summary`,
+// `coord_publication_check`, `read_coord_messages_with_invalid`,
+// `validate_coord_files`, and `duplicate_id_errors_in_dirs` in main.rs were
+// changed to compile the coordination-message schema once per invocation
+// instead of once per scanned file (`agov-coord::coord_validator`'s new
+// `compile_channel_schema`/`validate_file_with_schema`, reusing the existing
+// `validate_content_with_schema`). Performance-only: no behavior change, and
+// gate-change-check itself is unchanged. Real behavioral coverage for these
+// five call sites lives in their existing command-level test files --
+// `coord_visibility.rs`, `coord_convergence.rs`, `coord_write.rs`,
+// `handoff_branch.rs`, `handoff_next_ack_pending_display.rs`,
+// `coord_publication_check.rs`, `urgency_ordering.rs`, `supersession.rs`,
+// and `session_resume.rs` -- all of which exercise `coord status/pending/
+// list/stale/graph`, `handoff next/take/complete`, `coord post`, `coord
+// validate`, and `coord publication-check` end-to-end and pass unchanged;
+// this comment is this file's companion touch for that same shared-surface
+// (`main.rs`) commit.
 
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -357,6 +384,28 @@ fn live_registry_assigns_shared_ci_surface_to_all_active_gates() {
 }
 
 #[test]
+fn live_registry_lists_release_manifest_as_a_gate_change_check_surface() {
+    // Issue 140 edits agf/dist/release-manifest.yaml (removes the Elixir/Mix
+    // forbidden entries). That file must stay a registered surface of
+    // gate-change-check so such an edit keeps requiring its own test evidence.
+    let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
+        .expect("read live gate registry");
+    let block = registry
+        .split("  - id: ")
+        .find(|entry| entry.starts_with("gate-change-check"))
+        .expect("gate-change-check entry");
+    let surfaces = block.split("    tests:").next().unwrap();
+    assert!(
+        surfaces.contains("agf/dist/release-manifest.yaml"),
+        "release manifest must remain a gate-change-check surface"
+    );
+    assert!(
+        surfaces.contains(".gitlab-ci.yml"),
+        ".gitlab-ci.yml must remain a gate-change-check surface"
+    );
+}
+
+#[test]
 fn live_registry_guard_detects_an_unresolved_declared_path() {
     let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
         .expect("read live gate registry");
@@ -624,4 +673,22 @@ fn advisory_hold_records_cannot_waive_gate_companion_requirements() {
     fixture.write("tests/gate_change.rs", "current gate companion evidence\n");
     fixture.commit("supply required gate companion");
     assert_success(fixture.check());
+}
+
+#[test]
+fn live_registry_keeps_agov_main_as_a_gate_change_check_surface() {
+    // `agov coord list --ref` (plan 20261023T155559Z-agov-strict-args-ref-list, Slice B) edits
+    // tooling/rust/crates/agov/src/main.rs, a shared surface of this gate. The gate itself is
+    // unchanged; that file must stay registered so an edit to it keeps requiring test evidence.
+    let registry = std::fs::read_to_string(repo_root().join(".agf/gates.yaml"))
+        .expect("read live gate registry");
+    let block = registry
+        .split("  - id: ")
+        .find(|entry| entry.starts_with("gate-change-check"))
+        .expect("gate-change-check entry");
+    let surfaces = block.split("    tests:").next().unwrap();
+    assert!(
+        surfaces.contains("tooling/rust/crates/agov/src/main.rs"),
+        "agov main.rs must remain a gate-change-check surface"
+    );
 }

@@ -90,64 +90,6 @@ fn coord_brief_accepts_explicit_model() {
 }
 
 #[test]
-fn coord_brief_handoff_has_no_retired_elixir_path() {
-    let fixture = tempfile::tempdir().unwrap();
-
-    let output = agov(&[
-        "coord",
-        "brief",
-        "--from",
-        "coder-tester",
-        "--to",
-        "governor-reviewer",
-        "--kind",
-        "handoff",
-        "--topic",
-        "rust-only-handoff",
-        "--dir",
-        fixture.path().to_str().unwrap(),
-    ]);
-
-    assert_eq!(output.status.code(), Some(0));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.contains("tooling/elixir"));
-    assert!(!stdout.contains("mix.lock"));
-}
-
-#[test]
-fn coord_post_handoff_has_no_retired_elixir_path() {
-    let fixture = tempfile::tempdir().unwrap();
-
-    let output = agov(&[
-        "coord",
-        "post",
-        "--from",
-        "coder-tester",
-        "--to",
-        "governor-reviewer",
-        "--kind",
-        "handoff",
-        "--topic",
-        "rust-only-handoff",
-        "--task",
-        "Review the Rust-only handoff.",
-        "--dir",
-        fixture.path().to_str().unwrap(),
-    ]);
-
-    assert_eq!(output.status.code(), Some(0));
-    let generated = std::fs::read_dir(fixture.path())
-        .unwrap()
-        .next()
-        .unwrap()
-        .unwrap()
-        .path();
-    let content = std::fs::read_to_string(generated).unwrap();
-    assert!(!content.contains("tooling/elixir"));
-    assert!(!content.contains("mix.lock"));
-}
-
-#[test]
 fn coord_brief_uses_agov_model_environment_fallback() {
     let fixture = tempfile::tempdir().unwrap();
 

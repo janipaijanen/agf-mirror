@@ -1,0 +1,92 @@
+# Six-surface projection evidence for plan
+# docs/plans/20261022T205113Z-instruction-context-reduction.md (Phase 0),
+# per agf/rules/workflow/documentation-rule-projection-rule.md.
+#
+# Phase 0 changes no rule text. It stops loading 25 rules at session start
+# (claudeMdExcludes in .claude/settings.json) and adds one always-loaded index.
+
+plan_id: 20261022T205113Z-instruction-context-reduction
+
+changed_pages_or_runbooks:
+  - .claude/rules/INDEX.md
+
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+      - agf/rules/workflow/deputy-governor-rule.md
+      - agf/rules/workflow/documentation-rule-projection-rule.md
+      - agf/rules/workflow/deprecation-policy-rule.md
+      - agf/rules/workflow/ci-trigger-scoping-rule.md
+      - agf/rules/workflow/review-convergence-rule.md
+      - agf/rules/always/environment-interrogation-rule.md
+      - agf/rules/docs/implementation-honesty-rule.md
+      - agf/rules/workflow/merge-request-description-rule.md
+      - agf/rules/workflow/merge-request-workflow-rule.md
+      - agf/rules/workflow/immutable-tags-rule.md
+      - agf/rules/workflow/no-auto-package-update.md
+      - agf/rules/workflow/semver-no-carry-rule.md
+      - agf/rules/workflow/visible-artifact-verification-rule.md
+      - agf/rules/workflow/concept-modelling-rule.md
+      - agf/rules/workflow/file-generator-rule.md
+      - agf/rules/workflow/migration-generation-rule.md
+      - agf/rules/always/audit-log-completeness-rule.md
+      - agf/rules/workflow/boundary-shape-testing-rule.md
+      - agf/rules/docs/marketing-tone-rule.md
+      - agf/rules/ui/accessibility-rule.md
+      - agf/rules/always/i18n-supported-locales-rule.md
+      - agf/rules/docs/feature-flagged-docs-rule.md
+      - agf/rules/workflow/testing-environments-rule.md
+      - agf/rules/README.md
+    reason: >-
+      Every excluded rule keeps its canonical owner file under agf/rules/ and its
+      existing .claude/rules symlink. No normative text is moved, copied or
+      changed. Each of the 25 paths has one row in .claude/rules/INDEX.md that
+      names when to read it (coverage matrix: owner path = row target).
+
+  adopter_facing_explanation:
+    disposition: not applicable
+    reason: >-
+      Foundry-local loader configuration only. Adopters receive agf/ unchanged;
+      no Pages page explains .claude/settings.json or the foundry INDEX.
+
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    paths:
+      - .claude/rules/INDEX.md
+    reason: >-
+      INDEX.md is the situation map: one row per excluded rule, phrased as "when
+      you are about to X, read Y". It restates no rule body.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - .claude/rules/INDEX.md
+      - .claude/settings.json
+    reason: >-
+      Claude Code loads .claude/rules/INDEX.md and honours claudeMdExcludes.
+      Codex reads only AGENTS.md and never .claude/**; its trigger lines are added
+      to AGENTS.md in Phase 1. AGENTS.md and agf/templates/AGENTS.md are
+      unchanged in Phase 0.
+
+  validation_drift_evidence:
+    disposition: implemented
+    reason: >-
+      InstructionsLoaded log on Claude Code 2.1.308: 57 files load without the
+      exclusions, 33 with them (25 excluded, INDEX.md added); 323,871 chars
+      before, 169,674 after. agov validate assistant_drift reads files, not the
+      setting, so its advisory result is unchanged. The log is advisory evidence
+      under tool-authority-boundary-rule.md, not a gate.
+
+  distribution:
+    disposition: not applicable
+    paths: []
+    not_applicable:
+      - path: .claude/settings.json
+        reason: Project-local checkout configuration; not in any AGF or tooling artifact.
+      - path: .claude/rules/INDEX.md
+        reason: Foundry-local loader pointer; not shipped and not referenced by adopter files.
+    reason: >-
+      Both new files are project-local to the foundry checkout. Nothing in agf/ or
+      the shipped templates changes, so no distribution artifact is affected.

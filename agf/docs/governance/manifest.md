@@ -8,18 +8,16 @@
 | Field | Value |
 |-------|-------|
 | Framework | agents-govern (AGF) |
-| Version | 2.10.1 |
+| Version | 2.12.0 |
 | Source | AGF-NG foundry |
 | Repository | https://gitlab.com/janipaijanen/agents-govern-framework |
 | License | CC-BY-SA-4.0 |
 | Layout | B (single `agf/` directory; adopter files stay in `docs/`) |
 
 This manifest describes the `agf/` directory as it stands in the foundry.
-AGF v2.10.1 is the pending reviewed release from the current-`main` line.
-Until its tag pipeline and anonymous artifact verification complete, v2.10.0
-remains the latest published stable release (tagged 2026-09-08). Adopters
-should install releases from the GitLab Releases page and verify the
-published checksums and provenance rather than
+AGF v2.12.0 is the latest published, independently verified stable release
+(tagged 2026-10-28). Adopters should install releases from the GitLab Releases
+page and verify the published checksums and provenance rather than
 treating an arbitrary repository checkout as a release artifact.
 
 ## Contents
@@ -37,7 +35,7 @@ treating an arbitrary repository checkout as a release artifact.
 | `ADOPTING.md` | Step-by-step adoption guide | Follow step by step |
 | `framework.md` | Framework theory and reference | Read-only reference |
 | `CHANGELOG.md` | v2.0 change history | Reference |
-| `VERSION` | Current version string (`2.10.1`) | Reference |
+| `VERSION` | Current version string (`2.12.0`) | Reference |
 | `LICENSE` / `LICENSE-MIT` | CC-BY-SA-4.0 and MIT dual license | Include in project |
 | `docs/governance/` | Governance documents (this file, learning system, retrospective) | Read-only reference |
 | `docs/contracts/` | Agent-output binding contract, integration contract, stability promise | Read before enabling full compliance |
@@ -75,7 +73,7 @@ When upgrading from a previous version, record the upgrade in your learning reco
 upgrade_history:
   - date: "<date>"
     from_version: "<previous>"
-    to_version: "2.10.1"
+    to_version: "2.12.0"
     agent_changes: []
     notes: ""
 ```

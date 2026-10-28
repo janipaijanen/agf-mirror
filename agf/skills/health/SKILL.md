@@ -2,9 +2,11 @@
 name: health
 origin: upstream
 description: >
-  Periodic governance health check. Runs all validators (adoption,
-  agents strict, contributions, infosec) and produces a summary.
-  Designed for pre-commit, weekly CI, or on-demand use.
+  Periodic governance health check. Runs all validators (learnings,
+  agents, adoption, adopter docs, infosec, contributions, assistant
+  drift, assistant loader, framework config, README stats, version
+  drift) and produces a summary. Designed for pre-commit, weekly CI,
+  or on-demand use.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -29,15 +31,29 @@ agov validate
 ```
 
 Full `agov health` summary coverage is deferred. The available
-aggregate validation surface runs:
+aggregate validation surface (`run_all_validators` in
+`tooling/rust/crates/agov/src/main.rs`) runs:
 
-1. **Adoption conformance** — mandatory agents present, rules exist,
-   GOVERNANCE.md exists, tests exist, pre-commit configured
+1. **Learnings** — learning record structure
 2. **Agent definitions** — structural validity and tier checks
-3. **Contribution audit** — absence-bias detection, governance
-   relaxation detection, evidence quality in learnings
-4. **InfoSec screening** — credential leaks, PII, cross-field
+3. **Adoption conformance** — mandatory agents present, rules exist,
+   GOVERNANCE.md exists, tests exist, pre-commit configured
+4. **Adopter docs** — adopter-facing documentation coverage for
+   release-relevant changes
+5. **InfoSec screening** — credential leaks, PII, cross-field
    re-identification, cumulative leakage
+6. **Contribution audit** — absence-bias detection, governance
+   relaxation detection, evidence quality in learnings
+7. **Assistant drift** — assistant-loader content drift
+8. **Assistant loader** — AGENTS.md/.claude/CLAUDE.md presence and
+   AGF version match
+9. **Framework config** — optional `framework.yaml` contract
+10. **README stats** — README.md stat claims against actual file
+    counts
+11. **Version drift** — running binary version vs. repo `VERSION`
+
+There is no "strict" mode for any of these -- that word described a
+check that does not exist in the current Rust tooling.
 
 ## Step 2 — Review findings
 

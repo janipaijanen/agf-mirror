@@ -50,7 +50,14 @@ agov handoff complete <handoff-id> --from coder-tester
 `agov coord list --since <message-id-or-rfc3339-timestamp>` lists valid messages
 after a known cursor using `(timestamp, filename)` order. It exits `2` when no
 new messages match, so polling scripts can distinguish "nothing new" from an
-error. Adapters such as a local MCP server may expose these commands to an
+error. `agov coord list --ref <commit-ish>` reads the same channel from a
+commit that is already fetched, so a poll right after `git fetch` is not
+answered from a stale checkout; it never fetches, a ref it cannot read is an
+error on stderr with exit `2` (not an empty result), and symlink or submodule
+entries in the channel are skipped and counted on the `source:` line. With
+`--format json` the ref form returns an object (`source_ref`, `source_oid`,
+`coordination_dir`, `skipped`, `messages`); without `--ref` the JSON stays an
+array, and an empty result is `[]` with exit `2`. Adapters such as a local MCP server may expose these commands to an
 assistant surface, but the durable coordination protocol remains append-only
 files plus validation.
 
@@ -127,7 +134,23 @@ precise about what stage of the lifecycle it is claiming:
 - **When readiness or an artifact's identity changes**, the correction is a
   new, append-only record that references and supersedes the earlier one —
   never a mutation of the original. A Gate 2 handoff or review naming an
-  exact commit SHA stops being current the moment that SHA changes.
+  exact commit SHA stops being current the moment that SHA changes. To make
+  the replacement visible to tooling, the new record lists the earlier one in
+  an optional `supersedes` field and also cites it in `references-to`:
+
+  ```yaml
+  references-to:
+    - 20260101T093000Z-planner-architect-a1b2.md
+  supersedes:
+    - 20260101T093000Z-planner-architect-a1b2.md
+  ```
+
+  `agov coord list` then marks the earlier record as superseded, and the
+  pending views leave it out (`agov coord pending`, and for handoffs
+  `agov handoff next` and `agov coord status`). An edge that fails any of the rule's
+  checks is ignored without error, so a citation alone does not retire a
+  record. The conditions are defined once, in the
+  [coordination publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md).
 
 A false lifecycle claim is a blocking finding wherever it is caught,
 corrected by a superseding record, never by editing the false one.
@@ -293,12 +316,9 @@ does not validate or aggregate the Markdown body and cannot approve or block a
 gate. A known open blocker remains BLOCK even when another part of the review
 is incomplete; CLEAR requires complete coverage.
 
-Polling-cycle notes should be concrete. Name the branch or MR scope checked and
-the timer convention in use. If you use shorthand such as `15mins/180min`, make
-clear that it means "scan every 15 minutes, stop after 180 idle minutes, reset
-idle time on new incoming coordination or MR activity." For AI agents, prefer
-internal assistant reminders; external shell timers are monitors, not assistant
-attention.
+Polling-cycle notes should name the branch or MR scope and timer convention;
+[Scheduling and notification honesty](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty)
+is the normative definition.
 
 ## Parallel work and conflicts
 
@@ -413,7 +433,7 @@ Optional `handoff.for_session` addresses a recipient; top-level `session` record
 
 ## Urgency-ordered queues
 
-In the v2.11 development implementation (Level 4: validated, not yet released),
+The v2.11.0 release made this capability Level 5 — Deployable:
 `urgency: urgent` puts an unresolved item ahead of normal or omitted urgency.
 This self-declared field is advisory; it grants no authority or ownership.
 
@@ -444,16 +464,16 @@ six independent publication, authority, urgency/obligation, target, expiry and
 release-authorization checks before delay. Missing checks require immediate
 publication. Neither complete coverage nor unassociated means safe to delay.
 
-Install compatible framework and tooling artifacts before first use (intended
-first release v2.11.0; confirm actual shipped support). Older readers cannot
-read these fields. Never remove fields from immutable records to downgrade.
+The fields and tooling shipped in v2.11.0. Install compatible framework
+schemas, rules, and tooling artifacts together before first use. Older readers
+cannot read these fields. Never remove fields from immutable records to downgrade.
 The normative [publication rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/coordination-publication-rule.md)
 defines conservative error handling and schema-preserving forward disablement.
 
 ## Challenge-response
 
-The v2.11 development CLI (Level 4, not yet released) recognizes an optional
-`challenge` object on review records. Raise a dispute with a unique
+The v2.11.0 release made this CLI capability Level 5 — Deployable. It recognizes
+an optional `challenge` object on review records. Raise a dispute with a unique
 `challenge_id`, a `disputed_record_id` also named in `references-to`, and a
 `window_hours` value from 1 through 720. Declare your author `session` when
 posting party replies. A reply uses the same challenge ID, references the

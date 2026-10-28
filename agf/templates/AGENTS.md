@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2026 <!-- CUSTOMIZE: your name --> -->
-<!-- AGF: 2.10.1 — update this comment after each framework upgrade to match agf/VERSION -->
+<!-- AGF: 2.12.0 — update this comment after each framework upgrade to match agf/VERSION -->
 # <!-- CUSTOMIZE: Project Name --> — Agent and Contributor Orientation
 
 <!-- CUSTOMIZE: brief description of the project -->
@@ -241,10 +241,8 @@ checkout; do not bypass the check for routine governed work.
 - Do not upgrade packages without explicit user request
 - Do not commit secrets, `.env` files, or credentials
 - Do not add `Co-authored-by` or AI-tool trailers to commit messages
-- Do not claim a polling timer is active unless a real notification mechanism
-  backs it. Stating "I will check in N minutes" without a mechanism that fires
-  is misleading — another agent or human may wait for a notification that
-  never comes
+- Follow [Scheduling and notification honesty](agf/rules/always/universal-polling-and-autonomous-continuation-rule.md#scheduling-and-notification-honesty)
+  before claiming that a polling timer is active
 
 <!-- CUSTOMIZE: add any project-specific prohibitions -->
 

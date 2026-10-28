@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "rule-trigger-recall-result",
+  "title": "Rule-trigger recall trial result",
+  "description": "One JSON object per trial (one line of a JSONL result file). Foundry-local; not an AGF schema. Plan 20261023T140050Z-rule-trigger-recall-corpus.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scenario_id", "rule", "kind", "model", "client_version", "head_sha",
+    "measurement_mode", "tools_enabled", "answer", "pass", "date_utc"
+  ],
+  "properties": {
+    "scenario_id": { "type": "string", "minLength": 1 },
+    "rule": { "type": "string", "pattern": "^agf/rules/.+\\.md$" },
+    "kind": { "enum": ["direct", "paraphrase", "near-boundary", "negative"] },
+    "model": { "type": "string", "minLength": 1 },
+    "client_version": { "type": "string", "minLength": 1 },
+    "head_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "measurement_mode": { "enum": ["route-selection", "actual-open"] },
+    "tools_enabled": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "answer": { "type": "string" },
+    "first_read_target": { "type": ["string", "null"] },
+    "pass": { "type": "boolean" },
+    "date_utc": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "measurement_mode": { "const": "actual-open" } }, "required": ["measurement_mode"] },
+      "then": {
+        "required": ["first_read_target"],
+        "properties": { "tools_enabled": { "const": ["Read"] } }
+      },
+      "else": {
+        "not": { "required": ["first_read_target"] },
+        "properties": { "tools_enabled": { "maxItems": 0 } }
+      }
+    }
+  ]
+}

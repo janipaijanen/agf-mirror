@@ -154,13 +154,9 @@ check_payload() {
     require_member "$members" "$evidence_two" "framework release" || return 1
     require_member "$members" "$runbook" "framework release" || return 1
     run_shipped_tests "$target" || return 1
-  elif printf '%s\n' "$members" | awk '/(^|\/)agov(\.exe)?$/ { found = 1 } END { exit(found ? 0 : 1) }'; then
+  elif printf '%s\n' "$members" | has_member 'agov'; then
     require_member "$members" "$tooling_runbook" "tooling release" || return 1
-    if printf '%s\n' "$members" | has_member 'agov.exe'; then
-      require_member "$members" 'agov-mcp.exe' "Windows tooling release" || return 1
-    else
-      require_member "$members" 'agov-mcp' "Linux tooling release" || return 1
-    fi
+    require_member "$members" 'agov-mcp' "tooling release" || return 1
     check_claude_template "$target" "$members" || return 1
     readme_member=$(printf '%s\n' "$members" | find_member 'README.txt')
     test -n "$readme_member" || { fail "tooling release is missing README.txt"; return 1; }
@@ -253,17 +249,7 @@ selftest() {
     return 1
   fi
 
-  windows="$fixture/agov-2.4.5-windows-x86_64"
-  mkdir -p "$windows/docs" "$windows/examples/claude"
-  printf 'binary\n' > "$windows/agov.exe"
-  printf 'mcp binary\n' > "$windows/agov-mcp.exe"
-  printf 'runbook\n' > "$windows/$tooling_runbook"
-  cp "$claude_template_source" "$windows/examples/claude/.mcp.json"
-  printf 'Place both agov.exe and agov-mcp.exe on PATH. Copy examples/claude/.mcp.json to the project root as .mcp.json, review it, and approve the project-scoped agov server when prompted.\nOperating runbook: %s (included in this archive).\n' "$tooling_runbook" > "$windows/README.txt"
-  (cd "$fixture" && zip -qr "$fixture/tooling-windows-good.zip" "$(basename "$windows")")
-  check_path "$fixture/tooling-windows-good.zip" >/dev/null
-
-  echo "selftest OK: clean Linux/Windows archives pass; missing, stale, and unreferenced Claude templates are blocked"
+  echo "selftest OK: clean Linux archive passes; missing, stale, and unreferenced Claude templates are blocked"
 }
 
 case "${1:-}" in
