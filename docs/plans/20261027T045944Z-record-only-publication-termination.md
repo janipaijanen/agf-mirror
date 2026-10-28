@@ -1,9 +1,9 @@
 ---
 id: 20261027T045944Z-record-only-publication-termination
-status: pending-gate1
+status: approved
 topic: bounded-record-only-publication-termination
-gate1_approved_by: ""
-gate1_approved_at: ""
+gate1_approved_by: "20261028T205221Z-governor-reviewer-bq5t"
+gate1_approved_at: "2026-10-28T20:52:21Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
