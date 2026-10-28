@@ -192,6 +192,64 @@
   }
 }
 
+.agf-routes {
+  margin: var(--agf-space-5) 0;
+}
+
+.agf-route-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--agf-space-3);
+}
+
+.agf-route-card {
+  padding: var(--agf-space-3);
+  border: 0.05rem solid var(--md-default-fg-color--lightest);
+  border-top: 0.2rem solid var(--md-accent-fg-color);
+  border-radius: 0.4rem;
+  background: color-mix(
+    in srgb,
+    var(--md-default-bg-color) 96%,
+    var(--agf-blue-light)
+  );
+}
+
+.md-typeset .agf-route-card h3 {
+  margin: 0 0 var(--agf-space-2);
+  font-size: 1rem;
+}
+
+.agf-route-card a {
+  color: var(--md-accent-fg-color);
+}
+
+.agf-route-card p {
+  margin: 0;
+  color: var(--md-default-fg-color--light);
+  line-height: 1.55;
+}
+
+.agf-route-card p + p {
+  margin-top: var(--agf-space-2);
+}
+
+.agf-route-card:focus-within {
+  outline: 0.15rem solid var(--md-accent-fg-color);
+  outline-offset: 0.15rem;
+}
+
+@media screen and (max-width: 40em) {
+  .agf-route-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .agf-route-card {
+    break-inside: avoid;
+  }
+}
+
 /* Mobile figure scroll. Used by wide (rankdir=LR) DOT figures whose
    shrink-to-fit rendering becomes unreadable at narrow/mobile viewport
    widths (Gate 2 review 20260722T220009Z-contribution-auditor-kkhr,

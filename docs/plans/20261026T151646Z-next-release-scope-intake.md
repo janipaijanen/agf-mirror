@@ -1,28 +1,26 @@
 ---
 id: 20261026T151646Z-next-release-scope-intake
 status: approved
-gate1_approved_by: 20261026T203057Z-governor-reviewer-pq3q
-gate1_approved_at: "2026-10-26T20:30:57Z"
+gate1_approved_by: 20261027T215726Z-governor-reviewer-a2nh
+gate1_approved_at: "2026-10-27T21:57:26Z"
 topic: next-release-scope-and-rolling-intake
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
-      This plan records release-intake evidence and sequencing only. It
-      authorizes no implementation, credential access, CI change, artifact
-      publication, version choice, tag, or deployment. Every admitted
+      This amendment selects release scope, version and a documentation-only
+      base. It changes no credential path, security policy, executable content,
+      artifact publication, tag or deployment mechanism. Every admitted
       workstream and the eventual publication child plan retain their own
       infosec consultation requirements.
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Independent non-author Claude review
-      `20261026T203055Z-contribution-auditor-6572` returned CLEAR on exact plan
-      head `02268449b8b2a828a618e17e806a293f5744374a` with zero blocking, advisory,
-      or accepted-risk findings. Earlier Codex-subagent reviews
-      `20261026T201509Z-contribution-auditor-prhj` and
-      `20261026T202603Z-contribution-auditor-rts7` remain supporting evidence,
-      not the independent consultation.
+      Review 20261027T215147Z-contribution-auditor-rajn covers exact plan head
+      1c131572e22e44b4428100d83ea46fd44378e3b9 and returns CLEAR after the
+      sole stale-state finding was resolved. This later metadata-only head
+      records that review without changing version, base, scope, candidate
+      disposition, authority, or acceptance criteria.
 affected_paths:
   - docs/plans/20261026T151646Z-next-release-scope-intake.md
 depends_on:
@@ -37,15 +35,15 @@ depends_on:
 ## Purpose and authority
 
 The governor asked on 2026-10-26 to plan the next release and to formalize
-content gathering. This version-neutral plan is the single rolling owner for
+content gathering. This plan is the single rolling owner for
 that release's scope. It starts immediately after verified v2.11.0 publication
 at annotated tag `v2.11.0` (`d732e372f35bacd1f37981bb89031041d35121e4`,
 peeled commit `c1a13f8cdf626a9c10df5ddc82cc8cf6ebefb48a`).
 
-Governor decision `20261026T153847Z-governor-reviewer-s72h` approved the prior
-exact plan head. This amendment returns the plan to `pending-gate1` because it
-removes a candidate that already shipped and changes the readiness and exit
-conditions of other rows. The earlier decision does not authorize this head.
+Governor decision `20261027T215726Z-governor-reviewer-a2nh` approves the final
+intake head merged through MR !3307, freezes v2.12.0 at the exact implementation
+base below, and admits the two ordered `IN` items. It authorizes implementation
+of item 1; item 2 remains sequenced after item 1.
 
 This plan reuses the proven `IN` / `CANDIDATE` / `DEFER` vocabulary from the
 v2.11 scope plan. It is not a new project roadmap, queue ledger, milestone,
@@ -61,16 +59,17 @@ schema, or release tool:
 
 Only a governor decision may promote a row from `CANDIDATE` to `IN`, remove an
 `IN` row, choose a version, freeze scope, or authorize a release cut. Every
-workstream retains its own Gate 1 and exact-head Gate 2. This plan grants no
-implementation, merge, tag, package, release, or deployment authority.
+workstream retains its own Gate 1 and exact-head Gate 2. Decision `a2nh`
+supplies the freeze and bounded implementation authority; it grants no version
+bump, tag, package, release, or deployment authority.
 
 ## Why a rolling intake is needed
 
 The current evidence surfaces answer different questions and are not a
 complete release scope by themselves:
 
-- both `[Unreleased]` changelogs are empty after v2.11.0 and cannot represent
-  prospective work;
+- changelogs record landed work but cannot represent prospective work or choose
+  release scope by themselves;
 - the open queue remains nontrivial and mostly unmilestoned, including old
   `park-radar` items that must not become release candidates by age or
   visibility;
@@ -111,8 +110,9 @@ obtain non-author review, and publish a new governor decision for the exact
 head.
 
 At freeze, reconcile the selected whole tree, run the documentation-estate
-release-content-freeze sweep, convert landed adopter-visible rows into both
-changelogs, choose the semantic version from actual compatibility impact, and
+release-content-freeze sweep, reconcile both changelogs and record each landed
+adopter-visible row in its applicable canonical changelog, choose the semantic
+version from actual compatibility impact, and
 derive a separate release-publication child plan. The child plan owns metadata,
 namespace, protected-tag, pipeline, artifact, and anonymous-verification steps.
 
@@ -128,17 +128,64 @@ merged. Correction record `20261026T180956Z-governor-reviewer-pbgd` at
 `2ccba663967767c7ede3359f1203bb89afddac3c` merged through MR !3258 as
 `e5548cf6e9b5372e374aa3368b6e98ae3800553c`; it records the chronology without
 retroactively authorizing the merge. The remaining post-tag changes through
-`e5548cf6` are plans and coordination records. Both `[Unreleased]` sections
-remain empty.
+`0d76ea53` (the only change after `a52767d4` is bridge note
+`20261027T053114Z-planner-architect-tks3`, MR !3278). Radar correction MR !3281 merged as
+`5ebb03be` under Gate 2 record `1rdd` (MR !3286) and radar-closure proposal MR !3282 merged as
+`914495f3`. The coexistence plan merged as `58ac4aec` (MR !3275) under Gate 1 and Gate 2 record
+`p47g` (MR !3288, merged `108bc189`). The Pages homepage plan merged as `47716594` (MR !3276)
+under Gate 1 record `djnt` (MR !3290, merged `0e6e2604`). This amendment merged as `25326561`
+(MR !3283). The eight park-radar merge requests were closed 2026-10-27 under decision `5nmt`
+(MR !3291, merged `c245ce38`) and completion record `gpn3` (MR !3293); see DEFER. The
+final reconciliation is recorded in
+`docs/reviews/next-release-freeze-evidence/20261027-read-only-summary.md`, merged
+at candidate base `9af411aa1186f454a5801100dcddf258d588d414`. At that base MR
+!3098's retained skill-command correction is the only landed change requiring
+a new v2.12 changelog entry or disposition, reconciled in `agf/CHANGELOG.md`;
+the root changelog intentionally has no entry. The post-v2.11 status sync in
+`agf/docs/governance/manifest.md` and `agf/docs/site/roadmap.md` is separately
+inventoried as a no-changelog publication-status update. Plans, coordination
+records, radar entries and verbatim radar
+carrier files (`docs/radar.md`, `docs/proposals/radar/`, merged through MR !3274
+as `208f1d5a1031d49ac5b6056738a928c39dd0cb88`), and the Phase A measurement
+report (`docs/reviews/context-delivery-measurement/`, merged through MR !3271 as
+`9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f`) do not add another adopter-visible
+release item.
 
 Timer-reality polling alignment is not part of this delta. Its implementation
 commit `324322ef26b3efaeb2cd5a545c6d95cd64e4ba0e` is already an ancestor of the
 v2.11.0 peeled commit and the v2.11.0 changelog records it.
 
-## IN
+## Frozen release scope
 
-None. An approved workstream plan or green MR does not self-promote into the
-release.
+Semantic version: **v2.12.0**. Exact implementation base:
+`9af411aa1186f454a5801100dcddf258d588d414`. The release contains two bounded
+documentation slices, in this order. A minor version is selected because the two
+items add adopter-facing documentation and navigation surfaces without a
+breaking compatibility change. Decision `a2nh` freezes this scope and
+authorizes item 1; it does not authorize a tag, publication or deployment,
+which require the later release-publication child plan and decisions.
+
+1. `20261027T052500Z-tooling-coexistence-discoverability` (materially corrected
+   plan status approved, renewed Gate 1 `g2ar` on `main`). Implementation first:
+   README pointer, one adopter page, one navigation line and one projection manifest.
+2. `20261027T052118Z-gitlab-pages-homepage-modernization` (MR !3276; plan status
+   approved, Gate 1 `djnt` on `main` via MR !3290). Implementation only after item
+   1 merges. Its Gate 2 requires an independent rendered exact-head web-UX review,
+   in addition to the plan's own acceptance evidence.
+
+The exact-tag claim recheck at the frozen base confirms Ponytail v5.3.2 commit
+`16352ac229eb08a9598dcae48fe9f2b342567d86` and Caveman v4.0.1 peeled commit
+`d262ab3882952a59312ff3537cd86d894523c5ab`; the corrected evidence table and
+advisory reviews are in the coexistence plan. Contribution-auditor review
+`20261027T215147Z-contribution-auditor-rajn` is CLEAR, and decision `a2nh`
+names this base, v2.12.0 and both ordered `IN` items. Each implementation still
+needs its own exact-head Gate 2.
+
+## Retained landed change
+
+- MR !3098's skill-command correction is retained in the whole-tree release.
+  It is reconciled in `agf/CHANGELOG.md`; correction record `pbgd` preserves the
+  chronology without claiming retroactive Gate 2 authority.
 
 ## CANDIDATE seed inventory
 
@@ -146,26 +193,30 @@ These rows are decision inputs, not commitments.
 
 | Item / source | Potential adopter-visible outcome | Evidence and current gate | Compatibility and docs | Disposition | Promotion or exit condition |
 |---|---|---|---|---|---|
-| MR !3098, stale commands in shipped `agf/skills` | Shipped skills use current Rust `agov` commands | Source `6fccd783116bef86a908b4e53eadf9fd32d67b14` merged as `dc5523f6`; Gate 1 decision existed, but the implementation merged before its plan MR and without pre-merge Gate 2; correction record `20261026T180956Z-governor-reviewer-pbgd` merged through MR !3258 as `e5548cf6` | Documentation/skill correction; no runtime or schema behavior change | CANDIDATE (landed, disposition required) | Governor decides whether the whole-tree release retains this landed change or it is reverted. The correction record is evidence, not retroactive Gate 2 |
 | MR !3066 / issue #137, distribution-scan measurement | Evidence on suspected leading-`**` re-walk cost | Exact head `f7c1c8ec379bc61fa1b8e1fe4ea42fc4f1731367`; corrected measurement-first Gate 1 plan, independent review clear, green pipeline; `awaiting-governor` | Measurement only; no optimization claim or compatibility effect yet | CANDIDATE | Governor approves the measurement plan; optimization requires later evidence and its own plan |
 | Issue #128, cadence register / year-clock | One discoverable view of recurring governance obligations | Explicit prior-release candidate; no current Gate 1 plan | Likely documentation/governance surface; owner and projection boundaries unresolved | CANDIDATE | Governor chooses plan or deferral after checking overlap with roadmap and role cadences |
 | Issue #133, watcher idle versus work exhaustion | Mechanically distinct watcher-idle, inbox-idle, and queue-exhausted states | Recurrent operational failure model; issue carries `plan`; no Gate 1 plan | Could affect rules, skills, and operator docs; classification unknown | CANDIDATE | A bounded Gate 1 identifies the canonical owner and acceptance surface |
 | MR !3097 evidence, `rule.schema.json` drift | Resolve unenforced schema/corpus disagreement without false compliance | Proposal head `6a8c773d24628bd623ba4536175f11c02188d772` merged as `40f9e8d127df9cba441e663ea070614378ddbcfd`; evidence reports broad nonconformance, but no migration-versus-schema decision or Gate 1 exists | Potentially high-risk schema/rule migration | CANDIDATE | Governor chooses migration versus schema correction, then approves a bounded plan |
-| Issues #119 and #138, instruction-context cost | Measure residual context cost without weakening governance, then decide whether any delivery change is warranted | Measurement-only Phase A plan `20261026T155400Z-context-delivery-measurement` merged in !3243 and is Gate 1 approved by `20261026T174028Z-governor-reviewer-snh2`; no report or product implementation exists | Phase A changes no loader, rule, schema, package or tool; any later delivery change can be behavior-sensitive and needs its own Gate 1 and recall checks | CANDIDATE | Complete Phase A and reconcile #138 as close, residual scope or inconclusive; no product work self-promotes from the measurement |
+| Issues #119 and #138, instruction-context cost | Measure residual context cost without weakening governance, then decide whether any delivery change is warranted | Phase A execution and its report are complete. The Phase A plan `20261026T155400Z-context-delivery-measurement` (Gate 1 `20261026T174028Z-governor-reviewer-snh2`) keeps its approved front-matter status: its report is on `main` at `9ef652c7e5b1a29f2841b2d26b4fcc9c07b7252f` with outcome `inconclusive` under the plan's rule (Claude Code showed material cost on the foundry checkout, none on the clean adopter install; the Codex client was not assessable); no product implementation exists | Phase A changed no loader, rule, schema, package or tool; any later delivery change can be behavior-sensitive and needs its own Gate 1 and recall checks | CANDIDATE | Governor reads the report and decides: close #138 as complete, name a residual scope, or ask for a Codex-client measurement path; no product work self-promotes from the measurement |
 | Issues #111 and #113, upgrade/ignore safety | Detect governance loss or excluded provenance during adoption upgrades | Learning issues only; no bounded Gate 1 plan | Security- and data-loss-sensitive trust boundary | CANDIDATE | A plan defines detection, recovery, and false-positive controls; infosec consultation required |
 | Issue #136, stale worktree inventory | Safe report-first visibility into stale branches/worktrees | Report-first direction only; explicitly no deletion authorization | Foundry tooling/operator docs; destructive action excluded | CANDIDATE | Gate 1 limits scope to inventory/reporting and defines later deletion authority separately |
 | Issue #105, advisory sensitive-material scanner | Optional warning for arbitrary-file sensitive material | Unmilestoned backlog; no plan | Infosec-sensitive; advisory/blocking boundary must be explicit | CANDIDATE | Infosec-reviewed Gate 1 demonstrates need, scope, and false-positive handling |
-| MR !2679, builder-image trial slice | Evidence on a bounded builder-image experiment | Exact head `b3c7eaff6ea0502087fc9dd0f7f73bc41ddf8ee8`; draft, green, `awaiting-governor`; its distribution-scan slice is superseded in readiness by !3066 | Research only until evidence supports a product change | CANDIDATE | Governor isolates a still-useful trial slice or closes/supersedes it |
 
 ## DEFER and exclusions
 
-- Old `park-radar` MRs !459, !923, !967, !998, !1000, !1451, !1718, and
-  !1722 remain post-v2.11 queue-closeout work, not release candidates.
+- The old `park-radar` MRs !459, !923, !967, !998, !1000, !1451, !1718, and
+  !1722 were closed 2026-10-27 under decision `5nmt` and completion record `gpn3`
+  (MR !3293). Their unique content is preserved as radar entries and carrier files
+  on `main` (MR !3274, merged `208f1d5a`). They are not release candidates.
 - Issue #129 remains withdrawn. Semantic/linked-data work needs a fresh
   governor decision before it can re-enter intake.
 - Issue #137 does not admit an optimization until the measurement work proves
   the hypothesis.
 - Issue #134 remains blocked on named capacity-one hardware/operator evidence.
+- MR !2679 was closed without merge on 2026-10-27 under governor decision
+  `20261027T214011Z-governor-reviewer-s8n7` (published through MR !3308). Its
+  distribution-scan slice is superseded by !3066; the builder-image trial was
+  not selected. The source branch and history remain available for reference.
 - A generic `release::unmilestoned-backlog` label, an old milestone, or absence
   from this table never promotes an item.
 - Anything not named `IN` or `CANDIDATE` is unexamined, not silently rejected.
@@ -181,11 +232,12 @@ These rows are decision inputs, not commitments.
   owners and this plan's `depends_on` disposition manually.
 - Non-author contribution review confirms the table does not promote backlog,
   duplicate roadmap/ledger authority, or overstate issue/MR readiness.
-- The plan contains no candidate version, date commitment, implementation
-  authority, metadata edit, tag instruction, or new tooling/schema.
-- A later freeze can account for every merged change since `v2.11.0`, every
-  selected `IN` row, and every named `CANDIDATE` disposition without relying on
-  stale milestones.
+- The plan names the frozen version and exact base. Decision `a2nh` grants the
+  bounded implementation sequencing above but no metadata, tag, publication or
+  deployment authority. The plan adds no tooling or schema.
+- The freeze review can account for every merged change since `v2.11.0`, both
+  selected `IN` rows, and every named `CANDIDATE` disposition without relying
+  on stale milestones.
 
 ## Risks and rollback
 

@@ -24,35 +24,6 @@
 
 *The framework that cannot govern itself has no business governing anything else.*
 
-> AGF releases ship the complete governance library — every role, rule,
-> skill, schema, and template. In the maintainer's own deployments, the full
-> rule set has run unpruned from day one, without a manual curation step,
-> and has worked well as shipped; curating the rule set down is optional,
-> not a documented prerequisite. A reduced starter package does not
-> currently ship.
-
-See [what ships and what you activate](docs/start/should-you-adopt.md#what-ships-and-what-you-activate)
-before treating the complete distribution as a mandatory day-one configuration.
-
-!!! info "AGF in a Nutshell — one-page orientation flyer"
-    A single-page overview of the roles, the two gates, and the
-    coordination channel, suitable for printing or sharing:
-    [view the full-size flyer (PNG)](reference/figures/agf-nutshell-flyer.png).
-
-Typical cost: mechanical installation has taken no more than ten minutes in
-the maintainer's own deployments — empirically informed maintainer evidence,
-not yet independent-adopter validation. Initial commissioning (reviewing
-applicable rules and completing your first governed change) is separate,
-variable work with no numeric estimate. Governor attention is often 5-15
-minutes for a non-trivial change, a maintainer-informed planning estimate,
-not a benchmark. Exit is documented: pause the gates, keep only the rules you
-still want, or remove the AGF files in one atomic cleanup commit for a
-repository-local install — exit duration is unmeasured and varies with your
-CI, hooks, and retained evidence.
-
-Next step: read [Should you adopt?](docs/start/should-you-adopt.md), the
-five-minute filter for deciding whether AGF is useful for your project now.
-
 > **Status:** This site documents the released **agents-govern framework**.
 > The exact framework content version and source commit for this build are
 > recorded in
@@ -63,85 +34,58 @@ five-minute filter for deciding whether AGF is useful for your project now.
 > Release information page, which also states whether this build is exact
 > release documentation or later development documentation.
 
-## How to adopt
+<section class="agf-routes" aria-labelledby="agf-routes-title" markdown>
 
-Four steps from a first scan to your first governed change, for a developer
-who has read the linked pages below and already has a git repository with an
-AI assistant. Steps 1-2 are evaluation and mechanical installation; step 3 is
-initial commissioning, which the plan below deliberately leaves unestimated.
+<h2 id="agf-routes-title">Choose your next step</h2>
 
-**Step 1 — Make the decision once.**
-Read [Should you adopt?](docs/start/should-you-adopt.md). It is a single page
-with a clear adopt / wait / skip decision guide, the full list of commitments
-you accept, and the costs stated plainly. Also read
-[Exit and decommission](docs/adopt/exit-and-decommission.md): knowing how to
-leave without rewriting history is part of the decision.
+Start with the decision you need to make. Each route points to the canonical
+guidance instead of repeating it here.
 
-**Step 2 — Let the assistant prepare the files; you review the rules.**
-Follow [Install the `agf/` directory](docs/adopt/install-and-layouts.md) to
-set it up in the single supported v2.0 layout. The guide gives you a
-pasteable assistant prompt for the clerical setup — unpacking and wiring the
-files is the mechanical step covered by the ten-minute figure above.
-Reviewing the diff, resolving `CUSTOMIZE` markers, and deleting rules that do
-not apply is the start of initial commissioning, and its duration varies by
-project; an inapplicable rule trains assistants that rules are optional.
+<div class="agf-route-grid" markdown>
 
-**Step 3 — Run one real change through both gates.**
-Work through [Your first governed change](docs/start/first-governed-change.md),
-the rest of initial commissioning. Gate 1 is plan approval before
-implementation; Gate 2 is review before merge. One small change teaches you
-the loop without committing the whole project.
+<article class="agf-route-card" markdown>
 
-That covers installation and your first commissioning pass. Everything else —
-validators, token savings, advanced configuration — layers on top once the
-basics work.
+### [Decide](docs/start/should-you-adopt.md)
 
-## How it works
+Use the adopt / wait / skip filter, including the real governance cost,
+evidence limits, and exit path.
 
-**Role separation.** Agents get plain-language job descriptions. An implementer
-writes code. A reviewer checks it. A human governor approves gates and owns the
-project risk. An agent cannot approve its own work.
+[See the one-page orientation flyer](reference/figures/agf-nutshell-flyer.png)
+if you need a compact overview first.
 
-**Hard gates.** Gate 1 asks whether the agent has a plan worth implementing.
-Gate 2 asks whether the implementation followed the rules and is ready to
-merge. Validators and CI provide evidence, but human governor decisions remain
-binding.
+</article>
 
-**Git-native operation.** There is no hosted service, shared runtime, or message
-API. AI assistants coordinate by reading and writing files in git, so the framework
-can work with different assistants across separate sessions.
+<article class="agf-route-card" markdown>
 
-## Token savings with the Rust tooling (optional)
+### [Adopt](docs/adopt/install-and-layouts.md)
 
-Every time an AI assistant reads coordination files to reconstruct channel state, it
-uses context tokens. The AGF tooling replaces many of those reads with
-deterministic command output: the tool answers the question in milliseconds and
-returns a compact summary the agent reads instead of scanning dozens of files
-itself.
+Install the `agf/` directory, [commission AGF and AGOV](docs/start/commission.md),
+then run [your first governed change](docs/start/first-governed-change.md).
 
-The shipped Rust binary (`agov`) is optional. It can, for example:
+</article>
 
-- validate plans, coordination records, agent definitions, and adopter docs
-  deterministically;
-- resume a session from a compact project summary instead of rereading the
-  full coordination channel;
-- find pending handoffs and coordination records hidden on other branches;
-- report local token-ROI telemetry without turning an estimate into a measured
-  claim.
+<article class="agf-route-card" markdown>
 
-Those outcomes are available in the supported operator path used by this
-project — the maturity vocabulary calls that **Level 5 — Deployable**. The
-label describes availability, not equal complexity or equal organizational
-value. See the [canonical command inventory and evidence
-notes](docs/adopt/tooling-and-tokens.md) for the complete command-by-command
-surface and the [maturity vocabulary](reference/maturity-vocabulary.md) for
-what lower levels mean.
+### [Operate](docs/operate/day-to-day.md)
 
-Release archives ship platform-specific Rust tooling. Source-checkout users
-should use the same `agov` command surface as release-archive adopters. See
-[Tooling and token savings](docs/adopt/tooling-and-tokens.md) for setup, the
-canonical inventory, estimates, and the evidence base behind the savings
-claims.
+Follow the daily workflow and [operations runbook](docs/operate/runbook.md).
+Add the optional [Rust tooling](docs/adopt/tooling-and-tokens.md) when compact,
+deterministic validation output helps.
+
+</article>
+
+<article class="agf-route-card" markdown>
+
+### [Using AGF with other tools](docs/adopt/third-party-plugin-coexistence.md)
+
+Set authority, instruction, hook, and data-flow boundaries before combining
+assistant tooling. Guidance only: Level 2 — Surface-defined; evidence is
+Theoretical, with no adopter-validated coexistence for the evaluated tools.
+
+</article>
+
+</div>
+</section>
 
 ## What you get
 
@@ -170,61 +114,21 @@ incident and pattern notes; recurring patterns become rules; rules ship to every
 adopter. The framework grows from evidence, and the anonymization policy means
 your learnings can flow upstream without revealing your project.
 
-## What it costs
+## Evidence, maturity, and licensing
 
-Adoption is not free, and the documentation does not pretend otherwise: files
-added to your repo, CI jobs to run, review ceremony per non-trivial change, and
-a habit to record incidents as learning notes. The overhead is proportional to
-change size — trivial edits use a fast track (three files or fewer, no shared
-interface or data contract change); architecture changes get the full gate
-sequence. The [downstream impact](docs/adopt/downstream-impact.md) page itemises
-the full cost, and [exit and decommission](docs/adopt/exit-and-decommission.md)
-documents the way out. Read both before adopting.
+The framework's evidence base is its
+[learning records](docs/concepts/evidence-and-learnings.md): operational
+incidents and validated patterns from the framework's own development and from
+early adopters, recorded under codenames. Rules shipped on single-adopter
+evidence are explicitly marked **Provisional** in the rule text itself.
 
-## Who benefits
-
-- **Solo maintainers** get a repeatable review structure around AI-generated
-  work, even when one human owns the final decision.
-- **Small teams** get shared conventions that AI assistants can follow across
-  sessions and tools.
-- **Engineering leads** get review gates that hold even when changes are
-  machine-generated at machine speed.
-- **Developers** get an assistant that follows the project's actual conventions
-  consistently — the rules load as files the assistant reads every session, not
-  as prompts you retype or conventions the assistant re-derives from scratch.
-- **Auditors and security reviewers** get an append-only decision trail and
-  explicit security escalation boundaries.
-
-## Where to go next
-
-| Intent | Start here |
-|---|---|
-| Make the adopt / wait / skip decision | [Should you adopt?](docs/start/should-you-adopt.md) |
-| Answer commissioning questions | [Adopter FAQ](docs/start/adopter-faq.md) |
-| Understand cost and exit path | [Downstream impact](docs/adopt/downstream-impact.md) → [Exit and decommission](docs/adopt/exit-and-decommission.md) |
-| Install and run one governed change | [Install the `agf/` directory](docs/adopt/install-and-layouts.md) → [Your first governed change](docs/start/first-governed-change.md) |
-| Set up the tooling and understand token savings | [Tooling and token savings](docs/adopt/tooling-and-tokens.md) |
-| Operate a project day to day | [Day-to-day operation](docs/operate/day-to-day.md) |
-| Follow the full learning path | [Documentation index](docs/index.md) |
-
-## Evidence, honestly stated
-
-The framework's evidence base is its [learning records](docs/concepts/evidence-and-learnings.md):
-operational incidents and validated patterns from the framework's own development
-and from early adopters, recorded under codenames. Rules shipped on
-single-adopter evidence are explicitly marked **Provisional** in the rule text
-itself.
-
-We state capability maturity and evidence status separately. Capability maturity
-answers "what exists?" using Level 1 Planned through Level 5 Deployable.
-Evidence status answers "how strong is the proof?" using Empirically validated,
-Empirically informed, and Theoretical. See the
+Capability maturity answers “what exists?” using Level 1 Planned through Level
+5 Deployable. Evidence status separately answers “how strong is the proof?”
+using Empirically validated, Empirically informed, and Theoretical. See the
 [maturity vocabulary](reference/maturity-vocabulary.md) and
 [evolution page](future/evolution.md) for what is shipped versus hypothesised.
 
 Version, source commit, copyright, and license details are listed in
-[Release information](reference/release-info.md). Framework content:
-CC BY-SA 4.0, with separate commercial licensing available for alternative
-terms. Tooling code: MIT.
-
-Ready to decide? Continue with [Should you adopt?](docs/start/should-you-adopt.md).
+[Release information](reference/release-info.md). Framework content is CC BY-SA
+4.0, with separate commercial licensing available for alternative terms.
+Tooling code is MIT.

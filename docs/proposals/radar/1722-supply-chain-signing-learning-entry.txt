@@ -1,0 +1,102 @@
+<!-- Radar carrier. Retained verbatim from MR !1722 (source branch docs/learning-dd-supply-chain-signing, head 95d95c5f), the lines it added to agf/learnings/foundry.yaml (a proposed learning entry, never recorded).
+     Non-authoritative: parked on the radar, grants no Gate 1, rule, template, validator or implementation authority. -->
+
+  - id: "20260817T210055Z-clew"
+    date: "2026-08-17"
+    category: gap
+    scope: project
+    title: >
+      No commit/tag signing and no SBOM generation — release provenance
+      is self-issued metadata, not an independently verifiable
+      attestation
+    description: >
+      An external open-source due-diligence simulation (ChatGPT run,
+      Protocol 2.1, 2026-08-17), filed as risk R5 ("Supply-chain
+      compromise or unverifiable publisher identity", rated High) and
+      finding F6, observed: 0 of 4,180 commits and 0 of 39 tags in this
+      repository are cryptographically signed (22 tags annotated, 17
+      lightweight, none signed); no SBOM (CycloneDX or SPDX) is
+      published for any binary, container, or source release; and the
+      project's existing release provenance (checksums, self-reported
+      commit/build metadata) is same-channel, self-issued metadata —
+      useful for detecting accidental corruption in an independently
+      downloaded artifact, but not sufficient to authenticate publisher
+      identity or establish build provenance to a third party. The DD's
+      own framing, quoted directly: "Self-issued hashes and provenance
+      detect accidental corruption when distributed independently, but
+      same-channel metadata does not authenticate publisher identity or
+      establish build provenance."
+
+      Following the OD-1 correction on the companion R8/operational-
+      debt learning (`20260817T202241Z-ookv`, per coder-tester review
+      `20260817T202807Z-coder-tester-37mj`), this entry cites the
+      durable dossier location rather than the non-durable `tmp/` path:
+      MR !1691 (`docs/dd-20260817-external-ai-diligence`, commit
+      `c7c24ebcd2af9ba7671dfa6b7619508af39ba0bb`),
+      `docs/reviews/20260817T173000Z-external-ai-diligence-chatgpt-claude-grok-lumo/raw/11-ChatGPT-Answer.md`.
+      **MR !1691 is not yet merged to `main` as of this record** — this
+      dependency is stated explicitly, not implied, per the same OD-1
+      resolution condition.
+
+      This is a distinct remediation from the tooling-license MIT fix
+      and from the R8 operational-debt thread: signing establishes
+      *who* published an artifact and that it has not been altered
+      after signing; an SBOM establishes *what* is inside a released
+      artifact (dependency inventory) for downstream vulnerability and
+      licence-compliance scanning. Both are release-engineering gaps,
+      not governance-record gaps, and both are currently zero — no
+      partial signing, no partial SBOM coverage exists to build on.
+    agents_involved:
+      - planner-architect
+      - contribution-auditor
+      - coder-tester
+      - governor-reviewer
+    framework_section: >-
+      `always/security-hardening-rule.md` covers secrets, supply-chain
+      pinning, image scanning, and CSRF/input validation, but does not
+      currently require signed commits, signed tags, signed release
+      artifacts, or SBOM generation as part of the release workflow.
+      `workflow/release-via-merge-request-rule.md` governs the release
+      *process* (branch, MR, tag) but is silent on cryptographic
+      signing of the resulting tag or its artifacts.
+    business_impact:
+      type: cost_overhead
+      description: >
+        No incident report exists, but per this entry's own subject
+        matter, absence of a reported incident carries less weight than
+        usual here: without signed commits/tags/artifacts, tampering or
+        impersonation would not be independently detectable in the
+        first place, so "no known incident" is not evidence of safety
+        for this specific gap (self-referential, not merely a generic
+        caution). The realized cost today is procurement/trust
+        friction: per the DD, this gap was scored as a material
+        contributor to the project's overall 2.1/5 rating and named as
+        one of its "0-30 days" remediation-roadmap items alongside the
+        (now-resolved) licensing contradiction. Applying the same
+        measurement discipline OD-2 required of the R8 learning: this
+        entry does not claim signing/SBOM absence has caused or will
+        cause a specific incident — it records a verified factual gap
+        (0 signed commits, 0 signed tags, 0 SBOMs, independently
+        checkable via `git log --show-signature` and the release
+        artifact inventory) and its DD-assessed procurement relevance,
+        nothing stronger.
+    recommendation: >
+      Do not implement signing or SBOM generation unilaterally from
+      this entry. Per the same discipline Codex/coder-tester applied to
+      the R8 SLO proposal (measure and scope before mechanism): first
+      get an independent read on (a) which signing identity/mechanism
+      fits a single-maintainer project (GPG-signed tags/commits via a
+      maintainer key, vs. keyless/Sigstore-style signing tied to CI
+      identity — each has different key-custody and verification
+      trade-offs worth naming explicitly, not assumed); (b) whether
+      SBOM generation is scoped as its own follow-up phase after the
+      signing-identity decision, or run in parallel since it does not
+      technically depend on signing; and (c) what "verify a release"
+      instructions look like for an adopter once either lands. See the
+      collaborative handoff filed alongside this entry.
+    severity: minor
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "MR !1691 (docs/dd-20260817-external-ai-diligence, commit c7c24ebcd2af9ba7671dfa6b7619508af39ba0bb, not yet merged), docs/reviews/20260817T173000Z-external-ai-diligence-chatgpt-claude-grok-lumo/raw/11-ChatGPT-Answer.md, sections F6 (Security) and R5 (Prioritized Risk Register), plus the Remediation Roadmap table — AI-simulated due-diligence assessment commissioned by the project's own maintainer, not an independent third-party audit; same evidentiary weight as this project's other self-produced review findings."

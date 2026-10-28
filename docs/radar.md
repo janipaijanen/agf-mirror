@@ -327,6 +327,92 @@ Next review: 2026-10.
   status: compare as adjacent control plane, do not integrate | maturity: Level
   1 Planned; evidence: Empirically informed at most | review-by: 2026-11
 
+- **Release feedback latency (issue #53)** — Is the delay between a change and
+  usable pipeline/review feedback large enough, and measured reliably enough, to
+  justify a bounded re-measurement? The retained plan and its 2026-07-24 evidence
+  preserve the method and the normalized data; the evidence is historical and has
+  not been re-verified. Promote only when feedback delay is reported as a concrete
+  problem or a release-cadence review asks for the numbers. Carrier files:
+  `docs/proposals/radar/459-issue-53-feedback-latency-measurement.md`,
+  `docs/proposals/radar/459-issue-53-feedback-latency-evidence-2026-07-24.md`,
+  `docs/proposals/radar/data/459-issue-53-feedback-latency-normalized-2026-07-24.json`;
+  source: MR !459 (the thirteen coordination records and the proposed learning record
+  `20260723T231109Z-w7k2` of that branch stay only on the retained branch) | status: parked question, no measurement commitment |
+  review-by: 2027-01-31
+
+- **Expectation signals for material caveats (issue #100)** — Does AGF need a
+  small convention so that a load-bearing caveat is not technically true but
+  practically buried? The retained proposal reached consensus on the foundation
+  and narrowed the mechanism, but at Level 1 Planned and Theoretical; it grants no
+  rule, template or validator authority and warns against warning decoration and
+  AI-hedging misuse. Promote only on a second concrete incident of a buried caveat
+  or a named sponsor. Carrier: `docs/proposals/radar/923-expectation-signals-consensus.md`;
+  source: MR !923, issue #100 stays open | status: parked question | review-by:
+  2027-01-31
+
+- **Learning-record enum enforcement** — Should `category`, `severity` and
+  `scope` move from documented conventions to enforced values, and should the top
+  `confidence.level` tier have an evidence threshold? The retained audit
+  reproduces the live schema and corpus state as of 2026-08-03 and leaves the
+  decision open, so its counts are historical. Revisit before any new
+  classification field is added to the learning schema. Carrier:
+  `docs/proposals/radar/998-learning-field-enforcement-audit.md`; source: MR !998
+  | status: parked question | review-by: 2027-01-31
+
+- **Deferred LLIS comparison learning candidates** — Which of the candidate
+  learnings drawn from the NASA LLIS comparison and the schema audit should be
+  recorded once the learning schema is stable? The retained list is a deferred
+  TODO gated on the supersession-field and enforcement-audit work, and nothing in
+  it was recorded as a learning. Carrier:
+  `docs/proposals/radar/1000-llis-deferred-learning-candidates.md`; source: MR
+  !1000 | status: parked, gated on learning-schema stability | review-by:
+  2027-01-31
+
+- **Strategic candidate comparison and release mapping** — Is a scored
+  comparison of the deferred strategic candidates, mapped to releases, worth doing
+  after the backlog triage? The retained document defines the exercise and says
+  explicitly not to start it. Promote only when the Human Governor asks for the
+  comparison or a release-cadence review needs it. Carrier:
+  `docs/proposals/radar/1451-strategic-candidate-comparison.md`; source: MR !1451
+  | status: parked question, no commitment | review-by: 2027-01-31
+
+- **Release provenance: commit/tag signing and SBOM** — Should AGF releases carry
+  independently verifiable provenance, meaning signed tags or commits and a
+  dependency inventory (SBOM), beyond same-channel checksums and self-issued
+  metadata? The retained learning entry and its handoff record a 2026-08-17
+  observation of zero signed commits, zero signed tags and no SBOM, taken from an
+  external due-diligence simulation and counted at that date, so the numbers are
+  historical and not re-verified. The independent read recommended separating an
+  SBOM slice from a signing-identity proof of concept (keyless CI identity versus
+  a hardware-backed fallback) and warned against implementing from the entry.
+  This is security-relevant: revisit at the next release-engineering or
+  deprecation/supply-chain review, or on an adopter request for verifiable
+  provenance. Carriers: `docs/proposals/radar/1722-supply-chain-signing-learning-entry.txt`,
+  `docs/proposals/radar/1722-supply-chain-signing-handoff.md`; source: MR !1722 |
+  status: parked question, no signing or SBOM commitment | review-by: 2027-01-31
+
+- **Operational-debt backlog bounds** — Does the queue itself need closure SLOs,
+  bounded branch lifetime and an ownership view, given pending handoffs, branch
+  sprawl and rule-copy drift? The retained Phase-0 plan was approved, but only
+  Snapshot 1 was taken (2026-08-17) and Snapshot 2 never was, so the baseline is
+  one dated snapshot and the proposed SLO response never found a sponsor. Promote
+  only with a named sponsor and a fresh snapshot. Carriers:
+  `docs/proposals/radar/1718-operational-debt-phase0-measurement.md`,
+  `docs/proposals/radar/1718-operational-debt-learning-entry.txt`,
+  `docs/proposals/radar/1718-snapshot-1-README.md` and the data files under
+  `docs/proposals/radar/data/1718-snapshot-1-*`; source: MR !1718 (its 554-line
+  branch inventory stays only on the retained branch) | status: parked question,
+  no SLO commitment | review-by: 2027-01-31
+
+- **AI-regulation requirements gap analysis (historical)** — The retained analysis
+  and its fact-check history (bounded renewed fact-check CLEAR at the MR head on
+  2026-08-03) preserve how AGF maps to AI regulation and governance requirements as
+  of that date. It is dated source material and makes no current legal, regulatory
+  or compliance finding; the live question is the re-assessment entry above.
+  Carrier: `docs/proposals/radar/967-ai-regulation-requirements-gap-analysis.md`;
+  source: MR !967 (its `docs/sources.md` edit stays only on the retained branch) |
+  status: parked, folded under the re-assessment question | review-by: 2027-01-31
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
