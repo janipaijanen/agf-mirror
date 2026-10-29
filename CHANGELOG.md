@@ -12,6 +12,36 @@ Adopter-facing entries for the next release, with their `Adopter docs:` lines, a
 in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[Unreleased]`; this section lists
 repository-level changes only.
 
+### Added
+
+- **Opt-in distribution scan profiling (!3372, `e68d162e`).** An internal
+  `dist-profile` build feature measures the existing validator without changing
+  matching, traversal or symlink policy. Instrumentation and the diagnostic
+  command are absent from default release binaries. The dated baseline records
+  repeated fresh-process samples with uncontrolled filesystem caches on one
+  local host; it demonstrates neither a controlled cold/warm comparison nor a
+  speedup. Capability: Level 4 Validated; measurement evidence: Empirically
+  informed. Adopter docs: not applicable (internal diagnostic and report).
+
+### Changed
+
+- **Pin foundry CI inputs and replace the obsolete release publisher (!3358,
+  `c7ea3cfb`).** The OCI test installer selects Rust 1.97.1 and verifies the
+  checksum of versioned rustup-init 1.29.2. Release creation uses verified,
+  digest-pinned Alpine 3.24.3 and a create-only curl/jq client that checks tag
+  identity and Release absence, sends one ref-free POST, and verifies the
+  resulting metadata and asset links. Ambiguous POST results stop for operator
+  reconciliation. Artifact/provenance checks and package paths are preserved;
+  the CI-pin drift checker remains advisory. APK packages remain mutable, so
+  these changes do not establish full-job reproducibility. Capability: Level 4
+  Validated in current main; evidence: Empirically informed by tests and the
+  live read-only probe, without production-write validation. Adopter docs: not
+  applicable (foundry CI and release operations).
+- **Synchronize v2.12 publication status (!3332, `34789b4c`).** Governance
+  manifest and roadmap status cells now describe the already-published v2.12
+  release. This is administrative release-truth upkeep, not a new v2.13
+  capability. Adopter docs: updated (manifest and roadmap status cells).
+
 ## [2.12.0] - 2026-10-28
 
 **Documentation-focused minor release.** Standard current-main release from

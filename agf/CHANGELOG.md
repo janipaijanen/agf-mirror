@@ -8,6 +8,32 @@ distribution.
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
 Pages and to `agf/` for rules, templates, schemas and skills.
 
+### Added
+
+- **Bounded record-only publication termination (!3354, `ee2a768a`).** An
+  additive, authority-sensitive permission ends recursive decision-publication
+  chains only when every stated condition holds: prior authority was published
+  before the authorized action, all that authority is exhausted, records remain
+  unchanged and create no new obligations, full-range publication and exact-head
+  CI checks pass, and the exact merge tree and resulting parents are verified.
+  Ordinary Human review remains valid; uncertainty returns to that path. This
+  does not grant general self-merge, retrospective approval or new gate authority,
+  and changes no schema, tooling or CI behavior. Pre-publication capability:
+  Level 4 Validated in current main; Level 5 Deployable awaits the supported
+  v2.13 release. Evidence: Empirically informed
+  by foundry use, without broad adopter validation. Adopter docs: updated
+  (`rules/workflow/coordination-publication-rule.md`,
+  `docs/concepts/coordination-protocol.md`, `templates/AGENTS.md`).
+
+### Fixed
+
+- **Urgency shipment status in the polling guide.** The heading and maturity
+  sentence now match the already-shipped v2.11.0 Level 5 Deployable capability
+  when using compatible artifacts. Urgency remains advisory and supplies no
+  permission. This corrects a stale page found by the full-estate review; it
+  changes no runtime behavior or governance authority. Adopter docs: updated
+  (`docs/operate/poll-and-coordinate.md`).
+
 ## [2.12.0] — 2026-10-28
 
 **Documentation-focused minor release.** Standard current-main release from
