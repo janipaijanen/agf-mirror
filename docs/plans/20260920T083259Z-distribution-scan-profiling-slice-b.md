@@ -12,6 +12,7 @@ affected_paths:
   - tooling/rust/crates/agov/Cargo.toml
   - docs/reviews/dist-scan-profiling/**
 depends_on:
+  - 20261029T192050Z-dist-profile-roi-amendment
   - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
   - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
   - 20260913T165127Z-row5-s4-cp-a-ack-pending-display
@@ -276,7 +277,13 @@ artificial memory pressure to manufacture this evidence.
 This accepted baseline establishes API-call counts and aggregate measured phase
 durations only. It authorizes no cache-effect, speedup, optimization,
 CI-critical-path or pristine-checkout claim. Every other scope and acceptance
-requirement is unchanged. Record the raw counter/timing output in a new file,
+requirement is unchanged. This revised parent explicitly acknowledges its approved
+ROI child `20261029T192050Z-dist-profile-roi-amendment`: both name
+`agov/Cargo.toml`, where that child supplies the feature forwarding already present
+in the reviewed profiling candidate. Preserve that child's optional core feature,
+closed vocabulary, redaction tests and approvals; this baseline revision changes
+no code. `depends_on` records overlap coordination, not a new cyclic execution
+prerequisite; the child already acknowledges the original parent. Record the raw counter/timing output in a new file,
 `docs/reviews/dist-scan-profiling/<UTC-timestamp>-baseline.md`, stating:
 
 - exact commit SHA measured,
