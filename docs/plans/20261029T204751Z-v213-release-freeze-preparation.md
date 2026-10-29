@@ -1,6 +1,8 @@
 ---
 id: 20261029T204751Z-v213-release-freeze-preparation
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T205351Z-governor-reviewer-mbsk
+gate1_approved_at: "2026-10-29T20:53:51Z"
 topic: v213-release-freeze-preparation
 affected_paths:
   - CHANGELOG.md
