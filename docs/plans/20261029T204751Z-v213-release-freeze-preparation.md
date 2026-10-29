@@ -22,11 +22,17 @@ depends_on:
   - 20261025T192020Z-supersedes-adopter-docs
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Independent review of the concrete scope and evidence boundaries requested.
+    status: consulted
+    reason: >-
+      Independent Codex contribution audit CLEAR at feb398a05594fd4d6eb33e46fb213e457b25458c;
+      all freeze prerequisites, role boundaries and five detected overlaps covered;
+      no blocking or advisory findings. Historical unassessed plans remain explicit.
   - role: infosec-sentinel
-    status: pending
-    reason: Review the refreshed mutable-APK residual-risk record requirements and controls.
+    status: consulted
+    reason: >-
+      Independent Codex InfoSec advisory CLEAR at feb398a05594fd4d6eb33e46fb213e457b25458c;
+      bounded risk evidence and explicit governor disposition required, no production-write
+      authority; Rust infosec validator and manual plan screening passed.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
