@@ -1,6 +1,8 @@
 ---
 id: 20261029T192050Z-dist-profile-roi-amendment
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T192400Z-governor-reviewer-nkkg
+gate1_approved_at: 2026-10-29T19:24:00Z
 topic: dist-profile-telemetry-vocabulary-parity
 affected_paths:
   - tooling/rust/crates/agov/Cargo.toml
