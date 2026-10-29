@@ -17,6 +17,9 @@ depends_on:
   - 20261029T192922Z-release-publisher-api-amendment
   - 20261027T230355Z-v212-release-freeze-corrections
   - 20261027T235807Z-v212-release-publication
+  - 20261021T220000Z-retire-windows-support
+  - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20261025T192020Z-supersedes-adopter-docs
 advisory_consultation:
   - role: contribution-auditor
     status: pending
@@ -62,6 +65,13 @@ players in the approval/handoff, preserving separate author and steward work.
 This is a temporary player allocation, not a role activation/status change.
 
 ## Changelog reconciliation
+
+The three older changelog owners named in `depends_on` acknowledge overlapping
+paths, not a transfer of their claims or an assertion that their plans are closed.
+Preserve the landed Windows retirement and coordination supersession semantics,
+and all v2.11 reconciliation entries within historical sections. This child edits
+only the current Unreleased bodies; it does not reopen those implementations.
+
 
 Edit only the existing Unreleased bodies in both changelogs. Preserve historical
 entries and their headings byte-for-byte; leave version/date release headings for
