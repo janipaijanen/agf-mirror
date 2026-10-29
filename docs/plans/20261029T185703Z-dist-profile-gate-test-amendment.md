@@ -1,6 +1,8 @@
 ---
 id: 20261029T185703Z-dist-profile-gate-test-amendment
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T190118Z-governor-reviewer-nqsp
+gate1_approved_at: 2026-10-29T19:01:18Z
 topic: dist-profile-shared-command-gate-tests
 affected_paths:
   - tooling/rust/crates/agov/tests/gate_change_check.rs
