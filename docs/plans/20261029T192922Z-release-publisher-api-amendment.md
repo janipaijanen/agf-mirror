@@ -23,13 +23,14 @@ depends_on:
   - 20261023T083302Z-remove-elixir-leftovers
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Independent review of the concrete publisher replacement plan requested.
+    status: consulted
+    reason: Independent contribution review at 39ea93f6dc96e172529855591c40e4210bbfce4c returned CLEAR.
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Prior read-only design advice recommended the direct API approach; this
-      concrete high-risk publication plan still requires independent review.
+      Independent InfoSec review returned CLEAR at af1280a99c9f2a48df7befe7539ae45e7343fe8f
+      after the sole token-argv blocker was corrected with normative transport
+      requirements and explicit process-observation tests.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
