@@ -167,6 +167,15 @@ coordination-only commit message: that marker skips pipeline creation
 entirely at the platform level, before any CI configuration runs, so the
 mechanical check would never get a chance to run.
 
+Narrow exception: a coordination-only merge request that only publishes a
+record of an already-finished merge may be merged by its author without a new
+decision record, but only when all seven conditions in the owner rule hold
+(authority published and unchanged before the action, fully used up, no new
+obligation, exact SHA, no squash). Anything else uses the ordinary path with an
+independent Human merge decision. Owner:
+`agf/rules/workflow/coordination-publication-rule.md`, "Bounded record-only
+publication termination". When unsure, do not use it.
+
 ---
 
 ## Gate discipline

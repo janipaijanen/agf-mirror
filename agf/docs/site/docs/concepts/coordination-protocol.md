@@ -117,6 +117,34 @@ Practical implications:
   commit range, `agov coord publication-check` fails closed — use a normal
   commit title and let full CI run instead.
 
+### Ending the approval chain for finished merges
+
+Publishing a record about a merge that already happened can start a loop: the
+record needs a merge, the merge needs a decision, and that decision needs
+another record. The publication rule ends the loop in one narrow case. The
+author of a coordination-only merge request may merge it without a new decision
+record when authority was published before the action and is fully used up. The
+rule's subsection "Bounded record-only publication termination" in
+`agf/rules/workflow/coordination-publication-rule.md` owns all seven conditions
+and every exclusion. This page only explains the idea.
+
+Two cases can qualify:
+
+- **An unchanged earlier decision.** The exact decision (same ID, same content)
+  was in a commit reachable from an approved shared ref before the action, and
+  every action it authorized has completed or expired. Carrying it to `main`
+  creates no new authority.
+- **Post-action evidence.** A `note` or `completion` with `requires-ack: false`
+  cites that earlier decision and proves authority came first.
+
+These cases never qualify: a decision first shared after the action; a decision
+with one action still unfinished; a record that approves a gate, grants
+authority, or asks someone to act; any code, plan, rule, schema, role, or
+security change; and any release scope, version, tag, or deployment choice. A
+timestamp alone proves nothing. If you are unsure, use the ordinary path and ask
+for an independent Human merge decision. The change that introduced this
+exception was itself reviewed and merged the ordinary way.
+
 ### Lifecycle: what a record's kind promises
 
 Independent, fast publication is only trustworthy if every record is

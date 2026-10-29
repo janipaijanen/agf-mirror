@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+
+plan_id: 20261027T045944Z-record-only-publication-termination
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/concepts/coordination-protocol.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Adds the subsection "Bounded record-only publication termination" with
+      the seven conjunctive conditions, the exclusions, and the scenario table.
+      This file is the single owner. No schema, tooling, CI, role, or
+      enforcement change; agov coord publication-check keeps its six blocking
+      conditions.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      Adds a short explanation of the idea and its two qualifying cases, and
+      names the owner subsection. It does not copy the conditions or redefine
+      the owner.
+
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      The page already points operators to the publication rule and the
+      coordination protocol. No operating step changes, so the page is not
+      edited.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - agf/templates/AGENTS.md
+    reason: >-
+      Adds a concise operational summary with the owner pointer and a "when
+      unsure, do not use it" instruction. Foundry's .claude rule path is a
+      symlink to the owner, and root AGENTS.md is project-local and already
+      states stricter Human authority, so neither needs an edit.
+
+  validation_drift_evidence:
+    disposition: advisory only
+    reason: >-
+      Whether the seven conditions hold is a semantic judgment for the author
+      and reviewers. Existing agov coord publication-check, coordination
+      validation, CI, and Git verification remain the objective evidence. No
+      new mechanical authority is created, and no classifier is added.
+
+  distribution:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/workflow/coordination-publication-rule.md
+      - agf/docs/site/docs/concepts/coordination-protocol.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      All three files already ship in the AGF distribution through existing
+      agf/ coverage. This manifest is project-local audit evidence.

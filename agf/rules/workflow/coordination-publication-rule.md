@@ -114,6 +114,90 @@ Mechanical blocking authority is exactly the six conditions above. Anything
 else that looks suspicious is a finding for a human or role reviewer to
 raise, not a block the tool issues on its own.
 
+### Bounded record-only publication termination
+
+This subsection ends a recursive chain: a coordination-only merge request whose
+only purpose is to publish a record of an already-finished, already-authorized
+merge does not need a further decision record just to authorize its own
+publication. It is a narrow permission. Every condition below is required.
+Uncertainty about any condition returns the candidate to the ordinary governed
+path, with an independent Human merge decision.
+
+1. The candidate is a coordination-only merge request about one or more merges
+   that have already completed. Each merge had authority published before it
+   ran, as unchanged record content in a Git commit reachable from `main` or
+   another approved shared ref. Local, untracked, local-only, or merely
+   timestamped records do not count.
+2. Every added record has kind `note`, `completion`, or `decision-record`, so
+   `claim` and `handoff` records are ineligible. Each sets `requires-ack:
+   false` and has none of the top-level `handoff`, `challenge`,
+   `publication_hold`, `urgency`, or `supersedes` fields. The record creates no
+   new downstream obligation other than making the audit trail visible.
+3. Prior authority is objective, not self-attested. One of these holds:
+   - A carried `decision-record` has the same ID and unchanged content as the
+     version in a Git commit that was reachable from an approved shared ref
+     before the action. Its author-written timestamp corroborates that
+     chronology but never establishes it. Its authority is exhausted: **every**
+     action it authorizes has completed or expired. Partial completion is
+     ineligible.
+   - A post-action `note` or `completion` cites the pre-action authorizing
+     record in `references-to`. That record was already present, unchanged, in
+     a Git commit reachable from `main` or another approved shared ref before
+     the action. Its timestamp is corroborating, never dispositive.
+4. The merge evidence names the authorizing record, the pre-action commit that
+   holds its unchanged content, the approved shared ref from which that commit
+   was reachable before the action, every action the record authorized, and the
+   completion or expiry evidence for each. It records the commit identities and
+   the chronology, so a reviewer can check authority-before-action and complete
+   exhaustion independently.
+5. The full candidate passes `agov coord publication-check`, coordination
+   validation, and every required CI job at the exact current head.
+6. Immediately before merge, the merge tree against the current target contains
+   only the stated new coordination records, with no conflict, modification,
+   deletion, or other carried content.
+7. The author merges the exact reviewed SHA without squash, then verifies the
+   resulting merge parents and that the file-level diff matches that SHA.
+
+When all seven conditions hold, the author MAY perform that merge. The author
+MUST NOT write a further decision record only to authorize publication of the
+exhausted decision or of the post-action evidence record. That is the explicit
+termination condition. It does not change the blocking authority of `agov coord
+publication-check`. Whether the conditions hold is a semantic claim for human
+review; no tool classifies it.
+
+The exception never covers:
+
+- a decision first published after the action that tries to create
+  retrospective authority, or a decision needed before an unfinished action or
+  before any irreversible action runs;
+- creation or change of Gate 1 or Gate 2 authority (an unchanged pre-action
+  decision may be carried only after every action it authorized has completed
+  or expired);
+- implementation or mixed-scope content;
+- a changed prior decision, or a record that grants authority or creates a new
+  downstream obligation;
+- rule, schema, role, security, or delegation changes; or
+- release scope, version choice, content freeze, tag, release, or deployment.
+
+The merge request that adds or changes this exception is itself a rule change.
+It is not eligible to merge under the exception.
+
+| Scenario | Result | Reason |
+|---|---|---|
+| Before a merge, an unchanged Human decision-record is committed and reachable from an approved shared ref. After every action it authorizes completes or expires, the same ID and content are carried to `main`. All seven conditions pass. | Eligible. The chain ends. | Git reachability proves prior publication. Carrying it creates no authority. |
+| After an authorized merge completes, a `note` or `completion` with `requires-ack: false` cites the pre-action authorizing record, and the evidence proves authority came first. | Eligible. The chain ends. | It is post-action evidence tied to objective prior authority. |
+| A decision authorized two actions. One completed. The other has neither completed nor expired. | Blocked. | Authority is not exhausted. Partial completion cannot end the chain. |
+| A record has a pre-action timestamp, but no commit with its unchanged content is proven reachable from an approved shared ref before the action. | Blocked. | A timestamp cannot prove publication or prior authority. |
+| A decision record is first shared after the action and claims it authorized the finished action. | Blocked. | This is retrospective authority, not a carried exhausted decision. |
+| A carried decision differs in ID or content from the pre-action commit, or that commit was not reachable from an approved shared ref before the action. | Blocked. | Unchanged carry is not established. |
+| A note or completion does not cite the pre-action authorizing record, or the merge evidence omits its shared location and chronology. | Blocked. | Authority is self-attested or cannot be rebuilt. |
+| A record has `requires-ack: true`, another kind, or a handoff, claim, challenge, hold, urgency, or supersession signal. | Blocked. | It can create an obligation or change lifecycle state. |
+| The record asks for permission to merge an implementation that has not merged. | Blocked. | The authority is live and the action is unfinished. |
+| The record approves Gate 1 or Gate 2, changes a decision, delegates authority, or creates work for another actor. | Blocked. | It grants authority or creates a new obligation. |
+| The candidate includes code, a plan, a rule, a schema, role or security material, or any other non-coordination path. | Blocked. | It is implementation or mixed scope. |
+| The candidate decides release scope, version, or freeze, or authorizes a tag, release, or deployment. | Blocked. | Release decisions and irreversible actions stay under Human control. |
+| Validation, `agov coord publication-check`, a required job at the exact head, the merge-tree check, or the exact-SHA no-squash check is missing or fails. | Blocked. | Eligibility is conjunctive and fails closed. |
+
 ## Lifecycle and supersession semantics
 
 Coordination records make time-sensitive claims. Precision here is what
