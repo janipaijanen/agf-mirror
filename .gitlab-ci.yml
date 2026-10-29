@@ -25,11 +25,11 @@ toolcheck:release-cli:
     STORAGE_DRIVER: vfs
     IMG: registry.gitlab.com/gitlab-org/release-cli:v0.24.0@sha256:3f52d526f48e8d10625c722fa6d6423ee82aadeae1b1aa91f07b62551d96dacf
   script:
-    - echo "== step 1: pinned image alone provides release-cli and apk"
+    - 'echo "== step 1: pinned image alone provides release-cli and apk"'
     - podman run --rm --entrypoint sh "$IMG" -c 'command -v release-cli && command -v apk && release-cli --version'
-    - echo "== step 2: isolated install of the job package line, then command -v"
+    - 'echo "== step 2: isolated install of the job package line, then command -v"'
     - podman run --rm --entrypoint sh "$IMG" -c 'apk add --no-cache curl unzip tar gzip >/dev/null && command -v curl unzip tar gzip'
-    - echo "== isolation: no token env inside the container"
+    - 'echo "== isolation: no token env inside the container"'
     - podman run --rm --entrypoint sh "$IMG" -c 'env | grep -ci "CI_JOB_TOKEN\|CI_PROJECT_DIR" || true'
   rules:
     - if: $CI_COMMIT_BRANCH == "evidence/ci-pins-tool-check"
