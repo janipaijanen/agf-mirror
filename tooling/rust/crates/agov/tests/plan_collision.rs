@@ -241,6 +241,29 @@ fn unacknowledged_collision_blocks() {
 }
 
 #[test]
+fn shared_ci_job_plans_block_until_the_overlap_is_acknowledged() {
+    let r = Repo::new();
+    r.plan("existing-ci", "affected_paths: ['.gitlab-ci.yml']");
+    let base = r.commit();
+    r.plan("ci-pins", "affected_paths: ['.gitlab-ci.yml']");
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 1, "{text}");
+    assert!(text.contains(".gitlab-ci.yml"), "{text}");
+    assert!(text.contains("1 unacknowledged collision"), "{text}");
+    assert!(text.contains("severity: blocking"), "{text}");
+
+    r.plan_with_depends_on("ci-pins", "['.gitlab-ci.yml']", "['existing-ci']");
+    r.commit();
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("0 unacknowledged collision"), "{text}");
+    assert!(text.contains("1 acknowledged"), "{text}");
+}
+
+#[test]
 fn depends_on_acknowledges_and_clears_the_block() {
     let r = Repo::new();
     r.plan("existing", "affected_paths: ['a.rs']");

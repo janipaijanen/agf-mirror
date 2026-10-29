@@ -50,6 +50,72 @@ fn live_configuration_preserves_every_mandatory_needs_implication() {
     assert!(errors.is_empty(), "{}", errors.join("\n"));
 }
 
+fn assert_ci_pins_advisory(job: &Value) {
+    assert_eq!(
+        job["allow_failure"].as_bool(),
+        Some(true),
+        "CI pins must stay advisory"
+    );
+    let script = job["script"].as_array().expect("CI pins script list");
+    assert!(script.iter().any(|line| {
+        line.as_str() == Some("sh .gitlab/scripts/check-ci-pins.sh .gitlab-ci.yml")
+    }));
+    assert!(script
+        .iter()
+        .any(|line| line.as_str() == Some("sh tests/ci-pins-selftest.sh")));
+    assert!(
+        job["needs"].is_null(),
+        "CI pins must not add producer dependencies"
+    );
+}
+
+#[test]
+fn ci_pins_runs_checker_and_selftest_without_blocking_or_new_needs() {
+    let configuration = read_live_configuration();
+    let yaml: serde_norway::Value = serde_norway::from_str(&configuration).unwrap();
+    let job: Value = serde_json::to_value(&yaml["ci:pins:advisory"]).unwrap();
+    assert_ci_pins_advisory(&job);
+    let errors = implication_errors(&configuration).expect("evaluate CI pins configuration");
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+
+    let mut blocking_job = job.clone();
+    blocking_job.as_object_mut().unwrap().remove("allow_failure");
+    assert!(std::panic::catch_unwind(|| assert_ci_pins_advisory(&blocking_job)).is_err());
+}
+
+#[test]
+fn release_create_keeps_create_only_helper_around_the_existing_upload_loop() {
+    let configuration = read_live_configuration();
+    let yaml: serde_norway::Value = serde_norway::from_str(&configuration).unwrap();
+    let create: Value = serde_json::to_value(&yaml["release:create"]).unwrap();
+    assert_eq!(
+        create["image"].as_str(),
+        Some(
+            "alpine:3.24.3@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d"
+        )
+    );
+    let script = create["script"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(Value::as_str)
+        .collect::<Vec<_>>()
+        .join("\n");
+    let provenance = script.find("dist validate-provenance").unwrap();
+    let preflight = script.find("create-release.sh preflight").unwrap();
+    let upload = script.find("for f in dist/agf-*.tar.gz").unwrap();
+    let publish = script.find("create-release.sh publish").unwrap();
+    assert!(provenance < preflight && preflight < upload && upload < publish);
+    assert!(script.contains("release-assets.sh verify"));
+    assert!(script.contains("--config -"));
+    assert!(!script.contains("--header \"JOB-TOKEN: $CI_JOB_TOKEN\""));
+    assert!(!script.contains("release-cli create"));
+
+    let verify: Value = serde_json::to_value(&yaml["release:verify"]).unwrap();
+    let needs = verify["needs"].as_array().unwrap();
+    assert!(needs.iter().any(|need| need["job"] == "release:create"));
+}
+
 #[test]
 fn retired_elixir_exclusion_job_leaves_no_dangling_reference_or_needs_edge() {
     // Issue 140: the release:elixir-exclusion-selftest job and every call to
