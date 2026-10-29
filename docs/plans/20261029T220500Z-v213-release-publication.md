@@ -1,17 +1,15 @@
 ---
 id: 20261029T220500Z-v213-release-publication
-status: approved
-gate1_approved_by: 20261029T221020Z-governor-reviewer-tjhr
-gate1_approved_at: "2026-10-29T22:10:20Z"
+status: pending-gate1
 topic: v213-release-publication
 candidate_release: v2.13.0
 advisory_consultation:
   - role: contribution-auditor
-    status: consulted
-    reason: Independent contribution review deh1 is COMPLETE/CLEAR at draft da733ea5, SHA-256 7e6753a2810eb92fee941ea3f4cb415c025b2a4c8e0d7613a058fa9db37f3df7.
+    status: pending
+    reason: Prior deh1 review remains evidence; narrow automatic-Pages clarification awaits exact-text review and Gate 1 amendment.
   - role: infosec-sentinel
-    status: consulted
-    reason: Independent InfoSec review mdhs is COMPLETE/CLEAR at the same exact draft/hash after effective-policy and status-companion corrections.
+    status: pending
+    reason: Prior mdhs review remains evidence; content-version/tag-provenance display side effect awaits exact-text review and amendment.
 affected_paths:
   - docs/plans/20261029T220500Z-v213-release-publication.md
   - AGENTS.md
@@ -287,8 +285,27 @@ credentials/download residue.
 Publish a completion record with those identities, archive names/checksums,
 Release/package/OCI identities, tag pipeline/jobs, protection object and anonymous
 verification result. Only then implement B-and-companion-only status synchronization under
-its own exact-head Gate 2. Pages publication and release announcement follow
-verified status-sync merge; no release-complete claim from tag creation alone.
+its own exact-head Gate 2. Only that verified status-sync merge may update
+latest-published status and support the release announcement; no release-complete
+claim follows from tag creation alone.
+
+The existing default-branch Pages job automatically rebuilds/deploys after a
+metadata merge touching VERSION, changelog, adoption or docs paths. Gate 1
+requests acceptance of this existing side effect only when the metadata MR
+later receives exact-head Gate 2; no CI/deployment-control edit or new manual
+deploy operation is authorized. The site header can display the new v2.13.0
+content version before publication verification. Release-info fetches tags at
+build time: before the new tag exists it reports an unconfirmed version/tag
+mismatch; if the tag exists, it may display v2.13 as the latest Git release tag
+and release documentation before the Release/assets/tag pipeline are verified.
+Those displays report source-content and Git-tag provenance only. Neither the
+mismatch message nor tag-derived wording is a publication-completion guard.
+All B and companion authored latest-published fields remain at verified v2.12
+until public verification and the completion record. This automatic early
+build is neither status synchronization, verified publication evidence nor an
+announcement. The separate status-sync merge triggers the ordinary Pages
+rebuild that publishes the newly verified latest-release status. All namespace,
+policy, pipeline, expiry and fail-forward conditions remain unchanged.
 
 Before tag push, correct/review the reversible metadata branch or abandon it.
 Any missing job, base/tree/namespace/policy mismatch, expired authority or
