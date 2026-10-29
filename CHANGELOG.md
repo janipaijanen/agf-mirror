@@ -8,8 +8,10 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
-Adopter-facing entries for the next release, with their `Adopter docs:` lines, are
-in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[Unreleased]`; this section lists
+## [2.13.0] - 2026-10-29
+
+Adopter-facing entries for v2.13.0, with their `Adopter docs:` lines, are
+in [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[2.13.0]`; this section lists
 repository-level changes only.
 
 ### Added
