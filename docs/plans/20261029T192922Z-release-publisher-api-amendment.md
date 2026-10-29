@@ -1,6 +1,8 @@
 ---
 id: 20261029T192922Z-release-publisher-api-amendment
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T193807Z-governor-reviewer-qmba
+gate1_approved_at: 2026-10-29T19:38:07Z
 topic: maintained-create-only-release-publisher
 affected_paths:
   - .gitlab-ci.yml
