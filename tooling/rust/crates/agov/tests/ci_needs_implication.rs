@@ -50,6 +50,39 @@ fn live_configuration_preserves_every_mandatory_needs_implication() {
     assert!(errors.is_empty(), "{}", errors.join("\n"));
 }
 
+fn assert_ci_pins_advisory(job: &Value) {
+    assert_eq!(
+        job["allow_failure"].as_bool(),
+        Some(true),
+        "CI pins must stay advisory"
+    );
+    let script = job["script"].as_array().expect("CI pins script list");
+    assert!(script.iter().any(|line| {
+        line.as_str() == Some("sh .gitlab/scripts/check-ci-pins.sh .gitlab-ci.yml")
+    }));
+    assert!(script
+        .iter()
+        .any(|line| line.as_str() == Some("sh tests/ci-pins-selftest.sh")));
+    assert!(
+        job["needs"].is_null(),
+        "CI pins must not add producer dependencies"
+    );
+}
+
+#[test]
+fn ci_pins_runs_checker_and_selftest_without_blocking_or_new_needs() {
+    let configuration = read_live_configuration();
+    let yaml: serde_norway::Value = serde_norway::from_str(&configuration).unwrap();
+    let job: Value = serde_json::to_value(&yaml["ci:pins:advisory"]).unwrap();
+    assert_ci_pins_advisory(&job);
+    let errors = implication_errors(&configuration).expect("evaluate CI pins configuration");
+    assert!(errors.is_empty(), "{}", errors.join("\n"));
+
+    let mut blocking_job = job.clone();
+    blocking_job.as_object_mut().unwrap().remove("allow_failure");
+    assert!(std::panic::catch_unwind(|| assert_ci_pins_advisory(&blocking_job)).is_err());
+}
+
 #[test]
 fn retired_elixir_exclusion_job_leaves_no_dangling_reference_or_needs_edge() {
     // Issue 140: the release:elixir-exclusion-selftest job and every call to

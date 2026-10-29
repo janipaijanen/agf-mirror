@@ -364,6 +364,41 @@ fn shared_ci_change_still_requires_gate_change_checks_own_evidence() {
 }
 
 #[test]
+fn advisory_ci_job_and_its_shell_test_do_not_replace_declared_gate_evidence() {
+    let mut fixture = Fixture::new();
+    fixture.write(".agf/gates.yaml", SHARED_CI_SURFACE_REGISTRY);
+    fixture.write(".gitlab-ci.yml", "workflow: baseline\n");
+    fixture.write("tests/gate_change/shared.txt", "baseline\n");
+    fixture.write("tests/ci-needs/shared.txt", "baseline\n");
+    fixture.commit("establish shared CI gate baseline");
+    fixture.base = git_output(fixture.root.path(), &["rev-parse", "HEAD"]);
+
+    fixture.write(
+        ".gitlab-ci.yml",
+        "ci:pins:advisory:\n  allow_failure: true\n  script: sh tests/ci-pins-selftest.sh\n",
+    );
+    fixture.write("tests/ci-pins-selftest.sh", "#!/bin/sh\nexit 0\n");
+    fixture.commit("add advisory job and its own shell test");
+    let blocked = fixture.check();
+    assert_eq!(blocked.status.code(), Some(1), "{}", diagnostics(&blocked));
+    let stderr = String::from_utf8_lossy(&blocked.stderr);
+    assert!(stderr.contains("gate-change-check"), "{stderr}");
+    assert!(stderr.contains("ci-needs-implication"), "{stderr}");
+    assert!(stderr.contains("no changed declared test path"), "{stderr}");
+
+    fixture.write(
+        "tests/gate_change/shared.txt",
+        "advisory-job negative control\n",
+    );
+    fixture.write(
+        "tests/ci-needs/shared.txt",
+        "advisory-job needs coverage\n",
+    );
+    fixture.commit("add both declared gate companions");
+    assert_success(fixture.check());
+}
+
+#[test]
 fn live_registry_assigns_shared_ci_surface_to_all_active_gates() {
     let registry_path = repo_root().join(".agf/gates.yaml");
     let registry = std::fs::read_to_string(&registry_path).expect("read live gate registry");
