@@ -8,6 +8,10 @@ affected_paths:
   - tooling/rust/crates/agov/tests/plan_collision.rs
 depends_on:
   - 20261028T194451Z-ci-reproducibility-pins
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260915T075705Z-issue130-pending-advisory-consultation-status
+  - 20261021T204757Z-remove-dind-ci
+  - 20261021T220000Z-retire-windows-support
 advisory_consultation:
   - role: contribution-auditor
     status: pending
@@ -40,6 +44,20 @@ separate gate-behavior change. The parent's original three implementation paths
 and all acceptance requirements remain governed by its existing approval.
 
 ## Smallest complete correction
+
+### Collision reconciliation
+
+The four overlapping approved plans are directly acknowledged above; the
+parent's dependencies are not treated as transitive acknowledgement. Their
+landed coverage was inspected on main `ee2a768a`: Row 6 S4 supplies blocking
+collision and gate-wiring controls across all three files; issue #130 adds
+the pending-consultation collision fixture; the OCI runner migration supplies
+Podman/DinD pool assertions; Windows retirement supplies current supported-job
+and packaging assertions. Those controls remain intact. This amendment adds
+CI-pin coverage after their landed changes and claims no overlapping live
+implementation ownership.
+
+### Test changes
 
 Reuse existing fixture builders, live-CI parsers and command probes. Inspect
 current coverage before adding a test; extend an existing relevant case when
