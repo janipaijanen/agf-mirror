@@ -1,6 +1,8 @@
 ---
 id: 20260920T083259Z-distribution-scan-profiling-slice-b
-status: pending-gate1
+status: approved
+gate1_approved_by: "20261029T162805Z-governor-reviewer-dn8m"
+gate1_approved_at: "2026-10-29T16:28:05Z"
 topic: distribution-scan-profiling-slice-b
 affected_paths:
   - tooling/rust/crates/agov/src/dist.rs
