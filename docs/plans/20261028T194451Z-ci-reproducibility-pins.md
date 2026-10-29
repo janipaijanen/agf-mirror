@@ -1,6 +1,8 @@
 ---
 id: 20261028T194451Z-ci-reproducibility-pins
-status: pending-gate1
+status: approved
+gate1_approved_by: "20261029T162807Z-governor-reviewer-kmp6"
+gate1_approved_at: "2026-10-29T16:28:07Z"
 topic: ci-reproducibility-pins-release-create-and-oci-pull-test
 depends_on:
   - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
