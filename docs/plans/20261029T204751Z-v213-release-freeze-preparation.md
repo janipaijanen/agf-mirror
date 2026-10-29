@@ -1,6 +1,8 @@
 ---
 id: 20261029T204751Z-v213-release-freeze-preparation
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T211008Z-governor-reviewer-gpp8
+gate1_approved_at: "2026-10-29T21:10:08Z"
 topic: v213-release-freeze-preparation
 affected_paths:
   - agf/docs/site/docs/operate/poll-and-coordinate.md
@@ -25,11 +27,11 @@ depends_on:
   - 20261025T192020Z-supersedes-adopter-docs
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Bounded urgency-currency amendment requires review beyond original mbsk scope.
+    status: consulted
+    reason: Independent contribution audit CLEAR at e00ea88b; bounded factual correction preserves all authority and prior scope.
   - role: infosec-sentinel
-    status: pending
-    reason: Confirm factual projection correction preserves authority and publication boundaries.
+    status: consulted
+    reason: Independent InfoSec advisory CLEAR at e00ea88b; no new security/write authority or risk acceptance.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -166,7 +168,7 @@ Rollback removes only this child's documentation delta, leaving implemented
 features intact and release content unfrozen until corrected evidence is approved.
 
 
-## Pending bounded amendment: stale urgency release status
+## Approved bounded amendment: stale urgency release status
 
 The full-estate sweep found that `docs/operate/poll-and-coordinate.md` still
 calls urgency ordering Level 4 and pending release, including a development-CLI
@@ -178,7 +180,7 @@ The timer-reality predecessor is acknowledged for its shared polling-page path;
 its scheduling and real-wake contract is preserved unchanged. This is no claim
 transfer, plan closure or reopening of timer behavior.
 
-The proposed amendment adds exactly the polling page and this plan's projection
+The amendment adds exactly the polling page and this plan's projection
 manifest to affected_paths. Change only the heading to "Reading urgency in v2.11
 and later" and replace the stale maturity/shipment sentence with "This behavior
 shipped in v2.11.0 and is Level 5 Deployable when using compatible v2.11.0-or-later
@@ -193,8 +195,9 @@ the page edit and run the whole-inventory projection check, strict site build,
 shipped docs tests and independent fidelity review. The estate report must retain
 the finding and its actual disposition rather than relabel the prior sweep complete.
 
-The original five-path approval mbsk remains valid. The two additional paths and
-this correction are pending a new governor amendment decision; do not implement
-them from this draft. No other expansion, version/status edit, release/tag authority
-or vulnerability disposition is requested. Any additional out-of-scope finding
-still requires its own reviewed amendment.
+The original five-path approval mbsk remains valid. Governor amendment gpp8
+approves the two additional paths and this exact correction after independent
+advisories; implementation waits for publication of that decision and this approved
+plan in the implementation checkout. No other expansion, version/status edit,
+release/tag authority or vulnerability disposition is granted. Any additional
+out-of-scope finding still requires its own reviewed amendment.
