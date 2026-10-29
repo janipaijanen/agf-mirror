@@ -90,7 +90,10 @@ require_json() {
 is_missing_release_response() {
   jq -e --slurp '
     length == 1
-      and .[0] == {"message": "404 Release Not Found"}
+      and (
+        .[0] == {"message": "404 Release Not Found"}
+        or .[0] == {"message": "404 Not Found"}
+      )
   ' "$1" >/dev/null 2>&1
 }
 

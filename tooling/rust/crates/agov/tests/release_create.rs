@@ -237,6 +237,22 @@ fn initial_preflight_failures_make_no_mutating_request() {
 }
 
 #[test]
+fn observed_generic_gitlab_404_is_accepted_only_after_tag_and_namespace_checks() {
+    let fixture = Fixture::new();
+    let output = fixture.preflight("release-404-generic");
+    assert_success(&output);
+    assert_eq!(
+        fixture
+            .log()
+            .lines()
+            .filter(|line| line.starts_with("POST "))
+            .count(),
+        0
+    );
+    fixture.assert_token_absent_from_files_and_output(&output);
+}
+
+#[test]
 fn repeated_preflight_rejects_changed_or_malformed_state_before_post() {
     for (scenario, expected) in [
         (
@@ -591,6 +607,7 @@ case "$url" in
         release-404-html) body='<html><body>not found</body></html>' ;;
         release-404-empty) body='' ;;
         release-404-truncated) body='{"message":"404 Release Not Found"' ;;
+        release-404-generic) body='{"message":"404 Not Found"}' ;;
         release-404-wrong-json) body='{"message":"404 Project Not Found"}' ;;
         repeat-release-404-html)
           if [ "$release_count" -gt 1 ]; then
