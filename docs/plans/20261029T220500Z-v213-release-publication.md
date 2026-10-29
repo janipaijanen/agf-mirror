@@ -1,15 +1,17 @@
 ---
 id: 20261029T220500Z-v213-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T222324Z-governor-reviewer-dtg2
+gate1_approved_at: "2026-10-29T22:23:24Z"
 topic: v213-release-publication
 candidate_release: v2.13.0
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Prior deh1 review remains evidence; narrow automatic-Pages clarification awaits exact-text review and Gate 1 amendment.
+    status: consulted
+    reason: Whole-plan deh1 plus exact Pages amendment s1pd are COMPLETE/CLEAR; amended draft65a3f03a SHA-256 9e70e210f61cce84208dae7bca3083368b4730fa61254f2b296bba1e3438b286.
   - role: infosec-sentinel
-    status: pending
-    reason: Prior mdhs review remains evidence; content-version/tag-provenance display side effect awaits exact-text review and amendment.
+    status: consulted
+    reason: Whole-plan mdhs plus exact Pages amendment nn6b are COMPLETE/CLEAR at the same amended draft/hash.
 affected_paths:
   - docs/plans/20261029T220500Z-v213-release-publication.md
   - AGENTS.md
