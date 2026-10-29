@@ -10,7 +10,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agov"
-version = "2.12.0"
+version = "2.13.0"
 dependencies = [
  "agov-coord",
  "agov-core",
@@ -33,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "agov-coord"
-version = "2.12.0"
+version = "2.13.0"
 dependencies = [
  "agov-core",
  "serde",
@@ -45,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "agov-core"
-version = "2.12.0"
+version = "2.13.0"
 dependencies = [
  "jsonschema",
  "regex",
@@ -58,7 +58,7 @@ dependencies = [
 
 [[package]]
 name = "agov-mcp"
-version = "2.12.0"
+version = "2.13.0"
 dependencies = [
  "agov-core",
  "serde",
@@ -69,7 +69,7 @@ dependencies = [
 
 [[package]]
 name = "agov-validators"
-version = "2.12.0"
+version = "2.13.0"
 dependencies = [
  "agov-core",
  "glob",

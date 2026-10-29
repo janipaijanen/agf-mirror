@@ -5,6 +5,8 @@ distribution.
 
 ## [Unreleased]
 
+## [2.13.0] — 2026-10-29
+
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
 Pages and to `agf/` for rules, templates, schemas and skills.
 
@@ -18,9 +20,8 @@ Pages and to `agf/` for rules, templates, schemas and skills.
   CI checks pass, and the exact merge tree and resulting parents are verified.
   Ordinary Human review remains valid; uncertainty returns to that path. This
   does not grant general self-merge, retrospective approval or new gate authority,
-  and changes no schema, tooling or CI behavior. Pre-publication capability:
-  Level 4 Validated in current main; Level 5 Deployable awaits the supported
-  v2.13 release. Evidence: Empirically informed
+  and changes no schema, tooling or CI behavior. Capability: Level 5 Deployable in the v2.13.0
+  distribution when using compatible artifacts. Evidence: Empirically informed
   by foundry use, without broad adopter validation. Adopter docs: updated
   (`rules/workflow/coordination-publication-rule.md`,
   `docs/concepts/coordination-protocol.md`, `templates/AGENTS.md`).
