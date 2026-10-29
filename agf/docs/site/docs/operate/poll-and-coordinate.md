@@ -245,13 +245,13 @@ errors, 2 unavailable/incomplete sources (precedence over 1). These are advisory
 statuses, not merge or release gates. Malformed evidence and incomplete reads
 force potentially affected action rows to publish-now.
 
-### Reading urgency in the v2.11 development CLI
+### Reading urgency in v2.11 and later
 
 Urgent pending records lead the queue, and session resume highlights them.
 Use this ordering to select attention, then check role, ownership and gates as
 usual: urgency is self-declared and does not supply permission. Normal and
-omitted urgency share the same tier. This behavior is Level 4 (validated in
-development), pending inclusion in a supported release.
+omitted urgency share the same tier. This behavior shipped in v2.11.0 and is
+Level 5 Deployable when using compatible v2.11.0-or-later artifacts.
 
 ### Handling challenge evidence
 

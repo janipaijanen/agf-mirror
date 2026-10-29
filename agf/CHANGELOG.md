@@ -25,6 +25,15 @@ Pages and to `agf/` for rules, templates, schemas and skills.
   (`rules/workflow/coordination-publication-rule.md`,
   `docs/concepts/coordination-protocol.md`, `templates/AGENTS.md`).
 
+### Fixed
+
+- **Urgency shipment status in the polling guide.** The heading and maturity
+  sentence now match the already-shipped v2.11.0 Level 5 Deployable capability
+  when using compatible artifacts. Urgency remains advisory and supplies no
+  permission. This corrects a stale page found by the full-estate review; it
+  changes no runtime behavior or governance authority. Adopter docs: updated
+  (`docs/operate/poll-and-coordinate.md`).
+
 ## [2.12.0] — 2026-10-28
 
 **Documentation-focused minor release.** Standard current-main release from
