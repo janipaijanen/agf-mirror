@@ -20,7 +20,9 @@ artifacts_owned: []
 # Accept the honest profiling baseline; defer controlled cache comparison
 
 Under ss2k's active delegation, amend only measurement acceptance in section 4 of
-`20260920T083259Z-distribution-scan-profiling-slice-b`. Accept the feature-gated
+`20260920T083259Z-distribution-scan-profiling-slice-b` and its mirrored
+profiling acceptance in section 2 of `20261029T163752Z-v213-release-scope`.
+The release scope's CI item and all other contents remain unchanged. Accept the feature-gated
 instrumentation, fixture, and repeated fresh-process fixture/real-tree baseline
 with uncontrolled filesystem-cache state. The controlled cold/warm comparison was
 not performed and is explicitly deferred, not deemed satisfied or relabeled.
@@ -50,7 +52,7 @@ publish its handoff, and require successful exact-head MR CI before Gate 2.
 
 The paired plan amendment and this decision may merge into main only after final
 head CI succeeds, discussions are resolved and exact diff review confirms these
-two files with no unrelated changes. Do not broaden scope in that publication.
+three files with no unrelated changes. Do not broaden scope in that publication.
 
 Also approve Gate 2 publication of prior decision carrier !3370 at exact head
 2858bbe214c4730ac0c592e5bca01115107d211b, without squash, into main. Its pipeline
