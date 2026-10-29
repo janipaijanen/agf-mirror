@@ -34,6 +34,12 @@ variables:
   # See docs/plans/ci-rust-cache-policy-slice-b.md.
   RUST_CACHE_POLICY: "pull"
   RUST_CACHE_WRITER_POLICY: "pull"
+  # Single declared Rust toolchain version for jobs that install Rust
+  # themselves (rust:tooling:oci-pull-test). .rust-base pins the same version
+  # through its digest-pinned image; .gitlab/scripts/check-ci-pins.sh compares
+  # the two and reports a mismatch as an advisory finding.
+  # docs/plans/20261028T194451Z-ci-reproducibility-pins.md.
+  RUST_TOOLCHAIN_VERSION: "1.97.1"
 
 workflow:
   rules:
@@ -503,7 +509,13 @@ agf:dist:release:
 # GitLab release entry with download links. Tooling links are Rust-only,
 # platform-specific archives.
 release:create:
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  # Pinned by version and digest. Resolved 2026-10-29 from the registry
+  # manifest of tag v0.24.0 (highest plain semver tag; "latest" had the same
+  # digest): GET https://registry.gitlab.com/v2/gitlab-org/release-cli/manifests/v0.24.0
+  # -> Docker-Content-Digest. Change only through a reviewed MR that states the
+  # old and new digest, the Trivy result and the tool check
+  # (docs/plans/20261028T194451Z-ci-reproducibility-pins.md). Never use latest.
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.24.0@sha256:3f52d526f48e8d10625c722fa6d6423ee82aadeae1b1aa91f07b62551d96dacf
   stage: deploy
   rules:
     - if: $CI_COMMIT_TAG
@@ -855,6 +867,36 @@ tooling:rust-cache-policy-shellcheck:
     - if: $CI_COMMIT_BRANCH
       changes: *rust_cache_policy_script_paths
     - if: $CI_COMMIT_TAG
+
+# Advisory drift check for floating CI inputs (:latest, untagged images, floating
+# Rust toolchains, unversioned rustup bootstrap, release image without a digest,
+# RUST_TOOLCHAIN_VERSION vs the .rust-base tag). ADVISORY ONLY: no named rule
+# grants this check blocking authority (agf/rules/always/tool-authority-
+# boundary-rule.md), so the checker exits 0 on findings and the job also sets
+# allow_failure: true. The self-test runs the checker against fixtures.
+# docs/plans/20261028T194451Z-ci-reproducibility-pins.md.
+ci:pins:advisory:
+  image: alpine:3.22
+  stage: test
+  interruptible: true
+  allow_failure: true
+  script:
+    - sh .gitlab/scripts/check-ci-pins.sh .gitlab-ci.yml
+    - sh tests/ci-pins-selftest.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes: &ci_pins_paths
+        - .gitlab-ci.yml
+        - .gitlab/scripts/check-ci-pins.sh
+        - tests/ci-pins-selftest.sh
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      changes:
+        compare_to: 'refs/heads/$CI_DEFAULT_BRANCH'
+        paths: *ci_pins_paths
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BEFORE_SHA == "0000000000000000000000000000000000000000"'
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      changes: *ci_pins_paths
 
 release:self-sufficiency-selftest:
   image: alpine:3.22
@@ -1349,7 +1391,17 @@ rust:tooling:oci-pull-test:
       - tooling/rust/target
   before_script:
     - dnf install -y gcc || true
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+    # Versioned rustup-init, verified against its published SHA-256 before it
+    # runs (no unversioned bootstrap script). Version and checksum resolved
+    # 2026-10-29 from static.rust-lang.org/rustup/archive/1.29.2/
+    # x86_64-unknown-linux-gnu/rustup-init.sha256; update both together.
+    - RUSTUP_VERSION="1.29.2"
+    - RUSTUP_INIT_SHA256="5be191e8c70a5007074254cb74d78dbfdd25cd5a61c27de7b8e5410122ec24f4"
+    - curl --proto '=https' --tlsv1.2 -sSfo rustup-init "https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/x86_64-unknown-linux-gnu/rustup-init"
+    - echo "${RUSTUP_INIT_SHA256}  rustup-init" | sha256sum -c -
+    - chmod +x rustup-init
+    - ./rustup-init -y --default-toolchain "${RUST_TOOLCHAIN_VERSION}" --profile minimal
+    - rm -f rustup-init
     - source "$CARGO_HOME/env"
     - cd tooling/rust
   script:
