@@ -117,7 +117,61 @@ pub enum TagCheck {
     NoTag,
 }
 
+#[cfg(feature = "dist-profile")]
+#[derive(Debug, Default, serde::Serialize)]
+pub struct ScanProfile {
+    pub read_dir_calls: u64,
+    pub expand_glob_calls: u64,
+    pub glob_matches_calls: u64,
+    pub expand_includes_elapsed_ns: u128,
+    pub filter_elapsed_ns: u128,
+}
+
+#[cfg(feature = "dist-profile")]
+#[derive(Debug, serde::Serialize)]
+pub struct DiagnoseReport {
+    #[serde(flatten)]
+    pub profile: ScanProfile,
+    pub total_elapsed_ns: u128,
+    pub selected_files: Option<usize>,
+    pub errors: Vec<String>,
+}
+
+/// Measure exactly one validation, retaining partial counters on failure.
+#[cfg(feature = "dist-profile")]
+pub fn diagnose(manifest_path: &Path, root: &Path) -> DiagnoseReport {
+    let mut profile = ScanProfile::default();
+    let started = std::time::Instant::now();
+    let result = validate_impl(manifest_path, root, &mut profile);
+    let total_elapsed_ns = started.elapsed().as_nanos();
+    let (selected_files, errors) = match result {
+        Ok(spec) => (Some(spec.files.len()), Vec::new()),
+        Err(errors) => (None, errors),
+    };
+    DiagnoseReport {
+        profile,
+        total_elapsed_ns,
+        selected_files,
+        errors,
+    }
+}
+
 pub fn validate(manifest_path: &Path, root: &Path) -> Result<DistSpec, Vec<String>> {
+    #[cfg(feature = "dist-profile")]
+    let mut profile = ScanProfile::default();
+    validate_impl(
+        manifest_path,
+        root,
+        #[cfg(feature = "dist-profile")]
+        &mut profile,
+    )
+}
+
+fn validate_impl(
+    manifest_path: &Path,
+    root: &Path,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> Result<DistSpec, Vec<String>> {
     let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     let manifest_path = if manifest_path.is_absolute() {
         manifest_path.to_path_buf()
@@ -150,12 +204,50 @@ pub fn validate(manifest_path: &Path, root: &Path) -> Result<DistSpec, Vec<Strin
         .trim()
         .to_string();
 
-    let mut files = expand_includes(&root, &manifest.include)?;
-    files.retain(|path| !matches_any(&root, &manifest.exclude, path));
+    #[cfg(feature = "dist-profile")]
+    let started = std::time::Instant::now();
+    let expanded = expand_includes(
+        &root,
+        &manifest.include,
+        #[cfg(feature = "dist-profile")]
+        profile,
+    );
+    #[cfg(feature = "dist-profile")]
+    {
+        profile.expand_includes_elapsed_ns = started.elapsed().as_nanos();
+    }
+    let mut files = expanded?;
+    #[cfg(feature = "dist-profile")]
+    let started = std::time::Instant::now();
+    files.retain(|path| {
+        !matches_any(
+            &root,
+            &manifest.exclude,
+            path,
+            #[cfg(feature = "dist-profile")]
+            profile,
+        )
+    });
+    #[cfg(feature = "dist-profile")]
+    {
+        profile.filter_elapsed_ns = started.elapsed().as_nanos();
+    }
     files.sort();
     files.dedup();
 
-    errors.extend(forbidden_errors(&root, &manifest.forbidden, &files));
+    #[cfg(feature = "dist-profile")]
+    let started = std::time::Instant::now();
+    errors.extend(forbidden_errors(
+        &root,
+        &manifest.forbidden,
+        &files,
+        #[cfg(feature = "dist-profile")]
+        profile,
+    ));
+    #[cfg(feature = "dist-profile")]
+    {
+        profile.filter_elapsed_ns += started.elapsed().as_nanos();
+    }
     errors.extend(duplicate_archive_errors(&files));
     if !errors.is_empty() {
         return Err(errors);
@@ -280,12 +372,21 @@ fn validate_package(package: &Package) -> Vec<String> {
     errors
 }
 
-fn expand_includes(root: &Path, includes: &[IncludeEntry]) -> Result<Vec<String>, Vec<String>> {
+fn expand_includes(
+    root: &Path,
+    includes: &[IncludeEntry],
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> Result<Vec<String>, Vec<String>> {
     let mut files = Vec::new();
     let mut errors = Vec::new();
 
     for entry in includes {
-        match expand_include(root, entry) {
+        match expand_include(
+            root,
+            entry,
+            #[cfg(feature = "dist-profile")]
+            profile,
+        ) {
             Ok(mut more) => files.append(&mut more),
             Err(error) => errors.push(error),
         }
@@ -298,7 +399,11 @@ fn expand_includes(root: &Path, includes: &[IncludeEntry]) -> Result<Vec<String>
     }
 }
 
-fn expand_include(root: &Path, entry: &IncludeEntry) -> Result<Vec<String>, String> {
+fn expand_include(
+    root: &Path,
+    entry: &IncludeEntry,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> Result<Vec<String>, String> {
     match entry {
         IncludeEntry::PathString(path) => expand_path(root, path, false),
         IncludeEntry::Map {
@@ -310,7 +415,13 @@ fn expand_include(root: &Path, entry: &IncludeEntry) -> Result<Vec<String>, Stri
             glob: Some(pattern),
             optional,
             ..
-        } => expand_glob(root, pattern, *optional),
+        } => expand_glob(
+            root,
+            pattern,
+            *optional,
+            #[cfg(feature = "dist-profile")]
+            profile,
+        ),
         IncludeEntry::Map { .. } => Err("invalid include entry".to_string()),
     }
 }
@@ -329,15 +440,31 @@ fn expand_path(root: &Path, path: &str, optional: bool) -> Result<Vec<String>, S
     }
 }
 
-fn expand_glob(root: &Path, pattern: &str, optional: bool) -> Result<Vec<String>, String> {
+fn expand_glob(
+    root: &Path,
+    pattern: &str,
+    optional: bool,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> Result<Vec<String>, String> {
     if let Some((prefix, _)) = pattern.split_once("/**") {
-        return expand_recursive_prefix(root, prefix, pattern, optional);
+        return expand_recursive_prefix(
+            root,
+            prefix,
+            pattern,
+            optional,
+            #[cfg(feature = "dist-profile")]
+            profile,
+        );
     }
 
     let Some(full_pattern) = safe_join(root, pattern) else {
         return Err(format!("include glob escapes repository: {pattern}"));
     };
     let full_pattern = full_pattern.to_string_lossy().into_owned();
+    #[cfg(feature = "dist-profile")]
+    {
+        profile.expand_glob_calls += 1;
+    }
     let mut files = glob::glob(&full_pattern)
         .map_err(|err| format!("invalid include glob {pattern}: {err}"))?
         .filter_map(Result::ok)
@@ -358,6 +485,7 @@ fn expand_recursive_prefix(
     prefix: &str,
     pattern: &str,
     optional: bool,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
 ) -> Result<Vec<String>, String> {
     let Some(full_prefix) = safe_join(root, prefix) else {
         return Err(format!("include glob escapes repository: {pattern}"));
@@ -365,8 +493,14 @@ fn expand_recursive_prefix(
 
     let mut files = Vec::new();
     if full_prefix.exists() {
-        collect_regular_files(root, &full_prefix, &mut files)
-            .map_err(|err| format!("could not expand include glob {pattern}: {err}"))?;
+        collect_regular_files(
+            root,
+            &full_prefix,
+            &mut files,
+            #[cfg(feature = "dist-profile")]
+            profile,
+        )
+        .map_err(|err| format!("could not expand include glob {pattern}: {err}"))?;
     }
     files.sort();
 
@@ -381,11 +515,22 @@ fn collect_regular_files(
     root: &Path,
     dir: &Path,
     files: &mut Vec<String>,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
 ) -> Result<(), std::io::Error> {
+    #[cfg(feature = "dist-profile")]
+    {
+        profile.read_dir_calls += 1;
+    }
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
         if path.is_dir() {
-            collect_regular_files(root, &path, files)?;
+            collect_regular_files(
+                root,
+                &path,
+                files,
+                #[cfg(feature = "dist-profile")]
+                profile,
+            )?;
         } else if path.is_file() {
             if let Some(relative) = relative_to_root(root, &path) {
                 files.push(relative);
@@ -395,9 +540,22 @@ fn collect_regular_files(
     Ok(())
 }
 
-fn matches_any(root: &Path, patterns: &[String], path: &str) -> bool {
+fn matches_any(
+    root: &Path,
+    patterns: &[String],
+    path: &str,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> bool {
     patterns.iter().any(|pattern| {
-        pattern_prefix_match(pattern, path) || glob_matches(root, pattern, path).unwrap_or(false)
+        pattern_prefix_match(pattern, path)
+            || glob_matches(
+                root,
+                pattern,
+                path,
+                #[cfg(feature = "dist-profile")]
+                profile,
+            )
+            .unwrap_or(false)
     })
 }
 
@@ -409,11 +567,20 @@ fn pattern_prefix_match(pattern: &str, path: &str) -> bool {
     }
 }
 
-fn glob_matches(root: &Path, pattern: &str, path: &str) -> Result<bool, String> {
+fn glob_matches(
+    root: &Path,
+    pattern: &str,
+    path: &str,
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> Result<bool, String> {
     let Some(full_pattern) = safe_join(root, pattern) else {
         return Ok(false);
     };
     let full_pattern = full_pattern.to_string_lossy().into_owned();
+    #[cfg(feature = "dist-profile")]
+    {
+        profile.glob_matches_calls += 1;
+    }
     for candidate in glob::glob(&full_pattern).map_err(|err| err.to_string())? {
         let Ok(candidate) = candidate else {
             continue;
@@ -425,10 +592,23 @@ fn glob_matches(root: &Path, pattern: &str, path: &str) -> Result<bool, String> 
     Ok(false)
 }
 
-fn forbidden_errors(root: &Path, forbidden: &[String], files: &[String]) -> Vec<String> {
+fn forbidden_errors(
+    root: &Path,
+    forbidden: &[String],
+    files: &[String],
+    #[cfg(feature = "dist-profile")] profile: &mut ScanProfile,
+) -> Vec<String> {
     files
         .iter()
-        .filter(|path| matches_any(root, forbidden, path))
+        .filter(|path| {
+            matches_any(
+                root,
+                forbidden,
+                path,
+                #[cfg(feature = "dist-profile")]
+                profile,
+            )
+        })
         .map(|path| format!("forbidden file selected for release: {path}"))
         .collect()
 }

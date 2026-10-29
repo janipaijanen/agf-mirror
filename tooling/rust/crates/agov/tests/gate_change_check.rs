@@ -223,6 +223,58 @@ fn new_namespace_command_does_not_bypass_shared_gate_test_accompaniment() {
 }
 
 #[test]
+fn feature_gated_diagnostic_requires_each_shared_main_gate_companion() {
+    let mut fixture = Fixture::new();
+    let registry = SHARED_CI_SURFACE_REGISTRY
+        .replace(".gitlab-ci.yml", "tooling/rust/crates/agov/src/main.rs")
+        .replace("ci-needs-implication", "plan-collision-block")
+        .replace("tests/ci-needs/**", "tests/plan-collision/**");
+    fixture.write(".agf/gates.yaml", &registry);
+    fixture.write(
+        "tooling/rust/crates/agov/src/main.rs",
+        "enum DistCommand { Validate }\n",
+    );
+    fixture.write("tests/gate_change/shared.txt", "baseline\n");
+    fixture.write("tests/plan-collision/shared.txt", "baseline\n");
+    fixture.commit("establish shared main gate baseline");
+    fixture.base = git_output(fixture.root.path(), &["rev-parse", "HEAD"]);
+
+    fixture.write(
+        "tooling/rust/crates/agov/src/main.rs",
+        "enum DistCommand { Validate, #[cfg(feature = \"dist-profile\")] Diagnose }\n",
+    );
+    fixture.write(
+        "tests/dist_scan_profile.rs",
+        "diagnostic counter and default-absence tests\n",
+    );
+    fixture.commit("add feature-only command and its feature tests");
+    let blocked = fixture.check();
+    assert_eq!(blocked.status.code(), Some(1), "{}", diagnostics(&blocked));
+    let stderr = String::from_utf8_lossy(&blocked.stderr);
+    assert!(stderr.contains("gate-change-check"), "{stderr}");
+    assert!(stderr.contains("plan-collision-block"), "{stderr}");
+    assert!(stderr.contains("no changed declared test path"), "{stderr}");
+
+    fixture.write(
+        "tests/gate_change/shared.txt",
+        "feature-only shared-main negative control\n",
+    );
+    fixture.commit("add first gate companion only");
+    let partial = fixture.check();
+    assert_eq!(partial.status.code(), Some(1), "{}", diagnostics(&partial));
+    let stderr = String::from_utf8_lossy(&partial.stderr);
+    assert!(stderr.contains("plan-collision-block"), "{stderr}");
+    assert!(!stderr.contains("gate-change-check"), "{stderr}");
+
+    fixture.write(
+        "tests/plan-collision/shared.txt",
+        "shared-main overlap negative control\n",
+    );
+    fixture.commit("add remaining gate companion");
+    assert_success(fixture.check());
+}
+
+#[test]
 fn passes_unregistered_change() {
     let fixture = Fixture::new();
     fixture.write("README.md", "unregistered change\n");
