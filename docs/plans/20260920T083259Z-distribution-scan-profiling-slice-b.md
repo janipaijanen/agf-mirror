@@ -12,6 +12,7 @@ affected_paths:
   - tooling/rust/crates/agov/Cargo.toml
   - docs/reviews/dist-scan-profiling/**
 depends_on:
+  - 20261029T192050Z-dist-profile-roi-amendment
   - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
   - 20260913T130049Z-qbka-slice-a-superseded-plan-lifecycle
   - 20260913T165127Z-row5-s4-cp-a-ack-pending-display
@@ -263,9 +264,26 @@ the generated fixture tree (via the `dist-profile` feature) and asserts:
 
 Once steps 1–3 land, run `agov dist diagnose` against both the fixture
 (design step 3) and the real repository tree, on the same machine,
-several times each (cold and warm filesystem-cache runs, matching the
-issue #53 report's own "cold and warm branches" measurement discipline).
-Record the raw counter/timing output in a new file,
+several times each as fresh-process measurements, recording filesystem-cache
+state and host-load limits honestly. The governor amendment
+`20261029T194912Z-governor-reviewer-nskj` accepts repeated fixture and real-tree
+samples with uncontrolled filesystem caches for this instrumentation slice.
+The previously required controlled cold/warm comparison is explicitly deferred;
+none was obtained, and the first sample must not be relabeled cold. A future
+controlled comparison needs a separately scoped fresh disposable VM or dedicated
+runner/filesystem. Do not disrupt the shared host with global cache flushing or
+artificial memory pressure to manufacture this evidence.
+
+This accepted baseline establishes API-call counts and aggregate measured phase
+durations only. It authorizes no cache-effect, speedup, optimization,
+CI-critical-path or pristine-checkout claim. Every other scope and acceptance
+requirement is unchanged. This revised parent explicitly acknowledges its approved
+ROI child `20261029T192050Z-dist-profile-roi-amendment`: both name
+`agov/Cargo.toml`, where that child supplies the feature forwarding already present
+in the reviewed profiling candidate. Preserve that child's optional core feature,
+closed vocabulary, redaction tests and approvals; this baseline revision changes
+no code. `depends_on` records overlap coordination, not a new cyclic execution
+prerequisite; the child already acknowledges the original parent. Record the raw counter/timing output in a new file,
 `docs/reviews/dist-scan-profiling/<UTC-timestamp>-baseline.md`, stating:
 
 - exact commit SHA measured,
