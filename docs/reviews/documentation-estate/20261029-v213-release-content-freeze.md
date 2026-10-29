@@ -3,16 +3,21 @@
 
 # v2.13 release-content-freeze documentation-estate sweep
 
-**Sweep class:** release-content-freeze (blocking)  
+**Sweep class:** release-content-freeze (blocking)
+
 **Steward:** Codex, temporarily allocated as documentation-estate-steward by
-governor decision `20261029T205351Z-governor-reviewer-mbsk`  
+governor decision `20261029T205351Z-governor-reviewer-mbsk`
+
 **Combined implementation baseline:**
-`32e384e74959d456acf85435fcd7d7c7194d8cad`  
+`32e384e74959d456acf85435fcd7d7c7194d8cad`
+
 **Reviewed documentation candidate before this report is committed:**
 `2dd77780f0624c3e47e6cf1378d5cfbb63b8a422` (includes factual correction
-`e1c0e102` and current main `6042bc8b`)  
+`e1c0e102` and current main `6042bc8b`)
+
 **Previous full sweep baseline:**
-`e03b3261ccb8a4205c45801ea1d034971f437a2d`  
+`e03b3261ccb8a4205c45801ea1d034971f437a2d`
+
 **Status:** **COMPLETE — documentation-estate assessment clean.** All four
 content findings are fixed and revalidated. This closes the estate-sweep
 precondition; it does not clear the separate APK-risk disposition, final
@@ -189,6 +194,13 @@ pre-report candidate `2dd77780` as applicable:
   and every declared current-tree path exists. Strict change-bounded
   `projection-check` for the new freeze/currency manifest passed
   (`/tmp/agf-v213-final-projection.log`).
+- The supported whole-tree command `agov plan projection-check-all --base-ref
+  origin/main` passed all 41 manifests (`/tmp/agf-v213-projection-all.log`). An
+  earlier attempt to pass one release-wide base to all historical per-change
+  manifests with `projection-check` exited 1 because that invocation had the
+  wrong comparison semantics. It was a method error, was excluded from evidence,
+  and is not represented as a corpus failure; the corrected supported command
+  is the whole-tree mechanical result.
 - The final changed-plan collision check reports 0 unacknowledged and 6
   acknowledged overlaps; historical no-`affected_paths` coverage remains
   explicit (`/tmp/agf-v213-final-collisions.log`). `git diff --check` passes.
@@ -233,5 +245,9 @@ question was silently absorbed by the steward.
 - **Still open:** no previous-sweep or current-sweep content finding remains
   open. APK-risk disposition, exact-head CI/Gate 2 and release publication are
   separate release prerequisites, not documentation-estate findings.
+
+Final review also removed five Markdown trailing-space hard breaks from this
+report's metadata header and re-ran whitespace validation; this formatting fix
+changes no finding, disposition or evidence claim.
 
 This report grants no release, tag, deployment or Gate 2 authority.
