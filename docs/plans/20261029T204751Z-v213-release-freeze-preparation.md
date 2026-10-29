@@ -1,16 +1,19 @@
 ---
 id: 20261029T204751Z-v213-release-freeze-preparation
 status: approved
-gate1_approved_by: 20261029T205351Z-governor-reviewer-mbsk
-gate1_approved_at: "2026-10-29T20:53:51Z"
+gate1_approved_by: 20261029T211008Z-governor-reviewer-gpp8
+gate1_approved_at: "2026-10-29T21:10:08Z"
 topic: v213-release-freeze-preparation
 affected_paths:
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+  - docs/reviews/rule-projection/20261029T204751Z-v213-release-freeze-preparation.yaml
   - CHANGELOG.md
   - agf/CHANGELOG.md
   - docs/reviews/documentation-estate/20261029-v213-release-content-freeze.md
   - docs/reviews/next-release-freeze-evidence/20261029-v213-apk-residual-risk.md
   - docs/plans/20261029T204751Z-v213-release-freeze-preparation.md
 depends_on:
+  - 20261024T070435Z-timer-reality-polling-alignment
   - 20261029T163752Z-v213-release-scope
   - 20261027T045944Z-record-only-publication-termination
   - 20260920T083259Z-distribution-scan-profiling-slice-b
@@ -25,16 +28,10 @@ depends_on:
 advisory_consultation:
   - role: contribution-auditor
     status: consulted
-    reason: >-
-      Independent Codex contribution audit CLEAR at feb398a05594fd4d6eb33e46fb213e457b25458c;
-      all freeze prerequisites, role boundaries and five detected overlaps covered;
-      no blocking or advisory findings. Historical unassessed plans remain explicit.
+    reason: Independent contribution audit CLEAR at e00ea88b; bounded factual correction preserves all authority and prior scope.
   - role: infosec-sentinel
     status: consulted
-    reason: >-
-      Independent Codex InfoSec advisory CLEAR at feb398a05594fd4d6eb33e46fb213e457b25458c;
-      bounded risk evidence and explicit governor disposition required, no production-write
-      authority; Rust infosec validator and manual plan screening passed.
+    reason: Independent InfoSec advisory CLEAR at e00ea88b; no new security/write authority or risk acceptance.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -46,7 +43,7 @@ advisory_consultation:
 The approved v2.13 scope requires reconciled changelogs, a complete documentation
 estate sweep, combined validation and a durable residual-risk record before its
 separate release-publication plan. Existing implementation plans do not own those
-edits. This child owns exactly the five paths above; it adds no release feature.
+edits. This child owns exactly the seven paths above; it adds no release feature.
 
 Planning and advisory review may happen while publisher !3358 CI runs.
 Implementation waits for published Gate 1 approval, binding publisher Gate 2,
@@ -89,7 +86,8 @@ The estate report crosswalks every merge to a release entry, administrative
 release-truth upkeep, or no-shipped-byte disposition. Do not advertise plans and
 coordination carriers as product features.
 
-- Adopter changelog: bounded record-only publication termination only. Explain
+- Adopter changelog: bounded record-only publication termination and the factual
+  urgency-status correction below only. Explain
   its conjunctive limits, prior published/exhausted authority, unchanged record
   and exact-head checks; ordinary Human review remains valid. Call it additive
   but authority-sensitive, with no schema/tooling/CI behavior change. Cite the
@@ -118,7 +116,7 @@ reused only with explicit baseline/byte-identity evidence and a fresh complete
 surface inventory and whole-tree validation; label reused evidence honestly.
 Rate each dimension and disposition every finding. Unknown, unresolved or referred
 findings do not clear the release freeze. Anything requiring source edits beyond
-the five-path scope, structural/normative changes or other-role judgment is
+the seven-path scope, structural/normative changes or other-role judgment is
 escalated; amend Gate 1 before editing extra paths. Preliminary intake found the
 record-only owner, site explanation, template and projection manifest coherent;
 that is not a substitute for this complete sweep.
@@ -168,3 +166,38 @@ naming that exact freeze SHA. This plan grants no release-publication authority.
 
 Rollback removes only this child's documentation delta, leaving implemented
 features intact and release content unfrozen until corrected evidence is approved.
+
+
+## Approved bounded amendment: stale urgency release status
+
+The full-estate sweep found that `docs/operate/poll-and-coordinate.md` still
+calls urgency ordering Level 4 and pending release, including a development-CLI
+heading. Canonical protocol text and previously verified immutable v2.11 release
+artifacts establish shipment at Level 5. This page was byte-identical across
+v2.12; a fresh full inventory exposed a prior sweep omission.
+
+The timer-reality predecessor is acknowledged for its shared polling-page path;
+its scheduling and real-wake contract is preserved unchanged. This is no claim
+transfer, plan closure or reopening of timer behavior.
+
+The amendment adds exactly the polling page and this plan's projection
+manifest to affected_paths. Change only the heading to "Reading urgency in v2.11
+and later" and replace the stale maturity/shipment sentence with "This behavior
+shipped in v2.11.0 and is Level 5 Deployable when using compatible v2.11.0-or-later
+artifacts." Preserve the urgency tiers, advisory/no-permission boundary, command
+and challenge guidance. Add an Unreleased Fixed entry in the already-owned adopter
+changelog; every historical changelog section remains byte-identical.
+
+The new six-row projection manifest records this release-fact correction without
+changing a rule, schema or operating step. Existing projection manifests and
+release-status/governance manifests remain unchanged. Validate it strictly after
+the page edit and run the whole-inventory projection check, strict site build,
+shipped docs tests and independent fidelity review. The estate report must retain
+the finding and its actual disposition rather than relabel the prior sweep complete.
+
+The original five-path approval mbsk remains valid. Governor amendment gpp8
+approves the two additional paths and this exact correction after independent
+advisories; implementation waits for publication of that decision and this approved
+plan in the implementation checkout. No other expansion, version/status edit,
+release/tag authority or vulnerability disposition is granted. Any additional
+out-of-scope finding still requires its own reviewed amendment.
