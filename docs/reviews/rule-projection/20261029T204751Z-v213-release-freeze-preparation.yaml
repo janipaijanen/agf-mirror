@@ -31,7 +31,7 @@ surfaces:
       workflow. Foundry AGENTS.md and .claude/CLAUDE.md need no new instruction.
   validation_drift_evidence:
     disposition: advisory only
-    path: docs/reviews/documentation-estate/20261029-v213-release-content-freeze.md
+    path: docs/reviews/documentation-estate/20261027-v212-release-content-freeze.md
     reason: >-
       Prior immutable-v2.11 artifact evidence, fresh cross-surface comparison and
       independent review support release truth. Strict projection/site checks

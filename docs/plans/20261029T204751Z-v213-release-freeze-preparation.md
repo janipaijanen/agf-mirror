@@ -1,8 +1,6 @@
 ---
 id: 20261029T204751Z-v213-release-freeze-preparation
-status: approved
-gate1_approved_by: 20261029T205351Z-governor-reviewer-mbsk
-gate1_approved_at: "2026-10-29T20:53:51Z"
+status: pending-gate1
 topic: v213-release-freeze-preparation
 affected_paths:
   - agf/docs/site/docs/operate/poll-and-coordinate.md
@@ -13,6 +11,7 @@ affected_paths:
   - docs/reviews/next-release-freeze-evidence/20261029-v213-apk-residual-risk.md
   - docs/plans/20261029T204751Z-v213-release-freeze-preparation.md
 depends_on:
+  - 20261024T070435Z-timer-reality-polling-alignment
   - 20261029T163752Z-v213-release-scope
   - 20261027T045944Z-record-only-publication-termination
   - 20260920T083259Z-distribution-scan-profiling-slice-b
@@ -26,17 +25,11 @@ depends_on:
   - 20261025T192020Z-supersedes-adopter-docs
 advisory_consultation:
   - role: contribution-auditor
-    status: consulted
-    reason: >-
-      Independent Codex contribution audit CLEAR at feb398a05594fd4d6eb33e46fb213e457b25458c;
-      all freeze prerequisites, role boundaries and five detected overlaps covered;
-      no blocking or advisory findings. Historical unassessed plans remain explicit.
+    status: pending
+    reason: Bounded urgency-currency amendment requires review beyond original mbsk scope.
   - role: infosec-sentinel
-    status: consulted
-    reason: >-
-      Independent Codex InfoSec advisory CLEAR at feb398a05594fd4d6eb33e46fb213e457b25458c;
-      bounded risk evidence and explicit governor disposition required, no production-write
-      authority; Rust infosec validator and manual plan screening passed.
+    status: pending
+    reason: Confirm factual projection correction preserves authority and publication boundaries.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -180,6 +173,10 @@ calls urgency ordering Level 4 and pending release, including a development-CLI
 heading. Canonical protocol text and previously verified immutable v2.11 release
 artifacts establish shipment at Level 5. This page was byte-identical across
 v2.12; a fresh full inventory exposed a prior sweep omission.
+
+The timer-reality predecessor is acknowledged for its shared polling-page path;
+its scheduling and real-wake contract is preserved unchanged. This is no claim
+transfer, plan closure or reopening of timer behavior.
 
 The proposed amendment adds exactly the polling page and this plan's projection
 manifest to affected_paths. Change only the heading to "Reading urgency in v2.11
