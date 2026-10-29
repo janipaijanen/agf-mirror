@@ -5,9 +5,10 @@
 #![cfg(unix)]
 
 use std::fs;
+use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 const TOKEN: &str = "fixture-job-token-not-a-credential";
 const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -262,6 +263,98 @@ fn empty_release_intent_is_rejected_before_any_request() {
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("no asset links"));
     assert!(fixture.log().is_empty());
+}
+
+#[test]
+fn same_project_mr_job_token_reads_existing_tag_and_release_without_mutation() {
+    if std::env::var("CI").as_deref() != Ok("true")
+        || std::env::var("CI_PIPELINE_SOURCE").as_deref() != Ok("merge_request_event")
+        || std::env::var("CI_PROJECT_PATH").as_deref() != Ok("janipaijanen/agents-govern-framework")
+    {
+        eprintln!("SKIP read-only project probe: not the canonical same-project MR pipeline");
+        return;
+    }
+
+    let api = std::env::var("CI_API_V4_URL").expect("canonical MR CI_API_V4_URL");
+    assert_eq!(api, "https://gitlab.com/api/v4");
+    let project = std::env::var("CI_PROJECT_ID").expect("canonical MR CI_PROJECT_ID");
+    assert!(project.bytes().all(|byte| byte.is_ascii_digit()));
+    let token = std::env::var("CI_JOB_TOKEN").expect("same-project MR CI_JOB_TOKEN");
+    let temp = tempfile::tempdir().unwrap();
+
+    let tag_body = temp.path().join("tag.json");
+    let tag_status = read_with_job_token(
+        &format!("{api}/projects/{project}/repository/tags/v2.12.0"),
+        &tag_body,
+        &token,
+    );
+    assert_eq!(tag_status, "200", "single-tag JOB-TOKEN probe failed");
+    let tag: serde_json::Value = serde_json::from_slice(&fs::read(&tag_body).unwrap()).unwrap();
+    assert_eq!(tag["name"], "v2.12.0");
+    assert_eq!(tag["protected"], true);
+    let tag_sha = tag["commit"]["id"]
+        .as_str()
+        .filter(|value| !value.is_empty())
+        .expect("tag response commit id");
+
+    let release_body = temp.path().join("release.json");
+    let release_status = read_with_job_token(
+        &format!("{api}/projects/{project}/releases/v2.12.0"),
+        &release_body,
+        &token,
+    );
+    assert_eq!(
+        release_status, "200",
+        "existing Release JOB-TOKEN probe failed"
+    );
+    let release: serde_json::Value =
+        serde_json::from_slice(&fs::read(&release_body).unwrap()).unwrap();
+    assert_eq!(release["tag_name"], "v2.12.0");
+    assert_eq!(release["commit"]["id"], tag_sha);
+}
+
+fn read_with_job_token(url: &str, body: &Path, token: &str) -> String {
+    let mut child = Command::new("curl");
+    child
+        .args([
+            "--disable",
+            "--config",
+            "-",
+            "--silent",
+            "--show-error",
+            "--connect-timeout",
+            "15",
+            "--max-time",
+            "90",
+            "--proto",
+            "=https",
+            "--request",
+            "GET",
+            "--output",
+        ])
+        .arg(body)
+        .args(["--write-out", "%{http_code}", url])
+        .env_remove("CI_JOB_TOKEN")
+        .env_remove("GITLAB_TOKEN")
+        .env_remove("PRIVATE_TOKEN")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let mut child = child.spawn().expect("spawn read-only curl probe");
+    writeln!(
+        child.stdin.take().expect("curl config stdin"),
+        "header = \"JOB-TOKEN: {token}\""
+    )
+    .expect("write curl credential through stdin");
+    let output = child.wait_with_output().expect("wait for curl probe");
+    assert!(
+        output.status.success(),
+        "read-only curl probe transport failed"
+    );
+    String::from_utf8(output.stdout)
+        .expect("curl status is UTF-8")
+        .trim()
+        .to_owned()
 }
 
 fn helper() -> PathBuf {

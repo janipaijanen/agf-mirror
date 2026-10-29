@@ -1314,7 +1314,7 @@ rust:tooling:test:
   cache:
     policy: $RUST_CACHE_WRITER_POLICY
   script:
-    - apt-get update -qq && apt-get install -y -qq jq
+    - apt-get update -qq && apt-get install -y -qq curl jq
     - sh tests/agov-wrapper-freshness.sh
     - sh tests/tooling-provenance-verifier.sh
     - cargo test --workspace
