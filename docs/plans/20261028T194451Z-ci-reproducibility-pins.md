@@ -93,11 +93,20 @@ Revision 2. It answers the BLOCK findings in
   tool check below; no pre-release tag; no `latest`.
 - **Digest.** Resolve it at implementation from the registry manifest of that
   tag and record the date and query in a comment next to the `image:` line.
-- **Tool check (credential-free, non-mutating).** Run in the pinned image with
-  no CI token and no upload: `command -v release-cli curl unzip tar gzip apk`
-  and `release-cli --version`. This replaces the earlier "dry run of the job's
-  commands", which would upload packages and create a Release. No command that
-  needs `CI_JOB_TOKEN` runs.
+- **Tool check (credential-free, non-mutating), two steps.** This replaces the
+  earlier "dry run of the job's commands", which would upload packages and
+  create a Release. No step uses `CI_JOB_TOKEN` or any project credential, and
+  none uploads anything.
+  1. *Before any install.* The pinned image alone must provide the two tools
+     that the job needs before its own `apk add` calls: `command -v
+     release-cli apk` and `release-cli --version`. Only these two are required
+     here, because `curl`, `unzip`, `tar` and `gzip` are installed by the job.
+  2. *After an isolated install.* In a throwaway container from the same
+     digest, with no token and no mounted project files, run the job's own
+     package line (`apk add --no-cache curl unzip tar gzip`) and then
+     `command -v curl unzip tar gzip`. This proves the installed tools exist
+     without creating a Release or a package. It reads only the public Alpine
+     package repositories.
 - **Vulnerability scan.** The repository already scans with Trivy
   (`aquasec/trivy:0.66.0`, job `dependency:cve-scan`). At implementation run
   `trivy image` on the pinned digest and put the HIGH and CRITICAL result in
@@ -121,11 +130,12 @@ Revision 2. It answers the BLOCK findings in
 
 ### Drift checker (CA-1, CA-3)
 
-`.gitlab/scripts/check-ci-pins.sh` is **advisory and always exits 0** when it
-runs to completion. It prints one line per finding, each tagged
-`severity: advisory`. It exits non-zero only for its own malfunction (missing
-file, unreadable input). The CI job needs no `allow_failure` to stay advisory,
-because the tool itself grants itself no blocking authority.
+`.gitlab/scripts/check-ci-pins.sh` is **advisory**. It prints one line per
+finding, each tagged `severity: advisory`, and exits 0 when it runs to
+completion. It exits non-zero only for its own malfunction (missing file,
+unreadable input). Because malfunction has no blocking authority either, the
+CI job also sets `allow_failure: true`. Both guards are required: all finding
+outcomes exit 0, and no outcome, malfunction included, can block a pipeline.
 Per `always/tool-authority-boundary-rule.md`, blocking behavior needs a
 separately governed authority grant; this plan does not create one.
 
@@ -144,7 +154,7 @@ A pin changes only through a merge request that:
 
 1. names the old and new version and digest;
 2. states the resolution date and the registry query;
-3. shows the credential-free tool check and the Trivy result for the new
+3. shows both steps of the credential-free tool check and the Trivy result for the new
    digest (release image) or the checksum verification (rustup); and
 4. shows the job passing on the exact head.
 
@@ -168,7 +178,7 @@ missing input file).
 | `release:create` image with tag, no digest | advisory finding | 0 |
 | `RUST_TOOLCHAIN_VERSION` != `.rust-base` tag | advisory finding | 0 |
 | corrected `.gitlab-ci.yml` | no findings | 0 |
-| missing input file | error line | non-zero |
+| missing input file | error line | non-zero (job still `allow_failure: true`) |
 
 The MR description MUST include the transcript. The self-test also runs in CI.
 
@@ -185,7 +195,7 @@ The MR description MUST include the transcript. The self-test also runs in CI.
 ## Risks and rollback
 
 - A pinned `release-cli` could lack a command the job uses. Mitigation: the
-  credential-free tool check, run before merge.
+  two-step credential-free tool check, run before merge.
 - **Rollback never restores `:latest`.** Roll back to a verified last-known-good
   pinned digest. No such digest exists before this change, so if the new pin
   fails and no other verified digest is available, **suspend release
