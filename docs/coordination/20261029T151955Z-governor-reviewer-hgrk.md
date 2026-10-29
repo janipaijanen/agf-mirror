@@ -7,6 +7,7 @@ timestamp: 2026-10-29T15:19:55Z
 model: codex-gpt-5
 immutable: true
 references-to:
+  - 20261028T163912Z-governor-reviewer-ss2k
   - 20260721T002215Z-governor-reviewer-7mg5
   - 20260721T075914Z-planner-architect-qkte
 topic: philosophical-lenses-plan-supersession
