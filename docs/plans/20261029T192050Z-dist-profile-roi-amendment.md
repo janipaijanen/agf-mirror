@@ -9,6 +9,7 @@ affected_paths:
 depends_on:
   - 20260920T083259Z-distribution-scan-profiling-slice-b
   - 20261029T185703Z-dist-profile-gate-test-amendment
+  - 20261023T083302Z-remove-elixir-leftovers
 advisory_consultation:
   - role: contribution-auditor
     status: pending
@@ -60,10 +61,14 @@ not introduce the diagnostic command into a default `agov` binary.
 
 ## Collision and scope boundary
 
-The parent and shared-gate test amendment are directly acknowledged. Inventory
-and reconcile additional live core/manifest overlaps before approval. This child
-does not take over another live implementation. It belongs in the same isolated
-profiling branch; no CI-pin image or publisher change enters it.
+The parent and shared-gate test amendment are directly acknowledged. The only
+additional reported overlap is the approved Elixir-leftovers plan; its landed
+commit `ceececc9` changed the ROI module's historical comment and renamed the
+mixed-record fixture to `summarize_groups_mixed_rust_and_legacy_records`, preserving
+fixture data. Those landed changes remain intact; this child only adds the
+feature vocabulary and focused tests. It does not take over another live
+implementation. It belongs in the same isolated profiling branch; no CI-pin
+image or publisher change enters it.
 
 No matcher behavior, filesystem traversal policy, instrumentation design,
 performance optimization, release scope, security waiver or role authority
