@@ -6,6 +6,10 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[features]
+default = []
+dist-profile = []
+
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -137,6 +137,8 @@ pub const REDACTED: &str = "[redacted]";
 /// either direction (missing token or stale/dead token) — this comment
 /// describes intent; that test is the enforcement.
 pub const COMMAND_PATH_TOKENS: &[&str] = &[
+    #[cfg(feature = "dist-profile")]
+    "diagnose",
     "artifact",
     "index",
     "release",
@@ -259,6 +261,8 @@ pub const CLOSED_VALUE_FLAGS: &[&str] = &["--id-format", "--format"];
 /// Enforced against the live clap surface by the parity test in
 /// `agov/src/main.rs`, same as [`COMMAND_PATH_TOKENS`].
 pub const KNOWN_FLAG_NAMES: &[&str] = &[
+    #[cfg(feature = "dist-profile")]
+    "--json",
     "--config",
     "--session",
     "--include-branch-local",
@@ -1389,6 +1393,63 @@ mod tests {
 
     fn strings(tokens: &[&str]) -> Vec<String> {
         tokens.iter().map(|token| token.to_string()).collect()
+    }
+
+    #[test]
+    fn profiling_vocabulary_matches_the_optional_feature() {
+        assert_eq!(
+            COMMAND_PATH_TOKENS.contains(&"diagnose"),
+            cfg!(feature = "dist-profile")
+        );
+        assert_eq!(
+            KNOWN_FLAG_NAMES.contains(&"--json"),
+            cfg!(feature = "dist-profile")
+        );
+        assert!(!CLOSED_VALUE_FLAGS.contains(&"--json"));
+        #[cfg(not(feature = "dist-profile"))]
+        assert_eq!(
+            redact_args(&strings(&["dist", "diagnose", "--json"])),
+            strings(&["dist", REDACTED, REDACTED])
+        );
+    }
+
+    #[cfg(feature = "dist-profile")]
+    #[test]
+    fn profiling_flag_names_never_allow_sensitive_values() {
+        assert_eq!(
+            redact_args(&strings(&["dist", "diagnose", "--json"])),
+            strings(&["dist", "diagnose", "--json"])
+        );
+        assert_eq!(
+            redact_args(&strings(&["dist", "diagnose", "--json=sensitive-marker"])),
+            strings(&["dist", "diagnose", &format!("--json={REDACTED}")])
+        );
+        assert_eq!(
+            redact_args(&strings(&[
+                "dist",
+                "diagnose",
+                "--json",
+                "--manifest",
+                "/sensitive/project/manifest.yaml"
+            ])),
+            strings(&["dist", "diagnose", "--json", "--manifest", REDACTED])
+        );
+        assert_eq!(
+            redact_args(&strings(&[
+                "dist",
+                "diagnose",
+                "private-positional-value",
+                "--unknown-sensitive",
+                "private-flag-value",
+                "--unknown=private-equals-value"
+            ])),
+            strings(&["dist", "diagnose", REDACTED, REDACTED, REDACTED, REDACTED])
+        );
+        // Existing global vocabulary model: exact safe-literal collisions survive.
+        assert_eq!(
+            redact_args(&strings(&["dist", "diagnose", "diagnose"])),
+            strings(&["dist", "diagnose", "diagnose"])
+        );
     }
 
     /// Acceptance test 6 (positive): closed-vocabulary command path and

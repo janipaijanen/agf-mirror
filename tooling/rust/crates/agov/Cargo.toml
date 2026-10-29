@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [features]
 default = []
-dist-profile = []
+dist-profile = ["agov-core/dist-profile"]
 
 [dependencies]
 agov-core = { workspace = true }
