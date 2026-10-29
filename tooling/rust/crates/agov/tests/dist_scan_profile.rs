@@ -116,7 +116,7 @@ fn fixture() -> (tempfile::TempDir, Parameters, BTreeSet<String>) {
         .join(&p.symlink.path)
         .canonicalize()
         .unwrap()
-        .starts_with(root));
+        .starts_with(root.canonicalize().unwrap()));
     assert_eq!(
         fs::read(root.join(&p.symlink.path)).unwrap(),
         b"fixed fixture content\n"
