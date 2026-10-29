@@ -1,6 +1,8 @@
 ---
 id: 20261029T183000Z-ci-pins-gate-test-amendment
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T183449Z-governor-reviewer-rqka
+gate1_approved_at: 2026-10-29T18:34:49Z
 topic: ci-pins-shared-gate-negative-test-accompaniment
 affected_paths:
   - tooling/rust/crates/agov/tests/gate_change_check.rs
@@ -14,8 +16,13 @@ depends_on:
   - 20261021T220000Z-retire-windows-support
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Independent review requested for the test-only scope extension.
+    status: consulted
+    reason: >-
+      Independent contribution audit first blocked the missing direct
+      acknowledgements of four overlapping plans. Focused re-review at
+      b32566bd34d710288b65ce074d81dbf275b1a1c3 returned CLEAR, with no blocking
+      or advisory findings, after all four dependencies and their landed
+      test coverage were reconciled. Scope and security boundaries unchanged.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
