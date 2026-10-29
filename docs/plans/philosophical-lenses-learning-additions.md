@@ -1,9 +1,12 @@
 ---
 id: philosophical-lenses-learning-additions
-status: approved
+status: superseded
 topic: philosophical-lenses-learning-additions
 gate1_approved_by: governor-reviewer
 gate1_approved_at: "2026-07-21T00:00:06Z"
+superseded_by: issue-141
+superseded_decision: 20261029T151955Z-governor-reviewer-hgrk
+superseded_at: "2026-10-29T15:19:55Z"
 advisory_consultation:
   - role: infosec-sentinel
     status: not-applicable
@@ -20,12 +23,11 @@ advisory_consultation:
 # Plan: add six learning/knowledge-focused lenses to the Philosophical lenses page
 
 **Date:** 2026-07-20T23:56:00Z
-**Status:** GATE 1 APPROVED (governor-reviewer decision-record
-`docs/coordination/20260721T002215Z-governor-reviewer-7mg5.md`, evidenced by
-MR !279's GitLab `merged_at` of 2026-07-21T00:00:06.181Z, merged by the
-governor). Gate 2 implementation (the six new lens sections, with the five
-content fixes named above already applied at draft time) is open work, not
-yet started.
+**Status:** SUPERSEDED by GitLab issue #141 under governor-reviewer decision
+`20261029T151955Z-governor-reviewer-hgrk`. The original Gate 1 approval is
+retained as history, but it no longer authorizes implementation. The narrower
+replacement asks for current evidence applying the existing lenses to AGF;
+it does not carry forward this plan's six additional lens sections.
 **Triggering context:** user-requested addition, drafted through several
 rounds of question-then-verify-then-draft in the same session that
 produced `docs/plans/public-governance-philosophies-page.md` (the

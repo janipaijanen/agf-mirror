@@ -520,17 +520,15 @@ Candidate next step once confirmed: implementation as two independently
 reviewable MRs (README restructure; Pages theme/nav/hero), sized so each
 answers one yes/no review question, per `branch-and-worktree-rule.md`.
 
-## Philosophical-lenses page: self-application gap, not yet actioned
+## Philosophical-lenses page: self-application gap
 
-Status: `awaiting-governor` (Queue Convergence B2, 2026-09-09). Exact question:
-should the still-unimplemented, Gate-1-approved
-`docs/plans/philosophical-lenses-learning-additions.md` remain authorized for a
-fresh future implementation, or be retired under the current documentation and
-source-evidence expectations? The plan, decision
-`20260721T002215Z-governor-reviewer-7mg5`, and handoff
-`20260721T075914Z-planner-architect-qkte` establish that the work is real but
-do not assign it to v2.11; only the governor can change release scope or retire
-that approval.
+Status: `close-superseded` (governor-reviewer decision
+`20261029T151955Z-governor-reviewer-hgrk`). The unimplemented, Gate-1-approved
+`docs/plans/philosophical-lenses-learning-additions.md` is superseded by GitLab
+issue #141. Its six additional generic lenses no longer carry implementation
+authority. Issue #141 retains the narrower current question: apply the existing
+lenses to AGF using current evidence, through a fresh Gate 1 plan before any
+documentation change.
 
 A review of `agf/docs/site/docs/concepts/philosophical-lenses.md` against its
 actual source text (2026-08-03, same session as the v2.5.0-rc.1 three-track
