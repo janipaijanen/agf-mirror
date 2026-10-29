@@ -496,6 +496,14 @@ enum TokenRoiCommand {
 
 #[derive(Subcommand)]
 enum DistCommand {
+    /// Measure one distribution validation (manual profiling only).
+    #[cfg(feature = "dist-profile")]
+    Diagnose {
+        #[arg(long, default_value = "agf/dist/release-manifest.yaml")]
+        manifest: PathBuf,
+        #[arg(long)]
+        json: bool,
+    },
     /// Validate the framework source release manifest.
     Validate,
     /// Build framework source archives from the release manifest.
@@ -1163,6 +1171,27 @@ fn version_command(format: &str, args: &[String]) -> i32 {
 fn dist_command(sub: DistCommand, args: &[String]) -> i32 {
     let mut output = OutputCounter::default();
     let exit_code = match sub {
+        #[cfg(feature = "dist-profile")]
+        DistCommand::Diagnose { manifest, json } => {
+            let report = dist::diagnose(&manifest, &agov_core::repo_root());
+            if json {
+                output.stdout(
+                    serde_json::to_string_pretty(&report).expect("serializable diagnostic"),
+                );
+            } else {
+                output.stdout(format!(
+                    "Distribution scan diagnostic (one validation)\nSelected files: {}\nread_dir calls (collect_regular_files only): {}\nglob calls (expand_glob): {}\nglob calls (glob_matches): {}\nexpand_includes elapsed (ns): {}\nexclude/forbidden elapsed (ns): {}\ntotal elapsed (ns): {}",
+                    report.selected_files.map_or_else(|| "unavailable (validation failed)".into(), |count| count.to_string()), report.profile.read_dir_calls,
+                    report.profile.expand_glob_calls, report.profile.glob_matches_calls,
+                    report.profile.expand_includes_elapsed_ns, report.profile.filter_elapsed_ns,
+                    report.total_elapsed_ns
+                ));
+                for error in &report.errors {
+                    output.stderr(format!("ERR {error}"));
+                }
+            }
+            i32::from(!report.errors.is_empty())
+        }
         DistCommand::Validate => match dist::validate_default() {
             Ok(spec) => {
                 output.stdout(dist::format_validate_summary(&spec));

@@ -11,6 +11,10 @@ build = "build.rs"
 name = "agov"
 path = "src/main.rs"
 
+[features]
+default = []
+dist-profile = []
+
 [dependencies]
 agov-core = { workspace = true }
 agov-coord = { workspace = true }

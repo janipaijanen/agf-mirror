@@ -490,3 +490,30 @@ fn live_registry_keeps_agov_main_as_a_plan_collision_block_surface() {
         "agov main.rs must remain a plan-collision-block surface"
     );
 }
+
+#[test]
+fn feature_only_diagnostic_plan_must_acknowledge_shared_main_overlap() {
+    let r = Repo::new();
+    let paths = "['tooling/rust/crates/agov/src/main.rs']";
+    r.plan("existing-command", &format!("affected_paths: {paths}"));
+    let base = r.commit();
+    r.plan("dist-profile", &format!("affected_paths: {paths}"));
+    r.commit();
+    let mut args = BLOCKING.to_vec();
+    args.extend(["--base-ref", &base]);
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 1, "{text}");
+    assert!(
+        text.contains("tooling/rust/crates/agov/src/main.rs"),
+        "{text}"
+    );
+    assert!(text.contains("1 unacknowledged collision"), "{text}");
+    assert!(text.contains("severity: blocking"), "{text}");
+
+    r.plan_with_depends_on("dist-profile", paths, "['existing-command']");
+    r.commit();
+    let (code, text) = r.run(&args);
+    assert_eq!(code, 0, "{text}");
+    assert!(text.contains("0 unacknowledged collision"), "{text}");
+    assert!(text.contains("1 acknowledged"), "{text}");
+}

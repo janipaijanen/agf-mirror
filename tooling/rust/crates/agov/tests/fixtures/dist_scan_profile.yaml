@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Jani Päijänen
+schema_version: 1
+depth: 4
+buckets: 5
+regular_files: 500
+untracked:
+  - tree/untracked.txt
+  - tree/d0/d1/untracked.txt
+  - tree/d0/__pycache__/cache.pyc
+hidden:
+  - tree/.hidden.txt
+  - tree/.hidden/deep.txt
+symlink:
+  path: tree/linked.txt
+  target: d0/d1/d2/d3/bucket00/file000.txt
+excluded:
+  - tree/d0/__pycache__/cache.pyc
+expected:
+  tree_regular_files: 505
+  symlinks: 1
+  git_untracked_paths: 7
+  selected_files: 507
