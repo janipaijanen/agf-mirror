@@ -80,8 +80,8 @@ freeze is `f02eb6b2e9b43887d92150a9b5bb00deecce4045` (!3378), following the
 risk-record merge `03aad424f126e8b44325e8a7c16a1b7146f78bcc` (!3379).
 Both merges and their actual parents/trees were verified under pre-published
 `20261029T215632Z-governor-reviewer-jp1q` in shared commit
-`aef24d0a7c091c9d6f37823dbfe35af506a4f08b`. Its carrier !3380 remains an audit
-publication task, not a feature. No maintenance or reconstruction exception applies.
+`aef24d0a7c091c9d6f37823dbfe35af506a4f08b`. Its audit-only carrier !3380 is now merged and verified at
+`bd341ab11e0b789ff8bebc277f33b9cbf9983336`; no feature bytes changed. No maintenance or reconstruction exception applies.
 
 The three approved slices are bounded record-only publication termination
 (!3354, ee2a768a), opt-in distribution profiling (!3372, e68d162e), and CI
@@ -167,7 +167,7 @@ independent exact-head Gate 2 remains required before its merge.
 C stays byte-identical: coordination 53 occurrences/19 files, plans 26/7,
 reviews 6/4, historical changelog sections 2/2, and six occurrences in three
 other files: archived coordination b7jd line96; rule-trigger recall corpus
-line403; release_create.rs fake-API fixture lines416,422,448,458. New audit records
+line403; release_create.rs read-only job-token probe lines416,422,448,458. New audit records
 may cite historical versions; they never authorize replacing existing C cells.
 `harbor-workshop.yaml` remains the historical 2.5.0 submission. CLAUDE.md pointers,
 README, derived release manifest and old v2.11 shipment provenance need no edits.
@@ -205,7 +205,12 @@ Require an exact `v2.13.0` protected-tag rule with Maintainers-only creation
 (access40). Gate 1 permits creating only that exact rule if absent, while the
 tag is demonstrably absent; read back and retain its full policy object. Any
 pre-existing nonmatching policy shape stops; do not edit/delete it. Keep this
-object identical at pre-push and post-publication verification.
+object identical at pre-push and post-publication verification. Enumerate the
+complete paginated protected-tag policy collection and evaluate every exact or
+wildcard match for v2.13.0. Effective creation access must remain Maintainers-only;
+a broader user/group/deploy-key grant, ambiguous policy or incomplete listing
+stops. Retain the matching policy set and recheck it before push and after
+publication. No authority to edit/remove any other protection rule.
 
 Use the existing `agov release namespace-check` from a clean committed release
 checkout at both `--phase preflight` and `--phase pre-push`. Derive project
@@ -248,7 +253,8 @@ live target and pipeline; it does not replace either operator check.
    first parent equal to the reviewed target, second parent equal to approved
    head, and tree equal to both the approved head and tested metadata tree.
    Verify no unapproved intervening source or target content.
-7. Re-read protected-tag object, authority/risk validity and runner capacity.
+7. Re-read protected-tag object and effective matching policy set, authority/risk
+   validity and runner capacity.
    Run namespace pre-push on that exact proven merge. Immediately on success,
    create one annotated v2.13.0 tag on the merge and push once in a single
    action. Do not stop for extra confirmation. Never move/delete/recreate it.
@@ -262,7 +268,8 @@ to pass. Run `agov dist post-publication-check` using fresh anonymous HTTPS
 actual downloads: hashes/sidecars, provenance/source commit, executable self
 report, package identity and OCI reference/digest chain must agree. Verify the
 annotated tag object/tagger/message and peeled merge, and re-read the unchanged
-Maintainers-only protection object. Retain no credentials/download residue.
+Maintainers-only protection object and matching policy set. Retain no
+credentials/download residue.
 
 Publish a completion record with those identities, archive names/checksums,
 Release/package/OCI identities, tag pipeline/jobs, protection object and anonymous
