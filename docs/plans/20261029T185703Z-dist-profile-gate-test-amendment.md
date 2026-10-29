@@ -10,12 +10,15 @@ depends_on:
   - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
   - 20260915T075705Z-issue130-pending-advisory-consultation-status
   - 20261021T204757Z-remove-dind-ci
-  - 20261021T220000Z-retire-windows-support
   - 20261029T183000Z-ci-pins-gate-test-amendment
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Independent review requested before Gate 1 approval.
+    status: consulted
+    reason: >-
+      Independent review at 9308d69a3367e7476e37f7f943bdff71b6ab3000
+      returned CLEAR with zero blocking findings and one low advisory.
+      Applied that advisory by removing the non-overlapping Windows-retirement
+      dependency and its collision rationale. Scope and controls are unchanged.
   - role: infosec-sentinel
     status: not-applicable
     reason: >-
@@ -64,10 +67,10 @@ implementation base. Do not alter `.agf/gates.yaml` or gate implementation code.
 
 ## Collision and ownership reconciliation
 
-The four historical shared-test plans are acknowledged directly: Row 6 S4
+The three historical shared-test plans are acknowledged directly: Row 6 S4
 established blocking collision and wiring controls; issue #130 added the pending
-consultation fixture; OCI runner migration and Windows retirement supplied
-shared-surface accompaniment. Their landed controls must remain intact.
+consultation fixture; OCI runner migration supplied shared-surface
+accompaniment. Their landed controls must remain intact.
 
 The CI-pin test amendment is also acknowledged directly. Its reviewed test delta
 is published in !3358 at `8687df2e0fe3c1434d7a678d415546711e1a14c5`, while its
