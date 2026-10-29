@@ -509,13 +509,12 @@ agf:dist:release:
 # GitLab release entry with download links. Tooling links are Rust-only,
 # platform-specific archives.
 release:create:
-  # Pinned by version and digest. Resolved 2026-10-29 from the registry
-  # manifest of tag v0.24.0 (highest plain semver tag; "latest" had the same
-  # digest): GET https://registry.gitlab.com/v2/gitlab-org/release-cli/manifests/v0.24.0
-  # -> Docker-Content-Digest. Change only through a reviewed MR that states the
-  # old and new digest, the Trivy result and the tool check
-  # (docs/plans/20261028T194451Z-ci-reproducibility-pins.md). Never use latest.
-  image: registry.gitlab.com/gitlab-org/release-cli:v0.24.0@sha256:3f52d526f48e8d10625c722fa6d6423ee82aadeae1b1aa91f07b62551d96dacf
+  # Official Alpine v3.24 is supported through 2028-06-01. The immutable
+  # linux/amd64 manifest digest was resolved from the 3.24.3 index on
+  # 2026-10-29 (index sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a).
+  # Change only through a reviewed MR that records the replacement digest,
+  # base and post-install scan evidence, and tool checks. Never use latest.
+  image: alpine:3.24.3@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d
   stage: deploy
   rules:
     - if: $CI_COMMIT_TAG
@@ -527,9 +526,9 @@ release:create:
     - job: agov:oci:release
       artifacts: true
   script:
-    - apk add --no-cache curl unzip
+    - apk add --no-cache curl jq unzip
     - VERSION="${CI_COMMIT_TAG#v}"
-    - PKG_BASE="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/agf/$CI_COMMIT_TAG"
+    - PKG_BASE="$(tooling/rust/scripts/create-release.sh package-base)"
     # Fail fast on a partial build/publish -- a real assembled `dist/` is
     # checked against the exact mandatory asset set before anything is
     # uploaded or a Release entry is created, so a missing archive or
@@ -548,6 +547,13 @@ release:create:
       AGOV_BIN="$staging/agov-${VERSION}-linux-x86_64/agov"
       "$AGOV_BIN" dist validate-provenance dist/*-provenance.json --artifact-dir dist
       rm -rf "$staging"
+    # Freeze the exact create-only Release intent and verify that the pushed
+    # tag still resolves to this pipeline's commit and that no Release exists.
+    # The same checks run again immediately before the single POST below.
+    - |
+      release_payload="$(mktemp)"
+      trap 'rm -f "$release_payload"' EXIT INT TERM
+      tooling/rust/scripts/create-release.sh preflight dist "$release_payload"
     # Upload every release artifact to the generic package registry.
     # The glob covers framework archives, Rust tooling archives, checksums, and provenance.
     - |
@@ -557,26 +563,19 @@ release:create:
         [ -f "$f" ] || continue
         fname=$(basename "$f")
         echo "Uploading $fname"
-        curl --silent --fail --show-error \
-             --header "JOB-TOKEN: $CI_JOB_TOKEN" \
+        printf 'header = "JOB-TOKEN: %s"\n' "$CI_JOB_TOKEN" | \
+        curl --disable --config - \
+             --silent --fail --show-error \
+             --connect-timeout 15 --max-time 90 \
+             --proto '=https' \
              --upload-file "$f" \
              "$PKG_BASE/$fname"
       done
-    # Create the GitLab release entry, linking every archive AND its checksum/
-    # provenance sidecars directly -- consumers must not have to guess generic-
-    # package URLs. tooling/rust/scripts/release-assets.sh enumerates exactly
-    # the files release:create just uploaded above (same glob); its `selftest`
-    # subcommand is exercised in CI on every change (job release:assets-selftest).
+    # Create exactly one GitLab Release through the create-only API. The helper
+    # omits ref, never updates/deletes, never follows redirects or retries POST,
+    # and verifies the returned and re-fetched Release against the frozen intent.
     - |
-      set -- \
-        --name "agents-govern $CI_COMMIT_TAG" \
-        --tag-name "$CI_COMMIT_TAG" \
-        --description "See [CHANGELOG](https://gitlab.com/$CI_PROJECT_PATH/-/blob/$CI_COMMIT_TAG/agf/CHANGELOG.md) for release notes."
-      for fname in $(tooling/rust/scripts/release-assets.sh list dist); do
-        set -- "$@" --assets-link "{\"name\":\"${fname}\",\"url\":\"${PKG_BASE}/${fname}\",\"link_type\":\"package\"}"
-      done
-      release-cli create \
-        "$@"
+      tooling/rust/scripts/create-release.sh publish dist "$release_payload"
 
 # Composed post-publication verification: re-fetches the just-created
 # GitLab Release from its public API (not this pipeline's `dist/` copy),

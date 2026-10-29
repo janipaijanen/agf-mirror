@@ -108,6 +108,13 @@ release:create:
 YAML
 expect "release:create image with a tag but no digest" "$f" 1 "no @sha256: digest"
 
+f="$(new release-alpine-pinned)"
+cat > "$f" <<'YAML'
+release:create:
+  image: alpine:3.24.3@sha256:c26612752c78b18faacd63c7d50f4592c2e7b0f25e0e20e82bd74e465c57ab0d
+YAML
+expect "release:create official Alpine image with exact tag and digest" "$f" 0
+
 f="$(new other-job-no-digest)"
 cat > "$f" <<'YAML'
 other:job:
