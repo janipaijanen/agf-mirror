@@ -13,17 +13,20 @@ affected_paths:
   - tests/ci-pins-selftest.sh
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Independent review `20261028T205413Z-governor-reviewer-tqds` returned BLOCK
-      at head 861070e2. This revision answers its four findings. The row stays
-      pending until an exact-head re-review; no clearance is claimed.
+      Independent read-only review returned BLOCK at head 861070e2 (record
+      `20261028T205413Z-governor-reviewer-tqds`), then CLEAR at head 85154f82
+      with zero blocking and zero advisory findings (record
+      `20261029T053012Z-governor-reviewer-8528`). Implementation must keep the
+      no-token, no-project-mount isolation of the package-install check.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Independent review `20261028T205413Z-governor-reviewer-tqds` returned BLOCK
-      at head 861070e2. This revision answers its four findings. The row stays
-      pending until an exact-head re-review; no clearance is claimed.
+      Independent read-only review returned BLOCK at head 861070e2 (record
+      `20261028T205413Z-governor-reviewer-tqds`), then CLEAR at head 85154f82
+      with zero blocking and zero advisory findings (record
+      `20261029T053012Z-governor-reviewer-8528`).
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
