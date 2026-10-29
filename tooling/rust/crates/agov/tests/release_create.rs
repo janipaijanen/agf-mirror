@@ -20,6 +20,7 @@ struct Fixture {
     bin: PathBuf,
     log: PathBuf,
     state: PathBuf,
+    work_dirs: PathBuf,
 }
 
 impl Fixture {
@@ -39,6 +40,7 @@ impl Fixture {
             payload: temp.path().join("release-intent.json"),
             log: temp.path().join("requests.log"),
             state: temp.path().join("release-created"),
+            work_dirs: temp.path().join("work-dirs.log"),
             temp,
             dist,
             bin,
@@ -60,14 +62,16 @@ impl Fixture {
             .env("CI_API_V4_URL", "https://gitlab.fixture.invalid/api/v4")
             .env("CI_PROJECT_ID", "42")
             .env("CI_PROJECT_PATH", "fixture/project")
-            .env("CI_COMMIT_TAG", "v9.9.9/rc")
+            .env("CI_COMMIT_TAG", "v9.9.9/rc\"quoted")
             .env("CI_COMMIT_SHA", SHA)
             .env("CI_JOB_TOKEN", TOKEN)
             .env("EXPECTED_TOKEN", TOKEN)
             .env("FIXTURE_SHA", SHA)
             .env("SCENARIO", scenario)
             .env("REQUEST_LOG", &self.log)
-            .env("STATE_FILE", &self.state);
+            .env("STATE_FILE", &self.state)
+            .env("WORK_DIR_LOG", &self.work_dirs)
+            .env("FIXTURE_ROOT", self.temp.path());
         command
     }
 
@@ -101,6 +105,15 @@ impl Fixture {
                 path.display()
             );
         });
+        for path in fs::read_to_string(&self.work_dirs)
+            .unwrap_or_default()
+            .lines()
+        {
+            assert!(
+                !Path::new(path).exists(),
+                "helper work directory leaked: {path}"
+            );
+        }
     }
 }
 
@@ -113,15 +126,30 @@ fn successful_create_uses_exact_intent_one_post_and_no_mutating_fallback() {
 
     let payload: serde_json::Value =
         serde_json::from_slice(&fs::read(&fixture.payload).unwrap()).unwrap();
-    assert_eq!(payload["tag_name"], "v9.9.9/rc");
-    assert!(payload.get("ref").is_none());
-    assert_eq!(payload["assets"]["links"].as_array().unwrap().len(), 2);
-    for link in payload["assets"]["links"].as_array().unwrap() {
-        assert_eq!(link["link_type"], "package");
-        assert!(link["url"].as_str().unwrap().contains("v9.9.9%2Frc/"));
-    }
+    let package_base =
+        "https://gitlab.fixture.invalid/api/v4/projects/42/packages/generic/agf/v9.9.9%2Frc%22quoted";
+    assert_eq!(
+        payload,
+        serde_json::json!({
+            "tag_name": "v9.9.9/rc\"quoted",
+            "name": "agents-govern v9.9.9/rc\"quoted",
+            "description": "See [CHANGELOG](https://gitlab.com/fixture/project/-/blob/v9.9.9/rc\"quoted/agf/CHANGELOG.md) for release notes.",
+            "assets": {"links": [
+                {
+                    "name": "agf-9.9.9.tar.gz",
+                    "url": format!("{package_base}/agf-9.9.9.tar.gz"),
+                    "link_type": "package"
+                },
+                {
+                    "name": "agf-9.9.9.tar.gz.sha256",
+                    "url": format!("{package_base}/agf-9.9.9.tar.gz.sha256"),
+                    "link_type": "package"
+                }
+            ]}
+        })
+    );
 
-    let publish = fixture.publish("success");
+    let publish = fixture.publish("post-reordered");
     assert_success(&publish);
     fixture.assert_token_absent_from_files_and_output(&publish);
     let log = fixture.log();
@@ -140,12 +168,18 @@ fn successful_create_uses_exact_intent_one_post_and_no_mutating_fallback() {
     assert_eq!(requests.len(), 8, "{requests:?}");
     assert!(requests[0].starts_with("GET ") && requests[0].contains("/repository/tags/"));
     assert!(requests[1].starts_with("GET ") && requests[1].contains("/releases?per_page=1"));
-    assert!(requests[2].starts_with("GET ") && requests[2].contains("/releases/v9.9.9%2Frc"));
+    assert!(
+        requests[2].starts_with("GET ") && requests[2].contains("/releases/v9.9.9%2Frc%22quoted")
+    );
     assert!(requests[3].starts_with("GET ") && requests[3].contains("/repository/tags/"));
     assert!(requests[4].starts_with("GET ") && requests[4].contains("/releases?per_page=1"));
-    assert!(requests[5].starts_with("GET ") && requests[5].contains("/releases/v9.9.9%2Frc"));
+    assert!(
+        requests[5].starts_with("GET ") && requests[5].contains("/releases/v9.9.9%2Frc%22quoted")
+    );
     assert!(requests[6].starts_with("POST ") && requests[6].ends_with("/releases"));
-    assert!(requests[7].starts_with("GET ") && requests[7].contains("/releases/v9.9.9%2Frc"));
+    assert!(
+        requests[7].starts_with("GET ") && requests[7].contains("/releases/v9.9.9%2Frc%22quoted")
+    );
 }
 
 #[test]
@@ -164,6 +198,31 @@ fn initial_preflight_failures_make_no_mutating_request() {
         ("existing-release", "release already exists"),
         ("redirect", "tag consistency returned HTTP 302"),
         ("malformed", "tag consistency returned malformed JSON"),
+        ("multi-tag-json", "tag consistency returned malformed JSON"),
+        (
+            "multi-namespace-json",
+            "Releases namespace access returned malformed JSON",
+        ),
+        (
+            "release-404-malformed",
+            "release absence returned malformed JSON",
+        ),
+        (
+            "release-404-html",
+            "release absence returned malformed JSON",
+        ),
+        (
+            "release-404-empty",
+            "release absence returned malformed JSON",
+        ),
+        (
+            "release-404-truncated",
+            "release absence returned malformed JSON",
+        ),
+        (
+            "release-404-wrong-json",
+            "release absence returned an unexpected 404 response",
+        ),
     ] {
         let fixture = Fixture::new();
         let output = fixture.preflight(scenario);
@@ -178,11 +237,65 @@ fn initial_preflight_failures_make_no_mutating_request() {
 }
 
 #[test]
+fn repeated_preflight_rejects_changed_or_malformed_state_before_post() {
+    for (scenario, expected) in [
+        (
+            "repeat-multi-namespace-json",
+            "Releases namespace access returned malformed JSON",
+        ),
+        (
+            "repeat-release-404-html",
+            "release absence returned malformed JSON",
+        ),
+    ] {
+        let fixture = Fixture::new();
+        assert_success(&fixture.preflight(scenario));
+        let output = fixture.publish(scenario);
+        assert!(!output.status.success(), "{scenario}");
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains(expected),
+            "{scenario}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            fixture
+                .log()
+                .lines()
+                .filter(|line| line.starts_with("POST "))
+                .count(),
+            0
+        );
+        assert!(!fixture.state.exists());
+        fixture.assert_token_absent_from_files_and_output(&output);
+    }
+}
+
+#[test]
 fn conflict_and_postcondition_mismatch_fail_without_update_or_delete() {
     for (scenario, expected) in [
         ("conflict", "release creation returned HTTP 409"),
         ("post-mismatch", "created release does not match"),
+        ("post-duplicate-link", "created release does not match"),
+        ("post-missing-link", "created release does not match"),
+        ("post-wrong-url", "created release does not match"),
+        ("post-wrong-link-type", "created release does not match"),
+        (
+            "post-malformed",
+            "release verification returned malformed JSON",
+        ),
+        (
+            "post-multi-json",
+            "release verification returned malformed JSON",
+        ),
         ("followup-mismatch", "created release does not match"),
+        (
+            "followup-malformed",
+            "release verification returned malformed JSON",
+        ),
+        (
+            "followup-multi-json",
+            "release verification returned malformed JSON",
+        ),
     ] {
         let fixture = Fixture::new();
         assert_success(&fixture.preflight("success"));
@@ -297,6 +410,23 @@ fn same_project_mr_job_token_reads_existing_tag_and_release_without_mutation() {
         .filter(|value| !value.is_empty())
         .expect("tag response commit id");
 
+    let namespace_body = temp.path().join("releases.json");
+    let namespace_status = read_with_job_token(
+        &format!("{api}/projects/{project}/releases?per_page=1"),
+        &namespace_body,
+        &token,
+    );
+    assert_eq!(
+        namespace_status, "200",
+        "Releases namespace JOB-TOKEN probe failed"
+    );
+    let namespace: serde_json::Value =
+        serde_json::from_slice(&fs::read(&namespace_body).unwrap()).unwrap();
+    assert!(
+        namespace.is_array(),
+        "Releases namespace response is not an array"
+    );
+
     let release_body = temp.path().join("release.json");
     let release_status = read_with_job_token(
         &format!("{api}/projects/{project}/releases/v2.12.0"),
@@ -408,6 +538,10 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 [ -n "$method" ] && [ -n "$output" ] && [ -n "$url" ] || exit 93
+dirname "$output" >>"$WORK_DIR_LOG"
+if find "$FIXTURE_ROOT" -type f -exec grep -F -l -- "$EXPECTED_TOKEN" {} + | grep -q .; then
+  exit 96
+fi
 printf '%s %s\n' "$method" "$url" >>"$REQUEST_LOG"
 printf 'ARGV %s\n' "$argv" >>"$REQUEST_LOG"
 
@@ -420,12 +554,20 @@ case "$url" in
       wrong-sha) body='{"commit":{"id":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}}' ;;
       redirect) status=302; body='' ;;
       malformed) body='not-json' ;;
+      multi-tag-json) body="{\"commit\":{\"id\":\"$FIXTURE_SHA\"}}
+{\"commit\":{\"id\":\"$FIXTURE_SHA\"}}" ;;
       *) body="{\"commit\":{\"id\":\"$FIXTURE_SHA\"}}" ;;
     esac
     ;;
   *'/releases?per_page=1')
     if [ "$SCENARIO" = unauthorized ]; then status=401; body='{"message":"Unauthorized"}'; fi
     if [ "$SCENARIO" = inaccessible ]; then status=403; body='{"message":"Forbidden"}'; fi
+    namespace_count=$(grep -c '^GET .*releases?per_page=1' "$REQUEST_LOG")
+    if [ "$SCENARIO" = multi-namespace-json ] ||
+       { [ "$SCENARIO" = repeat-multi-namespace-json ] && [ "$namespace_count" -gt 1 ]; }; then
+      body='{}
+[]'
+    fi
     ;;
   */releases/*)
     if [ -f "$STATE_FILE" ] || [ "$SCENARIO" = existing-release ]; then
@@ -434,12 +576,31 @@ case "$url" in
         if [ "$SCENARIO" = followup-mismatch ]; then
           body=$(printf '%s' "$body" | jq '.commit.id="dddddddddddddddddddddddddddddddddddddddd"')
         fi
+        if [ "$SCENARIO" = followup-malformed ]; then body='not-json'; fi
+        if [ "$SCENARIO" = followup-multi-json ]; then body="$body
+{}"; fi
       else
         body='{"tag_name":"v9.9.9/rc"}'
       fi
       status=200
     else
-      status=404; body='{"message":"404 Release Not Found"}'
+      status=404
+      release_count=$(grep -c '^GET .*releases/v' "$REQUEST_LOG")
+      case "$SCENARIO" in
+        release-404-malformed) body='not-json' ;;
+        release-404-html) body='<html><body>not found</body></html>' ;;
+        release-404-empty) body='' ;;
+        release-404-truncated) body='{"message":"404 Release Not Found"' ;;
+        release-404-wrong-json) body='{"message":"404 Project Not Found"}' ;;
+        repeat-release-404-html)
+          if [ "$release_count" -gt 1 ]; then
+            body='<html><body>not found</body></html>'
+          else
+            body='{"message":"404 Release Not Found"}'
+          fi
+          ;;
+        *) body='{"message":"404 Release Not Found"}' ;;
+      esac
     fi
     ;;
   */releases)
@@ -451,6 +612,24 @@ case "$url" in
         if [ "$SCENARIO" = post-mismatch ]; then
           body=$(printf '%s' "$body" | jq '.commit.id="cccccccccccccccccccccccccccccccccccccccc"')
         fi
+        if [ "$SCENARIO" = post-reordered ]; then
+          body=$(printf '%s' "$body" | jq '.assets.links |= reverse')
+        fi
+        if [ "$SCENARIO" = post-duplicate-link ]; then
+          body=$(printf '%s' "$body" | jq '.assets.links[1] = .assets.links[0]')
+        fi
+        if [ "$SCENARIO" = post-missing-link ]; then
+          body=$(printf '%s' "$body" | jq 'del(.assets.links[-1])')
+        fi
+        if [ "$SCENARIO" = post-wrong-url ]; then
+          body=$(printf '%s' "$body" | jq '.assets.links[0].url = "https://example.invalid/wrong"')
+        fi
+        if [ "$SCENARIO" = post-wrong-link-type ]; then
+          body=$(printf '%s' "$body" | jq '.assets.links[0].link_type = "other"')
+        fi
+        if [ "$SCENARIO" = post-malformed ]; then body='not-json'; fi
+        if [ "$SCENARIO" = post-multi-json ]; then body="$body
+{}"; fi
         printf '%s' "$body" >"$STATE_FILE"
         if [ "$SCENARIO" = lost-post ]; then exit 28; fi
         status=201

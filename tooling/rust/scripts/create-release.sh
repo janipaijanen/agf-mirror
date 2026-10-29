@@ -84,7 +84,14 @@ http_request() {
 }
 
 require_json() {
-  jq -e . "$1" >/dev/null 2>&1 || die "$2 returned malformed JSON"
+  jq -e --slurp 'length == 1' "$1" >/dev/null 2>&1 || die "$2 returned malformed JSON"
+}
+
+is_missing_release_response() {
+  jq -e --slurp '
+    length == 1
+      and .[0] == {"message": "404 Release Not Found"}
+  ' "$1" >/dev/null 2>&1
 }
 
 check_tag_and_release_absence() {
@@ -117,7 +124,11 @@ check_tag_and_release_absence() {
     die "release non-overwrite request failed (rule=release-via-merge-request-rule)"
   fi
   case "$status" in
-    404) : ;;
+    404)
+      require_json "$release_body" "release absence"
+      is_missing_release_response "$release_body" ||
+        die "release absence returned an unexpected 404 response (rule=release-via-merge-request-rule)"
+      ;;
     200) die "release already exists (rule=release-via-merge-request-rule)" ;;
     *) die "release absence returned ambiguous HTTP $status (rule=release-via-merge-request-rule)" ;;
   esac
@@ -197,7 +208,11 @@ diagnose_ambiguous_post() {
   if status="$(http_request GET "$api/releases/$tag" "$diagnostic")"; then
     case "$status" in
       200) state=present ;;
-      404) state=absent ;;
+      404)
+        if is_missing_release_response "$diagnostic"; then
+          state=absent
+        fi
+        ;;
     esac
   fi
   printf 'release:create indeterminate POST; diagnostic release state=%s; operator reconciliation required\n' "$state" >&2
