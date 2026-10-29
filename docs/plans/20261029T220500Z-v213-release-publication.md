@@ -159,9 +159,20 @@ five workspace version changes, with no external dependency/lock drift.
 
 B cells remain byte-identical in the metadata MR: governance manifest line18;
 site roadmap lines15,17,23,27; root roadmap lines10,12,17,25. After verified public
-bytes, a separate status-sync MR updates only these nine live status, baseline,
-heading and Release-link cells with v2.13.0, exact tag object, peeled commit,
-verification date and Release URL. Gate 1 includes this later bounded work;
+bytes, a separate status-sync MR updates these nine literal-bearing cells plus the
+following bounded companion fields in the same three files. The literal count
+is not the complete semantic status-sync edit boundary:
+
+| File | Companion fields at frozen baseline |
+| --- | --- |
+| agf/docs/governance/manifest.md | Line19 tagged date, agreeing with actual tag evidence |
+| agf/docs/site/roadmap.md | Line16 Observed at; lines23-26 current-release paragraph publication date, actual tag-pipeline job count and verification evidence |
+| docs/roadmap.md | Line11 Observed at; lines17-21 current-release paragraph publication date, actual tag-pipeline job count and completion-record citation |
+
+Use v2.13.0, the actual tag object/peeled commit, UTC observation timestamp,
+publication date, actual pipeline/job evidence, new completion record and
+Release URL. Do not retain the old 23-job count or gm8j verification as proof
+for v2.13. Preserve historical release sections and unrelated roadmap rows. Gate 1 includes this later bounded work;
 independent exact-head Gate 2 remains required before its merge.
 
 C stays byte-identical: coordination 53 occurrences/19 files, plans 26/7,
@@ -273,7 +284,7 @@ credentials/download residue.
 
 Publish a completion record with those identities, archive names/checksums,
 Release/package/OCI identities, tag pipeline/jobs, protection object and anonymous
-verification result. Only then implement B-only status synchronization under
+verification result. Only then implement B-and-companion-only status synchronization under
 its own exact-head Gate 2. Pages publication and release announcement follow
 verified status-sync merge; no release-complete claim from tag creation alone.
 
