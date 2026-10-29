@@ -108,8 +108,9 @@ Retain this job ordering:
    composed `release:verify` job afterward.
 
 Use only the existing ephemeral `CI_JOB_TOKEN` in a JOB-TOKEN header. Do not print
-or persist it, put it in a URL, or enable tracing/verbose transport. Prefer header
-input through stdin so the token is not an external process argument. Ignore
+or persist it, put it in a URL, or enable tracing/verbose transport. The JOB-TOKEN header MUST use stdin or another mechanism proven to keep the
+token out of argv; MUST NOT expand the token into any external-process argument.
+Ignore
 ambient curl configuration; use bounded connection/operation timeouts. Emit
 bounded status/reason diagnostics, not raw API bodies that may echo supplied data.
 
@@ -147,7 +148,9 @@ resource group, new rule, role, validator or tag-management workflow here.
   responses, redirects, 409 and lost POST response. Assert request order/count,
   zero mutations for failed initial preflight, exactly one POST on success, no
   PUT/DELETE/redirect following, diagnostic GET without retry on ambiguity,
-  postcondition mismatch failure, cleanup and token non-disclosure.
+  postcondition mismatch failure, cleanup and token non-disclosure. A fake-curl
+  or process-observation test must prove the dummy token is absent from argv,
+  logs, payloads, temporary files and diagnostics.
 - CI tests must prove artifact/provenance checks precede preflight/uploads, the
   two helper phases surround the existing upload loop, and `release:verify` still
   depends on creation. Keep MR trigger coverage for helper/tests through existing
