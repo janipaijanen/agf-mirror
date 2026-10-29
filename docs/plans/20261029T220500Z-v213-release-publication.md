@@ -1,15 +1,17 @@
 ---
 id: 20261029T220500Z-v213-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261029T221020Z-governor-reviewer-tjhr
+gate1_approved_at: "2026-10-29T22:10:20Z"
 topic: v213-release-publication
 candidate_release: v2.13.0
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Independent review requested before Gate 1.
+    status: consulted
+    reason: Independent contribution review deh1 is COMPLETE/CLEAR at draft da733ea5, SHA-256 7e6753a2810eb92fee941ea3f4cb415c025b2a4c8e0d7613a058fa9db37f3df7.
   - role: infosec-sentinel
-    status: pending
-    reason: Independent publication and residual-risk review requested before Gate 1.
+    status: consulted
+    reason: Independent InfoSec review mdhs is COMPLETE/CLEAR at the same exact draft/hash after effective-policy and status-companion corrections.
 affected_paths:
   - docs/plans/20261029T220500Z-v213-release-publication.md
   - AGENTS.md
