@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+
+plan_id: 20261029T204751Z-v213-release-freeze-preparation
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/poll-and-coordinate.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    path: agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Release-fact correction only. Urgency remains advisory and supplies no
+      authority. The existing governed semantics and discoverability do not change.
+  adopter_facing_explanation:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/concepts/coordination-protocol.md
+    reason: >-
+      The canonical explanation already records urgency shipped in v2.11.0 at
+      Level 5; the runbook's stale pending-release sentence is reconciled to it.
+  runbook_situation_map:
+    disposition: updated
+    path: agf/docs/site/docs/operate/poll-and-coordinate.md
+    reason: >-
+      Change only the development heading and stale maturity/shipment sentence;
+      preserve urgency selection, ownership and gates, tiers and challenge guidance.
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    path: agf/templates/AGENTS.md
+    reason: >-
+      The shipped loader already discovers the coordination rules and polling
+      workflow. Foundry AGENTS.md and .claude/CLAUDE.md need no new instruction.
+  validation_drift_evidence:
+    disposition: advisory only
+    path: docs/reviews/documentation-estate/20261029-v213-release-content-freeze.md
+    reason: >-
+      Prior immutable-v2.11 artifact evidence, fresh cross-surface comparison and
+      independent review support release truth. Strict projection/site checks
+      supply mechanical evidence, not governor or factual judgment.
+  distribution:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/operate/poll-and-coordinate.md
+      - agf/CHANGELOG.md
+    reason: >-
+      Both changed adopter paths ship in AGF archives. Plan, projection evidence
+      and estate report remain project-local audit artifacts.
