@@ -12,11 +12,15 @@ depends_on:
   - 20261023T083302Z-remove-elixir-leftovers
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Independent review requested before approval.
+    status: consulted
+    reason: Independent review at 2c3050bc357d057a2f6c72852c1e7a8393a6b3c4 returned CLEAR with no findings.
   - role: infosec-sentinel
-    status: pending
-    reason: Review the minimal feature-gated telemetry vocabulary change and retained redaction boundary.
+    status: consulted
+    reason: >-
+      Independent review at 2c3050bc357d057a2f6c72852c1e7a8393a6b3c4
+      returned CLEAR. Its non-blocking precision note is incorporated below:
+      test equals-form values and manifest paths, and retain the existing
+      closed-vocabulary literal-collision limit rather than overclaim redaction.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -46,8 +50,11 @@ No implementation is authorized until governor Gate 1 approval is published.
   appropriate core lists, guarded by that feature. Keep default feature sets
   empty and do not add dependencies.
 - Add focused tests in `roi.rs` for default/feature vocabulary presence and
-  diagnostic argument redaction. Manifest paths, arbitrary positional values,
-  unknown flags and their values must stay redacted. `--json` is a boolean flag,
+  diagnostic argument redaction. Manifest paths, positional values outside the
+  existing closed vocabulary, unknown flags and their values must stay redacted.
+  An exact safe literal such as `diagnose` remains visible under the existing
+  global token model; do not claim every possible positional string is hidden.
+  `--json` is a boolean flag,
   not a new closed-value allowance. Preserve `CLOSED_VALUE_FLAGS`, workflows,
   telemetry schema, MCP allowlist and logging destinations unchanged.
 - Preserve the full bidirectional clap/vocabulary audit. Do not skip it,
@@ -80,6 +87,8 @@ changes. Parent acceptance and the prior test amendment remain mandatory.
    contribution and infosec consultation, then published governor approval.
 2. Core ROI tests in default and feature configurations, including arbitrary
    path/value redaction and literal vocabulary presence/absence assertions.
+   Include `--json`, `--json=<sensitive-marker>` and
+   `--json --manifest <sensitive-path>`; acknowledge the safe-literal limit.
 3. The unchanged real-clap audit passes in both default and profiling builds.
 4. Full parent default/feature acceptance, required shared-gate controls and
    baseline evidence remain required; record the initial failure and correction.
