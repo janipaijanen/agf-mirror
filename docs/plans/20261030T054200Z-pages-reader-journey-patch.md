@@ -4,11 +4,11 @@ status: pending-gate1
 topic: public-pages-reader-journey-and-documentation-corrections
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Independent factual and security consultation supplied; review of this complete plan requested.
+    status: consulted
+    reason: Independent factual/security review CLEAR after two wording corrections and legacy-overlap reconciliation; exact reviewed content and reviewer provenance in handoff grjh.
   - role: contribution-auditor
-    status: pending
-    reason: Independent information-architecture consultation supplied; review of this complete plan requested.
+    status: consulted
+    reason: Independent contribution review CLEAR after legacy-overlap reconciliation; exact reviewed content and reviewer provenance in handoff grjh.
 affected_paths:
   - agf/docs/build/mkdocs.yml
   - agf/docs/site/index.md
@@ -24,6 +24,10 @@ affected_paths:
 depends_on:
   - 20261027T052118Z-gitlab-pages-homepage-modernization
   - 20261027T052500Z-tooling-coexistence-discoverability
+  - 20261021T220000Z-retire-windows-support
+  - 20260809T063148Z-pages-rework-discovery-and-ia
+  - agents-govern-2.0-pedagogical-docs-restructure
+  - get-started-commissioning-ux-v1
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -74,11 +78,37 @@ content findings, not completed visual acceptance.
   agent runtime; optional local tooling exists; third-party coexistence is not
   certified integration or an endorsement.
 
-The two predecessor plans in `depends_on` supplied the landed homepage and
+The two 2026-10-27 predecessor plans in `depends_on` supplied the landed homepage and
 coexistence baseline. This proposal deliberately revises their public copy/nav
 surfaces after that delivery; it does not reopen their CSS work or extend their
 authority. Recheck current claims, target and open MRs before implementation;
 resolve any new overlap explicitly before mutation.
+
+The collision check also identifies `20261021T220000Z-retire-windows-support`:
+its landed platform decision remains the support boundary. This patch corrects
+the resulting Commission sentence, and does not revive Windows support.
+
+Two older pending plans have no `affected_paths`, so the mechanical collision
+check cannot assess them: `20260809T063148Z-pages-rework-discovery-and-ia` and
+`agents-govern-2.0-pedagogical-docs-restructure`. Their overlapping, unexecuted
+Pages work is acknowledged here, not treated as an approved prerequisite. This
+fresh source audit, independent IA/factual consultations and concrete navigation
+proposal carry forward their operational-before-theory and progressive-disclosure
+intent. Their broader page rewrites, new figures and changes outside this plan's
+allowlist are not inherited. Request an explicit governor disposition replacing
+that overlapping unexecuted scope with this plan at Gate 1; old plan statuses
+remain pending until that decision is recorded. Any historical plan metadata
+reconciliation is a separately scoped lifecycle change, not implicit authority
+to edit additional product files or a claim that those plans were implemented.
+
+The landed `get-started-commissioning-ux-v1` plan (file
+`20260806T122121Z-get-started-commissioning-ux-v1.md`) supplies the Commission
+baseline. Preserve its operational-first-screen invariant, one canonical
+commissioning prompt, new/existing-project branching, artifact verification and
+completion contract. The first screen must show the practical setup path before
+gate theory or taxonomy. That landed baseline is acknowledged in `depends_on`;
+it is not new work to redo. These manual dispositions supplement the incomplete
+mechanical coverage of historical plans.
 
 ## Proposed order
 
