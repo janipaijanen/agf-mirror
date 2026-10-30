@@ -215,8 +215,7 @@ changelog migration entry).
 plan, reported 20 blocking overlaps with earlier plans. All 20 are
 `approved`. The shared files are the rules index, the shipped assistant template,
 the project `AGENTS.md`, the adopter changelog, the day-to-day page, the
-merge-request description rule (through the broad glob `agf/rules/**`), and the
-rule index. None of these plans has an open claim or open merge request on these
+merge-request description rule (through the broad glob `agf/rules/**`). None of these plans has an open claim or open merge request on these
 paths: the only open merge requests at this head are coordination records and
 this plan. Their earlier edits changed other entries and prose in the shared
 files; this plan adds a new rule, one pointer, one route, one page paragraph and
