@@ -2,12 +2,13 @@
 
 # Role and activation copy proposal (revision 2, for the Pages plan)
 
-Status: proposal text for review. It is not site copy and changes no role
-definition, rule, manifest or approval policy. Claim:
-`20261030T184503Z-planner-architect-12qq`. Plan:
+Status: proposal text for review. It is not site copy. This artifact makes no
+policy change, and it changes no role definition, rule or manifest. Claim:
+`20261030T185859Z-planner-architect-5msk` (revision 3; earlier claim `12qq`). Plan:
 `docs/plans/20261030T163253Z-pages-structure-and-voice.md`. Revision 2 answers
-advisory review `20261030T182931Z-planner-architect-6mt2`. I checked each
-correction in that review against the sources before using it. Where sources
+advisory reviews `20261030T182931Z-planner-architect-6mt2` and
+`20261030T185215Z-planner-architect-ehb8`. I checked each correction in those
+reviews against the sources before using it. Where sources
 disagree, this file shows the disagreement and does not choose a winner. The
 prior governor delegation has expired, so nothing here is an approval.
 
@@ -25,8 +26,8 @@ prior governor delegation has expired, so nothing here is an approval.
    plays it, recorded in the project's manifest and by the governor), and a
    **running participant** (an assistant, person or session doing the work) [S1]
    [S3][S4].
-4. The manifest template lists every role as `skipped` with a placeholder. It is
-   inert, never read as adopter state [S3]. That does not make every role
+4. Every role the manifest template lists starts as `skipped` with a placeholder
+   (the template omits one shipped definition, see D-3). It is inert, never read as adopter state [S3]. That does not make every role
    optional: the core roles are needed from the first governed change [S5].
 5. By default the human governor decides at both gates. Delegating bounded
    approval authority to a deputy is a separate, opt-in arrangement, off by
@@ -72,6 +73,13 @@ decision rather than leaving it implied in a merge [S4][S10]. By default the
 human governor makes the plan decision and the merge decision. Any authority an
 assistant has is delegated, bounded and revocable [S6][S10].
 
+*Source tension (G5), not resolved here:* `roles-and-gates.md` also says the human
+governor owns Gate 1, Gate 2, release approval and binding risk acceptance, and
+calls them non-delegable unless a future AGF version changes the role model
+[S12]. The deputy rule describes a bounded, opt-in delegation with a red list [S6].
+Copy must distinguish the human governor's ultimate accountability from who may
+exercise a bounded approval, and must not publish a blanket delegation claim.
+
 ### Planning, building and approving are separate
 
 Planning, implementation and approval are separate responsibilities. The
@@ -115,10 +123,14 @@ prerequisite [S3][S8].
 
 Say what you need: "Ask for a security review of this plan." Then, in order:
 
-1. **The assistant proposes.** It names the role that fits and why, using the role's
-   own trigger [S1][S9].
-2. **A person assigns.** Role activation and deactivation are human-only authority.
-   The human records the player and limits [S3][S7].
+1. **The assistant proposes.** It names the role that fits and why. Use the role's
+   declared trigger where it has one [S1]. Six roles declare none; for them use the
+   role's stated purpose and the adoption guide's growth signals [S1][S9], and ask
+   the role's owner to clarify when that is still ambiguous.
+2. **A person assigns.** The day-to-day page lists role activation and deactivation
+   as human-only authority [S7]. The human records who or what plays the role in the
+   manifest [S3]. Recording the role's limits as well is advisory practice; I found
+   no source that requires it, so the owner should confirm before copy says "must".
 3. **The specialist advises.** Findings are advice; an advisory reviewer does not
    approve a gate [S11].
 4. **The gate decision.** By default the human governor decides, using the findings
@@ -127,14 +139,21 @@ Say what you need: "Ask for a security review of this plan." Then, in order:
 An already active specialist can be consulted within its current scope. That is
 not a new activation.
 
+The human-only presentation stays qualified by its source. The deputy rule has a
+broader scope description and a red list that excludes rule and agent-definition
+changes, including `agf/agents/*.yaml`; absence from a named red-list bullet is not
+permission, and any deputy action needs a valid matching artifact [S6]. Do not infer
+new activation or manifest-edit authority from these sources.
+
 ## Open points (not decided here)
 
 1. D-1, D-2 and D-3 above need a scoped disposition from their canonical owners.
    See `role-source-gaps-proposal.md`.
 2. Whether the public page uses the paragraph "Planning, building and approving are
    separate" as written: governor decision.
-3. The day-to-day page's gate wording must not override the deputy rule
-   (`6mt2`, point 5). That is a separate source correction, not made here.
+3. The gate wording on the day-to-day page and in `roles-and-gates.md` (lines 72 to
+   75 and 196 to 199) must be reconciled with the deputy rule by their owners (G5).
+   That is a separate source correction, not made here.
 
 ## Sources
 
@@ -152,15 +171,18 @@ not a new activation.
 - [S8] `agf/ADOPTING.md`: "Pick the minimum role set" table; Step 1.1 guidelines.
 - [S9] `agf/ADOPTING.md`, "Step 7: Grow When It Hurts".
 - [S10] `roles-and-gates.md`: "Do not leave the governor role implicit".
+- [S12] `roles-and-gates.md`, the passages on human governor ownership of gates
+  (lines 72 to 75) and non-delegable authority (lines 196 to 199).
 - [S11] `roles-and-gates.md`: independent-implementation-reviewer paragraph and the
   agent self-approval failure row; `coder-tester.yaml` forbidden actions (merging
   without governor approval); `governor-reviewer.yaml` denied capabilities.
 
 ## Limits
 
-Read-only desk review. I did not check every page that mentions roles. The
-16-question baseline measures whether readers understand the pages, not this
-proposal. Provenance limit for that baseline: the web-UX reviewer authored part of
-the current v2.13.1 site, so its critique is author-informed. The walkthrough was
-done by a non-author session with disclosed familiarity, as an expert walkthrough
-and not a first-time-user study. Preserve this limit wherever results are quoted.
+Read-only desk review. I did not check every page that mentions roles. The baseline
+is a source-familiar expert assessment of whether answers can be located or derived
+from the pages. It is not measured first-time-user comprehension and gives no task
+times. Two things must stay separate. The web-UX reviewer authored part of the
+current v2.13.1 site, so its critique is author-informed. The actual baseline walkthrough
+(`73gh`) was done by a non-author session that disclosed prior plan and source
+familiarity. Preserve both limits wherever results are quoted.
