@@ -8,6 +8,21 @@ affected_paths:
   - agf/docs/build/hooks/**
   - docs/reviews/pages-structure-and-voice/**
 depends_on:
+  - 20260916T002012Z-roadmap-refresh-post-v2101-issue130
+  - 20261021T220000Z-retire-windows-support
+  - 20261023T045214Z-remove-elixir-references
+  - 20261023T083302Z-remove-elixir-leftovers
+  - 20261023T155559Z-agov-strict-args-ref-list
+  - 20261024T070435Z-timer-reality-polling-alignment
+  - 20261025T192020Z-supersedes-adopter-docs
+  - 20261027T045944Z-record-only-publication-termination
+  - 20261027T052118Z-gitlab-pages-homepage-modernization
+  - 20261027T052500Z-tooling-coexistence-discoverability
+  - 20261027T230355Z-v212-release-freeze-corrections
+  - 20261027T235807Z-v212-release-publication
+  - 20261029T204751Z-v213-release-freeze-preparation
+  - 20261029T220500Z-v213-release-publication
+  - 20260809T063148Z-pages-rework-discovery-and-ia
   - 20261030T054200Z-pages-reader-journey-patch
   - 20261030T064744Z-v2131-release-publication
   - 20261030T072047Z-v2131-readme-journey-followup
@@ -195,6 +210,49 @@ unique instruction, caveat, evidence statement and fragment goes.
   integration or maturity claim. Preserve the existing evidence vocabulary;
   reduce repetition by linking precise reference, not by deleting caveats.
 
+### Agent roles, active participants and adding a specialist
+
+The human's follow-up asks explicitly for agent roles, self-approval boundaries,
+which roles are active by default, which are shipped but inactive, and how to
+bring another role into the work. These are required outcomes, not an appendix.
+
+Use **agent roles** when describing responsibilities and definitions; use
+**assistant**, **person** or **session** for the participant playing a role.
+Do not promise that each role is a separately running autonomous agent.
+The canonical role page must provide a compact table separating:
+
+- shipped role definitions;
+- the documented solo trial (`coder-tester` plus human `governor-reviewer`);
+- the standard governed project (also `planner-architect`);
+- specialist roles, their purpose and activation trigger;
+- the project's actual authorized, assigned active roster.
+
+The shipped `agf/agents/MANIFEST.example.yaml` deliberately marks all roles
+skipped. It is a template, not the project's live roster. Consequently do not
+label any shipped role automatically active or promise an always-running
+process. Explain which responsibilities the selected operating model requires,
+then how the human assigns and records them in the project's live manifest.
+Do not confuse all shipped rules being available with all roles being active.
+
+Show a short request example for adding a needed specialist to a change:
+"Ask for a security review of this plan." Explain the distinct subsequent
+steps: the assistant proposes the needed role and scope; the authorized human
+approves activation/assignment; the project records the player, responsibilities,
+limits and review handoff; the specialist supplies findings; the authorized
+approver decides. Existing active roles may be consulted within their current
+scope without pretending every consultation creates a new role. New role design
+or authority changes still follow the canonical evolution/approval process.
+
+Explain self-approval precisely instead of asserting a new universal slogan.
+Implementation does not confer approval authority; advisory findings do not
+approve gates. Check the apparent tension between the public role page's
+"No agent both implements and approves" and `agf/ADOPTING.md` section 1.1's
+Phase 1 human conflict guidance. Also reconcile human accountability with
+bounded deputy-role delegation. Fact-checker review must identify the canonical
+scope and show a correct solo example. If resolving the apparent conflict needs
+a policy decision, publish that finding and stop the affected wording; do not
+silently strengthen or weaken policy in a documentation patch.
+
 ## Compatibility, boundaries and patch eligibility
 
 This is proposed patch-release content: editorial structure and clarity only.
@@ -242,6 +300,18 @@ restructured navigation/content to remain readable and accessible.
    Neither peer agreement nor a green build substitutes for either gate.
 5. Only after implementation acceptance does release planning select a patch
    version and deployment. Verify the published site after deployment.
+
+Collision scan on the committed plan found 16 declared-path predecessor
+intersections, all currently marked approved. They are explicitly listed in
+`depends_on`; their shipped functionality and safeguards remain preserved while
+this plan changes their documentation organization. This is an overlap
+acknowledgement, not a declaration that their lifecycle records are closed.
+The scan also reported 204 plans without declared paths, so it is not a proof
+of complete collision coverage. The older pending discovery plan
+`20260809T063148Z-pages-rework-discovery-and-ia` was inspected manually and
+covers the same IA question. This concrete proposal replaces that discovery
+work in practical scope; request a binding supersession/lifecycle disposition
+at Gate 1 rather than running both plans or silently changing its status.
 
 Predecessor plans for the shipped reader journey/release are historical context,
 not an instruction to repeat their structure. The active forge-evidence plan
