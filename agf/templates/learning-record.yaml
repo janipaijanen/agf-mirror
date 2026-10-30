@@ -5,7 +5,7 @@ project:
 
 adoption:
   framework_id: agf
-  framework_version: "2.13.0"
+  framework_version: "2.13.1"
   framework_commit: unknown
   # checkout_role: live -- set this on your own checkout's record at
   # commissioning time (see install-and-layouts.md, Step 7). Marks this

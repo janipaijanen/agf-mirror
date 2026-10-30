@@ -2,7 +2,7 @@
 <!-- Copyright (c) 2026 Jani Päijänen -->
 # Governance — AGF-NG (foundry)
 
-Framework version adopted: **2.13.0** | Layout: single `agf/` directory
+Framework version adopted: **2.13.1** | Layout: single `agf/` directory
 (AGF v2.0+; see `agf/rules/always/governance-file-layout-rule.md`) |
 Codename: **foundry**
 
