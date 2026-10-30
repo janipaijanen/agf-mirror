@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+{
+  "plan_id": "20261030T210529Z-pages-source-consistency-g1-g5",
+  "changed_pages_or_runbooks": [
+    "agf/docs/site/docs/concepts/roles-and-gates.md",
+    "agf/docs/site/docs/operate/day-to-day.md",
+    "agf/docs/site/docs/advanced/customizing-the-framework.md"
+  ],
+  "surfaces": {
+    "normative_owner": {
+      "disposition": "updated",
+      "paths": [
+        "agf/ADOPTING.md",
+        "agf/agents/MANIFEST.example.yaml",
+        "agf/rules/workflow/deputy-governor-rule.md"
+      ],
+      "reason": "G1 and G2 edit the role-selection table in agf/ADOPTING.md. G3 adds one skipped entry to agf/agents/MANIFEST.example.yaml. G5 reads agf/rules/workflow/deputy-governor-rule.md as the owner and does not change it. Each edit must keep what the owner requires, forbids and permits. Any comparison that cannot keep that meaning stops and returns to the governor."
+    },
+    "adopter_facing_explanation": {
+      "disposition": "updated",
+      "paths": [
+        "agf/docs/site/docs/concepts/roles-and-gates.md",
+        "agf/docs/site/docs/advanced/customizing-the-framework.md"
+      ],
+      "reason": "G5 aligns the approval and delegation passages with the deputy rule. G4 adds a documentation-only statement that activation_condition is optional. The pages remain projections of their owners."
+    },
+    "runbook_situation_map": {
+      "disposition": "updated",
+      "paths": [
+        "agf/docs/site/docs/operate/day-to-day.md"
+      ],
+      "reason": "G5 aligns the day-to-day approval wording with the deputy rule. No procedure changes."
+    },
+    "ai_landing_loaders": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "AGENTS.md",
+        "agf/templates/AGENTS.md",
+        ".claude/CLAUDE.md"
+      ],
+      "reason": "Loader routes and role authority are unchanged. Loaders point at the same owners. No loader edit is in scope."
+    },
+    "validation_drift_evidence": {
+      "disposition": "advisory only",
+      "paths": [
+        "agf/rules/workflow/documentation-rule-projection-rule.md"
+      ],
+      "reason": "Strict agov plan projection-check covers structure and distribution. Semantic equality between the old and new sentences is a reviewer judgment and no tool decides it. The Gate 2 evidence records a per-sentence comparison."
+    },
+    "distribution": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "agf/ADOPTING.md",
+        "agf/agents/MANIFEST.example.yaml",
+        "agf/rules/workflow/deputy-governor-rule.md",
+        "agf/templates/AGENTS.md",
+        "agf/docs/site/docs/concepts/roles-and-gates.md",
+        "agf/docs/site/docs/operate/day-to-day.md",
+        "agf/docs/site/docs/advanced/customizing-the-framework.md"
+      ],
+      "reason": "These adopter artifacts ship in the current AGF distribution. Recheck archive inclusion at implementation acceptance.",
+      "not_applicable": [
+        {
+          "path": "AGENTS.md",
+          "reason": "Foundry-local loader, not a promised adopter payload."
+        },
+        {
+          "path": ".claude/CLAUDE.md",
+          "reason": "Foundry-local loader, not a promised adopter payload."
+        }
+      ]
+    }
+  }
+}
