@@ -15,8 +15,8 @@
 | Layout | B (single `agf/` directory; adopter files stay in `docs/`) |
 
 This manifest describes the `agf/` directory as it stands in the foundry.
-AGF v2.12.0 is the latest published, independently verified stable release
-(tagged 2026-10-28). Adopters should install releases from the GitLab Releases
+AGF v2.13.0 is the latest published, independently verified stable release
+(tagged 2026-10-29). Adopters should install releases from the GitLab Releases
 page and verify the published checksums and provenance rather than
 treating an arbitrary repository checkout as a release artifact.
 
